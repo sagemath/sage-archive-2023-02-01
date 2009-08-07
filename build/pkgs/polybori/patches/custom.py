@@ -1,7 +1,12 @@
 import os
+import sys
 
 CCFLAGS=["-O3 -Wno-long-long -Wreturn-type -g -fPIC"]
 CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
+
+if sys.platform=='darwin':
+    FORCE_HASH_MAP=True
+
 
 if os.environ.has_key('SAGE_DEBUG'):
     CPPDEFINES=[]

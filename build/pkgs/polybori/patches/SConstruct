@@ -1,11 +1,17 @@
 # Emacs edit mode for this file is -*- python -*-
-#$Id: SConstruct,v 1.42 2009/05/15 13:40:24 alexanderdreyer Exp $
-opts = Options('custom.py')
+#$Id: SConstruct,v 1.44 2009/07/24 08:26:48 alexanderdreyer Exp $
+
+# Backward compatibility
+if not 'Variables' in globals():
+    Variables = Options
+    BoolVariable = BoolOption
+
+opts = Variables('custom.py')
 
 # Some hard-coded settings
 pboriname = 'PolyBoRi'
 pboriversion = "0.6"
-pborirelease = "1"
+pborirelease = "3"
 
 libraryversion = "0.0.0"
 debname = "polybori-" + pboriversion
@@ -95,15 +101,35 @@ if distribute or rpm_generation or deb_generation:
 
 defaultenv = Environment()
 
+# See also:  http://trac.sagemath.org/sage_trac/ticket/6437
+def sun_linker_detected():
+    if os.system('ld --version > /dev/null 2>&1 ') == 0:
+        print ("GNU linker detected!")
+        return False
+    else:
+        print ("Sun linker detected.")
+        return True
+
+
 def sonameprefix(env):
     if env['PLATFORM']=="darwin":
         return "-Wl,-dylib_install_name -Wl,"
+
+    elif (env['PLATFORM']=="sunos") and sun_linker_detected():
+        return '-Wl,-h'
+
     else:
-        return '-Wl,-soname -Wl,'
+        return '-Wl,-soname,'
+
+
 #print defaultenv.Dump()
 # Define option handle, may be changed from command line or custom.py
-opts.Add('CXX', 'C++ Compiler', "g++")
-opts.Add('CC', 'C Compiler', "gcc")
+opts.Add('CXX', 'C++ Compiler',  defaultenv['CXX'])
+opts.Add('CC', 'C Compiler', defaultenv['CC'])
+
+opts.Add('SHCXX', 'C++ Compiler (preparing shared libraries)', '$CXX')
+opts.Add('SHCC', 'C Compiler (preparing shared libraries)', '$CC')
+
 opts.Add('PYTHON', 'Python executable', "python$PROGSUFFIX")
 
 opts.Add('LIBPATH', 'list of library paths (colon or whitespace separated)',
@@ -145,27 +171,27 @@ opts.Add('DEVEL_PREFIX',
 
 opts.Add('SINGULAR_HOME', 'directory of Singular development version', '')
 
-opts.Add(BoolOption('HAVE_DOXYGEN',
+opts.Add(BoolVariable('HAVE_DOXYGEN',
                     'Generate doxygen-based documentation, if available', True))
-opts.Add(BoolOption('HAVE_PYTHON_EXTENSION',
+opts.Add(BoolVariable('HAVE_PYTHON_EXTENSION',
                     'Build python extension, if possible', True))
-opts.Add(BoolOption('BOOST_WORKS',
+opts.Add(BoolVariable('BOOST_WORKS',
                     'Skip check for Boost libraries', False))
 
-opts.Add(BoolOption('RELATIVE_SYMLINK',
+opts.Add(BoolVariable('RELATIVE_SYMLINK',
                     'Use relative symbolic links on install', True))
 
-opts.Add(BoolOption('HAVE_L2H', 'Switch latex2html on/off (deprecated)', False))
-opts.Add(BoolOption('HAVE_HEVEA', 'Switch hevea on/off (deprecated)', False))
-opts.Add(BoolOption('HAVE_TEX4HT', 'Switch tex4ht on/off', True))
+opts.Add(BoolVariable('HAVE_L2H', 'Switch latex2html on/off (deprecated)', False))
+opts.Add(BoolVariable('HAVE_HEVEA', 'Switch hevea on/off (deprecated)', False))
+opts.Add(BoolVariable('HAVE_TEX4HT', 'Switch tex4ht on/off', True))
 
 
-opts.Add(BoolOption('HAVE_PYDOC', 'Switch python doc generation on/off', True))
-opts.Add(BoolOption('EXTERNAL_PYTHON_EXTENSION', 'External python interface',
+opts.Add(BoolVariable('HAVE_PYDOC', 'Switch python doc generation on/off', True))
+opts.Add(BoolVariable('EXTERNAL_PYTHON_EXTENSION', 'External python interface',
                     False))
 
-opts.Add(BoolOption('USE_TIMESTAMP', 'Use timestamp on distribution', True))
-opts.Add(BoolOption('SHLIBVERSIONING',
+opts.Add(BoolVariable('USE_TIMESTAMP', 'Use timestamp on distribution', True))
+opts.Add(BoolVariable('SHLIBVERSIONING',
                     'Use dlltool-style versionated shared library', True))
 opts.Add('SONAMEPREFIX', 'Prefix for compiler soname command.', sonameprefix(defaultenv))
 opts.Add('SONAMESUFFIX','Suffix for compiler soname command.', '')
@@ -179,11 +205,28 @@ opts.Add('SHLIBVERSIONSUFFIX',
          '-' + pboriversion +'.' + pborirelease +
          defaultenv['SHLIBSUFFIX'] + '.' + libraryversion)
 
+opts.Add(BoolVariable('FORCE_HASH_MAP', "Force the use of gcc's deprecated " +
+"hash_map extension, even if unordered_map is available (avoiding of buggy " +
+"unordered_map)", False))
+
 pbori_cache_macros=["PBORI_UNIQUE_SLOTS","PBORI_CACHE_SLOTS","PBORI_MAX_MEMORY"]
 for m in pbori_cache_macros:
     opts.Add(m, 'PolyBoRi Cache macro value: '+m, None)
 
 tools =  ["default"]
+
+if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
+    def is_gcc():
+        compilerenv = Environment(options = opts)
+        return compilerenv['CC']  == 'gcc'
+
+    if is_gcc():
+        tools = defaultenv['TOOLS']
+        for arg in ['default', 'suncc', 'sunc++', 'sunar']:
+            if arg in tools:
+                tools.remove(arg)
+                tools +=  [ 'gcc', 'g++', 'ar']
+
 if not GetOption('clean'):
     tools +=  ["disttar", "doxygen"]
 
@@ -286,13 +329,20 @@ external_m4ri = True
 
 if not env.GetOption('clean'):
     conf = Configure(env)
+    if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
+        env.Append(LIBS=["gd"])
+        env.Append(CPPDEFINES=["HAVE_GD"])
 
-
-
-    if conf.CheckCXXHeader('unordered_map'):
-        env.Append(CPPDEFINES=["HAVE_UNORDERED_MAP"])
-    elif conf.CheckCXXHeader('tr1/unordered_map'):
-        env.Append(CPPDEFINES=["HAVE_TR1_UNORDERED_MAP"])
+    if env['FORCE_HASH_MAP']:
+        if conf.CheckCXXHeader('ext/hash_map'):
+            env.Append(CPPDEFINES=["HAVE_HASH_MAP"])
+    else:
+        if conf.CheckCXXHeader('unordered_map'):
+            env.Append(CPPDEFINES=["HAVE_UNORDERED_MAP"])
+        elif conf.CheckCXXHeader('tr1/unordered_map'):
+            env.Append(CPPDEFINES=["HAVE_TR1_UNORDERED_MAP"])
+        elif conf.CheckCXXHeader('ext/hash_map'):
+            env.Append(CPPDEFINES=["HAVE_HASH_MAP"])
 
     extern_python_ext = env['EXTERNAL_PYTHON_EXTENSION']
     if HAVE_PYTHON_EXTENSION or extern_python_ext:
@@ -332,6 +382,9 @@ if not env.GetOption('clean'):
                 print "Warning: No LaTeX to html converter found,",
                 print "Tutorial will not be installed"
     external_m4ri = conf.CheckLib('m4ri')
+    if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
+        env.Append(LIBS=["gd"])
+        env.Append(CPPDEFINES=["HAVE_GD"])
     if external_m4ri:
        env['LIBS'] += ['m4ri']
     else:
@@ -647,7 +700,7 @@ if HAVE_PYTHON_EXTENSION:
         if len(files) > 0:
             env.CNF(files)
 
-    for fdir in Split("blocksworld qg gcp_large bejing"):
+    for fdir in Split("blocksworld"):
         add_cnf_dir(env, DataPath(fdir))
 
 else:

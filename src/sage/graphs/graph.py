@@ -1168,10 +1168,9 @@ class GenericGraph(SageObject):
 	A weighted directed graph with loops::
 
 	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
-        sage: G.laplacian_matrix()
+            sage: G.laplacian_matrix()
 	    [ 3 -3]
 	    [-4  4]
-
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import IntegerRing
@@ -1475,10 +1474,13 @@ class GenericGraph(SageObject):
         Returns any loops in the (di)graph.
 
         INPUT:
-        new -- deprecated
-        labels -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
 
-        EXAMPLES:
+        - ``new`` -- deprecated
+
+        - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
+
+        EXAMPLES::
+
             sage: G = Graph(loops=True); G
             Looped graph on 0 vertices
             sage: G.has_loops()
@@ -1528,8 +1530,9 @@ class GenericGraph(SageObject):
         Returns whether there are multiple edges in the (di)graph.
 
         INPUT:
-            to_undirected -- (default: False) If True, runs the test on the undirected version of a DiGraph.
-                                Otherwise, treats DiGraph edges (u,v) and (v,u) as unique individual edges.
+
+        - ``to_undirected`` -- (default: False) If True, runs the test on the undirected version of a DiGraph.
+          Otherwise, treats DiGraph edges (u,v) and (v,u) as unique individual edges.
 
         EXAMPLES::
 
@@ -10204,26 +10207,26 @@ class Graph(GenericGraph):
         return max_clique(self)
 
     def clique_number(self, algorithm="cliquer", cliques=None):
-        """
+        r"""
         Returns the order of the largest clique of the graph (the clique
         number).
 
         NOTE:
 
-         - Currently only implemented for undirected graphs. Use to_undirected
+         - Currently only implemented for undirected graphs. Use ``to_undirected``
            to convert a digraph to an undirected graph.
 
         INPUT:
 
          - ``algorithm`` - either ``cliquer`` or ``networkx``
 
-           - ``cliquer`` - This wraps the C program Cliquer, [1].
+           - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
 
            - ``networkx`` - This function is based on Networkx's implementation
-                of the Bron and Kerbosch Algorithm, [2].
+             of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
-         - ``cliques'' - an optional list of cliques that can be input if
-              already computed. Ignored unless ``algorithm=='networkx'``.
+         - ``cliques`` - an optional list of cliques that can be input if
+           already computed. Ignored unless ``algorithm=='networkx'``.
 
         ALGORITHM:
 
@@ -10238,7 +10241,6 @@ class Graph(GenericGraph):
             sage: G.show(figsize=[2,2])
             sage: G.clique_number()
             3
-
         """
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number

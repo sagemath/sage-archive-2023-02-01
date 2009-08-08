@@ -49,7 +49,7 @@ equality)
     (x + y + 1/2*z/sin(1/55*y*z))^(x + y + 1/2*z/sin(1/55*y*z))
 
 Differentiation and integration are available, but behind the
-scenes through maxima::
+scenes through Maxima::
 
     sage: f = sin(x)/cos(2*y)
     sage: f.derivative(y)
@@ -229,7 +229,7 @@ Simplifying expressions involving scientific notation::
     sage: sqrt(c^3)
     sqrt(((2.00000000000000e-6)*k + 12)^3)
 
-The symbolic Calculus package uses its own copy of maxima for
+The symbolic calculus package uses its own copy of Maxima for
 simplification, etc., which is separate from the default
 system-wide version::
 
@@ -458,7 +458,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         y^z*x + 1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
-    over the internet (deos NOT require a mathematica license!)::
+    over the internet (does NOT require a Mathematica license!)::
 
         sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z

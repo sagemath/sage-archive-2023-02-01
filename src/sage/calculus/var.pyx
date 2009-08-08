@@ -34,7 +34,7 @@ def var(s, ns=True):
         sage: f(n = var('sigma'))
         xx^sigma + yy^sigma + zz^sigma
 
-    If you make an important builtin variable into a symbolic variable,
+    If you make an important built-in variable into a symbolic variable,
     you can get back the original value using restore::
 
         sage: var('QQ RR')
@@ -52,7 +52,7 @@ def var(s, ns=True):
         sage: theta^2 + gamma^3
         gamma^3 + theta^2
 
-    The new variables are of type Expresion, and belong
+    The new variables are of type Expression, and belong
     to the symbolic expression ring::
 
         sage: type(theta)

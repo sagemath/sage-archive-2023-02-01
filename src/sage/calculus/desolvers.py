@@ -3,12 +3,12 @@ This file contains functions useful for solving differential equations
 which occur commonly in a 1st semester differential equations course.
 
 * desolve -- Computes the "general solution" to a 1st or 2nd order
-             ODE via maxima.
+             ODE via Maxima.
 
-* desolve_laplace -- Solves an ODE using laplace transforms via maxima.
+* desolve_laplace -- Solves an ODE using laplace transforms via Maxima.
                      Initials conditions are optional.
 
-* desolve_system -- Solves any size system of 1st order odes using maxima.
+* desolve_system -- Solves any size system of 1st order odes using Maxima.
                     Initials conditions are optional.
 
 * eulers_method -- Approximate solution to a 1st order DE, presented as a table.

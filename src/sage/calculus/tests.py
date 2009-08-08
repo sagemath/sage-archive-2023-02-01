@@ -132,9 +132,9 @@ from some Mathematica docs::
 The following are a bunch of examples of integrals that Mathematica
 can do, but Sage currently can't do::
 
-    sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- mathematica can do this
+    sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- Mathematica can do this
     integrate(sqrt(x + sqrt(x)), x)
-    sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this
+    sage: integrate(log(x)*exp(-x^2))        # todo -- Mathematica can do this
     integrate(e^(-x^2)*log(x), x)
 
 Todo - Mathematica can do this and gets `\pi^2/15`.
@@ -147,7 +147,7 @@ Todo - Mathematica can do this and gets `\pi^2/15`.
 
 ::
 
-    sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: mathematica can do this
+    sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: Mathematica can do this
     integrate(ceil(x^2) + floor(x), x, 0, 5)
 
 MAPLE: The basic differentiation and integration examples in the

@@ -9,7 +9,7 @@ capabilities", by Michael Wester, who put forward 123 problems that
 a reasonable computer algebra system should be able to solve and
 tested the then current versions of various commercial CAS on this
 list. Sage can do most of the problems natively now, i.e., with no
-explicit calls to maxima or other systems.
+explicit calls to Maxima or other systems.
 
 ::
 
@@ -57,7 +57,7 @@ explicit calls to maxima or other systems.
 ::
 
     sage: # (not exactly ok) Sqrt(2*Sqrt(3)+4)=1+Sqrt(3).
-    sage: # The maxima backend equality checker fails this; maybe it *should*, since
+    sage: # The Maxima backend equality checker fails this; maybe it *should*, since
     sage: # the equality only holds for one choice of sign.
     sage: a = sqrt(2*sqrt(3) + 4); b = 1 + sqrt(3)
     sage: print float(a-b)
@@ -293,7 +293,7 @@ explicit calls to maxima or other systems.
 ::
 
     sage: # (NO, except numerically) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
-    # Sage uses the maxima convention when comparing symbolic expressions and
+    # Sage uses the Maxima convention when comparing symbolic expressions and
     # returns True only when it can prove equality. Thus, in this case, we get
     # False even though the equality holds.
     sage: f = log(tan(x/2 + pi/4)) - arcsinh(tan(x))

@@ -93,7 +93,7 @@ def wronskian(*args):
             fs = args
             row = lambda n: map(lambda f: diff(f, n), fs)
         # NOTE: I rewrote the below as two lines to avoid a possible subtle
-        # memory management problem on some platforms (only vmware as far
+        # memory management problem on some platforms (only VMware as far
         # as we know?).  See trac #2990.
         # There may still be a real problem that this is just hiding for now.
         A = matrix(map(row, range(len(fs))))

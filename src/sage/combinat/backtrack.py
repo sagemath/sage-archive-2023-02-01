@@ -160,7 +160,7 @@ class SearchForest(CombinatorialClass):
 
     EXAMPLES:
 
-    A generator object for binary sequencences of length 3, listed::
+    A generator object for binary sequences of length 3, listed::
 
         sage: list(SearchForest([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else []))
         [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]

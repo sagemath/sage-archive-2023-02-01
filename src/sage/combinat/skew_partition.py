@@ -520,7 +520,7 @@ class SkewPartition_class(CombinatorialObject):
     def pieri_macdonald_coeffs(self):
         """
         Computation of the coefficients which appear in the Pieri formula
-        for Macdonald polynomails given in his book ( Chapter 6.6 formula
+        for Macdonald polynomials given in his book ( Chapter 6.6 formula
         6.24(ii) )
 
         EXAMPLES::

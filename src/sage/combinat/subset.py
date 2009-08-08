@@ -3,7 +3,7 @@ Subsets
 
 The combinatorial class of the subsets of a finite set. The set can
 be given as a list or a Set or else as an integer `n` which encodes the set
-`\{1,2,...,n\}`. See the ``Subsets`` for more informations and examples.
+`\{1,2,...,n\}`. See the ``Subsets`` for more information and examples.
 
 AUTHORS:
 

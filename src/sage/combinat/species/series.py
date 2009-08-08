@@ -609,7 +609,7 @@ class LazyPowerSeries(AlgebraElement):
             2
         """
         #If we already know the order, then we don't have
-        #to worry about the aprroximate order
+        #to worry about the approximate order
         if self.order != unk:
             return
 

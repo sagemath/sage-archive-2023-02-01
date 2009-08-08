@@ -22,7 +22,7 @@ block design is specified by (v,B).
 
 This software is released under the terms of the GNU General Public
 License, version 2 or above (your choice). For details on
-licencing, see the accompanying documentation.
+licensing, see the accompanying documentation.
 
 REFERENCES:
 

@@ -64,7 +64,7 @@ AUTHORS:
 #    do by copying an existing class and modifying it.
 #    Make sure to at least define _eval and _repr_.
 #    NOTES:  (a) define the _eval method only, which you may
-#                assume has as input a *positive* SAGE integer (offset > 0).
+#                assume has as input a *positive* Sage integer (offset > 0).
 #                Each sequence in the OEIS has an offset >= 0, indicating the
 #                value of the first index. The default offset = 1.
 #            (b) define the list method if there is a faster
@@ -73,14 +73,14 @@ AUTHORS:
 #                of list, note: the offset is counted for, it lists n numbers).
 #            (c) *AVOID* using gp.method if possible!  Use pari(obj).method()
 #            (d) In many cases the function that computes a given integer
-#                sequence belongs elsewhere in SAGE.  Put it there and make
+#                sequence belongs elsewhere in Sage.  Put it there and make
 #                your class in this file just call it.
-#            (e) _eval should always return a SAGE integer.
+#            (e) _eval should always return a Sage integer.
 #
 # 2. Add an instance of your class in Section III below.
 
 #
-# 3. Type "sage -br" to rebuild SAGE, then fire up the notebook and
+# 3. Type "sage -br" to rebuild Sage, then fire up the notebook and
 #    try out your new sequence.  Click the text button to get a version
 #    of your session that you then include as a docstring.
 #    You can check your results with the entries of the OEIS:
@@ -214,7 +214,7 @@ class SloaneSequence(SageObject):
             NotImplementedError
         """
         # this is what you implement in the derived class
-        # the input n is assumed to be a *SAGE* integer >= offset
+        # the input n is assumed to be a *Sage* integer >= offset
         raise NotImplementedError
 
     def list(self, n):
@@ -7492,7 +7492,7 @@ class A001836(SloaneSequence):
         Numbers `n` such that `\phi(2n-1) < \phi(2n)`,
         where `\phi` is Euler's totient function.
 
-        Eulers totient function is also known as euler_phi, euler_phi is
+        Euler's totient function is also known as euler_phi, euler_phi is
         a standard Sage function.
 
         INPUT:
@@ -7602,7 +7602,7 @@ class A001836(SloaneSequence):
 # a group of sequences uses this function:
 def recur_gen2(a0,a1,a2,a3):
     """
-    homogenous general second-order linear recurrence generator with
+    homogeneous general second-order linear recurrence generator with
     fixed coefficients
 
     a(0) = a0, a(1) = a1, a(n) = a2\*a(n-1) + a3\*a(n-2)
@@ -8606,7 +8606,7 @@ class A061084(SloaneSequence):
 # a group of sequences uses this function:
 def recur_gen3(a0,a1,a2,a3,a4,a5):
     """
-    homogenous general third-order linear recurrence generator with
+    homogeneous general third-order linear recurrence generator with
     fixed coefficients
 
     a(0) = a0, a(1) = a1, a(2) = a2, a(n) = a3\*a(n-1) + a4\*a(n-2) +

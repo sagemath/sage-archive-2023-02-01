@@ -157,7 +157,7 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
 
     def _multiply(self, left, right):
         """
-        Multiply left and right by coverting to the Schurs, multiplying
+        Multiply left and right by converting to the Schurs, multiplying
         there, and converting back. Note that the product of k-Schurs with
         t is only guaranteed to be a sum of k-Schurs when t = 1.
 

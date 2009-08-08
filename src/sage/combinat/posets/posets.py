@@ -298,7 +298,7 @@ class FinitePoset(ParentWithBase):
 
     def __cmp__(self, other):
         r"""
-        Define comparision for finite posets.
+        Define comparison for finite posets.
 
         We compare types, then number of elements, then Hasse
         diagrams.
@@ -1547,7 +1547,7 @@ class FinitePoset(ParentWithBase):
         """
         Returns the order complex associated to this poset.
 
-        The order complex is the simplical complex with vertices equal
+        The order complex is the simplicial complex with vertices equal
         to the elements of the poset, and faces given by the chains.
 
         EXAMPLES::

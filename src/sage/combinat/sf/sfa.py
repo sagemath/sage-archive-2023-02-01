@@ -1745,7 +1745,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         This is the vertex operator that generalizes Jing's operator It is
         from: Hall-Littlewood Vertex Operators and Kostka Polynomials,
         Shimizono-Zabrocki, Proposition 5 It is a linear operator that
-        rases the degree by sum(nu) This creation operator is a t-analogue
+        raises the degree by sum(nu) This creation operator is a t-analogue
         of multiplication by s(nu)
 
         INPUT:

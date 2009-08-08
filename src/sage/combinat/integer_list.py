@@ -764,12 +764,12 @@ class IntegerListsLex(CombinatorialClass):
         [[3, 3], [3, 2, 1]]
 
 
-    With some work, this could be fixed withoug affecting the overall
+    With some work, this could be fixed without affecting the overall
     complexity and efficiency. Also, the generation algorithm could be
     extended to deal with non-constant slope constraints and with
     negative parts, as well as to accept a range parameter instead of
     a single integer for the sum `n` of the lists (the later was
-    readilly implemented in MuPAD-Combinat). Encouragements,
+    readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
     TODO: integrate all remaining tests from http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -975,7 +975,7 @@ class IntegerListsLex(CombinatorialClass):
     # FIXME: integrate them as methods of this class
     def build_args(self):
         """
-        Returns a list of arguments that can be passed into the prexisting
+        Returns a list of arguments that can be passed into the pre-existing
         first,next,is_a, ... functions in this module.
 
         n is currently not included in this list.

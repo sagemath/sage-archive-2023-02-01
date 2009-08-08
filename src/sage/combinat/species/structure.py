@@ -179,7 +179,7 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 
     def __repr__(self):
         """
-        Returns the repr of the object which tihs one wraps.
+        Returns the repr of the object which this one wraps.
 
         EXAMPLES::
 

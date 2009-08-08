@@ -153,7 +153,7 @@ class PosetsGenerator(object):
         def lower_covers(partition):
             r"""
             Nested function for computing the lower covers
-            of elements in the poset of integer paritions.
+            of elements in the poset of integer partitions.
             """
             lc = []
             for i in range(0,len(partition)-1):
@@ -190,7 +190,7 @@ class PosetsGenerator(object):
         def lower_covers(partition):
             r"""
             Nested function for computing the lower covers of elements in the
-            restricted poset of integer paritions.
+            restricted poset of integer partitions.
             """
             lc = []
             for i in range(0,len(partition)-1):

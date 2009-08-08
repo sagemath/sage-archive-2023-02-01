@@ -10,7 +10,7 @@ IncidenceStructure
 
 This software is released under the terms of the GNU General Public
 License, version 2 or above (your choice). For details on
-licencing, see the accompanying documentation.
+licensing, see the accompanying documentation.
 
 REFERENCES:
 
@@ -225,7 +225,7 @@ class IncidenceStructure(object):
 
           - Connected: its incidence graph is a connected graph.
 
-        WRNING: This is very fast but can return false positives.
+        WARNING: This is very fast but can return false positives.
 
         EXAMPLES::
 

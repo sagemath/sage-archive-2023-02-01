@@ -425,7 +425,7 @@ cdef class WordDatatype_str(WordDatatype):
 
     def count(self, letter):
         r"""
-        Count the number of occurences of ``letter``.
+        Count the number of occurrences of ``letter``.
 
         INPUT:
 

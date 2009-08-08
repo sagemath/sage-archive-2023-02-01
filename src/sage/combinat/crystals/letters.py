@@ -616,7 +616,7 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
 
     def f(self, i):
         r"""
-        Retursn the action of `f_i` on self.
+        Returns the action of `f_i` on self.
 
         EXAMPLES::
 

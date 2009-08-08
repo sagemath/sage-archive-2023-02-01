@@ -521,7 +521,7 @@ class Partition_class(CombinatorialObject):
             sage: plist = [int(a*F(x)) for x in range(1,11)]; plist
             [2, 4, 6, 8, 10, 1, 3, 5, 7, 9]
 
-        This corresponds ot the permutation (1, 2, 4, 8, 5, 10, 9, 7, 3, 6)
+        This corresponds to the permutation (1, 2, 4, 8, 5, 10, 9, 7, 3, 6)
         (acting the set `\{1,2,...,10\}`) and to the partition
         [10].
 
@@ -2755,7 +2755,7 @@ def Partitions(n=None, **kwargs):
 
       Except for very special cases, counting is done by brute force
       iteration through all the partitions. However the iteration
-      itself has a reasonnable complexity (constant memory, constant
+      itself has a reasonable complexity (constant memory, constant
       amortized time), which allow for manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()
@@ -2926,7 +2926,7 @@ class Partitions_all(InfiniteAbstractCombinatorialClass):
 
     def _infinite_cclass_slice(self, n):
         """
-        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+        Needed by InfiniteAbstractCombinatorialClass to build __iter__.
 
         TESTS:
             sage: Partitions()._infinite_cclass_slice(4) == Partitions(4)
@@ -4326,7 +4326,7 @@ def partition_sign(pi):
         sage: plist = [int(a*F(x)) for x in range(1,11)]; plist
         [2, 4, 6, 8, 10, 1, 3, 5, 7, 9]
 
-    This corresponds ot the permutation (1, 2, 4, 8, 5, 10, 9, 7, 3, 6)
+    This corresponds to the permutation (1, 2, 4, 8, 5, 10, 9, 7, 3, 6)
     (acting the set `\{1,2,...,10\}`) and to the partition
     [10].
 

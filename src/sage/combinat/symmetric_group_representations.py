@@ -358,7 +358,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
 
     def verify_representation(self):
         r"""
-        Verify the reresentation: tests that the images of the simple
+        Verify the representation: tests that the images of the simple
         transpositions are involutions and tests that the braid relations
         hold.
 

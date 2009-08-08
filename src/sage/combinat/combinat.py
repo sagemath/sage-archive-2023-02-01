@@ -1640,9 +1640,8 @@ class MapCombinatorialClass(CombinatorialClass):
 from sage.rings.all import infinity
 class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     r"""
-
-    This is an internal Class this should not be used directly.  A class wich
-    inerits from InfiniteAbstractCombinatorialClass inherits the standard
+    This is an internal class that should not be used directly.  A class which
+    inherits from InfiniteAbstractCombinatorialClass inherits the standard
     methods list and count.
 
     If self._infinite_cclass_slice exists then self.__iter__ returns an
@@ -1676,7 +1675,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 
     def __iter__(self):
         """
-        Returns an interator for the infinite combinatorial class self if
+        Returns an iterator for the infinite combinatorial class self if
         possible or raise a NotImplementedError.
 
         EXAMPLES:
@@ -1721,7 +1720,7 @@ def hurwitz_zeta(s,x,N):
     The Dirichlet L-functions may be expressed as a linear combination
     of Hurwitz zeta functions.
 
-    Note that if you use floting point inputs, then the results may be
+    Note that if you use floating point inputs, then the results may be
     slightly off.
 
     EXAMPLES::
@@ -2049,7 +2048,7 @@ def unordered_tuples(S,k):
 
        Wraps GAP - hence mset must be a list of objects that have
        string representations that can be interpreted by the GAP
-       intepreter. If mset consists of at all complicated Sage
+       interpreter. If mset consists of at all complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
 

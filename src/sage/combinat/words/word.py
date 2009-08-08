@@ -654,7 +654,7 @@ class Word_class(SageObject):
                 # If self_it is exhausted, then we need to check other_it.
                 # If other_it is exhausted also, then self == other. Return
                 # 0. Otherwise, self is a proper prefix of other.
-                # So self < other; teturn -1.
+                # So self < other; return -1.
                 try:
                     other_it.next()
                     return -1
@@ -4714,7 +4714,7 @@ exponent %s: the length of the word (%s) times the exponent \
     # 2. The actual code should then be copied as is in the Word_over_Alphabet
     # and continue to use the parent cmp
     # 3. Once Word can define Words over alphabet, the examples
-    # should be updated approprietly.
+    # should be updated appropriately.
     def swap(self, i, j=None):
         r"""
         Returns the word w with entries at positions i and

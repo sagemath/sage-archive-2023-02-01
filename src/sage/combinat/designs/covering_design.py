@@ -272,7 +272,7 @@ class CoveringDesign(SageObject):
 
 
         NOTES:
-            This is very slow and wasteful of memory.  A faster cython
+            This is very slow and wasteful of memory.  A faster Cython
             version will be added soon.
 
         EXAMPLES:

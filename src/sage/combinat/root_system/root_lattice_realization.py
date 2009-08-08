@@ -22,7 +22,7 @@ from sage.misc.all import cached_method
 class RootLatticeRealization(object):
     def index_set(self):
         """
-        EAMPLES:
+        EXAMPLES:
            sage: r = RootSystem(['A',4]).root_space()
            sage: r.index_set()
            [1, 2, 3, 4]

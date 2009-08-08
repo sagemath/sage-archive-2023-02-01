@@ -525,7 +525,7 @@ class YangBaxterGraph_generic(SageObject):
         if not inplace:
             return Y
 
-##### Yang-Baxter Graphs defiend by a partition ###########################
+##### Yang-Baxter Graphs defined by a partition ###########################
 
 class YangBaxterGraph_partition(YangBaxterGraph_generic):
     def __init__(self, partition):
@@ -667,7 +667,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
     def vertex_relabelling_dict(self, v):
         r"""
         Return a dictionary pairing vertices ``u`` of self with the object
-        obtained from ``v`` by applying transpositions corresonding to the
+        obtained from ``v`` by applying transpositions corresponding to the
         edges labels along a path from the root to ``u``. Note that the
         root is paired with ``v``.
 

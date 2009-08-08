@@ -23,7 +23,7 @@ from combinat import CombinatorialClass
 
 def CartesianProduct(*iters):
     """
-    Returns the combinatorial class of the cartesian product of
+    Returns the combinatorial class of the Cartesian product of
     \*iters.
 
     EXAMPLES::

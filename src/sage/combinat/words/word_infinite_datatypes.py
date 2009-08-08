@@ -181,7 +181,7 @@ class WordDatatype_callable(WordDatatype):
             sage: tm[-1]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use a nagative index with an infinite word
+            IndexError: cannot use a negative index with an infinite word
 
         Slicing::
 
@@ -261,7 +261,7 @@ class WordDatatype_callable(WordDatatype):
         else:
             if key < 0:
                 if self._len is Infinity:
-                    raise IndexError, "cannot use a nagative index with an infinite word"
+                    raise IndexError, "cannot use a negative index with an infinite word"
                 else:
                     key = self._len + key
             return self._func(key)
@@ -426,7 +426,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: tm[-1]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use a nagative index with an infinite word
+            IndexError: cannot use a negative index with an infinite word
 
         Slicing.
             sage: tm[:]
@@ -607,7 +607,7 @@ class WordDatatype_iter(WordDatatype):
             sage: [w[i] for i in range(12)]
             ['a', 'b', 'b', 'a', 'b', 'a', 'a', 'b', 'b', 'a', 'a', 'b']
 
-        The previous command exhausts the iteraor, so we now know the
+        The previous command exhausts the iterator, so we now know the
         length of the word::
 
             sage: w.length()
@@ -914,7 +914,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             sage: [w[i] for i in range(12)]
             ['a', 'b', 'b', 'a', 'b', 'a', 'a', 'b', 'b', 'a', 'a', 'b']
 
-        Copyin via slicing::
+        Copying via slicing::
 
             sage: w = Word(iter("abbabaabbaab")); w
             word: abbabaabbaab

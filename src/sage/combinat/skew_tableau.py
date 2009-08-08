@@ -714,7 +714,7 @@ class StandardSkewTableaux_all(InfiniteAbstractCombinatorialClass):
 
     def _infinite_cclass_slice(self, n):
         """
-        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+        Needed by InfiniteAbstractCombinatorialClass to build __iter__.
 
         TESTS::
 

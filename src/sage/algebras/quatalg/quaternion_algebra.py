@@ -1358,7 +1358,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def __cmp__(self, right):
         """
-        Compare this fractional quaterion ideal to ``right``.  If
+        Compare this fractional quaternion ideal to ``right``.  If
         ``right`` is not a fractional quaternion ideal a TypeError is
         raised.  If the fractional ideals are in different ambient
         quaternion algebras, then the quaternion algebras themselves
@@ -1415,7 +1415,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         ``Q.free_module()``, where ``Q`` is the ambient quaternion
         algebra.
 
-        OUTPUT: free `\\ZZ`-module of rank 4 embeded in an ambient `\\QQ^4`.
+        OUTPUT: free `\\ZZ`-module of rank 4 embedded in an ambient `\\QQ^4`.
 
         EXAMPLES::
 

@@ -1,5 +1,5 @@
 """
-Optimized cython code needed by quaternion algebras.
+Optimized Cython code needed by quaternion algebras.
 
 This is a collection of miscellaneous routines that are in Cython for
 speed purposes and are used by the quaternion algebra code.  For

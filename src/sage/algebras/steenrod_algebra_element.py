@@ -228,7 +228,7 @@ a particular basis and then use that::
     sage: c.basis('milnor')
     Sq(0,1) + Sq(3)
     sage: adem = SteenrodAlgebra(2, 'serre-cartan')
-    sage: x = Sq(7,3,1)   # top class in the subalagebra A(2)
+    sage: x = Sq(7,3,1)   # top class in the subalgebra A(2)
     sage: adem(x)
     Sq^{17} Sq^{5} Sq^{1}
     sage: SteenrodAlgebra(2, 'pst')(x)

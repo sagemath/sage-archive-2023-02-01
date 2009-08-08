@@ -697,7 +697,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
     # Implementation Notes:
     #
     # A Quaternion algebra element (call it a) over Q are implemented as a 4-tuple of
-    # integers x, y, z, w and a demoninator d, all of type mpz_t, such that
+    # integers x, y, z, w and a denominator d, all of type mpz_t, such that
     #
     #           theta = (1/d) * (x + y * i + z * j + w * k)
     #
@@ -1270,7 +1270,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         # another function. Normally this function is called
         # at the end of an arithmetic routine, so this is fine.
 
-        # Implemenationwise, we compute the gcd's one at a time,
+        # Implementation-wise, we compute the GCD's one at a time,
         # and quit if it ever becomes one
 
 
@@ -1536,7 +1536,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         fmpz_poly_scalar_mul_mpz(self.z, self.z, t3)
         fmpz_poly_scalar_mul_mpz(self.w, self.w, t4)
 
-        ZZX_to_fmpz_poly(self.a, a.__numerator)     # we will assume that the denominafor of a and b are 1
+        ZZX_to_fmpz_poly(self.a, a.__numerator)     # we will assume that the denominator of a and b are 1
         ZZX_to_fmpz_poly(self.b, b.__numerator)
 
         ZZX_to_fmpz_poly(self.modulus, (<NumberFieldElement>x).__fld_numerator.x) # and same for the modulus
@@ -1884,7 +1884,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         # another function. Normally this function is called
         # at the end of an arithmetic routine, so this is fine.
 
-        # Implemenationwise, we compute the gcd's one at a time,
+        # Implementation-wise, we compute the GCD's one at a time,
         # and quit if it ever becomes one
 
         cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(self.x)) # TODO: think about how big this should be (probably the size of d)

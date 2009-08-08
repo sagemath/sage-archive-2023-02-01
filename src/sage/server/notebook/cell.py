@@ -213,7 +213,7 @@ return(value);
       style  : "inherit",
       data   : %r
   });
-</script>"""%(self.__id,self.__id,self.__text)
+</script>"""%(self.__id,self.__id,((self.__text).decode('utf-8')).encode('ascii', 'xmlcharrefreplace'))
 
 
         if editing:

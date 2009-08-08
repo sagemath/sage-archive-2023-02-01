@@ -348,15 +348,15 @@ ex ncmul::eval(int level) const
 	if (assocseq.empty()) return _ex1;
 
 	// determine return types
-	unsignedvector rettypes;
-	rettypes.reserve(assocseq.size());
+	unsignedvector rettypes(assocseq.size());
 	size_t i = 0;
 	size_t count_commutative=0;
 	size_t count_noncommutative=0;
 	size_t count_noncommutative_composite=0;
 	cit = assocseq.begin(); citend = assocseq.end();
 	while (cit != citend) {
-		switch (rettypes[i] = cit->return_type()) {
+		rettypes[i] = cit->return_type();
+		switch (rettypes[i]) {
 		case return_types::commutative:
 			count_commutative++;
 			break;

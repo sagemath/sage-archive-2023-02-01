@@ -3,7 +3,7 @@ Algebraic-Geometric Codes
 
 AUTHOR:
     -- David Joyner (2006-01-26): written
-    -- William Stein (2006-01-23) -- inclusion in SAGE
+    -- William Stein (2006-01-23) -- inclusion in Sage
 """
 
 #*****************************************************************************

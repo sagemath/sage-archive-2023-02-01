@@ -1030,9 +1030,9 @@ class LinearCode(module.Module):
         dperp = Cd.minimum_distance()
         if dperp > d:
             P = RT(C.zeta_polynomial())
-            # SAGE does not find dealing with sqrt(int) *as an algebraic object*
+            # Sage does not find dealing with sqrt(int) *as an algebraic object*
             # an easy thing to do. Some tricky gymnastics are used to
-            # make SAGE deal with objects over QQ(sqrt(q)) nicely.
+            # make Sage deal with objects over QQ(sqrt(q)) nicely.
             if is_even(n):
                 Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
             if not(is_even(n)):

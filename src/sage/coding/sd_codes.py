@@ -152,7 +152,7 @@ def self_dual_codes_binary(n):
     The number of inequiv "diagonal" sd binary codes in the database of
     length n is ("diagonal" is defined by the conjecture above) is the
     same as the restricted partition number of n, where only integers
-    from the set 1,4,6,8,... are allowed. This is the coeff of
+    from the set 1,4,6,8,... are allowed. This is the coefficient of
     `x^n` in the series expansion
     `(1-x)^{-1}\prod_{2^\infty (1-x^{2j})^{-1}}`. Typing the
     command f = (1-x)(-1)\*prod([(1-x(2\*j))(-1) for j in range(2,18)])
@@ -291,7 +291,7 @@ def self_dual_codes_binary(n):
         #              "(4,9)(8,10)", "(3,4)(10,11)", "(2,3)(9,10)", "(1,2)(8,9)"] )
         spectrum = [1, 0, 3, 0, 17, 0, 43, 0, 43, 0, 17, 0, 3, 0, 1]
         sd_codes_14_1 = {"order autgp":64512,"code":LinearCode(genmat),"spectrum":spectrum,\
-                 "Type":"I","Comment":"Automprhism group has order 64512."}
+                 "Type":"I","Comment":"Automorphism group has order 64512."}
         # [14,2]:
         genmat = I2(n).augment(block_diagonal_matrix([matA(n)[6],matId(n)[6]]))
         # G = PermutationGroup( ["(7,14)", "(5,6)(12,13)", "(5,12)(6,13)", "(4,5)(11,12)",\

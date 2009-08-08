@@ -16,7 +16,7 @@ trivial effect.
 
 AUTHOR:
     Robert L Miller (Oct-Nov 2007)
-        * compiled code datastructure
+        * compiled code data structure
         * union-find based orbit partition
         * optimized partition stack class
         * NICE-based partition refinement algorithm

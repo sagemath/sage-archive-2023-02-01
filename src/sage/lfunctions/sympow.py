@@ -67,7 +67,7 @@ class Sympow(SageObject):
     """
     def _repr_(self):
         """
-        Returns a string describing ths calculator module
+        Returns a string describing this calculator module
         """
         return "Watkins Symmetric Power L-function Calculator"
 
@@ -406,7 +406,7 @@ Output of "!sympow -help":
                then could come b which turns Bloch-Kato on
                then could come w# which specifies how many tests
                then could come s# which says # sloppy digits
-               then must come p# which specifices the precision
+               then must come p# which specifies the precision
                     or P# which says ignore BOUND for this power
                then must come d# which says the derivative bound
                     or D# which says do only this derivative

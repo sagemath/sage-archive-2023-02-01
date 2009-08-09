@@ -65,7 +65,7 @@ r"""
         sage: f
         (a|~b|c)&(a|~b|~c)&(~a|b|~c)
 
-    Or determine if an epression is satisfiable, a contradiction, or a tautology.
+    Or determine if an expression is satisfiable, a contradiction, or a tautology.
         sage: f = propcalc.formula("a|b")
         sage: f.is_satisfiable()
         True
@@ -78,7 +78,7 @@ r"""
         sage: f.is_tautology()
         True
 
-    The equlaity operator compares semantic equivlance.
+    The equality operator compares semantic equivalence.
         sage: f = propcalc.formula("(a|b)&c")
         sage: g = propcalc.formula("c&(b|a)")
         sage: f == g
@@ -360,7 +360,7 @@ class BooleanFormula:
 
     def iff(self, other):
         r"""
-        Returns two statements atatched by the <-> operator.
+        Returns two statements attached by the <-> operator.
 
         INPUT:
             self -- the right hand side statement.
@@ -417,7 +417,7 @@ class BooleanFormula:
         INPUT:
             self -- the calling object.
             start -- an integer representing the row of the truth
-                     table from which to start intilized to 0, which
+                     table from which to start initialized to 0, which
                      is the first row when all the variables are
                      false.
             end -- an integer representing the last row of the truthtable
@@ -454,7 +454,7 @@ class BooleanFormula:
         There should be no errors.
 
         NOTES:
-            When sent with no start or end paramaters, this is an
+            When sent with no start or end parameters, this is an
             exponential time function requiring O(2**n) time, where
             n is the number of variables in the expression.
         """
@@ -498,7 +498,7 @@ class BooleanFormula:
                               All variable must be present.
 
     	OUTPUT:
-    	    Rerturn the evaluation of the formula with the given
+    	    Return the evaluation of the formula with the given
             inputs, either True or False.
 
         EXAMPLES:
@@ -513,7 +513,7 @@ class BooleanFormula:
 
     def is_satisfiable(self):
         r"""
-        Is_satisfiable determines if there is some assingment of
+        Is_satisfiable determines if there is some assignment of
         variables for which the formula will be true.
 
         INPUT:
@@ -598,7 +598,7 @@ class BooleanFormula:
             other -- a boolformula instance.
 
         OUTPUT:
-            True if the two fromulas are logically equivalent, False
+            True if the two formulas are logically equivalent, False
             otherwise.
 
         EXAMPLES:
@@ -702,7 +702,7 @@ class BooleanFormula:
         r"""
         This function converts an instance of boolformula to conjunctive
         normal form. It does this by applying a set of rules that are
-        gaurenteed to convert the formula.  Worst case the converted
+        guaranteed to convert the formula.  Worst case the converted
         expression has an O(2^n) increase in size (and time as well), but if
         the formula is already in CNF (or close to) it is only O(n).
 
@@ -741,7 +741,7 @@ class BooleanFormula:
              self -- the calling object.
 
         OUTPUT:
-            A string representing the satformat represetation of this object.
+            A string representing the satformat representation of this object.
 
         EXAMPLES:
             sage: import sage.logic.propcalc as propcalc
@@ -867,7 +867,7 @@ class BooleanFormula:
 
         INPUT:
             self -- the calling object.
-            tree -- a list of three elements corrospsponding to a branch of a
+            tree -- a list of three elements corresponding to a branch of a
                     parse tree.
         OUTPUT:
             A tree branch that does not contain ^, ->, or <-> operators.
@@ -1012,7 +1012,7 @@ class BooleanFormula:
 
         INPUT:
             self -- the calling object.
-            tree -- a list of three elements corrospsponding to a branch of a
+            tree -- a list of three elements corresponding to a branch of a
                     parse tree.
         OUTPUT:
             A tree branch that does not contain un-distributed nots.
@@ -1045,7 +1045,7 @@ class BooleanFormula:
 
         INPUT:
             self -- the calling object.
-            tree -- a list of three elements corrospsponding to a branch of a
+            tree -- a list of three elements corresponding to a branch of a
                     parse tree.
         OUTPUT:
             A tree branch that does not contain un-distributed ors.
@@ -1073,7 +1073,7 @@ class BooleanFormula:
 
         INPUT:
             self -- the calling object.
-            tree -- a list of three elements corrospsponding to a branch of a
+            tree -- a list of three elements corresponding to a branch of a
                     parse tree.
 
         OUTPUT:
@@ -1093,7 +1093,7 @@ class BooleanFormula:
     def convert_expression(self):
         r"""
         This function converts the string expression associated with an instance
-        of boolformula to match with its tree reprsentation after being converted
+        of boolformula to match with its tree representation after being converted
         to conjunctive normal form.
 
         INPUT:

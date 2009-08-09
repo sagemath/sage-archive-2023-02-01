@@ -144,8 +144,8 @@ def parse_ltor(toks, n = 0):
 
     INPUT:
         toks -- a list of tokens.
-        n -- an integer reprsenting which order of operations
-             are occuring.
+        n -- an integer representing which order of operations
+             are occurring.
 
     OUTPUT:
         Returns a parse tree of the tokens toks.
@@ -184,7 +184,7 @@ def parse_ltor(toks, n = 0):
 
 def apply_func(tree, func):
     r"""
-    This function applys func to each node of tree.
+    This function applies func to each node of tree.
 
     INPUT:
         tree -- a parse tree.

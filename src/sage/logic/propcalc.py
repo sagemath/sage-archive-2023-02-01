@@ -72,7 +72,7 @@ r"""
         sage: f.is_tautology()
         True
 
-    The equality operator compares semantic equivalance.
+    The equality operator compares semantic equivalence.
         sage: f = propcalc.formula("(a|b)&c")
         sage: g = propcalc.formula("c&(b|a)")
         sage: f == g

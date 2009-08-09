@@ -196,7 +196,7 @@ class Truthtable:
             True   True    False  False
             True   True    True   True
 
-        Strange paramaters can lead to the table header with no body.
+        Strange parameters can lead to the table header with no body.
             sage: s.truthtable(2, 1)
             man    monkey  human  value
 

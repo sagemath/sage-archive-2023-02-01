@@ -9,7 +9,7 @@ alpha-numerics and the underscore character.
 
 AUTHORS:
     -- Chris Gorecki (2007): initial version
-    -- William Stein (2007-08-31): integration into SAGE-2.8.4
+    -- William Stein (2007-08-31): integration into Sage 2.8.4
 """
 
 #*****************************************************************************
@@ -106,12 +106,12 @@ class SymbolicLogic:
             self -- the calling object: not used
             statement -- a list of 3 items, the tokens and two global
                          variables vars and vars_order
-            start -- an interger representing the row of the truth
-                     table from which to start intilized to 0 which
+            start -- an integer representing the row of the truth
+                     table from which to start initialized to 0 which
                      is the first row when all the variables are
                       false
             end -- an integer representing the last row of the truthtable
-                   to be created intilized to -1 which if left is converted
+                   to be created initialized to -1 which if left is converted
                    to the last row of the full table
            global vars -- a dictionary with the variable names and
                           their current boolean value
@@ -137,7 +137,7 @@ class SymbolicLogic:
         any errors.
 
         NOTES:
-            When sent with no start or end paramaters this is an
+            When sent with no start or end parameters this is an
             exponential time function requiring O(2**n) time, where
             n is the number of variables in the logic expression
         """
@@ -253,15 +253,15 @@ class SymbolicLogic:
     def simplify(self, table):
          x = 0
 
-    #TODO: implenet a prove function which test to
-    #see if the statement is a tautology or contradiciton
+    #TODO: implement a prove function which test to
+    #see if the statement is a tautology or contradiction
     #by calling a c++ library TBD
     def prove(self, statement):
         x = 0
 
 def get_bit(x, c):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns bit c of the number x.
 
         INPUT:
@@ -287,8 +287,8 @@ def get_bit(x, c):
 
 def eval(toks):
     r"""
-        This function is for internal use by the class SymbollicLogic.
-        It returns 'True' if the exression contained in toks would
+        This function is for internal use by the class SymbolicLogic.
+        It returns 'True' if the expression contained in toks would
         evaluate to 'True' and 'False' otherwise.  It relies on setting
         the values of the variables in the global dictionary vars.
 
@@ -296,7 +296,7 @@ def eval(toks):
            toks -- a token list representing a logic expression
 
         OUTPUT:
-            returns 'True' if evalutes to true with variables in vars and
+            returns 'True' if evaluates to true with variables in vars and
             'False' otherwise
     """
     stack = []
@@ -314,8 +314,8 @@ def eval(toks):
 
 def eval_ltor_toks(lrtoks):
     r"""
-        This function is for internal use by the class SymbollicLogic.
-        It returns 'True' if the exression contained in lrtoks would
+        This function is for internal use by the class SymbolicLogic.
+        It returns 'True' if the expression contained in lrtoks would
         evaluate to 'True' and 'False' otherwise.  It relies on setting
         the values of the variables in the global dictionary vars.
 
@@ -324,7 +324,7 @@ def eval_ltor_toks(lrtoks):
                      expression that contains no inner parenthesis
 
         OUTPUT:
-            returns 'True' if evalutes to true with variables in vars and
+            returns 'True' if evaluates to true with variables in vars and
             'False' otherwise
     """
     reduce_monos(lrtoks)        #monotonic ! operators go first
@@ -335,8 +335,8 @@ def eval_ltor_toks(lrtoks):
 
 def reduce_bins(lrtoks):
     r"""
-        This function is for internal use by the class SymbollicLogic.
-        It takes a series of tokens with no parenthisis or monotonic
+        This function is for internal use by the class SymbolicLogic.
+        It takes a series of tokens with no parentheses or monotonic
         operators and evaluates it to a single boolean value.
 
         INPUT:
@@ -360,16 +360,16 @@ def reduce_bins(lrtoks):
 
 def reduce_monos(lrtoks):
     r"""
-        This function is for internal use by the class SymbollicLogic.
-        It takes a series of tokens with no parenthisis and replaces
-        the montonic operator/variable pairs with a boolean value.
+        This function is for internal use by the class SymbolicLogic.
+        It takes a series of tokens with no parentheses and replaces
+        the monotonic operator/variable pairs with a boolean value.
 
         INPUT:
            lrtoks -- a token list representing part of a logical
                      expression that contains no inner parenthesis
 
         OUTPUT:
-            The pointer to lrtoks is now a list containing no montonic
+            The pointer to lrtoks is now a list containing no monotonic
             operators.
     """
     i = 0
@@ -382,7 +382,7 @@ def reduce_monos(lrtoks):
 
 def eval_mon_op(args):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns a boolean value based on the truthtable of
         the operator sent to it.
 
@@ -408,7 +408,7 @@ def eval_mon_op(args):
 
 def eval_bin_op(args):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns a boolean value based on the truthtable of
         the operator sent to it.
 
@@ -421,7 +421,7 @@ def eval_bin_op(args):
 
         OUTPUT:
             returns the boolean evaluation of the operator based on
-            the values of the varaibles
+            the values of the variables
     """
     if(args[0] == 'False'):
         lval = 'False'
@@ -448,13 +448,13 @@ def eval_bin_op(args):
 
 def eval_and_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns the logical 'and' operator applied to lval and rval.
 
         INPUT:
            lval -- the variable name appearing to the left of the and
                    operator
-           rval -- the varaible name appearing to the right of the and
+           rval -- the variable name appearing to the right of the and
                    operator
 
         OUTPUT:
@@ -471,13 +471,13 @@ def eval_and_op(lval, rval):
 
 def eval_or_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns the logical 'or' operator applied to lval and rval.
 
         INPUT:
            lval -- the variable name appearing to the left of the or
                    operator
-           rval -- the varaible name appearing to the right of the or
+           rval -- the variable name appearing to the right of the or
                    operator
 
         OUTPUT:
@@ -494,13 +494,13 @@ def eval_or_op(lval, rval):
 
 def eval_ifthen_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns the logical 'if then' operator applied to lval and rval.
 
         INPUT:
            lval -- the variable name appearing to the left of the if then
                    operator
-           rval -- the varaible name appearing to the right of the if then
+           rval -- the variable name appearing to the right of the if then
                    operator
 
         OUTPUT:
@@ -517,7 +517,7 @@ def eval_ifthen_op(lval, rval):
 
 def eval_iff_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It returns the logical 'if and only if' operator applied to lval and
 rval.
 
@@ -525,7 +525,7 @@ rval.
            lval -- the variable name appearing to the left of the if and
 only if
                    operator
-           rval -- the varaible name appearing to the right of the if and
+           rval -- the variable name appearing to the right of the if and
 only if
                    operator
 
@@ -544,12 +544,12 @@ and rval.
 
 def tokenize(s, toks):
     r"""
-        This function is for internal use by the class SymbollicLogic.
+        This function is for internal use by the class SymbolicLogic.
         It tokenizes the string s and places the tokens in toks
 
         INPUT:
            s -- a string that contains a logical expression
-           toks -- a list to contian the tokens of s
+           toks -- a list to contain the tokens of s
            global vars -- a dictionary with the variable names and
                           their current boolean value
            global vars_order -- a list of the variable names in

@@ -697,7 +697,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jaap Spies (2006-02-18)
 
-        - Didier Deshommes: some pyrex speedups implemented
+        - Didier Deshommes: some Pyrex speedups implemented
 
         - Jason Grout: sparse matrix optimizations
         """

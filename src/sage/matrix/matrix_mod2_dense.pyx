@@ -80,7 +80,7 @@ TESTS:
     [0 0 1]
 
 TODO:
-   - make linbox frontend and use it
+   - make LinBox frontend and use it
      - charpoly ?
      - minpoly ?
    - make Matrix_modn_frontend and use it (?)
@@ -248,7 +248,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         there is a position smallest (i,j) in \code{self} where
         \code{self[i,j]} is zero but \code{right[i,j]} is one. This
         (i,j) is smaller than the (i,j) if \code{self} and
-        \code{right} are exchanged for the comparision.
+        \code{right} are exchanged for the comparison.
 
         INPUT:
             right -- a matrix
@@ -376,7 +376,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # would cancel, so we only need the parity of how many of each
         # possible i0 occur. This is stored in the bits of running_xor.
         # Similarly, running_parity is the xor of the i1 needed. It's called
-        # parity because i1 is constant accross a word, and for each word
+        # parity because i1 is constant across a word, and for each word
         # the number of i1 to add is equal to the number of set bits in that
         # word (but because two cancel, we only need keep track of the
         # parity.
@@ -1633,7 +1633,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
 def from_png(filename):
     r"""
     Returns a dense matrix over GF(2) from a 1-bit PNG image read from
-    \code{filename}. No attempt is made to verify that the filname string
+    \code{filename}. No attempt is made to verify that the filename string
     actually points to a PNG image.
 
     INPUT:
@@ -1679,7 +1679,7 @@ def to_png(Matrix_mod2_dense A, filename):
 
     INPUT:
         A -- a matrix over GF(2)
-        filename -- a string for a file in a writeable position
+        filename -- a string for a file in a writable position
 
     EXAMPLE:
         sage: from sage.matrix.matrix_mod2_dense import from_png, to_png

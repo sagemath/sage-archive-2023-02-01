@@ -46,7 +46,7 @@ def matrix(*args, **kwds):
     To construct a multiple of the identity (`cI`), you can
     specify square dimensions and pass in `c`. Calling matrix()
     with a Sage object may return something that makes sense. Calling
-    matrix() with a numpy array will convert the array to a matrix.
+    matrix() with a NumPy array will convert the array to a matrix.
 
     The ring, number of rows, and number of columns of the matrix can
     be specified by setting the ring, nrows, or ncols parameters or by
@@ -588,9 +588,9 @@ def matrix(*args, **kwds):
                     try:
                         return matrix( [list(row) for row in list(num_array)])
                     except TypeError:
-                        raise TypeError("cannot convert numpy matrix to SAGE matrix")
+                        raise TypeError("cannot convert NumPy matrix to Sage matrix")
                 else:
-                    raise TypeError("cannot convert numpy matrix to SAGE matrix")
+                    raise TypeError("cannot convert NumPy matrix to Sage matrix")
 
                 return m
             elif nrows is not None and ncols is not None:
@@ -954,7 +954,7 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
 
 def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
     """
-    Returns a larger matrix made by concatinating the sub_matrices
+    Returns a larger matrix made by concatenating the sub_matrices
     (rows first, then columns). For example, the matrix
 
     ::
@@ -1010,7 +1010,7 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
 
-    It handle baserings nicely too::
+    It handle base rings nicely too::
 
         sage: R.<x> = ZZ['x']
         sage: block_matrix([1/2, A, 0, x-1])
@@ -1044,7 +1044,7 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
     elif ncols is None:
         ncols = int(n/nrows)
     if nrows * ncols != n:
-        raise ValueError, "Given number of rows (%s), columns (%s) incompatable with number of submatrices (%s)" % (nrows, ncols, n)
+        raise ValueError, "Given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n)
 
     # empty matrix
     if n == 0:
@@ -1085,7 +1085,7 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         if R is not ZZ:
             base = sage.categories.pushout.pushout(base, R)
 
-    # finally concatinate
+    # finally concatenate
     for i in range(nrows):
         for j in range(ncols):
             # coerce

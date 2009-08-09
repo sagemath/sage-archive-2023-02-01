@@ -16,7 +16,7 @@ import math
 def max_det_prime(n):
     """
     Return the largest prime so that it is reasonably efficiency to
-    compute modulo that prime with n x n matrices in Linbox.
+    compute modulo that prime with n x n matrices in LinBox.
 
     INPUT:
         n -- a positive integer
@@ -299,7 +299,7 @@ def solve_system_with_difficult_last_row(B, a):
     Solve B*x = a when the last row of $B$ contains huge entries using
     a clever trick that reduces the problem to solve C*x = a where $C$
     is $B$ but with the last row replaced by something small, along
-    with one easy nullspace computation.  The latter are both solved
+    with one easy null space computation.  The latter are both solved
     $p$-adically.
 
     INPUT:
@@ -784,7 +784,7 @@ def is_in_hnf_form(H, pivots):
 
 def probable_hnf(A, include_zero_rows, proof):
     """
-    Return the HNF of A or raise an exception if someting involving
+    Return the HNF of A or raise an exception if something involving
     the randomized nature of the algorithm goes wrong along the way.
     Calling this function again a few times should result it in it
     working, at least if proof=True.
@@ -990,7 +990,7 @@ def hnf(A, include_zero_rows=True, proof=True):
             H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
         except (AssertionError, ZeroDivisionError, TypeError):
             raise
-            #verbose("Assertion occured when computing HNF; guessed pivot columns likely wrong.")
+            #verbose("Assertion occurred when computing HNF; guessed pivot columns likely wrong.")
             #continue
         else:
             if is_in_hnf_form(H, pivots):
@@ -1103,7 +1103,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
     both dense and sparse.
 
     INPUT:
-        times -- number of times to randomly try matrices with eash shape
+        times -- number of times to randomly try matrices with each shape
         n -- number of rows
         m -- number of columns
         proof -- test with proof true

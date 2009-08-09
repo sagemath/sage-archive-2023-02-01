@@ -401,7 +401,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
     def factor(self):
         """
-        Operates pointwise on each element.
+        Operates point-wise on each element.
 
         EXAMPLES::
 
@@ -416,7 +416,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
     def expand(self):
         """
-        Operates pointwise on each element.
+        Operates point-wise on each element.
 
         EXAMPLES::
 

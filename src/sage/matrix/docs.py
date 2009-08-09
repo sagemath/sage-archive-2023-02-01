@@ -77,7 +77,7 @@ created, matrices are typically mutable, so one can change their
 entries. Once a matrix `A` is made immutable using
 ``A.set_immutable()`` the entries of `A`
 cannot be changed, and `A` can never be made mutable again.
-However, properies of `A` such as its rank, characteristic
+However, properties of `A` such as its rank, characteristic
 polynomial, etc., are all cached so computations involving
 `A` may be more efficient. Once `A` is made
 immutable it cannot be changed back. However, one can obtain a
@@ -212,6 +212,6 @@ See the files ``matrix_template.pxd`` and
 
        - Kernels of matrices
          Implement only a left_kernel() or right_kernel() method, whichever requires
-         the least overhead (usually meaning little or no transpose'ing).  Let the
+         the least overhead (usually meaning little or no transposing).  Let the
          methods in the matrix2 class handle left, right, generic kernel distinctions.
 """

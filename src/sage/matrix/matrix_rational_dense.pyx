@@ -1040,7 +1040,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         -  ``algorithm``
 
-           - 'default': use whatever is the defalt for A\*B when A, B
+           - 'default': use whatever is the default for A\*B when A, B
              are over ZZ.
 
            - 'multimodular': use a multimodular algorithm
@@ -1726,7 +1726,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         since then we know that ker(g(A)) = `ker(g(A)^n)`.
 
         If dual is True, also returns the corresponding decomposition of V
-        under the action of the transpose of A. The factors are guarenteed
+        under the action of the transpose of A. The factors are guaranteed
         to correspond.
 
         INPUT:

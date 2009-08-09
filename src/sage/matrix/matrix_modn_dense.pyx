@@ -1284,7 +1284,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [1 5 1]
             [1 5 1]
 
-        Recaling need not include the entire row.
+        Rescaling need not include the entire row.
 
         ::
 

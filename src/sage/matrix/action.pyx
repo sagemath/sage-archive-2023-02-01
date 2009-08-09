@@ -87,7 +87,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
     cpdef Element _call_(self, g, s):
         """
         EXAMPLES:
-        Respects compatable subdivisions:
+        Respects compatible subdivisions:
             sage: M = matrix(5, 5, prime_range(100))
             sage: M.subdivide(2,3); M
             [ 2  3  5| 7 11]
@@ -117,7 +117,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             [1048]
             [3056]
 
-        If the subdivisions aren't compatable, ignore them.
+        If the subdivisions aren't compatible, ignore them.
             sage: N.subdivide(1,1); N
             [ 0| 1]
             [--+--]

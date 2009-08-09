@@ -54,7 +54,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
-    #   * __hash__       -- alway simple
+    #   * __hash__       -- always simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
@@ -403,7 +403,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         Return the denominator of this matrix.
 
         OUTPUT:
-            -- SAGE Integer
+            -- Sage Integer
 
         EXAMPLES:
             sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b
@@ -544,7 +544,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # Change self's data to point to E's.
         self._matrix = E._matrix
 
-        # Make sure that E's destructure doesn't delete self's data.
+        # Make sure that E's destructor doesn't delete self's data.
         E._matrix = NULL
         E._initialized = False
         return E.pivots()

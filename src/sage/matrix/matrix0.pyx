@@ -398,12 +398,12 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Matrices are always mutable by default, i.e., you can change their
         entries using ``A[i,j] = x``. However, mutable matrices
-        aren't hasheable, so can't be used as keys in dictionaries, etc.
+        aren't hashable, so can't be used as keys in dictionaries, etc.
         Also, often when implementing a class, you might compute a matrix
         associated to it, e.g., the matrix of a Hecke operator. If you
         return this matrix to the user you're really returning a reference
         and the user could then change an entry; this could be confusing.
-        Thus you shoulds set such a matrix immutable.
+        Thus you should set such a matrix immutable.
 
         EXAMPLES::
 
@@ -415,7 +415,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [10   1]
             [ 2   3]
 
-        Mutable matrices are not hasheable, so can't be used as keys for
+        Mutable matrices are not hashable, so can't be used as keys for
         dictionaries::
 
             sage: hash(A)
@@ -427,7 +427,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             TypeError: mutable matrices are unhashable
 
-        If we make A immutable it suddenly is hasheable.
+        If we make A immutable it suddenly is hashable.
 
         ::
 
@@ -519,7 +519,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##             sage: a._get_very_unsafe(0,1)
 ##             1
 
-##         If you do \code{a.\_get\_very\_unsafe(0,10)} you'll very likely crash SAGE
+##         If you do \code{a.\_get\_very\_unsafe(0,10)} you'll very likely crash Sage
 ##         completely.
 ##         """
 ##         return self.get_unsafe(i, j)
@@ -1679,7 +1679,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         from sage.server.support import EMBEDDED_MODE
 
         # jsmath doesn't know the command \hline, so have to do things
-        # differently (and not as atractively) in embedded mode:
+        # differently (and not as attractively) in embedded mode:
         # construct an array with a subarray for each block.
         if len(row_divs) + len(col_divs) > 0 and EMBEDDED_MODE:
             for r in range(len(row_divs)+1):
@@ -3795,7 +3795,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         of coefficients. A dense matrix and a sparse matrix are equal if
         their coefficients are the same.
 
-        EXAMPLES: EXAMPLE cmparing sparse and dense matrices::
+        EXAMPLES: EXAMPLE comparing sparse and dense matrices::
 
             sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
             True

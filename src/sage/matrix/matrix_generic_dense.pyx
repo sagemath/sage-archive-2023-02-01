@@ -73,7 +73,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                     entries = list(entries)
                     is_list = 1
                 except TypeError:
-                    raise TypeError, "entries must be coercible to a list or the basering"
+                    raise TypeError, "entries must be coercible to a list or the base ring"
 
         else:
             is_list = 1

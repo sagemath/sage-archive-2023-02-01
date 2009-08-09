@@ -31,7 +31,7 @@ cdef class Matrix(matrix0.Matrix):
 
     def _pari_init_(self):
         """
-        Return a string defining a gp representation of self.
+        Return a string defining a GP representation of self.
 
         EXAMPLES::
 
@@ -1059,7 +1059,7 @@ cdef class Matrix(matrix0.Matrix):
 
         - Jaap Spies (2006-02-18)
 
-        - Didier Deshommes: some pyrex speedups implemented
+        - Didier Deshommes: some Pyrex speedups implemented
         """
         if not PY_TYPE_CHECK(rows, list):
             raise TypeError, "rows must be a list of integers"

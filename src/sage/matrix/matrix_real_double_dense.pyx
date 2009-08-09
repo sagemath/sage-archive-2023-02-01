@@ -24,7 +24,7 @@ TESTS::
 
 AUTHORS:
 
-- Jason Grout (2008-09): switch to numpy backend, factored out the
+- Jason Grout (2008-09): switch to NumPy backend, factored out the
   Matrix_double_dense class
 
 - Josh Kantor
@@ -95,7 +95,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
-    #   * __hash__       -- alway simple
+    #   * __hash__       -- always simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         global numpy
@@ -111,8 +111,8 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
 
     cdef set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value):
         """
-        Set the (i,j) entry to value without any typechecking or
-        boundchecking.
+        Set the (i,j) entry to value without any type checking or
+        bound checking.
 
         This currently isn't faster than calling self.set_unsafe; should
         we speed it up or is it just a convenience function that has the
@@ -122,7 +122,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
 
     cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Get the (i,j) entry without any typechecking or boundchecking.
+        Get the (i,j) entry without any type checking or bound checking.
 
         This currently isn't faster than calling self.get_unsafe; should
         we speed it up or is it just a convenience function that has the

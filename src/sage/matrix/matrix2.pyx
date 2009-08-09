@@ -939,7 +939,7 @@ cdef class Matrix(matrix1.Matrix):
         Return the determinant of self.
 
         ALGORITHM: For small matrices (n4), this is computed using the
-        naive formula For integral domains, the charpoly is computed (using
+        naive formula For integral domains, the characteristic polynomial is computed (using
         hessenberg form) Otherwise this is computed using the very stupid
         expansion by minors stupid *naive generic algorithm*. For matrices
         over more most rings more sophisticated algorithms can be used.
@@ -3531,7 +3531,7 @@ cdef class Matrix(matrix1.Matrix):
 
         if not self.base_ring().is_exact():
             from warnings import warn
-            warn("Using generic algorithm for an inexact ring, which may result in garbarge from numerical precision issues.")
+            warn("Using generic algorithm for an inexact ring, which may result in garbage from numerical precision issues.")
 
         V = []
         from sage.rings.qqbar import QQbar
@@ -5129,7 +5129,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        Here is an example over the real double field; internally, this uses scipy::
+        Here is an example over the real double field; internally, this uses SciPy::
 
             sage: r = matrix(RDF, 5, 5, [ 0,0,0,0,1, 1,1,1,1,1, 16,8,4,2,1, 81,27,9,3,1, 256,64,16,4,1 ])
             sage: m = r * r.transpose(); m
@@ -5294,7 +5294,7 @@ cdef class Matrix(matrix1.Matrix):
             10000
 
         In this example the Hadamard bound has to be computed
-        (automatically) using mpfr instead of doubles, since doubles
+        (automatically) using MPFR instead of doubles, since doubles
         overflow::
 
             sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
@@ -6226,7 +6226,7 @@ def _smith_onestep(m):
 def _dim_cmp(x,y):
     """
     Used internally by matrix functions. Given 2-tuples (x,y), returns
-    their comparision based on the first component.
+    their comparison based on the first component.
 
     EXAMPLES::
 
@@ -6285,7 +6285,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     """
     Returns all possible sublists of length t from range(n)
 
-    Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5 This
+    Based on algorithm T from Knuth's taocp part 4: 7.2.1.3 p.5 This
     function replaces the one based on algorithm L because it is
     faster.
 

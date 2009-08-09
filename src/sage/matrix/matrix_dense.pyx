@@ -204,7 +204,7 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def antitranspose(self):
         """
-        Returns the anittranspose of self, without changing self.
+        Returns the antitranspose of self, without changing self.
 
         EXAMPLES::
 

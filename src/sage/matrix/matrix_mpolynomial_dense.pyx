@@ -1,5 +1,5 @@
 """
-Dense matrice over multivariate polynomials over fields.
+Dense matrices over multivariate polynomials over fields.
 
 This implementation inherits from Matrix_generic_dense, i.e. it is not
 optimized for speed only some methods were added.
@@ -9,7 +9,7 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #

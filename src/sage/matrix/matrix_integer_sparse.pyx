@@ -50,7 +50,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
-    #   * __hash__       -- alway simple
+    #   * __hash__       -- always simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         self._initialized = False

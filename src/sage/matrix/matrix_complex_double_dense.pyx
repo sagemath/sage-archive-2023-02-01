@@ -24,7 +24,7 @@ TESTS::
 
 AUTHORS:
 
-- Jason Grout (2008-09): switch to numpy backend
+- Jason Grout (2008-09): switch to NumPy backend
 
 - Josh Kantor
 
@@ -93,7 +93,7 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
-    #   * __hash__       -- alway simple
+    #   * __hash__       -- always simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         global numpy

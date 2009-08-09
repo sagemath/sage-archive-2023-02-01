@@ -29,7 +29,7 @@ import types
 import weakref
 import operator
 
-# SAGE matrix imports
+# Sage matrix imports
 import matrix
 import matrix_generic_dense
 import matrix_generic_sparse
@@ -63,7 +63,7 @@ import matrix_mpolynomial_dense
 import sage.groups.matrix_gps.matrix_group_element
 
 
-# SAGE imports
+# Sage imports
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 import sage.rings.ring as ring
@@ -456,13 +456,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                     elif sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.MatrixVectorAction(self, S)
                     else:
-                        # action of basering
+                        # action of base ring
                         return sage.structure.coerce.RightModuleAction(S, self)
                 else:
                     if sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.VectorMatrixAction(self, S)
                     else:
-                        # action of basering
+                        # action of base ring
                         return sage.structure.coerce.LeftModuleAction(S, self)
             else:
                 return None
@@ -727,7 +727,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             ...
             NotImplementedError: object does not support iteration
         """
-        #Make sure that we can interate over the base ring
+        #Make sure that we can iterate over the base ring
         base_ring = self.base_ring()
         base_iter = iter(base_ring)
 
@@ -1196,7 +1196,7 @@ def dict_to_list(entries, nrows, ncols):
     Given a dictionary of coordinate tuples, return the list given by
     reading off the nrows\*ncols matrix in row order.
 
-    EXAMLES::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix_space import dict_to_list
         sage: d = {}
@@ -1325,7 +1325,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
         assert(m00.rank() == 0)
 
     # Check that the empty 0x3 and 3x0 matrices are not invertible and that
-    # computing the detemininant raise the proper exception.
+    # computing the determinant raise the proper exception.
     for ms0 in [MatrixSpace(ring, 0, 3, sparse=sparse),
                 MatrixSpace(ring, 3, 0, sparse=sparse)]:
         mn0  = ms0(0)

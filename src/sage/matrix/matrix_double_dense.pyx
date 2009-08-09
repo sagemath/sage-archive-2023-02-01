@@ -1,5 +1,5 @@
 """
-Dense matrices using a numpy backend.  This serves as a base class for
+Dense matrices using a NumPy backend.  This serves as a base class for
 dense matrices over Real Double Field and Complex Double Field.
 
 EXAMPLES:
@@ -23,7 +23,7 @@ TESTS:
     True
 
 AUTHORS:
-    -- Jason Grout, Sep 2008: switch to numpy backend, factored out the Matrix_double_dense class
+    -- Jason Grout, Sep 2008: switch to NumPy backend, factored out the Matrix_double_dense class
     -- Josh Kantor
     -- William Stein: many bug fixes and touch ups.
 """
@@ -86,7 +86,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
-    #   * __hash__       -- alway simple
+    #   * __hash__       -- always simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         """
@@ -104,7 +104,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLE:
         In this example, we throw away the current matrix and make a
-        new unitialized matrix representing the data for the class.
+        new uninitialized matrix representing the data for the class.
             sage: a=matrix(RDF, 3, range(9))
             sage: a.__create_matrix__()
         """
@@ -260,7 +260,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         # We call the self._python_dtype function on the value since
         # numpy does not know how to deal with complex numbers other
-        # than the builtin complex number type.
+        # than the built-in complex number type.
         cdef int status
         status = cnumpy.PyArray_SETITEM(self._matrix_numpy,
                         cnumpy.PyArray_GETPTR2(self._matrix_numpy, i, j),
@@ -883,7 +883,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Compute the log of the absolute value of the determinant
         using LU decomposition.
 
-        NOTE: This is useful if the usual determinant overlows.
+        NOTE: This is useful if the usual determinant overflows.
 
         EXAMPLES:
             sage: m = matrix(RDF,2,2,range(4)); m

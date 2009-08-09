@@ -997,7 +997,7 @@ cdef class Expression(CommutativeRingElement):
             sage: u = t.derivative(x); v = t.derivative(y)
             sage: hash(u) == hash(v)
             False
-            sage: d = {u: 3, v: 5}; d.values()
+            sage: d = {u: 3, v: 5}; sorted(d.values())
             [3, 5]
         """
         return self._gobj.gethash()
@@ -2512,20 +2512,23 @@ cdef class Expression(CommutativeRingElement):
             {}
             sage: print ((x+y)^a).match((x+y)^b)
             None
-            sage: ((x+y)^a).match(w0^w1)
-            {$1: a, $0: x + y}
+            sage: t = ((x+y)^a).match(w0^w1)
+            sage: t[w0], t[w1]
+            (x + y, a)
             sage: print ((x+y)^a).match(w0^w0)
             None
             sage: ((x+y)^(x+y)).match(w0^w0)
             {$0: x + y}
-            sage: ((a+b)*(a+c)).match((a+w0)*(a+w1))
-            {$1: c, $0: b}
+            sage: t = ((a+b)*(a+c)).match((a+w0)*(a+w1))
+            sage: t[w0], t[w1]
+            (b, c)
             sage: ((a+b)*(a+c)).match((w0+b)*(w0+c))
             {$0: a}
             sage: print ((a+b)*(a+c)).match((w0+w1)*(w0+w2))    # surprising?
             None
-            sage: (a*(x+y)+a*z+b).match(a*w0+w1)
-            {$1: a*z + b, $0: x + y}
+            sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
+            sage: t[w0], t[w1]
+            (x + y, a*z + b)
             sage: print (a+b+c+d+e+f).match(c)
             None
             sage: (a+b+c+d+e+f).has(c)

@@ -163,7 +163,7 @@ class Stock:
             Google Finance returns the past year's financial data by default
             when startdate is set too low from the equity's date of going
             public.  By default, this function only looks at the NASDAQ and
-            NYSE markets.  However, if you sepcified the market during
+            NYSE markets.  However, if you specified the market during
             initialization of the stock (i.e. "finance.Stock("OTC:NTDOY")"),
             Stock.google() will give correct results.
 
@@ -289,7 +289,7 @@ class Stock:
             [55.6000, 56.9800, 58.0000, 57.6000, 60.3200 ... 56.5500, 59.3000, 60.0000, 59.7900, 59.2600]
 
         Otherwise, \code{self.google()} will be called with the default
-        arguements returning a year's worth of data:
+        arguments returning a year's worth of data:
             sage: finance.Stock('vmw').open()   # random; optional -- internet
             [52.1100, 60.9900, 59.0000, 56.0500, 57.2500 ... 83.0500, 85.4900, 84.9000, 82.0000, 81.2500]
 
@@ -310,7 +310,7 @@ class Stock:
     def close(self, *args, **kwds):
         r"""
         Return the time series of all historical closing prices for this stock.
-        If no arguments are given, will return last aquired historical data.
+        If no arguments are given, will return last acquired historical data.
         Otherwise, data will be gotten from Google Finance.
 
         INPUT:
@@ -343,7 +343,7 @@ class Stock:
 
 
         Otherwise, \code{self.google()} will be called with the default
-        arguements returning a year's worh of data:
+        arguments returning a year's worth of data:
             sage: finance.Stock('vmw').close()   # random; optional -- internet
             [57.7100, 56.9900, 55.5500, 57.3300, 65.9900 ... 84.9900, 84.6000, 83.9500, 80.4900, 72.9900]
         """
@@ -376,7 +376,7 @@ class Stock:
             Sequence -- OHLC data
 
         EXAMPLES:
-        Suppose you have a file in your home directoy containing Apple stock
+        Suppose you have a file in your home directory containing Apple stock
         OHLC data, such as that from Google Finance, called AAPL-minutely.csv.
         One can load this information into a Stock object like so. Note that
         the path must be explicit:

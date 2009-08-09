@@ -1,5 +1,5 @@
 """
-Markov Switching Multfractal model
+Markov Switching Multifractal model
 
 Cython code
 """
@@ -47,7 +47,7 @@ def simulations(Py_ssize_t n, Py_ssize_t k,
     S = []
 
     for i from 0 <= i < k:
-        # Initalize the model
+        # Initialize the model
         for j from 0 <= j < kbar:
             # n & 1 means "is odd"
             markov_state_vector._values[j] = m0 if (rstate.c_random() & 1) else m1

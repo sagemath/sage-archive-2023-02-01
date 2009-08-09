@@ -4,14 +4,14 @@ Time Series
 This is a module for working with discrete floating point time series.
 It is designed so that every operation is very fast, typically much
 faster than with other generic code, e.g., Python lists of doubles or
-even numpy arrays.  The semantics of time series is more similar to
-Python lists of doubles than Sage real double vectors or numpy 1d
+even NumPy arrays.  The semantics of time series is more similar to
+Python lists of doubles than Sage real double vectors or NumPy 1d
 arrays.   In particular, time series are not endowed with much
 algebraic structure and are always mutable.
 
-NOTES: Numpy arrays are faster at slicing, since slices return
-references, and numpy arrays have strides.  However, this speed at
-slicing makes numpy slower at certain other operations.
+NOTES: NumPy arrays are faster at slicing, since slices return
+references, and NumPy arrays have strides.  However, this speed at
+slicing makes NumPy slower at certain other operations.
 
 EXAMPLES:
     sage: set_random_seed(1)
@@ -76,7 +76,7 @@ cdef class TimeSeries:
             values -- integer (number of values) or an iterable of floats
 
         EXAMPLES:
-        This implicity calls init.
+        This implicitly calls init.
             sage: finance.TimeSeries([pi, 3, 18.2])
             [3.1416, 3.0000, 18.2000]
 
@@ -558,11 +558,11 @@ cdef class TimeSeries:
 
     def autoregressive_forecast(self, filter):
         """
-        Given the autoregression coefficients as outputed by the autoregressive_fit command,
+        Given the autoregression coefficients as outputted by the autoregressive_fit command,
         compute the forecast for the next term in the series.
 
         INPUT:
-            autoregression coefficients -- a time series outputed by the autoregressive_fit command.
+            autoregression coefficients -- a time series outputted by the autoregressive_fit command.
 
         EXAMPLES:
             sage: set_random_seed(0)
@@ -658,7 +658,7 @@ cdef class TimeSeries:
             a new time series.
 
         EXAMPLES:
-        We exponentiate then log a time seris and get back
+        We exponentiate then log a time series and get back
         the original series.
             sage: v = finance.TimeSeries([1,-4,3,-2.5,-4,3]); v
             [1.0000, -4.0000, 3.0000, -2.5000, -4.0000, 3.0000]
@@ -854,7 +854,7 @@ cdef class TimeSeries:
         use the add_scalar method.
 
         INPUT:
-            t -- a time seris
+            t -- a time series
         OUTPUT:
             a time series with length the maxima of the lengths of
             self and t.
@@ -956,7 +956,7 @@ cdef class TimeSeries:
         Assumes the input time series was constant with its starting value
         for negative time.  The t-th step of the output is the sum of
         the previous k-1 steps of self and the kth step divided by k.
-        Thus k values are avaraged at each point.
+        Thus k values are averaged at each point.
 
         INPUT:
             k -- positive integer
@@ -1244,7 +1244,7 @@ cdef class TimeSeries:
         where $n$ is the length of self.
 
         Note the denominator of $n$, which gives a "better" sample
-        estimatator.
+        estimator.
 
         INPUT:
             k -- a nonnegative integer (default: 0)
@@ -1423,7 +1423,7 @@ cdef class TimeSeries:
         parameter $b$ is given, return the average of $R/S$ range
         statistics of disjoint blocks of size $b$.
 
-        Let $\sigma$ be the standard deviation of the seqeunce of
+        Let $\sigma$ be the standard deviation of the sequence of
         differences of self, and let $Y_k$ be the $k$th term of self.
         Let $n$ be the number of terms of self, and set
         $Z_k = Y_k - ((k+1)/n)*Y_n$. Then
@@ -1603,7 +1603,7 @@ cdef class TimeSeries:
     def clip_remove(self, min=None, max=None):
         """
         Return new time series obtained from self by removing all
-        values that are less than or equal to a certain miminum value
+        values that are less than or equal to a certain minimum value
         or greater than or equal to a certain maximum.
 
         INPUT:
@@ -1677,7 +1677,7 @@ cdef class TimeSeries:
         """
         Return the frequency histogram of the values in
         this time series divided up into the given
-        numberof bins.
+        number of bins.
 
         INPUT:
             bins -- a positive integer (default: 50)
@@ -1780,7 +1780,7 @@ cdef class TimeSeries:
             a candlestick plot
 
         EXAMPLES:
-        Here we look at the candlestick plot for brownian motion:
+        Here we look at the candlestick plot for Brownian motion:
             sage: v = finance.TimeSeries(1000).randomize()
             sage: v.plot_candlestick(bins=20)
         """
@@ -2075,7 +2075,7 @@ cdef class TimeSeries:
     def _randomize_lognormal(self, double m, double s):
         """
         Generates a log-normal random distribution of doubles with mean m
-        and standard deviation s. Usues Box-Muller algorithm and the identity:
+        and standard deviation s. Uses Box-Muller algorithm and the identity:
         if Y is a random variable with normal distribution then X = exp(Y)
         is a random variable with log-normal distribution.
 
@@ -2100,7 +2100,7 @@ cdef class TimeSeries:
             1.648721270...
 
         A log-normal distribution can be simply thought of as the logarithm
-        of a normally distributed dataset. We test that here by generating
+        of a normally distributed data set. We test that here by generating
         5 values distributed with respect to the normal distribution with mean
         0 and standard deviation 1.
             sage: set_random_seed(0)
@@ -2131,7 +2131,7 @@ cdef class TimeSeries:
 
     def fft(self, bint overwrite=False):
         """
-        Return the real discrete fast fourier transform of self, as a
+        Return the real discrete fast Fourier transform of self, as a
         real time series:
 
           [y(0),Re(y(1)),Im(y(1)),...,Re(y(n/2))]              if n is even
@@ -2173,7 +2173,7 @@ cdef class TimeSeries:
 
     def ifft(self, bint overwrite=False):
         """
-        Return the real discrete inverse fast fourier transform of
+        Return the real discrete inverse fast Fourier transform of
         self, which is also a real time series.
 
         This is the inverse of fft().
@@ -2194,7 +2194,7 @@ cdef class TimeSeries:
                                        * exp(sqrt(-1)*j*k* 2*pi/n)
                       + c.c. + x[0])
 
-        c.c. denotes complex conjugate of preceeding expression.
+        c.c. denotes complex conjugate of preceding expression.
 
         EXAMPLES:
             sage: v = finance.TimeSeries([1..10]); v
@@ -2267,7 +2267,7 @@ def autoregressive_fit(acvs):
     """
     Given a sequence of lagged autocovariances of length $M$ produce
     $a_1,...,a_p$ so that the first $M$ autocovariance coefficients
-    of the autoregressive processs $X_t=a_1X_{t_1}+...a_pX_{t-p}+Z_t$
+    of the autoregressive processes $X_t=a_1X_{t_1}+...a_pX_{t-p}+Z_t$
     are the same as the input sequence.
 
     The function works by solving the Yule-Walker equations

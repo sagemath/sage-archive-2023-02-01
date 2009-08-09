@@ -2,7 +2,7 @@ r"""
 Multifractal Random Walk
 
 This module implements the fractal approach to understanding financial
-markets that was pionered by Mandelbrot.  In particular, it implements
+markets that was pioneered by Mandelbrot.  In particular, it implements
 the multifractal random walk model of asset returns as developed by
 Bacry, Kozhemyak, and Muzy, 2006, 'Continuous cascade models for asset
 returns' and many other papers by Bacry et al. See
@@ -33,7 +33,7 @@ cdef extern from "math.h":
     double sqrt(double)
 
 ##################################################################
-# Simultation
+# Simulation
 ##################################################################
 
 def stationary_gaussian_simulation(s, N, n=1):
@@ -79,7 +79,7 @@ def stationary_gaussian_simulation(s, N, n=1):
     'SIMULATING A CLASS OF STATIONARY GAUSSIAN PROCESSES USING THE
     DAVIES-HARTE ALGORITHM, WITH APPLICATION TO LONG MEMORY
     PROCESSES', 2000, Peter F. Craigmile, which is easily found as a
-    free pdf via a Google search.  This paper also generalizes the
+    free PDF via a Google search.  This paper also generalizes the
     algorithm to the case when all elements of s are nonpositive.
 
     The book 'Wavelet Methods for Time Series Analysis' by Percival
@@ -106,7 +106,7 @@ def stationary_gaussian_simulation(s, N, n=1):
     # Make symmetrized vector.
     v = s + s[1:-1].reversed()
 
-    # Compute its fast fourier transform.
+    # Compute its fast Fourier transform.
     cdef TimeSeries a
     a = v.fft()
 
@@ -247,7 +247,7 @@ def multifractal_cascade_random_walk_simulation(double T,
     MORE DETAILS: The random walk has $n$th step $\eps_n
     e^{\omega_n}$, where $\eps_n$ is gaussian white noise of variance
     $\sigma^2$ and $\omega_n$ is renormalized gaussian magnitude,
-    which is given by a stationary gaussian simultation associated to
+    which is given by a stationary gaussian simulation associated to
     a certain autocovariance sequence.  See Bacry, Kozhemyak, Muzy,
     2006, 'Continuous cascade models for asset returns' for details.
 
@@ -279,13 +279,13 @@ def multifractal_cascade_random_walk_simulation(double T,
         else:
             break  # all covariance numbers after this point are 0
 
-    # Compute n simultations of omega, but with mean 0.
+    # Compute n simulations of omega, but with mean 0.
     omega = stationary_gaussian_simulation(s, N+1, n)
 
     # Increase each by the given mean.
     omega = [t.add_scalar(mean) for t in omega]
 
-    # For each simultation, create corresponding multifractal
+    # For each simulation, create corresponding multifractal
     # random walk, as explained on page 6 of [loc. cit.]
     sims = []
     cdef Py_ssize_t k

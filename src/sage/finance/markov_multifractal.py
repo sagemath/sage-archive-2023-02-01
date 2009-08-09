@@ -1,5 +1,5 @@
 """
-Markov Switching Multfractal model
+Markov Switching Multifractal model
 
 REFERENCE: How to Forecast Long-Run Volatility: Regime Switching and
 the Estimation of Multifractal Processes, Calvet and Fisher, 2004.
@@ -48,7 +48,7 @@ class MarkovSwitchingMultifractal:
         """
         Compare self and other.
 
-        Comparision is done on the tuple (m0, sigma, b, gamma_kbar, kbar).
+        Comparison is done on the tuple (m0, sigma, b, gamma_kbar, kbar).
 
         EXAMPLES:
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
@@ -153,7 +153,7 @@ class MarkovSwitchingMultifractal:
         gamma_kbar = self.__gamma_kbar
         kbar       = self.__kbar
 
-        # We compute gamma1 frm gamma_kbar by inverting the relation
+        # We compute gamma1 from gamma_kbar by inverting the relation
         # that defines the gamma_k given on page 54 of Calvet-Fisher:
         gamma1 = 1 - math.exp(math.log(1-gamma_kbar)/(b**(kbar-1)))
 

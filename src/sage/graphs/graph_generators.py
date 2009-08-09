@@ -613,7 +613,7 @@ class GraphGenerators():
         A cycle graph is a basic structure which is also typically called
         an n-gon.
 
-        This constructor is dependant on vertices numbered 0 through n-1 in
+        This constructor is dependent on vertices numbered 0 through n-1 in
         NetworkX ``cycle_graph()``
 
         PLOTTING: Upon construction, the position dictionary is filled to
@@ -816,7 +816,7 @@ class GraphGenerators():
         """
         Returns a house graph with 5 nodes.
 
-        A house graph is named for its shape. It is a triange (roof) over a
+        A house graph is named for its shape. It is a triangle (roof) over a
         square (walls).
 
         This constructor depends on NetworkX numeric labeling.
@@ -827,7 +827,7 @@ class GraphGenerators():
         house, the second in the lower-right corner of the house. The third
         node is in the upper-left corner connecting the roof to the wall,
         and the fourth is in the upper-right corner connecting the roof to
-        the walll. The fifth node is the top of the roof, connected only to
+        the wall. The fifth node is the top of the roof, connected only to
         the third and fourth.
 
         EXAMPLES: Construct and show a house graph
@@ -858,7 +858,7 @@ class GraphGenerators():
         house, the second in the lower-right corner of the house. The third
         node is in the upper-left corner connecting the roof to the wall,
         and the fourth is in the upper-right corner connecting the roof to
-        the walll. The fifth node is the top of the roof, connected only to
+        the wall. The fifth node is the top of the roof, connected only to
         the third and fourth.
 
         EXAMPLES: Construct and show a house X graph
@@ -897,7 +897,7 @@ class GraphGenerators():
         1, 1] nodes on each row. This places the fourth node (3) in the
         center of the kite, with the highest degree. But the fourth node
         only connects nodes that are otherwise connected, or those in its
-        clique (i.e.: Degree Centrality). The eigth (7) node is where the
+        clique (i.e.: Degree Centrality). The eighth (7) node is where the
         kite meets the tail. It has degree = 3, less than the average, but
         is the only connection between the kite and tail (i.e.: Betweenness
         Centrality). The sixth and seventh nodes (5 and 6) are drawn in the
@@ -1130,7 +1130,7 @@ class GraphGenerators():
         A Star graph is a basic structure where one node is connected to
         all other nodes.
 
-        This constructor is dependant on NetworkX numeric labels.
+        This constructor is dependent on NetworkX numeric labels.
 
         PLOTTING: Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, each star
@@ -1494,7 +1494,7 @@ class GraphGenerators():
         future. In such a case, a string argument will be added to select
         the flat spring-layout over a future implementation.
 
-        EXAMPLES: Construct and show a Dodecahdedral graph
+        EXAMPLES: Construct and show a Dodecahedral graph
 
         ::
 
@@ -1604,7 +1604,7 @@ class GraphGenerators():
         non-planar and have Petersen graph graph minors.
 
         PLOTTING: Upon construction, the position dictionary is filled to
-        override the spring-layout algoirithm. By convention, the nodes are
+        override the spring-layout algorithm. By convention, the nodes are
         drawn 0-14 on the outer circle, and 15-19 in an inner pentagon.
 
         REFERENCES:
@@ -1646,7 +1646,7 @@ class GraphGenerators():
         A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic
         identity graph. It is planar and it is Hamiltonian.
 
-        This constructor is dependant on Networkx's numeric labeling.
+        This constructor is dependent on NetworkX's numeric labeling.
 
         PLOTTING: Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, the first
@@ -1691,7 +1691,7 @@ class GraphGenerators():
         nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
         6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
-        This constructor is dependant on Networkx's numeric labeling.
+        This constructor is dependent on NetworkX's numeric labeling.
 
         PLOTTING: Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, the nodes are
@@ -2065,7 +2065,7 @@ class GraphGenerators():
         A Complete Graph is a graph in which all nodes are connected to all
         other nodes.
 
-        This constructor is dependant on vertices numbered 0 through n-1 in
+        This constructor is dependent on vertices numbered 0 through n-1 in
         NetworkX complete_graph()
 
         PLOTTING: Upon construction, the position dictionary is filled to
@@ -2426,7 +2426,7 @@ class GraphGenerators():
         - [1] Frucht, R. "A Canonical Representation of Trivalent
           Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
 
-        - [2] Grunbaum, B.  Convex Polytop es. New York: Wiley,
+        - [2] Grunbaum, B.  Convex Polytope es. New York: Wiley,
           pp. 362-364, 1967.
 
         - [3] Lederberg, J. 'DENDRAL-64: A System for Computer
@@ -2570,7 +2570,7 @@ class GraphGenerators():
         attachment model.
 
         A graph with m vertices and no edges is initialized, and a graph of n
-        vertices is grown by attaching new veritces each with m edges that are
+        vertices is grown by attaching new vertices each with m edges that are
         attached to existing vertices, preferentially with high degree.
 
         INPUT:
@@ -2728,7 +2728,7 @@ class GraphGenerators():
     def RandomHolmeKim(self, n, m, p, seed=None):
         """
         Returns a random graph generated by the Holme and Kim algorithm for
-        graphs with powerlaw degree distribution and approximate average
+        graphs with power law degree distribution and approximate average
         clustering.
 
         INPUT:
@@ -2823,12 +2823,12 @@ class GraphGenerators():
 
     def RandomTreePowerlaw(self, n, gamma=3, tries=100, seed=None):
         """
-        Returns a tree with a powerlaw degree distribution. Returns False
+        Returns a tree with a power law degree distribution. Returns False
         on failure.
 
-        From the NetworkX documentation: A trial powerlaw degree sequence
+        From the NetworkX documentation: A trial power law degree sequence
         is chosen and then elements are swapped with new elements from a
-        powerlaw distribution until the sequence makes a tree (size = order
+        power law distribution until the sequence makes a tree (size = order
         - 1).
 
         INPUT:

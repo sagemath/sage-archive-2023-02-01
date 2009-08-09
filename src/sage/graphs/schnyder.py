@@ -2,7 +2,7 @@
 """
 A module for computing the (x,y) coordinates for a straight-line planar
 embedding of any connected planar graph with at least three vertices.  Uses
-Walter Schnyder's Alogorithm.
+Walter Schnyder's Algorithm.
 
 AUTHORS:
     -- Jonathan Bober, Emily Kirkman (2008-02-09):  initial version

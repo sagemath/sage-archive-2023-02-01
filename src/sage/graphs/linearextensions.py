@@ -56,12 +56,12 @@ class LinearExtensions(CombinatorialClass):
         Creates an object representing the class of all linear extensions
         of the directed acyclic graph \code{dag}.
 
-        Note that upon construction of this object some precomputation is
+        Note that upon construction of this object some pre-computation is
         done.  This is the "preprocessing routine" found in Figure 7 of
         "Generating Linear Extensions Fast" by Preusse and Ruskey.
 
         This is an in-place algorithm and the list self.le keeps track
-        of the current linear extenions.  The boolean variable self.is_plus
+        of the current linear extensions.  The boolean variable self.is_plus
         keeps track of the "sign".
 
         EXAMPLES:
@@ -348,7 +348,7 @@ class LinearExtensions(CombinatorialClass):
 
     def incomparable(self, x, y):
         """
-        Retruns True if vertices x and y are incomparable in the directed
+        Returns True if vertices x and y are incomparable in the directed
         acyclic graph when thought of as a poset.
 
         EXAMPLES:

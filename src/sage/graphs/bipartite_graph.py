@@ -34,7 +34,7 @@ class BipartiteGraph(Graph):
             3.  A graph and a bipartition.
             4.  A reduced adjacency matrix.
             5.  A file in alist format.
-            6.  From a Networkx bipartite graph.
+            6.  From a NetworkX bipartite graph.
 
     A reduced adjacency matrix contains only the non-redundant portion of the
     full adjacency matrix for the bipartite graph.  Specifically, for zero
@@ -273,7 +273,7 @@ class BipartiteGraph(Graph):
                         elif arg1.node_type[v] == 'Top':
                             self.right.append(v)
                         else:
-                            raise TypeError("NetworkX node_type defies bipartite assumtion (is not 'Top' or 'Bottom')")
+                            raise TypeError("NetworkX node_type defies bipartite assumption (is not 'Top' or 'Bottom')")
                 else:
                     try:
                         self.left, self.right = self.bipartite_sets()
@@ -456,7 +456,7 @@ class BipartiteGraph(Graph):
         #NOTE:: we could read in the row adjacency information as well to double-check....
         #NOTE:: we could check the actual node degrees against the reported node degrees....
 
-        # now we have all the edges in our graph, just fill in the bipartite partioning
+        # now we have all the edges in our graph, just fill in the bipartite partitioning
         self.left = list(range(num_cols))
         self.right = list(range(num_cols, num_cols + num_rows))
 

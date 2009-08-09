@@ -293,8 +293,8 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
         """
         A query for an instance of GraphDatabase. This class nicely wraps
         the SQLQuery class located in sage.databases.database.py to make
-        the query constraints intuitive and with as many predefinitions as
-        posible. (i.e.: since it has to be a GraphDatabase, we already know
+        the query constraints intuitive and with as many pre-definitions as
+        possible. (i.e.: since it has to be a GraphDatabase, we already know
         the table structure and types; and since it is immutable, we can
         treat these as a guarantee).
 

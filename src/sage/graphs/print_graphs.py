@@ -4,7 +4,7 @@
 ## Craig Citro
 ## 07_06_12
 ##
-## Copying old scheme print-graph methods over to SAGE
+## Copying old scheme print-graph methods over to Sage
 ##
 
 #*****************************************************************************

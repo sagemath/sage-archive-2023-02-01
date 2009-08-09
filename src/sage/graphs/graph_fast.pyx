@@ -103,7 +103,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
                 pos[i*dim + x] = loc[x]
 
 
-    # here we construct a lexographically ordered list of all edges
+    # here we construct a lexicographically ordered list of all edges
     # where elist[2*i], elist[2*i+1] represents the i-th edge
     cdef int* elist = <int*>sage_malloc( (2 * len(G.edges()) + 2) * sizeof(int)  )
     if elist is NULL:
@@ -170,22 +170,22 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     constraints that neighboring nodes want to be a fixed distance
     from each other, and non-neighboring nodes always repel.
 
-    This is not a true physical model of mutually-replusive particles
+    This is not a true physical model of mutually-repulsive particles
     with springs, rather it is more a model of such things traveling,
     without any inertia, through an (ever thickening) fluid.
 
-    TODO: The inertial model could be incorperated (with F=ma)
+    TODO: The inertial model could be incorporated (with F=ma)
     TODO: Are the hard-coded constants here optimal?
 
     INPUT:
         iterations -- number of steps to take
         dim        -- number of dimensions of freedom
-        pos        -- already initalized initial positions
-                      Each vertext is stored as [dim] consecutive doubles.
+        pos        -- already initialized initial positions
+                      Each vertex is stored as [dim] consecutive doubles.
                       These doubles are then placed consecutively in the array.
                       For example, if dim=3, we would have
                       pos = [x_1, y_1, z_1, x_2, y_2, z_2, ... , x_n, y_n, z_n]
-        edges      -- List of edges, sorted lexographically by the first
+        edges      -- List of edges, sorted lexicographically by the first
                       (smallest) vertex, terminated by -1, -1.
                       The first two entries represent the first edge, and so on.
         n          -- number of vertices in the graph

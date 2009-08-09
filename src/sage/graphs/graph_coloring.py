@@ -37,7 +37,7 @@ def all_graph_colorings(G,n,count_only=False):
      (rows)
       * For each vertex, add n rows; one for each color c.  Place
            a 1 in the column corresponding to the vertex, and a 1
-           in the appropriate column foreach edge incident to the
+           in the appropriate column for each edge incident to the
            vertex, indicating that that edge is incident to the
            color c.
       * If n > 2, the above construction cannot be exactly covered

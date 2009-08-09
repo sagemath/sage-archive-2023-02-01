@@ -1,10 +1,10 @@
 """
-all.py -- export of abelian groups to SAGE
+all.py -- export of abelian groups to Sage
 """
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #

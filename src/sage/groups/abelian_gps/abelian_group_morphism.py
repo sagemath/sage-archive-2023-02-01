@@ -140,15 +140,15 @@ class AbelianGroupMorphism:
         s3 = 'G:=%s; H:=%s'%(G,H)
         #print s3,"\n"
         gap.eval(s3)
-        gensG = self.domain().variable_names()                    ## the SAGE group generators
+        gensG = self.domain().variable_names()                    ## the Sage group generators
         gensH = self.range().variable_names()
         #print gensG, gensH
         s1 = "gensG := GeneratorsOfGroup(G)"          ## the GAP group generators
         gap.eval(s1)
         s2 = "gensH := GeneratorsOfGroup(H)"
         gap.eval(s2)
-        for i in range(len(gensG)):                      ## making the SAGE group gens
-           cmd = ("%s := gensG["+str(i+1)+"]")%gensG[i]  ## correspond to the SAGE group gens
+        for i in range(len(gensG)):                      ## making the Sage group gens
+           cmd = ("%s := gensG["+str(i+1)+"]")%gensG[i]  ## correspond to the Sage group gens
            #print i,"  \n",cmd
            gap.eval(cmd)
         for i in range(len(gensH)):

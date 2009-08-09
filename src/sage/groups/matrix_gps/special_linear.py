@@ -118,7 +118,7 @@ def SL(n, R, var='a'):
 class SpecialLinearGroup_generic(MatrixGroup_gap):
     def _gap_init_(self):
         """
-        String to create this grop in GAP.
+        String to create this group in GAP.
 
         EXAMPLES::
 

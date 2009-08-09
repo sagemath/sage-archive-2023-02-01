@@ -52,7 +52,7 @@ REFERENCES:
 
 NOTE:
     Though Suzuki groups are okay, Ree groups should *not* be wrapped as
-    permutation groups - the onstruction is too slow - unless (for
+    permutation groups - the construction is too slow - unless (for
     small values or the parameter) they are made using explicit generators.
 """
 
@@ -693,7 +693,7 @@ class PSL(PermutationGroup_plg):
         randomness to the ordering of the characters.
 
         If you try to use this function on a group PSL(2,q) where q is
-        not a (smallish) "Hurwitz prime", an error mesage will be printed.
+        not a (smallish) "Hurwitz prime", an error message will be printed.
         """
         if self.matrix_degree()!=2:
             return ValueError, "Degree must be 2."

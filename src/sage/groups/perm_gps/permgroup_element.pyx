@@ -349,7 +349,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the
         # rest of the code is assumes that self.perm specifies
-        # a valid permutation (else segfaults, infinte loops may occur).
+        # a valid permutation (else segfaults, infinite loops may occur).
         if not is_valid_permutation(self.perm, vn):
             raise ValueError, "Invalid permutation vector: %s" % v
 
@@ -398,7 +398,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             '(1,2,3)(4,5)'
 
         Permutation group elements support renaming them so they print
-        however you want, as illustred below::
+        however you want, as illustrate below::
 
             sage: g.rename('sigma')
             sage: g

@@ -318,7 +318,7 @@ class DualAbelianGroupElement(MonoidElement):
         G = M.group()
         gens = M.variable_names()
         g = prod([G.gen(i)**(self.list()[i]) for i in range(G.ngens())])
-        gap.eval("l:=One(Rationals)")            ## trick needed for LL line below to keep SAGE from parsing
+        gap.eval("l:=One(Rationals)")            ## trick needed for LL line below to keep Sage from parsing
         s1 = "gens := GeneratorsOfGroup(%s)"%G._gap_init_()
         gap.eval(s1)
         for i in range(len(gens)):

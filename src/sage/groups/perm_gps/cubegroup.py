@@ -6,7 +6,7 @@ Rubik's cube group functions
 .. note::
 
   "Rubik's cube" is trademarked. We shall omit the trademark
-  symbol below for simplcity.
+  symbol below for simplicity.
 
 NOTATION: B denotes a clockwise quarter turn of the back face D
 denotes a clockwise quarter turn of the down face and similarly for
@@ -452,7 +452,7 @@ class CubeGroup(PermutationGroup_generic):
         sage: rubik
         The PermutationGroup of all legal moves of the Rubik's cube.
         sage: print rubik
-        The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48).
+        The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48).
     """
     def __init__(self):
         U = "( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19)" ## U = top
@@ -468,7 +468,7 @@ class CubeGroup(PermutationGroup_generic):
         return ['B','D','F','L','R','U']
 
     def __str__(self):
-      return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
+      return "The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48)."
 
     def __repr__(self):
       return "The PermutationGroup of all legal moves of the Rubik's cube."
@@ -574,7 +574,7 @@ class CubeGroup(PermutationGroup_generic):
             # mv is a perm_group element, return mv
             return mv if mv.parent() is G else G(mv)
         elif isinstance(mv, str):
-            # It is a string: may be in cycle notation or rubik's notation
+            # It is a string: may be in cycle notation or Rubik's notation
             if '(' in mv and not '^' in mv:
                 return G(mv)
             else:

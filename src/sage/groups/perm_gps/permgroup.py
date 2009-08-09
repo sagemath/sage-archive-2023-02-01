@@ -1684,7 +1684,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         s = gap.eval("x")
         if s == "fail":
             return None
-        # slice and dice the GAP return to build a SAGE group homomorphism
+        # slice and dice the GAP return to build a Sage group homomorphism
         src, dst = s.split("->")
         # we eval to get things as lists
         srcs = from_gap_list(self, src)

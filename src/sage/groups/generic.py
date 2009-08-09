@@ -159,7 +159,7 @@ def power(a, m, one=1):
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
     Returns either `na` or `a^n`, where `n` is any integer and `a` is
-    a Python object on which a group operaton such as addition or
+    a Python object on which a group operation such as addition or
     multiplication is defined.  Uses the standard binary algorithm.
 
     INPUT:  See the documentation for ``discrete_logarithm()``.
@@ -277,7 +277,7 @@ class multiples:
     Return an iterator which runs through ``P0+i*P`` for ``i`` in ``range(n)``.
 
     ``P`` and ``P0`` must be Sage objects in some group; if the operation is
-    multiplcation then the returned values are instead ``P0*P**i``.
+    multiplication then the returned values are instead ``P0*P**i``.
 
     EXAMPLES::
 
@@ -901,7 +901,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         sage: P == 2*Q
         True
 
-    A multiplcative example (in a finite field's multiplicative group)::
+    A multiplicative example (in a finite field's multiplicative group)::
 
         sage: F.<a>=GF(3^6,'a')
         sage: a.multiplicative_order().factor()

@@ -121,7 +121,7 @@ Matrix indexing works as follows::
     sage: my_matrix(3,2)                                # optional
     4
 
-Setting using paranthesis cannot work (because of how the Python
+Setting using parenthesis cannot work (because of how the Python
 language works). Use square brackets or the set function::
 
     sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
@@ -197,7 +197,7 @@ class Matlab(Expect):
     def _install_hints(self):
         return """
         You must obtain the program MATLAB in order to use MATLAB
-        from SAGE.   You can read all about MATLAB at
+        from Sage.   You can read all about MATLAB at
                   http://www.mathworks.com/
 
         You might have to buy MATLAB or get away with setting up a remote connection to a server running Maple. Type

@@ -47,7 +47,7 @@ class Sage(Expect):
 
         sage: s = Sage()
 
-    Create the element 2 in our new copy of Sage, and cubeit.
+    Create the element 2 in our new copy of Sage, and cube it.
 
     ::
 
@@ -119,7 +119,7 @@ class Sage(Expect):
         10
 
     The double quotes are needed because the call to s3 first evaluates
-    its arguments using the s interpeter, so the call to s3 is passed
+    its arguments using the s interpreter, so the call to s3 is passed
     ``s('"x"')``, which is the string ``"x"``
     in the s interpreter.
     """
@@ -337,7 +337,7 @@ class Sage(Expect):
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
         if 'Traceback' in out:
-            raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
+            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSage ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):
         """

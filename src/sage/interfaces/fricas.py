@@ -23,7 +23,7 @@ AUTHORS:
 If the string "error" (case insensitive) occurs in the output of
 anything from FriCAS, a RuntimeError exception is raised.
 
-EXAMPLES: We evaluate a very simple expression in FriCas.
+EXAMPLES: We evaluate a very simple expression in FriCAS.
 
 ::
 

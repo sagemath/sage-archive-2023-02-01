@@ -215,7 +215,7 @@ are really exact numbers.)
 
 We can verify that this point is a solution.  To do so, we create
 a copy of ellipse as a polynomial over QQ (instead of a symbolic
-expresision).
+expression).
 
 sage: pellipse = QQ['x,y'](ellipse)                                           # optional - qepcad
 sage: pellipse(**p) == 0                                                      # optional - qepcad
@@ -571,7 +571,7 @@ def _update_command_info():
         sage: from sage.interfaces.qepcad import _update_command_info, _command_info_cache
         sage: _update_command_info()                         # optional - qepcad
         sage: _command_info_cache['approx_precision']        # optional - qepcad
-        ('46', 'abcde', 'm', 'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n', None)
+        ('46', 'abcde', 'm', 'approx-precision N\n\nApproximate algebraic numbers to N decimal places.\n', None)
     """
     global _command_info_cache
     if _command_info_cache is not None:
@@ -1222,7 +1222,7 @@ class QepcadFunction(ExpectFunction):
             sage: qe = qepcad(x == 17, interact=True) # optional - qepcad
             sage: cmd = qe.approx_precision # optional - qepcad
             sage: cmd._sage_doc_() # optional - qepcad
-            'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n'
+            'approx-precision N\n\nApproximate algebraic numbers to N decimal places.\n'
         """
         _update_command_info()
         return _command_info_cache[self._name][3]
@@ -1363,7 +1363,7 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
 
         Since polynomials are continuous and $y > 0$ is an open set,
         they are positive infinitely often iff they are positive at
-        lesat once.
+        least once.
         sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # optional - qepcad
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
         sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # optional - qepcad

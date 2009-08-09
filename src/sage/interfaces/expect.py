@@ -40,7 +40,7 @@ from random import randrange
 ########################################################
 # Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
 # For reasons I don't understand, pexpect2.1 is much
-# worse than pexpect 2.0 for everything SAGE does.
+# worse than pexpect 2.0 for everything Sage does.
 ########################################################
 import pexpect
 from pexpect import ExceptionPexpect
@@ -81,7 +81,7 @@ def tmp_expect_interface_local():
 
 # The subprocess is a shared resource.  In a multi-threaded
 # environment, there would have to be a lock to control access to the
-# subprocess.  Fortunately, SAGE does not use Python threads.
+# subprocess.  Fortunately, Sage does not use Python threads.
 # Unfortunately, the combination of the garbage collector and __del__
 # methods gives rise to the same issues.  So, in places where we need
 # to do a sequence of operations on the subprocess and make sure
@@ -310,7 +310,7 @@ class Expect(ParentWithBase):
 
            This is completely different than the console() member
            function. The console function opens a new copy of the
-           child interepreter, whereas the interact function gives you
+           child interpreter, whereas the interact function gives you
            interactive access to the interpreter that is being used by
            Sage. Use sage(xxx) or interpretername(xxx) to pull objects
            in from sage to the interpreter.
@@ -354,7 +354,7 @@ where "slave" could be "math" (for text-mode Mathematica), "gap", "magma", "sage
 
 This thus requires passwordless authentication to be setup, which can be done with commands like these:
         cd; ssh-keygen -t rsa; scp .ssh/id_rsa.pub remote:.ssh/authorized_keys2\n
-(WARNING: this would overwrite your current list of auhorized keys on "remote")
+(WARNING: this would overwrite your current list of authorized keys on "remote")
 
 In many cases, the server that can actually run "slave" is not accessible from the internet directly, but you have to hop through an intermediate trusted server, say "gate".
 If that is your case, get help with _install_hints_ssh_through_gate().
@@ -368,15 +368,15 @@ If that is your case, get help with _install_hints_ssh_through_gate().
         # Written by Paul-Olivier Dehaye 2007/08/23
         return """
 
- We assume you would like to run a "slave" process  on a machine called "remote" from a machine running SAGE called "local". We also assume "remote" can only be accessed from "local" by ssh'ing first to "gate" (this is a fairly common setup). Sometimes, "gate" and "remote" haved a shared filesystem, and this helps a bit.
+ We assume you would like to run a "slave" process  on a machine called "remote" from a machine running Sage called "local". We also assume "remote" can only be accessed from "local" by ssh'ing first to "gate" (this is a fairly common setup). Sometimes, "gate" and "remote" have a shared filesystem, and this helps a bit.
 
-  Note: You cannot just create shell scripts on "local" and "gate" that would use two successive SSH connections to "remote" in order to simulate running "slave" locally. This is because SAGE will sometimes use files (and scp)  to communicate with "remote", which shell scripts would not take care of.
+  Note: You cannot just create shell scripts on "local" and "gate" that would use two successive SSH connections to "remote" in order to simulate running "slave" locally. This is because Sage will sometimes use files (and scp)  to communicate with "remote", which shell scripts would not take care of.
 
 You need to setup:
  * passwordless authentication to "gate" from "local"
  * add passwordless authentication to "remote" from "local",
    for instance by appending the file local:~/.ssh/id_rsa.pub to remote:~/.ssh/authorized_keys2 and logging in once
-      (this is only needed if "remote" and "gate" don\'t share fylesystems)
+      (this is only needed if "remote" and "gate" don\'t share filesystem)
  * add a few lines to your local:~/.ssh/ssh_config. Mine look like
 
        Host remote_for_sage
@@ -994,9 +994,9 @@ If this all works, you can then make calls like:
         r"""
         Create a new object in self from x.
 
-        The object X returned can be used like any SAGE object, and
+        The object X returned can be used like any Sage object, and
         wraps an object in self.  The standard arithmetic operators
-        work.  Morever if foo is a function then
+        work.  Moreover if foo is a function then
                       X.foo(y,z,...)
         calls foo(X, y, z, ...) and returns the corresponding object.
 
@@ -1323,7 +1323,7 @@ If this all works, you can then make calls like:
         """
         Compare two pseudo-tty interfaces. Two interfaces compare
         equal if and only if they are identical objects (this is a
-        critical constrait so that caching of representations of
+        critical constraint so that caching of representations of
         objects in interfaces works correctly). Otherwise they are
         never equal.
 
@@ -1485,7 +1485,7 @@ class ExpectElement(RingElement):
 
     def __hash__(self):
         """
-        Returns the hash of self. This is a defualt implementation of hash
+        Returns the hash of self. This is a default implementation of hash
         which just takes the hash of the string of self.
         """
         return hash('%s%s'%(self, self._session_number))
@@ -1743,7 +1743,7 @@ class ExpectElement(RingElement):
     def name(self, new_name=None):
         """
         Returns the name of self. If new_name is passed in, then this
-        function returns a new object identitical to self whose name is
+        function returns a new object identical to self whose name is
         new_name.
 
         Note that this can overwrite existing variables in the system.

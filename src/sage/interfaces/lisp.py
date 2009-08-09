@@ -97,7 +97,7 @@ class Lisp(Expect):
                         logfile=logfile,
 
                         # If an input is longer than this number of characters, then
-                        # try to switch to outputing to a file.
+                        # try to switch to outputting to a file.
                         eval_using_file_cutoff=1024)
 
         self.__seq = 0
@@ -163,7 +163,7 @@ class Lisp(Expect):
         cmd = '(setq %s %s)'%(var, value)
         out = self.eval(cmd)
         if '***' in out:
-            raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
+            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):
         """

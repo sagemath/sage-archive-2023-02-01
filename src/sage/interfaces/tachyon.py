@@ -667,7 +667,7 @@ become optional rather than required.
 {Value for TEXFUNC} & {Mapping and Texture Description}\\
 \hline
 {0} & {No special texture, plain shading}  \\
-{1} & {3D checkerboard function, like a rubik's cube}  \\
+{1} & {3D checkerboard function, like a Rubik's cube}  \\
 {2} & {Grit Texture, randomized surface color}  \\
 {3} & {3D marble texture, uses object's base color}  \\
 {4} & {3D wood texture, light and dark brown, not very good yet}  \\

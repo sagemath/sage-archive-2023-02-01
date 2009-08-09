@@ -21,7 +21,7 @@ class POVRay:
     EXAMPLES:
 
     AUTHOR:
-        SAGE Interface written by Yi Qiang (yqiang _atNOSPAM_ gmail.com)
+        Sage interface written by Yi Qiang (yqiang _atNOSPAM_ gmail.com)
         POVRay: http://www.povray.org
     """
     def __repr__(self):

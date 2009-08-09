@@ -449,7 +449,7 @@ class PHC:
         This is used internally to implement the PHC interface.
 
         INPUT:
-            polys -- a list of polynomials in a SAGE polynomial ring
+            polys -- a list of polynomials in a Sage polynomial ring
                      over a field that embeds into the complex
                      numbers.
 

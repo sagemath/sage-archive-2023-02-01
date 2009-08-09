@@ -138,7 +138,7 @@ Note that this agrees with what the PARI interpreter gp produces::
     1.512134551657842473896739678              # 32-bit
     1.5121345516578424738967396780720387046    # 64-bit
 
-Next we find the minimimum of a polynomial using the two different
+Next we find the minimum of a polynomial using the two different
 ways of accessing Mathematica::
 
     sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')  # optional - mathematica
@@ -341,13 +341,13 @@ remote connection to a server running Mathematica -- for hints, type
         that's the only way at present).
 """
 
-##         The following only works with SAGE for Cygwin (not colinux).
-##         Note that SAGE colinux is the preferred way to run SAGE in Windows,
-##         and I do not know how to use mathematica from colinux SAGE (unless
+##         The following only works with Sage for Cygwin (not colinux).
+##         Note that Sage colinux is the preferred way to run Sage in Windows,
+##         and I do not know how to use Mathematica from colinux Sage (unless
 ##         you install Mathematica-for-linux into the colinux machine, which
 ##         is possible).
 
-##         Create a file named "math", which you place in the SAGE root
+##         Create a file named "math", which you place in the Sage root
 ##         directory.  The file contained a single line, which was the
 ##         path to the mathematica math.exe file.  In my case, this might be:
 
@@ -355,13 +355,13 @@ remote connection to a server running Mathematica -- for hints, type
 
 ##         The key points are
 ##         1) there is a file named "math.exe", and it will generally be
-##            located in a place analagous to the above (depending on where
+##            located in a place analogous to the above (depending on where
 ##            Mathematica has been installed).  This file is used only for
 ##            launching the kernel with a text-based interface.
 ##         2) a cygwin batch file must be created which executes this file,
 ##            which means using forward slashes rather than back slashes,
 ##            and probably surrounding everything in quotes
-##         3) this cygwin batch file must be on the path for SAGE (placing
+##         3) this cygwin batch file must be on the path for Sage (placing
 ##            it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
 
     def eval(self, code, strip=True, **kwds):
@@ -574,7 +574,7 @@ def reduce_load(X):
     return mathematica(X)
 
 # Cleverly run Mathematica with the benefit of readline, which
-# is something the usual commerical mathematica doesn't provide!
+# is something the usual commercial mathematica doesn't provide!
 # See
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 

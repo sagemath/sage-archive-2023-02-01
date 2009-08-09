@@ -22,7 +22,7 @@ documentation see http://wiki.axiom-developer.org.
 
 AUTHORS:
 
-- Bill Page (2006-10): Created this (based on maxima interface)
+- Bill Page (2006-10): Created this (based on Maxima interface)
 
 
   .. note::
@@ -265,7 +265,7 @@ class PanAxiom(Expect):
             raise ValueError, "the filename must end with .input"
 
         # For some reason this trivial comp
-        # keeps certain random freezes from occuring.  Do not remove this.
+        # keeps certain random freezes from occurring.  Do not remove this.
         # The space before the \n is also important.
         return ')read %s \n'%filename
 

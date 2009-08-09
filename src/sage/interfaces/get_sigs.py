@@ -9,7 +9,7 @@ def my_sigint(x, n):
     raise KeyboardInterrupt
 
 def my_sigfpe(x, n):
-    raise RuntimeError, "A floating point exception occured."
+    raise RuntimeError, "A floating point exception occurred."
 
 def get_sigs():
     signal.signal(signal.SIGINT, my_sigint)

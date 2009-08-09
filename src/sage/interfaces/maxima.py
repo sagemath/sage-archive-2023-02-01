@@ -8,7 +8,7 @@ functions, including elliptic functions and generalized
 hypergeometric functions. Moreover, Maxima has implementations of
 many functions relating to the invariant theory of the symmetric
 group `S_n`. (However, the commands for group invariants,
-and the corresponding Maxima documenation, are in French.) For many
+and the corresponding Maxima documentation, are in French.) For many
 links to Maxima documentation see
 http://maxima.sourceforge.net/docs.shtml/.
 
@@ -27,9 +27,9 @@ AUTHORS:
   sequence numbers to IO bracketing in _eval_line
 
 If the string "error" (case insensitive) occurs in the output of
-anything from maxima, a RuntimeError exception is raised.
+anything from Maxima, a RuntimeError exception is raised.
 
-EXAMPLES: We evaluate a very simple expression in maxima.
+EXAMPLES: We evaluate a very simple expression in Maxima.
 
 ::
 
@@ -378,7 +378,7 @@ problem is ``maxima.eval('integrate (exp(a*x), x, 0, inf)')``.
 Latex Output
 ------------
 
-To tex a maxima object do this::
+To TeX a maxima object do this::
 
     sage: latex(maxima('sin(u) + sinh(v^2)'))
     \sinh v^2+\sin u
@@ -798,7 +798,7 @@ class Maxima(Expect):
 
         EXAMPLES::
 
-            sage: maxima.lisp("(+ 2 17)")   # random formated output
+            sage: maxima.lisp("(+ 2 17)")   # random formatted output
              :lisp (+ 2 17)
             19
             (
@@ -1465,7 +1465,7 @@ class Maxima(Expect):
         """
         Wraps maxima's linsolve.
 
-        INPUT: eqns is a list of m strings, each rperesenting a linear
+        INPUT: eqns is a list of m strings, each representing a linear
         question in m = n variables vars is a list of n strings, each
         representing a variable
 
@@ -2157,7 +2157,7 @@ class MaximaElement(ExpectElement):
         # two numbers as a single space. This was really bad when 2*17^(1/3)
         # gets TeXed as '2 17^{\frac{1}{3}}'
         #
-        # This regex matches a string of spaces preceeded by either a '}', a
+        # This regex matches a string of spaces preceded by either a '}', a
         # decimal digit, or a ')', and followed by a decimal digit. The spaces
         # get replaced by a '\cdot'.
         s = re.sub(r'(?<=[})\d]) +(?=\d)', '\cdot', s)

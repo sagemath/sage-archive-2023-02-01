@@ -6,7 +6,7 @@ for this interface to work. Macaulay2 is not included with \sage,
 but you can obtain it from \url{http://www.math.uiuc.edu/Macaulay2/}.
 Note additional optional \sage packages are required.}
 
-SAGE provides an interface to the Macaulay2 computational algebra
+Sage provides an interface to the Macaulay2 computational algebra
 system. This system provides extensive functionality for commutative
 algebra. You do not have to install any optional packages.
 
@@ -19,7 +19,7 @@ into an interactive command-line Macaulay2 session.
 \item \code{Macaulay2(expr)} -- Evaluation of arbitrary Macaulay2
 expressions, with the result returned as a string.
 
-\item \code{Macaulay2.new(expr)} -- Creation of a SAGE object that wraps a
+\item \code{Macaulay2.new(expr)} -- Creation of a Sage object that wraps a
 Macaulay2 object.  This provides a Pythonic interface to Macaulay2.  For
 example, if \code{f=Macaulay2.new(10)}, then \code{f.gcd(25)} returns the
 GCD of $10$ and $25$ computed using Macaulay2.
@@ -62,8 +62,8 @@ EXAMPLES:
 
 
 AUTHORS:
-   -- Kiran Kedlaya and David Roe (2006-02-05, during SAGE coding sprint)
-   -- William Stein (2006-02-09): inclusion in SAGE; prompt uses regexp,
+   -- Kiran Kedlaya and David Roe (2006-02-05, during Sage coding sprint)
+   -- William Stein (2006-02-09): inclusion in Sage; prompt uses regexp,
              calling of Macaulay2 functions via __call__.
    -- William Stein (2006-02-09): fixed bug in reading from file and
              improved output cleaning.
@@ -150,7 +150,7 @@ class Macaulay2(Expect):
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide
     # garbage collection; since expect automatically reuses variable names,
-    # garbage collection in SAGE properly sets up garbage collection in
+    # garbage collection in Sage properly sets up garbage collection in
     # Macaulay2.
 
     def __reduce__(self):

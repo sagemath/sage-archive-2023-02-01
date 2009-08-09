@@ -10,7 +10,7 @@ Simple manipulations; numbers and vectors
 
 The simplest data structure in R is the numeric vector which
 consists of an ordered collection of numbers.  To create a
-vector named $x$ using the R interface in SAGE, you pass the
+vector named $x$ using the R interface in Sage, you pass the
 R interpreter object a list or tuple of numbers.
     sage: x = r([10.4,5.6,3.1,6.4,21.7]); x
     [1] 10.4  5.6  3.1  6.4 21.7
@@ -283,7 +283,7 @@ class R(Expect):
                   logfile=logfile,
 
                   # If an input is longer than this number of characters, then
-                  # try to switch to outputing to a file.
+                  # try to switch to outputting to a file.
                   eval_using_file_cutoff=1024)
 
         self.__seq = 0
@@ -436,7 +436,7 @@ class R(Expect):
         Return the string that when typed into R causes the R
         interpreter to exit.
 
-        EXMAPLES:
+        EXAMPLES:
             sage: r._quit_string()
             'quit(save="no")'
         """
@@ -926,7 +926,7 @@ class R(Expect):
     def plot(self, *args, **kwds):
         """
         The R plot function.  Type r.help('plot') for much more extensive
-        documentatin about this function.  See the examples below for how
+        documentation about this function.  See the examples below for how
         to use it to write output to a FILE.
 
         EXAMPLES:
@@ -1872,7 +1872,7 @@ class HelpExpression(str):
     """
     def __repr__(self):
         """
-        Return string representatin of self.
+        Return string representation of self.
 
         OUTPUT:
             string

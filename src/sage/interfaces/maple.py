@@ -68,7 +68,7 @@ discuss two of those ways in this tutorial.
    Notice, there is no need to use a semicolon.
 
 #. Since Sage is written in Python, we can also import maple
-   commands and write our scripts in a pythonic way. For example,
+   commands and write our scripts in a Pythonic way. For example,
    ``factor()`` is a maple command, so we can also factor
    in Sage using
 
@@ -433,7 +433,7 @@ connection to a server running Maple; for hints, type
 ##         Kill all running instances of the maple interpreter
 ##         on this system.
 
-##         TODO: When SAGE exists it doesn't correctly by default kill
+##         TODO: When Sage exits it doesn't correctly by default kill
 ##         all running Maple interpreters, for some strange reason.
 ##         Calling this function uses the kill and pidof operating system
 ##         programs to find all instances of cmaple and kill them.
@@ -549,7 +549,7 @@ connection to a server running Maple; for hints, type
                 # The following was very tricky to figure out.
                 # When an error occurs using Maple, unfortunately,
                 # Maple also dumps one into the line where the
-                # error occured with that line copied in.  This
+                # error occurred with that line copied in.  This
                 # totally messes up the pexpect interface.  However,
                 # I think the following few lines successfully
                 # "clear things out", i.e., delete the text from
@@ -558,7 +558,7 @@ connection to a server running Maple; for hints, type
                 e.sendline('%s__sage__;'%(chr(8)*len(line)))
                 e.expect('__sage__;')
                 e.expect(self._prompt)
-                raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
+                raise RuntimeError, "An error occurred running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
         return z
 
     def cputime(self, t=None):

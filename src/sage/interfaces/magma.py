@@ -262,7 +262,7 @@ class Magma(Expect):
 
         -  ``user_config`` - if True, then local user
            configuration files will be read by Magma. If False (the default),
-           then Magma is started with the -n option which supresses user
+           then Magma is started with the -n option which suppresses user
            configuration files.
 
 
@@ -488,7 +488,7 @@ class Magma(Expect):
             sage: magma._preparse('a = 5; b := 7; c =a+b;')
             'a := 5; b := 7; c :=a+b;'
         """
-        try: # this is in a try/except only because of the possiblity of old pickled Magma interfaces.
+        try: # this is in a try/except only because of the possibility of old pickled Magma interfaces.
             if self._preparse_colon_equals:
                 s = s.replace(':=','=').replace('=',':=')
         except AttributeError: pass
@@ -1011,7 +1011,7 @@ class Magma(Expect):
         -  ``args`` - list of objects coercible into this magma
            interface
 
-        -  ``params`` - Magma parameters, passed in aftera
+        -  ``params`` - Magma parameters, passed in after a
            colon
 
         -  ``nvals`` - number of return values from the
@@ -2005,7 +2005,7 @@ class MagmaElement(ExpectElement):
 
     def evaluate(self, *args):
         """
-        Evalute self at the inputs.
+        Evaluate self at the inputs.
 
         INPUT:
 

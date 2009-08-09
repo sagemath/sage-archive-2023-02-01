@@ -520,7 +520,7 @@ class Kash(Expect):
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError, "You must install the optional Kash package to use Kash from SAGE."
+            raise RuntimeError, "You must install the optional Kash package to use Kash from Sage."
         # Turn off the annoying timer.
         self.eval('Time(false);')
 
@@ -578,7 +578,7 @@ class Kash(Expect):
         Return help on KASH commands.
 
         Returns help on all commands with a given name. If name is None,
-        return the location of the installed Kash html documentation.
+        return the location of the installed Kash HTML documentation.
 
         EXAMPLES::
 

@@ -1,5 +1,5 @@
 r"""
-Parallel Interface to the SAGE interpreter
+Parallel Interface to the Sage interpreter
 
 This is an expect interface to \emph{multiple} copy of the \sage
 interpreter, which can all run simultaneous calculations.  A PSage
@@ -64,7 +64,7 @@ class PSage(Sage):
         number += 1
 
     def __repr__(self):
-        return 'A running non-blocking (parallel) instance of SAGE (number %s)'%(self._number)
+        return 'A running non-blocking (parallel) instance of Sage (number %s)'%(self._number)
 
     def _unlock(self):
         self._locked = False

@@ -464,7 +464,7 @@ class Gap(Expect):
         """
         #We remove all of the comments:  On each line, we try
         #to find a pound sign.  If we find it, we check to see if
-        #it is occuring in a string.  If it is not in a string, we
+        #it is occurring in a string.  If it is not in a string, we
         #strip off the comment.
         input_line = ""
         for line in  str(x).rstrip().split('\n'):
@@ -1025,7 +1025,7 @@ class GapElement(ExpectElement):
         """
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
-            raise RuntimeError, "An error occured creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._createu, s)
+            raise RuntimeError, "An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._createu, s)
         return s
 
     def bool(self):
@@ -1252,7 +1252,7 @@ gap = Gap()
 
 def reduce_load_GAP():
     """
-    Returns the GAP interface object definedin sage.interfaces.gap.
+    Returns the GAP interface object defined in sage.interfaces.gap.
 
     EXAMPLES::
 

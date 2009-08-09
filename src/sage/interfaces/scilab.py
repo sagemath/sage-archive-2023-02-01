@@ -103,7 +103,7 @@ One can also use square brackets:
     4.
 
 
-Setting using paranthesis cannot work (because of how the Python language works).  Use square brackets or the set function:
+Setting using parenthesis cannot work (because of how the Python language works).  Use square brackets or the set function:
 
     sage: my_matrix = scilab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional - scilab
     sage: my_matrix.set(2,3, 1999)                          # optional - scilab
@@ -246,9 +246,9 @@ class Scilab(Expect):
         """
         return """
         You must obtain the Scilab program in order to use Scilab
-        from SAGE.   You can read all about Scilab at
+        from Sage.   You can read all about Scilab at
                   http://www.scilab.org/
-        The executable must be acessible system-wide.
+        The executable must be accessible system-wide.
         """
 
     def _start(self):
@@ -344,10 +344,10 @@ class Scilab(Expect):
 
     def sage2scilab_matrix_string(self, A):
         """
-        Return an scilab matrix from a SAGE matrix.
+        Return a Scilab matrix from a Sage matrix.
 
         INPUT:
-            A SAGE matrix with entries in the rationals or reals.
+            A Sage matrix with entries in the rationals or reals.
 
         OUTPUT:
             A string that evaluates to an Scilab matrix.
@@ -464,8 +464,8 @@ scilab = Scilab(script_subdirectory='user')
 import os
 def scilab_console():
     """
-    This requires that the optional scilab program be installed and in
-    your PATH, but no optional \sage packages need be installed.
+    This requires that the optional Scilab program be installed and in
+    your PATH, but no optional Sage packages need to be installed.
 
     EXAMPLES:
         sage: from sage.interfaces.scilab import scilab_console # optional - scilab
@@ -489,8 +489,8 @@ def scilab_console():
 
         -->quit
 
-    Typing quit exits the scilab console and returns you to SAGE.
-    scilab, like SAGE, remembers its history from one session to
+    Typing quit exits the Scilab console and returns you to Sage.
+    Scilab, like Sage, remembers its history from one session to
     another.
     """
     os.system('scilab -nogui')

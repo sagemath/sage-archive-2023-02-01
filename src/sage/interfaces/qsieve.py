@@ -39,8 +39,8 @@ def qsieve(n, block=True, time=False, verbose=False):
     INPUT:
         n -- an integer with at least 40 digits
         block -- (default: True) if True, you must wait until the
-            sieve computation is complete before using SAGE further.
-            If False, SAGE will run while the sieve computation
+            sieve computation is complete before using Sage further.
+            If False, Sage will run while the sieve computation
             runs in parallel.  If q is the returned object, use
             q.quit() to terminate a running factorization.
         time -- (default: False) if True, time the command using
@@ -137,7 +137,7 @@ class qsieve_nonblock:
     A non-blocking version of Hart's quadratic sieve.
 
     The sieve starts running when you create the object, but you can
-    still use SAGE in parallel:
+    still use Sage in parallel:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: q = qsieve(n, block=False, time=True)           # optional -- requires time command
@@ -214,7 +214,7 @@ class qsieve_nonblock:
         completed or the time is unknown.
         """
         if not self._do_time:
-            raise ValueError, "you have to start the seive with the option time=True in order to get timing information"
+            raise ValueError, "you have to start the sieve with the option time=True in order to get timing information"
         try:
             return data_to_list(self._get(), self._n, self._do_time)[1]
         except IndexError:
@@ -242,7 +242,7 @@ class qsieve_nonblock:
 
     def list(self):
         """
-        Return the a list of the factors found so far, as SAGE
+        Return a list of the factors found so far, as Sage
         integers.
         """
         try:

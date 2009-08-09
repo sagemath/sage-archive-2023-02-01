@@ -1,5 +1,5 @@
 """
-Make MAGMA-style commands available in SAGE via aliases.
+Make MAGMA-style commands available in Sage via aliases.
 """
 
 #*****************************************************************************

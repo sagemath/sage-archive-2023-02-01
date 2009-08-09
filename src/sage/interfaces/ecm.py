@@ -35,7 +35,7 @@ class ECM:
               Laurent Fousse, Alexander Kruppa,
               Dave Newman, Paul Zimmermann
 
-        William Stein and Robert Bradshaw -- wrote the SAGE interface to GMP-ECM
+        William Stein and Robert Bradshaw -- wrote the Sage interface to GMP-ECM
 
         INPUT:
             B1 -- stage 1 bound

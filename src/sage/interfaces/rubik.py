@@ -7,7 +7,7 @@ the cube's state, and may take a long time.
 See http://www.math.ucf.edu/~reid/Rubik/optimal_solver.html
 
 The second is by Eric Dietz, and uses a standard (?) algorithm to
-solve the cube one level at a time. It is extremly fast, but often
+solve the cube one level at a time. It is extremely fast, but often
 returns a far from optimal solution.
 See http://wrongway.org/?rubiksource
 
@@ -41,7 +41,7 @@ from sage.groups.perm_gps.cubegroup import *
 
 
 
-# Can't seem to find consistancy in letter ordering
+# Can't seem to find consistency in letter ordering
 # between us and them... These are copied from the source.
 optimal_solver_tokens = ["UF", "UR", "UB", "UL", \
                         "DF", "DR", "DB", "DL", \
@@ -56,7 +56,7 @@ optimal_solver_tokens = ["UF", "UR", "UB", "UL", \
                         "RUF", "BUR", "LUB", "FUL", \
                         "FDR", "LDF", "BDL", "RDB"]
 
-# The imput format.
+# The input format.
 optimal_solver_format = "UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR"
 
 class SingNot:

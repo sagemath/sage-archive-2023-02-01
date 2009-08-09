@@ -65,7 +65,7 @@ You can perform basic arithmetic operations in LiE.
     5916750
 
 Vectors in LiE are created using square brackets.  Notice that
-the indexing in LiE is 1-based, unlike Python/SAGE which is
+the indexing in LiE is 1-based, unlike Python/Sage which is
 0-based.
 
     sage: v = lie('[3,2,6873,-38]') # optional
@@ -200,7 +200,7 @@ This can also be accessed with lie.functionname? .
 
 
 With the exception of groups, all LiE data types can be converted into
-native SAGE data types by calling the .sage() method.
+native Sage data types by calling the .sage() method.
 
 Integers:
 
@@ -313,7 +313,7 @@ class LiE(Expect):
         """
         Expect.__init__(self,
 
-                        # The capitalized versionof this is used for printing.
+                        # The capitalized version of this is used for printing.
                         name = 'LiE',
 
                         # This is regexp of the input prompt.  If you can change
@@ -340,7 +340,7 @@ class LiE(Expect):
                         logfile=logfile,
 
                         # If an input is longer than this number of characters, then
-                        # try to switch to outputing to a file.
+                        # try to switch to outputting to a file.
                         eval_using_file_cutoff=1024)
 
         self._seq = 0
@@ -617,16 +617,16 @@ class LiE(Expect):
             sage: lie._eval_line('diagram(2)') #optional
             Traceback (most recent call last):
             ...
-            RuntimeError: An error occured running a LiE command:
+            RuntimeError: An error occurred running a LiE command:
             Argument types do not match in call. Types are: diagram(bin).
             Valid argument types are for instance: diagram(grp).
 
         """
         out = Expect._eval_line(self, line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
-        #Check to see if an error has occured
+        #Check to see if an error has occurred
         err = max( out.find("\n(in"), out.find('not defined'), out.find('Argument types')  )
         if err != -1:
-            raise RuntimeError, "An error occured running a LiE command:\n%s"%(out.replace('\r\n','\n'))
+            raise RuntimeError, "An error occurred running a LiE command:\n%s"%(out.replace('\r\n','\n'))
         return out
 
 
@@ -798,7 +798,7 @@ class LiEElement(ExpectElement):
                 #a negative coefficient
                 termgrp = "-"+termgrp.strip()
                 terms += termgrp.split('+')
-            #Make sure we don't accidently add a negative
+            #Make sure we don't accidentally add a negative
             #sign to the first monomial
             if s[0] != "-":
                 terms[0] = terms[0][1:]

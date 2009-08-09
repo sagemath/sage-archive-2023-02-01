@@ -2,7 +2,7 @@ r"""
 Sudoku Puzzles
 
 This module provides algorithms to solve Sudoku puzzles, plus tools
-for inputing, converting and displaying various ways of writing a
+for inputting, converting and displaying various ways of writing a
 puzzle or its solution(s).  Primarily this is accomplished with the
 :class:`sage.games.sudoku.Sudoku` class, though the legacy top-level
 :func:`sage.games.sudoku.sudoku` function is also available.
@@ -489,7 +489,7 @@ class Sudoku(SageObject):
         slower.  See the docstrings for the
         :meth:`~sage.games.sudoku.Sudoku.dlx` and
         :meth:`~sage.games.sudoku.Sudoku.backtrack_all`
-        methods for further discussions and examples of perfomance.
+        methods for further discussions and examples of performance.
         Note that the backtrack algorithm is limited to puzzles of
         size `16\times 16` or smaller.
 
@@ -627,7 +627,7 @@ class Sudoku(SageObject):
         may be subsumed into this method and the
         :mod:`sage.games.sudoku_backtrack` module can be removed.
 
-        This routine can have wildly variable perfomance, with a
+        This routine can have wildly variable performance, with a
         factor of 4000 observed between the fastest and slowest
         `9\times 9` examples tested. Examples designed to perform
         poorly for naive backtracking, will do poorly

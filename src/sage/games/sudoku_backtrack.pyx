@@ -34,7 +34,7 @@ def backtrack_all(n, puzzle):
 
     A location has "peers", which are the locations in the same row, column or box (sub-grid).  As symbols are chosen (or fixed initially) at a location, they become ineligible for use at a peer.  We track this in the ``available`` array where at each location each symbol has a count of how many times it has been made ineligible.  As this counter transitions between 0 and 1, the number of eligible symbols at a location is tracked in the ``card`` array.  When the number of eligible symbols at any location becomes 1, then we know that *must* be the symbol employed in that location.  This then allows us to further update the eligible symbols at the peers of that location.  When the number of the eligible symbols at any location becomes 0, then we know that we can prune the search tree.
 
-    So at each new level of the search tree, we propogate as many fixed symbols as we can, placing them into a two-ended queue (``fixed`` and ``fixed_symbol``) that we process until it is empty or we need to prune.  All this recording of ineligible symbols and numbers of eligible symbols has to be unwound as we backup the tree, though.
+    So at each new level of the search tree, we propagate as many fixed symbols as we can, placing them into a two-ended queue (``fixed`` and ``fixed_symbol``) that we process until it is empty or we need to prune.  All this recording of ineligible symbols and numbers of eligible symbols has to be unwound as we backup the tree, though.
 
     The notion of propagating singleton cells forward comes from an essay by Peter Norvig [sudoku:norvig]_.
 

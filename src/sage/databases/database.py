@@ -2192,7 +2192,7 @@ class SQLDatabase(GenericSQLDatabase):
 
             self.vacuum()
         except sqlite.Error, e:
-            print 'A sqlite error occured: ', e.args[0]
+            print 'A sqlite error occurred: ', e.args[0]
             # delete added column from skeleton
             self.__skeleton__[table_name].pop(col_name)
 

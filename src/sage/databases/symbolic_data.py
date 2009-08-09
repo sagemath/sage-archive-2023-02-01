@@ -5,7 +5,7 @@ on \url{http://www.symbolicdata.org} . From that website:
     For different purposes algorithms and implementations are tested
     on certified and reliable data. The development of tools and data
     for such tests is usually 'orthogonal' to the main
-    implementational efforts, it requires different skills and
+    implementation efforts, it requires different skills and
     technologies and is not loved by programmers. On the other hand,
     in many cases tools and data could easily be reused - with slight
     modifications - across similar projects. The SymbolicData Project

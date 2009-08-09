@@ -8,7 +8,7 @@ a single algebraic expression many, many times at various floating
 point values.  Other applications may need to evaluate an expression
 many times in interval arithmetic, or in a finite field.  Doing this
 via recursive calls over a python representation of the object (even
-if maxima or other outside packages are not involved) is extremely
+if Maxima or other outside packages are not involved) is extremely
 inefficient.
 
 This module provides a function, \function{fast_callable}, to
@@ -1977,7 +1977,7 @@ cdef class InstructionStream:
 
     def current_op_list(self):
         r"""
-        Returns the list of intructions that have been added to this
+        Returns the list of instructions that have been added to this
         InstructionStream so far.
 
         It's OK to call this, then add more instructions.

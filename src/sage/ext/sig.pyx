@@ -22,25 +22,25 @@ include 'stdsage.pxi'
 ## cdef void msg(char* s):
 ##     fprintf(stderr, '\n\n------------------------------------------------------------\n')
 ##     fprintf(stderr, s)
-##     fprintf(stderr, "This probably occured because a *compiled* component\n")
-##     fprintf(stderr, "of SAGE has a bug in it (typically accessing invalid memory)\n")
+##     fprintf(stderr, "This probably occurred because a *compiled* component\n")
+##     fprintf(stderr, "of Sage has a bug in it (typically accessing invalid memory)\n")
 ##     fprintf(stderr, "or is not properly wrapped with _sig_on, _sig_off.\n")
-##     fprintf(stderr, "You might want to run SAGE under gdb with 'sage -gdb' to debug this.\n")
-##     fprintf(stderr, "SAGE will now terminate (sorry).\n")
+##     fprintf(stderr, "You might want to run Sage under gdb with 'sage -gdb' to debug this.\n")
+##     fprintf(stderr, "Sage will now terminate (sorry).\n")
 ##     fprintf(stderr, '------------------------------------------------------------\n\n')
 
 ## cdef void sig_handle_sigsegv(int n):
-##     msg("Unhandled SIGSEGV: A segmentation fault occured in SAGE.\n")
+##     msg("Unhandled SIGSEGV: A segmentation fault occurred in Sage.\n")
 ##     PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
 ##     exit(1)
 
 ## cdef void sig_handle_sigbus(int n):
-##     msg("Unhandled SIGBUS: A bus error occured in SAGE.\n")
+##     msg("Unhandled SIGBUS: A bus error occurred in Sage.\n")
 ##     PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
 ##     exit(1)
 
 ## cdef void sig_handle_sigfpe(int n):
-##     msg("Unhandled SIGFPE: An unhandled floating point exception occured in SAGE.\n")
+##     msg("Unhandled SIGFPE: An unhandled floating point exception occurred in Sage.\n")
 ##     PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
 ##     exit(1)
 

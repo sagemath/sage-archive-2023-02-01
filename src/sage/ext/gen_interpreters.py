@@ -935,7 +935,7 @@ ty_mpfr = StorageTypeMPFR()
 
 class MemoryChunk(object):
     r"""
-    Memory chunks control allocation, deallocation, iniialization,
+    Memory chunks control allocation, deallocation, initialization,
     etc.  of the vectors and objects in the interpreter.  Basically,
     there is one memory chunk per argument to the C interpreter.
 

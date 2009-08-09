@@ -6,7 +6,7 @@ equation approximation, plotting a 3d surface, optimization problems,
 monte-carlo simulations, etc., one wishes to pass around and evaluate
 a single algebraic expression many, many times at various floating
 point values. Doing this via recursive calls over a python
-representation of the object (even if maxima or other outside packages
+representation of the object (even if Maxima or other outside packages
 are not involved) is extremely inefficient.
 
 Up until now the solution has been to use lambda expressions, but this
@@ -152,7 +152,7 @@ cdef enum:
     POP_N
     DUP
 
-# basic arithamtic
+# basic arithmetic
     ADD
     SUB
     MUL
@@ -176,7 +176,7 @@ cdef enum:
     PY_FUNC
 
 
-# These two dictionaries are for printable and machine independant representation.
+# These two dictionaries are for printable and machine independent representation.
 
 op_names = {
     LOAD_ARG: 'load',
@@ -326,7 +326,7 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
     cdef int i, n
     cdef PyObject* py_args
 
-    # We have to do some trickery because Pyrex dissallows function pointer casts
+    # We have to do some trickery because Pyrex disallows function pointer casts
     # This will be removed in a future version of Cython.
     cdef double (*f)(double)
     cdef void** fp = <void **>&f
@@ -1233,7 +1233,7 @@ cdef FastDoubleFunc binop(_left, _right, char type):
     except TypeError:
         right = fast_float(_right)
 
-    # In cython assigning None does NOT raise a TypeError above.
+    # In Cython assigning None does NOT raise a TypeError above.
     if left is None or right is None:
         raise TypeError
 
@@ -1295,7 +1295,7 @@ def fast_float_arg(n):
 
 def fast_float_func(f, *args):
     """
-    Returns a wraper around a python function.
+    Returns a wrapper around a python function.
 
     INPUT:
         f -- a callable python object

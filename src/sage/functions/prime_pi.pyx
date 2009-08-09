@@ -158,7 +158,7 @@ cdef class PrimePi:
             21151907950
             41203088796
 
-        We know this implemenation is broken at least on some 32 bit
+        We know this implementation is broken at least on some 32 bit
         systems for 2^46, so we are capping the maximum allowed value.
 
             sage: prime_pi(2^40+1)
@@ -197,7 +197,7 @@ cdef class PrimePi:
         """
         Uses Legendre's Formula for computing pi(x). Both this and the prime_phi_small
         methods are specialized versions of Legendre's Formula that takes advantage of
-        its recusive properties. Hans Riesel's Prime "Numbers and Computer Methods for
+        its recursive properties. Hans Riesel's Prime "Numbers and Computer Methods for
         Factorization" discusses Legnedre's Formula, however there are many places
         that discuss it as nearly every prime counting algorithm uses it.
         """

@@ -30,14 +30,14 @@ AUTHORS:
 
 - David Joyner (2007-03): adding Hann filter for FS, added general FS
   filter methods for computing and plotting, added options to plotting
-  of FS (eg, specifying rgb values arenow allowed). Fixed bug in
+  of FS (eg, specifying rgb values are now allowed). Fixed bug in
   documentation reported by Pablo De Napoli.
 
 - David Joyner (2007-09): bug fixes due to behaviour of
   SymbolicArithmetic
 
 - David Joyner (2008-04): fixed docstring bugs reported by J Morrow; added
-  support for laplace transform of functions with infinite support.
+  support for Laplace transform of functions with infinite support.
 
 - David Joyner (2008-07): fixed a left multiplication bug reported by
   C. Boncelet (by defining __rmul__ = __mul__).
@@ -167,7 +167,7 @@ class PiecewisePolynomial:
 
     def length(self):
         """
-        Retuns the number of pieces of this function.
+        Returns the number of pieces of this function.
 
         EXAMPLES::
 
@@ -361,7 +361,7 @@ class PiecewisePolynomial:
         determined by the midpoint of the subinterval; set mode="right" for
         the height of the rectangles to be determined by the right-hand
         endpoint of the subinterval; the default is mode="left" (the height
-        of the rectangles to be determined by the leftt-hand endpoint of
+        of the rectangles to be determined by the left-hand endpoint of
         the subinterval).
 
         EXAMPLES::
@@ -395,7 +395,7 @@ class PiecewisePolynomial:
         determined by the midpoint of the subinterval; set mode="right" for
         the height of the rectangles to be determined by the right-hand
         endpoint of the subinterval; the default is mode="left" (the height
-        of the rectangles to be determined by the leftt-hand endpoint of
+        of the rectangles to be determined by the left-hand endpoint of
         the subinterval).
 
         EXAMPLES::
@@ -698,7 +698,7 @@ class PiecewisePolynomial:
             sage: F
             Piecewise defined function with 5 parts, [[(-4, -3), y |--> -y - 4], [(-3, -2), y |--> 1/2*y^2 + 3*y + 7/2], [(-2, 0), y |--> -1/2*y^2 - y - 1/2], [(0, 2), y |--> 1/3*y^3 - y - 1/2], [(2, 3), y |--> 3*y - 35/6]]
 
-        Ensure results are consistant with FTC::
+        Ensure results are consistent with FTC::
 
             sage: F(-3) - F(-4)
             -1

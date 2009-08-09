@@ -257,7 +257,7 @@ def Ei(z):
         sage: Ei(3 - 0.1*I)
         9.91152770287 + 5.61428710646*I
 
-    ALGORITHM: Uses scipy's special.exp1 function.
+    ALGORITHM: Uses SciPy's special.exp1 function.
     """
     import scipy.special, math
     return CDF(-scipy.special.exp1(-complex(z)) + complex(0,math.pi))
@@ -377,7 +377,7 @@ class DickmanRhoComputer(PrimitiveFunction):
     ALGORITHM:
 
     Dickmans's function is analytic on the interval
-    `[n,n+1]` for each integer `n`. To evalute at
+    `[n,n+1]` for each integer `n`. To evaluate at
     `n+t, 0 \le t < 1`, a power series is recursively computed
     about `n+1/2` using the differential equation stated above.
     As high precision arithmetic may be needed for intermediate results
@@ -535,7 +535,7 @@ class DickmanRhoComputer(PrimitiveFunction):
         REFERENCES:
 
         - N. De Bruijn, "The Asymptotic behavior of a function
-          occuring in the theory of primes." J. Indian Math Soc. v 15.
+          occurring in the theory of primes." J. Indian Math Soc. v 15.
           (1951)
 
         EXAMPLES::

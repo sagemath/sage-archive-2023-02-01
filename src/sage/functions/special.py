@@ -431,7 +431,7 @@ class MaximaFunction(PrimitiveFunction):
 
     def _maxima_init_evaled_(self, *args):
         """
-        Returns a string which reprsents this function evaluated at
+        Returns a string which represents this function evaluated at
         *args* in Maxima.
 
         EXAMPLES::

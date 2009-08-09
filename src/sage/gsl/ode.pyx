@@ -45,7 +45,7 @@ cdef int c_f_compiled(double t, double *y, double *dydt, void *params):
    cdef int status
    cdef ode_system wrapper
    wrapper = <ode_system> params
-   status =  wrapper.c_f(t,y,dydt)  #Could add paramters
+   status =  wrapper.c_f(t,y,dydt)  #Could add parameters
    return status
 
 cdef int c_jac(double t,double *y,double *dfdy,double *dfdt,void *params):
@@ -355,7 +355,7 @@ class ode_solver(object):
          if self.params==[] and len(inspect.getargspec(wrapper.the_function)[0])==2:
             wrapper.the_parameters=[]
          elif self.params==[] and len(inspect.getargspec(wrapper.the_function)[0])>2:
-            raise ValueError, "ODE system has a paramters but no parameters specified"
+            raise ValueError, "ODE system has a parameter but no parameters specified"
          elif self.params!=[]:
             wrapper.the_parameters = self.params
          wrapper.y_n = dim

@@ -15,7 +15,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 #TODO: Make sure this works with compiled functions
-#TODO: Expose fourier integral functionality
+#TODO: Expose Fourier integral functionality
 
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'

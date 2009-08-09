@@ -51,7 +51,7 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
     For bspline wavelets, wavelet_k = 103,105,202,204,206,208,301,305,
     307,309 will give biorthogonal B-spline wavelets of order (i,j) where
     wavelet_k=100*i+j.
-    The wavelet transfrom uses J=log_2(n) levels.
+    The wavelet transform uses J=log_2(n) levels.
 
     OUTPUT:
         An array of the form

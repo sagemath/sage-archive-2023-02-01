@@ -135,7 +135,7 @@ cdef class RealDistribution(ProbabilityDistribution):
       sage: T.cum_distribution_function_inv(.5)
 
    gaussian:
-   The gaussian distribuiton takes 1 parameters sigma, sigma =1 gives the standard
+   The gaussian distribution takes 1 parameters sigma, sigma =1 gives the standard
    gaussian distribution
 
       sage: sigma=1
@@ -330,7 +330,7 @@ cdef class RealDistribution(ProbabilityDistribution):
          self.distribution_type = gaussian
       elif name == 'pareto':
          if len(parameters)!=2:
-            raise TypeError, "pareto distribution has two prameters"
+            raise TypeError, "pareto distribution has two parameters"
          try:
             map(float,parameters)
          except:

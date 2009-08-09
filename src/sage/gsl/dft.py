@@ -75,7 +75,7 @@ from sage.structure.sage_object import SageObject
 class IndexedSequence(SageObject):
     def __init__(self, L, index_object):
         r"""
-        \code{index_object} must be a SAGE object with an _iter_ method
+        \code{index_object} must be a Sage object with an _iter_ method
         containing the same number of elements as self, which is a
         list of elements taken from a field.
 
@@ -161,7 +161,7 @@ class IndexedSequence(SageObject):
         """
         Plots the histogram plot of the sequence, which is assumed to be real
         or from a finite field, with a real indexing set I coercible into RR.
-        Options are clr, which is an rgb value, and eps, which is the spacig between the
+        Options are clr, which is an RGB value, and eps, which is the spacing between the
         bars.
 
         EXAMPLES:
@@ -269,7 +269,7 @@ class IndexedSequence(SageObject):
             Gd = G.dual_group()
             FT = [sum([S[i]*chi(G.list()[i]) for i in range(N)]) for chi in Gd]
         elif not(J[0] in ZZ) and G.is_finite() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
-            ## assumes J is the list of conj class represetatives of a
+            ## assumes J is the list of conj class representatives of a
             ## PermuationGroup(...) or Matrixgroup(...)
             chi = G.character_table()
             FT = [sum([S[i]*chi[i,j] for i in range(N)]) for j in range(N)]

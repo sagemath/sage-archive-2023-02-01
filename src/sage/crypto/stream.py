@@ -62,7 +62,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         """
         Create a LFSR cipher.
 
-        INPUT: A polynomial and inital state of the LFSR.
+        INPUT: A polynomial and initial state of the LFSR.
         """
         if not isinstance(key, (list,tuple)) and len(key) == 2:
             raise TypeError, "Argument key (= %s) must be a list of tuple of length 2" % key

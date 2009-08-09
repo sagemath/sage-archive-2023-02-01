@@ -808,7 +808,7 @@ class SBox(SageObject):
 
     def cnf(self, xi=None, yi=None, format=None):
         """
-        Return a representation of this S-Box in conjuctive normal
+        Return a representation of this S-Box in conjunctive normal
         form.
 
         This function examines the truth tables for each output bit of

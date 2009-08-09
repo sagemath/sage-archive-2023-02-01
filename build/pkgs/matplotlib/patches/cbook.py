@@ -257,6 +257,10 @@ class Bunch:
         self.__dict__.update(kwds)
 
 
+    def __repr__(self):
+        keys = self.__dict__.keys()
+        return 'Bunch(%s)'%', '.join(['%s=%s'%(k,self.__dict__[k]) for k in keys])
+
 def unique(x):
     'Return a list of unique elements of *x*'
     return dict([ (val, 1) for val in x]).keys()
@@ -317,6 +321,11 @@ def to_filehandle(fname, flag='rU', return_opened=False):
             # get rid of 'U' in flag for gzipped files.
             flag = flag.replace('U','')
             fh = gzip.open(fname, flag)
+        elif fname.endswith('.bz2'):
+            # get rid of 'U' in flag for bz2 files
+            flag = flag.replace('U','')
+            import bz2
+            fh = bz2.BZ2File(fname, flag)
         else:
             fh = file(fname, flag)
         opened = True
@@ -755,36 +764,6 @@ def allpairs(x):
 
 
 
-
-# python 2.2 dicts don't have pop--but we don't support 2.2 any more
-def popd(d, *args):
-    """
-    Should behave like python2.3 :meth:`dict.pop` method; *d* is a
-    :class:`dict`::
-
-      # returns value for key and deletes item; raises a KeyError if key
-      # is not in dict
-      val = popd(d, key)
-
-      # returns value for key if key exists, else default.  Delete key,
-      # val item if it exists.  Will not raise a KeyError
-      val = popd(d, key, default)
-
-    """
-    warnings.warn("Use native python dict.pop method", DeprecationWarning)
-    # warning added 2008/07/22
-    if len(args)==1:
-        key = args[0]
-        val = d[key]
-        del d[key]
-    elif len(args)==2:
-        key, default = args
-        val = d.get(key, default)
-        try: del d[key]
-        except KeyError: pass
-    return val
-
-
 class maxdict(dict):
     """
     A dictionary with a maximum size; this doesn't override all the
@@ -906,15 +885,19 @@ def reverse_dict(d):
 
 def report_memory(i=0):  # argument may go away
     'return the memory consumed by process'
+    from subprocess import Popen, PIPE
     pid = os.getpid()
     if sys.platform=='sunos5':
-        a2 = os.popen('ps -p %d -o osz' % pid).readlines()
+        a2 = Popen('ps -p %d -o osz' % pid, shell=True,
+            stdout=PIPE).stdout.readlines()
         mem = int(a2[-1].strip())
     elif sys.platform.startswith('linux'):
-        a2 = os.popen('ps -p %d -o rss,sz' % pid).readlines()
+        a2 = Popen('ps -p %d -o rss,sz' % pid, shell=True,
+            stdout=PIPE).stdout.readlines()
         mem = int(a2[1].split()[1])
     elif sys.platform.startswith('darwin'):
-        a2 = os.popen('ps -p %d -o rss,vsz' % pid).readlines()
+        a2 = Popen('ps -p %d -o rss,vsz' % pid, shell=True,
+            stdout=PIPE).stdout.readlines()
         mem = int(a2[1].split()[0])
 
     return mem
@@ -935,6 +918,15 @@ def issubclass_safe(x, klass):
         return issubclass(x, klass)
     except TypeError:
         return False
+
+def safe_masked_invalid(x):
+    x = np.asanyarray(x)
+    try:
+        xm = np.ma.masked_invalid(x, copy=False)
+        xm.shrink_mask()
+    except TypeError:
+        return x
+    return xm
 
 class MemoryMonitor:
     def __init__(self, nmax=20000):
@@ -1167,6 +1159,9 @@ class Grouper(object):
 
 
 def simple_linear_interpolation(a, steps):
+    if steps == 1:
+        return a
+
     steps = np.floor(steps)
     new_length = ((len(a) - 1) * steps) + 1
     new_shape = list(a.shape)

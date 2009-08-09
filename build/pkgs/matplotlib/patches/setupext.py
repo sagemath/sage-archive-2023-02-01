@@ -108,8 +108,7 @@ options = {'display_status': True,
            'build_macosx': 'auto',
            'build_image': True,
            'build_windowing': True,
-           'backend': None,
-           'numerix': None}
+           'backend': None}
 
 # Based on the contents of setup.cfg, determine the build options
 if os.path.exists("setup.cfg"):
@@ -141,10 +140,10 @@ if os.path.exists("setup.cfg"):
     try: options['build_wxagg'] = config.getboolean("gui_support", "wxagg")
     except: options['build_wxagg'] = 'auto'
 
-    try: options['backend'] = config.get("rc_options", "backend")
-    except: pass
+    try: options['build_macosx'] = config.getboolean("gui_support", "macosx")
+    except: options['build_macosx'] = 'auto'
 
-    try: options['numerix'] = config.get("rc_options", "numerix")
+    try: options['backend'] = config.get("rc_options", "backend")
     except: pass
 
 
@@ -177,7 +176,7 @@ def run_child_process(cmd):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
-                         close_fds=True)
+                         close_fds=(sys.platform != 'win32'))
     return p.stdin, p.stdout
 
 class CleanUpFile:
@@ -463,7 +462,7 @@ def check_for_latex():
     try:
         stdin, stdout = run_child_process('latex -version')
         line = stdout.readlines()[0]
-        pattern = '3\.1\d+'
+        pattern = '(3\.1\d+)|(MiKTeX \d+.\d+)'
         match = re.search(pattern, line)
         print_status("latex", match.group(0))
         return True
@@ -551,9 +550,6 @@ def add_ft2font_flags(module):
         add_base_flags(module)
         module.libraries.append('z')
 
-    if sys.platform == 'win32' and win32_compiler == 'mingw32':
-        module.libraries.append('gw32c')
-
     # put this last for library link order
     module.libraries.extend(std_libs)
 
@@ -602,6 +598,13 @@ def check_for_gtk():
 
     if explanation is not None:
         print_message(explanation)
+
+    # Switch off the event loop for PyGTK >= 2.15.0
+    if gotit:
+        try:
+            gtk.set_interactive(False)
+        except AttributeError: # PyGTK < 2.15.0
+            pass
 
     return gotit
 
@@ -850,6 +853,7 @@ def query_tcltk():
         tk.withdraw()
         tcl_lib_dir = str(tk.getvar('tcl_library'))
         tk_lib_dir = str(tk.getvar('tk_library'))
+        tk.destroy()
 
     # Save directories and version string to cache
     TCL_TK_CACHE = tcl_lib_dir, tk_lib_dir, str(Tkinter.TkVersion)[:3]
@@ -960,11 +964,14 @@ def add_tk_flags(module):
     message = None
     if sys.platform == 'win32':
         major, minor1, minor2, s, tmp = sys.version_info
-        if major == 2 and minor1 in [3, 4, 5]:
-            module.include_dirs.extend(['win32_static/include/tcl8.4'])
+        if major == 2 and minor1 == 6:
+            module.include_dirs.extend(['win32_static/include/tcl85'])
+            module.libraries.extend(['tk85', 'tcl85'])
+        elif major == 2 and minor1 in [3, 4, 5]:
+            module.include_dirs.extend(['win32_static/include/tcl84'])
             module.libraries.extend(['tk84', 'tcl84'])
         elif major == 2 and minor1 == 2:
-            module.include_dirs.extend(['win32_static/include/tcl8.3'])
+            module.include_dirs.extend(['win32_static/include/tcl83'])
             module.libraries.extend(['tk83', 'tcl83'])
         else:
             raise RuntimeError('No tk/win32 support for this python version yet')
@@ -1165,19 +1172,25 @@ def build_wxagg(ext_modules, packages):
      ext_modules.append(module)
      BUILT_WXAGG = True
 
-
 def build_macosx(ext_modules, packages):
     global BUILT_MACOSX
     if BUILT_MACOSX: return # only build it if you you haven't already
+    deps = ['src/_macosx.m',
+            'CXX/cxx_extensions.cxx',
+            'CXX/cxxextensions.c',
+            'CXX/cxxsupport.cxx',
+            'CXX/IndirectPythonInterface.cxx',
+            'src/agg_py_transforms.cpp',
+            'src/path_cleanup.cpp']
     module = Extension('matplotlib.backends._macosx',
-                       ['src/_macosx.m'],
+                       deps,
                        extra_link_args = ['-framework','Cocoa'],
                        define_macros=[('PY_ARRAY_UNIQUE_SYMBOL', 'MPL_ARRAY_API')]
                       )
     add_numpy_flags(module)
+    add_agg_flags(module)
     ext_modules.append(module)
     BUILT_MACOSX = True
-
 
 def build_png(ext_modules, packages):
     global BUILT_PNG

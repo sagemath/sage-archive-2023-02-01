@@ -1,5 +1,5 @@
---- setupext.py.orig	2009-02-14 02:29:42.000000000 -0800
-+++ setupext.py	2009-02-14 02:29:23.000000000 -0800
+--- src/setupext.py	2009-08-01 12:15:24.000000000 -0700
++++ patches/setupext.py	2009-08-08 23:43:29.000000000 -0700
 @@ -44,14 +44,16 @@
  import os
  import re
@@ -15,12 +15,12 @@
      'linux'  : ['/usr/local', '/usr',],
      'cygwin' : ['/usr/local', '/usr',],
 -    'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
--                '/usr', '/sw', '/usr/X11R6'],
+-                '/usr', '/sw'],
 +    'darwin' : [sage_lib],
      'freebsd4' : ['/usr/local', '/usr'],
      'freebsd5' : ['/usr/local', '/usr'],
      'freebsd6' : ['/usr/local', '/usr'],
-@@ -322,7 +324,9 @@
+@@ -321,7 +323,9 @@
  
      module.include_dirs.extend(incdirs)
      module.include_dirs.append('.')
@@ -30,7 +30,7 @@
  
  def getoutput(s):
      'get the output of a system command'
-@@ -506,7 +510,7 @@
+@@ -505,7 +509,7 @@
      module.include_dirs.append(numpy.get_include())
  
  def add_png_flags(module):
@@ -39,7 +39,7 @@
      add_base_flags(module)
      add_numpy_flags(module)
      module.libraries.append('z')
-@@ -1027,6 +1031,7 @@
+@@ -1034,6 +1038,7 @@
          #      of distros.
  
          # Query Tcl/Tk system for library paths and version string

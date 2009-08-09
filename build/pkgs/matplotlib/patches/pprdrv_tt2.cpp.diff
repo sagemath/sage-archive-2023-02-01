@@ -1,10 +1,10 @@
---- pprdrv_tt2.cpp.orig	2009-01-19 06:37:37.373517000 -0500
-+++ pprdrv_tt2.cpp	2009-01-19 06:38:26.782530000 -0500
+--- src/ttconv/pprdrv_tt2.cpp	2009-08-01 12:15:15.000000000 -0700
++++ patches/pprdrv_tt2.cpp	2009-08-08 23:33:24.000000000 -0700
 @@ -104,7 +104,8 @@
  	{				/* have a log of points. */
  	if(stack_depth == 0)
  	    {
--    	    stream.putchar('{');
+-    	    stream.put_char('{');
 +            //  Note the below is a hack to make it compile on Solaris 10 with gcc 4.3.2
 +            stream.puts("{");
      	    stack_depth=1;

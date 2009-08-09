@@ -10,7 +10,6 @@ The Matplotlib license - see http://matplotlib.sourceforge.net/users/license.htm
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * Jason Grout
 
 == Upstream Contact ==
@@ -32,6 +31,9 @@ The following is in the patches subdirectory.  It is copied in during the build 
  * setupext.py: add some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
 
 == Changelog ==
+
+=== matplotlib-0.99.0 (Jason Grout, August 9th, 2009) ===
+ * Update to matplotlib 0.99.0
 
 === matplotlib-0.98.5.3rc0-svn6910.p3 (Michael Abshoff, February 20th, 2009) ===
  * Turn off GUI backend unconditionally since they cause trouble on systems without X, ie. sage.math, too. This might be a bug in Matplotlib, but until this is resolved it stays off.

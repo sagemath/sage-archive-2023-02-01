@@ -62,7 +62,7 @@ cdef class ntl_GF2EX:
         ## inappropriately.  However, from Cython, you##
         ## could do r = PY_NEW(ntl_GF2E) without      ##
         ## first restoring a GF2EContext, which could ##
-        ## have unforetunate consequences.  See _new  ##
+        ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##

@@ -170,7 +170,7 @@ cdef class Matrix:
 
         ALGORITHM: Note that currently, this function converts this
         matrix into a dense matrix over the integers, then calls the
-        charpoly algorithm on that, which I think is Linbox's.
+        charpoly algorithm on that, which I think is LinBox's.
 
         EXAMPLES:
             sage: M = CremonaModularSymbols(33, cuspidal=True, sign=1)

@@ -392,7 +392,7 @@ cdef class ntl_GF2X:
 
     def GCD(ntl_GF2X self, other):
         """
-        Return gcd of self and other.
+        Return GCD of self and other.
 
         INPUT:
             other -- ntl.GF2X
@@ -516,7 +516,7 @@ cdef class ntl_GF2X:
 
     def _sage_(ntl_GF2X self, R=None):
         """
-        Returns a SAGE polynomial over GF(2) equivalent to
+        Returns a Sage polynomial over GF(2) equivalent to
         this element. If a ring R is provided it is used
         to construct the polynomial in, otherwise
         an appropriate ring is generated.

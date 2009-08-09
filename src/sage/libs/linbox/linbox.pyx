@@ -104,7 +104,7 @@ cdef class Linbox_modn_dense:
         return d
 
 ##########################################################################
-## Sparse matices modulo p.
+## Sparse matrices modulo p.
 ##########################################################################
 
 include '../../modules/vector_modn_sparse_c.pxi'
@@ -206,7 +206,7 @@ cdef class Linbox_integer_dense:
             linbox_integer_dense_minpoly(&poly, &degree, self.nrows, self.matrix)
         else:
             linbox_integer_dense_charpoly(&poly, &degree, self.nrows, self.matrix)
-        verbose("computed poly -- now converting back to SAGE")
+        verbose("computed poly -- now converting back to Sage")
 
         v = []
         cdef Integer k

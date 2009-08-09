@@ -129,7 +129,7 @@ cdef class ntl_ZZ_p:
         ## inappropriately.  However, from Cython, you##
         ## could do r = PY_NEW(ntl_ZZ_p) without      ##
         ## first restoring a ZZ_pContext, which could ##
-        ## have unforetunate consequences.  See _new  ##
+        ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
@@ -416,7 +416,7 @@ cdef class ntl_ZZ_p:
 
     def _integer_(self, ZZ=None):
         """
-        Return a lift of self as a SAGE integer.
+        Return a lift of self as a Sage integer.
 
         EXAMPLES:
             sage: x = ntl.ZZ_p(8,188)

@@ -34,7 +34,7 @@ from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 #
 # AUTHORS:
 #  - Martin Albrecht <malb@informatik.uni-bremen.de>
-#    2006-01: initial version (based on cody by William Stein)
+#    2006-01: initial version (based on code by William Stein)
 #  - Martin Albrecht <malb@informatik.uni-bremen.de>
 #    2007-10: adapted to new conventions
 #
@@ -167,7 +167,7 @@ cdef class ntl_GF2E:
 
     def modulus_context(self):
         """
-        Returns the sturcture that holds the underlying NTL GF2E modulus.
+        Returns the structure that holds the underlying NTL GF2E modulus.
 
         EXAMPLES:
             sage: ctx = ntl.GF2EContext( ntl.GF2X([1,1,0,1,1,0,0,0,1]) )

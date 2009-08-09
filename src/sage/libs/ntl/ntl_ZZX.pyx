@@ -556,7 +556,7 @@ cdef class ntl_ZZX:
     def primitive_part(self):
         """
         Return the primitive part of f.  Our convention is that the leading
-        coefficient of the primitive part is nonnegegative, and the primitive
+        coefficient of the primitive part is nonnegative, and the primitive
         part of 0 is 0.
 
         EXAMPLES:
@@ -1029,7 +1029,7 @@ cdef class ntl_ZZX:
             sage: f.charpoly_mod(g)
             [0 0 0 0 1]
 
-        However, since $f^2 = 0$ moduluo $g$, its minimal polynomial
+        However, since $f^2 = 0$ modulo $g$, its minimal polynomial
         is of degree $2$.
             sage: f.minpoly_mod_noproof(g)
             [0 0 1]

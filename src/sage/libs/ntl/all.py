@@ -3,7 +3,7 @@ Victor Shoup's NTL C++ Library
 
 Sage provides an interface to Victor Shoup's C++ library NTL.
 Features of this library include *incredibly fast* arithmetic with
-polynomials and assymptotically fast factorization of polynomials.
+polynomials and asymptotically fast factorization of polynomials.
 """
 
 __doc_exclude = []  # to include everything

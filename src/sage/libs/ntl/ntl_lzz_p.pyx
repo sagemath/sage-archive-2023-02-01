@@ -127,7 +127,7 @@ cdef class ntl_zz_p:
         ## inappropriately.  However, from Cython, you##
         ## could do r = PY_NEW(ntl_zz_p) without      ##
         ## first restoring a zz_pContext, which could ##
-        ## have unforetunate consequences.  See _new  ##
+        ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##

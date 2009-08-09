@@ -251,7 +251,7 @@ cdef class ntl_mat_ZZ:
 
     def ncols(self):
         """
-        Return the number of colunms in self.
+        Return the number of columns in self.
 
         EXAMPLES:
             sage: M = ntl.mat_ZZ(5,8,range(40))
@@ -1221,7 +1221,7 @@ cdef class ntl_mat_ZZ:
         Classical Gram-Schmidt Orthogonalization is used:
 
         This choice uses classical methods for computing the
-        Gram-Schmidt othogonalization.  It is fast but prone to
+        Gram-Schmidt orthogonalization.  It is fast but prone to
         stability problems.  This strategy was first proposed by
         Schnorr and Euchner [C. P. Schnorr and M. Euchner,
         Proc. Fundamentals of Computation Theory, LNCS 529, pp. 68-85,
@@ -1296,7 +1296,7 @@ cdef class ntl_mat_ZZ:
 
     def LLL_QP(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as \code{self.LLL_FP} using the
+        Performs the same reduction as \code{self.LLL_FP} using the
         same calling conventions but with quad float precision.
 
         EXAMPLE:
@@ -1319,7 +1319,7 @@ cdef class ntl_mat_ZZ:
 
     def LLL_XD(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as \code{self.LLL_FP} using the
+        Performs the same reduction as \code{self.LLL_FP} using the
         same calling conventions but with extended exponent double
         precision.
 
@@ -1343,7 +1343,7 @@ cdef class ntl_mat_ZZ:
 
     def LLL_RR(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as \code{self.LLL_FP} using the
+        Performs the same reduction as \code{self.LLL_FP} using the
         same calling conventions but with arbitrary precision floating
         point numbers.
 
@@ -1373,7 +1373,7 @@ cdef class ntl_mat_ZZ:
 
     def G_LLL_FP(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.LLL_FP using the same
+        Performs the same reduction as self.LLL_FP using the same
         calling conventions but uses the Givens Orthogonalization.
 
         Givens Orthogonalization.  This is a bit slower, but generally
@@ -1397,7 +1397,7 @@ cdef class ntl_mat_ZZ:
 
     def G_LLL_QP(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.G_LLL_FP using the same
+        Performs the same reduction as self.G_LLL_FP using the same
         calling conventions but with quad float precision.
         """
         cdef ntl_mat_ZZ U
@@ -1415,7 +1415,7 @@ cdef class ntl_mat_ZZ:
 
     def G_LLL_XD(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.G_LLL_FP using the same
+        Performs the same reduction as self.G_LLL_FP using the same
         calling conventions but with extended exponent double
         precision.
         """
@@ -1434,8 +1434,8 @@ cdef class ntl_mat_ZZ:
 
     def G_LLL_RR(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.G_LLL_FP using the same
-        calling conventions but with aribitrary precision floating
+        Performs the same reduction as self.G_LLL_FP using the same
+        calling conventions but with arbitrary precision floating
         point numbers.
         """
         cdef ntl_mat_ZZ U

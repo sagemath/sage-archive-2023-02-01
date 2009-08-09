@@ -1063,7 +1063,7 @@ cdef class ntl_ZZ_pX:
 
     def invmod(self, ntl_ZZ_pX modulus):
         """
-        Returns the inverse of self modulo the modulus using ntl's InvMod.
+        Returns the inverse of self modulo the modulus using NTL's InvMod.
         """
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
@@ -1284,7 +1284,7 @@ cdef class ntl_ZZ_pX:
             sage: f.charpoly_mod(g)
             [0 0 0 0 1]
 
-        However, since $f^2 = 0$ moduluo $g$, its minimal polynomial
+        However, since $f^2 = 0$ modulo $g$, its minimal polynomial
         is of degree $2$.
             sage: f.minpoly_mod(g)
             [0 0 1]

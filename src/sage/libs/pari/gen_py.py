@@ -20,7 +20,7 @@ def pari(x):
         sage: a = pari(1/2); a, a.type()
         (1/2, 't_FRAC')
 
-    Conversion from reals uses the real's own precision, here 53 bits (the deault):
+    Conversion from reals uses the real's own precision, here 53 bits (the default):
         sage: a = pari(1.2); a, a.type(), a.precision()
         (1.20000000000000, 't_REAL', 4) # 32-bit
         (1.20000000000000, 't_REAL', 3) # 64-bit
@@ -63,7 +63,7 @@ def python(z):
     Return the closest python/Sage equivalent of the given pari object.
 
     The component parts of a t_COMPLEX may be t_INT, t_REAL, t_INTMOD,
-    t_FRAC, t_PADIC.  Th ecomponents need not have the same type
+    t_FRAC, t_PADIC.  The components need not have the same type
     (e.g. if z=2+1.2*I then z.real() is t_INT while z.imag() is
     t_REAL().  They are converted as follows:
 

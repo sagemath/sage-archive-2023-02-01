@@ -1311,7 +1311,7 @@ cdef class gen(sage.structure.element.RingElement):
 #  precision parameter.  The new version above has no precision
 #  parameter at all: the caller can coerce into a lower-precision
 #  RealField if desired (or even in to a higher precision one, but
-#  that wil just pad with 0 bits).
+#  that will just pad with 0 bits).
 
 #     def python(self, precision=0, bits_prec=None):
 #         """
@@ -1591,7 +1591,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def min(gen x, y):
         """
-        min(x,y): Return the minumum of x and y.
+        min(x,y): Return the minimum of x and y.
         """
         t0GEN(y)
         _sig_on
@@ -1957,7 +1957,7 @@ cdef class gen(sage.structure.element.RingElement):
                                 ax^2 + bxy + cy^2.
 
 
-        The optional D is 0 by default and initializes Shanks's distance if
+        The optional D is 0 by default and initializes Shank's distance if
         `b^2 - 4ac > 0`.
 
         .. note::
@@ -3196,7 +3196,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         - if estimate is False, return a single gen.
 
-        - if estimate is True, return rounded verison of x and error
+        - if estimate is True, return rounded version of x and error
           estimate in bits, both as gens.
 
         EXAMPLES::
@@ -3853,7 +3853,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besseljh(gen nu, x, precision=0):
         """
-        J-Bessel function of half integral index (Speherical Bessel
+        J-Bessel function of half integral index (Spherical Bessel
         function of the first kind). More precisely, besseljh(n,x) computes
         `J_{n+1/2}(x)` where n must an integer, and x is any
         complex value. In the current implementation (PARI, version
@@ -5478,7 +5478,7 @@ cdef class gen(sage.structure.element.RingElement):
            cusp
 
         -  ``3`` - type `III`: two nonsingular rational
-           cuves intersecting tangentially at one point
+           curves intersecting tangentially at one point
 
         -  ``4`` - type `IV`: three nonsingular
            rational curves intersecting at one point
@@ -7083,7 +7083,7 @@ cdef class gen(sage.structure.element.RingElement):
         matsolve(B): Solve the linear system Mx=B for an invertible matrix
         M
 
-        matsolve(B) uses gaussian elimination to solve Mx=B, where M is
+        matsolve(B) uses Gaussian elimination to solve Mx=B, where M is
         invertible and B is a column vector.
 
         The corresponding pari library routine is gauss. The gp-interface
@@ -7122,7 +7122,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1; -2; 1]
 
         With algorithm 1, even if the matrix has integer entries the kernel
-        need nto be saturated (which is weird)::
+        need not be saturated (which is weird)::
 
             sage: pari('[1,2,3;4,5,6;7,8,9]').matker(1)
             [3; -6; 3]
@@ -7171,7 +7171,7 @@ cdef class gen(sage.structure.element.RingElement):
 
 
         -  ``flag`` - (optional) flag 0: using Gauss-Bareiss.
-           1: use classical gaussian elimination (slightly better for integer
+           1: use classical Gaussian elimination (slightly better for integer
            entries)
 
 
@@ -7228,7 +7228,7 @@ cdef class gen(sage.structure.element.RingElement):
         Returns the Hermite normal form if d is a multiple of the
         determinant
 
-        Beware that PARI's concept of a hermite normal form is an upper
+        Beware that PARI's concept of a Hermite normal form is an upper
         triangular matrix with the same column space as the input matrix.
 
         INPUT:
@@ -8975,7 +8975,7 @@ cdef int init_stack(size_t size) except -1:
     global top, bot, avma, stack_avma, mytop
 
 
-    err = False    # whether or not a memory allocation error occured.
+    err = False    # whether or not a memory allocation error occurred.
 
 
     # delete this if get core dumps and change the 2* to a 1* below.
@@ -8989,8 +8989,8 @@ cdef int init_stack(size_t size) except -1:
     # Decide on size
     s = fix_size(size)
 
-    # Alocate memory for new stack using Python's memory allocator.
-    # As explained in the python/C api reference, using this instead
+    # Allocate memory for new stack using Python's memory allocator.
+    # As explained in the python/C API reference, using this instead
     # of malloc is much better (and more platform independent, etc.)
     bot = <pari_sp> sage_malloc(s)
 
@@ -9012,7 +9012,7 @@ cdef int init_stack(size_t size) except -1:
 
 
 def _my_sigpipe(signum, frame):
-    # If I do anything, it messes up Ipython's pager.
+    # If I do anything, it messes up IPython's pager.
     pass
 
 cdef size_t fix_size(size_t a):
@@ -9120,7 +9120,7 @@ def __errmessage(d):
 from exceptions import RuntimeError
 
 # can we have "cdef class" ?
-# because of the inheritance, need to somehow "import" the builtin
+# because of the inheritance, need to somehow "import" the built-in
 # exception class...
 class PariError (RuntimeError):
 

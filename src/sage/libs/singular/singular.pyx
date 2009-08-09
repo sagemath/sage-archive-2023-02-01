@@ -6,7 +6,7 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 TODO: Figure out how to do the cdef public/extern stuff with C++
 """
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -57,7 +57,7 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
     mpq_init(_z)
 
     ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
-    ##  This distuingishes immediate integers from other handles which  point  to
+    ##  This distinguishes immediate integers from other handles which  point  to
     ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
     ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
     ##  Using immediates as pointers and dereferencing them gives address errors.

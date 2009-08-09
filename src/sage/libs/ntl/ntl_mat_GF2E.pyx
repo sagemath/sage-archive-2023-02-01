@@ -19,7 +19,7 @@
 #
 # AUTHORS:
 #  - Martin Albrecht <malb@informatik.uni-bremen.de>
-#    2006-01: initial version (based on cody by William Stein)
+#    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
 
@@ -46,7 +46,7 @@ cdef class ntl_mat_GF2E:
         INPUT:
             modulus -- GF2E context
             nrows -- number of rows
-            ncols -- nomber of columns
+            ncols -- number of columns
             v     -- either a list or a matrix over GF(2^x)
 
         EXAMPLES:
@@ -111,7 +111,7 @@ cdef class ntl_mat_GF2E:
         ## inappropriately.  However, from Cython, you##
         ## could do r = PY_NEW(ntl_GF2E) without      ##
         ## first restoring a GF2EContext, which could ##
-        ## have unforetunate consequences.  See _new  ##
+        ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
@@ -144,7 +144,7 @@ cdef class ntl_mat_GF2E:
 
     def modulus_context(self):
         """
-        Returns the sturcture that holds the underlying NTL GF2E modulus.
+        Returns the structure that holds the underlying NTL GF2E modulus.
 
         EXAMPLES:
             sage: ntl.GF2XHexOutput(0)

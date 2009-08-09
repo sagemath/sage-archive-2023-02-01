@@ -1,9 +1,9 @@
 r"""
 Cremona's MWRANK Library
 
-This is the SAGE interface to John Cremona's MWRANK C++ library for
+This is the Sage interface to John Cremona's MWRANK C++ library for
 arithmetic on elliptic curves.  The classes defined in this module
-give SAGE interpreter-level to access much of the functionality of
+give Sage interpreter-level to access much of the functionality of
 MWRANK.  For most purposes it is not necessary to directly use these
 classes; instead, one can create an \class{EllipticCurve} and call
 methods that are implemented using this module.
@@ -22,7 +22,7 @@ def set_precision(n):
     case, one must recreate the mwrank curve from scratch after
     resetting this precision.
 
-    NOTE -- this change is global and affects all of SAGE.
+    NOTE -- this change is global and affects all of Sage.
 
     INPUT:
         n -- long
@@ -30,7 +30,7 @@ def set_precision(n):
     EXAMPLES:
         sage: mwrank_set_precision(20)
     """
-    # don't want to load mwrank every time SAGE starts up, so we do
+    # don't want to load mwrank every time Sage starts up, so we do
     # the import here.
     from sage.libs.mwrank.mwrank import set_precision
     set_precision(n)
@@ -346,7 +346,7 @@ class mwrank_EllipticCurve(SageObject):
         r"""
         Return the Cremona-Prickett-Siksek height bound.  This is a
         floating point number $B$ such that if $P$ is a point on the curve,
-        then the naive logarithmetic height of $P$ is off from the
+        then the naive logarithmic height of $P$ is off from the
         canonical height by at most $B$.
 
         \begin{notice}
@@ -359,7 +359,7 @@ class mwrank_EllipticCurve(SageObject):
         r"""
         Return the Silverman height bound.  This is a number $B$ such
         that if $P$ is a point on the curve, then the naive
-        logarithmetic height of $P$ is off from the canonical height by
+        logarithmic height of $P$ is off from the canonical height by
         at most $B$.
 
         \begin{notice}
@@ -489,7 +489,7 @@ class mwrank_MordellWeil(SageObject):
 
         INPUT:
             height_limit -- float (default: 18) search up to
-                            this logarithmetic height.
+                            this logarithmic height.
                    On 32-bit machines, h_lim MUST be < 21.48 else
                    $\exp(h_lim)>2^31$ and overflows.
         """

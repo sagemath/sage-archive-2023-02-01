@@ -15,7 +15,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
@@ -39,7 +39,7 @@ from sage.matrix.constructor import matrix
 
 cdef class FP_LLL:
     """
-    A basic wrapper class to support conversion to/from SAGE integer
+    A basic wrapper class to support conversion to/from Sage integer
     matrices and executing the LLL computation.
 
     NOTE: Usually you don't want to create this object yourself but
@@ -89,7 +89,7 @@ cdef class FP_LLL:
 
     def _sage_(self):
         """
-        Return a SAGE representation of self's matrix.
+        Return a Sage representation of self's matrix.
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
@@ -140,7 +140,7 @@ cdef class FP_LLL:
         Perform LLL reduction using fpLLL's \code{wrapper}
         implementation. This implementation invokes a sequence of
         floating point LLL computations such that
-          * the computation is reasonably fast (based on an heuristic modell)
+          * the computation is reasonably fast (based on an heuristic model)
           * the result is proven to be LLL reduced.
 
         INPUT:
@@ -843,7 +843,7 @@ def gen_ajtai(int d, float alpha):
 
 cdef to_sage(ZZ_mat *A):
     """
-    Return a SAGE integer matrix for A. A is not destroyed.
+    Return a Sage integer matrix for A. A is not destroyed.
 
     INPUT:
         A -- ZZ_mat

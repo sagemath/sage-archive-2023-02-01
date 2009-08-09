@@ -45,7 +45,7 @@ cdef class ntl_mat_GF2:
 
         INPUT:
             nrows -- number of rows
-            ncols -- nomber of columns
+            ncols -- number of columns
             v     -- either a list or a matrix over GF(2^x)
 
         EXAMPLES:

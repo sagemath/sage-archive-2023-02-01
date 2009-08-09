@@ -24,7 +24,7 @@ coordinates.
 
 This Sage module uses Package for Analyzing Lattice Polytopes
 (PALP), which is a program written in C by Maximilian Kreuzer and
-Harald Skarke, which is freely available under the GNU licence
+Harald Skarke, which is freely available under the GNU license
 terms at http://tph16.tuwien.ac.at/~kreuzer/CY/. Moreover, PALP is
 included standard with Sage.
 
@@ -214,7 +214,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
 
         sage: p.plot3d().show()
 
-    Now we add an extra point, which is in the interiour of the
+    Now we add an extra point, which is in the interior of the
     polytope...
 
     ::
@@ -705,7 +705,7 @@ class LatticePolytopeClass(SageObject):
 
     def _read_faces(self, data):
         r"""
-        Read faces informations from string or file.
+        Read faces information from string or file.
 
         TESTS::
 
@@ -1352,7 +1352,7 @@ class LatticePolytopeClass(SageObject):
 
     def nef_x(self, keys):
         r"""
-        Run nef.x wilth given ``keys`` on vertices of this
+        Run nef.x with given ``keys`` on vertices of this
         polytope.
 
         INPUT:
@@ -1621,7 +1621,7 @@ class LatticePolytopeClass(SageObject):
             [ 0  1  0  0 -1  0  0]
             [ 0  0  1  0  0 -1  0]
         """
-        # Extra checks are made to compensate for a bug in SAGE - column accepts any number.
+        # Extra checks are made to compensate for a bug in Sage - column accepts any number.
         if i < 0:
             raise ValueError, "polytopes don't have negative points!"
         elif i < self.nvertices():
@@ -1858,7 +1858,7 @@ class LatticePolytopeClass(SageObject):
             sage: o.vertex(3)
             (-1, 0, 0)
         """
-        # The check is added to compensate for a bug in SAGE - column works for any numbers
+        # The check is added to compensate for a bug in Sage - column works for any numbers
         if i < 0:
             raise ValueError, "polytopes don't have negative vertices!"
         elif i > self.nvertices():
@@ -1894,7 +1894,7 @@ class NEFPartition(Sequence):
 
     A NEF-partition with `k` parts,
     `V = V_0 \cap V_1 \cap \dots \cap V_{k-1}`, is
-    represented by a single list of lenght `n = \#V`, in which
+    represented by a single list of length `n = \#V`, in which
     the `i`-th entry is the part number of the `i`-th
     vertex of a polytope.
 
@@ -2467,7 +2467,7 @@ def _palp(command, polytopes):
     Run ``command`` on vertices of given
     ``polytopes``.
 
-    Returns the name of the file conatining the output of
+    Returns the name of the file containing the output of
     ``command``. You should delete it after using.
 
     TESTS::
@@ -2943,7 +2943,7 @@ def minkowski_sum(points1, points2):
 
     OUTPUT: list of vertices of the Minkowski sum, given as vectors.
 
-    EXAMPLES: Let's compute the Minkovski sum of two line segments::
+    EXAMPLES: Let's compute the Minkowski sum of two line segments::
 
         sage: lattice_polytope.minkowski_sum([[1,0],[-1,0]],[[0,1],[0,-1]])
         [(1, 1), (1, -1), (-1, 1), (-1, -1)]

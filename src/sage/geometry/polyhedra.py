@@ -22,7 +22,7 @@ REFERENCES:
     Komei Fukuda's `FAQ in Polyhedral Computation <http://www.ifor.math.ethz.ch/~fukuda/polyfaq/polyfaq.html>`_
 
 AUTHOR:
-    -- Marshall Hampton: first version, bugfixes, and various improvements, 2008
+    -- Marshall Hampton: first version, bug fixes, and various improvements, 2008
     -- Arnaud Bergeron: improvements to triangulation and rendering, 2008
     -- Sebastien Barthelemy: documentation improvements, 2008
 """
@@ -518,7 +518,7 @@ class Polyhedron(SageObject):
         """
         Returns a list of face indices and the indices of faces adjacent to them.
 
-        EXMAPLES:
+        EXAMPLES:
             sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
             sage: permuta3.facial_adjacencies()[0:3]
             [[0, [1, 2, 3, 8, 12, 13]], [1, [0, 2, 9, 13]], [2, [0, 1, 3, 4, 5, 9]]]
@@ -1270,7 +1270,7 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
 
     OUTPUT:
         A Polyhedron containing information about the vertices,
-        faces, incidences, and adjancencies of the polyhedron.
+        faces, incidences, and adjacencies of the polyhedron.
 
     EXAMPLES:
         sage: a = vert_to_ieq([[1,2,3],[1,2,2],[1,2,4]])
@@ -1401,7 +1401,7 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
 
     OUTPUT:
         A Polyhedron containing information about the vertices,
-        faces, incidences, and adjancencies of the polyhedron.
+        faces, incidences, and adjacencies of the polyhedron.
 
     EXAMPLES:
         sage: i_list = [[1,0,0,-1],[1,0,-1,0],[1,-1,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
@@ -1628,7 +1628,7 @@ class Polytopes():
         is used.
 
         OUTPUT:
-            A Polyhedron object of a rational approximation to the regular 3D icosahedrone.
+            A Polyhedron object of a rational approximation to the regular 3D icosahedron.
 
         EXAMPLES:
             sage: ico = polytopes.icosahedron()

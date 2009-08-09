@@ -8,7 +8,7 @@ development is shared with Fachbereich Mathematik, Technische
 Universitat Darmstadt. The system offers access to a wide variety
 of algorithms and packages within a common framework. polymake is
 flexible and continuously expanding. The software supplies C++ and
-perl interfaces which make it highly adaptable to individual
+Perl interfaces which make it highly adaptable to individual
 needs.'
 
 .. note::

@@ -35,7 +35,7 @@ def cblas():
 # In the other cases we just return the same library name as cblas()
 # which is fine for the linker
 #
-# We should be using the Accelerate FrameWork on OSX, but that requires
+# We should be using the Accelerate FrameWork on OS X, but that requires
 # some magic due to distutils having ridden on the short bus :)
 def atlas():
     if UNAME == "Darwin":
@@ -377,7 +377,7 @@ setup(ext_modules = ext_modules,
 ##         # R = R.replace('__pyx_v_','').replace('__pyx','')
 ##         # 2. Replace the line number references by the actual code from the file,
 ##         #    since it is very painful to go back and forth, and the philosophy
-##         #    of SAGE is that everything that can be very easy *is*.
+##         #    of Sage is that everything that can be very easy *is*.
 
 ##         pyx_file = os.path.abspath('%s/%s.pyx'%(build_dir,name))
 ##         S = '/* "%s":'%pyx_file

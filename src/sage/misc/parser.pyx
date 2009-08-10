@@ -140,7 +140,7 @@ cdef class Tokenizer:
             sage: Tokenizer("1. .01 1e3 1.e-3").test()
             ['FLOAT(1.)', 'FLOAT(.01)', 'FLOAT(1e3)', 'FLOAT(1.e-3)']
 
-        Note that negative signes are not attached to the token:
+        Note that negative signs are not attached to the token:
             sage: Tokenizer("-1 -1.2").test()
             ['-', 'INT(1)', '-', 'FLOAT(1.2)']
 
@@ -167,7 +167,7 @@ cdef class Tokenizer:
         """
         This is a utility function for easy testing of the tokenizer.
 
-        Distructively read off the tokens in self, returning a list of string
+        Destructively read off the tokens in self, returning a list of string
         representations of the tokens.
 
         EXAMPLES:

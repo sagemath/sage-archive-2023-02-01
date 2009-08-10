@@ -29,7 +29,7 @@ class CachedFunction(object):
 
         The inputs to the function must be hashable.
 
-        EXAMPELES:
+        EXAMPLES:
             sage: g = CachedFunction(number_of_partitions)
             sage: g.__name__
             'number_of_partitions'

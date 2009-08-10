@@ -53,12 +53,12 @@ class Profiler:
          5000.190s -- last step
 
     TODO:
-        -- Add pyrex source code inspection (I assume it doesn't
+        -- Add Pyrex source code inspection (I assume it doesn't
            currently do this)
         -- Add ability to sort output by time
         -- Add option to constructor to print timing immediately when
            checkpoint is reached
-        -- Migrate to pyrex?
+        -- Migrate to Pyrex?
         -- Add ability to return timings in a more machine-friendly
            format
 
@@ -71,7 +71,7 @@ class Profiler:
         INPUT:
             systems -- a list of interfaces to other system which implements a cputime
                        method. The cputimes of all provided systems will be added
-                       to the cputime of SAGE itself.
+                       to the cputime of Sage itself.
         """
         systems = [e.cputime for e in systems]
         self._cputime_functions = [cputime] + list(systems)

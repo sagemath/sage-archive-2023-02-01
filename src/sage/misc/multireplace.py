@@ -21,8 +21,8 @@ import re
 
 def multiple_replace(dict, text):
     """
-    Replace in 'text' all occurences of any key in the given
-    dictionary by its corresponding value.  Returns the new tring.
+    Replace in 'text' all occurrences of any key in the given
+    dictionary by its corresponding value.  Returns the new string.
     """
 
     # Create a regular expression  from the dictionary keys

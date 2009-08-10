@@ -45,7 +45,7 @@ def install_scripts(bin_directory=None):
     """
     if bin_directory is None:
         # We do this since the intended user of install_scripts
-        # will likely be pretty clueless about how to use SAGE or
+        # will likely be pretty clueless about how to use Sage or
         # its help system.
         import sagedoc
         print sagedoc.format(install_scripts.__doc__)
@@ -57,7 +57,7 @@ def install_scripts(bin_directory=None):
 
     for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash', \
               'mwrank', 'ipython', 'hg', 'hgmerge', 'R']:
-        print "\nChecking that SAGE has the command '%s' installed"%c
+        print "\nChecking that Sage has the command '%s' installed"%c
         if os.system('which %s > /dev/null'%c):
             print "The command '%s' is not available; not adding shortcut"%c
         else:
@@ -72,5 +72,5 @@ def install_scripts(bin_directory=None):
                 os.system('chmod a+rx %s'%target)
 
     print "Finished creating scripts."
-    print "You need not do this again even if you upgrade or move SAGE."
+    print "You need not do this again even if you upgrade or move Sage."
     print "The only requirement is that the command 'sage' is in the PATH."

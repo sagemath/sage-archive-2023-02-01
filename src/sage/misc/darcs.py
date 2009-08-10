@@ -1,7 +1,7 @@
 """
-Darcs from SAGE.
+Darcs from Sage
 
-These functions make setup and use of darcs with SAGE easier.
+These functions make setup and use of darcs with Sage easier.
 """
 
 ########################################################################
@@ -38,12 +38,12 @@ def darcs_install():
     elif uname == 'Linux':
         package.install_package('darcs_linux')
     else:
-        raise RuntimeError, "No SAGE darcs package available for your platform (this just means you need to get a darcs binary yourself and put it somewhere in your PATH).  See http://darcs.net/DarcsWiki/CategoryBinaries"
+        raise RuntimeError, "No Sage darcs package available for your platform (this just means you need to get a darcs binary yourself and put it somewhere in your PATH).  See http://darcs.net/DarcsWiki/CategoryBinaries"
 
 known_installed = False
 def darcs_ensure_installed():
     """
-    Download and install darcs into your SAGE environment, if
+    Download and install darcs into your Sage environment, if
     you do not already have darcs in your PATH.
 
     The darcs binary is put in <SAGE_ROOT>/bin.
@@ -228,11 +228,11 @@ class Darcs:
             self.get()
 ##             if self('initialize', check_initialized=False):
 ##                 print "WARNING -- problem initializing repository."
-##                 print "Try calling initalize again with the force option?"
+##                 print "Try calling initialize again with the force option?"
 ##                 return
 ##             if self.pull('-a -v'):
 ##                 print "WARNING -- problem pulling repository."
-##                 print "Try calling initalize again with the force option?"
+##                 print "Try calling initialize again with the force option?"
 ##                 return
             D = self.__dir
             n = D.split('/')[-1]
@@ -247,9 +247,9 @@ class Darcs:
             self.__initialized = True
             if self.__target == 'sage':
                 print ""
-                print "Now building the new SAGE libraries"
+                print "Now building the new Sage libraries"
                 os.system('sage -b')
-                print "If there were any changes, then you must restart SAGE in order for the changes to take effect."
+                print "If there were any changes, then you must restart Sage in order for the changes to take effect."
 
     def pull(self, options='', url=None):
         """
@@ -262,9 +262,9 @@ class Darcs:
         self('pull %s %s'%(options, url))
         if self.__target == 'sage':
             print ""
-            print "Now building the new SAGE libraries"
+            print "Now building the new Sage libraries"
             os.system('sage -b')
-            print "You *MUST* restart SAGE in order for the changes to take effect!"
+            print "You *MUST* restart Sage in order for the changes to take effect!"
 
 
     def record(self, options=''):
@@ -287,8 +287,8 @@ class Darcs:
     def send(self, filename, options='', url=None):
         """
         Create a darcs patch bundle with the given filename
-        against the repository at the given url (which is
-        by default the 'official' SAGE repository).
+        against the repository at the given URL (which is
+        by default the 'official' Sage repository).
 
         This is a file that you should probably post to
         sage-devel@lists.sourceforge.net.  It will
@@ -296,11 +296,11 @@ class Darcs:
 
         NOTE: The darcs 'send' command by default tries to email
         patches.  Since email rarely works on users personal machines,
-        in SAGE the default is to create a file.
+        in Sage the default is to create a file.
         """
         if url is None:
             url = self.__url
-        # We write to a local tmp file, then move, since unders
+        # We write to a local tmp file, then move, since under
         # windows darcs has a bug that makes it fail to write
         # to any filename that is at all complicated!
         filename = os.path.abspath(filename) + '.darcs'
@@ -326,11 +326,11 @@ class Darcs:
 
 
 #############################################################
-# Create the default SAGE darcs repositories.
+# Create the default Sage darcs repositories.
 #############################################################
 
 #darcs_src = Darcs('%s/devel/sage-darcs'%os.environ['SAGE_ROOT'],
-#                  'SAGE source code',
+#                  'Sage source code',
 #        url="http://modular.math.washington.edu/sage/dist/src/sage-darcs",
 #                  target='sage')
 
@@ -339,7 +339,7 @@ class Deprecated:
         self.newcmd = newcmd
         self.note = note
     def __repr__(self):
-        return "Use of darcs in SAGE is deprecated.  Use %s instead. %s"%(self.newcmd, self.note)
+        return "Use of darcs in Sage is deprecated.  Use %s instead. %s"%(self.newcmd, self.note)
     def pull(self, **args):
         return str(self)
     get = pull
@@ -364,12 +364,11 @@ darcs_doc = Deprecated('hg_doc')
 darcs_scripts = Deprecated('hg_scripts')
 
 Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
-                  'SAGE documentation',
+                  'Sage documentation',
         url="http://modular.math.washington.edu/sage/dist/src/doc-darcs",
                   target='doc')
 
 darcs_scripts = Darcs('%s/local/bin/'%os.environ['SAGE_ROOT'],
-                  'SAGE scripts',
+                  'Sage scripts',
         url="http://modular.math.washington.edu/sage/dist/src/scripts-darcs",
                   target=None)
-

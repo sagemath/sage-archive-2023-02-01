@@ -304,7 +304,7 @@ def eta(x):
 
 def exp(x):
     """
-    Return the value of the exponentation function at x.
+    Return the value of the exponentiation function at x.
     """
     try: return x.exp()
     except AttributeError: return RDF(x).exp()
@@ -395,7 +395,7 @@ def integral(x, *args, **kwds):
     Return an indefinite integral of an object x.
 
     First call x.integrate() and if that fails make an object and
-    integrate it using maxima, maple, etc, as specified by algorithm.
+    integrate it using Maxima, maple, etc, as specified by algorithm.
 
     EXAMPLES::
 

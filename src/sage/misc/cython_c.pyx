@@ -5,20 +5,20 @@ def cython(code,
           verbose=False, compile_message=False,
           make_c_file_nice=False, use_cache=False):
     """
-    Given a block of CYTHON (SAGE's variant of Pyrex) code (as a text
+    Given a block of Cython (Sage's variant of Pyrex) code (as a text
     string), this function compiles it using your C compiler, and
     includes it into the global scope of the module that called this
     function.
 
     WARNING: Only use this from Python code, not from extension code,
     since from extension code you would change the global scope (i.e.,
-    of the SAGE interpreter). And it would be stupid, since you're
+    of the Sage interpreter). And it would be stupid, since you're
     already writing Cython!
 
-    Also, never use this in the standard SAGE library.  Any code that
+    Also, never use this in the standard Sage library.  Any code that
     uses this can only run on a system that has a C compiler
     installed, and we want to avoid making that assumption for casual
-    SAGE usage.  Also, any code that uses this in the library would
+    Sage usage.  Also, any code that uses this in the library would
     greatly slow down startup time, since currently there is no
     caching.
 

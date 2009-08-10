@@ -1,5 +1,5 @@
 """
-Saving SAGE objects to a file
+Saving Sage objects to a file
 """
 
 #*****************************************************************************

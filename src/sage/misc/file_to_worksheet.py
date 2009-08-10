@@ -2,7 +2,7 @@ import os
 
 def file_to_worksheet(filename):
     """
-    Convert a Python file to a worksheet suitable for editing and debuging.
+    Convert a Python file to a worksheet suitable for editing and debugging.
     """
     r = open(filename).readlines()
     for i in range(len(r)):

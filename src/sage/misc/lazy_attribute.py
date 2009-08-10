@@ -302,7 +302,7 @@ class lazy_attribute(object):
 
     .. rubric:: lazy_attributes and cpdef functions
 
-    This attempts to check that lazy_attributes work with builtin
+    This attempts to check that lazy_attributes work with built-in
     functions like cpdef methods::
 
         sage: class A:
@@ -317,7 +317,7 @@ class lazy_attribute(object):
 
     The specifications of descriptors (see 3.4.2.3 Invoking
     Descriptors in the Python reference manual) are incomplete
-    w.r.t. inheritence, and maybe even ill-implemented. We illustrate
+    w.r.t. inheritance, and maybe even ill-implemented. We illustrate
     this on a simple class hierarchy, with an instrumented descriptor::
 
         sage: class descriptor(object):

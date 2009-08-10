@@ -7,7 +7,7 @@ extra comparison.   Also, the function names make more sense.
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Computation (c) William Stein, 2004
+#  Sage: System for Algebra and Geometry Computation (c) William Stein, 2004
 #
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
@@ -37,7 +37,7 @@ def search(object v, object x):
     OUTPUT:
         bool, int
     """
-    # This is implemented using the builtin bisect module.  I tried to
+    # This is implemented using the built-in bisect module.  I tried to
     # implement this directly (using binary search) in Pyrex, but it
     # was about half as fast.  (Maybe I did things in an inefficient
     # manner?)   In any case, simply using the bisect module works well,

@@ -24,7 +24,7 @@ comes with the free ImageMagick tools.
 
 .. note::
 
-   The HTML output is done via LaTeX and png images right now,
+   The HTML output is done via LaTeX and PNG images right now,
    sort of like how latex2html works. Obviously it would be
    interesting to do something using MathML in the long run.
 
@@ -47,7 +47,7 @@ AUTHORS:
   documentation about viewers.
 """
 
-# Note: there is a webbrowser module standard with Python.
+# Note: there is a web browser module standard with Python.
 # But it seems so dated as to be useless.
 
 #*****************************************************************************

@@ -47,7 +47,7 @@ def get_systems(cmd):
     cmd.  Note that the results can sometimes include systems
     that did not actually contribute to the computation. Due
     to caching and the inability to follow all C calls, it
-    could miss some dependancies as well.
+    could miss some dependencies as well.
 
     INPUT:
 

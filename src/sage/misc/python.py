@@ -21,7 +21,7 @@ class Python:
             ''
 
         Any variables that are set during evaluation of the block
-        will propogate to the globals dictionary.
+        will propagate to the globals dictionary.
             sage: python.eval('a=5\nb=7\na+b', globals())
             12
             ''

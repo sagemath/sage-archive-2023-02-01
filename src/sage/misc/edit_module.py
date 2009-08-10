@@ -62,9 +62,9 @@ def file_and_line(obj):
    r"""
    Look up source file and line number of obj.
 
-   If the file lies in the sage library, the pathname of the
+   If the file lies in the Sage library, the path name of the
    corresponding file in the current branch (i.e., the file that gets
-   copied into the sage library upon running 'sage -br').  Note that
+   copied into the Sage library upon running 'sage -br').  Note that
    the first line of a file is considered to be 1 rather than 0
    because most editors think that this is the case.
 

@@ -76,7 +76,7 @@ def install_all_optional_packages(force=True, dry_run=False):
                 # only actually do the install of the package if dry_run is False
                 install_package(pkg, force=force)
         except ValueError, msg:
-            # An error occured -- catch exception and record this in
+            # An error occurred -- catch exception and record this in
             # the list of failed installed.
             print "*"*70
             print "FAILED to install '%s'"%pkg
@@ -285,7 +285,7 @@ def experimental_packages():
     return installed, not_installed
 
 #################################################################
-# Upgrade to latest version of SAGE.
+# Upgrade to latest version of Sage
 #################################################################
 
 
@@ -307,11 +307,11 @@ def upgrade():
     if os.uname()[0][:6] == 'CYGWIN':
         print "Upgrade may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
-        print "instances of sage and use 'sage -upgrade' instead."
+        print "instances of Sage and use 'sage -upgrade' instead."
         return
     os.system('sage -upgrade')
     __installed_packages = None
-    print "You should quit and restart SAGE now."
+    print "You should quit and restart Sage now."
 
 
 def package_mesg(package_name):

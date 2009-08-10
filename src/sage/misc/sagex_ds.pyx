@@ -119,7 +119,7 @@ cdef binary_tree_node *binary_tree_head_excise(binary_tree_node *self):
     cdef binary_tree_node *cur
     cdef int right
     # We have a pointer we're about to free.  Chances are, we'll never
-    # see this pointer again.  Thus, it's least signifigant bit is
+    # see this pointer again.  Thus, its least significant bit is
     # "random" enough to resist bias.
     right = (<int>self)&1
     if self.right == NULL:
@@ -192,7 +192,7 @@ cdef class BinaryTree:
     def insert(BinaryTree self, object key, object value = None):
         """
         Inserts a key-value pair into the BinaryTree.  Duplicate keys are ignored.
-        The first parameter, key, should be an int, or coercable (one-to-one) into an int.
+        The first parameter, key, should be an int, or coercible (one-to-one) into an int.
         Example:
             sage: t = BinaryTree()
             sage: t.insert(1)

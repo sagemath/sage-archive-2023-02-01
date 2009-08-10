@@ -8,7 +8,7 @@ include "../ext/python_rich_object.pxi"
 
 #def time_alloc_list(n):
     #"""
-    #Allocate n a list of n SAGE integers using PY_NEW.
+    #Allocate n a list of n Sage integers using PY_NEW.
     #(Used for timing purposes.)
 
     #EXAMPLES:

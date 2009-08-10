@@ -27,7 +27,7 @@ cdef extern from *:
 
 def running_total(L, start=None):
     """
-    Returns a list where the i-th entry is the sum of all entries up to (and incling) i.
+    Returns a list where the i-th entry is the sum of all entries up to (and including) i.
 
     INPUT:
         L     -- the list

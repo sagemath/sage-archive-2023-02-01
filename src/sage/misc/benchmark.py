@@ -4,7 +4,7 @@ from sage.all import *
 
 def benchmark(n=-1):
     """
-    Run a well-chosen range of SAGE commands and record the time it
+    Run a well-chosen range of Sage commands and record the time it
     takes for each to run.
 
     INPUT:
@@ -31,10 +31,10 @@ def benchmark(n=-1):
         Some basic arithmetic with very large Rational numbers: '(2/3)^100001 * (17/19)^100001
         Time: ... seconds
         Running benchmark 4
-        Rational polynomial arithmetic using SAGE. Compute (x^29+17*x-5)^200.
+        Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200.
         Time: ... seconds
         Running benchmark 5
-        Rational polynomial arithmetic using SAGE. Compute (x^19 - 18*x + 1)^50 one hundred times.
+        Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times.
         Time: ... seconds
         Running benchmark 6
         Compute the p-division polynomials of y^2 = x^3 + 37*x - 997 for primes p < 40.
@@ -144,10 +144,10 @@ def bench4():
     BENCHMARK:
         sage: from sage.misc.benchmark import *
         sage: print bench4()[0]
-        Rational polynomial arithmetic using SAGE. Compute (x^29+17*x-5)^200.
+        Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200.
 
     """
-    desc = """Rational polynomial arithmetic using SAGE. Compute (x^29+17*x-5)^200."""
+    desc = """Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200."""
     x = PolynomialRing(QQ, 'x').gen()
     t = cputime()
     f = x**29 + 17*x-5
@@ -161,10 +161,10 @@ def bench5():
     BENCHMARK:
         sage: from sage.misc.benchmark import *
         sage: print bench5()[0]
-        Rational polynomial arithmetic using SAGE. Compute (x^19 - 18*x + 1)^50 one hundred times.
+        Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times.
 
     """
-    desc = """Rational polynomial arithmetic using SAGE. Compute (x^19 - 18*x + 1)^50 one hundred times."""
+    desc = """Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times."""
     x = PolynomialRing(QQ, 'x').gen()
     t = cputime()
     f = x**19 - 18*x + 1

@@ -1,12 +1,12 @@
 """
 IPython's timeit magic functionality ported to Sage.
 
-This is an implemention of nice timeit functionality, like the
+This is an implementation of nice timeit functionality, like the
 %timeit magic command in IPython.  To use it, use the timeit
 command.
 
 AUTHOR:
-    -- William Stein, based on code by Fernando Perez included in Ipython
+    -- William Stein, based on code by Fernando Perez included in IPython
 """
 
 import timeit as timeit_, time, math, preparser, interpreter
@@ -53,7 +53,7 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
         50 loops, best of 3: ... per loop
 
 
-    Make sure that garbage collection is renabled after an exception
+    Make sure that garbage collection is re-enabled after an exception
     occurs in timeit.
 
     TESTS:

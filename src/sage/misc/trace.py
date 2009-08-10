@@ -39,7 +39,7 @@ def trace(code, preparse=True):
 
     ``import pdb; pdb.set_trace()``
 
-    For an article on how to use the Python debuger, see
+    For an article on how to use the Python debugger, see
     http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html
 
     TESTS: The only real way to test this is via pexpect spawning a

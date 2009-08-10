@@ -121,7 +121,7 @@ class xmrange_iter:
 
     .. note::
 
-       This basically gives you the cartesian product of sets.
+       This basically gives you the Cartesian product of sets.
 
     More precisely, return the iterator over all objects of type typ of
     n-tuples of Python ints with entries between 0 and the integers in
@@ -191,7 +191,7 @@ class xmrange_iter:
         sage: list(xmrange_iter([xrange(5),xrange(3),xrange(0)]))
         []
 
-    We use a multi-range iterator to iterate through the cartesian
+    We use a multi-range iterator to iterate through the Cartesian
     product of sets.
 
     ::
@@ -373,7 +373,7 @@ class xmrange:
         sage: list(xmrange([5,3,0]))
         []
 
-    We use a multi-range iterator to iterate through the cartesian
+    We use a multi-range iterator to iterate through the Cartesian
     product of sets.
 
     ::

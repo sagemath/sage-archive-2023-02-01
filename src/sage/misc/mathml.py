@@ -1,13 +1,13 @@
 """
 MathML output support
 
-In order to support mathml formating, an object should define a special
+In order to support MathML formatting, an object should define a special
 method _mathml_(self) that returns its MathML representation.
 """
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -59,7 +59,7 @@ class MathML(str):
 
 def mathml(x):
     """
-    Output x formated for inclusion in a MathML document.
+    Output x formatted for inclusion in a MathML document.
     """
     try:
 

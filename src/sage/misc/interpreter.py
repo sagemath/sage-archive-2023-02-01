@@ -346,7 +346,7 @@ def load_cython(name):
 def handle_encoding_declaration(contents, out):
     """Find a Python encoding declaration in the first line
     of contents. If found, output it to out and return contents without first line,
-    else output a default utf-8 declaration and return contents.
+    else output a default UTF-8 declaration and return contents.
 
     EXAMPLE:
         sage: from sage.misc.interpreter import handle_encoding_declaration
@@ -484,7 +484,7 @@ def sage_prefilter(self, block, continuation):
 
     except None:
 
-        print "WARNING: An error occured in the Sage parser while"
+        print "WARNING: An error occurred in the Sage parser while"
         print "parsing the following block:"
         print block
         print "Please report this as a bug (include the output of typing '%hist')."

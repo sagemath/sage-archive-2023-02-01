@@ -1,13 +1,13 @@
 """
 LaTeX printing support
 
-In order to support latex formating, an object should define a
+In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string.
 """
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -307,8 +307,8 @@ class _Latex_prefs_object(SageObject):
 _Latex_prefs = _Latex_prefs_object()
 
 ##############################################################
-# The Latex class is used to make slides and latex output in
-# the SAGE Notebook
+# The Latex class is used to make slides and LaTeX output in
+# the Sage Notebook
 #########################################
 
 def latex_extra_preamble():
@@ -335,11 +335,11 @@ def latex_extra_preamble():
 def _run_latex_(filename, debug=False, density=150,
                        pdflatex=None, png=False, do_in_background=False):
     """
-    This runs LaTeX on the tex file "filename.tex".  It produces files
+    This runs LaTeX on the TeX file "filename.tex".  It produces files
     "filename.dvi" (or "filename.pdf"` if ``pdflatex`` is ``True``)
     and if ``png`` is True, "filename.png".  If ``png`` is True and
     dvipng can't convert the dvi file to png (because of postscript
-    specials or other issues), then dvips is called, and the ps file
+    specials or other issues), then dvips is called, and the PS file
     is converted to a png file.
 
     INPUT:
@@ -364,7 +364,7 @@ def _run_latex_(filename, debug=False, density=150,
     OUTPUT: string, which could be a string starting with 'Error' (if
     there was a problem), or it could be 'pdf' or 'dvi'.  If
     ``pdflatex`` is False, then a dvi file is created, but if there
-    appear to be problems with it (because of ps special commands, for
+    appear to be problems with it (because of PS special commands, for
     example), then a pdf file is created instead.  The function
     returns 'dvi' or 'pdf' to indicate which type of file is created.
     (Detecting problems requires that dvipng be installed; if it is
@@ -1354,7 +1354,7 @@ class JSMath:
 
 def jsmath(x, mode='display'):
     r"""
-    Attempt to nicely render an arbitrary SAGE object with jsMath typesetting.
+    Attempt to nicely render an arbitrary Sage object with jsMath typesetting.
     Tries to call ._latex_() on x. If that fails, it will render a string
     representation of x.
 
@@ -1370,7 +1370,7 @@ def jsmath(x, mode='display'):
         mode -- 'display' for displaymath or 'inline' for inline math
 
     OUTPUT:
-        A string of html that contains the LaTeX represntation of x. In the
+        A string of html that contains the LaTeX representation of x. In the
         notebook this gets embedded into the cell.
 
     EXAMPLES::
@@ -1881,7 +1881,7 @@ def latex_variable_name(x, is_fname=False):
     3. If the variable name contains an '_' we start the subscript at
        the underscore. Note that #3 trumps rule #2.
 
-    4. If a component of the variable is a greek letter, escape it
+    4. If a component of the variable is a Greek letter, escape it
        properly.
 
     5. Recurse nicely with subscripts.

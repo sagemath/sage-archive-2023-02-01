@@ -10,7 +10,7 @@ Pager for showing strings
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-# Currently we just use the Ipython pager when not in embedded mode.
+# Currently we just use the IPython pager when not in embedded mode.
 # If we want to use something else, we can just change this function.
 # Any code in sage that uses a pager should use this pager.
 

@@ -1,5 +1,5 @@
 """
-HTML typesetting for the notebok
+HTML typesetting for the notebook
 """
 
 ########################################################################
@@ -110,16 +110,16 @@ class HTMLExpr(str):
 class HTML:
     def __init__(self):
         """
-        Display the given html expression in the notebook.
+        Display the given HTML expression in the notebook.
 
         INPUT:
             s -- a string
 
         OUTPUT:
-            prints a code that embeds html in the output.
+            prints a code that embeds HTML in the output.
 
         By default in the notebook an output cell has two parts, first a plain text
-        preformat part, then second a general html part (not pre).   If you call
+        preformat part, then second a general HTML part (not pre).   If you call
         html(s) at any point then that adds something that will be displayed
         in the preformated part in html.
 

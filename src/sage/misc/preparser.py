@@ -1,11 +1,11 @@
 """
-SAGE pre-parser.
+Sage pre-parser.
 
 AUTHOR:
     -- William Stein (2006-02-19): fixed bug when loading .py files.
     -- William Stein (2006-03-09): * fixed crash in parsing exponentials
                                    * precision of real literals now determined
-                                     by digits of input (like mathematica).
+                                     by digits of input (like Mathematica).
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
     -- Bobby Moretti (2007-01-25): * added preliminary function assignment
                                      notation
@@ -66,7 +66,7 @@ Raw and hex works correctly:
     <type 'int'>
 
 
-In SAGE methods can also be called on integer and real literals (note
+In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
     sage: 16.sqrt()
     4
@@ -80,7 +80,7 @@ that in pure Python this would be a syntax error).
     "RealNumber('15.10').sqrt()"
 
 Note that calling methods on int literals in pure Python is a
-syntax error, but SAGE allows this for SAGE integers and reals,
+syntax error, but Sage allows this for Sage integers and reals,
 because users frequently request it.
 
     sage: eval('4.__add__(3)')
@@ -119,7 +119,7 @@ valid):
 RAW LITERALS:
 
 Raw literals are not preparsed, which can be useful from an efficiency
-point of view.  Just like Python ints are denoted by an L, in SAGE raw
+point of view.  Just like Python ints are denoted by an L, in Sage raw
 integer and floating literals are followed by an"r" (or "R") for raw,
 meaning not preparsed.
 
@@ -148,13 +148,13 @@ This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000.
     sage: v = [ 2*i for i in range(10000)]
 
-This talkes a noticeable fraction of a second (e.g., 0.25 seconds).
+This takes a noticeable fraction of a second (e.g., 0.25 seconds).
 After preparsing, what Python is really executing is the following:
 
     sage: preparse('v = [ 2*i for i in range(10000)]')
     'v = [ Integer(2)*i for i in range(Integer(10000))]'
 
-If instead we use a raw 2 we get executation that is ``instant'' (0.00 seconds):
+If instead we use a raw 2 we get execution that is ``instant'' (0.00 seconds):
     sage: v = [ 2r * i for i in range(10000r)]
 
 Behind the scenes what happens is the following:
@@ -162,14 +162,11 @@ Behind the scenes what happens is the following:
     'v = [ 2 * i for i in range(10000)]'
 
 WARNING: The result of the above two expressions is different.  The
-first one computes a list of SAGE integers, whereas the second creates
+first one computes a list of Sage integers, whereas the second creates
 a list of Python integers.  Python integers are typically much more
-efficient than SAGE integers when they are very small; large SAGE
+efficient than Sage integers when they are very small; large Sage
 integers are much more efficient than Python integers, since they are
 implemented using the GMP C library.
-
-
-
 """
 
 
@@ -236,7 +233,7 @@ def in_quote():
 def strip_string_literals(code, state=None):
     r"""
     Returns a string with all literal quotes replaced with
-    labels and a dict of labels for re-subsitution. This makes
+    labels and a dict of labels for re-substitution. This makes
     parsing much easier.
 
     EXAMPLES::
@@ -260,7 +257,7 @@ def strip_string_literals(code, state=None):
         sage: print s % literals
         [a, '''b''', c, '']
 
-    Comments are subsituted too::
+    Comments are substitute too::
 
         sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
@@ -708,7 +705,7 @@ def preparse_generators(code):
         -- 2006-04-17: William Stein - improvements to allow multiple statements.
         -- 2006-05-01: William -- fix bug that Joe found
         -- 2006-10-31: William -- fix so obj doesn't have to be mutated
-        -- 2009-01-27: Robet Bradshaw -- rewrite using regular expressions
+        -- 2009-01-27: Robert Bradshaw -- rewrite using regular expressions
 
     TESTS:
         sage: from sage.misc.preparser import preparse, preparse_generators
@@ -1038,7 +1035,7 @@ def implicit_mul(code, level=5):
 
     INPUT:
         code  -- the code with missing *'s
-        level -- how agressive to be in placing *'s
+        level -- how aggressive to be in placing *'s
                    0) Do nothing
                    1) numeric followed by alphanumeric
                    2) closing parentheses followed by alphanumeric

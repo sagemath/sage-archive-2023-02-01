@@ -299,7 +299,7 @@ in a class.  (Such caching would break \method{set_random_seed}).
 is to import functions from \module{sage.misc.prandom}; for instance,
 you can simply replace \code{from random import randrange} with
 \code{from sage.misc.prandom import randrange}.  However, this is
-slighly less efficient, because the wrappers in \module{sage.misc.prandom}
+slightly less efficient, because the wrappers in \module{sage.misc.prandom}
 look up the current \class{randstate} on each call.  If you're generating
 many random numbers in a row, it's faster to instead do
 \begin{verbatim}

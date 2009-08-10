@@ -15,7 +15,7 @@ form 'jsMath.Macro...'.  The LaTeX macros are produced using the
 jsMath macros are produced from the LaTeX macros.  The list of LaTeX
 macros is used in the file ``SAGE_ROOT/devel/sage/doc/common/conf.py``
 to add to the preambles of both the LaTeX file used to build the PDF
-version of the documentation and the LaTeX file used to build the html
+version of the documentation and the LaTeX file used to build the HTML
 version.  The list of jsMath macros is used in the file
 ``sage/server/notebook/notebook.py`` to define jsMath macros for use
 in the live documentation (and also in the notebook).

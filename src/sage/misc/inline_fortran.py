@@ -40,7 +40,7 @@ class InlineFortran:
                 x = '!f90\n' + x
         global count
         # On linux g77_shared should be a script that runs sage_fortran -shared
-        # On OSX it should be a script that runs gfortran -bundle -undefined dynamic_lookup
+        # On OS X it should be a script that runs gfortran -bundle -undefined dynamic_lookup
         path = os.environ['SAGE_LOCAL']+'/bin/sage-g77_shared'
         from numpy import f2py
         old_import_path=os.sys.path
@@ -59,7 +59,7 @@ class InlineFortran:
         for s in self.libraries:
             s_lib=s_lib +"-l"+s + " "
 
-        # if the first line has !f90 as a commment gfortran will treat it as
+        # if the first line has !f90 as a comment gfortran will treat it as
         # fortran 90 code
         if x.startswith('!f90'):
             fname = os.path.join(tmp_filename() +'.f90')

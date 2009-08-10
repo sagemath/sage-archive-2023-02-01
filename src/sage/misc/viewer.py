@@ -29,7 +29,7 @@ def viewer():
         # Simple on OS X, since there is an open command that opens
         # anything, using the user's preferences.
         # sage-open -- a wrapper around OS X open that
-        # turns off any of SAGE's special library stuff.
+        # turns off any of Sage's special library stuff.
 
         BROWSER = 'sage-open'
         DVI_VIEWER = BROWSER

@@ -196,13 +196,13 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     - ``gradient`` -- Optional gradient function. This will be computed
       automatically for symbolic functions.  For Python functions, it allows
       the use of algorithms requiring derivatives.  It should accept a
-      tuple of arguments and return a numpy array containing the partial
+      tuple of arguments and return a NumPy array containing the partial
       derivatives at that point.
 
     - ``hessian`` --  Optional hessian function. This will be computed
       automatically for symbolic functions. For Python functions, it allows
       the use of algorithms requiring derivatives. It should accept a tuple
-      of arguments and return a numpy array containing the second partial
+      of arguments and return a NumPy array containing the second partial
       derivatives of the function.
 
     - ``algorithm`` -- String specifying algorithm to use. Options are
@@ -310,7 +310,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
       be specified as a list of intervals that define the region we are
       minimizing in. If the constraints are specified as functions, the
       functions should be functions of a tuple with `n` components
-      (assuming `n` variables). If the constraints are specifed as a list
+      (assuming `n` variables). If the constraints are specified as a list
       of intervals and there are no constraints for a given variable, that
       component can be (``None``, ``None``).
 
@@ -356,7 +356,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
         (4.7..., 4.9...)
 
-    Rosenbrock funcion, [http://en.wikipedia.org/wiki/Rosenbrock_function]::
+    Rosenbrock function, [http://en.wikipedia.org/wiki/Rosenbrock_function]::
 
         sage: from scipy.optimize import rosen, rosen_der
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
@@ -526,7 +526,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     EXAMPLES:
 
-    First we create some datapoints of a sine function with some random
+    First we create some data points of a sine function with some random
     perturbations::
 
         sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]

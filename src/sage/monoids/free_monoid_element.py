@@ -76,7 +76,7 @@ class FreeMonoidElement(MonoidElement):
                         x2.append(v)
                 self._element_list = x2
             else:
-                self._element_list = list(x)  # make copy, so user can't accidently change monoid.
+                self._element_list = list(x)  # make copy, so user can't accidentally change monoid.
 
         else:
             # TODO: should have some other checks here...
@@ -259,7 +259,7 @@ class FreeMonoidElement(MonoidElement):
 ##         <=, and >= be defined for a general poset?
 ##         N.B. An equal operator __equal__ may or may not
 ##         have been introduced to define == and != but can
-##         not be used in conjuction with __cmp__.
+##         not be used in conjunction with __cmp__.
 ##        """
         if not isinstance(y,FreeMonoidElement) or y.parent() != self.parent():
             #raise TypeError, "Argument y (= %s) is of the wrong type."%y

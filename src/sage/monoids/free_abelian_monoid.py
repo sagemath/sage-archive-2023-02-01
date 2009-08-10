@@ -15,7 +15,7 @@ generators as arbitrary strings using the optional
 ``FreeAbelianMonoid`` function.
 
 EXAMPLE 1: It is possible to create an abelian monoid in zero or
-more variables; the syntax T(1) creates the monoid indentity
+more variables; the syntax T(1) creates the monoid identity
 element even in the rank zero case.
 
 ::

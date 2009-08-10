@@ -3,7 +3,7 @@ Free String Monoids
 
 AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2007-01
 
-SAGE supports a wide range of specific free string monoids.
+Sage supports a wide range of specific free string monoids.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -314,7 +314,7 @@ class BinaryStringMonoid(StringMonoid_class):
         r"""
         The binary encoding of the string S, as a binary string element.
 
-        The default is to keep the standard ascii byte encoding, e.g.
+        The default is to keep the standard ASCII byte encoding, e.g.
 
             A = 65 -> 01000001
             B = 66 -> 01000010
@@ -466,7 +466,7 @@ class HexadecimalStringMonoid(StringMonoid_class):
 
     def encoding(self,S,padic=False):
         r"""
-        The encoding of the string S, as a hexidecimal string element.
+        The encoding of the string S, as a hexadecimal string element.
 
         The default is to keep the standard right-to-left byte encoding, e.g.
 

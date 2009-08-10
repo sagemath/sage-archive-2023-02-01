@@ -1,5 +1,5 @@
 """
-Customization of the Notebook Keybindings
+Notebook Keybindings
 
 This module is responsible for setting the keyboard bindings for the notebook.
 

@@ -6,7 +6,8 @@ yourself when some event occurs.  This does not require configuring an
 email server or anything else, since Sage already includes by default
 a sophisticated email server (which is part of Twisted).
 
-EXAMPLES:
+EXAMPLES::
+
     sage: email('xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
     Child process ... is sending email to xxxsageuser@gmail.com
 
@@ -32,7 +33,8 @@ def default_email_address():
     OUTPUT:
         string
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.server.notebook.sage_email.default_email_address()
         '...@...'
     """
@@ -64,7 +66,8 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
                         be a problem, but might be useful for certain
                         users.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: email('xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
         Child process ... is sending email to xxxsageuser@gmail.com
 

@@ -1,5 +1,5 @@
 """nodoctest
-Sage Notebook CSS
+Notebook Stylesheets (CSS)
 """
 
 

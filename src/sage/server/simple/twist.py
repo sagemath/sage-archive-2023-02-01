@@ -1,5 +1,5 @@
 r"""
-Simple Sage API
+Simple Sage Server API
 
 This module provides a very simple API for interacting with a Sage session
 over HTTP. It runs as part of the notebook server.

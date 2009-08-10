@@ -1,5 +1,5 @@
 """
-Misc code useful for the notebook
+Miscellaneous Notebook Functions
 """
 
 #############################################################################
@@ -19,12 +19,18 @@ def print_open_msg(address, port, secure=False, path=""):
     web browser to a certain URL.
 
     INPUT:
-        address -- a computer address
-        port -- a port number
-        secure -- bool (default: False); whether to put HTTP or HTTPS
-        path -- path after the port.
 
-    EXAMPLES:
+    - ``address`` -- a string; a computer address or name
+
+    - ``port`` -- an int; a port number
+
+    - ``secure`` -- a bool (default: False); whether to prefix the URL
+      with 'http' or 'https'
+
+    - ``path`` -- a string; the URL's path following the port.
+
+    EXAMPLES::
+
         sage: sage.server.misc.print_open_msg('localhost', 8000, True)
         ****************************************************
         *                                                  *
@@ -72,19 +78,25 @@ def print_open_msg(address, port, secure=False, path=""):
 import socket
 def find_next_available_port(start, max_tries=100, verbose=False):
     """
-    Find the next port that is available to be used, where available means that
-    currently trying to connect to it gives a 'Connection refused'
-    error message.
+    Find for the next available port, that is, a port for which a
+    current connection attempt returns a 'Connection refused' error
+    message.  If no port is found, raise a RuntimError exception.
 
     INPUT:
-        start -- integer; a port number to start scanning for a new port at
-        max_tries -- integer (default: 100); how many ports to try
-        verbose -- bool (default: True); whether or not to print out info about scanning results.
+
+       - ``start`` - an int; the starting port number for the scan
+
+       - ``max_tries`` - an int (default: 100); how many ports to scan
+
+       - ``verbose`` - a bool (default: True); whether to print information
+         about the scan
 
     OUTPUT:
-        an integer, or if no port is found, raises a RuntimError exception
 
-    EXAMPLES:
+    - an int - the port number
+
+    EXAMPLES::
+
         sage: sage.server.misc.find_next_available_port(9000, verbose=False)   # random output -- depends on network
         9002
     """

@@ -134,7 +134,8 @@ def HTMLResponse(*args, **kwds):
     Returns an HTMLResponse object whose 'Content-Type' header has been set
     to 'text/html; charset=utf-8
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.twist import HTMLResponse
         sage: response = HTMLResponse(stream='<html><head><title>Test</title></head><body>Test</body></html>')
         sage: response.headers

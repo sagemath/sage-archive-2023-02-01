@@ -251,6 +251,8 @@ return(value);
 
     def plain_text(self, prompts=False):
         """
+        Returns a plain text version of self.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
@@ -261,6 +263,8 @@ return(value);
 
     def edit_text(self):
         """
+        Returns the text to be displayed in the Edit window.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
@@ -271,6 +275,12 @@ return(value);
 
     def id(self):
         """
+        Returns self's id.
+
+        OUTPUT:
+
+        - int -- self's id.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
@@ -281,6 +291,8 @@ return(value);
 
     def is_auto_cell(self):
         """
+        Returns true if self is automatically evaluated.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
@@ -291,6 +303,8 @@ return(value);
 
     def __cmp__(self, right):
         """
+        Compares cells by `id`.
+
         EXAMPLES::
 
             sage: C1 = sage.server.notebook.cell.TextCell(0, '2+3', None)
@@ -339,6 +353,8 @@ class Cell(Cell_generic):
 
     def set_asap(self, asap):
         """
+        Set whether this cell is evaluated as soon as possible.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
@@ -568,6 +584,22 @@ class Cell(Cell_generic):
         mainly because there is no good way to distinguish content (e.g.,
         images in the current directory) that goes into the interactive
         template and content that would go here.
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C.evaluate()
+            sage: W.check_comp(wait=9999)
+            ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <BLANKLINE>
+            )
+            sage: C.update_html_output()
+            sage: C.output_html()
+            '<img src="/home/sage/0/cells/0/sage0.png?...">'
         """
         if self.is_interactive_cell():
             self.__out_html = ""
@@ -702,6 +734,8 @@ class Cell(Cell_generic):
 
     def __cmp__(self, right):
         """
+        Compares cells by their `id`s.
+
         EXAMPLES::
 
             sage: C1 = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
@@ -718,6 +752,8 @@ class Cell(Cell_generic):
 
     def __repr__(self):
         """
+        Returns a string representation of self.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None); C
@@ -755,10 +791,14 @@ class Cell(Cell_generic):
             return 70
 
     def plain_text(self, ncols=0, prompts=True, max_out=None):
-        """
+        r"""
         Returns the plain text version of self.
 
-        TODO: Add more comprehensive doctests.
+        EXAMPLES::
+
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: len(C.plain_text())
+            11
         """
         if ncols == 0:
             ncols = self.word_wrap_cols()
@@ -831,6 +871,8 @@ class Cell(Cell_generic):
 
     def edit_text(self, ncols=0, prompts=False, max_out=None):
         r"""
+        Returns the text displayed in the Edit window.
+
         EXAMPLES::
 
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
@@ -985,13 +1027,27 @@ class Cell(Cell_generic):
         return bool(re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s))
 
     def is_interacting(self):
-        """
-        Returns True
+        r"""
+        Returns True if this cell is currently interacting with the user.
+
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = W.new_cell_after(0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
+            sage: C.is_interacting()
+            False
+
         """
         return hasattr(self, 'interact')
 
     def stop_interacting(self):
         """
+        Stops interaction with user.
+
+        TODO: Add doctests for :meth:`stop_interacting`.
 
         """
         if self.is_interacting():
@@ -1224,6 +1280,18 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        r"""
+        Sets the output text for self.
+
+        EXAMPLES::
+
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: len(C.plain_text())
+            11
+            sage: C.set_output_text('10', '10')
+            sage: len(C.plain_text())
+            12
+        """
         if output.count('<?__SAGE__TEXT>') > 1:
             html = '<h3><font color="red">WARNING: multiple @interacts in one cell disabled (not yet implemented).</font></h3>'
             output = ''
@@ -1279,20 +1347,77 @@ class Cell(Cell_generic):
             return None
 
     def output_html(self):
+        """
+        Returns the HTML for self's output.
+
+        EXAMPLES::
+
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C.output_html()
+            ''
+            sage: C.set_output_text('5', '<strong>5</strong>')
+            sage: C.output_html()
+            '<strong>5</strong>'
+        """
         try:
             return self.__out_html
         except AttributeError:
             self.__out_html = ''
             return ''
 
-    def process_cell_urls(self, x):
+    def process_cell_urls(self, urls):
+        """
+        Processes urls of the form 'cell://.*?' by replacing the
+        protocol with the path to self and appending self's version
+        number.
+
+        INPUT:
+
+        - ``urls`` - a string
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C.process_cell_urls('"cell://foobar"')
+            '/home/sage/0/cells/0/foobar?0"'
+        """
         end = '?%d"'%self.version()
         begin = self.url_to_self()
-        for s in re_cell.findall(x) + re_cell_2.findall(x):
-            x = x.replace(s,begin + s[7:-1] + end)
-        return x
+        for s in re_cell.findall(urls) + re_cell_2.findall(urls):
+            urls = urls.replace(s,begin + s[7:-1] + end)
+        return urls
 
     def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
+        """
+        Returns the text for self's output.
+
+        INPUT:
+
+            - ``ncols`` -- maximum number of columns
+
+            - ``html`` -- boolean stating whether to output html
+
+            - ``raw`` -- boolean stating whether to output raw text
+                        (takes precedence over html)
+
+            - ``allow_interact`` -- boolean stating whether to allow interaction
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C.output_text()
+            '<pre class="shrunk">5</pre>'
+            sage: C.output_text(html=False)
+            '<pre class="shrunk">5</pre>'
+            sage: C.output_text(raw=True)
+            '5'
+        """
         if allow_interact and hasattr(self, '_interact_output'):
             # Get the input template
             z = self.output_text(ncols, html, raw, allow_interact=False)
@@ -1337,6 +1462,26 @@ class Cell(Cell_generic):
         return s.strip('\n')
 
     def parse_html(self, s, ncols):
+        r"""
+        Parse HTML for output.
+
+        INPUT:
+
+
+            - ``s`` -- the input string containing HTML
+
+            - ``ncols`` -- maximum number of columns
+
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C.parse_html('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<html><head></head><body>Test</body></html>', 80)
+            '&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0...Test</body>'
+        """
         def format(x):
             return word_wrap(escape(x), ncols=ncols)
 
@@ -1442,6 +1587,24 @@ class Cell(Cell_generic):
         ``verbose`` is not easily accessible now -- if you need to
         debug, you have to edit this file, changing its value to True,
         and run 'sage -b'.
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C.introspect()
+            False
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)
+            ('d', Cell 0; in=sage?, out=)
+            sage: C.set_introspect_html('foobar')
+            sage: C.introspect_html()
+            '<div class="docstring"><pre>foobar</pre></div>'
+            sage: C.set_introspect_html('`foobar`')
+            sage: C.introspect_html()
+            '<div class="docstring">...<span class="math">foobar</span>...</div>'
         """
         if html == "" or completing:
             self.__introspect_html = html
@@ -1610,6 +1773,23 @@ class Cell(Cell_generic):
                 return
 
     def introspect_html(self):
+        """
+        Returns html for introspection.
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C.introspect()
+            False
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)
+            ('d', Cell 0; in=sage?, out=)
+            sage: C.introspect_html()
+            u'<div class="docstring">...</pre></div>'
+        """
         if not self.introspect():
             return ''
         try:
@@ -1620,17 +1800,21 @@ class Cell(Cell_generic):
 
     def introspect(self):
         """
-        TODO: Figure out what the __introspect method is for and write a
-        better doctest.
+        Returns self's introspection text.
 
         EXAMPLES::
 
-            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
-            sage: C.set_introspect("a", "b")
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)
+            ('d', Cell 0; in=sage?, out=)
             sage: C.introspect()
-            ['a', 'b']
+            ['sage?', '']
         """
         try:
             return self.__introspect
@@ -1639,15 +1823,21 @@ class Cell(Cell_generic):
 
     def unset_introspect(self):
         """
-        TODO: Figure out what the __introspect method is for and write a
-        better doctest.
+        Unsets self's introspection text.
 
         EXAMPLES::
 
-            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
-            sage: C.set_introspect("a", "b")
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
-            ['a', 'b']
+            False
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)
+            ('d', Cell 0; in=sage?, out=)
+            sage: C.introspect()
+            ['sage?', '']
             sage: C.unset_introspect()
             sage: C.introspect()
             False
@@ -1656,8 +1846,7 @@ class Cell(Cell_generic):
 
     def set_introspect(self, before_prompt, after_prompt):
         """
-        TODO: Figure out what the __introspect method is for and write a
-        better doctest.
+        Set self's introspection text.
 
         EXAMPLES::
 
@@ -1681,7 +1870,9 @@ class Cell(Cell_generic):
            [before_cursor, after_cursor] of strings.
 
 
-        EXAMPLES: We create a notebook, worksheet, and cell and evaluate it
+        EXAMPLES:
+
+        We create a notebook, worksheet, and cell and evaluate it
         in order to compute `3^5`::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -1764,6 +1955,8 @@ class Cell(Cell_generic):
         This is a hack and needs to be improved. The problem is how to get
         the documentation html to display nicely between the example cells.
         The type setting (jsMath formatting) needs attention too.
+
+        TODO: Remove this hack (:meth:`doc_html`)
         """
         self.evaluate()
         if wrap is None:
@@ -1784,6 +1977,28 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        r"""
+        Returns the html for self.
+
+        INPUT:
+
+        - ``wrap`` - a boolean stating whether to wrap lines. Defaults to
+          configuration if not given,
+
+        - ``div_wrap`` - a boolean stating whether to wrap ``div``.
+
+        - ``do_print`` - a boolean stating whether the HTML is for
+          print or not.
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C.html()
+            '\n\n<div id="cell_outer_0" cl...</div>'
+        """
         if do_print:
             wrap = 68
             div_wrap = 68
@@ -1921,7 +2136,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', ", W)
+            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
@@ -1948,7 +2163,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', ", W)
+            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
@@ -1971,6 +2186,29 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
 
     def files_html(self, out):
+        """
+        Returns html to display the files in self's directory.
+
+        INPUT:
+
+        - ``out`` - string to exclude files.
+                    Format: To exclude bar, foo, ...`'cell://bar cell://foo ...'`
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C.evaluate()
+            sage: W.check_comp(wait=9999)
+            ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <BLANKLINE>
+            )
+            sage: C.files_html('')
+            '<img src="/home/sage/0/cells/0/sage0.png?...">'
+        """
         import time
         D = self.files()
         D.sort()
@@ -2041,6 +2279,25 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
+        r"""
+        Returns the html for self's output.
+
+        INPUT:
+
+            - ``do_print`` -- a boolean stating whether to output html
+                             for print
+
+            - ``ncols`` -- the number of columns
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C.html_out()
+            '\n...<table class="cell_output_box">...</table>'
+        """
         if do_print and self.cell_output_type() == 'hidden':
             return '<pre>\n</pre>'
 

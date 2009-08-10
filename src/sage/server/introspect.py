@@ -1,6 +1,9 @@
 """
-Sage Notebook: Introspection
+Sage Notebook Introspection
 
+"""
+
+"""
 TODO: - add support for grabbing source code from Pyrex functions
 (even if not perfect is better than nothing). - PNG or MathML
 output format for docstring

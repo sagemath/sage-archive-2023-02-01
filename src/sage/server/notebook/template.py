@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-HTML templating for the notebook
+HTML Templating for the Notebook
 
 AUTHORS:
-    -- Bobby Moretti (2007-07-18): initial version
-    -- Timothy Clemans and Mike Hansen (2008-10-27): major update
+
+    - Bobby Moretti (2007-07-18): initial version
+
+    - Timothy Clemans and Mike Hansen (2008-10-27): major update
 
 """
 #############################################################################
@@ -22,11 +24,17 @@ env = jinja.Environment(loader=jinja.FileSystemLoader(TEMPLATE_PATH))
 
 def contained_in(container):
     """
-    Returns a function which takes in an environment, context, and value
-    and returns True if that value is in the container and False
-    otherwise.  This is registered and used as a test in the templates.
+    Given a container, returns a function which takes an environment,
+    context, and value and returns True if that value is in the
+    container and False otherwise.  This is registered and used as a
+    test in the templates.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``container`` - a container, e.g., a list or dictionary
+
+    EXAMPLES::
+
         sage: from sage.server.notebook.template import contained_in
         sage: f = contained_in([1,2,3])
         sage: f(None, None, 2)
@@ -48,13 +56,23 @@ default_context = {'sitename': 'Sage Notebook',
 
 def template(filename, **user_context):
     """
-    Returns a rendered template as a string.
+    Returns HTML, CSS, etc., for a template file rendered in the given
+    context.
 
     INPUT:
-        filename -- the filename of the template relative to
-                    $SAGE_ROOT/devel/sage/sage/server/notebook/templates
 
-    EXAMPLES:
+    - ``filename`` - a string; the filename of the template relative
+      to $SAGE_ROOT/devel/sage/sage/server/notebook/templates
+
+    - ``user_context`` - a dictionary; the context in which to evaluate
+      the file's template variables
+
+    OUTPUT:
+
+    - a string - the rendered HTML, CSS, etc.
+
+    EXAMPLES::
+
         sage: from sage.server.notebook.template import template
         sage: s = template('yes_no.html'); type(s)
         <type 'str'>

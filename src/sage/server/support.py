@@ -1,9 +1,11 @@
 """
-Support for the Notebook (introspection and setup)
+Support for Notebook Introspection and Setup
 
 AUTHORS:
 
 - William Stein (much of this code is from IPython).
+
+- Nick Alexander
 """
 
 import inspect
@@ -70,7 +72,10 @@ def setup_systems(globs):
 ######################################################################
 def help(obj):
     """
-    Display help on s.
+    Display HTML help for ``obj``, a Python object, module, etc.  This
+    help is often more extensive than that given by 'obj?'.  This
+    function does not return a value --- it prints HTML as a side
+    effect.
 
     .. note::
 
@@ -79,12 +84,7 @@ def help(obj):
 
     INPUT:
 
-
-    -  ``s`` - Python object, module, etc.
-
-
-    OUTPUT: prints out help about s; it's often more more extensive
-    than foo?
+    -  ``obj`` - a Python object, module, etc.
 
     TESTS::
 
@@ -122,7 +122,20 @@ def get_rightmost_identifier(s):
 
 def completions(s, globs, format=False, width=90, system="None"):
     """
-    Return a list of completions in the context of globs.
+    Return a list of completions in the given context.
+
+    INPUT:
+
+    - ``globs`` - a string:object dictionary; context in which to
+      search for completions, e.g., :func:`globals()`
+
+    - ``format`` - a bool (default: False); whether to tabulate the
+      list
+
+    - ``width`` - an int; character width of the table
+
+    - ``system`` - a string (default: 'None'); system prefix for the
+      completions
     """
     if system not in ['sage', 'python']:
         prepend = system + '.'
@@ -176,8 +189,23 @@ def completions(s, globs, format=False, width=90, system="None"):
 
 def docstring(obj_name, globs, system='sage'):
     r"""
-    Format ``obj_name``'s docstring for printing in Sage
+    Format an object's docstring to process and display in the Sage
     notebook.
+
+    INPUT:
+
+    - ``obj_name`` - a string; a name of an object
+
+    - ``globs`` - a string:object dictionary; a context in which to
+      evaluate ``obj_name``
+
+    - ``system`` - a string (default: 'sage'); the system to which to
+      confine the search
+
+    OUTPUT:
+
+    - a string containing the object's file, type, definition, and
+      docstring or a message stating the object is not defined
 
     AUTHORS:
 
@@ -215,7 +243,23 @@ def docstring(obj_name, globs, system='sage'):
 
 def source_code(s, globs, system='sage'):
     r"""
-    Format obj's source code for printing in Sage notebook.
+    Format an object's source code to process and display in the the
+    Sage notebook.
+
+    INPUT:
+
+    - ``s`` - a string; a name of an object
+
+    - ``globs`` - a string:object dictionary; a context in which to
+      evaluate ``s``
+
+    - ``system`` - a string (default: 'sage'); the system to which to
+      confine the search
+
+    OUTPUT:
+
+    - a string containing the object's file, starting line number, and
+      source code
 
     AUTHORS:
 
@@ -340,17 +384,26 @@ def variables(with_types=True):
 
 def syseval(system, cmd, dir=None):
     """
+    Evaluate an input with a "system" object that can evaluate inputs
+    (e.g., python, gap).
+
     INPUT:
-        system -- an object with an eval method that takes as input
-                  a cmd (a string), and two dictionaries:
-                           sage_globals and locals.
-        dir -- an optional directory to change to before
-               calling system.eval.
+
+    - ``system`` - an object with an eval method that takes an input
+
+    - ``cmd`` - a string input
+
+    - ``sage_globals`` - a string:object dictionary
+
+    - dir - a string (default: None); an optional directory to change
+      to before calling :func:`system.eval`
 
     OUTPUT:
-        The output of system.eval is returned.
 
-    EXAMPLES:
+    - :func:`system.eval`'s output
+
+    EXAMPLES::
+
         sage: from sage.misc.python import python
         sage: sage.server.support.syseval(python, '2+4/3')
         3
@@ -379,22 +432,17 @@ import __builtin__
 def cython_import(filename, verbose=False, compile_message=False,
                  use_cache=False, create_local_c_file=True):
     """
+    Compile a file containing Cython code, then import and return the
+    module.  Raises an ``ImportError`` if anything goes wrong.
+
     INPUT:
 
-
-    -  ``filename`` - name of a file that contains cython
-       code
-
+    - ``filename`` - a string; name of a file that contains Cython
+      code
 
     OUTPUT:
 
-
-    -  ``module`` - the module that contains the compiled
-       cython code.
-
-
-    Raises an ``ImportError`` exception if anything goes
-    wrong.
+    - the module that contains the compiled Cython code.
     """
     name, build_dir = sage.misc.cython.cython(filename, verbose=verbose,
                                             compile_message=compile_message,
@@ -407,18 +455,18 @@ def cython_import(filename, verbose=False, compile_message=False,
 def cython_import_all(filename, globals, verbose=False, compile_message=False,
                      use_cache=False, create_local_c_file=True):
     """
+    Imports all non-private (i.e., not beginning with an underscore)
+    attributes of the specified Cython module into the given context.
+    This is similar to::
+
+        from module import *
+
+    Raises an ``ImportError`` exception if anything goes wrong.
+
     INPUT:
 
-
-    -  ``filename`` - name of a file that contains cython
-       code
-
-
-    OUTPUT: changes globals using the attributes of the Cython module
-    that do not begin with an underscore.
-
-    Raises an ``ImportError`` exception if anything goes
-    wrong.
+    - ``filename`` - a string; name of a file that contains Cython
+      code
     """
     m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,

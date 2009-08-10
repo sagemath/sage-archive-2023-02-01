@@ -11,10 +11,13 @@ The Sage Notebook
    sage/server/notebook/worksheet
    sage/server/notebook/twist
 
+   sage/server/notebook/interact
    sage/server/notebook/js
-   sage/server/notebook/config
    sage/server/notebook/css
+   sage/server/notebook/docHTMLProcessor
+   sage/server/notebook/template
 
+   sage/server/misc
    sage/server/support
    sage/server/introspect
 

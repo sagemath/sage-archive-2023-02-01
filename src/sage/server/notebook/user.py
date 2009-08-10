@@ -63,7 +63,8 @@ class User:
 
     def username(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com', 'user').username()
             'andrew'
@@ -79,7 +80,8 @@ class User:
 
     def conf(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: config = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin').conf(); config
             Configuration: {}
@@ -102,7 +104,8 @@ class User:
 
     def password(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.password()
@@ -112,7 +115,8 @@ class User:
 
     def set_password(self, password):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: old = user.password()
@@ -127,7 +131,8 @@ class User:
 
     def set_hashed_password(self, password):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.set_hashed_password('Crrc!')
@@ -138,7 +143,8 @@ class User:
 
     def get_email(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.get_email()
@@ -148,7 +154,8 @@ class User:
 
     def set_email(self, email):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.get_email()
@@ -161,7 +168,8 @@ class User:
 
     def set_email_confirmation(self, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.is_email_confirmed()
@@ -178,7 +186,8 @@ class User:
 
     def is_email_confirmed(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.is_email_confirmed()
@@ -192,7 +201,8 @@ class User:
 
     def password_is(self, password):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.password_is('ecc')
@@ -206,7 +216,8 @@ class User:
 
     def account_type(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: User('A', account_type='admin').account_type()
             'admin'
@@ -221,7 +232,8 @@ class User:
 
     def is_admin(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: User('A', account_type='admin').is_admin()
             True
@@ -232,7 +244,8 @@ class User:
 
     def is_guest(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: User('A', account_type='guest').is_guest()
             True

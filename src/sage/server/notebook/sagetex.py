@@ -8,7 +8,8 @@ def sagetex(filename, gen=True, **kwds):
 
     THIS IS ONLY A PROOF-of-CONCEPT.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sagetex('foo.tex')        # not tested
         [pops up web browser with live version of foo.tex.]
     """

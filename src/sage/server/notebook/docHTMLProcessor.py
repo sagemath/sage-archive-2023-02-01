@@ -4,19 +4,22 @@ Live Documentation in the Notebook
 Processes Sage documentation into notebook worksheet format with
 evaluatable examples.
 
-This takes in any HTML document, i.e. Sage documentation, and returns
+This takes in any HTML document, i.e., Sage documentation, and returns
 it in the editable format (like the notebook edit window). It also
-returns a string representing the css link for the document.  The SGML
-parser is setup to return only the body of the html documentation page
+returns a string representing the CSS link for the document.  The SGML
+parser is setup to return only the body of the HTML documentation page
 and to re-format Sage examples and type-setting.
 
 Note: This extension of sgmllib.SGMLParser was partly inspired by Mark
 Pilgrim's 'Dive Into Python' examples.
 
 Author:
-    -- Dorian Raymer (2006): first version
-    -- William Stein (2007-06-10): rewrite to work with twisted Sage notebook
-    -- Mike Hansen (2008-09-27): Rewrite to work with Sphinx HTML documentation
+
+    - Dorian Raymer (2006): first version
+
+    - William Stein (2007-06-10): rewrite to work with twisted Sage notebook
+
+    - Mike Hansen (2008-09-27): Rewrite to work with Sphinx HTML documentation
 """
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com> and Dorian Raimer
@@ -32,10 +35,11 @@ from htmlentitydefs import entitydefs
 class SphinxHTMLProcessor(SGMLParser):
     def reset(self):
         """
-        This function is called by SGMLParser.__init__ so all necessary things
-        are initialized here.
+        Initialize necessary variables.  Called by
+        :meth:`SGMLParser.__init__`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.docHTMLProcessor import SphinxHTMLProcessor
             sage: d = SphinxHTMLProcessor()
             sage: d.bodyQ
@@ -64,14 +68,20 @@ class SphinxHTMLProcessor(SGMLParser):
 
     def process_doc_html(self, doc_in):
         """
-        process_doc_html is the only function that needs to be called
-        externally.  docin should be a properly marked up html file.
+        Returns processed HTML input as HTML output.  This is the only
+        method that needs to be called externally.
 
-        self.feed() is a
-        SGMLParser method and starts everything off; Most of the
-        functions here are extensions to SGMLParser, and may never
-        actually be visibly called here.
+        INPUT:
+
+        - ``doc_in`` - a string containing properly formed HTML
+
+        OUTPUT:
+
+        - a string; the processed HTML
         """
+        # self.feed() is a SGMLParser method and starts everything
+        # off; Most of the functions here are extensions to
+        # SGMLParser, and may never actually be visibly called here.
         self.feed(doc_in) #SGMLParser call
         self.close()     #SGMLParser call
         self.hand_off_temp_pieces('to_doc_pieces')
@@ -81,10 +91,15 @@ class SphinxHTMLProcessor(SGMLParser):
 
     def hand_off_temp_pieces(self, piece_type):
         """
-        To separate documentation content from sage examples,
-        everything is split into one of two cell types.  This function
-        is called to put the current self.temp_pieces into
-        self.all_pieces.
+        To separate the documentation's content from the Sage
+        examples, everything is split into one of two cell types.
+        This method puts the current ``self.temp_pieces`` into
+        ``self.all_pieces``.
+
+        INPUT:
+
+        - ``piece_type`` - a string; indicates the type of and how to
+          process the current ``self.temp_pieces``
         """
         pieces = "".join(self.temp_pieces)
         pieces = pieces.lstrip()
@@ -100,10 +115,14 @@ class SphinxHTMLProcessor(SGMLParser):
 
     def get_cellcount(self):
         """
-        Returns the current cell count and increments it
-        by one.
+        Return the current cell count and increment it by one.
 
-        EXAMPLES:
+        OUTPUT:
+
+        - an int
+
+        EXAMPLES::
+
             sage: from sage.server.notebook.docHTMLProcessor import SphinxHTMLProcessor
             sage: d = SphinxHTMLProcessor()
             sage: d.get_cellcount()
@@ -116,14 +135,26 @@ class SphinxHTMLProcessor(SGMLParser):
 
     def process_cell_input_output(self, cell_piece):
         """
-        All class='highlight' div's contain code examples.
-        Some examples are models of how the function works;
-        those begin with INPUT: or something.
-        The rest of the examples should have sage:input and
-        output. If the example is a model, it is made into a
-        div class='usage_model' so it can be stylized.
-        If it is actual input/output, the input is separated
-        from the output according to the Notebook edit format.
+        Process and return a ``cell_piece``.
+
+        All divs with CSS class="highlight" contain code examples.
+        They include
+
+         - Models of how the function works.  These begin with, e.g.,
+           'INPUT:' and are re-styled as divs with
+           class="usage_model".
+
+         - Actual Sage input and ouput.  These begin with 'sage:'.
+           The input and output are separated according to the
+           Notebook edit format.
+
+        INPUT:
+
+        - ``cell_piece`` - a string; a cell piece
+
+        OUTPUT:
+
+        - a string; the processed cell piece
         """
         if cell_piece[:5] != 'sage:' and cell_piece[:12] != '&gt;'*3:
             piece = '<div class="highlight"><pre>'
@@ -215,9 +246,15 @@ class SphinxHTMLProcessor(SGMLParser):
     ##
     def start_body(self, attrs):
         """
-        This just sets self.bodyQ to True once we've hit the body tag.
+        Set ``self.bodyQ`` to True upon finding the opening body tag.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``attrs`` - a string:string dictionary containing the
+          element's attributes
+
+        EXAMPLES::
+
             sage: from sage.server.notebook.docHTMLProcessor import SphinxHTMLProcessor
             sage: d = SphinxHTMLProcessor()
             sage: d.bodyQ

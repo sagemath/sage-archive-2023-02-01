@@ -28,7 +28,8 @@ def user_type(avatarId):
     OUTPUT:
         string -- 'invalid_user', 'admin', 'user'
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.server.notebook.twist
         sage: import sage.server.notebook.avatars as avatars
         sage: avatars.user_type(avatars.FailedLogin('fake'))

@@ -1,5 +1,5 @@
 r"""nodoctest
-Javascript (AJAX) Component of \sage Notebook
+JavaScript (AJAX) Components of the Notebook
 
 AUTHORS:
 

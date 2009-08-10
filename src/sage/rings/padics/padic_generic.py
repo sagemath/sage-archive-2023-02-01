@@ -313,7 +313,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT::
 
-            list of elementss -- a list of elements representing all the residue classes
+            list of elements -- a list of elements representing all the residue classes
 
         EXAMPLES::
 

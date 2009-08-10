@@ -1,7 +1,7 @@
 """
 `p`-Adic ``ZZ_pX`` FM Element.
 
-This file implements elements of eisenstein and unramified extensions
+This file implements elements of Eisenstein and unramified extensions
 of `\mathbb{Z}_p` with fixed modulus precision.
 
 For the parent class see ``padic_extension_leaves.pyx``.
@@ -10,7 +10,7 @@ The underlying implementation is through NTL's ``ZZ_pX`` class.  Each
 element contains the following data:
 
 - ``value`` (``ZZ_pX_c``) -- An ntl ``ZZ_pX`` storing the value.  The
-  varible `x` is the uniformizer in the case of eisenstein extensions.
+  variable `x` is the uniformizer in the case of Eisenstein extensions.
   This ``ZZ_pX`` is created with global ntl modulus determined by the
   parent's precision cap and shared among all elements.
 
@@ -25,12 +25,12 @@ element contains the following data:
   + ``prime_pow.f``   -- The inertia degree
 
   + ``prime_pow.prec_cap`` -- the unramified precision cap.  For
-    eisenstein extensions this is the smallest power of p that is
+    Eisenstein extensions this is the smallest power of p that is
     zero.
 
   + ``prime_pow.ram_prec_cap`` -- the ramified precision cap.  For
-    eisenstein extensions this will be the smallest power of `x` that
-    is indistinugishable from zero.
+    Eisenstein extensions this will be the smallest power of `x` that
+    is indistinguishable from zero.
 
   + ``prime_pow.pow_ZZ_tmp``, prime_pow.pow_mpz_t_tmp``,
     ``prime_pow.pow_Integer`` -- functions for accessing powers of
@@ -55,7 +55,7 @@ element contains the following data:
 
 EXAMPLES:
 
-An eisenstein extension::
+An Eisenstein extension::
 
     sage: R = ZpFM(5,5)
     sage: S.<x> = R[]
@@ -862,7 +862,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         Returns whether the valuation of ``self`` is at least
         ``absprec``.  If ``absprec`` is ``None``, returns whether
-        ``self`` is indistinugishable from zero.
+        ``self`` is indistinguishable from zero.
 
         EXAMPLES::
 

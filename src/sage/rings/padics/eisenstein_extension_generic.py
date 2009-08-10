@@ -1,7 +1,7 @@
 """
 Eisenstein Extension Generic.
 
-This file implements the shared functionality for Eisenstein extentions.
+This file implements the shared functionality for Eisenstein extensions.
 
 AUTHORS:
 
@@ -65,7 +65,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
         INPUTS:
 
-        - self -- an eisenstein extension
+        - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
         OUTPUTS:
@@ -98,7 +98,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
         INPUTS:
 
-        - self -- an eisenstein extension
+        - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
         OUTPUTS:
@@ -124,7 +124,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the inertia subring.
 
-        Since an eisenstein extension is totally ramified, this is
+        Since an Eisenstein extension is totally ramified, this is
         just the ground field.
 
         EXAMPLES::

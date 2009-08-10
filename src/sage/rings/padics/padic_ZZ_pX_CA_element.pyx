@@ -14,7 +14,7 @@ element contains the following data:
   which the element is well defined.
 
 - ``value`` (``ZZ_pX_c``) -- An ntl ``ZZ_pX`` storing the value.  The
-  varible `x` is the uniformizer in the case of eisenstein extensions.
+  variable `x` is the uniformizer in the case of eisenstein extensions.
   This ZZ_pX is created with global ntl modulus determined by absprec.
   Let `a` be absprec and `e` be the ramification index over
   `\mathbb{Q}_p` or `\mathbb{Z}_p`.  Then the modulus is given by
@@ -39,7 +39,7 @@ element contains the following data:
 
   + ``prime_pow.ram_prec_cap`` -- the ramified precision cap.  For
     eisenstein extensions this will be the smallest power of `x` that
-    is indistinugishable from zero.
+    is indistinguishable from zero.
 
   + ``prime_pow.pow_ZZ_tmp``, prime_pow.pow_mpz_t_tmp``,
     ``prime_pow.pow_Integer`` -- functions for accessing powers of
@@ -1146,7 +1146,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
-        the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisifes
+        the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
         ..math ::
 
@@ -1588,7 +1588,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
     def is_zero(self, absprec = None):
         """
         Returns whether the valuation of ``self`` is at least ``absprec``.  If
-        ``absprec`` is ``None``, returns if ``self`` is indistinugishable from
+        ``absprec`` is ``None``, returns if ``self`` is indistinguishable from
         zero.
 
         If ``self`` is an inexact zero of valuation less than ``absprec``,

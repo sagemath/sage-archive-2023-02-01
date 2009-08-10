@@ -65,7 +65,7 @@ def _mul_fateman_mul(f,g):
 
     # If these polynomials have real
     # coefficients, convert them to
-    # rational coeficients.
+    # rational coefficients.
     # Note: no precision is lost in this
     # direction
 

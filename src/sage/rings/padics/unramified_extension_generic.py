@@ -1,7 +1,7 @@
 """
 Unramified Extension Generic.
 
-This file implements the shared functionality for unramified extentions.
+This file implements the shared functionality for unramified extensions.
 
 AUTHORS:
 

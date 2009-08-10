@@ -1,13 +1,13 @@
 r"""
 Finite Extension Fields of cardinality up to $2^{16}$
 
-SAGE includes the Givaro finite field library, for highly optimized
+Sage includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.
 
 NOTES: The arithmetic is performed by the Givaro C++ library which
 uses Zech logs internally to represent finite field elements. This
 implementation is the default finite extension field implementation in
-SAGE for the cardinality $< 2^{16}$, as it is vastly faster than the
+Sage for the cardinality $< 2^{16}$, as it is vastly faster than the
 PARI implementation which uses polynomials to represent finite field
 elements. Some functionality in this class however is implemented
 using the PARI implementation.
@@ -39,7 +39,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -1706,7 +1706,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
     def log_to_int(FiniteField_givaroElement self):
         r"""
-        Returns the int representation of self, as a SAGE integer.   Use
+        Returns the int representation of self, as a Sage integer.   Use
         int(self) to directly get a Python int.
 
         Elements of this field are represented as ints in as follows:
@@ -1731,7 +1731,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         such that b^n = self.
 
         WARNING:  TODO -- This is currently implemented by solving the discrete
-        log problem -- which shouldn't be needed because of how finit field
+        log problem -- which shouldn't be needed because of how finite field
         elements are represented.
 
         EXAMPLES:
@@ -1746,7 +1746,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
     def int_repr(FiniteField_givaroElement self):
         r"""
-        Return the sring representation of self as an int (as returned
+        Return the string representation of self as an int (as returned
         by \code{log_to_int}).
 
         EXAMPLES:
@@ -1905,7 +1905,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k.<a> = GF(3^6)
             sage: b = magma(a^5 + 2*a^2 + 1)             # optional - magma
 
-        Note that small fields print using a log represenation in Magma (unlike Sage):
+        Note that small fields print using a log representation in Magma (unlike Sage):
             sage: b                                      # optional - magma
             a^436
             sage: b.sage()                               # optional - magma

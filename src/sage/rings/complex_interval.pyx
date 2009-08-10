@@ -631,7 +631,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             False
 
         In the future, complex interval elements may be unordered,
-        but or backwards compatability we order them lexographically::
+        but or backwards compatibility we order them lexicographically::
 
             sage: CDF(-1) < -CDF.gen() < CDF.gen() < CDF(1)
             True

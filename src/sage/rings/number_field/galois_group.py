@@ -416,7 +416,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             Subgroup [()] of Galois group of Number Field in b with defining polynomial x^2 - 3
         """
         if not self.is_galois():
-            raise TypeError, "Interia groups only defined for Galois extensions"
+            raise TypeError, "Inertia groups only defined for Galois extensions"
         return self.ramification_group(P, 0)
 
     def ramification_breaks(self, P):

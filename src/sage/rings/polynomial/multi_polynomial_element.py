@@ -38,7 +38,7 @@ We verify Lagrange's four squares identity::
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -567,7 +567,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def dict(self):
         """
-        Return underlying dictioniary with keys the exponents and values
+        Return underlying dictionary with keys the exponents and values
         the coefficients of this polynomial.
         """
         return self.element().dict()
@@ -1080,7 +1080,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def variables(self):
         """
-        Returns the list of variables occuring in this polynomial.
+        Returns the list of variables occurring in this polynomial.
 
         EXAMPLES::
 
@@ -1097,7 +1097,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def variable(self,i):
         """
-        Returns `i`-th variable occuring in this polynomial.
+        Returns `i`-th variable occurring in this polynomial.
 
         EXAMPLES::
 
@@ -1188,7 +1188,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def lc(self):
         """
-        Returns the leading coefficent of self i.e.,
+        Returns the leading coefficient of self i.e.,
         self.coefficient(self.lm())
 
         EXAMPLES::
@@ -1461,8 +1461,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     #        self, f = canonical_coercion(self, f)
     #        return self.gcd(f)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
     #
-    #    # Singular ignores coefficents anyway, thus it is okay to work over Z here
-    #    # PARI uses the coefficents btw.
+    #    # Singular ignores coefficients anyway, thus it is okay to work over Z here
+    #    # PARI uses the coefficients btw.
     #    # TODO: This is slow
     #
     #    P = self.parent()

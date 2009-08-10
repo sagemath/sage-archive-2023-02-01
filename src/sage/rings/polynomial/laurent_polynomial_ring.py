@@ -102,7 +102,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         sage: f = x^2 - 2*y^-2
 
     You can't just globally change the names of those variables.
-    This is because objects all over SAGE could have pointers to
+    This is because objects all over Sage could have pointers to
     that polynomial ring.
 
     ::
@@ -281,7 +281,7 @@ def _get_from_cache(key):
     """
     try:
         if _cache.has_key(key):
-            return _cache[key]   # put () here to renable weakrefs
+            return _cache[key]   # put () here to re-enable weakrefs
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
     return None

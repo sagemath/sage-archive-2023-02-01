@@ -1003,7 +1003,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
         OUTPUT:
 
-        - ``list`` -- the list of coeficients of ``self``
+        - ``list`` -- the list of coefficients of ``self``
 
         NOTES:
 
@@ -1189,7 +1189,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
         OUTPUT:
 
-        - ``list`` -- the list of coeficients of ``self``
+        - ``list`` -- the list of coefficients of ``self``
 
         EXAMPLES::
 

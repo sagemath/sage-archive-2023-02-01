@@ -1,7 +1,7 @@
 """
 `p`-Adic ``ZZ_pX`` CR Element.
 
-This file implements elements of eisenstein and unramified extensions
+This file implements elements of Eisenstein and unramified extensions
 of `\mathbb{Z}_p` and `\mathbb{Q}_p` with capped relative precision.
 
 For the parent class see padic_extension_leaves.pyx.
@@ -10,7 +10,7 @@ The underlying implementation is through NTL's ``ZZ_pX`` class.  Each
 element contains the following data:
 
 - ``ordp`` (``long``) -- A power of the uniformizer to scale the unit
-  by.  For unramified extensions this uniformizer is `p`, for eisenstein
+  by.  For unramified extensions this uniformizer is `p`, for Eisenstein
   extensions it is not.  A value equal to the maximum value of a long
   indicates that the element is an exact zero.
 
@@ -19,7 +19,7 @@ element contains the following data:
   absolute value gives the power of the uniformizer modulo which the
   unit is defined.  A positive value indicates that the element is
   normalized (ie ``unit`` is actually a unit: in the case of
-  eisenstein extensions the constant term is not divisible by `p`, in
+  Eisenstein extensions the constant term is not divisible by `p`, in
   the case of unramified extensions that there is at least one
   coefficient that is not divisible by `p`).  A negative value
   indicates that the element may or may not be normalized.  A zero
@@ -28,7 +28,7 @@ element contains the following data:
   is greater than ``maxordp``, then the element is an exact zero.
 
 - ``unit`` (``ZZ_pX_c``) -- An ntl ``ZZ_pX`` storing the unit part.
-  The varible `x` is the uniformizer in the case of eisenstein
+  The variable `x` is the uniformizer in the case of Eisenstein
   extensions. If the element is not normalized, the ``unit`` may or
   may not actually be a unit.  This ``ZZ_pX`` is created with global
   ntl modulus determined by the absolute value of ``relprec``.  If
@@ -52,12 +52,12 @@ element contains the following data:
   + ``prime_pow.f``   -- The inertia degree
 
   + ``prime_pow.prec_cap`` -- the unramified precision cap.  For
-    eisenstein extensions this is the smallest power of p that is
+    Eisenstein extensions this is the smallest power of p that is
     zero.
 
   + ``prime_pow.ram_prec_cap`` -- the ramified precision cap.  For
-    eisenstein extensions this will be the smallest power of `x` that
-    is indistinugishable from zero.
+    Eisenstein extensions this will be the smallest power of `x` that
+    is indistinguishable from zero.
 
   + ``prime_pow.pow_ZZ_tmp``, prime_pow.pow_mpz_t_tmp``,
     ``prime_pow.pow_Integer`` -- functions for accessing powers of
@@ -82,7 +82,7 @@ element contains the following data:
 
 EXAMPLES:
 
-An eisenstein extension::
+An Eisenstein extension::
 
     sage: R = Zp(5,5)
     sage: S.<x> = R[]
@@ -204,7 +204,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, empty = False):
         """
         Creates an element of a capped relative precision, unramified
-        or eisenstein extension of `\mathbb{Z}_p` or `\mathbb{Q}_p`.
+        or Eisenstein extension of `\mathbb{Z}_p` or `\mathbb{Q}_p`.
 
         INPUT:
 
@@ -1361,7 +1361,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     # then high_shifter = p^(s*2^(high_length - 1))/x^(e*s*2^(high_length - 1))
                     ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, (shift / (1L << (high_length - 1))), modulus[0])
                     ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus[0])
-                    # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractible.
+                    # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractable.
                     shift = shift % (1L << (high_length - 1))
                 while shift > 0:
                     if shift & 1:
@@ -1754,7 +1754,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
-        the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisifes
+        the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
         ..math ::
 
@@ -2256,7 +2256,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         Returns whether the valuation of ``self`` is at least
         ``absprec``.  If ``absprec`` is ``None``, returns if ``self``
-        is indistinugishable from zero.
+        is indistinguishable from zero.
 
         If ``self`` is an inexact zero of valuation less than ``absprec``,
         raises a PrecisionError.
@@ -2539,10 +2539,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Returns a list giving a series representation of self.
 
         - If ``lift_mode == 'simple'`` or ``'smallest'``, the returned
-          list will consist of integers (in the eisenstein case) or a
+          list will consist of integers (in the Eisenstein case) or a
           list of lists of integers (in the unramified case).  ``self``
           can be reconstructed as a sum of elements of the list times
-          powers of the uniformiser (in the eisenstein case), or as a
+          powers of the uniformiser (in the Eisenstein case), or as a
           sum of powers of the `p` times polynomials in the generator
           (in the unramified case).
 
@@ -3424,10 +3424,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     cdef ext_p_list(self, bint pos):
         """
-        Returns a list of integers (in the eisenstein case) or a list
+        Returns a list of integers (in the Eisenstein case) or a list
         of lists of integers (in the unramified case).  ``self`` can be
         reconstructed as a sum of elements of the list times powers of
-        the uniformiser (in the eisenstein case), or as a sum of
+        the uniformiser (in the Eisenstein case), or as a sum of
         powers of `p` times polynomials in the generator (in the
         unramified case).
 

@@ -175,7 +175,7 @@ EXAMPLES::
 
 ############################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
@@ -357,7 +357,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         sage: RIF((1/3,2/3)).str(style='brackets')
         '[0.33333333333333331 .. 0.66666666666666675]'
 
-    The extra paranthesis aren't needed.
+    The extra parentheses aren't needed.
 
     ::
 
@@ -1793,7 +1793,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # based on expo (shifted by the location of the decimal point
         # within the mantissa).
 
-        # We briefly repurpose lower_mpz to hold the final mantissa:
+        # We briefly re-purpose lower_mpz to hold the final mantissa:
         mpz_add(lower_mpz, lower_mpz, upper_mpz)
         # According to our spec, we're supposed to divide lower_mpz
         # by 2, rounding away from 0.
@@ -2153,7 +2153,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         If in decimal this number is written n.defg, returns n.
 
 #         OUTPUT:
-#             -- a SAGE Integer
+#             -- a Sage Integer
 
 #         EXAMPLE:
 #             sage: a = 119.41212
@@ -2645,7 +2645,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         cdef Rational try1 = highprec._simplest_rational_helper()
 
-        # Note that to compute "try1 >= low", SAGE converts try1 to a
+        # Note that to compute "try1 >= low", Sage converts try1 to a
         # floating-point number rounding down, and "try1 <= high"
         # rounds up (since "low" and "high" are in downward-rounding
         # and upward-rounding fields, respectively).

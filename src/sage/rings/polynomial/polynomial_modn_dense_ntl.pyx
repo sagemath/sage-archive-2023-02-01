@@ -1,7 +1,7 @@
 """
 Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
 
-This implementation is generally slower than the FLINT implentation in
+This implementation is generally slower than the FLINT implementation in
 :mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by
 default when the modulus is small enough; but NTL does not require that `n` be
 ``int``-sized, so we use it as default when `n` is too large for FLINT.
@@ -227,14 +227,14 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError, msg: # should this realy be a TypeError
+        except RuntimeError, msg: # should this really be a TypeError
             raise TypeError, msg
 
     def _lmul_(self, c):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError, msg: # should this realy be a TypeError
+        except RuntimeError, msg: # should this really be a TypeError
             raise TypeError, msg
 
     def quo_rem(self, right):
@@ -434,7 +434,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
         sage: f.change_ring(ZZ).roots()
         []
 
-    To compute its roots we need to factor the modulus `N` and use the chinese
+    To compute its roots we need to factor the modulus `N` and use the Chinese
     remainder theorem::
 
         sage: p,q = N.prime_divisors()
@@ -1099,8 +1099,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __call__(self, *args, **kwds):
         """
-        Evaluate self at x. If x is a single argument coercable into
-        the basering of self, this is done directly in NTL, otherwise
+        Evaluate self at x. If x is a single argument coercible into
+        the base ring of self, this is done directly in NTL, otherwise
         the generic Polynomial call code is used.
 
         EXAMPLES::
@@ -1647,8 +1647,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __call__(self, *args, **kwds):
         """
-        Evaluate self at x. If x is a single argument coercable into
-        the basering of self, this is done directly in NTL, otherwise
+        Evaluate self at x. If x is a single argument coercible into
+        the base ring of self, this is done directly in NTL, otherwise
         the generic Polynomial call code is used.
 
         EXAMPLES::

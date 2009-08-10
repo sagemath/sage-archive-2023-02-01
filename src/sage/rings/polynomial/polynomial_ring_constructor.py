@@ -16,7 +16,7 @@ constructor :func:`MPolynomialRing` (now subsumed by the generic
 
 #################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -103,7 +103,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             sage: f = x^2 - 2*y^2
 
         You can't just globally change the names of those variables.
-        This is because objects all over SAGE could have pointers to
+        This is because objects all over Sage could have pointers to
         that polynomial ring. ::
 
             sage: R._assign_names(['z','w'])

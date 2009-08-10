@@ -2432,7 +2432,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ## is not always what one thinks.
         ##
         ## But more than likely NTL is just better for large problems because
-        ## Victor Schoup was very careful with the choice of strategies and
+        ## Victor Shoup was very careful with the choice of strategies and
         ## parameters he used. Paul Zimmerman supplied him with a pile of
         ## polynomials to factor for comparison purposes and these seem to have
         ## been used to tune the algorithm for a wide range of inputs, including
@@ -4085,9 +4085,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         floating-point root-finder is used. If L has precision 53 bits or
         less (RDF and CDF both have precision exactly 53 bits, as do the
         default RR=RealField() and CC=ComplexField()) then we default to
-        using numpy's roots(); otherwise, we use Pari's polroots(). This
+        using NumPy's roots(); otherwise, we use Pari's polroots(). This
         choice can be overridden with algorithm='pari' or
-        algorithm='numpy'. If the algorithm is unspecified and numpy's
+        algorithm='numpy'. If the algorithm is unspecified and NumPy's
         roots() algorithm fails, then we fall back to pari (numpy will fail
         if some coefficient is infinite, for instance).
 

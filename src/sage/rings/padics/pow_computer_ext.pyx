@@ -2,13 +2,13 @@
 PowComputer_ext.
 
 The classes in this file are designed to be attached to p-adic parents
-and elements for cython access to properties of the parent.
+and elements for Cython access to properties of the parent.
 
 In addition to storing the defining polynomial (as an NTL polynomial)
 at different precisions, they also cache powers of p and data to speed
 right shifting of elements.
 
-The heirarchy of PowComputers splits first at whether it's for a base
+The hierarchy of PowComputers splits first at whether it's for a base
 ring (Qp or Zp) or an extension.
 
 Among the extension classes (those in this file), they are first split
@@ -842,7 +842,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         """
         Returns a ZZ_pContext for self.prime^((n-1) // self.e + 1)
 
-        For eisenstein extensions this gives the context used for an
+        For Eisenstein extensions this gives the context used for an
         element of relative precision n.
 
         EXAMPLES::
@@ -857,7 +857,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         """
         Returns a ZZ_pContext for self.prime^((n-1) // self.e + 1)
 
-        For eisenstein extensions this gives the context used for an
+        For Eisenstein extensions this gives the context used for an
         element of relative precision n.
 
         EXAMPLES::
@@ -2441,11 +2441,11 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, 
         - prec_type -- 'FM', 'small', or 'big', defining how caching
           is done.
 
-        - ext_type -- 'u' = unramified, 'e' = eisenstein, 't' =
+        - ext_type -- 'u' = unramified, 'e' = Eisenstein, 't' =
           two-step
 
-        - shift_seed -- (required only for eisenstein and two-step)
-          For eisenstein and two-step extensions, if f = a_n x^n - p
+        - shift_seed -- (required only for Eisenstein and two-step)
+          For Eisenstein and two-step extensions, if f = a_n x^n - p
           a_{n-1} x^{n-1} - ... - p a_0 with a_n a unit, then
           shift_seed should be 1/a_n (a_{n-1} x^{n-1} + ... + a_0)
 

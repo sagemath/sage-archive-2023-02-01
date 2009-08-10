@@ -4,7 +4,7 @@ but simply sits between exact rings of characteristic 0 and the real numbers.
 The values are actually computed when they are cast into a field of fixed
 precision.
 
-The main purpose of these classes is to provied a place for exact rings (e.g.
+The main purpose of these classes is to provide a place for exact rings (e.g.
 number fields) to embed for the coercion model (as only one embedding can be
 specified in the forward direction.
 """
@@ -186,7 +186,7 @@ cdef class RealLazyField_class(LazyField):
     def construction(self):
         """
         Returns the functorial construction of self, namely,
-        the completion of the ratinals at infinity to infinite
+        the completion of the rationals at infinity to infinite
         precision.
 
         EXAMPLES:
@@ -649,7 +649,7 @@ cdef class LazyFieldElement(FieldElement):
 
 def make_element(parent, *args):
     """
-    SAGE:
+    EXAMPLES:
         sage: a = RLF(pi) + RLF(sqrt(1/2))
         sage: loads(dumps(a)) == a
         True

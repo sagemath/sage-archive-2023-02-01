@@ -345,7 +345,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             Integer Ring
 
         Next we make a polynomial quotient ring over `S` and ask
-        for its basering.
+        for its base ring.
 
         ::
 

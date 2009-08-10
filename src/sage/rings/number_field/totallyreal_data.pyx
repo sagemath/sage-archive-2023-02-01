@@ -524,7 +524,7 @@ cdef class tr_data:
                     self.b_lower = bminmax[0]
                     self.b_upper = bminmax[1]
 
-            # Annoying, but must reverse coefficients for numpy.
+            # Annoying, but must reverse coefficients for NumPy.
             gnk = [int(binomial(j,k+2))*a[j] for j in range(k+2,n+1)]
             gnk.reverse()
             import numpy

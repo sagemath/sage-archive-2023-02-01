@@ -336,7 +336,7 @@ def _negaconvolution_fft(L1, L2, n):
    R = parent(L1[0])
 
    # split into 2^m pieces of 2^(k-1) coefficients each, with k as small
-   # as possible, subject to m <= k (so that the ring of fourier coefficients
+   # as possible, subject to m <= k (so that the ring of Fourier coefficients
    # has enough roots of unity)
    m = (n + 1) >> 1
    k = n + 1 - m
@@ -398,7 +398,7 @@ def _convolution_fft(L1, L2):
    n = int(ceil(log(outlen) / log(2.0)))
 
    # split into 2^m pieces of 2^(k-1) coefficients each, with k as small
-   # as possible, subject to m <= k + 1 (so that the ring of fourier
+   # as possible, subject to m <= k + 1 (so that the ring of Fourier
    # coefficients has enough roots of unity)
    m = (n >> 1) + 1
    k = n + 1 - m

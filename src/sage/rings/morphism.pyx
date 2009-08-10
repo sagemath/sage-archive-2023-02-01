@@ -240,7 +240,7 @@ EXAMPLE: Endomorphism of power series ring.
     sage: f(s)
     1 - t^2 + t^4 - t^6 + t^8 - t^10 + t^12 - t^14 + t^16 - t^18 + O(t^20)
 
-EXAMPLE: Frobenious on a power series ring over a finite field.
+EXAMPLE: Frobenius on a power series ring over a finite field.
 
 ::
 
@@ -410,7 +410,7 @@ cdef class RingMap(Morphism):
     def __init__(self, parent):
         """
         This is an abstract base class that isn't directly
-        instatiated, but we will do so anyways as a test.
+        instantiated, but we will do so anyways as a test.
 
         TESTS::
 

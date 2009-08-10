@@ -295,7 +295,7 @@ class ComplexField_class(field.Field):
 
     def _coerce_map_from_(self, S):
         """
-        The rings that canonicaly coerce to the MPFR complex field are:
+        The rings that canonically coerce to the MPFR complex field are:
 
         - This MPFR complex field, or any other of higher precision
 

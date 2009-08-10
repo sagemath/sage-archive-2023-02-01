@@ -117,7 +117,7 @@ from http://www.sagemath.org:9001/days4schedule .
 # is determined to be hard.
 # * standard optimization
 # There's probably some more to be gained by just running the profiler
-# and optimizing individual functions.  (To use more Cython featuers, for
+# and optimizing individual functions.  (To use more Cython features, for
 # instance.)
 
 # Extra features:
@@ -1341,7 +1341,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
 
     In the floating-point representation, each coefficient is represented
     as an IEEE double-precision float A, and the (shared) lower and
-    upper interval widths E1 and E2.  These represent the coefficents
+    upper interval widths E1 and E2.  These represent the coefficients
     (A+E1)*2^n <= c <= (A+E2)*2^n.
 
     Note that we always have E1 <= 0 <= E2.  Also, each floating-point
@@ -1665,7 +1665,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         width = self.region_width()
         (min_diff, max_diff) = min_max_diff_doublevec(self.coeffs)
         err = self.pos_err - self.neg_err
-        # 2 half_ulp's because subtracting two numbers with aboslute values
+        # 2 half_ulp's because subtracting two numbers with absolute values
         # in (-1 .. 1) can give a number in (-2 .. 2), and the subtraction
         # can have an error of up to half an ulp in that range, which
         # is 2 half ulps for (-1 .. 1).

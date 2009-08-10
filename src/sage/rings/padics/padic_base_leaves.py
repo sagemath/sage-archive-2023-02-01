@@ -142,7 +142,7 @@ of their precision, we assume that it has the full precision of
 the ring.  This is why you have to cast manually here.
 
 While you can cast explicitly as above, the chains of automatic
-coercion are more restricted.  As always in SAGE, the following
+coercion are more restricted.  As always in Sage, the following
 arrows are transitive and the diagram is commutative.::
 
     int -> long -> Integer -> Zp capped-rel -> Zp capped_abs -> IntegerMod

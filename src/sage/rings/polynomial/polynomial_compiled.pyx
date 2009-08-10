@@ -71,8 +71,8 @@ cdef class CompiledPolynomialFunction:
 
         Step 3: Construct Evaluation Dag.
                 Rescan the coefficient list, and build an evaluation DAG
-                represention for the reduced Horner Form as above.
-                Whenever a sequence of zeros is encountered, muliply by
+                representation for the reduced Horner Form as above.
+                Whenever a sequence of zeros is encountered, multiply by
                 the appropriate "gap" node.  Retain a reference to the
                 result node.
 
@@ -259,7 +259,7 @@ cdef class CompiledPolynomialFunction:
 #  Polynomial DAG Code
 #
 # An "evaluation DAG" is a rather generic concept.  What
-# follows is a set of DAG classes whih are suitable for
+# follows is a set of DAG classes which are suitable for
 # evaluating polynomials in Horner's form, and very
 # little else.  Let's call them polydags from here down.
 # DAG in all-caps is a whole graph. However,

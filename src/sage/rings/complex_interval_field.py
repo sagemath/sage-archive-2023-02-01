@@ -299,7 +299,7 @@ class ComplexIntervalField_class(field.Field):
         Return the canonical coerce of x into this complex field, if it is defined,
         otherwise raise a TypeError.
 
-        The rings that canonicaly coerce to the MPFI complex field are:
+        The rings that canonically coerce to the MPFI complex field are:
            * this MPFI complex field, or any other of higher precision
            * anything that canonically coerces to the mpfi real field with this prec
         """

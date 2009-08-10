@@ -1061,11 +1061,11 @@ class MPolynomialIdeal_singular_repr:
 
         'stdhilb'
             computes the standard basis of the homogeneous ideal in the
-            basering, via a Hilbert driven standard basis computation.
+            base ring, via a Hilbert driven standard basis computation.
 
         'stdfglm'
-            computes the standard basis of the ideal in the basering via fglm
-            (from the degrevlex ordering to the ordering of the basering).
+            computes the standard basis of the ideal in the base ring via fglm
+            (from the degrevlex ordering to the ordering of the base ring).
 
         'slimgb'
             the *SlimGB* algorithm
@@ -1103,7 +1103,7 @@ class MPolynomialIdeal_singular_repr:
 
     def _groebner_basis_singular_raw(self, algorithm="groebner", singular=singular_default, *args, **kwds):
         r"""
-        Return a Grobner basis in Singular format.
+        Return a Groebner basis in Singular format.
 
         EXAMPLE::
 
@@ -2878,7 +2878,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         Specifically, this function first maps each variable `x` to
         its representation over `k`: `\sum_{i=0}^{d-1} a^i x_i`. Then
-        each generator of `I` is evaulated over these representations
+        each generator of `I` is evaluated over these representations
         and reduced modulo the minimal polynomial `p`. The result is
         interpreted as a univariate polynomial in `a` and its
         coefficients are the new generators of the returned ideal.

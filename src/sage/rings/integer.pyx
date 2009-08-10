@@ -300,7 +300,7 @@ cdef void late_import():
 
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
-# This crashes SAGE:
+# This crashes Sage:
 #  s = 2003^100300000
 # The problem is related to realloc moving all the memory
 # and returning a pointer to the new block of memory, I think.
@@ -1962,7 +1962,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # Here, m is a power of 2 and the correct answer is found by a log 2 approximation.
             guess = n_log2/m_log2 # truncating division
         elif n_log2/(m_log2+1) == n_log2/m_log2:
-            # In this case, we have an upper bound and lower bound which give the same anwer, thus, the correct answer.
+            # In this case, we have an upper bound and lower bound which give the same answer, thus, the correct answer.
             guess = n_log2/m_log2
         elif m_log2 < 8: # i.e. m<256
             # if the base m is at most 256, we can use mpz_sizeinbase
@@ -4620,7 +4620,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __invert__(self):
         """
-        Return the multiplicative interse of self, as a rational number.
+        Return the multiplicative inverse of self, as a rational number.
 
         EXAMPLE::
 
@@ -4977,9 +4977,9 @@ cdef class long_to_Z(Morphism):
 
 # We need a couple of internal GMP datatypes.
 
-# This may be potentialy very dangerous as it reaches
+# This may be potentially very dangerous as it reaches
 # deeply into the internal structure of GMP which may not
-# be consistant across future versions of GMP.
+# be consistent across future versions of GMP.
 # See extensive note in the fast_tp_new() function below.
 
 include "../ext/python_rich_object.pxi"
@@ -5014,7 +5014,7 @@ global_dummy_Integer = Integer()
 # refcount it. This is problematic, because that causes overhead and
 # more importantly an infinite loop in the destructor. If you refcount
 # in the destructor and the refcount reaches zero (which is true
-# everytime) the destructor is called.
+# every time) the destructor is called.
 #
 # To avoid this we calculate the byte offset of the value member and
 # remember it in this variable.
@@ -5083,8 +5083,8 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # allocate enough room for the Integer, sizeof_Integer is
         # sizeof(Integer). The use of PyObject_MALLOC directly
         # assumes that Integers are not garbage collected, i.e.
-        # they do not pocess references to other Python
-        # objects (Aas indicated by the Py_TPFLAGS_HAVE_GC flag).
+        # they do not possess references to other Python
+        # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
         # See below for a more detailed description.
         new = PyObject_MALLOC( sizeof_Integer )
 
@@ -5107,10 +5107,10 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # to a mpz_t struct and allocate memory for the _mp_d element of
         # that struct. We allocate one limb.
         #
-        # What is done here is potentialy very dangerous as it reaches
+        # What is done here is potentially very dangerous as it reaches
         # deeply into the internal structure of GMP. Consequently things
         # may break if a new release of GMP changes some internals. To
-        # emphazise this, this is what the GMP manual has to say about
+        # emphasize this, this is what the GMP manual has to say about
         # the documentation for the struct we are using:
         #
         #  "This chapter is provided only for informational purposes and the
@@ -5118,14 +5118,14 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
         #
-        # If this line is used SAGE is not such an application.
+        # If this line is used Sage is not such an application.
         #
         # The clean version of the following line is:
         #
         #  mpz_init( <mpz_t>(<char *>new + mpz_t_offset) )
         #
         # We save time both by avoiding an extra function call and
-        # because the rest of the mpz struct was already initalized
+        # because the rest of the mpz struct was already initialized
         # fully using the memcpy above.
 
         (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)

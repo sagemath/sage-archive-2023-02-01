@@ -34,7 +34,7 @@ Mixing of symbolic an quad double elements:
     sage: parent(a)
     Symbolic Ring
 
-Note that the following numerical imprecision is caused by passing via maxima:
+Note that the following numerical imprecision is caused by passing via Maxima:
     sage: RQDF(a)
     0.86858896380650365530225783783321016458879401160733313222890756...
 """
@@ -42,7 +42,7 @@ Note that the following numerical imprecision is caused by passing via maxima:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 didier deshommes <dfdeshom@gmail.com>
 #
@@ -449,7 +449,7 @@ cdef class QuadDoubleElement(FieldElement):
         """
         Create a quad double real number. A quad double real number is
         an unevaluated sum of 4 IEEE double numbers, capable of representing
-        at least 212 bits of significand.The quad double number
+        at least 212 bits of significand. The quad double number
         $(a_0,a_1,a_2,a_3)$ represents the exact sum $a=a_0+a_1+a_2+a_3$,
         where $a_0$ is the most significant component.
 
@@ -775,7 +775,7 @@ cdef class QuadDoubleElement(FieldElement):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
-        Substract two quad double numbers
+        Subtract two quad double numbers
 
         EXAMPLES:
             sage: RQDF(1/3) - RQDF(1)

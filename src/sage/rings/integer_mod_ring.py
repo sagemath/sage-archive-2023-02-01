@@ -49,7 +49,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -450,7 +450,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def _pseudo_fraction_field(self):
         """
-        If self is composite, we may still want to do divison by elements
+        If self is composite, we may still want to do division by elements
         of self.
 
         EXAMPLES::

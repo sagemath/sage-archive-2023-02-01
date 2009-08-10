@@ -16,7 +16,7 @@ THEORY:
 
     1. Let `M` and `N` be the leading terms of `p` and `q`.
     2. Test whether there is a permutation `P` that does not does not diminish the variable
-       indices occuring in `N` and preserves their order, so that there is some term `T\in X`
+       indices occurring in `N` and preserves their order, so that there is some term `T\in X`
        with `T N^P = M`. If there is no such permutation, return `p`
     3. Replace `p` by `p-T q^P` and continue with step 1.
 
@@ -73,7 +73,7 @@ since one can change variable index 1 into 2 and 2 into 3. So, we add this to ``
     sage: S.reduce(p)
     y1*x3
 
-The next example shows that tail reduction is not done, unless it is explicitly adviced::
+The next example shows that tail reduction is not done, unless it is explicitly advised::
 
     sage: S.reduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
     y3 + 3*y2^2*y1 + 2*y2*y1^2

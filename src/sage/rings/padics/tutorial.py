@@ -366,7 +366,7 @@ ramification index of this extension over `\mathbb{Z}_p` is 5.
 # There are two parameters that are set at the creation of a lazy
 # ring or field. The first is ``prec``, which controls the precision
 # to which elements are initially computed. When computing with lazy
-# rings, sometimes situations arise where the insolvability of the
+# rings, sometimes situations arise where the unsolvability of the
 # halting problem gives us problems. For example,
 
 # ::

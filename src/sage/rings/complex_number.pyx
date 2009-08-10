@@ -383,8 +383,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUTS: n - an integer which will define the multiplicative order
         of self
 
-        EXAMPLES: Note that it is not advised to explicity call
-        ``_set_multiplicative_order`` for explicity declared
+        EXAMPLES: Note that it is not advisable to explicitly call
+        ``_set_multiplicative_order`` for explicitly declared
         complex numbers.
 
         ::

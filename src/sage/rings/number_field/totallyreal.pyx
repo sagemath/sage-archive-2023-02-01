@@ -126,7 +126,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     If t_2 = T, then keep only polynomials with t_2 norm >= T.
 
     If just_print is not False, instead of creating a sorted list of
-    totally real number fileds, we simply write each totally real
+    totally real number fields, we simply write each totally real
     field we find to the file whose filename is given by
     just_print. In this case, we don't return anything.
 

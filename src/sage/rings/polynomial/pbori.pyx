@@ -4257,7 +4257,7 @@ cdef class BooleSet:
 
     def cartesianProduct(self, BooleSet rhs):
         r"""
-        Return the cartesian product of this set and the set
+        Return the Cartesian product of this set and the set
         ``rhs``.
 
         The Cartesian product of two sets X and Y is the set of all

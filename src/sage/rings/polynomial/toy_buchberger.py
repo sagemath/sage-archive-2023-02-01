@@ -7,7 +7,7 @@ GROEBNER in [BW93]_) and an improved version of Buchberger's algorithm
 
 No attempt was made to optimize either algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
-Groebner basis in Sage efficently use the
+Groebner basis in Sage efficiently use the
 :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal.groebner_basis()`
 method on multivariate polynomial objects.
 
@@ -118,7 +118,7 @@ zero for this example::
     15 reductions to zero.
     [a + 2*b + 2*c - 1, -22*c^3 + 24*c^2 - 60*b - 62*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, -2*b^2 - 6*b*c - 6*c^2 + b + 2*c, -5*b*c - 6*c^2 - 63*b + 2*c]
 
-The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero::
+The 'improved' Buchberger algorithm in contrast only performs 3 reductions to zero::
 
     sage: buchberger_improved(I)
     (b^2 - 26*c^2 - 51*b + 51*c, b*c + 52*c^2 + 38*b + 25*c) => 11*c^3 - 12*c^2 + 30*b + 31*c

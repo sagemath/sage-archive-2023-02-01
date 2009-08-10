@@ -275,10 +275,10 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
     def _ext_p_list(self, pos):
         """
-        Returns a list of integers (in the eisenstein case) or a list
+        Returns a list of integers (in the Eisenstein case) or a list
         of lists of integers (in the unramified case).  self can be
         reconstructed as a sum of elements of the list times powers of
-        the uniformiser (in the eisenstein case), or as a sum of
+        the uniformiser (in the Eisenstein case), or as a sum of
         powers of the p times polynomials in the generator (in the
         unramified case).
 

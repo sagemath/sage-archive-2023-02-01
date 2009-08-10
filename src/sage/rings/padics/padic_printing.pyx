@@ -261,7 +261,7 @@ class pAdicPrinterDefaults(SageObject):
 
     def alphabet(self, alphabet = None):
         """
-        Controls the alphbet used to translate p-adic digits into
+        Controls the alphabet used to translate p-adic digits into
         strings (so that no separator need be used in 'digits' mode).
 
         alphabet should be passed in as a list or tuple.
@@ -358,7 +358,7 @@ cdef class pAdicPrinter_class(SageObject):
             - sep -- Controls the separator used in 'bars'
               mode.
 
-            - alphabet -- Controls the alphbet used to translate
+            - alphabet -- Controls the alphabet used to translate
               p-adic digits into strings (so that no separator need be
               used in 'digits' mode).
 
@@ -390,7 +390,7 @@ cdef class pAdicPrinter_class(SageObject):
             self.mode = terse
         elif mode == 'digits':
             if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.inertia_degree() != 1):
-                raise ValueError, "digits printing mode only useable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead."
+                raise ValueError, "digits printing mode only usable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead."
             else:
                 self.mode = digits
                 self.pos = True
@@ -1229,7 +1229,7 @@ cdef class pAdicPrinter_class(SageObject):
         OUTPUTS::
 
             - Truncated list -- later terms are removed.
-            - Boolean -- whether any truncation occured.
+            - Boolean -- whether any truncation occurred.
         """
         cdef bint ellipsis = 0
         if max_terms == -1:
@@ -1261,7 +1261,7 @@ cdef class pAdicPrinter_class(SageObject):
 
             - max_unram_terms -- a maximum number of terms before
               truncation occurs and an ellipsis is added.  -1
-              indicates no trunction should happen.
+              indicates no truncation should happen.
 
             - expshift -- a shift for all the exponents of the
               variable.

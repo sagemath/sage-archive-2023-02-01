@@ -280,7 +280,7 @@ def interred_libsingular(I):
     singular_options = bck
 
 
-    # divide head by coefficents
+    # divide head by coefficients
     if r.ringtype == 0:
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]

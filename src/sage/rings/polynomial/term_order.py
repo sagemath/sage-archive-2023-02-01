@@ -1093,7 +1093,7 @@ class TermOrder(SageObject):
     def __len__(self):
         """
         Return the length of this term ordering, i.e. the number of
-        variables it covers. This may be zero for undefinitely many
+        variables it covers. This may be zero for indefinitely many
         variables.
 
         EXAMPLE::

@@ -409,7 +409,7 @@ cdef class PolynomialRealDense(Polynomial):
     cpdef RingElement _mul_(left, RingElement _right):
         """
         Here we use the naive `O(n^2)` algorithm, as asymptotically faster algorithms such
-        as Karatsuba can have very inaccurate results due to intermediat rounding errors.
+        as Karatsuba can have very inaccurate results due to intermediate rounding errors.
 
         EXAMPLES::
 
@@ -433,7 +433,7 @@ cdef class PolynomialRealDense(Polynomial):
         _sig_on
         mpfr_init2(tmp, left._base_ring.__prec)
         for i from 0 <= i <= f._degree:
-            # Yes, we could make this more efficent by initalizing with
+            # Yes, we could make this more efficient by initializing with
             # a multiple of left rather than all zeros...
             mpfr_set_ui(f._coeffs[i], 0, rnd)
         for i from 0 <= i <= left._degree:

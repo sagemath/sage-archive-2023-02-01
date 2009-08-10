@@ -23,7 +23,7 @@ Basic arithmetic with c-integers.
 # for int (up to bound = 2**31 - 1) and longlong (up to 2**63 - 1).
 # The function definitions are identical except for the types.
 # Some of their input can be at most sqrt(bound), since
-# it is neccessary to multiply numbers and reduce the product
+# it is necessary to multiply numbers and reduce the product
 # modulo n, where n is at most bound.
 #
 #   * abs_int -- absolute value of integer

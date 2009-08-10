@@ -175,7 +175,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 self.__poly = (<Polynomial_integer_dense_ntl>x).__poly
                 return
             else:
-                # coerce coefficients into SAGE integers
+                # coerce coefficients into Sage integers
                 x = [Integer(a) for a in x.list()]
                 check = False
 
@@ -330,7 +330,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def _repr(self, name=None, bint latex=False):
         """
-        Return string representatin of this polynomial.
+        Return string representation of this polynomial.
 
         EXAMPLES::
 
@@ -729,7 +729,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         r"""
         Sets coefficient of `x^n` to value.
 
-        This is very unsafe, because SAGE polynomials are supposed
+        This is very unsafe, because Sage polynomials are supposed
         to be immutable. (Shhhh don't tell anyone!)
 
         EXAMPLES::

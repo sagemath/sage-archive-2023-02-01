@@ -945,7 +945,7 @@ class Ideal_fractional(Ideal_generic):
 def Cyclic(R, n=None, homog=False, singular=singular_default):
     """
     Ideal of cyclic n-roots from 1-st n variables of R if R is
-    coercable to Singular. If n==None n is set to R.ngens()
+    coercible to Singular. If n==None n is set to R.ngens()
 
     INPUT:
 
@@ -954,7 +954,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
 
     -  ``n`` - number of cyclic roots (default: None)
 
-    -  ``homog`` - if True a homogenous ideal is returned
+    -  ``homog`` - if True a homogeneous ideal is returned
        using the last variable in the ideal (default: False)
 
     -  ``singular`` - singular instance to use
@@ -1006,7 +1006,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
 
 def Katsura(R, n=None, homog=False, singular=singular_default):
     """
-    n-th katsura ideal of R if R is coercable to Singular. If n==None n
+    n-th katsura ideal of R if R is coercible to Singular. If n==None n
     is set to R.ngens()
 
     INPUT:
@@ -1016,7 +1016,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
 
     -  ``n`` - which katsura ideal of R
 
-    -  ``homog`` - if True a homogenous ideal is returned
+    -  ``homog`` - if True a homogeneous ideal is returned
        using the last variable in the ideal (default: False)
 
     -  ``singular`` - singular instance to use

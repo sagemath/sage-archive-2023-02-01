@@ -70,7 +70,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def _normalize(self, i = None):
         """
-        Removes the common monomaials from self._poly and stores them in self._mon
+        Removes the common monomials from self._poly and stores them in self._mon
 
         INPUT:
 
@@ -283,7 +283,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def variables(self, sort=True):
         """
-        Return a list of all variables occuring in self.
+        Return a list of all variables occurring in self.
 
         INPUT:
 

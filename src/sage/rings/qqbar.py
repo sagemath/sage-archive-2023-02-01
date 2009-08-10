@@ -2135,7 +2135,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
     - Using an algebraic number which is very close to 0 as the leading
       coefficient in a polynomial.
 
-    - Taking a root of an alebraic number which is very close to 0.
+    - Taking a root of an algebraic number which is very close to 0.
 
     The exact definition of "very close" is subject to change; currently,
     we compute our best approximation of the two numbers using 128-bit
@@ -2784,7 +2784,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def __cmp__(self, other):
         """
         Compare two algebraic numbers, lexicographically.  (That is,
-        first compare the real components; if the real componetns are
+        first compare the real components; if the real components are
         equal, compare the imaginary components.)
 
         EXAMPLES::
@@ -3177,7 +3177,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         r""" Given a ``ComplexField``, compute a good approximation to
         self in that field.  The approximation will be off by at most
         two ulp's in each component, except for components which are
-        very close to zero, which will have an abolute error at most
+        very close to zero, which will have an absolute error at most
         ``2**(-(field.prec()-1))``.
 
         EXAMPLES::
@@ -5669,7 +5669,7 @@ ax = QQbarPoly.gen()
 
 def _init_qqbar():
     """
-    This code indirectly uses a huge amount of sage, dispite the fact
+    This code indirectly uses a huge amount of sage, despite the fact
     that qqbar is imported rather early on in the sage loading. This function
     is called at the end of sage.all.
     """

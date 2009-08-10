@@ -5,7 +5,7 @@ AUTHOR:
     - David Harvey (2006-07-26): initial version
     - William Stein (2006-07-28): some touch up.
     - David Harvey (2006-08-06): new, faster algorithm, also using faster NTL interface
-    - David Harvey (2007-08-31): algorithm for a single bernoulli number mod p
+    - David Harvey (2007-08-31): algorithm for a single Bernoulli number mod p
     - David Harvey (2008-06): added interface to bernmm, removed old code
 """
 
@@ -102,7 +102,7 @@ def bernoulli_mod_p(int p):
         Should be complexity $O(p \log p)$.
 
     EXAMPLES:
-    Check the results against PARI's C-library implemention (that
+    Check the results against PARI's C-library implementation (that
     computes exact rationals) for $p = 37$:
 
         sage: bernoulli_mod_p(37)

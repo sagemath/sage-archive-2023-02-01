@@ -43,7 +43,7 @@ values ``+0``, ``-0``,
 Operations in this module which are direct wrappers of MPFR
 functions are "correctly rounded"; we briefly describe what this
 means. Assume that you could perform the operation exactly, on real
-nunbers, to get a result `r`. If this result can be
+numbers, to get a result `r`. If this result can be
 represented as a floating-point number, then we return that
 number.
 
@@ -92,7 +92,7 @@ Make sure we don't have a new field for every new literal::
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
@@ -1430,7 +1430,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             # This avoids the confusion a lot of people have with the last
             # 1-2 binary digits being wrong due to rounding coming from
-            # representating numbers in binary.
+            # representing numbers in binary.
 
             reqdigits = <int>(((<RealField>self._parent).__prec - 1) * 0.3010299956)
             if reqdigits <= 1: reqdigits = 2
@@ -1557,7 +1557,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             100000000000000000
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert infinity or NaN to SAGE Integer'
+            raise ValueError, 'Cannot convert infinity or NaN to Sage Integer'
 
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)

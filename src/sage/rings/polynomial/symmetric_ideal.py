@@ -2,7 +2,7 @@
 Symmetric Ideals of Infinite Polynomial Rings
 
 This module provides an implementation of ideals of polynomial rings in a countably
-infinite number of variables that are invariant under variable permuation.
+infinite number of variables that are invariant under variable permutation.
 Such ideals are called 'Symmetric Ideals' in the rest of this document.
 Our implementation is based on the theory of M. Aschenbrenner and C. Hillar.
 
@@ -54,7 +54,7 @@ class SymmetricIdeal( Ideal_generic ):
     of `X`.
 
     It is known by work of Aschenbrenner and Hillar [AB2007]_ that an Infinite Polynomial
-    Ring `X` with a single generator `x_\ast` is noetherian, in the sense
+    Ring `X` with a single generator `x_\ast` is Noetherian, in the sense
     that any Symmetric Ideal `I\subset X` is finitely generated modulo addition,
     multiplication by elements of `X`, and permutation of variable indices (hence, it is a
     finitely generated right `X[\mathfrak S_\infty]`-module).
@@ -275,7 +275,7 @@ class SymmetricIdeal( Ideal_generic ):
 
         1. Let `M` and `N` be the leading terms of `p` and `q`.
         2. Test whether there is a permutation `P` that does not does not diminish the variable
-           indices occoring in `N` and preserves their order, so that there is some term `T\in X`
+           indices occurring in `N` and preserves their order, so that there is some term `T\in X`
            with `T N^P = M`. If there is no such permutation, return `p`
         3. Replace `p` by `p-T q^P` and continue with step 1.
 
@@ -294,7 +294,7 @@ class SymmetricIdeal( Ideal_generic ):
             sage: I.reduce([y[1]^2*y[2]])
             Symmetric Ideal (y1*x3) of Infinite polynomial ring in x, y over Rational Field
 
-        The next example shows that tail reduction is not done, unless it is explicitly adviced.
+        The next example shows that tail reduction is not done, unless it is explicitly advised.
         The input can also be a symmetric ideal::
 
             sage: J = (x[2])*X
@@ -354,7 +354,7 @@ class SymmetricIdeal( Ideal_generic ):
 
         ``[m/n]`` indicates that polynomial number ``m`` is considered and the
         total number of polynomials under consideration is ``n``.
-        '-> 0' is printed if a zero reduction occured. The rest of the
+        '-> 0' is printed if a zero reduction occurred. The rest of the
         report is as described in :meth:`sage.rings.polynomial.symmetric_reduction.SymmetricReductionStrategy.reduce`.
 
         Last, we demonstrate the use of the optional parameter ``RStrat``::
@@ -460,7 +460,7 @@ class SymmetricIdeal( Ideal_generic ):
         INPUT:
 
         - N (optional) -- apply permutations in Sym(N). Default is the maximal
-          variable index occuring in the generators of ``self.interreduction().squeezed()``.
+          variable index occurring in the generators of ``self.interreduction().squeezed()``.
         - tailreduce (optional) -- If True, perform tail reductions
         - report (optional) -- If not None, report on the progress of computations
         - use_full_group (optional) -- If True, apply *all* elements of Sym(N) to the generators
@@ -470,7 +470,7 @@ class SymmetricIdeal( Ideal_generic ):
           and we are convinced that both methods yield the same result.
 
         OUTPUT:
-            A symetrically interreduced symmetric ideal with respect to which any
+            A symmetrically interreduced symmetric ideal with respect to which any
             Sym(N)-translate of a generator of self is symmetrically reducible,
             where by default N is the maximal variable index that occurs in the
             generators of ``self.interreduction().squeezed()``.
@@ -551,7 +551,7 @@ class SymmetricIdeal( Ideal_generic ):
         """
         Return an ideal that coincides with self, so that all generators have leading coefficient 1.
 
-        Possibly occuring zeroes are removed from the generator list.
+        Possibly occurring zeroes are removed from the generator list.
 
         EXAMPLES::
 
@@ -565,7 +565,7 @@ class SymmetricIdeal( Ideal_generic ):
 
     def squeezed(self):
         """
-        Reduce the variable indices occuring in self
+        Reduce the variable indices occurring in self
 
         OUTPUT:
             A Symmetric Ideal whose generators are the result of applying

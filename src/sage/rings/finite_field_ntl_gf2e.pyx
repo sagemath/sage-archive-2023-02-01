@@ -11,7 +11,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #

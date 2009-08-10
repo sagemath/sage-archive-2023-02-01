@@ -73,7 +73,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def construction(self):
         """
-        Returns a functor F and basering R such that F(R) == self.
+        Returns a functor F and base ring R such that F(R) == self.
 
         EXAMPLES::
 
@@ -122,7 +122,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         TESTS:
         This fairly complicated code (from Michel Vandenbergh) ends up
-        imlicitly calling ``_coerce_c_impl``::
+        implicitly calling ``_coerce_c_impl``::
 
             sage: z = polygen(QQ, 'z')
             sage: W.<s>=NumberField(z^2+1)
@@ -161,7 +161,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         convert the dict of ETuples with respect to other_vars to
         a dict with respect to ``self.variable_names()``.
         """
-        # This is probably horribly innefficient
+        # This is probably horribly inefficient
         from polydict import ETuple
         other_vars = list(x.parent().variable_names())
         name_mapping = [(other_vars.index(var) if var in other_vars else -1) for var in self.variable_names()]
@@ -349,7 +349,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""
-        Returns the list of variable names of this and its baserings, as if
+        Returns the list of variable names of this and its base rings, as if
         it were a single multi-variate polynomial.
 
         EXAMPLES::
@@ -377,7 +377,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _mpoly_base_ring(self, vars=None):
         """
-        Returns the basering if this is viewed as a polynomial ring over vars.
+        Returns the base ring if this is viewed as a polynomial ring over vars.
         See also MPolynomial._mpoly_dict_recursive.
         """
         if vars is None:

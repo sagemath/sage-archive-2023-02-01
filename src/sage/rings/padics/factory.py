@@ -1,7 +1,7 @@
 """
 Factory.
 
-This file contains the contructor classes and functions for `p`-adic rings and fields.
+This file contains the constructor classes and functions for `p`-adic rings and fields.
 
 AUTHORS:
 
@@ -925,10 +925,10 @@ def Qq(q, prec = twenty, type = 'capped-rel', modulus = None, names=None,
 def QpCR(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
          print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
     """
-    A shorcut function to create capped relative `p`-adic fields.
+    A shortcut function to create capped relative `p`-adic fields.
 
     Same functionality as ``Qp``.  See documentation for ``Qp`` for a
-    description of the input paramters.
+    description of the input parameters.
 
     EXAMPLES::
 
@@ -942,9 +942,9 @@ def QpCR(p, prec = twenty, print_mode = None, halt = forty, names = None, print_
 #def QpL(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
 #        print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
 #    """
-#    A shorcut function to create lazy p-adic fields.
+#    A shortcut function to create lazy p-adic fields.
 
-#    Currently deactivated.  See documentation for Qp for a description of the input paramters.
+#    Currently deactivated.  See documentation for Qp for a description of the input parameters.
 
 #    EXAMPLES::
 
@@ -959,11 +959,11 @@ def QqCR(q, prec = twenty, modulus = None, names=None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, check = True):
     """
-    A shorcut function to create capped relative unramified `p`-adic
+    A shortcut function to create capped relative unramified `p`-adic
     fields.
 
     Same functionality as ``Qq``.  See documentation for ``Qq`` for a
-    description of the input paramters.
+    description of the input parameters.
 
     EXAMPLES::
 
@@ -980,9 +980,9 @@ def QqCR(q, prec = twenty, modulus = None, names=None,
 #       print_sep = None, print_alphabet = None, print_max_ram_terms = None,
 #       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
 #    """
-#    A shorcut function to create lazy unramified `p`-adic fields.
+#    A shortcut function to create lazy unramified `p`-adic fields.
 
-#    Currently deactivated.  See documentation for Qq for a description of the input paramters.
+#    Currently deactivated.  See documentation for Qq for a description of the input parameters.
 
 #    EXAMPLES::
 
@@ -1954,10 +1954,10 @@ def Zq(q, prec = twenty, type = 'capped-abs', modulus = None, names=None,
 def ZpCR(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
          print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
     """
-    A shorcut function to create capped relative `p`-adic rings.
+    A shortcut function to create capped relative `p`-adic rings.
 
     Same functionality as ``Zp``.  See documentation for ``Zp`` for a
-    description of the input paramters.
+    description of the input parameters.
 
     EXAMPLES::
 
@@ -1971,9 +1971,9 @@ def ZpCR(p, prec = twenty, print_mode = None, halt = forty, names = None, print_
 def ZpCA(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
          print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
     """
-    A shorcut function to create capped absolute `p`-adic rings.
+    A shortcut function to create capped absolute `p`-adic rings.
 
-    See documentation for ``Zp`` for a description of the input paramters.
+    See documentation for ``Zp`` for a description of the input parameters.
 
     EXAMPLES::
 
@@ -1987,9 +1987,9 @@ def ZpCA(p, prec = twenty, print_mode = None, halt = forty, names = None, print_
 def ZpFM(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
          print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
     """
-    A shorcut function to create fixed modulus `p`-adic rings.
+    A shortcut function to create fixed modulus `p`-adic rings.
 
-    See documentation for ``Zp`` for a description of the input paramters.
+    See documentation for ``Zp`` for a description of the input parameters.
 
     EXAMPLES::
 
@@ -2003,9 +2003,9 @@ def ZpFM(p, prec = twenty, print_mode = None, halt = forty, names = None, print_
 #def ZpL(p, prec = twenty, print_mode = None, halt = forty, names = None, print_pos = None,
 #         print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
 #    """
-#    A shorcut function to create lazy `p`-adic rings.
+#    A shortcut function to create lazy `p`-adic rings.
 
-#    Currently deactivated.  See documentation for Zp for a description of the input paramters.
+#    Currently deactivated.  See documentation for Zp for a description of the input parameters.
 
 #    EXAMPLES::
 #
@@ -2019,10 +2019,10 @@ def ZqCR(q, prec = twenty, modulus = None, names=None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, check = True):
     """
-    A shorcut function to create capped relative unramified `p`-adic rings.
+    A shortcut function to create capped relative unramified `p`-adic rings.
 
     Same functionality as ``Zq``.  See documentation for ``Zq`` for a
-    description of the input paramters.
+    description of the input parameters.
 
     EXAMPLES::
 
@@ -2039,9 +2039,9 @@ def ZqCA(q, prec = twenty, modulus = None, names=None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, check = True):
     """
-    A shorcut function to create capped absolute unramified `p`-adic rings.
+    A shortcut function to create capped absolute unramified `p`-adic rings.
 
-    See documentation for ``Zq`` for a description of the input paramters.
+    See documentation for ``Zq`` for a description of the input parameters.
 
     EXAMPLES::
 
@@ -2058,9 +2058,9 @@ def ZqFM(q, prec = twenty, modulus = None, names=None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, check = True):
     """
-    A shorcut function to create fixed modulus unramified `p`-adic rings.
+    A shortcut function to create fixed modulus unramified `p`-adic rings.
 
-    See documentation for ``Zq`` for a description of the input paramters.
+    See documentation for ``Zq`` for a description of the input parameters.
 
     EXAMPLES::
 
@@ -2077,9 +2077,9 @@ def ZqFM(q, prec = twenty, modulus = None, names=None,
 #       print_sep = None, print_alphabet = None, print_max_ram_terms = None,
 #       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
 #    """
-#    A shorcut function to create lazy unramified `p`-adic rings.
+#    A shortcut function to create lazy unramified `p`-adic rings.
 
-#    Currently deactivated.  See documentation for Zq for a description of the input paramters.
+#    Currently deactivated.  See documentation for Zq for a description of the input parameters.
 
 #    EXAMPLES::
 
@@ -2175,7 +2175,7 @@ class pAdicExtension_class(UniqueFactory):
         else:
             modulus = premodulus
         #print type(base)
-        # We now decide on the extension class: unramified, eisenstein, two-step or general
+        # We now decide on the extension class: unramified, Eisenstein, two-step or general
         if unram or is_unramified(modulus):
             if unram_name is None:
                 unram_name = names

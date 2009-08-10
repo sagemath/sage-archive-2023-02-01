@@ -1019,7 +1019,7 @@ def divisors(n):
 
     R = parent(n)
     if R in [int, long]:
-        n = ZZ(n) # we have specalized code for this case, make sure it gets used
+        n = ZZ(n) # we have specialized code for this case, make sure it gets used
     try:
         return n.divisors()
     except AttributeError:

@@ -9,7 +9,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -230,7 +230,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         This function hashes in a special way to ensure that generators of
         a ring R and generators of a fraction field of R have the same
-        hash. This enables them to be used as keys interchangably in a
+        hash. This enables them to be used as keys interchangeably in a
         dictionary (since ``==`` will claim them equal). This
         is particularly useful for methods like subs on
         ``ParentWithGens`` if you are passing a dictionary of

@@ -11,7 +11,7 @@ EXAMPLES: We create a quotient of a univariate polynomial ring over
     sage: 2 * a^3
     -6*a + 2
 
-Next we make a univeriate polynomial ring over
+Next we make a univariate polynomial ring over
 `\ZZ[x]/(x^3+3x-1)`.
 
 ::
@@ -74,11 +74,11 @@ AUTHORS:
 - William Stein
 """
 
-####################################################################################
+###########################################################################
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-####################################################################################
+###########################################################################
 
 import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.rings.number_field.number_field as number_field
@@ -394,7 +394,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             a^2 + 2
 ##         Note that the homomorphism is not defined on the entire
 ##         ''domain''.   (Allowing creation of such functions may be
-##         disallowed in a future version of SAGE.):        <----- INDEED!
+##         disallowed in a future version of Sage.):        <----- INDEED!
 ##             sage: h(1/3)
 ##             Traceback (most recent call last):
 ##             ...
@@ -517,7 +517,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             [ 0  0  1]
             [ 5 -2  0]
         """
-        # Mutiply each power of field generator on the right by this
+        # Multiply each power of field generator on the right by this
         # element, then return the matrix whose rows are the
         # coefficients of the result.
         try:

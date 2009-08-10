@@ -24,7 +24,7 @@ size of the modulus.
 
 All extend ``IntegerMod_abstract``.
 
-For efficency reasons, it stores the modulus (in all three forms,
+For efficiency reasons, it stores the modulus (in all three forms,
 if possible) in a common (cdef) class
 ``NativeIntStruct`` rather than in the parent.
 
@@ -216,7 +216,7 @@ cdef class NativeIntStruct:
         Function to compute and cache all elements of this class.
 
         If inverses==True, also computes and caches the inverses of the
-        invertible elments
+        invertible elements
         """
         self.table = PyList_New(self.int64)
         cdef Py_ssize_t i
@@ -382,7 +382,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         if self == 0:
             return '0*Z(%s)'%m
 
-        # I couldn't find a guarentee in the GAP docs that the
+        # I couldn't find a guarantee in the GAP docs that the
         # root of unity they use must be the smallest.   This
         # was *not* the case in MAGMA once, so who knows, especially
         # when the order of the ring is not prime.  So we make
@@ -1135,7 +1135,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
     def __floordiv__(self, other):
         """
-        Exact division for prime moduli, for compatability with other fields.
+        Exact division for prime moduli, for compatibility with other fields.
 
         EXAMPLES:
         sage: GF(7)(3) // GF(7)(5)

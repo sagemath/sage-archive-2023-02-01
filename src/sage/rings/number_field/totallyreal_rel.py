@@ -181,7 +181,7 @@ class tr_data_rel:
 
         # Initialize variables.
         if a == []:
-            # No starting input, all polynomials will be found; initalize to zero.
+            # No starting input, all polynomials will be found; initialize to zero.
             self.a = [0]*m + [1]
             self.amaxvals = [[]]*m
             anm1s = [[i] for i in range(0,m//2+1)]

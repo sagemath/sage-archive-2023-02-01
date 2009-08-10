@@ -4,7 +4,7 @@ Multivariate Polynomials via libSINGULAR
 This module implements specialized and optimized implementations for
 multivariate polynomials over many coefficient rings, via a shared library
 interface to SINGULAR. In particular, the following coefficient rings are
-supported by this impelementation:
+supported by this implementation:
 
 - the rational numbers `\QQ`,
 
@@ -222,9 +222,9 @@ cdef init_singular():
 
     SINGULAR has a concept of compiled extension modules similar to
     Sage. For this, the compiled modules need to see the symbols from
-    the main programm. However, SINGULAR is a shared library in this
+    the main program. However, SINGULAR is a shared library in this
     context these symbols are not known globally. The work around so
-    far is to load the library again and to specifiy ``RTLD_GLOBAL``.
+    far is to load the library again and to specify ``RTLD_GLOBAL``.
     """
     global singular_options
     global max_exponent_size
@@ -1495,7 +1495,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         - ``f`` - monomial
         - ``g`` - monomial
-        - ``coeff`` - divide coefficents as well (default: ``False``)
+        - ``coeff`` - divide coefficients as well (default: ``False``)
 
         EXAMPLES::
 
@@ -1515,7 +1515,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P.monomial_quotient(2*x,3*x,coeff=True)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot divide these coefficents.
+            ArithmeticError: Cannot divide these coefficients.
 
         TESTS::
 
@@ -1573,7 +1573,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 n = r.cf.nDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r))
                 p_SetCoeff0(res, n, r)
             else:
-                raise ArithmeticError("Cannot divide these coefficents.")
+                raise ArithmeticError("Cannot divide these coefficients.")
         else:
             p_SetCoeff0(res, n_Init(1, r), r)
         return new_MP(self, res)
@@ -1687,7 +1687,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         It is assumed that ``G`` is iterable and contains *only*
         elements in this polynomial ring.
 
-        Coefficents are ignored.
+        Coefficients are ignored.
 
         INPUT:
 
@@ -2340,7 +2340,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Multivariate Polynomial Ring in x, y over Rational Field
 
         But we get a true fraction field if the denominator is not in
-        the fration field of the basering.""
+        the fraction field of the base ring.""
 
             sage: f = x/y
             sage: f.parent()
@@ -2620,7 +2620,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         INPUT:
 
-        - ``x`` - multivariate polynmial (a generator of the parent of
+        - ``x`` - multivariate polynomial (a generator of the parent of
           self) If x is not specified (or is ``None``), return the total
           degree, which is the maximum degree of any monomial.
 
@@ -3283,7 +3283,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         .. note::
 
-           The evaluation is performed by evalutating every
+           The evaluation is performed by evaluating every
            ``variable:value`` pair separately.  This has side effects
            if e.g. x=y, y=z is provided. If x=y is evaluated first,
            all x variables will be replaced by z eventually.
@@ -3566,7 +3566,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def _variable_indices_(self, sort=True):
         """
-        Return the indices of all variables occuring in self.  This
+        Return the indices of all variables occurring in self.  This
         index is the index as Sage uses them (starting at zero), not
         as SINGULAR uses them (starting at one).
 
@@ -3599,7 +3599,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def variables(self):
         """
-        Return a list of all variables occuring in self.
+        Return a list of all variables occurring in self.
 
         EXAMPLES::
 
@@ -3629,7 +3629,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def variable(self, i=0):
         """
 
-        Return the i-th variable occuring in self. The index i is the
+        Return the i-th variable occurring in self. The index i is the
         index in ``self.variables()``.
 
         EXAMPLES::
@@ -3810,7 +3810,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         INPUT:
 
-        - ``right`` - something coercable to an MPolynomial_libsingular
+        - ``right`` - something coercible to an MPolynomial_libsingular
           in ``self.parent()``
 
         EXAMPLES::
@@ -4207,7 +4207,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def gcd(self, right, algorithm=None):
         """
-        Return the greates common divisor of self and right.
+        Return the greatest common divisor of self and right.
 
         INPUT:
 

@@ -13,7 +13,7 @@ AUTHORS:
 - Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of Singular
   features
 
-- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular
+- Martin Albrecht (2006-04-21): reorganize class hierarchy for singular
   rep
 
 - Martin Albrecht (2007-04-20): reorganized class hierarchy to support
@@ -47,7 +47,7 @@ two variables::
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -366,7 +366,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             elif P == self:
                 return MPolynomial_polydict(self, x.element().dict())
             elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the basering (i.e. a poly ring over a poly ring)
+                # it might be in the base ring (i.e. a poly ring over a poly ring)
                 c = self.base_ring()(x)
                 return MPolynomial_polydict(self, {self._zero_tuple:c})
             elif len(P.variable_names()) == len(self.variable_names()):
@@ -390,7 +390,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             if P == self:
                 return MPolynomial_polydict(self, x.dict())
             elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the basering (i.e. a poly ring over a poly ring)
+                # it might be in the base ring (i.e. a poly ring over a poly ring)
                 c = self.base_ring()(x)
                 return MPolynomial_polydict(self, {self._zero_tuple:c})
             elif len(P.variable_names()) == len(self.variable_names()):
@@ -510,7 +510,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         -  ``g`` - monomial
 
-        -  ``coeff`` - divide coefficents as well (default:
+        -  ``coeff`` - divide coefficients as well (default:
            False)
 
 

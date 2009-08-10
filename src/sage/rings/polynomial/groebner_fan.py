@@ -1412,12 +1412,12 @@ class ReducedGroebnerBasis(SageObject, list):
         #E.sendline(self._gfan_ideal())
         E.sendline(self.__gfan_gens)
         print "*"*45
-        print "*     Press control-C to return to SAGE     *"
+        print "*     Press control-C to return to Sage     *"
         print "*"*45
         try:
             E.interact()
         except OSError:
-            print "Returning to SAGE."
+            print "Returning to Sage."
 
     def groebner_cone(self, restrict=False):
         """

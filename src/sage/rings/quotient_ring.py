@@ -14,16 +14,16 @@ TESTS::
     True
 """
 
-################################################################################
+###########################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
-################################################################################
+###########################################################################
 
 import quotient_ring_element
 import sage.misc.latex as latex
@@ -644,7 +644,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     def _singular_(self, singular=singular_default):
         """
         Returns the Singular quotient ring of self if the base ring is
-        coercable to Singular.
+        coercible to Singular.
 
         If a valid singular representation is found it is used otherwise a
         new 'qring' is created.

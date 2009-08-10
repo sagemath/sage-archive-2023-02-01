@@ -35,7 +35,7 @@ integers, when it makes sense.
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -51,7 +51,7 @@ integers, when it makes sense.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-##########################################################################################
+###########################################################################
 
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
@@ -83,7 +83,7 @@ cdef int number_of_integer_rings = 0
 
 def is_IntegerRing(x):
     """
-    Internal funtion: returns true iff x is the ring ZZ of integers
+    Internal function: returns true iff x is the ring ZZ of integers
 
     EXAMPLES::
 
@@ -252,7 +252,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring ZZ[...] obtained by adjoing to the integers a list
+        Return the ring ZZ[...] obtained by adjoining to the integers a list
         x of several elements.
 
         EXAMPLES::
@@ -473,7 +473,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             integer uniformly distributed between 0 and n-1, inclusive.
           ZZ.random_element(min, max)
             return an integer uniformly
-            destributed between min and max-1, inclusive.
+            distributed between min and max-1, inclusive.
 
         The default distribution for ZZ.random_element() is based on
         `X = \mbox{trunc}(4/(5R))`, where `R` is a random

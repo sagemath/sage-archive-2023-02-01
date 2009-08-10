@@ -162,7 +162,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 _sig_off
                 return
             else:
-                # coerce coefficients into SAGE integers
+                # coerce coefficients into Sage integers
                 x = [Integer(a) for a in x.list()]
                 check = False
 

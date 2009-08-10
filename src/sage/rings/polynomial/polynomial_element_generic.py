@@ -772,7 +772,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             Transitive group number 5 of degree 4
 
         You can use KASH to compute Galois groups as well.  The
-        avantage is that KASH can compute Galois groups of fields up
+        advantage is that KASH can compute Galois groups of fields up
         to degree 23, whereas PARI only goes to degree 11.  (In my
         not-so-thorough experiments PARI is faster than KASH.)
 

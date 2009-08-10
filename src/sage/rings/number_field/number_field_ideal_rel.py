@@ -613,7 +613,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
     def residue_class_degree(self):
         r"""
-        Return the resifue class degree of this prime.
+        Return the residue class degree of this prime.
 
         EXAMPLES::
 

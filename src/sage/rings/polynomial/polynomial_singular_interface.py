@@ -19,7 +19,7 @@ TESTS::
 
 #################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -175,7 +175,7 @@ class PolynomialRing_singular_repr:
               the ring will not only be returned but also be set as the current
               ring in Singular.
             - Singular represents precision of floating point numbers base 10
-              while SAGE represents floating point precision base 2.
+              while Sage represents floating point precision base 2.
         """
         try:
             R = self.__singular

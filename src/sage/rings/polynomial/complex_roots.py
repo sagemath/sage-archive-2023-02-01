@@ -13,7 +13,7 @@ supported.)
 
 We use a simple algorithm.  First, we compute a squarefree decomposition
 of the input polynomial; the resulting polynomials have no multiple roots.
-Then, we find the roots numerically, using numpy (at low precision) or
+Then, we find the roots numerically, using NumPy (at low precision) or
 Pari (at high precision).  Then, we verify the roots using interval
 arithmetic.
 
@@ -316,7 +316,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     Two of the roots have a zero real component; two have a zero
     imaginary component.  These zero components will be found slightly
     inaccurately, and the exact values returned are very sensitive to
-    the (non-portable) results of numpy.  So we post-process the roots
+    the (non-portable) results of NumPy.  So we post-process the roots
     for printing, to get predictable doctest results.
 
     ::

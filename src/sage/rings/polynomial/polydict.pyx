@@ -136,7 +136,7 @@ cdef class PolyDict:
             ret =  fn(m,n)
             if ret!=0:
                 return ret # we have a difference
-            ret = cmp(self.__repn[m],other.__repn[n]) #compare coefficents
+            ret = cmp(self.__repn[m],other.__repn[n]) #compare coefficients
             if ret!=0:
                 return ret #if they differ use it
             #try next pair
@@ -830,7 +830,7 @@ cdef inline bint dual_etuple_iter(ETuple self, ETuple other, size_t *ind1, size_
     This function is a crucial helper function for a number of methods of
     the ETuple class.
 
-    This is a rather fragile function.  Perhaps some cython guru could make
+    This is a rather fragile function.  Perhaps some Cython guru could make
     it appear a little less stilted -- a principal difficulty is passing
     C types by reference.  In any case, the complicated features of looping
     through two ETuple _data members is all packaged up right here and
@@ -873,7 +873,7 @@ cdef class ETuple:
     Representation of the exponents of a polydict monomial. If
     (0,0,3,0,5) is the exponent tuple of x_2^3*x_4^5 then this class
     only stores {2:3,4:5} instead of the full tuple. This sparse
-    information may be optained by provided methods.
+    information may be obtained by provided methods.
 
     The index/value data is all stored in the _data C int array member
     variable.  For the example above, the C array would contain

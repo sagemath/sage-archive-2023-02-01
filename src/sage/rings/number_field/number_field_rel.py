@@ -870,7 +870,7 @@ class NumberField_relative(NumberField_generic):
             sage: S.coerce(y) is y
             True
 
-        Fields with embeddings into an ambient field coerce natrually.::
+        Fields with embeddings into an ambient field coerce naturally.::
 
             sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
             zeta15^3 - 17/3
@@ -1010,7 +1010,7 @@ class NumberField_relative(NumberField_generic):
         element = to_abs_base(element)
         # Find an expression in terms of the absolute generator for self of element.
         expr_x = self._rnfeltreltoabs(element)
-        # Convert to a SAGE polynomial, then to one in gen(), and return it
+        # Convert to a Sage polynomial, then to one in gen(), and return it
         R = self.polynomial_ring()
         # We do NOT call self(...) because this code is called by
         # __init__ before we initialize self.gens(), and self(...)

@@ -212,14 +212,14 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         - The returned list will consist of:
 
-          + integers (in the eisenstein case) or
+          + integers (in the Eisenstein case) or
 
           + lists of integers (in the unramified case).
 
         - ``self`` can be reconstructed as
 
           + a sum of elements of the list times powers of the
-            uniformiser (in the eisenstein case), or
+            uniformiser (in the Eisenstein case), or
 
           + as a sum of powers of the `p` times polynomials in the
             generator (in the unramified case).
@@ -234,7 +234,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
           `[(1-p)/2, p/2]`.
 
         - ``prec`` -- How many terms to return in the list.  This is
-          important since shifting in the eisenstein case can
+          important since shifting in the Eisenstein case can
           introduce random high order bits.  Thus the process would
           not otherwise necessarily terminate at the right point.
 

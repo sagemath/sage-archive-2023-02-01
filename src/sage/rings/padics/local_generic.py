@@ -202,7 +202,7 @@ class LocalGeneric(CommutativeRing):
         Returns whether this p-adic ring is exact, i.e. False.
 
         INPUT:
-            self -- a p-adic rinng
+            self -- a p-adic ring
 
         OUTPUT:
             boolean -- whether self is exact, i.e. False.

@@ -693,7 +693,7 @@ cdef class LaurentSeries(AlgebraElement):
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
            powers of `t`, while left shifting increases
-           them. This is to be consistant with polynomials, integers,
+           them. This is to be consistent with polynomials, integers,
            etc.
 
         EXAMPLES::

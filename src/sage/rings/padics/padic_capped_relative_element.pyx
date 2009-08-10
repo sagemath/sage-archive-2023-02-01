@@ -824,7 +824,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         Note: when right is divisible by p then one can get more precision than expected.
         Lemma 2.1 (Constructing Class Fields over Local Fields, Sebastian Pauli):
         [modified from original for Qp.  See padic_ZZ_pX_CR_element for original]
-        Let $\alpha$ be in $\ZZ_p$. The $p$-th power of $1 + \alpha p^{\lambda}$ satisifes
+        Let $\alpha$ be in $\ZZ_p$. The $p$-th power of $1 + \alpha p^{\lambda}$ satisfies
             (1 + \alpha p^{\lambda})^p \equiv 1 + \alpha p^{\lambda + 1} mod p^{\lambda + 2}
 
             unless $\lambda = 1$ and $p = 2$, in which case
@@ -1550,7 +1550,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         Returns True if self is distinguishable from zero.
 
-        For most applications, explicitly specifying the power of p modulo which the element is supposed to be nonzero is preferrable.
+        For most applications, explicitly specifying the power of p modulo which the element is supposed to be nonzero is preferable.
 
         EXAMPLES::
 
@@ -1907,7 +1907,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         OUTPUT::
 
-            - list -- the list of coeficients of self.  These will be integers if lift_mode is 'simple' or 'smallest', and elements of self.parent() if lift_mode is 'teichmuller'
+            - list -- the list of coefficients of self.  These will be integers if lift_mode is 'simple' or 'smallest', and elements of self.parent() if lift_mode is 'teichmuller'
 
         EXAMPLES::
 
@@ -2022,7 +2022,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def padded_list(self, n, lift_mode = 'simple'):
         """
-        Returns a list of coeficiants of p starting with $p^0$ up to
+        Returns a list of coefficients of p starting with $p^0$ up to
         $p^n$ exclusive (padded with zeros if needed).  If a field
         element, starts at p^val instead.
 
@@ -2034,7 +2034,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         OUTPUT::
 
-            list -- the list of coeficients of self
+            list -- the list of coefficients of self
 
         EXAMPLES::
 

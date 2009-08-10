@@ -21,7 +21,7 @@ Using the generators, we can create elements as follows::
     sage: c
     -2*y4^4 + y4*x3 + x3^3
 
-Any Infinite Polynomial Ring ``X`` is equiped with a monomial ordering.
+Any Infinite Polynomial Ring ``X`` is equipped with a monomial ordering.
 We only consider monomial orderings in which:
 
     ``X.gen(i)[m] < X.gen(j)[n]`` `\iff` ``i<j``, or ``i==j`` and ``m<n``
@@ -53,7 +53,7 @@ Note that ``P(0)==0``, and thus variables of index zero are invariant
 under the permutation action.
 More generally, if ``P`` is any callable object that accepts non-negative
 integers as input and returns non-negative integers, then ``c^P``
-means to apply ``P`` to the variable indices occuring in ``c``.
+means to apply ``P`` to the variable indices occurring in ``c``.
 
 """
 
@@ -366,7 +366,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def variables(self):
         """
-        Return the variables occuring in self (list of elements of some polynomial ring)
+        Return the variables occurring in self (list of elements of some polynomial ring)
 
         EXAMPLES::
 
@@ -387,7 +387,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def max_index(self):
         r"""
-        Return the maximal index of a variable occuring in self, or -1 if self is scalar
+        Return the maximal index of a variable occurring in self, or -1 if self is scalar
 
         EXAMPLES::
 
@@ -689,7 +689,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def squeezed(self):
         """
-        Reduce the variable indices occuring in self
+        Reduce the variable indices occurring in self
 
         OUTPUT:
             Apply a permutation to self that does not change the
@@ -715,7 +715,7 @@ class InfinitePolynomial_sparse(RingElement):
         Leading exponents in increasing order sorted by generator names
 
         OUTPUT:
-            ``D`` -- a dictionary whose keys are the occuring variable indices.
+            ``D`` -- a dictionary whose keys are the occurring variable indices.
 
             ``D[s]`` is a list ``[i_1,...,i_n]``, where ``i_j`` gives the
             exponent of ``self.parent().gen(j)[s]`` in the leading
@@ -811,7 +811,7 @@ class InfinitePolynomial_sparse(RingElement):
         if not Fsmall:
             return (rawcmp, 1, ltbig/ltsmall)
         # "not Fbig" is now impossible, because we only consider *global* monomial orderings.
-        # These are the occuring shifts:
+        # These are the occurring shifts:
         Lsmall = Fsmall.keys()
         Lsmall.sort()
         Lbig   = Fbig.keys()
@@ -944,7 +944,7 @@ class InfinitePolynomial_sparse(RingElement):
 
         1. Let `M` and `N` be the leading terms of `p` and `q`.
         2. Test whether there is a permutation `P` that does not does not diminish the variable
-           indices occuring in `N` and preserves their order, so that there is some term `T\in X`
+           indices occurring in `N` and preserves their order, so that there is some term `T\in X`
            with `TN ^P = M`. If there is no such permutation, return `p`
         3. Replace `p` by `p-T q^P` and continue with step 1.
 
@@ -972,7 +972,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: p.reduce([y[1]^2*y[2]])
             y1*x3
 
-        The next example shows that tail reduction is not done, unless it is explicitly adviced.
+        The next example shows that tail reduction is not done, unless it is explicitly advised.
         The input can also be a Symmetric Ideal::
 
             sage: I = (x[2])*X
@@ -1006,7 +1006,7 @@ class InfinitePolynomial_sparse(RingElement):
     ## Further methods
     def stretch(self, k):
         """
-        Replace `v_n` with `v_{n\\cdot k}` for all generators `v_\\ast` occuring in self.
+        Replace `v_n` with `v_{n\\cdot k}` for all generators `v_\\ast` occurring in self.
 
         EXAMPLES::
 

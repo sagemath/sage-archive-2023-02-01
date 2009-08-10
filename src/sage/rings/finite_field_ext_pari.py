@@ -79,7 +79,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: set(k)
         set([0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2])
 
-    And the following is a SAGE enumerated set:
+    And the following is a Sage enumerated set:
         sage: EnumeratedSet(k)
         {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
 
@@ -148,8 +148,8 @@ class FiniteField_ext_pari(FiniteField_generic):
                     equal if they have the same variable name, and not
                     otherwise.
             modulus -- you may provide a minimal polynomial to use for
-                       reduction or None to force a random or conway
-                       irreducible polynomial. (default: None, a conway
+                       reduction or None to force a random or Conway
+                       irreducible polynomial. (default: None, a Conway
                        polynomial is used if found. Otherwise a random
                        polynomial is used)
 
@@ -445,7 +445,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         AUTHOR:
             -- David Joyner (2005-11)
             -- Martin Albrecht (2006-01-23)
-            -- Martin Albrecth (2006-03-06): added coercion from string
+            -- Martin Albrecht (2006-03-06): added coercion from string
         """
         if isinstance(x, finite_field_element.FiniteField_ext_pariElement):
             if x.parent() is self:

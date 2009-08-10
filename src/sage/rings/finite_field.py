@@ -187,7 +187,7 @@ class FiniteFieldFactory(UniqueFactory):
 
     -  ``modulus`` - (optional) defining polynomial for
        field, i.e., generator of the field will be a root of this
-       polynomial; if not specified the choice of definining polynomials
+       polynomial; if not specified the choice of defining polynomials
        can be arbitrary.
 
     -  ``elem_cache`` - cache all elements to avoid
@@ -231,7 +231,7 @@ class FiniteFieldFactory(UniqueFactory):
         ...
         ValueError: finite field modulus must be irreducible but it is not
 
-    You can't accidently fool the constructor into thinking the modulus
+    You can't accidentally fool the constructor into thinking the modulus
     is irreducible when it isn't mod p, since it actually tests
     irreducibility modulo p.
 

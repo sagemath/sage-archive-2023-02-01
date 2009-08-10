@@ -131,7 +131,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def modulus(self):
         """
-        Return the minimal polynomial of self, which is allways $x - 1$.
+        Return the minimal polynomial of self, which is always $x - 1$.
 
         EXAMPLE:
             sage: k = GF(199)

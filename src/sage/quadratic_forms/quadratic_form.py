@@ -1018,7 +1018,7 @@ class QuadraticForm():
         """
         ## Warning over fields
         if is_field(self.base_ring()):
-           warn("Warning -- A quaratic form over a field always has integral Gram matrix.  Do you really want to do this?!?")
+           warn("Warning -- A quadratic form over a field always has integral Gram matrix.  Do you really want to do this?!?")
 
         ## Determine integrality of the Gram matrix
         flag = True
@@ -1179,7 +1179,7 @@ class QuadraticForm():
         Gives the determinant of the Gram matrix of Q.
 
         (Note: This is defined over the fraction field of the ring of
-        the quadratic form, but is oftewn not defined over the same
+        the quadratic form, but is often not defined over the same
         ring as the quadratic form.)
 
         EXAMPLES:
@@ -1314,7 +1314,7 @@ class QuadraticForm():
         (Caveat: This always returns the principal ideal when working over a field!)
 
         WARNING:  THIS ONLY WORKS OVER A PID RING OF INTEGERS FOR NOW!
-              (Waiting for SAGE fractional ideal support.)
+              (Waiting for Sage fractional ideal support.)
 
         EXAMPLES:
             sage: Q = QuadraticForm(ZZ, 2, range(1,4))

@@ -163,7 +163,7 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
 
 
     ## Now use the Souvigner code by default! =)
-    return other.is_globally_equivalent__souvigner(self, return_matrix)    ## Note: We switch this because teh Souvigner code has the opposite mapping convention to us.  (It takes the second argument to the first!)
+    return other.is_globally_equivalent__souvigner(self, return_matrix)    ## Note: We switch this because the Souvigner code has the opposite mapping convention to us.  (It takes the second argument to the first!)
 
 
 
@@ -400,7 +400,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
                 #print "Failed when i =", i, " in condition 1."
                 return False
 
-            ## Check O'Meara's conditon (ii) when appropriate
+            ## Check O'Meara's condition (ii) when appropriate
             if norm_list[i+1] % (4 * norm_list[i]) == 0:
                 if self_hasse_chain_list[i] * hilbert_symbol(norm_list[i] * other_chain_det_list[i], -self_chain_det_list[i], 2) \
                        != other_hasse_chain_list[i] * hilbert_symbol(norm_list[i], -other_chain_det_list[i], 2):      ## Nipp conditions

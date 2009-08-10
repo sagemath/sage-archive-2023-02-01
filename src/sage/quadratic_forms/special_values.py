@@ -79,7 +79,7 @@ def gamma__exact(n):
 
 def zeta__exact(n):
     """
-    Returns the exact value fo the Riemann Zeta function
+    Returns the exact value of the Riemann Zeta function
 
     References:
         Iwasawa's "Lectures on p-adic L-functions", p13

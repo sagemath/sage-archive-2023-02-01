@@ -174,7 +174,7 @@ class QuadraticFormLocalRepresentationConditions():
                     m = m * p * p
 
                 ## If we're not represented, write "infinity" to signify
-                ## that this squareclass is fuly obstructed
+                ## that this squareclass is fully obstructed
                 if (repn_flag == False):
                     tmp_local_repn_vec[j+1] = infinity
 
@@ -203,7 +203,7 @@ class QuadraticFormLocalRepresentationConditions():
         OUTPUT:
             string
 
-        TO DO:  Improve the output for the real numbers, and special output for locally unversality.
+        TO DO:  Improve the output for the real numbers, and special output for locally universality.
         Also give names to the squareclasses, so it's clear what the output means! =)
 
         EXAMPLES:
@@ -560,7 +560,7 @@ class QuadraticFormLocalRepresentationConditions():
     def is_locally_represented(self, m):
         """
         Determines if the rational number m is locally represented by
-        the quadratic form (allowing vectors with coeffs in Z_p at all
+        the quadratic form (allowing vectors with coefficients in Z_p at all
         places).
 
         INPUT:

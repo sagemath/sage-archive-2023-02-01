@@ -223,7 +223,7 @@ def find_p_neighbor_from_vec(self, p, v):
     for i in range(2,n):
         ith_prod = (good_basis[i] * self.matrix()).dot_product(v)
         c = (ith_prod / v1w_prod) % p
-        good_basis[i] = good_basis[i] - c * w  ## Ensures that this extenstion has <v_i, v> = 0 (mod p)
+        good_basis[i] = good_basis[i] - c * w  ## Ensures that this extension has <v_i, v> = 0 (mod p)
 
     ## DIAGNOSTIC
     #print "original good_basis = ", good_basis

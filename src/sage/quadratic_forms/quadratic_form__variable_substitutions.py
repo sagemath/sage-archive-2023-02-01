@@ -120,7 +120,7 @@ def divide_variable(self, c, i, in_place = False):
     (replacing the original form if the in_place flag is True).
 
     Here c must be an element of the base_ring defining the
-    quadratic form, and the division must be definied in the base
+    quadratic form, and the division must be defined in the base
     ring.
 
     INPUT:

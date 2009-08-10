@@ -490,7 +490,7 @@ def set_number_of_automorphisms(self, num_autos):
 ### TODO
 # def Nipp_automorphism_testing(self):
 #     """
-#     Testing the automorphism routine agains Nipp's Tables
+#     Testing the automorphism routine against Nipp's Tables
 #
 #         --- MOVE THIS ELSEWHERE!!! ---
 #

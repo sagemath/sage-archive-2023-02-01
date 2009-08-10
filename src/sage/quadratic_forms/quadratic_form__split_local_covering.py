@@ -26,7 +26,7 @@ def cholesky_decomposition(self, bit_prec = 53):
     Give the Cholesky decomposition of Q as a real matrix of precision
         bit_prec.
 
-    RESTRICTIONS: Q must be given as a QuadraticForm defnined over ZZ,
+    RESTRICTIONS: Q must be given as a QuadraticForm defined over ZZ,
         QQ, or some RealField().  If it is over some real field, then
         an error is raised if the precision given is not less than the
         defined precision of the real field defining the quadratic form!
@@ -108,7 +108,7 @@ def vectors_by_length(self, bound):
     """
     Returns a list of short vectors together with their values.
 
-    This is a maive algorithm which uses the Cholesky decomposition,
+    This is a naive algorithm which uses the Cholesky decomposition,
     but does not use the LLL-reduction algorithm.
 
     INPUT:
@@ -119,8 +119,8 @@ def vectors_by_length(self, bound):
         all vectors of length i.
 
     Reference: This is a slightly modified version of Cohn's Algorithm
-    2.7.5 in "A Course in Compuational Number Theory", with the
-    increment step moved around and slightly reindexed to allow clean
+    2.7.5 in "A Course in Computational Number Theory", with the
+    increment step moved around and slightly re-indexed to allow clean
     looping.
 
     Note: We could speed this up for very skew matrices by using LLL
@@ -221,7 +221,7 @@ def vectors_by_length(self, bound):
         if abs(Q_val_double -  Q_val) > 0.001:
             print " x = ", x
             print " Float = ", Q_val_double, "   Long = ", Q_val
-            raise RuntimeError, "The roundoff error is bigger than 0.001, so we should use more precision somehwere..."
+            raise RuntimeError, "The roundoff error is bigger than 0.001, so we should use more precision somewhere..."
 
         #print " Float = ", Q_val_double, "   Long = ", Q_val, "  XX "
         #print " The float value is ", Q_val_double

@@ -23,7 +23,7 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
     computations.
 
     The safe_flag allows us to select whether we want a copy of the
-    output, or the original output.  It is only meningful when a
+    output, or the original output.  It is only meaningful when a
     vector is returned, otherwise a copy is automatically made in
     creating the power series.  By default safe_flag = True, so we
     return a copy of the cached information.  If this is set to False,
@@ -54,7 +54,7 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
         raise TypeError, "Oops!  Max is not an integer >= 0 or an allowed string."
 
     if Max == 'mod_form':
-        raise NotImplementedError, "Oops!  We have to figure out the correect number of Fourier coefficients to use..."
+        raise NotImplementedError, "Oops!  We have to figure out the correct number of Fourier coefficients to use..."
         #return self.theta_by_pari(sturm_bound(self.level(), self.dim() / ZZ(2)) + 1, var_str, safe_flag)
     else:
         return self.theta_by_pari(M, var_str, safe_flag)
@@ -73,7 +73,7 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
     number of vectors of length i.
 
     The safe_flag allows us to select whether we want a copy of the
-    output, or the original output.  It is only meningful when a
+    output, or the original output.  It is only meaningful when a
     vector is returned, otherwise a copy is automatically made in
     creating the power series.  By default safe_flag = True, so we
     return a copy of the cached information.  If this is set to False,
@@ -130,7 +130,7 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
 
 def theta_by_cholesky(self, q_prec):
     """
-    Uses the real Choelesky decomposition to compute (the q-expansion
+    Uses the real Cholesky decomposition to compute (the q-expansion
     of) the theta function of the quadratic form as a power series in
     q with terms correct up to the power q ^ q_prec.  (So its error is
     O(q ^ (q_prec + 1)).)
@@ -187,8 +187,8 @@ def theta_by_cholesky(self, q_prec):
 
     ## 2. Compute bounds
     #Z = sqrt(T[i] / Q[i,i])      ## IMPORTANT NOTE: sqrt preserves the precision of the real number it's given... which is not so good... =|
-    #L[i] = floor(Z - U[i])       ## Note: This is a SAGE Integer
-    #x[i] = ceil(-Z - U[i]) - 1   ## Note: This is a SAGE Integer too
+    #L[i] = floor(Z - U[i])       ## Note: This is a Sage Integer
+    #x[i] = ceil(-Z - U[i]) - 1   ## Note: This is a Sage Integer too
 
 
     done_flag = False

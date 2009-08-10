@@ -16,7 +16,7 @@ from sage.misc.misc import verbose
 
 #/*!  \brief Computes the product of all local densities for comparison with independently computed Eisenstein coefficients.
 # *
-# *  \todo We fixed the generic factors to compensate for using tha matrix of 2Q, but we need to document this better! =)
+# *  \todo We fixed the generic factors to compensate for using the matrix of 2Q, but we need to document this better! =)
 # */
 
 #/////////////////////////////////////////////////////////////////

@@ -248,7 +248,7 @@ class BinaryQF(SageObject):
 
     def has_fundamental_discriminant(self):
         """
-        Checks if the discriminant D of this form is a fundamantal
+        Checks if the discriminant D of this form is a fundamental
         discriminant (i.e. D is the smallest element of its
         squareclass with D = 0 or 1 mod 4).
 

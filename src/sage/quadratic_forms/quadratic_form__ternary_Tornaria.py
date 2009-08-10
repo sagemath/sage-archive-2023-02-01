@@ -61,7 +61,7 @@ def disc(self):
 
 def content(self):
     """
-    Returns the GCD of the coefficients fo the quadratic form.
+    Returns the GCD of the coefficients of the quadratic form.
 
     Warning: Only works over Euclidean domains... probably just ZZ. =|
 
@@ -204,7 +204,7 @@ def reciprocal(self):
 
 def omega(self):
     """
-    This is the content of the adjont of the primitive associated quadratic form.
+    This is the content of the adjoint of the primitive associated quadratic form.
 
     Ref: See Dickson's "Studies in Number Theory".
 

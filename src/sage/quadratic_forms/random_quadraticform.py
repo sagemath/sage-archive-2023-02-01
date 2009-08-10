@@ -70,7 +70,7 @@ def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=
     ring R satisfying a list of boolean (i.e. True/False) conditions.
 
     The conditions c appearing in the list must be boolean functions
-    which can be called either as Q.c() or c(Q), where Q is the ranom
+    which can be called either as Q.c() or c(Q), where Q is the random
     quadratic form.
 
     The last (and optional) argument rand_arg_list is a list of at

@@ -51,7 +51,7 @@ def BezoutianQuadraticForm(f, g):
     Q = QuadraticForm(R, n)
 
     ## Set the coefficients of Bezoutian
-    bez_poly = (f(a) * g(b) - f(b) * g(a)) // (b - a)    ## Trucated (exact) division here
+    bez_poly = (f(a) * g(b) - f(b) * g(a)) // (b - a)    ## Truncated (exact) division here
     for i in range(n):
         for j in range(i, n):
             if i == j:

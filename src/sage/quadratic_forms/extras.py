@@ -40,11 +40,11 @@ def is_triangular_number(n):
     (I.e. determine if n = a*(a+1)/2 for some natural number a.)
     If so, return the number a, otherwise return False.
 
-    Note: As a convetion, n=0 is consigered triangular for the
+    Note: As a convention, n=0 is considered triangular for the
     number a=0 only (and not for a=-1).
 
     WARNING: Any non-zero value will return True, so this will test as
-    True iff n is truangular and not zero.  If n is zero, then this
+    True iff n is triangular and not zero.  If n is zero, then this
     will return the integer zero, which tests as False, so one must test
 
         if is_triangular_number(n) != False:
@@ -165,7 +165,7 @@ def extend_to_primitive(A_input):
     if D.det() < 0:
         D.rescale_row(n-1, -1)
 
-    ## Return the corrent information
+    ## Return the current information
     if  vec_output_flag:
         return D.rows()
     else:

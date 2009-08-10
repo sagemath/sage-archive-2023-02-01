@@ -32,7 +32,7 @@ from sage.quadratic_forms.quadratic_form__mass__Conway_Sloane_masses import \
 
 def shimura_mass__maximal(self,):
     """
-    Use Shimuras exact mass formula to compute the mass of a maximal
+    Use Shimura's exact mass formula to compute the mass of a maximal
     quadratic lattice. This works for any totally real number field,
     but has a small technical restriction when n is odd.
 

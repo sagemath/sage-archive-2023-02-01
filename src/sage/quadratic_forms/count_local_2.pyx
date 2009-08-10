@@ -20,7 +20,7 @@ def extract_sublist_indices(Biglist, Smalllist):
     Smalllist appearing in Biglist.  (Note that Smalllist may not be a
     sublist of Biglist.)
 
-    NOTE 1: This is an internal routine which deals with reindexing
+    NOTE 1: This is an internal routine which deals with re-indexing
     lists, and is not exported to the QuadraticForm namespace!
 
     NOTE 2: This should really by applied only when BigList has no
@@ -157,7 +157,7 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
 
 cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
     """
-    This cython routine is documented in its Python wrapper method
+    This Cython routine is documented in its Python wrapper method
     QuadraticForm.count_congruence_solutions_by_type().
     """
     cdef long n, i

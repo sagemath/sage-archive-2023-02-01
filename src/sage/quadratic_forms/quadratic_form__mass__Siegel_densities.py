@@ -1,6 +1,6 @@
 
 ######################################################################################################
-##  Computes the local masses (rep'n densitites of a form by itself) for a quadratic forms over ZZ
+##  Computes the local masses (rep'n densities of a form by itself) for a quadratic forms over ZZ
 ##      using the papers of Pall [PSPUM VIII (1965), pp95--105]  for p>2, and Watson [Mathematika
 ##      23, no. 1, (1976), pp 94--106] for p=2.  These formulas will also work for any local field
 ##          which is unramified at p=2.
@@ -216,7 +216,7 @@ def Watson_mass_at_2(self):
     s_min = min(scale_list)
     s_max = max(scale_list)
 
-    ## Step 1: Compute dictonaries of the diagonal block and 2x2 block for each scale
+    ## Step 1: Compute dictionaries of the diagonal block and 2x2 block for each scale
     diag_dict = dict((i, Null_Form)  for i in range(s_min-2, s_max + 4))     ## Initialize with the zero form
     dim2_dict = dict((i, Null_Form)  for i in range(s_min, s_max + 4))       ## Initialize with the zero form
     for (s,L) in Jordan_Blocks:
@@ -321,7 +321,7 @@ def Kitaoka_mass_at_2(self):
     s_min = min(scale_list)
     s_max = max(scale_list)
 
-    ## Step 1: Compute dictonaries of the diagonal block and 2x2 block for each scale
+    ## Step 1: Compute dictionaries of the diagonal block and 2x2 block for each scale
     diag_dict = dict((i, Null_Form)  for i in range(s_min-2, s_max + 4))     ## Initialize with the zero form
     dim2_dict = dict((i, Null_Form)  for i in range(s_min, s_max + 4))       ## Initialize with the zero form
     for (s,L) in Jordan_Blocks:

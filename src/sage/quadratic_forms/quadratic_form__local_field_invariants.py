@@ -222,7 +222,7 @@ def signature(self):
 def hasse_invariant(self, p):
     """
     Computes the Hasse invariant at a prime p, as given on p55 of
-    Cassels book.  If Q is diagonal with coefficeints a_i, then the
+    Cassels's book.  If Q is diagonal with coefficients a_i, then the
     (Cassels) Hasse invariant is given by
 
         c_p = \prod_{i < j} (a_i, a_j)_p
@@ -289,7 +289,7 @@ def hasse_invariant(self, p):
 def hasse_invariant__OMeara(self, p):
     """
     Computes the O'Meara Hasse invariant at a prime p, as given on
-    p167 of O'Meara's book.  If Q is diagonal with coefficeints a_i,
+    p167 of O'Meara's book.  If Q is diagonal with coefficients a_i,
     then the (Cassels) Hasse invariant is given by
 
         c_p = \prod_{i <= j} (a_i, a_j)_p

@@ -210,7 +210,7 @@ def conway_species_list_at_odd_prime(self, p):
 def conway_species_list_at_2(self):
     """
     Returns an integer called the 'species' which determines the type
-    of the orthoginal group over the finite field F_p.
+    of the orthogonal group over the finite field F_p.
 
     This assumes that the given quadratic form is a unimodular Jordan
     block at an odd prime p.  When the dimension is odd then this
@@ -423,7 +423,7 @@ def conway_diagonal_factor(self, p):
 
 def conway_cross_product_doubled_power(self, p):
     """
-    Computes twice the power of p which evalues the 'cross product'
+    Computes twice the power of p which evaluates the 'cross product'
     term in Conway's mass formula.
 
     INPUT:

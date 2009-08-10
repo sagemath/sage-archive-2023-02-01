@@ -130,7 +130,7 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
 
     INPUT:
         genus_symbol_quintuple_list -- a quintuple of integers (with certain
-        rectrictions).
+        restrictions).
 
     OUTPUT:
         boolean
@@ -192,7 +192,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
     INPUT:
         genus_symbol_quintuple_list -- a quintuple of integers (with certain
-        rectrictions).
+        restrictions).
 
     OUTPUT:
         a list of lists of integers.
@@ -261,8 +261,8 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
     INPUT:
         genus_symbol_quintuple_list -- a quintuple of integers (with certain
-                             rectrictions).
-        compartments -- a list of lists of distict integers (optional)
+                             restrictions).
+        compartments -- a list of lists of distinct integers (optional)
 
     OUTPUT:
         a list of lists of distinct integers.
@@ -312,7 +312,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
     TO DO:
         - Add a non-trivial example in the doctest here!
     """
-    ## Recompte compartments if none are passed.
+    ## Recompute compartments if none are passed.
     if compartments == None:
         compartments = canonical_2_adic_compartments(genus_symbol_quintuple_list)
 
@@ -358,8 +358,8 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
     INPUT:
         genus_symbol_quintuple_list -- a quintuple of integers (with certain
-                             rectrictions).
-        compartments -- a list of lists of distict integers (optional)
+                             restrictions).
+        compartments -- a list of lists of distinct integers (optional)
 
     OUTPUT:
         a list of lists of distinct integers.
@@ -899,7 +899,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         WARNING/NOTE: This normalization seems non-standard, and we
         should review this entire class to make sure that we have our
-        doubling conventions strraight throughout!  This is especially
+        doubling conventions straight throughout!  This is especially
         noticeable in the determinant and excess methods!!
 
 
@@ -1040,7 +1040,7 @@ class Genus_Symbol_p_adic_ring(object):
 
     def canonical_symbol(self):
         """
-        Return (and cache) the canonial p-adic genus symbol.  This is
+        Return (and cache) the canonical p-adic genus symbol.  This is
         only really affects the 2-adic symbol, since when p > 2 the
         symbol is already canonical.
 
@@ -1286,7 +1286,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         WARNING/NOTE: This normalization seems non-standard, and we
         should review this entire class to make sure that we have our
-        doubling conventions strraight throughout!
+        doubling conventions straight throughout!
 
         REFERENCE:
             Conway and Sloane Book, 3rd edition, pp 370-371.
@@ -1380,7 +1380,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         ## Check that p = 2
         if self._prime != 2:
-            raise TypeError, "trains() only mkes sense when the prime of the p_adic_Genus_Symbol is p=2"
+            raise TypeError, "trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2"
         symbol = self._symbol
         compartments = canonical_2_adic_compartments(symbol)
         return canonical_2_adic_trains(symbol, compartments)
@@ -1412,7 +1412,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         ## Check that p = 2
         if self._prime != 2:
-            raise TypeError, "compartments() only mkes sense when the prime of the p_adic_Genus_Symbol is p=2"
+            raise TypeError, "compartments() only makes sense when the prime of the p_adic_Genus_Symbol is p=2"
         symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
 
@@ -1571,7 +1571,7 @@ class GenusSymbol_global_ring(object):
         """
         Returns the signature pair (p, n) of the (non-degenerate)
         global genus symbol, where p is the number of positive
-        eigenvlaues and n is the number of negative eigenvalues.
+        eigenvalues and n is the number of negative eigenvalues.
 
         INPUT:
             None

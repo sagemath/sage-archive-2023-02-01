@@ -13,7 +13,7 @@ decide how elements print.  If you're annoyed that by this, fix things
 and post a patch!
 
 We represent M=V/W as a pair (V,W) with W contained in V, and we
-internally represent elements of M non-cannonically as elements x of
+internally represent elements of M non-canonically as elements x of
 V.  We also fix independent generators g[i] for M in V, and when we
 print out elements of V we print their coordinates with respect to the
 g[i]; over `\ZZ` this is canonical, since each coefficient is reduce
@@ -30,7 +30,7 @@ TECHNICAL NOTE: For efficiency, we introduce a notion of optimized
 representation for quotient modules.  The optimized representation of
 M=V/W is the quotient V'/W' where V' has as basis lifts of the
 generators g[i] for M.  We internally store a morphism from M0=V0/W0
-to M1=V1/W1 by giving a morphism from the optimized represention V0'
+to M1=V1/W1 by giving a morphism from the optimized representation V0'
 of M0 to V1 that sends W0 into W1.
 
 
@@ -115,7 +115,7 @@ the generator has order 2. ::
     sage: f = M0.hom([3*M1.0, 3*M1.0]); f
     Morphism from module over Integer Ring with invariants (4, 16) to module with invariants (6,) that sends the generators to [(3), (3)]
 
-We evaluate the homomorphsm on our element x of the domain, and on the
+We evaluate the homomorphism on our element x of the domain, and on the
 first generator of the domain.  We also evaluate at an element of V0,
 which is coerced into M0. ::
 
@@ -1513,7 +1513,7 @@ def test_morphism_0(*args, **kwds):
     EXAMPLES::
 
         sage: import sage.modules.fg_pid.fgp_module as fgp
-        sage: s = 0  # we set a seed so results clearly and easly reproducible across runs.
+        sage: s = 0  # we set a seed so results clearly and easily reproducible across runs.
         sage: set_random_seed(s); v = [fgp.test_morphism_0(1) for _ in range(30)]
         sage: set_random_seed(s); v = [fgp.test_morphism_0(2) for _ in range(30)]
         sage: set_random_seed(s); v = [fgp.test_morphism_0(3) for _ in range(10)]

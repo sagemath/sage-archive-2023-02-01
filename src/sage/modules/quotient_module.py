@@ -156,7 +156,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         If other is not a quotient of vector spaces, returns
         comparison of the underlying types.  If it is, return
-        comparsion of the pair (V,W) so that self is V/W for each of
+        comparison of the pair (V,W) so that self is V/W for each of
         self and other.
 
         EXAMPLES:
@@ -287,7 +287,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
     def lift(self, x):
         """
-        Lift element of this quotient V/W to V by applying the fixt lift homomorphism.
+        Lift element of this quotient V/W to V by applying the fixed lift homomorphism.
 
         The lift is a fixed homomorphism.
 

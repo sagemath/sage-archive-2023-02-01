@@ -1,5 +1,5 @@
 r"""
-Dense real double vectors using a numpy backend.
+Dense real double vectors using a NumPy backend.
 
 EXAMPLES:
     sage: v = vector(RDF,[1, pi, sqrt(2)])

@@ -1,5 +1,5 @@
 r"""
-Dense vectors using a numpy backend.  This serves as a base class for
+Dense vectors using a NumPy backend.  This serves as a base class for
 dense vectors over Real Double Field and Complex Double Field
 
 EXAMPLES:
@@ -28,7 +28,7 @@ AUTHORS:
 """
 
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -47,7 +47,7 @@ cimport numpy as cnumpy
 numpy = None
 scipy = None
 
-# This is for the Numpy C API to work
+# This is for the NumPy C API to work
 cnumpy.import_array()
 
 cdef class Vector_double_dense(free_module_element.FreeModuleElement):
@@ -105,7 +105,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
         EXAMPLE:
         In this example, we throw away the current array and make a
-        new unitialized array representing the data for the class.
+        new uninitialized array representing the data for the class.
             sage: a=vector(RDF, range(9))
             sage: a.__create_vector__()
         """
@@ -276,7 +276,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
         # We call the self._python_dtype function on the value since
         # numpy does not know how to deal with complex numbers other
-        # than the builtin complex number type.
+        # than the built-in complex number type.
         cdef int status
         status = cnumpy.PyArray_SETITEM(self._vector_numpy,
                         cnumpy.PyArray_GETPTR1(self._vector_numpy, i),

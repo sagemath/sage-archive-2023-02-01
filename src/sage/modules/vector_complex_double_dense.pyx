@@ -1,5 +1,5 @@
 r"""
-Dense complex double vectors using a numpy backend.
+Dense complex double vectors using a NumPy backend.
 
 EXAMPLES::
 
@@ -26,7 +26,7 @@ TESTS::
 
 AUTHORS:
 
-    -- Jason Grout, Oct 2008: switch to numpy backend, factored out
+    -- Jason Grout, Oct 2008: switch to NumPy backend, factored out
        Vector_double_dense class
 """
 

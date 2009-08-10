@@ -1,7 +1,7 @@
 r"""
 Free quadratic modules
 
-SAGE supports computation with free quadratic modules over an arbitrary
+Sage supports computation with free quadratic modules over an arbitrary
 commutative ring.  Nontrivial functionality is available over $\Z$ and
 fields.  All free modules over an integral domain are equipped with an
 embedding in an ambient vector space and an inner product, which you
@@ -67,10 +67,10 @@ AUTHORS:
 #
 #*****************************************************************************
 
-# python imports
+# Python imports
 import weakref
 
-# SAGE imports
+# Sage imports
 import free_module_element
 
 import module
@@ -677,7 +677,7 @@ class FreeQuadraticModule_generic_field(
         Return the free K-module with the given basis, where K
         is the base field of self.  Note that this span is
         a subspace of the ambient vector space, but need
-        not be a suspace of self.
+        not be a subspace of self.
 
         INPUT:
             basis -- list of vectors

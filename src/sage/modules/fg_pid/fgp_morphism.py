@@ -441,7 +441,7 @@ class FGP_Morphism(Morphism):
             raise ValueError, "no lift of element to domain"
 
         # Write back in terms of rows of B, and delete rows not corresponding to A,
-        # since those coresponding to relations
+        # since those corresponding to relations
         v = (z*U)[:A.nrows()]
 
         # Take the linear combination that v defines.

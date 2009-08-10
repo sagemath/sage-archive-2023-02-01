@@ -217,7 +217,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     passed to vector. The result will be a vector in the appropriate
     dimensional vector space over the real double field or the complex
     double field. The data in the array must be contiguous so
-    columnwise slices of numpy matrices will raise an exception.
+    column-wise slices of numpy matrices will raise an exception.
 
     ::
 
@@ -387,7 +387,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __hash__(self):
         if self._is_mutable:
-            raise TypeError, "mutable vectors are unhasheable"
+            raise TypeError, "mutable vectors are unhashable"
         return hash(tuple(self))
 
     def _vector_(self, R=None):

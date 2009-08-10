@@ -137,7 +137,7 @@ AUTHORS:
 - David Kohel (2007, 2008)
 """
 
-####################################################################################
+###########################################################################
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007, 2008 David Kohel <kohel@iml.univ-mrs.fr>
 #
@@ -151,13 +151,13 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-####################################################################################
+###########################################################################
 
 # python imports
 import weakref
 
 
-# SAGE imports
+# Sage imports
 import free_module_element
 
 import module
@@ -1283,7 +1283,7 @@ class FreeModule_generic(module.Module):
 
     def coordinate_module(self, V):
         r"""
-        Suppose V is a submodule of self (or a module comeasurable with
+        Suppose V is a submodule of self (or a module commensurable with
         self), and that self is a free module over `R` of rank
         `n`. Let `\phi` be the map from self to
         `R^n` that sends the basis vectors of self in order to the
@@ -3111,7 +3111,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         field of self or user specified base_ring.
 
         Note that this span is a subspace of the ambient vector space, but
-        need not be a suspace of self.
+        need not be a subspace of self.
 
         INPUT:
 
@@ -4999,7 +4999,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _user_to_rref_matrix(self):
         """
-        Returns a transformation matrix from the user specifed basis to row
+        Returns a transformation matrix from the user specified basis to row
         reduced echelon form, for this module over a PID.
 
         Note: For internal use only! See user_to_echelon_matrix.
@@ -5032,7 +5032,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     def _rref_to_user_matrix(self):
         """
         Returns a transformation matrix from row reduced echelon form to
-        the user specifed basis, for this module over a PID.
+        the user specified basis, for this module over a PID.
 
         Note: For internal use only! See user_to_echelon_matrix.
 

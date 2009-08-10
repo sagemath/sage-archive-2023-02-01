@@ -3,7 +3,7 @@ Work with WAV files.
 
 A WAV file is a header specifying format information, followed by a
 sequence of bytes, representing the state of some audio signal over a
-lenght of time.
+length of time.
 
 A WAV file may have any number of channels. Typically, they have 1
 (mono) or 2 (for stereo). The data of a WAV file is given as a
@@ -91,12 +91,12 @@ class Wave(SageObject):
 
     def save(self, filename='sage.wav'):
         r"""
-        Save this wave file to disk, either as a SAGE sobj or as a .wav file.
+        Save this wave file to disk, either as a Sage sobj or as a .wav file.
 
         INPUT:
             filename -- the path of the file to save. If filename ends
                         with 'wav', then save as a wave file,
-                        otherwise, save a SAGE object.
+                        otherwise, save a Sage object.
 
             If no input is given, save the file as 'sage.wav'.
 
@@ -326,8 +326,8 @@ class Wave(SageObject):
             stop -- the time index from which to end the slice (in seconds)
 
         OUTPUT:
-            A Wave object whose data is this objects's data,
-            sliced between the given time idices
+            A Wave object whose data is this object's data,
+            sliced between the given time indices
         """
         start = int(start*self.getframerate())
         stop = int(stop*self.getframerate())

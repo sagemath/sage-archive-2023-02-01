@@ -3,7 +3,7 @@ Base classes for 3D Graphics objects and plotting.
 
 AUTHORS:
 
-- Robert Bradshaw (2007-02): inital version
+- Robert Bradshaw (2007-02): initial version
 
 - Robert Bradshaw (2007-08): Cythonization, much optimization
 
@@ -197,7 +197,7 @@ cdef class Graphics3d(SageObject):
     def _safe_bounding_box(self):
         """
         Returns a bounding box but where no side length is 0. This is used
-        to avoid zero-divison errors for pathological plots.
+        to avoid zero-division errors for pathological plots.
 
         EXAMPLES::
 
@@ -483,7 +483,7 @@ cdef class Graphics3d(SageObject):
         """
 
         render_params = self.default_render_params()
-        # switch from LH to RH coords to be consistant with java rendition
+        # switch from LH to RH coords to be consistent with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
         return """
 begin_scene
@@ -930,7 +930,7 @@ end_scene""" % (
         -  ``frame`` - (default: True) if True, draw a
            bounding frame with labels
 
-        -  ``axes`` - (deault: False) if True, draw coordinate
+        -  ``axes`` - (default: False) if True, draw coordinate
            axes
 
 

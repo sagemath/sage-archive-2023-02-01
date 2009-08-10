@@ -93,7 +93,7 @@ class Text(GraphicPrimitive):
             'The layer level in which to draw'
         """
         return {'fontsize': 'How big the text is.',
-                'rgbcolor':'The color as an rgb tuple.',
+                'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',

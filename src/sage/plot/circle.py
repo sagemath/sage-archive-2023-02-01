@@ -105,14 +105,14 @@ class Circle(GraphicPrimitive):
             sage: p[0]._allowed_options()['alpha']
             'How transparent the figure is.'
             sage: p[0]._allowed_options()['facecolor']
-            '2D only: The color of the face as an rgb tuple.'
+            '2D only: The color of the face as an RGB tuple.'
         """
         return {'alpha':'How transparent the figure is.',
                 'fill': 'Whether or not to fill the circle.',
                 'thickness':'How thick the border of the circle is.',
-                'edgecolor':'2D only: The color of the edge as an rgb tuple.',
-                'facecolor':'2D only: The color of the face as an rgb tuple.',
-                'rgbcolor':'The color (edge and face) as an rgb tuple.',
+                'edgecolor':'2D only: The color of the edge as an RGB tuple.',
+                'facecolor':'2D only: The color of the face as an RGB tuple.',
+                'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
                 'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}

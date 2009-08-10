@@ -102,7 +102,7 @@ class TriangleFactory:
 class TrianglePlot:
     #Recursively plots a function of two variables by building squares of 4 triangles, checking at
     # every stage whether or not each square should be split into four more squares.  This way,
-    # more planar areas get fewer triangles, and areas with higher curvature get more trianges
+    # more planar areas get fewer triangles, and areas with higher curvature get more triangles
 
     def str(self):
         return "".join([o.str() for o in self._objects])
@@ -198,7 +198,7 @@ class TrianglePlot:
                 #so we're guaranteed to have a positive value near 1 when neighboring
                 #triangles are parallel
                 #However -- crossunit doesn't really return a unit vector.  It returns
-                #the length of the vector to avoid numerical instablility when the
+                #the length of the vector to avoid numerical instability when the
                 #length is nearly zero -- rather than divide by nearly zero, we multiply
                 #the other side of the inequality by nearly zero -- in general, this
                 #should work a bit better because of the density of floating-point

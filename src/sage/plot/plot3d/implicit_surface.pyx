@@ -406,7 +406,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
 
         # This means we need to queue up slices and process them
         # in a somewhat strange order.  This function only does
-        # the queueing, and then passes all the real work off to
+        # the queuing, and then passes all the real work off to
         # other functions.
 
         self.slices = ([slice] + self.slices)[:4]

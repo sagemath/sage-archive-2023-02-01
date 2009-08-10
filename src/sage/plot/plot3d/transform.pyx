@@ -175,7 +175,7 @@ def rotate_arbitrary(v, double theta):
 
     ALGORITHM:
         There is a formula. Where did it come from? Lets take
-        a quick jaunt into SAGE's calculus package...
+        a quick jaunt into Sage's calculus package...
 
         Setup some variables
             sage: vx,vy,vz,theta = var('x y z theta')
@@ -186,7 +186,7 @@ def rotate_arbitrary(v, double theta):
             sage: def rotZ(theta): return matrix(SR, 3, 3, [cos(theta), -sin(theta), 0,  sin(theta), cos(theta), 0, 0, 0, 1])
 
         Normalizing $y$ so that $|v|=1$. Perhaps there is a better
-        way to tell maxima that $x^2+y^2+z^2=1$ which would make for
+        way to tell Maxima that $x^2+y^2+z^2=1$ which would make for
         a much cleaner calculation.
             sage: vy = sqrt(1-vx^2-vz^2)
 
@@ -203,7 +203,7 @@ def rotate_arbitrary(v, double theta):
         about the $x$-axis in the new.
             sage: m = rotX(theta) * m
 
-        Do some simplfying here to avoid blow-up.
+        Do some simplifying here to avoid blow-up.
             sage: m = m.simplify_rational()
 
         Now go back to the original coordinate system.

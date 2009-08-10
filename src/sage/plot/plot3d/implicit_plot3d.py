@@ -108,7 +108,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         sage: implicit_plot3d((x^2+y^2+z^2+2*y-1)*((x^2+y^2+z^2-2*y-1)^2-8*z^2)+16*x*z*(x^2+y^2+z^2-2*y-1), (x, -3, 3), (y, -3.1, 3.1), (z, -4, 4))
 
-    A leminescate::
+    A lemniscate::
 
         sage: implicit_plot3d(4*x^2*(x^2+y^2+z^2+z)+y^2*(y^2+z^2-1), (x, -0.5, 0.5), (y, -1, 1), (z, -1, 1))
 

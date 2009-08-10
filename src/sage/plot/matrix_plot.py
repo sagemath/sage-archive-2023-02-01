@@ -215,7 +215,7 @@ def matrix_plot(mat, **options):
 
         sage: matrix_plot([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
 
-    As does plotting of numpy arrays::
+    As does plotting of NumPy arrays::
 
         sage: import numpy
         sage: matrix_plot(numpy.random.rand(10, 10))

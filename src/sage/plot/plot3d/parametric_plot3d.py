@@ -72,7 +72,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
        #. Currently for a surface `f_x`, `f_y`, and
           `f_z` have to be defined everywhere. This will change.
 
-       #. mesh and dots are not supported when using the Tachyon raytracer
+       #. mesh and dots are not supported when using the Tachyon ray tracer
           renderer.
 
 
@@ -363,7 +363,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: u,v = var("u,v")
         sage: parametric_plot3d([cos(u)*(1+v*cos(u/2)), sin(u)*(1+v*cos(u/2)), 0.2*v*sin(u/2)], (u,0, 4*pi+0.5), (v,0, 0.3),plot_points=[50,50])
 
-    A Twisted Ribon
+    A Twisted Ribbon
 
     ::
 

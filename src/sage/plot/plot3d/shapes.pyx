@@ -2,7 +2,7 @@
 Basic objects such as Sphere, Box, Cone, etc.
 
 AUTHORS:
-    -- Robert Bradshaw 2007-02: inital version
+    -- Robert Bradshaw 2007-02: initial version
     -- Robert Bradshaw 2007-08: obj/tachon rendering, much updating
     -- Robert Bradshaw 2007-08: cythonization
 
@@ -787,7 +787,7 @@ class Text(PrimitiveObject):
     EXAMPLES::
 
         sage: from sage.plot.plot3d.shapes import Text
-        sage: Text("Just a lonely lable.")
+        sage: Text("Just a lonely label.")
         sage: pts = [(RealField(10)^3).random_element() for k in range(20)]
         sage: sum(Text(str(P)).translate(P) for P in pts)
 

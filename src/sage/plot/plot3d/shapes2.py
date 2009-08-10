@@ -137,7 +137,7 @@ def bezier3d(path, **options):
 
     path = [[p1, c1, c2, p2], [c3, c4, p3], [c5, p4], [p5], ...]
 
-    In the case of no control points, a striaght line will be drawn
+    In the case of no control points, a straight line will be drawn
     between the two endpoints.  If one control point is supplied, then
     the curve at each of the endpoints will be tangent to the line from
     that endpoint to the control point.  Similarly, in the case of two
@@ -204,7 +204,7 @@ def polygon3d(points, **options):
 
     EXAMPLES:
 
-    A simple trangle::
+    A simple triangle::
 
         sage: polygon3d([[0,0,0], [1,2,3], [3,0,0]])
 

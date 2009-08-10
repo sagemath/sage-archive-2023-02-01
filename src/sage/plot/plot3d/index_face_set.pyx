@@ -3,7 +3,7 @@ Graphics3D object that consists of a list of polygons, also used for
 triangulations of other objects.
 
 AUTHORS:
-    -- Robert Bradshaw (2007-08-26): inital version
+    -- Robert Bradshaw (2007-08-26): initial version
     -- Robert Bradshaw (2007-08-28): significant optimizations
 
 TODO:
@@ -278,7 +278,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
             threshold -- the minimum cosine of the angle between adjacent faces
-                         a higher threshold seperates more, all faces if >= 1,
+                         a higher threshold separates more, all faces if >= 1,
                          no faces if <= -1
         """
         cdef Py_ssize_t i, j, k
@@ -727,7 +727,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
             colors  - list of colors/textures to use (in cyclic order)
-            width   - offset perpendicular into the edge (to creat a border)
+            width   - offset perpendicular into the edge (to create a border)
                       may also be negative
             hover   - offset normal to the face (usually have to float above
                       the original surface so it shows, typically this value

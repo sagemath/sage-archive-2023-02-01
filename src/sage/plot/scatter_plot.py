@@ -74,13 +74,13 @@ class ScatterPlot(GraphicPrimitive):
              ('hue', 'The color given as a hue.'),
              ('marker', 'What shape to plot the points.'),
              ('markersize', 'the size of the markers.'),
-             ('rgbcolor', 'The color as an rgb tuple.'),
+             ('rgbcolor', 'The color as an RGB tuple.'),
              ('zorder', 'The layer level in which to draw.')]
         """
         return {'markersize': 'the size of the markers.',
                 'marker': 'What shape to plot the points.',
                 'alpha':'How transparent the marker border is.',
-                'rgbcolor':'The color as an rgb tuple.',
+                'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'facecolor':'The color of the marker face.',
                 'edgecolor':'The color of the marker border.',

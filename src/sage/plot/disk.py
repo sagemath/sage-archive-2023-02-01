@@ -120,7 +120,7 @@ class Disk(GraphicPrimitive):
         return {'alpha':'How transparent the figure is.',
                 'fill': 'Whether or not to fill the disk.',
                 'thickness':'How thick the border of the disk is.',
-                'rgbcolor':'The color as an rgb tuple.',
+                'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'The layer level in which to draw'}
 
@@ -240,7 +240,7 @@ def disk(point, radius, angle, **options):
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
         sage: bl.show(aspect_ratio=1)
 
-    You can also acheive the same aspect ratio by specifying a ``figsize``
+    You can also achieve the same aspect ratio by specifying a ``figsize``
     with square dimensions::
 
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))

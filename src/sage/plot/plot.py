@@ -240,7 +240,7 @@ AUTHORS:
 
 - Alex Clemesha (2006-05-04) major update
 
-- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server
+- William Stein (2006-05-29): fine tuning, bug fixes, better server
   integration
 
 - William Stein (2006-07-01): misc polish
@@ -272,7 +272,7 @@ import types
 from sage.structure.sage_object import SageObject
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
-## surprisingliy long time to initialize itself.  It's better if it is
+## surprisingly long time to initialize itself.  It's better if it is
 ## imported in functions, so it only gets started if it is actually
 ## going to be used.
 
@@ -369,7 +369,7 @@ def is_Graphics(x):
 class Graphics(SageObject):
     """
     The Graphics object is an empty list of graphics objects It is
-    useful to use this object when intializing a for loop where
+    useful to use this object when initializing a for loop where
     different graphics object will be added to the empty object.
 
     EXAMPLES::
@@ -624,7 +624,7 @@ class Graphics(SageObject):
         INPUT:
 
 
-        -  ``c`` - an rgb color 3-tuple, where each tuple entry
+        -  ``c`` - an RGB color 3-tuple, where each tuple entry
            is a float between 0 and 1
 
 
@@ -715,7 +715,7 @@ class Graphics(SageObject):
         INPUT:
 
 
-        -  ``c`` - an rgb 3-tuple of numbers between 0 and 1
+        -  ``c`` - an RGB 3-tuple of numbers between 0 and 1
 
 
         If called with no input, return the current axes_label_color
@@ -802,7 +802,7 @@ class Graphics(SageObject):
         INPUT:
 
 
-        -  ``c`` - an rgb 3-tuple of numbers between 0 and 1
+        -  ``c`` - an RGB 3-tuple of numbers between 0 and 1
 
 
         If called with no input, return the current tick_label_color
@@ -1221,7 +1221,7 @@ class Graphics(SageObject):
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        To correct the apect ratio of certain graphics, it is necessary to
+        To correct the aspect ratio of certain graphics, it is necessary to
         show with a '``figsize``' of square dimensions.
 
         ::
@@ -1510,7 +1510,7 @@ class Graphics(SageObject):
             sage: c = circle((1,1),1,rgbcolor=(1,0,0))
             sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
-        To correct the apect ratio of certain graphics, it is necessary to
+        To correct the aspect ratio of certain graphics, it is necessary to
         show with a '``figsize``' of square dimensions.
 
         ::
@@ -1663,7 +1663,7 @@ class Graphics(SageObject):
 
         # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
         # matplotlib looks at the file extension to see what the renderer should be.
-        # The default is FigureCanvasAgg for png's because this is by far the most
+        # The default is FigureCanvasAgg for PNG's because this is by far the most
         # common type of files rendered, like in the Notebook for example.
         # if the file extension is not '.png', then matplotlib will handle it.
         if savenow:
@@ -1754,7 +1754,7 @@ def plot(funcs, *args, **kwds):
 
     - ``xmax`` - ending x value
 
-    - ``color`` - an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1,
+    - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
       such as '#aaff0b'.
 
@@ -1773,7 +1773,7 @@ def plot(funcs, *args, **kwds):
 
     - ``thickness`` - How thick the line is
 
-    - ``rgbcolor`` - The color as an rgb tuple
+    - ``rgbcolor`` - The color as an RGB tuple
 
     - ``hue`` - The color given as a hue
 
@@ -1813,7 +1813,7 @@ def plot(funcs, *args, **kwds):
 
       - a function g: Fill the area between the function that is plotted and g.
 
-      - a dictonary d (only if a list of functions are plotted):
+      - a dictionary d (only if a list of functions are plotted):
         The keys of the dictionary should be integers.
         The value of d[i] specifies the fill options for the i-th function in the list.
         If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
@@ -3024,7 +3024,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     OUTPUT:
 
-    - a list of points (x, f(x)) in the interval xrange, which aproximate
+    - a list of points (x, f(x)) in the interval xrange, which approximate
       the function f.
 
     TESTS::

@@ -64,11 +64,11 @@ class BarChart(GraphicPrimitive):
             sage: g = BarChart(range(4), [1,3,2,0], {})
             sage: list(sorted(g._allowed_options().iteritems()))
             [('hue', 'The color given as a hue.'),
-             ('rgbcolor', 'The color as an rgb tuple.'),
+             ('rgbcolor', 'The color as an RGB tuple.'),
              ('width', 'The width of the bars'),
              ('zorder', 'The layer level in which to draw')]
         """
-        return {'rgbcolor':'The color as an rgb tuple.',
+        return {'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'width':'The width of the bars',
                 'zorder':'The layer level in which to draw'}
@@ -101,7 +101,7 @@ class BarChart(GraphicPrimitive):
         options = self.options()
         color = options['rgbcolor']
         width = float(options['width'])
-        # it is critical to make numpy arrays of type float below,
+        # it is critical to make NumPy arrays of type float below,
         # or bar will go boom:
         import numpy
         ind = numpy.array(self.ind, dtype=float)
@@ -112,7 +112,7 @@ class BarChart(GraphicPrimitive):
 def bar_chart(datalist, **options):
     """
     A bar chart of (currently) one list of numerical data.
-    Support for more datalists in progress.
+    Support for more data lists in progress.
 
     EXAMPLES:
 

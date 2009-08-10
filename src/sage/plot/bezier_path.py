@@ -28,7 +28,7 @@ class BezierPath(GraphicPrimitive_xydata):
     """
     def __init__(self, path, options):
         """
-        Returns a graphics primitive of a path of bezier curves.
+        Returns a graphics primitive of a path of Bezier curves.
 
         EXAMPLES::
 
@@ -59,14 +59,14 @@ class BezierPath(GraphicPrimitive_xydata):
              ('fill', 'Whether or not to fill the polygon.'),
              ('linestyle',
               "The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."),
-             ('rgbcolor', 'The color as an rgb tuple.'),
+             ('rgbcolor', 'The color as an RGB tuple.'),
              ('thickness', 'How thick the border of the polygon is.'),
              ('zorder', 'The layer level in which to draw')]
         """
         return {'alpha':'How transparent the line is.',
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
-                'rgbcolor':'The color as an rgb tuple.',
+                'rgbcolor':'The color as an RGB tuple.',
                 'zorder':'The layer level in which to draw',
                 'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
 
@@ -190,7 +190,7 @@ def bezier_path(path, **options):
 
     path = [[p1, c1, c2, p2], [c3, c4, p3], [c5, p4], [p5], ...]
 
-    In the case of no control points, a striaght line will be drawn
+    In the case of no control points, a straight line will be drawn
     between the two endpoints.  If one control point is supplied, then
     the curve at each of the endpoints will be tangent to the line from
     that endpoint to the control point.  Similarly, in the case of two

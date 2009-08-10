@@ -3,7 +3,7 @@ from sage.server.notebook.applet import Applet
 sun_libs = ["libs/objtest.jar", "applet-launcher.jar", "j3dcore.jar", "j3dutils.jar", "vecmath.jar", "jogl.jar", "gluegen-rt.jar"]
 sun_params = { "codebase_lookup": "false",
                "subapplet.classname": "org.sagemath.sage3d.ObjectViewerApplet",
-               "subapplet.displayname": "SAGE Java 3D Viewer",
+               "subapplet.displayname": "Sage Java 3-D Viewer",
                "jnlpNumExtensions": 1,
                "jnlpExtension1": "/java/3d/sun-libs/java3d-latest.jnlp",
                "progressbar": "true",
@@ -20,3 +20,4 @@ class Java3DApplet(Applet):
                         archive = ["lib/sage3d.jar"] + ["sun-libs/" + lib for lib in sun_libs],
                         codebase = "3d",
                         params = sun_params)
+

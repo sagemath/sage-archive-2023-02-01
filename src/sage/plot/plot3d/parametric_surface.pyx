@@ -1,6 +1,6 @@
 """
 Graphics 3D object for triangulating surfaces, and a base class for many other objects
-that can be represented by a 2d paramaterization.
+that can be represented by a 2d parametrization.
 
 It takes great care to turn degenerate quadrilaterals into triangles and
 to propagate identified points to all attached polygons. This is not
@@ -9,7 +9,7 @@ systems to better understand the surface (and especially calculate correct
 surface normals).
 
 AUTHORS:
-    -- Robert Bradshaw (2007-08-26): inital version
+    -- Robert Bradshaw (2007-08-26): initial version
 
 EXAMPLES:
     sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
@@ -317,7 +317,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
             None     -- call self.eval_c() or self.eval()
                         (One of these is presumably overridden.)
-            tuple    -- split into fx, fy, fz and call each seperately
+            tuple    -- split into fx, fy, fz and call each separately
             callable -- call f(u,v)
 
         In addition, branches are taken for efficient calling of FastDoubleFunc

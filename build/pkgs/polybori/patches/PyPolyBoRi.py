@@ -4,12 +4,6 @@ from sage.rings.polynomial.pbori import *
 def global_ring():
     return get_cring()
 
-class PolynomialFactory:
-    def lead(self, x):
-        return x.lead()
-    def __call__(self, x=None):
-        return get_cring()._coerce_(x)
-
 Polynomial = PolynomialFactory()
 
 Monomial = lambda x = None: get_cring()._monom_monoid(x)

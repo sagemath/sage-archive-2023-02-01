@@ -3,7 +3,7 @@ Spaces of homomorphisms between modular abelian varieties.
 
 EXAMPLES:
 
-First, we consider J0(37). This jacobian has two simple factors,
+First, we consider J0(37). This Jacobian has two simple factors,
 corresponding to distinct newforms. These two intersect
 nontrivially in J0(37).
 
@@ -746,7 +746,7 @@ class EndomorphismSubring(Homspace, Ring):
         INPUT:
 
 
-        -  ``other`` - another endomorphism subgring of the
+        -  ``other`` - another endomorphism subring of the
            same abelian variety
 
         -  ``check`` - bool (default: True); whether to do some

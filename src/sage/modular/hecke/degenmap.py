@@ -3,7 +3,7 @@ Degeneracy maps
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -25,7 +25,7 @@ import homspace
 
 class DegeneracyMap(morphism.HeckeModuleMorphism_matrix):
     """
-    A degneracy map between Hecke modules of different levels.
+    A degeneracy map between Hecke modules of different levels.
 
     EXAMPLES:
     We construct a number of degeneracy maps::

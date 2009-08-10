@@ -529,7 +529,7 @@ class ArithmeticSubgroup(group.Group):
         NOTE: There is a generic algorithm implemented at the top level that
         uses the coset representatives of self. This is *very slow* and for all
         the standard congruence subgroups there is a quicker way of doing it,
-        so this should usually be overriden in subclasses; but it doesn't have
+        so this should usually be overridden in subclasses; but it doesn't have
         to be.
         """
         from sage.modular.cusps import Cusp

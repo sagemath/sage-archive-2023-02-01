@@ -145,7 +145,7 @@ class FiniteSubgroup(Module):
         """
         Return the lattice corresponding to this subgroup in the rational
         homology of the modular Jacobian product. The elements of the
-        subgroup are represented by vecotors in the ambient vector space
+        subgroup are represented by vectors in the ambient vector space
         (the rational homology), and this returns the lattice they span.
         EXAMPLES::
 

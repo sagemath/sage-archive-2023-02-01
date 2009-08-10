@@ -55,7 +55,7 @@ factor `x`.
 """
 
 ################################################################################
-#       SAGE: Open Source Mathematical Software
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -71,7 +71,7 @@ factor `x`.
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-# SAGE packages
+# Sage packages
 from   sage.misc.search import search
 import sage.misc.latex as latex
 import sage.misc.misc as misc
@@ -200,7 +200,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def new_submodule(self, p=None):
         r"""
-        Returns the new or `p`-new submodule of this moduluar symbols ambient space.
+        Returns the new or `p`-new submodule of this modular symbols ambient space.
 
         INPUT:
 
@@ -408,8 +408,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: type(M(0))
             <class 'sage.modular.modsym.element.ModularSymbolsElement'>
 
-        From a vector of the correct dimenstion we construct the
-        corresponding linear comination of the basis elements::
+        From a vector of the correct dimension we construct the
+        corresponding linear combination of the basis elements::
 
             sage: M.dimension()
             5
@@ -420,7 +420,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: M(vector([1/2,2/3,3/4,4/5,5/6]))
             1/2*(1,0) + 2/3*(1,23) + 3/4*(1,32) + 4/5*(1,34) + 5/6*(1,35)
 
-        Manin symbols can be converted to elments of the space::
+        Manin symbols can be converted to elements of the space::
 
             sage: from sage.modular.modsym.manin_symbols import ManinSymbol
             sage: ManinSymbol(M.manin_symbols(),(0,2,3))
@@ -628,7 +628,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
                 ## method 1: write out solution. this is currently
                 ## incorrect, because it ends up doing 0^0 in the sum,
-                ## so i'll fix it and do timings soon.
+                ## so I'll fix it and do timings soon.
 ##                for s in range(0,self.weight()-two+1):
 ##                    coeff = sum([ binomial(i,t)*binomial(self.weight()-two-i,s-t)*
 ##                                  x**t * y**(i-t) * z**(s-t) *
@@ -674,7 +674,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
           whether the input ``x`` needs processing: use check=False
           for efficiency if the input ``x`` is a list of length 3 whose
           first entry is an Integer, and whose second and third
-          entries are Cusps (se examples).
+          entries are Cusps (see examples).
 
         OUTPUT:
 
@@ -2422,7 +2422,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
     def _cuspidal_new_submodule_dimension_formula(self):
         r"""
-        Return the dimension of the new cuspidal subsapce, via the formula.
+        Return the dimension of the new cuspidal subspace, via the formula.
 
         EXAMPLES:
 
@@ -2657,7 +2657,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
 
     def _cuspidal_new_submodule_dimension_formula(self):
         r"""
-        Return the dimension of the new cuspidal subsapce, via the formula.
+        Return the dimension of the new cuspidal subspace, via the formula.
 
         EXAMPLES:
 
@@ -2751,7 +2751,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
 
     def boundary_space(self):
         r"""
-        Return the space of boundary mdular symbols for this space.
+        Return the space of boundary modular symbols for this space.
 
         EXAMPLES::
 
@@ -2968,7 +2968,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
     def _cuspidal_new_submodule_dimension_formula(self):
         r"""
-        Return the dimension of the new cuspidal subsapce, via the formula.
+        Return the dimension of the new cuspidal subspace, via the formula.
 
         EXAMPLES:
 
@@ -3057,7 +3057,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
     def boundary_space(self):
         r"""
-        Return the space of boundary mdular symbols for this space.
+        Return the space of boundary modular symbols for this space.
 
         EXAMPLES::
 
@@ -3455,7 +3455,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
     def _degeneracy_raising_matrix_1(self, level):
         r"""
-        Return the matrix of the degeneray raising map to level ``level``.
+        Return the matrix of the degeneracy raising map to level ``level``.
 
         INPUT:
 

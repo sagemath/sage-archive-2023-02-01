@@ -232,7 +232,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
     @cached_method
     def __eval_at_minus_one(self):
         r"""
-        Efficiently evalute the character at -1 using knowledge of its
+        Efficiently evaluate the character at -1 using knowledge of its
         order. This is potentially much more efficient than computing the
         value of -1 directly using dlog and a large power of the image root
         of unity.
@@ -627,7 +627,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         p = F[0][0]
         # When p is odd, and x =/= 1, the conductor is the smallest p**r such that
         #   Order(x) divides EulerPhi(p**r) = p**(r-1)*(p-1).
-        # For a given r, whether or not the above divisiblity holds
+        # For a given r, whether or not the above divisibility holds
         # depends only on the factor of p**(r-1) on the right hand side.
         # Since p-1 is coprime to p, this smallest r such that the
         # divisibility holds equals Valuation(Order(x),p)+1.
@@ -833,7 +833,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         INPUT:
 
 
-        - ``prec`` - integer (deafault: 53), *bits* of precision
+        - ``prec`` - integer (default: 53), *bits* of precision
 
         - ``a`` - integer, as for gauss_sum.
 

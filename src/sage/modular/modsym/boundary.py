@@ -78,7 +78,7 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -100,7 +100,7 @@ __doc_exclude = ['repr_lincomb', 'QQ']
 import operator
 import weakref
 
-# SAGE imports
+# Sage imports
 from   sage.misc.misc import repr_lincomb
 
 import sage.modules.free_module as free_module
@@ -415,7 +415,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
 
     def character(self):
         """
-        Return the Dirichlet character assocaited to this space of boundary
+        Return the Dirichlet character associated to this space of boundary
         modular symbols.
 
         EXAMPLES::

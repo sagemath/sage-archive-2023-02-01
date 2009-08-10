@@ -207,7 +207,7 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
     - ``maxweight`` -- integer
     - ``prec`` -- integer (default: twice largest dimension)
     - ``start_gens`` -- list of pairs (k,f) where k is an integer and f is a
-      power seris (default: []); if given, we assume the given pairs (k,f) are
+      power series (default: []); if given, we assume the given pairs (k,f) are
       q-expansions of modular form of the given weight, and start creating
       modular forms generators using them.
     - ``start_weight`` -- an integer (default: 2)
@@ -277,12 +277,12 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
         F = multiply_forms_to_weight(G, k)
         verbose('Already know %s forms of weight %s' % (len(F), k))
         # 2. If the dimension of the span of the result is equal
-        #    to the dimension of M, incremenent k.
+        #    to the dimension of M, increment k.
         gens = [f for _, f in F]
         S = span_of_series(gens, prec=prec, basis=False)
         if S.dimension() < len(gens):
             if not already_reported_indep:
-                verbose("Generators are not indepenent (already at weight %s)"%k)
+                verbose("Generators are not independent (already at weight %s)"%k)
                 already_reported_indep = True
         assert S.dimension() <= M.dimension(), "there is a bug in the code for finding generators of modular forms spaces"
         if S.dimension() == M.dimension():

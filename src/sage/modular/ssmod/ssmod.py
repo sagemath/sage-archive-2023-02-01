@@ -504,7 +504,7 @@ def supersingular_D(prime):
     This function returns a fundamental discriminant `D` of an
     imaginary quadratic field, where the given prime does not split
     (see Silverman's Advanced Topics in the Arithmetic of Elliptic
-    Curves, page 184, exercie 2.30(d).)
+    Curves, page 184, exercise 2.30(d).)
 
     INPUT:
 
@@ -779,7 +779,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
         OUTPUT:
 
-        - integer -- charateristic, positive
+        - integer -- characteristic, positive
 
         EXAMPLES::
 
@@ -1045,7 +1045,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
             # As an optimization, we compute the coefficients of y and evaluate
             # them, since univariate polynomial evaluation is much faster than
-            # multivariate evaluation (in SAGE :-( ).
+            # multivariate evaluation (in Sage :-( ).
             uni_coeff = [phi_L(x,0).univariate_polynomial()] + \
                               [phi_L.coefficient(y**i).univariate_polynomial() for
                                           i in range(1,phi_L.degree(y)+1)]

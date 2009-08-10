@@ -67,7 +67,7 @@ TESTS::
 import math
 import weakref
 
-# SAGE packages
+# Sage packages
 import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.misc.db as db

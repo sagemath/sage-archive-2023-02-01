@@ -71,7 +71,7 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
 
     if prec is None:
         if is_ModularFormElement(f):
-            # always want at least three coeffs, but not too many, unless
+            # always want at least three coefficients, but not too many, unless
             # requested
             pr = max(f.prec(), f.parent().prec(), (n+1)*3)
             pr = min(pr, 100*(n+1))
@@ -107,7 +107,7 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
         [   -3348        0]
         [       0 14348908]
 
-    The following used to cause a segfault due to acidentally
+    The following used to cause a segfault due to accidentally
     transposed second and third argument (#2107)::
 
         sage: B = victor_miller_basis(100,30)

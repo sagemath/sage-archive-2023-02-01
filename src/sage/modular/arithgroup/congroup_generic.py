@@ -281,7 +281,7 @@ class CongruenceSubgroup(ArithmeticSubgroup):
         character, as one sees by taking a power of `f`. More
         precisely, if `f \cong 0 \pmod{p}` for first
         `s` coefficients, then `f^r \cong 0 \pmod{p}` for
-        first `sr` coefficents. Since the weight of `f^r`
+        first `sr` coefficients. Since the weight of `f^r`
         is `r\cdot k(f)`, it follows that if
         `s \geq b`, where `b` is the Sturm bound for
         `\Gamma_0(N)` at weight `k(f)`, then `f^r`

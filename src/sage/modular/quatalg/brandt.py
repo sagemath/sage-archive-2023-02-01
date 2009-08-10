@@ -16,7 +16,7 @@ AUTHORS:
 Introduction
 ============
 
-This tutorial outlines the construction of Brandt modules in SAGE. The
+This tutorial outlines the construction of Brandt modules in Sage. The
 importance of this construction is that it provides us with a method
 to compute modular forms on `\Gamma_0(N)` as outlined in Pizer's paper
 [Pi]. In fact there exists a non-canonical Hecke algebra isomorphism
@@ -196,7 +196,7 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 """
 
 ################################################################################
-#       SAGE: Open Source Mathematical Software
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
@@ -1379,7 +1379,7 @@ def benchmark_magma(levels, silent=False):
     """
     INPUT:
         - levels -- list of pairs (p,M) where p is a prime not dividing M
-        - silent -- bool, default False; if True surpress printing during computation
+        - silent -- bool, default False; if True suppress printing during computation
 
     OUTPUT:
         - list of 4-tuples ('magma', p, M, tm), where tm is the
@@ -1413,7 +1413,7 @@ def benchmark_sage(levels, silent=False):
     """
     INPUT:
         - levels -- list of pairs (p,M) where p is a prime not dividing M
-        - silent -- bool, default False; if True surpress printing during computation
+        - silent -- bool, default False; if True suppress printing during computation
 
     OUTPUT:
         - list of 4-tuples ('sage', p, M, tm), where tm is the

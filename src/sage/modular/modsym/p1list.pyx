@@ -1082,7 +1082,7 @@ cdef class P1List:
 
     def list(self):
         r"""
-        Returns the underlyng list of this P1List object.
+        Returns the underlying list of this P1List object.
 
         EXAMPLES::
 

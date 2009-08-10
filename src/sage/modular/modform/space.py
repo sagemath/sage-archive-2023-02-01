@@ -1272,7 +1272,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if prec is None:
             # Initial guess -- will increase if need be.
             # We add on a few dimensions, so we are likely to
-            # detect non-invariant subspaces (if they accidently occur).
+            # detect non-invariant subspaces (if they accidentally occur).
             prec = p*self.dimension() + 8
         try:
             cur, _ = self.__q_expansion_basis
@@ -1428,7 +1428,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         the above bound is fine for Gamma1 with character, as one sees by
         taking a power of `f`. More precisely, if
         `f\cong 0\pmod{p}` for first `s` coefficients, then
-        `f^r = 0 \pmod{p}` for first `s r` coefficents.
+        `f^r = 0 \pmod{p}` for first `s r` coefficients.
         Since the weight of `f^r` is
         `r \text{weight}(f)`, it follows that if
         `s \geq` the sturm bound for `\Gamma_0` at

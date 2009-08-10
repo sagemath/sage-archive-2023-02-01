@@ -1021,7 +1021,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         EXAMPLES:
 
-        We commpute with the L-series of the Eisenstein series `E_4`::
+        We compute with the L-series of the Eisenstein series `E_4`::
 
            sage: f = ModularForms(1,4).0
            sage: L = f.modform_lseries()

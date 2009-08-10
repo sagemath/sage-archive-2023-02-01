@@ -6,7 +6,7 @@ abstract base class.
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -1070,7 +1070,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         congruence number, using prec terms of the `q`-expansions.
 
         The congruence number is defined as follows. If `V` is the
-        submodule of integral cusp forms corresponding to self (satured in
+        submodule of integral cusp forms corresponding to self (saturated in
         `\ZZ[[q]]`, by definition) and `W` is the
         submodule corresponding to other, each computed to precision prec,
         the congruence number is the index of `V+W` in its

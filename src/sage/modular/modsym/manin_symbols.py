@@ -14,7 +14,7 @@ Integer matrices `[a,b;c,d]` act on Manin Symbols on the right,
 sending `[P(X,Y),(u,v)]` to `[P(aX+bY,cX+dY),(u,v)g]`.  Diagonal
 matrices (with `b=c=0`, such as `I=[-1,0;0,1]` and `J=[-1,0;0,-1]`)
 and anti-diagonal matrices (with `a=d=0`, such as `S=[0,-1;1,0]`) map
-monomiai Manin Symbols to monomial Manin Symbols, up to a scalar
+monomial Manin Symbols to monomial Manin Symbols, up to a scalar
 factor.  For general matrices (such as `T=[0,1,-1,-1]` and
 `T^2=[-1,-1;0,1]`) the image of a monomial Manin Symbol is expressed
 as a formal sum of monomial Manin Symbols, with integer coefficients.
@@ -36,7 +36,7 @@ different types.  The hierarchy is as follows:
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -1221,7 +1221,7 @@ class ManinSymbolList_character(ManinSymbolList):
     def normalize(self, x):
         """
         Returns the normalization of the Manin Symbol ``x`` with respect to this
-        list, togther with the normalizing scalar.
+        list, together with the normalizing scalar.
 
         INPUT:
 
@@ -1580,7 +1580,7 @@ class ManinSymbol(SageObject):
 
     def _latex_(self):
         """
-        Returns a latec representation of this ManinSymbol.
+        Returns a LaTeX representation of this ManinSymbol.
 
         EXAMPLES::
 

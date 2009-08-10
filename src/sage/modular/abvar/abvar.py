@@ -92,7 +92,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         -  ``is_simple`` - bool; whether or not self is
            simple
 
-        -  ``newform_level`` - if self is isogeneous to a
+        -  ``newform_level`` - if self is isogenous to a
            newform abelian variety, returns the level of that abelian variety
 
         -  ``isogeny_number`` - which isogeny class the
@@ -389,7 +389,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         level)
 
         If this abelian variety `B` has the above label, this
-        implies only that `B` is isogenous to the newform abelan
+        implies only that `B` is isogenous to the newform abelian
         variety `A_f` associated to the newform with label
         [level][isogeny class][group]. The [group] is empty for
         `\Gamma_0(N)`, is G1 for `\Gamma_1(N)` and is
@@ -746,7 +746,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         L = self.lattice().basis_matrix()
         M = other.lattice().basis_matrix()
 
-        # Then we stack matrices and find a subsect that forms a
+        # Then we stack matrices and find a subset that forms a
         # basis.
         LM = L.stack(M)
         P = LM.pivot_rows()
@@ -1048,7 +1048,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         OUTPUT: a degeneracy map
 
-        EXAMPLES: We make several degenerancy maps related to
+        EXAMPLES: We make several degeneracy maps related to
         `J_0(11)` and `J_0(33)` and compute their
         matrices.
 
@@ -1074,7 +1074,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [4 0]
             [0 4]
 
-        We compute a more complciated degeneracy map involving nontrivial
+        We compute a more complicated degeneracy map involving nontrivial
         product ambient Jacobians; note that this is just the block direct
         sum of the two matrices at the beginning of this example::
 
@@ -1118,7 +1118,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _quotient_by_finite_subgroup(self, G):
         """
         Return the quotient of self by the finite subgroup `G`.
-        This is used internally by the quotient and __div__ commmands.
+        This is used internally by the quotient and __div__ commands.
 
         INPUT:
 
@@ -1168,7 +1168,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _quotient_by_abelian_subvariety(self, B):
         """
         Return the quotient of self by the abelian variety `B`.
-        This is used internally by the quotient and __div__ commmands.
+        This is used internally by the quotient and __div__ commands.
 
         INPUT:
 
@@ -1465,7 +1465,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [ 1  1 -2  0  2 -1]
             [ 0  3 -2 -1  2  0]
 
-        We compute a non-injecture map to an ambient space::
+        We compute a non-injective map to an ambient space::
 
             sage: Q,pi = J0(33)/A
             sage: phi = Q.ambient_morphism()
@@ -1681,7 +1681,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         #      torsion free.
         if not L.is_submodule(M):
             return False
-        # To determine if L is relatively staturated we compute the
+        # To determine if L is relatively saturated we compute the
         # intersection of M with (L tensor Q) and see if that equals
         # L.
         return L.change_ring(QQ).intersection(M) == L
@@ -3454,7 +3454,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
 
     def lattice(self):
         """
-        Return the lattice that defines this abelan variety.
+        Return the lattice that defines this abelian variety.
 
         OUTPUT:
 
@@ -4203,7 +4203,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
     def tamagawa_number(self, p):
         """
-        Return the Tamagawa number of this abelianv variety at p.
+        Return the Tamagawa number of this abelian variety at p.
 
         NOTE: For bad primes, this is only implemented when the group
         if Gamma0 and p exactly divides the level and Atkin-Lehner

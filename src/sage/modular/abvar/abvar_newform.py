@@ -88,7 +88,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             sage: A.newform() is f
             True
 
-        If the a variable name has not ben specified, we must specify one::
+        If the a variable name has not been specified, we must specify one::
 
             sage: A = AbelianVariety('67b')
             sage: A.newform()

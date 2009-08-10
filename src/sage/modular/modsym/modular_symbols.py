@@ -16,7 +16,7 @@ TESTS::
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005, 2009 William Stein <wstein@gmail.com>
 #

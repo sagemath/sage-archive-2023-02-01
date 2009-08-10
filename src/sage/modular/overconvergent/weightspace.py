@@ -270,7 +270,7 @@ class WeightCharacter(Element):
     """
 
     # This should probably derive from Morphism or even from
-        # AbelianGroupMorphism; but SAGE doesn't know about the abelian group
+        # AbelianGroupMorphism; but Sage doesn't know about the abelian group
         # Z_p^*, so Hom(Z_p^*, C_p^*) is a bit beyond it!
 
     def __init__(self, parent):

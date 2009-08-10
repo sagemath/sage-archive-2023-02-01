@@ -2,7 +2,7 @@
 Periods of modular forms.
 """
 
-# The following idea just occured to me.
+# The following idea just occurred to me.
 # We could use that $\langle T_n(g), x\rangle = \langle g, T_n(x)\rangle$
 # for any Hecke operator $T_n$, so that we only need to compute
 # the period integrals $\langle g, x_i\rangle$.  Then we obtain all pairings

@@ -7,7 +7,7 @@ relations, using the standard methods based on Manin symbols.
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -474,7 +474,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
 def sparse_2term_quotient(rels, n, F):
     r"""
     Performs Sparse Gauss elimination on a matrix all of whose columns
-    have at most 2 nonzero entries. We use an obvious algorithm, whichs
+    have at most 2 nonzero entries. We use an obvious algorithm, which
     runs fast enough. (Typically making the list of relations takes
     more time than computing this quotient.) This algorithm is more
     subtle than just "identify symbols in pairs", since complicated

@@ -141,7 +141,7 @@ def JH(N, H):
 
 def AbelianVariety(X):
     """
-    Create the abelian variety corresponding to the given definining
+    Create the abelian variety corresponding to the given defining
     data.
 
     INPUT:

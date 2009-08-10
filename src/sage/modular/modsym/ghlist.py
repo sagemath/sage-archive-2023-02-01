@@ -1,9 +1,9 @@
 r"""
-List of coset represenatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`.
+List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`.
 """
 
-#####################################################################################
-#       SAGE: System for Algebra and Geometry Experimentation
+###########################################################################
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -17,7 +17,7 @@ List of coset represenatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`.
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#####################################################################################
+###########################################################################
 
 
 import sage.rings.arith as arith

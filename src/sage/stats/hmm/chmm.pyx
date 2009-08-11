@@ -44,7 +44,7 @@ cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
     """
     def __init__(self, A, B, pi, name):
         """
-        Constructor for continuous Hidden markov model abstract base class.
+        Constructor for continuous Hidden Markov model abstract base class.
 
         EXAMPLES:
         This class is an abstract base class, so shouldn't ever be constructed by users.
@@ -186,7 +186,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         EXAMPLES:
         This function is called implicitly during object creation.  It should
-        never be called directly by the user, unless they want to LEAKE MEMORY.
+        never be called directly by the user, unless they want to LEAK MEMORY.
 
             sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(1,10)], [1]) # indirect test
         """
@@ -623,7 +623,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         """
         HMM Problem 2: Decoding.  Determine a hidden sequence of
         states that is most likely to produce the given sequence seq
-        of obserations.
+        of observations.
 
         INPUT:
             seq -- TimeSeries
@@ -891,7 +891,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
         EXAMPLES:
         This function is called implicitly during object creation.  It should
-        never be called directly by the user, unless they want to LEAKE MEMORY.
+        never be called directly by the user, unless they want to LEAK MEMORY.
 
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(1,(1,10))]], [1]) # indirect test
         """

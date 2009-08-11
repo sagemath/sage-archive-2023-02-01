@@ -605,7 +605,7 @@ n
         HMM Problem 1: Likelihood. Return $\log ( P[seq | model] )$,
         the log of the probability of seeing the given sequence given
         this model, using the forward algorithm and assuming
-        independance of the sequence seq.
+        independence of the sequence seq.
 
         INPUT:
             seq -- a list; sequence of observed emissions of the HMM
@@ -662,7 +662,7 @@ n
         """
         HMM Problem 2: Decoding.  Determine a hidden sequence of
         states that is most likely to produce the given sequence seq
-        of obserations.
+        of observations.
 
         INPUT:
             seq -- sequence of emitted symbols

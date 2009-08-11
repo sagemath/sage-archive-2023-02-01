@@ -2,7 +2,7 @@
 The symbolic ring
 """
 ###############################################################################
-#   SAGE: Open Source Mathematical Software
+#   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
@@ -145,7 +145,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.libs.pari.gen import PariInstance
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precicion of CC
+                # Anything with a coercion into any precision of CC
                 return R not in (RLF, CLF, AA, QQbar)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
@@ -649,7 +649,7 @@ def the_SymbolicRing():
 
     (This is mainly used for unpickling.)
 
-    EXAMPES::
+    EXAMPLES::
 
         sage: sage.symbolic.ring.the_SymbolicRing()
         Symbolic Ring

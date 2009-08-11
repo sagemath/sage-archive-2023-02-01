@@ -173,7 +173,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
            identical, so return that variable list.
 
         #. If ``a`` `\neq` ``b``, then check if the first `n` items in
-           ``a`` are the first `n` items in ``b``, or vice-versa. If
+           ``a`` are the first `n` items in ``b``, or vice versa. If
            so, return a list with these `n` items, followed by the
            remaining items in ``a`` and ``b`` sorted together in
            alphabetical order.

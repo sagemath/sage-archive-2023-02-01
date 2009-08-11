@@ -1,5 +1,5 @@
 ###############################################################################
-#   SAGE: Open Source Mathematical Software
+#   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
@@ -76,7 +76,7 @@ Here they aren't::
 
 ARBITRARY SAGE ELEMENTS:
 
-You can work symbolically with any Sage datatype.  This can lead to
+You can work symbolically with any Sage data type.  This can lead to
 nonsense if the data type is strange, e.g., an element of a finite
 field (at present).
 
@@ -90,7 +90,7 @@ We mix Singular variables with symbolic variables::
 
 TESTS:
 
-Test jacobian on pynac expressions. #5546 ::
+Test Jacobian on Pynac expressions. #5546 ::
 
     sage: var('x,y')
     (x, y)
@@ -137,7 +137,7 @@ from sage.rings.infinity import AnInfinity
 
 def is_Expression(x):
     """
-    Retruns True if *x* is a symbolic Expression.
+    Returns True if *x* is a symbolic Expression.
 
     EXAMPLES::
 
@@ -212,7 +212,7 @@ cdef class Expression(CommutativeRingElement):
         """
         Nearly all expressions are created by calling new_Expression_from_*,
         but we need to make sure this at least doesn't leave self._gobj
-        uninitalized and segfault.
+        uninitialized and segfault.
 
         TESTS::
 
@@ -697,7 +697,7 @@ cdef class Expression(CommutativeRingElement):
         Convert self to the given type by converting each of the operands
         to that type and doing the arithmetic.
 
-        FIXME: Make sure these docs are correct with the new symbolcs.
+        FIXME: Make sure these docs are correct with the new symbolics.
 
         EXAMPLES::
 
@@ -1709,7 +1709,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (-x+z)*(3*x-3*z)
             -3*(x - z)^2
 
-            # check if comparison of constant terms in pynac add objects work
+            # check if comparison of constant terms in Pynac add objects work
             sage: (y-1)*(y-2)
             (y - 2)*(y - 1)
 
@@ -2578,7 +2578,7 @@ cdef class Expression(CommutativeRingElement):
 
     def find(self, pattern):
         """
-        Find all occurences of the given pattern in this expression.
+        Find all occurrences of the given pattern in this expression.
 
         Note that once a subexpression matches the pattern, the search doesn't
         extend to subexpressions of it.
@@ -3288,7 +3288,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        We test the evaluation of different infinities available in pynac::
+        We test the evaluation of different infinities available in Pynac::
 
             sage: t = x - oo; t
             -Infinity
@@ -3388,7 +3388,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def coefficient(self, s, int n=1):
         """
-        Returns the coefficient of `s^n` in this symoblic expression.
+        Returns the coefficient of `s^n` in this symbolic expression.
 
         INPUT:
 
@@ -4575,7 +4575,7 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('asinh(1.0)')
             0.881373587019543
 
-        Sage automatically applies certain identies::
+        Sage automatically applies certain identities::
             sage: SR(3/2).arcsinh().cosh()
             1/2*sqrt(13)
 
@@ -5075,7 +5075,7 @@ cdef class Expression(CommutativeRingElement):
         Applies simplify_trig, simplify_rational, and simplify_radical
         to self (in that order).
 
-        ALIAS: simplfy_full and full_simplify are the same.
+        ALIAS: simplify_full and full_simplify are the same.
 
         EXAMPLES::
 
@@ -6012,7 +6012,7 @@ cdef class Expression(CommutativeRingElement):
 
     def laplace(self, t, s):
         """
-        Return Lapalace transform of self.  See
+        Return Laplace transform of self.  See
         :obj:`sage.calculus.calculus.laplace`
 
         EXAMPLES::

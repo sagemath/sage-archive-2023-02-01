@@ -1,5 +1,5 @@
 ###############################################################################
-#   SAGE: Open Source Mathematical Software
+#   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
@@ -73,7 +73,7 @@ cdef public GEx pyExpression_to_ex(object res) except *:
     """
     Converts an Expression object to a GiNaC::ex.
 
-    Used to pass returen values of custom python evaluation, derivation
+    Used to pass return values of custom python evaluation, derivation
     functions back to C++ level.
     """
     if res is None:
@@ -185,12 +185,12 @@ cdef extern from *:
 cdef public stdstring* py_repr(object o, int level) except +:
     """
     Return string representation of o.  If level > 0, possibly put
-    paranthesis around the string.
+    parentheses around the string.
     """
     s = repr(o)
     if level >= 20:
         # s may need parens (e.g., is in an exponent), so decide if we
-        # have to put paranthesis around s:
+        # have to put parentheses around s:
         # A regexp might seem better, but I don't think it's really faster.
         # It would be more readable. Python does the below (with in) very quickly.
         if level <= 50:
@@ -204,7 +204,7 @@ cdef public stdstring* py_repr(object o, int level) except +:
 cdef public stdstring* py_latex(object o, int level) except +:
     """
     Return latex string representation of o.  If level > 0, possibly
-    put paranthesis around the string.
+    put parentheses around the string.
     """
     from sage.misc.latex import latex
     s = latex(o)
@@ -217,7 +217,7 @@ cdef stdstring* string_from_pystr(object py_str):
     """
     Creates a C++ string with the same contents as the given python string.
 
-    Used when passing string output to pynac for printing, since we don't want
+    Used when passing string output to Pynac for printing, since we don't want
     to mess with reference counts of the python objects and we cannot guarantee
     they won't be garbage collected before the output is printed.
 
@@ -313,7 +313,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
         'my args are: x, y'
     """
     cdef SFunction func = get_sfunction_from_serial(id)
-    # This function is called from two places, from function::print in pynac
+    # This function is called from two places, from function::print in Pynac
     # and from py_print_fderivative. function::print checks if the serial
     # belongs to a function defined at the C++ level. There are no C++ level
     # functions that return an instance of fderivative when derivated. Hence,
@@ -391,7 +391,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
     """
     cdef SFunction func = get_sfunction_from_serial(id)
-    # This function is called from two places, from function::print in pynac
+    # This function is called from two places, from function::print in Pynac
     # and from py_latex_fderivative. function::print checks if the serial
     # belongs to a function defined at the C++ level. There are no C++ level
     # functions that return an instance of fderivative when derivated. Hence,
@@ -1395,7 +1395,7 @@ cdef public object py_mod(object x, object n):
 
     Note: The original code for this function in GiNaC checks if the arguments
     are integers, and returns 0 otherwise. We omit this check, since all the
-    calls to py_mod are preceeded by an integer check. We also raise an error
+    calls to py_mod are preceded by an integer check. We also raise an error
     if converting the arguments to integers fails, since silently returning 0
     would hide possible misuses of this function.
 

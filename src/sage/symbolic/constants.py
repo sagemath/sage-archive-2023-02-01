@@ -17,7 +17,7 @@ Maxima, Mathematica, Maple, Octave, and Singular::
     log2
     sage: euler_gamma   # Euler's gamma constant
     euler_gamma
-    sage: catalan       # the Catalon constant
+    sage: catalan       # the Catalan constant
     catalan
     sage: khinchin      # Khinchin's constant
     khinchin
@@ -647,7 +647,7 @@ class I_class(Constant):
 
     def expression(self, constant=False):
         """
-        Returns an Expression for I.  If *constnat* is True, then it
+        Returns an Expression for I.  If *constant* is True, then it
         returns a wrapper around a Pynac constant.  If *constant* is
         False, then it returns a wrapper around a NumberFieldElement.
 
@@ -1065,7 +1065,7 @@ euler_gamma = EulerGamma().expression()
 
 class Catalan(Constant):
     """
-    A number appaering in combinatorics defined as the Dirichlet beta
+    A number appearing in combinatorics defined as the Dirichlet beta
     function evaluated at the number 2.
 
     EXAMPLES::

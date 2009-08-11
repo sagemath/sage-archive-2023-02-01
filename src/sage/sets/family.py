@@ -671,7 +671,7 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
         """
         hidden_function = d['hidden_function']
         if isinstance(hidden_function, str):
-        # Let's assume that hidden_function is an unpicled function.
+        # Let's assume that hidden_function is an unpickled function.
             from sage.misc.fpickle import unpickle_function
             hidden_function = unpickle_function(hidden_function)
         self.__init__(d['dictionary'], d['hidden_keys'], hidden_function)
@@ -840,7 +840,7 @@ class LazyFamily(AbstractFamily):
         """
         function = d['function']
         if isinstance(function, str):
-        # Let's assume that function is an unpicled function.
+        # Let's assume that function is an unpickled function.
             from sage.misc.fpickle import unpickle_function
             function = unpickle_function(function)
 

@@ -82,7 +82,7 @@ class baseWI:
 
         .. note::
 
-           In a list of automprhisms, there is no guarantee that the
+           In a list of automorphisms, there is no guarantee that the
            identity will be first!
 
         EXAMPLE::
@@ -139,7 +139,7 @@ class baseWI:
 
     def __invert__(self):
         r"""
-        Returns the inverse of this isomporphism.
+        Returns the inverse of this isomorphism.
 
         EXAMPLES::
 
@@ -192,7 +192,7 @@ class baseWI:
         baseWI `w` may be applied to a list `[a1,a2,a3,a4,a6]`
         representing the `a`-invariants of an elliptic curve `E`,
         returning the `a`-invariants of `w(E)`; or to `P=[x,y]` or
-        `P=[x,y,z]` represeting a point in `\mathbb{A}^2` or
+        `P=[x,y,z]` representing a point in `\mathbb{A}^2` or
         `\mathbb{P}^2`, returning the transformed point.
 
         INPUT:
@@ -385,7 +385,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         - ``F`` -- an EllipticCurve, or None (see below).
 
         Given two Elliptic Curves ``E`` and ``F`` (represented by
-        Weierstrass models as uaual), and a transformation ``urst``
+        Weierstrass models as usual), and a transformation ``urst``
         from ``E`` to ``F``, construct an isomorphism from ``E`` to
         ``F``.  An exception is raised if ``urst(E)!=F``.  At most one
         of ``E``, ``F``, ``urst`` can be None.  If ``F==None`` then
@@ -564,7 +564,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
 
     def __mul__(self,other):
         r"""
-        Returns the compsition of this WeierstrassIsomorphism and the other,
+        Returns the composition of this WeierstrassIsomorphism and the other,
 
         WeierstrassMorphisms can be composed using ``*`` if the
         codomain & domain match: `(w1*w2)(X)=w1(w2(X))`, so we require

@@ -1,10 +1,10 @@
 """nodoctest
-all.py -- export of schemes to SAGE
+all.py -- export of schemes to Sage
 """
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #

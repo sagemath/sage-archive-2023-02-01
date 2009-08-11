@@ -212,7 +212,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                             points.append(self.point([x, r*b, one], check=True))
                             points.append(self.point([x, r*b+b, one], check=True))
                         except KeyError:
-                            # y^2 + by + c irreducable, so yields no points
+                            # y^2 + by + c irreducible, so yields no points
                             pass
                     else:  # b == 0
                         points.append(self.point([x, c.sqrt(), one], check=True))
@@ -245,7 +245,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Count points by enumerating over x and solving the resulting
         quadratic for y.
 
-        Caches all square roots ahead of time by sqaring every element of
+        Caches all square roots ahead of time by squaring every element of
         the field. Elements must have an __index__ method.
 
         EXAMPLES::

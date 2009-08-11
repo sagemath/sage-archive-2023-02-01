@@ -1,7 +1,7 @@
 """
 Cremona PARI Scripts
 
-Access to Cremona's PARI scripts via SAGE.
+Access to Cremona's PARI scripts via Sage.
 """
 
 #*****************************************************************************
@@ -45,7 +45,7 @@ def ellanalyticrank_prec(e,prec=None):
     Try to compute analytic rank with precision set to prec.
 
     INPUT:
-        e -- five-tuple of integers that define a minimal weierstrass equation
+        e -- five-tuple of integers that define a minimal Weierstrass equation
     OUTPUT:
         integer -- the ("computed") analytic rank r of E
 
@@ -81,7 +81,7 @@ def ellanalyticrank(e):
     Try to compute analytic rank.
 
     INPUT:
-        e -- five-tuple of integers that define a minimal weierstrass equation
+        e -- five-tuple of integers that define a minimal Weierstrass equation
 
     OUTPUT:
         integer -- the ("computed") analytic rank r of E
@@ -117,7 +117,7 @@ def ellzp(e, p):
 
     NOTE: This is an internal function used in the function
     _abelian_group_data() for curves over finite (prime) field.  Users
-    should instead use higher-level funtions -- see examples.
+    should instead use higher-level functions -- see examples.
 
     WARNING: The algorithm uses random points, so the generators in
     the second part of the output will vary from run to run.

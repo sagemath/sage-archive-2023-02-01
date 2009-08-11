@@ -27,7 +27,7 @@ AUTHORS:
 
 - William Stein (2007-05-29): added some examples; editing.
 
-- chris wuthrich (04/09): reformated docstrings.
+- chris wuthrich (04/09): reformatted docstrings.
 
 """
 

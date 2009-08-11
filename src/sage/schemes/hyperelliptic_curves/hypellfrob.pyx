@@ -86,7 +86,7 @@ def hypellfrob(p, N, Q):
 
    """
 
-   # SAGE objects that wrap the NTL objects
+   # Sage objects that wrap the NTL objects
    cdef ntl_ZZ pp
    cdef ntl_ZZX QQ
    cdef ntl_mat_ZZ mm   # the result will go in mm
@@ -113,7 +113,7 @@ def hypellfrob(p, N, Q):
    g = (len(Q) / 2) - 1
 
    # Note: the C++ code actually resets the size of the matrix, but this seems
-   # to confuse the SAGE NTL wrapper. So to be safe I'm setting it ahead of
+   # to confuse the Sage NTL wrapper. So to be safe I'm setting it ahead of
    # time.
    mm = ntl_mat_ZZ(2*g, 2*g)
 

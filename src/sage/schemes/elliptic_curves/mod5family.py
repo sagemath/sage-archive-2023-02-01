@@ -9,7 +9,7 @@ def mod5family(a,b):
 
     AUTHORS:
         -- Alice Silverberg and Karl Rubin (original PARI/GP version)
-        -- William Stein -- SAGE version.
+        -- William Stein -- Sage version.
     """
     J = 4*a**3 / (4*a**3+27*b**2)
 

@@ -66,7 +66,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         If the base field `F` is finite, `D` need not be specified, and
         the curve returned is the unique curve (up to isomorphism)
         defined over `F` isomorphic to the original curve over the
-        quadratic extension of `F` but not over `F` itself.  Over infinte
+        quadratic extension of `F` but not over `F` itself.  Over infinite
         fields, an error is raised if `D` is not given.
 
         EXAMPLES::
@@ -554,16 +554,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         - ``kernel``    - a kernel, either a list of points in self, or a kernel polynomial.
                           If initiating from a domain/codomain, this must be set to None.
         - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None,
-                          then this must be the codomain of a seperable normalized isogeny,
+                          then this must be the codomain of a separable normalized isogeny,
                           furthermore, ``degree`` must be the degree of the isogeny from self to ``codomain``.
                           If ``kernel`` is not None, then this must be isomorphic to the codomain of the
-                          normalized seperable isogeny defined by ``kernel``,
+                          normalized separable isogeny defined by ``kernel``,
                           in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
         - ``degree``    - an integer (default:None).
                           If ``kernel`` is None, then this is the degree of the isogeny from self to ``codomain``.
-                          If ``kernel`` is not None, then this is used to determine wether or not to skip a gcd
+                          If ``kernel`` is not None, then this is used to determine whether or not to skip a GCD
                           of the kernel polynomial with the two torsion polynomial of self.
-        - ``model``     - a string (defaul:None).  Only supported variable is "minimal", in which case if
+        - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if
                           self is a curve over the rationals, then the codomain is set to be the unique global minimum model.
         - ``algorithm`` - a string (default:None).  If this parameter is None, then the algorithm is determined from the input.
                           The valid values are "velu" and "kohel".  If "velu" is set, then kernel must be a list of points in self
@@ -589,7 +589,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def isogeny_codomain(self, kernel, degree=None, algorithm=None):
         r"""
-        Returns the codomain of the isogeny from self with givien kernel.
+        Returns the codomain of the isogeny from self with given kernel.
         This redirects to the isogeny_codomain_from_kernel function,
         see that function for more information.
 
@@ -603,7 +603,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         OUTPUT:
 
-        (elliptic curve) the codomain of the seperable normalized isogeny from this kernel
+        (elliptic curve) the codomain of the separable normalized isogeny from this kernel
 
 
         EXAMPLES:

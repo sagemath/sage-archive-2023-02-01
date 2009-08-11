@@ -94,7 +94,7 @@ class Lseries_ell(SageObject):
 
         \note{If algorithm='magma', then the precision is in digits rather
         than bits and the object returned is a Magma L-series, which has
-        different functionality from the SAGE L-series.}
+        different functionality from the Sage L-series.}
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
@@ -362,7 +362,7 @@ class Lseries_ell(SageObject):
         OUTPUT:
             float -- L(E,1)
             float -- a bound on the error in the approximation; this
-                     is a proveably correct upper bound on the sum
+                     is a provably correct upper bound on the sum
                      of the tail end of the series used to compute L(E,1).
 
         This function is disjoint from the PARI \code{elllseries}
@@ -400,7 +400,7 @@ class Lseries_ell(SageObject):
         sqrtN = float(self.__E.conductor().sqrt())
         k = int(k)
         if k == 0: k = int(ceil(sqrtN))
-        an = self.__E.anlist(k)           # list of SAGE ints
+        an = self.__E.anlist(k)           # list of Sage ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         z = exp(-2*pi/sqrtN)

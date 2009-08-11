@@ -29,7 +29,7 @@ def ellsea(E, p, early_abort=False):
     INPUT:
         E -- list of 5 integers that defines an elliptic curve
         p -- prime number
-        early_abort -- bool (default: Falst); if True an early abort
+        early_abort -- bool (default: False); if True an early abort
                        technique is used and the computation is
                        interrupted as soon as a small divisor of the
                        order is detected.  The function then returns

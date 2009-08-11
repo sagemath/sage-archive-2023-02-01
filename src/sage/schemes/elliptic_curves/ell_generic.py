@@ -2119,7 +2119,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if m == -1:
             return (x, -y-a1*x-a3)
 
-        # the x-coordonate does not depend on the sign of m.  The work
+        # the x-coordinate does not depend on the sign of m.  The work
         # here is done by functions defined earlier:
 
         mx = self._multiple_x_numerator(m.abs(),x) / self._multiple_x_denominator(m.abs(),x)
@@ -2260,7 +2260,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
-        We can also find istomorphisms defined over extension fields::
+        We can also find isomorphisms defined over extension fields::
 
             sage: E=EllipticCurve(GF(7),[0,0,0,1,1])
             sage: F=EllipticCurve(GF(7),[0,0,0,1,-1])

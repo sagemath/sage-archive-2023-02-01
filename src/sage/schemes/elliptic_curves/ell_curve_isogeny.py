@@ -94,7 +94,7 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None, algorithm=None):
 
     OUTPUT:
 
-    (elliptic curve) the codomain of the seperable normalized isogeny from this kernel
+    (elliptic curve) the codomain of the separable normalized isogeny from this kernel
 
     EXAMPLES::
 
@@ -677,7 +677,7 @@ class EllipticCurveIsogeny(Morphism):
     # member variables common to Velu's formula
     #
 
-    # we keep track of the 2 torsion and non2torsion seperately
+    # we keep track of the 2 torsion and non2torsion separately
     __kernel_2tor = None
     __kernel_non2tor = None
 
@@ -709,16 +709,16 @@ class EllipticCurveIsogeny(Morphism):
         - ``kernel``    - a kernel, either a list of points in ``E``, or a kernel polynomial.
                           If initiating from a domain/codomain, this must be set to None.
         - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None,
-                          then this must be the codomain of a seperable normalized isogeny,
+                          then this must be the codomain of a separable normalized isogeny,
                           furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``.
                           If ``kernel`` is not None, then this must be isomorphic to the codomain of the
-                          normalized seperable isogeny defined by ``kernel``,
+                          normalized separable isogeny defined by ``kernel``,
                           in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
         - ``degree``    - an integer (default:None).
                           If ``kernel`` is None, then this is the degree of the isogeny from ``E`` to ``codomain``.
-                          If ``kernel`` is not None, then this is used to determine wether or not to skip a gcd
+                          If ``kernel`` is not None, then this is used to determine whether or not to skip a gcd
                           of the kernel polynomial with the two torsion polynomial of ``E``.
-        - ``model``     - a string (defaul:None).  Only supported variable is "minimal", in which case if
+        - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if
                           ``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
         - ``algorithm`` - a string (default:None).  If this parameter is None, then the algorithm is determined from the input.
                           The valid values are "velu" and "kohel".  If "velu" is set, then kernel must be a list of points in ``E``
@@ -839,7 +839,7 @@ class EllipticCurveIsogeny(Morphism):
         # is an extension of this ring
         if (E1 != E_P):
             if (E1.a_invariants() != E_P.a_invariants()) :
-                raise ValueError, "P must be on a curve with same weierstrass model as the domain curve of this isogeny."
+                raise ValueError, "P must be on a curve with same Weierstrass model as the domain curve of this isogeny."
             change_output_ring = True
 
 
@@ -1313,7 +1313,7 @@ class EllipticCurveIsogeny(Morphism):
         # set the isomorphism
         self.__pre_isomorphism = isomorphism
 
-        # calculuate the isomorphism as a rational map.
+        # calculate the isomorphism as a rational map.
 
         (u, r, s, t) = isomorphism.tuple()
 
@@ -1361,7 +1361,7 @@ class EllipticCurveIsogeny(Morphism):
         # set the isomorphism
         self.__post_isomorphism = isomorphism
 
-        # calculuate the isomorphism as a rational map.
+        # calculate the isomorphism as a rational map.
 
         (u, r, s, t) = isomorphism.tuple()
 
@@ -1774,7 +1774,7 @@ class EllipticCurveIsogeny(Morphism):
 
 
     ###################################
-    # Kohel's Variant of Velu's Forumla
+    # Kohel's Variant of Velu's Formula
     ###################################
 
     def __init_from_kernel_polynomial(self, kernel_polynomial, degree=None):
@@ -1865,7 +1865,7 @@ class EllipticCurveIsogeny(Morphism):
 
         EXAMPLES:
 
-        These examples inherentl exercise this private function::
+        These examples inherently exercise this private function::
 
             sage: R.<x> = GF(7)[]
             sage: E = EllipticCurve(GF(7), [0,0,0,-1,0])
@@ -2220,7 +2220,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __compute_via_kohel(self, xP, yP):
         r"""
-        Private function that applies Kohel's fomulas.
+        Private function that applies Kohel's formulas.
 
         EXAMPLES:
 
@@ -2570,7 +2570,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.rational_maps() == E.multiplication_by_m(3)
             True
 
-        Example over a numberfield::
+        Example over a number field::
 
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + 2)
@@ -2853,7 +2853,7 @@ class EllipticCurveIsogeny(Morphism):
         # We explicitly check if there is a post isomorphism and if it has a non 1 scaling factor
         # or if it is a just a translation.
         # NOTE: This only works because we are using algorithms for calculating the isogenies that calculate
-        # a seperable normalized isogeny, if this changes, this check will no longer be correct.
+        # a separable normalized isogeny, if this changes, this check will no longer be correct.
         #
         if (check_prepost_isomorphism):
             post_isom = self.__post_isomorphism
@@ -3114,10 +3114,10 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.n()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Numerical approximations do not make sense for Elliptic Curve Isogeies
+            NotImplementedError: Numerical approximations do not make sense for Elliptic Curve Isogenies
 
         """
-        raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogeies"
+        raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogenies"
 
 
 def truncated_reciprocal_quadratic(f, n):
@@ -3460,7 +3460,7 @@ def truncated_exp(f, n, algorithm="fast"):
 
     ALGORITHM:
 
-    algorithm "fast" uses newton iteration and has complexity O(M(n)), algorithm "quadratic" has compexity O(n*M(n))
+    algorithm "fast" uses newton iteration and has complexity O(M(n)), algorithm "quadratic" has complexity O(n*M(n))
 
     EXAMPLES::
 
@@ -3478,7 +3478,7 @@ def truncated_exp(f, n, algorithm="fast"):
     elif ("fast"==algorithm):
         trunc_exp = truncated_exp_fast(f, n)
     else:
-        raise ValueError, "Unknown algorithm for computing truncated expoential."
+        raise ValueError, "Unknown algorithm for computing truncated exponential."
 
     return trunc_exp
 
@@ -3536,8 +3536,8 @@ def compute_pe_quadratic(R, A, B, ell):
     INPUT:
 
      - ``poly_ring`` - polynomial ring, to compute the `\wp` function in (assumes that the generator is `z^2` for efficiency of storage/operations.)
-     - ``A``         - field element corresponding to the `x` coefficient in the weierstrass equaation of an elliptic curve
-     - ``B``         - field element corresponding to the constant coefficient in the weierstrass equation of an ellitpic curve
+     - ``A``         - field element corresponding to the `x` coefficient in the weierstrass equation of an elliptic curve
+     - ``B``         - field element corresponding to the constant coefficient in the weierstrass equation of an elliptic curve
      - ``ell``       - degree of `z` to compute the truncated function to.  If `p` is the characteristic of the underlying field.     If `p > 0` then we must have `2\ell + 3 < p`.
 
     OUTPUT:
@@ -3594,8 +3594,8 @@ def compute_pe_fast(poly_ring, A, B, ell):
     INPUT:
 
      - ``poly_ring`` - polynomial ring, to compute the function in (assumes that the generator is `z^2` for efficiency of storage/operations.)
-     - ``A``         - field element corresponding to the `x` coefficient in the weierstrass equaation of an elliptic curve
-     - ``B``         - field element corresponding to the constant coefficient in the weierstrass equation of an ellitpic curve
+     - ``A``         - field element corresponding to the `x` coefficient in the weierstrass equation of an elliptic curve
+     - ``B``         - field element corresponding to the constant coefficient in the weierstrass equation of an elliptic curve
      - ``ell``       - degree of `z` to compute the truncated function to.  If `p` is the characteristic of the underlying field and `p > 0`, then we must have `2\ell + 3 < p`.
 
     OUTPUT:
@@ -3807,7 +3807,7 @@ def starks_find_r_and_t(T, Z):
 def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
     r"""
     Computes the degree ``ell`` isogeny between ``E1`` and ``E2`` via
-    Stark's algorithm.  There must be a degree ``ell``, seperable,
+    Stark's algorithm.  There must be a degree ``ell``, separable,
     normalized isogeny from ``E1`` to ``E2``.
 
     INPUT:
@@ -3952,7 +3952,7 @@ def split_kernel_polynomial(E1, ker_poly, ell):
 
     Given a full kernel polynomial (where two torsion `x`-coordinates
     are roots of multiplicity 1, and all other roots have multiplicity
-    2.)  of degree `\ell-1`, returns the maximum seperable divisor.
+    2.)  of degree `\ell-1`, returns the maximum separable divisor.
     (i.e. the kernel polynomial with roots of multiplicity at most 1).
 
     EXAMPLES:
@@ -3990,7 +3990,7 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
     r"""
     Computes the degree ``ell`` isogeny between ``E1`` and ``E2``.
 
-    There must be a degree ``ell``, seperable, normalized isogeny from
+    There must be a degree ``ell``, separable, normalized isogeny from
     ``E1`` to ``E2``.  If no algorithm is specified, this function
     determines the best algorithm to use.
 
@@ -4003,7 +4003,7 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
     - ``ell``       - the degree of the isogeny from ``E1`` to ``E2``.
 
     - ``algorithm`` - string (default:"starks") if None, this function automatically determines best algorithm to use.
-                   Otherwise uses the algorithm specified by the string.  Valid valuse are "starks" or "fastElkies"
+                   Otherwise uses the algorithm specified by the string.  Valid values are "starks" or "fastElkies"
 
     OUTPUT:
 
@@ -4046,7 +4046,7 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
 
     #
     # Everything that follows here is how we get the kernel polynomial in the form we want
-    # i.e. a seperable polynomial (no repeated roots.)
+    # i.e. a separable polynomial (no repeated roots.)
     #
     ker_poly = split_kernel_polynomial(E1, ker_poly, ell)
 
@@ -4139,7 +4139,7 @@ def compute_intermediate_curves(E1, E2):
 
     intermediate_domain = pre_isom.codomain().codomain()
 
-    # compute the r,s,t valuse that clear the denominator of E2
+    # compute the r,s,t values that clear the denominator of E2
     a1pr = E2.a1()
     a2pr = E2.a2()
     a3pr = E2.a3()
@@ -4158,7 +4158,7 @@ def compute_intermediate_curves(E1, E2):
 
 def compute_sequence_of_maps(E1, E2, ell):
     r"""
-    Given domain ``E1`` and codomain ``E2`` such that there is a degree ``ell`` seperable normalized isogeny from ``E1`` to ``E2``,    returns pre/post isomorphism, as well as intermediate domain and codomain, and kernel polynomial.
+    Given domain ``E1`` and codomain ``E2`` such that there is a degree ``ell`` separable normalized isogeny from ``E1`` to ``E2``,    returns pre/post isomorphism, as well as intermediate domain and codomain, and kernel polynomial.
 
     EXAMPLES::
 

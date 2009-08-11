@@ -120,7 +120,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         r"""
         Return local coordinates to precision n at the given point.
 
-            Behaviour is flakey - some choices of `n` are worst that
+            Behaviour is flaky - some choices of `n` are worst that
             others.
 
 
@@ -297,7 +297,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
 
 
         -  ``sort`` - bool (default: True), if True return the
-           point list sorted. If False, returns the pointes in the order
+           point list sorted. If False, returns the points in the order
            computed by Singular.
 
 
@@ -361,7 +361,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
 
 
         -  ``sort`` - bool (default: True), if True return the
-           point list sorted. If False, returns the pointes in the order
+           point list sorted. If False, returns the points in the order
            computed by Singular.
 
 

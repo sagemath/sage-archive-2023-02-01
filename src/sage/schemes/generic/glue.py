@@ -1,5 +1,5 @@
 """
-Scheme obtained by glueing two other schemes
+Scheme obtained by gluing two other schemes
 """
 
 #*******************************************************************************

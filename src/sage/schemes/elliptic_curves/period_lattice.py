@@ -348,7 +348,7 @@ class PeriodLattice_ell(PeriodLattice):
           precision if ``None``).
 
         - ``algorithm`` (string, default 'sage') -- choice of
-          implementation (for real ambeddings only) between 'sage'
+          implementation (for real embeddings only) between 'sage'
           (native Sage implementation) or 'pari' (use the pari
           library: only available for real embeddings).
 
@@ -424,7 +424,7 @@ class PeriodLattice_ell(PeriodLattice):
           precision if ``None``).
 
         - ``algorithm`` (string, default 'sage') -- choice of
-          implementation (for real ambeddings only) between 'sage'
+          implementation (for real embeddings only) between 'sage'
           (native Sage implementation) or 'pari' (use the pari
           library: only available for real embeddings).
 
@@ -660,7 +660,7 @@ class PeriodLattice_ell(PeriodLattice):
           bits (default real precision if ``None``)
 
         - ``algorithm`` (string, default 'sage') -- choice of
-          implementation (for real ambeddings only) between 'sage'
+          implementation (for real embeddings only) between 'sage'
           (native Sage implementation) or 'pari' (use the pari
           library: only available for real embeddings).
 

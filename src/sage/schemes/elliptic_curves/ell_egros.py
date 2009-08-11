@@ -29,7 +29,7 @@ groups using 2-descent.  A warning is output in cases where the set of
 points (and hence the final output) is not guaranteed to be complete.
 Using the "proof=False" flag suppresses these warnings.
 
-EXAMPLES: We find all elliptic cruves with good reduction outside 2,
+EXAMPLES: We find all elliptic curves with good reduction outside 2,
 listing the label of each:
 
     sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([2])]
@@ -61,7 +61,7 @@ listing the label of each:
 Secondly we try the same with `S={11}`; note that warning messages are
 printed without proof=False (unless the optional database is
 installed: two of the auxiliary curves whose Mordell-Weil bases are
-required have conductors 13068 and 52272 so are in the databse):
+required have conductors 13068 and 52272 so are in the database):
 
     sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([11], proof=False)]
     ['11a1', '11a2', '11a3', '121a1', '121a2', '121b1', '121b2', '121c1', '121c2', '121d1', '121d2', '121d3']
@@ -306,7 +306,7 @@ def egros_from_jlist(jlist,S=[]):
         Primality of elements of S is not checked, and the output
         is undefined if S is not a list or contains non-primes.
 
-    OUPUT:
+    OUTPUT:
 
         A sorted list of all elliptic curves defined over `Q` with
         `j`-invariant in the list ``jlist`` and with good reduction at
@@ -412,7 +412,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
         u0 = (2**d2)*(3**d3)
         E = EllipticCurve([0,0,0,0,a6])
         # This curve may not be minimal at 2 or 3, but the
-        # S-integral_points function requires minimalilty at primes in
+        # S-integral_points function requires minimality at primes in
         # S, so we find a new model which is p-minimal at both 2 and 3
         # if they are in S.  Note that the isomorphism between models
         # will preserve S-integrality of points.

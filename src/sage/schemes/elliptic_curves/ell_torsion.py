@@ -116,7 +116,7 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
 
     AUTHORS:
 
-    - Nick Alexamder - initial implementation over `\QQ`.
+    - Nick Alexander - initial implementation over `\QQ`.
     - Chris Wuthrich - initial implementation over number fields.
     - John Cremona - additional features and unification.
     """

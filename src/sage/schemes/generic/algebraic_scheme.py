@@ -589,7 +589,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the corresponding reduced algebraic space associated to this
         scheme.
 
-        EXAMPLES: First we construct the union of a doubled and triplled
+        EXAMPLES: First we construct the union of a doubled and tripled
         line in the affine plane over `\QQ`.
 
         ::

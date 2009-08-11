@@ -201,7 +201,7 @@ class ModularSymbol(SageObject):
         If `[0]`, the modular symbol evaluated at 0, is non-zero, we can just scale
         it with respect to the approximation of the L-value. It is known that
         the quotient is a rational number with small denominator.
-        Otherwise we try to scale using quardatic twists.
+        Otherwise we try to scale using quadratic twists.
 
         ``_scaling`` will be set to a rational non-zero multiple if we succeed and to 1 otherwise.
         Even if we fail we scale at least to make up the difference between the periods

@@ -147,7 +147,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         True
 
     Projective spaces are not cached, i.e., there can be several with
-    the same base ring and dimension (to facilitate glueing
+    the same base ring and dimension (to facilitate gluing
     constructions).
     """
     if is_MPolynomialRing(n) and R is None:

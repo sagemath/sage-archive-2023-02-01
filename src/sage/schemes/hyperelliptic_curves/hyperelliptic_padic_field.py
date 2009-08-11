@@ -96,7 +96,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         Find a Teichm\:uller point in the same residue class of P.
 
         Because this lift of frobenius acts as $x \mapsto x^p$,
-        take the Teichmuler lift of $x$ and then find a matching y
+        take the Teichmuller lift of $x$ and then find a matching y
         from that.
 
         EXAMPLES:
@@ -250,7 +250,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         7 + 7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^6 + 5*7^7 + 3*7^8 + 4*7^9 + 4*7^10 + O(7^11)
 
         """
-        # TODO: implement jacobians and show the relationship directly
+        # TODO: implement Jacobians and show the relationship directly
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
         K = self.base_ring()
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self, K)

@@ -175,7 +175,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     If the rank is 0, we output 1.
 
     TODO: - remove restriction that curve must be in minimal
-    weierstrass form. This is currently required for E.gens().
+    Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -222,7 +222,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         sage: E.padic_regulator(5,10)
         2*5^2 + 2*5^3 + 5^4 + 5^5 + 4*5^6 + 3*5^8 + 4*5^9 + O(5^10)
 
-    The result is not dependend on the model for the curve::
+    The result is not dependent on the model for the curve::
 
         sage: E = EllipticCurve([0,0,0,0,2^12*17])
         sage: Em = E.minimal_model()
@@ -281,7 +281,7 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     to the given precision.
 
     TODO: - remove restriction that curve must be in minimal
-    weierstrass form. This is currently required for E.gens().
+    Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -385,7 +385,7 @@ def _multiply_point(E, R, P, m):
 
     EXAMPLES:
 
-    37a has trivial tamagawa numbers so all points have nonsingular
+    37a has trivial Tamagawa numbers so all points have nonsingular
     reduction at all primes::
 
         sage: E = EllipticCurve("37a")
@@ -612,7 +612,8 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: h(P)
         0
 
-    The result is not dependend on the model for the curve:
+    The result is not dependent on the model for the curve::
+
         sage: E = EllipticCurve([0,0,0,0,2^12*17])
         sage: Em = E.minimal_model()
         sage: P = E.gens()[0]
@@ -968,7 +969,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
 
     # todo: implement the p == 3 case
     # NOTE: If we ever implement p == 3, it's necessary to check over
-    # the precision loss estimates (below) vey carefully; I think it
+    # the precision loss estimates (below) very carefully; I think it
     # may become necessary to compute E2 to an even higher precision.
     if p < 5:
         raise NotImplementedError, "p (=%s) must be at least 5" % p
@@ -1016,7 +1017,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     A = (-X.a1()/2 - A) * f
 
     # Convert to a power series and remove the -1/x term.
-    # Also we artifically bump up the accuracy from N-2 to to N-1 digits;
+    # Also we artificially bump up the accuracy from N-2 to to N-1 digits;
     # the constant term needs to be known to N-1 digits, so we compute
     # it directly
     assert A.valuation() == -1 and A[-1] == 1
@@ -1155,7 +1156,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
 
     # todo: implement the p == 3 case
     # NOTE: If we ever implement p == 3, it's necessary to check over
-    # the precision loss estimates (below) vey carefully; I think it
+    # the precision loss estimates (below) very carefully; I think it
     # may become necessary to compute E2 to an even higher precision.
     if p < 5:
         raise NotImplementedError, "p (=%s) must be at least 5" % p
@@ -1206,7 +1207,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     A = (-X.a1()/2 - A) * f
 
     # Convert to a power series and remove the -1/x term.
-    # Also we artifically bump up the accuracy from N-2 to N-1+lamb digits;
+    # Also we artificially bump up the accuracy from N-2 to N-1+lamb digits;
     # the constant term needs to be known to N-1+lamb digits, so we compute
     # it directly
     assert A.valuation() == -1 and A[-1] == 1
@@ -1414,7 +1415,7 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor
-    # However, there is a bug in SAGE (#51 on trac) which makes this
+    # However, there is a bug in Sage (#51 on trac) which makes this
     # crash sometimes when prec == 1. For example,
     #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
     # makes it crash. I haven't figured out exactly what the bug
@@ -1426,7 +1427,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     """
     See the parameters and documentation for padic_E2.
     """
-    # TODO change the basis back to the original euqation.
+    # TODO change the basis back to the original equation.
     # TODO, add lots of comments like the above
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
@@ -1455,7 +1456,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     # form y^2 = x^3 + ax + b, whose discriminant is invertible mod p.
     # When we change coordinates like this, we might scale the invariant
     # differential, so we need to account for this. We do this by
-    # comparing discriminants: if the discrimimants differ by u^12,
+    # comparing discriminants: if the discriminants differ by u^12,
     # then the differentials differ by u. There's a sign ambiguity here,
     # but it doesn't matter because E2 changes by u^2 :-)
 
@@ -1468,7 +1469,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     X=self.minimal_model().short_weierstrass_model()
 
     assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
-           "The discriminant of the weierstrass model should be a unit " \
+           "The discriminant of the Weierstrass model should be a unit " \
            " at p."
 
     if algorithm == "standard":
@@ -1583,7 +1584,7 @@ def _brent(F, p, N):
     # loop over an appropriate increasing sequence of lengths s
     for s in misc.newton_method_sizes(N):
         # zero-extend to s terms
-        # todo: there has to be a better way in SAGE to do this...
+        # todo: there has to be a better way in Sage to do this...
         G = Rx(G.list(), s)
 
         # extend current approximation to be correct to s terms

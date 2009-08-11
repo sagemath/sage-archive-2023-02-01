@@ -65,7 +65,7 @@ def padic_eval(cmd, p, prec):
 def padic_height(E, p, point, prec=20):
     """
     INPUT:
-        E -- five-tuple of integers that define a weierstrass equation
+        E -- five-tuple of integers that define a Weierstrass equation
         p -- a prime number
         point -- point on E
         prec -- precision parameter
@@ -83,7 +83,7 @@ def padic_regulator(E, p, points, prec=20):
     modulo torsion.
 
     INPUT:
-        E -- five-tuple of integers that define a weierstrass equation
+        E -- five-tuple of integers that define a Weierstrass equation
         p -- a prime number
         points -- list of points on E
         prec -- precision parameter
@@ -98,7 +98,7 @@ def padic_regulator(E, p, points, prec=20):
 def padic_E2(E, p, prec=20):
     """
     INPUT:
-        E -- five-tuple of integers that define a weierstrass equation
+        E -- five-tuple of integers that define a Weierstrass equation
         p -- a prime number
         prec -- precision parameter
     OUTPUT:

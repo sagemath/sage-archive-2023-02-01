@@ -136,12 +136,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     EXAMPLES:
 
-    Construction from Weierstrass coeffiecients (`a`-invariants), long form::
+    Construction from Weierstrass coefficients (`a`-invariants), long form::
 
         sage: E = EllipticCurve([1,2,3,4,5]); E
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
 
-    Construction from Weierstrass coeffiecients (`a`-invariants),
+    Construction from Weierstrass coefficients (`a`-invariants),
     short form (sets `a_1=a_2=a_3=0`)::
 
         sage: EllipticCurve([4,5]).ainvs()
@@ -1002,7 +1002,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # Some relevant timings:
         #
         # E <--> [0, 1, 1, -2, 0]   389A
-        #  E = EllipticCurve([0, 1, 1, -2, 0]);   // SAGE or MAGMA
+        #  E = EllipticCurve([0, 1, 1, -2, 0]);   // Sage or MAGMA
         #  e = E.pari_mincurve()
         #  f = ellinit([0,1,1,-2,0]);
         #
@@ -1045,7 +1045,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        a power series (in th evariable 'q')
+        a power series (in the variable 'q')
 
         .. note::
 
@@ -3116,7 +3116,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         consecutive trials (which occur maybe every 25000 coefficients or
         so). Probably it could just round at some point. For rigour, you
         would need to bound the tail by assuming (essentially) that all the
-        `a_n` are as large as possible, but in practise they
+        `a_n` are as large as possible, but in practice they
         exhibit significant (square root) cancellation. One difficulty is
         that it doesn't do the sum in 1-2-3-4 order; it uses
         1-2-4-8--3-6-12-24-9-18- (Euler product style) instead, and so you
@@ -3957,7 +3957,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [3, 6, 1, 2]
 
         This plots helps you see that the above Manin constants are
-        right.  Note that the vertex labels are 0-based unlinke the
+        right.  Note that the vertex labels are 0-based unlike the
         Cremona isogeny labels::
 
             sage: EllipticCurve('210b1').isogeny_graph().plot(edge_labels=True)
@@ -5040,7 +5040,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
 
         We explicitly verify in the above example that indeed that
-        index is divisibly by 2 by writing down a generator of
+        index is divisible by 2 by writing down a generator of
         E(QQ)/tor + E^D(QQ)/tor that is divisible by 2 in E(K)::
 
             sage: F = E.quadratic_twist(-7)
@@ -5248,7 +5248,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         omega = 2 * abs(E.period_lattice().basis_matrix().det())
 
         #  - The regulator.
-        #    First we compute the regualtor of the subgroup E(QQ) + E^D(QQ)
+        #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
         #    of E(K).   The factor of 2 in the regulator
         #    accounts for the fact that the height over K is twice the
         #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =
@@ -5333,7 +5333,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def _heegner_best_tau(self, D, prec=None):
         """
-        Given a discrimanent `D`, find the Heegner point `\tau` in the
+        Given a discriminant `D`, find the Heegner point `\tau` in the
         upper half plane with largest imaginary part (which is optimal
         for evaluating the modular parametrization). If the optional
         parameter ``prec`` is given, return `\tau` to ``prec`` bits of
@@ -5360,8 +5360,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         field `K=\QQ(\sqrt{D})`. If the optional parameter ``prec`` is given,
         it is computed with ``prec`` bits of working precision, otherwise it
         attempts to recognize it exactly over the Hilbert class field of `K`.
-        In this  latter case, the answer is *not* proveably correct but a
-        strong consistancy check is made.
+        In this  latter case, the answer is *not* provably correct but a
+        strong consistency check is made.
 
         INPUT::
 
@@ -5743,7 +5743,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: xlist = list(xset); xlist.sort(); xlist
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
 
-        TODO: reimplement this using the much faster point searching
+        TODO: re-implement this using the much faster point searching
         implemented in Stoll's ``ratpoints`` program.
 
         """
@@ -6551,7 +6551,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         b2, b4, b6, b8 = E.b_invariants()
         c4, c6 = E.c_invariants()
         disc = E.discriminant()
-        #internal function is doing only a comparision of E and E.short_weierstass_model() so the following is easier
+        #internal function is doing only a comparison of E and E.short_weierstass_model() so the following is easier
         if a1 == a2 == a3 == 0:
             is_short = True
         else:

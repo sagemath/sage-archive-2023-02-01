@@ -160,7 +160,7 @@ class Sha(SageObject):
     def an(self, use_database=False):
         r"""
         Returns the Birch and Swinnerton-Dyer conjectural order of Sha
-        as a provably corret integer, unless the analytic rank is > 1,
+        as a provably correct integer, unless the analytic rank is > 1,
         in which case this function returns a numerical value.
 
         INPUT: ``use_database`` -- bool (default: False); if True, try to use any
@@ -486,7 +486,7 @@ class Sha(SageObject):
             if bsdp[0] != 0:
                 shan0 = lstar[0]/bsdp[0]
             else:
-                shan0 = 0   # this should actully never happen
+                shan0 = 0   # this should actually never happen
             if bsdp[1] != 0:
                 shan1 = lstar[1]/bsdp[1]
             else:
@@ -585,7 +585,7 @@ class Sha(SageObject):
         rank of `E`. But it is not the best possible bound.
 
         TO DO: This should be rewritten, to give the exact order
-        of Sha[2], or if we can not find sufficently many points
+        of Sha[2], or if we can not find sufficiently many points
         it should give a lower bound.
 
         EXAMPLE::

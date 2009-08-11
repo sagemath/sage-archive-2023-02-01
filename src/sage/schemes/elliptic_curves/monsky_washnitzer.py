@@ -270,7 +270,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         INPUT:
 
 
-        -  ``p0, p1, p2`` - coefficients; must be coercable
+        -  ``p0, p1, p2`` - coefficients; must be coercible
            into poly_ring()
 
         -  ``check`` - bool (default True): whether to carry
@@ -333,7 +333,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
         -  ``parent`` - a SpecialCubicQuotientRing
 
-        -  ``p0, p1, p2`` - coefficients; must be coercable
+        -  ``p0, p1, p2`` - coefficients; must be coercible
            into parent.poly_ring()
 
         -  ``check`` - bool (default True): whether to carry
@@ -615,7 +615,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         # todo: These lines are necessary to get binop stuff working
         # for certain base rings, e.g. when we compute b*c3 in the
         # final line. They shouldn't be necessary. Need to fix this
-        # somewhere else in SAGE.
+        # somewhere else in Sage.
         a = parent._poly_ring(a)
         b = parent._poly_ring(b)
 
@@ -1710,7 +1710,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 # THIS IS A WORK IN PROGRESS.
 #
 # I tried to embed must stuff into the rings themselves rather than
-# just extract and manipulate lists of coefficents. Hence the implementations
+# just extract and manipulate lists of coefficients. Hence the implementations
 # below are much less optimized, so are much slower, but should hopefully be
 # easier to follow. (E.g. one can print/make sense of intermediate results.)
 #
@@ -1756,7 +1756,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     rational_S = S.change_ring(QQ)
     # this is a hack until pAdics are fast
     # (They are in the latest development bundle, but its not standard and I'd need to merge.
-    # (it will periodically cast into this ring to reduce coefficent size)
+    # (it will periodically cast into this ring to reduce coefficient size)
     rational_S._prec_cap = p**M
     rational_S._p = p
 #    S._p = p

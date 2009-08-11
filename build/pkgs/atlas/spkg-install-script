@@ -17,7 +17,7 @@ output=$?
 
 #system_atlas script exits with status
 # 0: if the user SAGE_ATLAS_LIB worked
-# 1: if SAGE_ATLAS_LIB wass not set
+# 1: if SAGE_ATLAS_LIB was not set
 # 2: if SAGE_ATLAS_LIB is set but does not contain the correct libraries
 
 if [ $output = 0 ]; then
@@ -100,7 +100,7 @@ build()
 
 	make shared cshared
         if [ $? -ne 0 ]; then
-            echo "Building shared ATLAS libraris failed"
+            echo "Building shared ATLAS libraries failed"
             exit 1
         fi
 

@@ -40,7 +40,7 @@ for i in range(max_tries):
     if os.path.exists('ATLAS-build') and \
            len([x for x in os.listdir('ATLAS-build') if x.startswith('error')]) > 0:
         if i == max_tries - 1:
-            print "Too many failures to build atlas.  Giving up!"
+            print "Too many failures to build ATLAS.  Giving up!"
             sys.exit(1)
         print "ATLAS failed to build for the %s-th time, possibly because of a"%(i+1)
         print "loaded system, so we will automatically try again up to %s more times."%(max_tries-i-1)

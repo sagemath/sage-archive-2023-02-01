@@ -2,12 +2,12 @@ r"""
 Simple Sage API
 
 This module provides a very simple API for interacting with a Sage session
-over http. It runs as part of the notebook server.
+over HTTP. It runs as part of the notebook server.
 
 .. note::
 
     The exact data in the JSON header may vary over time (for example,
-    further data may be added), but should remain backwards compatable
+    further data may be added), but should remain backwards compatible
     if it is being parsed as JSON data.
 
 TESTS:

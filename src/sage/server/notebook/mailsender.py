@@ -42,7 +42,7 @@ class SMTPInput:
         rcpt        -- the SMTP RCPT TO: ...
         data        -- the entire message. This should be a StringIO object.
         identity    -- the SMTP HELO identity. For some SMTP servers, the
-                       SAGE email sender's ip must resolve to this address.
+                       Sage email sender's IP must resolve to this address.
         secret      -- Dunno?
     """
     def __init__(self, mail_from, rcpt, data, identity, secret=None):

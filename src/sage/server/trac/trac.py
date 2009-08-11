@@ -27,7 +27,7 @@ def trac(directory='sage_trac',
 
     The trac server will be served on the given port.
 
-    You must install the optional SAGE trac package. (Use
+    You must install the optional Sage trac package. (Use
     optional_packages() for the exact name.)
     """
     if not os.path.exists(directory):

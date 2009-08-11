@@ -10,7 +10,7 @@
 
 
 """
-Server the SAGE Notebook.
+Server the Sage Notebook.
 """
 
 import getpass
@@ -120,7 +120,7 @@ def notebook_twisted(self,
             print "*"*70
             print "\n"
             if secure:
-                print "Login to the SAGE notebook as admin with the password you specified above."
+                print "Login to the Sage notebook as admin with the password you specified above."
         #nb.del_user('root')
 
     if not server_pool is None:
@@ -289,10 +289,10 @@ reactor.addSystemEventTrigger('before', 'shutdown', save_notebook)
 
 def get_admin_passwd():
     print "\n"*2
-    print "Please choose a new password for the SAGE Notebook 'admin' user."
+    print "Please choose a new password for the Sage Notebook 'admin' user."
     print "Do _not_ choose a stupid password, since anybody who could guess your password"
     print "and connect to your machine could access or delete your files."
-    print "NOTE: Only the md5 hash of the password you type is stored by SAGE."
+    print "NOTE: Only the md5 hash of the password you type is stored by Sage."
     print "You can change your password by typing notebook(reset=True)."
     print "\n"*2
     while True:

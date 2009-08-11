@@ -1,7 +1,7 @@
 r"""
 A Worksheet.
 
-A worksheet is embedded in a webpage that is served by the Sage
+A worksheet is embedded in a web page that is served by the Sage
 server. It is a linearly-ordered collections of numbered cells,
 where a cell is a single input/output block.
 
@@ -83,7 +83,7 @@ TRASH    = 2
 
 # The default is for there to be one sage session for each worksheet.
 # If this is False, then there is just one global Sage session, like
-# with Mathematica. The multisessin variable gets possibly changed
+# with Mathematica. The multisession variable gets possibly changed
 # when the notebook function in notebook.py is called.
 
 multisession = True
@@ -856,7 +856,7 @@ class Worksheet:
 
     def pretty_print(self):
         """
-        Return True if output shold be pretty printed by default.
+        Return True if output should be pretty printed by default.
 
         OUTPUT:
 
@@ -894,7 +894,7 @@ class Worksheet:
         .. note::
 
            The reason the input is a string and lower case instead of
-           a Python bool is because this gets called indirectory from
+           a Python bool is because this gets called indirectly from
            javascript. (And, Jason Grout wrote this and didn't realize
            how unpythonic this design is - it should be redone to use
            True/False.)
@@ -2080,7 +2080,7 @@ class Worksheet:
         try:
             S._send('sage.server.notebook.interact.reset_state()')
         except OSError:
-            # Dosn't matter, since if S is not running, no need
+            # Doesn't matter, since if S is not running, no need
             # to zero out the state dictionary.
             return
 
@@ -3473,7 +3473,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
                 # Probably there was an error; better not hide it.
                 return s[j:]
             else:
-                # Maybe we just read too early -- supress displaying anything yet.
+                # Maybe we just read too early -- suppress displaying anything yet.
                 return ''
         else:
             return s[i+len(z):]

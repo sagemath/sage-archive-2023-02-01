@@ -74,7 +74,7 @@ def help(obj):
 
     .. note::
 
-       This a wrapper around the builtin help. If formats the output
+       This a wrapper around the built-in help. If formats the output
        as HTML without word wrap, which looks better in the notebook.
 
     INPUT:
@@ -158,7 +158,7 @@ def completions(s, globs, format=False, width=90, system="None"):
                     v = [obj + '.'+x for x in D if x[:n] == method]
             except Exception, msg:
                 v = []
-        v = list(set(v))   # make uniq
+        v = list(set(v))   # make unique
         v.sort()
     except Exception, msg:
         v = []
@@ -344,7 +344,7 @@ def syseval(system, cmd, dir=None):
         system -- an object with an eval method that takes as input
                   a cmd (a string), and two dictionaries:
                            sage_globals and locals.
-        dir -- an otional directory to change to before
+        dir -- an optional directory to change to before
                calling system.eval.
 
     OUTPUT:

@@ -21,7 +21,7 @@ def print_open_msg(address, port, secure=False, path=""):
     INPUT:
         address -- a computer address
         port -- a port number
-        secure -- bool (default: False); whether to put http or https
+        secure -- bool (default: False); whether to put HTTP or HTTPS
         path -- path after the port.
 
     EXAMPLES:

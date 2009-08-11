@@ -1752,7 +1752,7 @@ class Cell(Cell_generic):
         Modified version of ``self.html`` for the doc browser.
         This is a hack and needs to be improved. The problem is how to get
         the documentation html to display nicely between the example cells.
-        The type setting (jsMath formating) needs attention too.
+        The type setting (jsMath formatting) needs attention too.
         """
         self.evaluate()
         if wrap is None:
@@ -2081,7 +2081,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
 def format_exception(s0, ncols):
     r"""
-    Make it so excpetions don't appear expanded by default.
+    Make it so exceptions don't appear expanded by default.
 
     INPUT:
 

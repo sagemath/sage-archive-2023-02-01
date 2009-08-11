@@ -15,7 +15,7 @@ Pilgrim's 'Dive Into Python' examples.
 
 Author:
     -- Dorian Raymer (2006): first version
-    -- William Stein (2007-06-10): rewrite to work with twisted SAGE notebook
+    -- William Stein (2007-06-10): rewrite to work with twisted Sage notebook
     -- Mike Hansen (2008-09-27): Rewrite to work with Sphinx HTML documentation
 """
 #############################################################################
@@ -33,7 +33,7 @@ class SphinxHTMLProcessor(SGMLParser):
     def reset(self):
         """
         This function is called by SGMLParser.__init__ so all necessary things
-        are initiallized here.
+        are initialized here.
 
         EXAMPLES:
             sage: from sage.server.notebook.docHTMLProcessor import SphinxHTMLProcessor
@@ -81,7 +81,7 @@ class SphinxHTMLProcessor(SGMLParser):
 
     def hand_off_temp_pieces(self, piece_type):
         """
-        To seperate documentation content from sage examples,
+        To separate documentation content from sage examples,
         everything is split into one of two cell types.  This function
         is called to put the current self.temp_pieces into
         self.all_pieces.
@@ -122,7 +122,7 @@ class SphinxHTMLProcessor(SGMLParser):
         The rest of the examples should have sage:input and
         output. If the example is a model, it is made into a
         div class='usage_model' so it can be stylized.
-        If it is actuall input/output, the input is seperated
+        If it is actual input/output, the input is separated
         from the output according to the Notebook edit format.
         """
         if cell_piece[:5] != 'sage:' and cell_piece[:12] != '&gt;'*3:

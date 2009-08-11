@@ -17,7 +17,7 @@
 
 AUTHOR:
     -- Jurgen Hermann: Moin Moin version
-    -- William Stein: adoption for SAGE
+    -- William Stein: adoption for Sage
 """
 
 import os, re

@@ -9,7 +9,7 @@
 #############################################################################
 
 r"""
-SAGE Notebook Interface
+Sage Notebook Interface
 
 AUTHORS:
     -- William Stein (2006-05-06): initial version
@@ -20,8 +20,8 @@ AUTHORS:
     -- Yi Qiang
     -- Bobby Moretti
 
-The SAGE graphical user interface is unusual in that it operates via
-your web browser.  It provides you with SAGE worksheets that you can
+The Sage graphical user interface is unusual in that it operates via
+your web browser.  It provides you with Sage worksheets that you can
 edit and evaluate, which contain scalable typeset mathematics and
 beautiful antialised images.  To try it out immediately, do this:
 
@@ -30,7 +30,7 @@ beautiful antialised images.  To try it out immediately, do this:
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should fully work with Firefox (and Mozilla).  It
+The Sage notebook should fully work with Firefox (and Mozilla).  It
 may work to some extent with Safari and Opera.  Internet Explorer is
 not supported.
 
@@ -39,7 +39,7 @@ Here are some things to try in the the notebook to get a feeling
 for it.
 
 Type "2+2" in the blank box and press "shift-enter".
-The line below"2+2" will turn a different color for a moment while a SAGE kernel
+The line below"2+2" will turn a different color for a moment while a Sage kernel
 fires up and computes the answer.
 
 Your cursor should now be in the next box down.   Type \code{a = 2\^1000}
@@ -61,7 +61,7 @@ function, e.g.,
 \end{verbatim}
 Click on the left side of the figure (twice) to make it disappear.
 
-One important feature of the SAGE notebook, is that you can
+One important feature of the Sage notebook is that you can
 "queue up" a bunch of calculations in a row, *while* still editing the
 notebook!  As an example, consider computing factorials, which takes a
 while (but not forever).  First, enter the following in a blank box and
@@ -80,7 +80,7 @@ While f(6) is computing (if it finishes first, restart it by
 just hitting shift-enter in the box where "f(6)" is), try typing
 "f(4)" in the next box.  You're allowed to give input, but the
 result doesn't get computed immediately.  You can enter several more
-lines as well, etc.; when the f(6) finally finishes, SAGE goes on
+lines as well, etc.; when the f(6) finally finishes, Sage goes on
 to compute "f(4)".   You can queue up dozens of calculations.  For
 example, if you hit the "Evaluate" link in the upper right, the
 whole worksheet is queued up for computation.  Try it.   When the
@@ -135,13 +135,13 @@ In this way you can make a single session that has input blocks
 that work with a range of different systems.
 
 (Note -- there is currently no support for
-pulling in objects and evaluating code in SAGE by typing
+pulling in objects and evaluating code in Sage by typing
 "sage(...)" inside the input block.  This is planned.)
 
 \subsubsection{Typesetting Mathematics}
 SAGE \emph{includes} jsMath, which is an implementation of the TeX
 math layout engine in javascript.  If you use the show or view
-commands, they display a given SAGE object typeset using jsmath.
+commands, they display a given Sage object typeset using jsmath.
 Moreover, if you put \code{\%jsmath} at the beginning of an input
 cell, the whole cell will be typeset using jsmath.  Also, you can type
 \code{jsmath(obj)} to typeset a given object obj using jsmath.
@@ -221,7 +221,7 @@ examples by starting the block with ">>>" or including an example.
 
 \subsubsection{Saving and Loading Notebooks and Worksheets}
 
-The SAGE notebook is very persistent.  Every time you submit
+The Sage notebook is very persistent.  Every time you submit
 a cell for computation, the state of the notebook is saved (a
 few kb's file).  If you quit the notebook and reload, it will
 have everything you typed from the previous session, along
@@ -236,7 +236,7 @@ variables using the \code{load_session} command.
 
 \subsubsection{Architecture}
 
-The SAGE Notebook is an ``AJAX application'' that can run either
+The Sage Notebook is an ``AJAX application'' that can run either
 entirely locally on your desktop machine, or partly on
 a server and via a web browser that could be located somewhere
 else.
@@ -245,7 +245,7 @@ address when starting the notebook), you should also set
 the username and password, so not just anybody can access
 the notebook.
 
-Anywhere, here are the components of the SAGE Notebook:
+Anywhere, here are the components of the Sage Notebook:
 
 \begin{enumerate}
 \item Web Server: A Python process that uses the
@@ -254,12 +254,12 @@ Anywhere, here are the components of the SAGE Notebook:
      process also handles all requests from the web browser,
      e.g., organizing computation of cells, etc.  It
      only imports a small
-     subset of the SAGE library.  In particular, if you do
+     subset of the Sage library.  In particular, if you do
      "sage -notebook" at the command line, only some of
-     SAGE is imported.
+     Sage is imported.
 
- \item SAGE Server:
-     A Python process with all the SAGE libraries loaded; this
+ \item Sage Server:
+     A Python process with all the Sage libraries loaded; this
      is started by (1) when a web browser first requests that
      a cell be evaluated.  There's (up to) one of these
      for each worksheet.
@@ -267,22 +267,22 @@ Anywhere, here are the components of the SAGE Notebook:
  \item WEB Browser: The web browser runs a 1000-line javascript (plus
      800 lines of css) program that Alex, Tom and I wrote from
      scratch, which implements much of the browser-side part of the
-     SAGE notebook functionality.
+     Sage notebook functionality.
 
 \end{enumerate}
 
-When you use the SAGE Notebook, you are mainly interacting with a
+When you use the Sage Notebook, you are mainly interacting with a
 javascript program.  When you do something serious, e.g., request
 computation of some input, create a new cell, etc., a request is made
 from your web browser to the web server telling it what is going on.
-If it's a calculation, the web server tells the SAGE server to get
+If it's a calculation, the web server tells the Sage server to get
 started on the calculation, and tells the web browser to check several
 times a second whether there is anything new with the calculation.
 When something new appears it fills that in.  This continues until all
 calculations are done. During this time, you can edit cells, create
 new cells, submit more computations, etc.  Note that output is
 updated as the computation proceeds, so you can verbosely watch
-a computation progress.  For example, try the following from the SAGE
+a computation progress.  For example, try the following from the Sage
 Notebook:
 
 \begin{verbatim}
@@ -294,21 +294,21 @@ for i in range(10):
 
 You get to watch as the integers from 1 to 10 are "computed".
 Actually, getting this output to be reported as the computation
-proceeds is, I think, \emph{crucial} to making a really usable SAGE
+proceeds is, I think, \emph{crucial} to making a really usable Sage
 GUI--users (i.e., me) want to run huge computations and watch the
 output progress.
 
 The architecture is also good from the point of view of being able to
 interrupt running computations.  What happens when you request an
 interrupt is that the web browser sends a message to the web server,
-which in turn tells the SAGE server to stop computing by sending it
+which in turn tells the Sage server to stop computing by sending it
 many interrupt signals (for several seconds) until it either stops, or
 if it's really frozen (due to a bug, or calling into a C function that
 isn't properly wrapped in signal handling, or maybe you run an
-interactive program, e.g., via "os.system('...')"), it'll just kill that SAGE server
+interactive program, e.g., via "os.system('...')"), it'll just kill that Sage server
 and start a new one.  The result is that the
 user doesn't get a frozen web browser or browser interface at any point,
-and even if the whole SAGE process went down and froze, at least all
+and even if the whole Sage process went down and froze, at least all
 your input and output from your session is still there in your
 browser.  The only thing you've lost is the definition of all your
 variables.  Hit "shift-enter" a few times or "evaluate all" and you're
@@ -347,7 +347,7 @@ the "save" command), and get back to where you were quickly.
 #####################################
 
 notebook_help = [
-            ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
+            ('Full Text Search of Docs and Source', 'Search the Sage documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of Sage by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
             ('HTML', 'Shift click between cells to create a new HTML cell.  Double click on existing HTML to edit it.  Use $...$ and $$...$$ to include typeset math in the HTML block.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Interactive Dynamic Widgets', 'Put @interact on the line before a function definition.  Type interact? for more details.'),
@@ -356,7 +356,7 @@ notebook_help = [
                 ('Time', 'Type "%time" at the beginning of the cell.'),
                 ('Evaluate Cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
                 ('Interrupt running calculations',
-                 'Click <u>Interrupt</u> or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupt signals.'),
+                 'Click <u>Interrupt</u> or press escape in any input cell. This will (attempt) to interrupt Sage by sending many interrupt signals.'),
                 ('Tab Completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
                 ('Typesetting All Output', 'Type pretty_print_default() in an input cell and press shift-enter.  All future output will be typeset automatically.'),
                 ('Help About',
@@ -375,14 +375,14 @@ notebook_help = [
                 ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows for easy moving of objects from one worksheet to another, and saving of objects for later use.'),
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
+                ('Restart', 'Type "restart" to restart the Sage interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working Directory', 'Each block of code is run from its own directory.  If any images are created as a side effect, they will automatically be displayed.'),
-            ('DIR variable', 'The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
+            ('DIR variable', 'The variable DIR contains the directory from which you started the Sage notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
             ('DATA variable', 'The variable DATA contains the directory with data files that you upload into the worksheet.  For example, to open a file in that directory, do "open(DATA+\'filename\')".'),
             ('Split and join cells', 'Press ctrl-; in a cell to split it into two cells, and ctrl-backspace to join them.  Press ctrl-enter to split a cell and evaluate both pieces.'),
 #                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
- #               ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
+ #               ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the Sage notebook and a tutorial (or see the Sage reference manual).'),
 #                ('Javascript Debugger', 'Type ?debug at the end of a worksheet url to enable the javascript debugger.  A pair of textareas will appear at the top of the worksheet -- the upper of which is for output, the lower is a direct interface to the page\'s javascript environment.  Type any eval()-able javascript into the input box and press shift+enter to execute it.  Type debug_append(str) to print to, and debug_clear() to clear the debug output window.'),
                 ]
 

@@ -40,8 +40,8 @@ BUGS:
    [x] edit/save breaks interact mode
           * picking up images that shouldn't.
           * controls completely stop working.
-   [x] problems with html/pre/text formating, e.g., in TEXT mode and in interact cells
-   [x] tab completion in interact broken formating
+   [x] problems with html/pre/text formatting, e.g., in TEXT mode and in interact cells
+   [x] tab completion in interact broken formatting
    [x] error exception reporting broken
    [x] replace special %interact by something very obfuscated to keep from having
        really weird mistakes that are hard for people to debug.
@@ -51,7 +51,7 @@ BUGS:
        passed back and forth using single quotes.
    [x] possible issue with page title being undefined; don't know why
        or if that is connected with interactives
-   [x] autorunning interact cells on load is being injectected into the
+   [x] autorunning interact cells on load is being injected into the
        i/o pexpect stream way too early.
    [x] what do published worksheets do??
 
@@ -60,7 +60,7 @@ VERSION 1:
    [x] default values
    [x] NO -- autoswitch to 1-cell mode:
            put                  slide_mode(); jump_to_slide(%s);   in wrap_in_outside_frame
-        but feals all wrong.
+        but feels all wrong.
    [x] completely get rid of left clicking to switch wrap mode for
            interact objects: always in word wrap mode or hide.
    [x] shortcut ('label', v)
@@ -313,7 +313,7 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
 
 
     # change 'change' to 'slide' and it changes the slider every time it moves;
-    # needs much more work to actually work, since server gets fludded by
+    # needs much more work to actually work, since server gets flooded by
     # requests.
 
     return s
@@ -1391,7 +1391,7 @@ class InteractCanvas:
     def __init__(self, controls, id, **options):
         """
         Base class for interact canvases. This is where all the controls
-        along with the output of the interactd function are layed out
+        along with the output of the interactd function are laid out
         and rendered.
 
         INPUT:
@@ -1673,7 +1673,7 @@ def interact(f):
     \code{auto_update=False} to your function to prevent it from
     updating whenever the values are changed.  This will cause a
     button labeled 'Update' to appear which you can click on to
-    revaluate your function.
+    re-evaluate your function.
 
         sage: @interact
         ... def _(n=(10,100,1), auto_update=False):
@@ -2737,7 +2737,7 @@ def list_of_first_n(v,n):
     Given an iterator v, return first n elements it produces as a list.
 
     INPUT:
-        v -- an interator
+        v -- an iterator
         n -- an integer
 
     OUTPUT:

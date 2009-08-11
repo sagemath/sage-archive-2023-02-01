@@ -23,7 +23,7 @@ import run_notebook
 class NotebookObject:
     r"""
 Start the Sage Notebook server. More documentation is available in the
-Sage installation guide, in the "Running the SAGE Notebook Securely"
+Sage installation guide, in the "Running the Sage Notebook Securely"
 chapter, and at http://wiki.sagemath.org/StartingTheNotebook.
 
     INPUT:
@@ -102,7 +102,7 @@ chapter, and at http://wiki.sagemath.org/StartingTheNotebook.
        else using the Sage notebook on localhost and deleting your files.
 
     4. I want to create a Sage notebook server that is open to anybody in
-       the world to create new accounts. To run the Sage notebook publically
+       the world to create new accounts. To run the Sage notebook publicly
        (1) at a minimum run it from a chroot jail or inside a virtual
        machine (see wiki.sagemath.org/StartingTheNotebook and the Sage
        install guide) and (2) use a command like

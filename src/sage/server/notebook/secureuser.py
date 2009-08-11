@@ -38,7 +38,7 @@ su -c script_name
  ...
 # set all passwords of user accounts to be non-login-able.
 
-This should work to run SAGE for all users
+This should work to run Sage for all users
 
 (have to automate doing
 "Are you sure you want to continue connecting (yes/no)? yes"

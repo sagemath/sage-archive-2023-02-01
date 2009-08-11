@@ -17,7 +17,7 @@ AUTHORS:
 The functions below return a block of javascript code that defines
 global variables for every key that we could think of that works in
 (almost) all systems.  Keys intentionally not captured are escape,
-insert, delete, and F1-F12.  Support for the caputre of ctrl, alt,
+insert, delete, and F1-F12.  Support for the capture of ctrl, alt,
 and shift is spotty; however, checking for this is necessary for
 proper behavior in IE.
 
@@ -31,7 +31,7 @@ Konqueror
 We are deaf to the complaints of users of the following systems:
 AOL
 IE mac
-LYNX / other commandline browsers (SAGE has a commandline interface!)
+LYNX / other command line browsers (Sage has a command line interface!)
 the browser your cousin wrote for your sister's birthday
 
 If you think that your browser deserves support, go to the following page:

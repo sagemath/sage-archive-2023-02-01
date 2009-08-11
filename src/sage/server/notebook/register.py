@@ -16,7 +16,7 @@ def build_msg(key, username, addr, port, secure):
     url_prefix = "https" if secure else "http"
     s  = "Hi %s!\n\n" % username
     s += """\
-Thank you for registering for the SAGE notebook. To complete your registration,
+Thank you for registering for the Sage notebook. To complete your registration,
 copy and paste the following link into your browser:
 
 %s://%s:%s/confirm?key=%s

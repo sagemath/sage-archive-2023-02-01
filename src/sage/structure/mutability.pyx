@@ -4,7 +4,7 @@ Mutability Cython Implementation
 
 ##########################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #

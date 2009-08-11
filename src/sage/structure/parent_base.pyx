@@ -1,5 +1,5 @@
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -15,7 +15,7 @@ cdef inline check_old_coerce(parent.Parent p):
         raise RuntimeError, "%s still using old coercion framework" % p
 
 
-# TODO: Unpickled parents with base sometimes have thier base set to None.
+# TODO: Unpickled parents with base sometimes have their base set to None.
 # This causes a segfault in the module arithmetic architecture.
 #
 # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H

@@ -114,7 +114,7 @@ def make_finite_gens(obj, n, index_set, category):
 
 cdef class Generators_list(Generators_finite):
     """
-    This class represents a set of generaters as a tuple of elements, indexed
+    This class represents a set of generators as a tuple of elements, indexed
     by the integers 0 to len(self)-1.
 
     It is the easiest to use of all the generator classes, and gets constructed

@@ -1,7 +1,7 @@
 r"""
 Base class for parent objects
 
-CLASS HIEARCHY:
+CLASS HIERARCHY:
 
 SageObject
     Parent
@@ -16,7 +16,7 @@ This came up in some subtle bug once.
 """
 
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -56,7 +56,7 @@ cdef class Parent(parent.Parent):
     """
 
     def __init__(self, coerce_from=[], actions=[], embeddings=[]):
-        # TODO: many classes don't call this at all, but __new__ crashes SAGE
+        # TODO: many classes don't call this at all, but __new__ crashes Sage
 #        if len(coerce_from) > 0:
 #            print type(self), coerce_from
         self.init_coerce(False)
@@ -175,7 +175,7 @@ cdef class Parent(parent.Parent):
                     return mor * connecting
 
         # Piggyback off the old code for now
-        # WARNING: when working on this, make sure circular dependancies aren't introduced!
+        # WARNING: when working on this, make sure circular dependencies aren't introduced!
         if self.has_coerce_map_from_c(S):
             if isinstance(S, type):
                 S = Set_PythonType(S)
@@ -347,7 +347,7 @@ cdef class Parent(parent.Parent):
         else:
             return self._coerce_c_impl(x)
 
-    cdef _coerce_c_impl(self, x):     # OVERRIDE THIS FOR CYTHON CLASES
+    cdef _coerce_c_impl(self, x):     # OVERRIDE THIS FOR CYTHON CLASSES
         """
         Canonically coerce x in assuming that the parent of x is not
         equal to self.
@@ -454,7 +454,7 @@ cdef class Parent(parent.Parent):
 
     cdef _an_element_c_impl(self):  # override this in Cython
         """
-        Returns an element of self. Want it in sufficent generality
+        Returns an element of self. Want it in sufficient generality
         that poorly-written functions won't work when they're not
         supposed to. This is cached so doesn't have to be super fast.
         """
@@ -555,7 +555,7 @@ cdef class Parent(parent.Parent):
         check_old_coerce(left)
         pass
         # this would be nice to do, but we can't since
-        # it leads to infinite recurssions -- and is slow -- and this
+        # it leads to infinite recursions -- and is slow -- and this
         # stuff must be fast!
         #if right.has_coerce_map_from(left):
         #    if left.has_coerce_map_from(right):
@@ -609,10 +609,10 @@ cdef class Parent(parent.Parent):
 
 
 ############################################################################
-# Set baseclass --
+# Set base class --
 ############################################################################
 
-# These functions are to guerentee that user defined _lmul_, _rmul_, _l_action_, _r_action_ do
+# These functions are to guarantee that user defined _lmul_, _rmul_, _l_action_, _r_action_ do
 # not in turn call __mul__ on their arguments, leading to an infinite loop.
 
 cdef object _coerce_test_list = []

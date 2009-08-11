@@ -164,7 +164,7 @@ cdef class UniqueFactory(SageObject):
         will unpickle to the same rather than simply equal objects. This
         can provide significant gains as arithmetic must be performed on
         objects with identical parents. However, if there has been an
-        incompatable change (e.g. in element representation) we want the
+        incompatible change (e.g. in element representation) we want the
         version number to change so coercion is forced between the two
         parents.
 

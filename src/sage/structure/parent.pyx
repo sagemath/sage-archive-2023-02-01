@@ -1,7 +1,7 @@
 r"""
 Base class for parent objects
 
-CLASS HIEARCHY::
+CLASS HIERARCHY::
 
     SageObject
         CategoryObject
@@ -71,7 +71,7 @@ cdef inline Py_ssize_t PyDict_GET_SIZE(o):
     return (<dict>o).ma_used
 
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -137,7 +137,7 @@ cdef class Parent(category_object.CategoryObject):
         if len(kwds) > 0:
             if bad_parent_warnings:
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
-        # TODO: many classes don't call this at all, but __new__ crashes SAGE
+        # TODO: many classes don't call this at all, but __new__ crashes Sage
         if bad_parent_warnings:
             if element_constructor is None:
                 element_constructor = self._element_constructor_
@@ -562,7 +562,7 @@ cdef class Parent(category_object.CategoryObject):
        been implemented for this ring, then a NotImplementedError exception
        is raised.
        """
-       raise NotImplementedError, "Verification of correctness of homomorphisms from %s not yet implmented."%self
+       raise NotImplementedError, "Verification of correctness of homomorphisms from %s not yet implemented."%self
 
     def Hom(self, codomain, cat=None):
         r"""
@@ -611,7 +611,7 @@ cdef class Parent(category_object.CategoryObject):
        - ``codomain`` - the codomain of the homomorphism
 
        - ``check`` - whether to verify that the images of generators extend
-         to define a map (using only canonical coercisions).
+         to define a map (using only canonical coercions).
 
        OUTPUT:
 
@@ -817,7 +817,7 @@ cdef class Parent(category_object.CategoryObject):
 
         This does not mean that there are no coercion maps from self into other
         fields, this is simply a specific morphism specified out of self and
-        ususally denotes a special relationship (e.g. sub-objects, choice of
+        usually denotes a special relationship (e.g. sub-objects, choice of
         completion, etc.)
 
         EXAMPLES:
@@ -1216,7 +1216,7 @@ cdef class Parent(category_object.CategoryObject):
     cdef discover_action(self, S, op, bint self_on_left):
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
-        # What may be true is that if the action's desination is S, then this can be allowed.
+        # What may be true is that if the action's destination is S, then this can be allowed.
         from sage.categories.action import Action, PrecomposedAction
         from sage.categories.homset import Hom
         from coerce_actions import LeftModuleAction, RightModuleAction
@@ -1238,7 +1238,7 @@ cdef class Parent(category_object.CategoryObject):
                     else:
                         action = RightModuleAction(R, self) # self is acted on from left
                     _unregister_pair(x,y)
-                    ## The following two lines are diabled to prevent the following from working:
+                    ## The following two lines are disabled to prevent the following from working:
                     ## sage: x, y = var('x,y')
                     ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
                     ## sage: parent(ZZ[x](1)*vector(QQ[y],[1,2]))
@@ -1385,7 +1385,7 @@ cdef class Parent(category_object.CategoryObject):
 
     cpdef _an_element_(self):
         """
-        Returns an element of self. Want it in sufficent generality
+        Returns an element of self. Want it in sufficient generality
         that poorly-written functions won't work when they're not
         supposed to. This is cached so doesn't have to be super fast.
 
@@ -1466,7 +1466,7 @@ cdef class Parent(category_object.CategoryObject):
 #            raise TypeError, "base extension not defined for %s" % self
 
 ############################################################################
-# Set baseclass --
+# Set base class --
 ############################################################################
 
 

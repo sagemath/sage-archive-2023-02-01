@@ -83,7 +83,7 @@ cdef class TripleDict:
         ...
         KeyError: 'a'
 
-    The following illistrates why even sizes are bad.
+    The following illustrates why even sizes are bad.
         sage: L = TripleDict(4, L)
         sage: L.stats()
         (0, 250.25, 1001)
@@ -295,7 +295,7 @@ cdef class TripleDict:
         """
         Changes the number of buckets of self, while preserving the contents.
 
-        If the number of buckes is 0 or not given, it resizes self to the
+        If the number of buckets is 0 or not given, it resizes self to the
         smallest prime that is at least twice as large as self.
 
         EXAMPLES:
@@ -329,7 +329,7 @@ cdef class TripleDict:
     def __reduce__(self):
         """
         Note that we don't expect equality as this class concerns itself with
-        object identy rather than object equality.
+        object identity rather than object equality.
 
         EXAMPLES:
             sage: from sage.structure.coerce_dict import TripleDict

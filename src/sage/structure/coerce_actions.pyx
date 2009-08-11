@@ -77,9 +77,9 @@ cdef class ModuleAction(Action):
             # The right thing to do is a normal multiplication
             raise TypeError
         # Objects are implemented with the assumption that
-        # _rmul_ is given an element of the basering
+        # _rmul_ is given an element of the base ring
         if G is not S.base():
-            # first we try the easy case of coercing G to the basering of S
+            # first we try the easy case of coercing G to the base ring of S
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
                 # otherwise, we try and find a base extension
@@ -221,7 +221,7 @@ cdef class RightModuleAction(ModuleAction):
             if (<RefPyObject *>a).ob_refcnt == 2:
                 b = self.extended_base(0)
             if (<RefPyObject *>a).ob_refcnt == 1:
-                # This is a truely new object, mutate it
+                # This is a truly new object, mutate it
                 return (<ModuleElement>a)._ilmul_(<RingElement>g)  # a * g
             else:
                 return (<ModuleElement>a)._lmul_(<RingElement>g)  # a * g

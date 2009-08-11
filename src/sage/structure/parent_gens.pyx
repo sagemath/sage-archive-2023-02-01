@@ -59,7 +59,7 @@ This example illustrates generators for a free module over `\ZZ`.
 """
 
 ###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -383,7 +383,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         - ``codomain`` - the codomain of the homomorphism
 
         - ``check`` - whether to verify that the images of generators extend
-          to define a map (using only canonical coercisions).
+          to define a map (using only canonical coercions).
 
         OUTPUT:
 
@@ -502,7 +502,7 @@ class localvars:
     Context manager for safely temporarily changing the variables
     names of an object with generators.
 
-    Objects with named generators are globally unique in SAGE.
+    Objects with named generators are globally unique in Sage.
     Sometimes, though, it is very useful to be able to temporarily
     display the generators differently.   The new Python ``with``
     statement and the localvars context manager make this easy and

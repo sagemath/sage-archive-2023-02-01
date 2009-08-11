@@ -409,7 +409,7 @@ cdef class CategoryObject(sage_object.SageObject):
 #    def __getattr__(self, name):
 #        """
 #        Overriding the __getattr__ method allows one to define methods for objects in a particular
-#        category by writing a correpsonding method on the category.
+#        category by writing a corresponding method on the category.
 #
 #        In order to write a method called FOO that's automatically attached to a category object,
 #        write a method object_FOO on one of that object's categories.

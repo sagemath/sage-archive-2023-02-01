@@ -2,7 +2,7 @@
 This module provides a general class that wraps other parents and element types.
 
 The purpose of this functionality is to be able to add morphisms and actions to the coercion system that interact with objects that are otherwise unique.  For example, one would use wrappers to implement:
-0. Residue Fields where one has a fast implementation for the arithemtic of the quotient, for example $O_K / p O_K$ for $K$ a number field, $O_K$ its maximal order and $p$ a prime of $O_K$.  This residue field includes a coercion map from $O_K$.
+0. Residue Fields where one has a fast implementation for the arithmetic of the quotient, for example $O_K / p O_K$ for $K$ a number field, $O_K$ its maximal order and $p$ a prime of $O_K$.  This residue field includes a coercion map from $O_K$.
 1. Completions at a places of number fields.  There is a morphism added that maps to the completed ring, which is represented as a finite extension of $\QQ_p$
 2. G-sets for groups acting on an object that would otherwise be unique.
 

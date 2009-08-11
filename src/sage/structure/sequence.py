@@ -69,7 +69,7 @@ TESTS::
 
 ##########################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -109,7 +109,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
       after each comma when printing this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       builtin Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, long, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -125,7 +125,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    We can request that the builtin Python numerical types be coerced
+    We can request that the built-in Python numerical types be coerced
     to Sage objects::
 
         sage: v = Sequence(range(10), use_sage_types=True)
@@ -294,7 +294,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                 y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
                 if use_sage_types:
-                    # convert any Python builtin numerical types to Sage objects
+                    # convert any Python built-in numerical types to Sage objects
                     from sage.rings.integer_ring import ZZ
                     from sage.rings.real_double import RDF
                     from sage.rings.complex_double import CDF

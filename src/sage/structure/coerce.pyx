@@ -279,7 +279,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     def _record_exception(self):
         r"""
-        Pushes the last exception that occured onto the stack for later reference,
+        Pushes the last exception that occurred onto the stack for later reference,
         for internal use.
 
         If the stack has not yet been flagged as cleared, we clear it now (rather
@@ -472,7 +472,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
            This function is accurate only in so far as analyse is kept
            in sync with the :meth:`bin_op` and
-           :meth:`canonical_coercion` which are kept seperate for
+           :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.
         """
         all, res = self.analyse(xp, yp, op)
@@ -493,7 +493,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Emulate the process of doing arithmetic between xp and yp, returning
         a list of steps and the parent that the result will live in. The
         ``explain`` function is easier to use, but if one wants access to
-        the acutal morphism and action objects (rather than their string
+        the actual morphism and action objects (rather than their string
         representations) then this is the function to use.
 
         EXAMPLES::
@@ -634,7 +634,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
           .. note::
 
-             op is often an arithmitic operation, but need not be so.
+             op is often an arithmetic operation, but need not be so.
 
         EXAMPLES::
 
@@ -1226,7 +1226,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         - An action A such that s op r is given by A(s,r).
 
-        The steps taken are illistrated below.
+        The steps taken are illustrated below.
 
         EXAMPLES::
 
@@ -1350,7 +1350,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm._coercion_error('a', 'f', 'f(a)', 'b', 'g', 'g(b)')
             Traceback (most recent call last):
             ...
-            RuntimeError: There is a bug in the coercion code in SAGE.
+            RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
             In fact, x has parent '<type 'str'>'
             whereas y has parent '<type 'str'>'
@@ -1358,7 +1358,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <type 'str'> 'f'
             <type 'str'> 'g'
         """
-        raise RuntimeError, """There is a bug in the coercion code in SAGE.
+        raise RuntimeError, """There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.
 In fact, x has parent '%s'
 whereas y has parent '%s'

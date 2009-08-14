@@ -1771,7 +1771,9 @@ class Main_css(resource.Resource):
     def render(self, ctx):
         s = css.css()
         gzip_handler(ctx)
-        return http.Response(stream=s)
+        response = http.Response(stream=s)
+        response.headers.addRawHeader('Content-Type', 'text/css; charset=utf-8')
+        return response
 
 class Reset_css(resource.Resource):
     def render(self, ctx):

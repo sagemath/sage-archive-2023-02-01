@@ -145,37 +145,20 @@ class GraphPlot(SageObject):
                     pos[verts[i]] = [x,y]
                 self._pos = pos
             elif self._options['layout'] == 'tree':
-                if not self._graph.is_tree():
-                    raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
-                n = self._graph.order()
+                n = len(self._nodelist)
+
                 if not 'tree_root' in self._options:
                     from sage.misc.prandom import randrange
                     root = self._nodelist[randrange(n)]
                 else:
                     root = self._options['tree_root']
-                # BFS search for heights
-                seen = [root]
-                queue = [root]
-                heights = [-1]*n
-                heights[self._nodelist.index(root)] = 0
-                while queue:
-                    u = queue.pop(0)
-                    for v in self._graph.neighbors(u):
-                        if v not in seen:
-                            seen.append(v)
-                            queue.append(v)
-                            heights[self._nodelist.index(v)] = heights[self._nodelist.index(u)] + 1
-                if self._options['tree_orientation'] == 'down':
-                    maxx = max(heights)
-                    heights = [maxx-heights[i] for i in xrange(n)]
-                heights_dict = {}
-                for v in self._nodelist:
-                    if not heights_dict.has_key(heights[self._nodelist.index(v)]):
-                        heights_dict[heights[self._nodelist.index(v)]] = [v]
-                    else:
-                        heights_dict[heights[self._nodelist.index(v)]].append(v)
-                # Add/overwrite self._options['heights']
-                self._options['heights'] = heights_dict
+
+                if not 'tree_orientation' in self._options:
+                    orientation = 'down'
+                else:
+                    orientation = self._options['tree_orientation']
+
+                self._pos = self.layout_tree(root,orientation)
 
         # No layout-- obtain position dict for all nodes
         elif 'pos' in self._options:
@@ -779,4 +762,105 @@ class GraphPlot(SageObject):
         G.axes(False)
         return G
 
+    def layout_tree(self,root,orientation):
+        """
 
+        Compute a nice layout of a tree.
+
+        INPUT:
+
+        - ``root`` -- the root vertex.
+
+        - ``orientation`` -- Whether to place the root
+        at the top or at the bottom :
+            - ``orientation="down"`` -- children are place below
+            their parent
+            - ``orientation="top"`` -- children are places above
+            their parent
+
+
+        EXAMPLES::
+
+            sage: T = graphs.RandomLobster(25,0.3,0.3)
+            sage: T.show(layout='tree',tree_orientation='up')
+
+            sage: from sage.graphs.graph_plot import GraphPlot
+            sage: G = graphs.HoffmanSingletonGraph()
+            sage: T = Graph()
+            sage: T.add_edges(G.min_spanning_tree(starting_vertex=0))
+            sage: T.show(layout='tree',tree_root=0)
+
+        """
+
+        T = self._graph
+
+        if not self._graph.is_tree():
+            raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+
+        children = {root:T.neighbors(root)}
+
+        #always make a copy of the children because they get eaten
+        stack = [[u for u in children[root]]]
+        stick = [root]
+        parent = dict([(u,root) for u in children[root]])
+        pos = {}
+        obstruction = [0.0]*T.num_verts()
+        if orientation == 'down':
+            o = -1
+        else:
+            o = 1
+
+        def slide(v,dx):
+            """
+
+            shift the vertex v and its descendants to the right by dx
+
+            Precondition: v and its descendents have already had their
+            positions computed.
+
+            """
+
+            level = [v]
+            while level:
+                nextlevel = []
+                for u in level:
+                    x,y = pos[u]
+                    x+= dx
+                    obstruction[y] = max(x+1, obstruction[y])
+                    pos[u] = x,y
+                    nextlevel += children[u]
+
+                level = nextlevel
+
+        while stack:
+            C = stack[-1]
+            if len(C) == 0:
+                p = stick.pop()
+                stack.pop()
+                cp = children[p]
+                y = o*len(stack)
+                if len(cp) == 0:
+                    x = obstruction[y]
+                    pos[p] = x,y
+                else:
+                    x = sum([pos[c][0] for c in cp])/len(cp)
+                    pos[p] = x,y
+                    ox = obstruction[y]
+                    if x < ox:
+                        slide(p,ox-x)
+                        x = ox
+                obstruction[y] = x+1
+                continue
+
+            t = C.pop()
+            pt = parent[t]
+
+            ct = [u for u in T.neighbors(t) if u != pt]
+            for c in ct:
+                parent[c] = t
+            children[t] = ct
+
+            stack.append([c for c in ct])
+            stick.append(t)
+
+        return pos

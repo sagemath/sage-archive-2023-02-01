@@ -273,7 +273,7 @@ def rgbcolor(c):
         sage: rgbcolor('purple')
         (0.5, 0.0, 1.0)
         sage: rgbcolor('#0033ea')
-        (0.0, 0.19921875, 0.9140625)
+        (0.0, 0.20..., 0.917...)
         sage: rgbcolor((1,1/2,1/3))
         (1.0, 0.5, 0.33333333333333331)
     """
@@ -284,7 +284,7 @@ def rgbcolor(c):
     if isinstance(c, str):
         if len(c) == 7 and c[0] == '#':  # html hex color
             # we use Integer instead of 0x eval for security reasons
-            return tuple([int(c[i:i+2], base=16)/float(256) for i in [1,3,5]])
+            return tuple([int(c[i:i+2], base=16)/float(255) for i in [1,3,5]])
         try:
             return colors[c]
         except KeyError:
@@ -310,7 +310,7 @@ class Color:
             sage: Color(0.5,0,1)
             RGB color (0.5, 0.0, 1.0)
             sage: Color('#8000ff')
-            RGB color (0.5, 0.0, 0.99609375)
+            RGB color (0.50..., 0.0, 1.0)
         """
         if g is None and b is None:
             self.__rgb = rgbcolor(r)
@@ -324,7 +324,7 @@ class Color:
         EXAMPLES::
 
             sage: Color('#8000ff').__repr__()
-            'RGB color (0.5, 0.0, 0.99609375)'
+            'RGB color (0.50..., 0.0, 1.0)'
         """
         return "RGB color %s"%(self.__rgb,)
 
@@ -337,7 +337,7 @@ class Color:
         EXAMPLES::
 
             sage: Color('#8000ff').rgb()
-            (0.5, 0.0, 0.99609375)
+            (0.50..., 0.0, 1.0)
         """
         return self.__rgb
 

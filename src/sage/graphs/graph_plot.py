@@ -258,7 +258,7 @@ class GraphPlot(SageObject):
 
         if 'vertex_colors' not in self._options:
             if self._options['partition'] is not None:
-                from sage.plot.colors import rainbow
+                from sage.plot.colors import rainbow,rgbcolor
                 partition = self._options['partition']
                 l = len(partition)
                 R = rainbow(l)
@@ -305,6 +305,18 @@ class GraphPlot(SageObject):
             for i in vertex_colors:
                 pos += [self._pos[j] for j in vertex_colors[i]]
                 colors += [i]*len(vertex_colors[i])
+
+            # If all the vertices have not been assigned a color
+            if len(self._pos)!=len(pos):
+                from sage.plot.colors import rainbow,rgbcolor
+                vertex_colors_rgb=[rgbcolor(c) for c in vertex_colors]
+                for c in rainbow(len(vertex_colors)+1):
+                    if rgbcolor(c) not in vertex_colors_rgb:
+                        break
+                leftovers=[j for j in self._pos.values() if j not in pos]
+                pos+=leftovers
+                colors+=[c]*len(leftovers)
+
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i], self._vertex_radius, fill=True, facecolor=colors[i]) for i in range(len(pos))]
             else:

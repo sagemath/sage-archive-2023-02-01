@@ -92,4 +92,4 @@ is 1 (do "export SAGE_CHECK=1" on the command line before installation).
   * 1.0.1: Licensing GPL 2 or later (July 2009)
   * 1.0.2: Fixing a computation time regression and two
     minor bugs (July 2009). Changing Simon King's email address
-  * 1.1: Restricted Massey powers and general Massey products (August 2009)
+  * 1.1: Yoneda cocomplex, Restricted Massey powers and general Massey products (Simon King, August 2009)

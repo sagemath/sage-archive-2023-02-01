@@ -535,6 +535,31 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         R = PolynomialRing(self.base_ring(), var)
         return R([self.reduced_norm(), -self.reduced_trace(), 1])
 
+    def pair(self, right):
+        """
+        Return the result of pairing self and right, which should both
+        be elements of a quaternion algebra.  The pairing is
+        (x,y) = (x.conjugate()*y).reduced_trace().
+
+        INPUT:
+
+            - ``right`` -- quaternion
+
+        EXAMPLES::
+
+            sage: A.<i,j,k>=QuaternionAlgebra(-1,-2)
+            sage: (1+i+j-2*k).pair(2/3+5*i-3*j+k)
+            -26/3
+            sage: x = 1+i+j-2*k; y = 2/3+5*i-3*j+k
+            sage: x.pair(y)
+            -26/3
+            sage: y.pair(x)
+            -26/3
+            sage: (x.conjugate()*y).reduced_trace()
+            -26/3
+        """
+        return (self.conjugate() * right).reduced_trace()
+
 cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
     """
     TESTS:

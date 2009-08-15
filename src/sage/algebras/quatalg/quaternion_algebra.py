@@ -1173,6 +1173,83 @@ class QuaternionOrder(Algebra):
         else:
             raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
 
+    def quadratic_form(self):
+        """
+        Return the normalized quadratic form associated to this quaternion order.
+
+        OUTPUT: quadratic form
+
+        EXAMPLES::
+
+            sage: R = BrandtModule(11,13).order_of_level_N()
+            sage: Q = R.quadratic_form(); Q
+            Quadratic form in 4 variables over Rational Field with coefficients:
+            [ 14 253 55 286 ]
+            [ * 1455 506 3289 ]
+            [ * * 55 572 ]
+            [ * * * 1859 ]
+            sage: Q.theta_series(10)
+            1 + 2*q + 2*q^4 + 4*q^6 + 4*q^8 + 2*q^9 + O(q^10)
+        """
+        return self.unit_ideal().quadratic_form()
+
+    def ternary_quadratic_form(self):
+        """
+        Return the ternary quadratic form associated to this order.
+
+        OUTPUT:
+
+            - QuadraticForm
+
+        This function computes the positive definition quadratic form
+        obtained by letting G be the trace zero subspace of ZZ +
+        2*self, which had rank 3, and restricting the pairing
+           (x,y) = (x.conjugate()*y).reduced_trace()
+        to G.
+
+        APPLICATIONS: Ternary quadratic forms associated to an order
+        in a rational quaternion algebra are useful in computing with
+        Gross points, in decided whether quaternion orders have
+        embeddings from orders in quadratic imaginary fields, and in
+        computing elements of the Kohnen plus subspace of modular
+        forms of weight 3/2.
+
+        EXAMPLES::
+
+            sage: R = BrandtModule(11,13).order_of_level_N()
+            sage: Q = R.ternary_quadratic_form(); Q
+            Quadratic form in 3 variables over Rational Field with coefficients:
+            [ 5820 1012 13156 ]
+            [ * 55 1144 ]
+            [ * * 7436 ]
+            sage: factor(Q.disc())
+            2^4 * 11^2 * 13^2
+
+        The following theta series is a modular form of weight 3/2 and level 4*11*13::
+
+            sage: Q.theta_series(100)
+            1 + 2*q^23 + 2*q^55 + 2*q^56 + 2*q^75 + 4*q^92 + O(q^100)
+        """
+        if self.base_ring() != ZZ:
+            raise NotImplementedError, "ternary quadratic form of order only implemented for quaternion algebras over QQ"
+
+        Q = self.quaternion_algebra()
+        # 2*R + ZZ
+        twoR = self.free_module().scale(2)
+        A = twoR.ambient_module()
+        Z = twoR.span( [Q(1).coefficient_tuple()], ZZ)
+        S = twoR + Z
+        # Now we intersect with the trace 0 submodule
+        v = [b.reduced_trace() for b in Q.basis()]
+        M = matrix(QQ,4,1,v)
+        tr0 = M.kernel()
+        G = tr0.intersection(S)
+        B = [Q(a) for a in G.basis()]
+        m = matrix(QQ,[[x.pair(y) for x in B] for y in B])
+        from sage.quadratic_forms.quadratic_form import QuadraticForm
+        return QuadraticForm(m)
+
+
 class QuaternionFractionalIdeal(Ideal_fractional):
     pass
 

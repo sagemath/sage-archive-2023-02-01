@@ -40,6 +40,7 @@ import sage.misc.prandom as random
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 import sage.databases.db   # very important that this be fully qualified
+from sage.misc.package import optional_packages
 import sage.misc.misc
 
 import re
@@ -557,7 +558,17 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         try:
             e = v[_map['allcurves']][id]
         except KeyError:
-            raise RuntimeError, "No such elliptic curve in the database (note: use lower case letters!)"
+            if N<10000:
+                message =  "There is no elliptic curve with label "+label+" in the database (note: use lower case letters!)"
+            elif N<130000:
+                if 'database_cremona_ellcurve-20071019' in optional_packages()[0]:
+                    message =  "There is no elliptic curve with label "+label+" in the database (note: use lower case letters!)"
+                else:
+                    message = "There is no elliptic curve with label "+label+" in the default database; try installing the optional package database_cremona_ellcurve-20071019 which contains all curves of conductor up to 130000"
+            else:
+                message = "There is no elliptic curve with label "+label+" in the currently available databases"
+            raise RuntimeError, message
+
         F = elliptic.EllipticCurve(e[0])
         F._set_cremona_label("%s %s %s"%(N, iso, num))
         F._set_rank(e[1])

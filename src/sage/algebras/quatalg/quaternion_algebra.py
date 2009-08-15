@@ -1296,7 +1296,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 Q = self.quaternion_order().quaternion_algebra()
             except RuntimeError:
                 Q = basis[0].parent()
-            basis = tuple([Q(v) for v in (QQ**4).span([v.coefficient_tuple() for v in basis], ZZ).basis()])
+            basis = tuple([Q(v) for v in
+                           (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
         self.__basis = basis
 
     def quaternion_algebra(self):
@@ -1318,6 +1319,59 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         self.__quaternion_algebra = A
         return A
 
+    def _compute_order(self, side='left'):
+        r"""
+        Used internally to compute either the left or right order
+        associated to an ideal in a quaternion algebra.  If
+        action='right', compute the left order, and if action='left'
+        compute the right order.
+
+        INPUT:
+
+            - ``side`` -- 'left' or 'right'
+
+        EXAMPLES::
+
+            sage: R.<i,j,k> = QuaternionAlgebra(-1,-11)
+            sage: I = R.ideal([2 + 2*j + 140*k, 2*i + 4*j + 150*k, 8*j + 104*k, 152*k])
+            sage: Ol = I._compute_order('left'); Ol
+            Order of Quaternion Algebra (-1, -11) with base ring Rational Field with basis (1/2 + 1/2*j + 35*k, 1/4*i + 1/2*j + 75/4*k, j + 32*k, 38*k)
+            sage: Or = I._compute_order('right'); Or
+            Order of Quaternion Algebra (-1, -11) with base ring Rational Field with basis (1/2 + 1/2*j + 16*k, 1/2*i + 11/2*k, j + 13*k, 19*k)
+            sage: Ol.discriminant()
+            209
+            sage: Or.discriminant()
+            209
+            sage: I.left_order() == Ol
+            True
+            sage: I.right_order() == Or
+            True
+
+        ALGORITHM: Let `b_1, b_2, b_3, b_3` be a basis for this
+        fractional ideal `I`, and assume we want to compute the left
+        order of `I` in the quaternion algebra `Q`.  Then
+        multiplication by `b_i` on the right defines a map `B_i:Q \to
+        Q`.  We have
+           `R = B_1^{-1}(I) \cap B_2^{-1}(I) \cap B_3^{-1}(I)\cap B_4^{-1}(I).`
+        This is because
+           `B_n^{-1}(I) = \{\alpha \in Q : \alpha b_n \in I \},`
+        and
+           `R = \{\alpha \in Q : \alpha b_n \in I, n=1,2,3,4\}.`
+        """
+        if side == 'left': action = 'right'
+        elif side == 'right': action = 'left'
+        else: ValueError, "side must be 'left' or 'right'"
+        Q = self.quaternion_algebra()
+        if Q.base_ring() != QQ:
+            raise NotImplementedError, "computation of left and right orders only implemented over QQ"
+        M = [(~b).matrix(action=action) for b in self.basis()]
+        B = self.basis_matrix()
+        invs = [B*m for m in M]
+        # Now intersect the row spans of each matrix in invs
+        ISB = [Q(v) for v in intersection_of_row_modules_over_ZZ(invs).row_module(ZZ).basis()]
+        return Q.quaternion_order(ISB)
+
+
     def left_order(self):
         """
         Return the left order associated to this fractional ideal.
@@ -1331,9 +1385,15 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I = R.unit_ideal()
             sage: I.left_order()
             Order of Quaternion Algebra (-1, -11) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+
+        We do a consistency check::
+
+            sage: B = BrandtModule(11,19); R = B.right_ideals()
+            sage: print [r.left_order().discriminant() for r in R]
+            [209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209]
         """
         if self.__left_order is None:
-            raise ValueError, "ideal not equipped with left order structure"
+            self.__left_order = self._compute_order(side='left')
         return self.__left_order
 
     def right_order(self):
@@ -1349,12 +1409,25 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.right_order()
             Order of Quaternion Algebra (-2, -389) with base ring Rational Field with basis (1/2 + 1/2*j + 1/2*k, 1/4*i + 1/2*j + 1/4*k, j, k)
             sage: I.left_order()
-            Traceback (most recent call last):
-            ...
-            ValueError: ideal not equipped with left order structure
+            Order of Quaternion Algebra (-2, -389) with base ring Rational Field with basis (1/2 + 1/2*j + 3/2*k, 1/8*i + 1/4*j + 9/8*k, j + k, 2*k)
+
+        The following is a big consistency check.  We take reps for
+        all the right ideal classes of a certain order, take the
+        corresponding left orders, then take ideals in the left orders
+        and from those compute the right order again::
+
+            sage: B = BrandtModule(11,19); R = B.right_ideals()
+            sage: O = [r.left_order() for r in R]
+            sage: J = [O[i].left_ideal(R[i].basis()) for i in range(len(R))]
+            sage: len(set(J))
+            18
+            sage: len(set([I.right_order() for I in J]))
+            1
+            sage: J[0].right_order() == B.order_of_level_N()
+            True
         """
         if self.__right_order is None:
-            raise ValueError, "ideal not equipped with right order structure"
+            self.__right_order = self._compute_order(side='right')
         return self.__right_order
 
     def __repr__(self):
@@ -1807,6 +1880,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         except (ValueError, TypeError):
             return False
 
+#######################################################################
+# Some utility functions that are needed here and are too
+# specialized to go elsewhere.
+#######################################################################
+
+M44 = MatrixSpace(QQ, 4)
 
 def basis_for_quaternion_lattice(gens):
     """
@@ -1830,4 +1909,43 @@ def basis_for_quaternion_lattice(gens):
     return quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(A, H, d)
 
 
-M44 = MatrixSpace(QQ, 4)
+def intersection_of_row_modules_over_ZZ(v):
+    """
+    Intersects the ZZ-modules with basis matrices the full rank 4x4
+    QQ-matrices in the list v.  The returned intersection is
+    represented by a 4x4 matrix over QQ.  This can also be done using
+    modules and intersection, but that would take over twice as long
+    because of overhead, hence this function.
+
+    EXAMPLES::
+
+        sage: a = matrix(QQ,4,[-2, 0, 0, 0, 0, -1, -1, 1, 2, -1/2, 0, 0, 1, 1, -1, 0])
+        sage: b = matrix(QQ,4,[0, -1/2, 0, -1/2, 2, 1/2, -1, -1/2, 1, 2, 1, -2, 0, -1/2, -2, 0])
+        sage: c = matrix(QQ,4,[0, 1, 0, -1/2, 0, 0, 2, 2, 0, -1/2, 1/2, -1, 1, -1, -1/2, 0])
+        sage: v = [a,b,c]
+        sage: from sage.algebras.quatalg.quaternion_algebra import intersection_of_row_modules_over_ZZ
+        sage: M = intersection_of_row_modules_over_ZZ(v); M
+        [   2    0   -1   -1]
+        [   4   -1   -1    3]
+        [  -3 19/2   -1   -4]
+        [   2   -3   -8    4]
+        sage: M2 = a.row_module(ZZ).intersection(b.row_module(ZZ)).intersection(c.row_module(ZZ))
+        sage: M.row_module(ZZ) == M2
+        True
+    """
+    if len(v) <= 0:
+        raise ValueError, "v must have positive length"
+    if len(v) == 1:
+        return v[0]
+    elif len(v) == 2:
+        # real work - the base case
+        a, b = v
+        s,_ = a.stack(b)._clear_denom()
+        s = s.transpose()
+        K = s._right_kernel_matrix(algorithm='pari')
+        n = a.nrows()
+        return K.matrix_from_columns(range(n)) * a
+    else:
+        # induct
+        w = intersection_of_row_modules_over_ZZ(v[:2])
+        return intersection_of_row_modules_over_ZZ([w] + v[2:])

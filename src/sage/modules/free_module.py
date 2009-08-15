@@ -2236,10 +2236,11 @@ class FreeModule_generic_pid(FreeModule_generic):
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
-        K  = S.integer_kernel(self.base_ring())
+        K  = S.integer_kernel(self.base_ring()).basis_matrix()
         n  = int(V1.dimension())
-        B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
-        return self.span(B, check=False)
+        K = K.matrix_from_columns(range(n))
+        B = K*A1
+        return B.row_module(self.base_ring())
 
     def is_submodule(self, other):
         """

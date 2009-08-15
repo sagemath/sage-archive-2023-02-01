@@ -31,6 +31,7 @@ from sage.rings.arith import lcm
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
+from sage.matrix.all import matrix
 
 include "../../ext/gmp.pxi"
 include "../../ext/stdsage.pxi"
@@ -559,6 +560,81 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             -26/3
         """
         return (self.conjugate() * right).reduced_trace()
+
+    def matrix(self, action='right'):
+        """
+        Return the matrix of right or left multiplication of self on
+        the basis for the ambient quaternion algebra.  In particular,
+        if action is 'right' (the default), returns the matrix of the
+        mapping sending x to x*self.
+
+        INPUT:
+
+            - ``action`` -- (default: 'right') 'right' or 'left'.
+
+        OUTPUT:
+
+            - a matrix
+
+        EXAMPLES::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-3,-19)
+            sage: a = 2/3 -1/2*i + 3/5*j - 4/3*k
+            sage: a.matrix()
+            [  2/3  -1/2   3/5  -4/3]
+            [  3/2   2/3     4   3/5]
+            [-57/5 -76/3   2/3   1/2]
+            [   76 -57/5  -3/2   2/3]
+            sage: a.matrix() == a.matrix(action='right')
+            True
+            sage: a.matrix(action='left')
+            [  2/3  -1/2   3/5  -4/3]
+            [  3/2   2/3    -4  -3/5]
+            [-57/5  76/3   2/3  -1/2]
+            [   76  57/5   3/2   2/3]
+            sage: (i*a,j*a,k*a)
+            (3/2 + 2/3*i + 4*j + 3/5*k, -57/5 - 76/3*i + 2/3*j + 1/2*k, 76 - 57/5*i - 3/2*j + 2/3*k)
+            sage: a.matrix(action='foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: action must be either 'left' or 'right'
+
+        We test over a more generic base field:
+
+            sage: K.<x> = QQ['x']
+            sage: Q.<i,j,k> = QuaternionAlgebra(Frac(K),-5,-2)
+            sage: a = 1/2*x^2 + 2/3*x*i - 3/4*j + 5/7*k
+            sage: type(a)
+            <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
+            sage: a.matrix()
+            [1/2*x^2   2/3*x    -3/4     5/7]
+            [-10/3*x 1/2*x^2   -25/7    -3/4]
+            [    3/2    10/7 1/2*x^2  -2/3*x]
+            [  -50/7     3/2  10/3*x 1/2*x^2]
+        """
+        if action == 'right':
+            v = [(a*self).coefficient_tuple() for a in self._parent.basis()]
+        elif action == 'left':
+            v = [(self*a).coefficient_tuple() for a in self._parent.basis()]
+        else:
+            raise ValueError, "action must be either 'left' or 'right'"
+        return matrix(self.base_ring(), 4, v, check=False)
+
+    def coefficient_tuple(self):
+        """
+        Return 4-tuple of coefficients of this quaternion.
+
+        EXAMPLES::
+
+            sage: K.<x> = QQ['x']
+            sage: Q.<i,j,k> = QuaternionAlgebra(Frac(K),-5,-2)
+            sage: a = 1/2*x^2 + 2/3*x*i - 3/4*j + 5/7*k
+            sage: type(a)
+            <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
+            sage: a.coefficient_tuple()
+            (1/2*x^2, 2/3*x, -3/4, 5/7)
+        """
+        return (self[0], self[1], self[2], self[3])
 
 cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
     """

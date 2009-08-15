@@ -5687,10 +5687,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
-            sage: P,Q
-            ((-1 : 1 : 1), (0 : -1 : 1))
-            sage: E = EllipticCurve('389a')
             sage: P = E(-1,1)
             sage: z = P.elliptic_logarithm()
             sage: E.antilogarithm(z)

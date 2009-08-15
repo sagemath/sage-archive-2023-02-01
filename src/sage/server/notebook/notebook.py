@@ -24,6 +24,7 @@ from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros, cputime)
 from   sage.misc.package   import is_package_installed
 from   sage.version        import version
+
 # Sage Notebook
 import css          # style
 import js           # javascript
@@ -33,6 +34,7 @@ import keyboards    # keyboard layouts
 import server_conf  # server configuration
 import user_conf    # user configuration
 import user         # users
+from template import template
 
 from cgi import escape
 
@@ -167,6 +169,11 @@ class Notebook(SageObject):
         # quickly, etc.
         shutil.rmtree(dir, ignore_errors=True)
 
+    def systems(self):
+        return SYSTEMS
+
+    def system_names(self):
+        return SYSTEM_NAMES
     ##########################################################
     # Users
     ##########################################################
@@ -908,18 +915,7 @@ class Notebook(SageObject):
             return MAX_HISTORY_LENGTH
 
     def history_html(self):
-        t = self.history_text()
-        t = escape(t)
-        s = '<head>\n'
-        s += '<title>Command History</title>\n'
-        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<pre>' + t + '</pre>\n'
-        s += '<a name="bottom"></a>\n'
-        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
-        s += '</body>\n'
-        return s
+        return template("notebook/command_history.html", history_text = escape(self.history_text()))
 
 
     def history_with_start(self, start):
@@ -1169,19 +1165,22 @@ class Notebook(SageObject):
     # Importing and exporting worksheets to a plain text format
     ##########################################################
 
-    def plain_text_worksheet_html(self, name, prompts=True):
-        W = self.get_worksheet_with_filename(name)
-        t = W.plain_text(prompts = prompts)
-        t = escape(t)
-        s = '<head>\n'
-        s += '<title>Sage Worksheet: %s</title>\n'%W.name()
-        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<h1><a href=".">Sage Worksheet: %s</a></h1>\n'%W.name()
-        s += '<pre>' + t + '</pre>'
-        s += '</body>\n'
-        return s
+    def plain_text_worksheet_html(self, filename, prompts=True):
+        """
+        Outputs html containing the plain text version of a worksheet
+
+        INPUT:
+        - ``filename`` - filename of a worksheet
+        - ``prompts``  - boolean
+
+        OUTPUT:
+        - A string containing the html for the plain text version
+        """
+        worksheet = self.get_worksheet_with_filename(filename)
+        text = escape(worksheet.plain_text(prompts = prompts))
+        return template("notebook/plain_text_worksheet.html",
+                        worksheet_name = worksheet.name(),
+                        worksheet_plain_text = text)
 
     ##########################################################
     # Directories for worksheets, etc.
@@ -1310,26 +1309,27 @@ class Notebook(SageObject):
         return s
 
     def worksheet_html(self, filename, do_print=False):
-        W = self.get_worksheet_with_filename(filename)
-        s = '<head>\n'
-        s += '<title>Sage Worksheet: %s</title>\n'%W.name()
-        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-        s += '<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
-        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
-        if do_print:
-            s += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
-        s += '<link rel=stylesheet href="/css/main.css">\n'
-        s += '</head>\n'
-        if do_print:
-            s += '<body>\n'
-            s += '<div class="worksheet_print_title">%s</div>'%W.name()
-        else:
-            s += '<body class="worksheet-online" onLoad="initialize_the_notebook();">\n'
-        s += W.html(include_title=False, do_print=do_print)
-        if do_print:
-            s += '<script type="text/javascript">jsMath.Process();</script>\n'
-        s += '\n</body>\n'
-        return s
+        """
+        Returns the HTML for the worksheet.
+
+        INPUT:
+        - ``username`` - a string
+        - ``worksheet`` - an instance of Worksheet
+
+        OUTPUT:
+        - a string containing the HTML
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.worksheet_html(W.filename())
+            '\n<!D...ript type="text/javascript">cell_id_list=[0];</script>\n\n\n\n\n\n    </body>\n</html>'
+        """
+        worksheet = self.get_worksheet_with_filename(filename)
+        return template("notebook/worksheet.html", worksheet_name = worksheet.name(),
+                 worksheet_html = worksheet.html(include_title=False, do_print=do_print),
+                        do_print = do_print)
 
 
 
@@ -1355,109 +1355,60 @@ class Notebook(SageObject):
         sort_worksheet_list(W, sort, reverse)  # changed W in place
         return W
 
-    def html_topbar(self, user, pub=False):
-        s = ''
-        entries = []
-
-        if self.user_is_guest(user):
-            entries.append(('/', 'Log in', 'Please log in to the Sage notebook'))
-        else:
-            entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
-            entries.append(('/pub', 'Published', 'Browse the published worksheets'))
-            entries.append(('help()', 'Help', 'Documentation'))
-
-        ## TODO -- settings
-        #if self.user(user).is_admin():
-        #    entries.insert(1, ('/notebook_settings', 'Server', 'Change general Sage notebook server configuration'))
-        if not pub:
-            entries.insert(2, ('history_window()', 'Log', 'View a log of recent computations'))
-        if not self.user_is_guest(user):
-            entries.append(('/settings', 'Settings', 'Change account settings including password'))
-            entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
-
-        s += self.html_banner_and_control(user, entries)
-        s += '<hr class="usercontrol">'
-        return s
-
-    def html_banner_and_control(self, user, entries):
-        return """
-        <table width="100%%"><tr><td>
-        %s
-        </td><td align=right>
-        %s
-        </td></tr>
-        </table>
-        """%(self.html_banner(),
-             self.html_user_control(user, entries))
-
-
-    def html_user_control(self, user, entries):
-        s = ''
-        s += '<span class="username">%s</span>'%user
-        for href, name, title in entries:
-            if '(' in href:
-                action = 'onClick="%s"'%href
-            else:
-                action = 'href="%s"'%href
-            x = '<a title="%s" class="usercontrol" %s>%s</a>\n'%(title, action, name)
-            s += vbar + x
-        return s
-
-    def html_banner(self):
-        ver=version
-        s = """
-        <div class="banner">
-        <table width="100%%"><tr><td>
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="Sage"> Notebook</a></td><td><span class="ping" id="ping">Searching for Sage server...</span></td>
-        </tr><tr><td style="font-size:xx-small; text-indent:13px; color:black">Version %s</td><td></td></tr></table>
-        </div>
-        """%ver
-        return s
-
-
     ##########################################################
     # Revision history for a worksheet
     ##########################################################
     def html_worksheet_revision_list(self, username, worksheet):
-        head, body = self.html_worksheet_page_template(worksheet, username, "Revision history", select="revisions")
+        """
+        Returns the HTML for the revision list of a worksheet.
+
+        INPUT:
+        - ``username`` - a string
+        - ``worksheet`` - an instance of Worksheet
+
+        OUTPUT:
+        - a string containing the HTML
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_worksheet_revision_list('admin', W)
+            '\n<!D...seconds ago</span></td>\n    </tr>\n\n</table>\n\n\n    </body>\n</html>'
+        """
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
-        rows = []
-        i = 0
-        for i in range(len(data)):
-            desc, key = data[i]
-            rows.append('<tr><td></td><td><a href="revisions?rev=%s">Revision %s</a></td><td><span class="revs">%s</span></td></tr>'%
-                        (key, i, desc))
 
-        rows = list(reversed(rows))
-        rows = '\n'.join(rows)
-        body += """
-        <hr class="usercontrol">
-<table width="100%%">
-<tr><td width="1%%"></td><td width="20%%"><b>Revision</b></td> <td width="20%%"><b>Last Edited</b></td><td width="30%%"></td>
-%s
-</table>
-"""%rows
-
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        return template("notebook/worksheet_revision_list.html", data = data,
+                        worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username,
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
 
     def html_specific_revision(self, username, ws, rev):
+        """
+        Returns the HTML for a revision of the worksheet.
+
+        INPUT:
+        - ``username`` - a string
+        - ``ws`` - an instance of Worksheet
+        - ``rev`` - a string containing the key of the revision
+
+        OUTPUT:
+        - a string containing the HTML
+        """
         t = time.time() - float(rev[:-4])
-        when = worksheet.convert_seconds_to_meaningful_time_span(t)
-        head, body = self.html_worksheet_page_template(ws, username,
-                                       "Revision from %s ago&nbsp;&nbsp;&nbsp;&nbsp;<a href='revisions'>Revision List</a>"%when, select="revisions")
+        time_ago = worksheet.convert_seconds_to_meaningful_time_span(t)
 
         filename = ws.get_snapshot_text_filename(rev)
         txt = bz2.decompress(open(filename).read())
         W = self.scratch_worksheet()
         W.delete_cells_directory()
         W.edit_save(txt)
-        html = W.html_worksheet_body(do_print=True, publish=True)
+        body_worksheet_html = W.html_worksheet_body(do_print=True, publish=True)
 
         data = ws.snapshot_data()  # pairs ('how long ago', key)
         prev_rev = None
@@ -1470,123 +1421,99 @@ class Notebook(SageObject):
                     next_rev = data[i+1][1]
                 break
 
-        if prev_rev:
-            prev = '<a class="listcontrol" href="revisions?rev=%s">Older</a>&nbsp;&nbsp;'%prev_rev
-        else:
-            prev = 'Oldest'
-
-        if next_rev:
-            next = '<a class="listcontrol" href="revisions?rev=%s">Newer</a>&nbsp;&nbsp;'%next_rev
-        else:
-            next = 'Newest'
-
-        actions = """
-        %s
-        %s
-        <a class="listcontrol" href="revisions?rev=%s&action=revert">Revert to this one</a>  <span class="lastedit">(note that images are note recorded)</span>&nbsp;&nbsp;
-        <a class="listcontrol" href="revisions?rev=%s&action=publish">Publish this one</a>&nbsp;&nbsp;
-        """%(prev, next, rev, rev)
-
-        s = """
-        %s
-        <hr class="usercontrol">
-<table width="100%%">
-%s
-        <hr class="usercontrol">
-%s
-</table>
-"""%(actions, html, actions)
-        body += s
-
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
-
-    def html_worksheet_page_template(self, worksheet, username, title, select=None, backwards=False):
-        head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
-        head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet.filename(), worksheet.name())
-        body = self._html_body(worksheet.filename(), top_only=True, username=username)
-        body += self.html_worksheet_topbar(worksheet, select=select, username=username, backwards=backwards)
-        body += '<hr class="usercontrol">'
-        body += '<span class="sharebar">%s</span>'%title
-        body += '<br>'*3
-        return head, body
+        return template("notebook/specific_revision.html", worksheet = ws,
+                        worksheet_filename = ws.filename(),
+                        username = username, rev = rev,
+                        prev_rev = prev_rev, next_rev = next_rev,
+                        time_ago = time_ago,
+                        body_worksheet_html = body_worksheet_html,
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
 
     def html_share(self, worksheet, username):
-        head, body = self.html_worksheet_page_template(worksheet, username, "Share this document", select="share")
+        """
+        Returns the HTML for the share page of a worksheet.
 
-        if not (self.user(username).is_admin() or username == worksheet.owner()):
-            body += "Only the owner of a worksheet is allowed to share it."
-            body += 'You can do whatever you want if you <a href="copy">make your own copy</a>.'
-        else:
-            body += 'This Sage Worksheet is currently shared with the people listed in the box below.<br>'
-            body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
+        INPUT:
+        - ``username`` - a string
+        - ``worksheet`` - an instance of Worksheet
 
-            collabs = ', '.join(worksheet.collaborators())
-            body += '<form width=70% method="post" action="invite_collab">\n'
-            body += '<textarea name="collaborators" rows=5 cols=70 class="edit" id="collaborators">%s</textarea><br><br>'%collabs
-            body += '<input type="submit" title="Give access to your worksheet to the above collaborators" value="Invite Collaborators">'
-            body += '</form>'
+        OUTPUT:
+        - a string containing the HTML
 
-            body += '<br>'*2
-            body += '<hr class="usercontrol">'
-            body += '<span class="username">Sage Users:</span>'
-            U = self.users()
-            K = [x for x, u in U.iteritems() if not u.is_guest() and not u.username() in [username, 'pub', '_sage_']]
-            def mycmp(x,y):
-                return cmp(x.lower(), y.lower())
-            K.sort(mycmp)
-            body += '<span class="users">%s</span>'%(', '.join(K))
+        EXAMPLES::
 
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_share(W, 'admin')
+            '\n<!D...span class="username">Sage Users:</span>\n<span class="users">\n    \n</span>\n\n\n\n    </body>\n</html>'
+        """
+        U = self.users()
+        other_users = [x for x, u in U.iteritems() if not u.is_guest() and not u.username() in [username, 'pub', '_sage_']]
+        other_users.sort(lambda x,y: cmp(x.lower(), y.lower()))
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
-
+        return template("notebook/worksheet_share.html", worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username, other_users = other_users,
+                        user_is_admin = self.user(username).is_admin(),
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
 
     def html_download_or_delete_datafile(self, ws, username, filename):
-        head, body = self.html_worksheet_page_template(ws, username, "Data file: %s"%filename)
+        """
+        Returns the HTML for the download or delete datafile page.
+
+        INPUT:
+        - ``username`` - a string
+        - ``ws`` - an instance of Worksheet
+        - ``filename`` - the name of the file
+
+        OUTPUT:
+        - a string containing the HTML
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_download_or_delete_datafile(W, 'admin', 'bar')
+            '\n<!D...ploaded to this worksheet.</p>\n\n<hr class="usercontrol" />\n\n\n\n\n    </body>\n</html>'
+        """
         path = "/home/%s/data/%s"%(ws.filename(), filename)
-        body += 'You may download <a href="%s">%s</a>'%(path, filename)
 
-        X = self.get_worksheets_with_viewer(username)
-        v = [x for x in X if x.is_active(username)]
-        sort_worksheet_list(v, 'name', False)
-        ws_form = ['<option selected>select worksheet</option>'] + \
-                  ["""<option value='link_datafile("%s","%s")'>%s</option>"""%(
-                           x.filename(), filename, x.name()) for x in v]
-        ws_form = '\n'.join(ws_form)
-        ws_form = "<select onchange='go_option(this);' class='worksheet'>%s</select>"%ws_form
-        body += ' or create a linked copy to the worksheet %s,'%ws_form
-        body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete %s.</a>'%(ws.filename(),filename, filename)
+        worksheets = self.get_worksheets_with_viewer(username)
+        active_worksheets = [worksheet for worksheet in worksheets if worksheet.is_active(username)]
+        sort_worksheet_list(active_worksheets, 'name', False)
 
-        body += "<br><br>Access %s in this worksheet by typing <tt>DATA+'%s'</tt>.  Here DATA is a special variable that gives the exact path to all data files uploaded to this worksheet.<br><br>"%(filename, filename)
-
-        body += '<hr class="usercontrol">'
         ext = os.path.splitext(filename)[1].lower()
-        if ext in ['.png', '.jpg', '.gif']:
-            body += '<div align=center><img src="%s"></div>'%path
-        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py', '.f', '.f90', '.c']:
-            body += '<form method="post" action="savedatafile" enctype="multipart/form-data">'
-            body += '<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel"><br>'
-            body += '<textarea class="edit" name="textfield" rows=17 cols=70 id="textfield">%s</textarea>'%open('%s/%s'%(ws.data_directory(), filename)).read()
-            body += '<input type="hidden" name="filename" value="%s" id="filename">'%filename
-            body += '</form>'
+        file_is_image, file_is_text = False, False
+        text_file_content = ""
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        if ext in ['.png', '.jpg', '.gif']:
+            file_is_image = True
+        if ext in ['.txt', '.tex', '.sage', '.spyx', '.py', '.f', '.f90', '.c']:
+            file_is_text = True
+            text_file_content = open('%s/%s'%(ws.data_directory(), filename)).read()
+
+        return template("notebook/download_or_delete_datafile.html",
+                        worksheet = ws,
+                        worksheet_filename = ws.filename(),
+                        username = username,
+                        active_worksheets = active_worksheets,
+                        filename_ = filename,
+                        path = path,
+                        file_is_image = file_is_image,
+                        file_is_text = file_is_text,
+                        text_file_content = text_file_content,
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
 
 
@@ -1685,387 +1612,103 @@ class Notebook(SageObject):
     ###########################################################
     # HTML -- generate most html related to the whole notebook page
     ###########################################################
-    def html_slide_controls(self):
-        return """
-          <div class="hidden" id="slide_controls">
-            <div class="slideshow_control">
-             <a class="slide_arrow" onClick="slide_next()">&gt;</a>
-              <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a> %s
-              <a class="cell_mode" onClick="cell_mode()">Exit</a>
-            </div>
-            <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">
-              <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>
-              <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>
-            </div>
-            <div class="slideshow_control">
-              <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>
-              <a class="slide_arrow" onClick="slide_prev()">&lt;</a>
-            </div>
-          </div>
-          """%vbar
-
     def html_debug_window(self):
-        return """
+        """
+        Returns the HTML for the debug window
+
+        OUTPUT:
+        - the HTML for the debug window
+
+        EXAMPLES::
+
+        sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+        sage: print(nb.html_debug_window())
         <div class='debug_window'>
-        <div class='debug_output'><pre id='debug_output'></pre></div>
-        <textarea rows=5 id='debug_input' class='debug_input'
-         onKeyPress='return debug_keypress(event);'
-         onFocus='debug_focus();' onBlur='debug_blur();'></textarea>
-        </div>"""
+            <div class='debug_output'><pre id='debug_output'></pre></div>
+            <textarea rows=5 id='debug_input' class='debug_input'
+                      onKeyPress='return debug_keypress(event);'
+                      onFocus='debug_focus();' onBlur='debug_blur();'></textarea>
+        </div>
+        """
+        return template("notebook/debug_window.html")
 
-
-    def _html_head(self, worksheet_filename, username):
-        if worksheet_filename is not None:
-            worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            head = '\n<title>%s (Sage)</title>'%(worksheet.name())
-        else:
-            head = '\n<title>Sage Notebook | Welcome</title>'
-
-        head += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-        # Load the Sage javascript libray.
-        head += '\n<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
-        head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
-
-        if JSMATH:
-            # turn off the ugly scary font warning.
-            head += '\n <STYLE> #jsMath_Warning {display: none} </STYLE>\n'
-            head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            if not JSMATH_IMAGE_FONTS:
-                head +=' <script type="text/javascript" src="/javascript_local/jsmath/plugins/noImageFonts.js"></script>\n'
-
-            # Move the jsMath button 20 pixels from the right edge
-            # (apparently in some browsers, it covers up the scroll
-            # bar)
-            head += """<script type="text/javascript">
-jsMath.styles = {
-        '#jsMath_button':   'position:fixed; bottom:1px; right:20px; background-color:white; '
-                                + 'border: solid 1px #959595; margin:0px; padding: 0px 3px 1px 3px; '
-                                + 'z-index:102; color:black; text-decoration:none; font-size:x-small; '
-                                + 'width:auto; cursor:hand;',
-      };
-    </script>
-"""
-            head += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
-            head += r'''<script type="text/javascript">/*The extensions here do the following:
-      - verb implements the \verb command:
-        see http://www.math.union.edu/~dpvc/jsMath/authors/verb.html
-      - moreArrows implements \xrightarrow, among other things:
-        see http://www.math.union.edu/~dpvc/jsMath/authors//moreArrows.html
-      - AMSmath implements a number of AMS math commands:
-        see http://www.math.union.edu/~dpvc/jsMath/authors/AMSmath.html
-    */
-         jsMath.Extension.Require("verb");
-         jsMath.Extension.Require("moreArrows");
-         jsMath.Extension.Require("AMSmath");
-         jsMath.Extension.Require("AMSsymbols");
-</script>'''
-
-        # import latex macros
-        for m in sage_jsmath_macros:
-            head += '<script>' + m + '</script>\n'
-
-        # Load the jquery and ui-jquery javascript library.
-        # This is used for interact functionality in the notebook, and will be used
-        # to enable drag and drop, image zoom, etc.
-        head += '''
-<script type="text/javascript" src="/javascript_local/jqueryui/jquery.ui.all.min.js"></script>
-<script type="text/javascript" src="/javascript_local/jquery/plugins/farbtastic/farbtastic.min.js"></script>
-<script type="text/javascript" src="/javascript_local/jquery/plugins/dimensions/jquery.dimensions.min.js"></script>
-<script type="text/javascript" src="/javascript_local/jquery/plugins/jquery.event.extendedclick.js"></script>
-
-<link rel="stylesheet" href="/javascript_local/jquery/plugins/farbtastic/farbtastic.css" type="text/css" />
-<link rel="stylesheet" href="/javascript_local/jqueryui/themes/flora/flora.all.css">
-         '''
-# TODO: get the lazy loading plugin
-
-# TODO: Load individual ui plugins, not the whole package:
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.mouse.min.js"></script>
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.slider.min.js"></script>
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.draggable.min.js"></script>
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.draggable.ext.min.js"></script>
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.resizable.min.js"></script>
-# <script type="text/javascript" src="/javascript_local/jqueryui/ui.dialog.min.js"></script>
-
-
-        # This was for syntax hilighting
-#        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
-#        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
-
-        head +=' <script type="text/javascript" src="/javascript/sage3d.js"></script>\n'
-
-        # Jmol -- embedded 3d graphics.
-        head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
-
-        head +=' <script>jmolInitialize("/java/jmol");jmolSetCallback("menuFile","/java/jmol/appletweb/SageMenu.mnu");</script>\n' # this must stay in the <head>
-
-        # TinyMCE and jEditable -- in-place editing of text cells
-        if JEDITABLE_TINYMCE:
-            head += """<script type="text/javascript" src="/javascript_local/tiny_mce/tiny_mce.js"></script>
-<script src="/javascript_local/jquery/plugins/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript">
-
-function toggleEditor(id) {
-        if (!tinyMCE.get(id))
-                tinyMCE.execCommand('mceAddControl', false, id);
-        else
-                tinyMCE.execCommand('mceRemoveControl', false, id);
-}
-
-$.fn.tinymce = function(options){
-   return this.each(function(){
-      tinyMCE.execCommand("mceAddControl", true, this.id);
-   });
-}
-
-function initMCE(){
-   tinyMCE.init({mode : "none",
-      plugins: "table,searchreplace,safari,paste,autosave",
-      theme : "advanced",
-      theme_advanced_toolbar_location : "top",
-      theme_advanced_toolbar_align : "left",
-      theme_advanced_statusbar_location : "bottom",
-      theme_advanced_buttons1 : "\
-formatselect,fontselect,fontsizeselect,bold,italic,underline,strikethrough,forecolor,backcolor,|,\
-bullist,numlist,|,\
-undo,redo,search,pastetext,pasteword",
-      theme_advanced_buttons2 : "\
-justifyleft,justifycenter,justifyright,justifyfull,outdent,indent,|,\
-charmap,|,\
-table,tablecontrols,|,\
-code,|,\
-link,image,unlink",
-      theme_advanced_buttons3 : "",
-      theme_advanced_resizing : true,
-      setup : function(ed) {
-      ed.onKeyDown.add(function(ed, e) {
-          if(key_enter_shift(key_event(e))) {
-            $(ed.formElement).submit();
-          }
-      })}
-   });
-};
-
-initMCE();
-
-
-$.editable.addInputType('mce', {
-   element : function(settings, original) {
-      var textarea = $('<textarea id="'+$(original).attr("id")+'_mce"/>');
-      if (settings.rows) {
-         textarea.attr('rows', settings.rows);
-      } else {
-         textarea.height(settings.height);
-      }
-      if (settings.cols) {
-         textarea.attr('cols', settings.cols);
-      } else {
-         textarea.width(settings.width);
-      }
-      $(this).append(textarea);
-         return(textarea);
-      },
-   plugin : function(settings, original) {
-      tinyMCE.execCommand("mceAddControl", true, $(original).attr("id")+'_mce');
-      },
-   submit : function(settings, original) {
-      tinyMCE.triggerSave();
-      tinyMCE.execCommand("mceRemoveControl", true, $(original).attr("id")+'_mce');
-      },
-   reset : function(settings, original) {
-      tinyMCE.execCommand("mceRemoveControl", true, $(original).attr("id")+'_mce');
-      original.reset();
-   }
-});
-</script>
-"""
-
-        return head
-
-    def html_worksheet_topbar(self, worksheet, select=None, username='guest', backwards=False):
-        body = ''
-        body += """
-<table width="100%%" id="topbar">
-<tr>
-  <td align=left> %s </td>   <td align=right> %s </td>
-</tr>
-<tr>
-  <td align=left> %s </td>   <td align=right> %s </td>
-</tr>
-</table>
-"""%(worksheet.html_title(username), worksheet.html_save_discard_buttons(),
-     worksheet.html_menu(), worksheet.html_share_publish_buttons(select=select, backwards=backwards))
-
-        body += self.html_slide_controls()
-        return body
-
-
-    def _html_body(self, worksheet_filename, show_debug=False, username='', top_only=False):
-        worksheet = self.get_worksheet_with_filename(worksheet_filename)
-        worksheet_html = worksheet.html()
-
-        body = ''
-
-        if worksheet.is_published() or self.user_is_guest(username):
-            original_worksheet = worksheet.worksheet_that_was_published()
-            if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
-                s = "Edit this."
-                url = 'edit_published_page'
-            elif self.user_is_guest(username):
-                s = 'Log in to edit a copy.'
-                url = '/'
-            else:
-                s = 'Edit a copy.'
-                url = 'edit_published_page'
-            r = worksheet.rating()
-            if r == -1:
-                rating = ''
-            else:
-                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
-            if not self.user_is_guest(username) \
-                   and not worksheet.is_publisher(username):
-                if worksheet.is_rater(username):
-                    action = "Rerate"
-                else:
-                    action = "Rate"
-                rating += '&nbsp;&nbsp; <span class="usercontrol">%s it: </span>'%action
-                rating += '  '.join(['<a class="usercontrol" onClick="rate_worksheet(%s)">&nbsp;%s&nbsp;</a>'%(i,i) for
-                                   i in range(5)])
-                rating += '&nbsp;&nbsp; <input name="rating_comment" id="rating_comment"></input>'
-
-            download_name = os.path.split(worksheet.name())[-1]
-            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s) + \
-                        '  <a class="usercontrol" href="download/%s.sws">Download.</a>'%download_name + \
-                        '  <span class="ratingmsg">%s</span>'%rating
-
-            body += edit_line
-            #This document was published using <a href="/">Sage</a>.'
-            body += '<span class="pubmsg">'
-            body += '<a href="/pub/">Other published documents...</a></span>'
-            body += '<hr class="usercontrol">'
-            body += '<h1 align=center>%s</h1>'%original_worksheet.name()
-            body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
-            body += worksheet_html
-            body += '<hr class="usercontrol">'
-            body += '&nbsp;'*10
-
-
-
-        else:
-
-            entries = [("$('#topbar').toggle()", 'Toggle', 'Toggle the top bar'),
-                       ('/', 'Home', 'Back to your personal worksheet list'),
-                       ('/pub', 'Published', 'Browse the published worksheets'),
-                       ('history_window()', 'Log', 'View a log of recent computations'),
-                       ('/settings', 'Settings', 'Account Settings'),
-                       ('bugreport()', 'Report a Problem', 'Report a problem or submit a bug to improve Sage'),
-                       ('help()', 'Help', 'Documentation')]
-
-            if not self.user_is_guest(username):
-                entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
-
-            body += self.html_banner_and_control(username, entries)
-            if top_only:
-                return body
-
-            if worksheet_filename:
-                body += self.html_worksheet_topbar(worksheet, select="use", username=username)
-
-            if self.__show_debug or show_debug:
-                body += self.html_debug_window()
-
-
-            body += '<div class="worksheet" id="worksheet">%s</div>'%worksheet_html
-
-        endpanespan = '</td></tr></table></span>\n'
-
-
-        if worksheet is None:
-             return body + endpanespan
-
-        if worksheet.user_is_only_viewer(username):
-            body += '<script type="text/javascript">worksheet_locked=true;</script>'
-        else:
-            body += '<script type="text/javascript">worksheet_locked=false;</script>'
-
-        if worksheet.computing():
-            # Set the update checking back in motion.
-            body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check();\n'
-            body +=' </script>\n'
-
-        return body
 
     def html_plain_text_window(self, worksheet, username):
         """
-        Return a window that displays a plain text version of the
+        Returns a window that displays a plain text version of the
         worksheet
 
         INPUT:
-
-
         -  ``worksheet`` - a worksheet
-
         -  ``username`` - name of the user
+
+        OUTPUT:
+        - a window that displays a plain text version of the
+        worksheet
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_plain_text_window(W, 'admin')
+            '\n<!D...>\n\n<pre class="plaintext" id="cell_intext" name="textfield"></pre>\n\n\n    </body>\n</html>'
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, 'View plain text', select="text")
+        plain_text = worksheet.plain_text(prompts=True, banner=False)
+        plain_text = escape(plain_text).strip()
 
-        t = worksheet.plain_text(prompts=True, banner=False)
-        t = escape(t)
-        body += """
-        <pre class="plaintext" id="cell_intext" name="textfield">%s
-        </pre>
-        """%t.strip()
-
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        return template("notebook/plain_text_window.html", worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username,
+                        plain_text = plain_text, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
     def html_edit_window(self, worksheet, username):
         r"""
         Return a window for editing ``worksheet``.
 
         INPUT:
+        - ``username`` - a string containing the username
+        - ``worksheet`` - a Worksheet instance
 
+        OUTPUT:
+        - html for a window for editing ``worksheet``.
 
-        -  ``worksheet`` - a worksheet
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_edit_window(W, 'admin')
+            '\n<!D...Test\nsystem:sage\n\n{{{id=0|\n\n///\n}}}</textarea>\n</form>\n\n\n    </body>\n</html>'
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save" id="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
+        text = worksheet.edit_text()
+        text = escape(text)
+        n_lines = text.count("\n")+1
 
-
-        body += """<script type="text/javascript">
-function save_worksheet() {
-}
-function save_worksheet_and_close() {
-}
-        </script>
-        """
-        t = worksheet.edit_text()
-        t = escape(t)
-        body = '<form method="post" action="save" enctype="multipart/form-data">' + body
-        body += """
-        <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>
-        </form>
-        """%(t.count("\n")+1,t)
-
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        return template("notebook/edit_window.html", worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username, text = text,
+                        n_lines = n_lines, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
     def html_beforepublish_window(self, worksheet, username):
         """
         Return the html code for a page dedicated to worksheet publishing
         prior to the publication of the given worksheet.
 
-        INPUT: worksheet - instance of Worksheet username - string
+        INPUT:
+        - ``worksheet`` - instance of Worksheet
+        - ``username`` - string
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_beforepublish_window(W, 'admin')
+            '\n<!D...publish when changes are made</form></span>\n<br /><br /><br />\n\n\n    </body>\n</html>'
         """
         msg = """You can publish your worksheet to the Internet, where anyone will be able to access and view it online.
         Your worksheet will be assigned a unique address (URL) that you can send to your friends and colleagues.<br/><br/>
@@ -2077,80 +1720,75 @@ function save_worksheet_and_close() {
         <input type="checkbox" name="auto" style="margin-left:13px" /> Automatically re-publish when changes are made
         </form>
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, msg, select="publish", backwards=True)
+        return template("notebook/beforepublish_window.html", worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
-
-    def html_afterpublish_window(self, worksheet, username, addr, dtime):
+    def html_afterpublish_window(self, worksheet, username, url, dtime):
         """
         Return the html code for a page dedicated to worksheet publishing
         after the publication of the given worksheet.
 
-        INPUT: worksheet - instance of Worksheet username - string addr -
-        string dtime - instance of time.struct_time
+        INPUT:
+        - ``worksheet`` - instance of Worksheet
+        - ``username`` - string
+        - ``url`` - a string representing the url of the published worksheet
+        - ``dtime`` - instance of time.struct_time representing the publishing time
         """
         from time import strftime
         time = strftime("%B %d, %Y %I:%M %p", dtime)
-        msg = """Worksheet is publicly viewable at <a href="%s" style="color:#FFF" target="_blank">%s</a><br />
-        Published on %s<br/><br />
-        <input type="button" value="Re-publish worksheet" onClick="parent.location=\'?re'"><input type="button" value="Stop publishing" style="margin-left:5px" onClick="parent.location=\'?stop'"><br /><br />
-<input type="checkbox" name="auto"%s onchange="parent.location=\'?auto'"/> Automatically re-publish when changes are made
-        """ % (addr, addr, time, ' checked="true" ' if worksheet.is_auto_publish() else '')
-        head, body = self.html_worksheet_page_template(worksheet, username, msg, select="publish", backwards=True)
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        return template("notebook/afterpublish_window.html", worksheet = worksheet,
+                        worksheet_filename = worksheet.filename(),
+                        username = username, url = url,
+                        time = time, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
     def html_upload_data_window(self, ws, username):
-        head, body = self.html_worksheet_page_template(ws, username, "Upload or Create Data File")
+        """
+        Returns the html for the "Upload Data" window
 
-        body += """
-              <div class="upload_worksheet_menu" id="upload_worksheet_menu">
-              <h1><font size=+1>Upload or create data file attached to the worksheet '%s'</font></h1>
-              <hr>
-              <form method="POST" action="do_upload_data"
-                    name="upload" enctype="multipart/form-data">
-              <table><tr>
-              <td>
-              Browse your computer to select a file to upload:<br>
-              <input class="upload_worksheet_menu" size="50" type="file" name="fileField" value="" id="upload_filename"></input><br><br>
-              Or enter the url of a file on the web:<br>
+        INPUT:
+        - ``worksheet`` - instance of Worksheet
+        - ``username`` - string
 
-              <input class="upload_worksheet_menu" size="50" type="text" name="urlField" value="" id="upload_url"></input></br>
-              <br><br>
-              Or enter the name of a new file, which will be created:<br>
-              <input class="upload_worksheet_menu" size="50" type="text" name="newField" value="" id="upload_filename"></input><br><br>
+        EXAMPLES::
 
-              What do you want to call it? (if different than the original name)<br>
-              <input class="upload_worksheet_menu" size="50" type="text" name="nameField" value="" id="upload_name"></input></br>
-              </td>
-              </tr>
-              <tr>
-              <td><br><input type="button" class="upload_worksheet_menu" value="Upload File" onClick="form.submit();"></td>
-              </tr>
-              </form><br>
-              </div>
-            </body>
-          </html>
-         """%(ws.name())
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_upload_data_window(W, 'admin')
+            '\n<!D...orksheet_menu" value="Upload File" onClick="form.submit()...r />\n</div>\n\n\n    </body>\n</html>'
+        """
+        return template("notebook/upload_data_window.html", worksheet = worksheet,
+                        worksheet_filename = ws.filename(),
+                        username = username, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
 
     def html(self, worksheet_filename=None, username='guest', show_debug=False, admin=False):
+        """
+        Returns the html for index page of a worksheet.
+
+        INPUT:
+        - ``worksheet_filename`` - a string
+        - ``username`` - a string
+        - ``show_debug`` - a boolean
+        - ``admin`` - a boolean
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html(W.filename(), 'admin')
+            '\n<!D...ipt type="text/javascript">worksheet_locked=false;</script>\n\n\n\n    </body>\n</html>'
+        """
         if worksheet_filename is None or worksheet_filename == '':
             worksheet_filename = None
             W = None
@@ -2160,71 +1798,48 @@ function save_worksheet_and_close() {
             except KeyError:
                 W = None
 
-        head = self._html_head(worksheet_filename=worksheet_filename, username=username)
-        body = self._html_body(worksheet_filename=worksheet_filename, username=username, show_debug=show_debug)
+        template_page = "notebook/index.html"
+        if W.docbrowser():
+            template_page = "notebook/doc_page.html"
 
-        head += '<script type="text/javascript">user_name="%s"; </script>'%username
-
-        if worksheet_filename is not None:
-            head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet_filename, W.name())
-
-            # Uncomment this to force rename when the worksheet is opened (annoying!)
-            #if W and W.name() == "Untitled":
-            #    head += '<script  type="text/javascript">setTimeout("rename_worksheet()",1)</script>'
-
-        return """
-        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-        <html>
-        <head>%s</head>
-        <body class="worksheet-online" onLoad="initialize_the_notebook();">%s</body>
-        </html>
-        """%(head, body)
+        return template(template_page, worksheet = W,
+                        worksheet_filename = W.filename(),
+                        worksheet_html = W.html(),
+                        notebook = self, username = username,
+                        show_debug = show_debug,
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
     ####################################################################
     # Configuration html.
     # In each case the settings html is a form that when submitted
     # pulls up another web page and sets the corresponding options.
     ####################################################################
-    def html_system_select_form_element(self, ws):
-        system = ws.system()
-        options = ''
-        i = SYSTEM_NAMES.index(system)
-        for j, S in enumerate(SYSTEMS):
-            if i == j:
-                selected = "selected"
-            else:
-                selected = ''
-            T = SYSTEM_NAMES[j]
-            options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(T, selected, T,S)
-        s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
-            %s
-            </select>"""%(i, options)
-        return s
-
-    def html_pretty_print_check_form_element(self, ws):
-        pretty_print = ws.pretty_print()
-        if pretty_print:
-            check='checked="checked"'
-        else:
-            check=''
-        s = """<input type="checkbox" title="Enable/disable pretty_printing"
-        onchange="pretty_print_check(this.checked);"
-        class="worksheet" value="pretty_print" %s>&nbsp;Typeset"""%(check)
-        return s
 
 
     def html_worksheet_settings(self, ws, username):
-        head, body = self.html_worksheet_page_template(ws, username, 'Worksheet Settings &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button name="button_save">Save Settings</button>  <input type="submit" value="Cancel" name="button_cancel"/>')
+        """
+        Returns the html for the setings page of the worksheet.
 
-        body = '<form width=70%% method="post" action="input_settings"  enctype="multipart/form-data">' + body
-        body += '</form>'
+        INPUT:
+        - ``ws`` - instance of Worksheet
+        - ``username`` - string
 
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_worksheet_settings(W, 'admin')
+            '\n<!D...lue="Cancel" name="button_cancel"/></span>\n<br /><br /><br />\n\n</form>\n\n\n    </body>\n</html>'
+        """
+        return template("notebook/worksheet_settings.html", worksheet = ws,
+                        worksheet_filename = ws.filename(),
+                        username = username, JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
     def html_settings(self):
         s = """
@@ -2241,36 +1856,27 @@ function save_worksheet_and_close() {
         return s
 
     def html_doc(self, username):
-        top = self._html_head(None, username) + self.html_topbar(username)
-        body = """
-        <br>
-        <div class="docidx">
-        <h1>Sage Documentation</h1>
-        <br>
-        <hr class="usercontrol">
-        <br><br>
-        <font size=+2>
-        <a href="/doc/live/">Live Documentation</a><br><br>
-        <a href="/doc/static/">Static Documentation</a><br><br>
-        <a href="/help/">Sage Notebook Howto</a><br><br>
-        <br><br>
-        <br>
-        <hr class="usercontrol">
-        </font>
-        </div>
         """
-        #(<a href="/doc/static/">static</a>)
+        Returns the html for the documentation pages.
 
-        s = """
-        <html>
-        %s
-        <body>
-        %s
-        </body>
-        </html>
-        """%(top, body)
+        INPUT:
+        - ``worksheet_filename`` - a string
+        - ``username`` - a string
+        - ``show_debug`` - a boolean
+        - ``admin`` - a boolean
 
-        return s
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: nb.html_doc('admin')
+            '\n<!D...c Documentation</a><br /><br />\n        <a href="/help/">Sage Notebook Howto...   </body>\n</html>'
+        """
+        return template("notebook/doc.html", username = username,
+                        JSMATH = JSMATH,
+                        JSMATH_IMAGE_FONTS = JSMATH_IMAGE_FONTS,
+                        JEDITABLE_TINYMCE = JEDITABLE_TINYMCE,
+                        sage_jsmath_macros = sage_jsmath_macros)
 
 
 ####################################################################

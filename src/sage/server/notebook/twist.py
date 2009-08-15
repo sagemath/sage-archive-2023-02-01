@@ -191,11 +191,6 @@ class WorksheetFile(resource.Resource):
         s = notebook.html(worksheet_filename = W.filename(),
                           username = self.username)
 
-        #Hack to add in the needed CSS to get it to display nicely
-        css_tag = lambda path: r'<link rel=stylesheet href="%s" type="text/css">'%path
-        main_css = css_tag('/css/main.css')
-        s = s.replace(main_css,css_tag('_static/default.css')+"\n"+main_css )
-
         return HTMLResponse(stream=s)
 
     def childFactory(self, request, name):
@@ -2224,7 +2219,7 @@ class ListOfUsers(resource.Resource):
             if user_type(self.username) != 'admin':
                 s = message('You must an admin to manage other users.')
             else:
-                s = template('user_management.html', {'users':notebook.valid_login_names()})
+                s = template('user_management.html', users = notebook.valid_login_names())
             return HTMLResponse(stream = s)
 
 class InvalidPage(resource.Resource):

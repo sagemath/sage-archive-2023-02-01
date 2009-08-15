@@ -52,6 +52,7 @@ import sage.server.support   as support
 # Imports specifically relevant to the sage notebook
 import worksheet_conf
 from   cell import Cell, TextCell
+from template import template
 
 # Set some constants that will be used for regular expressions below.
 whitespace = re.compile('\s')  # Match any whitespace character
@@ -2211,28 +2212,40 @@ class Worksheet:
     ##########################################################
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
+        """
+        INPUT:
+        - publish - a boolean stating whether the worksheet is published
+        - do_print - a boolean
+
+        OUTPUT:
+        - returns the html for the worksheet
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: W.html()
+            '\n\n\n<div class="cell_input_active" id="cell_resizer"></div>\n\n<div class="worksheet_cell_list" id...'
+        """
+        ncols = self.notebook().conf()['word_wrap_cols']
+        cells_html = ""
         if self.is_published():
             try:
                 return self.__html
             except AttributeError:
-                s = self.html_worksheet_body(do_print=True)
-                s += self.javascript_for_jsmath_rendering()
+                for cell in self.cell_list():
+                    cells_html += cell.html(ncols, do_print=True) + '\n'
+                s = template("worksheet/published_worksheet.html", ncols = ncols,
+                             cells_html = cells_html)
                 self.__html = s
                 return s
+        for cell in self.cell_list():
+            cells_html += cell.html(ncols, do_print=do_print) + '\n'
 
-        s = ''
-
-        s += self.html_worksheet_body(do_print=do_print)
-
-        if do_print:
-            s += self.javascript_for_jsmath_rendering()
-        else:
-            s += self.javascript_for_being_active_worksheet()
-
-        if not do_print and confirm_before_leave:
-            s += self.javascript_confirm_before_leave()
-
-        return s
+        return template("worksheet/worksheet.html", published = self.is_published(),
+                        do_print = do_print, confirm_before_leave = confirm_before_leave,
+                        cells_html = cells_html,
+                        cell_id_list = self.compute_cell_id_list())
 
     def truncated_name(self, max=30):
         name = self.name()
@@ -2243,18 +2256,12 @@ class Worksheet:
     def html_title(self, username='guest'):
         import cgi
         name = self.truncated_name()
-
         warn = self.warn_about_other_person_editing(username, WARN_THRESHOLD)
 
-        s = ''
-        s += '<div class="worksheet_title">'
-        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(cgi.escape(name))
-        s += '<br>' + self.html_time_last_edited()
-        if warn and username != 'guest' and not self.is_doc_worksheet():
-            s += '&nbsp;&nbsp;<span class="pingdown">(Someone else is viewing this worksheet)</span>'
-        s += '</div>'
-
-        return s
+        return template("worksheet/title.html", worksheet = self,
+                        name = cgi.escape(self.truncated_name()),
+                        warn = warn, doc_worksheet = self.is_doc_worksheet(),
+                        username = username)
 
     def is_doc_worksheet(self):
         try:
@@ -2266,151 +2273,88 @@ class Worksheet:
         self.__is_doc_worksheet = value
 
     def html_save_discard_buttons(self):
-        if self.is_doc_worksheet():
-            return ''
-        return """
-        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & quit</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard & quit</button>
+        r"""
+        OUTPUT:
+        - returns the html for the save, discard, etc. buttons
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: W.html_save_discard_buttons()
+            '\n\n<button name="button_save" title="Save changes" onClick="save_worksheet();">Save<...'
         """
+        return template("worksheet/save_discard_buttons.html", doc_worksheet = self.is_doc_worksheet())
 
     def html_share_publish_buttons(self, select=None, backwards=False):
-        if self.is_doc_worksheet():
-            return ''
-        def cls(x):
-            if x == select:
-                return "control-select"
-            else:
-                return "control"
-        backwards = '../' if backwards else ''
-        return """
+        r"""
+        INPUT:
+        - select - a boolean
+        - backwards - a boolean
 
-        <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif" alt="Print">Print</a>
-        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Worksheet</a>
-        <a class="%s" title="Edit text version of this worksheet" href="%sedit">Edit</a>
-        <a class="%s" title="View plain text version of this worksheet" href="%stext">Text</a>
-        <a class="%s" href="%srevisions" title="View changes to this worksheet over time">Undo</a>
-        <a class="%s" href="%sshare" title="Let others edit this worksheet">Share</a>
-        <a class="%s" href="%spublish" title="Make this worksheet publicly viewable">Publish</a>
-        """%(cls('use'),cls('edit'),backwards,cls('text'),backwards,cls('revisions'),backwards,cls('share'),backwards,cls('publish'),backwards)
+        OUTPUT:
+        - returns the html for the share, publish, etc. buttons
 
-    def html_data_options_list(self):
-        D = self.attached_data_files()
-        D.sort()
-        x = '\n'.join(['<option value="datafile?name=%s">%s</option>'%(nm,nm) for nm in D])
-        return x
+        EXAMPLES::
 
-    def html_file_menu(self):
-##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>
-##  <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) </option>
-##  <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF</option>
-##  <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text</option>
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: W.html_share_publish_buttons()
+            '\n\n\n\n\n<a title="Print this worksheet" class="usercontrol" onClick="print_worksheet()">...'
+        """
+        return template("worksheet/share_publish_buttons.html", worksheet = self, select = select, backwards = backwards)
 
-        if self.is_doc_worksheet():
-            system_select = ''
-            pretty_print_check = ''
-        else:
-            system_select = self.notebook().html_system_select_form_element(self)
-            pretty_print_check = self.notebook().html_pretty_print_check_form_element(self)
-
-        data = self.html_data_options_list()
-
-        return """
-<select class="worksheet"  onchange="go_option(this);">
-<option title="Select a file related function" value=""  selected>File...</option>
- <option title="Load a new worksheet stored in a file" value="upload_worksheet_button();">Upload worksheet from a file</option>
- <option title="Create a new worksheet" value="new_worksheet();">New worksheet</option>
- <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download to a file</option>
- <option title="Print this worksheet" value="print_worksheet();">Print</option>
- <option title="Rename this worksheet" value="rename_worksheet();">Rename worksheet</option>
- <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
- <option title="Move this worksheet to the trash" value="delete_worksheet('%s');">Delete worksheet</option>
-</select>
-
-<select class="worksheet"  onchange="go_option(this);" >
- <option title="Select a worksheet function" value="" selected>Action...</option>
- <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
- <option title="Restart the worksheet process" value="restart_sage();">Restart worksheet</option>
- <option title="Quit the worksheet process" value="save_worksheet_and_close();">Save and quit worksheet</option>
- <option value="">---------------------------</option>
- <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
- <option title="Hide all output" value="hide_all();">Hide All Output</option>
- <option title="Show all output" value="show_all();">Show All Output</option>
- <option title="Delete all output" value="delete_all_output();">Delete All Output</option>
- <option value="">---------------------------</option>
- <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
- <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
- </select>
-
-<select class="worksheet" onchange="handle_data_menu(this);" >
- <option title="Select an attached file" value="" selected>Data...</option>
- <option title="Upload or create a data file in a wide range of formats" value="__upload_data_file__">Upload or create file...</option>
- <option value="">--------------------</option>
-%s
-</select>
-
- %s
- %s
- """%(_notebook.clean_name(self.name()), self.filename(),
-      data, system_select, pretty_print_check)
 # <option title="Browse the data directory" value="data/">Browse data directory...</option>
 # <option title="Browse the directory of output from cells" value="cells/">Browse cell output directories...</option>
 
 # <option title="Configure this worksheet" value="worksheet_settings();">Worksheet settings</option>
 
     def html_menu(self):
-        name = self.filename()
+        """
+        OUTPUT:
+        - returns the html for the menus of the worksheet
 
-        menu = '&nbsp;'*3 + self.html_file_menu()
+        EXAMPLES::
 
-        filename = os.path.split(self.filename())[-1]
-        download_name = _notebook.clean_name(self.name())
-
-        #menu += '  </span>' #why is this here?  it isn't opened anywhere.
-
-        return menu
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: W.html_menu()
+            '\n&nbsp;&nbsp;&nbsp;<select class="worksheet"  onchange="go_option(this);">\n    ...'
+        """
+        return template("worksheet/menu.html", name = _notebook.clean_name(self.name()),
+                        filename_ = self.filename(), data = self.attached_data_files().sort(),
+                        systems_enumerated = enumerate(self.notebook().systems()),
+                        system_names = self.notebook().system_names(),
+                        current_system_index = self.notebook().system_names().index(self.system()),
+                        pretty_print = self.pretty_print(),
+                        doc_worksheet = self.is_doc_worksheet())
 
     def html_worksheet_body(self, do_print, publish=False):
-        n = len(self.cell_list())
+        """
+        INPUT:
+        - publish - a boolean stating whether the worksheet is published
+        - do_print - a boolean
+
+        OUTPUT:
+        - returns the html for the File menu of the worksheet
+
+        EXAMPLES::
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test', 'admin')
+            sage: W.html_worksheet_body(false)
+            '\n\n<div class="cell_input_active" id="cell_resizer"></div>\n\n<div class="worksheet_cell_list" id...'
+        """
         published = self.is_published() or publish
+        ncols = self.notebook().conf()['word_wrap_cols']
+        cells_html = ""
+        for cell in self.cell_list():
+            cells_html += cell.html(ncols, do_print=do_print) + '\n'
 
-        s = '<div class="cell_input_active" id="cell_resizer"></div>'
-        D = self.notebook().conf()
-        ncols = D['word_wrap_cols']
-        if not published:
-            s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
-
-        for i in range(n):
-            cell = self.cell_list()[i]
-            s += cell.html(ncols, do_print=do_print) + '\n'
-
-        if not do_print and not published:
-            s += '\n</div>\n'
-            s += """<div class="insert_new_cell" id="insert_last_cell">
-                 </div>
-<script type="text/javascript">
-$("#insert_last_cell").plainclick(function(e) {insert_new_cell_after(cell_id_list[cell_id_list.length-1]);});
-$("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_id_list[cell_id_list.length-1]);});
-</script>"""
-            s += '<div class="worksheet_bottom_padding"></div>\n'
-        return s
-
-    def javascript_for_being_active_worksheet(self):
-        s =  '<script type="text/javascript">cell_id_list=%s;</script>'%self.compute_cell_id_list()
-        #s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
-        return s
-
-    def javascript_for_jsmath_rendering(self):
-        return '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
-
-    def javascript_confirm_before_leave(self):
-        return """<script type="text/javascript">
-            window.onbeforeunload = confirmBrowseAway;
-            function confirmBrowseAway()
-            {
-            return "Unsubmitted cells will be lost.";
-            }
-            </script>
-            """
-
+        return template("worksheet/worksheet_body.html",
+                        cells_html = cells_html,
+                        published = published,
+                        do_print = do_print)
 
 
     ##########################################################
@@ -2470,19 +2414,19 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             user = self.last_to_edit()
             if user != username:
                 return True, user
-        False
+        return False
 
     def html_time_since_last_edited(self):
         t = self.time_since_last_edited()
         tm = convert_seconds_to_meaningful_time_span(t)
-        who = ' by %s'%self.last_to_edit()
-        return '<span class="lastedit">%s ago%s</span>'%(tm, who)
+        return template("worksheet/time_since_last_edited.html",
+                        last_editor = self.last_to_edit(),
+                        time = tm)
 
     def html_time_last_edited(self):
-        tm = convert_time_to_string(self.last_edited())
-        who = self.last_to_edit()
-        t = '<span class="lastedit">last edited on %s by %s</span>'%(tm, who)
-        return t
+        return template("worksheet/time_last_edited.html",
+                        time = convert_time_to_string(self.last_edited()),
+                        last_editor = self.last_to_edit())
 
 
     ##########################################################
@@ -3840,15 +3784,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     # List of attached files.
     ##########################################################
     def attached_html(self):
-        s = ''
-        div = '<div class="attached_filename" onClick="inspect_attached_file(\'%s\')">'
-        A = self.attached_files()
-        D = self.DIR()
-        for F, tm in A.iteritems():
-            # uncomment this to remove some absolute path info...
-            # if F[:len(D)] == D: F = F[len(D)+1:]
-            s += div%F + '%s</div>'%F
-        return s
+        return template("worksheet/attached.html",
+                        attached_files = self.attached_files())
 
     ##########################################################
     # Showing and hiding all cells
@@ -4081,37 +4018,20 @@ def first_word(s):
 
 
 def format_completions_as_html(cell_id, completions):
+    """
+    INPUT:
+    - cell_id - id for the cell of the completions
+    - completions - list of completions in row-major order
+
+    OUTPUT:
+    - html for the completions formatted in rows and columns
+    """
     if len(completions) == 0:
         return ''
-    lists = []
 
-    # compute the width of each column
-    column_width = []
-    for i in range(len(completions[0])):
-        column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
-
-    for i in range(len(completions)):
-        row = completions[i]
-        for j in range(len(row)):
-            if len(lists) <= j:
-                lists.append([])
-            cell = """
-<li id='completion%s_%s_%s' class='completion_menu_two'>
-<a onClick='do_replacement(%s, "%s"); return false;'
-   onMouseOver='this.focus(); select_replacement(%s,%s);'
->%s</a>
-</li>"""%(cell_id, i, j, cell_id, row[j], i,j,
-         row[j])
-         #row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
-
-            lists[j].append(cell)
-
-    grid = "<ul class='completion_menu_one'>"
-    for L in lists:
-        s = "\n   ".join(L)
-        grid += "\n <li class='completion_menu_one'>\n  <ul class='completion_menu_two'>\n%s\n  </ul>\n </li>"%s
-
-    return grid + "\n</ul>"
+    return template("worksheet/completions.html", cell_id = cell_id,
+                    # Transpose and enumerate completions to column-major
+                    completions_enumerated = enumerate(map(list, zip(*completions))))
 
 
 def extract_name(text):

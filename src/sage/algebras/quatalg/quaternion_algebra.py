@@ -1578,7 +1578,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         try: return self.__free_module
         except AttributeError:
-            M = self.hermite_basis_matrix().row_module(ZZ)
+            M = self.basis_matrix().row_module(ZZ)
             self.__free_module = M
             return M
 

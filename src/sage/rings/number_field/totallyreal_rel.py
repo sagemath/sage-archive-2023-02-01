@@ -635,7 +635,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
         try:
             m = Integer(m)
         except:
-            raise TypeError, "cannot coerce m (= %s) to an integer"%n
+            raise TypeError, "cannot coerce m (= %s) to an integer" % m
     if (m < 1):
         raise ValueError, "m must be at least 1."
 

@@ -235,6 +235,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: E = EllipticCurve('43a')
             sage: P = E([2, -4, 2]); P
             (1 : -2 : 1)
+            sage: P == E([1,-2])
+            True
             sage: P = E(0); P
             (0 : 1 : 0)
             sage: P=E(2, -4, 2); P
@@ -242,13 +244,17 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
+
+        if v == 0:
+            self._coords = Sequence((0,1,0), point_homset.value_ring())
+            return
+
+
         if check:
             # mostly from SchemeMorphism_projective_coordinates_field
             d = point_homset.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            if v == 0:
-                v = (rings.Integer(0),rings.Integer(1),rings.Integer(0))
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
@@ -272,7 +278,15 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             if all_zero:
                 raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
 
-            point_homset.codomain()._check_satisfies_equations(v)
+            x, y, z = v
+            if z == 0:
+                test = x
+            else:
+                a1, a2, a3, a4, a6 = curve.ainvs()
+                test = y**2 + (a1*x+a3)*y - (((x+a2)*x+a4)*x+a6)
+            if not test == 0:
+                raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),curve)
+#            point_homset.codomain()._check_satisfies_equations(v)
 
         self._coords = v
 

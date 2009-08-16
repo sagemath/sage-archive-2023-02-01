@@ -88,6 +88,8 @@ AUTHORS:
 
 - Simon King (2009-04): __cmp__ methods for PermutationGroup_generic and PermutationGroup_subgroup
 
+- Nicolas Borie (2009): Added orbit, transversals, stabiliser and strong_generating_system methods
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -888,6 +890,157 @@ class PermutationGroup_generic(group.FiniteGroup):
         - Nathan Dunfield
         """
         return self._gap_().Orbits("[1..%d]" % self.largest_moved_point()).sage()
+
+    @cached_method
+    def orbit(self, integer):
+         """
+         Return the orbit of the given integer under the group action.
+
+         EXAMPLES::
+
+             sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
+             sage: G.orbit(3)
+             [3, 4, 1]
+             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
+             sage: G.orbit(3)
+             [3, 4, 10, 1, 2]
+         """
+         return self._gap_().Orbit(integer).sage()
+
+    def transversals(self, integer):
+         """
+         If G is a permutation group acting on the set `X = \{1, 2, ...., n\}`
+         and H is the stabilizer subgroup of <integer>, a right
+         (respectively left) transversal is a set containing exactly
+         one element from each right (respectively left) coset of H. This
+         method returns a right transversal of ``self`` by the stabilizer
+         of ``self`` on <integer> position.
+
+         EXAMPLES::
+
+             sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
+             sage: G.transversals(1)
+             [(), (1,3,4), (1,4,3)]
+             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
+             sage: G.transversals(1)
+             [(), (1,2)(3,4), (1,3,2,10,4), (1,4,2,10,3), (1,10,4,3,2)]
+         """
+         trans = []
+         for i in self.orbit(integer):
+              trans.append(self(gap.RepresentativeAction(self._gap_(),integer,i)))
+         return trans
+
+    def stabilizer(self, position):
+         """
+         Return the subgroup of ``self`` which stabilize the given position.
+         ``self`` and its stabilizers must have same degree.
+
+         EXAMPLES::
+
+             sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
+             sage: G.stabilizer(1)
+             Permutation Group with generators [(), (3,4)]
+             sage: G.stabilizer(3)
+             Permutation Group with generators [(), (1,4)]
+             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
+             sage: G.stabilizer(10)
+             Permutation Group with generators [(), (1,2)(3,4), (1,4,2)]
+             sage: G.stabilizer(1)
+             Permutation Group with generators [(), (3,10,4), (2,4)(3,10)]
+         """
+         if self.is_isomorphic(PermutationGroup([])):
+             return self
+         else:
+             Q = PermutationGroup(gap.get_record_element(gap.get_record_element(self._gap_().StabChain([position]),'stabilizer'),'generators'))
+             if Q.is_isomorphic(PermutationGroup([])):
+                 return PermutationGroup([[(self.degree(),)]])
+             else:
+                 return PermutationGroup(Q.gens()+[(self.degree(),)])
+
+    def strong_generating_system(self, base_of_group = None):
+         """
+         Return a Strong Generating System of ``self`` according the given
+         base for the right action of ``self`` on itself.
+
+         base_of_group must the list of position on which ``self`` act in
+         any order. The algorithm return a list of transversals and each
+         transversals is a list of permutation. By default, base_of_group
+         is `\[1, 2, 3, \dots , n\]`.
+
+         for any base_of_group = `\[ pos_1, pos_2, \dots , pos_n\]`
+         let G_i be the subgroup of ``self`` which stabilize `pos_1, pos_2, \dots , pos_i`
+         ``self`` = `G_0 \subset G_1 \subset G_2 \subset \dots \subset G_n = \{e\}`
+         The algorithm return :
+         `\[G_i.transversals(pos_{i+1}) for i in range(n)\]`
+
+         INPUT::
+
+         - ``base_of_group`` (optional) A list which contains the integer
+           `1, 2, \dots , d` in any order (d is the degree of ``self``)
+
+         OUTPUT::
+
+         - A list of list of permutation inside the group which form a strong
+           generating system.
+
+         EXAMPLES::
+
+             sage: G = PermutationGroup([[(1,2,3,4)],[(1,2)]])
+             sage: G.strong_generating_system()
+             [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)],
+             [(), (2,3,4), (2,4,3)],
+             [(), (3,4)],
+             [()]]
+             sage: G = PermutationGroup([[(1,2,3)],[(4,5,7)],[(1,4,6)]])
+             sage: G.strong_generating_system()
+             [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)],
+              [(), (2,6,3), (2,5,7,6,3), (2,3,6), (2,7,5,6,3), (2,4,7,6,3)],
+              [(), (3,6,7), (3,5,6), (3,7,6), (3,4,7,5,6)],
+              [(), (4,5)(6,7), (4,7)(5,6), (4,6)(5,7)],
+              [(), (5,7,6), (5,6,7)],
+              [()],
+              [()]]
+             sage: G = PermutationGroup([[(1,2,3)],[(2,3,4)],[(3,4,5)]])
+             sage: G.strong_generating_system([5,4,3,2,1])
+             [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)],
+              [(), (1,3)(2,4), (1,2)(3,4), (1,4)(2,3)],
+              [(), (1,3,2), (1,2,3)],
+              [()],
+              [()]]
+             sage: G = TransitiveGroup(12,17)                # optional
+             sage: G.strong_generating_system()              # optional
+             [[(),
+               (1,4,11,2)(3,6,5,8)(7,10,9,12),
+               (1,8,3,2)(4,11,10,9)(5,12,7,6),
+               (1,7)(2,8)(3,9)(4,10)(5,11)(6,12),
+               (1,12,7,2)(3,10,9,8)(4,11,6,5),
+               (1,11)(2,8)(3,5)(4,10)(6,12)(7,9),
+               (1,10,11,8)(2,3,12,5)(4,9,6,7),
+               (1,3)(2,8)(4,10)(5,7)(6,12)(9,11),
+               (1,2,3,8)(4,9,10,11)(5,6,7,12),
+               (1,6,7,8)(2,3,4,9)(5,10,11,12),
+               (1,5,9)(3,11,7),
+               (1,9,5)(3,7,11)],
+              [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()],
+              [()]]
+         """
+         sgs = []
+         stab = self
+         if base_of_group == None:
+              base_of_group = range(1,self.degree()+1)
+         for j in base_of_group:
+              sgs.append(stab.transversals(j))
+              stab = stab.stabilizer(j)
+         return sgs
 
     def _repr_(self):
         r"""

@@ -194,6 +194,7 @@ AUTHORS:
 import sage.misc.latex as latex
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
+from sage.rings.integer import Integer
 
 class Factorization(SageObject):
     """
@@ -296,12 +297,6 @@ class Factorization(SageObject):
         """
         if not isinstance(x, list):
             raise TypeError, "x must be a list"
-        if isinstance(x, Factorization):
-            if unit is None:
-                unit = x.__unit
-            else:
-                unit = x.__unit * unit
-        from sage.rings.integer import Integer
         for i in xrange(len(x)):
             t=x[i]
             if not (isinstance(t, tuple) and len(t) == 2):
@@ -1051,10 +1046,11 @@ class Factorization(SageObject):
             sage: f^4
             2^8 * 5^8
 
-            sage: F = factor(2006); F
-            2 * 17 * 59
-            sage: F**2
-            2^2 * 17^2 * 59^2
+            sage: K.<a> = NumberField(x^3 - 39*x - 91)
+            sage: F = K.factor(7); F
+            (Fractional ideal (7, a)) * (Fractional ideal (7, a + 2)) * (Fractional ideal (7, a - 2))
+            sage: F^9
+            (Fractional ideal (7, a))^9 * (Fractional ideal (7, a + 2))^9 * (Fractional ideal (7, a - 2))^9
 
             sage: R.<x,y> = FreeAlgebra(ZZ, 2)
             sage: F = Factorization([(x,3), (y, 2), (x,1)]); F
@@ -1062,6 +1058,17 @@ class Factorization(SageObject):
             sage: F**2
             x^3 * y^2 * x^4 * y^2 * x
         """
+        if not isinstance(n, Integer):
+            try:
+                n = Integer(n)
+            except:
+                raise TypeError, "Exponent n (= %s) must be an integer." % n
+        if n == 1:
+            return self
+        if n == 0:
+            return Factorization([])
+        if self.is_commutative():
+            return Factorization([(p, n*e) for p, e in self], unit=self.unit()**n, cr=self.__cr, sort=False, simplify=False)
         from sage.groups.generic import power
         return power(self, n, Factorization([]))
 

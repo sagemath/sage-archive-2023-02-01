@@ -52,6 +52,7 @@ from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Element
 from sage.modules.free_module import VectorSpace, FreeModule
+from sage.modules.free_module_element import vector
 
 import quaternion_algebra_element
 import quaternion_algebra_cython
@@ -1783,6 +1784,28 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         #    that N(alpha) = N(I)*N(J) as explained by Pizer.
         c = IJbar.theta_series_vector(2)[1]
         return c != 0
+
+    def __contains__(self, x):
+        """
+        Returns whether x is in self.
+
+        EXAMPLES::
+            sage: R.<i,j,k> = QuaternionAlgebra(-3, -13)
+            sage: I = R.ideal([2+i, 3*i, 5*j, j+k])
+            sage: 2+i in I
+            True
+            sage: 2+i+j+k in I
+            True
+            sage: 1+i in I
+            False
+            sage: 101*j + k in I
+            True
+        """
+        try:
+            x = self.quaternion_algebra()(x)
+            return self.basis_matrix().transpose().solve_right(vector(x)) in ZZ**4
+        except (ValueError, TypeError):
+            return False
 
 
 def basis_for_quaternion_lattice(gens):

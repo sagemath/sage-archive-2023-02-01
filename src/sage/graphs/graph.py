@@ -11476,6 +11476,125 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
+    def independent_set_of_representatives(self,family):
+        r"""
+        Returns an independent set of representatives.
+
+        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of subsets
+        of ``g.vertices()``, an ISR ( Independent Set of Reprersentatives ) is an
+        assignation of a vertex `v_i\in F_i` to each set `F_i` such that
+        `v_i != v_j` if `i<j` ( they are represdentatives ) and the set
+        `\cup_{i}v_i` is an independent set in `G`.
+
+        It generalizes, for example, graph coloring and graph list coloring.
+
+        ( See [AhaBerZiv07]_ for more informations )
+
+        INPUT :
+
+        - ``family`` -- A list of lists defining the family `F`
+          ( actually, a Family of subsets of ``G.vertices()`` )
+
+        OUTPUT :
+
+        - A list whose `i^{\mbox{th}}` element is the representativeof the `i^{\mbox{th}}`
+          element of the ``family`` list. If there is no ISR, ``None`` is returned
+
+        EXAMPLE :
+
+        For a bipartite graph missing one edge, the solution is as expected::
+
+           sage: g = graphs.CompleteBipartiteGraph(3,3)
+           sage: g.delete_edge(1,4)
+           sage: g.independent_set_of_representatives([[0,1,2],[3,4,5]]) # optional - requires GLPK or CBC
+           [1, 4]
+
+        The Petersen Graph is 3-colorable, which can be expressed as an
+        independent set of representatives problem : take 3 disjoint copies
+        of the Petersen Graph, each one representing one color. Then take
+        as a partition of the set of vertices the family defined by the three
+        copies of each vertex. The ISR of such a family
+        defines a 3-coloring ::
+
+            sage: g = 3 * graphs.PetersenGraph()
+            sage: n = g.order()/3
+            sage: f = [[i,i+n,i+2*n] for i in xrange(n)]
+            sage: isr = g.independent_set_of_representatives(f)   # optional - requires GLPK or CBC
+            sage: c = [floor(i/n) for i in isr]                   # optional - requires GLPK or CBC
+            sage: color_classes = [[],[],[]]                      # optional - requires GLPK or CBC
+            sage: for v,i in enumerate(c):                        # optional - requires GLPK or CBC
+            ...     color_classes[i].append(v)                    # optional - requires GLPK or CBC
+            sage: for classs in color_classes:                    # optional - requires GLPK or CBC
+            ...     g.subgraph(classs).size() == 0                # optional - requires GLPK or CBC
+            True
+            True
+            True
+
+        REFERENCE:
+
+        .. [AhaBerZiv07] R. Aharoni and E. Berger and R. Ziv
+          Independent systems of representatives in weighted graphs
+          Combinatorica vol 27, num 3, p253--267
+          2007
+
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        p=MixedIntegerLinearProgram()
+
+        # Boolean variable indicating whether the vertex
+        # is the representative of some set
+        vertex_taken=p.new_variable()
+
+        # Boolean variable in two dimension whose first
+        # element is a vertex and whose second element
+        # is one of the sets given as arguments.
+        # When true, indicated that the vertex is the representent
+        # of the corresponding set
+
+        classss=p.new_variable(dim=2)
+
+        # Associates to the vertices the classes
+        # to which they belong
+
+        lists=dict([(v,[]) for v in self.vertex_iterator()])
+        for i,f in enumerate(family):
+            [lists[v].append(i) for v in f]
+
+            # a classss has exactly one representant
+            p.add_constraint(sum([classss[v][i] for v in f]),max=1,min=1)
+
+        # A vertex represents at most one classss (vertex_taken is binary), and
+        # vertex_taken[v]==1 if v is the representative of some classss
+
+        [p.add_constraint(sum([classss[v][i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
+
+        # Two adjacent vertices can not both be representants of a set
+
+        for (u,v) in self.edges(labels=None):
+            p.add_constraint(vertex_taken[u]+vertex_taken[v],max=1)
+
+        p.set_objective(None)
+
+        p.set_binary(vertex_taken)
+        p.set_binary(classss)
+
+        try:
+            p.solve()
+        except:
+            return None
+
+        classss=p.get_values(classss)
+
+        repr=[]
+        for i,f in enumerate(family):
+            for v in f:
+                if classss[v][i]==1:
+                    repr.append(v)
+                    break
+
+        return repr
+
     ### Centrality
 
     def centrality_betweenness(self, normalized=True):

@@ -245,16 +245,14 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
 
-        if v == 0:
-            self._coords = Sequence((0,1,0), point_homset.value_ring())
-            return
-
-
         if check:
             # mostly from SchemeMorphism_projective_coordinates_field
             d = point_homset.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
+            elif v == 0:
+                self._coords = Sequence((0,1,0), point_homset.value_ring())
+                return
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)

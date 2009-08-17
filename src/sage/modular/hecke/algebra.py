@@ -31,6 +31,7 @@ the full Hecke algebra, only with the anemic algebra.
 import math
 import weakref
 
+import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
@@ -40,6 +41,8 @@ import hecke_operator
 import sage.rings.commutative_algebra
 from sage.misc.misc import verbose
 from sage.matrix.constructor import matrix
+from sage.rings.arith import lcm
+from sage.matrix.matrix_space import MatrixSpace
 
 def is_HeckeAlgebra(x):
     r"""
@@ -140,6 +143,55 @@ def HeckeAlgebra(M):
     T = HeckeAlgebra_full(M)
     _cache[k] = weakref.ref(T)
     return T
+
+
+def _heckebasis(M):
+    r"""
+    Gives a basis of the hecke algebra of M as a ZZ-module
+
+    INPUT:
+
+    - ``M`` - a hecke module
+
+    OUTPUT:
+
+    - a list of hecke algebra elements represented as matrices
+
+    EXAMPLES::
+
+        sage: M = ModularSymbols(11,2,1)
+        sage: sage.modular.hecke.algebra._heckebasis(M)
+        [Hecke operator on Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field defined by:
+        [1 0]
+        [0 1],
+        Hecke operator on Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field defined by:
+        [0 1]
+        [0 5]]
+    """
+    QQ = rings.QQ
+    ZZ = rings.ZZ
+    d = M.rank()
+    VV = QQ**(d**2)
+    WW = ZZ**(d**2)
+    MM = MatrixSpace(QQ,d)
+    MMZ = MatrixSpace(ZZ,d)
+    S = []; Denom = []; B = []; B1 = []
+    for i in xrange(1, M.hecke_bound() + 1):
+        v = M.hecke_operator(i).matrix()
+        den = v.denominator()
+        Denom.append(den)
+        S.append(v)
+    den = lcm(Denom)
+    for m in S:
+        B.append(WW((den*m).list()))
+    UU = WW.submodule(B)
+    B = UU.basis()
+    for u in B:
+        u1 = u.list()
+        m1 = M.hecke_algebra()(MM(u1), check=False)
+        #m1 = MM(u1)
+        B1.append((1/den)*m1)
+    return B1
 
 
 class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
@@ -404,16 +456,23 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
     def basis(self):
         r"""
         Return a basis for this Hecke algebra as a free module over
-        its base ring. Not implemented at present.
+        its base ring.
 
         EXAMPLE::
 
             sage: ModularSymbols(Gamma1(3), 3).hecke_algebra().basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            [Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
+            [1 0]
+            [0 1],
+            Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
+            [0 0]
+            [0 2]]
         """
-        raise NotImplementedError
+        try:
+            return self.__basis_cache
+        except AttributeError:
+            self.__basis_cache=_heckebasis(self.__M)
+            return self.__basis_cache
 
     def discriminant(self):
         r"""

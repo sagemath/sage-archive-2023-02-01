@@ -8962,23 +8962,85 @@ class Graph(GenericGraph):
     r"""
     Undirected graph.
 
+    A Graph is a set of vertices connected by edges
+    (cf. http://en.wikipedia.org/wiki/Graph_(mathematics) )
+
+    One can very easily create a graph in sage by typing ::
+
+        sage: g=Graph()
+
+    By typing the name of the Graph, one can get some basic informations
+    about it::
+
+        sage: g
+        Graph on 0 vertices
+
+    This graph is not very interesting as it is by default the empty graph.. But
+    Sage contains a large collection of pre-defined graph classes that can be listed
+    this way :
+
+        * type in Sage : graphs.
+          ( do not press "Enter", and do not forget the final "." )
+        * hit "tabulation" two times in a row
+
+    You will see the list of methods defined in the class "graphs", all of which
+    generate graphs you can play with !
+
+    If you want to see what they look like, begin this way ::
+
+        sage: g=graphs.PetersenGraph()
+        sage: g.plot()
+
+    or::
+
+        sage: g=graphs.ChvatalGraph()
+        sage: g.plot()
+
+    If you are curious about what these graphs are, for example if you wonder what ``RandomGNP``
+    actually is, you but have to type::
+
+        sage: graphs.RandomGNP?
+
+    Once you have defined the graph you want, you can begin to work on it by using the
+    almost 200 functions on graphs in the Sage library !
+    If your graph is named ``g``, you can list these functions as previously this way
+
+        * type in Sage : ``g.``
+          ( do not press "Enter", and do not forget the final "." )
+        * hit "tabulation" two times in a row
+
+    As usual, you can get some information about what these functions do by typing
+    ( if you want to know about the ``diameter()`` method )::
+
+        sage: g.diameter?
+
+    If you have defined a graph ``g`` having several connected components ( = which is not
+    connected... Type ``g.is_connected()`` to know if your graph is connected ), you can
+    print each one of its connected components with only two lines :
+
+    ( if you do not have such a graph G, here is one for free :  ``g=graphs.RandomGNP(30,.05)``    )::
+
+        sage: for component in g.connected_components():
+        ...      g.subgraph(component).plot()
+
+
     INPUT:
 
     -  ``data`` -  can be any of the following:
-
-       #.  A NetworkX digraph
 
        #.  A dictionary of dictionaries
 
        #.  A dictionary of lists
 
-       #.  A NumPy matrix or ndarray
+       #.  A numpy matrix or ndarray
 
        #.  A Sage adjacency matrix or incidence matrix
 
        #.  A pygraphviz agraph
 
        #.  A SciPy sparse matrix
+
+       #.  A NetworkX digraph
 
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -9048,33 +9110,6 @@ class Graph(GenericGraph):
     EXAMPLES: We illustrate the first six input formats (the other two
     involve packages that are currently not standard in Sage):
 
-    #. A NetworkX XGraph::
-
-          sage: import networkx
-          sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
-          sage: Graph(g)
-          Graph on 5 vertices
-
-    #. A NetworkX graph::
-
-           sage: import networkx
-           sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
-           sage: DiGraph(g)
-           Digraph on 5 vertices
-
-    Note that in all cases, we copy the NetworkX structure.
-
-       ::
-
-          sage: import networkx
-          sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
-          sage: G = Graph(g, implementation='networkx')
-          sage: H = Graph(g, implementation='networkx')
-          sage: G._backend._nxg is H._backend._nxg
-          False
-
-
-
     #. A dictionary of dictionaries::
 
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
@@ -9139,7 +9174,7 @@ class Graph(GenericGraph):
           [1 0 1 1 0 1]
           [0 1 1 1 1 0]
 
-    #. A NumPy matrix or ndarray::
+    #. A numpy matrix or ndarray::
 
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
@@ -9261,6 +9296,30 @@ class Graph(GenericGraph):
             ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
 
 
+    #. A NetworkX XGraph::
+
+          sage: import networkx
+          sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
+          sage: Graph(g)
+          Graph on 5 vertices
+
+    #. A NetworkX graph::
+
+           sage: import networkx
+           sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
+           sage: DiGraph(g)
+           Digraph on 5 vertices
+
+    Note that in all cases, we copy the NetworkX structure.
+
+       ::
+
+          sage: import networkx
+          sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
+          sage: G = Graph(g, implementation='networkx')
+          sage: H = Graph(g, implementation='networkx')
+          sage: G._backend._nxg is H._backend._nxg
+          False
     """
     _directed = False
 

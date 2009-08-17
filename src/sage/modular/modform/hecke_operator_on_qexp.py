@@ -1,5 +1,5 @@
 """
-Hecke Operators on $q$-expansions.
+Hecke Operators on `q`-expansions
 """
 
 #########################################################################

@@ -1,7 +1,8 @@
 r"""
-Modular Forms for $\Gamma_0(N)$ over $\Q$.
+Modular Forms for `\Gamma_0(N)` over `\QQ`
 
-TESTS:
+TESTS::
+
     sage: m = ModularForms(Gamma0(389),6)
     sage: loads(dumps(m)) == m
     True
@@ -26,14 +27,15 @@ import submodule
 
 class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
     """
-    A space of modular forms for Gamma_0(N) over QQ.
+    A space of modular forms for `\Gamma_0(N)` over `\QQ`.
     """
     def __init__(self, level, weight):
         r"""
-        Create a space of modular symbols for $\Gamma_0(N)$ of given
-        weight defined over $\QQ$.
+        Create a space of modular symbols for `\Gamma_0(N)` of given
+        weight defined over `\QQ`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(Gamma0(11),4); m
             Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
             sage: type(m)
@@ -46,9 +48,11 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
     ####################################################################
     def cuspidal_submodule(self):
         r"""
-        Return the cuspidal submodule of this space of modular forms for $\Gamma_0(N)$.
+        Return the cuspidal submodule of this space of modular forms for
+        `\Gamma_0(N)`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(Gamma0(33),4)
             sage: s = m.cuspidal_submodule(); s
             Cuspidal subspace of dimension 10 of Modular Forms space of dimension 14 for Congruence Subgroup Gamma0(33) of weight 4 over Rational Field
@@ -66,9 +70,11 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
 
     def eisenstein_submodule(self):
         r"""
-        Return the Eisenstein submodule of this space of modular forms for $\Gamma_0(N)$.
+        Return the Eisenstein submodule of this space of modular forms for
+        `\Gamma_0(N)`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(Gamma0(389),6)
             sage: m.eisenstein_submodule()
             Eisenstein subspace of dimension 2 of Modular Forms space of dimension 163 for Congruence Subgroup Gamma0(389) of weight 6 over Rational Field

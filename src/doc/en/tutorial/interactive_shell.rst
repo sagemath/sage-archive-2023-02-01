@@ -942,4 +942,7 @@ Notebook:
 For help on a Sage command, ``cmd``, in the notebook browser box,
 type ``cmd?`` and now hit ``<esc>`` (not ``<shift-enter>``).
 
+For help on the keyboard shortcuts available in the notebook
+interface, click on the ``Help`` link.
+
 .. [Py] The Python language http://www.python.org/ , Reference Manual http://docs.python.org/ref/ref.html

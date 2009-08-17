@@ -2,6 +2,28 @@
 Customization of the Notebook Keybindings
 
 This module is responsible for setting the keyboard bindings for the notebook.
+
+These are the standard key and mouse bindings available in the
+notebook:
+
+- *Evaluate Input:* Press **shift-enter**. You can start several calculations at once. If you press **alt-enter** instead, then a new cell is created after the current one. If you press **ctrl-enter** then the cell is split and both pieces are evaluated separately.
+
+- *Tab Completion:* Press **tab** while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.
+
+- *Insert New Cell:* Put the mouse between an output and input until the horizontal line appears and click. If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.
+
+- *Delete Cell:* Delete all cell contents, then press **backspace**.
+
+- *Split and Join Cells:* Press **ctrl-;** in a cell to split it into two cells, and **ctrl-backspace** to join them. Press **ctrl-enter** to split a cell and evaluate both pieces.
+
+- *Insert New HTML Cell:* Shift click between cells to create a new HTML cell. Double click on existing HTML to edit it. Use $...$ and $$...$$ to include typeset math in the HTML block.
+
+- *Hide/Show Output:* Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.
+
+- *Indenting Blocks:* Highlight text and press **>** to indent it all and **<** to unindent it all (works in Safari and Firefox). In Firefox you can also press tab and shift-tab.
+
+- *Comment/Uncomment Blocks:* Highlight text and press **ctrl-.** to comment it and **ctrl-,** to uncomment it. Alternatively, use **ctrl-3** and **ctrl-4**.
+
 """
 
 #############################################################################

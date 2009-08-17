@@ -16,7 +16,7 @@
       left:25%;
       right:15%;
       padding:2ex;
-      width:80%;
+      width:90%;
   }
 
 
@@ -25,15 +25,21 @@
       width:95%;
   }
 
-  td.help_window_cmd {
+  td.help_window_sub {
       background-color: #f5e0aa;
-      width:30%;
-      padding:1ex;
+      width:100%;
+      padding:0.5ex;
       font-weight:bold;
   }
 
+  td.help_window_cmd {
+      background-color: #f5e0aa;
+      width:30%;
+      padding:0.5ex;
+  }
+
   td.help_window_how {
-      padding:1ex;
+      padding:0.5ex;
       width:70%;
   }
   </style>
@@ -67,16 +73,15 @@
         A <i>worksheet</i> is an ordered list of Sage calculations with output. <br>
         A <i>session</i> is a worksheet and a set of variables in some state.<br>
         The <i>Sage notebook</i> is a collection of worksheets, saved objects, and user information.<br>
-        <br>
-        <br>
-        To get started with Sage, <a href="/doc/live/tutorial/index.html">work through the tutorial</a> (if
-        you have trouble with it, view the <a href="/doc/static/tutorial/index.html">static version</a>).
         <br><br>
 
         <table class="help_window">
 
         {% for x, y in notebook_help %}
-          <tr><td class="help_window_cmd">{{ x }}</td><td class="help_window_how">{{ y }}</td></tr>
+          <tr><td class="help_window_sub", colspan="2">{{ x }}</td></tr>
+        {% for z, w in y %}
+          <tr><td class="help_window_cmd">{{ z }}</td><td class="help_window_how">{{ w }}</td></tr>
+        {% endfor %}
         {% endfor %}
 	</table></div>
         <br>        <br>

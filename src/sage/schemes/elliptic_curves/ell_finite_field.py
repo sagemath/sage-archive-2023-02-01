@@ -1222,6 +1222,31 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         except AttributeError:
             pass
 
+    def __iter__(self):
+        """
+        Return an iterator through the points of this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve(GF(11), [1,2])
+            sage: E.list()
+            [(0 : 1 : 0),
+            (1 : 2 : 1),
+            ...
+            (10 : 0 : 1)]
+
+            sage: for P in E:  print P, P.order()
+            (0 : 1 : 0) 1
+            (1 : 2 : 1) 4
+            (1 : 9 : 1) 4
+            (2 : 1 : 1) 8
+            ...
+            (10 : 0 : 1) 2
+
+
+        """
+        for P in self.points():
+            yield P
+
     def __getitem__(self, n):
         """
         Return the n'th point in self's __points list. This enables users

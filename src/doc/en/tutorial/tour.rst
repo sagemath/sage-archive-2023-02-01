@@ -27,4 +27,5 @@ you might have to press ``shift-return`` rather than ``shift-enter``.)
    tour_linalg
    tour_groups
    tour_numtheory
+   tour_graphtheory
    tour_advanced

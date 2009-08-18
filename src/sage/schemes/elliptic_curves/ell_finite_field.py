@@ -267,6 +267,60 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self.__points = Sequence(v, immutable=True)
         return self.__points
 
+    rational_points = points
+
+    def count_points(self, n=1):
+        """
+        Returns the cardinality of this elliptic curve over the base field or extensions.
+
+        INPUT:
+
+        - n (int) -- a positive integer
+
+        OUTPUT:
+
+        If `n=1`, returns the cardinality of the curve over its base field.
+
+        If `n>1`, returns a list `[c_1, c_2, ..., c_n]` where `c_d` is
+        the cardinality of the curve over the extension of degree `d`
+        of its base field.
+
+        EXAMPLES:
+
+            sage: p = 101
+            sage: F = GF(p)
+            sage: E = EllipticCurve(F, [2,3])
+            sage: E.count_points(1)
+            96
+            sage: E.count_points(5)
+            [96, 10368, 1031904, 104053248, 10509895776]
+
+
+            sage: F.<a> = GF(p^2)
+            sage: E = EllipticCurve(F, [a,a])
+           sage: E.cardinality()
+            10295
+            sage: E.count_points()
+            10295
+            sage: E.count_points(1)
+            10295
+            sage: E.count_points(5)
+            [10295, 104072155, 1061518108880, 10828567126268595, 110462212555439192375]
+
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError, "n must be a positive integer"
+
+        if n<1:
+            raise ValueError, "n must be a positive integer"
+
+        if n==1:
+            return self.cardinality()
+        else:
+            return [ self.cardinality(extension_degree=i) for  i in range(1,n+1)]
+
     def random_element(self):
         """
         Returns a random point on this elliptic curve.

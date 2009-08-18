@@ -9,6 +9,10 @@
 
 == Releases ==
 
+
+=== singular-3-1-0-4-20090818 (Martin Albrecht, August 18th, 2009) ===
+ * more includes, GCC 4.4 fixes
+
 === singular-3-1-0-4-20090726 (Martin Albrecht, July 26th, 2009) ===
  * more includes in libsingular.h
 

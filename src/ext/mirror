@@ -1,4 +1,4 @@
-
+#!/bin/sh
 cd $HOME/sage/web/dist/src/extcode-darcs/
 darcs changes > changelog_darcs.txt
 echo "uploading"

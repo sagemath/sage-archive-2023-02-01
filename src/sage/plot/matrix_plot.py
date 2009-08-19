@@ -156,7 +156,7 @@ class MatrixPlot(GraphicPrimitive):
             subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
 
-@options(cmap='gray',marker='.')
+@options(cmap='gray',marker='.',frame=True)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.

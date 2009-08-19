@@ -268,8 +268,8 @@ class Point(GraphicPrimitive_xydata):
         faceted = options['faceted'] #faceted=True colors the edge of point
         scatteroptions={}
         if not faceted: scatteroptions['edgecolors'] = 'none'
-
         subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, **scatteroptions)
+
 
 def point(points, **kwds):
     """
@@ -300,6 +300,7 @@ def point(points, **kwds):
         from sage.plot.plot3d.shapes2 import point3d
         return point3d(points, **kwds)
 
+@rename_keyword(color='rgbcolor')
 @options(alpha=1, pointsize=10, faceted=False, rgbcolor=(0,0,1))
 def point2d(points, **options):
     r"""

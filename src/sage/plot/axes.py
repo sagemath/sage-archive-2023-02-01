@@ -1,6 +1,10 @@
 r"""
 2D Axes
 
+This module is deprecated and will be removed from a future version of
+Sage.  The axes and gridline functionality is now taken care of by
+matplotlib constructs.
+
 Sage provides several different axes for its 2D plotting functionality.
 The 'look' of the axes are similar to what Mathematica provides for its
 2D plotting.
@@ -29,6 +33,10 @@ from sage.structure.sage_object import SageObject
 import sage.misc.misc
 from copy import copy
 
+from sage.misc.misc import deprecation
+deprecation('The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.')
+
+
 class Axes(SageObject):
     """
     Axes for Sage 2-D Graphics.
@@ -40,8 +48,10 @@ class Axes(SageObject):
     add_xy_matrix_frame_axes
 
     """
+
     def __init__(self, color=(0,0,0), fontsize=8, linewidth=0.6,axes_labels=None,
                  axes_label_color=(0,0,0), tick_label_color=(0,0,0)):
+        deprecation('The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.')
         self.__color = color
         self.__tick_label_color = tick_label_color
         self.__axes_labels = axes_labels
@@ -63,6 +73,7 @@ class Axes(SageObject):
 
         sage: from sage.plot.axes import Axes
         sage: A = Axes()
+        doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
         sage: A._tasteful_ticks(2^(-20*10),2^(-20*1))
         ([1.9999999999999999e-07,  3.9999999999999998e-07,  5.9999999999999997e-07,  7.9999999999999996e-07], 1.9999999999999999e-07, 1.9999999999999999e-07)
         """
@@ -506,6 +517,7 @@ class Axes(SageObject):
         TESTS:
             sage: from sage.plot.axes import Axes
             sage: Axes()._adjustments_for_frame(-10,40,10,35)
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             (-11.0, 41.0, 9.5, 35.5)
         """
         xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
@@ -645,6 +657,7 @@ class GridLines(SageObject):
 
         TESTS:
             sage: from sage.plot.axes import GridLines
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             sage: GridLines()
             <class 'sage.plot.axes.GridLines'>
             sage: gl = GridLines(False)
@@ -658,9 +671,11 @@ class GridLines(SageObject):
             sage: gl = GridLines([range(-10,10,2), lambda x,y:srange(x,y,0.5)])
             sage: gl = GridLines(None, dict(color="red"),
             ...     dict(linestyle=":"), dict(color="blue"))
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             sage: gl = GridLines(None, dict(rgbcolor="red"),
             ...     dict(linestyle=":"), dict(color="blue"))
         """
+        deprecation('The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.')
         self.__gridlines = gridlines
 
         defaultstyle = dict(color=(0.3,0.3,0.3),linewidth=0.4)
@@ -698,6 +713,7 @@ class GridLines(SageObject):
 
             sage: subplot = Figure().add_subplot(111)
             sage: GridLines().add_gridlines(subplot,*lims)
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             sage: len(subplot.lines)
             0
 
@@ -708,6 +724,7 @@ class GridLines(SageObject):
 
             sage: subplot = Figure().add_subplot(111)
             sage: GridLines(True).add_gridlines(subplot,*lims)
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             sage: len(subplot.lines)
             13
 
@@ -750,6 +767,7 @@ class GridLines(SageObject):
             sage: GridLines("automatic", dict(color="red"),
             ...     dict(linestyle=":"),
             ...     dict(color="blue")).add_gridlines(subplot,*lims)
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             sage: len(subplot.lines)
             13
 
@@ -856,6 +874,7 @@ class GridLines(SageObject):
         TESTS:
             sage: from sage.plot.axes import GridLines
             sage: GridLines()._get_ticks_locations([-10,20])
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             [-10, -5, 0, 5, 10, 15, 20]
             sage: GridLines()._get_ticks_locations([10,35],"minor")
             [10.0, 11.0, 12.0, 13.0, ..., 32.0, 33.0, 34.0, 35.0]
@@ -884,6 +903,7 @@ class GridLines(SageObject):
         TESTS:
             sage: from sage.plot.axes import GridLines
             sage: GridLines()._get_adjustments_for_frame([-10,40],[10,35])
+            doctest:...: DeprecationWarning: The axes module is deprecated; Sage now uses matplotlib constructs for the axes and gridlines.  This module will be removed from a future version of Sage.
             (-11.0, 41.0, 9.5, 35.5)
         """
         return Axes()._adjustments_for_frame(*(xinterval+yinterval))

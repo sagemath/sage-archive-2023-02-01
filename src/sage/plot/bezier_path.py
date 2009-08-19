@@ -173,6 +173,7 @@ class BezierPath(GraphicPrimitive_xydata):
                 'ymin': self.vertices[:,1].min(),
                 'ymax': self.vertices[:,1].max()}
 
+@rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, rgbcolor=(0,0,0), zorder=2, linestyle='solid')
 def bezier_path(path, **options):
     """

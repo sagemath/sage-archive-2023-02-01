@@ -205,7 +205,7 @@ class Circle(GraphicPrimitive):
             from line import Line
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
-
+@rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5)
 def circle(center, radius, **options):
     """

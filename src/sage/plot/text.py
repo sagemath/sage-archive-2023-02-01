@@ -168,7 +168,7 @@ class Text(GraphicPrimitive):
             opts['transform'] = subplot.transAxes
         subplot.text(self.x, self.y, self.string, **opts)
 
-
+@rename_keyword(color='rgbcolor')
 @options(fontsize=10, rgbcolor=(0,0,1), horizontal_alignment='center',
          vertical_alignment='center', axis_coords=False)
 def text(string, xy, **options):

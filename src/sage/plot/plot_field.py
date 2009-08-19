@@ -126,7 +126,7 @@ class PlotField(GraphicPrimitive):
         quiver_options.pop('plot_points')
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, angles='xy', **quiver_options)
 
-@options(plot_points=20)
+@options(plot_points=20,frame=True)
 def plot_vector_field((f, g), xrange, yrange, **options):
     r"""
     ``plot_vector_field`` takes two functions of two variables xvar and yvar

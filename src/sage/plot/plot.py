@@ -72,31 +72,31 @@ Type ``?`` after each primitive in Sage for help and examples.
 
 EXAMPLES: We construct a plot involving several graphics objects::
 
-    sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
-    sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
+    sage: G = plot(cos, -5, 5, thickness=5, color='green')
+    sage: P = polygon([[1,2], [5,6], [5,0]], color='red')
     sage: G + P  # show it
 
 We draw a circle and a curve::
 
-    sage: circle((1,1), 1) + plot(x^2, (0,5))
+    sage: circle((1,1), 1) + plot(x^2, (x,0,5))
 
 Notice that the above circle is not round, because the aspect ratio
 of the coordinate system is not 1:1. The
 ``aspect_ratio`` option to show allows us to fix
 this::
 
-    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=1)
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=1)
 
 With an aspect ratio of 2 the circle is squashed half way down (it
 looks twice as wide as it does tall)::
 
-    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=2)
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=2)
 
 Use figsize to set the actual aspect ratio of the rendered image
 (i.e., of the frame). For example, this image is twice as many
 pixels wide as it is tall::
 
-    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), figsize=[8,4])
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[8,4])
 
 Next we construct the reflection of the above polygon about the
 `y`-axis by iterating over the list of first-coordinates of
@@ -104,7 +104,7 @@ the first graphic element of `P` (which is the actual
 Polygon; note that `P` is a Graphics object, which consists
 of a single polygon)::
 
-    sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
+    sage: Q = polygon([(-x,y) for x,y in P[0]], color='blue')
     sage: Q   # show it
 
 We combine together different graphics objects using "+"::
@@ -135,7 +135,7 @@ the first few zeros::
 
     sage: i = CDF.0      # define i this way for maximum speed.
     sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,rgbcolor=hue(0.7))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,color=hue(0.7))
     sage: print p1 + p2
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
@@ -149,7 +149,7 @@ Here is a pretty graph::
     sage: g = Graphics()
     sage: for i in range(60):
     ...    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
-    ...                rgbcolor=hue(i/40+0.4), alpha=0.2)
+    ...                color=hue(i/40+0.4), alpha=0.2)
     ...    g = g + p
     ...
     sage: g.show(dpi=200, axes=False)
@@ -157,9 +157,9 @@ Here is a pretty graph::
 Another graph::
 
     sage: x = var('x')
-    sage: P = plot(sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
-    ...       plot(x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
-    ...       plot(tan(x),-4,4,rgbcolor=(0,1,0))
+    sage: P = plot(sin(x)/x, -4,4, color='blue') + \
+    ...       plot(x*cos(x), -4,4, color='red') + \
+    ...       plot(tan(x),-4,4, color='green')
     ...
     sage: P.show(ymin=-pi,ymax=pi)
 
@@ -191,17 +191,20 @@ are labeled, so this is really a bad example::
 An illustration of integration::
 
     sage: f(x) = (x-3)*(x-5)*(x-7)+40
-    sage: P = line([(2,0),(2,f(2))], rgbcolor=(0,0,0))
-    sage: P += line([(8,0),(8,f(8))], rgbcolor=(0,0,0))
+    sage: P = line([(2,0),(2,f(2))], color='black')
+    sage: P += line([(8,0),(8,f(8))], color='black')
     sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8))
-    sage: P += text("$\\int_{a}^b f(x) dx$", (5, 20), fontsize=16, rgbcolor=(0,0,0))
-    sage: P += plot(f, 1, 8.5, thickness=3)
+    sage: P += text("$\\int_{a}^b f(x) dx$", (5, 20), fontsize=16, color='black')
+    sage: P += plot(f, (1, 8.5), thickness=3)
     sage: P    # show the result
+
+
 
 NUMERICAL PLOTTING:
 
-Sage also provides 2D plotting with an interface that is a likely
-very familiar to people doing numerical computation. For example,
+Sage includes Matplotlib, which provides 2D plotting with an interface
+that is a likely very familiar to people doing numerical
+computation. For example,
 
 ::
 
@@ -259,6 +262,10 @@ AUTHORS:
 - William Stein (2008-01-19): raised the documentation coverage from a
   miserable 12 percent to a 'wopping' 35 percent, and fixed and
   clarified numerous small issues.
+
+- Jason Grout (2009-09-05): shifted axes and grid functionality over
+  to matplotlib; fixed a number of smaller issues.
+
 """
 
 ############################################################################
@@ -348,10 +355,6 @@ import operator
 # Sage startup times are much improved.)  - William
 ###############
 
-#Sage 2D Graphics Axes class:
-from axes import Axes
-from axes import GridLines
-
 def is_Graphics(x):
     """
     Return True if `x` is a Graphics object.
@@ -376,18 +379,18 @@ class Graphics(SageObject):
 
         sage: G = Graphics(); print G
         Graphics object consisting of 0 graphics primitives
-        sage: c = circle((1,1), 1)
+        sage: c = circle((1,1), 1,aspect_ratio=1)
         sage: G+=c; print G
         Graphics object consisting of 1 graphics primitive
 
     Here we make a graphic of embedded isosceles triangles, coloring
     each one with a different color as we go::
 
-        sage: h=10; c=0.4; p=0.1;
+        sage: h=10; c=0.4; p=0.5;
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
-        ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
+        ...        G+=line(l,color=hue(c + p*(x/h)))
         sage: G.show(figsize=[5,5])
     """
 
@@ -683,9 +686,9 @@ class Graphics(SageObject):
         ::
 
             sage: p = plot(sin(x), (x, 0, 10))
-            sage: p.axes_labels(['x','y'])
+            sage: p.axes_labels(['$x$','$y$'])
             sage: p.axes_labels()
-            ('x', 'y')
+            ('$x$', '$y$')
 
         Now when you plot p, you see x and y axes labels::
 
@@ -1033,7 +1036,7 @@ class Graphics(SageObject):
         EXAMPLES::
 
             sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5), frame=True)
-            sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), rgbcolor=(1,0,0))
+            sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), color='red')
             sage: g1 + g2  # displays the plot
 
         TESTS::
@@ -1149,7 +1152,8 @@ class Graphics(SageObject):
                         dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
                         fontsize=None, aspect_ratio=None,
                         gridlines=None, gridlinesstyle=None,
-                        vgridlinesstyle=None, hgridlinesstyle=None)
+                        vgridlinesstyle=None, hgridlinesstyle=None,transparent=False,
+                        axes_pad=.02)
 
     def show(self, **kwds):
         """
@@ -1184,7 +1188,7 @@ class Graphics(SageObject):
 
         - ``gridlines`` - (default: None) can be any of the following:
 
-          -  None, False: do not add grid lines.
+          - None, False: do not add grid lines.
 
           - True, "automatic", "major": add grid lines at major ticks of the axes.
 
@@ -1216,13 +1220,28 @@ class Graphics(SageObject):
         - ``linkmode`` - (default: False) If True a string containing a link
             to the produced file is returned.
 
+        - ``transparent`` - (default: False) If True, make the background transparent.
+
+        - ``axes_pad`` - (default: 0.02) The percentage of the axis
+          range that is added to each end of each axis.  This helps
+          avoid problems like clipping lines because of line-width,
+          etc.  To get axes that are exactly the specified limits, set
+          ``axes_pad`` to zero.
+
         EXAMPLES::
 
-            sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+            sage: c = circle((1,1), 1, color='red')
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        To correct the aspect ratio of certain graphics, it is necessary to
-        show with a '``figsize``' of square dimensions.
+        To correct the aspect ratio of certain graphics, you can
+        set the ``aspect_ratio`` to 1
+
+        ::
+
+            sage: c.show(aspect_ratio=1, xmin=-1, xmax=3, ymin=-1, ymax=3)
+
+        You could also just make the dimensions of the picture square
+        using ``figsize``
 
         ::
 
@@ -1232,13 +1251,18 @@ class Graphics(SageObject):
 
             sage: show(plot(sin,-4,4), axes=False)
 
-        You can also label the axes::
+        You can also label the axes.  Putting something in dollar
+        signs formats it as a mathematical expression::
 
-            sage: show(plot(sin,-4,4), axes_labels=('x','y'))
+            sage: show(plot(sin,-4,4), axes_labels=('$x$','$y$'))
 
         You can turn on the drawing of a frame around the plots::
 
             sage: show(plot(sin,-4,4), frame=True)
+
+        You can make the background transparent::
+
+            sage: plot(sin(x), (x, -4, 4), transparent=True)
 
         Add grid lines at the major ticks of the axes.
 
@@ -1281,7 +1305,7 @@ class Graphics(SageObject):
 
             sage: def maple_leaf(t):
             ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
-            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, rgbcolor="red",plot_points=1000) #long
+            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) #long
             sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) #long
 
         Add grid lines at specific positions (using functions).
@@ -1297,7 +1321,7 @@ class Graphics(SageObject):
 
         ::
 
-            sage: b = bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+            sage: b = bar_chart([-3,5,-6,11], color='red')
             sage: b.show(gridlines=([-1,-0.5,..,4],True), \
             ...     gridlinesstyle=dict(color="blue", linestyle=":"))
 
@@ -1306,7 +1330,7 @@ class Graphics(SageObject):
 
         ::
 
-            sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+            sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, color=hue(0.3))
             sage: p.show(gridlines=True, \
             ...     hgridlinesstyle=dict(color="orange", linewidth=1.0), \
             ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
@@ -1324,12 +1348,12 @@ class Graphics(SageObject):
             ...     (0,{"color":"blue","linestyle":"--"})
             ...    ],
             ...    [
-            ...     (-1,{"rgbcolor":"red","linestyle":":"}),
+            ...     (-1,{"color":"red","linestyle":":"}),
             ...     (0,{"color":"blue","linestyle":"--"}),
-            ...     (1,{"rgbcolor":"red","linestyle":":"}),
+            ...     (1,{"color":"red","linestyle":":"}),
             ...    ]
             ...    ),
-            ...    gridlinesstyle=dict(marker='x',rgbcolor="black"))
+            ...    gridlinesstyle=dict(marker='x',color="black"))
 
         Grid lines can be added to contour plots.
 
@@ -1337,7 +1361,7 @@ class Graphics(SageObject):
 
             sage: f = sin(x^2 + y^2)*cos(x)*sin(y)
             sage: c = contour_plot(f, (x, -4, 4), (y, -4, 4), plot_points=100)
-            sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'rgbcolor':'red'})
+            sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'color':'red'})
 
         Grid lines can be added to matrix plots.
 
@@ -1345,6 +1369,20 @@ class Graphics(SageObject):
 
             sage: M = MatrixSpace(QQ,10).random_element()
             sage: matrix_plot(M).show(gridlines=True)
+
+        By default, Sage increases the horizontal and vertical axes
+        limits by a certain percentage in all directions.  This is
+        controlled by the ``axes_pad`` parameter.  Increasing the range
+        of the axes helps avoid problems with lines and dots being
+        clipped because the linewidth extends beyond the axes.  To get
+        axes limits that are exactly what is specified, set
+        ``axes_pad`` to zero.  Compare the following two examples
+
+        ::
+
+            sage: plot(sin(x), (x, -pi, pi),thickness=2)+point((pi, -1), pointsize=15)
+            sage: plot(sin(x), (x, -pi, pi),thickness=2,axes_pad=0)+point((pi, -1), pointsize=15)
+
         """
 
         # This option should not be passed on to save().
@@ -1491,35 +1529,34 @@ class Graphics(SageObject):
             ymax += 1
         return {'xmin':xmin, 'xmax':xmax, 'ymin':ymin, 'ymax':ymax}
 
-    def save(self, filename=None,
+    def matplotlib(self, filename=None,
              xmin=None, xmax=None, ymin=None, ymax=None,
-             figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
-             dpi=DEFAULT_DPI, axes=None, axes_labels=None, fontsize=None,
+             figsize=None, figure=None, sub=None,
+              axes=None, axes_labels=None, fontsize=None,
              frame=False, verify=True, aspect_ratio = None,
              gridlines=None, gridlinesstyle=None,
-             vgridlinesstyle=None, hgridlinesstyle=None):
+             vgridlinesstyle=None, hgridlinesstyle=None,axes_pad=0.02):
         r"""
-        Save the graphics to an image file of type: PNG, PS, EPS, SVG,
-        SOBJ, depending on the file extension you give the filename.
-        Extension types can be: ``.png``, ``.ps``,
-        ``.eps``, ``.svg``, and
-        ``.sobj`` (for a Sage object you can load later).
+        Return a matplotlib figure object representing the graphic
 
         EXAMPLES::
 
-            sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-            sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
+            sage: c = circle((1,1),1)
+            sage: print c.matplotlib()
+            Figure(480x296.656)
 
-        To correct the aspect ratio of certain graphics, it is necessary to
-        show with a '``figsize``' of square dimensions.
-
-        ::
-
-            sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+        To obtain the first matplotlib axes object inside of the
+        figure, you can do something like the following.
 
         ::
 
-            sage: point((-1,1),pointsize=30, rgbcolor=(1,0,0))
+            sage: p=plot(sin(x), (x, -2*pi, 2*pi))
+            sage: figure=p.matplotlib()
+            sage: axes=figure.axes[0]
+
+        For input parameters, see the documentation for the
+        :meth:`show` method (this function accepts all except the
+        transparent argument).
         """
         self.set_axes_range(xmin, xmax, ymin, ymax)
         d = self.get_axes_range()
@@ -1528,11 +1565,15 @@ class Graphics(SageObject):
         ymin = d['ymin']
         ymax = d['ymax']
 
-        # adjust the figsize in case the user also specifies an aspect ratio
-        if aspect_ratio is None:
-            aspect_ratio = self.aspect_ratio()
-        figsize = adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin=xmin,
-                                                  xmax=xmax, ymin=ymin, ymax=ymax)
+        x_pad=(xmax-xmin)*float(axes_pad)
+        y_pad=(ymax-ymin)*float(axes_pad)
+
+        xmin-=x_pad
+        xmax+=x_pad
+        ymin-=y_pad
+        ymax+=y_pad
+
+        self.set_axes_range(xmin,xmax,ymin,ymax)
 
         global do_verify
         do_verify = verify
@@ -1540,7 +1581,327 @@ class Graphics(SageObject):
         if axes is None:
             axes = self.__show_axes
 
-        from matplotlib.figure import Figure
+        from matplotlib.figure import Figure, figaspect
+        self.fontsize(fontsize)
+        self.axes_labels(l=axes_labels)
+
+        # adjust the figsize in case the user also specifies an aspect ratio
+        if aspect_ratio is None:
+            aspect_ratio = self.aspect_ratio()
+
+        # We try to accommodate both a demand for aspect ratio and
+        # for a figure size by adjusting the figure size to have
+        # the right aspect ratio.
+        if figsize is None:
+            figsize=DEFAULT_FIGSIZE
+        figsize=adjust_figsize_for_aspect_ratio(figsize, aspect_ratio,
+                                                xmin=xmin, xmax=xmax,
+                                                ymin=ymin, ymax=ymax)
+
+        if figure is None:
+            figure=Figure(figsize)
+
+        #the incoming subplot instance
+        subplot = sub
+        if not subplot:
+            subplot = figure.add_subplot(111)
+            if aspect_ratio is not None:
+                subplot.set_aspect('auto')
+
+        #add all the primitives to the subplot
+        for g in self.__objects:
+            g._render_on_subplot(subplot)
+
+
+        subplot.set_xlim([xmin, xmax])
+        subplot.set_ylim([ymin,ymax])
+
+        if axes is None:
+            axes = self.__show_axes
+
+        for spine in subplot.spines.values():
+            spine.set_color(self.__axes_color)
+            spine.set_linewidth(self.__axes_width)
+
+
+        if frame:
+            # For now, set the formatter to the old one, since that is
+            # sort of what we are used to.  We should eventually look at
+            # the default one to see if we like it better.
+            from matplotlib.ticker import OldScalarFormatter, MaxNLocator
+            subplot.xaxis.set_major_locator(MaxNLocator(nbins=9))
+            subplot.yaxis.set_major_locator(MaxNLocator(nbins=9))
+            subplot.xaxis.set_major_formatter(OldScalarFormatter())
+            subplot.yaxis.set_major_formatter(OldScalarFormatter())
+
+            subplot.set_frame_on(True)
+            if axes:
+                if ymin<=0 and ymax>=0:
+                    subplot.axhline(color=self.__axes_color,
+                                    linewidth=self.__axes_width)
+                if xmin<=0 and xmax>=0:
+                    subplot.axvline(color=self.__axes_color,
+                                    linewidth=self.__axes_width)
+
+        elif axes:
+            ymiddle=False
+            xmiddle=False
+            if xmin>0:
+                subplot.spines['right'].set_visible(False)
+                subplot.spines['left'].set_position(('outward',10))
+                subplot.yaxis.set_ticks_position('left')
+                subplot.yaxis.set_label_position('left')
+                yaxis='left'
+            elif xmax<0:
+                subplot.spines['left'].set_visible(False)
+                subplot.spines['right'].set_position(('outward',10))
+                subplot.yaxis.set_ticks_position('right')
+                subplot.yaxis.set_label_position('right')
+                yaxis='right'
+            else:
+                subplot.spines['left'].set_position('zero')
+                subplot.yaxis.set_ticks_position('left')
+                subplot.yaxis.set_label_position('left')
+                subplot.spines['right'].set_visible(False)
+                ymiddle=True
+                yaxis='left'
+
+            if ymin>0:
+                subplot.spines['top'].set_visible(False)
+                subplot.spines['bottom'].set_position(('outward',10))
+                subplot.xaxis.set_ticks_position('bottom')
+                subplot.xaxis.set_label_position('bottom')
+                xaxis='bottom'
+            elif ymax<0:
+                subplot.spines['bottom'].set_visible(False)
+                subplot.spines['top'].set_position(('outward',10))
+                subplot.xaxis.set_ticks_position('top')
+                subplot.xaxis.set_label_position('top')
+                xaxis='top'
+            else:
+                subplot.spines['bottom'].set_position('zero')
+                subplot.xaxis.set_ticks_position('bottom')
+                subplot.xaxis.set_label_position('bottom')
+                subplot.spines['top'].set_visible(False)
+                xmiddle=True
+                xaxis='bottom'
+
+            # For now, set the formatter to the old one, since that is
+            # sort of what we are used to.  We should eventually look at
+            # the default one to see if we like it better.
+            from matplotlib.ticker import OldScalarFormatter, MaxNLocator
+            subplot.xaxis.set_major_locator(MaxNLocator(nbins=10,steps=[1,2,5,10]))
+            subplot.yaxis.set_major_locator(MaxNLocator(nbins=10,steps=[1,2,5,10]))
+            subplot.xaxis.set_major_formatter(OldScalarFormatter())
+            subplot.yaxis.set_major_formatter(OldScalarFormatter())
+
+
+            # Make ticklines go on both sides of the axes
+            #             if xmiddle:
+            #                 for t in subplot.xaxis.get_majorticklines():
+            #                     t.set_marker("|")
+            #                     t.set_markersize(8)
+            #                 for t in subplot.xaxis.get_minorticklines():
+            #                     t.set_marker("|")
+            #                     t.set_markersize(4)
+
+            #             if ymiddle:
+            #                 for t in subplot.yaxis.get_majorticklines():
+            #                     t.set_marker("|")
+            #                     t.set_markersize(8)
+            #                 for t in subplot.yaxis.get_minorticklines():
+            #                     t.set_marker("|")
+            #                     t.set_markersize(4)
+
+            # Make the zero tick labels disappear if the axes cross
+            # inside the picture
+            if xmiddle and ymiddle:
+                subplot.yaxis.set_major_formatter(SelectiveFormatter(subplot.yaxis.get_major_formatter(),skip_values=[0]))
+                subplot.xaxis.set_major_formatter(SelectiveFormatter(subplot.xaxis.get_major_formatter(),skip_values=[0]))
+
+        else:
+            for spine in subplot.spines.values():
+                spine.set_visible(False)
+            from matplotlib.ticker import NullFormatter, NullLocator
+            subplot.xaxis.set_major_formatter(NullFormatter())
+            subplot.yaxis.set_major_formatter(NullFormatter())
+            subplot.xaxis.set_major_locator(NullLocator())
+            subplot.yaxis.set_major_locator(NullLocator())
+
+        if frame or axes:
+            # Make minor tickmarks
+            from matplotlib.ticker import AutoMinorLocator
+            subplot.xaxis.set_minor_locator(AutoMinorLocator())
+            subplot.yaxis.set_minor_locator(AutoMinorLocator())
+
+            ticklabels=subplot.xaxis.get_majorticklabels() + \
+                subplot.xaxis.get_minorticklabels() + \
+                subplot.yaxis.get_majorticklabels() + \
+                subplot.yaxis.get_minorticklabels()
+            for ticklabel in ticklabels:
+                ticklabel.set_fontsize(self.__fontsize)
+                ticklabel.set_color(self.__tick_label_color)
+
+            ticklines=subplot.xaxis.get_majorticklines() + \
+                subplot.xaxis.get_minorticklines() + \
+                subplot.yaxis.get_majorticklines() + \
+                subplot.yaxis.get_minorticklines()
+            for tickline in ticklines:
+                tickline.set_color(self.__axes_color)
+
+
+        if gridlines is not None:
+            if isinstance(gridlines, (list, tuple)):
+                vgridlines,hgridlines=gridlines
+            else:
+                hgridlines=gridlines
+                vgridlines=gridlines
+
+            if gridlinesstyle is None:
+                # Set up the default grid style
+                gridlinesstyle=dict(color='black',linestyle=':',linewidth=0.5)
+
+            vgridstyle=gridlinesstyle.copy()
+            if vgridlinesstyle is not None:
+                vgridstyle.update(vgridlinesstyle)
+
+            hgridstyle=gridlinesstyle.copy()
+            if hgridlinesstyle is not None:
+                hgridstyle.update(hgridlinesstyle)
+
+            if hgridlines=="minor":
+                hgridstyle['which']="minor"
+            if vgridlines=="minor":
+                vgridstyle['which']="minor"
+
+            if hasattr(hgridlines, '__iter__'):
+                hlines=iter(hgridlines)
+                hgridstyle.pop("minor",None)
+                for hline in hlines:
+                    if isinstance(hline, (list, tuple)):
+                        hl, style=hline
+                        st=hgridstyle.copy()
+                        st.update(style)
+                    else:
+                        hl=hline
+                        st=hgridstyle
+                    subplot.axhline(hl,**st)
+            else:
+                if hgridlines not in (None, False):
+                    subplot.yaxis.grid(True, **hgridstyle)
+
+            if hasattr(vgridlines, '__iter__'):
+                vlines=iter(vgridlines)
+                vgridstyle.pop("minor",None)
+                for vline in vlines:
+                    if isinstance(vline, (list, tuple)):
+                        vl, style=vline
+                        st=vgridstyle.copy()
+                        st.update(style)
+                    else:
+                        vl=vline
+                        st=vgridstyle
+                    subplot.axvline(vl,**st)
+            else:
+                if vgridlines not in (None, False):
+                    subplot.xaxis.grid(True, **vgridstyle)
+
+        if aspect_ratio is not None:
+            subplot.set_aspect(aspect_ratio)
+
+
+        if self.__axes_labels is not None:
+            label_options={}
+            label_options['color']=self.__axes_label_color
+            label_options['size']=self.__fontsize
+            subplot.set_xlabel(self.__axes_labels[0], **label_options)
+            subplot.set_ylabel(self.__axes_labels[1], **label_options)
+
+
+            if axes is True and frame is False:
+                # We set the label positions according to where we are
+                # drawing the axes.
+                if xaxis=='bottom':
+                    yaxis_labely=1
+                    yaxis_labeloffset=8
+                    yaxis_vert='bottom'
+                    xaxis_labely=0
+                    xaxis_vert='baseline'
+                else:
+                    yaxis_labely=0
+                    yaxis_labeloffset=-8
+                    yaxis_vert='top'
+                    xaxis_labely=1
+                    xaxis_vert='top'
+
+                if yaxis=='left':
+                    xaxis_labelx=1
+                    xaxis_labeloffset=8
+                    xaxis_horiz='left'
+                    yaxis_labelx=0
+                else:
+                    xaxis_labelx=0
+                    xaxis_labeloffset=-8
+                    xaxis_horiz='right'
+                    yaxis_labelx=1
+
+                from matplotlib.transforms import offset_copy
+                xlabel=subplot.xaxis.get_label()
+                xlabel.set_horizontalalignment(xaxis_horiz)
+                xlabel.set_verticalalignment(xaxis_vert)
+                trans=subplot.spines[xaxis].get_transform()
+                labeltrans=offset_copy(trans, figure, x=xaxis_labeloffset, y=0, units='points')
+                subplot.xaxis.set_label_coords(x=xaxis_labelx,y=xaxis_labely,transform=labeltrans)
+
+                ylabel=subplot.yaxis.get_label()
+                ylabel.set_horizontalalignment('center')
+                ylabel.set_verticalalignment(yaxis_vert)
+                ylabel.set_rotation('horizontal')
+                trans=subplot.spines[yaxis].get_transform()
+                labeltrans=offset_copy(trans, figure, x=0, y=yaxis_labeloffset, units='points')
+                subplot.yaxis.set_label_coords(x=yaxis_labelx,y=yaxis_labely,transform=labeltrans)
+
+        #subplot.autoscale_view(tight=True)
+        return figure
+
+    def save(self, filename=None, dpi=DEFAULT_DPI, savenow=True, *args, **kwds):
+        r"""
+        Save the graphics to an image file of type: PNG, PS, EPS, SVG,
+        SOBJ, depending on the file extension you give the filename.
+        Extension types can be: ``.png``, ``.ps``,
+        ``.eps``, ``.svg``, and
+        ``.sobj`` (for a Sage object you can load later).
+
+
+        EXAMPLES::
+
+            sage: c = circle((1,1),1,color='red')
+            sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
+
+        To correct the aspect ratio of certain graphics, you can
+        set the ``aspect_ratio`` to 1
+
+        ::
+
+            sage: c.show(aspect_ratio=1, xmin=-1, xmax=3, ymin=-1, ymax=3)
+
+        You could also just make the dimensions of the picture square
+        using ``figsize``
+
+        ::
+
+            sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+
+
+
+        ::
+
+            sage: point((-1,1),pointsize=30, color='red')
+
+        By default, the figure grows to include all of the graphics
+        and text, so the final image may not be exactly the figure
+        size you specified.
+        """
         if filename is None:
             filename = sage.misc.misc.graphics_filename()
         try:
@@ -1552,123 +1913,18 @@ class Graphics(SageObject):
             SageObject.save(self, filename)
             return
 
-        self.fontsize(fontsize)
-        self.axes_labels(l=axes_labels)
-
-        if figure is None:
-            figure = Figure(figsize)
-
-        #The line below takes away the excessive whitespace around
-        #images.  ('figsize' and  'dpi' still work as expected):
-        figure.subplots_adjust(left=0.04, bottom=0.04, right=0.96, top=0.96)
-
-        #the incoming subplot instance
-        subplot = sub
-        if not subplot:
-            subplot = figure.add_subplot(111)
-
-        #take away the matplotlib axes:
-        subplot.xaxis.set_visible(False)
-        subplot.yaxis.set_visible(False)
-        subplot.set_frame_on(False)
-
-        #add all the primitives to the subplot
-        #check if there are any ContourPlot instances
-        #in self._objects, and if so change the axes
-        #to be frame axes instead of centered axes
-        contour = False
-        plotfield = False
-        matrixplot = False
-        from contour_plot import ContourPlot
-        from matrix_plot import MatrixPlot
-        from plot_field import PlotField
-        for g in self.__objects:
-            if isinstance(g, ContourPlot):
-                contour = True
-            if isinstance(g, PlotField):
-                plotfield = True
-            if isinstance(g, MatrixPlot):
-                matrixplot = True
-            g._render_on_subplot(subplot)
-
-        #adjust the xy limits and draw the axes:
-        if axes is None:
-            axes = self.__show_axes
-
-        #construct an Axes instance, see 'axes.py' for relevant code
-        sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize,
-                         axes_labels=self.__axes_labels,
-                         axes_label_color=self.__axes_label_color,
-                         tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
-
-        # construct a GridLines instance, see 'axes.py' for relevant code
-        sage_gridlines = GridLines(gridlines=gridlines, gridlinesstyle=gridlinesstyle,
-                vgridlinesstyle=vgridlinesstyle, hgridlinesstyle=hgridlinesstyle)
-
-        #adjust the xy limits and draw the axes:
-        if not (contour or plotfield or matrixplot): #the plot is a 'regular' plot
-            xmin -= 0.1*(xmax-xmin)
-            xmax += 0.1*(xmax-xmin)
-            ymin -= 0.1*(ymax-ymin)
-            ymax += 0.1*(ymax-ymin)
-            if frame: #add the frame axes
-                axmin, axmax = xmin - 0.04*abs(xmax - xmin), xmax + 0.04*abs(xmax - xmin)
-                aymin, aymax = ymin - 0.04*abs(ymax - ymin), ymax + 0.04*abs(ymax - ymin)
-                subplot.set_xlim([axmin, axmax])
-                subplot.set_ylim([aymin, aymax])
-                # draw the grid
-                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, True)
-                #add a frame to the plot and possibly 'axes_with_no_ticks'
-                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                        axes_with_no_ticks=axes)
-
-            elif not frame and axes: #regular plot with regular axes
-                # draw the grid
-                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
-                # draw the axes
-                xmin, xmax, ymin, ymax = sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax)
-                subplot.set_xlim(xmin, xmax)
-                subplot.set_ylim(ymin, ymax)
-
-            else: #regular plot with no axes
-                subplot.set_xlim(xmin, xmax)
-                subplot.set_ylim(ymin, ymax)
-                # draw the grid
-                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
-
-        elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
-            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-            # draw the grid
-            sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, True)
-            # draw the axes
-            if axes: #axes=True unless user specifies axes=False
-                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax)
-
-        else: #we have a 'matrix_plot' in self.__objects, so adjust axes accordingly
-            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-            # draw the grid
-            if gridlines in ["major", "automatic", True]:
-                gridlines = [sage.misc.misc.srange(-0.5,xmax+1,1),
-                        sage.misc.misc.srange(-0.5,ymax+1,1)]
-            sage_gridlines = GridLines(gridlines=gridlines,
-                    gridlinesstyle=gridlinesstyle,
-                    vgridlinesstyle=vgridlinesstyle,
-                    hgridlinesstyle=hgridlinesstyle)
-            sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
-            # draw the axes
-            if axes: #axes=True unless user specifies axes=False
-                sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
-
-        # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
-        # matplotlib looks at the file extension to see what the renderer should be.
-        # The default is FigureCanvasAgg for PNG's because this is by far the most
-        # common type of files rendered, like in the Notebook for example.
-        # if the file extension is not '.png', then matplotlib will handle it.
         if savenow:
+            options=dict()
+            options['transparent']=kwds.pop('transparent',False)
+            figure=self.matplotlib(*args, **kwds)
+            # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
+            # matplotlib looks at the file extension to see what the renderer should be.
+            # The default is FigureCanvasAgg for PNG's because this is by far the most
+            # common type of files rendered, like in the notebook, for example.
+            # if the file extension is not '.png', then matplotlib will handle it.
             from matplotlib.backends.backend_agg import FigureCanvasAgg
-            canvas = FigureCanvasAgg(figure)
+            figure.set_canvas(FigureCanvasAgg(figure))
+
             if ext in ['.eps', '.ps', '.pdf']:
                 if dpi is None:
                     dpi = 72
@@ -1680,7 +1936,90 @@ class Graphics(SageObject):
                     dpi = 100
             else:
                 raise ValueError, "file extension must be either 'png', 'ps, 'eps', 'pdf, 'svg' or 'sobj'"
-            canvas.print_figure(filename, dpi=dpi)
+            figure.savefig(filename,dpi=dpi,bbox_inches='tight',**options)
+
+
+
+from matplotlib.ticker import Formatter
+
+class SelectiveFormatter(Formatter):
+    """
+    This matplotlib formatter selectively omits some tick values and
+    passes the rest on to a specified formatter.
+
+    EXAMPLES:
+
+    This example is almost straight from a matplotlib example.
+
+    ::
+
+        sage: from sage.plot.plot import SelectiveFormatter
+        sage: import matplotlib.pyplot as plt
+        sage: import numpy
+        sage: fig=plt.figure()
+        sage: ax=fig.add_subplot(111)
+        sage: t = numpy.arange(0.0, 2.0, 0.01)
+        sage: s = numpy.sin(2*numpy.pi*t)
+        sage: line=ax.plot(t, s)
+        sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
+        sage: ax.xaxis.set_major_formatter(formatter)
+        sage: fig.savefig('test.png')
+    """
+    def __init__(self, formatter,skip_values):
+        """
+        Initialize a SelectiveFormatter object.
+
+        INPUT:
+
+          - formatter -- the formatter object to which we should pass labels
+
+          - skip_values -- a list of values that we should skip when
+            formatting the tick labels
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot import SelectiveFormatter
+            sage: import matplotlib.pyplot as plt
+            sage: import numpy
+            sage: fig=plt.figure()
+            sage: ax=fig.add_subplot(111)
+            sage: t = numpy.arange(0.0, 2.0, 0.01)
+            sage: s = numpy.sin(2*numpy.pi*t)
+            sage: line=ax.plot(t, s)
+            sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
+            sage: ax.xaxis.set_major_formatter(formatter)
+            sage: fig.savefig('test.png')
+        """
+        self.formatter=formatter
+        self.skip_values=skip_values
+    def set_locs(self, locs):
+        """
+        Set the locations for the ticks that are not skipped.
+
+        EXAMPLES::
+            sage: from sage.plot.plot import SelectiveFormatter
+            sage: import matplotlib.ticker
+            sage: formatter=SelectiveFormatter(matplotlib.ticker.Formatter(),skip_values=[0,200])
+            sage: formatter.set_locs([i*100 for i in range(10)])
+        """
+        self.formatter.set_locs([l for l in locs if l not in self.skip_values])
+    def __call__(self, x, *args, **kwds):
+        """
+        Return the format for tick val *x* at position *pos*
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot import SelectiveFormatter
+            sage: import matplotlib.ticker
+            sage: formatter=SelectiveFormatter(matplotlib.ticker.FixedFormatter(['a','b']),skip_values=[0,2])
+            sage: [formatter(i,1) for i in range(10)]
+            ['', 'b', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
+        """
+        if x in self.skip_values:
+            return ''
+        else:
+            return self.formatter(x, *args, **kwds)
+
 
 def xydata_from_point_list(points):
     r"""
@@ -1862,8 +2201,8 @@ def plot(funcs, *args, **kwds):
 
     Some colored functions::
 
-        sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
-        sage: plot(sin, 0, 10, rgbcolor='purple')
+        sage: plot(sin, 0, 10, color='purple')
+        sage: plot(sin, 0, 10, color='#ff00ff')
 
     We plot several functions together by passing a list of functions
     as input::
@@ -1885,13 +2224,13 @@ def plot(funcs, *args, **kwds):
     The algorithm used to insert extra points is actually pretty
     simple. On the picture drawn by the lines below::
 
-        sage: p = plot(x^2, (-0.5, 1.4)) + line([(0,0), (1,1)], rgbcolor='green')
-        sage: p += line([(0.5, 0.5), (0.5, 0.5^2)], rgbcolor='purple')
-        sage: p += point(((0, 0), (0.5, 0.5), (0.5, 0.5^2), (1, 1)), rgbcolor='red', pointsize=20)
-        sage: p += text('A', (-0.05, 0.1), rgbcolor='red')
-        sage: p += text('B', (1.01, 1.1), rgbcolor='red')
-        sage: p += text('C', (0.48, 0.57), rgbcolor='red')
-        sage: p += text('D', (0.53, 0.18), rgbcolor='red')
+        sage: p = plot(x^2, (-0.5, 1.4)) + line([(0,0), (1,1)], color='green')
+        sage: p += line([(0.5, 0.5), (0.5, 0.5^2)], color='purple')
+        sage: p += point(((0, 0), (0.5, 0.5), (0.5, 0.5^2), (1, 1)), color='red', pointsize=20)
+        sage: p += text('A', (-0.05, 0.1), color='red')
+        sage: p += text('B', (1.01, 1.1), color='red')
+        sage: p += text('C', (0.48, 0.57), color='red')
+        sage: p += text('D', (0.53, 0.18), color='red')
         sage: p.show(axes=False, xmin=-0.5, xmax=1.4, ymin=0, ymax=2)
 
     You have the function (in blue) and its approximation (in green)
@@ -1919,7 +2258,7 @@ def plot(funcs, *args, **kwds):
     We can also directly plot the elliptic curve::
 
         sage: E = EllipticCurve([0,-1])
-        sage: plot(E, (1, 4), rgbcolor=hue(0.6))
+        sage: plot(E, (1, 4), color=hue(0.6))
 
     We can change the line style to one of ``'--'`` (two hyphens, yielding
     dashed), ``'-.'`` (dash dot), ``'-'`` (solid), ``'steps'``, ``':'`` (dotted)::
@@ -2160,6 +2499,7 @@ def _plot(funcs, xrange, parametric=False,
     fillcolor = options.pop('fillcolor', 'automatic')
     fillalpha = options.pop('fillalpha', 0.5)
 
+    # TODO: Use matplotlib's fill and fill_between commands.
     if fill is not None:
         if parametric or polar:
             filldata = data
@@ -2280,7 +2620,7 @@ def parametric_plot(funcs, *args, **kwargs):
     EXAMPLES: We draw some 2d parametric plots::
 
         sage: t = var('t')
-        sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), rgbcolor=hue(0.6) )
+        sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), color=hue(0.6) )
         sage: parametric_plot((1, t), (t, 0, 4))
 
     Note that in parametric_plot, there is only fill or no fill.
@@ -2360,7 +2700,7 @@ def polar_plot(funcs, *args, **kwds):
 
     A green limacon of Pascal::
 
-        sage: polar_plot(2 + 2*cos(x), (x, 0, 2*pi), rgbcolor=hue(0.3))
+        sage: polar_plot(2 + 2*cos(x), (x, 0, 2*pi), color=hue(0.3))
 
     Several polar plots::
 
@@ -2400,11 +2740,11 @@ def list_plot(data, plotjoined=False, **kwargs):
     Here are a bunch of random red points::
 
         sage: r = [(random(),random()) for _ in range(20)]
-        sage: list_plot(r,rgbcolor=(1,0,0))
+        sage: list_plot(r,color='red')
 
     This gives all the random points joined in a purple line::
 
-        sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
+        sage: list_plot(r, plotjoined=True, color='purple')
 
     If you have separate lists of `x` values and `y` values which you
     want to plot against each other, use the ``zip`` command to make a
@@ -2539,10 +2879,10 @@ class GraphicsArray(SageObject):
         do_verify = True
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
-            g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-                   savenow = (i==dims), verify=do_verify,
-                   axes = axes,
-                   **args)#only save if i==dims.
+            g.matplotlib(filename, figure=figure, sub=subplot,
+                         verify=do_verify, axes = axes, **args)
+        g.save(filename, dpi=dpi, figure=figure, sub=subplot,
+               verify=do_verify, axes = axes, **args)
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
              axes = None, **args):
@@ -2647,10 +2987,10 @@ def graphics_array(array, n=None, m=None):
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
-        sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
-        sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
-        sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
+        sage: p1 = plot(f,-2*pi,2*pi,color=hue(0.5))
+        sage: p2 = plot(g,-2*pi,2*pi,color=hue(0.9))
+        sage: p3 = parametric_plot((f,g),0,2*pi,color=hue(0.6))
+        sage: p4 = parametric_plot((f,h),0,2*pi,color=hue(1.0))
 
     Now make a graphics array out of the plots; then you can type
     either: ``ga.show()`` or ``ga.save()``.

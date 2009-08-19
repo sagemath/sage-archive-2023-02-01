@@ -108,6 +108,7 @@ class BarChart(GraphicPrimitive):
         datalist = numpy.array(self.datalist, dtype=float)
         subplot.bar(ind, datalist, color=color, width=width)
 
+@rename_keyword(color='rgbcolor')
 @options(width=0.5, rgbcolor=(0,0,1))
 def bar_chart(datalist, **options):
     """

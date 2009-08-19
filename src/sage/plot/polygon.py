@@ -263,6 +263,7 @@ def polygon(points, **options):
         from sage.plot.plot3d.shapes2 import polygon3d
         return polygon3d(points, **options)
 
+@rename_keyword(color='rgbcolor')
 @options(alpha=1, rgbcolor=(0,0,1), thickness=0)
 def polygon2d(points, **options):
     r"""

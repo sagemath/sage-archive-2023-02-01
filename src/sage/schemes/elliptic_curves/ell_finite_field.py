@@ -275,7 +275,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         INPUT:
 
-        - n (int) -- a positive integer
+        - ``n`` (int) -- a positive integer
 
         OUTPUT:
 
@@ -285,7 +285,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         the cardinality of the curve over the extension of degree `d`
         of its base field.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p = 101
             sage: F = GF(p)
@@ -295,10 +295,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.count_points(5)
             [96, 10368, 1031904, 104053248, 10509895776]
 
+        ::
 
             sage: F.<a> = GF(p^2)
             sage: E = EllipticCurve(F, [a,a])
-           sage: E.cardinality()
+            sage: E.cardinality()
             10295
             sage: E.count_points()
             10295

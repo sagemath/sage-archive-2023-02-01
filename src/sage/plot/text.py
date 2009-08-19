@@ -91,11 +91,14 @@ class Text(GraphicPrimitive):
             'How big the text is.'
             sage: T[0]._allowed_options()['zorder']
             'The layer level in which to draw'
+            sage: T[0]._allowed_options()['rotation']
+            'how to rotate the text: angle in degrees, vertical, horizontal'
         """
         return {'fontsize': 'How big the text is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
+                'rotation': 'how to rotate the text: angle in degrees, vertical, horizontal',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',
                 'horizontal_alignment':'how to align horizontally: left, center, right',
                 'zorder':'The layer level in which to draw'}
@@ -126,6 +129,8 @@ class Text(GraphicPrimitive):
             del options['horizontal_alignment']
         if 'axis_coords' in options:
             del options['axis_coords']
+        if 'rotation' in options:
+            del options['rotation']
         options_3d.update(GraphicPrimitive._plot3d_options(self, options))
         return options_3d
 
@@ -166,6 +171,12 @@ class Text(GraphicPrimitive):
             opts['zorder'] = options['zorder']
         if options['axis_coords']:
             opts['transform'] = subplot.transAxes
+        if 'rotation' in options:
+            val = options['rotation']
+            if isinstance(val, str):
+                opts['rotation'] = options['rotation']
+            else:
+                opts['rotation'] = float(options['rotation'])
         subplot.text(self.x, self.y, self.string, **opts)
 
 @rename_keyword(color='rgbcolor')
@@ -184,6 +195,8 @@ def text(string, xy, **options):
     - ``rgbcolor`` - The color as an RGB tuple
 
     - ``hue`` - The color given as a hue
+
+    - ``rotation`` - How to rotate the text: angle in degrees, vertical, horizontal
 
     - ``vertical_alignment`` - How to align vertically: top, center, bottom
 
@@ -204,6 +217,14 @@ def text(string, xy, **options):
     Same text but guaranteed to be in the lower left no matter what::
 
         sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
+
+    Same text rotated around the left, bottom corner of the text::
+
+        sage: text("Sage is really neat!!",(0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom')
+
+    Same text oriented vertically::
+
+        sage: text("Sage is really neat!!",(0,0), rotation="vertical")
 
     You can also align text differently::
 

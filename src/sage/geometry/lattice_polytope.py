@@ -1482,10 +1482,12 @@ class LatticePolytopeClass(SageObject):
 
     def plot3d(self,
             show_facets=True, facet_opacity=0.5, facet_color=(0,1,0),
+            facet_colors=None,
             show_edges=True, edge_thickness=3, edge_color=(0.5,0.5,0.5),
             show_vertices=True, vertex_size=10, vertex_color=(1,0,0),
             show_points=True, point_size=10, point_color=(0,0,1),
             show_vindices=None, vindex_color=(0,0,0),
+            vlabels=None,
             show_pindices=None, pindex_color=(0,0,0),
             index_shift=1.1):
         r"""
@@ -1502,6 +1504,9 @@ class LatticePolytopeClass(SageObject):
         -  ``facet_opacity`` - (default:0.5)
 
         -  ``facet_color`` - (default:(0,1,0))
+
+        -  ``facet_colors`` - (default:None) if specified, must be a list of
+           colors for each facet separately, used instead of ``facet_color``
 
         -  ``show_edges`` - (default:True) whether to draw
            edges as lines
@@ -1530,6 +1535,9 @@ class LatticePolytopeClass(SageObject):
         -  ``vindex_color`` - (default:(0,0,0)) color for
            vertex labels
 
+        -  ``vlabels`` - (default:None) if specified, must be a list of labels
+           for each vertex, default labels are vertex indicies
+
         -  ``show_pindices`` - (default:same as show_points)
            whether to show indices of other points
 
@@ -1550,38 +1558,72 @@ class LatticePolytopeClass(SageObject):
 
             sage: c.plot3d(show_facets=false,show_points=false).show(frame=False)
 
+        Plot with facets of different colors::
+
+            sage: c.plot3d(facet_colors=sage.plot.plot.rainbow(c.nfacets(), 'rgbtuple'))
+
+        It is also possible to plot lower dimensional polytops in 3D (let's
+        also change labels of vertices)::
+
+            sage: lattice_polytope.octahedron(2).plot3d(vlabels=["A", "B", "C", "D"])
+
         TESTS::
 
             sage: m = matrix([[0,0,0],[0,1,1],[1,0,1],[1,1,0]]).transpose()
             sage: p = LatticePolytope(m, compute_vertices=True)
             sage: p.plot3d()
         """
-        if self.dim() != 3:
-            raise ValueError, "Only 3-dimensional polytopes can be plotted in 3D!"
+        dim = self.dim()
+        if  dim > 3:
+            raise ValueError, "%d-dimensional polytopes can not be plotted in 3D!" % self.dim()
+        elif dim == 3:
+            vertices = self.vertices().columns(copy=False)
+            if show_points or show_pindices:
+                points = self.points().columns(copy=False)[self.nvertices():]
+        else:
+            vertices = [vector(ZZ, list(self.vertex(i))+[0]*(3-dim)) for i in range(self.nvertices())]
+            if show_points or show_pindices:
+                points = [vector(ZZ, list(self.point(i))+[0]*(3-dim))
+                        for i in range(self.nvertices(), self.npoints())]
         pplot = 0
         if show_facets:
-            pplot += IndexFaceSet([f.traverse_boundary() for f in self.facets()],
-                    self.vertices().columns(copy=False), opacity=facet_opacity, rgbcolor=facet_color)
+            if dim == 2:
+                pplot += IndexFaceSet([self.traverse_boundary()],
+                        vertices, opacity=facet_opacity, rgbcolor=facet_color)
+            elif self.dim() == 3:
+                if facet_colors != None:
+                    for i, f in enumerate(self.facets()):
+                        pplot += IndexFaceSet([f.traverse_boundary()],
+                            vertices, opacity=facet_opacity, rgbcolor=facet_colors[i])
+                else:
+                    pplot += IndexFaceSet([f.traverse_boundary() for f in self.facets()],
+                        vertices, opacity=facet_opacity, rgbcolor=facet_color)
         if show_edges:
-            for e in self.edges():
-                pplot += line3d([self.vertex(e.vertices()[0]), self.vertex(e.vertices()[1])],
-                        thickness=edge_thickness, rgbcolor=edge_color)
+            if dim == 1:
+                pplot += line3d(vertices, thickness=edge_thickness, rgbcolor=edge_color)
+            else:
+                for e in self.edges():
+                    pplot += line3d([vertices[e.vertices()[0]], vertices[e.vertices()[1]]],
+                            thickness=edge_thickness, rgbcolor=edge_color)
         if show_vertices:
-            pplot += point3d(self.vertices().columns(copy=False), size=vertex_size, rgbcolor=vertex_color)
+            pplot += point3d(vertices, size=vertex_size, rgbcolor=vertex_color)
         if show_vindices == None:
             show_vindices = show_vertices
-        if show_vindices:
-            for i,v in enumerate(self.vertices().columns(copy=False)):
-                pplot += text3d(i, index_shift*v, rgbcolor=vindex_color)
-        if show_points:
-            points = self.points().columns(copy=False)[self.nvertices():]
-            if points != []:
-                pplot += point3d(points, size=point_size, rgbcolor=point_color)
         if show_pindices == None:
             show_pindices = show_points
+        if show_vindices or show_pindices:
+            # Compute the barycenter and shift text of labels away from it
+            bc = 1/Integer(len(vertices)) * sum(vertices)
+        if show_vindices:
+            if vlabels == None:
+                vlabels = range(len(vertices))
+            for i,v in enumerate(vertices):
+                pplot += text3d(vlabels[i], bc+index_shift*(v-bc), rgbcolor=vindex_color)
+        if show_points and len(points) > 0:
+            pplot += point3d(points, size=point_size, rgbcolor=point_color)
         if show_pindices:
-            for i in range(self.nvertices(),self.npoints()):
-                pplot += text3d(i, index_shift*self.point(i), rgbcolor=pindex_color)
+            for i, p in enumerate(points):
+                pplot += text3d(i+self.nvertices(), bc+index_shift*(p-bc), rgbcolor=pindex_color)
         return pplot
 
     def show3d(self):
@@ -1842,6 +1884,36 @@ class LatticePolytopeClass(SageObject):
         projectionm = normal.kernel().basis_matrix()
         positions = dict(enumerate([list(c) for c in (projectionm*self.points()).columns(copy=False)]))
         self.skeleton().show(pos=positions)
+
+    def traverse_boundary(self):
+        r"""
+        Return a list of indices of vertices of a 2-dimensional polytope in their boundary order.
+
+        Needed for plot3d function of polytopes.
+
+        EXAMPLES:
+
+            sage: c = lattice_polytope.octahedron(2).polar()
+            sage: c.traverse_boundary()
+            [0, 1, 3, 2]
+        """
+        if self.dim() != 2:
+            raise ValueError, "Boundary can be traversed only for 2-polytopes!"
+        edges = self.edges()
+        l = [0]
+        for e in edges:
+            if 0 in e.vertices():
+                next = e.vertices()[0] if e.vertices()[0] != 0 else e.vertices()[1]
+        l.append(next)
+        prev = 0
+        while len(l) < self.nvertices():
+            for e in edges:
+                if next in e.vertices() and prev not in e.vertices():
+                    prev = next
+                    next = e.vertices()[0] if e.vertices()[0] != next else e.vertices()[1]
+                    l.append(next)
+                    break
+        return l
 
     def vertex(self, i):
         r"""

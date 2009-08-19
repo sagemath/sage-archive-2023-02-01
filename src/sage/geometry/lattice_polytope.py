@@ -1391,6 +1391,11 @@ class LatticePolytopeClass(SageObject):
             sage: o = lattice_polytope.octahedron(3)
             sage: o.nfacets()
             8
+
+        The number of facets of an interval is 2::
+
+            sage: LatticePolytope(matrix([1,2])).nfacets()
+            2
         """
         try:
             return self._nfacets
@@ -1398,7 +1403,7 @@ class LatticePolytopeClass(SageObject):
             if self.is_reflexive():
                 self._nfacets = self.polar().nvertices()
             else:
-                self._nfacets = len(self._facet_normals)
+                self._nfacets = self._facet_normals.nrows()
             return self._nfacets
 
     def normal_form(self):

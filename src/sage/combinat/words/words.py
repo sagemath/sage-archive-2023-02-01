@@ -10,6 +10,7 @@ AUTHORS:
     - Franco Saliola (2008-12-17): merged into sage
     - Sebastien Labbe (2008-12-17): merged into sage
     - Arnaud Bergeron (2008-12-17): merged into sage
+    - Sebastien Labbe (2009-07-21): Improved morphism iterator (#6571).
 
 EXAMPLES::
 
@@ -664,20 +665,21 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             for w in self.iterate_by_length(l):
                 yield w
 
-    def iter_morphisms(self, l, codomain=None):
+    def iter_morphisms(self, l=None, codomain=None):
         r"""
-        Returns an iterator over all morphisms `\varphi` from self to codomain
-        such that `|\varphi| = l`.
+        Returns an iterator over all non erasing morphisms or over all
+        morphisms `\varphi` such that `|\varphi| = l` when ``l`` is given.
 
         Let `\varphi:\Sigma^*\rightarrow \Omega^*` be a morphism. We denote by
-        `|\varphi|` the function `\Sigma\rightarrow\mathbb{N}` defined by
-        `a\mapsto |\varphi(a)|`.
+        `|\varphi|` the function `\Sigma\rightarrow\mathbb{N}` that gives the
+        length of the images of each letter defined by `a\mapsto |\varphi(a)|`.
 
         INPUT:
 
-        -  ``l`` - list of k integers where k is the number of letters in the
-           alphabet. The i-th element of ``l`` gives the length of the image
-           of the i-th letter of the ordered alphabet.
+        -  ``l`` - list of k integers (default: None) where k is the number
+           of letters in the alphabet. The i-th element of ``l`` gives the
+           length of the image of the i-th letter of the ordered alphabet.
+           When ``None``, it iterates through all the non erasing morphisms.
 
         -  codomain - (default : None) a combinatorial class of words.
            By default, the codomain is self.
@@ -686,62 +688,92 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         iterator
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Iterator over all non erasing morphisms::
 
             sage: W = Words('ab')
-            sage: map(str, W.iter_morphisms([2, 1]))
-            ['WordMorphism: a->aa, b->a',
-             'WordMorphism: a->aa, b->b',
-             'WordMorphism: a->ab, b->a',
-             'WordMorphism: a->ab, b->b',
-             'WordMorphism: a->ba, b->a',
-             'WordMorphism: a->ba, b->b',
-             'WordMorphism: a->bb, b->a',
-             'WordMorphism: a->bb, b->b']
-            sage: map(str, W.iter_morphisms([2, 2]))
-            ['WordMorphism: a->aa, b->aa',
-             'WordMorphism: a->aa, b->ab',
-             'WordMorphism: a->aa, b->ba',
-             'WordMorphism: a->aa, b->bb',
-             'WordMorphism: a->ab, b->aa',
-             'WordMorphism: a->ab, b->ab',
-             'WordMorphism: a->ab, b->ba',
-             'WordMorphism: a->ab, b->bb',
-             'WordMorphism: a->ba, b->aa',
-             'WordMorphism: a->ba, b->ab',
-             'WordMorphism: a->ba, b->ba',
-             'WordMorphism: a->ba, b->bb',
-             'WordMorphism: a->bb, b->aa',
-             'WordMorphism: a->bb, b->ab',
-             'WordMorphism: a->bb, b->ba',
-             'WordMorphism: a->bb, b->bb']
-            sage: map(str, W.iter_morphisms([0, 0]))
-            ['WordMorphism: a->, b->']
-            sage: map(str, W.iter_morphisms([0, 1]))
-            ['WordMorphism: a->, b->a', 'WordMorphism: a->, b->b']
+            sage: it = W.iter_morphisms()
+            sage: for _ in range(10): print it.next()
+            WordMorphism: a->a, b->a
+            WordMorphism: a->a, b->b
+            WordMorphism: a->b, b->a
+            WordMorphism: a->b, b->b
+            WordMorphism: a->aa, b->a
+            WordMorphism: a->aa, b->b
+            WordMorphism: a->ab, b->a
+            WordMorphism: a->ab, b->b
+            WordMorphism: a->ba, b->a
+            WordMorphism: a->ba, b->b
 
-        You may specify the codomain as well::
+        Iterator over morphisms with specific image lengths::
+
+            sage: for m in W.iter_morphisms([0, 0]): print m
+            WordMorphism: a->, b->
+            sage: for m in W.iter_morphisms([0, 1]): print m
+            WordMorphism: a->, b->a
+            WordMorphism: a->, b->b
+            sage: for m in W.iter_morphisms([2, 1]): print m
+            WordMorphism: a->aa, b->a
+            WordMorphism: a->aa, b->b
+            WordMorphism: a->ab, b->a
+            WordMorphism: a->ab, b->b
+            WordMorphism: a->ba, b->a
+            WordMorphism: a->ba, b->b
+            WordMorphism: a->bb, b->a
+            WordMorphism: a->bb, b->b
+            sage: for m in W.iter_morphisms([2, 2]): print m
+            WordMorphism: a->aa, b->aa
+            WordMorphism: a->aa, b->ab
+            WordMorphism: a->aa, b->ba
+            WordMorphism: a->aa, b->bb
+            WordMorphism: a->ab, b->aa
+            WordMorphism: a->ab, b->ab
+            WordMorphism: a->ab, b->ba
+            WordMorphism: a->ab, b->bb
+            WordMorphism: a->ba, b->aa
+            WordMorphism: a->ba, b->ab
+            WordMorphism: a->ba, b->ba
+            WordMorphism: a->ba, b->bb
+            WordMorphism: a->bb, b->aa
+            WordMorphism: a->bb, b->ab
+            WordMorphism: a->bb, b->ba
+            WordMorphism: a->bb, b->bb
+
+        The codomain may be specified as well::
 
             sage: Y = Words('xyz')
-            sage: map(str, W.iter_morphisms([0,2], codomain=Y))
-            ['WordMorphism: a->, b->xx',
-             'WordMorphism: a->, b->xy',
-             'WordMorphism: a->, b->xz',
-             'WordMorphism: a->, b->yx',
-             'WordMorphism: a->, b->yy',
-             'WordMorphism: a->, b->yz',
-             'WordMorphism: a->, b->zx',
-             'WordMorphism: a->, b->zy',
-             'WordMorphism: a->, b->zz']
-            sage: map(str, Y.iter_morphisms([0,2,1], codomain=W))
-            ['WordMorphism: x->, y->aa, z->a',
-             'WordMorphism: x->, y->aa, z->b',
-             'WordMorphism: x->, y->ab, z->a',
-             'WordMorphism: x->, y->ab, z->b',
-             'WordMorphism: x->, y->ba, z->a',
-             'WordMorphism: x->, y->ba, z->b',
-             'WordMorphism: x->, y->bb, z->a',
-             'WordMorphism: x->, y->bb, z->b']
+            sage: for m in W.iter_morphisms([0, 2], codomain=Y): print m
+            WordMorphism: a->, b->xx
+            WordMorphism: a->, b->xy
+            WordMorphism: a->, b->xz
+            WordMorphism: a->, b->yx
+            WordMorphism: a->, b->yy
+            WordMorphism: a->, b->yz
+            WordMorphism: a->, b->zx
+            WordMorphism: a->, b->zy
+            WordMorphism: a->, b->zz
+            sage: for m in Y.iter_morphisms([0,2,1], codomain=W): print m
+            WordMorphism: x->, y->aa, z->a
+            WordMorphism: x->, y->aa, z->b
+            WordMorphism: x->, y->ab, z->a
+            WordMorphism: x->, y->ab, z->b
+            WordMorphism: x->, y->ba, z->a
+            WordMorphism: x->, y->ba, z->b
+            WordMorphism: x->, y->bb, z->a
+            WordMorphism: x->, y->bb, z->b
+            sage: it = W.iter_morphisms(codomain=Y)
+            sage: for _ in range(10): print it.next()
+            WordMorphism: a->x, b->x
+            WordMorphism: a->x, b->y
+            WordMorphism: a->x, b->z
+            WordMorphism: a->y, b->x
+            WordMorphism: a->y, b->y
+            WordMorphism: a->y, b->z
+            WordMorphism: a->z, b->x
+            WordMorphism: a->z, b->y
+            WordMorphism: a->z, b->z
+            WordMorphism: a->xx, b->x
 
         TESTS::
 
@@ -752,19 +784,29 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: list(W.iter_morphisms([0, 1, 2]))
             Traceback (most recent call last):
             ...
-            TypeError: l (=[0, 1, 2]) must be a list of 2 integers
+            TypeError: l (=[0, 1, 2]) must be an iterable of 2 integers
             sage: list(W.iter_morphisms([0, 'a']))
             Traceback (most recent call last):
             ...
-            TypeError: l (=[0, 'a']) must be a list of 2 integers
+            TypeError: l (=[0, 'a']) must be an iterable of 2 integers
             sage: list(W.iter_morphisms([0, 1], codomain='a'))
             Traceback (most recent call last):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
         """
-        if not isinstance(l, list) or not len(l) == self.size_of_alphabet() \
+        if l is None:
+            from sage.combinat.composition import Compositions
+            for i in itertools.count():
+                for c in Compositions(i, length=self.size_of_alphabet()):
+                    for m in self.iter_morphisms(c, codomain=codomain):
+                        yield m
+
+        if not isinstance(l, list):
+            l = list(l)
+
+        if not len(l) == self.size_of_alphabet() \
                 or not all(isinstance(a, (int,Integer)) for a in l):
-            raise TypeError, "l (=%s) must be a list of %s integers" \
+            raise TypeError, "l (=%s) must be an iterable of %s integers" \
                              %(l, self.size_of_alphabet())
 
         if codomain is None:

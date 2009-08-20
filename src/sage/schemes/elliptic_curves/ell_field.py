@@ -544,37 +544,33 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         return D
 
 
-    def isogeny(self, kernel, codomain=None, degree=None, model=None, algorithm=None):
+    def isogeny(self, kernel, codomain=None, degree=None, model=None):
         r"""
         Returns an elliptic curve isogeny from self.
-        This redirects to the EllipticCurveIsogeny constructor, see that function for more information.
+
+        The isogeny can be determined in two ways, either by a polynomial or a set of torsion points.
+        The methods used are:
+
+        - Velu's Formulas: Velu's original formulas for computing
+          isogenies.  This algorithm is selected by giving as the ``kernel`` parameter a point or a list of points which generate a finite subgroup.
+
+        - Kohel's Formulas:
+          Kohel's original formulas for computing isogenies.
+          This algorithm is selected by giving as the ``kernel`` parameter a polynomial (or a coefficient list (little endian)) which will define the kernel of the isogeny.
 
         INPUT:
 
-        - ``kernel``    - a kernel, either a list of points in self, or a kernel polynomial.
-                          If initiating from a domain/codomain, this must be set to None.
-        - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None,
-                          then this must be the codomain of a separable normalized isogeny,
-                          furthermore, ``degree`` must be the degree of the isogeny from self to ``codomain``.
-                          If ``kernel`` is not None, then this must be isomorphic to the codomain of the
-                          normalized separable isogeny defined by ``kernel``,
-                          in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
-        - ``degree``    - an integer (default:None).
-                          If ``kernel`` is None, then this is the degree of the isogeny from self to ``codomain``.
-                          If ``kernel`` is not None, then this is used to determine whether or not to skip a GCD
-                          of the kernel polynomial with the two torsion polynomial of self.
-        - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if
-                          self is a curve over the rationals, then the codomain is set to be the unique global minimum model.
-        - ``algorithm`` - a string (default:None).  If this parameter is None, then the algorithm is determined from the input.
-                          The valid values are "velu" and "kohel".  If "velu" is set, then kernel must be a list of points in self
-                          that define a kernel of an isogeny.  If "kohel" is set, then the kernel must be either a kernel polynomial
-                          or a list of coefficients of a kernel polynomial.
+        - ``E``         - an elliptic curve, the domain of the isogeny to initialize.
+        - ``kernel``    - a kernel, either a point in ``E``, a list of points in ``E``, a univariate kernel polynomial or ``None``. If initiating from a domain/codomain, this must be set to None.
+        - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None, then this must be the codomain of a separable normalized isogeny, furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this must be isomorphic to the codomain of the normalized separable isogeny defined by ``kernel``, in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
+        - ``degree``    - an integer (default:None). If ``kernel`` is None, then this is the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this is used to determine whether or not to skip a gcd of the kernel polynomial with the two torsion polynomial of ``E``.
+        - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
 
         OUTPUT:
 
-        (elliptic curve isogeny) the isogeny initialized from the parameters.
+        An isogeny between elliptic curves. This is a morphism of curves.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F = GF(2^5, 'alpha'); alpha = F.gen()
             sage: E = EllipticCurve(F, [1,0,1,1,1])
@@ -583,15 +579,35 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi.rational_maps()
             ((x^2 + x + 1)/(x + 1), (x^2*y + x)/(x^2 + 1))
 
+            sage: E = EllipticCurve('11a1')
+            sage: P = E.torsion_points()[1]
+            sage: E.isogeny(P)
+            Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
+
+            sage: E = EllipticCurve(GF(19),[1,1])
+            sage: P = E(15,3); Q = E(2,12);
+            sage: (P.order(), Q.order())
+            (7, 3)
+            sage: phi = E.isogeny([P,Q]); phi
+            Isogeny of degree 21 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 19 to Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 19
+            sage: phi(E.random_point()) # all points defined over GF(19) are in the kernel
+            (0 : 1 : 0)
+
+
+            # not all polynomials define a finite subgroup trac #6384
+            sage: E = EllipticCurve(GF(31),[1,0,0,1,2])
+            sage: phi = E.isogeny([14,27,4,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: The polynomial does not define a finite subgroup of the elliptic curve.
+
         """
-        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, algorithm)
+        return EllipticCurveIsogeny(self, kernel, codomain, degree, model)
 
 
-    def isogeny_codomain(self, kernel, degree=None, algorithm=None):
+    def isogeny_codomain(self, kernel, degree=None):
         r"""
         Returns the codomain of the isogeny from self with given kernel.
-        This redirects to the isogeny_codomain_from_kernel function,
-        see that function for more information.
 
         INPUT:
 
@@ -599,14 +615,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         - ``degree`` - an integer, (default:None) optionally specified degree of the kernel.
 
-        - ``algorithm`` - See the options in the constructor of the EllipticCurveIsogeny class.
-
         OUTPUT:
 
-        (elliptic curve) the codomain of the separable normalized isogeny from this kernel
+        An elliptic curve, the codomain of the separable normalized isogeny from   this kernel
 
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: E = EllipticCurve('17a1')
             sage: R.<x> = QQ[]
@@ -614,4 +628,4 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 1461/16*x - 19681/64 over Rational Field
 
         """
-        return isogeny_codomain_from_kernel(self, kernel, degree=None, algorithm=None)
+        return isogeny_codomain_from_kernel(self, kernel, degree=None)

@@ -1,8 +1,11 @@
---- src/polybori-0.3/pyroot/polybori/PyPolyBoRi.py	2008-03-13 10:32:55.000000000 -0400
-+++ patches/PyPolyBoRi.py	2008-03-16 08:49:29.000000000 -0400
-@@ -1,76 +1,28 @@
+--- ../src/polybori-0.6/pyroot/polybori/PyPolyBoRi.py	2009-04-28 22:38:30.000000000 +0100
++++ PyPolyBoRi.py	2009-08-20 13:44:41.000000000 +0100
+@@ -1,121 +1,22 @@
 -from sys import modules
 -from itertools import chain
+-import re
+-import warnings
+-compatibility_mode=False
 -# First try, whether PyPolyBoRi is already in modules (e.g. static profiling)
 -try:
 -    pb = modules["PyPolyBoRi"]
@@ -30,10 +33,11 @@
 -        try:
 -            monomial_old_init(self,arg)
 -        except:
--            monomial_old_init(self)
+-            prototype=Monomial()
 -            items=sorted((x for x in arg),reverse=True, key=top_index)
 -            for x in items:
--                self*=x
+-                prototype*=x
+-            monomial_old_init(self,prototype)
 -Monomial.__init__=monomial_new_init
 -booleset_old_init=BooleSet.__init__
 -def booleset_new_init(self,arg=None, second=None):
@@ -47,7 +51,7 @@
 -        except:
 -            s=set()
 -            v=BoolePolynomialVector()
--            for i in arg:
+-            for i in list(arg):
 -                s.add(Monomial(i))
 -            for i in s:
 -                v.append(i)
@@ -75,32 +79,68 @@
 -        return variable_cplusplus_div(self,arg)
 -    except ValueError:
 -        return Polynomial(0, self.ring())
+-
+-Variable.__div__ = variable_python_div
+-_gauss_on_polys=gauss_on_polys
+-def gauss_on_polys(l):
+-    vec=BoolePolynomialVector(l)
+-    return list(_gauss_on_polys(vec))
+-
+-snake_pattern=re.compile('(((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$)))')
+-def to_snake_case(s):
+-    return snake_pattern.sub('_\\1', s).lower().strip('_')
+-    
+-def warn_snake_case(a, snaked):
+-    warnings.warn("access to %s is deprecated, use %s instead" % (a, snaked), stacklevel=3)
+-def _strategy_getattr(self, a):
+-    if hasattr(self.reduction_strategy, a):
+-        return getattr(self.reduction_strategy,a)
+-    snaked=to_snake_case(a)
+-
+-    if snaked in self.__dict__:
+-        warn_snake_case(a, snaked)
+-        return self.__dict__[snaked]
+-    if hasattr(self.reduction_strategy, snaked):
+-        warn_snake_case(a, snaked)
+-        return getattr(self.reduction_strategy, snaked)
+-    raise AttributeError
+-def _strategy_setattr(self, a, v):
+-    if a in self.__dict__:
+-        self.__dict__[a]=v
+-        return
+-    if hasattr(self.reduction_strategy, a):
+-        return setattr(self.reduction_strategy, a, v)
+-    snaked=to_snake_case(a)
+-    if snaked in self.__dict__:
+-        warn_snake_case(a, snaked)
+-        return setattr(self, snaked, v)
+-    
+-    if hasattr(self.reduction_strategy, snaked):
+-        warn_snake_case(a, snaked)
+-        return setattr(self.reduction_strategy, snaked, v)
+-    self.__dict__[a]=v
+-if compatibility_mode:
+-    GroebnerStrategy.__getattr__=_strategy_getattr
+-    GroebnerStrategy.__setattr__=_strategy_setattr
 +from sage import all
 +from sage.rings.polynomial.pbori import *
- 
--Variable.__div__ = variable_python_div
-+class RingProxy:
-+    def __init__(self, ring, order):
-+        self.ring = ring
-+        self.ordercode = order
-+
-+    def set(self):
-+        self.ring._change_ordering(self.ordercode)
 +
 +def global_ring():
-+    return RingProxy(get_cring(), get_order_code())
++    return get_cring()
 +
-+Polynomial = lambda x = None: get_cring()._coerce_(x)
-+Monomial = lambda x = None: get_cring()._monom_monoid(x)
++Polynomial = PolynomialFactory()
++
++Monomial = MonomialFactory()
 +
 +class OrderCode:
 +    pass
 +
 +OrderCode.__dict__ = order_dict
 +
-+Variable = lambda x: get_cring().gen(x)
++Variable = VariableFactory()
 +
 +def Ring(n, order='lp'):
 +    return BooleanPolynomialRing(n, 'x', order=order)
 +
 +BoolePolynomialVector = BooleanPolynomialVector
++

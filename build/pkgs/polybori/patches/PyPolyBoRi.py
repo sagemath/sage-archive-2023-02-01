@@ -6,14 +6,14 @@ def global_ring():
 
 Polynomial = PolynomialFactory()
 
-Monomial = lambda x = None: get_cring()._monom_monoid(x)
+Monomial = MonomialFactory()
 
 class OrderCode:
     pass
 
 OrderCode.__dict__ = order_dict
 
-Variable = lambda x: get_cring().gen(x)
+Variable = VariableFactory()
 
 def Ring(n, order='lp'):
     return BooleanPolynomialRing(n, 'x', order=order)

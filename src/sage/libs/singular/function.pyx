@@ -2,8 +2,8 @@
 Direct Access to Singular's Functions via libSingular.
 
 This file implements a wrapper around the Singular interpreter which
-allows to call any function directly interpreter directly from Sage
-without string parsing or interprocess communication overhead.
+allows to call any function directly from Sage without string parsing
+or interprocess communication overhead.
 
 AUTHORS:
 
@@ -74,6 +74,7 @@ cdef leftv* new_leftv(void *data, res_type):
     INPUT:
 
     - ``data`` - some Singular data this interpreter object points to
+
     - ``res_type`` - the type of that data
     """
     cdef leftv* res
@@ -85,7 +86,7 @@ cdef leftv* new_leftv(void *data, res_type):
 
 cdef free_leftv(leftv * args):
     """
-    Kils this ``leftv`` and all ``leftv``s in the tail.
+    Kills this ``leftv`` and all ``leftv``s in the tail.
 
     INPUT:
 
@@ -96,7 +97,7 @@ cdef free_leftv(leftv * args):
 
 cdef class Converter(SageObject):
     """
-    An :class:`Converter` interfaces between Sage objects and Singular
+    A :class:`Converter` interfaces between Sage objects and Singular
     interpreter objects.
     """
     cdef leftv *args
@@ -109,6 +110,7 @@ cdef class Converter(SageObject):
         INPUT:
 
         - ``args`` - a list of Python objects
+
         - ``ring`` - a multivariate polynomial ring
 
         EXAMPLE::
@@ -214,11 +216,12 @@ cdef class Converter(SageObject):
 
     cdef void _append(self, void* data, int res_type):
         """
-        Create a new ``leftv`` and appends it to the list.
+        Create a new ``leftv`` and append it to the list.
 
         INPUT:
 
         - ``data`` - the raw data
+
         - ``res_type`` - the type of the data
         """
         self._append_leftv( new_leftv(data, res_type) )
@@ -309,7 +312,7 @@ cdef class Converter(SageObject):
 
 cdef class BaseCallHandler:
     """
-    A call handle is an abstraction which hides the details of the
+    A call handler is an abstraction which hides the details of the
     implementation differences between kernel and library functions.
     """
     cdef leftv* handle_call(self, Converter argument_list) except NULL:
@@ -326,7 +329,7 @@ cdef class BaseCallHandler:
 
 cdef class LibraryCallHandler(BaseCallHandler):
     """
-    A call handle is an abstraction which hides the details of the
+    A call handler is an abstraction which hides the details of the
     implementation differences between kernel and library functions.
 
     This class implements calling a library function.
@@ -338,7 +341,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
     """
     def __init__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
 
             sage: from sage.libs.singular.function import LibraryCallHandler
             sage: LibraryCallHandler()
@@ -358,7 +361,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
 cdef class KernelCallHandler(BaseCallHandler):
     """
-    A call handle is an abstraction which hides the details of the
+    A call handler is an abstraction which hides the details of the
     implementation differences between kernel and library functions.
 
     This class implements calling a kernel function.
@@ -370,7 +373,7 @@ cdef class KernelCallHandler(BaseCallHandler):
     """
     def __init__(self, cmd_n, arity):
         """
-        EXAMPLE:
+        EXAMPLE::
 
             sage: from sage.libs.singular.function import KernelCallHandler
             sage: KernelCallHandler(0,0)
@@ -447,13 +450,13 @@ cdef class SingularFunction(SageObject):
 
     cdef BaseCallHandler get_call_handler(self):
         """
-        Return a call handler which does the acutal work.
+        Return a call handler which does the actual work.
         """
         raise NotImplementedError
 
     cdef bint function_exists(self):
         """
-        Return ``True`` if the function exist in this interface.
+        Return ``True`` if the function exists in this interface.
         """
         raise NotImplementedError
 
@@ -467,7 +470,7 @@ cdef class SingularFunction(SageObject):
         """
         return "%s (singular function)" %(self._name)
 
-    def __call__(self, *args, MPolynomialRing_libsingular ring=None, bint interruptable=True):
+    def __call__(self, *args, MPolynomialRing_libsingular ring=None, bint interruptible=True):
         """
         Call this function with the provided arguments ``args`` in the
         ring ``R``.
@@ -475,8 +478,10 @@ cdef class SingularFunction(SageObject):
         INPUT:
 
         - ``args`` - a list of arguments
+
         - ``ring`` - a multivariate polynomial ring
-        - ``interruptable`` - if ``True`` pressing Ctrl-C during the
+
+        - ``interruptible`` - if ``True`` pressing Ctrl-C during the
                               execution of this function will
                               interrupt the computation (default: ``True``)
 
@@ -508,7 +513,7 @@ cdef class SingularFunction(SageObject):
             6
         """
         ring = self.common_ring(args, ring)
-        return call_function(self, args, ring, interruptable)
+        return call_function(self, args, ring, interruptible)
 
     def _sage_doc_(self):
         """

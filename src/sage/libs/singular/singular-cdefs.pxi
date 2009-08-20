@@ -1,5 +1,5 @@
 """
-C level declarations of symbols in the SINGULAR libary.
+C level declarations of symbols in the SINGULAR library.
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
@@ -140,7 +140,7 @@ cdef extern from "libsingular.h":
         ring *algring # base extension field
         short N # number of variables
         short P # number of parameters
-        int ch # charactersitic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
         unsigned int ringtype # field etc.
         mpz_t ringflaga
         unsigned long ringflagb
@@ -277,7 +277,7 @@ cdef extern from "libsingular.h":
         leftv *next
         char  *id
         void* data
-        #data is some union, so this is might be very dangerous, but I am lazy now
+        #data is some union, so this might be very dangerous, but I am lazy now
         int   typ
         void (* Init)()
         void (* CleanUp)()

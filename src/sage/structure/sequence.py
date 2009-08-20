@@ -540,7 +540,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return list.__repr__(self)
 
     def _latex_(self):
-        """
+        r"""
         TESTS::
 
             sage: t= Sequence([sqrt(x), exp(x), x^(x-1)], universe=SR); t

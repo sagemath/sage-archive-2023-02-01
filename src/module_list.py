@@ -956,7 +956,8 @@ ext_modules = [
                          'sage/rings/bernmm/bern_modp_util.h',
                          'sage/rings/bernmm/bern_rat.h'],
               language = 'c++',
-              define_macros=[('USE_THREADS', '1')]),
+              define_macros=[('USE_THREADS', '1'),
+                             ('THREAD_STACK_SIZE', '4096')]),
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx'],

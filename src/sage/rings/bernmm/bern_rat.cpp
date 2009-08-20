@@ -1,22 +1,12 @@
 /*
    bern_rat.cpp:  multi-modular algorithm for computing Bernoulli numbers
 
-   Copyright (C) 2008, David Harvey
+   Copyright (C) 2008, 2009, David Harvey
 
-   This file is part of the bernmm package (version 1.0).
+   This file is part of the bernmm package (version 1.1).
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   bernmm is released under a BSD-style license. See the README file in
+   the source distribution for details.
 */
 
 #include <gmp.h>
@@ -325,9 +315,15 @@ void bern_rat(mpq_t res, long k, int num_threads)
 #ifdef USE_THREADS
    vector<pthread_t> threads(num_threads - 1);
 
+   pthread_attr_t attr;
+   pthread_attr_init(&attr);
+#ifdef THREAD_STACK_SIZE
+   pthread_attr_setstacksize(&attr, THREAD_STACK_SIZE * 1024);
+#endif
+
    // spawn worker threads to process blocks
    for (long i = 0; i < num_threads - 1; i++)
-      pthread_create(&threads[i], NULL, worker, &state);
+      pthread_create(&threads[i], &attr, worker, &state);
 #endif
 
    worker(&state);    // make this thread a worker too
@@ -336,6 +332,8 @@ void bern_rat(mpq_t res, long k, int num_threads)
    for (long i = 0; i < num_threads - 1; i++)
       pthread_join(threads[i], NULL);
 #endif
+
+   pthread_attr_destroy (&attr);
 
    // reconstruct B_k as a rational number
    Item* item = *(state.items.begin());

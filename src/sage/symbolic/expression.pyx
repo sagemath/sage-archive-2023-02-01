@@ -7091,7 +7091,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).integral(x)
             -cos(x)
         """
-        from sage.calculus.calculus import integral
+        from sage.symbolic.integration.integration import integral
         return integral(self, *args, **kwds)
 
     integrate = integral

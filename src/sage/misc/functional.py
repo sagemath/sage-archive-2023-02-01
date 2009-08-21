@@ -695,6 +695,24 @@ def integral(x, *args, **kwds):
         1
         sage: sin(x).integral(x, 0,pi/2)
         1
+        sage: integral(exp(-x), (x, 1, oo))
+        e^(-1)
+
+
+    Numerical approximation::
+
+        sage: h = integral(sin(x)/x^2, (x, 1, pi/2)); h
+        integrate(sin(x)/x^2, x, 1, 1/2*pi)
+        sage: h.n()
+        0.339447940978916
+
+
+    Specific algorithm can be used for integration::
+
+        sage: integral(sin(x)^2, x, algorithm='maxima')
+        1/2*x - 1/4*sin(2*x)
+        sage: integral(sin(x)^2, x, algorithm='sympy')
+        -1/2*sin(x)*cos(x) + 1/2*x
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

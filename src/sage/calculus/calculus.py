@@ -504,7 +504,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 ###################################################################
 # integration
 ###################################################################
-def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
+def integral(expression, v=None, a=None, b=None, algorithm='maxima', raise_error=False):
     r"""
     Returns the indefinite integral with respect to the variable
     `v`, ignoring the constant of integration. Or, if endpoints
@@ -548,7 +548,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     ::
 
         sage: f = x^2/(x+1)^3
-        sage: f.integral()
+        sage: f.integral(x)
         1/2*(4*x + 3)/(x^2 + 2*x + 1) + log(x + 1)
 
     ::
@@ -568,11 +568,11 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     The variable and endpoints are both optional::
 
         sage: y=var('y')
-        sage: integral(sin(x))
+        sage: integral(sin(x), x)
         -cos(x)
         sage: integral(sin(x), y)
         y*sin(x)
-        sage: integral(sin(x), pi, 2*pi)
+        sage: integral(sin(x), x, pi, 2*pi)
         -2
         sage: integral(sin(x), y, pi, 2*pi)
         pi*sin(x)
@@ -625,9 +625,9 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
         sage: var('x, y, z, b')
         (x, y, z, b)
-        sage: integral(sin(x)^3)
+        sage: integral(sin(x)^3, x)
         1/3*cos(x)^3 - cos(x)
-        sage: integral(x/sqrt(b^2-x^2))
+        sage: integral(x/sqrt(b^2-x^2), b)
         x*log(2*b + 2*sqrt(b^2 - x^2))
         sage: integral(x/sqrt(b^2-x^2), x)
         -sqrt(b^2 - x^2)
@@ -717,7 +717,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
     ::
 
-        sage: integrate(sin(x)*cos(10*x)*log(x))
+        sage: integrate(sin(x)*cos(10*x)*log(x), x)
         1/18*log(x)*cos(9*x) - 1/22*log(x)*cos(11*x) - 1/18*integrate(cos(9*x)/x, x) + 1/22*integrate(cos(11*x)/x, x)
 
 
@@ -730,9 +730,9 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         ...
         TypeError
 
-        sage: integrate(sin(x))
+        sage: integrate(sin(x), x)
         -cos(x)
-        sage: integrate(sin(x), 0, 1)
+        sage: integrate(sin(x), (x, 0, 1))
         -cos(1) + 1
 
     Check if #780 is fixed::
@@ -843,6 +843,11 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
                     raise ValueError, "Integral is divergent."
                 else:
                     raise
+        # Check whether maxima succeeded
+        if raise_error:
+            orig_maxima_str = "'integrate(%s"%(str(repr(expression._maxima_())))
+            if orig_maxima_str in str(repr(result)):
+                raise NotImplementedError, "Maxima failed to integrate"
 
     elif algorithm == 'mathematica_free':
         import urllib, re
@@ -1756,34 +1761,6 @@ def _limit_latex_(self, f, x, a):
     """
     return "\\lim_{%s \\to %s}\\, %s"%(latex(x), latex(a), latex(f))
 
-def _integrate_latex_(self, f, x, *args):
-    r"""
-    Return LaTeX expression for integration of a symbolic function.
-
-    EXAMPLES::
-
-        sage: from sage.calculus.calculus import _integrate_latex_
-        sage: var('x,a,b')
-        (x, a, b)
-        sage: f = function('f',x)
-        sage: _integrate_latex_(0,f,x)
-        '\\int f\\left(x\\right)\\,{d x}'
-        sage: _integrate_latex_(0,f,x,a,b)
-        '\\int_{a}^{b} f\\left(x\\right)\\,{d x}'
-        sage: latex(integrate(1/(1+sqrt(x)),x,0,1))
-        \int_{0}^{1} \frac{1}{\sqrt{x} + 1}\,{d x}
-
-    AUTHORS:
-
-    - Golam Mortuza Hossain (2009-06-22)
-    """
-    # Check whether its a definite integral
-    if len(args) == 2:
-        a, b = args
-        return "\\int_{%s}^{%s} %s\\,{d %s}"%(latex(a), latex(b), latex(f), latex(x))
-    # Typeset as indefinite integral
-    return "\\int %s\\,{d %s}"%(latex(f), latex(x))
-
 def _laplace_latex_(self, *args):
     r"""
     Return LaTeX expression for Laplace transform of a symbolic function.
@@ -1828,7 +1805,6 @@ def _inverse_laplace_latex_(self, *args):
 
 # Return un-evaluated expression as instances of SFunction class
 _limit = function_factory('limit', print_latex_func=_limit_latex_)
-_integrate = function_factory('integrate', print_latex_func=_integrate_latex_)
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)

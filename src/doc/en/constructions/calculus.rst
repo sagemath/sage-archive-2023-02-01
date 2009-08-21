@@ -131,7 +131,7 @@ Sage can integrate some simple functions on its own:
 ::
 
     sage: f = x^3
-    sage: f.integral()
+    sage: f.integral(x)
     1/4*x^4
     sage: integral(x^3,x)
     1/4*x^4

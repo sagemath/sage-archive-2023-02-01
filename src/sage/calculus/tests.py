@@ -134,7 +134,7 @@ can do, but Sage currently can't do::
 
     sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- Mathematica can do this
     integrate(sqrt(x + sqrt(x)), x)
-    sage: integrate(log(x)*exp(-x^2))        # todo -- Mathematica can do this
+    sage: integrate(log(x)*exp(-x^2), x)        # todo -- Mathematica can do this
     integrate(e^(-x^2)*log(x), x)
 
 Todo - Mathematica can do this and gets `\pi^2/15`.

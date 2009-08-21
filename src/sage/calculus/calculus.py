@@ -1067,7 +1067,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
         sage: f = log(log(x))/log(x)
         sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
-        limit(log(log(x))/log(x), x, 0)
+        0
 
     Here ind means "indefinite but bounded"::
 

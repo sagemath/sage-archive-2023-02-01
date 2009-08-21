@@ -2465,7 +2465,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x/2).expand_trig(half_angles=False)
             sin(1/2*x)
             sage: sin(x/2).expand_trig(half_angles=True)
-            1/2*sqrt(-cos(x) + 1)*sqrt(2)
+            1/2*sqrt(-cos(x) + 1)*sqrt(2)*(-1)^floor(1/2*x/pi)
 
         ALIASES:
 

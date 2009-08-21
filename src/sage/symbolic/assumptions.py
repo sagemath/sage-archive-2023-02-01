@@ -37,7 +37,7 @@ class GenericDeclaration(SageObject):
         Here is the list of acceptable features::
 
             sage: maxima('features')
-            [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+            [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
         """
         self._var = var
         self._assumption = assumption

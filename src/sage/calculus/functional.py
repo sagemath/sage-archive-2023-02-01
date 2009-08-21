@@ -211,10 +211,10 @@ def integral(f, *args, **kwds):
         sage: integral( exp(-x^2)*log(x), x )
         integrate(e^(-x^2)*log(x), x)
 
-    Sage does not know how to compute this integral either::
+    Note, however, that::
 
         sage: integral( exp(-x^2)*ln(x), x, 0, oo)
-        integrate(e^(-x^2)*log(x), x, 0, +Infinity)
+        -1/4*(euler_gamma + 2*log(2))*sqrt(pi)
 
     This definite integral is easy::
 
@@ -311,7 +311,7 @@ def limit(f, dir=None, taylor=False, **argv):
         sage: lim(exp(x), x=-oo)
         0
         sage: lim(1/x, x=0)
-        und
+        +Infinity
         sage: limit(sqrt(x^2+x+1)+x, taylor=True, x=-oo)
         -1/2
         sage: limit((tan(sin(x)) - sin(tan(x)))/x^7, taylor=True, x=0)

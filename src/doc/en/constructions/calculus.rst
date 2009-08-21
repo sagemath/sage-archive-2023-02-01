@@ -115,7 +115,7 @@ The Maclaurin and power series of
     sage: [bernoulli(2*i) for i in range(1,7)]
     [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
     sage: maxima(f).powerseries(x,0)
-    ('sum((-1)^i2*2^(2*i2)*bern(2*i2)*x^(2*i2)/(i2*(2*i2)!),i2,1,inf))/2
+    'sum((-1)^i2*2^(2*i2-1)*bern(2*i2)*x^(2*i2)/(i2*(2*i2)!),i2,1,inf)
 
 .. index::
    pair: calculus; integration

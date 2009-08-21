@@ -282,7 +282,7 @@ whose :math:`i,j` entry is :math:`i/j`, for
     sage: A.eigenvalues()
     [[0,4],[3,1]]
     sage: A.eigenvectors()
-    [[[0,4],[3,1]],[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3],[1,2,3,4]]
+    [[[0,4],[3,1]],[[[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3]],[[1,2,3,4]]]]
 
 Here's another example:
 
@@ -292,10 +292,10 @@ Here's another example:
     sage: eigA = A.eigenvectors()
     sage: V = VectorSpace(QQ,3)
     sage: eigA
-    [[[-2,-1,1],[1,1,1]],[0,0,1],[0,1,3],[1,1/2,5/6]]
-    sage: v1 = V(sage_eval(repr(eigA[1]))); lambda1 = eigA[0][0][0]
-    sage: v2 = V(sage_eval(repr(eigA[2]))); lambda2 = eigA[0][0][1]
-    sage: v3 = V(sage_eval(repr(eigA[3]))); lambda3 = eigA[0][0][2]
+    [[[-2,-1,1],[1,1,1]],[[[0,0,1]],[[0,1,3]],[[1,1/2,5/6]]]]
+    sage: v1 = V(sage_eval(repr(eigA[1][0][0]))); lambda1 = eigA[0][0][0]
+    sage: v2 = V(sage_eval(repr(eigA[1][1][0]))); lambda2 = eigA[0][0][1]
+    sage: v3 = V(sage_eval(repr(eigA[1][2][0]))); lambda3 = eigA[0][0][2]
 
     sage: M = MatrixSpace(QQ,3,3)
     sage: AA = M([[1,0,0],[1, - 1,0],[1,3, - 2]])

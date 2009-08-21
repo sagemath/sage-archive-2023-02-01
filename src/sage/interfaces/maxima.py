@@ -114,7 +114,7 @@ http://maxima.sourceforge.net/docs/intromax/.
     sage: a = maxima('(1 + sqrt(2))^5'); a
     (sqrt(2)+1)^5
     sage: a.expand()
-    29*sqrt(2)+41
+    3*2^(7/2)+5*sqrt(2)+41
 
 ::
 
@@ -225,7 +225,7 @@ is `i/j`, for `i,j=1,\ldots,4`.
     sage: A.eigenvalues()
     [[0,4],[3,1]]
     sage: A.eigenvectors()
-    [[[0,4],[3,1]],[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3],[1,2,3,4]]
+    [[[0,4],[3,1]],[[[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3]],[[1,2,3,4]]]]
 
 We can also compute the echelon form in Sage::
 
@@ -273,12 +273,12 @@ We illustrate Laplace transforms::
 ::
 
     sage: maxima("laplace(diff(x(t),t),t,s)")
-    s*?%laplace(x(t),t,s)-x(0)
+    s*'laplace(x(t),t,s)-x(0)
 
 ::
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -?%at('diff(x(t),t,1),t=0)+s^2*?%laplace(x(t),t,s)-x(0)*s
+    -?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d
 representation::
@@ -424,10 +424,7 @@ expression is positive or zero.
     (Ax, Bx, By)
     sage: t = -Ax*sin(sqrt(Ax^2)/2)/(sqrt(Ax^2)*sqrt(By^2 + Bx^2))
     sage: t.limit(Ax=0,dir='above')
-    Traceback (most recent call last):
-    ...
-    TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(By^2+Bx^2>0)' before integral or limit evaluation, for example):
-    Is By^2+Bx^2  positive or zero?
+    0
 
 A long complicated input expression::
 
@@ -846,8 +843,12 @@ class Maxima(Expect):
         if redirect:
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            res = AsciiArtString(p.stdout.read())
-            return res
+            res = p.stdout.read()
+            # we are now getting three lines of commented verbosity
+            # every time Maxima starts, so we need to get rid of them
+            for _ in range(3):
+                res = res[res.find('\n')+1:]
+            return AsciiArtString(res)
         else:
             subprocess.Popen(cmd, shell=True)
 
@@ -904,13 +905,17 @@ class Maxima(Expect):
         EXAMPLES::
 
             sage: sorted(maxima.completions('gc', verbose=False))
-            ['gc', 'gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
+            ['gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
         """
         if verbose:
             print s,
             sys.stdout.flush()
-        s = self._eval_line('apropos(%s)'%s, error_check=False).replace('\\ - ','-')
-        return [x for x in s[1:-1].split(',') if x[0] != '?']
+        # in Maxima 5.19.1, apropos returns all commands that contain
+        # the given string, instead of all commands that start with
+        # the given string
+        cmd_list = self._eval_line('apropos("%s")'%s, error_check=False).replace('\\ - ','-')
+        cmd_list = [x for x in cmd_list[1:-1].split(',') if x[0] != '?']
+        return [x for x in cmd_list if x.find(s) == 0]
 
     def _commands(self, verbose=True):
         """
@@ -927,7 +932,10 @@ class Maxima(Expect):
         try:
             return self.__commands
         except AttributeError:
-            self.__commands = sum([self.completions(chr(97+n), verbose=verbose) for n in range(26)], [])
+            self.__commands = sum(
+                [self.completions(chr(65+n), verbose=verbose)+
+                 self.completions(chr(97+n), verbose=verbose)
+                 for n in range(26)], [])
         return self.__commands
 
     def trait_names(self, verbose=True, use_disk_cache=True):
@@ -940,7 +948,7 @@ class Maxima(Expect):
             sage: 'gcd' in t
             True
             sage: len(t)    # random output
-            1743
+            1840
         """
         try:
             return self.__trait_names
@@ -1181,7 +1189,7 @@ class Maxima(Expect):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.16.3'
+            '5.19.1'
         """
         return maxima_version()
 
@@ -2005,8 +2013,8 @@ class MaximaElement(ExpectElement):
 
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
             -sqrt(%pi)*%i*erf(%i)/2
-            sage: f.numer()         # I wonder how to get a real number (~1.463)??
-            -.8862269254527579*%i*erf(%i)
+            sage: f.numer()
+            1.462651745907182
         """
         I = ExpectElement.__getattr__(self, 'integrate')
         if min is None:
@@ -2679,9 +2687,9 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima import maxima_version
         sage: maxima_version()
-        '5.16.3'
+        '5.19.1'
     """
-    return os.popen('maxima --version').read().split()[1]
+    return os.popen('maxima --version').read().split()[-1]
 
 def __doctest_cleanup():
     import sage.interfaces.quit

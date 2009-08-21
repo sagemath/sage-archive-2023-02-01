@@ -476,11 +476,11 @@ via maxima, some symbolic manipulation is allowed:
 ::
 
     sage: maxima.eval("f:bessel_y (v, w)")
-    '?%bessel_y(v,w)'
+    'bessel_y(v,w)'
     sage: maxima.eval("diff(f,w)")
-    '(?%bessel_y(v-1,w)-?%bessel_y(v+1,w))/2'
+    '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
     sage: maxima.eval("diff (jacobi_sn (u, m), u)")
-    '?%jacobi_cn(u,m)*?%jacobi_dn(u,m)'
+    'jacobi_cn(u,m)*jacobi_dn(u,m)'
     sage: jsn = lambda x: jacobi("sn",x,1)
     sage: P = plot(jsn,0,1, plot_points=20); Q = plot(lambda x:bessel_Y( 1, x), 1/2,1)
     sage: show(P)

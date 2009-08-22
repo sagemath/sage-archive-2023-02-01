@@ -210,7 +210,7 @@ class Small_primes_of_degree_one_iter():
         since the string representation of ideals is somewhat unpredictable::
 
             sage: N.<a,b> = NumberField([x^2 + 1, x^2 - 5])
-            sage: ids = N.primes_of_degree_one_list(10); a # random
+            sage: ids = N.primes_of_degree_one_list(10); ids  # random
             [Fractional ideal ((-1/2*b + 1/2)*a + 2),
              Fractional ideal (-b*a + 1/2*b + 1/2),
              Fractional ideal ((1/2*b + 3/2)*a - b),

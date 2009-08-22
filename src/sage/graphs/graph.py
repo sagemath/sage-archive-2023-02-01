@@ -60,6 +60,9 @@ AUTHORS:
 -  Stephen Hartke (2009-07-26): Fixed bug in blocks_and_cut_vertices()
    that caused an incorrect result when the vertex 0 was a cut vertex.
 
+-  Stephen Hartke (2009-08-22): Fixed bug in blocks_and_cut_vertices()
+   where the list of cut_vertices is not treated as a set.
+
 
 Graph Format
 ------------
@@ -2937,6 +2940,8 @@ class GenericGraph(SageObject):
             sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
             sage: G.blocks_and_cut_vertices()
             ([[2, 1, 0], [4, 3, 0]], [0])
+            sage: graphs.StarGraph(3).blocks_and_cut_vertices()
+            ([[1, 0], [2, 0], [3, 0]], [0])
 
         ALGORITHM: 8.3.8 in [1]. Notice that the termination condition on
         line (23) of the algorithm uses "p[v] == 0" which in the book
@@ -2954,7 +2959,7 @@ class GenericGraph(SageObject):
         map_to_ints = G.relabel(return_map=True)
         s = G.vertex_iterator().next()
         nr = [0]*G.num_verts()
-        p = [0]*G.num_verts()
+        p = [None]*G.num_verts()  # no vertex has a parent until visited
         L = [0]*G.num_verts()
         edges = {}
         for u,v in G.edges(labels=False):
@@ -2989,7 +2994,8 @@ class GenericGraph(SageObject):
                 if L[v] < nr[p[v]]:
                     L[p[v]] = min([ L[p[v]], L[v] ])
                 else:
-                    C.append(p[v])
+                    if p[v] not in C:
+                        C.append(p[v])
                     B_k = []
                     while True:
                         u = S.pop(-1)
@@ -2998,7 +3004,7 @@ class GenericGraph(SageObject):
                     B_k.append(p[v])
                     B.append(B_k)
             else:
-                if any([ not edges[(s,u)] for u in G.neighbors(s)]):
+                if any([ not edges[(s,u)] for u in G.neighbors(s)]) and p[v] not in C:
                     C.append(s)
                 B_k = []
                 while True:

@@ -553,6 +553,22 @@ class Gp(Expect):
         """
         return '=='
 
+    def _exponent_symbol(self):
+        """
+        Returns the symbol to denote the exponent of a number in GP.
+
+        EXAMPLES::
+
+            sage: gp._exponent_symbol()
+            ' E'
+
+        ::
+
+            sage: repr(gp(10.^80)).replace(gp._exponent_symbol(), 'e')
+            '1.0000000000000000000000000000000000000e80'    # 64-bit
+        """
+        return ' E'
+
     def help(self, command):
         r"""
         Returns GP's help for ``command``.

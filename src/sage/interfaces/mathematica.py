@@ -179,7 +179,7 @@ We factor an integer::
 
     sage: n = mathematica(2434500)           # optional - mathematica
     sage: n.FactorInteger()                  # optional - mathematica
-    {{2, 2}, {3, 2}, {5, 3}, {541, 1}}       # optional - mathematica
+    {{2, 2}, {3, 2}, {5, 3}, {541, 1}}
     sage: n = mathematica(2434500)           # optional - mathematica
     sage: F = n.FactorInteger(); F           # optional - mathematica
     {{2, 2}, {3, 2}, {5, 3}, {541, 1}}
@@ -234,13 +234,37 @@ OTHER Examples::
     ...       return mathematica(nu).BesselK(x).N(20).sage()
     ...
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    0.180489972066962*I - 2.592886175491197
+    0.180489972066962*I - 2.592886175491197         # 32-bit
+    -2.592886175491196978 + 0.1804899720669620266*I # 64-bit
+
+::
+
+    sage: slist = [[1, 2], 3., 4 + I]
+    sage: mlist = mathematica(slist); mlist     # optional - mathematica
+    {{1, 2}, 3., 4 + I}
+    sage: slist2 = list(mlist); slist2          # optional - mathematica
+    [{1, 2}, 3., 4 + I]
+    sage: slist2[0]                             # optional - mathematica
+    {1, 2}
+    sage: slist2[0].parent()                    # optional - mathematica
+    Mathematica
+    sage: slist3 = mlist.sage(); slist3         # optional - mathematica
+    [[1, 2], 3.00000000000000, I + 4]
+
+::
+
+    sage: mathematica('10.^80')     # optional - mathematica
+    1.*^80
+    sage: mathematica('10.^80').sage()  # optional - mathematica
+    1.00000000000000e80
 
 AUTHORS:
 
 - William Stein (2005): first version
 
 - Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
+
+- Felix Lawrence (2009-08-21): Added support for importing Mathematica lists and floats with exponents.
 """
 
 #*****************************************************************************
@@ -460,6 +484,26 @@ remote connection to a server running Mathematica -- for hints, type
     def _assign_symbol(self):
         return ":="
 
+    def _exponent_symbol(self):
+        """
+        Returns the symbol used to denote the exponent of a number in
+        Mathematica.
+
+        EXAMPLES::
+
+            sage: mathematica._exponent_symbol()        # optional - mathematica
+            '*^'
+
+        ::
+
+            sage: bignum = mathematica('10.^80')  # optional - mathematica
+            sage: repr(bignum)                          # optional - mathematica
+            '1.*^80'
+            sage: repr(bignum).replace(mathematica._exponent_symbol(), 'e').strip() # optional - mathematica
+            '1.e80'
+        """
+        return "*^"
+
     def _object_class(self):
         return MathematicaElement
 
@@ -512,6 +556,20 @@ class MathematicaElement(ExpectElement):
     def __str__(self):
         P = self._check_valid()
         return P.get(self._name, ascii_art=True)
+
+    def __len__(self):
+        """
+        Return the object's length, evaluated by mathematica.
+
+        EXAMPLES::
+
+            sage: len(mathematica([1,1.,2]))    # optional - mathematica
+            3
+
+        AUTHORS:
+        - Felix Lawrence (2009-08-21)
+        """
+        return self.Length()
 
     def show(self, filename=None, ImageSize=600):
         r"""

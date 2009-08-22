@@ -11,6 +11,8 @@ AUTHORS:
 
 - William Stein (2006-03-01): got rid of infinite loop on startup if
   client system missing
+
+- Felix Lawrence (2009-08-21): edited ._sage_() to support lists and float exponents in foreign notation.
 """
 
 #*****************************************************************************
@@ -1145,6 +1147,12 @@ If this all works, you can then make calls like:
                      (operator.lt, self._lessthan_symbol()), (operator.le, "<="),
                      (operator.gt, self._greaterthan_symbol()), (operator.ge, ">=")])
 
+    def _exponent_symbol(self):
+        """
+        Return the symbol used to denote *10^ in floats, e.g 'e' in 1.5e6
+        """
+        return 'e'
+
     ############################################################
     #         Functions for working with variables.
     #  The first three must be overloaded by derived classes,
@@ -1451,7 +1459,23 @@ class ExpectElement(RingElement):
             yield self[i]
 
     def __len__(self):
-        raise NotImplementedError
+        """
+        Call self.sage() and return the length of that sage object.
+
+        This approach is inefficient - each interface should override
+        this method with one that calls the external program's length
+        function.
+
+        EXAMPLES::
+
+            sage: len(gp([1,2,3]))
+            3
+
+        AUTHORS:
+
+        - Felix Lawrence (2009-08-21)
+        """
+        return len(self.sage())
 
     def __reduce__(self):
         return reduce_load, (self.parent(), self._reduce())
@@ -1544,6 +1568,50 @@ class ExpectElement(RingElement):
             #print msg
             pass
 
+    def _sage_repr(self):
+        """
+        Return a sage-friendly string representation of the object.
+
+        Some programs use different notation to Sage, e.g. Mathematica
+        writes lists with {} instead of [].  This method calls repr(self)
+        then converts the foreign notation into Sage's notation.
+
+        OUTPUT:
+
+        A string representation of the object that is ready for
+        sage_eval().
+
+        EXAMPLES::
+
+            sage: repr(mathematica([1,2,3]))    # optional - mathematica
+            '{1, 2, 3}'
+            sage: mathematica([1,2,3])._sage_repr() # optional - mathematica
+            '[1, 2, 3]'
+
+        ::
+
+            sage: gp(10.^80)._sage_repr()
+            '1.0000000000000000000000000000000000000e80'    # 64-bit
+            sage: mathematica('10.^80')._sage_repr()  # optional - mathematica
+            '1.e80'
+
+        AUTHORS:
+
+        - Felix Lawrence (2009-08-21)
+        """
+        #TO DO: this could use file transfers when self.is_remote()
+
+        string = repr(self).replace('\n',' ').replace('\r', '')
+        # Translate the external program's list formatting to Sage's
+        lld = self.parent()._left_list_delim()
+        if '[' != lld:      string = string.replace(lld, '[')
+        rld = self.parent()._right_list_delim()
+        if ']' != rld:      string = string.replace(rld, ']')
+        # Translate the external program's exponent formatting
+        expl = self.parent()._exponent_symbol()
+        if 'e' != expl: string = string.replace(expl, 'e')
+        return string
+
     def _sage_(self):
         """
         Attempt to return a Sage version of this object.
@@ -1556,10 +1624,15 @@ class ExpectElement(RingElement):
             1/2
             sage: _.parent()
             Rational Field
+
+        AUTHORS:
+
+        - William Stein
+
+        - Felix Lawrence (2009-08-21)
         """
-        #TO DO: this could use file transfers when self.is_remote()
         try:
-            return sage.misc.sage_eval.sage_eval(repr(self).replace('\n',''))
+            return sage.misc.sage_eval.sage_eval(self._sage_repr())
         except:
             raise NotImplementedError
 

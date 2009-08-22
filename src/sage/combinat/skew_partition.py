@@ -743,8 +743,9 @@ class SkewPartitions_n(CombinatorialClass):
     def __init__(self, n, overlap=0):
         """
         INPUT:
-         - n: an non negative integer
-         - overlap: an integer
+
+         - ``n`` -- a non-negative integer
+         - ``overlap`` -- an integer
 
         Returns the set of the skew partitions of ``n`` with overlap
         at least ``overlap``, and no empty row.
@@ -754,12 +755,12 @@ class SkewPartitions_n(CombinatorialClass):
         Caveat: this set is stable under conjugation only for overlap=
         0 or 1. What exactly happens for negative overlaps is not yet
         well specified, and subject to change (we may want to
-        introduce vertical overlap constraints as well). overlap would
-        also better be named min_overlap.
+        introduce vertical overlap constraints as well). ``overlap`` would
+        also better be named ``min_overlap``.
 
         Todo: as is, this set is essentially the composition of
-        Compositions(n) (which give the row lengths) and
-        SkewPartition(n, row_lengths=...), and one would want to
+        ``Compositions(n)`` (which give the row lengths) and
+        ``SkewPartition(n, row_lengths=...)``, and one would want to
         "inherit" list and cardinality from this composition.
 
         TESTS::

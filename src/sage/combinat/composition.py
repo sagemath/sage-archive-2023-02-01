@@ -4,7 +4,7 @@ Integer compositions
 A composition `c` of a nonnegative integer `n` is a list of positive integers
 (the *parts* of the compositions) with total sum `n`.
 
-This module provide tools for manipulating compositions and enumerated
+This module provides tools for manipulating compositions and enumerated
 sets of compositions.
 
 EXAMPLES::
@@ -17,9 +17,8 @@ EXAMPLES::
 
 AUTHORS:
 
- - Mike Hansen, Nicolas M. Thiery
- - MuPAD-Combinat developers (algorithms and design inspiration)
-
+- Mike Hansen, Nicolas M. Thiery
+- MuPAD-Combinat developers (algorithms and design inspiration)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
@@ -168,11 +167,11 @@ class Composition_class(CombinatorialObject):
     @staticmethod
     def sum(compositions):
         """
+        Returns the concatenation of the given compositions.
+
         INPUT:
 
-         - ``compositions``: a list (or iterable) of compositions
-
-        Returns the concatenation of the given compositions
+        - ``compositions`` -- a list (or iterable) of compositions
 
         EXAMPLES::
 
@@ -184,7 +183,7 @@ class Composition_class(CombinatorialObject):
             sage: sage.combinat.composition.Composition_class.sum([Composition([i,i]) for i in [4,1,3]])
             [4, 4, 1, 1, 3, 3]
 
-        Empty inputs are handled gracefuly::
+        Empty inputs are handled gracefully::
 
             sage: sage.combinat.composition.Composition_class.sum([]) == Composition([])
             True
@@ -193,7 +192,7 @@ class Composition_class(CombinatorialObject):
 
     def finer(self):
         """
-        Returns the set of compositions which are finer than self
+        Returns the set of compositions which are finer than self.
 
         EXAMPLES::
 
@@ -242,12 +241,12 @@ class Composition_class(CombinatorialObject):
 
     def fatten(self, grouping):
         """
-        INPUT:
-
-         - ``grouping`` - a composition whose sum is the length of self
-
         Returns the composition fatter than self, obtained by grouping
         together consecutive parts according to grouping.
+
+        INPUT:
+
+        - ``grouping`` -- a composition whose sum is the length of self
 
         EXAMPLES:
 
@@ -265,8 +264,8 @@ class Composition_class(CombinatorialObject):
             sage: c.fatten(Composition([5]))
             [19]
 
-        Other values for `grouping` yield (all the) other compositions coarser
-        to `c`::
+        Other values for ``grouping`` yield (all the) other compositions
+        coarser to `c`::
 
             sage: c.fatten(Composition([2,1,2]))
             [9, 2, 8]
@@ -289,7 +288,7 @@ class Composition_class(CombinatorialObject):
 
     def fatter(self):
         """
-        Returns the set of compositions which are fatter than self
+        Returns the set of compositions which are fatter than self.
 
         Complexity for generation: O(size(c)) memory, O(size(result)) time
 
@@ -310,7 +309,6 @@ class Composition_class(CombinatorialObject):
             sage: list(Composition([1,1,1,1]).fatter()) == list(Compositions(4))
             True
         """
-
         return Compositions(len(self)).map(self.fatten)
 
     def refinement(self, co2):
@@ -457,12 +455,12 @@ class Composition_class(CombinatorialObject):
 
 def Compositions(n=None, **kwargs):
     r"""
-    Sets of integer Compositions
+    Sets of integer Compositions.
 
     A composition `c` of a nonnegative integer `n` is a list of
     positive integers with total sum `n`.
 
-    See also: `Composition`, `Partitions`, `IntegerVectors`
+    See also: ``Composition``, ``Partitions``, ``IntegerVectors``
 
     EXAMPLES:
 
@@ -476,7 +474,7 @@ def Compositions(n=None, **kwargs):
         sage: list(Compositions(4))
         [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
-    You can use the .first() method to get the 'first' composition of
+    You can use the ``.first()`` method to get the 'first' composition of
     a number::
 
         sage: Compositions(4).first()
@@ -511,7 +509,7 @@ def Compositions(n=None, **kwargs):
         sage: Compositions(3).cardinality()
         4
 
-    The following examples shows how to test whether or not an object
+    The following examples show how to test whether or not an object
     is a composition::
 
         sage: [3,4] in Compositions()
@@ -614,7 +612,7 @@ def Compositions(n=None, **kwargs):
     Note that if you specify min_part=0, then the objects produced may
     have parts equal to zero. This violates the internal assumptions
     that the Composition class makes. Use at your own risk, or
-    preferably consider using `IntegerVectors` instead::
+    preferably consider using ``IntegerVectors`` instead::
 
         sage: list(Compositions(2, length=3, min_part=0))
         doctest:... RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
@@ -624,7 +622,7 @@ def Compositions(n=None, **kwargs):
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
 
     The generation algorithm is constant amortized time, and handled
-    by the generic tool `IntegerListsLex`.
+    by the generic tool ``IntegerListsLex``.
 
     TESTS::
 
@@ -877,7 +875,7 @@ class Compositions_n(CombinatorialClass):
 
 
 
-# Those belong to the Compositino class
+# Those belong to the Composition class
 
 def from_descents(descents, nps=None):
     """

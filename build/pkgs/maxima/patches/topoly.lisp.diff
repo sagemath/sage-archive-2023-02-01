@@ -1,0 +1,41 @@
+--- ../src/share/contrib/topoly.lisp	Sun Aug 23 23:50:50 2009 +1000
++++ topoly.lisp	Sun Aug 23 23:53:17 2009 +1000
+@@ -107,14 +107,14 @@
+ 			   (setq q (take '($floor) n))
+ 			   (setq r (sub n q))
+ 			   (setq rr ($denom r))
+-			   (push (take '(mleqp) (take '($parg) nv) (div '$%pi rr)) inequal)
+-			   (push (take '(mlessp) (div '$%pi (neg rr)) (take '($parg) nv)) inequal)
++			   (push (take '(mleqp) (take '($carg) nv) (div '$%pi rr)) inequal)
++			   (push (take '(mlessp) (div '$%pi (neg rr)) (take '($carg) nv)) inequal)
+ 			   (push (take '(mequal) (power b ($num r)) (power nv ($denom r))) subs)
+ 			   (push (take '(mequal) p nv) np-subs)
+ 			   (list (mul nv (power b q))  subs inequal np-subs)))
+ 		
+-			;   (push (take '(mleqp) (take '($parg) nv) (mul n '$%pi)) inequal)
+-			;   (push (take '(mlessp) (mul -1 '$%pi n) (take '($parg) nv)) inequal)
++			;   (push (take '(mleqp) (take '($carg) nv) (mul n '$%pi)) inequal)
++			;   (push (take '(mlessp) (mul -1 '$%pi n) (take '($carg) nv)) inequal)
+ 			;   (push (take '(mequal) (power b ($num n)) (power nv ($denom n))) subs)
+ 			;   (push (take '(mequal) p nv) np-subs)
+ 			;   (list nv subs inequal np-subs)))
+@@ -122,8 +122,8 @@
+ 			(t
+ 			 (setq n (neg n))
+ 			 (push (take '(mequal) 1 (mul (power nv ($denom n)) (power b ($num n)))) subs)
+-			 (push (take '(mlessp) (take '($parg) nv) (mul n '$%pi)) inequal)
+-			 (push (take '(mleqp) (mul -1 '$%pi n) (take '($parg) nv)) inequal)
++			 (push (take '(mlessp) (take '($carg) nv) (mul n '$%pi)) inequal)
++			 (push (take '(mleqp) (mul -1 '$%pi n) (take '($carg) nv)) inequal)
+ 			 (push (take '(mnotequal) nv 0) inequal)
+ 			 (list nv subs inequal np-subs))))
+ 			 
+@@ -138,7 +138,7 @@
+ 	   (setq nv (new-gentemp '$general))
+ 	   ;; Ok, I'm indecisive.
+ 	   ;(push (take '(mgeqp) nv 0) inequal)
+-	   ;(push (take '(mequal) (take '($parg) nv) 0) inequal)
++	   ;(push (take '(mequal) (take '($carg) nv) 0) inequal)
+ 	   (push (take '($isnonnegative_p) nv) inequal)
+ 	   (list nv (cons (take '(mequal) (mul b (take '($conjugate) b)) (mul nv (take '($conjugate) nv))) acc)
+ 		 inequal np-subs))

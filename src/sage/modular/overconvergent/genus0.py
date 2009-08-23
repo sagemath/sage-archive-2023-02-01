@@ -204,7 +204,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
     INPUT:
 
     - ``prime`` - a prime number `p`, which must be one of the primes `\{2, 3,
-      5, 7, 13\}`, or the congruence subgroup Gamma0(p) where `p` is one of these
+      5, 7, 13\}`, or the congruence subgroup `\Gamma_0(p)` where `p` is one of these
       primes.
 
     - ``weight`` - an integer (which at present must be 0 or `\ge 2`), the
@@ -1100,8 +1100,7 @@ class OverconvergentModularFormsSpace(Module):
         Return the recurrence matrix satisfied by the coefficients of `U`,
         that is a matrix  `R =(r_{rs})_{r,s=1 \dots p}` such that `u_{ij} =
         \sum_{r,s=1}^p r_{rs} u_{i-r, j-s}`. Uses an elegant construction which
-        I believe is due to Smithline. See my paper in IMRN (full citation in
-        reference manual).
+        I believe is due to Smithline. See [Loe2007]_.
 
         EXAMPLES::
 
@@ -1395,7 +1394,7 @@ class OverconvergentModularFormElement(ModuleElement):
 
     def coordinates(self, prec=None):
         r"""
-        Return the coordinates of this modular forms in terms of the basis of this space.
+        Return the coordinates of this modular form in terms of the basis of this space.
 
         EXAMPLES::
 

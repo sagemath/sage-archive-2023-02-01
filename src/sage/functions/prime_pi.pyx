@@ -5,7 +5,8 @@ AUTHORS:
     * R. Andrew Ohana
     * William Stein
 
-TESTS:
+TESTS::
+
     sage: z = sage.functions.prime_pi.PrimePi()
     sage: loads(dumps(z))
     Function that counts the number of primes up to x
@@ -70,7 +71,8 @@ cdef class PrimePi:
     r"""
     Return the number of primes $\leq x$.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: prime_pi(7)
         4
         sage: prime_pi(100)
@@ -86,18 +88,20 @@ cdef class PrimePi:
         sage: prime_pi(500509)
         41581
 
-    The prime_pi function allows for use of additional memory.
+    The prime_pi function allows for use of additional memory::
+
         sage: prime_pi(500509, 8)
         41581
 
     The prime_pi function also has a special plotting method, so it plots
-    quickly and perfectly as a step function.
+    quickly and perfectly as a step function::
+
         sage: P = plot(prime_pi, 50,100)
     """
-
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: prime_pi.__repr__()
             'Function that counts the number of primes up to x'
         """
@@ -105,7 +109,8 @@ cdef class PrimePi:
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = sage.functions.prime_pi.PrimePi()
             sage: P == prime_pi
             True
@@ -158,8 +163,8 @@ cdef class PrimePi:
             21151907950
             41203088796
 
-        We know this implementation is broken at least on some 32 bit
-        systems for 2^46, so we are capping the maximum allowed value.
+        We know this implementation is broken at least on some 32-bit
+        systems for `2^{46}`, so we are capping the maximum allowed value.::
 
             sage: prime_pi(2^40+1)
             Traceback (most recent call last):
@@ -289,24 +294,30 @@ cdef class PrimePi:
             prime = self.primes[position]
         return position
 
-    def plot(self, xmin=0, xmax=100, *args, **kwds):
+    def plot(self, xmin=0, xmax=100, vertical_lines=True, **kwds):
         """
-        EXAMPLES:
+        Draw a plot of the prime counting function from xmin to xmax.
+        All additional arguments are passed on to the line command.
+
+        WARNING: we draw the plot of prime_pi as a stairstep function
+        with explicitly drawn vertical lines where the function
+        jumps. Technically there should not be any vertical lines, but
+        they make the graph look much better, so we include them.
+        Use the option ``vertical_lines=False`` to turn these off.
+
+        EXAMPLES::
+
             sage: plot(prime_pi, 1, 100)
+            sage: prime_pi.plot(-2,50,thickness=2, vertical_lines=False)
         """
-        primes = prime_range(xmin, xmax+2)
-        base = self(xmin)
-        if xmin <= 2:
-            v = [(xmin,0),(min(xmax,2),0)]
-            ymin = 0
-        else:
-            v = []
-            ymin = base
-        for i in range(len(primes)-1):
-            v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
-        P = sage.plot.all.line(v, *args, **kwds)
-        P.axes_range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=base+len(primes))
-        return P
+        y = self(xmin)
+        v = [(xmin, y)]
+        for p in prime_range(xmin+1, xmax+1):
+            y += 1
+            v.append((p,y))
+        v.append((xmax,y))
+        from sage.plot.step import plot_step_function
+        return plot_step_function(v, vertical_lines=vertical_lines, **kwds)
 
 #############
 prime_pi = PrimePi()

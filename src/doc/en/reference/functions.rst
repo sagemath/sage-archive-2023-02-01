@@ -12,3 +12,4 @@ Functions
    sage/functions/special
    sage/functions/wigner
    sage/functions/generalized
+   sage/functions/prime_pi

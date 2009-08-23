@@ -15,6 +15,7 @@
    sage/plot/density_plot
    sage/plot/disk
    sage/plot/line
+   sage/plot/step
    sage/plot/matrix_plot
    sage/plot/plot_field
    sage/plot/point

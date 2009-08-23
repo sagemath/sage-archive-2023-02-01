@@ -1226,7 +1226,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Return an iterator through the points of this elliptic curve.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve(GF(11), [1,2])
             sage: E.list()
             [(0 : 1 : 0),
@@ -1241,8 +1242,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             (2 : 1 : 1) 8
             ...
             (10 : 0 : 1) 2
-
-
         """
         for P in self.points():
             yield P

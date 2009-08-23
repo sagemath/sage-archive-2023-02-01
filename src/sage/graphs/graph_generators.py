@@ -114,6 +114,8 @@ organized as follows::
         - DegreeSequenceConfigurationModel
         - DegreeSequenceTree
         - DegreeSequenceExpected
+    Oddities :
+        - WorldMap
 
 
 AUTHORS:
@@ -137,6 +139,8 @@ AUTHORS:
   graphs with a given degree sequence, random directed graphs
 
 - Robert Miller (2007-10-24): Isomorph free exhaustive generation
+
+- Nathann Cohen (2009-08-12): WorldMap
 
 - Michael Yurko (2009-9-01): added hyperstar, (n,k)-star, n-star, and
   bubblesort graphs
@@ -238,7 +242,8 @@ class GraphGenerators():
                     - DegreeSequenceConfigurationModel
                     - DegreeSequenceTree
                     - DegreeSequenceExpected
-
+                Oddities :
+                    - WorldMap
 
     ORDERLY GENERATION: graphs(vertices, property=lambda x: True,
     augment='edges', size=None)
@@ -3499,6 +3504,33 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_shell_graph(constructor, seed))
+
+    def WorldMap(self):
+        """
+        Returns the Graph of all the countries, in which two countries are adjacent
+        in the graph if they have a common boundary.
+
+        This graph has been built from the data available
+        in The CIA World Factbook [1] (2009-08-21).
+
+        The returned graph ``G`` has a member ``G.gps_coordinates``
+        equal to a dictionary containing the GPS coordinates
+        of each country's capital city.
+
+        EXAMPLE::
+
+            sage: g=graphs.WorldMap()
+            sage: g.has_edge("France","Italy")
+            True
+
+        REFERENCE:
+
+        .. [1] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
+        """
+
+        from sage.structure.sage_object import load
+        from sage.misc.misc import SAGE_DATA
+        return load(SAGE_DATA+"graphs/graph_world.sobj")
 
 ################################################################################
 #   Graphs with a given degree sequence

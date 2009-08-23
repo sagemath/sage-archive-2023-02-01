@@ -8,6 +8,7 @@ Miscellaneous
 
    sage/misc/abstract_method
    sage/misc/misc
+   sage/misc/constant_function
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage

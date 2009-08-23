@@ -38,15 +38,16 @@ class ConstantFunction(SageObject):
     constant could be used by some algorithms.
 
     TODO:
-     - Make this into a Cython class for speed
-     - Should constant functions have unique representation?
-     - Should the number of arguments be specified in the input?
-     - Should this go int sage.categories.maps?
-       Then what should be the parent (e.g. for lambda x: True)?
+
+    - Make this into a Cython class for speed.
+    - Should constant functions have unique representation?
+    - Should the number of arguments be specified in the input?
+    - Should this go into ``sage.categories.maps``?
+      Then what should be the parent (e.g. for ``lambda x: True``)?
 
     TESTS:
 
-    Those tests do fail if we try to use UniqueRepresentation::
+    These tests do fail if we try to use ``UniqueRepresentation``::
 
         sage: f = ConstantFunction(True)
         sage: g = ConstantFunction(1)
@@ -56,13 +57,13 @@ class ConstantFunction(SageObject):
     That's because ``1`` and ``True`` cannot be distinguished as keys
     in a dictionary (argl!)::
 
-    sage: { 1: 'a', True: 'b' }
-    {1: 'b'}
-
+        sage: { 1: 'a', True: 'b' }
+        {1: 'b'}
     """
     def __init__(self, value):
         """
         EXAMPLES::
+
             sage: ConstantFunction(1)._value
             1
         """
@@ -71,6 +72,7 @@ class ConstantFunction(SageObject):
     def _repr_(self):
         """
         EXAMPLES::
+
             sage: ConstantFunction(1)
             The constant function (...) -> 1
         """
@@ -79,6 +81,7 @@ class ConstantFunction(SageObject):
     def __call__(self, *args):
         """
         EXAMPLES::
+
             sage: ConstantFunction(1)()
             1
             sage: ConstantFunction(1)(5,3)
@@ -91,6 +94,7 @@ class ConstantFunction(SageObject):
     def __eq__(self, other):
         """
         EXAMPLES::
+
             sage: ConstantFunction(1) == ConstantFunction(1)
             True
             sage: ConstantFunction(1) == ConstantFunction(3)

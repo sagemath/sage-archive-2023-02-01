@@ -1203,7 +1203,7 @@ class QuaternionOrder(Algebra):
 
         This function computes the positive definition quadratic form
         obtained by letting G be the trace zero subspace of ZZ +
-        2*self, which had rank 3, and restricting the pairing
+        2*self, which has rank 3, and restricting the pairing
            (x,y) = (x.conjugate()*y).reduced_trace()
         to G.
 

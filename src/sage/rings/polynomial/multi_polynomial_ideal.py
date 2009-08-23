@@ -1055,7 +1055,7 @@ class MPolynomialIdeal_singular_repr:
         r"""
         Return ``True`` if this ideal is prime.
 
-        INPUT::
+        INPUT:
 
         - keyword arguments are passed on to
           ``complete_primary_decomposition``; in this way you can
@@ -1079,9 +1079,9 @@ class MPolynomialIdeal_singular_repr:
             sage: (I * J).is_prime()
             False
 
-            The following is Trac #5982.  Note that the quotient ring
-            is not recognized as being a field at this time, so the
-            fraction field is not the quotient ring itself::
+        The following is Trac #5982.  Note that the quotient ring
+        is not recognized as being a field at this time, so the
+        fraction field is not the quotient ring itself::
 
             sage: Q = R.quotient(I); Q
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y^2 - 1)

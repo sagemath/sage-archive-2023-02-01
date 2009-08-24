@@ -665,36 +665,38 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             for w in self.iterate_by_length(l):
                 yield w
 
-    def iter_morphisms(self, l=None, codomain=None):
+    def iter_morphisms(self, l=None, codomain=None, min_length=1):
         r"""
-        Returns an iterator over all non erasing morphisms or over all
-        morphisms `\varphi` such that `|\varphi| = l` when ``l`` is given.
+        Iterate over all morphisms with domain ``self`` and the given
+        codmain.
 
-        Let `\varphi:\Sigma^*\rightarrow \Omega^*` be a morphism. We denote by
-        `|\varphi|` the function `\Sigma\rightarrow\mathbb{N}` that gives the
-        length of the images of each letter defined by `a\mapsto |\varphi(a)|`.
+        INPUT::
 
-        INPUT:
+        - ``l`` -- list of nonnegative integers (default: None). The length
+          of the list must be the number of letters in the alphabet, and
+          the `i`-th integer of ``l`` determines the length of the word
+          mapped to by `i`-th letter of the (ordered) alphabet. If ``l`` is
+          ``None``, then the method iterates through all morphisms.
 
-        -  ``l`` - list of k integers (default: None) where k is the number
-           of letters in the alphabet. The i-th element of ``l`` gives the
-           length of the image of the i-th letter of the ordered alphabet.
-           When ``None``, it iterates through all the non erasing morphisms.
+        - ``codomain`` -- (default: None) a combinatorial class of words.
+          By default, ``codomain`` is ``self``.
 
-        -  codomain - (default : None) a combinatorial class of words.
-           By default, the codomain is self.
+        - ``min_length`` -- (default: 1) nonnegative integer. If ``l`` is
+          not specified, then iterate through all the morphisms where the
+          length of the images of each letter in the alphabet is at least
+          ``min_length``. This is ignored if ``l`` is not ``None``.
 
-        OUTPUT:
+        OUTPUT::
 
-        iterator
+            iterator
 
         EXAMPLES:
 
-        Iterator over all non erasing morphisms::
+        Iterator over all non-erasing morphisms::
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms()
-            sage: for _ in range(10): print it.next()
+            sage: for _ in range(7): print it.next()
             WordMorphism: a->a, b->a
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
@@ -702,9 +704,19 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->aa, b->a
             WordMorphism: a->aa, b->b
             WordMorphism: a->ab, b->a
-            WordMorphism: a->ab, b->b
-            WordMorphism: a->ba, b->a
-            WordMorphism: a->ba, b->b
+
+        Iterator over all morphisms including erasing morphisms::
+
+            sage: W = Words('ab')
+            sage: it = W.iter_morphisms(min_length=0)
+            sage: for _ in range(7): print it.next()
+            WordMorphism: a->, b->
+            WordMorphism: a->a, b->
+            WordMorphism: a->b, b->
+            WordMorphism: a->, b->a
+            WordMorphism: a->, b->b
+            WordMorphism: a->aa, b->
+            WordMorphism: a->ab, b->
 
         Iterator over morphisms with specific image lengths::
 
@@ -794,40 +806,41 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
         """
+        n = self.size_of_alphabet()
+        # create an iterable of compositions (all "compositions" if l is
+        # None, or [l] otherwise)
         if l is None:
-            from sage.combinat.composition import Compositions
-            for i in itertools.count():
-                for c in Compositions(i, length=self.size_of_alphabet()):
-                    for m in self.iter_morphisms(c, codomain=codomain):
-                        yield m
-
-        if not isinstance(l, list):
+            from sage.combinat.integer_list import IntegerListsLex
+            compositions = IntegerListsLex(itertools.count(), \
+                    length=n, min_part = max(0,min_length))
+        else:
             l = list(l)
+            if not len(l) == n or not \
+                    all(isinstance(a, (int,Integer)) for a in l):
+                raise TypeError, \
+                    "l (=%s) must be an iterable of %s integers" %(l, n)
+            compositions = [l]
 
-        if not len(l) == self.size_of_alphabet() \
-                or not all(isinstance(a, (int,Integer)) for a in l):
-            raise TypeError, "l (=%s) must be an iterable of %s integers" \
-                             %(l, self.size_of_alphabet())
-
+        # set the codomain
         if codomain is None:
             codomain = self
         elif not isinstance(codomain, Words_over_OrderedAlphabet):
             raise TypeError, "codomain (=%s) must be an instance of Words_over_OrderedAlphabet"%codomain
 
+        # iterate through the morphisms
         from sage.combinat.words.morphism import WordMorphism
-
-        cuts = [0] + l
-        for i in range(1,len(cuts)):
-            cuts[i] += cuts[i-1]
-
-        s = cuts[-1] # same but better than s = sum(l)
-        for big_word in codomain.iterate_by_length(s):
-            d = {}
-            i = 0
-            for a in self.alphabet():
-                d[a] = big_word[cuts[i]:cuts[i+1]]
-                i += 1
-            yield WordMorphism(d, codomain=codomain)
+        for composition in compositions:
+            cuts = [0] + composition
+            for i in range(1,len(cuts)):
+                cuts[i] += cuts[i-1]
+            s = cuts[-1] # same but better than s = sum(l)
+            for big_word in codomain.iterate_by_length(s):
+                d = {}
+                i = 0
+                for a in self.alphabet():
+                    d[a] = big_word[cuts[i]:cuts[i+1]]
+                    i += 1
+                yield WordMorphism(d, codomain=codomain)
 
     def cmp_letters(self, letter1, letter2):
         r"""

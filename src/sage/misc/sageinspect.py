@@ -218,7 +218,7 @@ def _sage_getargspec_cython(source):
 
     OUTPUT: a tuple (``args``, None, None, ``argdefs``), where
     ``args`` is the list of arguments and ``argdefs`` is their default
-    values.
+    values (as strings, so 2 is represented as '2', etc.).
 
     EXAMPLES::
 
@@ -326,9 +326,14 @@ def sage_getargspec(obj):
 
         sage: from sage.misc.sageinspect import sage_getargspec
         sage: sage_getargspec(identity_matrix)
-        (['ring', 'n', 'sparse'], None, None)
+        (['ring', 'n', 'sparse'], None, None, (0, False))
         sage: sage_getargspec(Poset)
-        (['data', 'element_labels', 'cover_relations'], None, None)
+        (['data', 'element_labels', 'cover_relations'], None, None, (None, None, False))
+        sage: sage_getargspec(factor)
+        (['n', 'proof', 'int_', 'algorithm', 'verbose'],
+         None,
+         'kwds',
+         (None, False, 'pari', 0))
 
     AUTHORS:
 
@@ -364,7 +369,7 @@ def sage_getargspec(obj):
         defaults = func_obj.func_defaults
     except AttributeError:
         defaults = tuple([])
-    return args, varargs, varkw,
+    return args, varargs, varkw, defaults
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -381,9 +386,9 @@ def sage_getdef(obj, obj_name=''):
 
         sage: from sage.misc.sageinspect import sage_getdef
         sage: sage_getdef(identity_matrix)
-        '(ring, n, sparse)'
+        '(ring, n=0, sparse=False)'
         sage: sage_getdef(identity_matrix, 'identity_matrix')
-        'identity_matrix(ring, n, sparse)'
+        'identity_matrix(ring, n=0, sparse=False)'
 
     If an exception is generated, None is returned instead and the
     exception is suppressed.

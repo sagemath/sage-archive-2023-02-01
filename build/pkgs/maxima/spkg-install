@@ -8,6 +8,14 @@ fi
 
 CUR=`pwd`
 
+patch()
+{
+    # workaround patch for parg bug
+    cp patches/topoly.lisp src/share/contrib/
+}
+
+patch
+
 cd src/
 
 unset MAKE  # this can break things
@@ -21,16 +29,8 @@ check_error() {
     fi
 }
 
-patch()
-{
-    # workaround patch
-    cp patches/topoly.lisp src/share/contrib/
-}
-
 ./configure --prefix=$SAGE_LOCAL --enable-ecl
 check_error "Failed to configure Maxima."
-
-patch
 
 if [ `uname` = "Darwin" ]; then
    echo "Now building maxima; this takes a few minutes"

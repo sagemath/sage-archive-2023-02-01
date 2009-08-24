@@ -4033,7 +4033,7 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
 
     - ``E1``        - an elliptic curve in short Weierstrass form.
 
-    - ``E2``        - an elliptic curve in short wWeierstrass form.
+    - ``E2``        - an elliptic curve in short Weierstrass form.
 
     - ``ell``       - the degree of the isogeny from ``E1`` to ``E2``.
 

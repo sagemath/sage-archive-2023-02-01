@@ -164,7 +164,7 @@ cdef class PrimePi:
             41203088796
 
         We know this implementation is broken at least on some 32-bit
-        systems for `2^{46}`, so we are capping the maximum allowed value.::
+        systems for `2^{46}`, so we are capping the maximum allowed value::
 
             sage: prime_pi(2^40+1)
             Traceback (most recent call last):

@@ -26,15 +26,15 @@ def plot_step_function(v, vertical_lines=True, **kwds):
 
     INPUT:
 
-        - `v` -- list of pairs (a,b)
+    - ``v`` -- list of pairs (a,b)
 
-        - ``vertical_lines`` -- bool (default: True) if True, draw
-          vertical risers at each step of this step function.
-          Technically these vertical lines are not part of the graph
-          of this function, but they look very nice in the plot so we
-          include them by default
+    - ``vertical_lines`` -- bool (default: True) if True, draw
+      vertical risers at each step of this step function.
+      Technically these vertical lines are not part of the graph
+      of this function, but they look very nice in the plot so we
+      include them by default
 
-    EXAMPLES::
+    EXAMPLES:
 
     We plot the prime counting function::
 

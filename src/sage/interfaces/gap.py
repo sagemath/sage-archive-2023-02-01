@@ -912,12 +912,12 @@ class Gap(Expect):
         r"""
         Return the element of a GAP record identified by ``name``.
 
-        INPUT::
+        INPUT:
 
         - ``record`` -- a GAP record
         - ``name`` -- str
 
-        OUTPUT::
+        OUTPUT:
 
         - :class:`GapElement`
 
@@ -934,7 +934,6 @@ class Gap(Expect):
             sage: rec = gap('rec( a := 1, b := "2" )')
             sage: type(gap.get_record_element(rec, 'a'))
             <class 'sage.interfaces.gap.GapElement'>
-
         """
         return self('%s.%s' % (record.name(), name))
 

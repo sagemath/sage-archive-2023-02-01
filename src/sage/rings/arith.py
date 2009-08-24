@@ -2640,15 +2640,24 @@ def multinomial(*ks):
 
         sage: multinomial(0, 0, 2, 1, 0, 0)
         3
+        sage: multinomial([0, 0, 2, 1, 0, 0])
+        3
         sage: multinomial(3, 2)
         10
         sage: multinomial(2^30, 2, 1)
+        618970023101454657175683075
+        sage: multinomial([2^30, 2, 1])
         618970023101454657175683075
 
     AUTHORS:
 
     - Gabriel Ebner
     """
+    if isinstance(ks[0],list):
+        if len(ks) >1:
+            raise ValueError, "multinomial takes only one list argument"
+        ks=ks[0]
+
     s, c = 0, 1
     for k in ks:
         s += k

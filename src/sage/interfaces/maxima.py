@@ -486,9 +486,14 @@ class Maxima(Expect):
         """
         Create an instance of the Maxima interpreter.
 
-        EXAMPLES::
+        TESTS::
 
             sage: maxima == loads(dumps(maxima))
+            True
+
+        We make sure labels are turned off (see trac 6816)::
+
+            sage: 'nolabels:true' in maxima._Expect__init_code
             True
         """
         # TODO: Input and output prompts in maxima can be changed by
@@ -502,6 +507,15 @@ class Maxima(Expect):
             # display2d -- no ascii art output
             # keepfloat -- don't automatically convert floats to rationals
             init_code = ['display2d : false', 'keepfloat : true']
+
+        # Turn off the prompt labels, since computing them *very
+        # dramatically* slows down the maxima interpret after a while.
+        # See the function makelabel in suprv1.lisp.
+        # Many thanks to andrej.vodopivec@gmail.com and also
+        # Robert Dodier for figuring this out!
+        # See trac # 6818.
+        init_code.append('nolabels:true')
+
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',

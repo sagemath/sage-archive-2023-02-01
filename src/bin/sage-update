@@ -8,7 +8,8 @@
 # 1. Download new package list.
 # 2. Download each changed package.
 #
-# AUTHOR: William Stein, Copyright GPLv2+.
+# AUTHOR:  William Stein, Harald Schilly
+# LICENSE: GPLv2+
 #
 #####################################################
 
@@ -23,17 +24,120 @@ if not os.environ.has_key("SAGE_ROOT"):
 SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 
 # Figure out what the package server is, where we will download our
-# spkg's.  This defaults to SAGE_SERVER, but can be overriden by the
-# first command line argument.
+# spkg's.  This defaults to the 'best' mirror server by some heuristics,
+# falls back to SAGE_SERVER in case of an exception, but can be overriden
+# by the first command line argument.
+
+def get_sage_mirror():
+    '''
+    Find a good Sage Mirror
+
+    Retrieves official list of active and up-to-date mirrors.
+    This only works in conjunction with a server script, that
+    generates the SAGE_SERVER/mirror_list file every 10 minutes.
+    Then selects one of the top 3 mirrors, where pinging
+    the host for index.html responses fastest.
+
+    @return: String, URL of suiteable Sage mirror
+    '''
+
+    import urllib
+    import re
+    import subprocess
+    import time
+    import threading
+    import random
+    import socket
+
+    # sometimes, everything stalls since timetouts are not part of urllib!
+    # http://viralcontentnetwork.blogspot.com/2007/08/handling-timeouts-with-urllib2-in.html
+    import socket
+    socket.setdefaulttimeout(20)
+
+    # the list of active and up-to-date mirrors
+    if not os.environ.has_key("SAGE_SERVER"):
+         print "The environment variable SAGE_SERVER must be set."
+         sys.exit(1)
+    SAGE_SERVER = os.environ['SAGE_SERVER']
+    mirrors = eval(urllib.urlopen(SAGE_SERVER + '/mirror_list').read())
+    timings = []
+
+    re_host = re.compile(r'://([^/]*)/')
+
+    def pinger_urllib(host):
+         """
+         helper function timing the retrival of index.html's header
+         """
+         try:
+              t1 = time.time()
+              opener = urllib.FancyURLopener({})
+              u = opener.open(host + '/index.html')
+              if u.getcode() is not 200:
+                   return None
+              # u.read() to get the actual content
+              return (time.time() - t1) * 1000.0
+         except IOError:
+              # socket timeout
+              print '%-30s TIMEOUT' % (host)
+              return None
+
+    def task(idx, m, timings):
+         """
+         the actual task of testing a mirror
+         """
+         host = re_host.search(m).group(1)
+         delay = pinger_urllib(m)
+         if delay is None:
+              return
+         timings.append((delay, m))
+         print '[%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
+
+    # parallelization. safe, since most of the time we
+    # are waiting for the network to respond
+    print 'Testing mirrors ...'
+    tasks = []
+    for idx, m in enumerate(mirrors):
+         t = threading.Thread(target=task, args=(idx,m,timings))
+         t.start()
+         tasks.append(t)
+
+    # synchronization point
+    for t in tasks:
+         t.join(timeout=30)
+
+    # select a random one from the top 3, to be fair
+    top = sorted(timings)[0:min(len(timings), 3)]
+    random.shuffle(top)
+    sel = top[0][1]
+    sel_host = re_host.search(sel).group(1)
+    print('automatically selected server %s (%s)' % (sel_host, sel))
+    input = raw_input('press RETURN to continue or enter a number to select another one: ')
+    if input:
+         try:
+              print 'manually selected %s', mirrors[int(input)]
+              return mirrors[int(input)]
+         except:
+              print 'Error: you have to enter a number or press RETURN'
+              import sys
+              sys.exit(1)
+    return sel
+
+# end of get_sage_mirror()
+
 if len(sys.argv) > 1:
     # Server given on command line, typically a URL to a specific Sage install.
     PKG_SERVER = sys.argv[1]
 else:
+    # Best server: determine a suiteable and availabe mirror by some heuristics
+    #              fall back to default if there is an exception
     # Default server: specified by environment variable.
-    if not os.environ.has_key("SAGE_SERVER"):
-        print "The environment variable SAGE_SERVER must be set."
-        sys.exit(1)
-    PKG_SERVER = os.environ['SAGE_SERVER']
+    try:
+        PKG_SERVER = get_sage_mirror()
+    except:
+        if not os.environ.has_key("SAGE_SERVER"):
+            print "The environment variable SAGE_SERVER must be set."
+            sys.exit(1)
+        PKG_SERVER = os.environ['SAGE_SERVER']
 
 if not PKG_SERVER.endswith('/spkg'):
     PKG_SERVER += '/spkg'

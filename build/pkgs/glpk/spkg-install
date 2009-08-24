@@ -17,8 +17,5 @@ fi
 cd src
 LIBS=-ldl ./configure --prefix=$SAGE_LOCAL
 make prefix=$SAGE_LOCAL
-make install
-
-
-
+make install && cd .. && python setup.py install
 

@@ -327,7 +327,7 @@ class ArithmeticSubgroup(group.Group):
             False
             sage: Gamma1(12).is_abelian()
             False
-            sage: GammaH(4, [2]).is_abelian()
+            sage: GammaH(4, [3]).is_abelian()
             False
         """
         return False
@@ -347,7 +347,7 @@ class ArithmeticSubgroup(group.Group):
             False
             sage: Gamma1(12).is_finite()
             False
-            sage: GammaH(4, [2]).is_finite()
+            sage: GammaH(4, [3]).is_finite()
             False
         """
         return False

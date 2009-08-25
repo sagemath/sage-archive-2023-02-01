@@ -138,7 +138,7 @@ class CongruenceSubgroup(ArithmeticSubgroup):
             20
             sage: Gamma1(11).level()
             11
-            sage: GammaH(14, [2]).level()
+            sage: GammaH(14, [5]).level()
             14
         """
         return self.__level

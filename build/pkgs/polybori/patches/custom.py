@@ -31,3 +31,13 @@ HAVE_HEVEA=False
 HAVE_TEX4HT=False
 HAVE_PYTHON_EXTENSION=False
 EXTERNAL_PYTHON_EXTENSION=True
+
+try:
+  CC = os.environ['CC']
+except:
+  pass
+
+try:
+  CXX = os.environ['CXX']
+except:
+  pass

@@ -34,7 +34,10 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
-=== polybori-0.6.3-20091020 (Martin Albrecht, August 20th, 2009) ===
+=== polybori-0.6.3-20090825 (Martin Albrecht, August 25th, 2009) ===
+ * fixes for solaris
+
+=== polybori-0.6.3-20090820 (Martin Albrecht, August 20th, 2009) ===
  * fixing a few performance bottlenecks
 
 === polybori-0.6.3-20090728 (Martin Albrecht, July 28th, 2009) ===

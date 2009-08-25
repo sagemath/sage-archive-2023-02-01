@@ -833,7 +833,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             cuts = [0] + composition
             for i in range(1,len(cuts)):
                 cuts[i] += cuts[i-1]
-            s = cuts[-1] # same but better than s = sum(l)
+            s = cuts[-1] # same but better than s = sum(composition)
             for big_word in codomain.iterate_by_length(s):
                 d = {}
                 i = 0

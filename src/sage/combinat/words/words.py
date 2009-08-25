@@ -670,7 +670,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         Iterate over all morphisms with domain ``self`` and the given
         codmain.
 
-        INPUT::
+        INPUT:
 
         - ``l`` -- list of nonnegative integers (default: None). The length
           of the list must be the number of letters in the alphabet, and
@@ -686,7 +686,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
           length of the images of each letter in the alphabet is at least
           ``min_length``. This is ignored if ``l`` is not ``None``.
 
-        OUTPUT::
+        OUTPUT:
 
             iterator
 

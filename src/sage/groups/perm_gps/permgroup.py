@@ -965,20 +965,20 @@ class PermutationGroup_generic(group.FiniteGroup):
          base_of_group must the list of position on which ``self`` act in
          any order. The algorithm return a list of transversals and each
          transversals is a list of permutation. By default, base_of_group
-         is `\[1, 2, 3, \dots , n\]`.
+         is `[1, 2, 3, \dots , n]`.
 
-         for any base_of_group = `\[ pos_1, pos_2, \dots , pos_n\]`
+         for any base_of_group = `[ pos_1, pos_2, \dots , pos_n]`
          let G_i be the subgroup of ``self`` which stabilize `pos_1, pos_2, \dots , pos_i`
          ``self`` = `G_0 \subset G_1 \subset G_2 \subset \dots \subset G_n = \{e\}`
          The algorithm return :
-         `\[G_i.transversals(pos_{i+1}) for i in range(n)\]`
+         ``[G_i.transversals(pos_{i+1}) for i in range(n)]``
 
-         INPUT::
+         INPUT:
 
          - ``base_of_group`` (optional) A list which contains the integer
            `1, 2, \dots , d` in any order (d is the degree of ``self``)
 
-         OUTPUT::
+         OUTPUT:
 
          - A list of list of permutation inside the group which form a strong
            generating system.

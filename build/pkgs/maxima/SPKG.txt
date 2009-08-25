@@ -1,6 +1,41 @@
 = maxima =
 
-== Releases ==
+== Description ==
+
+Maxima is a system for the manipulation of symbolic and numerical
+expressions, including differentiation, integration, Taylor series,
+Laplace transforms, ordinary differential equations, systems of linear
+equations, polynomials, and sets, lists, vectors, matrices, and
+tensors. Maxima yields high precision numeric results by using exact
+fractions, arbitrary precision integers, and variable precision
+floating point numbers. Maxima can plot functions and data in two and
+three dimensions.
+
+For more information, see the Maxima web site
+
+http://maxima.sourceforge.net
+
+== License ==
+
+Maxima is distributed under the GNU General Public License, with some
+export restrictions from the U.S. Department of Energy. See the file
+COPYING.
+
+== SPKG Maintainers ==
+
+
+== Upstream Contact ==
+
+ * the Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
+
+== Special Update/Build Instructions ==
+
+The following files are patched:
+
+ * topoly.lisp: several instances of "parg" are replaced by "carg" to
+   work around a bug in Maxima's to_poly_solver
+
+== Changelog ==
 
 === maxima-5.19.1.p0 (Alex Ghitza, August 24th, 2009) ===
  * Added patch that works around bug in topoly.lisp by changing appropriate instances of parg to carg
@@ -35,7 +70,7 @@ Add history from hg
 
 =============================================================
 
-How to make a new version of the Maxima SAGE spkg.
+How to make a new version of the Maxima spkg.
 
   1. Go to http://sourceforge.net/project/showfiles.php?group_id=4933
      and download the source tar.gz ball.  That's near the bottom

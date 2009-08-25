@@ -1699,6 +1699,7 @@ cdef class TimeSeries:
 
         cdef double mn = self.min(), mx = self.max()
         cdef double r = mx - mn, step = r/bins
+        cdef Py_ssize_t j
 
         if r == 0:
             raise ValueError, "bins have 0 width"
@@ -1719,7 +1720,6 @@ cdef class TimeSeries:
         for i from 0 <= i < bins:
             cnts[i] = 0
 
-        cdef Py_ssize_t j
         for i from 0 <= i < self._length:
             j = int((self._values[i] - mn)/step)
             if j >= bins:

@@ -5185,7 +5185,7 @@ class GenericGraph(SageObject):
         # compute the degrees of each vertex
         degrees=self.degree(labels=True)
 
-        # sort verticies by degree.  Store in a list and keep track of
+        # sort vertices by degree.  Store in a list and keep track of
         # where a specific degree starts (effectively, the list is
         # sorted by bins).
         verts= sorted( degrees.keys(), key=lambda x: degrees[x])

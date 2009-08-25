@@ -3318,7 +3318,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         TESTS:
 
-        A sanity check: ``LyndonWords`` generators Lyndon words, so we
+        A sanity check: ``LyndonWords`` generates Lyndon words, so we
         filter all words of length `n<10` on the alphabet [1,2,3] for
         Lyndon words, and compare with the ``LyndonWords`` generator::
 

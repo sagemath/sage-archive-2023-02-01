@@ -8963,30 +8963,28 @@ class Graph(GenericGraph):
     Undirected graph.
 
     A Graph is a set of vertices connected by edges
-    (cf. http://en.wikipedia.org/wiki/Graph_(mathematics) )
+    (cf. http://en.wikipedia.org/wiki/Graph_(mathematics) ).
 
-    One can very easily create a graph in sage by typing ::
+    One can very easily create a graph in sage by typing::
 
         sage: g=Graph()
 
-    By typing the name of the Graph, one can get some basic informations
+    By typing the name of the Graph, one can get some basic information
     about it::
 
         sage: g
         Graph on 0 vertices
 
-    This graph is not very interesting as it is by default the empty graph.. But
+    This graph is not very interesting as it is by default the empty graph. But
     Sage contains a large collection of pre-defined graph classes that can be listed
-    this way :
+    this way:
 
-        * type in Sage : graphs.
+        * Type in Sage : graphs.
           ( do not press "Enter", and do not forget the final "." )
-        * hit "tabulation" two times in a row
+        * Hit "tab".
 
-    You will see the list of methods defined in the class "graphs", all of which
-    generate graphs you can play with !
-
-    If you want to see what they look like, begin this way ::
+    You will see a list of methods which will construct named graphs. For
+    example::
 
         sage: g=graphs.PetersenGraph()
         sage: g.plot()
@@ -8996,8 +8994,8 @@ class Graph(GenericGraph):
         sage: g=graphs.ChvatalGraph()
         sage: g.plot()
 
-    If you are curious about what these graphs are, for example if you wonder what ``RandomGNP``
-    actually is, you but have to type::
+    In order to obtain more information about these graph constructors, access
+    the documentation as follows::
 
         sage: graphs.RandomGNP?
 
@@ -9005,20 +9003,18 @@ class Graph(GenericGraph):
     almost 200 functions on graphs in the Sage library !
     If your graph is named ``g``, you can list these functions as previously this way
 
-        * type in Sage : ``g.``
+        * Type in Sage : ``g.``
           ( do not press "Enter", and do not forget the final "." )
-        * hit "tabulation" two times in a row
+        * Hit "tab".
 
     As usual, you can get some information about what these functions do by typing
-    ( if you want to know about the ``diameter()`` method )::
+    (e.g. if you want to know about the ``diameter()`` method)::
 
         sage: g.diameter?
 
-    If you have defined a graph ``g`` having several connected components ( = which is not
-    connected... Type ``g.is_connected()`` to know if your graph is connected ), you can
-    print each one of its connected components with only two lines :
-
-    ( if you do not have such a graph G, here is one for free :  ``g=graphs.RandomGNP(30,.05)``    )::
+    If you have defined a graph ``g`` having several connected components ( i.e.
+    ``g.is_connected()`` returns False ), you can print each one of its
+    connected components with only two lines::
 
         sage: for component in g.connected_components():
         ...      g.subgraph(component).plot()
@@ -10880,11 +10876,75 @@ class DiGraph(GenericGraph):
     """
     Directed graph.
 
+    A DiGraph is a set of vertices connected by oriented edges
+    (cf. http://en.wikipedia.org/wiki/Digraph_%28mathematics%29 ).
+
+    One can very easily create a directed graph in sage by typing::
+
+        sage: g=DiGraph()
+
+    By typing the name of the DiGraph, one can get some basic information
+    about it::
+
+        sage: g
+        Digraph on 0 vertices
+
+    This digraph is not very interesting as it is by default the empty graph. But
+    Sage contains several pre-defined digraph classes that can be listed
+    this way:
+
+        * Type in Sage : digraphs.
+          ( do not press "Enter", and do not forget the final "." )
+        * Hit "tab".
+
+    You will see a list of methods which will construct named digraphs. For
+    example::
+
+        sage: g=digraphs.ButterflyGraph(3)
+        sage: g.plot()
+
+    You can also use the collection of pre-defined graphs, then create a DiGraph
+    from them. ::
+
+        sage: g=DiGraph(graphs.PetersenGraph())
+        sage: g.plot()
+
+    Calling ``Digraph`` on a graph returns the original graph in which every edge
+    is replaced by two different edges going toward opposite directions.
+
+    In order to obtain more information about these degraph constructors, access
+    the documentation as follows::
+
+        sage: digraphs.RandomDirectedGNP?
+
+    Once you have defined the digraph you want, you can begin to work on it by using the
+    almost 200 functions on graphs and digraphs in the Sage library !
+    If your digraph is named ``g``, you can list these functions as previously this way
+
+        * Type in Sage : ``g.``
+          ( do not press "Enter", and do not forget the final "." )
+        * Hit "tab".
+
+    As usual, you can get some information about what these functions do by typing
+    (e.g. if you want to know about the ``diameter()`` method)::
+
+        sage: g.diameter?
+
+    If you have defined a digraph ``g`` having several connected components ( i.e.
+    ``g.is_connected()`` returns False ), you can print each one of its
+    connected components with only two lines::
+
+        sage: for component in g.connected_components():
+        ...      g.subgraph(component).plot()
+
+    The same methods works for strongly connected components ::
+        sage: for component in g.strongly_connected_components():
+        ...      g.subgraph(component).plot()
+
+
     INPUT:
 
     -  ``data`` -  can be any of the following:
-
-       #.  A NetworkX digraph
 
        #.  A dictionary of dictionaries
 
@@ -10897,6 +10957,8 @@ class DiGraph(GenericGraph):
        #.  A pygraphviz agraph
 
        #.  A SciPy sparse matrix
+
+       #.  A NetworkX digraph
 
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -10952,31 +11014,6 @@ class DiGraph(GenericGraph):
 
     EXAMPLES:
 
-    #. A NetworkX XDiGraph::
-
-            sage: import networkx
-            sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
-            sage: DiGraph(g)
-            Digraph on 5 vertices
-
-
-    #. A NetworkX digraph::
-
-            sage: import networkx
-            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-            sage: DiGraph(g)
-            Digraph on 5 vertices
-
-       Note that in all cases, we copy the NetworkX structure.
-
-       ::
-
-            sage: import networkx
-            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-            sage: G = DiGraph(g, implementation='networkx')
-            sage: H = DiGraph(g, implementation='networkx')
-            sage: G._backend._nxg is H._backend._nxg
-            False
 
     #. A dictionary of dictionaries::
 
@@ -11077,6 +11114,33 @@ class DiGraph(GenericGraph):
             ...
             RuntimeError: The string seems corrupt: valid characters are
             ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+    #. A NetworkX XDiGraph::
+
+            sage: import networkx
+            sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
+            sage: DiGraph(g)
+            Digraph on 5 vertices
+
+
+    #. A NetworkX digraph::
+
+            sage: import networkx
+            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+            sage: DiGraph(g)
+            Digraph on 5 vertices
+
+       Note that in all cases, we copy the NetworkX structure.
+
+       ::
+
+            sage: import networkx
+            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+            sage: G = DiGraph(g, implementation='networkx')
+            sage: H = DiGraph(g, implementation='networkx')
+            sage: G._backend._nxg is H._backend._nxg
+            False
+
 
     """
     _directed = True

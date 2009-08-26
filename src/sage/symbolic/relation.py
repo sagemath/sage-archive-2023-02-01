@@ -406,7 +406,7 @@ def string_to_list_of_solutions(s):
 
 def solve(f, *args, **kwds):
     r"""
-    Algebraically solve an equation of system of equations for given
+    Algebraically solve an equation or system of equations for given
     variables.
 
     INPUT:
@@ -416,8 +416,8 @@ def solve(f, *args, **kwds):
 
     -  ``*args`` - variables to solve for.
 
-    -  ``solution_dict = True`` - return a list of
-       dictionaries containing the solutions.
+    -  ``solution_dict`` - bool (default: False); if True,
+       return a list of dictionaries containing the solutions.
 
     EXAMPLES::
 
@@ -444,6 +444,17 @@ def solve(f, *args, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: 5 is not a valid variable.
+
+    If we ask for a dictionary for the solutions, we get it::
+
+        sage: solve([x^2-1],x,solution_dict=True)
+        [{x: -1}, {x: 1}]
+        sage: solve([x^2-4*x+4],x,solution_dict=True)
+        [{x: 2}]
+        sage: res = solve([x^2 == y, y == 4],x,y,solution_dict=True)
+        sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
+        x: 2, y: 4
+        x: -2, y: 4
 
     If ``True`` appears in the list of equations it is
     ignored, and if ``False`` appears in the list then no
@@ -506,7 +517,12 @@ def solve(f, *args, **kwds):
             raise ValueError, "Unable to solve %s for %s"%(f, args)
         sol_list = string_to_list_of_solutions(repr(s))
         if 'solution_dict' in kwds and kwds['solution_dict']==True:
-            sol_dict=[dict([[eq.left(),eq.right()] for eq in solution]) for solution in sol_list]
+            if isinstance(sol_list[0], list):
+                sol_dict=[dict([[eq.left(),eq.right()] for eq in solution])
+                        for solution in sol_list]
+            else:
+                sol_dict=[{eq.left():eq.right()} for eq in sol_list]
+
             return sol_dict
         else:
             return sol_list

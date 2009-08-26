@@ -5584,6 +5584,9 @@ cdef class Expression(CommutativeRingElement):
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.
 
+        -  ``solution_dict`` - bool (default: False); if True,
+           return a list of dictionaries containing solutions.
+
         - ``explicit_solutions`` - bool; if True, require that all
            solutions returned be explicit (rather than implicit)
 

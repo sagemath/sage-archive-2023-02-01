@@ -4,7 +4,7 @@
 #
 #    Install script
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@nuigalway.ie>
+#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -27,8 +27,11 @@ fi
 
 SMALL_GROUPS=`cd $SAGE_ROOT/spkg/optional/; $SAGE_ROOT/spkg/standard/newest_version database_gap`
 if [ "$SMALL_GROUPS" = "" ]; then
-    echo "Failed to find SmallGroups library.  Please install the database_gap spkg"
-    exit 1
+    SMALL_GROUPS=`cd $SAGE_ROOT/spkg/installed/; $SAGE_ROOT/spkg/standard/newest_version database_gap`
+    if [ "$SMALL_GROUPS" = "" ]; then
+        echo "Failed to find SmallGroups library.  Please install the database_gap spkg"
+        exit 1
+    fi
 fi
 
 cd src

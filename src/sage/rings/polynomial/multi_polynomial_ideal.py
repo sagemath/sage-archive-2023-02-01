@@ -1846,7 +1846,7 @@ class MPolynomialIdeal_singular_repr:
              {y: 1, x: 1}]
 
         Computation over floating point numbers may compute only a partial solution,
-        or even none at all. Notice that x values are missing from the following variety:
+        or even none at all. Notice that x values are missing from the following variety::
 
             sage: R.<x,y> = CC[]
             sage: I = ideal([x^2+y^2-1,x*y-1])

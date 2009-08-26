@@ -3848,13 +3848,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0:
             pivots = []
             nonpivots = range(self._ncols)
-            X = self.copy()
+            X = self.__copy__()
             d = Integer(1)
             return pivots, nonpivots, X, d
         elif self._ncols == 0:
             pivots = []
             nonpivots = []
-            X = self.copy()
+            X = self.__copy__()
             d = Integer(1)
             return pivots, nonpivots, X, d
 

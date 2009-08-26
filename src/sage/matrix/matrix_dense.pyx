@@ -415,7 +415,7 @@ cdef class Matrix_dense(matrix.Matrix):
             if sparse:
                 return self.sparse_matrix()
             else:
-                return self.copy()
+                return self.__copy__()
         v = [phi(z) for z in self.list()]
         if R is None:
             v = sage.structure.sequence.Sequence(v)
@@ -447,7 +447,7 @@ cdef class Matrix_dense(matrix.Matrix):
         # allow lambda functions
 
         if self._nrows==0 or self._ncols==0:
-            return self.copy()
+            return self.__copy__()
         v = [z.derivative(var) for z in self.list()]
         if R is None:
             v = sage.structure.sequence.Sequence(v)

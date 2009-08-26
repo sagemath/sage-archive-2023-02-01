@@ -771,7 +771,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A - A == A - -A
             True
         """
-        return self.copy()
+        return self.__copy__()
 
     def __invert__(self):
         r"""
@@ -808,7 +808,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError, "self must be a square matrix"
 
         if self._ncols == 0:
-            return self.copy()
+            return self.__copy__()
 
         I = mzd_init(self._nrows,self._ncols)
         mzd_set_ui(I, 1)
@@ -831,19 +831,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLES:
              sage: MS = MatrixSpace(GF(2),3,3)
              sage: A = MS(1)
-             sage: A.copy() == A
+             sage: A.__copy__() == A
              True
-             sage: A.copy() is A
+             sage: A.__copy__() is A
              False
 
              sage: A = random_matrix(GF(2),100,100)
-             sage: A.copy() == A
+             sage: A.__copy__() == A
              True
-             sage: A.copy() is A
+             sage: A.__copy__() is A
              False
 
              sage: A.echelonize()
-             sage: A.copy() == A
+             sage: A.__copy__() == A
              True
 
         """
@@ -910,9 +910,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLE:
              sage: A = random_matrix(GF(2), 10, 10)
-             sage: B = A.copy(); B.echelonize() # fastest
-             sage: C = A.copy(); C.echelonize(k=2) # force k
-             sage: E = A.copy(); E.echelonize(algorithm='classical') # force Gaussian elimination
+             sage: B = A.__copy__(); B.echelonize() # fastest
+             sage: C = A.__copy__(); C.echelonize(k=2) # force k
+             sage: E = A.__copy__(); E.echelonize(algorithm='classical') # force Gaussian elimination
              sage: B == C == E
              True
 
@@ -1166,7 +1166,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(GF(2),3,65)
 
-            sage: B = A.copy()
+            sage: B = A.__copy__()
             sage: B.swap_columns(0,1)
             sage: B.swap_columns(0,1)
             sage: A == B
@@ -1317,9 +1317,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError, "Both numbers of rows must match."
 
         if self._ncols == 0:
-            return right.copy()
+            return right.__copy__()
         if right._ncols == 0:
-            return self.copy()
+            return self.__copy__()
 
         A = self.new_matrix(ncols = self._ncols + right._ncols)
         if self._nrows == 0:
@@ -1370,9 +1370,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError, "Both numbers of columns must match."
 
         if self._nrows == 0:
-            return other.copy()
+            return other.__copy__()
         if other._nrows == 0:
-            return self.copy()
+            return self.__copy__()
 
         cdef Matrix_mod2_dense A
         A = self.new_matrix(nrows = self._nrows + other._nrows)
@@ -1749,7 +1749,7 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
         sage: Q
         [1, 2, 3, 3]
     """
-    cdef Matrix_mod2_dense B = A.copy()
+    cdef Matrix_mod2_dense B = A.__copy__()
     cdef mzp_t *p = mzp_init(A._entries.nrows)
     cdef mzp_t *q = mzp_init(A._entries.ncols)
 

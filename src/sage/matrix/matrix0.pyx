@@ -112,7 +112,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         self._mutability = Mutability(False)
         self._cache = {}
 
-    def copy(self):
+    def __copy__(self):
         """
         Make a copy of self. If self is immutable, the copy will be
         mutable.
@@ -129,7 +129,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
             [  x + 1     2/3]
             [1/2*x^2 x^3 + 1]
-            sage: b = a.copy()
+            sage: b = copy(a)
             sage: b[0,0] = 5
             sage: b
             [      5     2/3]
@@ -368,7 +368,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         If self is mutable, the cache of results about self is deleted.
         """
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
         else:
             self._cache = {}
 
@@ -384,7 +384,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         If self is mutable, the cache of results about self is deleted.
         """
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
         else:
             self._cache = {}
 
@@ -437,7 +437,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0,0] = 10
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
             sage: hash(A)
             12
             sage: v = {A:1}; v
@@ -555,7 +555,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0][0] = 123
             Traceback (most recent call last):
             ...
-            ValueError: vector is immutable; please change a copy instead (use self.copy())
+            ValueError: vector is immutable; please change a copy instead (use copy())
             sage: A[0].is_immutable()
             True
             sage: a = matrix(ZZ,3,range(9)); a
@@ -1062,7 +1062,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0,0] = 7
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
 
         More examples::
@@ -1477,7 +1477,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self
-            return self.copy()
+            return self.__copy__()
 
         try:
             return self._change_ring(ring)
@@ -1862,7 +1862,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
         else:
             self._cache = {}
         if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
@@ -1870,7 +1870,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2):
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
         else:
             self._cache = {}
         if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
@@ -2013,7 +2013,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.check_row_bounds_and_mutability(i,j)
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             temp.add_multiple_of_row_c(i, j, s, start_col)
             return temp
         # If scaling factor cannot be coerced, change the base ring to
@@ -2097,7 +2097,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.check_column_bounds_and_mutability(i,j)
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             temp.add_multiple_of_column_c(i, j, s, start_row)
             return temp
         # If scaling factor cannot be coerced, change the base ring to
@@ -2215,7 +2215,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.check_row_bounds_and_mutability(i,i)
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             temp.rescale_row_c(i, s, start_col)
             return temp
         # If scaling factor cannot be coerced, change the base ring to
@@ -2326,7 +2326,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.check_column_bounds_and_mutability(i,i)
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             temp.rescale_col_c(i, s, start_row)
             return temp
         # If scaling factor cannot be coerced, change the base ring to
@@ -2399,7 +2399,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t n
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             for n from 0 <= n < temp._ncols:
                 temp.set_unsafe(i, n, s * temp.get_unsafe(j, n))  # temp[i] = s*temp[j]
             return temp
@@ -2482,7 +2482,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Matrix temp
         try:
             s = self._coerce_element(s)
-            temp = self.copy()
+            temp = self.__copy__()
             for n from 0 <= n < temp._nrows:
                 temp.set_unsafe(n, i, s * temp.get_unsafe(n, j))
             return temp

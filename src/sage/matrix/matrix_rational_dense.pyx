@@ -1866,7 +1866,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
             if g.degree() == 1:
                 # Just use kernel -- much easier.
-                B = A.copy()
+                B = A.__copy__()
                 for k from 0 <= k < A.nrows():
                     B[k,k] += g[0]
                 if m > 1 and not is_diagonalizable:
@@ -1984,7 +1984,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 ##             if g.degree() == 1:
 ##                 # Just use kernel -- much easier.
-##                 B = A.copy()
+##                 B = A.__copy__()
 ##                 for k from 0 <= k < A.nrows():
 ##                     B[k,k] += g[0]
 ##                 if m > 1 and not is_diagonalizable:

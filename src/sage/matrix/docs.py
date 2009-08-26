@@ -81,13 +81,13 @@ However, properties of `A` such as its rank, characteristic
 polynomial, etc., are all cached so computations involving
 `A` may be more efficient. Once `A` is made
 immutable it cannot be changed back. However, one can obtain a
-mutable copy of `A` using ``A.copy()``.
+mutable copy of `A` using ``copy(A)``.
 
 EXAMPLES::
 
     sage: A = matrix(RR,2,[1,10,3.5,2])
     sage: A.set_immutable()
-    sage: A.copy() is A
+    sage: copy(A) is A
     False
 
 The echelon form method always returns immutable matrices with
@@ -105,7 +105,7 @@ EXAMPLES::
     sage: A[0,0] = 5
     Traceback (most recent call last):
     ...
-    ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+    ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
 Implementation and Design
 -------------------------

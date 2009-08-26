@@ -271,7 +271,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
     EXAMPLE::
 
         sage: A = matrix(QQ, 7, [5, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 3, 1, 0, -1, 0, 0, -1, 0, 1, 2, -1, 1, 0, -1, 0, 1, 3, -1, 1, 0, 0, -2, 0, 2, 0, 1, 0, 0, -1, 0, 1, 0, 1])
-        sage: B = A.copy(); B._echelon_strassen(1); B
+        sage: B = A.__copy__(); B._echelon_strassen(1); B
         [ 1  0  0  0  0  0  0]
         [ 0  1  0 -1  0  1  0]
         [ 0  0  1  0  0  0  0]
@@ -279,32 +279,32 @@ def strassen_echelon(MatrixWindow A, cutoff):
         [ 0  0  0  0  0  0  1]
         [ 0  0  0  0  0  0  0]
         [ 0  0  0  0  0  0  0]
-        sage: C = A.copy(); C._echelon_strassen(2); C == B
+        sage: C = A.__copy__(); C._echelon_strassen(2); C == B
         True
-        sage: C = A.copy(); C._echelon_strassen(4); C == B
+        sage: C = A.__copy__(); C._echelon_strassen(4); C == B
         True
 
     ::
 
         sage: n = 32; A = matrix(Integers(389),n,range(n^2))
-        sage: B = A.copy(); B._echelon_in_place_classical()
-        sage: C = A.copy(); C._echelon_strassen(2)
+        sage: B = A.__copy__(); B._echelon_in_place_classical()
+        sage: C = A.__copy__(); C._echelon_strassen(2)
         sage: B == C
         True
 
     TESTS::
 
         sage: A = matrix(Integers(7), 4, 4, [1,2,0,3,0,0,1,0,0,1,0,0,0,0,0,1])
-        sage: B = A.copy(); B._echelon_in_place_classical()
-        sage: C = A.copy(); C._echelon_strassen(2)
+        sage: B = A.__copy__(); B._echelon_in_place_classical()
+        sage: C = A.__copy__(); C._echelon_strassen(2)
         sage: B == C
         True
 
     ::
 
         sage: A = matrix(Integers(7), 4, 4, [1,0,5,0,2,0,3,6,5,1,2,6,4,6,1,1])
-        sage: B = A.copy(); B._echelon_in_place_classical()
-        sage: C = A.copy(); C._echelon_strassen(2)
+        sage: B = A.__copy__(); B._echelon_in_place_classical()
+        sage: C = A.__copy__(); C._echelon_strassen(2)
         sage: B == C
         True
 
@@ -568,8 +568,8 @@ Useful test code:
 
 def test(n, m, R, c=2):
     A = matrix(R,n,m,range(n*m))
-    B = A.copy(); B._echelon_in_place_classical()
-    C = A.copy(); C._echelon_strassen(c)
+    B = A.__copy__(); B._echelon_in_place_classical()
+    C = A.__copy__(); C._echelon_strassen(c)
     return B == C
 
 E.g.,

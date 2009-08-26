@@ -140,7 +140,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: g.matrix().charpoly('t')
             t^2 + 5*t + 1
         """
-        return self.__mat.copy()
+        return self.__mat.__copy__()
 
     def _gap_init_(self):
         """

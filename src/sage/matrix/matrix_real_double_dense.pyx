@@ -153,7 +153,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self._nrows == 0:   # special case
-            return self.copy()
+            return self.__copy__()
 
         # cdef matrix_double_dense
 

@@ -707,7 +707,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
 
         We make a copy of A.
-            sage: C = A.copy()
+            sage: C = A.__copy__()
 
         We make another reference to A.
             sage: B = A
@@ -770,7 +770,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A[0,0] = 20
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         Note that there is no function to set a matrix to be mutable
         again, since such a function would violate the whole point.
@@ -779,7 +779,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense' object has no attribute 'set_mutable'
-            sage: B = A.copy()
+            sage: B = A.__copy__()
             sage: B[0,0] = 20
             sage: B[0,0]
             20
@@ -1360,7 +1360,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             return E
 
         if self._nrows == 0:
-            E = self.copy()
+            E = self.__copy__()
             self.cache(key, E)
             self.cache('pivots', [])
             return E

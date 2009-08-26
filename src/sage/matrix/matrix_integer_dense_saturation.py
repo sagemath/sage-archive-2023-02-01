@@ -214,7 +214,7 @@ def saturation(A, proof=True, p=0, max_dets=5):
         A = A.matrix_from_rows(P)
 
     # Factor out all common factors from all rows, just in case.
-    A = A.copy()
+    A = copy(A)
     A._factor_out_common_factors_from_each_row()
 
     if A.nrows() <= 1:

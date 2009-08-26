@@ -618,7 +618,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
 ##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
 ##                                                                  Py_ssize_t r, cols):
-##         B = self.copy()
+##         B = self.__copy__()
 ##         B.x_set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, cols)
 ##         cdef Py_ssize_t l
 ##         l = 0

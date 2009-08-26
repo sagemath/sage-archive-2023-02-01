@@ -61,7 +61,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self
-            return self.copy()
+            return self.__copy__()
 
         M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse_c())
         mat = M(self.dict(), coerce=True, copy=False)
@@ -124,7 +124,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             ...
             TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
-            sage: B = A.copy(); B.set_immutable()
+            sage: B = A.__copy__(); B.set_immutable()
             sage: hash(A) == hash(B)
             True
         """
@@ -568,7 +568,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             if not sparse:
                 return self.dense_matrix()
             else:
-                return self.copy()
+                return self.__copy__()
         self_dict = self._dict()
         if len(self_dict) < self._nrows * self._ncols:
             zero_res = phi(self.base_ring()(0))
@@ -623,7 +623,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         # allow lambda functions
 
         if self._nrows==0 or self._ncols==0:
-            return self.copy()
+            return self.__copy__()
         v = [(ij, z.derivative(var)) for ij,z in self.dict().iteritems()]
         if R is None:
             w = [x for _, x in v]

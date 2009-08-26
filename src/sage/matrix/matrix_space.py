@@ -1027,7 +1027,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if x.is_immutable():
                     return x
                 else:
-                    return x.copy()
+                    return x.__copy__()
             x = x.list()
         if isinstance(x, list) and len(x) > 0:
             if isinstance(x[0], list):

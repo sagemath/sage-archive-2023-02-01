@@ -193,7 +193,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             [0|1 2]
             [-+---]
             [3|4 5]
-            sage: B = A.copy(); B
+            sage: B = A.__copy__(); B
             [0|1 2]
             [-+---]
             [3|4 5]

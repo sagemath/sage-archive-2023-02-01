@@ -118,7 +118,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             E = self.matrix_over_field()
             E.echelonize(**kwds)
         else:
-            E = self.copy()
+            E = self.__copy__()
             E.echelonize(algorithm=algorithm, **kwds)
 
         E.set_immutable()  # so we can cache the echelon form.
@@ -155,11 +155,11 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [      1/2         x]
             [        1 3/4*y + 1]
 
-            sage: B = A.copy(); B.echelonize('bareiss'); B
+            sage: B = A.__copy__(); B.echelonize('bareiss'); B
             [              1       3/4*y + 1]
             [              0 x - 3/8*y - 1/2]
 
-            sage: B = A.copy(); B.echelonize('row_reduction'); B
+            sage: B = A.__copy__(); B.echelonize('row_reduction'); B
             [               1              2*x]
             [               0 -2*x + 3/4*y + 1]
 
@@ -353,7 +353,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [x0 y0]
             [x0 y0]
 
-            sage: B = A.copy()
+            sage: B = A.__copy__()
             sage: A.echelonize('row_reduction') # modifies self
             sage: B == A
             True
@@ -371,7 +371,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                        0, 0, 0, 0, x1*y0, \
                        0, 0, 0, 1, x1*y1]
             sage: A = Matrix(P,9,5,l)
-            sage: B = A.copy()
+            sage: B = A.__copy__()
             sage: B.echelonize('row_reduction'); B
             [                 1                  0                  0                  0     x0*y0 + x1 + 1]
             [                 0                  1                  0                  0              x0*y0]

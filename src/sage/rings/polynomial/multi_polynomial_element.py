@@ -1371,10 +1371,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
 
-    def factor(self):
+    def factor(self, proof=True):
         r"""
-        Compute the irreducible factorization of this polynomial if it is
-        univariate.
+        Compute the irreducible factorization of this polynomial.
+
+        INPUT:
+
+        - ``proof'' - insist on provably correct results (ignored, always ``True``)
 
         ALGORITHM: Use univariate factorization code.
 

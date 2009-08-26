@@ -355,6 +355,6 @@ def elim_pol(B, n=-1):
     nfm = monom.reduce(G)
   result = monom
   coeffs = linear_representation(nfm, lnf)
-  for each in xrange(len(coeffs)-1):
+  for each in xrange(len(coeffs)):
     result = result - coeffs[each] * lnf[each]
   return result

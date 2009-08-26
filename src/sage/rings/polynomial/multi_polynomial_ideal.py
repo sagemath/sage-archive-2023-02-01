@@ -1845,6 +1845,23 @@ class MPolynomialIdeal_singular_repr:
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
 
+        Computation over floating point numbers may compute only a partial solution,
+        or even none at all. Notice that x values are missing from the following variety:
+
+            sage: R.<x,y> = CC[]
+            sage: I = ideal([x^2+y^2-1,x*y-1])
+            sage: I.variety()
+            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
+            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            [{y: -0.86602540378443... - 0.50000000000000...*I},
+             {y: -0.86602540378443... + 0.50000000000000...*I},
+             {y: 0.86602540378443... - 0.50000000000000...*I},
+             {y: 0.86602540378443... + 0.50000000000000...*I}]
+
+        This is due to precision error,
+        which causes the computation of an intermediate Groebner basis to fail.
+
+
         If the ground field's characteristic is too large for
         Singular, we resort to a toy implementation::
 
@@ -1939,6 +1956,9 @@ class MPolynomialIdeal_singular_repr:
 
             return V
 
+        import sage.rings.complex_field as CCmod
+        if type(self.base_ring()) == CCmod.ComplexField_class:
+          verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()
         if ring is not None: P = P.change_ring(ring)
         try:

@@ -1,5 +1,5 @@
 r"""
-List of Elements of `\mathbb{P}^1(\ZZ/N\ZZ)`
+Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`.
 """
 
 from sage.misc.search import search

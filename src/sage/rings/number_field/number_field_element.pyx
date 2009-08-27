@@ -2878,8 +2878,21 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: d = 3*a + 1
             sage: d.inverse_mod(N)
             1
+
+        ::
+
+            sage: k.<a> = NumberField(x^3 + 11)
+            sage: d = a + 13
+            sage: d.inverse_mod(a^2) * d - 1 in k.ideal(a^2)
+            True
+            sage: d.inverse_mod((5, a + 1))*d - 1 in k.ideal(5, a + 1)
+            True
+
         """
-        R = I.number_field().ring_of_integers()
+        k = self.number_field()
+        R = k.ring_of_integers()
+        I = k.ideal(I)
+
         try:
             return I.small_residue(_inverse_mod_generic(R(self), I))
         except TypeError:

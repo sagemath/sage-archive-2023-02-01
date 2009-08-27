@@ -142,7 +142,16 @@ class ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         contours = options['contours']
-        cmap = get_cmap(options['cmap'])
+        if options.has_key('cmap'):
+            cmap = get_cmap(options['cmap'])
+        elif fill or contours is None:
+            cmap = get_cmap('gray')
+        else:
+            if isinstance(contours, (int, Integer)):
+                cmap = get_cmap([(i,i,i) for i in xsrange(0,1,1/contours)])
+            else:
+                l = Integer(len(contours))
+                cmap = get_cmap([(i,i,i) for i in xsrange(0,1,1/l)])
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
@@ -161,7 +170,7 @@ class ContourPlot(GraphicPrimitive):
             else:
                 subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
 
-@options(plot_points=100, fill=True, cmap='gray', contours=None,frame=True)
+@options(plot_points=100, fill=True, contours=None,frame=True)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -248,6 +257,13 @@ def contour_plot(f, xrange, yrange, **options):
         sage: f(x, y) = cos(x) + sin(y)
         sage: contour_plot(f, (0, pi), (0, pi), axes=False)
         sage: contour_plot(f, (0, pi), (0, pi)).show(axes=False) # These are equivalent
+
+    TESTS:
+
+    To check that ticket 5221 is fixed, note that this has three curves, not two::
+
+        sage: x,y = var('x,y')
+        sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,-2,0], fill=False)
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])

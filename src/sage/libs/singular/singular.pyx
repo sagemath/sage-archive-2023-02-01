@@ -628,13 +628,13 @@ import sage.rings.memory
 cdef init_libsingular():
     """
     This initializes the SINGULAR library. This is a hack to some
-    extend.
+    extent.
 
     SINGULAR has a concept of compiled extension modules similar to
     Sage. For this, the compiled modules need to see the symbols from
-    the main programm. However, SINGULAR is a shared library in this
+    the main program. However, SINGULAR is a shared library in this
     context these symbols are not known globally. The work around so
-    far is to load the library again and to specifiy ``RTLD_GLOBAL``.
+    far is to load the library again and to specify ``RTLD_GLOBAL``.
     """
     global singular_options
     global max_exponent_size

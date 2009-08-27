@@ -178,6 +178,8 @@ cdef class GroebnerStrategy(SageObject):
         """
         Return the ideal this strategy object is defined for.
 
+        EXAMPLE::
+
             sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
             sage: P.<x,y,z> = PolynomialRing(GF(32003))
             sage: I = Ideal([x + z, y + z])
@@ -189,7 +191,9 @@ cdef class GroebnerStrategy(SageObject):
 
     def ring(self):
         """
-        Return the ring this strategy object is defined over.::
+        Return the ring this strategy object is defined over.
+
+        EXAMPLE::
 
             sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
             sage: P.<x,y,z> = PolynomialRing(GF(32003))
@@ -222,6 +226,7 @@ cdef class GroebnerStrategy(SageObject):
     def __reduce__(self):
         """
         EXAMPLE::
+
             sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
             sage: P.<x,y,z> = PolynomialRing(GF(32003))
             sage: I = Ideal([x + z, y + z])
@@ -272,6 +277,7 @@ cdef class GroebnerStrategy(SageObject):
 def unpickle_GroebnerStrategy0(I):
     """
     EXAMPLE::
+
         sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
         sage: P.<x,y,z> = PolynomialRing(GF(32003))
         sage: I = Ideal([x + z, y + z])

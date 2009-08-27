@@ -269,7 +269,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 cdef void singular_ring_delete(ring *doomed):
     """
     Carefully deallocate the ring, without changing "currRing" (since
-    this method can be at unpredictable times due to garbage
+    this method can be called at unpredictable times due to garbage
     collection).
 
     TESTS:

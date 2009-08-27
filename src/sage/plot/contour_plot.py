@@ -125,7 +125,7 @@ class ContourPlot(GraphicPrimitive):
             sage: x,y = var('x,y')
             sage: C = contour_plot(x^2-y^2,(x,-2,2),(y,-2,2))
             sage: c = C[0]; c
-            ContourPlot defined by a 25 x 25 data grid
+            ContourPlot defined by a 100 x 100 data grid
         """
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
@@ -161,7 +161,7 @@ class ContourPlot(GraphicPrimitive):
             else:
                 subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
 
-@options(plot_points=25, fill=True, cmap='gray', contours=None,frame=True)
+@options(plot_points=100, fill=True, cmap='gray', contours=None,frame=True)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -182,8 +182,9 @@ def contour_plot(f, xrange, yrange, **options):
 
     The following inputs must all be passed in as named parameters:
 
-    - ``plot_points``  -- integer (default: 25); number of points to plot
-      in each direction of the grid
+    - ``plot_points``  -- integer (default: 100); number of points to plot
+      in each direction of the grid.  For old computers, 25 is fine, but
+      should not be used to verify specific intersection points.
 
     - ``fill`` -- bool (default: ``True``), whether to color in the area
       between contour lines
@@ -213,12 +214,12 @@ def contour_plot(f, xrange, yrange, **options):
     Here we change the ranges and add some options::
 
         sage: x,y = var('x,y')
-        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=100)
+        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=150)
 
     An even more complicated plot::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=100)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=150)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
@@ -259,7 +260,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(plot_points=50, contours=(0,0), fill=False)
+@options(plot_points=150, contours=(0,0), fill=False)
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     ``implicit_plot`` takes a function of two variables, `f(x,y)`
@@ -280,7 +281,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     The following inputs must all be passed in as named parameters:
 
-    - ``plot_points`` -- integer (default: 50); number of points to plot
+    - ``plot_points`` -- integer (default: 150); number of points to plot
       in each direction of the grid
 
     - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
@@ -333,7 +334,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     The seventh-level approximation is a degree 64 polynomial, and
     ``implicit_plot`` does a pretty good job on this part of the curve.
-    (``plot_points=200`` looks even better, but it's about 16 times slower.)
+    (``plot_points=200`` looks even better, but it takes over a second.)
 
     ::
 
@@ -346,7 +347,7 @@ def implicit_plot(f, xrange, yrange, **options):
         f = f.lhs() - f.rhs()
     return contour_plot(f, xrange, yrange, **options)
 
-@options(plot_points=25, incol='blue', outcol='white', bordercol=None)
+@options(plot_points=100, incol='blue', outcol='white', bordercol=None)
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`
@@ -365,7 +366,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
       ``(y,ymin,ymax)``
 
-    - ``plot_points``  -- integer (default: 25); number of points to plot
+    - ``plot_points``  -- integer (default: 100); number of points to plot
       in each direction of the grid
 
     - ``incol`` -- a color (default: ``'blue'``), the color inside the region
@@ -389,7 +390,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     An even more complicated plot::
 
-        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=100)
+        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=250)
 
     A disk centered at the origin::
 

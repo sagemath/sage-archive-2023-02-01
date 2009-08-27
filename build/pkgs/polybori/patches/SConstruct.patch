@@ -1,6 +1,6 @@
---- ../src/polybori-0.6/SConstruct	2009-05-15 14:40:24.000000000 +0100
-+++ SConstruct	2009-05-26 21:12:44.000000000 +0100
-@@ -120,7 +120,12 @@
+--- ../src/polybori-0.6/SConstruct	2009-07-24 01:26:48.000000000 -0700
++++ SConstruct	2009-08-27 02:48:19.588518718 -0700
+@@ -146,7 +146,12 @@
  opts.Add('CXXFLAGS', "C++ compiler flags",
           "-std=c++98 -ftemplate-depth-100",
           converter = Split)
@@ -14,7 +14,7 @@
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
  opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
-@@ -277,7 +282,7 @@
+@@ -320,7 +325,7 @@
  Help(opts.GenerateHelpText(env))
  
  have_l2h = have_t4h = False
@@ -23,7 +23,7 @@
  
  if not env.GetOption('clean'):
      conf = Configure(env)
-@@ -457,8 +462,11 @@
+@@ -510,8 +515,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -37,11 +37,13 @@
  
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
-@@ -1216,6 +1224,9 @@
+@@ -1269,6 +1277,11 @@
      env.AlwaysBuild(ipboribin)   
      env.Alias('install', ipboribin)
  
 +    # we dump the flags for reuse by Sage
++    if not path.exists(InstPath()):
++        Execute(Mkdir(InstPath())) 
 +    opts.Save(InstPath("flags.conf"), env)
 +
  env.Alias('prepare-devel', devellibs + readabledevellibs)

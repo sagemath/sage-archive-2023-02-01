@@ -34,6 +34,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.3-20090827 (Martin Albrecht, August 27th, 2009) ===
+ * create flags.conf if it doesnt exist
+
 === polybori-0.6.3-20090825 (Martin Albrecht, August 25th, 2009) ===
  * fixes for solaris
 

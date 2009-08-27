@@ -1278,6 +1278,8 @@ if 'install' in COMMAND_LINE_TARGETS:
     env.Alias('install', ipboribin)
 
     # we dump the flags for reuse by Sage
+    if not path.exists(InstPath()):
+        Execute(Mkdir(InstPath()))
     opts.Save(InstPath("flags.conf"), env)
 
 env.Alias('prepare-devel', devellibs + readabledevellibs)

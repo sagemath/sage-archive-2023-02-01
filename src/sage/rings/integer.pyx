@@ -4783,6 +4783,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return mpz_tstbit(self.value, index)
 
+    def popcount(self):
+        """
+        Return the number of 1 bits in the binary representation.
+        If self<0, we return Infinity.
+
+        EXAMPLES::
+
+            sage: n = 123
+            sage: n.str(2)
+            '1111011'
+            sage: n.popcount()
+            6
+
+            sage: n = -17
+            sage: n.popcount()
+            +Infinity
+        """
+        if self<0:
+            return sage.rings.infinity.Infinity
+        return int(mpz_popcount(self.value))
+
+
     def conjugate(self):
         """
         Return the complex conjugate of this integer, which is the

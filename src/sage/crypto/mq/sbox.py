@@ -491,42 +491,19 @@ class SBox(SageObject):
         nrows = 1<<m
         ncols = 1<<n
 
-        def _walsh_transform(f):
-            """
-            Compute the Walsh transform of `f` in place.
+        from sage.crypto.boolean_function import BooleanFunction
 
-            EXAMPLE::
+        B = BooleanFunction(self.m)
+        L = []
+        for j in xrange(ncols):
+            for i in xrange(nrows):
+                B[i] = (self(i)&j).popcount()
+            L.append(B.walsh_hadamard_transform())
 
-                sage: S = mq.SBox(3,2,7,1)
-                sage: S.linear_approximation_matrix() # indirect doctest
-                [ 2 -1 -1  0  1  0  0 -1]
-                [ 0 -1 -1  2 -1  0  0  1]
-                [ 0  1 -1  0  1  0 -2  1]
-                [ 0 -1  1  0  1 -2  0  1]
+        A = Matrix(ZZ, ncols, nrows, L)
+        A = -A.transpose()/2
 
-            NOTE: internal use only; we use the specific dimension of the S-Box.
-            """
-            for ldk in xrange(1,m+1):
-                k  = 1<<ldk
-                kh = k//2
-                for r in xrange(0,nrows,k):
-                    t1 = r
-                    t2 = r+kh
-                    for j in xrange(kh):
-                        u = f[t1]
-                        v = f[t2]
-                        f[t1] = u + v
-                        f[t2] = u - v
-                        t1 += 1
-                        t2 += 1
-            return f
-
-        A = Matrix(ZZ, ncols, nrows, [ _walsh_transform([sum((self(i)&j).bits())%2 for i in range(nrows)])
-                                       for j in range(ncols) ] )
-        A = -A.transpose()
-
-        for i in range(ncols):
-            A[0,i] += (nrows//2)
+        self._linear_approximation_matrix = A
         return A
 
     def maximal_linear_bias_absolute(self):

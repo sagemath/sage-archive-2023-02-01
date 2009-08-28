@@ -19,6 +19,8 @@ Cryptography
 
    sage/crypto/lfsr
 
+   sage/crypto/boolean_function
+
    sage/crypto/mq/sr
    sage/crypto/mq/mpolynomialsystem
    sage/crypto/mq/sbox

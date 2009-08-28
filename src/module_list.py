@@ -172,6 +172,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.crypto
+    ##
+    ################################
+
+    Extension('sage.crypto.boolean_function',
+              sources = ['sage/crypto/boolean_function.pyx']),
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################

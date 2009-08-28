@@ -34,6 +34,17 @@ if [ "$SMALL_GROUPS" = "" ]; then
     fi
 fi
 
+# test whether we are on an intel mac
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   DARWIN64=-m64; export DARWIN64;
+else
+   DARWIN64=""; export DARWIN64;
+fi
+
+# building parallely is bad. Therefore, although it is probably bad style:
+MAKE=make; export MAKE;
+
 cd src
 
 make

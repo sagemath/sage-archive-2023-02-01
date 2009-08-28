@@ -248,4 +248,4 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: FiniteField(3).degree()
             1
         """
-        return 1
+        return integer.Integer(1)

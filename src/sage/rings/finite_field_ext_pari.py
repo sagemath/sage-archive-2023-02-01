@@ -190,7 +190,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self._kwargs = {}
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
-        self.__degree = F[0][1]
+        self.__degree = integer.Integer(F[0][1])
         self.__order = q
         self.__is_field = True
         if modulus is None:

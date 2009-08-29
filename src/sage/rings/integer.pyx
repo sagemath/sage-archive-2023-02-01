@@ -885,15 +885,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(1001).ordinal_str()
             '1001st'
+
+            sage: ZZ(113).ordinal_str()
+            '113th'
+            sage: ZZ(112).ordinal_str()
+            '112th'
+            sage: ZZ(111).ordinal_str()
+            '111th'
+
         """
         if self<0:
             raise ValueError, "Negative integers are not ordinals."
         n = self.abs()
-        if (n!=11 and n%10==1):
+        if ((n%100)!=11 and n%10==1):
             th = 'st'
-        elif (n!=12 and n%10==2):
+        elif ((n%100)!=12 and n%10==2):
             th = 'nd'
-        elif (n!=13 and n%10==3):
+        elif ((n%100)!=13 and n%10==3):
             th = 'rd'
         else:
             th = 'th'

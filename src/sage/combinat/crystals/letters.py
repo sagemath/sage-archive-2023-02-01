@@ -93,6 +93,9 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
 	else:
 	    return ClassicalCrystalOfLetters(ct,
 					     Crystal_of_letters_type_E6_element_dual, element_print_style, dual = True)
+    elif ct.letter == 'E' and ct[1] == 7:
+        return ClassicalCrystalOfLetters(ct,
+                                         Crystal_of_letters_type_E7_element)
     elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_G_element)
@@ -134,6 +137,8 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, ClassicalCrystal):
                 self._ambient = CrystalOfLetters(CartanType(['E',6]))
             else:
                 self.module_generators = [self([1])]
+        elif cartan_type == CartanType(['E',7]):
+            self.module_generators = [self([7])]
        	else:
 	    self.module_generators = [self(1)]
         self._list = ClassicalCrystal.list(self)
@@ -1268,3 +1273,451 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
 	    (0, 0, 0, 0, 0, 2/3, 2/3, -2/3)]
         """
 	return -self.lift().weight()
+
+
+#########################
+# Type E7
+#########################
+
+class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
+    r"""
+    Type `E_7` crystal of letters elements. This crystal corresponds to the highest weight
+    crystal `B(\Lambda_7)`.
+
+    TESTS::
+
+    sage: C = CrystalOfLetters(['E',7])
+    sage: C.module_generators
+    [[7]]
+    sage: C.list()
+    [[7], [-7, 6], [-6, 5], [-5, 4], [-4, 2, 3], [-2, 3], [-3, 1, 2], [-1,
+    2], [-3, -2, 1, 4], [-1, -2, 4], [-4, 1, 5], [-4, -1, 3, 5], [-3, 5],
+    [-5, 6, 1], [-5, -1, 3, 6], [-5, -3, 4, 6], [-4, 2, 6], [-2, 6], [-6, 7,
+    1], [-1, -6, 3, 7], [-6, -3, 7, 4], [-6, -4, 2, 7, 5], [-6, -2, 7, 5],
+    [-5, 7, 2], [-5, -2, 4, 7], [-4, 7, 3], [-3, 1, 7], [-1, 7], [-7, 1],
+    [-1, -7, 3], [-7, -3, 4], [-4, -7, 2, 5], [-7, -2, 5], [-5, -7, 6, 2],
+    [-5, -2, -7, 4, 6], [-7, -4, 6, 3], [-3, -7, 1, 6], [-7, -1, 6], [-6,
+    2], [-2, -6, 4], [-6, -4, 5, 3], [-3, -6, 1, 5], [-6, -1, 5], [-5, 3],
+    [-3, -5, 4, 1], [-5, -1, 4], [-4, 1, 2], [-1, -4, 3, 2], [-3, 2], [-2,
+    -3, 4], [-4, 5], [-5, 6], [-6, 7], [-7], [-2, 1], [-2, -1, 3]]
+    sage: C.check()
+    True
+    sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
+    True
+    sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
+    True
+    sage: G = C.digraph()
+    sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
+    """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES::
+
+        sage: [v.weight() for v in CrystalOfLetters(['E',7])]
+        [(0, 0, 0, 0, 0, 1, -1/2, 1/2), (0, 0, 0, 0, 1, 0, -1/2, 1/2), (0, 0, 0,
+        1, 0, 0, -1/2, 1/2), (0, 0, 1, 0, 0, 0, -1/2, 1/2), (0, 1, 0, 0, 0, 0,
+        -1/2, 1/2), (-1, 0, 0, 0, 0, 0, -1/2, 1/2), (1, 0, 0, 0, 0, 0, -1/2,
+        1/2), (1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 0, 0), (0, -1, 0, 0, 0, 0, -1/2,
+        1/2), (-1/2, -1/2, 1/2, 1/2, 1/2, 1/2, 0, 0), (0, 0, -1, 0, 0, 0, -1/2,
+        1/2), (-1/2, 1/2, -1/2, 1/2, 1/2, 1/2, 0, 0), (1/2, -1/2, -1/2, 1/2,
+        1/2, 1/2, 0, 0), (0, 0, 0, -1, 0, 0, -1/2, 1/2), (-1/2, 1/2, 1/2, -1/2,
+        1/2, 1/2, 0, 0), (1/2, -1/2, 1/2, -1/2, 1/2, 1/2, 0, 0), (1/2, 1/2,
+        -1/2, -1/2, 1/2, 1/2, 0, 0), (-1/2, -1/2, -1/2, -1/2, 1/2, 1/2, 0, 0),
+        (0, 0, 0, 0, -1, 0, -1/2, 1/2), (-1/2, 1/2, 1/2, 1/2, -1/2, 1/2, 0, 0),
+        (1/2, -1/2, 1/2, 1/2, -1/2, 1/2, 0, 0), (1/2, 1/2, -1/2, 1/2, -1/2, 1/2,
+        0, 0), (-1/2, -1/2, -1/2, 1/2, -1/2, 1/2, 0, 0), (1/2, 1/2, 1/2, -1/2,
+        -1/2, 1/2, 0, 0), (-1/2, -1/2, 1/2, -1/2, -1/2, 1/2, 0, 0), (-1/2, 1/2,
+        -1/2, -1/2, -1/2, 1/2, 0, 0), (1/2, -1/2, -1/2, -1/2, -1/2, 1/2, 0, 0),
+        (0, 0, 0, 0, 0, 1, 1/2, -1/2), (0, 0, 0, 0, 0, -1, -1/2, 1/2), (-1/2,
+        1/2, 1/2, 1/2, 1/2, -1/2, 0, 0), (1/2, -1/2, 1/2, 1/2, 1/2, -1/2, 0, 0),
+        (1/2, 1/2, -1/2, 1/2, 1/2, -1/2, 0, 0), (-1/2, -1/2, -1/2, 1/2, 1/2,
+        -1/2, 0, 0), (1/2, 1/2, 1/2, -1/2, 1/2, -1/2, 0, 0), (-1/2, -1/2, 1/2,
+        -1/2, 1/2, -1/2, 0, 0), (-1/2, 1/2, -1/2, -1/2, 1/2, -1/2, 0, 0), (1/2,
+        -1/2, -1/2, -1/2, 1/2, -1/2, 0, 0), (0, 0, 0, 0, 1, 0, 1/2, -1/2), (1/2,
+        1/2, 1/2, 1/2, -1/2, -1/2, 0, 0), (-1/2, -1/2, 1/2, 1/2, -1/2, -1/2, 0,
+        0), (-1/2, 1/2, -1/2, 1/2, -1/2, -1/2, 0, 0), (1/2, -1/2, -1/2, 1/2,
+        -1/2, -1/2, 0, 0), (0, 0, 0, 1, 0, 0, 1/2, -1/2), (-1/2, 1/2, 1/2, -1/2,
+        -1/2, -1/2, 0, 0), (1/2, -1/2, 1/2, -1/2, -1/2, -1/2, 0, 0), (0, 0, 1,
+        0, 0, 0, 1/2, -1/2), (1/2, 1/2, -1/2, -1/2, -1/2, -1/2, 0, 0), (0, 1, 0,
+        0, 0, 0, 1/2, -1/2), (1, 0, 0, 0, 0, 0, 1/2, -1/2), (0, -1, 0, 0, 0, 0,
+        1/2, -1/2), (0, 0, -1, 0, 0, 0, 1/2, -1/2), (0, 0, 0, -1, 0, 0, 1/2,
+        -1/2), (0, 0, 0, 0, -1, 0, 1/2, -1/2), (0, 0, 0, 0, 0, -1, 1/2, -1/2),
+        (-1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 0, 0), (-1, 0, 0, 0, 0, 0, 1/2,
+        -1/2)]
+        """
+        R=self.parent().weight_lattice_realization().fundamental_weights()
+        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+
+    def e(self, i):
+        r"""
+        Returns the action of `e_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',7])
+	    sage: C([7]).e(7)
+	    sage: C([-7,6]).e(7)
+	    [7]
+        """
+        assert i in self.index_set()
+
+        if self.value ==  [-7, 6]  and i ==  7 :
+            return self.parent()( [7] )
+        if self.value ==  [-6, 5]  and i ==  6 :
+            return self.parent()( [-7, 6] )
+        if self.value ==  [-5, 4]  and i ==  5 :
+            return self.parent()( [-6, 5] )
+        if self.value ==  [-4, 2, 3]  and i ==  4 :
+            return self.parent()( [-5, 4] )
+        if self.value ==  [-2, 3]  and i ==  2 :
+            return self.parent()( [-4, 2, 3] )
+        if self.value ==  [-3, 1, 2]  and i ==  3 :
+            return self.parent()( [-4, 2, 3] )
+        if self.value ==  [-3, -2, 1, 4]  and i ==  3 :
+            return self.parent()( [-2, 3] )
+        if self.value ==  [-1, 2]  and i ==  1 :
+            return self.parent()( [-3, 1, 2] )
+        if self.value ==  [-3, -2, 1, 4]  and i ==  2 :
+            return self.parent()( [-3, 1, 2] )
+        if self.value ==  [-1, -2, 4]  and i ==  1 :
+            return self.parent()( [-3, -2, 1, 4] )
+        if self.value ==  [-4, 1, 5]  and i ==  4 :
+            return self.parent()( [-3, -2, 1, 4] )
+        if self.value ==  [-7, 1]  and i ==  7 :
+            return self.parent()( [-6, 7, 1] )
+        if self.value ==  [-1, -6, 3, 7]  and i ==  1 :
+            return self.parent()( [-6, 7, 1] )
+        if self.value ==  [-1, -2, 4]  and i ==  2 :
+            return self.parent()( [-1, 2] )
+        if self.value ==  [-4, -1, 3, 5]  and i ==  4 :
+            return self.parent()( [-1, -2, 4] )
+        if self.value ==  [-4, -1, 3, 5]  and i ==  1 :
+            return self.parent()( [-4, 1, 5] )
+        if self.value ==  [-5, 6, 1]  and i ==  5 :
+            return self.parent()( [-4, 1, 5] )
+        if self.value ==  [-3, 5]  and i ==  3 :
+            return self.parent()( [-4, -1, 3, 5] )
+        if self.value ==  [-5, -1, 3, 6]  and i ==  5 :
+            return self.parent()( [-4, -1, 3, 5] )
+        if self.value ==  [-5, -3, 4, 6]  and i ==  5 :
+            return self.parent()( [-3, 5] )
+        if self.value ==  [-6, 7, 1]  and i ==  6 :
+            return self.parent()( [-5, 6, 1] )
+        if self.value ==  [-5, -1, 3, 6]  and i ==  1 :
+            return self.parent()( [-5, 6, 1] )
+        if self.value ==  [-5, -3, 4, 6]  and i ==  3 :
+            return self.parent()( [-5, -1, 3, 6] )
+        if self.value ==  [-1, -6, 3, 7]  and i ==  6 :
+            return self.parent()( [-5, -1, 3, 6] )
+        if self.value ==  [-4, 2, 6]  and i ==  4 :
+            return self.parent()( [-5, -3, 4, 6] )
+        if self.value ==  [-6, -3, 7, 4]  and i ==  6 :
+            return self.parent()( [-5, -3, 4, 6] )
+        if self.value ==  [-6, -2, 7, 5]  and i ==  6 :
+            return self.parent()( [-2, 6] )
+        if self.value ==  [-6, -3, 7, 4]  and i ==  3 :
+            return self.parent()( [-1, -6, 3, 7] )
+        if self.value ==  [-1, -7, 3]  and i ==  7 :
+            return self.parent()( [-1, -6, 3, 7] )
+        if self.value ==  [-7, -3, 4]  and i ==  7 :
+            return self.parent()( [-6, -3, 7, 4] )
+        if self.value ==  [-6, -4, 2, 7, 5]  and i ==  4 :
+            return self.parent()( [-6, -3, 7, 4] )
+        if self.value ==  [-2, 6]  and i ==  2 :
+            return self.parent()( [-4, 2, 6] )
+        if self.value ==  [-6, -4, 2, 7, 5]  and i ==  6 :
+            return self.parent()( [-4, 2, 6] )
+        if self.value ==  [-6, -2, 7, 5]  and i ==  2 :
+            return self.parent()( [-6, -4, 2, 7, 5] )
+        if self.value ==  [-4, -7, 2, 5]  and i ==  7 :
+            return self.parent()( [-6, -4, 2, 7, 5] )
+        if self.value ==  [-7, -4, 6, 3]  and i ==  7 :
+            return self.parent()( [-4, 7, 3] )
+        if self.value ==  [-3, 1, 7]  and i ==  3 :
+            return self.parent()( [-4, 7, 3] )
+        if self.value ==  [-1, 7]  and i ==  1 :
+            return self.parent()( [-3, 1, 7] )
+        if self.value ==  [-3, -7, 1, 6]  and i ==  7 :
+            return self.parent()( [-3, 1, 7] )
+        if self.value ==  [-1, -7, 3]  and i ==  1 :
+            return self.parent()( [-7, 1] )
+        if self.value ==  [-7, -2, 5]  and i ==  2 :
+            return self.parent()( [-4, -7, 2, 5] )
+        if self.value ==  [-5, -7, 6, 2]  and i ==  5 :
+            return self.parent()( [-4, -7, 2, 5] )
+        if self.value ==  [-5, -2, -7, 4, 6]  and i ==  5 :
+            return self.parent()( [-7, -2, 5] )
+        if self.value ==  [-5, -7, 6, 2]  and i ==  7 :
+            return self.parent()( [-5, 7, 2] )
+        if self.value ==  [-5, -2, 4, 7]  and i ==  2 :
+            return self.parent()( [-5, 7, 2] )
+        if self.value ==  [-7, -3, 4]  and i ==  3 :
+            return self.parent()( [-1, -7, 3] )
+        if self.value ==  [-5, 7, 2]  and i ==  5 :
+            return self.parent()( [-6, -4, 2, 7, 5] )
+        if self.value ==  [-6, 2]  and i ==  6 :
+            return self.parent()( [-5, -7, 6, 2] )
+        if self.value ==  [-5, -2, -7, 4, 6]  and i ==  2 :
+            return self.parent()( [-5, -7, 6, 2] )
+        if self.value ==  [-7, -2, 5]  and i ==  7 :
+            return self.parent()( [-6, -2, 7, 5] )
+        if self.value ==  [-5, -2, 4, 7]  and i ==  5 :
+            return self.parent()( [-6, -2, 7, 5] )
+        if self.value ==  [-4, 7, 3]  and i ==  4 :
+            return self.parent()( [-5, -2, 4, 7] )
+        if self.value ==  [-5, -2, -7, 4, 6]  and i ==  7 :
+            return self.parent()( [-5, -2, 4, 7] )
+        if self.value ==  [-4, -7, 2, 5]  and i ==  4 :
+            return self.parent()( [-7, -3, 4] )
+        if self.value ==  [-7, -4, 6, 3]  and i ==  4 :
+            return self.parent()( [-5, -2, -7, 4, 6] )
+        if self.value ==  [-2, -6, 4]  and i ==  6 :
+            return self.parent()( [-5, -2, -7, 4, 6] )
+        if self.value ==  [-6, -4, 5, 3]  and i ==  6 :
+            return self.parent()( [-7, -4, 6, 3] )
+        if self.value ==  [-3, -7, 1, 6]  and i ==  3 :
+            return self.parent()( [-7, -4, 6, 3] )
+        if self.value ==  [-3, -6, 1, 5]  and i ==  6 :
+            return self.parent()( [-3, -7, 1, 6] )
+        if self.value ==  [-6, -1, 5]  and i ==  6 :
+            return self.parent()( [-7, -1, 6] )
+        if self.value ==  [-2, -6, 4]  and i ==  2 :
+            return self.parent()( [-6, 2] )
+        if self.value ==  [-6, -4, 5, 3]  and i ==  4 :
+            return self.parent()( [-2, -6, 4] )
+        if self.value ==  [-7, -1, 6]  and i ==  1 :
+            return self.parent()( [-3, -7, 1, 6] )
+        if self.value ==  [-5, 3]  and i ==  5 :
+            return self.parent()( [-6, -4, 5, 3] )
+        if self.value ==  [-3, -6, 1, 5]  and i ==  3 :
+            return self.parent()( [-6, -4, 5, 3] )
+        if self.value ==  [-6, -1, 5]  and i ==  1 :
+            return self.parent()( [-3, -6, 1, 5] )
+        if self.value ==  [-3, -5, 4, 1]  and i ==  5 :
+            return self.parent()( [-3, -6, 1, 5] )
+        if self.value ==  [-5, -1, 4]  and i ==  5 :
+            return self.parent()( [-6, -1, 5] )
+        if self.value ==  [-3, -5, 4, 1]  and i ==  3 :
+            return self.parent()( [-5, 3] )
+        if self.value ==  [-4, 1, 2]  and i ==  4 :
+            return self.parent()( [-3, -5, 4, 1] )
+        if self.value ==  [-5, -1, 4]  and i ==  1 :
+            return self.parent()( [-3, -5, 4, 1] )
+        if self.value ==  [-1, -4, 3, 2]  and i ==  4 :
+            return self.parent()( [-5, -1, 4] )
+        if self.value ==  [-1, -4, 3, 2]  and i ==  1 :
+            return self.parent()( [-4, 1, 2] )
+        if self.value ==  [-2, 1]  and i ==  2 :
+            return self.parent()( [-4, 1, 2] )
+        if self.value ==  [-3, 2]  and i ==  3 :
+            return self.parent()( [-1, -4, 3, 2] )
+        if self.value ==  [-2, -1, 3]  and i ==  2 :
+            return self.parent()( [-1, -4, 3, 2] )
+        if self.value ==  [-2, -1, 3]  and i ==  1 :
+            return self.parent()( [-2, 1] )
+        if self.value ==  [-7, -1, 6]  and i ==  7 :
+            return self.parent()( [-1, 7] )
+        if self.value ==  [-2, -3, 4]  and i ==  3 :
+            return self.parent()( [-2, -1, 3] )
+        if self.value ==  [-2, -3, 4]  and i ==  2 :
+            return self.parent()( [-3, 2] )
+        if self.value ==  [-4, 5]  and i ==  4 :
+            return self.parent()( [-2, -3, 4] )
+        if self.value ==  [-5, 6]  and i ==  5 :
+            return self.parent()( [-4, 5] )
+        if self.value ==  [-6, 7]  and i ==  6 :
+            return self.parent()( [-5, 6] )
+        if self.value ==  [-7]  and i ==  7 :
+            return self.parent()( [-6, 7] )
+
+        else:
+            return None
+
+    def f(self, i):
+        r"""
+        Returns the action of `f_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',7])
+	    sage: C([-7]).f(7)
+	    sage: C([7]).f(7)
+	    [-7, 6]
+        """
+        assert i in self.index_set()
+
+        if self.value ==  [7]  and i ==  7 :
+            return self.parent()( [-7, 6] )
+        if self.value ==  [-7, 6]  and i ==  6 :
+            return self.parent()( [-6, 5] )
+        if self.value ==  [-6, 5]  and i ==  5 :
+            return self.parent()( [-5, 4] )
+        if self.value ==  [-5, 4]  and i ==  4 :
+            return self.parent()( [-4, 2, 3] )
+        if self.value ==  [-4, 2, 3]  and i ==  2 :
+            return self.parent()( [-2, 3] )
+        if self.value ==  [-4, 2, 3]  and i ==  3 :
+            return self.parent()( [-3, 1, 2] )
+        if self.value ==  [-2, 3]  and i ==  3 :
+            return self.parent()( [-3, -2, 1, 4] )
+        if self.value ==  [-3, 1, 2]  and i ==  1 :
+            return self.parent()( [-1, 2] )
+        if self.value ==  [-3, 1, 2]  and i ==  2 :
+            return self.parent()( [-3, -2, 1, 4] )
+        if self.value ==  [-3, -2, 1, 4]  and i ==  1 :
+            return self.parent()( [-1, -2, 4] )
+        if self.value ==  [-3, -2, 1, 4]  and i ==  4 :
+            return self.parent()( [-4, 1, 5] )
+        if self.value ==  [-6, 7, 1]  and i ==  7 :
+            return self.parent()( [-7, 1] )
+        if self.value ==  [-6, 7, 1]  and i ==  1 :
+            return self.parent()( [-1, -6, 3, 7] )
+        if self.value ==  [-1, 2]  and i ==  2 :
+            return self.parent()( [-1, -2, 4] )
+        if self.value ==  [-1, -2, 4]  and i ==  4 :
+            return self.parent()( [-4, -1, 3, 5] )
+        if self.value ==  [-4, 1, 5]  and i ==  1 :
+            return self.parent()( [-4, -1, 3, 5] )
+        if self.value ==  [-4, 1, 5]  and i ==  5 :
+            return self.parent()( [-5, 6, 1] )
+        if self.value ==  [-4, -1, 3, 5]  and i ==  3 :
+            return self.parent()( [-3, 5] )
+        if self.value ==  [-4, -1, 3, 5]  and i ==  5 :
+            return self.parent()( [-5, -1, 3, 6] )
+        if self.value ==  [-3, 5]  and i ==  5 :
+            return self.parent()( [-5, -3, 4, 6] )
+        if self.value ==  [-5, 6, 1]  and i ==  6 :
+            return self.parent()( [-6, 7, 1] )
+        if self.value ==  [-5, 6, 1]  and i ==  1 :
+            return self.parent()( [-5, -1, 3, 6] )
+        if self.value ==  [-5, -1, 3, 6]  and i ==  3 :
+            return self.parent()( [-5, -3, 4, 6] )
+        if self.value ==  [-5, -1, 3, 6]  and i ==  6 :
+            return self.parent()( [-1, -6, 3, 7] )
+        if self.value ==  [-5, -3, 4, 6]  and i ==  4 :
+            return self.parent()( [-4, 2, 6] )
+        if self.value ==  [-5, -3, 4, 6]  and i ==  6 :
+            return self.parent()( [-6, -3, 7, 4] )
+        if self.value ==  [-2, 6]  and i ==  6 :
+            return self.parent()( [-6, -2, 7, 5] )
+        if self.value ==  [-1, -6, 3, 7]  and i ==  3 :
+            return self.parent()( [-6, -3, 7, 4] )
+        if self.value ==  [-1, -6, 3, 7]  and i ==  7 :
+            return self.parent()( [-1, -7, 3] )
+        if self.value ==  [-6, -3, 7, 4]  and i ==  7 :
+            return self.parent()( [-7, -3, 4] )
+        if self.value ==  [-6, -3, 7, 4]  and i ==  4 :
+            return self.parent()( [-6, -4, 2, 7, 5] )
+        if self.value ==  [-4, 2, 6]  and i ==  2 :
+            return self.parent()( [-2, 6] )
+        if self.value ==  [-4, 2, 6]  and i ==  6 :
+            return self.parent()( [-6, -4, 2, 7, 5] )
+        if self.value ==  [-6, -4, 2, 7, 5]  and i ==  2 :
+            return self.parent()( [-6, -2, 7, 5] )
+        if self.value ==  [-6, -4, 2, 7, 5]  and i ==  7 :
+            return self.parent()( [-4, -7, 2, 5] )
+        if self.value ==  [-4, 7, 3]  and i ==  7 :
+            return self.parent()( [-7, -4, 6, 3] )
+        if self.value ==  [-4, 7, 3]  and i ==  3 :
+            return self.parent()( [-3, 1, 7] )
+        if self.value ==  [-3, 1, 7]  and i ==  1 :
+            return self.parent()( [-1, 7] )
+        if self.value ==  [-3, 1, 7]  and i ==  7 :
+            return self.parent()( [-3, -7, 1, 6] )
+        if self.value ==  [-7, 1]  and i ==  1 :
+            return self.parent()( [-1, -7, 3] )
+        if self.value ==  [-4, -7, 2, 5]  and i ==  2 :
+            return self.parent()( [-7, -2, 5] )
+        if self.value ==  [-4, -7, 2, 5]  and i ==  5 :
+            return self.parent()( [-5, -7, 6, 2] )
+        if self.value ==  [-7, -2, 5]  and i ==  5 :
+            return self.parent()( [-5, -2, -7, 4, 6] )
+        if self.value ==  [-5, 7, 2]  and i ==  7 :
+            return self.parent()( [-5, -7, 6, 2] )
+        if self.value ==  [-5, 7, 2]  and i ==  2 :
+            return self.parent()( [-5, -2, 4, 7] )
+        if self.value ==  [-1, -7, 3]  and i ==  3 :
+            return self.parent()( [-7, -3, 4] )
+        if self.value ==  [-6, -4, 2, 7, 5]  and i ==  5 :
+            return self.parent()( [-5, 7, 2] )
+        if self.value ==  [-5, -7, 6, 2]  and i ==  6 :
+            return self.parent()( [-6, 2] )
+        if self.value ==  [-5, -7, 6, 2]  and i ==  2 :
+            return self.parent()( [-5, -2, -7, 4, 6] )
+        if self.value ==  [-6, -2, 7, 5]  and i ==  7 :
+            return self.parent()( [-7, -2, 5] )
+        if self.value ==  [-6, -2, 7, 5]  and i ==  5 :
+            return self.parent()( [-5, -2, 4, 7] )
+        if self.value ==  [-5, -2, 4, 7]  and i ==  4 :
+            return self.parent()( [-4, 7, 3] )
+        if self.value ==  [-5, -2, 4, 7]  and i ==  7 :
+            return self.parent()( [-5, -2, -7, 4, 6] )
+        if self.value ==  [-7, -3, 4]  and i ==  4 :
+            return self.parent()( [-4, -7, 2, 5] )
+        if self.value ==  [-5, -2, -7, 4, 6]  and i ==  4 :
+            return self.parent()( [-7, -4, 6, 3] )
+        if self.value ==  [-5, -2, -7, 4, 6]  and i ==  6 :
+            return self.parent()( [-2, -6, 4] )
+        if self.value ==  [-7, -4, 6, 3]  and i ==  6 :
+            return self.parent()( [-6, -4, 5, 3] )
+        if self.value ==  [-7, -4, 6, 3]  and i ==  3 :
+            return self.parent()( [-3, -7, 1, 6] )
+        if self.value ==  [-3, -7, 1, 6]  and i ==  6 :
+            return self.parent()( [-3, -6, 1, 5] )
+        if self.value ==  [-7, -1, 6]  and i ==  6 :
+            return self.parent()( [-6, -1, 5] )
+        if self.value ==  [-6, 2]  and i ==  2 :
+            return self.parent()( [-2, -6, 4] )
+        if self.value ==  [-2, -6, 4]  and i ==  4 :
+            return self.parent()( [-6, -4, 5, 3] )
+        if self.value ==  [-3, -7, 1, 6]  and i ==  1 :
+            return self.parent()( [-7, -1, 6] )
+        if self.value ==  [-6, -4, 5, 3]  and i ==  5 :
+            return self.parent()( [-5, 3] )
+        if self.value ==  [-6, -4, 5, 3]  and i ==  3 :
+            return self.parent()( [-3, -6, 1, 5] )
+        if self.value ==  [-3, -6, 1, 5]  and i ==  1 :
+            return self.parent()( [-6, -1, 5] )
+        if self.value ==  [-3, -6, 1, 5]  and i ==  5 :
+            return self.parent()( [-3, -5, 4, 1] )
+        if self.value ==  [-6, -1, 5]  and i ==  5 :
+            return self.parent()( [-5, -1, 4] )
+        if self.value ==  [-5, 3]  and i ==  3 :
+            return self.parent()( [-3, -5, 4, 1] )
+        if self.value ==  [-3, -5, 4, 1]  and i ==  4 :
+            return self.parent()( [-4, 1, 2] )
+        if self.value ==  [-3, -5, 4, 1]  and i ==  1 :
+            return self.parent()( [-5, -1, 4] )
+        if self.value ==  [-5, -1, 4]  and i ==  4 :
+            return self.parent()( [-1, -4, 3, 2] )
+        if self.value ==  [-4, 1, 2]  and i ==  1 :
+            return self.parent()( [-1, -4, 3, 2] )
+        if self.value ==  [-4, 1, 2]  and i ==  2 :
+            return self.parent()( [-2, 1] )
+        if self.value ==  [-1, -4, 3, 2]  and i ==  3 :
+            return self.parent()( [-3, 2] )
+        if self.value ==  [-1, -4, 3, 2]  and i ==  2 :
+            return self.parent()( [-2, -1, 3] )
+        if self.value ==  [-2, 1]  and i ==  1 :
+            return self.parent()( [-2, -1, 3] )
+        if self.value ==  [-1, 7]  and i ==  7 :
+            return self.parent()( [-7, -1, 6] )
+        if self.value ==  [-2, -1, 3]  and i ==  3 :
+            return self.parent()( [-2, -3, 4] )
+        if self.value ==  [-3, 2]  and i ==  2 :
+            return self.parent()( [-2, -3, 4] )
+        if self.value ==  [-2, -3, 4]  and i ==  4 :
+            return self.parent()( [-4, 5] )
+        if self.value ==  [-4, 5]  and i ==  5 :
+            return self.parent()( [-5, 6] )
+        if self.value ==  [-5, 6]  and i ==  6 :
+            return self.parent()( [-6, 7] )
+        if self.value ==  [-6, 7]  and i ==  7 :
+            return self.parent()( [-7] )
+
+        else:
+            return None
+

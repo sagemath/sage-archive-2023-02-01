@@ -809,6 +809,38 @@ class CrystalElement(Element):
         """
         return all(self.e(i) == None for i in self.index_set())
 
+    def to_highest_weight(self, list = [], index_set = None):
+	r"""
+	Yields the highest weight element `u` and list `[i_1,...,i_k]`
+	such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
+	elements in `index_set`. By default the index set is assumed to be
+	the full index set of self.
+
+	EXAMPLES::
+
+	    sage: T = CrystalOfTableaux(['A',3], shape = [1])
+	    sage: t = T(rows = [[3]])
+	    sage: t.to_highest_weight()
+	    [[[1]], [2, 1]]
+	    sage: t.to_highest_weight()
+	    [[[1]], [2, 1]]
+	    sage: T = CrystalOfTableaux(['A',3], shape = [2,1])
+	    sage: t = T(rows = [[1,2],[4]])
+	    sage: t.to_highest_weight()
+	    [[[1, 1], [2]], [1, 3, 2]]
+	    sage: t.to_highest_weight(index_set = [3])
+	    [[[1, 2], [3]], [3]]
+	"""
+	#should assert that self.parent() restricted to index_set is a highest weight crystal
+	if index_set is None:
+	    index_set = self.index_set()
+	for i in index_set:
+	    if self.epsilon(i) <> 0:
+		self = self.e(i)
+		return self.to_highest_weight(list = list + [i], index_set = index_set)
+	return [self, list]
+
+
 class CrystalBacktracker(GenericBacktracker):
     def __init__(self, crystal):
         """

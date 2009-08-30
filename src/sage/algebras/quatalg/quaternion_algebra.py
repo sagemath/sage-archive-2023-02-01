@@ -1347,7 +1347,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.right_order() == Or
             True
 
-        ALGORITHM: Let `b_1, b_2, b_3, b_3` be a basis for this
+        ALGORITHM: Let `b_1, b_2, b_3, b_4` be a basis for this
         fractional ideal `I`, and assume we want to compute the left
         order of `I` in the quaternion algebra `Q`.  Then
         multiplication by `b_i` on the right defines a map `B_i:Q \to

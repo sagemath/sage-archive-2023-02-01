@@ -2320,6 +2320,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if max(self._nrows, self._ncols) <= 10:
                 # pari much better for very small matrices, as long as entries aren't huge.
                 algorithm = 'pari'
+            # endif
+
             if max(self._nrows, self._ncols) <= 50:
                 # when entries are huge, padic relatively good.
                 h = self.height().ndigits()

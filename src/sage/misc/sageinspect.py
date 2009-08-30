@@ -224,9 +224,9 @@ def _sage_getargspec_cython(source):
 
         sage: from sage.misc.sageinspect import _sage_getargspec_cython
         sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, ('None', '0'))
+        (['self', 'x', 'base'], None, None, (None, 0))
         sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
-        (['self', 'x', 'base'], None, None, ('None', '0'))
+        (['self', 'x', 'base'], None, None, (None, 0))
 
     AUTHOR:
 
@@ -266,9 +266,8 @@ def _sage_getargspec_cython(source):
             argnames.append(argname)
             if len(s) > 1:
                 defvalue = s[1]
-                # Remove quotes around strings
-                defvalue = defvalue.strip('"').strip("'")
-                argdefs.append(defvalue)
+                # eval defvalue so we aren't just returning strings
+                argdefs.append(eval(defvalue))
 
         if len(argdefs) > 0:
             argdefs = tuple(argdefs)
@@ -389,6 +388,11 @@ def sage_getdef(obj, obj_name=''):
         '(ring, n=0, sparse=False)'
         sage: sage_getdef(identity_matrix, 'identity_matrix')
         'identity_matrix(ring, n=0, sparse=False)'
+
+    Check that trac ticket #6848 has been fixed::
+
+        sage: sage_getdef(RDF.random_element)
+        '(min=-1, max=1)'
 
     If an exception is generated, None is returned instead and the
     exception is suppressed.
@@ -614,10 +618,10 @@ def __internal_tests():
         sage: sage_getsource(sage)
         "...all..."
 
-    A cython function with default arguments::
+    A cython function with default arguments (one of which is a string)::
 
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
-        "factor(algorithm='pari', proof='True', limit='None')"
+        "factor(algorithm='pari', proof=True, limit=None)"
 
     A cython method without an embedded position can lead to surprising errors::
 
@@ -653,11 +657,11 @@ def __internal_tests():
     Test _sage_getargspec_cython with multiple default arguments and a type::
 
         sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, ('None', '0'))
+        (['self', 'x', 'base'], None, None, (None, 0))
         sage: _sage_getargspec_cython("def __init__(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, ('None', '0'))
+        (['self', 'x', 'base'], None, None, (None, 0))
         sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
-        (['self', 'x', 'base'], None, None, ('None', '0'))
+        (['self', 'x', 'base'], None, None, (None, 0))
 
     Test _extract_embedded_position:
 

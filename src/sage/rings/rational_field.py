@@ -731,6 +731,18 @@ class RationalField(_uniq, number_field_base.NumberField):
         from sage.rings.number_field.all import NumberField
         return NumberField(poly, names=names, check=check, embedding=embedding)
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of self (which is QQbar).
+
+        EXAMPLES::
+
+            sage: QQ.algebraic_closure()
+            Algebraic Field
+        """
+        from sage.rings.all import QQbar
+        return QQbar
+
     def order(self):
         """
         EXAMPLES::

@@ -1544,6 +1544,24 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             return embedding(self.gen())
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of self (which is QQbar).
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: K.algebraic_closure()
+            Algebraic Field
+            sage: K.<a> = NumberField(x^3-2)
+            sage: K.algebraic_closure()
+            Algebraic Field
+            sage: K = CyclotomicField(23)
+            sage: K.algebraic_closure()
+            Algebraic Field
+        """
+        return sage.rings.all.QQbar
+
     def latex_variable_name(self, name=None):
         """
         Return the latex representation of the variable name for this

@@ -1674,6 +1674,25 @@ cdef class Field(PrincipalIdealDomain):
             import sage.rings.finite_field
             return sage.rings.finite_field.FiniteField(self.characteristic())
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of self.
+
+        .. note::
+
+           This is only implemented for certain classes of field.
+
+        EXAMPLES::
+
+            sage: K = PolynomialRing(QQ,'x').fraction_field(); K
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            sage: K.algebraic_closure()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Algebraic closures of general fields not implemented.
+        """
+        raise NotImplementedError, "Algebraic closures of general fields not implemented."
+
 cdef class FiniteFieldIterator:
     r"""
     An iterator over a finite field. This should only be used when the field is
@@ -2332,6 +2351,24 @@ cdef class FiniteField(Field):
             True
         """
         return self._factory_data[0].reduce_data(self)
+
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of self (not implemented).
+
+        .. note::
+
+           This is not yet implemented for finite fields.
+
+        EXAMPLES::
+
+            sage: GF(5).algebraic_closure()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Algebraic closures of finite fields not implemented.
+        """
+        raise NotImplementedError, "Algebraic closures of finite fields not implemented."
+
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     r"""

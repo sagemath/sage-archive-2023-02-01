@@ -466,3 +466,19 @@ class ComplexField_class(field.Field):
     def scientific_notation(self, status=None):
         return self._real_field().scientific_notation(status)
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of self (which is itself).
+
+        EXAMPLES::
+
+            sage: CC
+            Complex Field with 53 bits of precision
+            sage: CC.algebraic_closure()
+            Complex Field with 53 bits of precision
+            sage: CC = ComplexField(1000)
+            sage: CC.algebraic_closure() is CC
+            True
+        """
+        return self
+

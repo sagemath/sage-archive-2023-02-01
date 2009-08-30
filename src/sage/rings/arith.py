@@ -2630,11 +2630,18 @@ def multinomial(*ks):
     r"""
     Return the multinomial coefficient
 
-    .. math::
+    INPUT:
 
-           \binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}        = \frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}         = \prod_{i=1}^n \binom{\sum_{j=1}^i k_j}{k_i}
+        - An arbitrary number of integer arguments `k_1,\dots,k_n`
+        - A list of integers `[k_1,\dots,k_n]`
 
+    OUTPUT:
 
+        Returns the integer :
+
+        .. math::
+
+               \binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}        = \frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}         = \prod_{i=1}^n \binom{\sum_{j=1}^i k_j}{k_i}
 
     EXAMPLES::
 

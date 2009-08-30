@@ -1393,7 +1393,7 @@ cdef class CommutativeRingElement(RingElement):
 
     def inverse_mod(self, I):
         r"""
-        Return an inverse of self modulo the ideal $I$, if defined,
+        Return an inverse of self modulo the ideal `I`, if defined,
         i.e., if `I` and self together generate the unit ideal.
         """
         raise NotImplementedError
@@ -1418,7 +1418,60 @@ cdef class CommutativeRingElement(RingElement):
             False
             sage: (x^2+2).divides(x)
             False
+
+        Ticket \#5347 has been fixed::
+
+            sage: K = GF(7)
+            sage: K(3).divides(1)
+            True
+            sage: K(3).divides(K(1))
+            True
+
+        ::
+
+            sage: R = Integers(128)
+            sage: R(0).divides(1)
+            False
+            sage: R(0).divides(0)
+            True
+            sage: R(0).divides(R(0))
+            True
+            sage: R(1).divides(0)
+            True
+            sage: R(121).divides(R(120))
+            True
+            sage: R(120).divides(R(121))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: reduction modulo right not defined.
+
         """
+        # First we test some generic conditions:
+        try:
+            if x.is_zero():
+                return True # everything divides 0
+        except (AttributeError, NotImplementedError):
+            pass
+
+        try:
+            if self.is_zero():
+                return False # 0 divides nothing else
+        except (AttributeError, NotImplementedError):
+            pass
+
+        try:
+            if self.is_unit():
+                return True # units divide everything
+        except (AttributeError, NotImplementedError):
+            pass
+
+        try:
+            if self.is_one():
+                return True # 1 divides everything
+                            # (is_unit() may not be implemented)
+        except (AttributeError, NotImplementedError):
+            pass
+
         return (x % self) == 0
 
     def mod(self, I):

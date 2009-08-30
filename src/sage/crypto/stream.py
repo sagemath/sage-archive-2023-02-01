@@ -1,5 +1,5 @@
 """
-Stream Cryptosystems.
+Stream Cryptosystems
 """
 
 #*****************************************************************************
@@ -32,9 +32,9 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
 
         EXAMPLES::
 
-                   sage: E = LFSRCryptosystem(FiniteField(2))
+            sage: E = LFSRCryptosystem(FiniteField(2))
             sage: E
-                   LFSR cryptosystem over Finite Field of size 2
+            LFSR cryptosystem over Finite Field of size 2
 
         TESTS::
 
@@ -42,7 +42,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
             sage: E == loads(dumps(E))
             True
 
-        TODO: Implement LFSR cryptosytem for arbitrary rings. The current
+        TODO: Implement LFSR cryptosystem for arbitrary rings. The current
         implementation is limited to the finite field of 2 elements only
         because of the dependence on binary strings.
         """
@@ -76,7 +76,15 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
                 "The length of IS (= %s) must equal the degree of poly (= %s)" % (IS, poly)
         return LFSRCipher(self, poly, IS)
 
-    def __repr__(self):
+    def _repr_(self):
+        r"""
+        Return the string representation of this LFSR cryptosystem.
+
+        EXAMPLES::
+
+            sage: LFSRCryptosystem(FiniteField(2))
+            LFSR cryptosystem over Finite Field of size 2
+        """
         return "LFSR cryptosystem over %s" % self._field
 
     def encoding(self,M):
@@ -100,9 +108,9 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
 
         EXAMPLES::
 
-                   sage: E = ShrinkingGeneratorCryptosystem()
+            sage: E = ShrinkingGeneratorCryptosystem()
             sage: E
-                   Shrinking generator cryptosystem over Finite Field of size 2
+            Shrinking generator cryptosystem over Finite Field of size 2
         """
         if field is None:
            field = FiniteField(2)
@@ -129,7 +137,16 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "The key (= (%s,%s)) must be a tuple of two LFSR ciphers." % key
         return ShrinkingGeneratorCipher(self, e1, e2)
 
-    def __repr__(self):
+    def _repr_(self):
+        r"""
+        Return the string representation of this shrinking generator
+        cryptosystem.
+
+        EXAMPLES::
+
+            sage: ShrinkingGeneratorCryptosystem()
+            Shrinking generator cryptosystem over Finite Field of size 2
+        """
         return "Shrinking generator cryptosystem over %s" % self._field
 
     def encoding(self,M):
@@ -138,5 +155,3 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
             return S.encoding(M)
         except:
             raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
-
-

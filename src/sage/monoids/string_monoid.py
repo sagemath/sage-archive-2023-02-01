@@ -1,7 +1,9 @@
 r"""
 Free String Monoids
 
-AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2007-01
+AUTHORS:
+
+- David Kohel <kohel@maths.usyd.edu.au>, 2007-01
 
 Sage supports a wide range of specific free string monoids.
 """
@@ -25,14 +27,14 @@ _cache = {}
 
 def BinaryStrings():
     r"""
-    Returns the free binary string monoid on generators $\{0,1\}$.
-
-    INPUT: None
+    Returns the free binary string monoid on generators `\{ 0, 1 \}`.
 
     OUTPUT:
-        Free binary string monoid
 
-    EXAMPLES:
+    - Free binary string monoid.
+
+    EXAMPLES::
+
         sage: S = BinaryStrings(); S
         Free binary string monoid
         sage: u = S('')
@@ -63,14 +65,14 @@ def BinaryStrings():
 
 def OctalStrings():
     r"""
-    Returns the free octal string monoid on generators $\{0,1,..,7\}$.
-
-    INPUT: None
+    Returns the free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
 
     OUTPUT:
-        Free octal string monoid
 
-    EXAMPLES:
+    - Free octal string monoid.
+
+    EXAMPLES::
+
         sage: S = OctalStrings(); S
         Free octal string monoid
         sage: x = S.gens()
@@ -93,14 +95,14 @@ def OctalStrings():
 def HexadecimalStrings():
     r"""
     Returns the free hexadecimal string monoid on generators
-    $\{0,1,..,9,a,b,c,d,e,f\}$.
-
-    INPUT: None
+    `\{ 0, 1, \dots , 9, a, b, c, d, e, f \}`.
 
     OUTPUT:
-        Free hexadecimal string monoid
 
-    EXAMPLES:
+    - Free hexadecimal string monoid.
+
+    EXAMPLES::
+
         sage: S = HexadecimalStrings(); S
         Free hexadecimal string monoid
         sage: x = S.gen(0)
@@ -123,20 +125,19 @@ def HexadecimalStrings():
 def Radix64Strings():
     r"""
     Returns the free radix 64 string monoid on 64 generators
-    $$
-    \{
-       A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,
-       a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,
-       0,1,2,3,4,5,6,7,8,9,+,/
-    \}.
-    $$
 
-    INPUT: None
+    ::
+
+        A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,
+        a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,
+        0,1,2,3,4,5,6,7,8,9,+,/
 
     OUTPUT:
-        Free radix 64 string monoid
 
-    EXAMPLES:
+    - Free radix 64 string monoid.
+
+    EXAMPLES::
+
         sage: S = Radix64Strings(); S
         Free radix 64 string monoid
         sage: x = S.gens()
@@ -159,16 +160,14 @@ def Radix64Strings():
 def AlphabeticStrings():
     r"""
     Returns the string monoid on generators A-Z:
-    $$
-    \{ A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z \}
-    $$
-
-    INPUT: None
+    `\{ A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z \}`.
 
     OUTPUT:
-        Free alphabetic string monoid on A-Z.
 
-    EXAMPLES:
+    - Free alphabetic string monoid on A-Z.
+
+    EXAMPLES::
+
         sage: S = AlphabeticStrings(); S
         Free alphabetic string monoid on A-Z
         sage: x = S.gens()
@@ -190,17 +189,21 @@ def AlphabeticStrings():
 
 class StringMonoid_class(FreeMonoid_class):
     r"""
-    A free string monoid on $n$ generators.
+    A free string monoid on `n` generators.
     """
-    def __init__(self,n,alphabet=()):
+    def __init__(self, n, alphabet=()):
         r"""
-        Create free binary string monoid on $n$ generators$.
+        Create free binary string monoid on `n` generators.
 
         INPUT:
-            n: Integer
-            alphabet: String or tuple whose characters or elements denote the generators.
 
-        EXAMPLES:
+        - ``n`` -- Integer
+
+        - ``alphabet`` -- String or tuple whose characters or elements denote
+          the generators.
+
+        EXAMPLES::
+
             sage: S = BinaryStrings(); S
             Free binary string monoid
             sage: x = S.gens()
@@ -220,12 +223,14 @@ class StringMonoid_class(FreeMonoid_class):
 
     def gen(self,i=0):
         r"""
-        The $i$-th generator of the monoid.
+        The `i`-th generator of the monoid.
 
         INPUT:
-            i -- integer (default: 0)
 
-        EXAMPLES:
+        - ``i`` -- integer (default: 0)
+
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: S.gen(0)
             0
@@ -256,15 +261,14 @@ class StringMonoid_class(FreeMonoid_class):
 
 class BinaryStringMonoid(StringMonoid_class):
     r"""
-    The free binary string monoid on generators $\{0,1\}$.
+    The free binary string monoid on generators `\{ 0, 1 \}`.
     """
     def __init__(self):
         r"""
-        Create free binary string monoid on generators $\{0,1\}$.
+        Create free binary string monoid on generators `\{ 0, 1 \}`.
 
-        INPUT: None
+        EXAMPLES::
 
-        EXAMPLES:
             sage: S = BinaryStrings(); S
             Free binary string monoid
             sage: x = S.gens()
@@ -283,15 +287,17 @@ class BinaryStringMonoid(StringMonoid_class):
 
     def __call__(self, x, check=True):
         r"""
-        Return $x$ coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
         One can create a free binary string monoid element from a
-        Python string of 0's and 1's or list integers
+        Python string of 0's and 1's or list of integers.
 
-        NOTE: Due to the ambiguity of the second generator '1' with the that the
-        identity element '' of the monoid, the syntax S(1) is not permissible.
+        NOTE: Due to the ambiguity of the second generator '1' with
+        the identity element '' of the monoid, the syntax S(1) is not
+        permissible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: S('101')
             101
@@ -312,9 +318,11 @@ class BinaryStringMonoid(StringMonoid_class):
 
     def encoding(self,S,padic=False):
         r"""
-        The binary encoding of the string S, as a binary string element.
+        The binary encoding of the string ``S``, as a binary string element.
 
         The default is to keep the standard ASCII byte encoding, e.g.
+
+        ::
 
             A = 65 -> 01000001
             B = 66 -> 01000010
@@ -325,9 +333,10 @@ class BinaryStringMonoid(StringMonoid_class):
 
         rather than a 2-adic representation 65 -> 10000010.
 
-        Set padic = True to reverse the bit string.
+        Set ``padic=True`` to reverse the bit string.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: S.encoding('A')
             01000001
@@ -349,17 +358,30 @@ class BinaryStringMonoid(StringMonoid_class):
             bit_string.extend(bits)
         return self(bit_string)
 
+    # def ngens(self):
+    #     r"""
+    #     Return the number of generators of this free binary string monoid.
+    #     There are only 2 elements in the binary number system. Hence, this
+    #     is the number of generators.
+
+    #     EXAMPLES::
+
+    #         sage: S = BinaryStrings()
+    #         sage: S.ngens()
+    #         2
+    #     """
+    #     return 2
+
 class OctalStringMonoid(StringMonoid_class):
     r"""
-    The free octal string monoid on generators $\{0,1,..,7\}$.
+    The free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
     """
     def __init__(self):
         r"""
-        Create free octal string monoid on generators $\{0,1,..,7\}$.
+        Create free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
 
-        INPUT: None
+        EXAMPLES::
 
-        EXAMPLES:
             sage: S = OctalStrings(); S
             Free octal string monoid
             sage: x = S.gens()
@@ -380,12 +402,13 @@ class OctalStringMonoid(StringMonoid_class):
 
     def __call__(self, x, check=True):
         r"""
-        Return $x$ coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
         One can create a free octal string monoid element from a
         Python string of 0's to 7's or list of integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = OctalStrings()
             sage: S('07070701650165')
             07070701650165
@@ -408,15 +431,16 @@ class OctalStringMonoid(StringMonoid_class):
 
 class HexadecimalStringMonoid(StringMonoid_class):
     r"""
-    The free hexadecimal string monoid on generators $\{0,1,..,9,a,b,c,d,e,f\}$.
+    The free hexadecimal string monoid on generators
+    `\{ 0, 1, \dots, 9, a, b, c, d, e, f \}`.
     """
     def __init__(self):
         r"""
-        Create free hexadecimal string monoid on generators $\{0,1,..,9,a,b,c,d,e,f\}$.
+        Create free hexadecimal string monoid on generators
+        `\{ 0, 1, \dots, 9, a, b, c, d, e, f \}`.
 
-        INPUT: None
+        EXAMPLES::
 
-        EXAMPLES:
             sage: S = HexadecimalStrings(); S
             Free hexadecimal string monoid
             sage: x = S.gens()
@@ -438,12 +462,13 @@ class HexadecimalStringMonoid(StringMonoid_class):
 
     def __call__(self, x, check=True):
         r"""
-        Return $x$ coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
         One can create a free hexadecimal string monoid element from a
-        Python string of a list of integers in $\{0,..,15\}$.
+        Python string of a list of integers in `\{ 0, \dots, 15 \}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = HexadecimalStrings()
             sage: S('0a0a0a019f019f')
             0a0a0a019f019f
@@ -466,9 +491,11 @@ class HexadecimalStringMonoid(StringMonoid_class):
 
     def encoding(self,S,padic=False):
         r"""
-        The encoding of the string S, as a hexadecimal string element.
+        The encoding of the string ``S`` as a hexadecimal string element.
 
         The default is to keep the standard right-to-left byte encoding, e.g.
+
+        ::
 
             A = '\x41' -> 41
             B = '\x42' -> 42
@@ -481,9 +508,10 @@ class HexadecimalStringMonoid(StringMonoid_class):
         Although standard (e.g., in the Python constructor '\xhh'),
         this can be confusing when the string reads left-to-right.
 
-        Set padic = True to reverse the character encoding.
+        Set ``padic=True`` to reverse the character encoding.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = HexadecimalStrings()
             sage: S.encoding('A')
             41
@@ -514,9 +542,8 @@ class Radix64StringMonoid(StringMonoid_class):
         r"""
         Create free radix 64 string monoid on 64 generators.
 
-        INPUT: None
+        EXAMPLES::
 
-        EXAMPLES:
             sage: S = Radix64Strings(); S
             Free radix 64 string monoid
             sage: x = S.gens()
@@ -539,13 +566,14 @@ class Radix64StringMonoid(StringMonoid_class):
 
     def __call__(self, x, check=True):
         r"""
-        Return $x$ coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
         One can create a free radix 64 string monoid element from a
-        Python string or a list of integers in $0,..,63$, as for
-        generic FreeMonoids.
+        Python string or a list of integers in `0, \dots, 63`, as for
+        generic ``FreeMonoids``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = Radix64Strings()
             sage: S.gen(0)
             A
@@ -571,14 +599,24 @@ class Radix64StringMonoid(StringMonoid_class):
 class AlphabeticStringMonoid(StringMonoid_class):
     """
     The free alphabetic string monoid on generators A-Z.
+
+    EXAMPLES::
+
+        sage: S = AlphabeticStrings(); S
+        Free alphabetic string monoid on A-Z
+        sage: S.gen(0)
+        A
+        sage: S.gen(25)
+        Z
+        sage: S([ i for i in range(26) ])
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ
     """
     def __init__(self):
         r"""
         Create free alphabetic string monoid on generators A-Z.
 
-        INPUT: None
+        EXAMPLES::
 
-        EXAMPLES:
             sage: S = AlphabeticStrings(); S
             Free alphabetic string monoid on A-Z
             sage: S.gen(0)
@@ -601,12 +639,13 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
     def __call__(self, x, check=True):
         r"""
-        Return $x$ coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
         One can create a free alphabetic string monoid element from a
-        Python string, or a list of integers in $0,..,25$.
+        Python string, or a list of integers in `0, \dots,25`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: S.gen(0)
             A
@@ -629,16 +668,18 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
     def encoding(self,S):
         r"""
-        The encoding of the string S in the alphabetic string monoid,
+        The encoding of the string ``S`` in the alphabetic string monoid,
         obtained by the monoid homomorphism
-        \begin{verbatim}
+
+        ::
+
             A -> A, ..., Z -> Z, a -> A, ..., z -> Z
-        \end{verbatim}
-        and stripping away all other characters.
 
-        It should be noted that this is a non-injective monoid homomorphism.
+        and stripping away all other characters. It should be noted that
+        this is a non-injective monoid homomorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: s = S.encoding("The cat in the hat."); s
             THECATINTHEHAT
@@ -646,6 +687,3 @@ class AlphabeticStringMonoid(StringMonoid_class):
             'THECATINTHEHAT'
         """
         return self(strip_encoding(S))
-
-
-

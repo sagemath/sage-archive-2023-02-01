@@ -1,5 +1,5 @@
 """
-Ciphers.
+Ciphers
 """
 
 #*****************************************************************************
@@ -33,8 +33,18 @@ class Cipher(Element):
     def __eq__(self, right):
         return type(self) == type(right) and self._parent == right._parent and self._key == right._key
 
-    def __repr__(self):
-        return str(self._key)
+    def _repr_(self):
+        r"""
+        Return the string representation of this cipher.
+
+        EXAMPLES::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: S(13)
+            Shift cipher on Free alphabetic string monoid on A-Z
+        """
+        # return str(self._key)
+        return "Cipher on %s" % self.parent().cipher_domain()
 
     def key(self):
         return self._key # was str(self._key)

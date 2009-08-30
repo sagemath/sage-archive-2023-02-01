@@ -5,7 +5,9 @@ AUTHORS:
 
 - David Kohel (2005-09)
 
-EXAMPLES: Recall the example from abelian monoids.
+EXAMPLES:
+
+Recall the example from abelian monoids.
 
 ::
 
@@ -44,6 +46,18 @@ from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement, generic_power
 
 def is_FreeAbelianMonoidElement(x):
+    r"""
+    Queries whether ``x`` is an object of type ``FreeAbelianMonoidElement``.
+
+    INPUT:
+
+    - ``x`` -- an object.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is an object of type ``FreeAbelianMonoidElement``;
+      ``False`` otherwise.
+    """
     return isinstance(x, FreeAbelianMonoidElement)
 
 class FreeAbelianMonoidElement(MonoidElement):

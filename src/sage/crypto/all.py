@@ -1,6 +1,7 @@
 from classical import (
      HillCryptosystem,
      SubstitutionCryptosystem,
+     ShiftCryptosystem,
      TranspositionCryptosystem,
      VigenereCryptosystem)
 

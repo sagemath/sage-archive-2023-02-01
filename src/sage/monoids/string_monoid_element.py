@@ -1,7 +1,9 @@
 """
 String Monoid Elements
 
-AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2007-01
+AUTHORS:
+
+- David Kohel <kohel@maths.usyd.edu.au>, 2007-01
 
 Elements of free string monoids, internal representation subject to change.
 
@@ -57,7 +59,7 @@ class StringMonoidElement(FreeMonoidElement):
     """
     def __init__(self, S, x, check=True):
         """
-        Create the element $x$ of the StringMonoid $S$.
+        Create the element ``x`` of the StringMonoid ``S``.
 
         This should typically be called by a StringMonoid.
         """
@@ -87,7 +89,8 @@ class StringMonoidElement(FreeMonoidElement):
         The ordering is the one on the underlying sorted list of
         (monomial,coefficients) pairs.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: (x,y) = S.gens()
             sage: x * y < y * x
@@ -115,7 +118,8 @@ class StringMonoidElement(FreeMonoidElement):
         """
         Return latex representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: s = S('101111000')
             sage: latex(s)
@@ -127,7 +131,8 @@ class StringMonoidElement(FreeMonoidElement):
         """
         Multiply 2 free string monoid elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: (x,y) = S.gens()
             sage: x*y
@@ -144,17 +149,21 @@ class StringMonoidElement(FreeMonoidElement):
 
     def __pow__(self, n):
         """
-        Return the $n$-th power of the string element.
+        Return the `n`-th power of the string element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: (x,y) = BinaryStrings().gens()
             sage: x**3 * y**5 * x**7
             000111110000000
             sage: x**0
 
 
-        Note that raising to a negative power is \emph{not} a constructor
+        Note that raising to a negative power is *not* a constructor
         for an element of the corresponding free group (yet).
+
+        ::
+
             sage: x**(-1)
             Traceback (most recent call last):
             ...
@@ -176,9 +185,10 @@ class StringMonoidElement(FreeMonoidElement):
         """
         Return the number of products that occur in this monoid element.
         For example, the length of the identity is 0, and the length
-        of the monoid $x_0^2x_1$ is three.
+        of the monoid `x_0^2x_1` is three.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = BinaryStrings()
             sage: z = S('')
             sage: len(z)
@@ -202,10 +212,11 @@ class StringMonoidElement(FreeMonoidElement):
         return self.parent()(c)
 
     def decoding(self,padic=False):
-        """
+        r"""
         The byte string associated to a binary or hexadecimal string monoid element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = HexadecimalStrings()
             sage: s = S.encoding("A..Za..z"); s
             412e2e5a612e2e7a

@@ -1,10 +1,10 @@
 r"""
-Linear feedback shift register (LFSR) sequence commands.
+Linear feedback shift register (LFSR) sequence commands
 
 Stream ciphers have been used for a long time as a source of
 pseudo-random number generators.
 
-S. Golomb [G] gives a list of three statistical properties a
+S. Golomb [G]_ gives a list of three statistical properties a
 sequence of numbers `{\bf a}=\{a_n\}_{n=1}^\infty`,
 `a_n\in \{0,1\}`, should display to be considered
 "random". Define the autocorrelation of `{\bf a}` to be
@@ -118,15 +118,15 @@ The sequence of `0,1`'s is periodic with period
 `P=2^4-1=15` and satisfies Golomb's three randomness
 conditions. However, this sequence of period 15 can be "cracked"
 (i.e., a procedure to reproduce `g(x)`) by knowing only 8
-terms! This is the function of the Berlekamp-Massey algorithm [M],
+terms! This is the function of the Berlekamp-Massey algorithm [M]_,
 implemented as ``berlekamp_massey.py``.
 
-[G] Solomon Golomb, Shift register sequences, Aegean Park Press,
-Laguna Hills, Ca, 1967
+.. [G] Solomon Golomb, Shift register sequences, Aegean Park Press,
+  Laguna Hills, Ca, 1967
 
-[M] James L. Massey, "Shift-Register Synthesis and BCH Decoding."
-IEEE Trans. on Information Theory, vol. 15(1), pp. 122-127, Jan
-1969.
+.. [M] James L. Massey, "Shift-Register Synthesis and BCH Decoding."
+  IEEE Trans. on Information Theory, vol. 15(1), pp. 122-127, Jan
+  1969.
 
 AUTHORS:
 
@@ -275,21 +275,21 @@ def lfsr_connection_polynomial(s):
 
 
     This implements the algorithm in section 3 of J. L. Massey's
-    article [M].
+    article [M]_.
 
     EXAMPLE::
 
-                sage: F = GF(2)
+        sage: F = GF(2)
         sage: F
         Finite Field of size 2
         sage: o = F(0); l = F(1)
-               sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
-               sage: s = lfsr_sequence(key,fill,n); s
-               [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0]
-               sage: lfsr_connection_polynomial(s)
-               x^4 + x + 1
-               sage: berlekamp_massey(s)
-               x^4 + x^3 + 1
+        sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
+        sage: s = lfsr_sequence(key,fill,n); s
+        [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0]
+        sage: lfsr_connection_polynomial(s)
+        x^4 + x + 1
+        sage: berlekamp_massey(s)
+        x^4 + x^3 + 1
 
     Notice that ``berlekamp_massey`` returns the reverse
     of the connection polynomial (and is potentially must faster than
@@ -298,11 +298,6 @@ def lfsr_connection_polynomial(s):
     AUTHORS:
 
     - Timothy Brock (2006-04-17)
-
-    REFERENCES:
-
-    - [M] J. L. Massey, 'Shift-register synthesis and BCH decoding,'
-      IEEE Trans. Inform. Theory, vol. IT-15, pp. 122-127, Jan. 19 69.
     """
     # Initialization:
     FF = s[0].base_ring()
@@ -333,10 +328,3 @@ def lfsr_connection_polynomial(s):
                 B = T
                 N += 1
     return C
-
-
-
-
-
-
-

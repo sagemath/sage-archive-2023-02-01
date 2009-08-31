@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###########################################
-## Readline 5.2
+## Readline 6.0
 ###########################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
@@ -12,7 +12,6 @@ fi
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    echo "Building 64 bit OSX version of Sage"
    CFLAGS="-O2 -g -m64 " && export CFLAGS
-   LDFLAGS="-m64"
 fi
 
 echo "Deleting old readline headers and libs"
@@ -46,13 +45,6 @@ cd src/
 build()
 {
     ./configure --prefix=$SAGE_LOCAL
-    if [ `uname` == 'Darwin' ]; then
-      if [ `uname -r | awk -F. '{ print $1; }'` == '9' ]; then
-	echo "Fixing Makefile for OSX 10.5 compatibility"
-	sed -e 's/-dynamic/-dynamiclib/' shlib/Makefile > shlib/Makefile.ok
-	mv shlib/Makefile.ok shlib/Makefile
-      fi
-    fi
     make install
 }
 
@@ -69,20 +61,20 @@ elif [ $UNAME = "CYGWIN" ]; then
   # It is of course very lame that readline names the file .dll.a, but that's what it does.
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dll.a
 elif [ "$UNAME" = "OpenBSD" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5.2
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6.0
 elif [ "$UNAME" = "FreeBSD" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6
 else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
 fi
 
 if [ $OVERWRITE_READLINE == "true" ]; then
-  echo "Overwriting libreadline.so.5.2 with the system one"
-  rm -f $SAGE_LOCAL/lib/libreadline.so.5.2
+  echo "Overwriting libreadline.so.6.0 with the system one"
+  rm -f $SAGE_LOCAL/lib/libreadline.so.6.0
   if [ `uname -p` = "x86_64" ]; then
-    cp /lib64/libreadline.so.5.2 $SAGE_LOCAL/lib
+    cp /lib64/libreadline.so.6.0 $SAGE_LOCAL/lib
   else
-    cp /lib/libreadline.so.5.2 $SAGE_LOCAL/lib
+    cp /lib/libreadline.so.6.0 $SAGE_LOCAL/lib
    fi
 fi
 
@@ -93,8 +85,8 @@ if [ -f $DYLIB_NAME -a -f $SAGE_LOCAL/lib/libreadline.a ]; then
   chmod 755 $SAGE_LOCAL/lib/libreadline.*
   chmod 755 $SAGE_LOCAL/lib/libhistory.*
   if [ "$UNAME" = "FreeBSD" ]; then
-    ln -s libreadline.so.5 $SAGE_LOCAL/lib/libreadline.so
-    ln -s libhistory.so.5 $SAGE_LOCAL/lib/libhistory.so
+    ln -s libreadline.so.6 $SAGE_LOCAL/lib/libreadline.so
+    ln -s libhistory.so.6 $SAGE_LOCAL/lib/libhistory.so
   fi
   exit 0
 else

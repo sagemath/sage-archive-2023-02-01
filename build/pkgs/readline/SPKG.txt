@@ -12,7 +12,7 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
+ * Nobody
 
 == Upstream Contact ==
 
@@ -26,6 +26,10 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
  * Deleted some files from the doc directory from the standard distro, since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
+
+=== readline-6.0 (William Stein, August 30, 2009) ===
+ * Upgrade to 6.0 (latest upstream)
+ * Remove numerous ugly build hacks needed only on OS X for older readline.
 
 === readline-5.2.p7 (Mike Hansen, June 19th, 2009) ===
  * Applied Peter Jeremy's fix from #5874.

@@ -6,6 +6,7 @@ General Rings, Ideals, and Morphisms
 .. toctree::
    :maxdepth: 2
 
+   sage/rings/ring
    sage/rings/ideal
    sage/rings/ideal_monoid
    sage/rings/morphism

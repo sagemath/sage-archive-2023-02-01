@@ -82,6 +82,10 @@ organized as follows::
         - CompleteGraph
         - CompleteBipartiteGraph
         - CubeGraph
+        - HyperStarGraph
+        - NKStarGraph
+        - NStarGraph
+        - BubbleSortGraph
         - BalancedTree
         - LCFGraph
     Pseudofractal Graphs:
@@ -128,11 +132,15 @@ AUTHORS:
   graphs with a given degree sequence, random directed graphs
 
 - Robert Miller (2007-10-24): Isomorph free exhaustive generation
+
+- Michael Yurko (2009-9-01): added hyperstar, (n,k)-star, n-star, and
+  bubblesort graphs
 """
 
 ################################################################################
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
+#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -2345,6 +2353,207 @@ class GraphGenerators():
             pos[vertex] = [x,y]
 
         return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
+
+    def HyperStarGraph(self,n,k):
+        r'''
+        Returns the hyper star graph HS(n,k).
+
+        INPUT::
+
+        -  ``n``
+
+        -  ``k``
+
+        EXAMPLES::
+
+            sage: g = graphs.HyperStarGraph(6,3)
+            sage: g.plot() # long time
+
+        REFERENCES:
+
+        - Lee, Hyeong-Ok, Jong-Seok Kim, Eunseuk Oh, and Hyeong-Seok Lim.
+         “Hyper-Star Graph: A New Interconnection Network Improving the
+         Network Cost of the Hypercube.” In Proceedings of the First EurAsian
+         Conference on Information and Communication Technology, 858-865.
+         Springer-Verlag, 2002.
+
+        AUTHORS:
+
+        - Michael Yurko (2009-09-01)
+
+        '''
+        from sage.combinat.permutation import Arrangements
+        #set from which to permute
+        set = [ "1" for i in xrange(k) ] + ["0" for i in xrange(n-k)]
+        #create dictionary of lists
+        #vertices are adjacent if the first element
+        #is swapped with the ith element
+        d = {}
+        for v in Arrangements(set,len(set)):
+            tmp_dict = {}
+            for i in xrange(1,n):
+                if v[0] != v[i]:
+                    #swap 0th and ith element
+                    tmp_bit = v[0]
+                    v[0] = v[i]
+                    v[i] = tmp_bit
+                    #convert to str and add to list
+                    vert = "".join(v)
+                    tmp_dict[vert] = None
+                    #swap back
+                    v[i] = v[0]
+                    v[0] = tmp_bit
+            d["".join(v)] = tmp_dict
+        return graph.Graph(d, name="HS(%d,%d)"%(n,k))
+
+    def NKStarGraph(self,n,k):
+        r'''
+        Returns the star graph (n,k).
+
+        INPUT::
+
+        -  ``n``
+
+        -  ``k``
+
+        EXAMPLES::
+
+            sage: g = graphs.NKStarGraph(4,2)
+            sage: g.plot() # long time
+
+        REFERENCES:
+
+        - Wei-Kuo, Chiang, and Chen Rong-Jaye. “The (n, k)-star graph: A
+        generalized star graph.” Information Processing Letters 56,
+        no. 5 (December 8, 1995): 259-264.
+
+        AUTHORS:
+
+        - Michael Yurko (2009-09-01)
+
+        '''
+        from sage.combinat.permutation import Arrangements
+        #set from which to permute
+        set = [str(i) for i in xrange(1,n+1)]
+        #create dict
+        d = {}
+        for v in Arrangements(set,k):
+            tmp_dict = {}
+            #add edges of dimension i
+            for i in xrange(1,k):
+                #swap 0th and ith element
+                tmp_bit = v[0]
+                v[0] = v[i]
+                v[i] = tmp_bit
+                #convert to str and add to list
+                vert = "".join(v)
+                tmp_dict[vert] = None
+                #swap back
+                v[i] = v[0]
+                v[0] = tmp_bit
+            #add other edges
+            tmp_bit = v[0]
+            for i in set:
+                #check if external
+                if not (i in v):
+                    v[0] = i
+                    #add edge
+                    vert = "".join(v)
+                    tmp_dict[vert] = None
+                    v[0] = tmp_bit
+            d["".join(v)] = tmp_dict
+        return graph.Graph(d, name="(%d,%d)-star"%(n,k))
+
+    def NStarGraph(self,n):
+        r'''
+        Returns the n-star graph.
+
+        INPUT::
+
+        -  ``n``
+
+        EXAMPLES::
+
+            sage: g = graphs.NStarGraph(4)
+            sage: g.plot() # long time
+
+        REFERENCES:
+
+        - S.B. Akers, D. Horel and B. Krishnamurthy, The star graph: An
+        attractive alternative to the previous n-cube. In: Proc. Internat.
+        Conf. on Parallel Processing (1987), pp. 393–400.
+
+        AUTHORS:
+
+        - Michael Yurko (2009-09-01)
+
+
+        '''
+        from sage.combinat.permutation import Permutations
+        #set from which to permute
+        set = [str(i) for i in xrange(1,n+1)]
+        #create dictionary of lists
+        #vertices are adjacent if the first element
+        #is swapped with the ith element
+        d = {}
+        for v in Permutations(set):
+            tmp_dict = {}
+            for i in xrange(1,n):
+                if v[0] != v[i]:
+                    #swap 0th and ith element
+                    tmp_bit = v[0]
+                    v[0] = v[i]
+                    v[i] = tmp_bit
+                    #convert to str and add to list
+                    vert = "".join(v)
+                    tmp_dict[vert] = None
+                    #swap back
+                    v[i] = v[0]
+                    v[0] = tmp_bit
+            d["".join(v)] = tmp_dict
+        return graph.Graph(d, name = "%d-star"%n)
+
+    def BubbleSortGraph(self,n):
+        r'''
+        Returns the bubble sort graph.
+
+        INPUT::
+
+        -  ``n``
+
+        EXAMPLES::
+
+            sage: g = graphs.BubbleSortGraph(4)
+            sage: g.plot() # long time
+
+        AUTHORS:
+
+        - Michael Yurko (2009-09-01)
+
+        '''
+        from sage.combinat.permutation import Permutations
+        #create set from which to permute
+        label_set = [str(i) for i in xrange(1,n+1)]
+        #create dict of lists
+        d = {}
+        #iterate through all vertices
+        for v in Permutations(label_set):
+            tmp_dict = {}
+            #add all adjacencies
+            for i in xrange(n-1):
+                #swap entries
+                tmp_label = v[i]
+                v[i] = v[i+1]
+                v[i+1] = tmp_label
+                #add new vertex
+                new_vert = ''.join(v)
+                tmp_dict[new_vert] = None
+                #swap back
+                v[i+1] = v[i]
+                v[i] = tmp_label
+            #add adjacency dict
+            d[''.join(v)] = tmp_dict
+        return graph.Graph(d,name = "B(%d)"%n)
 
     def BalancedTree(self, r, h):
         r"""

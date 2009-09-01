@@ -1022,6 +1022,7 @@ class SettingsPage(resource.PostableResource):
             return http.RedirectResponse('/home/%s' % self.username)
 
         template_dict = {}
+        template_dict['username'] = self.username
         template_dict['autosave_intervals'] = ((i, ' selected') if notebook.user(self.username)['autosave_interval']/60 == i else (i, '') for i in range(1, 10, 2))
         template_dict['email'] = notebook.conf()['email']
         if template_dict['email']:

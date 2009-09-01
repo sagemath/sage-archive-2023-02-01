@@ -13,12 +13,12 @@ notebook.
 
 AUTHORS:
 
-    - William Stein (2008-03-02): version 1.0 at Sage/Enthought Days
-       8 in Texas
+- William Stein (2008-03-02): version 1.0 at Sage/Enthought Days
+  8 in Texas
 
-    - Jason Grout (2008-03): discussion and first few prototypes
+- Jason Grout (2008-03): discussion and first few prototypes
 
-    - Jason Grout (2008-05): :class:`input_grid` control
+- Jason Grout (2008-05): :class:`input_grid` control
 """
 
 """
@@ -101,9 +101,9 @@ VERSION 2:
    [ ] make option for text input that correctly gives something of
        the same type as the default input.
    [ ] matrix input control (method of matrix space) -- a spreadsheet like thing
-   [ ] a 2d slider:
-          u = ((xmin,xmax),(ymin,ymax))  2d slider   -- NOT IMPLEMENTED
-   [ ] locator in a 2d graphic
+   [ ] a 2-D slider:
+          u = ((xmin,xmax),(ymin,ymax))  2-D slider   -- NOT IMPLEMENTED
+   [ ] locator in a 2-D graphic
    [ ] tab_view -- represents an object in which clicking the tab
                    with label lbl[i] displays expr[i]
    [ ] controls: make them easy to customize as below --
@@ -221,7 +221,7 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
 
     INPUT:
 
-    - ``id`` - a string; the DOM id of the slider (better be unique)
+    - ``id`` - a string; the DOM ID of the slider (better be unique)
 
     - ``values`` - a string; 'null' or JavaScript string containing
       array of values on slider
@@ -230,7 +230,7 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
       the slider is done moving
 
     - ``steps`` - an integer; number of steps from minimum to maximum
-      value.
+      value
 
     - ``default`` - an integer (default: 0); the default position of
       the slider
@@ -282,7 +282,7 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
 
     INPUT:
 
-    - ``id`` - a string; the DOM id of the slider (better be unique)
+    - ``id`` - a string; the DOM ID of the slider (better be unique)
 
     - ``values`` - a string; 'null' or JavaScript string containing
       array of values on slider
@@ -291,7 +291,7 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
       the slider is done moving
 
     - ``steps`` - an integer; number of steps from minimum to maximum
-      value.
+      value
 
     - ``default_l`` - an integer (default: 0); the default position of
       the left edge of the slider
@@ -368,14 +368,14 @@ def html_color_selector(id, change, input_change, default='000000'):
 
     INPUT:
 
-    - ``id`` - an integer; the id of the HTML div element that this
-      selector should have
+    - ``id`` - an integer; the ID of the HTML div element that this
+      selector should have.
 
     - ``change`` - a string; JavaScript code to execute when the color
       selector changes.
 
     - ``default`` - a string (default: ``'000000'``); default color as
-      a 6-character HTML hex string.
+      a 6-character HTML hexadecimal string.
 
     OUTPUT:
 
@@ -631,7 +631,7 @@ class InteractControl(InteractElement):
 
         - ``globs`` - a string:object dictionary; the globals
           interpreter variables, e.g., :func:`globals`, which is
-          useful for evaling value.
+          useful for evaluating value.
 
         OUTPUT:
 
@@ -701,15 +701,15 @@ class InteractControl(InteractElement):
 
     def cell_id(self):
         """
-        Return the id of the cell that contains this :func:`interact` control.
+        Return the ID of the cell that contains this :func:`interact` control.
 
         OUTPUT:
 
-        - an integer - id of cell that this control interacts
+        - an integer - ID of cell that this control interacts
 
         EXAMPLES:
 
-        The output below should equal the id of the current cell::
+        The output below should equal the ID of the current cell::
 
             sage: sage.server.notebook.interact.InteractControl('theta', 1).cell_id()
             0
@@ -824,7 +824,7 @@ class ColorInput(InputBox):
     def value_js(self, n):
         """
         Return JavaScript that evaluates to value of this control.
-        If ``n`` is 0 return code for evaluation by the actual color
+        If ``n`` is 0, return code for evaluation by the actual color
         control.  If ``n`` is 1, return code for the text area that
         displays the current color.
 
@@ -1647,7 +1647,7 @@ class InteractCanvas:
 
         - ``controls`` - a list of :class:`InteractControl` instances.
 
-        - ``id`` - an integer; the id of the cell that contains this
+        - ``id`` - an integer; the ID of the cell that contains this
           InteractCanvas.
 
         - ``options`` - any additional keyword arguments (for example,
@@ -1708,7 +1708,7 @@ class InteractCanvas:
 
     def cell_id(self):
         r"""
-        Returns the cell id associated to this :class:`InteractCanvas`.
+        Returns the cell ID associated to this :class:`InteractCanvas`.
 
         OUTPUT:
 
@@ -1731,7 +1731,9 @@ class InteractCanvas:
 
         - list of controls
 
-        .. note:: Returns a reference to a mutable list.
+        .. note::
+
+            Returns a reference to a mutable list.
 
         EXAMPLES::
 
@@ -1897,7 +1899,7 @@ class UpdateButton(JavascriptCodeButton):
 
         INPUT:
 
-        - ``cell_id`` - an integer; the ambient cell's id
+        - ``cell_id`` - an integer; the ambient cell's ID
 
         EXAMPLES::
 
@@ -2003,36 +2005,36 @@ def interact(f):
     (see defaults below).
 
 
-        * ``u = input_box(default=None, label=None, type=None)`` -
-          input box with given ``default``; use ``type=str`` to get
-          input as an arbitrary string
+    * ``u = input_box(default=None, label=None, type=None)`` -
+      input box with given ``default``; use ``type=str`` to get
+      input as an arbitrary string
 
 
-        * ``u = slider(vmin, vmax=None, step_size=1, default=None,
-          label=None)`` - slider with given list of possible values;
-          ``vmin`` can be a list
+    * ``u = slider(vmin, vmax=None, step_size=1, default=None,
+      label=None)`` - slider with given list of possible values;
+      ``vmin`` can be a list
 
 
-        * ``u = range_slider(vmin, vmax=None, step_size=1,
-          default=None, label=None)`` - range slider with given list
-          of possible values; ``vmin`` can be a list
+    * ``u = range_slider(vmin, vmax=None, step_size=1,
+      default=None, label=None)`` - range slider with given list
+      of possible values; ``vmin`` can be a list
 
 
-        * ``u = checkbox(default=True, label=None)`` - a checkbox
+    * ``u = checkbox(default=True, label=None)`` - a checkbox
 
 
-        * ``u = selector(values, label=None, nrows=None, ncols=None,
-          buttons=False)`` - a dropdown menu or buttons (get buttons
-          if ``nrows``, ``ncols``, or ``buttons`` is set, otherwise a
-          dropdown menu)
+    * ``u = selector(values, label=None, nrows=None, ncols=None,
+      buttons=False)`` - a dropdown menu or buttons (get buttons
+      if ``nrows``, ``ncols``, or ``buttons`` is set, otherwise a
+      dropdown menu)
 
 
-        * ``u = input_grid(nrows, ncols, default=None, label=None,
-          to_value=lambda x:x, width=4)`` - an editable grid of
-          objects (a matrix or array)
+    * ``u = input_grid(nrows, ncols, default=None, label=None,
+      to_value=lambda x:x, width=4)`` - an editable grid of
+      objects (a matrix or array)
 
 
-        * ``u = text_control(value='')`` - a block of text
+    * ``u = text_control(value='')`` - a block of text
 
 
     You can create a color selector by setting the default value for a
@@ -2045,37 +2047,37 @@ def interact(f):
     your function.  These are all just convenient shortcuts for
     creating the controls listed above.
 
-        * ``u`` - blank input_box field
+    * ``u`` - blank input_box field
 
-        * ``u = element`` - input_box with ``default=element``, if
-          element not below.
+    * ``u = element`` - input_box with ``default=element``, if
+      element not below.
 
-        * ``u = (umin,umax)`` - continuous slider (really `100` steps)
+    * ``u = (umin,umax)`` - continuous slider (really `100` steps)
 
-        * ``u = (umin,umax,du)`` - slider with step size ``du``
+    * ``u = (umin,umax,du)`` - slider with step size ``du``
 
-        * ``u = list`` - buttons if ``len(list)`` at most `5`;
-          otherwise, drop down
+    * ``u = list`` - buttons if ``len(list)`` at most `5`;
+      otherwise, drop down
 
-        * ``u = generator`` - a slider (up to `10000` steps)
+    * ``u = generator`` - a slider (up to `10000` steps)
 
-        * ``u = bool`` - a checkbox
+    * ``u = bool`` - a checkbox
 
-        * ``u = Color('blue')`` - a 2D RGB color selector; returns
-          ``Color`` object
+    * ``u = Color('blue')`` - a 2-D RGB color selector; returns
+      ``Color`` object
 
-        * ``u = (default, v)`` - ``v`` as above, with given
-          ``default`` value
+    * ``u = (default, v)`` - ``v`` as above, with given
+      ``default`` value
 
-        * ``u = (label, v)`` - ``v`` as above, with given ``label``
-          (a string)
+    * ``u = (label, v)`` - ``v`` as above, with given ``label``
+      (a string)
 
-        * ``u = matrix`` - an ``input_grid`` with ``to_value`` set to
-          ``matrix.parent()`` and default values given by the matrix
+    * ``u = matrix`` - an ``input_grid`` with ``to_value`` set to
+      ``matrix.parent()`` and default values given by the matrix
 
     .. note::
 
-        Suppose you would like to make a interactive with a default
+        Suppose you would like to make an interactive with a default
         RGB color of ``(1,0,0)``, so the function would have signature
         ``f(color=(1,0,0))``.  Unfortunately, the above shortcuts
         reinterpret the ``(1,0,0)`` as a discrete slider with step
@@ -2165,7 +2167,7 @@ def interact(f):
         ...       show(L)
         <html>...
 
-    You can rotate and zoom into 3D graphics while interacting with a
+    You can rotate and zoom into 3-D graphics while interacting with a
     variable::
 
         sage: @interact
@@ -2183,7 +2185,7 @@ def interact(f):
         ...     show(G, figsize=5, xmin=0, ymin=0)
         <html>...
 
-    Two "sinks" displayed simultaneously via a contour plot and a 3D
+    Two "sinks" displayed simultaneously via a contour plot and a 3-D
     interactive plot::
 
         sage: @interact
@@ -2729,7 +2731,7 @@ class slider(slider_generic):
         - ``display_value`` - a bool, whether to display the current
           value to the right of the slider
 
-        EXAMPLES::
+        EXAMPLES:
 
         We specify both ``vmin`` and ``vmax``.  We make the default
         `3`, but since `3` isn't one of `3/17`-th spaced values
@@ -2850,7 +2852,7 @@ class range_slider(slider_generic):
         - ``display_value`` - a bool, whether to display the current
           value below the slider
 
-        EXAMPLES::
+        EXAMPLES:
 
         We specify both ``vmin`` and ``vmax``.  We make the default
         `(3,4)` but since neither is one of `3/17`-th spaced
@@ -3290,7 +3292,7 @@ def update(cell_id, var, adapt, value, globs):
 
     INPUT:
 
-    - ``cell_id`` - an integer; the id of an :func:`interact` cell
+    - ``cell_id`` - an integer; the ID of an :func:`interact` cell
 
     - ``var`` - an object; a variable associated to that cell
 

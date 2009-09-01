@@ -161,7 +161,7 @@ class Notebook(SageObject):
         """
         try:
             dir = self.__absdir
-        except AttributeErrro:
+        except AttributeError:
             dir = self.__dir
         import shutil
         # We ignore_errors because in rare parallel doctesting
@@ -330,7 +330,7 @@ class Notebook(SageObject):
 
     def user_is_admin(self, user):
         """
-        Return true if ``user`` is an admin.
+        Return True if ``user`` is an admin.
 
         INPUT:
 
@@ -354,7 +354,7 @@ class Notebook(SageObject):
 
     def user_is_guest(self, username):
         """
-        Return true if ``username`` is a guest.
+        Return True if ``username`` is a guest.
 
         INPUT:
 
@@ -830,7 +830,9 @@ class Notebook(SageObject):
 
         - a list of strings.
 
-        EXAMPLES: We make a new notebook with two users and two worksheets,
+        EXAMPLES:
+
+        We make a new notebook with two users and two worksheets,
         then list their names::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -1061,7 +1063,9 @@ class Notebook(SageObject):
 
         -  ``worksheet`` - a newly created Worksheet instance
 
-        EXAMPLES: We create a notebook and import a plain text worksheet
+        EXAMPLES:
+
+        We create a notebook and import a plain text worksheet
         into it.
 
         ::
@@ -1108,7 +1112,9 @@ class Notebook(SageObject):
 
         -  a new instance of Worksheet
 
-        EXAMPLES: We write a plain text worksheet to a file and import it
+        EXAMPLES:
+
+        We write a plain text worksheet to a file and import it
         using this function.
 
         ::

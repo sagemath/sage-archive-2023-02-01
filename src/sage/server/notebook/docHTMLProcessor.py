@@ -2,7 +2,7 @@
 Live Documentation in the Notebook
 
 Processes Sage documentation into notebook worksheet format with
-evaluatable examples.
+evaluable examples.
 
 This takes in any HTML document, i.e., Sage documentation, and returns
 it in the editable format (like the notebook edit window). It also
@@ -15,11 +15,11 @@ Pilgrim's 'Dive Into Python' examples.
 
 Author:
 
-    - Dorian Raymer (2006): first version
+- Dorian Raymer (2006): first version
 
-    - William Stein (2007-06-10): rewrite to work with twisted Sage notebook
+- William Stein (2007-06-10): rewrite to work with twisted Sage notebook
 
-    - Mike Hansen (2008-09-27): Rewrite to work with Sphinx HTML documentation
+- Mike Hansen (2008-09-27): Rewrite to work with Sphinx HTML documentation
 """
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com> and Dorian Raimer
@@ -140,13 +140,13 @@ class SphinxHTMLProcessor(SGMLParser):
         All divs with CSS class="highlight" contain code examples.
         They include
 
-         - Models of how the function works.  These begin with, e.g.,
-           'INPUT:' and are re-styled as divs with
-           class="usage_model".
+        - Models of how the function works.  These begin with, e.g.,
+          'INPUT:' and are re-styled as divs with
+          class="usage_model".
 
-         - Actual Sage input and ouput.  These begin with 'sage:'.
-           The input and output are separated according to the
-           Notebook edit format.
+        - Actual Sage input and output.  These begin with 'sage:'.
+          The input and output are separated according to the
+          Notebook edit format.
 
         INPUT:
 

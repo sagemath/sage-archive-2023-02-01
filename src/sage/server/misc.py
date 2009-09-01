@@ -78,18 +78,18 @@ def print_open_msg(address, port, secure=False, path=""):
 import socket
 def find_next_available_port(start, max_tries=100, verbose=False):
     """
-    Find for the next available port, that is, a port for which a
+    Find the next available port, that is, a port for which a
     current connection attempt returns a 'Connection refused' error
     message.  If no port is found, raise a RuntimError exception.
 
     INPUT:
 
-       - ``start`` - an int; the starting port number for the scan
+    - ``start`` - an int; the starting port number for the scan
 
-       - ``max_tries`` - an int (default: 100); how many ports to scan
+    - ``max_tries`` - an int (default: 100); how many ports to scan
 
-       - ``verbose`` - a bool (default: True); whether to print information
-         about the scan
+    - ``verbose`` - a bool (default: True); whether to print information
+      about the scan
 
     OUTPUT:
 

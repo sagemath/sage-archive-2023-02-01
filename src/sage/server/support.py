@@ -243,7 +243,7 @@ def docstring(obj_name, globs, system='sage'):
 
 def source_code(s, globs, system='sage'):
     r"""
-    Format an object's source code to process and display in the the
+    Format an object's source code to process and display in the
     Sage notebook.
 
     INPUT:

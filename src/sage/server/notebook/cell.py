@@ -275,11 +275,11 @@ return(value);
 
     def id(self):
         """
-        Returns self's id.
+        Returns self's ID.
 
         OUTPUT:
 
-        - int -- self's id.
+        - int -- self's ID.
 
         EXAMPLES::
 
@@ -291,7 +291,7 @@ return(value);
 
     def is_auto_cell(self):
         """
-        Returns true if self is automatically evaluated.
+        Returns True if self is automatically evaluated.
 
         EXAMPLES::
 
@@ -303,7 +303,7 @@ return(value);
 
     def __cmp__(self, right):
         """
-        Compares cells by `id`.
+        Compares cells by ID.
 
         EXAMPLES::
 
@@ -734,7 +734,7 @@ class Cell(Cell_generic):
 
     def __cmp__(self, right):
         """
-        Compares cells by their `id`s.
+        Compares cells by their IDs.
 
         EXAMPLES::
 
@@ -1030,7 +1030,6 @@ class Cell(Cell_generic):
         r"""
         Returns True if this cell is currently interacting with the user.
 
-
         EXAMPLES::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -1039,7 +1038,6 @@ class Cell(Cell_generic):
             sage: C = W.new_cell_after(0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interacting()
             False
-
         """
         return hasattr(self, 'interact')
 
@@ -1048,7 +1046,6 @@ class Cell(Cell_generic):
         Stops interaction with user.
 
         TODO: Add doctests for :meth:`stop_interacting`.
-
         """
         if self.is_interacting():
             del self.interact
@@ -1367,7 +1364,7 @@ class Cell(Cell_generic):
 
     def process_cell_urls(self, urls):
         """
-        Processes urls of the form 'cell://.*?' by replacing the
+        Processes URLs of the form ``'cell://.*?'`` by replacing the
         protocol with the path to self and appending self's version
         number.
 
@@ -1396,14 +1393,14 @@ class Cell(Cell_generic):
 
         INPUT:
 
-            - ``ncols`` -- maximum number of columns
+        - ``ncols`` -- maximum number of columns
 
-            - ``html`` -- boolean stating whether to output html
+        - ``html`` -- boolean stating whether to output HTML
 
-            - ``raw`` -- boolean stating whether to output raw text
-                        (takes precedence over html)
+        - ``raw`` -- boolean stating whether to output raw text
+          (takes precedence over HTML)
 
-            - ``allow_interact`` -- boolean stating whether to allow interaction
+        - ``allow_interact`` -- boolean stating whether to allow interaction
 
         EXAMPLES::
 
@@ -1467,11 +1464,9 @@ class Cell(Cell_generic):
 
         INPUT:
 
+        - ``s`` -- the input string containing HTML
 
-            - ``s`` -- the input string containing HTML
-
-            - ``ncols`` -- maximum number of columns
-
+        - ``ncols`` -- maximum number of columns
 
         EXAMPLES::
 
@@ -1774,7 +1769,7 @@ class Cell(Cell_generic):
 
     def introspect_html(self):
         """
-        Returns html for introspection.
+        Returns HTML for introspection.
 
         EXAMPLES::
 
@@ -1978,12 +1973,12 @@ class Cell(Cell_generic):
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
         r"""
-        Returns the html for self.
+        Returns the HTML for self.
 
         INPUT:
 
         - ``wrap`` - a boolean stating whether to wrap lines. Defaults to
-          configuration if not given,
+          configuration if not given.
 
         - ``div_wrap`` - a boolean stating whether to wrap ``div``.
 
@@ -2187,12 +2182,12 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
     def files_html(self, out):
         """
-        Returns html to display the files in self's directory.
+        Returns HTML to display the files in self's directory.
 
         INPUT:
 
         - ``out`` - string to exclude files.
-                    Format: To exclude bar, foo, ...`'cell://bar cell://foo ...'`
+          Format: To exclude bar, foo, ... ``'cell://bar cell://foo ...'``
 
         EXAMPLES::
 
@@ -2280,14 +2275,14 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
     def html_out(self, ncols=0, do_print=False):
         r"""
-        Returns the html for self's output.
+        Returns the HTML for self's output.
 
         INPUT:
 
-            - ``do_print`` -- a boolean stating whether to output html
-                             for print
+        - ``do_print`` -- a boolean stating whether to output HTML
+          for print
 
-            - ``ncols`` -- the number of columns
+        - ``ncols`` -- the number of columns
 
         EXAMPLES::
 

@@ -25,6 +25,9 @@ See http://networkx.lanl.gov/
 
 == Changelog ==
 
+=== networkx-0.99.p1 (Jason Grout, September 1st, 2009) ===
+ * patch matplotlib routines to use numpy instead of the now-deprecated matplotlib.numerix
+
 === networkx-0.99.p0 (Michael Abshoff, January 28th, 2009) ===
  * cleanup SPKG.txt
  * cleanup spkg-install

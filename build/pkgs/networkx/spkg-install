@@ -10,6 +10,9 @@ echo "Deleting old networkX installs"
 rm -rf "$SAGE_LOCAL"/lib/python/networkx*
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/networkx*
 
+echo "Patching"
+cp patches/nx_pylab.py src/networkx/drawing/
+
 cd src
 
 python setup.py install --home="$SAGE_LOCAL" --force

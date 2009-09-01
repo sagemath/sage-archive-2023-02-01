@@ -1,0 +1,13 @@
+--- nx_pylab.py.orig	2009-09-01 14:16:59.000000000 -0500
++++ nx_pylab.py	2009-09-01 14:17:50.000000000 -0500
+@@ -39,8 +39,8 @@
+     import matplotlib.cbook as cb
+     from matplotlib.colors import colorConverter,normalize,Colormap
+     from matplotlib.collections import LineCollection
+-    from matplotlib.numerix import sin, cos, pi, sqrt, arctan2, asarray
+-    from matplotlib.numerix.mlab import amin, amax, ravel
++    from numpy import sin, cos, pi, sqrt, arctan2, asarray
++    from numpy import amin, amax, ravel
+     import matplotlib.pylab
+ except ImportError:
+     raise ImportError, "Import Error: not able to import matplotlib."

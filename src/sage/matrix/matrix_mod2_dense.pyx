@@ -206,6 +206,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0]
             [0 0]
 
+            sage: Matrix(GF(2),1,1, 1/3)
+            [1]
+            sage: Matrix(GF(2),1,1, [1/3])
+            [1]
+
         TESTS:
             sage: Matrix(GF(2),0,0)
             []
@@ -219,9 +224,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if entries is None:
             return
 
+        R = self.base_ring()
+
         # scalar ?
         if not isinstance(entries, list):
-            if self._nrows and self._ncols and int(entries) % 2 == 1:
+            if self._nrows and self._ncols and R(entries) == 1:
                 mzd_set_ui(self._entries, 1)
             return
 
@@ -230,12 +237,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise IndexError, "The vector of entries has the wrong length."
 
         k = 0
-        R = self.base_ring()
 
         for i from 0 <= i < self._nrows:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for j from 0 <= j < self._ncols:
-                mzd_write_bit(self._entries,i,j, int(entries[k]) % 2)
+                mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.

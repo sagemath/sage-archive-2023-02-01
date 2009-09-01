@@ -39,7 +39,21 @@ include "../ext/python_string.pxi"
 # reed_muller transform, and a lot more, see 'Matters computational'
 # available on www.jjj.de
 
-cdef inline walsh_hadamard(long *f, int ldn):
+cdef walsh_hadamard(long *f, int ldn):
+    """
+    The Walsh Hadamard transform is an orthogonal transform equivalent
+    to a multidimensional discrete Fourier transform of size 2x2x...x2.
+    It can be defined by the following formula:
+
+    .. math:: W(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus i \cdot j}
+
+    EXAMPLES::
+
+        sage: from sage.crypto.boolean_function import BooleanFunction
+        sage: B = BooleanFunction([1,0,0,1])
+        sage: B.walsh_hadamard_transform() # indirect doctest
+        (0, 0, 0, 4)
+    """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
     for 1 <= ldm <= ldn:
@@ -56,7 +70,20 @@ cdef inline walsh_hadamard(long *f, int ldn):
                 t1 += 1
                 t2 += 1
 
-cdef inline long yellow_code(unsigned long a):
+cdef long yellow_code(unsigned long a):
+    """
+    The yellow-code is just a Reed Muller transform applied to a
+    word.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.boolean_function import BooleanFunction
+        sage: R.<x,y,z> = BooleanPolynomialRing(3)
+        sage: P = x*y
+        sage: B = BooleanFunction( P )
+        sage: B.truth_table() # indirect doctest
+        (False, False, False, True, False, False, False, True)
+    """
     cdef unsigned long s = (8*sizeof(unsigned long))>>1
     cdef unsigned long m = (~0UL) >> s
     cdef unsigned long r = a
@@ -66,7 +93,29 @@ cdef inline long yellow_code(unsigned long a):
         m ^= (m<<s)
     return r
 
-cdef inline reed_muller(unsigned long *f, int ldn):
+cdef reed_muller(unsigned long *f, int ldn):
+    """
+    The Reed Muller transform (also known as binary Moebius transform)
+    is an orthogonal transform. For a function `f` defined by
+
+    .. math:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)
+
+    it allows to compute efficiently the ANF from the truth table and
+    vice versa, using the formulae:
+
+    .. math:: f(x) = \bigoplus_{support(x)\subset I} a_I
+    .. math:: a_i  = \bigoplus_{I\subset support(x)} f(x)
+
+
+    EXAMPLES::
+
+        sage: from sage.crypto.boolean_function import BooleanFunction
+        sage: R.<x,y,z> = BooleanPolynomialRing(3)
+        sage: P = x*y
+        sage: B = BooleanFunction( P )
+        sage: B.truth_table() # indirect doctest
+        (False, False, False, True, False, False, False, True)
+    """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
     # intra word transform
@@ -91,10 +140,14 @@ cdef class BooleanFunction(SageObject):
     We can construct a Boolean Function from either:
 
         - an integer - the result is the zero function with ``x`` variables;
-        - a list - it is expected to be the truth table of the result. Therefore it must be of length a power of 2, and its elements are interpreted as Booleans;
+        - a list - it is expected to be the truth table of the
+          result. Therefore it must be of length a power of 2, and its
+          elements are interpreted as Booleans;
         - a string - representing the truth table in hexadecimal;
         - a Boolean polynomial - the result is the corresponding Boolean function;
-        - a polynomial P over an extension of GF(2) - the result is the Boolean function with truth table ``[ Tr(P(x)) for x in GF(2^k) ]``
+        - a polynomial P over an extension of GF(2) - the result is
+          the Boolean function with truth table ``( Tr(P(x)) for x in
+          GF(2^k) )``
 
     EXAMPLES:
 
@@ -165,9 +218,13 @@ cdef class BooleanFunction(SageObject):
         The input ``x`` can be either:
 
         - an integer - the result is the zero function with ``x`` variables;
-        - a list - it is expected to be the truth table of the result. Therefore it must be of length a power of 2, and its elements are interpreted as Booleans;
+        - a list - it is expected to be the truth table of the
+          result. Therefore it must be of length a power of 2, and its
+          elements are interpreted as Booleans;
         - a Boolean polynomial - the result is the corresponding Boolean function;
-        - a polynomial P over an extension of GF(2) - the result is the Boolean function with truth table ``[ Tr(P(x)) for x in GF(2^k) ]``
+        - a polynomial P over an extension of GF(2) - the result is
+          the Boolean function with truth table ``( Tr(P(x)) for x in
+          GF(2^k) )``
 
         EXAMPLES:
 
@@ -304,9 +361,9 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x,y,z> = BooleanPolynomialRing(3)
             sage: B = BooleanFunction( x*y*z + z + y + 1 )
             sage: B.truth_table()
-            [True, True, False, False, False, False, True, False]
+            (True, True, False, False, False, False, True, False)
         """
-        return [b for b in self]
+        return tuple( [b for b in self] )
 
     def __len__(self):
         """
@@ -416,7 +473,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            [0, 0, 0, 0, 0, 0, 0, -8]
+            (0, 0, 0, 0, 0, 0, 0, -8)
         """
         cdef long *temp
 
@@ -428,7 +485,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = [ temp[i] for i in xrange(n) ]
+            self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
             sage_free(temp)
 
         return self._walsh_hadamard_transform
@@ -474,8 +531,9 @@ cdef class BooleanFunction(SageObject):
 
     def nonlinearity(self):
         """
-        Return the nonlinearity of the function. This is the distance to the linear functions,
-        or the number of output ones need to change to obtain a linear function.
+        Return the nonlinearity of the function. This is the distance
+        to the linear functions, or the number of output ones need to
+        change to obtain a linear function.
 
         EXAMPLE::
 
@@ -509,10 +567,12 @@ cdef class BooleanFunction(SageObject):
 
     def correlation_immunity(self):
         """
-        Return the maximum value `m` such that the function is correlation immune of order `m`.
+        Return the maximum value `m` such that the function is
+        correlation immune of order `m`.
 
-        A Boolean function is said to be correlation immune of order `m` , if the output of the
-        function is statistically independent of the combination of any m of its inputs.
+        A Boolean function is said to be correlation immune of order
+        `m` , if the output of the function is statistically
+        independent of the combination of any m of its inputs.
 
         EXAMPLES::
 
@@ -532,10 +592,11 @@ cdef class BooleanFunction(SageObject):
 
     def resiliency_order(self):
         """
-        Return the maximum value `m` such that the function is resilient of order `m`.
+        Return the maximum value `m` such that the function is
+        resilient of order `m`.
 
-        A Boolean function is said to be resilient of order `m` if it is balanced and
-        correlation immune of order `m`.
+        A Boolean function is said to be resilient of order `m` if it
+        is balanced and correlation immune of order `m`.
 
         If the function is not balanced, we return -1.
 
@@ -562,7 +623,7 @@ cdef class BooleanFunction(SageObject):
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("03")
             sage: B.autocorrelation()
-            [8, 8, 0, 0, 0, 0, 0, 0]
+            (8, 8, 0, 0, 0, 0, 0, 0)
         """
         cdef long *temp
 
@@ -575,7 +636,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = [ temp[i]>>self._nvariables for i in xrange(n) ]
+            self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
             sage_free(temp)
 
         return self._autocorrelation

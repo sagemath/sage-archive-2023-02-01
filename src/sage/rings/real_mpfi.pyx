@@ -3249,10 +3249,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField()
-            sage: R(2).log()
+            sage: r = R(2); r.log()
             0.6931471805599453?
+            sage: r = R(-2); r.log()
+            0.6931471805599453? + 3.141592653589794?*I
         """
         cdef RealIntervalFieldElement x
+        if self < 0:
+            return self.parent().complex_field()(self).log(base)
         if base == 'e':
             x = self._new()
             _sig_on
@@ -3288,6 +3292,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [-infinity .. 1.0000000000000000]
         """
         cdef RealIntervalFieldElement x
+        if self < 0:
+            return self.parent().complex_field()(self).log(2)
         x = self._new()
         _sig_on
         mpfi_log2(x.value, self.value)
@@ -3320,9 +3326,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: r = RIF(-1.0)
             sage: r.log10()
-            [.. NaN ..]
+            1.364376353841841?*I
         """
         cdef RealIntervalFieldElement x
+        if self < 0:
+            return self.parent().complex_field()(self).log(10)
         x = self._new()
         _sig_on
         mpfi_log10(x.value, self.value)

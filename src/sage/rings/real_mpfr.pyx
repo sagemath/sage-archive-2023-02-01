@@ -3017,8 +3017,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R = RealField()
             sage: R(2).log()
             0.693147180559945
+
+        ::
+
+            sage: r = R(-1); r.log()
+            3.14159265358979*I
+            sage: r.log(2)
+            4.53236014182719*I
         """
         cdef RealNumber x
+        if self < 0:
+            if base is 'e':
+                return self._complex_number_().log()
+            else:
+                return self._complex_number_().log(base)
         if base == 'e':
             x = self._new()
             _sig_on
@@ -3052,8 +3064,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = 0.0
             sage: r.log2()
             -infinity
+
+        ::
+
+            sage: r = -3.0; r.log2()
+            1.58496250072116 + 4.53236014182719*I
         """
         cdef RealNumber x
+        if self < 0:
+            return self._complex_number_().log(2)
         x = self._new()
         _sig_on
         mpfr_log2(x.value, self.value, (<RealField>self._parent).rnd)
@@ -3086,9 +3105,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = -1.0
             sage: r.log10()
-            NaN
+            1.36437635384184*I
         """
         cdef RealNumber x
+        if self < 0:
+            return self._complex_number_().log(10)
         x = self._new()
         _sig_on
         mpfr_log10(x.value, self.value, (<RealField>self._parent).rnd)
@@ -3121,9 +3142,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = -2.0
             sage: r.log1p()
-            NaN
+            3.14159265358979*I
         """
         cdef RealNumber x
+        if self < -1:
+            return (self+1.0)._complex_number_().log()
         x = self._new()
         _sig_on
         mpfr_log1p(x.value, self.value, (<RealField>self._parent).rnd)

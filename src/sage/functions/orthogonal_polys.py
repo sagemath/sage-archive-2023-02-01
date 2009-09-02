@@ -589,7 +589,7 @@ def legendre_Q(n,x):
         sage: legendre_Q(4, 2)
         443/16*I*pi + 443/16*log(3) - 365/12
         sage: legendre_Q(4, 2.0)
-        NaN
+        0.00116107583162324 + 86.9828465962674*I
     """
     _init()
     return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})

@@ -4721,6 +4721,8 @@ cdef class Expression(CommutativeRingElement):
             log(x^y + y^x)
             sage: SR(0).log()
             -Infinity
+            sage: SR(-1).log()
+            I*pi
             sage: SR(1).log()
             0
             sage: SR(1/2).log()

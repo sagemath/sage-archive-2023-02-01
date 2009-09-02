@@ -1603,10 +1603,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self._pari_().incgam(t))
 
-    def log(self):
+    def log(self,base=None):
         r"""
         Complex logarithm of z with branch chosen as follows: Write
-        `z = \rho e^{i \theta} with `-\pi <= \theta < pi`. Then
+        `z = \rho e^{i \theta} with `-\pi < \theta <= pi`. Then
         `\mathrm{log}(z) = \mathrm{log}(\rho) + i \theta`.
 
         .. warning::
@@ -1629,10 +1629,26 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: b = ComplexNumber(float(exp(42)),0)
             sage: b.log()
             41.99999999999971
+
+        ::
+
+            sage: c = ComplexNumber(-1,0)
+            sage: c.log()
+            3.14159265358979*I
+
+        The option of a base is included for compatibility with other logs::
+
+            sage: c = ComplexNumber(-1,0)
+            sage: c.log(2)
+            4.53236014182719*I
         """
         theta = self.argument()
         rho = abs(self)
-        return ComplexNumber(self._parent, rho.log(), theta)
+        if base is None:
+            return ComplexNumber(self._parent, rho.log(), theta)
+        else:
+            from real_mpfr import RealField
+            return ComplexNumber(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
 
     def additive_order(self):
         """

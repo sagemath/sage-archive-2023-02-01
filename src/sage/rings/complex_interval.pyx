@@ -905,13 +905,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         im = theta.sin() * mag
         return ComplexIntervalFieldElement(self._parent, re, im)
 
-    def log(self):
+    def log(self,base=None):
         """
         Complex logarithm of z.  WARNING: This does always not use the
         standard branch cut for complex log!  See the docstring for
         argument() to see what we do instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = CIF(RIF(3, 4), RIF(13, 14))
             sage: a.log().str(style='brackets')
             '[2.5908917751460420 .. 2.6782931373360067] + [1.2722973952087170 .. 1.3597029935721503]*I'
@@ -921,15 +922,25 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
 
         If the interval crosses the negative real axis, then we don't
-        use the standard branch cut (and we violate the interval guarantees):
+        use the standard branch cut (and we violate the interval guarantees)::
+
             sage: CIF(-3, RIF(-1/4, 1/4)).log().str(style='brackets')
             '[1.0986122886681095 .. 1.1020725100903968] + [3.0584514217013518 .. 3.2247338854782349]*I'
             sage: CIF(-3, -1/4).log()
             1.102072510090397? - 3.058451421701352?*I
+
+        If a base is passed from another function, we can accomodate this::
+
+            sage: CIF(-1,1).log(2)
+            0.500000000000000? + 3.399270106370396?*I
         """
         theta = self.argument()
         rho = abs(self)
-        return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
+        if base is None or base is 'e':
+            return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
+        else:
+            from real_mpfr import RealNumber, RealField
+            return ComplexIntervalFieldElement(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
 
     def sqrt(self, bint all=False, **kwds):
         """

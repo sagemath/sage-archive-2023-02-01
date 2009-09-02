@@ -2045,11 +2045,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: log(x,3)
             100000
 
-        Do NOT try log(x) here, at least not with current Maxima symbolic
-        backend; it may take a very, very long time. But approximations
-        work well - up to the given precision, of course.
+        With the new Pynac symbolic backend, log(x) also
+        works in a reasonable amount of time for this x::
 
-        ::
+            sage: x = 3^100000
+            sage: log(x)
+            log(1334971414230...5522000001)
+
+        But approximations are probably more useful in this
+        case, and work to as high a precision as we desire::
 
             sage: x.log(3,53) # default precision for RealField
             100000.000000000
@@ -2062,9 +2066,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: x.log(2.5,prec=53)
             119897.784671579
+
+        We also get logarithms of negative integers, via the
+        symbolic ring, using the branch from `-pi` to `pi`::
+
+            sage: log(-1)
+            I*pi
+
+        The logarithm of zero is done likewise::
+
+            sage: log(0)
+            -Infinity
         """
         if mpz_sgn(self.value) <= 0:
-            raise ValueError, "self must be positive"
+            from sage.symbolic.all import SR
+            return SR(self).log()
         if m <= 0 and m != None:
             raise ValueError, "m must be positive"
         if prec:

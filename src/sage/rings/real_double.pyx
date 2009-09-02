@@ -1652,8 +1652,13 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(0).log()
             -infinity
             sage: RDF(-1).log()
-            NaN
+            3.14159265359*I
+            sage: RDF(-1).log(2)
+            4.53236014183*I
         """
+        if self < 0:
+            from sage.rings.complex_double import CDF
+            return CDF(self).log(base)
         if base is None:
             return self._log_base(1)
         else:
@@ -1677,6 +1682,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(31.9); r.log2()
             4.99548451888
         """
+        if self < 0:
+            from sage.rings.complex_double import CDF
+            return CDF(self).log(2)
         _sig_on
         a = self._new_c(gsl_sf_log(self._value) / M_LN2)
         _sig_off
@@ -1696,6 +1704,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF('39.9'); r.log10()
             1.60097289569
         """
+        if self < 0:
+            from sage.rings.complex_double import CDF
+            return CDF(self).log(10)
         _sig_on
         a = self._new_c(gsl_sf_log(self._value) / M_LN10)
         _sig_off
@@ -1714,6 +1725,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF('39.9'); r.logpi()
             3.22030233461
         """
+        if self < 0:
+            from sage.rings.complex_double import CDF
+            return CDF(self).log(math.pi)
         _sig_on
         a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
         _sig_off

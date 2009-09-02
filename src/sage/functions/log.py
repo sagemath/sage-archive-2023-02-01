@@ -109,7 +109,8 @@ function_log = Function_log()
 
 def ln(x):
     """
-    The natural logarithm of x.
+    The natural logarithm of x.  See `log?` for
+    more information about its behavior.
 
     INPUT:
 
@@ -127,8 +128,22 @@ def ln(x):
         log(2)
         sage: ln(2.0)
         0.693147180559945
+        sage: ln(float(-1))
+        3.14159265359*I
+        sage: ln(complex(-1))
+        3.14159265359*I
     """
-    return function_log(x)
+    if type(x) is complex:
+        return CDF(x).log()
+    try:
+        return function_log(x)
+    except ValueError:
+        if type(x) is float:
+            from sage.rings.all import RDF
+            return RDF(x).log()
+        else:
+            raise
+
 
 def log(x, base=None):
     """
@@ -138,8 +153,6 @@ def log(x, base=None):
     the logarithm, thus allowing use of logarithm on any object
     containing a ``log`` method. In other words, log works
     on more than just real numbers.
-
-    TODO: Add p-adic log example.
 
     EXAMPLES::
 
@@ -163,6 +176,26 @@ def log(x, base=None):
         sage: n(log(10, e))
         2.30258509299405
 
+    The log function works for negative numbers, complex
+    numbers, and symbolic numbers too, picking the branch
+    with angle between `-pi` and `pi`::
+
+        sage: log(-1+0*I)
+        I*pi
+        sage: log(CC(-1))
+        3.14159265358979*I
+        sage: log(-1.0)
+        3.14159265358979*I
+
+    For input zero, the following behavior occurs::
+
+        sage: log(0)
+        -Infinity
+        sage: log(CC(0))
+        -infinity
+        sage: log(0.0)
+        -infinity
+
     The log function also works in finite fields as long as the base is
     generator of the multiplicative group::
 
@@ -176,6 +209,16 @@ def log(x, base=None):
         Traceback (most recent call last):
         ...
         ValueError: base (=3) for discrete log must generate multiplicative group
+
+    The log function also works for p-adics (see documentation for
+    p-adics for more information)::
+
+        sage: R = Zp(5); R
+        5-adic Ring with capped relative precision 20
+        sage: a = R(16); a
+        1 + 3*5 + O(5^20)
+        sage: log(a)
+        3*5 + 3*5^2 + 3*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 2*5^8 + 5^9 + 5^11 + 2*5^12 + 5^13 + 3*5^15 + 2*5^16 + 4*5^17 + 3*5^18 + 3*5^19 + O(5^20)
     """
     if base is None:
         try:

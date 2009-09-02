@@ -873,6 +873,18 @@ ext_modules = [
     #           sources = ['sage/modules/vector_rational_sparse.pyx'],
     #           libraries = ['gmp']),
 
+    ################################
+    ##
+    ## sage.numerical
+    ##
+    ################################
+
+
+    Extension("sage.numerical.mip",
+              ["sage/numerical/mip.pyx"],
+            include_dirs=["local/include/"],
+            libraries=["csage","stdc++"]),
+
 
     ################################
     ##

@@ -110,7 +110,7 @@ version information.
 
    The *Legendre function of the second kind* `Q_n(x)` is another
    (linearly independent) solution to the Legendre differential equation.
-   It is not an ""orthogonal polynomial"" however.
+   It is not an "orthogonal polynomial" however.
 
    The associated Legendre functions of the first kind
    `P_\ell^m(x)` can be given in terms of the "usual"
@@ -118,7 +118,7 @@ version information.
 
    .. math::
 
-     \begin{array}{ll} P_\ell^m(x)    &=  (-1)^m(1-x^2)^{m/2}(d^m)/(dx^m)P_\ell(x) \\ &=  \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^(\ell+m)}{dx^(\ell+m)}(x^2-1)^\ell. \end{array}
+     \begin{array}{ll} P_\ell^m(x)    &=  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\ &=  \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^\ell. \end{array}
 
 
    Assuming `0 \le m \le \ell`, they satisfy the orthogonality
@@ -138,7 +138,7 @@ version information.
 
    .. math::
 
-     Q_\ell^m(x)   =  (-1)^m(1-x^2)^{m/2}(d^m)/(dx^m)Q_\ell(x).
+     Q_\ell^m(x)   =  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}Q_\ell(x).
 
 
 
@@ -205,20 +205,20 @@ version information.
    They are named after Carl Jacobi.
 
 -  Ultraspherical or Gegenbauer polynomials are given in terms of
-   the Jacobi polynomials `P_n^((\alpha,\beta))(x)` with
+   the Jacobi polynomials `P_n^{(\alpha,\beta)}(x)` with
    `\alpha=\beta=a-1/2` by
 
 
    .. math::
 
-     C_n^((a))(x)= \frac{\Gamma(a+1/2)}{\Gamma(2a)}\frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
+     C_n^{(a)}(x)= \frac{\Gamma(a+1/2)}{\Gamma(2a)}\frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
 
 
    They satisfy the orthogonality relation
 
    .. math::
 
-     \int_(-1)^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx =\delta_{mn}2^(1-2a)\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)} ,
+     \int_{-1}^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx =\delta_{mn}2^{1-2a}\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)} ,
 
 
    for `a>-1/2`. They are obtained from hypergeometric series

@@ -1197,7 +1197,7 @@ def laplace(ex, t, s):
         629/8*e^(-4*t) + 91/8*e^(4*t)
         sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
         sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
-        sage: (p1+p2).save()
+        sage: (p1+p2).save(SAGE_TMP + "de_plot.png")
 
     Another example::
 

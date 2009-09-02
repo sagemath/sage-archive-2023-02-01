@@ -216,7 +216,7 @@ computation. For example,
     sage: yl = ylabel('voltage (mV)')
     sage: t = title('About as simple as it gets, folks')
     sage: grid(True)
-    sage: savefig('sage.png')
+    sage: savefig(SAGE_TMP + 'sage.png')
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!

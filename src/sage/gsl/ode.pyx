@@ -205,7 +205,8 @@ class ode_solver(object):
          sage: T.function=f_1
          sage: T.jacobian=j_1
          sage: T.ode_solve(y_0=[1,0],t_span=[0,100],params=[10.0],num_points=1000)
-         sage: T.plot_solution(filename='sage.png')
+         sage: outfile = SAGE_TMP + 'sage.png'
+         sage: T.plot_solution(filename=outfile)
 
          The solver line is equivalent to
          sage: T.ode_solve(y_0=[1,0],t_span=[x/10.0 for x in range(1000)],params = [10.0])
@@ -227,9 +228,9 @@ class ode_solver(object):
          sage: T.ode_solve(t_span=[0,12],num_points=100)
 
          By default T.plot_solution() plots the y_0, to plot general y_i use
-         sage: T.plot_solution(i=0, filename='sage.png')
-         sage: T.plot_solution(i=1, filename='sage.png')
-         sage: T.plot_solution(i=2, filename='sage.png')
+         sage: T.plot_solution(i=0, filename=outfile)
+         sage: T.plot_solution(i=1, filename=outfile)
+         sage: T.plot_solution(i=2, filename=outfile)
 
          The method interpolate_solution will return a spline interpolation through the points found by the solver. By default y_0 is interpolated.
          You can interpolate y_i through the keyword argument i.

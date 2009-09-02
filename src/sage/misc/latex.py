@@ -382,9 +382,7 @@ def _run_latex_(filename, debug=False, density=150,
     EXAMPLES::
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
-        sage: from sage.misc.misc import tmp_dir
-        sage: base = tmp_dir()
-        sage: file = os.path.join(base, "temp.tex")
+        sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
         sage: O.write(_latex_file_([ZZ[x], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
@@ -1578,7 +1576,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], "zz.png", do_in_background=False) # random - error if no latex
+        sage: png(ZZ[x], SAGE_TMP + "zz.png", do_in_background=False) # random - error if no latex
     """
     import sage.plot.all
     if sage.plot.all.is_Graphics(x):

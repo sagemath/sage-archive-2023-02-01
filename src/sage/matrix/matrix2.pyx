@@ -4873,7 +4873,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLE::
 
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure()
+            sage: M.visualize_structure(SAGE_TMP + "matrix.png")
         """
         import gd
         import os

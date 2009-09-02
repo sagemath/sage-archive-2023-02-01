@@ -334,7 +334,7 @@ def _apply_plot(func, x, fig_num, figsize=[1,1], with_label=True,**kwds):
         sage: def p(graph6):
         ...     g = Graph(str(graph6))
         ...     return g.plot(layout='circular', vertex_size=30, vertex_labels=False)
-        sage: _apply_plot(p, 'C?', 0)
+        sage: _apply_plot(p, 'C?', 0) # not tested
         '<td bgcolor=white align=center>C?<br><img src="cell://0.png"></td>'
     """
     p = func(x)

@@ -664,20 +664,22 @@ def save(obj, filename=None, compress=True, **kwds):
     EXAMPLES::
 
         sage: a = matrix(2, [1,2,3,-5/2])
-        sage: save(a, 'test.sobj')
-        sage: load('test')
+        sage: objfile = SAGE_TMP + 'test.sobj'
+        sage: objfile_short = SAGE_TMP + 'test'
+        sage: save(a, objfile)
+        sage: load(objfile_short)
         [   1    2]
         [   3 -5/2]
         sage: E = EllipticCurve([-1,0])
         sage: P = plot(E)
-        sage: save(P, 'test')
-        sage: save(P, filename="sage.png", xmin=-2)
-        sage: print load('test.sobj')
+        sage: save(P, objfile_short)
+        sage: save(P, filename=SAGE_TMP + "sage.png", xmin=-2)
+        sage: print load(objfile)
         Graphics object consisting of 2 graphics primitives
-        sage: save("A python string", './test')
-        sage: load('./test.sobj')
+        sage: save("A python string", SAGE_TMP + 'test')
+        sage: load(objfile)
         'A python string'
-        sage: load('./test')
+        sage: load(objfile_short)
         'A python string'
     """
     # Add '.sobj' if the filename currently has no extension

@@ -8370,7 +8370,7 @@ class GenericGraph(SageObject):
             sage: G.automorphism_group(return_group=False, order=True)
             120
 
-        Or, just the orbits (recall the Petersen graph is transitive!)
+        Or, just the orbits (note that each graph here is vertex transitive)
 
         ::
 
@@ -8379,6 +8379,9 @@ class GenericGraph(SageObject):
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
             sage: G.automorphism_group(partition=[[0],range(1,10)], return_group=False, orbits=True)
             [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
+            sage: C = graphs.CubeGraph(3)
+            sage: C.automorphism_group(orbits=True, return_group=False)
+            [['000', '001', '010', '011', '100', '101', '110', '111']]
 
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import perm_group_elt, search_tree
@@ -8515,8 +8518,11 @@ class GenericGraph(SageObject):
         if order:
             output.append(c)
         if orbits:
+            G_from = {}
+            for v in G_to:
+                G_from[G_to[v]] = v
             from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
-            output.append(get_orbits(a, self.num_verts()))
+            output.append([[G_from[v] for v in W] for W in get_orbits(a, self.num_verts())])
 
         # A Python switch statement!
         return { 0: None,

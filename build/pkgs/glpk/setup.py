@@ -5,7 +5,7 @@ from Cython.Distutils import build_ext
 setup(
    cmdclass = {'build_ext': build_ext},
    ext_modules = [Extension("sage.numerical.mipGlpk",
-           ["mipGlpk.pyx"],
+           ["patch/mipGlpk.pyx"],
          include_dirs=["../../../local/include/","../../../devel/sage/c_lib/include/"],
          language='c++',
          libraries=["csage","stdc++","glpk"])]

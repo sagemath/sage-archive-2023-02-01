@@ -97,7 +97,7 @@ cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
 
     return Sequence(l, check=False, immutable=True)
 
-cdef ideal *sage_ideal_to_singular_ideal(I):
+cdef ideal *sage_ideal_to_singular_ideal(I) except NULL:
     """
     convert a Sage ideal to a SINGULAR ideal
 
@@ -114,7 +114,7 @@ cdef ideal *sage_ideal_to_singular_ideal(I):
     cdef int j = 0
 
     if not PY_TYPE_CHECK(R,MPolynomialRing_libsingular):
-        raise TypeError, "ring must be of type MPolynomialRing_libsingular"
+        raise TypeError("Ring must be of type 'MPolynomialRing_libsingular'")
 
     r = (<MPolynomialRing_libsingular>R)._ring
     rChangeCurrRing(r);
@@ -123,7 +123,7 @@ cdef ideal *sage_ideal_to_singular_ideal(I):
     for f in gens:
         if not PY_TYPE_CHECK(f,MPolynomial_libsingular):
             id_Delete(&i, r)
-            raise TypeError, "all generators must be of type MPolynomial_libsingular"
+            raise TypeError("All generators must be of type MPolynomial_libsingular.")
         i.m[j] = p_Copy((<MPolynomial_libsingular>f)._poly, r)
         j+=1
     return i

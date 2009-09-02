@@ -240,7 +240,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
     _ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
     _ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
-    _ring.OrdSgn = 1
+
+    if order.is_local():
+        _ring.OrdSgn = -1
+    else:
+        _ring.OrdSgn = 1
 
     for i from 0 <= i < nblcks:
         _ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_dp)

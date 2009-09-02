@@ -1174,7 +1174,7 @@ class MPolynomialIdeal_singular_repr:
         self.__gb_singular = S
         return S
 
-    def _groebner_basis_libsingular(self, algorithm="std"):
+    def _groebner_basis_libsingular(self, algorithm="groebner"):
         """
         Return the reduced Groebner basis of this ideal. If the
         Groebner basis for this ideal has been calculated before the
@@ -1187,11 +1187,20 @@ class MPolynomialIdeal_singular_repr:
 
         ALGORITHMS:
 
+        'groebner'
+            Singular's heuristic script (default)
+
         'std'
             Buchberger's algorithm
 
         'slimgb'
             the *SlimGB* algorithm
+
+        'stdhilb'
+            Hilbert Basis driven Groebner basis
+
+        'stdfglm'
+            Buchberger and FGLM
 
         EXAMPLES:
 
@@ -1214,13 +1223,25 @@ class MPolynomialIdeal_singular_repr:
         ALGORITHM: Uses libSINGULAR.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
+        from sage.libs.singular import groebner, singular_function, libsingular_options
 
-        if algorithm=="std":
+        T = self.ring().term_order()
+        bck = int(libsingular_options)
+
+        if algorithm == "std":
             S = std_libsingular(self)
-        elif algorithm=="slimgb":
+        elif algorithm == "slimgb":
             S = slimgb_libsingular(self)
+        elif algorithm == "groebner":
+            S = groebner(self)
         else:
-            raise TypeError, "algorithm '%s' unknown"%algorithm
+            try:
+                fnc = singular_function(algorithm)
+                S = fnc(self)
+            except NameError:
+                libsingular_options(bck)
+                raise NameError("Algorithm '%s' unknown"%algorithm)
+        libsingular_options(bck)
         return S
 
     @require_field
@@ -1459,7 +1480,7 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
-            [z + y^3, x*y - y^3, x*z + y^3]
+            [z + x*y, x*y - y^3, x^2*y - y^3]
 
         ALGORITHM:
 
@@ -1494,10 +1515,12 @@ class MPolynomialIdeal_singular_repr:
             sage: I.interreduced_basis()
             [y^3 + z, x*y + z, x*z - z]
 
+        Note that tail reduction for local orderings is not well-defined::
+
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.interreduced_basis()
-            [z + y^3, x*y - y^3, x*z + y^3]
+            [z + x*y, x*y - y^3, x^2*y - y^3]
 
         ALGORITHM: Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
@@ -1734,12 +1757,16 @@ class MPolynomialIdeal_singular_repr:
            Requires computation of a Groebner basis, which can be a very
            expensive operation.
         """
+        from sage.libs.singular.function import singular_function
+        eliminate = singular_function('eliminate')
+
         if not isinstance(variables, (list,tuple)):
             variables = (variables,)
 
-        Is = self._groebner_basis_singular_raw()
+
         R = self.ring()
-        return MPolynomialIdeal(R, [f.sage_poly(R) for f in Is.eliminate( prod(variables) ) ] )
+        Is = MPolynomialIdeal(R,self.groebner_basis())
+        return MPolynomialIdeal(R, eliminate(Is, prod(variables)) )
 
     @redSB
     def quotient(self, J):
@@ -2341,11 +2368,20 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'singular:slimgb'
             Singular's ``slimgb`` command
 
+        'libsingular:groebner'
+            libSingular's ``groebner`` command
+
         'libsingular:std'
             libSingular's ``std`` command
 
         'libsingular:slimgb'
             libSingular's ``slimgb`` command
+
+        'libsingular:stdhilb'
+            libSingular's ``stdhib`` command
+
+        'libsingular:stdfglm'
+            libSingular's ``stdfglm`` command
 
         'toy:buchberger'
             Sage's toy/educational buchberger without Buchberger criteria
@@ -2505,6 +2541,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: sum(map(mul, zip(l,J.gens()))) == f
             True
 
+        Groebner bases over fraction fields of polynomial rings are also supported::
+
+            sage: P.<t> = QQ[]
+            sage: F = Frac(P)
+            sage: R.<X,Y,Z> = F[]
+            sage: I = Ideal([f + P.random_element() for f in sage.rings.ideal.Katsura(R).gens()])
+            sage: I.groebner_basis()
+            [Z^3 + (79/105*t^2 - 79/105*t + 79/630)*Z^2 + (-11/105*t^4 + 22/105*t^3 - 17/45*t^2 + 197/630*t + 557/1890)*Y + ...,
+            Y^2 + (-3/5)*Z^2 + (2/5*t^2 - 2/5*t + 1/15)*Y + (-2/5*t^2 + 2/5*t - 1/15)*Z - 1/10*t^4 + 1/5*t^3 - 7/30*t^2 + 2/5*t + 11/90,
+            Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
+
         ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
         available), or a toy implementation.
         """
@@ -2521,25 +2568,28 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         if algorithm is '':
             try:
-                gb = self._groebner_basis_singular("groebner", *args, **kwds)
-            except TypeError, msg: # conversion to Singular not supported
-                if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
-                    verbose("Warning: falling back to very slow toy implementation.", level=0)
-
-                    ch = self.ring().base_ring().characteristic()
-                    R = self.ring().change_ring(ZZ)
-                    I = R.ideal([R(f) for f in self.gens()+(ch,)])
-
-                    gb = toy_d_basis.d_basis(I, *args, **kwds)
-
-                    R = self.ring()
-                    gb = filter(lambda f: f,[R(f) for f in gb])
-                else:
-                    if self.ring().term_order().is_global():
+                gb = self._groebner_basis_libsingular("groebner", *args, **kwds)
+            except (TypeError,NameError), msg: # conversion to Singular not supported
+                try:
+                    gb = self._groebner_basis_singular("groebner", *args, **kwds)
+                except (TypeError,NameError), msg: # conversion to Singular not supported
+                    if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
-                        gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
+
+                        ch = self.ring().base_ring().characteristic()
+                        R = self.ring().change_ring(ZZ)
+                        I = R.ideal([R(f) for f in self.gens()+(ch,)])
+
+                        gb = toy_d_basis.d_basis(I, *args, **kwds)
+
+                        R = self.ring()
+                        gb = filter(lambda f: f,[R(f) for f in gb])
                     else:
-                        raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
+                        if self.ring().term_order().is_global():
+                            verbose("Warning: falling back to very slow toy implementation.", level=0)
+                            gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
+                        else:
+                            raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
 
         elif algorithm.startswith('singular:'):
             gb = self._groebner_basis_singular(algorithm[9:])
@@ -2556,11 +2606,18 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
         else:
-            raise TypeError, "algorithm '%s' unknown"%algorithm
+            raise NameError("Algorithm '%s' unknown."%algorithm)
 
         gb = sorted(gb, reverse=True)
         if self.ring().base_ring().is_field():
-            gb = Sequence( [f*f.lc()**(-1) for f in gb], immutable=True, check=False)
+            _gb = []
+            for f in gb:
+                if f.lc():
+                    _gb.append(f*f.lc()**(-1))
+                else:
+                    _gb.append(f)
+            gb = _gb
+        gb = Sequence(gb, immutable=True, check=False)
         return gb
 
     def change_ring(self, P):

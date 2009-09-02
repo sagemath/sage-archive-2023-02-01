@@ -143,7 +143,7 @@ cdef class Converter(SageObject):
             # list
             # modul
             else:
-                raise ValueError("unknown argument type '%s'"%(type(a),))
+                raise TypeError("unknown argument type '%s'"%(type(a),))
 
     def ring(self):
         """
@@ -226,35 +226,35 @@ cdef class Converter(SageObject):
         """
         self._append_leftv( new_leftv(data, res_type) )
 
-    cdef void append_polynomial(self, MPolynomial_libsingular p):
+    cdef int append_polynomial(self, MPolynomial_libsingular p) except -1:
         """
         Append the polynomial ``p`` to the list.
         """
         cdef poly* _p = p_Copy(p._poly, <ring*>(<MPolynomialRing_libsingular>p._parent)._ring)
         self._append(_p, POLY_CMD)
 
-    cdef void append_ideal(self,  i):
+    cdef int append_ideal(self,  i) except -1:
         """
         Append the ideal ``i`` to the list.
         """
         cdef ideal* singular_ideal = sage_ideal_to_singular_ideal(i)
         self._append(singular_ideal, IDEAL_CMD)
 
-    cdef void append_number(self, n):
+    cdef int append_number(self, n) except -1:
         """
         Append the number ``n`` to the list.
         """
         cdef number *_n =  sa2si(n, self._ring._ring)
         self._append(<void *>_n, NUMBER_CMD)
 
-    cdef void append_int(self, n):
+    cdef int append_int(self, n) except -1:
         """
         Append the integer ``n`` to the list.
         """
         cdef long _n =  n
         self._append(<void*>_n, INT_CMD)
 
-    cdef void append_str(self, n):
+    cdef int append_str(self, n) except -1:
         """
         Append the string ``n`` to the list.
         """
@@ -513,6 +513,8 @@ cdef class SingularFunction(SageObject):
             6
         """
         ring = self.common_ring(args, ring)
+        if not PY_TYPE_CHECK(ring, MPolynomialRing_libsingular):
+            raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
         return call_function(self, args, ring, interruptible)
 
     def _sage_doc_(self):
@@ -784,3 +786,6 @@ def lib(name):
 
     if failure:
         raise NameError("Library '%s' not found."%(name,))
+
+
+

@@ -745,3 +745,17 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         R = magma(self.__R)
         I = magma(self.__I.gens())
         return "quo<%s|%s>"%(R.name(), I._ref())
+
+    def term_order(self):
+        """
+        Return the term order of this ring.
+
+        EXAMPLE::
+
+            sage: P.<a,b,c> = PolynomialRing(QQ)
+            sage: I = Ideal([a^2 - a, b^2 - b, c^2 - c])
+            sage: Q = P.quotient(I)
+            sage: Q.term_order()
+            Degree reverse lexicographic term order
+        """
+        return self.__R.term_order()

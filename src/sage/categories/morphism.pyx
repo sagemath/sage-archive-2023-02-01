@@ -25,6 +25,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../ext/cdefs.pxi"
+
 import operator
 
 import homset
@@ -134,14 +136,138 @@ cdef class SetMorphism(Morphism):
         """
         INPUT:
 
-
-        -  ``parent`` - a Homset
-
-        -  ``function`` - a Python function that takes elements
+         - ``parent`` -- a Homset
+         - ``function`` -- a Python function that takes elements
            of the domain as input and returns elements of the domain.
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator) # could use Monoids() once the categories will be in
+            sage: f.parent()
+            Set of Morphisms from Rational Field to Integer Ring in Category of sets
+            sage: f.domain()
+            Rational Field
+            sage: f.codomain()
+            Integer Ring
+            sage: TestSuite(f).run()
         """
+        Morphism.__init__(self, parent)
         self._function = function
 
     cpdef Element _call_(self, x):
+        """
+        INPUT:
+
+         - ``x`` -- an element of ``self.domain()``
+
+        Returns the result of ``self`` applied on ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator)  # could use Monoids() once the categories will be in
+            sage: f(2/3)
+            2
+            sage: f(5/4)
+            5
+            sage: f(3) # todo: this should complain that 3 is not in QQ
+            3
+        """
         return self._function(x)
 
+    cdef _extra_slots(self, _slots):
+        """
+        INPUT:
+
+         - ``_slots`` -- a dictionary
+
+        Extends the dictionary with extra slots for this class.
+
+        EXAMPLES::
+
+            sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
+            sage: f._extra_slots_test({"bla":1})
+            {'_codomain': Integer Ring, '_domain': Integer Ring, '_function': <built-in function __abs__>, 'bla': 1, '_repr_type_str': None}
+        """
+        _slots['_function'] = self._function
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, _slots):
+        """
+        INPUT:
+        - ``_slots`` -- a dictionary
+
+        Updates the slots of self from the data in the dictionary
+
+        EXAMPLES::
+
+            sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
+            sage: f(3)
+            3
+            sage: f._update_slots_test({'_function' : operator.__neg__,
+            ...                         '_domain' : QQ,
+            ...                         '_codomain' : QQ,
+            ...                         '_repr_type_str' : 'bla'})
+            sage: f(3)
+            -3
+            sage: f._repr_type()
+            'bla'
+            sage: f.domain()
+            Rational Field
+            sage: f.codomain()
+            Rational Field
+        """
+        self._function = _slots['_function']
+        Map._update_slots(self, _slots)
+
+    cpdef bool _eq_c_impl(self, Element other):
+        """
+        Equality test
+
+        EXAMPLES::
+
+            sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__abs__)
+            sage: g = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__abs__)
+            sage: h = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Rings()),   operator.__abs__) # todo: replace by the more correct Monoids
+            sage: i = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__neg__)
+            sage: f._eq_c_impl(g)
+            True
+            sage: f._eq_c_impl(h)
+            False
+            sage: f._eq_c_impl(i)
+            False
+            sage: f._eq_c_impl(1)
+            False
+
+        """
+        return PY_TYPE_CHECK(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
+
+    def __richcmp__(self, right, int op):
+        """
+        INPUT:
+         - ``self``  -- SetMorphism
+         - ``right`` -- Element (TODO: fix to object)
+         - ``op``    -- integer
+
+        EXAMPLES::
+
+            sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__abs__)
+            sage: g = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__abs__)
+            sage: h = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Rings()),   operator.__abs__) # todo: replace by the more correct Monoids
+            sage: i = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()),    operator.__neg__)
+            sage: f == f, f != f, f < f, f > f, f <= f, f >= f
+            (True, False, False, False, True, True)
+            sage: f == g, f != g, f < g, f > g, f <= g, f >= g
+            (True, False, False, False, True, True)
+            sage: f == h, f != h, f < h, f > h, f <= h, f >= h
+            (False, True, False, False, False, False)
+            sage: f == i, f != i, f < i, f > i, f <= i, f >= i
+            (False, True, False, False, False, False)
+        """
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return self._eq_c_impl(right)
+        elif op == Py_NE:
+            return not self._eq_c_impl(right)
+        else:
+            return False

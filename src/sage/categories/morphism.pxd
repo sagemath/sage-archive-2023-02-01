@@ -7,3 +7,4 @@ cdef class Morphism(Map):
 
 cdef class SetMorphism(Morphism):
     cdef object _function
+    cpdef bool _eq_c_impl(left, Element right)

@@ -59,16 +59,43 @@ cdef class Map(Element):
         else:
             self._repr_type_str = None
 
-    def _test_update_slots(self, _slots):
+    def _update_slots_test(self, _slots):
+        """
+        A Python method to test the cdef _update_slots method
+
+        TESTS::
+
+            sage: from sage.categories.map import Map
+            sage: f = Map(Hom(QQ, ZZ, Rings()))
+            sage: f._update_slots_test({"_domain": RR, "_codomain": QQ})
+            sage: f.domain()
+            Real Field with 53 bits of precision
+            sage: f.codomain()
+            Rational Field
+            sage: f._repr_type_str
+            sage: f._update_slots_test({"_repr_type_str": "bla", "_domain": RR, "_codomain": QQ})
+            sage: f._repr_type_str
+            'bla'
+        """
         self._update_slots(_slots)
 
     cdef _extra_slots(self, _slots):
+        """
+        A Python method to test the cdef _extra_slots method
+
+        TESTS::
+
+            sage: from sage.categories.map import Map
+            sage: f = Map(Hom(QQ, ZZ, Rings()))
+            sage: f._extra_slots_test({"bla": 1})
+            {'_codomain': Integer Ring, '_domain': Rational Field, 'bla': 1, '_repr_type_str': None}
+        """
         _slots['_domain'] = self._domain
         _slots['_codomain'] = self._codomain
         _slots['_repr_type_str'] = self._repr_type_str
         return _slots
 
-    def _test_extra_slots(self, _slots):
+    def _extra_slots_test(self, _slots):
         return self._extra_slots(_slots)
 
     def __reduce__(self):

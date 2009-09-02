@@ -16,3 +16,6 @@ Miscellaneous Modular-Form-Related Modules
    sage/modular/overconvergent/genus0
    sage/modular/ssmod/ssmod
    sage/modular/quatalg/brandt
+
+   sage/modular/cusps_nf
+

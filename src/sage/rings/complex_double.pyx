@@ -1411,7 +1411,14 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: CDF(1,1).log()
             0.34657359028 + 0.785398163397*I
+
+        This is the only example different from the GSL::
+
+            sage: CDF(0,0).log()
+            -infinity
         """
+        if self == 0:
+            return RDF(0).log()
         if base is None:
             return self._new_c(gsl_complex_log(self._complex))
         cdef ComplexDoubleElement z
@@ -1433,6 +1440,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,1).log10()
             0.150514997832 + 0.34109408846*I
         """
+        if self == 0:
+            return RDF(0).log()
         return self._new_c(gsl_complex_log10(self._complex))
 
     def log_b(self, b):
@@ -1449,6 +1458,8 @@ cdef class ComplexDoubleElement(FieldElement):
             0.150514997832 + 0.34109408846*I
         """
         cdef ComplexDoubleElement _b
+        if self == 0:
+            return RDF(0).log()
         try:
             _b = b
         except TypeError:

@@ -929,11 +929,26 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(-3, -1/4).log()
             1.102072510090397? - 3.058451421701352?*I
 
-        If a base is passed from another function, we can accomodate this::
+        Usually if an interval contains zero, we raise an exception::
+
+            sage: CIF(RIF(-1,1),RIF(-1,1)).log()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't take the argument of interval strictly containing zero
+
+        But we allow the exact input zero::
+
+            sage: CIF(0).log()
+            [-infinity .. -infinity]
+
+        If a base is passed from another function, we can accommodate this::
 
             sage: CIF(-1,1).log(2)
             0.500000000000000? + 3.399270106370396?*I
         """
+        if self == 0:
+            from real_mpfi import RIF
+            return RIF(0).log()
         theta = self.argument()
         rho = abs(self)
         if base is None or base is 'e':

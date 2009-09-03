@@ -468,9 +468,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             7.000 + 4.000i
             sage: b._latex_()
             '7.000 + 4.000i'
+
+        ::
+
+            sage: ComplexNumber(0).log()._latex_()
+            '-\\infty'
         """
         import re
-        s = self.str().replace('*I', 'i')
+        s = self.str().replace('*I', 'i').replace('infinity','\\infty')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
     def _pari_(self):

@@ -260,7 +260,8 @@ class User:
 
     def is_suspended(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.is_suspended()
@@ -273,7 +274,8 @@ class User:
 
     def set_suspension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.server.notebook.user import User
             sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
             sage: user.is_suspended()
@@ -289,5 +291,3 @@ class User:
             self.__is_suspended = False if self.__is_suspended else True
         except AttributeError:
             self.__is_suspended = True
-
-

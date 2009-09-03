@@ -1,12 +1,14 @@
 r"""
 The Sage Notebook Twisted Web Server
 
-    TESTS::
+TESTS:
 
-    It is important that this file never be imported by default on
-    startup by Sage, since it is very expensive, since importing Twisted
-    is expensive. This doctest verifies that twist.py isn't imported on
-    startup.
+It is important that this file never be imported by default on
+startup by Sage, since it is very expensive, since importing Twisted
+is expensive. This doctest verifies that twist.py isn't imported on
+startup.
+
+::
 
     sage: os.system("sage -startuptime | grep twisted\.web2 1>/dev/null") != 0  # !=0 means not found
     True
@@ -133,7 +135,7 @@ def message(msg, cont=None):
 def HTMLResponse(*args, **kwds):
     """
     Returns an HTMLResponse object whose 'Content-Type' header has been set
-    to 'text/html; charset=utf-8
+    to ``text/html; charset=utf-8``
 
     EXAMPLES::
 
@@ -1481,7 +1483,6 @@ def render_worksheet_list(args, pub, username):
 
     INPUT:
 
-
     -  ``args`` - ctx.args where ctx is the dict passed
        into a resource's render method
 
@@ -1491,8 +1492,9 @@ def render_worksheet_list(args, pub, username):
     -  ``username`` - the user whose worksheets we are
        listing
 
+    OUTPUT:
 
-    OUTPUT: a string
+    a string
     """
     from sage.server.notebook.notebook import sort_worksheet_list
     typ = args['typ'][0] if 'typ' in args else 'active'
@@ -1566,7 +1568,9 @@ class EmptyTrash(resource.Resource):
         This twisted resource empties the trash of the current user when it
         is rendered.
 
-        EXAMPLES: We create an instance of this resource.
+        EXAMPLES:
+
+        We create an instance of this resource.
 
         ::
 
@@ -1581,7 +1585,9 @@ class EmptyTrash(resource.Resource):
         Rendering this resource (1) empties the trash, and (2) returns a
         message.
 
-        EXAMPLES: We create a notebook with a worksheet, put it in the
+        EXAMPLES:
+
+        We create a notebook with a worksheet, put it in the
         trash, then empty the trash by creating and rendering this
         worksheet.
 

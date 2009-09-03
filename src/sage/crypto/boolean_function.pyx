@@ -14,7 +14,7 @@ EXAMPLE::
     sage: B
     Boolean function with 8 variables
     sage: B.nonlinearity()
-    110
+    112
 
 AUTHOR:
 
@@ -29,6 +29,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.finite_field import GF
 from sage.rings.polynomial.pbori import BooleanPolynomial
 from sage.rings.ring import is_FiniteField
+from sage.rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/misc/bitset_pxd.pxi"
@@ -317,8 +318,12 @@ cdef class BooleanFunction(SageObject):
                 self._nvariables = K.degree()
                 bitset_init(self._truth_table,(1<<self._nvariables))
                 bitset_zero(self._truth_table)
-                for i,u in enumerate(K):
-                    bitset_set_to(self._truth_table, i, (x(u)).trace())
+                if isinstance(K,FiniteField_givaro): #the ordering is not the same in this case
+                    for u in K:
+                        bitset_set_to(self._truth_table, ZZ(u._vector_().list(),2) , (x(u)).trace())
+                else:
+                    for i,u in enumerate(K):
+                        bitset_set_to(self._truth_table, i , (x(u)).trace())
 
         else:
             raise TypeError, "unable to init the Boolean function"
@@ -339,6 +344,43 @@ cdef class BooleanFunction(SageObject):
             r += "s"
         return r
 
+    def algebraic_normal_form(self):
+        """
+        Return the :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
+        corresponding to the algebraic normal form.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B = BooleanFunction([0,1,1,0,1,0,1,1])
+            sage: P = B.algebraic_normal_form()
+            sage: P
+            x0*x1*x2 + x0 + x1*x2 + x1 + x2
+            sage: [ P(*ZZ(i).digits(base=2,padto=3)) for i in range(8) ]
+            [0, 1, 1, 0, 1, 0, 1, 1]
+        """
+        cdef bitset_t anf
+        bitset_init(anf, (1<<self._nvariables))
+        bitset_copy(anf, self._truth_table)
+        reed_muller(anf.bits, ZZ(anf.limbs).exact_log(2))
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        R = BooleanPolynomialRing(self._nvariables,"x")
+        G = R.gens()
+        P = R(0)
+        for 0 <= i < anf.limbs:
+            if anf.bits[i]:
+                inf = i*sizeof(long)*8
+                sup = min( (i+1)*sizeof(long)*8 , (1<<self._nvariables) )
+                for inf <= j < sup:
+                    if bitset_in(anf,j):
+                        m = R(1)
+                        for 0 <= k < self._nvariables:
+                            if (j>>k)&1:
+                                m *= G[k]
+                        P+=m
+        bitset_free(anf)
+        return P
+
     def nvariables(self):
         """
         The number of variables of this function.
@@ -351,9 +393,14 @@ cdef class BooleanFunction(SageObject):
         """
         return self._nvariables
 
-    def truth_table(self):
+    def truth_table(self,format='bin'):
         """
         The truth table of the Boolean function.
+
+        INPUT: a string representing the desired format, can be either
+
+        - 'bin' (default) : we return a tuple of Boolean values
+        - 'hex' : we return a string representing the truth_table in hexadecimal
 
         EXAMPLE::
 
@@ -362,8 +409,31 @@ cdef class BooleanFunction(SageObject):
             sage: B = BooleanFunction( x*y*z + z + y + 1 )
             sage: B.truth_table()
             (True, True, False, False, False, False, True, False)
+            sage: B.truth_table(format='hex')
+            '43'
+
+            sage: BooleanFunction('00ab').truth_table(format='hex')
+            '00ab'
+
+            sage: B.truth_table(format='oct')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown output format
         """
-        return tuple( [b for b in self] )
+        if format is 'bin':
+            return tuple(self)
+        if format is 'hex':
+            S = ""
+            S = ZZ(self.truth_table(),2).str(16)
+            S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
+            for 1 <= i < self._truth_table.limbs:
+                if sizeof(long)==4:
+                    t = "%04x"%self._truth_table.bits[i]
+                if sizeof(long)==8:
+                    t = "%08x"%self._truth_table.bits[i]
+                S = t + S
+            return S
+        raise ValueError, "unknown output format"
 
     def __len__(self):
         """
@@ -473,7 +543,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            (0, 0, 0, 0, 0, 0, 0, -8)
+            (0, 4, 0, -4, 0, -4, 0, -4)
         """
         cdef long *temp
 
@@ -584,7 +654,7 @@ cdef class BooleanFunction(SageObject):
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
-            for i in xrange(1,len(W)):
+            for 0 < i < len(W):
                 if (W[i] != 0):
                     c = min( c , ZZ(i).popcount() )
             self._correlation_immunity = c-1
@@ -763,7 +833,7 @@ cdef class BooleanFunction(SageObject):
             sage: loads(dumps(B)) == B
             True
         """
-        return unpickle_BooleanFunction, ([b for b in self],)
+        return unpickle_BooleanFunction, (self.truth_table(format='hex'),)
 
 def unpickle_BooleanFunction(bool_list):
     """

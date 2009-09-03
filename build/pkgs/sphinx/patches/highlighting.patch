@@ -1,7 +1,7 @@
---- ../src/sphinx/highlighting.py	2008-09-15 22:20:28.000000000 -0700
-+++ highlighting.py	2008-09-15 23:00:20.000000000 -0700
-@@ -144,10 +144,15 @@
-     def highlight_block(self, source, lang, linenos=False):
+--- ../src/sphinx/highlighting.py	2009-06-04 09:15:11.000000000 -0700
++++ highlighting.py	2009-09-03 16:20:52.000000000 -0700
+@@ -167,10 +167,15 @@
+             source = source.decode()
          if not pygments:
              return self.unhighlighted(source)
 +        sage = False
@@ -16,18 +16,18 @@
              else:
                  # maybe Python -- try parsing it
                  if self.try_parse(source):
-@@ -165,15 +170,26 @@
+@@ -193,14 +198,25 @@
                  lexer.add_filter('raiseonerror')
          try:
              if self.dest == 'html':
--                return highlight(source, lexer, self.hfmter[bool(linenos)])
-+                hlsource = highlight(source, lexer, self.hfmter[bool(linenos)])
+-                return highlight(source, lexer, self.fmter[bool(linenos)])
++                hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
 +                if sage:
 +                    hlsource = hlsource.replace(r'&gt;&gt;&gt;', 'sage:')
 +                    hlsource = hlsource.replace(r'>>>', 'sage:')
 +                return hlsource
              else:
-                 hlsource = highlight(source, lexer, self.lfmter[bool(linenos)])
+                 hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
 +                if sage:
 +                    hlsource = hlsource.replace(r'>>>', 'sage:')
                  return hlsource.translate(tex_hl_escape_map)
@@ -35,14 +35,12 @@
              # this is most probably not the selected language,
              # so let it pass unhighlighted
 -            return self.unhighlighted(source)
--
 +            uhlsource = self.unhighlighted(source)
 +            if sage:
 +                uhlsource = uhlsource.replace('@textgreater[]@textgreater[]@textgreater[]', '@PYGaO[sage: ]')
 +                uhlsource = uhlsource.replace(r'&gt;&gt;&gt;', 'sage:')
 +                uhlsource = uhlsource.replace(r'>>>', 'sage:')
 +            return uhlsource
-+                                
+ 
      def get_stylesheet(self):
          if not pygments:
-             if self.dest == 'latex':

@@ -5,14 +5,15 @@
 
     Highlight code blocks using Pygments.
 
-    :copyright: 2007-2008 by Georg Brandl.
-    :license: BSD.
+    :copyright: Copyright 2007-2009 by the Sphinx team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
 """
 
 import sys
 import cgi
 import re
 import parser
+import textwrap
 
 from sphinx.util.texescape import tex_hl_escape_map
 
@@ -30,6 +31,8 @@ try:
     from pygments.token import Generic, Comment, Number
 except ImportError:
     pygments = None
+    lexers = None
+    HtmlFormatter = LatexFormatter = None
 else:
     class SphinxStyle(Style):
         """
@@ -47,12 +50,15 @@ else:
             Number: '#208050',
         })
 
+    class NoneStyle(Style):
+        """Style without any styling."""
+
     lexers = dict(
         none = TextLexer(),
         python = PythonLexer(),
         pycon = PythonConsoleLexer(),
-        # the python3 option exists as of Pygments 0.12, but it doesn't
-        # do any harm in previous versions
+        # the python3 option exists as of Pygments 1.0,
+        # but it doesn't do any harm in previous versions
         pycon3 = PythonConsoleLexer(python3=True),
         rest = RstLexer(),
         c = CLexer(),
@@ -81,22 +87,33 @@ if sys.version_info < (2, 5):
 
 
 class PygmentsBridge(object):
+    # Set these attributes if you want to have different Pygments formatters
+    # than the default ones.
+    html_formatter = HtmlFormatter
+    latex_formatter = LatexFormatter
+
     def __init__(self, dest='html', stylename='sphinx'):
         self.dest = dest
         if not pygments:
             return
-        if stylename == 'sphinx':
+        if stylename is None or stylename == 'sphinx':
             style = SphinxStyle
+        elif stylename == 'none':
+            style = NoneStyle
         elif '.' in stylename:
             module, stylename = stylename.rsplit('.', 1)
-            style = getattr(__import__(module, None, None, ['']), stylename)
+            style = getattr(__import__(module, None, None, ['__name__']),
+                            stylename)
         else:
             style = get_style_by_name(stylename)
-        self.hfmter = {False: HtmlFormatter(style=style),
-                       True: HtmlFormatter(style=style, linenos=True)}
-        self.lfmter = {False: LatexFormatter(style=style, commandprefix='PYG'),
-                       True: LatexFormatter(style=style, linenos=True,
-                                            commandprefix='PYG')}
+        if dest == 'html':
+            self.fmter = {False: self.html_formatter(style=style),
+                          True: self.html_formatter(style=style, linenos=True)}
+        else:
+            self.fmter = {False: self.latex_formatter(style=style,
+                                                      commandprefix='PYG'),
+                          True: self.latex_formatter(style=style, linenos=True,
+                                                     commandprefix='PYG')}
 
     def unhighlighted(self, source):
         if self.dest == 'html':
@@ -112,6 +129,10 @@ class PygmentsBridge(object):
     def try_parse(self, src):
         # Make sure it ends in a newline
         src += '\n'
+
+        # Ignore consistent indentation.
+        if src.lstrip('\n').startswith(' '):
+            src = textwrap.dedent(src)
 
         # Replace "..." by a mark which is also a valid python expression
         # (Note, the highlighter gets the original source, this is only done
@@ -142,6 +163,8 @@ class PygmentsBridge(object):
             return True
 
     def highlight_block(self, source, lang, linenos=False):
+        if isinstance(source, str):
+            source = source.decode()
         if not pygments:
             return self.unhighlighted(source)
         sage = False
@@ -175,13 +198,13 @@ class PygmentsBridge(object):
                 lexer.add_filter('raiseonerror')
         try:
             if self.dest == 'html':
-                hlsource = highlight(source, lexer, self.hfmter[bool(linenos)])
+                hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
                 if sage:
                     hlsource = hlsource.replace(r'&gt;&gt;&gt;', 'sage:')
                     hlsource = hlsource.replace(r'>>>', 'sage:')
                 return hlsource
             else:
-                hlsource = highlight(source, lexer, self.lfmter[bool(linenos)])
+                hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
                 if sage:
                     hlsource = hlsource.replace(r'>>>', 'sage:')
                 return hlsource.translate(tex_hl_escape_map)
@@ -202,9 +225,9 @@ class PygmentsBridge(object):
             # no HTML styles needed
             return ''
         if self.dest == 'html':
-            return self.hfmter[0].get_style_defs()
+            return self.fmter[0].get_style_defs()
         else:
-            styledefs = self.lfmter[0].get_style_defs()
+            styledefs = self.fmter[0].get_style_defs()
             # workaround for Pygments < 0.12
             if styledefs.startswith('\\newcommand\\at{@}'):
                 styledefs += _LATEX_STYLES

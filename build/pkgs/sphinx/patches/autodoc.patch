@@ -1,13 +1,13 @@
---- ../src/sphinx/ext/autodoc.py	2008-12-09 14:36:50.000000000 -0800
-+++ autodoc.py	2009-01-20 15:59:57.000000000 -0800
-@@ -425,8 +425,8 @@
+--- ../src/sphinx/ext/autodoc.py	2009-09-03 15:02:12.000000000 -0700
++++ autodoc.py	2009-09-03 16:19:26.000000000 -0700
+@@ -645,8 +645,8 @@
          try:
-             sig = self.format_signature(what, name, todoc, args, retann)
+             sig = self.format_signature()
          except Exception, err:
--            self.warn('error while formatting signature for %s: %s' %
--                      (fullname, err))
-+            #self.warn('error while formatting signature for %s: %s' %
-+            #          (fullname, err))
+-            self.directive.warn('error while formatting signature for '
+-                                '%s: %s' % (self.fullname, err))
++            # self.directive.warn('error while formatting signature for '
++            #                     '%s: %s' % (self.fullname, err))
              sig = ''
  
-         # make sure that the result starts with an empty line.  This is
+         # generate the directive header and options, if applicable

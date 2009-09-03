@@ -2501,7 +2501,7 @@ def _plot(funcs, xrange, parametric=False,
 
     # TODO: Use matplotlib's fill and fill_between commands.
     if fill is not None:
-        if parametric or polar:
+        if parametric:
             filldata = data
         else:
             if fill == 'axis' or fill is True:

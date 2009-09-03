@@ -38,7 +38,9 @@ cdef class GroebnerStrategy(SageObject):
     This object provides functions for normal form computations and
     other functions for Groebner basis computation.
 
-    ALGORITHM:: Uses Singular via libSINGULAR
+    ALGORITHM:
+
+    Uses Singular via libSINGULAR
     """
     def __init__(self, L):
         """

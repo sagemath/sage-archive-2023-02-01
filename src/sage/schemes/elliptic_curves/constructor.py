@@ -143,13 +143,27 @@ def EllipticCurve(x=None, y=None, j=None):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
 
-    We create a curve and a point over QQbar::
+    We create a curve and a point over QQbar (see #6879)::
 
         sage: E = EllipticCurve(QQbar,[0,1])
         sage: E(0)
         (0 : 1 : 0)
+        sage: E.base_field()
+        Algebraic Field
+
+        sage: E = EllipticCurve(RR,[1,2]); E; E.base_field()
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Field with 53 bits of precision
+        Real Field with 53 bits of precision
+        sage: EllipticCurve(CC,[3,4]); E; E.base_field()
+        Elliptic Curve defined by y^2 = x^3 + 3.00000000000000*x + 4.00000000000000 over Complex Field with 53 bits of precision
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Field with 53 bits of precision
+        Real Field with 53 bits of precision
+        sage: E = EllipticCurve(QQbar,[5,6]); E; E.base_field()
+        Elliptic Curve defined by y^2 = x^3 + 5*x + 6 over Algebraic Field
+        Algebraic Field
+
     """
-    import ell_generic, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
+    import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
     if j is not None:
         return EllipticCurve_from_j(j)
@@ -210,6 +224,8 @@ def EllipticCurve(x=None, y=None, j=None):
             return ell_padic_field.EllipticCurve_padic_field(x, y)
         elif rings.is_NumberField(x):
             return ell_number_field.EllipticCurve_number_field(x, y)
+        elif rings.is_Field(x):
+            return ell_field.EllipticCurve_field(x, y)
         return ell_generic.EllipticCurve_generic(x, y)
 
     if isinstance(x, str):

@@ -8,17 +8,57 @@ from sage.rings.all import RDF
 
 class SpikeFunction:
     """
+    Base class for spike functions.
+
     INPUT:
-        v -- list of pairs (x, height)
-        eps -- parameter that determines approximation to a true spike
+
+        -  ``v`` - list of pairs (x, height)
+
+        -  ``eps`` - parameter that determines approximation to a true spike
 
     OUTPUT:
-        a function with spikes at each point in v with the given height.
+
+        a function with spikes at each point ``x`` in ``v`` with the given height.
+
+    EXAMPLES::
+
+        sage: spike_function([(-3,4),(-1,1),(2,3)],0.001)
+        A spike function with spikes at [-3.0, -1.0, 2.0]
+
+    Putting the spikes too close together may delete some::
+
+        sage: spike_function([(1,1),(1.01,4)],0.1)
+        Some overlapping spikes have been deleted.
+        You might want to use a smaller value for eps.
+        A spike function with spikes at [1.0]
+
+    Note this should normally be used indirectly via
+    ``spike_function``, but one can use it directly::
+
+        sage: from sage.functions.spike_function import SpikeFunction
+        sage: S = SpikeFunction([(0,1),(1,2),(pi,-5)])
+        sage: S
+        A spike function with spikes at [0.0, 1.0, 3.1415926535897931]
+        sage: S.support
+        [0.0, 1.0, 3.1415926535897931]
     """
     def __init__(self, v, eps=0.0000001):
+        """
+        Initializes base class SpikeFunction.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-3,4),(-1,1),(2,3)],0.001); S
+            A spike function with spikes at [-3.0, -1.0, 2.0]
+            sage: S.height
+            [4.0, 1.0, 3.0]
+            sage: S.eps
+            0.00100000000000000
+        """
         if len(v) == 0:
            v = [(0,0)]
         v = [(float(x[0]), float(x[1])) for x in v]
+        v.sort() # makes sure spike locations are in ascending order so we don't need an absolute value to catch overlaps
         notify = False
 
         for i in reversed(range(len(v)-1)):
@@ -30,16 +70,40 @@ class SpikeFunction:
             print "Some overlapping spikes have been deleted."
             print "You might want to use a smaller value for eps."
 
-        v.sort()
         self.v = v
         self.eps = eps
         self.support = [float(x[0]) for x in self.v]
         self.height = [float(x[1]) for x in self.v]
 
     def __repr__(self):
+        """
+        String representation of a spike function.
+
+        EXAMPLES::
+
+            sage: spike_function([(-3,4),(-1,1),(2,3)],0.001)
+            A spike function with spikes at [-3.0, -1.0, 2.0]
+        """
         return "A spike function with spikes at %s"%self.support
 
     def _eval(self, x):
+        """
+        Evaluates spike function.  Note that when one calls
+        the function within the tolerance, the return value
+        is the full height at that point.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(0,5)],eps=.001)
+            sage: S(0)
+            5.0
+            sage: S(.1)
+            0.0
+            sage: S(.01)
+            0.0
+            sage: S(.001)
+            5.0
+        """
         eps = self.eps
         x = float(x)
         for i in range(len(self.support)):
@@ -49,9 +113,36 @@ class SpikeFunction:
         return float(0), -1
 
     def __call__(self, x):
+        """
+        Called when spike function is used as callable function.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(0,5)],eps=.001)
+            sage: S(0)
+            5.0
+            sage: S(.1)
+            0.0
+            sage: S(.01)
+            0.0
+            sage: S(.001)
+            5.0
+        """
         return self._eval(x)[0]
 
     def plot_fft_abs(self, samples=2**12, xmin=None, xmax=None,  **kwds):
+        """
+        Plot of (absolute values of) Fast Fourier Transform of
+        the spike function with given number of samples.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-3,4),(-1,1),(2,3)]); S
+            A spike function with spikes at [-3.0, -1.0, 2.0]
+            sage: P = S.plot_fft_abs(8)
+            sage: p = P[0]; p.ydata
+            [5.0, 5.0, 3.3679586919241769, 3.3679586919241769, 4.1231056256176606, 4.1231056256176606, 4.7599216642180551, 4.7599216642180551]
+        """
         w = self.vector(samples = samples, xmin=xmin, xmax=xmax)
         xmin, xmax = self._ranges(xmin, xmax)
         z = w.fft()
@@ -59,6 +150,18 @@ class SpikeFunction:
         return k.plot(xmin=0, xmax=1, **kwds)
 
     def plot_fft_arg(self, samples=2**12, xmin=None, xmax=None,  **kwds):
+        """
+        Plot of (absolute values of) Fast Fourier Transform of
+        the spike function with given number of samples.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-3,4),(-1,1),(2,3)]); S
+            A spike function with spikes at [-3.0, -1.0, 2.0]
+            sage: P = S.plot_fft_arg(8)
+            sage: p = P[0]; p.ydata
+            [0.0, 0.0, -0.21152499002343414, -0.21152499002343414, 0.24497866312686414, 0.24497866312686414, -0.14910618002747716, -0.14910618002747716]
+        """
         w = self.vector(samples = samples, xmin=xmin, xmax=xmax)
         xmin, xmax = self._ranges(xmin, xmax)
         z = w.fft()
@@ -66,7 +169,17 @@ class SpikeFunction:
         return k.plot(xmin=0, xmax=1, **kwds)
 
     def vector(self, samples=2**16, xmin=None, xmax=None):
-        v = vector(RDF, samples)
+        """
+        Creates a sampling vector of the spike function in question.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-3,4),(-1,1),(2,3)],0.001); S
+            A spike function with spikes at [-3.0, -1.0, 2.0]
+            sage: S.vector(16)
+            (4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        """
+        v = vector(RDF, samples) # creates vector of zeros of length 2^16
         xmin, xmax = self._ranges(xmin, xmax)
         delta = (xmax - xmin)/samples
         w = int(math.ceil(self.eps/delta))
@@ -81,6 +194,15 @@ class SpikeFunction:
         return v
 
     def _ranges(self, xmin, xmax):
+        """
+        Quickly find appropriate plotting interval.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-1,1),(1,40)])
+            sage: S._ranges(None,None)
+            (-1.0, 1.0)
+        """
         width = (self.support[-1] + self.support[0])/float(2)
         if xmin is None:
            xmin = self.support[0] - width/float(5)
@@ -91,6 +213,16 @@ class SpikeFunction:
         return xmin, xmax
 
     def plot(self, xmin=None, xmax=None, **kwds):
+        """
+        Special fast plot method for spike functions.
+
+        EXAMPLES::
+
+            sage: S = spike_function([(-1,1),(1,40)])
+            sage: P = plot(S)
+            sage: P[0]
+            Line defined by 8 points
+        """
         v = []
         xmin, xmax = self._ranges(xmin, xmax)
         x = xmin

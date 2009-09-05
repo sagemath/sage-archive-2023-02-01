@@ -85,6 +85,9 @@ public:
 	void set_name(const std::string & n) { name = n; }
 	std::string get_name() const { return name; }
 	unsigned get_domain() const { return domain; }
+	void set_domain(unsigned d) { domain = d; }
+	std::string get_texname() const { return TeX_name; }
+	void set_texname(const std::string & t) { TeX_name = t; }
 protected:
 	void do_print(const print_context & c, unsigned level) const;
 	void do_print_latex(const print_latex & c, unsigned level) const;

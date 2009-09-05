@@ -32,8 +32,6 @@
 #include "utils.h"
 #include "inifcns.h"
 
-extern "C" std::string* py_latex_variable(const char* o);
-
 namespace GiNaC {
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(symbol, basic,
@@ -138,7 +136,7 @@ symbol::symbol(const archive_node &n, lst &sym_lst)
 {
 	if (!n.find_string("name", name))
 		name = autoname_prefix() + ToString(serial);
-	if (!n.find_string("TeXname", TeX_name))
+	if (!n.find_string("TeX_name", TeX_name))
 		TeX_name = default_TeX_name();
 	if (!n.find_unsigned("domain", domain))
 		domain = domain::complex;
@@ -189,9 +187,7 @@ void symbol::do_print(const print_context & c, unsigned level) const
 
 void symbol::do_print_latex(const print_latex & c, unsigned level) const
 {
-        std::string* lstr = py_latex_variable(name.c_str());
-	c.s << *lstr;
-	delete lstr;
+	c.s << TeX_name;
 }
 
 void symbol::do_print_tree(const print_tree & c, unsigned level) const

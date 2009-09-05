@@ -10,12 +10,14 @@ def var(s, **kwds):
     - ``s`` - a string, either a single variable name, or a space or
       comma separated list of variable names.
 
+    - ``kwds`` - keyword arguments can be given to specify domain and
+      custom latex_name for variables. See EXAMPLES for usage.
+
     .. note::
 
        The new variable is both returned and automatically injected
-       into the global namespace.  If you use var in library code, it
-       is better to use sage.symbolic.ring.var, since it won't
-       touch the global namespace.
+       into the global namespace. If you need symbolic variable in
+       library code, it is better to use either SR.var() or SR.new_var().
 
     EXAMPLES:
 
@@ -28,6 +30,27 @@ def var(s, **kwds):
 
         sage: f = xx^n + yy^n + zz^n; f
         xx^n + yy^n + zz^n
+
+    By default, var returns complex variable. To define real or positive
+    variable we can specify its domain as::
+
+        sage: x = var('x', domain=RR); x; x.conjugate()
+        x
+        x
+        sage: y = var('y', domain='real'); y.conjugate()
+        y
+        sage: y = var('y', domain='positive'); y.abs()
+        y
+
+    Custom latex expression can be assigned to variable::
+
+        sage: x = var('sui', latex_name="s_{u,i}"); x._latex_()
+        's_{u,i}'
+
+    In notebook, we can also colorize latex expression::
+
+        sage: x = var('sui', latex_name="\\color{red}{s_{u,i}}"); x._latex_()
+        '\\color{red}{s_{u,i}}'
 
     We can substitute a new variable name for n::
 
@@ -81,7 +104,7 @@ def var(s, **kwds):
             deprecation("The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.")
         else:
             raise NotImplementedError, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer."
-    v = new_var(s)
+    v = new_var(s, **kwds)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

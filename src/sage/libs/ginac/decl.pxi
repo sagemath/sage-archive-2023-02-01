@@ -25,7 +25,9 @@ cdef extern from "ginac_wrap.h":
 
 
     ctypedef struct GSymbol "symbol":
-        pass
+        unsigned get_domain()
+        void set_domain(unsigned d)
+        void set_texname(char* t)
 
     GSymbol* GSymbol_construct_str "Construct_p<symbol, char*>" \
             (void *mem, char* m)
@@ -208,6 +210,8 @@ cdef extern from "ginac_wrap.h":
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
     GSymbol get_symbol(char* s)              except +
+    GSymbol ginac_symbol "GiNaC::symbol" (char* s, char* t, unsigned d) except +
+    GSymbol ginac_new_symbol "GiNaC::symbol" () except +
     GEx g_collect_common_factors "collect_common_factors" (GEx e) except +
 
     # standard library string

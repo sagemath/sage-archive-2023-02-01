@@ -150,7 +150,7 @@ if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
 fi
 
 if [ -z "$SAGE_TESTDIR" ]; then
-    SAGE_TESTDIR="$SAGE_ROOT"/tmp && export SAGE_TESTDIR
+    SAGE_TESTDIR="$DOT_SAGE"/tmp && export SAGE_TESTDIR
 fi
 
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH

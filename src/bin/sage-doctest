@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 ####################################################################
-# Doctest a single Python or Cython file, using Sage's custom
-# doctesting tags and framework built on top of Python's doctest
-# functionality.  In particular, this allows for sage: prompts,
-# preparsing, optional doctests, random behavior, etc.
+# Doctest a single Python, Cython, Sage, TeX or ReST file, using
+# Sage's custom doctesting tags and framework built on top of
+# Python's doctest functionality.  In particular, this allows for
+# sage: prompts, preparsing, optional doctests, random behavior, etc.
 ####################################################################
 
 # System imports
@@ -56,10 +56,17 @@ def is_64bit():
 # Temporary files
 ######################################################
 DOT_SAGE = os.environ['DOT_SAGE']
-SAGE_TMP ='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
+if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
+    SAGE_TESTDIR = DOT_SAGE + "/tmp"
+else:
+    SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
+
+tmpfiles = [] # list of temporary files to be deleted if doctesting succeeds
+
 def delete_tmpfiles():
     try:
-        pass
+        for f in tmpfiles:
+            os.remove(f)
     except OSError:
         pass
 
@@ -332,9 +339,6 @@ def extract_doc(file_name, library_code=False):
                     Sage core library code, so we do not import it,
                     and do doctest in a temporary directory.
     """
-    a = os.path.abspath(file_name)
-    i = a.rfind("sage/")
-
     F = open(file_name).readlines()
     # Put line numbers on every input line
     v = []
@@ -347,8 +351,7 @@ def extract_doc(file_name, library_code=False):
                 j += 1
                 i += 1
                 L = L[:-1] + F[j].lstrip().lstrip('...').rstrip()
-            #L += '\t\t#<--- "LINE %s of %s"'%(i, file_name)
-            L += '###_sage"line %s:_sage_    %s_sage"'%(i, L[4:].strip())
+            L += '###_sage"line %s:_sage_    %s_sage"'%(i, L.strip())
         j += 1
         i += 1
         v.append(L)
@@ -372,13 +375,12 @@ def extract_doc(file_name, library_code=False):
 
     F = F.replace('\'"""\'','')
 
-    if file_name[-4:] == ".tex":
+    base, ext = os.path.splitext(file_name)
+    if ext == ".tex":
         F = pythonify_tex(F)
-    elif file_name[-4:] == ".rst":
+    elif ext == ".rst":
         F = pythonify_rst(F)
 
-    n = 0
-    i = 0
     s = "# -*- coding: utf-8 -*-\n"
     s += "from sage.all_cmdline import *; \n"
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
@@ -399,17 +401,22 @@ def change_warning_output(file):
 """
 
     if not library_code:
-        base, ext = os.path.splitext(file_name)
-        if ext == '.py':
-            s += "from %s import *\n\n"%(base)
-        elif ext in ['.pyx','.spyx']:
-            s += "cython(open('%s').read())\n\n"%file_name
+        if ext in ['.py', '.pyx','.spyx']:
+            os.system('cp -f %s %s' % (file_name, SAGE_TESTDIR))
+            tmpfiles.append('%s/%s' % (SAGE_TESTDIR, file_name))
+            if ext == '.py':
+                s += "from %s import *\n\n" % base
+            else:
+                s += "cython(open('%s').read())\n\n" % file_name
         elif ext == '.sage':
-            os.system('sage -preparse file_name')
+            os.system('sage -preparse %s' % file_name)
+            os.system('mv -f %s.py %s' % (base, SAGE_TESTDIR))
+            tmpfiles.append('%s/%s.py' % (SAGE_TESTDIR, base))
             s += "from %s import *\n\n"%(base)
-        else:
-            assert False
+        if ext in ['.py', '.sage']:
+            tmpfiles.append('%s/%s.pyc' % (SAGE_TESTDIR, base))
 
+    n = 0
     while True:
         i = F.find('"""')
         if i == -1: break
@@ -564,7 +571,7 @@ def post_process(s, file, tmpname):
     s = r.sub('\n',s)
     if cnt > 0:
         s += "For whitespace errors, see the file %s"%tmpname
-    return s
+    return (s, cnt)
 
 def test_file(file, library_code):
     if os.path.exists(file):
@@ -574,17 +581,10 @@ def test_file(file, library_code):
         if len(s) == 0:
             sys.exit(0)
 
-        if library_code:
-            if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
-                SAGE_TESTDIR = os.environ['SAGE_ROOT']+"/tmp"
-            else:
-                SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
-        else:
-            SAGE_TESTDIR = '.'
-
         f = "%s/.doctest_%s.py"%(SAGE_TESTDIR,name)
 
         open(f,"w").write(s)
+        tmpfiles.append(f)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:
             print "*"*80
@@ -641,16 +641,16 @@ def test_file(file, library_code):
             err += "*** *** Error: TIMED OUT! *** ***"
             print err
 
-        s = post_process(out, file, f)  + err
-        numfail = s.count('Failed') + s.count('Error') - s.count('TypeError')
-        if numfail == 0 and e>0 and verbose:
+        s, numfail = post_process(out, file, f)
+        s += err
+
+        if numfail == 0 and e > 0 and verbose:
             numfail = e
         if numfail > 0:
             if not (verbose or gdb or memcheck or massif or cachegrind):
                 print s
-            delete_tmpfiles()
             sys.exit(4)
-        elif e !=0:
+        elif e != 0:
             if not verbose:
                 print "A mysterious error (perhaps a memory error?) occurred, which may have crashed doctest."
             sys.exit(3)
@@ -660,7 +660,6 @@ def test_file(file, library_code):
     else:
         print "Error running %s, since file %s does not exist."%(
             argv[0], argv[1])
-        delete_tmpfiles()
         sys.exit(1)
 
 

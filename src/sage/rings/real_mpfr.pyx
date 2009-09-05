@@ -3017,10 +3017,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R = RealField()
             sage: R(2).log()
             0.693147180559945
+            sage: log(RR(2))
+            0.693147180559945
+            sage: log(RR(2),e)
+            0.693147180559945
 
         ::
 
             sage: r = R(-1); r.log()
+            3.14159265358979*I
+            sage: log(RR(-1),e)
             3.14159265358979*I
             sage: r.log(2)
             4.53236014182719*I

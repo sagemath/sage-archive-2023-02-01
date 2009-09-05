@@ -228,8 +228,8 @@ def log(x, base=None):
     else:
         try:
             return x.log(base)
-        except AttributeError:
-            return ln(x) / ln(base)
+        except (AttributeError, TypeError):
+            return log(x) / log(base)
 
 
 class Function_polylog(PrimitiveFunction):

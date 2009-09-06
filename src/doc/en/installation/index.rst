@@ -20,6 +20,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    :maxdepth: 2
 
    introduction
+   quick-guide
    binary
    source
    icon

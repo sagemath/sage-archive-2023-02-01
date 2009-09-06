@@ -12,4 +12,4 @@ to use it.
 To build the HTML and PDF versions of the documentation, use the
 command ``sage -docbuild {document} {format}``. For example, ``sage
 -docbuild reference html`` builds the HTML version of the reference
-manual; type ``sage -docbuild`` to see a list of all of the options.
+manual; type ``sage -docbuild -help`` to see a list of all of the options.

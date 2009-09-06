@@ -24,7 +24,7 @@ Here is a list of some of the software included with Sage:
 
 * bzip2: bzip2 compression library
 
-* clisp: Common lisp interpreter
+* ecl: common lisp interpreter
 
 * cython: the Cython programming language: a language, based on Pyrex,
   for easily writing C extensions for Python

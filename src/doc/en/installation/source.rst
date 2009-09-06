@@ -3,15 +3,16 @@ Install from Source Code
 ========================
 
 More familiarity with computers may be required to build Sage from
-source. If you do have all the tools, the process should be
-completely painless (but it will take your computer a while, though
-you don't have to watch), and has the major advantage that you have
-the latest version of Sage, and you can change absolutely any part
-of Sage or the programs on which it depends and recompile.
+source. If you do have all the pre-requisite tools, the process should
+be completely painless. It would take your computer a while to
+compiled Sage from source, though you don't have to watch. Compiling
+Sage from source has the major advantage that you have the latest
+version of Sage with which you can change absolutely any part
+or the programs on which Sage depends. You can also recompile Sage.
 
-As of this writing, Sage is known to work on Linux (32 bit x86, 64
-bit x86-64, IA64, or 32 bit PPC) and OS X (10.4 or 10.5, PPC or
-x86, 32 bit only). (See http://wiki.sagemath.org/SupportedPlatforms
+As of this writing, Sage is known to work on Linux (32-bit x86, 64-bit
+x86-64, IA64, or 32-bit PPC) and OS X (10.4 or 10.5, PPC or
+x86, 32-bit only). (See http://wiki.sagemath.org/SupportedPlatforms
 for the latest information.)
 
     **Solaris? FreeBSD? OS X 10.5 in 64 bit mode?**: Complete compilation
@@ -26,11 +27,14 @@ for the latest information.)
     issues that need to be fixed are relatively small compared to the
     other ports.
 
-    We hope to support OS X 10.5 in 64 bit mode in our next release.
+    We hope to support OS X 10.5 in 64-bit mode in our next
+    release. You can find some instructions to build Sage on OS X 10.5
+    in 64-bit mode at
+    http://mvngu.wordpress.com/2009/09/02/compile-sage-4-1-in-64-bit-mode-on-os-x-10-5-8/
 
 
-Assumptions: You have a computer with about 850 megabytes of free
-disk space running Linux (32-bit or 64-bit) or OS X 10.4 with
+Assumptions: You have a computer with about 2 GB of free
+disk space running Linux (32-bit or 64-bit), Mac OS X 10.4 or 10.5 with
 XCode. In particular, under Linux the following standard
 command-line development tools must be installed on your computer
 (under OS X they all come with XCode):
@@ -62,30 +66,31 @@ you all of the above commands.
 
 On a Debian-based system (e.g., Ubuntu), ranlib is in the binutils
 package. On a newly installed Ubuntu system (this was tested on
-Ubuntu 7.04), you can install the above commands as follows:
+Ubuntu 9.04), you can install the above commands as follows:
 
 ::
 
-     sudo apt-get install gcc-4.2-base      # or the latest version available
-     sudo apt-get install make
+     sudo apt-get install build-essential
      sudo apt-get install m4
-     sudo apt-get install bison
-     sudo apt-get install flex
-     sudo apt-get install tar
-     sudo apt-get install perl
-     sudo apt-get install binutils
-     sudo apt-get install libstdc++6-dev
-     sudo apt-get install g++
-     sudo apt-get install openssh-client
 
-The LaTeX package and a pdf previewer are optional but they can be
+It is recommended that you install the readline package and its
+corresponding development headers. These packages make it easier to
+work with the Sage command line interface by providing text editing
+features at the command line level. On a Debian or Ubuntu system, use
+the following commands to install the readline library and its
+development headers:
+
+::
+
+    sudo apt-get install readline
+    sudo apt-get install libreadline-dev
+
+The LaTeX package and a PDF previewer are optional but they can be
 installed using
 
 ::
 
-      sudo apt-get install tex-common
-      sudo apt-get install tetex-base
-      sudo apt-get install kpdf
+    sudo apt-get install texlive xpdf evince xdvi
 
 (You must have the GNU version of ``make`` installed.
 For example, Sage won't build on a FreeBSD install that doesn't
@@ -98,61 +103,64 @@ includes everything you need. When the installation program is run,
 it will check that you have each of the above-listed prerequisites,
 and inform you of any that are missing.
 
-    -  If you want to use Tcl/Tk libraries in Sage,
-       do the following preferable before compilation.
-       Sage's Python will automatically recognize your system's
-       install of Tcl/Tk if it exists. You need to install the
-       Tcl/Tk development libraries though, not just the Tck/Tk base.
+-  If you want to use Tcl/Tk libraries in Sage,
+   do the following preferably before compilation.
+   Sage's Python will automatically recognize your system's
+   install of Tcl/Tk if it exists. You need to install the
+   Tcl/Tk development libraries though, not just the Tck/Tk base.
 
-       On Ubuntu, this is the command::
+   On Ubuntu, this is the command::
 
-           sudo apt-get install tk8.5-dev    # or the latest version available
+       sudo apt-get install tk8.5-dev    # or the latest version available
 
-       Now you can install Sage and Sage's Python will automatically
-       recognize your system's install of Tcl/Tk. If you forgot
-       and installed Sage first anyway, all is not lost.
-       Just issue the command::
+   Now you can install Sage and Sage's Python will automatically
+   recognize your system's install of Tcl/Tk. If you forgot
+   and installed Sage first anyway, all is not lost.
+   Just issue the command::
 
-           sage -f python-2.5.2.p8    # or the latest version available
+       sage -f python-2.5.2.p8    # or the latest version available
 
-       after installing the Tcl/Tk development libraries as above.
-       If
+   after installing the Tcl/Tk development libraries as above.
+   If
 
-       .. skip
+   .. skip
 
-       ::
+   ::
 
-          sage: import _tkinter
-          sage: import Tkinter
+       sage: import _tkinter
+       sage: import Tkinter
 
-       does not raise an ImportError then it worked.
+   does not raise an ``ImportError`` then it worked.
 
-    -  Sage is currently being developed using GCC Version 4.3.x, and
-       is likely to compile fine with GCC Version 3.4.x and newer (it does
-       not work with older gcc releases). If you are interested in working
-       on support for Intel or Sun's CC compiler, please email sage-devel.
+-  Sage is currently being developed using GCC version 4.3.x, and
+   is likely to compile fine with other GCC versions in the 4.x
+   series. It does not work with older GCC releases. If you are
+   interested in working on support for Intel or Sun's CC compiler,
+   please email the sage-devel mailing list, otherwise known as the
+   sage-devel Google group at
+   http://groups.google.com/group/sage-devel
 
-    -  One reason ``perl`` is required is that both the NTL and PARI
-       configuration scripts are written in perl.
+-  One reason ``perl`` is required is that both the NTL and PARI
+   configuration scripts are written in Perl.
 
 
 
-After extracting the Sage tarball, the subdirectory source contains
+After extracting the Sage tarball, the subdirectory ``spkg`` contains
 the source distributions for everything on which Sage depends. We
 emphasize that all of this software is included with Sage, so you
 do not have to worry about trying to download and install any one
 of these packages (such as GAP, for example) yourself.
 
-    On tests using various Linux computer systems, the known problems
-    are:
+On tests using various Linux computer systems, the known problems
+are:
 
 
-    -  does not build with gcc 4.3.0 yet, but work is ongoing to fix
-       that.
+-  Does not build with gcc 4.3.0 yet, but work is ongoing to fix
+   that.
 
-    -  Moving the build after compiling breaks the PARI Galois fields
-       database, which appears to be hardcoded into the PARI binary.
-       (Somebody help fix this!)
+-  Moving the build after compiling breaks the PARI Galois fields
+   database, which appears to be hardcoded into the PARI binary.
+   (Somebody help fix this!)
 
 
 
@@ -163,14 +171,14 @@ Installation from source is (potentially) very easy, because the
 distribution contains (essentially) everything on which Sage
 depends.
 
-    Make sure there are no spaces in the directory name under which you
-    build . Running from a directory with spaces in it is supported but
-    discouraged. Building is not possible, since several of the
-    components of do not build if there are spaces in the path.
+Make sure there are no spaces in the directory name under which you
+build. Running from a directory with spaces in its name is supported but
+discouraged. Building is not possible, since several of the
+components do not build if there are spaces in the path.
 
 
 
-#. Go to http://sagemath.org/download-source.html , select a mirror,
+#. Go to http://www.sagemath.org/download-source.html , select a mirror,
    and download the file sage-\*.tar.
 
    This tarfile contains the source code for Sage and the source for
@@ -193,9 +201,10 @@ depends.
 
              cd sage-x.y.z
 
-   This is Sage's home directory.
+   This is Sage's home directory. It is also referred to as
+   ``SAGE_ROOT`` or the top level Sage directory.
 
-#. Optional (but highly recommended): Read the {README.txt} file
+#. Optional (but highly recommended): Read the ``README.txt`` file
    there.
 
 #. Type
@@ -219,9 +228,9 @@ depends.
    your ``HOME`` directory if it doesn't exist.
 
 
-       The directory where you built Sage is NOT hardcoded into any part
-       of . You should be able to safely move or rename that directory.
-       (It's a bug if this is not the case - unfortunately there is one
+       The directory where you built Sage is NOT hardcoded. You should
+       be able to safely move or rename that directory. (It's a bug if
+       this is not the case --- unfortunately there is one
        bug which hasn't yet been fixed along these lines, namely the PARI
        install hard-codes the location of the "galois data" files. Fixes
        welcome!)
@@ -346,7 +355,7 @@ depends.
    easier:
 
 
-   -  Copy ``$SAGE_ROOT>/sage`` to a location in your ``PATH``. If you do
+   -  Copy ``$SAGE_ROOT/sage`` to a location in your ``PATH``. If you do
       this, make sure you edit the line with the ``....``'s at the top of
       the ``sage`` script.
 
@@ -358,7 +367,7 @@ depends.
           konsole -T "sage" -e <SAGE_ROOT>/sage
 
       which you make executable (``chmod a+x sage``) and put it somewhere in
-      your path. (Note that you have to change ``$SAGE_ROOT``} above!) You
+      your path. (Note that you have to change ``$SAGE_ROOT`` above!) You
       can also make a KDE desktop icon with this as the command (under
       the Application tab of the Properties of the icon, which you get my
       right clicking the mouse on the icon).
@@ -377,7 +386,7 @@ depends.
       this and logging out and in again, typing ``sage`` at a shell prompt
       should start Sage.
 
-   - On Linux and OSX systems, you can make an alias to ``$SAGE_ROOT/sage``.
+   - On Linux and OS X systems, you can make an alias to ``$SAGE_ROOT/sage``.
      For example, put something similar to the following line in your
      ``.bashrc`` file:
 
@@ -403,7 +412,7 @@ depends.
 #. Optional: The directory ``spkg/build`` contains intermediate code
    that is used to build sage. Type ``make clean`` to delete it and a
    few other directories (e.g., ``spkg/archive`` and ``devel/old``). This
-   is safe and will save you about 500MB disk space. You may wish to
+   is safe and will save you about 500 MB of disk space. You may wish to
    type this periodically.
 
 #. Optional: Install optional Sage packages and databases. Type
@@ -453,13 +462,13 @@ particular those of Luis Finotti).
     (Fixes welcome!))
 
 #. Make sure to modify the line with the ``.....``"'s at the top of the
-   {sage} script. In other words, edit ``SAGE_ROOT="....."`` to say
+   ``sage`` script. In other words, edit ``SAGE_ROOT="....."`` to say
    ``SAGE_ROOT="/usr/local/sage-2.5.2"``.
 
 #. There are some initial files that have to be created during the
    first run of Sage. Try starting up Sage once as root (or, to be
    more thorough, try ``make test`` as root to run all the standard test
-   code). You can stop the tests by pressing {ctrl-z} followed by
+   code). You can stop the tests by pressing ``ctrl-z`` followed by
    typing ``kill %1`` (assuming you had no other jobs in the
    background of that shell).
 
@@ -469,8 +478,8 @@ particular those of Luis Finotti).
 
        cp /usr/local/sage-2.5.2/sage /usr/local/bin/
 
-   You make a copy instead of a symlink, since upgrading (with
-   ``sage -upgrade}`` overwrites ``/usr/local/sage-2.5.2/sage``, hence
+   You make a copy instead of a symlink, since upgrading with
+   ``sage -upgrade`` overwrites ``/usr/local/sage-2.5.2/sage``, hence
    deleting the ``ROOT=...`` part of that file.
 
    Make sure that all files in ``/usr/local/sage-2.5.2`` are readable by
@@ -496,7 +505,7 @@ Special Notes
             cannot restore segment prot after reloc:
        Permission denied
 
-   then your SELinux configuration is preventing from launching. To
+   then your SELinux configuration is preventing Sage from launching. To
    rectify this issue, you can either change the default security
    context for Sage (??) or disable SELinux altogether by setting the
    line ``SELINUX=disabled`` in your ``/etc/sysconfig/selinux`` file.

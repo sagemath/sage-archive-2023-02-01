@@ -6,14 +6,22 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-#Remove old version
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja-1.2-*
+success() {
+    if [ $? -ne 0 ]; then
+        echo "Error building Jinja2: '$1'"
+        exit 1
+    fi
+}
+
+set +e
+
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja2-2.1.1*
+success 'Error deleting previous version'
 
 #Install new version
 cd src
 
 python setup.py install
-if [ $? -ne 0 ]; then
-   echo "Error installing Jinja."
-   exit 1
-fi
+success 'Error installing Jinja2'
+
+set -e

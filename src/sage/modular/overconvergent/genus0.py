@@ -1202,10 +1202,26 @@ class OverconvergentModularFormsSpace(Module):
             1 + O(3^20) + (2 + 2*3 + 2*3^2 + 2*3^4 + 3^5 + 3^6 + 3^7 + 3^11 + 3^12 + 2*3^14 + 3^16 + 3^18 + O(3^19))*T + (2*3^3 + 3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + 3^12 + 2*3^13 + 2*3^16 + 2*3^18 + O(3^19))*T^2 + (2*3^15 + 2*3^16 + 2*3^19 + 2*3^20 + 2*3^21 + O(3^22))*T^3 + (3^17 + 2*3^18 + 3^19 + 3^20 + 3^22 + 2*3^23 + 2*3^25 + 3^26 + O(3^27))*T^4
             sage: OverconvergentModularForms(3, 16, 1/2, base_ring=Qp(3), prec=30).cps_u(10)
             1 + O(3^20) + (2 + 2*3 + 2*3^2 + 2*3^4 + 3^5 + 3^6 + 3^7 + 2*3^15 + O(3^16))*T + (2*3^3 + 3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 3^14 + 3^15 + O(3^16))*T^2 + (3^14 + 2*3^15 + 2*3^16 + 3^17 + 3^18 + O(3^19))*T^3 + (3^17 + 2*3^18 + 3^19 + 3^20 + 3^21 + O(3^24))*T^4 + (3^29 + 2*3^32 + O(3^33))*T^5 + (2*3^44 + O(3^45))*T^6 + (2*3^59 + O(3^60))*T^7 + (2*3^78 + O(3^79))*T^8
+
+        NOTES:
+
+        Uses the Hessenberg form of the Hecke matrix to compute the
+        characteristic polynomial.  Because of the use of relative precision
+        here this tends to give better precision in the p-adic coefficients.
         """
         m = self.hecke_matrix(self.prime(), n, use_recurrence)
         A = PowerSeriesRing(self.base_ring(),'T')
-        g = A(m.charpoly('T').reverse())
+
+        # From a conversation with David Loeffler, apparently self.base_ring()
+        # is either the field of rational numbers or some p-adic field.  In the
+        # first case we want to use the linbox algorithm, and in the second
+        # case the Hessenberg form algorithm.
+        #
+        if self.base_ring().is_exact():
+            g = A(m.charpoly('T').reverse())
+        else:
+            g = A(m.charpoly('T', "hessenberg").reverse())
+
         return g
 
 class OverconvergentModularFormElement(ModuleElement):

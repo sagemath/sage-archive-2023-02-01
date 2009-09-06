@@ -503,7 +503,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             []
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
         if self._nrows == 0:
             return self._coerce_element(1)
 

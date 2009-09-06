@@ -2144,7 +2144,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if points is None:
             points = []
         mat = self.height_pairing_matrix(points=points, precision=precision)
-        return mat.det()
+        return mat.det(algorithm="hessenberg")
 
 
     def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
@@ -5245,7 +5245,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         #    "Verification of the Birch and Swinnerton-Dyer Conjecture
         #     for Specific Elliptic Curves", G. Grigorov, A. Jorza, S. Patrikis,
         #     C. Patrascu, W. Stein
-        omega = 2 * abs(E.period_lattice().basis_matrix().det())
+        omega = 2 * abs(E.period_lattice().basis_matrix().det(algorithm="hessenberg"))
 
         #  - The regulator.
         #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
@@ -5618,7 +5618,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: U.det()
             1
             sage: E.regulator_of_points(Pi)
-            4.59088036960574
+            4.59088036960573
             sage: E.regulator_of_points(Qi)
             4.59088036960574
 
@@ -6582,7 +6582,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         M = U.transpose()*M*U
 
         # NB "lambda" is a reserved word in Python!
-        lamda = min(M.charpoly().roots(multiplicities = False))
+        lamda = min(M.charpoly(algorithm="hessenberg").roots(multiplicities = False))
         max_S = max(S)
         len_S += 1 #Counting infinity (always "included" in S)
         if verbose:

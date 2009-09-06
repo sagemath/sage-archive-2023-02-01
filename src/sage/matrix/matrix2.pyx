@@ -934,17 +934,28 @@ cdef class Matrix(matrix1.Matrix):
                 m.append(self.matrix_from_rows_and_columns(rows,cols).determinant())
         return m
 
-    def determinant(self, algorithm="hessenberg"):
+    def determinant(self, algorithm=None):
         r"""
-        Return the determinant of self.
+        Returns the determinant of self.
 
-        ALGORITHM: For small matrices (n4), this is computed using the
-        naive formula For integral domains, the characteristic polynomial is computed (using
-        hessenberg form) Otherwise this is computed using the very stupid
-        expansion by minors stupid *naive generic algorithm*. For matrices
-        over more most rings more sophisticated algorithms can be used.
-        (Type ``A.determinant?`` to see what is done for a
-        specific matrix A.)
+        ALGORITHM:
+
+        For small matrices (n less than 4), this is computed using the naive
+        formula. In the specific case of matrices over the integers modulo a
+        non-prime, the determinant of a lift is computed over the integers.
+        In general, the characteristic polynomial is computed either using
+        the Hessenberg form (specified by ``"hessenberg"``) or the generic
+        division-free algorithm (specified by ``"df"``).  When the base ring
+        is an exact field, the default choice is ``"hessenberg"``, otherwise
+        it is ``"df"``.  Note that for matrices over most rings, more
+        sophisticated algorithms can be used. (Type ``A.determinant?`` to
+        see what is done for a specific matrix ``A``.)
+
+        INPUT:
+
+        - ``algorithm`` - string:
+            - ``"df"`` - Generic O(n^4) division-free algorithm
+            - ``"hessenberg"`` - Use the Hessenberg form of the matrix
 
         EXAMPLES::
 
@@ -990,18 +1001,24 @@ cdef class Matrix(matrix1.Matrix):
             sage: d = random_matrix(GF(next_prime(10^20)),50).det()
             sage: d = random_matrix(Integers(10^50),50).det()
 
+        AUTHORS:
+
+        - Unknown: No author specified in the file from 2009-06-25
+        - Sebastian Pancratz (2009-06-25): Use the division-free algorithm for charpoly
         """
+
         from sage.rings.integer_mod_ring import is_IntegerModRing
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
 
         d = self.fetch('det')
-        if not d is None: return d
+        if not d is None:
+            return d
 
         cdef Py_ssize_t i, n
 
-        # if charpoly known, then det is easy.
+        # If charpoly known, then det is easy.
         D = self.fetch('charpoly')
         if not D is None:
             c = D[D.keys()[0]][0]
@@ -1014,15 +1031,8 @@ cdef class Matrix(matrix1.Matrix):
         n = self._ncols
         R = self._base_ring
 
-        # As of Sage 3.4, computing determinants directly in Z/nZ for
-        # n composite is too slow, so we lift to Z and compute there.
-        if is_IntegerModRing(R):
-            from matrix_modn_dense import Matrix_modn_dense
-            if not (isinstance(self, Matrix_modn_dense) and R.characteristic().is_prime()):
-                return R(self.lift().det())
-
-        # For small matrices, you can't beat the naive formula
-        if n <=  3:
+        # For small matrices, you can't beat the naive formula.
+        if n <= 3:
             if n == 0:
                 d = R(1)
             elif n == 1:
@@ -1036,23 +1046,51 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # if over an exact integral domain, we could get the det by computing charpoly.
-        # Generic fraction field implementation is so slow that the naive algorithm is
-        # is much faster in practice despite asymptotics.
-        # TODO: find reasonable cutoff (Field specific, but seems to be quite large for Q[x])
-        # if R.is_integral_domain() and R.is_exact() and algorithm == "hessenberg":
-        if  R.is_field() and R.is_exact() and algorithm == "hessenberg":
-            c = self.charpoly('x')[0]
+        # As of Sage 3.4, computing determinants directly in Z/nZ for
+        # n composite is too slow, so we lift to Z and compute there.
+        if is_IntegerModRing(R):
+            from matrix_modn_dense import Matrix_modn_dense
+            if not (isinstance(self, Matrix_modn_dense) and R.characteristic().is_prime()):
+                return R(self.lift().det())
+
+        # N.B.  The following comment should be obsolete now that the generic
+        # code to compute the determinant has been replaced by generic
+        # division-free code to compute the characteristic polynomial and read
+        # off the determinant from this.
+        #
+        # If R is an exact integral domain, we could get the det by computing
+        # charpoly.  The generic fraction field implementation is so slow that
+        # the naive algorithm is is much faster in practice despite
+        # asymptotics.
+        # TODO: Find a reasonable cutoff point.  (This is field specific, but
+        # seems to be quite large for Q[x].)
+        if (R.is_field() and R.is_exact() and algorithm is None) or (algorithm == "hessenberg"):
+            c = self.charpoly('x', "hessenberg")[0]
             if self._nrows % 2:
                 c = -c
             d = self._coerce_element(c)
             self.cache('det', d)
             return d
 
-        # fall back to very very stupid algorithm -- expansion by minors.
-        # TODO: surely there is something much better, even in total generality...
-        # this is ridiculous.
-        d = self._det_by_minors(self._ncols)
+        # Generic division-free algorithm to compute the characteristic
+        # polynomial.
+        #
+        # N.B.   The case of symbolic rings is quite specific.  It would be
+        # nice to avoid hardcoding a reserved variable name as below, as this
+        # is then assumed to not be a variable in the symbolic ring.  But this
+        # resulted in further exceptions/ errors.
+        from sage.symbolic.ring import is_SymbolicExpressionRing
+
+        if is_SymbolicExpressionRing(R):
+            var = 'A0123456789'
+            var = R(var)
+            c = self.charpoly(var, "df").coefficient(var, 0)
+        else:
+            c = self.charpoly('x', "df")[0]
+
+        if self._nrows % 2:
+            c = -c
+        d = self._coerce_element(c)
         self.cache('det', d)
         return d
 
@@ -1189,29 +1227,40 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('minpoly', mp)
         return mp
 
-
-    def charpoly(self, var='x', algorithm="hessenberg"):
+    def charpoly(self, var = 'x', algorithm = None):
         r"""
-        Return the characteristic polynomial of self, as a polynomial over
+        Returns the characteristic polynomial of self, as a polynomial over
         the base ring.
 
-        ALGORITHM: Compute the Hessenberg form of the matrix and read off
-        the characteristic polynomial from that.
+        ALGORITHM:
 
-        If the base ring of the matrix is a number field, use PARI's
-        charpoly instead.
+        In the generic case of matrices over a ring (commutative and with
+        unity), there is a division-free algorithm, which can be accessed
+        using ``"df"``, with complexity `O(n^4)`.  Alternatively, by
+        specifying ``"hessenberg"``, this method computes the Hessenberg
+        form of the matrix and then reads off the characteristic polynomial.
+        Moreover, for matrices over number fields, this method can use
+        PARI's charpoly implementation instead.
+
+        The method's logic is as follows:  If no algorithm is specified,
+        first check if the base ring is a number field (and then use PARI),
+        otherwise check if the base ring is the ring of integers modulo n (in
+        which case compute the characteristic polynomial of a lift of the
+        matrix to the integers, and then coerce back to the base), next check
+        if the base ring is an exact field (and then use the Hessenberg form),
+        or otherwise, use the generic division-free algorithm.
+        If an algorithm is specified explicitly, if
+        ``algorithm == "hessenberg"``, use the Hessenberg form, or otherwise
+        use the generic division-free algorithm.
 
         The result is cached.
 
         INPUT:
 
-        -  ``var`` - a variable name (default: 'x')
-
-        -  ``algorithm`` - string:
-
-        -  ``'hessenberg'`` - default (use Hessenberg form of
-           matrix)
-
+        - ``var`` - a variable name (default: 'x')
+        - ``algorithm`` - string:
+            - ``"df"`` - Generic `O(n^4)` division-free algorithm
+            - ``"hessenberg"`` - Use the Hessenberg form of the matrix
 
         EXAMPLES:
 
@@ -1282,6 +1331,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: m.charpoly('a')(m) == 0
             True
 
+        Here is an example over a general commutative ring, that is to say,
+        as of version 4.0.2, SAGE does not even positively determine that
+        ``S`` in the following example is an integral domain.  But the
+        computation of the characteristic polynomial succeeds as follows::
+
+            sage: R.<a,b> = QQ[]
+            sage: S.<x,y> = R.quo((b^3))
+            sage: A = matrix(S, [[x*y^2,2*x],[2,x^10*y]])
+            sage: A
+            [ x*y^2    2*x]
+            [     2 x^10*y]
+            sage: A.charpoly('T')
+            T^2 + (-x^10*y - x*y^2)*T - 4*x
+
         TESTS::
 
             sage: P.<a,b,c> = PolynomialRing(Rationals())
@@ -1289,7 +1352,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: Q.<x> = PolynomialRing(P)
             sage: u.charpoly('x')
             x^3 - c*x^2 - b*x - a
+
+        AUTHORS:
+
+        - Unknown: No author specified in the file from 2009-06-25
+        - Sebastian Pancratz (2009-06-25): Include the division-free algorithm
         """
+
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+
         D = self.fetch('charpoly')
         if not D is None:
             if D.has_key(var):
@@ -1298,11 +1369,192 @@ cdef class Matrix(matrix1.Matrix):
             D = {}
             self.cache('charpoly',D)
 
-        if is_NumberField(self.base_ring()):
-            f = self._charpoly_over_number_field(var)
+        if algorithm is None:
+            R = self._base_ring
+            if is_NumberField(R):
+                f = self._charpoly_over_number_field(var)
+            elif is_IntegerModRing(R):
+                f = self.lift().charpoly(var).change_ring(R)
+            elif R.is_field(proof = False) and R.is_exact():
+                f = self._charpoly_hessenberg(var)
+            else:
+                f = self._charpoly_df(var)
         else:
-            f = self._charpoly_hessenberg(var)
-        D[var] = f   # this caches it.
+            if algorithm == "hessenberg":
+                f = self._charpoly_hessenberg(var)
+            else:
+                f = self._charpoly_df(var)
+
+        # Cache the result
+        D[var] = f
+        return f
+
+    def _charpoly_df(self, var = 'x'):
+        r"""
+        Computes the characteristic polynomial of ``self`` without divisions.
+
+        INPUT:
+
+        - ``var`` - a variable name (default: ``'x'``)
+
+        OUTPUT:
+
+        - polynomial - the characteristic polynomial of ``self``
+
+        EXAMPLES:
+
+        Here is one easy example over the integers to illustrate this::
+
+            sage: A = matrix(ZZ, [[1,24],[3,5]])
+            sage: A
+            [ 1 24]
+            [ 3  5]
+            sage: A._charpoly_df()
+            x^2 - 6*x - 67
+
+        The second example is a matrix over a univariate polynomial ring over the
+        rationals::
+
+            sage: R.<t> = QQ[]
+            sage: A = matrix(R, [[7*t^2 - t - 9, -1/4*t - 1, -17*t^2 - t + 1], \
+                                 [-t^2 + 1/4*t, t^2 + 5/7*t + 3, 1/5*t^2 +     \
+                                  1662],                                       \
+                                 [-2*t - 3, 2*t^2 + 6*t - 1/2, -1/6*t^2]])
+            sage: A
+            [    7*t^2 - t - 9        -1/4*t - 1   -17*t^2 - t + 1]
+            [     -t^2 + 1/4*t   t^2 + 5/7*t + 3    1/5*t^2 + 1662]
+            [         -2*t - 3 2*t^2 + 6*t - 1/2          -1/6*t^2]
+            sage: A._charpoly_df()
+            x^3 + (-47/6*t^2 + 2/7*t + 6)*x^2 + (79/15*t^4 - 13189/420*t^3 -
+            1884709/560*t^2 - 279501/28*t + 807)*x - 901/30*t^6 - 423/8*t^5 +
+            11218517/480*t^4 + 2797765/42*t^3 - 12987971/280*t^2 - 5235245/56*t + 2484
+
+        Thirdly, an example over a ring which is not an integral domain::
+
+            sage: A = matrix(ZZ.quo(12), 3, [5,8,0,10,2,1,8,7,9])
+            sage: A
+            [ 5  8  0]
+            [10  2  1]
+            [ 8  7  9]
+            sage: A._charpoly_df()
+            x^3 + 8*x^2 + 10*x + 1
+
+        TESTS::
+
+            sage: A = matrix(ZZ, 0, 0)
+            sage: A
+            []
+            sage: A._charpoly_df()
+            1
+
+            sage: A = matrix(ZZ, 1, 1, [[23]])
+            sage: A._charpoly_df()
+            x - 23
+
+        NOTES:
+
+        The key feature of this implementation is that it is division-free.
+        This means that it can be used as a generic implementation for any
+        ring (commutative and with multiplicative identity).  The algorithm
+        is described in full detail as Algorithm 3.1 in [Se02].
+
+        Note that there is a missing minus sign in front of the last term in
+        the penultimate line of Algorithm 3.1.
+
+        REFERENCES:
+
+        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
+          matrices, and characteristic polynomials without division"
+
+        AUTHORS:
+
+        - Sebastian Pancratz (2009-06-12)
+        """
+
+        # Validate assertions
+        #
+        if not self.is_square():
+            raise ValueError("self must be a square matrix")
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        # Extract parameters
+        #
+        cdef Matrix M  = <Matrix> self
+        n  = M._ncols
+        R  = M._base_ring
+        S  = PolynomialRing(R, var)
+
+        # Corner cases
+        # N.B.  We already tested for M to be square, hence we do not need to
+        # test for 0 x n or m x 0 matrices.
+        #
+        if n == 0:
+            return S(1)
+
+        # In the notation of Algorithm 3.1,
+        #
+        #   F  Matrix over R such that F[p, t] is the coefficient of X^{t-p}
+        #      in the polynomial $F_t$;
+        #   a  List of lists such that a[p, t] is a vector of length t;
+        #   A  Matrix over R.
+        #
+        # But by looking at the algorithm, we see that in F, a and A we can
+        # drop the second index t, reducing storage requirements.
+        #
+        # N.B.  The documentation is still 1-based, although the code, after
+        # having been ported from Magma to SAGE, is 0-based.
+        #
+        from sage.matrix.constructor import matrix
+
+        F = [R(0) for i in xrange(n)]
+        cdef Matrix a = <Matrix> matrix(R, n-1, n)
+        A = [R(0) for i in xrange(n)]
+
+        F[0] = - M.get_unsafe(0, 0)
+        for t in xrange(1,n):
+
+            # Set a(1, t) to be M(<=t, t)
+            #
+            for i in xrange(t+1):
+                a.set_unsafe(0, i, M.get_unsafe(i, t))
+
+            # Set A[1, t] to be the (t)th entry in a[1, t]
+            #
+            A[0] = M.get_unsafe(t, t)
+
+            for p in xrange(1, t):
+
+                # Set a(p, t) to the product of M[<=t, <=t] * a(p-1, t)
+                #
+                for i in xrange(t+1):
+                    s = R(0)
+                    for j in xrange(t+1):
+                        s = s + M.get_unsafe(i, j) * a.get_unsafe(p-1, j)
+                    a.set_unsafe(p, i, s)
+
+                # Set A[p, t] to be the (t)th entry in a[p, t]
+                #
+                A[p] = a.get_unsafe(p, t)
+
+            # Set A[t, t] to be M[t, <=t] * a(p-1, t)
+            #
+            s = R(0)
+            for j in xrange(t+1):
+                s = s + M.get_unsafe(t, j) * a.get_unsafe(t-1, j)
+            A[t] = s
+
+            for p in xrange(t+1):
+                s = F[p]
+                for k in xrange(p):
+                    s = s - A[k] * F[p-k-1]
+                F[p] = s - A[p]
+
+        X = S.gen(0)
+        f = X ** n
+        for p in xrange(n):
+            f = f + F[p] * X ** (n-1-p)
+
         return f
 
     def _charpoly_over_number_field(self, var='x'):
@@ -1358,10 +1610,7 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
-
-        -  ``var`` - (default: 'x') name of variable of
-           charpoly
-
+        -  ``var`` - (default: 'x') name of variable of charpoly
 
         EXAMPLES::
 
@@ -1486,7 +1735,7 @@ cdef class Matrix(matrix1.Matrix):
             34/3
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
         R = self._base_ring
         cdef Py_ssize_t i
         cdef object s
@@ -1637,10 +1886,7 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
-
-        -  ``var`` - name of the indeterminate of the
-           charpoly.
-
+        -  ``var`` - name of the indeterminate of the charpoly
 
         The characteristic polynomial is represented as a vector of ints,
         where the constant term of the characteristic polynomial is the 0th
@@ -2562,9 +2808,7 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
-
-        -  ``self`` - a matrix with field entries
-
+        - ``self`` - a matrix with field entries
 
         OUTPUT: a list of reduced row echelon form basis
 
@@ -2573,7 +2817,7 @@ cdef class Matrix(matrix1.Matrix):
         - William Stein
         """
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
 
         if not self.base_ring().is_field():
             raise TypeError, "self must be over a field."
@@ -2661,7 +2905,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def _decomposition_using_kernels(self, is_diagonalizable=False, dual=False):
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
 
         if self.nrows() == 0:
             return decomp_seq([])
@@ -4771,6 +5015,194 @@ cdef class Matrix(matrix1.Matrix):
             []
        """
         return self.__invert__()
+
+    def adjoint(self):
+        """
+        Returns the adjoint matrix of self (matrix of cofactors).
+
+        OUTPUT:
+
+        - ``N`` - the adjoint matrix, such that
+          N \* M = M \* N = M.parent(M.det())
+
+        ALGORITHM:
+
+        Use PARI whenever the method ``self._adjoint`` is included to do so
+        in an inheriting class.  Otherwise, use a generic division-free
+        algorithm to compute the characteristic polynomial and hence the
+        adjoint.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ,2,2,[5,2,3,4]) ; M
+            [5 2]
+            [3 4]
+            sage: N = M.adjoint() ; N
+            [ 4 -2]
+            [-3  5]
+            sage: M * N
+            [14  0]
+            [ 0 14]
+            sage: N * M
+            [14  0]
+            [ 0 14]
+            sage: M = Matrix(QQ,2,2,[5/3,2/56,33/13,41/10]) ; M
+            [  5/3  1/28]
+            [33/13 41/10]
+            sage: N = M.adjoint() ; N
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+            sage: M * N
+            [7363/1092         0]
+            [        0 7363/1092]
+
+        AUTHORS:
+
+        - Unknown: No author specified in the file from 2009-06-25
+        - Sebastian Pancratz (2009-06-25): Reflecting the change that
+          ``_adjoint`` is now implemented in this class
+        """
+
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be a square matrix"
+
+        X = self.fetch('adjoint')
+        if not X is None:
+            return X
+
+        X = self._adjoint()
+        self.cache('adjoint', X)
+        return X
+
+    def _adjoint(self):
+        r"""
+        Returns the adjoint of self.
+
+        OUTPUT:
+
+        - matrix - the adjoint of self
+
+        EXAMPLES:
+
+        Here is one example to illustrate this::
+
+            sage: A = matrix(ZZ, [[1,24],[3,5]])
+            sage: A
+            [ 1 24]
+            [ 3  5]
+            sage: A._adjoint()
+            [  5 -24]
+            [ -3   1]
+
+        Secondly, here is an example over a polynomial ring::
+
+            sage: R.<t> = QQ[]
+            sage: A = matrix(R, [[-2*t^2 + t + 3/2, 7*t^2 + 1/2*t - 1,      \
+                                  -6*t^2 + t - 2/11],                       \
+                                 [-7/3*t^2 - 1/2*t - 1/15, -2*t^2 + 19/8*t, \
+                                  -10*t^2 + 2*t + 1/2],                     \
+                                 [6*t^2 - 1/2, -1/7*t^2 + 9/4*t, -t^2 - 4*t \
+                                  - 1/10]])
+            sage: A
+            [       -2*t^2 + t + 3/2       7*t^2 + 1/2*t - 1       -6*t^2 + t - 2/11]
+            [-7/3*t^2 - 1/2*t - 1/15         -2*t^2 + 19/8*t     -10*t^2 + 2*t + 1/2]
+            [            6*t^2 - 1/2        -1/7*t^2 + 9/4*t       -t^2 - 4*t - 1/10]
+            sage: A._adjoint()
+            [          4/7*t^4 + 1591/56*t^3 - 961/70*t^2 - 109/80*t 55/7*t^4 + 104/7*t^3 + 6123/1540*t^2 - 959/220*t - 1/10       -82*t^4 + 101/4*t^3 + 1035/88*t^2 - 29/22*t - 1/2]
+            [   -187/3*t^4 + 13/6*t^3 + 57/10*t^2 - 79/60*t - 77/300            38*t^4 + t^3 - 793/110*t^2 - 28/5*t - 53/220 -6*t^4 + 44/3*t^3 + 4727/330*t^2 - 1147/330*t - 487/660]
+            [          37/3*t^4 - 136/7*t^3 - 1777/840*t^2 + 83/80*t      292/7*t^4 + 107/14*t^3 - 323/28*t^2 - 29/8*t + 1/2   61/3*t^4 - 25/12*t^3 - 269/120*t^2 + 743/240*t - 1/15]
+
+        Finally, an example over a general ring, that is to say, as of
+        version 4.0.2, SAGE does not even determine that ``S`` in the following
+        example is an integral domain::
+
+            sage: R.<a,b> = QQ[]
+            sage: S.<x,y> = R.quo((b^3))
+            sage: A = matrix(S, [[x*y^2,2*x],[2,x^10*y]])
+            sage: A
+            [ x*y^2    2*x]
+            [     2 x^10*y]
+            sage: A.det()
+            -4*x
+            sage: A.charpoly('T')
+            T^2 + (-x^10*y - x*y^2)*T - 4*x
+            sage: A.adjoint()
+            [x^10*y   -2*x]
+            [    -2  x*y^2]
+            sage: A.adjoint() * A
+            [-4*x    0]
+            [   0 -4*x]
+
+        TESTS::
+
+            sage: A = matrix(ZZ, 0, 0)
+            sage: A
+            []
+            sage: A._adjoint()
+            []
+            sage: A = matrix(ZZ, [[2]])
+            sage: A
+            [2]
+            sage: A._adjoint()
+            [1]
+
+        NOTES:
+
+        The key feature of this implementation is that it is division-free.
+        This means that it can be used as a generic implementation for any
+        ring (commutative and with multiplicative identity).  The algorithm
+        is described in full detail as Algorithm 3.1 in [Se02].
+
+        Note that this method does not utilise a lookup if the adjoint has
+        already been computed previously, and it does not cache the result.
+        This is all left to the method `adjoint`.
+
+        REFERENCES:
+
+        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
+          matrices, and characteristic polynomials without division"
+
+        AUTHORS:
+
+        - Sebastian Pancratz (2009-06-12): Initial version
+        """
+
+        # Validate assertions
+        #
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+
+        # Corner cases
+        # N.B.  We already tested for the matrix  to be square, hence we do not
+        # need to test for 0 x n or m x 0 matrices.
+        #
+        if self._ncols == 0:
+            return self.copy()
+
+        # Extract parameters
+        #
+        n  = self._ncols
+        R  = self._base_ring
+        MS = self._parent
+
+        f = self.charpoly()
+
+        # Let A denote the adjoint of M, which we want to compute, and
+        # N denote a copy of M used to store powers of M.
+        #
+        A = f[1] * MS.identity_matrix()
+        N = R(1) * MS.identity_matrix()
+        for i in range(1, n):
+            # Set N to be M^i
+            #
+            N = N * self
+            A = A + f[i+1] * N
+        if not (n % 2):
+            A = - A
+
+        return A
 
     def gram_schmidt(self):
         r"""

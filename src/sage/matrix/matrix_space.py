@@ -1251,7 +1251,7 @@ def list_to_dict(entries, nrows, ncols, rows=True):
 
 def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     """
-    Tests inversion, determinant and is_inverstible for trivial matrices.
+    Tests inversion, determinant and is_invertible for trivial matrices.
 
     This function is a helper to check that the inversion of trivial matrices
     (of size 0x0, nx0, 0xn or 1x1) is handled consistently by the various
@@ -1262,14 +1262,12 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     INPUT:
 
     - ``ring`` - a ring
-
     - ``sparse`` - a boolean
-
     - ``checkrank`` - a boolean
 
     OUTPUT:
 
-    - nothing if everything is correct otherwise raise an AssertionError
+    - nothing if everything is correct, otherwise raise an AssertionError
 
     The methods determinant, is_invertible, rank and inverse are checked for
      - the 0x0 empty identity matrix
@@ -1284,35 +1282,34 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
 
     TESTS::
 
-      sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
-      sage: tinv(ZZ, sparse=True)
-      sage: tinv(ZZ, sparse=False)
-      sage: tinv(QQ, sparse=True)
-      sage: tinv(QQ, sparse=False)
-      sage: tinv(GF(11), sparse=True)
-      sage: tinv(GF(11), sparse=False)
-      sage: tinv(GF(2), sparse=True)
-      sage: tinv(GF(2), sparse=False)
-      sage: tinv(SR, sparse=True)
-      sage: tinv(SR, sparse=False)
-      sage: tinv(RDF, sparse=True)
-      sage: tinv(RDF, sparse=False)
-      sage: tinv(CDF, sparse=True)
-      sage: tinv(CDF, sparse=False)
-      sage: tinv(CyclotomicField(7), sparse=True)
-      sage: tinv(CyclotomicField(7), sparse=False)
-      sage: tinv(QQ['x,y'], sparse=True)
-
+        sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
+        sage: tinv(ZZ, sparse=True)
+        sage: tinv(ZZ, sparse=False)
+        sage: tinv(QQ, sparse=True)
+        sage: tinv(QQ, sparse=False)
+        sage: tinv(GF(11), sparse=True)
+        sage: tinv(GF(11), sparse=False)
+        sage: tinv(GF(2), sparse=True)
+        sage: tinv(GF(2), sparse=False)
+        sage: tinv(SR, sparse=True)
+        sage: tinv(SR, sparse=False)
+        sage: tinv(RDF, sparse=True)
+        sage: tinv(RDF, sparse=False)
+        sage: tinv(CDF, sparse=True)
+        sage: tinv(CDF, sparse=False)
+        sage: tinv(CyclotomicField(7), sparse=True)
+        sage: tinv(CyclotomicField(7), sparse=False)
+        sage: tinv(QQ['x,y'], sparse=True)
 
    TODO: As soon as rank of dense matrix over QQ['x,y'] is implemented,
    please remove the following test and the ``checkrank=False`` in the next one:
 
-      sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=False)(1).rank()
-      Traceback (most recent call last):
-      ...
-      RuntimeError: BUG: matrix pivots should have been set but weren't, matrix parent = 'Full MatrixSpace of 3 by 3 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field'
+        sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=False)(1).rank()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: BUG: matrix pivots should have been set but weren't, matrix parent = 'Full MatrixSpace of 3 by 3 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field'
 
-      sage: tinv(QQ['x,y'], sparse=False, checkrank=False)
+        sage: tinv(QQ['x,y'], sparse=False, checkrank=False)
 
     """
     # Check that the empty 0x0 matrix is it's own inverse with det=1.
@@ -1334,7 +1331,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
             d = mn0.determinant()
             print d
             res = False
-        except ArithmeticError:
+        except ValueError:
             res = True
         assert(res)
         try:

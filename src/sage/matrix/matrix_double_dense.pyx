@@ -864,10 +864,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m = matrix(RDF, 2, range(6)); m.det()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self must be a square matrix
+            ValueError: self must be a square matrix
         """
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
         if self._nrows == 0 or self._ncols == 0:
             return self._sage_dtype(1)
         global scipy

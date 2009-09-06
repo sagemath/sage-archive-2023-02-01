@@ -81,7 +81,6 @@ cdef extern from "convert.h":
 
 #########################################################
 
-
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
@@ -3327,7 +3326,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if not d is None:
             return d
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
         n = self.nrows()
 
         if n <= 3:

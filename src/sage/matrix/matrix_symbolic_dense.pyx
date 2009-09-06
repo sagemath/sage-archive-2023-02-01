@@ -273,7 +273,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         return z._sage_()
 
-    def charpoly(self, var='x'):
+    def charpoly(self, var='x', algorithm=None):
         """
         Compute the characteristic polynomial of self, using maxima.
 

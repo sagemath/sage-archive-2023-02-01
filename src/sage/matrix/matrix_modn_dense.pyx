@@ -1557,10 +1557,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: m.determinant()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self must be a square matrix
+            ValueError: self must be a square matrix
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ValueError, "self must be a square matrix"
         if self._nrows == 0:
             return self._coerce_element(1)
 

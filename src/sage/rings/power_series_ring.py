@@ -696,7 +696,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return False
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return False since the ring of power series over any ring is never
         a field.

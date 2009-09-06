@@ -602,7 +602,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return True
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return False - the integers are not a field.
 

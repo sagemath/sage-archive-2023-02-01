@@ -392,7 +392,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         Return True if and only if the order of self is prime.
 
@@ -405,7 +405,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return is_prime(self.order())
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True precisely if the order is prime.
 

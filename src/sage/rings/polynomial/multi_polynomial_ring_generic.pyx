@@ -49,7 +49,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         self._has_singular = False #cannot convert to Singular by default
         ParentWithGens.__init__(self, base_ring, names)
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         EXAMPLES::
 
@@ -58,7 +58,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: Integers(8)['x,y'].is_integral_domain()
             False
         """
-        return self.base_ring().is_integral_domain()
+        return self.base_ring().is_integral_domain(proof)
 
     def is_noetherian(self):
         """
@@ -312,13 +312,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return self.base_ring().is_finite()
         return False
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True if this multivariate polynomial ring is a field, i.e.,
         it is a ring in 0 generators over a field.
         """
         if self.ngens() == 0:
-            return self.base_ring().is_field()
+            return self.base_ring().is_field(proof)
         return False
 
     def term_order(self):

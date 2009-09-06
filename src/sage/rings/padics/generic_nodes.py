@@ -150,7 +150,7 @@ def is_pAdicRing(R):
     return isinstance(R, pAdicRingGeneric)
 
 class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Returns whether this ring is actually a field, ie ``False``.
 

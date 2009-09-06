@@ -258,7 +258,7 @@ class FractionField_generic(field.Field):
                     parent_as_first_arg=True)
         return None
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Returns True, since the fraction field is a field.
 

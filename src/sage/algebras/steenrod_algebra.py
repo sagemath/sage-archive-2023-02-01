@@ -397,7 +397,7 @@ class SteenrodAlgebra_generic(Algebra):
         return False
 
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         The Steenrod algebra is not a field.
 
@@ -410,7 +410,7 @@ class SteenrodAlgebra_generic(Algebra):
         return False
 
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         The Steenrod algebra is not an integral domain.
 

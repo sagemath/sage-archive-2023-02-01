@@ -397,10 +397,10 @@ def _single_variate(base_ring, name, sparse, implementation):
         elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
-        elif base_ring.is_field():
+        elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)
 
-        elif base_ring.is_integral_domain():
+        elif base_ring.is_integral_domain(proof = False):
             R = m.PolynomialRing_integral_domain(base_ring, name, sparse, implementation)
         else:
             R = m.PolynomialRing_commutative(base_ring, name, sparse)
@@ -522,7 +522,6 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     _save_in_cache(key, R)
     return R
-
 
 #########################################################################################
 # END (Factory function for making polynomial rings)

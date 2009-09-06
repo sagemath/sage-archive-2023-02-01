@@ -130,7 +130,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     def is_sparse(self):
         return self.__sparse
 
-    def is_field(self):
+    def is_field(self, proof = True):
         return True
 
     def is_dense(self):

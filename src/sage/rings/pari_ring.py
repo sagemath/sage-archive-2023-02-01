@@ -48,7 +48,7 @@ class PariRing(ring.Ring, _uniq):
     def is_atomic_repr(self):
         return False
 
-    def is_field(self):
+    def is_field(self, proof = True):
         return False
 
     def characteristic(self):

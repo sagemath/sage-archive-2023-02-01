@@ -616,7 +616,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             return False
         return True
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return ``True``, since the rational field is a field.
 

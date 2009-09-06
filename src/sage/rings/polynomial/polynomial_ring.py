@@ -311,7 +311,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         EXAMPLES::
 
@@ -320,7 +320,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: Integers(8)['x'].is_integral_domain()
             False
         """
-        return self.base_ring().is_integral_domain()
+        return self.base_ring().is_integral_domain(proof)
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
@@ -810,7 +810,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def is_exact(self):
         return self.base_ring().is_exact()
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return False, since polynomial rings are never fields.
 

@@ -1992,7 +1992,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
     def monsky_washnitzer(self):
         return self._monsky_washnitzer
 
-    def is_field(self):
+    def is_field(self, proof = True):
         return False
 
 

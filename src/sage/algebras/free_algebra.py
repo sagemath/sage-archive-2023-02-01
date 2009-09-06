@@ -182,7 +182,7 @@ class FreeAlgebra_generic(Algebra):
         self.__ngens = n
         sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True if this Free Algebra is a field, which is only if the
         base ring is a field and there are no generators
@@ -197,7 +197,7 @@ class FreeAlgebra_generic(Algebra):
             False
         """
         if self.__ngens == 0:
-            return self.base_ring().is_field()
+            return self.base_ring().is_field(proof)
         return False
 
     def is_commutative(self):

@@ -343,7 +343,7 @@ class ComplexIntervalField_class(field.Field):
         return self._real_field().random_element(*args) \
             + self.gen() * self._real_field().random_element(*args)
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True, since the complex numbers are a field.
 

@@ -402,7 +402,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         return self.__I
 
-    def is_field(self):
+    def is_field(self, proof = True):
         r"""
         Returns True if the quotient ring is a field. Checks to see if the
         defining ideal is maximal.
@@ -418,9 +418,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             ...
             NotImplementedError
         """
-        return self.defining_ideal().is_maximal()
+        if proof:
+            return self.defining_ideal().is_maximal()
+        else:
+            try:
+                return self.defining_ideal().is_maximal()
+            except NotImplementedError:
+                return False
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         r"""
         If this function returns True then self is definitely an integral
         domain. If it returns False, then either self is definitely not an
@@ -444,7 +450,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             ...
             NotImplementedError
         """
-        return self.defining_ideal().is_prime()
+        if proof:
+            return self.defining_ideal().is_prime()
+        else:
+            try:
+                return self.defining_ideal.is_prime()
+            except AttributeError:
+                return False
+            except NotImplementedError:
+                return False
 
     def cover_ring(self):
         r"""

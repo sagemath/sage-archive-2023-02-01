@@ -239,7 +239,7 @@ class ContinuedFractionField_class(Field):
         """
         return 1
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True, since the continued fraction field is a field.
 

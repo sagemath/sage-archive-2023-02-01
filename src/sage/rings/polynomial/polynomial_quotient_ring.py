@@ -438,7 +438,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             self.__gen = self(self.polynomial_ring().gen())
             return self.__gen
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return whether or not this quotient ring is a field.
 
@@ -453,7 +453,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: S.is_field()
             True
         """
-        return self.base_ring().is_field() and self.modulus().is_irreducible()
+        return self.base_ring().is_field(proof) and self.modulus().is_irreducible()
 
     def krull_dimension(self):
         return self.base_ring().krull_dimension()

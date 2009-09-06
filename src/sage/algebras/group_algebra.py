@@ -82,7 +82,7 @@ class GroupAlgebra(Algebra):
         """
         return self.group().is_abelian()
 
-    def is_field(self):
+    def is_field(self, proof = True):
         r""" Return True if self is a field. This is always false unless
         self.group() is trivial and self.base_ring() is a field.
         EXAMPLES:
@@ -93,7 +93,7 @@ class GroupAlgebra(Algebra):
             sage: GroupAlgebra(SymmetricGroup(1), QQ).is_field()
             True
         """
-        if not self.base_ring().is_field():
+        if not self.base_ring().is_field(proof):
             return False
         return (self.group().order() == 1)
 
@@ -126,7 +126,7 @@ class GroupAlgebra(Algebra):
         """
         return self.group().is_exact() and self.base_ring().is_exact()
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         r""" Return True if self is an integral domain.
 
         This is false unless
@@ -149,21 +149,33 @@ class GroupAlgebra(Algebra):
             sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain() # not implemented
             False
         """
-        if not self.base_ring().is_integral_domain():
-            return False
-        if self.group().is_finite():
-            if self.group().order() > 1:
-                return False
+        ans = False
+        try:
+            if self.base_ring().is_integral_domain():
+                if self.group().is_finite():
+                    if self.group().order() > 1:
+                        ans = False
+                    else:
+                        ans = True
+                else:
+                    if self.group().is_abelian():
+                        invs = self.group().invariants()
+                        if Set(invs) != Set([0]):
+                            ans = False
+                        else:
+                            ans = True
+                    else:
+                        raise NotImplementedError
             else:
-                return True
-        if self.group().is_abelian():
-            invs = self.group().invariants()
-            if Set(invs) != Set([0]):
-                return False
-            else:
-                return True
-        if not self.group().is_abelian():
-            raise NotImplementedError
+                ans = False
+        except AttributeError:
+            if proof:
+                raise NotImplementedError, "cannot determine whether self is an integral domain"
+        except NotImplementedError:
+            if proof:
+                raise NotImplementedError, "cannot determine whether self is an integral domain"
+
+        return ans
 
     # I haven't written is_noetherian(), because I don't know when group
     # algebras are noetherian, and I haven't written is_prime_field(), because

@@ -523,9 +523,20 @@ cdef class Ring(ParentWithGens):
             return True
         raise NotImplementedError
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True if this ring is a field.
+
+        INPUT:
+
+        - proof - Determines what to do in unknown cases (default: ``True``)
+
+        ALGORITHM:
+
+        If the parameter ``proof`` is set to ``True``, the returned value is
+        correct but the method might throw an error.  Otherwise, if it is set
+        to ``False``, the method returns True if it can establish that self is
+        a field and False otherwise.
 
         EXAMPLES::
 
@@ -539,10 +550,25 @@ cdef class Ring(ParentWithGens):
             False
             sage: Frac(QQ['x']).is_field()
             True
+
+        This illustrates the use of the ``proof`` parameter::
+
+            sage: R.<a,b> = QQ[]
+            sage: S.<x,y> = R.quo((b^3))
+            sage: S.is_field(proof = True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: S.is_field(proof = False)
+            False
         """
         if self.is_zero():
             return False
-        raise NotImplementedError
+
+        if proof:
+            raise NotImplementedError
+        else:
+            return False
 
     cpdef bint is_exact(self) except -2:
         """
@@ -628,9 +654,20 @@ cdef class Ring(ParentWithGens):
             return True
         raise NotImplementedError
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         Return True if this ring is an integral domain.
+
+        INPUT:
+
+        - proof - Determines what to do in unknown cases (default: ``True``)
+
+        ALGORITHM:
+
+        If the parameter ``proof`` is set to ``True``, the returned value is
+        correct but the method might throw an error.  Otherwise, if it is set
+        to ``False``, the method returns True if it can establish that self is
+        an integral domain and False otherwise.
 
         EXAMPLES::
 
@@ -646,10 +683,25 @@ cdef class Ring(ParentWithGens):
             True
             sage: Qp(7).is_integral_domain()
             True
+
+        This illustrates the use of the ``proof`` parameter::
+
+            sage: R.<a,b> = QQ[]
+            sage: S.<x,y> = R.quo((b^3))
+            sage: S.is_integral_domain(proof = True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: S.is_integral_domain(proof = False)
+            False
         """
         if self.is_zero():
             return False
-        return NotImplementedError
+
+        if proof:
+            return NotImplementedError
+        else:
+            return False
 
     def is_ring(self):
         """
@@ -1117,7 +1169,7 @@ cdef class IntegralDomain(CommutativeRing):
     """
     Generic integral domain class.
     """
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         Return True, since this ring is an integral domain.
 
@@ -1160,7 +1212,7 @@ cdef class IntegralDomain(CommutativeRing):
         """
         raise NotImplementedError
 
-    def is_field(self):
+    def is_field(self, proof = True):
         r"""
         Return True if this ring is a field.
 
@@ -1187,7 +1239,10 @@ cdef class IntegralDomain(CommutativeRing):
         """
         if self.is_finite():
             return True
-        raise NotImplementedError, "unable to determine whether or not is a field."
+        if proof:
+            raise NotImplementedError, "unable to determine whether or not is a field."
+        else:
+            return False
 
 cdef class NoetherianRing(CommutativeRing):
     """
@@ -1610,7 +1665,7 @@ cdef class Field(PrincipalIdealDomain):
         """
         return self
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True since this is a field.
 
@@ -2116,7 +2171,7 @@ cdef class FiniteField(Field):
         """
         return 1
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Returns whether or not the finite field is a field, i.e.,
         always returns True.

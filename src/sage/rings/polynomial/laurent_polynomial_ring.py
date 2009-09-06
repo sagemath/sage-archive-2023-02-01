@@ -633,7 +633,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
         return False
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         EXAMPLES::
 

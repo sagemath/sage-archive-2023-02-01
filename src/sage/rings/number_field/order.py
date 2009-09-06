@@ -282,7 +282,7 @@ class Order(IntegralDomain):
             self._is_maximal = (self.absolute_discriminant() == self._K.absolute_discriminant())
         return self._is_maximal
 
-    def is_field(self):
+    def is_field(self, proof = True):
         r"""
         Return False (because an order is never a field).
 

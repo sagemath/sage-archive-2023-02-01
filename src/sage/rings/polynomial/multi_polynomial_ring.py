@@ -467,12 +467,12 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         return True
 
-    def is_field(self):
+    def is_field(self, proof = True):
         if self.ngens() == 0:
-            return self.base_ring().is_field()
+            return self.base_ring().is_field(proof)
         return False
 
     def ideal(self, *gens, **kwds):

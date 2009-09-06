@@ -3043,7 +3043,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__gen = self._element_class(self, X)
             return self.__gen
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True since a number field is a field.
 

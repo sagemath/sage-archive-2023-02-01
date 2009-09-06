@@ -371,7 +371,7 @@ class ComplexField_class(field.Field):
             raise IndexError, "n must be 0"
         return complex_number.ComplexNumber(self, 0, 1)
 
-    def is_field(self):
+    def is_field(self, proof = True):
         """
         Return True, since the complex numbers are a field.
 

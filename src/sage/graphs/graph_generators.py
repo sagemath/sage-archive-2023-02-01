@@ -2356,7 +2356,12 @@ class GraphGenerators():
 
     def HyperStarGraph(self,n,k):
         r'''
-        Returns the hyper star graph HS(n,k).
+        Returns the hyper-star graph HS(n,k).
+
+        The vertices of the hyper-star graph are the set of binary strings
+        of length n which contain k 1s. Two vertices, u and v, are adjacent
+        only if u can be obtained from v by swapping the first bit with a
+        different symbol in another position.
 
         INPUT::
 
@@ -2408,7 +2413,15 @@ class GraphGenerators():
 
     def NKStarGraph(self,n,k):
         r'''
-        Returns the star graph (n,k).
+        Returns the (n,k)-star graph.
+
+        The vertices of the (n,k)-star graph are the set of all arangements of
+        n symbols into labels of length k. There are two adjacency rules for
+        the (n,k)-star graph. Frist, two vertices are adjacent if one can be
+        obtained from the other by swapping the first symbol with another
+        symbol. Second, two vertices are adjacent if one can be obtained from
+        the other by swapping the first symbol with an external symbol (a
+        symbol not used in the original label).
 
         INPUT::
 
@@ -2468,6 +2481,10 @@ class GraphGenerators():
         r'''
         Returns the n-star graph.
 
+        The vertices of the n-star graph are the set of permutations on n
+        symbols. There is an edge between two vertices if their labels differ
+        only the first and one other position.
+
         INPUT::
 
         -  ``n``
@@ -2515,7 +2532,12 @@ class GraphGenerators():
 
     def BubbleSortGraph(self,n):
         r'''
-        Returns the bubble sort graph.
+        Returns the bubble sort graph, B(n).
+
+        The vertices of the bubble sort graph are the set of permutations on
+        n symbols. Two vertices are adjacent if one can be obtained from the
+        other by swapping the labels in the ith and (i+1)th position for
+        `1 \leq i \leq n-1`.
 
         INPUT::
 
@@ -2534,7 +2556,6 @@ class GraphGenerators():
         from sage.combinat.permutation import Permutations
         #create set from which to permute
         label_set = [str(i) for i in xrange(1,n+1)]
-        #create dict of lists
         d = {}
         #iterate through all vertices
         for v in Permutations(label_set):

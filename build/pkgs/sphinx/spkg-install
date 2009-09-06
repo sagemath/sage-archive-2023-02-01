@@ -6,8 +6,18 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-#Remove old version
+success() {
+    if [ $? -ne 0 ]; then
+        echo "Error building Sphinx: '$1'"
+        exit 1
+    fi
+}
+
+set +e
+
+echo "Removing old version..."
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
+success 'Error deleting previous version'
 
 #Copy the patched file over
 cp patches/highlighting.py src/sphinx/
@@ -17,10 +27,9 @@ cp patches/autodoc.py src/sphinx/ext/
 cd src
 
 python setup.py install
-if [ $? -ne 0 ]; then
-   echo "Error installing Sphinx."
-   exit 1
-fi
+success 'Error installing Sphinx'
+
+set -e
 
 cd ..
 cp patches/sphinx-build "$SAGE_LOCAL"/bin/

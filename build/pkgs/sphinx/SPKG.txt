@@ -24,13 +24,19 @@ Home Page: http://sphinx.pocoo.org/
 
 == Dependencies ==
 
-This depends on Jinja >= 1.1, Pygments>=0.8, and docutils>=0.4.
+This depends on Jinja >= 2, Pygments>=0.8, and docutils>=0.4.
 
 == Special Update/Build Instructions ==
 
 A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
+
+=== 0.6.3.p1 (John Palmieri, 2009-09-04) ===
+
+ * Modify spkg-install, in line with the ideas at
+   http://trac.sagemath.org/sage_trac/ticket/6598 and
+   http://wiki.sagemath.org/DavidKirkby
 
 === 0.6.3 (John Palmieri, 2009-09-03) ===
 
@@ -47,6 +53,5 @@ A patch was added to support highlighting the "sage:" prompts.
  * Updated to version 0.5
 
 === svn 66476 (Mike Hansen, September 15th, 2008) ===
+
  * Initial version.
-
-

@@ -28,7 +28,7 @@ SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 # falls back to SAGE_SERVER in case of an exception, but can be overriden
 # by the first command line argument.
 
-def get_sage_mirror():
+def get_sage_mirror(ask = False):
     '''
     Find a good Sage Mirror
 
@@ -111,33 +111,37 @@ def get_sage_mirror():
     sel = top[0][1]
     sel_host = re_host.search(sel).group(1)
     print('automatically selected server %s (%s)' % (sel_host, sel))
-    input = raw_input('press RETURN to continue or enter a number to select another one: ')
-    if input:
-         try:
-              print 'manually selected %s', mirrors[int(input)]
-              return mirrors[int(input)]
-         except:
-              print 'Error: you have to enter a number or press RETURN'
-              import sys
-              sys.exit(1)
+    if ask:
+        try:
+            input = raw_input('press RETURN to continue or enter a number to select another one: ')
+            print 'manually selected %s' % mirrors[int(input)]
+            return mirrors[int(input)]
+        except:
+            print 'Error: you have to enter a number or press RETURN'
+            import sys
+            sys.exit(1)
     return sel
 
 # end of get_sage_mirror()
 
-if len(sys.argv) > 1:
-    # Server given on command line, typically a URL to a specific Sage install.
-    PKG_SERVER = sys.argv[1]
-else:
-    # Best server: determine a suiteable and availabe mirror by some heuristics
-    #              fall back to default if there is an exception
-    # Default server: specified by environment variable.
-    try:
-        PKG_SERVER = get_sage_mirror()
-    except:
-        if not os.environ.has_key("SAGE_SERVER"):
-            print "The environment variable SAGE_SERVER must be set."
-            sys.exit(1)
-        PKG_SERVER = os.environ['SAGE_SERVER']
+try:
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'ask':
+             # upgrade script should ask which server to use
+             PKG_SERVER = get_sage_mirror(ask = True)
+        else:
+             # Server given on command line, typically a URL to a specific Sage install.
+             PKG_SERVER = sys.argv[1]
+    else:
+        # Best server: determine a suiteable and availabe mirror by some heuristics
+        #              fall back to default if there is an exception
+        # Default server: specified by environment variable.
+        PKG_SERVER = get_sage_mirror(ask = False)
+except:
+    if not os.environ.has_key("SAGE_SERVER"):
+        print "The environment variable SAGE_SERVER must be set."
+        sys.exit(1)
+    PKG_SERVER = os.environ['SAGE_SERVER']
 
 if not PKG_SERVER.endswith('/spkg'):
     PKG_SERVER += '/spkg'

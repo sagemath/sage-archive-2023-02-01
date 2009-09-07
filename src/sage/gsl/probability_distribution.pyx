@@ -289,7 +289,7 @@ cdef class RealDistribution(ProbabilityDistribution):
     see the gsl reference manuals chapter on random number generators
     and probability distributions.
 
-    EXAMPLES::
+    EXAMPLES:
 
     Uniform distribution on the interval ``[a, b]``::
 

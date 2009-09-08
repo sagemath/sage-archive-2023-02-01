@@ -5061,7 +5061,8 @@ cdef class Expression(CommutativeRingElement):
         .. seealso::
 
            :meth:`simplify_full`, :meth:`simplify_trig`,
-           :meth:`simplify_rational`, :meth:`simplify_radical`
+           :meth:`simplify_rational`, :meth:`simplify_radical`,
+           :meth:`simplify_factorial`
 
         EXAMPLES::
 
@@ -5074,7 +5075,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_full(self):
         """
-        Applies simplify_trig, simplify_rational, and simplify_radical
+        Applies simplify_factorial, simplify_trig, simplify_rational, and simplify_radical
         to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
@@ -5096,8 +5097,17 @@ cdef class Expression(CommutativeRingElement):
             sage: f = sin(x/(x^2 + x))
             sage: f.simplify_full()
             sin(1/(x + 1))
+
+        ::
+
+            sage: var('n,k')
+            (n, k)
+            sage: f = binomial(n,k)*factorial(k)*factorial(n-k)
+            sage: f.simplify_full()
+            factorial(n)
         """
         x = self
+        x = x.simplify_factorial()
         x = x.simplify_trig()
         x = x.simplify_rational()
         x = x.simplify_radical()
@@ -5156,6 +5166,52 @@ cdef class Expression(CommutativeRingElement):
 
     # TODO: come up with a way to intelligently wrap Maxima's way of
     # fine-tuning all simplificationsrational
+
+    def simplify_factorial(self):
+        """
+        Simplify by combining expressions with factorials, and by
+        expanding binomials into factorials.
+
+        ALIAS: factorial_simplify and simplify_factorial are the same
+
+        EXAMPLES:
+
+        Some examples are relatively clear::
+
+            sage: var('n,k')
+            (n, k)
+            sage: f = factorial(n+1)/factorial(n); f
+            factorial(n + 1)/factorial(n)
+            sage: f.simplify_factorial()
+            n + 1
+
+        ::
+            sage: f = factorial(n)*(n+1); f
+            (n + 1)*factorial(n)
+            sage: simplify(f)
+            (n + 1)*factorial(n)
+            sage: f.simplify_factorial()
+            factorial(n + 1)
+
+        ::
+
+            sage: f = binomial(n,k)*factorial(k)*factorial(n-k); f
+            factorial(-k + n)*factorial(k)*binomial(n,k)
+            sage: f.simplify_factorial()
+            factorial(n)
+
+        A more complicated example, which needs further processing::
+
+            sage: f = factorial(x)/factorial(x-2)/2 + factorial(x+1)/factorial(x)/2; f
+            1/2*factorial(x)/factorial(x - 2) + 1/2*factorial(x + 1)/factorial(x)
+            sage: g = f.simplify_factorial(); g
+            1/2*(x - 1)*x + 1/2*x + 1/2
+            sage: g.simplify_rational()
+            1/2*x^2 + 1/2
+        """
+        return self.parent()(self._maxima_().makefact().factcomb().minfactorial())
+
+    factorial_simplify = simplify_factorial
 
     def simplify_radical(self):
         r"""

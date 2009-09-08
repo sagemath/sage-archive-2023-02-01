@@ -818,7 +818,14 @@ class Function_real_part(PrimitiveFunction):
             2.50000000000000
             sage: type(real(a))
             <type 'sage.rings.real_mpfr.RealLiteral'>
+            sage: real(1.0r)
+            1.0
         """
+        #We have to do this first since float.real is an _attribute_,
+        #not a method.
+        if isinstance(x, float):
+            return x
+
         #Try to all the .real() method
         try:
             return x.real()

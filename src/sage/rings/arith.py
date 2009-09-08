@@ -2582,7 +2582,7 @@ def binomial(x,m):
         sage: binomial(2^100, 2^100)
         1
 
-        sage: k, i = var('k,i',ns=1)
+        sage: k, i = var('k,i')
         sage: binomial(k,i)
         binomial(k,i)
 

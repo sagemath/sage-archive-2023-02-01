@@ -202,7 +202,7 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        arctanh(sinh(-arcsech(v2)/floor(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^arcsech(-cosh(-polylog((v2 + 0.913564344312 + 0.0898040160336*I)^(-(0.723896589334 - 0.799038508886*I)*v2),-v1 - v3))/sin(-(0.0263902659909 + 0.153261789843*I)*arctan2(pi, e^pi)))
+        arctanh(sinh(-arcsech(v2)/csch(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^arcsech(-cosh(-polylog((v2 + 0.913564344312 + 0.0898040160336*I)^(-(0.723896589334 - 0.799038508886*I)*v2),-v1 - v3))/arcsin(-(0.0263902659909 + 0.153261789843*I)*arctan2(pi, arccot(pi))))
         sage: random_expr(5, verbose=True)
         About to apply <built-in function add> to [v1, v1]
         About to apply <built-in function div> to [-1/3, 2*v1]

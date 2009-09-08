@@ -510,7 +510,7 @@ class Function_factorial(PrimitiveFunction):
             z!
             sage: _.sage()
             factorial(z)
-            sage: k = var('k',ns=1)
+            sage: k = var('k')
             sage: factorial(k)
             factorial(k)
 
@@ -534,7 +534,7 @@ class Function_factorial(PrimitiveFunction):
             \mbox{factorial}
         """
         PrimitiveFunction.__init__(self, "factorial", latex='\mbox{factorial}',
-                                   conversions=dict(maxima='factorial'),
+                                   conversions=dict(maxima='factorial', mathematica='Factorial'),
                                    approx=lambda x: gamma(x+1))
 
 
@@ -566,6 +566,82 @@ class Function_factorial(PrimitiveFunction):
 
 factorial = Function_factorial()
 
+class Function_binomial(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        Return the binomial coefficient
+
+        .. math::
+
+                    \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
+
+
+        which is defined for `m \in \ZZ` and any
+        `x`. We extend this definition to include cases when
+        `x-m` is an integer but `m` is not by
+
+        .. math::
+
+            \binom{x}{m}= \binom{x}{x-m}
+
+        If `m < 0`, return `0`.
+
+        INPUT:
+
+        -  ``x``, ``m`` - numbers or symbolic expressions. Either ``m``
+           or ``x-m`` must be an integer, else the output is symbolic.
+
+        OUTPUT: number or symbolic expression (if input is symbolic)
+
+        EXAMPLES::
+
+            sage: binomial(5,2)
+            10
+            sage: binomial(2,0)
+            1
+            sage: binomial(1/2, 0)
+            1
+            sage: binomial(3,-1)
+            0
+            sage: binomial(20,10)
+            184756
+            sage: binomial(-2, 5)
+            -6
+            sage: binomial(RealField()('2.5'), 2)
+            1.87500000000000
+            sage: n=var('n'); binomial(n,2)
+            1/2*(n - 1)*n
+            sage: n=var('n'); binomial(n,n)
+            1
+            sage: n=var('n'); binomial(n,n-1)
+            n
+            sage: binomial(2^100, 2^100)
+            1
+
+        ::
+            sage: k, i = var('k,i')
+            sage: binomial(k,i)
+            binomial(k,i)
+
+        TESTS: We verify that we can convert this function to Maxima and
+        bring it back into Sage.
+
+        ::
+
+            sage: n,k = var('n,k')
+            sage: maxima(binomial(n,k))
+            binomial(n,k)
+            sage: _.sage()
+            binomial(n,k)
+            sage: sage.functions.other.binomial._maxima_init_() # temporary workaround until we can get symbolic binomial to import in global namespace, if that's desired
+            'binomial'
+        """
+        PrimitiveFunction.__init__(self, "binomial", nargs=2, latex=r'\binomial',
+                                   conversions=dict(maxima='binomial', mathematica='Binomial'))
+
+    __call__ = SFunction.__call__
+
+binomial = Function_binomial()
 
 class Function_sqrt(PrimitiveFunction):
     def __init__(self):

@@ -3649,7 +3649,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         id_Delete(&_I,r)
         return new_MP(parent,res)
 
-    def gcd(self, right, algorithm=None):
+    def gcd(self, right, algorithm=None, **kwds):
         """
         Return the greatest common divisor of self and right.
 
@@ -3659,6 +3659,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``algorithm``
           - ``ezgcd`` - EZGCD algorithm
           - ``modular`` - multi-modular algorithm (default)
+        - ``**kwds`` - ignored
 
         EXAMPLES::
 

@@ -910,12 +910,20 @@ cdef class MPolynomial(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: R.<x,y>=ZZ[]
-            sage: f=4*x+6*y
+            sage: R.<x,y> = ZZ[]
+            sage: f = 4*x+6*y
             sage: f.content()
             2
             sage: f.content().parent()
             Integer Ring
+
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 4*x+6*y
+            sage: f.content()
+            1
+
         """
         from sage.rings.arith import gcd
         from sage.rings.all import ZZ

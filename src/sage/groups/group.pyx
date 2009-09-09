@@ -129,10 +129,15 @@ cdef class FiniteGroup(Group):
         """
         return True
 
-    def cayley_graph(self):
+    def cayley_graph(self, connecting_set=None):
         """
         Returns the cayley graph for this finite group, as a Sage DiGraph
         object. To plot the graph with with different colors
+
+        INPUT::
+
+            `connecting_set` - (optional) list of elements to use for edges,
+                               default is the stored generators
 
         EXAMPLES::
 
@@ -145,6 +150,14 @@ cdef class FiniteGroup(Group):
             sage: G = A5.cayley_graph()
             sage: G.show3d(color_by_label=True, edge_size=0.01, edge_size2=0.02, vertex_size=0.03)
             sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time (less than a minute)
+            sage: G.num_edges()
+            120
+            sage: G = A5.cayley_graph(connecting_set=A5.gens()[0])
+            sage: G.num_edges()
+            60
+            sage: g=PermutationGroup([(i+1,j+1) for i in range(5) for j in range(5) if j!=i])
+            sage: g.cayley_graph(connecting_set=[(1,2),(2,3)])
+            Digraph on 120 vertices
 
         ::
 
@@ -157,11 +170,20 @@ cdef class FiniteGroup(Group):
 
         - Robert Miller (2008-05-01): editing
         """
+        if connecting_set is None:
+            connecting_set = self.gens()
+        else:
+            try:
+                for g in connecting_set:
+                    assert g in self
+            except AssertionError:
+                raise RuntimeError("Each element of the connecting set must be in the group!")
+            connecting_set = [self(g) for g in connecting_set]
         from sage.graphs.graph import DiGraph
         arrows = {}
         for x in self:
             arrows[x] = {}
-            for g in self.gens():
+            for g in connecting_set:
                 xg = x*g # cache the multiplication
                 if not xg == x:
                     arrows[x][xg] = g

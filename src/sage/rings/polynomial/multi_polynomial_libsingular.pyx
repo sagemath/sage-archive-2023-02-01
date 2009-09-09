@@ -2709,7 +2709,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``**kw`` - names parameters
 
         OUTPUT:
-            new MPolynomial
+            a new multivariate polynomial
 
         EXAMPLES::
 
@@ -2740,19 +2740,30 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.subs({x:1/y})
             (y^2 + y + 1)/y
 
+        The parameters are subsituted in order and without side effects::
+
+            sage: R.<x,y>=QQ[]
+            sage: g=x+y
+            sage: g.subs({x:x+1,y:x*y})
+            x*y + x + 1
+            sage: g.subs({x:x+1}).subs({y:x*y})
+            x*y + x + 1
+            sage: g.subs({y:x*y}).subs({x:x+1})
+            x*y + x + y + 1
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x + 2*y
+            sage: f.subs(x=y,y=x)
+            2*x + y
+
         TESTS::
 
             sage: P.<x,y,z> = QQ[]
             sage: f = y
             sage: f.subs({y:x}).subs({x:z})
             z
-
-        .. note::
-
-           The evaluation is performed by evaluating every
-           ``variable:value`` pair separately.  This has side effects
-           if e.g. x=y, y=z is provided. If x=y is evaluated first,
-           all x variables will be replaced by z eventually.
         """
         cdef int mi, i, need_map, try_symbolic
 
@@ -2789,7 +2800,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     try_symbolic = 1
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
-                if _f == NULL or pNext(_f) == NULL:
+                if p_IsConstant(_f, _ring):
                     _p = pSubst(_p, mi, _f)
                 else:
                     need_map = 1
@@ -2811,7 +2822,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     try_symbolic = 1
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
-                if _f == NULL or pNext(_f) == NULL:
+                if p_IsConstant(_f, _ring):
                     _p = pSubst(_p, mi, _f)
                 else:
                     if to_id.m[mi-1] != NULL:

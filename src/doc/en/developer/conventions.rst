@@ -599,7 +599,8 @@ the following types: ``.py .pyx .sage .rst``. Briefly, use
 ``<file>`` behave exactly as claimed. See the following
 subsections for more details. See also :ref:`section-docstrings` for a
 discussion of how to include examples in documentation strings and
-what conventions to follow.
+what conventions to follow. The chapter :ref:`chapter-doctesting`
+contains a tutorial on doctesting modules in the Sage library.
 
 .. _section-testpython:
 
@@ -696,4 +697,3 @@ For example, see the file
 
 
 .. [2]  See http://www.sagemath.org/development-map.html
-

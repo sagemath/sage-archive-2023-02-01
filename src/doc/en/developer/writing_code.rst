@@ -61,4 +61,5 @@ Contents:
    conventions
    coding_in_python
    coding_in_other
+   doctesting
    sage_manuals

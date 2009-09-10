@@ -11,47 +11,50 @@ following knapsack problems are implemented:
 AUTHORS:
 
 - Minh Van Nguyen (2009-04): initial version
-- Nathann Cohen (2009-08) : Linear Programming version
+- Nathann Cohen (2009-08): Linear Programming version
 
 Definition of Knapsack problems
----------------------------------
+-------------------------------
 
 You have already had a knapsack problem, so you should know, but in case you
 do not, a knapsack problem is what happens when you have hundred of items to
 put into a bag which is too small for all of them.
 
-When you formally write it, here is your problem :
-* Your bag can contain a weight of at most W
-* Each item `i` you have has a weight `w_i`
-* Each item `i` has a usefulness of `u_i`
+When you formally write it, here is your problem:
+
+* Your bag can contain a weight of at most `W`.
+* Each item `i` you have has a weight `w_i`.
+* Each item `i` has a usefulness of `u_i`.
 
 You then want to maximize the usefulness of the items you will store into
-your bag, while keeping sure the weight of the bag will not go over W
+your bag, while keeping sure the weight of the bag will not go over `W`.
 
 As a linear program, this problem can be represented this way
-( if you define `b_i` as the binary variable indicating whether
-the item `i` is to be included in your bag ) :
+(if you define `b_i` as the binary variable indicating whether
+the item `i` is to be included in your bag):
 
 .. MATH::
-    \mbox{Maximize : }\sum_ib_iu_i\\
-    \mbox{Such that : }
-    \sum_ib_iw_i\leq W\\
+
+    \mbox{Maximize: }\sum_i b_i u_i \\
+    \mbox{Such that: }
+    \sum_i b_i w_i \leq W \\
     \forall i, b_i \mbox{ binary variable}
 
-( for more informations, cf. http://en.wikipedia.org/wiki/Knapsack_problem )
+(For more information, cf. http://en.wikipedia.org/wiki/Knapsack_problem.)
 
 Examples
---------------------
+--------
 
 If your knapsack problem is composed of three items (weight, value)
 defined by (1,2), (1.5,1), (0.5,3), and a bag of maximum weight 2,
-you can easily solve it this way ::
+you can easily solve it this way::
 
     sage: from sage.numerical.knapsack import knapsack
     sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2) # optional - requires Glpk or COIN-OR/CBC
     [5.0, [(1, 2), (0.500000000000000, 3)]]
 
-Super-increasing sequences :
+Super-increasing sequences
+--------------------------
 
 We can test for whether or not a sequence is super-increasing::
 
@@ -71,10 +74,6 @@ and target sum::
     sage: L = [1, 2, 5, 21, 69, 189, 376, 919]
     sage: Superincreasing(L).subset_sum(98)
     [69, 21, 5, 2, 1]
-
-
-Functions and methods
----------------------
 """
 
 #*****************************************************************************
@@ -552,45 +551,46 @@ class Superincreasing(SageObject):
         else:
             return []
 
-def knapsack(seq,binary=True,max=1, value_only=False):
+def knapsack(seq, binary=True, max=1, value_only=False):
     r"""
     Solves the knapsack problem
 
-
-    Knapsack problems :
+    Knapsack problems:
 
     You have already had a knapsack problem, so you should know,
     but in case you do not, a knapsack problem is what happens
     when you have hundred of items to put into a bag which is
     too small for all of them.
 
-    When you formally write it, here is your problem :
-    * Your bag can contain a weight of at most W
-    * Each item `i` you have has a weight `w_i`
-    * Each item `i` has a usefulness of `u_i`
+    When you formally write it, here is your problem:
+
+    * Your bag can contain a weight of at most `W`.
+    * Each item `i` you have has a weight `w_i`.
+    * Each item `i` has a usefulness of `u_i`.
 
     You then want to maximize the usefulness of the items you
     will store into your bag, while keeping sure the weight of
-    the bag will not go over W.
+    the bag will not go over `W`.
 
     As a linear program, this problem can be represented this way
-    ( if you define `b_i` as the binary variable indicating whether
-    the item `i` is to be included in your bag ) :
+    (if you define `b_i` as the binary variable indicating whether
+    the item `i` is to be included in your bag):
 
     .. MATH::
-        \mbox{Maximize : }\sum_ib_iu_i\\
-        \mbox{Such that : }
-        \sum_ib_iw_i\leq W\\
-        \forall i, b_i \mbox{ binary variable}\\
 
-    ( for more informations,
-    cf. http://en.wikipedia.org/wiki/Knapsack_problem )
+        \mbox{Maximize: }\sum_i b_i u_i \\
+        \mbox{Such that: }
+        \sum_i b_i w_i \leq W \\
+        \forall i, b_i \mbox{ binary variable} \\
 
-    EXAMPLE :
+    (For more information,
+    cf. http://en.wikipedia.org/wiki/Knapsack_problem.)
+
+    EXAMPLE:
 
     If your knapsack problem is composed of three
     items (weight, value) defined by (1,2), (1.5,1), (0.5,3),
-    and a bag of maximum weight 2, you can easily solve it this way ::
+    and a bag of maximum weight 2, you can easily solve it this way::
 
         sage: from sage.numerical.knapsack import knapsack
         sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2) # optional - requires Glpk or COIN-OR/CBC
@@ -600,9 +600,9 @@ def knapsack(seq,binary=True,max=1, value_only=False):
         5.0
 
     In the case where all the values (usefulness) of the items
-    are equal to one, you do not need embarass yourself with
+    are equal to one, you do not need embarrass yourself with
     the second values, and you can just type for items
-    `(1,1), (1.5,1), (0.5,1)` the command ::
+    `(1,1), (1.5,1), (0.5,1)` the command::
 
         sage: from sage.numerical.knapsack import knapsack
         sage: knapsack([1,1.5,0.5], max=2, value_only=True) # optional - requires Glpk or COIN-OR/CBC
@@ -610,42 +610,42 @@ def knapsack(seq,binary=True,max=1, value_only=False):
 
     INPUT:
 
-    - ``seq`` :  Two different possible types :
-                  - A sequence of pairs (weight, value)
-                  - A sequence of reals (a value of 1 is assumed)
+    - ``seq`` -- Two different possible types:
 
-    - ``binary`` : When set to True, an item can be taken 0 or 1 time.
-                   When set to False, an item can be taken any amount of
-                   times ( while staying integer and positive )
+      - A sequence of pairs (weight, value).
+      - A sequence of reals (a value of 1 is assumed).
 
-    - ``max`` : Maximum admissible weight
+    - ``binary`` -- When set to True, an item can be taken 0 or 1 time.
+      When set to False, an item can be taken any amount of
+      times (while staying integer and positive).
 
-    - ``value_only`` : When set to True, only the maximum useful
-                         value is returned
-                       When set to False, both the maximum useful
-                         value and an assignment are returned
+    - ``max`` -- Maximum admissible weight.
+
+    - ``value_only`` -- When set to True, only the maximum useful
+      value is returned. When set to False, both the maximum useful
+      value and an assignment are returned.
 
     OUTPUT:
 
-    If value_only is set to True, only the maximum useful value
-    is returned.
-    Else ( default ), the function returns a pair ``[value,list]``,
-    where ``list`` can be of two types according to the type of ``seq`` :
+    If ``value_only`` is set to True, only the maximum useful value
+    is returned. Else (the default), the function returns a pair
+    ``[value,list]``, where ``list`` can be of two types according
+    to the type of ``seq``:
 
-        - A list of pairs (w_i, u_i), for each object i occurring
-            in the solution.
-        - A list of reals where each real is repeated the number
-            of times it is taken into the solution.
+    - A list of pairs `(w_i, u_i)` for each object `i` occurring
+      in the solution.
+    - A list of reals where each real is repeated the number
+      of times it is taken into the solution.
     """
-    reals=not isinstance(seq[0],tuple)
+    reals = not isinstance(seq[0], tuple)
     if reals:
-        seq=[(x,1) for x in seq]
+        seq = [(x,1) for x in seq]
 
     from sage.numerical.mip import MIP
-    p=MIP(sense=1)
-    present=p.newvar()
-    p.setobj(sum([present[i]*seq[i][1] for i in range(len(seq))]))
-    p.addconstraint(sum([present[i]*seq[i][0] for i in range(len(seq))]),max=max)
+    p = MIP(sense=1)
+    present = p.newvar()
+    p.setobj(sum([present[i] * seq[i][1] for i in range(len(seq))]))
+    p.addconstraint(sum([present[i] * seq[i][0] for i in range(len(seq))]), max=max)
 
     if binary:
         p.setbinary(present)
@@ -656,14 +656,14 @@ def knapsack(seq,binary=True,max=1, value_only=False):
         return p.solve(objective_only=True)
 
     else:
-        objective=p.solve()
-        present=p.get_values(present)
+        objective = p.solve()
+        present = p.get_values(present)
 
-        val=[]
+        val = []
 
         if reals:
-            [val.extend([seq[i][0]]*int(present[i])) for i in range(len(seq))]
+            [val.extend([seq[i][0]] * int(present[i])) for i in range(len(seq))]
         else:
-            [val.extend([seq[i]]*int(present[i])) for i in range(len(seq))]
+            [val.extend([seq[i]] * int(present[i])) for i in range(len(seq))]
 
         return [objective,val]

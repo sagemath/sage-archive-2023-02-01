@@ -376,6 +376,7 @@ def extract_doc(file_name, library_code=False):
     F = F.replace('\'"""\'','')
 
     base, ext = os.path.splitext(file_name)
+    name = os.path.basename(base)
     if ext == ".tex":
         F = pythonify_tex(F)
     elif ext == ".rst":
@@ -403,18 +404,18 @@ def change_warning_output(file):
     if not library_code:
         if ext in ['.py', '.pyx','.spyx']:
             os.system('cp -f %s %s' % (file_name, SAGE_TESTDIR))
-            tmpfiles.append('%s/%s' % (SAGE_TESTDIR, file_name))
+            tmpfiles.append('%s/%s%s' % (SAGE_TESTDIR, name, ext))
             if ext == '.py':
-                s += "from %s import *\n\n" % base
+                s += "from %s import *\n\n" % name
             else:
                 s += "cython(open('%s').read())\n\n" % file_name
         elif ext == '.sage':
             os.system('sage -preparse %s' % file_name)
             os.system('mv -f %s.py %s' % (base, SAGE_TESTDIR))
-            tmpfiles.append('%s/%s.py' % (SAGE_TESTDIR, base))
-            s += "from %s import *\n\n"%(base)
+            tmpfiles.append('%s/%s.py' % (SAGE_TESTDIR, name))
+            s += "from %s import *\n\n" % (name)
         if ext in ['.py', '.sage']:
-            tmpfiles.append('%s/%s.pyc' % (SAGE_TESTDIR, base))
+            tmpfiles.append('%s/%s.pyc' % (SAGE_TESTDIR, name))
 
     n = 0
     while True:

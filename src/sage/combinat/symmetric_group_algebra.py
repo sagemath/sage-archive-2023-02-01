@@ -18,6 +18,8 @@ from sage.interfaces.all import gap
 from sage.rings.all import factorial, QQ, PolynomialRing
 from sage.matrix.all import matrix
 from sage.modules.all import vector
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from sage.categories.all import GroupAlgebras
 
 permutation_options = permutation.permutation_options
 
@@ -101,7 +103,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         self.n = n
         self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), prefix='', latex_prefix='', category = FiniteDimensionalAlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
         # This is questionable, and won't be inherited properly
         if n > 0:
             S = SymmetricGroupAlgebra(R, n-1)
@@ -109,6 +111,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False
+
+    def group(self):
+        """
+        Returns the underlying group
+
+        EXAMPLES ::
+
+            sage: SymmetricGroupAlgebra(QQ,4).group()
+            Symmetric group of order 4! as a permutation group
+        """
+        return SymmetricGroup(self.n)
 
     @cached_method
     def one_basis(self):
@@ -263,6 +276,34 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         return cpi
 
+    def algebra_generators(self):
+        r"""
+        Returns generators of this group algebra (as algebra).
+
+        EXAMPLES::
+
+            sage: SymmetricGroupAlgebra(ZZ,5).algebra_generators()
+            [[2, 1, 3, 4, 5], [2, 3, 4, 5, 1]]
+        """
+        a=range(1,self.n+1)
+        a[0]=2
+        a[1]=1
+        b=range(2,self.n+2)
+        b[self.n-1]=1
+        return [self(a),self(b)]
+
+    def _conjugacy_classes_representatives_underlying_group(self):
+        r"""
+        Returns a complete list of representatives of conjugacy classes of the underlying symmetric group
+
+        EXAMPLES::
+
+            sage: SG=SymmetricGroupAlgebra(ZZ,3)
+            sage: SG._conjugacy_classes_representatives_underlying_group()
+            [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
+        """
+        return [permutation.Permutations(self.n).element_in_conjugacy_classes(nu) for nu in partition.Partitions(self.n)]
+
     def jucys_murphy(self, k):
         """
         Returns the Jucys-Murphy element J_k for the symmetric group
@@ -366,6 +407,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         return matrix( [vector(b) for b in snb] ).inverse().transpose()
 
 
+
+
+
+
     def epsilon_ik(self, itab, ktab, star=0):
         """
         Returns the seminormal basis element of self corresponding to the
@@ -408,9 +453,6 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             return z
         else:
             return z.map_support(lambda x: x.inverse())
-
-
-
 
 
 epsilon_ik_cache = {}

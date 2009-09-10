@@ -33,8 +33,8 @@ class MonoidAlgebras(Category_over_base_ring):
         EXAMPLES::
 
             sage: MonoidAlgebras(QQ).super_categories()
-            [Category of algebras over Rational Field]
+            [Category of algebras with basis over Rational Field]
         """
-        from algebras import Algebras
+        from sage.categories.algebras_with_basis import AlgebrasWithBasis
         R = self.base_ring()
-        return [Algebras(R)]
+        return [AlgebrasWithBasis(R)]

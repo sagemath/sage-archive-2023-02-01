@@ -175,7 +175,7 @@ class Matlab(Expect):
         Expect.__init__(self,
                         name = 'matlab',
                         prompt = '>> ',
-                        command = "matlab -nodisplay",
+                        command = "sage-native-execute matlab -nodisplay",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -350,7 +350,7 @@ def matlab_version():
 
     EXAMPLES::
 
-        sage: matlab_version()    # optional matlab package
+        sage: matlab_version()    # random optional matlab package
         '7.2.0.283 (R2006a)'
     """
     return str(matlab('version')).strip()

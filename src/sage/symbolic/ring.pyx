@@ -312,7 +312,7 @@ cdef class SymbolicRing(CommutativeRing):
             1
             sage: cmp(RR, SymbolicRing()) #random
             -1
-            sage: cmp(SR, SymbolicRing()) #random
+            sage: cmp(SR, SymbolicRing())
             0
         """
         return cmp(type(self), type(other))

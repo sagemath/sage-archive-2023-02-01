@@ -1236,7 +1236,9 @@ cdef class Expression(CommutativeRingElement):
 
     def __nonzero__(self):
         """
-        Return True if this element is definitely not zero.
+        Return True unless this symbolic expression can be shown by Sage
+        to be zero.  Note that deciding if an expression is zero is
+        undecidable in general.
 
         EXAMPLES::
 
@@ -1251,8 +1253,10 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(x/x - 1)
             False
 
+        This is called by ``is_zero``::
+
             sage: k = var('k')
-            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+            sage: pol = 1/(k-1) - 1/k - 1/k/(k-1)
             sage: pol.is_zero()
             True
 

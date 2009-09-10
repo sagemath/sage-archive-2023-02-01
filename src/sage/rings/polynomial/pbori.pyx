@@ -1979,7 +1979,7 @@ cdef class BooleanMonomial(MonoidElement):
         .. note::
 
            This function is part of the upstream PolyBoRi
-           interface. In Sage all hashs are stable.
+           interface. In Sage all hashes are stable.
         """
         return self._pbmonom.stableHash()
 
@@ -3615,31 +3615,6 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.lexLeadDeg()
 
-#     def lead_deg(self):
-#         """
-#         Return the degree of the leading monomial with respect to the
-#         lexicographical orderings.
-
-#         EXAMPLE::
-
-#             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='lex')
-#             sage: f = x + y*z
-#             sage: f
-#             x + y*z
-#             sage: f.lead_deg()
-#             1
-
-#         ::
-
-#             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
-#             sage: f = x + y*z
-#             sage: f
-#             y*z + x
-#             sage: f.lead_deg()
-#             2
-#         """
-#         return self._pbpoly.leadDeg()
-
     def constant(self):
         r"""
         Return ``True`` if this element is constant.
@@ -3660,38 +3635,6 @@ cdef class BooleanPolynomial(MPolynomial):
            This function is part of the upstream PolyBoRi interface.
         """
         return self._pbpoly.isConstant()
-
-#     def isZero(self):
-#         r"""
-#         Return ``True`` if this element is zero.
-
-#         EXAMPLE::
-
-#             sage: B.<x,y,z> = BooleanPolynomialRing(3)
-#             sage: x.isZero()
-#             False
-#             sage: B(0).isZero()
-#             True
-#             sage: B(1).isZero()
-#             False
-#         """
-#         return self._pbpoly.isZero()
-
-#     def isOne(self):
-#         r"""
-#         Return ``True`` if this element is one.
-
-#         EXAMPLE::
-
-#             sage: B.<x,y,z> = BooleanPolynomialRing(3)
-#             sage: x.isOne()
-#             False
-#             sage: B(0).isOne()
-#             False
-#             sage: B(1).isOne()
-#             True
-#         """
-#         return self._pbpoly.isOne()
 
     def navigation(self):
         """
@@ -3853,19 +3796,6 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.nUsedVariables()
 
-#     def totalDegree(self):
-#         """
-#         Return total degree of this boolean polynomial.
-
-#         EXAMPLE::
-
-#             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
-#             sage: f = a*b*c + 1
-#             sage: f.totalDegree()
-#             3
-#         """
-#         return self._pbpoly.totalDeg()
-
     def graded_part(self, int deg):
         r"""
         Return graded part of this boolean polynomial of degree
@@ -4013,7 +3943,7 @@ cdef class BooleanPolynomial(MPolynomial):
         .. note::
 
            This function is part of the upstream PolyBoRi
-           interface. In Sage all hashs are stable.
+           interface. In Sage all hashes are stable.
         """
         return self._pbpoly.stableHash()
 
@@ -4384,25 +4314,25 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
             sage: I.interreduced_basis()
-              [k100 + k003 + 1,
-               k101 + k003,
-               k102,
-               k103 + k003,
-               x100 + 1,
-               x101 + 1,
-               x102 + 1,
-               x103 + k003,
-               w100 + k003,
-               w101,
-               w102 + k003 + 1,
-               w103 + k003 + 1,
-               s000 + 1,
-               s001 + 1,
-               s002 + 1,
-               s003 + k003 + 1,
-               k000 + k003 + 1,
-               k001,
-               k002 + k003]
+            [k100 + k003 + 1,
+             k101 + k003,
+             k102,
+             k103 + k003,
+             x100 + 1,
+             x101 + 1,
+             x102 + 1,
+             x103 + k003,
+             w100 + k003,
+             w101,
+             w102 + k003 + 1,
+             w103 + k003 + 1,
+             s000 + 1,
+             s001 + 1,
+             s002 + 1,
+             s003 + k003 + 1,
+             k000 + k003 + 1,
+             k001,
+             k002 + k003]
         """
         R = self.ring()
         set_cring(R)
@@ -4498,36 +4428,6 @@ cdef inline BooleanPolynomial new_BP_from_int(BooleanPolynomialRing parent, int 
     PBPoly_construct_int(&p._pbpoly,juice)
     return p
 
-# cdef class DD:
-#     def __call__(self):
-#         return self
-
-#     def __dealloc__(self):
-#         PBDD_destruct(&self._pbdd)
-
-#     def empty(self):
-#         return self._pbdd.emptiness()
-
-#     def navigation(self):
-#         return new_CN_from_PBNavigator(self._pbdd.navigation())
-
-#     def subset0(self, idx):
-#         return new_DD_from_PBDD(self._pbdd.subset0(idx))
-
-#     def subset1(self, idx):
-#         return new_DD_from_PBDD(self._pbdd.subset1(idx))
-
-#     def union(self, rhs):
-#         return new_DD_from_PBDD(self._pbdd.unite((<DD>rhs)._pbdd))
-
-# cdef inline DD new_DD_from_PBDD(PBDD juice):
-#     """
-#     Construct a new DD
-#     """
-#     cdef DD d
-#     d = <DD>PY_NEW(DD)
-#     d._pbdd = juice
-#     return d
 
 cdef class BooleSet:
     """
@@ -4952,7 +4852,7 @@ cdef class BooleSet:
         .. note::
 
            This function is part of the upstream PolyBoRi
-           interface. In Sage all hashs are stable.
+           interface. In Sage all hashes are stable.
         """
         return self._pbset.stableHash()
 

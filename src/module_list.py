@@ -80,11 +80,12 @@ numpy_include_dirs = [SAGE_ROOT+'/local/lib/python/site-packages/numpy/core/incl
 ### PolyBoRi defines
 #########################################################
 
+import ast
 polybori_extra_compile_args = []
 for line in open(SAGE_LOCAL + "/share/polybori/flags.conf"):
     if not line.startswith("CPPDEFINES"):
         continue
-    polybori_extra_compile_args = ["-D"+e for e in eval(line[len("CPPDEFINES = "):])]
+    polybori_extra_compile_args = ["-D"+e for e in ast.literal_eval(line[len("CPPDEFINES = "):])]
     break
 
 

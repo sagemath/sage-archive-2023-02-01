@@ -182,7 +182,7 @@ class Octave(Expect):
         Expect.__init__(self,
                         name = 'octave',
                         prompt = '>',
-                        command = "octave --no-line-editing --silent",
+                        command = "sage-native-execute octave --no-line-editing --silent",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,

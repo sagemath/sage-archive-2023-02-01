@@ -894,7 +894,9 @@ class LazyPowerSeries(AlgebraElement):
             sage: [f.coefficient(i) for i in range(5)]
             [0, 1, -1, 2, -2]
         """
-        if n < self.get_aorder():
+        # The following line must not be written n < self.get_aorder()
+        # because comparison of Integer and OnfinityOrder is not implemented.
+        if self.get_aorder() > n:
             return self._zero
 
         assert self.is_initialized

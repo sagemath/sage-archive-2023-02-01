@@ -23,6 +23,7 @@ from characteristic_species import CharacteristicSpecies, SingletonSpecies, Empt
 from cycle_species import CycleSpecies
 from linear_order_species import LinearOrderSpecies
 from permutation_species import PermutationSpecies
+from empty_species import EmptySpecies
 from sum_species import SumSpecies
 from product_species import ProductSpecies
 from composition_species import CompositionSpecies

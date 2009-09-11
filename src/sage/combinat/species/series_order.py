@@ -124,6 +124,8 @@ class InfiniteSeriesOrder(SeriesOrderElement):
             sage: u = UnknownSeriesOrder()
             sage: o < u
             False
+            sage: 2 < o   # TODO: Not Implemented
+            True
         """
         if isinstance(x, (int, Integer)):
             if x < 0:

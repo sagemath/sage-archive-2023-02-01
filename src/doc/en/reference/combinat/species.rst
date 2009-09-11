@@ -20,6 +20,7 @@ Basic Species
    :maxdepth: 2
 
    ../sage/combinat/species/species
+   ../sage/combinat/species/empty_species
    ../sage/combinat/species/recursive_species
    ../sage/combinat/species/characteristic_species
    ../sage/combinat/species/cycle_species

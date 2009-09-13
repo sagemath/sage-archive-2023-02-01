@@ -1,7 +1,9 @@
 = Cliquer =
 
 == Description ==
-Cliquer is a set of C routines for finding cliques in an arbitrary weighted graph. It uses an exact branch-and-bound algorithm recently developed by Patr Ostergard.
+Cliquer is a set of C routines for finding cliques in an arbitrary
+weighted graph. It uses an exact branch-and-bound algorithm recently
+developed by Patr Ostergard.
 
 
 == License ==
@@ -12,3 +14,9 @@ Nathann Cohen (nathann.cohen@gmail.com)
 
 == Upstream Contact ==
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
+
+=== Minh Van Nguyen (13th September 2009) ===
+ * Support for building cliquer 1.2 in 64-bit mode on Mac OS X 10.5.x
+   and 64-bit openSUSE 11.1.
+ * Add custom compilation and linking flags on top of the Makefile of
+   cliquer 1.2.

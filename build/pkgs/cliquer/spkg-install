@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
@@ -6,8 +8,12 @@ fi
 
 mkdir "$SAGE_LOCAL/include/cliquer/"
 cp src/*.h "$SAGE_LOCAL/include/cliquer/"
-scons && cp Build/* "$SAGE_LOCAL/lib/"
 
+# Copy over custom Makefile for Sage. This custom Makefile contains Sage
+# specific compilation and linking flags. More importantly, we're building
+# cliquer as a dynamic shared library, instead of a stand alone program.
+cp -f patch/Makefile src/
 
-
-
+cd src
+make
+cp -f libcliquer.so "$SAGE_LOCAL/lib/"

@@ -35,10 +35,12 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
+from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.words.alphabet import OrderedAlphabet
 from sage.misc.mrange import xmrange
 from sage.rings.all import Infinity
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.structure.sage_object import SageObject
 import itertools
 
@@ -122,9 +124,56 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         sage: Words_all().cardinality()
         +Infinity
     """
+    def _classetype(self):
+        # FiniteWord_cpp_vector,\
+        from sage.combinat.words.word import FiniteWord_list, FiniteWord_str,\
+        FiniteWord_tuple,\
+        FiniteWord_callable_with_caching, FiniteWord_callable,\
+        FiniteWord_iter_with_caching, FiniteWord_iter,\
+        InfiniteWord_callable_with_caching, InfiniteWord_callable,\
+        InfiniteWord_iter_with_caching, InfiniteWord_iter,\
+        Word_iter_with_caching, Word_iter
+
+        return {'FiniteWord_list': FiniteWord_list,
+        'FiniteWord_str': FiniteWord_str,
+        'FiniteWord_tuple': FiniteWord_tuple,
+        #'FiniteWord_cpp_vector': FiniteWord_cpp_vector,
+        'FiniteWord_callable_with_caching': FiniteWord_callable_with_caching,
+        'FiniteWord_callable': FiniteWord_callable,
+        'FiniteWord_iter_with_caching': FiniteWord_iter_with_caching,
+        'FiniteWord_iter': FiniteWord_iter,
+        'InfiniteWord_callable_with_caching': InfiniteWord_callable_with_caching,
+        'InfiniteWord_callable': InfiniteWord_callable,
+        'InfiniteWord_iter_with_caching': InfiniteWord_iter_with_caching,
+        'InfiniteWord_iter': InfiniteWord_iter,
+        'Word_iter_with_caching': Word_iter_with_caching,
+        'Word_iter': Word_iter}
+
     def __call__(self, data=None, length=None, datatype=None, **kwds):
         r"""
         Construct a new word object with parent self.
+
+        INPUT:
+
+        -  ``data`` - (default: None) list, string, tuple, iterator, None
+           (shorthand for []), or a callable defined on [0,1,...,length].
+
+        -  ``length`` - (default: None) This is dependent on the type of data.
+           It is ignored for words defined by lists, strings, tuples,
+           etc., because they have a naturally defined length.
+           For callables, this defines the domain of definition,
+           which is assumed to be [0, 1, 2, ..., length-1].
+           For iterators: Infinity if you know the iterator will not
+           terminate (default); "unknown" if you do not know whether the
+           iterator terminates; "finite" if you know that the iterator
+           terminates, but do know know the length.
+
+        -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
+           "callable". If None, then the function
+           tries to guess this from the data.
+
+        -  ``caching`` - (default: True) True or False. Whether to keep a cache
+           of the letters computed by an iterator or callable.
 
         NOTE:
 
@@ -156,7 +205,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         kwds['data'] = data
         kwds['length'] = length
         kwds['datatype'] = datatype
-        kwds['alphabet'] = self
+        #kwds['alphabet'] = self
 
         ## BACKWARD COMPATIBILITY / DEPRECATION WARNINGS.
         # In earlier versions, the first argument was ``obj``. We change
@@ -199,14 +248,220 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             deprecation("part argument is deprecated, use length instead")
             part = kwds['part']
             del kwds['part']
-            alphabet = kwds['alphabet']
-            del kwds['alphabet']
-            w = Word(data=Word(**kwds)[part],alphabet=alphabet)
+            #alphabet = kwds['alphabet']
+            #del kwds['alphabet']
+            w = Word(data=self._construct_word(**kwds)[part],alphabet=self)
             return w
         ## END OF BACKWARD COMPATIBILITY / DEPRECATION WARNINGS.
 
-        # The function Word handles the construction of the words.
-        w = Word(**kwds)
+        # The function _construct_word handles the construction of the words.
+        w = self._construct_word(**kwds)
+        self._check(w)
+        return w
+
+    def _construct_word(self, data=None, length=None, datatype=None, caching=True):
+        r"""
+        Construct a word.
+
+        INPUT:
+
+        -  ``data`` - (default: None) list, string, tuple, iterator, None
+           (shorthand for []), or a callable defined on [0,1,...,length].
+
+        -  ``length`` - (default: None) This is dependent on the type of data.
+           It is ignored for words defined by lists, strings, tuples,
+           etc., because they have a naturally defined length.
+           For callables, this defines the domain of definition,
+           which is assumed to be [0, 1, 2, ..., length-1].
+           For iterators: Infinity if you know the iterator will not
+           terminate (default); "unknown" if you do not know whether the
+           iterator terminates; "finite" if you know that the iterator
+           terminates, but do know know the length.
+
+        -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
+           "callable". If None, then the function
+           tries to guess this from the data.
+        -  ``caching`` - (default: True) True or False. Whether to keep a cache
+           of the letters computed by an iterator or callable.
+
+        .. note::
+
+           Be careful when defining words using callables and iterators. It
+           appears that islice does not pickle correctly causing various errors
+           when reloading. Also, most iterators do not support copying and
+           should not support pickling by extension.
+
+        EXAMPLES:
+
+        Empty word::
+
+            sage: Words()._construct_word()
+            word:
+
+        Word with string::
+
+            sage: Words()._construct_word("abbabaab")
+            word: abbabaab
+
+        Word with string constructed from other types::
+
+            sage: Words()._construct_word([0,1,1,0,1,0,0,1], datatype="str")
+            word: 01101001
+            sage: Words()._construct_word((0,1,1,0,1,0,0,1), datatype="str")
+            word: 01101001
+
+        Word with list::
+
+            sage: Words()._construct_word([0,1,1,0,1,0,0,1])
+            word: 01101001
+
+        Word with list constructed from other types::
+
+            sage: Words()._construct_word("01101001", datatype="list")
+            word: 01101001
+            sage: Words()._construct_word((0,1,1,0,1,0,0,1), datatype="list")
+            word: 01101001
+
+        Word with tuple::
+
+            sage: Words()._construct_word((0,1,1,0,1,0,0,1))
+            word: 01101001
+
+        Word with tuple constructed from other types::
+
+            sage: Words()._construct_word([0,1,1,0,1,0,0,1], datatype="tuple")
+            word: 01101001
+            sage: Words()._construct_word("01101001", datatype="str")
+            word: 01101001
+
+        Word with iterator::
+
+            sage: from itertools import count
+            sage: Words()._construct_word(count())
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+            sage: Words()._construct_word(iter("abbabaab")) # iterators default to infinite words
+            word: abbabaab
+            sage: Words()._construct_word(iter("abbabaab"), length="unknown")
+            word: abbabaab
+            sage: Words()._construct_word(iter("abbabaab"), length="finite")
+            word: abbabaab
+
+        Word with function (a 'callable')::
+
+            sage: f = lambda n : add(Integer(n).digits(2)) % 2
+            sage: Words()._construct_word(f)
+            word: 0110100110010110100101100110100110010110...
+            sage: Words()._construct_word(f, length=8)
+            word: 01101001
+
+        Word over a string with a parent::
+
+            sage: w = Words('abc')._construct_word("abbabaab"); w
+            word: abbabaab
+            sage: w.parent()
+            Words over Ordered Alphabet ['a', 'b', 'c']
+
+        The default parent is the combinatorial class of all words::
+
+            sage: w = Words()._construct_word("abbabaab"); w
+            word: abbabaab
+            sage: w.parent()
+            Words
+        """
+        # TODO: doctest this part!
+        from sage.combinat.words.word import Word_class
+        if isinstance(data, Word_class):
+            if data.parent() != self:
+                import copy
+                data = copy.copy(data)
+                data._parent = self
+                data.parent()._check(data)
+            return data
+
+        if data is None:
+            data = []
+
+        # Guess the datatype if it is not given.
+        if datatype is None:
+            from sage.combinat.words.word_content import WordContent
+            if isinstance(data, (list, CombinatorialObject)):
+                datatype = "list"
+            elif isinstance(data, (str)):
+                datatype = "str"
+            elif isinstance(data, tuple):
+                datatype = "tuple"
+            elif callable(data):
+                datatype = "callable"
+            elif hasattr(data,"__iter__"):
+                datatype = "iter"
+            elif isinstance(data, WordContent):
+                # For backwards compatibility (picklejar)
+                from sage.combinat.words.word import _word_from_word_content
+                return _word_from_word_content(data=data, parent=self)
+            else:
+                raise ValueError, "Cannot guess a datatype; please specify one"
+        else:
+            # type check the datatypes
+            if datatype == "iter" and not hasattr(data, "__iter__"):
+                raise ValueError, "Your data is not iterable"
+            elif datatype == "callable" and not callable(data):
+                raise ValueError, "Your data is not callable"
+            elif datatype not in ("list", "tuple", "str",
+                                    "callable", "iter"):
+                raise ValueError, "Unknown datatype"
+
+        classetype = self._classetype()
+
+        # Construct the word
+        if datatype == 'list':
+            cls = classetype['FiniteWord_list']
+            w = cls(parent=self,data=data)
+        elif datatype == 'str':
+            cls = classetype['FiniteWord_str']
+            w = cls(parent=self,data=data)
+        elif datatype == 'tuple':
+            cls = classetype['FiniteWord_tuple']
+            w = cls(parent=self,data=data)
+        elif datatype == 'callable':
+            if caching:
+                if length is None or length is Infinity:
+                    cls = classetype['InfiniteWord_callable_with_caching']
+                else:
+                    cls = classetype['FiniteWord_callable_with_caching']
+            else:
+                if length is None or length is Infinity:
+                    cls = classetype['InfiniteWord_callable']
+                else:
+                    cls = classetype['FiniteWord_callable']
+            w = cls(parent=self,callable=data,length=length)
+        elif datatype == 'iter':
+            if caching:
+                if length is None or length is Infinity:
+                    cls = classetype['InfiniteWord_iter_with_caching']
+                elif length == 'finite':
+                    cls = classetype['FiniteWord_iter_with_caching']
+                elif length == 'unknown':
+                    cls = classetype['Word_iter_with_caching']
+                elif length in ZZ and length >= 0:
+                    cls = classetype['FiniteWord_iter_with_caching']
+                else:
+                    raise ValueError, "not a correct value for length (%s)" % length
+            else:
+                if length is None or length is Infinity:
+                    cls = classetype['InfiniteWord_iter']
+                elif length == 'finite':
+                    cls = classetype['FiniteWord_iter']
+                elif length == 'unknown':
+                    cls = classetype['Word_iter']
+                elif length in ZZ and length >= 0:
+                    cls = classetype['FiniteWord_iter']
+                else:
+                    raise ValueError, "not a correct value for length (%s)" % length
+            w = cls(parent=self,iter=data,length=length)
+        else:
+            raise ValueError, "Not known datatype"
+
+        # Do some minimal checking.
         self._check(w)
         return w
 

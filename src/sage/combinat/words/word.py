@@ -224,13 +224,11 @@ from word_infinite_datatypes import (
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.combinat.combinat import CombinatorialObject
 
 # TODO. Word needs to be replaced by Word. Consider renameing
 # Word_class to Word and imbedding Word as its __call__ method.
 
-def Word(data=None, alphabet=None, length=None, datatype=None,
-        caching=True):
+def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
     r"""
     Construct a word.
 
@@ -340,100 +338,27 @@ def Word(data=None, alphabet=None, length=None, datatype=None,
         word: abbabaab
         sage: w.parent()
         Words
+
+    TESTS::
+
+        sage: Word(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot guess a datatype; please specify one
+
+    ::
+
+        sage: w  = Word('abc')
+        sage: w is Word(w)
+        True
+        sage: w is Word(w, alphabet='abc')
+        False
     """
-    # TODO: doctest this part!
-    if isinstance(data, Word_class):
-        from words import Words
-        if data.parent() != Words(alphabet):
-            import copy
-            data = copy.copy(data)
-            data._parent = Words(alphabet)
-            data.parent()._check(data)
-        return data
-
-    if data is None:
-        data = []
-
-    # Guess the datatype if it is not given.
-    if datatype is None:
-        if isinstance(data, (list, CombinatorialObject)):
-            datatype = "list"
-        elif isinstance(data, (str)):
-            datatype = "str"
-        elif isinstance(data, tuple):
-            datatype = "tuple"
-        elif callable(data):
-            datatype = "callable"
-        elif hasattr(data,"__iter__"):
-            datatype = "iter"
-        elif isinstance(data, WordContent):
-            # For backwards compatibility (picklejar)
-            return _word_from_word_content(data=data, parent=alphabet)
-        else:
-            raise ValueError, "Cannot guess a datatype; please specify one"
-    else:
-        # type check the datatypes
-        if datatype == "iter" and not hasattr(data, "__iter__"):
-            raise ValueError, "Your data is not iterable"
-        elif datatype == "callable" and not callable(data):
-            raise ValueError, "Your data is not callable"
-        elif datatype not in ("list", "tuple", "str",
-                                "callable", "iter"):
-            raise ValueError, "Unknown datatype"
-
     # Create the parent object
     from words import Words
     parent = Words() if alphabet is None else Words(alphabet)
 
-    # Construct the word
-    if datatype == 'list':
-        w = FiniteWord_list(parent=parent,data=data)
-    elif datatype == 'str':
-        w = FiniteWord_str(parent=parent,data=data)
-    elif datatype == 'tuple':
-        w = FiniteWord_tuple(parent=parent,data=data)
-    elif datatype == 'callable':
-        if caching:
-            if length is None or length is Infinity:
-                cls = InfiniteWord_callable_with_caching
-            else:
-                cls = FiniteWord_callable_with_caching
-        else:
-            if length is None or length is Infinity:
-                cls = InfiniteWord_callable
-            else:
-                cls = FiniteWord_callable
-        w = cls(parent=parent,callable=data,length=length)
-    elif datatype == 'iter':
-        if caching:
-            if length is None or length is Infinity:
-                cls = InfiniteWord_iter_with_caching
-            elif length == 'finite':
-                cls = FiniteWord_iter_with_caching
-            elif length == 'unknown':
-                cls = Word_iter_with_caching
-            elif length in ZZ and length >= 0:
-                cls = FiniteWord_iter_with_caching
-            else:
-                raise ValueError, "not a correct value for length (%s)" % length
-        else:
-            if length is None or length is Infinity:
-                cls = InfiniteWord_iter
-            elif length == 'finite':
-                cls = FiniteWord_iter
-            elif length == 'unknown':
-                cls = Word_iter
-            elif length in ZZ and length >= 0:
-                cls = FiniteWord_iter
-            else:
-                raise ValueError, "not a correct value for length (%s)" % length
-        w = cls(parent=parent,iter=data,length=length)
-    else:
-        raise ValueError, "Not known datatype"
-
-    # Do some minimal checking.
-    w.parent()._check(w)
-    return w
+    return parent(data=data, length=length, datatype=datatype, caching=caching)
 
 ###########################################################################
 ##### DEPRECATION WARNINGS ################################################

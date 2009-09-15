@@ -1,5 +1,37 @@
 = lcalc =
 
+Michael Rubinstein's L-function calculator.
+
+== Upstream contact ==
+
+Michael Rubinstein <mrubinst@uwaterloo.ca>
+
+
+=== lcalc-20080205.p3 (David kirkby, 15th September, 2009) ===
+ * A general tidy-up/improvement in many ways, including:
+ * Force an exit on errors with 'set -e'
+ * Check for SAGE_LOCAL in a better way
+ * Build with debug flags as default, but allow them to be removed
+ * Add flags to generate all warnings messages on both Sun and GNU compilers.
+   This causes tons of warning messages from lcacl.
+ * Check that the C, C++ and Fortran compilers are not a mix of Sun and GNU
+ * Remove the flags which were sent directly to the assembler to
+   suppress warnings. The -W flag, which works on the GNU assembler,
+   is not portable and fails with Sun's assembler.
+ * All tests performed in what I believe is the safest and most
+   portable way, such as using || instead of -o in tests.
+ * Changed the Makefile to use CXXFLAGS rather than CFLAGS, as the
+   source is C++ not C, and the compiler used is the C++ compiler,
+   which will ignore CFLAGS.
+ * Added appropiate options to FCFLAGS. Not needed for 'lcalc', but I
+   hope to use this as a template for more widespread use in Sage. It
+   may however need more work, particularly in handling Fortran (There
+   may be specific issues when the Fortran compiler is f90.)
+ * Print variable names, to aid debugging.
+ * Allow debug information to be removed from file, if
+   SAGE_DEBUG is set to 'no', 'false' or '0'
+   By default, debugging information will be supplied.
+
 === lcalc-20080205.p2 (Michael Abshoff, July 15th, 2008) ===
  * remove "-static-libgcc" from CFLAGS (fixes #3647)
 

@@ -43,8 +43,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         [ 22*x^2 + 2*x + 17 19*x^2 + 22*x + 14]
         sage: type(A)
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
-        sage: A == loads(dumps(A))
-        True
+        sage: TestSuite(A).run()
     """
     ########################################################################
     # LEVEL 1 functionality

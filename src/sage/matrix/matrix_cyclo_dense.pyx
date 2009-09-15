@@ -129,9 +129,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A
             [                        1 -a^39 + a^29 - a^19 + a^9                    -a + 1]
             [                        a                    -2/3*a                      a^19]
-            sage: A == loads(dumps(A))
-            True
-
+            sage: TestSuite(A).run()
 
         TESTS:
             sage: matrix(W, 2, 1, a)

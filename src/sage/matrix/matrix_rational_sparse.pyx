@@ -7,8 +7,7 @@ AUTHORS:
 
 TESTS:
     sage: a = matrix(QQ,2,range(4), sparse=True)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
     sage: matrix(QQ,0,0,sparse=True).inverse()
     []
 """

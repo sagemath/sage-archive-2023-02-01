@@ -16,11 +16,9 @@ We deal with the case of zero rows or zero columns:
 
 TESTS:
     sage: a = matrix(RDF,2,range(4), sparse=False)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
     sage: a = matrix(CDF,2,range(4), sparse=False)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
 
 AUTHORS:
     -- Jason Grout, Sep 2008: switch to NumPy backend, factored out the Matrix_double_dense class

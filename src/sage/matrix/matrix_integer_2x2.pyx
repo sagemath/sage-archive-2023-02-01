@@ -97,11 +97,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         sage: m = MS([1,2,3,4]) ; m
         [1 2]
         [3 4]
-        sage: loads(dumps(m))
-        [1 2]
-        [3 4]
-        sage: loads(dumps(m)) == m
-        True
+        sage: TestSuite(m).run()
     """
     ########################################################################
     # LEVEL 1 functionality

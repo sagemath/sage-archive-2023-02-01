@@ -40,10 +40,8 @@ EXAMPLES::
     [1 0 1]
     [1 0 0]
 
-    sage: a == loads(dumps(a))
-    True
-    sage: b == loads(dumps(b))
-    True
+    sage: TestSuite(a).run()
+    sage: TestSuite(b).run()
 
     sage: a.echelonize(); a
     [1 0 0]

@@ -1474,18 +1474,18 @@ cdef class Matrix(sage.structure.element.Matrix):
     def _pickle(self):
         raise NotImplementedError
 
-    def _test_pickle(self):
+    def _test_reduce(self, **options):
+        """
+        Checks that the pickling function works.
+
+        EXAMPLES::
+
+            sage: a=matrix([[1,2],[3,4]])
+            sage: a._test_reduce()
+        """
+        tester = self._tester(**options)
         a, b = self.__reduce__()
-        print "__reduce__:"
-        print a
-        print b
-        print "Now call a with b:"
-        c = a(*b)
-        print "Got c = ", c
-        if self == c:
-            print "Pickle success."
-        else:
-            print "Pickle failure."
+        tester.assertEqual(a(*b),self)
 
     ###########################################################
     # Base Change

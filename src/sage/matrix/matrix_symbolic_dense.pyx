@@ -66,9 +66,7 @@ Test pickling::
     sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
     [sqrt(2)       3]
     [     pi       e]
-    sage: loads(dumps(m))   # implicitly calls _unpickle
-    [sqrt(2)       3]
-    [     pi       e]
+    sage: TestSuite(m).run()
 
 Comparison::
 

@@ -28,8 +28,7 @@ EXAMPLES::
 TESTS::
 
     sage: a = matrix(ZZ,2,range(4), sparse=False)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
     sage: Matrix(ZZ,0,0).inverse()
     []
 """

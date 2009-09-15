@@ -17,10 +17,10 @@ We deal with the case of zero rows or zero columns::
 TESTS::
 
     sage: a = matrix(RDF,2,range(4), sparse=False)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
     sage: MatrixSpace(RDF,0,0).zero_matrix().inverse()
     []
+
 
 AUTHORS:
 

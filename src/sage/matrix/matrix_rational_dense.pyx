@@ -38,8 +38,7 @@ operations with it.
 TESTS::
 
     sage: a = matrix(QQ,2,range(4), sparse=False)
-    sage: loads(dumps(a)) == a
-    True
+    sage: TestSuite(a).run()
 """
 
 ##############################################################################

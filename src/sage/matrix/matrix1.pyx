@@ -6,8 +6,7 @@ For design documentation see :mod:`sage.matrix.docs`.
 TESTS::
 
     sage: A = Matrix(GF(5),3,3,srange(9))
-    sage: A == loads(dumps(A))
-    True
+    sage: TestSuite(A).run()
 """
 
 ################################################################################

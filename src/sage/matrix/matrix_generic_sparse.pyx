@@ -31,8 +31,7 @@ EXAMPLES::
     [5, x, x^2, x^3, x^4, x^5]
     sage: c.rows()
     [(5, x, x^2), (x^3, x^4, x^5)]
-    sage: loads(dumps(c)) == c
-    True
+    sage: TestSuite(c).run()
     sage: d = c.change_ring(CC['x']); d
     [5.00000000000000                x              x^2]
     [             x^3              x^4              x^5]

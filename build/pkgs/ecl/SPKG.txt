@@ -2,7 +2,8 @@
 
 == Description ==
 
-ECL is an implementation of the Common Lisp language as defined by the ANSI X3J13 specification. The most relevant features:
+ECL is an implementation of the Common Lisp language as defined by the
+ANSI X3J13 specification. The most relevant features:
 
  * A bytecodes compiler and interpreter.
  * Compiles Lisp also with any C/C++ compiler.
@@ -11,17 +12,22 @@ ECL is an implementation of the Common Lisp language as defined by the ANSI X3J1
  * Extremely portable.
  * A reasonable license.
 
-ECL supports the operating systems Linux, FreeBSD, NetBSD, OpenBSD, Solaris and Windows, running on top of the Intel, Sparc, Alpha and PowerPC processors. Porting to other architectures should be rather easy.
+ECL supports the operating systems Linux, FreeBSD, NetBSD, OpenBSD,
+Solaris and Windows, running on top of the Intel, Sparc, Alpha and
+PowerPC processors. Porting to other architectures should be rather
+easy.
 
 Website: http://ecls.sourceforge.net/
 
 == License ==
 
- * LGPL V2+ or compatible - for details see http://ecls.sourceforge.net/license.html
+ * LGPL V2+ or compatible - for details see
+   http://ecls.sourceforge.net/license.html
 
 == SPKG Maintainers ==
 
  * Michael Abshoff
+ * David Kirkby
 
 == Upstream Contact ==
 
@@ -29,31 +35,54 @@ Website: http://ecls.sourceforge.net/
 
 == Dependencies ==
 
- * gmp
+ * mpir
  * boehm_gc
 
 == Special Update/Build Instructions ==
-
  * delete the msvc directory
- * To build dpp with system boehm_gc and gmp we need to copy some headers due to a but in ecl:
-{{{
-cp "$SAGE_LOCAL"/include/gmp.h src/c
-cp "$SAGE_LOCAL"/include/gc.h src/c
-cp -r "$SAGE_LOCAL"/include/gc src/c
-}}}
- * Delete the gmp directory in src. Delete the folloeing line from src/configure.in:
-{{{
-AC_CONFIG_AUX_DIR([${srcdir}/gmp])
-}}}
- * Rerun autoconf
- * Move gc/mkinstalldirs to mkinstalldirs and delte the gc directory.
- * In Makefile.in change
-{{{
--mkinstalldirs = $(SHELL) $(top_srcdir)/gc/mkinstalldirs
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-}}}
 
 == Changelog ==
+
+=== ecl-9.8.4-cvs-13th-Sept-2009  (David Kirkby and Minh Van Nguyen, Sept 15th, 2009) ===
+  * Download the latest CVS from the ECL web site, as version
+    9.8.4 is ackknowledged by the main ECL developer it will not work
+    on 64-bit OS X
+  * Correct failure to build on OS X ticket #6883 This replaces
+    ./configure --prefix=$SAGE_LOCAL --with-system-gmp --enable-boehm=system
+    with
+    ./configure --prefix=SAGE_LOCAL
+    in spkg-install.
+  * Changed use of FFLAGS to FCFLAGS in spkg-install.
+  * Set ABI to 64 and Export it. Only needed for OS X, but
+    ignored on other platforms.
+  * Print variable names, to aid debugging.
+  * Unset make, as it appears to break parallel builds.
+
+=== ecl-9.8.4 (David Kirkby, August 20th, 2009) ===
+  * Updated to the latest 9.8.4 release of ECL (#6564)
+  * removed the unneeded directory msvc from src to save disk space
+  * Removed the patches directory, as there are none.
+  * Changed spkg-install so no patches are applied.
+  * Improved spkg-install so some sanity checks of the
+    compilers takes place.
+  * Enable all warnings on gcc.
+  * Build 64-bit if SAGE64 is set to 'yes'
+  * Removed the 'unset MAKE' in install-spkg.
+  * Allow debug information to be removed from file, if
+    SAGE_DEBUG is set to 'no', 'false' or '0'
+    By default, debugging information will be supplied.
+  * Removed an automatic addition of -g on 64-bit ( -g
+    will be enable by default.)
+  * Set CXXFLAGS and FFLAGS to have -m64 for a 64-bit build
+    (originally only CFLAGS was done, yet there are C++ and
+    Fortran files too).
+  * Removed -m64 from LDFLAGS - it is not needed and unportable.
+  * Add a check that someone is not mixing the Sun and GNU
+    compilers.
+  * Remove all the special build instructions from this file,
+    as we are not sure they are needed.
+  * Changed dependancy note above from gmp to mpir.
+  * Added my own name as a maintainer.
 
 === ecl-9.4.1 (Michael Abshoff, May 15th, 2009) ===
  * Initial version.

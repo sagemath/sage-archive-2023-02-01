@@ -251,7 +251,7 @@ def frame_labels(lower_left, upper_right,
     def fmt_string(a):
         b = a/2.0
         if b >= 1:
-            return "%.0f"
+            return "%.1f"
         n = max(0, 2 - nd(a/2.0))
         return "%%.%sf"%n
 

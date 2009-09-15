@@ -13,8 +13,10 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from function_mangling import ArgumentFixer
+
 class CachedFunction(object):
-    def __init__(self, f):
+    def __init__(self, f, classmethod=False):
         """
         Create a cached version of a function, which only recomputes
         values it hasn't already computed.
@@ -38,7 +40,13 @@ class CachedFunction(object):
             sage: g(5)
             7
             sage: g.cache
-            {((5,), ()): 7}
+            {((5, None, 'default'), ()): 7}
+            sage: def sleep1(t=1): sleep(t)
+            sage: h = CachedFunction(sleep1)
+            sage: w = walltime()
+            sage: h(); h(1); h(t=1)
+            sage: walltime(w) < 2
+            True
 
         """
         self.f = f
@@ -48,6 +56,7 @@ class CachedFunction(object):
         if hasattr(f, "func_name"):
             self.__name__ = f.func_name
         self.__module__ = f.__module__
+        self._argumentfixer = ArgumentFixer(f,classmethod=classmethod)
 
     def _sage_src_(self):
         """
@@ -70,7 +79,7 @@ class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5,), ()): 7}
+            {((5, None, 'default'), ()): 7}
             sage: a = g(10^5)
             sage: a == number_of_partitions(10^5)
             True
@@ -91,7 +100,7 @@ class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5,), ()): 7}
+            {((5, None, 'default'), ()): 7}
 
         """
         return self.cache
@@ -127,10 +136,10 @@ class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5,), ()): 7}
+            {((5, None, 'default'), ()): 7}
             sage: g.set_cache(17, 5)
             sage: g.get_cache()
-            {((5,), ()): 17}
+            {((5, None, 'default'), ()): 17}
             sage: g(5)
             17
 
@@ -160,7 +169,7 @@ class CachedFunction(object):
             sage: a.f.get_key()
             ((), ())
         """
-        return (args, tuple(sorted(kwds.items())))
+        return self._argumentfixer.fix_to_pos(*args, **kwds)
 
     def __repr__(self):
         """
@@ -179,7 +188,7 @@ class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5,), ()): 7}
+            {((5, None, 'default'), ()): 7}
             sage: g.clear_cache()
             sage: g.get_cache()
             {}
@@ -206,7 +215,7 @@ class CachedMethod(CachedFunction):
             '_cache__f'
         """
         self._cache_name = '_cache__' + f.__name__
-        CachedFunction.__init__(self, f)
+        CachedFunction.__init__(self, f, classmethod=True)
 
     def __call__(self, *args, **kwds):
         """
@@ -293,7 +302,7 @@ class CachedInParentMethod(CachedMethod):
             '_cache__element_f'
         """
         self._cache_name = '_cache__' + 'element_' + f.__name__
-        CachedFunction.__init__(self, f)
+        CachedFunction.__init__(self, f, classmethod=True)
 
     def get_key(self, *args, **kwds):
         """

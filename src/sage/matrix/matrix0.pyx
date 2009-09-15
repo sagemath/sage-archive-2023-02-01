@@ -112,6 +112,62 @@ cdef class Matrix(sage.structure.element.Matrix):
         self._mutability = Mutability(False)
         self._cache = {}
 
+    def copy(self):
+        """
+        Make a copy of self. If self is immutable, the copy will be
+        mutable.
+
+        .. warning::
+
+           This method is deprecated and will be removed from a future
+           version of Sage.  Please use the ``copy()`` function
+           instead.  In other words, instead of doing ``m.copy()``, do ``copy(m)``.
+
+        .. warning::
+
+           The individual elements aren't themselves copied (though
+           the list is copied). This shouldn't matter, since ring
+           elements are (almost!) always immutable in Sage.
+
+        EXAMPLES:
+
+
+        The :meth:`.copy` method is deprecated.  Instead, use the
+        :func:`copy` function::
+
+            sage: a = matrix([[1,2],[3,4]])
+            sage: b = a.copy()
+            doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)
+            sage: b = copy(a)
+
+        ::
+
+            sage: R.<x> = QQ['x']
+            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: b = copy(a)
+            sage: b[0,0] = 5
+            sage: b
+            [      5     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+
+        ::
+
+            sage: b = copy(a)
+            sage: f = b[0,0]; f[0] = 10
+            Traceback (most recent call last):
+            ...
+            IndexError: polynomials are immutable
+        """
+        import sage.misc.misc
+        sage.misc.misc.deprecation("the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)")
+        return self.__copy__()
+
+
     def __copy__(self):
         """
         Make a copy of self. If self is immutable, the copy will be

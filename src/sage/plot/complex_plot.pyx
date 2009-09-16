@@ -284,7 +284,7 @@ def complex_plot(f, xrange, yrange, **options):
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     cdef double x, y
-    ignore, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
+    ignore, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([], xrange, yrange, options['plot_points'])
     xmin, xmax = xrange
     ymin, ymax = yrange
     xrange_list = srange(xmin, xmax+xstep, xstep, universe=float)

@@ -2105,7 +2105,8 @@ class MaximaElement(ExpectElement):
         EXAMPLE::
 
             sage: v = maxima('create_list(i*x^i,i,0,5)')
-            sage: list(v)
+            sage: L = list(v)
+            sage: [e._sage_() for e in L]
             [0, x, 2*x^2, 3*x^3, 4*x^4, 5*x^5]
         """
         for i in range(len(self)):

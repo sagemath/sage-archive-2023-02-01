@@ -37,6 +37,7 @@ EXAMPLES::
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.words.alphabet import OrderedAlphabet
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.mrange import xmrange
 from sage.rings.all import Infinity
 from sage.rings.integer import Integer
@@ -124,6 +125,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         sage: Words_all().cardinality()
         +Infinity
     """
+    @lazy_attribute
     def _element_classes(self):
         import sage.combinat.words.word as word
         return {
@@ -403,7 +405,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                                     "callable", "iter"):
                 raise ValueError, "Unknown datatype"
 
-        wordclass = self._element_classes()
+        wordclass = self._element_classes
 
         # Construct the word
         if datatype == 'list':

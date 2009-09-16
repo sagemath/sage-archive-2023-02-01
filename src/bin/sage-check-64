@@ -1,4 +1,4 @@
-#!/usr/bin/env/bash
+#!/usr/bin/env bash
 
 # If SAGE64 is set to yes check if $SAGE_LOCAL/lib exists on Solaris as well as
 # OSX since those are currently the only two platforms which require SAGE64. If
@@ -8,11 +8,11 @@
 if [ "$SAGE64" = "yes" ]; then
     CHECKFILE="no"
     if [ `uname` = "SunOS" ]; then
-        echo "Building Sage on Solaris in 64 bit mode"
+        echo "Building Sage on Solaris in 64-bit mode"
         CHECKFILE="yes"
     fi
     if [ `uname` = "Darwin" ]; then
-        echo "Building Sage on OSX in 64 bit mode"
+        echo "Building Sage on OS X in 64-bit mode"
         CHECKFILE="yes"
     fi
     if [ $CHECKFILE = "yes" ]; then
@@ -31,11 +31,11 @@ fi
 if [ -a "$SAGE_LOCAL"/lib/sage-64.txt ]; then
     echo "Detected SAGE64 flag"
     if [ `uname` = "SunOS" ]; then
-        echo "Building Sage on Solaris in 64 bit mode"
+        echo "Building Sage on Solaris in 64-bit mode"
         SAGE64="yes"; export SAGE64
     fi
     if [ `uname` = "Darwin" ]; then
-        echo "Building Sage on OSX in 64 bit mode"
+        echo "Building Sage on OS X in 64-bit mode"
         SAGE64="yes"; export SAGE64
     fi
 fi

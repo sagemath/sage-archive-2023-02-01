@@ -5,7 +5,7 @@
 # (too fast?) machines, especially for mpfr.
 
 #######################################################
-#  Install a SAGE package.  This script is
+#  Install a Sage package.  This script is
 #  typically invoked by giving the command
 #      sage -i <package name>
 #
@@ -287,7 +287,7 @@ if [ $? -eq 0 ]; then
            echo "Please email sage-devel http://groups.google.com/group/sage-devel"
            echo "explaining the problem and send the relevant part of"
            echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
-           echo "If you want to try to fix the problem, yourself *don't* just cd to"
+           echo "If you want to try to fix the problem yourself, *don't* just cd to"
            echo "`pwd` and type 'make check' or whatever is appropriate."
            echo "Instead type \"$SAGE_ROOT/sage -sh\""
            echo "in order to set all environment variables correctly, then cd to"
@@ -319,7 +319,7 @@ else
    echo "Please email sage-devel http://groups.google.com/group/sage-devel"
    echo "explaining the problem and send the relevant part of"
    echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
-   echo "If you want to try to fix the problem, yourself *don't* just cd to"
+   echo "If you want to try to fix the problem yourself, *don't* just cd to"
    echo "`pwd` and type 'make'."
    echo "Instead type \"$SAGE_ROOT/sage -sh\""
    echo "in order to set all environment variables correctly, then cd to"
@@ -337,6 +337,6 @@ cd "$SAGE_LOCAL"/bin
 
 echo "Finished installing $PKG_NAME.spkg"
 
-# It's OK if they above fails -- in fact it will until Python
+# It's OK if the above fails -- in fact it will until Python
 # itself gets installed. That's fine.
 exit 0

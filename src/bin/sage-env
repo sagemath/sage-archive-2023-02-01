@@ -2,7 +2,7 @@
 
 ###########################################################################
 #
-#  Set environment variables for building and/or running SAGE.
+#  Set environment variables for building and/or running Sage.
 #  You must source this; see below!
 #
 #  AUTHORS:   William Stein                            2005-12
@@ -13,7 +13,7 @@
 ##########################################################################
 #
 #  If you want to set all environment variables for your shell like
-#  they are during the build of SAGE packages, type
+#  they are during the build of Sage packages, type
 #
 #             source local/bin/sage-env
 #
@@ -92,7 +92,7 @@ if [ 1 = 2 ]; then
     echo "if you use sh, bash or a similar shell"
 fi
 
-# Setting SAGE-related location environment variables.
+# Setting Sage-related location environment variables.
 BUILD=build
 SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
 SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
@@ -179,9 +179,9 @@ fi
 
 ############ compilation flags
 
-# Setting SAGE-related compilation flags.
+# Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
-# code is being built as part of SAGE.
+# code is being built as part of Sage.
 __sage__="" && export __sage__
 # Set the default compiler to gcc if the enviroment variable
 # CC is not set.

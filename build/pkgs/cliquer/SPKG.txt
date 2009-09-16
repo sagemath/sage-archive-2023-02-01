@@ -15,7 +15,7 @@ Nathann Cohen (nathann.cohen@gmail.com)
 == Upstream Contact ==
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 
-=== Minh Van Nguyen (13th September 2009) ===
+=== cliquer-1.2.p0 Minh Van Nguyen (16th September 2009) ===
  * Support for building cliquer 1.2 in 64-bit mode on Mac OS X 10.5.x
    and 64-bit openSUSE 11.1.
  * Add custom compilation and linking flags on top of the Makefile of

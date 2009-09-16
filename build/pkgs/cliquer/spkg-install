@@ -1,13 +1,155 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-mkdir "$SAGE_LOCAL/include/cliquer/"
-cp src/*.h "$SAGE_LOCAL/include/cliquer/"
+# This tells Bash to exit the script if any statement returns a non-true
+# value.
+set -e
+
+# Add a sensible default optimisation flag. Change if necessary.
+OPTIMIZATION_FLAGS="-O2"
+
+# Most packages do not need all these set. But it is better to do them all
+# each time, rather than omit a flag by mistake.
+
+CFLAGS="$CFLAGS $OPTIMIZATION_FLAGS "
+CXXFLAGS="$CXXFLAGS $OPTIMIZATION_FLAGS "
+FCFLAGS="$FCFLAGS $OPTIMIZATION_FLAGS "
+F77FLAGS="$F77FLAGS $OPTIMIZATION_FLAGS "
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include "
+LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib "
+
+# Compile for 64-bit if SAGE64 is set to 'yes' or '1'.
+if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]; then
+    echo "Building a 64-bit version of cliquer"
+    CFLAGS="$CFLAGS -m64 "
+    CXXFLAGS="$CXXFLAGS -m64 "
+    FCFLAGS="$FCFLAGS -m64 "
+    F77FLAGS="$F77FLAGS -m64 "
+    # Some packages may need LDFLAGS and/or ABI set here.
+    LDFLAGS="$LDFLAGS -m64 "
+    # ABI=64
+else
+    echo "Building a 32-bit version of cliquer"
+fi
+
+# If SAGE_DEBUG is set either unset (the default), or set to  'yes'
+# add debugging information.
+# Since both the Sun and GNU compilers accept -g to give debugging information
+# there is no need to do anything specific to one compiler or the other.
+
+if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
+    echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to 'no' if you don't want that."
+    # Actually anything other than 'yes' or '1' will cause
+    # no debugging information to be added.
+    CFLAGS="$CFLAGS -g "
+    CXXFLAGS="$CXXFLAGS -g "
+    FCFLAGS="$FCFLAGS -g "
+    F77FLAGS="$F77FLAGS -g "
+else
+    echo "No debugging information will be used during the build of this package."
+    echo "Unset SAGE_DEBUG if you want debugging information present (-g added)."
+fi
+
+# Add appropriate flag(s) to show all warnings.
+# This test of a compiler is not perfect by any means, but
+# is better than nothing.
+set +e
+if "$CC" -flags > /dev/null 2>&1 ; then
+    CFLAGS="$CFLAGS -KPIC "
+    SUN_COMPILER=1
+    # The Sun compilers are fussy, and adding extra
+    # warnings will just show too many.
+else
+    # Assume gcc if not the Sun C compiler.
+    # Add -Wall to show all warnings.
+    CFLAGS="$CFLAGS -Wall -fomit-frame-pointer -funroll-loops -c -fPIC "
+    CXXFLAGS="$CXXFLAGS -Wall "
+    FCFLAGS="$FCFLAGS -Wall "
+    F77FLAGS="$F77FLAGS -Wall "
+    GNU_COMPILER=1
+fi
+
+# Determine if the C++ compiler is the Sun or GNU compiler.
+# Just to check we are not mixing GNU and non-GNU.
+if "$CXX" -flags > /dev/null 2>&1 ; then
+    SUN_COMPILER=1
+else
+    GNU_COMPILER=1
+fi
+
+# Determine if the Fortran compiler is the Sun or GNU compiler.
+if [ -z "$SAGE_FORTRAN" ] ; then
+    echo "No Fortran compiler has been defined. This is not normally a problem."
+else
+    if "$SAGE_FORTRAN" -flags > /dev/null 2>&1 ;  then
+	SUN_COMPILER=1
+    else
+	GNU_COMPILER=1
+    fi
+fi
+
+set -e
+
+# Check if SAGE_FORTRAN_LIB is defined, that the file actually exists.
+# SAGE_FORTRAN_LIB does not always need to be defined, but if it is defined,
+# then the file should exist.
+
+if [ -n "$SAGE_FORTRAN_LIB" ] &&  [ ! -e "$SAGE_FORTRAN_LIB" ]; then
+    echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist"
+    exit 1
+fi
+
+# Checks that the user is not mixing the Sun and GNU compilers. This problem
+# has been seen on code built with the aid of SCons, but in general could
+# happen with any code if the user has specified a C compiler but not a C++
+# one. This problem is even more likely to occur with the Fortran compiler.
+
+if [ "x$SUN_COMPILER" = "x1" ] && [ "x$GNU_COMPILER" = "x1" ] ; then
+    echo "You are mixing the Sun and GNU C/C++/Fortran compilers."
+    echo "Such a combination will lead to problems."
+    echo "Check CC, CXX & SAGE_FORTRAN carefully."
+    echo "Exiting..."
+    exit 1
+fi
+
+# These are all used by GNU to specify compilers.
+echo "Using CC=$CC"
+echo "Using CXX=$CXX"
+echo "Using FC=$FC"
+echo "Using F77=$F77"
+
+# Used by Sage in connection with Fortran.
+echo "Using SAGE_FORTRAN=$SAGE_FORTRAN"
+echo "Using SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB"
+
+# Flags which may be set.
+echo "The following environment variables will be exported"
+echo "Using CFLAGS=$CFLAGS"
+echo "Using CXXFLAGS=$CXXFLAGS"
+echo "Using FCFLAGS=$FCFLAGS"
+echo "Using F77FLAGS=$F77FLAGS"
+echo "Using CPPFLAGS=$CPPFLAGS"
+echo "Using LDFLAGS=$LDFLAGS"
+echo "Using ABI=$ABI"
+echo "configure scripts and/or makefiles might override these later"
+echo " "
+
+# Export everything. Probably not necessary in most cases.
+export CFLAGS
+export CXXFLAGS
+export FCFLAGS
+export F77FLAGS
+export CPPFLAGS
+export LDFLAGS
+export ABI
+
+# End of pretty general spkg-install file.
+# Now do the specific things needed for this package (cliquer).
 
 # Copy over custom Makefile for Sage. This custom Makefile contains Sage
 # specific compilation and linking flags. More importantly, we're building
@@ -15,5 +157,16 @@ cp src/*.h "$SAGE_LOCAL/include/cliquer/"
 cp -f patch/Makefile src/
 
 cd src
+
 make
+if [ $? -ne 0 ]; then
+    echo "Failed to compile cliquer... exiting"
+    exit 1
+fi
+
+if [ ! -e "$SAGE_LOCAL/include/cliquer" ]; then
+    mkdir "$SAGE_LOCAL/include/cliquer/"
+fi
+
+cp -f src/*.h "$SAGE_LOCAL/include/cliquer/"
 cp -f libcliquer.so "$SAGE_LOCAL/lib/"

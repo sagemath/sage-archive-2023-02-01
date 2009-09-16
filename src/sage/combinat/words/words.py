@@ -124,30 +124,23 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         sage: Words_all().cardinality()
         +Infinity
     """
-    def _classetype(self):
-        # FiniteWord_cpp_vector,\
-        from sage.combinat.words.word import FiniteWord_list, FiniteWord_str,\
-        FiniteWord_tuple,\
-        FiniteWord_callable_with_caching, FiniteWord_callable,\
-        FiniteWord_iter_with_caching, FiniteWord_iter,\
-        InfiniteWord_callable_with_caching, InfiniteWord_callable,\
-        InfiniteWord_iter_with_caching, InfiniteWord_iter,\
-        Word_iter_with_caching, Word_iter
-
-        return {'FiniteWord_list': FiniteWord_list,
-        'FiniteWord_str': FiniteWord_str,
-        'FiniteWord_tuple': FiniteWord_tuple,
-        #'FiniteWord_cpp_vector': FiniteWord_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWord_callable_with_caching,
-        'FiniteWord_callable': FiniteWord_callable,
-        'FiniteWord_iter_with_caching': FiniteWord_iter_with_caching,
-        'FiniteWord_iter': FiniteWord_iter,
-        'InfiniteWord_callable_with_caching': InfiniteWord_callable_with_caching,
-        'InfiniteWord_callable': InfiniteWord_callable,
-        'InfiniteWord_iter_with_caching': InfiniteWord_iter_with_caching,
-        'InfiniteWord_iter': InfiniteWord_iter,
-        'Word_iter_with_caching': Word_iter_with_caching,
-        'Word_iter': Word_iter}
+    def _element_classes(self):
+        import sage.combinat.words.word as word
+        return {
+            'FiniteWord_list': word.FiniteWord_list,
+            'FiniteWord_str': word.FiniteWord_str,
+            'FiniteWord_tuple': word.FiniteWord_tuple,
+            'FiniteWord_callable_with_caching': word.FiniteWord_callable_with_caching,
+            'FiniteWord_callable': word.FiniteWord_callable,
+            'FiniteWord_iter_with_caching': word.FiniteWord_iter_with_caching,
+            'FiniteWord_iter': word.FiniteWord_iter,
+            'InfiniteWord_callable_with_caching': word.InfiniteWord_callable_with_caching,
+            'InfiniteWord_callable': word.InfiniteWord_callable,
+            'InfiniteWord_iter_with_caching': word.InfiniteWord_iter_with_caching,
+            'InfiniteWord_iter': word.InfiniteWord_iter,
+            'Word_iter_with_caching': word.Word_iter_with_caching,
+            'Word_iter': word.Word_iter
+            }
 
     def __call__(self, data=None, length=None, datatype=None, **kwds):
         r"""
@@ -410,59 +403,56 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                                     "callable", "iter"):
                 raise ValueError, "Unknown datatype"
 
-        classetype = self._classetype()
+        wordclass = self._element_classes()
 
         # Construct the word
         if datatype == 'list':
-            cls = classetype['FiniteWord_list']
+            cls = wordclass['FiniteWord_list']
             w = cls(parent=self,data=data)
         elif datatype == 'str':
-            cls = classetype['FiniteWord_str']
+            cls = wordclass['FiniteWord_str']
             w = cls(parent=self,data=data)
         elif datatype == 'tuple':
-            cls = classetype['FiniteWord_tuple']
+            cls = wordclass['FiniteWord_tuple']
             w = cls(parent=self,data=data)
         elif datatype == 'callable':
             if caching:
                 if length is None or length is Infinity:
-                    cls = classetype['InfiniteWord_callable_with_caching']
+                    cls = wordclass['InfiniteWord_callable_with_caching']
                 else:
-                    cls = classetype['FiniteWord_callable_with_caching']
+                    cls = wordclass['FiniteWord_callable_with_caching']
             else:
                 if length is None or length is Infinity:
-                    cls = classetype['InfiniteWord_callable']
+                    cls = wordclass['InfiniteWord_callable']
                 else:
-                    cls = classetype['FiniteWord_callable']
+                    cls = wordclass['FiniteWord_callable']
             w = cls(parent=self,callable=data,length=length)
         elif datatype == 'iter':
             if caching:
                 if length is None or length is Infinity:
-                    cls = classetype['InfiniteWord_iter_with_caching']
+                    cls = wordclass['InfiniteWord_iter_with_caching']
                 elif length == 'finite':
-                    cls = classetype['FiniteWord_iter_with_caching']
+                    cls = wordclass['FiniteWord_iter_with_caching']
                 elif length == 'unknown':
-                    cls = classetype['Word_iter_with_caching']
+                    cls = wordclass['Word_iter_with_caching']
                 elif length in ZZ and length >= 0:
-                    cls = classetype['FiniteWord_iter_with_caching']
+                    cls = wordclass['FiniteWord_iter_with_caching']
                 else:
                     raise ValueError, "not a correct value for length (%s)" % length
             else:
                 if length is None or length is Infinity:
-                    cls = classetype['InfiniteWord_iter']
+                    cls = wordclass['InfiniteWord_iter']
                 elif length == 'finite':
-                    cls = classetype['FiniteWord_iter']
+                    cls = wordclass['FiniteWord_iter']
                 elif length == 'unknown':
-                    cls = classetype['Word_iter']
+                    cls = wordclass['Word_iter']
                 elif length in ZZ and length >= 0:
-                    cls = classetype['FiniteWord_iter']
+                    cls = wordclass['FiniteWord_iter']
                 else:
                     raise ValueError, "not a correct value for length (%s)" % length
             w = cls(parent=self,iter=data,length=length)
         else:
             raise ValueError, "Not known datatype"
-
-        # Do some minimal checking.
-        self._check(w)
         return w
 
     def _check(self, w, length=40):

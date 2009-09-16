@@ -151,6 +151,18 @@ export ABI
 # End of pretty general spkg-install file.
 # Now do the specific things needed for this package (cliquer).
 
+# Flags for building a dynamically linked shared object.
+SAGESOFLAGS=" "
+if [ `uname` = "Linux" ]; then
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so" && export SAGESOFLAGS
+fi
+if [ `uname` = "Darwin" ]; then
+    SAGESOFLAGS="-shared -dynamiclib" && export SAGESOFLAGS
+fi
+if [ `uname` = "SunOS" ]; then
+    SAGESOFLAGS="-G -Bdynamic" && export SAGESOFLAGS
+fi
+
 # Copy over custom Makefile for Sage. This custom Makefile contains Sage
 # specific compilation and linking flags. More importantly, we're building
 # cliquer as a dynamic shared library, instead of a stand alone program.
@@ -158,15 +170,21 @@ cp -f patch/Makefile src/
 
 cd src
 
+#Do not exit script if there is an error, but instead print an
+# informative error message.
+set +e
+
 make
 if [ $? -ne 0 ]; then
     echo "Failed to compile cliquer... exiting"
     exit 1
 fi
 
+set -e
+
 if [ ! -e "$SAGE_LOCAL/include/cliquer" ]; then
     mkdir "$SAGE_LOCAL/include/cliquer/"
 fi
 
-cp -f src/*.h "$SAGE_LOCAL/include/cliquer/"
+cp -f *.h "$SAGE_LOCAL/include/cliquer/"
 cp -f libcliquer.so "$SAGE_LOCAL/lib/"

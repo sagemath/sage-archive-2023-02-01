@@ -2209,7 +2209,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         for t in G:
             T = self._matrix_of_galois_action(t, P) - 1
             if not T: continue
-            im_gens = [psi(psi.lift(g).lift()*T) for g in CQ.gens()]
+            im_gens = [psi(psi.lift(g).lift() * T) for g in CQ.gens()]
             h = CQ.hom(im_gens)
             CQ = h.kernel()
             if CQ.cardinality() == 1:
@@ -2301,7 +2301,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # Compute the images of the cusp classes (c)-(oo) in the
         # rational homology of the modular abelian variety.
         ims = [phi(M([c,infinity])).element() for c in P]
-        print ims
 
         # Take the span of the ims over ZZ
         A = self.free_module().span(ims, ZZ)

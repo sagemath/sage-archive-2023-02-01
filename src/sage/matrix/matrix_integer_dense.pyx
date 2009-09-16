@@ -2083,13 +2083,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            :meth:`elementary_divisors`
         """
         v = self._pari_().matsnf(1).python()
-        # silly special cases for matrices with 0 rows xor 0 columns -- PARI has a unique empty matrix
         if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
         if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
         D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
-        U = self.matrix_space(ncols = self._nrows)([v[0][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._nrows)])
-        V = self.matrix_space(nrows = self._ncols)([v[1][i,j] for i in xrange(self._ncols) for j in xrange(self._ncols-1,-1,-1)])
+
+        if self._ncols == 0:
+            # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)
+            U = self.matrix_space(ncols = self._nrows)(1)
+        else:
+            U = self.matrix_space(ncols = self._nrows)([v[0][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._nrows)])
+
+        if self._nrows == 0:
+            # silly special cases for matrices with 0 rows (PARI has a unique empty matrix)
+            V = self.matrix_space(nrows = self._ncols)(1)
+        else:
+            V = self.matrix_space(nrows = self._ncols)([v[1][i,j] for i in xrange(self._ncols) for j in xrange(self._ncols-1,-1,-1)])
+
         return D, U, V
 
     def frobenius(self,flag=0, var='x'):

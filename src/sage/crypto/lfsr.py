@@ -217,8 +217,6 @@ def lfsr_sequence(key, fill, n):
         s.append(sum([key[i]*s0[i] for i in range(k)]))
     return L
 
-
-
 def lfsr_autocorrelation(L, p, k):
     """
     INPUT:

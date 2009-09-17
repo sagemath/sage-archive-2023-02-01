@@ -4,7 +4,8 @@ Boolean functions
 Those functions are used for example in LFSR based ciphers like
 the filter generator or the combination generator.
 
-This module allows to study properties linked to spectral analysis.
+This module allows to study properties linked to spectral analysis,
+and also algebraic immunity.
 
 EXAMPLE::
 
@@ -15,6 +16,8 @@ EXAMPLE::
     Boolean function with 8 variables
     sage: B.nonlinearity()
     112
+    sage: B.algebraic_immunity()
+    4
 
 AUTHOR:
 
@@ -763,7 +766,100 @@ cdef class BooleanFunction(SageObject):
             self._sum_of_square_indicator = sum([ a**2 for a in D ])
         return self._sum_of_square_indicator
 
+    def annihilator(self,d, dim = False):
+        """
+        Return (if it exists) an annihilator of the boolean function of degree at most `d`, that is a Boolean polynomial `g` such that
 
+        .. math:: f(x)g(x) = 0 \forall x.
+
+        INPUT:
+
+        - d   - an integer;
+        - dim - a Boolean (default: False), if True, returns also the dimension of the annihilator vector space.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
+            sage: f.annihilator(1) is None
+            True
+            sage: g = BooleanFunction( f.annihilator(3) )
+            sage: set([ fi*g(i) for i,fi in enumerate(f) ])
+            set([0])
+        """
+        # NOTE: this is a toy implementation
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        R = BooleanPolynomialRing(self._nvariables,'x')
+        G = R.gens()
+        r = [R(1)]
+
+        from sage.modules.all import vector
+        s = vector(self.truth_table()).support()
+
+        from sage.combinat.combination import Combinations
+        from sage.misc.misc import prod
+
+        from sage.matrix.constructor import Matrix
+        from sage.rings.arith import binomial
+        M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
+
+        for i in xrange(1,d+1):
+            C = Combinations(self._nvariables,i)
+            for c in C:
+                r.append(prod([G[i] for i in c]))
+
+        cdef BooleanFunction t
+
+        for i,m in enumerate(r):
+            t = BooleanFunction(m)
+            for j,v in enumerate(s):
+                M[i,j] = bitset_in(t._truth_table,v)
+
+        kg = M.kernel().gens()
+
+        if len(kg)>0:
+            res = sum([kg[0][i]*ri for i,ri in enumerate(r)])
+        else:
+            res = None
+
+        if dim:
+            return res,len(kg)
+        else:
+            return res
+
+    def algebraic_immunity(self, annihilator = False):
+        """
+        Returns the algebraic immunity of the Boolean function. This is the smallest
+        integer `i` such that there exists a non trivial annihilator.
+
+        INPUT:
+
+        - annihilator - a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: R.<x0,x1,x2,x3,x4,x5> = BooleanPolynomialRing(6)
+            sage: B = BooleanFunction(x0*x1 + x1*x2 + x2*x3 + x3*x4 + x4*x5)
+            sage: B.algebraic_immunity(annihilator=True)
+            (2, x0*x1 + x1*x2 + x2*x3 + x3*x4 + x4*x5 + 1)
+            sage: B[0] +=1
+            sage: B.algebraic_immunity()
+            3
+
+            sage: R.<x> = GF(2^8,'a')[]
+            sage: B = BooleanFunction(x^31)
+            sage: B.algebraic_immunity()
+            4
+        """
+        for i in xrange(self._nvariables):
+            A = self.annihilator(i)
+            if A is not None:
+                if annihilator:
+                    return i,A
+                else:
+                    return i
+        raise ValueError, "you just found a bug!"
 
     def __setitem__(self, i, y):
         """
@@ -897,3 +993,29 @@ cdef class BooleanFunctionIterator:
         self.index += 1
         return bitset_in(self.f._truth_table, self.index)
 
+##########################################
+# Below we provide some constructions of #
+# cryptographic Boolean function.        #
+##########################################
+
+def random_boolean_function(n):
+    """
+    Returns a random Boolean function with `n` variables.
+
+    EXAMPLE::
+
+        sage: from sage.crypto.boolean_function import random_boolean_function
+        sage: B = random_boolean_function(9)
+        sage: B.nvariables()
+        9
+        sage: B.nonlinearity()
+        222
+    """
+    from sage.misc.randstate import current_randstate
+    r = current_randstate().python_random()
+    cdef BooleanFunction B = BooleanFunction(n)
+    cdef bitset_t T
+    T[0] = B._truth_table[0]
+    for 0 <= i < T.limbs:
+        T.bits[i] = r.randrange(0,Integer(1)<<(sizeof(unsigned long)*8))
+    return B

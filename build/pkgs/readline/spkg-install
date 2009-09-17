@@ -156,7 +156,7 @@ echo "Deleting old readline headers and libs"
 rm -rf $SAGE_LOCAL/include/readline/
 rm -rf $SAGE_LOCAL/lib/libreadline.*
 
-OVERWRITE_READLINE=false; export OVERWRITE_READLINE
+# OVERWRITE_READLINE=false; export OVERWRITE_READLINE
 
 # First we check for OpenSUSE 11.1 since bash is linked dynamically with a
 # readline that breaks when we build Sage's readline, so we work around this

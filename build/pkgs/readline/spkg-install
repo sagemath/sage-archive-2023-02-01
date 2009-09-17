@@ -14,8 +14,8 @@ set -e
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
 
-# Most packages do not need all these set
-# But it is better to do them all each time, rather than ommit
+# Most packages do not need all these set.
+# But it is better to do them all each time, rather than omit
 # a flag by mistake.
 
 CFLAGS="$CFLAGS $OPTIMIZATION_FLAGS "
@@ -40,21 +40,21 @@ else
 fi
 
 # If SAGE_DEBUG is set either unset (the default), or set to  'yes'
-# Add debugging information.
-# Since both the Sun and GNU compilers accept -g to give debugging information
+# then add debugging information.
+# Since both the Sun and GNU compilers accept -g to give debugging information,
 # there is no need to do anything specific to one compiler or the other.
 
 if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
    echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to 'no' if you don't want that."
-   # Actually anything othe than 'yes' or '1' will cause
+   # Actually anything other than 'yes' or '1' will cause
    # no debugging information to be added.
    CFLAGS="$CFLAGS -g "
    CXXFLAGS="$CXXFLAGS -g "
    FCFLAGS="$FCFLAGS -g "
    F77FLAGS="$F77FLAGS -g "
 else
-   echo "No debugging information will be used during the build of this package"
-   echo "Unset SAGE_DEBUG if you want debugging information present (-g added)"
+   echo "No debugging information will be used during the build of this package."
+   echo "Unset SAGE_DEBUG if you want debugging information present (-g added)."
 fi
 
 # Add appropriate flag(s) to show all warnings.
@@ -74,8 +74,8 @@ else
    GNU_COMPILER=1
 fi
 
-# Determine if the C++ compiler is the Sun or GNU compiler
-# Just to check we are not mising GNU and non-GNU.
+# Determine if the C++ compiler is the Sun or GNU compiler.
+# Just to check we are not mixing GNU and non-GNU.
 if "$CXX" -flags > /dev/null 2>&1 ; then
    SUN_COMPILER=1
 else
@@ -83,7 +83,7 @@ else
 fi
 
 
-# Determine if the Fortran compiler is the Sun or GNU compiler
+# Determine if the Fortran compiler is the Sun or GNU compiler.
 if [ -z "$SAGE_FORTRAN" ] ; then
    echo "No Fortran compiler has been defined. This is not normally a problem."
 else
@@ -99,7 +99,7 @@ fi
 # the file should exist.
 
 if [ -n "$SAGE_FORTRAN_LIB" ] &&  [ ! -e "$SAGE_FORTRAN_LIB" ]; then
-   echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist"
+   echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist."
    exit 1
 fi
 
@@ -110,7 +110,7 @@ fi
 # it myself when building Sage!
 
 if [ "x$SUN_COMPILER" = "x1" ] && [ "x$GNU_COMPILER" = "x1" ] ; then
-   echo "You are mixing the Sun and GNU C/C++/Fortran compilers"
+   echo "You are mixing the Sun and GNU C/C++/Fortran compilers."
    echo "Such a combination will lead to problems."
    echo "Check CC, CXX & SAGE_FORTRAN carefully."
    echo "Exiting ..."
@@ -123,12 +123,12 @@ echo "Using CXX=$CXX"
 echo "Using FC=$FC"
 echo "Using F77=$F77"
 
-# Used by Sage in connection with Fortran
+# Used by Sage in connection with Fortran.
 echo "Using SAGE_FORTRAN=$SAGE_FORTRAN"
 echo "Using SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB"
 
 # Flags which may be set.
-echo "The following environment variables will be exported"
+echo "The following environment variables will be exported."
 echo "Using CFLAGS=$CFLAGS"
 echo "Using CXXFLAGS=$CXXFLAGS"
 echo "Using FCFLAGS=$FCFLAGS"
@@ -160,11 +160,10 @@ OVERWRITE_READLINE=false; export OVERWRITE_READLINE
 
 # First we check for OpenSUSE 11.1 since bash is linked dynamically with a
 # readline that breaks when we build Sage's readline, so we work around this
-# for now
-
+# for now.
 
 if [ -f /etc/SuSE-release ]; then
-    if [ `grep 11.1 /etc/SuSE-release > /dev/null; echo $?` == 0 ]; then
+    if [ `grep 11.1 /etc/SuSE-release > /dev/null; echo $?` -eq 0 ]; then
         echo "OpenSUSE 11.1 detected"
         if [ -d /usr/include/readline/ ]; then
             echo "The development version of libreadline is installed -> copying"
@@ -176,8 +175,9 @@ if [ -f /etc/SuSE-release ]; then
             cp -r /usr/include/readline  $SAGE_LOCAL/include
             exit 0
         else
-            echo "No headers found, building library"
-            OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
+            echo "No headers found, building library."
+	    # # This variable is only set to "true" on openSUSE 11.1.
+            # OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
         fi
     fi
 fi
@@ -212,15 +212,16 @@ else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
 fi
 
-if [ $OVERWRITE_READLINE == "true" ]; then
-  echo "Overwriting libreadline.so.6.0 with the system one"
-  rm -f $SAGE_LOCAL/lib/libreadline.so.6.0
-  if [ `uname -p` = "x86_64" ]; then
-    cp /lib64/libreadline.so.6.0 $SAGE_LOCAL/lib
-  else
-    cp /lib/libreadline.so.6.0 $SAGE_LOCAL/lib
-   fi
-fi
+# # We only enter this block on openSUSE 11.1.
+# if [ $OVERWRITE_READLINE = "true" ]; then
+#   echo "Overwriting libreadline.so.6.0 with the system one."
+#   rm -f $SAGE_LOCAL/lib/libreadline.so.6.0
+#   if [ `uname -p` = "x86_64" ]; then
+#     cp /lib64/libreadline.so.* $SAGE_LOCAL/lib
+#   else
+#     cp /lib/libreadline.so.* $SAGE_LOCAL/lib
+#   fi
+# fi
 
 # Make sure that the install worked, despite whatever the error
 # code of build was.
@@ -237,4 +238,3 @@ else
   echo "Readline's build claims to have finished, but files that should have been built weren't."
   exit 1
 fi
-

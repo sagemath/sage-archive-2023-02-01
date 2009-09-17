@@ -2,7 +2,12 @@
 
 == Description ==
 
-The GNU Readline library provides a set of functions for use by applications that allow users to edit command lines as they are typed in. Both Emacs and vi editing modes are available. The Readline library includes additional functions to maintain a list of previously-entered command lines, to recall and perhaps reedit those lines, and perform csh-like history expansion on previous commands.
+The GNU Readline library provides a set of functions for use by
+applications that allow users to edit command lines as they are typed
+in. Both Emacs and vi editing modes are available. The Readline
+library includes additional functions to maintain a list of
+previously-entered command lines, to recall and perhaps reedit those
+lines, and perform csh-like history expansion on previous commands.
 
 Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
@@ -24,7 +29,8 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Special Update/Build Instructions ==
 
- * Deleted some files from the doc directory from the standard distro, since it took tons of space; didn't delete anything else.
+ * Deleted some files from the doc directory from the standard distro,
+   since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
 === readline-6.0 (William Stein and David Kirkby, Sept 16th, 2009) ===
@@ -33,7 +39,8 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
  * Track #6844 Made a test for /etc/SuSE-release, as the previous spkg-install
    greped on it, which generates a warning if the file does not exist,
    which it will not on most peoples systems.
- * Build 64-bit if SAGE64 is set to 'yes' on any platform (tested on OS X and Solaris SPARC)
+ * Build 64-bit if SAGE64 is set to 'yes' on any platform (tested on
+   OS X and Solaris SPARC)
  * Allow debug information to be removed from file, if
    SAGE_DEBUG is set to 'no', 'false' or '0'
  * Add a check that someone is not mixing the Sun and GNU compilers.

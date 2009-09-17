@@ -1150,6 +1150,12 @@ If this all works, you can then make calls like:
     def _exponent_symbol(self):
         """
         Return the symbol used to denote *10^ in floats, e.g 'e' in 1.5e6
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect('nonexistent_interface', 'fake')._exponent_symbol()
+            'e'
         """
         return 'e'
 

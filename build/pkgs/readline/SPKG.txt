@@ -27,9 +27,19 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
  * Deleted some files from the doc directory from the standard distro, since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
-=== readline-6.0 (William Stein, August 30, 2009) ===
+=== readline-6.0 (William Stein and David Kirkby, Sept 16th, 2009) ===
  * Upgrade to 6.0 (latest upstream)
  * Remove numerous ugly build hacks needed only on OS X for older readline.
+ * Track #6844 Made a test for /etc/SuSE-release, as the previous spkg-install
+   greped on it, which generates a warning if the file does not exist,
+   which it will not on most peoples systems.
+ * Build 64-bit if SAGE64 is set to 'yes' on any platform (tested on OS X and Solaris SPARC)
+ * Allow debug information to be removed from file, if
+   SAGE_DEBUG is set to 'no', 'false' or '0'
+ * Add a check that someone is not mixing the Sun and GNU compilers.
+ * Checks SAGE_FORTRAN_LIB points to a file, if it is set.
+ * Added 'set -e' so script will exit in case of error.
+ * Print variable names (CC, CFLAGS etc) for information and to aid debugging.
 
 === readline-5.2.p7 (Mike Hansen, June 19th, 2009) ===
  * Applied Peter Jeremy's fix from #5874.

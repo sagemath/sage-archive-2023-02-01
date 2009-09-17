@@ -579,7 +579,6 @@ class WordDatatype_iter(WordDatatype):
         # If we reach this point, then we know the length of the word,
         # and that the word is finite.
         self._len = counter
-        from sage.combinat.words.word import FiniteWord_iter
         self.__class__ = self.parent()._element_classes['FiniteWord_iter']
 
     def __getitem__(self, key):
@@ -886,7 +885,6 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
         # If we reach this point, then we know the length of the word,
         # and that the word is finite.
         self._len = len(self._list)
-        from sage.combinat.words.word import FiniteWord_iter_with_caching
         self.__class__ = self.parent()._element_classes['FiniteWord_iter_with_caching']
 
     def __getitem__(self, key):

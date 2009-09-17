@@ -5,9 +5,9 @@ First steps
 -----------
 
 A Graph is a set of vertices connected by edges
-(see `Wikipedia <http://en.wikipedia.org/wiki/Graph_(mathematics)>`_ )
+(see `Wikipedia <http://en.wikipedia.org/wiki/Graph_(mathematics)>`_).
 
-One can very easily create a graph in sage by typing ::
+One can very easily create a graph in sage by typing::
 
     sage: g=Graph()
 
@@ -17,54 +17,51 @@ about it::
     sage: g
     Graph on 0 vertices
 
-This graph is not very interesting as it is by default the empty graph.. But
 Sage contains a large collection of predefined graph classes
-that can be listed this way :
+that can be listed this way:
 
-    * type in Sage : ``graphs.``
-      ( do not press "Enter", and do not forget the final "." )
-    * hit "tabulation" two times in a row
+    1. type in Sage: ``graphs.`` (do not press "Enter", and do not
+       forget the final "."), then
+
+    2. hit the tab key two times in a row
 
 You will see the list of methods defined in the class ``graphs``,
-all of which generate graphs you can play with !
+all of which generate graphs you can play with!
 
-If you want to see what they look like, begin this way ::
+If you want to see what they look like, you can plot the graphs::
 
     sage: g=graphs.PetersenGraph()
     sage: g.plot()
-
-or::
-
     sage: g=graphs.ChvatalGraph()
     sage: g.plot()
 
-If you are curious about what these graphs are, for example
-if you wonder what ``RandomGNP`` actually is, you but have to type ::
+If you are curious about what these graphs are, for example, if you
+wonder what ``RandomGNP`` actually is, use the standard Sage help::
 
     sage: graphs.RandomGNP?
 
 Once you have defined the graph you want, you can begin
-to work on it by using thealmost 200 functions on graphs
-in the Sage library !If your graph is named ``g``, you can
-list these functions as previously this way :
+to work on it by using the hundreds of functions for graphs
+in the Sage library.  If your graph is named ``g``, you can
+list these functions using tab completion:
 
-    * type in Sage : ``g.``
-      ( do not press "Enter", and do not forget the final "." )
-    * hit "tabulation" two times in a row
+    1. type in Sage: ``g.`` (do not press "Enter", and do not forget
+       the final "."), then
+
+    2. hit the tab key two times in a row
 
 As usual, you can get some information about what these
-functions do by typing( if you want to know about the ``diameter()``
-method )::
+functions do by typing (if you want to know about the :meth:`diameter()`
+method)::
 
     sage: g.diameter?
 
-If you have defined a graph ``g`` having several connected
-components ( = which is notconnected... Type ``g.is_connected()``
-to know whether your graph is ), you canprint each one of
-its connected components with only two lines :
+To find out if a graph is connected, use :meth:`is_connected`::
 
-( if you do not have such a graph G, here is one
-for free :  ``g=graphs.RandomGNP(30,.05)``    )::
+   sage: g=graphs.RandomGNP(100, 0.01)
+   sage: g.is_connected()
+
+You can plot each connected component separately::
 
     sage: for component in g.connected_components():
     ...      g.subgraph(component).plot()
@@ -75,37 +72,37 @@ Basic notions
 
 The first elements you want to find in a graph are its vertices
 and its edges. The vertices of a graph ``g`` are returned
-by ``g.vertices()`` and its edges are returned by ``g.edges()``.
+by :meth:`g.vertices` and its edges are returned by :meth:`g.edges`.
 In Sage, the edges of a graph are represented as tuples ``(u,v,l)``
 where ``u`` and ``v`` are vertices, and ``l`` a label attached
-to the edge ( this label can be of any type, even though
-several functions expect it to be a real value ).
+to the edge (this label can be of any type, even though
+several functions expect it to be a real value).
 
-The methods ``g.order()`` and ``g.size()`` respectively return the number
+The methods :meth:`g.order` and :meth:`g.size` respectively return the number
 of vertices and the number of edges.
 
 At any moment, you can display the adjacency matrix of you graph
-by using the method ``g.am()`` and plot the graph with ``g.plot()``.
+by using the method :meth:`g.adjacency_matrix` and plot the graph with :meth:`g.plot`.
 
-What interesting things can you do with Graphs in Sage ?
+What interesting things can you do with Graphs in Sage?
 ---------------------------------------------------------
 
-Computing matching
+Compute maximum matchings
 ^^^^^^^^^^^^^^^^^^^
 
-Maximum Matching a polynomial problem in Graph Theory, and
-have a thousand of different applications. This, just to
-mean that the following list of examples is not (yet?) exhaustive.
+Maximum Matchings, a polynomial problem in Graph Theory, has many
+different applications.  In the subsections that follow, we will look
+at a few of these applications.
 
-For more information on matching :
-`Matching <http://en.wikipedia.org/wiki/Matching>`_
+For more information on matchings, see `Matching
+<http://en.wikipedia.org/wiki/Matching>`_.
 
 Small company
 """"""""""""""""
 
 Let us say that you are in charge of a small company with 4 employees
 `\{e_1,e_2,e_3,e_4\}` and have several tasks `\{t_1,t_2,t_3,t_4\}`
-to give them. Unfortunately, no worker is skilled enough to do all of them :
+to give them. Unfortunately, no worker is skilled enough to do all of them:
 
     * `e_1` can do `t_1, t_3, t_4`
     * `e_2` can do `t_1, t_3, t_5`
@@ -117,10 +114,10 @@ to give them. Unfortunately, no worker is skilled enough to do all of them :
 You are lucky if you do not know how to solve this problem manually,
 because this is typically an application of matching in graphs
 (and if you have found the solution, I assure you it gets harder
-when you have more of them) !
+when you have more of employees).
 
-To solve this problem, you but have to create the graph corresponding
-to the information above, and solve the matching problem :::
+To solve this problem, create the graph corresponding to the
+information above, and solve the matching problem::
 
     sage: g=Graph({"e0":['t1', 't3', 't4'],"e1":['t1', 't3',
             't5'],"e2":['t1', 't2', 't3', 't4', 't5'],
@@ -129,20 +126,20 @@ to the information above, and solve the matching problem :::
     [('e2', 't4', None), ('e3', 't5', None), ('e0', 't3', None),
      ('e1', 't1', None), ('e4', 't2', None)]
 
-If you prefer to "see" the result, you can also type ::
+If you prefer to "see" the result, you can also type::
 
     sage: g.plot(edge_colors={"red":g.max_matching()})
 
-Sage 1 : Pain 0
+Wasn't that simple?
 
 Summer camp
 """"""""""""
 
-You know have under your responsibility 5 rooms and 10 children
-`\{c_0,...,c_9\}`. You need to decide those of them who will
+You know have under your responsibility five rooms and ten children
+`\{c_0,...,c_9\}`. You need to decide which of them will
 sleep in the same rooms, but you do not want two of them to be
 together if they do not like each other or if you expect trouble
-from the pair... Here are the constraints :
+from the pair. Here are the constraints:
 
     * `c_0` can sleep with `c_5`
     * `c_1` can sleep with `c_5, c_8`
@@ -153,9 +150,8 @@ from the pair... Here are the constraints :
     * `c_6` can sleep with `c_7, c_9`
     * `c_7` can sleep with `c_9`
 
-As previously, this defines a graph whose adjacency matrix has
-just been defined ! You now but have to create it in Sage, and
-look for a maximum matching...::
+As done previously, this defines a graph. Now create it in Sage, and
+ask for a maximum matching::
 
     sage: g=Graph({'c0':['c5'],'c1':['c5', 'c8'],'c2':['c3',
             'c8', 'c9'],'c3':['c9'],'c4':['c9'],'c5':['c9'],
@@ -164,21 +160,19 @@ look for a maximum matching...::
     [('c0', 'c5', None), ('c6', 'c7', None), ('c2', 'c3', None),
      ('c4', 'c9', None), ('c1', 'c8', None)]
 
-If you prefer to "see" the result, you can also type ::
+If you prefer to "see" the result, you can also type::
 
     sage: g.plot(edge_colors={"red":g.max_matching()})
 
-And this is another problem Sage solved for you !
-
-
+And this is another problem Sage solved for you!
 
 Vertex coloring
 ^^^^^^^^^^^^^^^
 
 You are in front of a map of Western Europe that you would like
 to color. Obviously, you can not color both France and Italy
-with the same color as they have a common boundary, and you would
-not like to mix the two.. Actually, you want to color :
+with the same color, as they have a common boundary, and you would
+not like to mix the two. Actually, you want to color:
 
     * Austria
     * Belgium
@@ -194,13 +188,13 @@ not like to mix the two.. Actually, you want to color :
     * United Kingdom
 
 And would like to know how many colors you need, and how to color
-them. Well, as Sage was specially built to help you solve this
-kind of tremendously exciting questions, here is the way to solve them :
+them. Well, as Sage was especially built to help you solve this
+kind of tremendously exciting question, here is the way to solve them:
 
-    * First, create the graph of Western Europe in Sage
-    * Use the ``vertex_coloring()`` method
+    1. Create the graph of Western Europe in Sage
+    2. Use the :meth:`vertex_coloring` method
 
-In Sage ::
+In Sage::
 
     sage: g=Graph({"France":["Italy","Spain","Swiss","Luxembourg","Belgium",
                              "Germany","Austria"],
@@ -216,27 +210,27 @@ In Sage ::
      ['Belgium', 'Swiss'],
      ['Luxembourg', 'Italy']]
 
-You can now look for your pens. 4 of them :-)
+You can now look for your pens---four of them.
 
 For more information on graph
-coloring : `Graph coloring <http://en.wikipedia.org/wiki/Graph_coloring>`_
+coloring, see `Graph coloring <http://en.wikipedia.org/wiki/Graph_coloring>`_.
 
-For more informations on why it could not have required more pens :
-`Four color theorem <http://en.wikipedia.org/wiki/Four_color_theorem>`_
+For more informations on why it could not have required more pens, see the
+`Four color theorem
+<http://en.wikipedia.org/wiki/Four_color_theorem>`_.
 
 Edge coloring
 ^^^^^^^^^^^^^^
 
-You are organizing a soccer tournament ( or table tennis if you
-do not like soccer, but this is not really relevant ), with 10
-different teams that are to play against each other. Besides,
-the teams will play every Wednesday and will not be able to play
-two times the same day. How can you schedule them in such a way
-that the tournament will not last for too long ?
+You are organizing a soccer tournament, with ten different teams that
+are to play against each other. The teams will play every Wednesday
+and will not be able to play two times on the same day. How can you
+schedule them in such a way that the tournament will not last for too
+long?
 
 This is an easy application of the Edge Coloring problem on a
 complete graph. If you number your teams as `1,...,10`, here
-is how you can obtain your scheduling ::
+is how you can obtain your scheduling::
 
     sage: g=graphs.CompleteGraph(10)
     sage: g.edge_coloring()
@@ -250,16 +244,14 @@ is how you can obtain your scheduling ::
      [(0, 5, None), (1, 3, None), (6, 7, None), (2, 4, None), (8, 9, None)],
      [(3, 8, None), (4, 6, None), (1, 9, None), (0, 7, None), (2, 5, None)]]
 
-And each line you see is the set of games being played on a particular
-day. If you prefer to plot the result, try ::
+Each line you see is the set of games being played on a particular
+day. If you prefer to plot the result, try::
 
     sage: g.plot(edge_colors=g.edge_coloring(hex_colors=True))
 
-Pretty, isn´t it ? Each day has its own color.
+Pretty, isn't it? Each day has its own color.
 
-
-
-Two links for more information :
+Two links for more information:
     * `About edge coloring <http://en.wikipedia.org/wiki/Edge_coloring>`_
     * `About the scheduling of tournaments <http://en.wikipedia.org/wiki/Round-robin>`_
 

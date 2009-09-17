@@ -7,9 +7,9 @@ if [ -z "$SAGE_LOCAL" ] ; then
    exit 1
 fi
 
-# Force an exit on all errors. However, not it will be desirable to unset this
-# sometimes, as you might want to test for a particular error and exit with
-# a message. You can't do that with 'set -e'. So use 'set +e' to unset it
+# Force an exit on all errors. However, note it will be desirable to unset
+# this sometimes, as you might want to test for a particular error and exit
+# with a message. You can't do that with 'set -e'. So use 'set +e' to unset it
 
 set -e
 
@@ -21,10 +21,11 @@ if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]  ; then
    FFLAGS="$FFLAGS -m64 "
 fi
 
-# If SAGE_DEBUG is set either unset (the default), set to '1', 'yes',  or 'TRUE'
-# then build with debugging information. Otherwise, don't add debugging information.
+# If SAGE_DEBUG is set either unset (the default), set to '1', 'yes', or 'TRUE'
+# then build with debugging information. Otherwise, don't add debugging
+# information.
 
-# Since both the Sun and GNU compilers accept -g to give debugging information
+# Since both the Sun and GNU compilers accept -g to give debugging information,
 # there is no need to do anything specific to one compiler or the other.
 
 if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "x1" ] ; then
@@ -45,7 +46,7 @@ export CPPFLAGS="$CPPFLAGS -I $SAGE_LOCAL/include"
 
 # There is no Fortran code in sqlite, but if FC is not set, there
 # there are annoying messages showing the use of the GNU fortran compiler
-# even if SAGE_FORTRAN is set to another compiler. This just stops that
+# even if SAGE_FORTRAN is set to another compiler. This just stops that.
 export FC=$SAGE_FORTRAN
 export F77=$SAGE_FORTRAN
 
@@ -94,4 +95,3 @@ if [ $? -ne 0 ]; then
     echo "Error installing sqlite"
     exit 1
 fi
-

@@ -1,5 +1,11 @@
 = SQLite =
 
+SQLite is a software library that implements a self-contained,
+serverless, zero-configuration, transactional SQL database engine.
+
+== Upstream contact ==
+ * URL: http://www.sqlite.org
+
 === sqlite-3.6.17 (David Kirkby, August 16th, 2009) ===
  * Update to the latest upstream source. This compiles without
    any issues on the Sun Studio 12 update 1. Previously
@@ -14,7 +20,7 @@
    to the configure script on sqlite. It appears to work without
    tcl.
  * Changed the code to build with 64-bit to work on any platform, not
-   just Darwin as before. Sets flags for 64-bit whenever SAGE_64 is set to
+   just Darwin as before. Sets flags for 64-bit whenever SAGE64 is set to
    'yes' or '1'.
  * Prints a few messages showing the flags used for compilation.
  * Adds 'set -e' where appropiate and removes it with 'set +e' where

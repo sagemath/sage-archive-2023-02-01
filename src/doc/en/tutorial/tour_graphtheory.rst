@@ -20,10 +20,10 @@ about it::
 Sage contains a large collection of predefined graph classes
 that can be listed this way:
 
-    1. type in Sage: ``graphs.`` (do not press "Enter", and do not
-       forget the final "."), then
+#. type in Sage: ``graphs.`` (do not press "Enter", and do not
+   forget the final "."), then
 
-    2. hit the tab key two times in a row
+#. hit the tab key two times in a row
 
 You will see the list of methods defined in the class ``graphs``,
 all of which generate graphs you can play with!
@@ -45,10 +45,10 @@ to work on it by using the hundreds of functions for graphs
 in the Sage library.  If your graph is named ``g``, you can
 list these functions using tab completion:
 
-    1. type in Sage: ``g.`` (do not press "Enter", and do not forget
-       the final "."), then
+#. type in Sage: ``g.`` (do not press "Enter", and do not forget
+   the final "."), then
 
-    2. hit the tab key two times in a row
+#. hit the tab key two times in a row
 
 As usual, you can get some information about what these
 functions do by typing (if you want to know about the :meth:`diameter()`
@@ -81,14 +81,15 @@ several functions expect it to be a real value).
 The methods :meth:`g.order` and :meth:`g.size` respectively return the number
 of vertices and the number of edges.
 
-At any moment, you can display the adjacency matrix of you graph
-by using the method :meth:`g.adjacency_matrix` and plot the graph with :meth:`g.plot`.
+At any moment, you can display the adjacency matrix of your graph
+by using the method :meth:`g.adjacency_matrix` and plot the graph with
+:meth:`g.plot`.
 
 What interesting things can you do with Graphs in Sage?
----------------------------------------------------------
+-------------------------------------------------------
 
 Compute maximum matchings
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Maximum Matchings, a polynomial problem in Graph Theory, has many
 different applications.  In the subsections that follow, we will look
@@ -98,23 +99,22 @@ For more information on matchings, see `Matching
 <http://en.wikipedia.org/wiki/Matching>`_.
 
 Small company
-""""""""""""""""
+"""""""""""""
 
 Let us say that you are in charge of a small company with 4 employees
 `\{e_1,e_2,e_3,e_4\}` and have several tasks `\{t_1,t_2,t_3,t_4\}`
 to give them. Unfortunately, no worker is skilled enough to do all of them:
 
-    * `e_1` can do `t_1, t_3, t_4`
-    * `e_2` can do `t_1, t_3, t_5`
-    * `e_3` can do `t_1, t_2, t_3, t_4, t_5`
-    * `e_4` can do `t_4, t_5`
-    * `e_5` can do `t_2, t_4`
-
+* `e_1` can do `t_1, t_3, t_4`
+* `e_2` can do `t_1, t_3, t_5`
+* `e_3` can do `t_1, t_2, t_3, t_4, t_5`
+* `e_4` can do `t_4, t_5`
+* `e_5` can do `t_2, t_4`
 
 You are lucky if you do not know how to solve this problem manually,
 because this is typically an application of matching in graphs
 (and if you have found the solution, I assure you it gets harder
-when you have more of employees).
+when you have more employees).
 
 To solve this problem, create the graph corresponding to the
 information above, and solve the matching problem::
@@ -133,22 +133,22 @@ If you prefer to "see" the result, you can also type::
 Wasn't that simple?
 
 Summer camp
-""""""""""""
+"""""""""""
 
-You know have under your responsibility five rooms and ten children
-`\{c_0,...,c_9\}`. You need to decide which of them will
+You now have under your responsibility five rooms and ten children
+`\{c_0, \dots ,c_9\}`. You need to decide which of them will
 sleep in the same rooms, but you do not want two of them to be
 together if they do not like each other or if you expect trouble
 from the pair. Here are the constraints:
 
-    * `c_0` can sleep with `c_5`
-    * `c_1` can sleep with `c_5, c_8`
-    * `c_2` can sleep with `c_3, c_8, c_9`
-    * `c_3` can sleep with `c_9`
-    * `c_4` can sleep with `c_9`
-    * `c_5` can sleep with `c_9`
-    * `c_6` can sleep with `c_7, c_9`
-    * `c_7` can sleep with `c_9`
+* `c_0` can sleep with `c_5`
+* `c_1` can sleep with `c_5, c_8`
+* `c_2` can sleep with `c_3, c_8, c_9`
+* `c_3` can sleep with `c_9`
+* `c_4` can sleep with `c_9`
+* `c_5` can sleep with `c_9`
+* `c_6` can sleep with `c_7, c_9`
+* `c_7` can sleep with `c_9`
 
 As done previously, this defines a graph. Now create it in Sage, and
 ask for a maximum matching::
@@ -174,25 +174,25 @@ to color. Obviously, you can not color both France and Italy
 with the same color, as they have a common boundary, and you would
 not like to mix the two. Actually, you want to color:
 
-    * Austria
-    * Belgium
-    * France
-    * Germany
-    * Ireland
-    * Italy
-    * Luxembourg
-    * Netherlands
-    * Portugal
-    * Spain
-    * Swiss
-    * United Kingdom
+* Austria
+* Belgium
+* France
+* Germany
+* Ireland
+* Italy
+* Luxembourg
+* Netherlands
+* Portugal
+* Spain
+* Swiss
+* United Kingdom
 
 And would like to know how many colors you need, and how to color
 them. Well, as Sage was especially built to help you solve this
 kind of tremendously exciting question, here is the way to solve them:
 
-    1. Create the graph of Western Europe in Sage
-    2. Use the :meth:`vertex_coloring` method
+#. Create the graph of Western Europe in Sage.
+#. Use the :meth:`vertex_coloring` method.
 
 In Sage::
 
@@ -215,12 +215,12 @@ You can now look for your pens---four of them.
 For more information on graph
 coloring, see `Graph coloring <http://en.wikipedia.org/wiki/Graph_coloring>`_.
 
-For more informations on why it could not have required more pens, see the
+For more information on why it could not have required more pens, see the
 `Four color theorem
 <http://en.wikipedia.org/wiki/Four_color_theorem>`_.
 
 Edge coloring
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 You are organizing a soccer tournament, with ten different teams that
 are to play against each other. The teams will play every Wednesday
@@ -229,7 +229,7 @@ schedule them in such a way that the tournament will not last for too
 long?
 
 This is an easy application of the Edge Coloring problem on a
-complete graph. If you number your teams as `1,...,10`, here
+complete graph. If you number your teams as `1, \dots,10`, here
 is how you can obtain your scheduling::
 
     sage: g=graphs.CompleteGraph(10)
@@ -252,8 +252,6 @@ day. If you prefer to plot the result, try::
 Pretty, isn't it? Each day has its own color.
 
 Two links for more information:
-    * `About edge coloring <http://en.wikipedia.org/wiki/Edge_coloring>`_
-    * `About the scheduling of tournaments <http://en.wikipedia.org/wiki/Round-robin>`_
 
-
-
+* `About edge coloring <http://en.wikipedia.org/wiki/Edge_coloring>`_
+* `About the scheduling of tournaments <http://en.wikipedia.org/wiki/Round-robin>`_

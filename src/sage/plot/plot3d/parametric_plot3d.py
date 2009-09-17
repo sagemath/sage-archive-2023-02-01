@@ -6,6 +6,7 @@ from parametric_surface import ParametricSurface
 from shapes2 import line3d
 from texture import Texture
 from sage.plot.misc import ensure_subs
+from sage.structure.element import is_Vector
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
@@ -39,7 +40,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
     INPUT:
 
 
-    -  ``f`` - a 3-tuple of functions or expressions
+    -  ``f`` - a 3-tuple of functions or expressions, or vector of size 3
 
     -  ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
        (u, u_min, u_max)
@@ -153,6 +154,15 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: u, v = var('u,v')
         sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, pi), (v, 0, pi), \
         ...                     boundary_style={"color": "black", "thickness": 2})
+
+    We can plot vectors::
+        sage: x,y=var('x,y')
+        sage: parametric_plot3d(vector([x-y,x*y,x*cos(y)]), (x,0,2), (y,0,2))
+        sage: t=var('t')
+        sage: p=vector([1,2,3])
+        sage: q=vector([2,-1,2])
+        sage: parametric_plot3d(p*t+q, (t, 0, 2))
+
 
     Any options you would normally use to specify the appearance of a curve are
     valid as entries in the boundary_style dict.
@@ -467,6 +477,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
         sage: x, y = var('x,y')
         sage: plot3d(x*y^2 - sin(x), (x,-1,1), (y,-1,1))
+
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -485,27 +496,30 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
     # mesh_shading -- (default: None) how to shade regions between mesh divisions
     # plot_range -- (default: "automatic") range of values to include
 
+    if is_Vector(f):
+        f = tuple(f)
+
     if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
         return sum([parametric_plot3d(v, urange, vrange, plot_points, **kwds) for v in f])
 
     if not isinstance(f, (tuple, list)) or len(f) != 3:
-        raise ValueError, "f must be a list or tuple of length 3"
+        raise ValueError, "f must be a list, tuple, or vector of length 3"
 
     if vrange is None:
         if plot_points == "automatic":
             plot_points = 75
-        G = parametric_plot3d_curve(f, urange, plot_points, **kwds)
+        G = _parametric_plot3d_curve(f, urange, plot_points, **kwds)
     else:
         if urange[0] is vrange[0]:
             raise ValueError, "plot variables should be distinct, but both are %s."%(urange[0],)
 
         if plot_points == "automatic":
             plot_points = [40,40]
-        G = parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds)
+        G = _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds)
     G._set_extra_kwds(kwds)
     return G
 
-def parametric_plot3d_curve(f, urange, plot_points, **kwds):
+def _parametric_plot3d_curve(f, urange, plot_points, **kwds):
     r"""
     This function is used internally by the
     ``parametric_plot3d`` command.
@@ -546,7 +560,7 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
         print "WARNING: Failed to evaluate parametric plot at %s points"%fail
     return line3d(w, **kwds)
 
-def parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds):
+def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds):
     r"""
     This function is used internally by the
     ``parametric_plot3d`` command.

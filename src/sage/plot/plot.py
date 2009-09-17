@@ -2389,6 +2389,12 @@ def plot(funcs, *args, **kwds):
 
     original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)
+
+    from sage.structure.element import is_Vector
+    if kwds.get('parametric',False) and is_Vector(funcs):
+        funcs = tuple(funcs)
+
+
     if hasattr(funcs, 'plot'):
         G = funcs.plot(*args, **original_opts)
     # if we are using the generic plotting method
@@ -2612,7 +2618,7 @@ def parametric_plot(funcs, *args, **kwargs):
     INPUT:
 
 
-    -  ``funcs`` - 2 or 3-tuple of functions
+    -  ``funcs`` - 2 or 3-tuple of functions, or a vector of dimension 2 or 3.
 
     -  ``other options`` - passed to plot or parametric_plot3d
 
@@ -2637,6 +2643,10 @@ def parametric_plot(funcs, *args, **kwargs):
 
         sage: y=var('y')
         sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
+
+        sage: t=var('t')
+        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green')
+        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1))
 
     TESTS::
 

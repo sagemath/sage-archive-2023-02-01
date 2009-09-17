@@ -394,7 +394,7 @@ class LatticePolytopeClass(SageObject):
                 self._vertices = read_palp_matrix(self.poly_x("v"))
             else:
                 if copy_vertices:
-                    self._vertices = data.copy()
+                    self._vertices = data.__copy__()
                 else:
                     self._vertices = data
             self._vertices.set_immutable()

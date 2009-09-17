@@ -51,7 +51,7 @@ cdef class Transformation:
             self._matrix_data[i] = m_data[i]
 
     def get_matrix(self):
-        return self.matrix.copy()
+        return self.matrix.__copy__()
 
     def is_skew(self, eps=1e-5):
         dx, dy, dz = self.matrix[0:3, 0:3].columns()

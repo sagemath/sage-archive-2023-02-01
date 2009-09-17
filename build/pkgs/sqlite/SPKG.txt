@@ -1,5 +1,27 @@
 = SQLite =
 
+=== sqlite-3.6.17 (David Kirkby, August 16th, 2009) ===
+ * Update to the latest upstream source. This compiles without
+   any issues on the Sun Studio 12 update 1. Previously
+   sqlite needed to be hacked to even build with gcc on
+   Solaris.
+ * Remove Solaris specific hacks previously added, as they
+   are no longer needed.
+ * Added CPPFLAGS="$CPPFLAGS -I $SAGE_LOCAL/include"
+   and exported that, as it failed to find the header files
+   otherwise.
+ * Removed the without-tcl option, as this is no longer an option
+   to the configure script on sqlite. It appears to work without
+   tcl.
+ * Changed the code to build with 64-bit to work on any platform, not
+   just Darwin as before. Sets flags for 64-bit whenever SAGE_64 is set to
+   'yes' or '1'.
+ * Prints a few messages showing the flags used for compilation.
+ * Adds 'set -e' where appropiate and removes it with 'set +e' where
+   appropiate. This should catch more errors.
+ * Adds debugging information by default, but it can be removed by setting
+   SAGE_DEBUG to 'no' or '0'
+
 === sqlite-3.5.3.p4 (David Kirkby, June 13th, 2009) ===
  * Fixed a bug that prevented sqlite building on the Sun T5240
  t2.math.washington.edu running Solaris 10 update 4 with gcc version

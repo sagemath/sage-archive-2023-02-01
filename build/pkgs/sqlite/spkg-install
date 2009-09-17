@@ -1,16 +1,54 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    echo "Maybe run 'sage -sh'?"
-    exit 1
+
+if [ -z "$SAGE_LOCAL" ] ; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-    echo "64 bit MacIntel"
-    CFLAGS="-O2 -g -m64 "; export CFLAGS
-    CXXFLAGS="-O2 -g -m64 "; export CXXFLAGS
+# Force an exit on all errors. However, not it will be desirable to unset this
+# sometimes, as you might want to test for a particular error and exit with
+# a message. You can't do that with 'set -e'. So use 'set +e' to unset it
+
+set -e
+
+
+# Compile for 64-bit if SAGE64 is set to 'yes' or '1'
+if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]  ; then
+   CFLAGS="$CFLAGS -m64 "
+   CXXFLAGS="$CXXFLAGS -m64 "
+   FFLAGS="$FFLAGS -m64 "
 fi
+
+# If SAGE_DEBUG is set either unset (the default), set to '1', 'yes',  or 'TRUE'
+# then build with debugging information. Otherwise, don't add debugging information.
+
+# Since both the Sun and GNU compilers accept -g to give debugging information
+# there is no need to do anything specific to one compiler or the other.
+
+if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "x1" ] ; then
+  echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to '0' if you don't want that."
+  CFLAGS="$CFLAGS -g "
+  CXXFLAGS="$CXXFLAGS -g "
+  FFLAGS="$FFLAGS -g "
+elif [ "x$SAGE_DEBUG" = "xyes" ] || [ "x$SAGE_DEBUG" = "xTRUE" ] ; then
+  echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to '0' if you don't want that."
+  CFLAGS="$CFLAGS -g "
+  CXXFLAGS="$CXXFLAGS -g "
+  FFLAGS="$FFLAGS -g "
+fi
+
+export CFLAGS="$CFLAGS -O2 "
+export CXXFLAGS="$CXXFLAGS -O2 "
+export CPPFLAGS="$CPPFLAGS -I $SAGE_LOCAL/include"
+
+# There is no Fortran code in sqlite, but if FC is not set, there
+# there are annoying messages showing the use of the GNU fortran compiler
+# even if SAGE_FORTRAN is set to another compiler. This just stops that
+export FC=$SAGE_FORTRAN
+export F77=$SAGE_FORTRAN
+
 
 if [ $UNAME = "CYGWIN" ]; then
     # Replace the makefile with a new makefile whose install: target
@@ -21,19 +59,26 @@ fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --disable-tcl
+echo "Building sqlite using CC=$CC"
+echo "                      CCX=$CXX"
+echo "                      SAGE_FORTRAN=$SAGE_FORTRAN"
+echo "                      F77=$F77"
+echo "                      FC=$FC"
+echo "                      CFLAGS=$CFLAGS"
+echo "                      CXXFLAGS=$CXXFLAGS"
+echo "                      FFLAGS=$FFLAGS"
+echo "                      CPPFLAGS=$CPPFLAGS"
+
+# Disable exit on error, since the necessary checks for errors
+# are below.
+
+set +e
+
+./configure --prefix="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring sqlite"
     exit 1
-fi
-
-if [ `uname` = "SunOS" ]; then
-   # Linking libpthread is not necessary in Solaris 10
-   # as all the functionality is in libc. Due to what is probably a libtool
-   # bug, it is necessary to avoid linking libpthread in Solaris.
-   sed 's/LIBPTHREAD=-lpthread/LIBPTHREAD=/g' Makefile > Makefile.no_pthread
-   mv Makefile.no_pthread  Makefile
 fi
 
 make

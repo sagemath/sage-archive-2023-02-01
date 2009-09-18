@@ -770,7 +770,9 @@ cdef class BooleanFunction(SageObject):
         """
         Return (if it exists) an annihilator of the boolean function of degree at most `d`, that is a Boolean polynomial `g` such that
 
-        .. math:: f(x)g(x) = 0 \forall x.
+        .. math:
+
+            f(x)g(x) = 0 \forall x.
 
         INPUT:
 

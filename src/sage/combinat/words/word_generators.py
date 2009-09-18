@@ -34,6 +34,7 @@ EXAMPLES::
 #*****************************************************************************
 from itertools import cycle, count
 from random import randint
+from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
 from sage.rings.infinity import Infinity
@@ -274,8 +275,11 @@ class WordGenerator(object):
 
     TESTS::
 
-        sage: type(loads(dumps(words)))
+        sage: from sage.combinat.words.word_generators import WordGenerator
+        sage: MyWordBank = WordGenerator()
+        sage: type(loads(dumps(MyWordBank)))
         <class 'sage.combinat.words.word_generators.WordGenerator'>
+
     """
 
     def ThueMorseWord(self, alphabet=(0, 1), base=2):
@@ -986,5 +990,110 @@ class WordGenerator(object):
         w = words.LowerChristoffelWord(p, q, alphabet=alphabet).reversal()
         w.rename("Upper Christoffel word of slope %s/%s over %s" % (p, q, w.parent().alphabet()))
         return w
+
+    @cached_method
+    def _fibonacci_tile(self, n, q_0=None, q_1=3):
+        r"""
+        Returns the word `q_n` defined by the recurrence below.
+
+        The sequence `(q_n)_{n\in\NN}` is defined by `q_0=\varepsilon`,
+        `q_1=3` and `q_n = \begin{cases}
+            q_{n-1}q_{n-2}       & \mbox{if $n\equiv 2 \mod 3$,} \\
+            q_{n-1}\bar{q_{n-2}} & \mbox{if $n\equiv 0,1 \mod 3$.}
+        \end{cases}` where the operator `\bar{\,}` exchanges the `1` and `3`.
+
+        INPUT:
+
+        - ``n`` - non negative integer
+        - ``q_0`` - first initial value (default: None) It can be None, 0, 1,
+          2 or 3.
+        - ``q_1`` - second initial value (default: 3) It can be None, 0, 1, 2
+          or 3.
+
+        EXAMPLES::
+
+            sage: for i in range(10): words._fibonacci_tile(i)
+            word:
+            word: 3
+            word: 3
+            word: 31
+            word: 311
+            word: 31131
+            word: 31131133
+            word: 3113113313313
+            word: 311311331331331131133
+            word: 3113113313313311311331331331131131
+
+        REFERENCES:
+
+        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
+
+        """
+        from sage.combinat.words.all import Words, WordMorphism
+        W = Words([0,1,2,3])
+        bar = WordMorphism({0:0,1:3,3:1,2:2},codomain=W)
+        if n==0:
+            a = [] if q_0 is None else [q_0]
+            return W(a)
+        elif n==1:
+            b = [] if q_1 is None else [q_1]
+            return W(b)
+        elif n%3 == 2:
+            u = self._fibonacci_tile(n-1,q_0,q_1)
+            v = self._fibonacci_tile(n-2,q_0,q_1)
+            return u * v
+        else:
+            u = self._fibonacci_tile(n-1,q_0,q_1)
+            v = bar(self._fibonacci_tile(n-2,q_0,q_1))
+            return u * v
+
+    def fibonacci_tile(self, n):
+        r"""
+        Returns the n-th Fibonacci Tile [1].
+
+        EXAMPLES::
+
+            sage: for i in range(3): words.fibonacci_tile(i)
+            Path: 3210
+            Path: 323030101212
+            Path: 3230301030323212323032321210121232121010...
+
+        REFERENCES:
+
+        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
+        """
+        w = self._fibonacci_tile(3*n+1)
+        w = w**4
+        from sage.combinat.words.paths import WordPaths
+        P = WordPaths([0,1,2,3])
+        l = list(w.partial_sums(start=3,mod=4))
+        return P(l)[:-1]
+
+    def dual_fibonacci_tile(self, n):
+        r"""
+        Returns the n-th dual Fibonacci Tile [1].
+
+        EXAMPLES::
+
+            sage: for i in range(4): words.dual_fibonacci_tile(i)
+            Path: 3210
+            Path: 32123032301030121012
+            Path: 3212303230103230321232101232123032123210...
+            Path: 3212303230103230321232101232123032123210...
+
+        REFERENCES:
+
+        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
+        """
+        w = self._fibonacci_tile(3*n+1,3,3)
+        w = w**4
+        from sage.combinat.words.paths import WordPaths
+        P = WordPaths([0,1,2,3])
+        l = list(w.partial_sums(start=3,mod=4))
+        return P(l)[:-1]
+
 
 words = WordGenerator()

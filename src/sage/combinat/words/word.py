@@ -203,11 +203,10 @@ from itertools import tee, islice, ifilter, ifilterfalse, imap, izip, \
                       starmap, count, dropwhile, chain, cycle, groupby
 from sage.structure.sage_object import SageObject
 from sage.sets.set import Set, is_Set
-from sage.rings.infinity import Infinity
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
+from sage.rings.all import Integer, Integers, Infinity, ZZ
 from sage.misc.latex import latex
 from sage.combinat.words.words import Words, Words_all
+from sage.combinat.words.word_content import WordContent
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.permutation import Permutation, Permutation_class
@@ -667,12 +666,18 @@ class Word_class(SageObject):
         except StopIteration:
             return True
 
-    def _to_integer_iterator(self):
+    def _to_integer_iterator(self, use_parent_alphabet=False):
         r"""
-        Returns an iterator that iterators over the letters of an integer
-        representation of self. The first letter occurring in self is
-        mapped to zero, and every letter that hasn't yet occurred in the
-        word is mapped to the next available integer.
+        Returns an iterator over the letters of an integer representation of
+        self.
+
+        INPUT:
+
+        - ``use_parent_alphabet`` - Bool (default: False). When True and if
+          the self parent's alphabet is finite, it uses the index of
+          the letters in the alphabet. Otherwise, the first letter occurring in
+          self is mapped to zero, and every letter that hasn't yet occurred in
+          the word is mapped to the next available integer.
 
         EXAMPLES::
 
@@ -685,14 +690,34 @@ class Word_class(SageObject):
             sage: ir = w._to_integer_iterator()
             sage: list(ir)
             [0, 1, 1, 0, 2, 0, 1, 1, 0]
+
+        ::
+
+            sage: w = Words('abc')('abbccc')
+            sage: list(w._to_integer_iterator(True))
+            [0, 1, 1, 2, 2, 2]
+            sage: w = Words('acb')('abbccc')
+            sage: list(w._to_integer_iterator(True))
+            [0, 2, 2, 1, 1, 1]
+            sage: w = Words('xabc')('abbccc')
+            sage: list(w._to_integer_iterator(True))
+            [1, 2, 2, 3, 3, 3]
         """
-        mapping = {}
-        next_value = 0
-        for letter in self:
-            if not(letter in mapping):
-                mapping[letter] = next_value
-                next_value += 1
-            yield mapping[letter]
+        from sage.combinat.words.words import Words_over_Alphabet
+        if use_parent_alphabet and\
+           isinstance(self.parent(), Words_over_Alphabet):
+            A = self.parent().alphabet()
+            for letter in self:
+                yield A.rank(letter)
+
+        else:
+            mapping = {}
+            next_value = 0
+            for letter in self:
+                if not(letter in mapping):
+                    mapping[letter] = next_value
+                    next_value += 1
+                yield mapping[letter]
 
     def to_integer_word(self):
         r"""
@@ -1033,6 +1058,210 @@ class Word_class(SageObject):
         from sage.misc.misc import deprecation
         deprecation("alphabet() is deprecated, use parent().alphabet() instead")
         return self.parent().alphabet()
+
+    def _partial_sums_iterator(self, start, mod=None):
+        r"""
+        Iterator over the partial sums of the prefixes of self.
+
+        INPUT:
+
+        - ``self`` - A word over the integers.
+        - ``start`` - integer, the first letter of the resulting word.
+        - ``mod`` - (default: None) It can be one of the following:
+            - None or 0 : result is over the integers
+            - integer : result is over the integers modulo ``mod``.
+
+        EXAMPLES::
+
+            sage: w = Word(range(8))
+            sage: list(w._partial_sums_iterator(0, mod=10))
+            [0, 0, 1, 3, 6, 0, 5, 1, 8]
+
+        ::
+
+            sage: w = Word([1,1,1,1,1,1,1,1,1,1,1,1])
+            sage: list(w._partial_sums_iterator(0, mod=10))
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2]
+
+        ::
+
+            sage: w = Word([1,1,1,1,1,1,1,1,1,1,1,1])
+            sage: list(w._partial_sums_iterator(0))
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+        """
+        if mod in (None, 0):
+            sum = start
+
+        elif mod in ZZ:
+            Zn = Integers(mod)
+            sum = Zn(start)
+
+        else:
+            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+
+        yield sum
+        for letter in self:
+            sum += letter
+            yield sum
+
+    def partial_sums(self, start, mod=None):
+        r"""
+        Returns the word defined by the partial sums of its prefixes.
+
+        INPUT:
+
+        - ``self`` - A word over the integers.
+        - ``start`` - integer, the first letter of the resulting word.
+        - ``mod`` - (default: None) It can be one of the following:
+            - None or 0 : result is over the integers
+            - integer : result is over the integers modulo ``mod``.
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: w.partial_sums(0)
+            word: 0,0,1,3,6,10,15,21,28,36,45
+            sage: w.partial_sums(1)
+            word: 1,1,2,4,7,11,16,22,29,37,46
+
+        ::
+
+            sage: w = Word([1,2,3,1,2,3,2,2,2,2])
+            sage: w.partial_sums(0, mod=None)
+            word: 0,1,3,6,7,9,12,14,16,18,20
+            sage: w.partial_sums(0, mod=0)
+            word: 0,1,3,6,7,9,12,14,16,18,20
+            sage: w.partial_sums(0, mod=8)
+            word: 01367146024
+            sage: w.partial_sums(0, mod=4)
+            word: 01323102020
+            sage: w.partial_sums(0, mod=2)
+            word: 01101100000
+            sage: w.partial_sums(0, mod=1)
+            word: 00000000000
+        """
+        it = self._partial_sums_iterator(start=start, mod=mod)
+
+        if mod in (None, 0):
+            alphabet = None
+        elif mod in ZZ:
+            alphabet = Integers(mod)
+
+        return Word(it, alphabet=alphabet, length="unknown")
+
+    def _finite_differences_iterator(self, mod=None):
+        r"""
+        Iterator over the diffences of consecutive letters of self.
+
+        INPUT:
+
+        - ``self`` - A word over the integers.
+        - ``mod`` - (default: None) It can be one of the following:
+            - None or 0 : result is over the integers
+            - integer : result is over the integers modulo ``mod``.
+
+        EXAMPLES::
+
+            sage: w = Word(x^2 for x in range(10))
+            sage: list(w._finite_differences_iterator())
+            [1, 3, 5, 7, 9, 11, 13, 15, 17]
+
+        ::
+
+            sage: w = Word([1,6,8,4,2,6,8,2,3])
+            sage: list(w._finite_differences_iterator())
+            [5, 2, -4, -2, 4, 2, -6, 1]
+            sage: list(w._finite_differences_iterator(4))
+            [1, 2, 0, 2, 0, 2, 2, 1]
+            sage: list(w._finite_differences_iterator(5))
+            [0, 2, 1, 3, 4, 2, 4, 1]
+
+        TESTS::
+
+            sage: w = Word([2,3,6])
+            sage: list(w._finite_differences_iterator())
+            [1, 3]
+            sage: w = Word([2,6])
+            sage: list(w._finite_differences_iterator())
+            [4]
+            sage: w = Word([2])
+            sage: list(w._finite_differences_iterator())
+            []
+            sage: w = Word()
+            sage: list(w._finite_differences_iterator())
+            []
+
+        ::
+
+            sage: list(w._finite_differences_iterator('a'))
+            Traceback (most recent call last):
+            ...
+            TypeError: mod(=a) must be None or an integer
+        """
+        if mod in (None, 0):
+            i = iter(self)
+            j = iter(self)
+            j.next()
+            while True:
+                yield j.next() - i.next()
+
+        elif mod in ZZ:
+            Zn = Integers(mod)
+            i = iter(self)
+            j = iter(self)
+            j.next()
+            while True:
+                yield Zn(j.next() - i.next())
+
+        else:
+            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+
+    def finite_differences(self, mod=None):
+        r"""
+        Returns the word obtained by the diffences of consecutive letters
+        of self.
+
+        INPUT:
+
+        - ``self`` - A word over the integers.
+        - ``mod`` - (default: None) It can be one of the following:
+            - None or 0 : result is over the integers
+            - integer : result is over the integers modulo ``mod``.
+
+        EXAMPLES::
+
+            sage: w = Word([x^2 for x in range(10)])
+            sage: w.finite_differences()
+            word: 1,3,5,7,9,11,13,15,17
+            sage: w.finite_differences(mod=4)
+            word: 131313131
+            sage: w.finite_differences(mod=0)
+            word: 1,3,5,7,9,11,13,15,17
+
+        TESTS::
+
+            sage: w = Word([2,3,6])
+            sage: w.finite_differences()
+            word: 13
+            sage: w = Word([2,6])
+            sage: w.finite_differences()
+            word: 4
+            sage: w = Word([2])
+            sage: w.finite_differences()
+            word:
+            sage: w = Word()
+            sage: w.finite_differences()
+            word:
+        """
+        it = self._finite_differences_iterator(mod=mod)
+
+        if mod in (None, 0):
+            alphabet = None
+        elif mod in ZZ:
+            alphabet = Integers(mod)
+
+        return Word(it, alphabet=alphabet, length="unknown")
 
 class FiniteWord_class(Word_class):
     def __str__(self):

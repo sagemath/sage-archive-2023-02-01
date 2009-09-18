@@ -8,6 +8,7 @@ Words
    ../sage/combinat/words/shuffle_product
    ../sage/combinat/words/suffix_trees
    ../sage/combinat/words/morphism
+   ../sage/combinat/words/paths
    ../sage/combinat/words/word
    ../sage/combinat/words/word_content
    ../sage/combinat/words/word_generators

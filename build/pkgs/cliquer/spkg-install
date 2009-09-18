@@ -24,6 +24,8 @@ CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include "
 LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib "
 
 # Compile for 64-bit if SAGE64 is set to 'yes' or '1'.
+# On 64-bit hardware, we don't need to set this variable to true. A
+# 64-bit cliquer library would be built on such platform.
 if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]; then
     echo "Building a 64-bit version of cliquer"
     CFLAGS="$CFLAGS -m64 "
@@ -33,13 +35,13 @@ if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]; then
     # Some packages may need LDFLAGS and/or ABI set here.
     LDFLAGS="$LDFLAGS -m64 "
     # ABI=64
-else
-    echo "Building a 32-bit version of cliquer"
+# else
+#     echo "Building a 32-bit version of cliquer"
 fi
 
 # If SAGE_DEBUG is set either unset (the default), or set to  'yes'
 # add debugging information.
-# Since both the Sun and GNU compilers accept -g to give debugging information
+# Since both the Sun and GNU compilers accept -g to give debugging information,
 # there is no need to do anything specific to one compiler or the other.
 
 if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
@@ -65,7 +67,7 @@ if "$CC" -flags > /dev/null 2>&1 ; then
     # The Sun compilers are fussy, and adding extra
     # warnings will just show too many.
 else
-    # Assume gcc if not the Sun C compiler.
+    # Assume GCC if not the Sun C compiler.
     # Add -Wall to show all warnings.
     CFLAGS="$CFLAGS -Wall -fomit-frame-pointer -funroll-loops -c -fPIC "
     CXXFLAGS="$CXXFLAGS -Wall "
@@ -99,7 +101,7 @@ set -e
 # SAGE_FORTRAN_LIB does not always need to be defined, but if it is defined,
 # then the file should exist.
 
-if [ -n "$SAGE_FORTRAN_LIB" ] &&  [ ! -e "$SAGE_FORTRAN_LIB" ]; then
+if [ -n "$SAGE_FORTRAN_LIB" ] && [ ! -e "$SAGE_FORTRAN_LIB" ]; then
     echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist"
     exit 1
 fi
@@ -154,13 +156,18 @@ export ABI
 # Flags for building a dynamically linked shared object.
 SAGESOFLAGS=" "
 if [ `uname` = "Linux" ]; then
-    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so" && export SAGESOFLAGS
-fi
-if [ `uname` = "Darwin" ]; then
-    SAGESOFLAGS="-shared -dynamiclib" && export SAGESOFLAGS
-fi
-if [ `uname` = "SunOS" ]; then
-    SAGESOFLAGS="-G -Bdynamic" && export SAGESOFLAGS
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
+    export SAGESOFLAGS
+elif [ `uname` = "Darwin" ]; then
+    SAGESOFLAGS="-shared -dynamiclib"
+    export SAGESOFLAGS
+elif [ `uname` = "SunOS" ]; then
+    SAGESOFLAGS="-G -Bdynamic"
+    export SAGESOFLAGS
+else
+    # We exit here, since we are possibly on an unsupported platform.
+    echo "Cannot determine your platform or it is not supported... exiting"
+    exit 1
 fi
 
 # Copy over custom Makefile for Sage. This custom Makefile contains Sage
@@ -180,9 +187,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ "$SAGE_CHECK" = "yes" ]; then
+    echo "Compiling and running the test cases of cliquer..."
+
+    make testcases
+    if [ $? -ne 0 ]; then
+	echo "Failed to compile test cases of cliquer... exiting"
+	exit 1
+    fi
+
+    ./testcases
+    if [ $? -ne 0 ]; then
+	echo "Failed to run test cases of cliquer... exiting"
+	exit 1
+    fi
+fi
+
 set -e
 
 if [ ! -e "$SAGE_LOCAL/include/cliquer" ]; then
+    mkdir "$SAGE_LOCAL/include/cliquer/"
+else
+    rm -rf "$SAGE_LOCAL/include/cliquer/"
     mkdir "$SAGE_LOCAL/include/cliquer/"
 fi
 

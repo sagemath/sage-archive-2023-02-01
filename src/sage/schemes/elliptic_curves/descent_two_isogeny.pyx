@@ -16,6 +16,7 @@ from sage.rings.polynomial.real_roots import real_roots
 from sage.rings.arith import prime_divisors
 from sage.misc.all import walltime, cputime
 from sage.libs.pari.gen import pari
+from sage.all import ntl
 
 from sage.rings.integer cimport Integer
 
@@ -500,6 +501,245 @@ cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
             mpz_clear(ee)
         return result
 
+cdef bint Zp_soluble_siksek_large_p(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e, mpz_t pp,
+                                    fmpz_poly_t f1, fmpz_poly_t linear):
+    """
+    Uses the approach of Algorithm 5.3.1 of Siksek's thesis to test for
+    solubility of y^2 == ax^4 + bx^3 + cx^2 + dx + e over Zp.
+    """
+    cdef unsigned long v_min, v
+    cdef mpz_t roots[4]
+    cdef int i, j, has_roots, has_single_roots
+    cdef bint result
+
+    cdef mpz_t aa, bb, cc, dd, ee
+    cdef mpz_t aaa, bbb, ccc, ddd, eee
+    cdef mpz_t qq, rr, ss, tt
+    cdef Integer A,B,C,D,E,P
+
+    # Step 0: divide out all common p from the quartic
+    v_min = valuation(a, pp)
+    if mpz_cmp_ui(b, ui0) != 0:
+        v = valuation(b, pp)
+        if v < v_min: v_min = v
+    if mpz_cmp_ui(c, ui0) != 0:
+        v = valuation(c, pp)
+        if v < v_min: v_min = v
+    if mpz_cmp_ui(d, ui0) != 0:
+        v = valuation(d, pp)
+        if v < v_min: v_min = v
+    if mpz_cmp_ui(e, ui0) != 0:
+        v = valuation(e, pp)
+        if v < v_min: v_min = v
+    for 0 <= v < v_min:
+        mpz_divexact(a, a, pp)
+        mpz_divexact(b, b, pp)
+        mpz_divexact(c, c, pp)
+        mpz_divexact(d, d, pp)
+        mpz_divexact(e, e, pp)
+
+    if not v_min%2:
+        # Step I in Alg. 5.3.1 of Siksek's thesis
+        A = Integer(0); B = Integer(0); C = Integer(0); D = Integer(0); E = Integer(0); P = Integer(0)
+        mpz_set(A.value, a); mpz_set(B.value, b); mpz_set(C.value, c); mpz_set(D.value, d); mpz_set(E.value, e); mpz_set(P.value, pp)
+        f = ntl.ZZ_pX([E,D,C,B,A], P)
+        f /= ntl.ZZ_pX([A], P) # now f is monic, and we are done with A,B,C,D,E
+        mpz_set(qq, A.value) # qq is the leading coefficient of the polynomial
+        f_factzn = f.factor()
+        result = 0
+        for factor, exponent in f_factzn:
+            if exponent&1:
+                result = 1
+                break
+        if result == 0 and mpz_legendre(qq, pp) == 1:
+            result = 1
+        if result:
+            return 1
+
+        f = ntl.ZZ_pX([1], P)
+        for factor, exponent in f_factzn:
+            for j from 0 <= j < (exponent/2):
+                f *= factor
+
+        f /= f.leading_coefficient()
+        f_factzn = f.factor()
+
+        has_roots = 0
+        j = 0
+        for factor, exponent in f_factzn:
+            if factor.degree() == 1:
+                has_roots = 1
+                A = P - Integer(factor[0])
+                mpz_set(roots[j], A.value)
+                j += 1
+        if not has_roots:
+            return 0
+
+        i = f.degree()
+        mpz_init(aaa)
+        mpz_init(bbb)
+        mpz_init(ccc)
+        mpz_init(ddd)
+        mpz_init(eee)
+
+        if i == 0: # g == 1
+            mpz_set(aaa, a)
+            mpz_set(bbb, b)
+            mpz_set(ccc, c)
+            mpz_set(ddd, d)
+            mpz_sub(eee, e, qq)
+        elif i == 1: # g == x + rr
+            mpz_set(aaa, a)
+            mpz_set(bbb, b)
+            mpz_sub(ccc, c, qq)
+            A = Integer(f[0])
+            mpz_set(rr, A.value)
+            mpz_mul(ss, rr, qq)
+            mpz_set(ddd,d)
+            mpz_sub(ddd, ddd, ss)
+            mpz_sub(ddd, ddd, ss)
+            mpz_set(eee,e)
+            mpz_mul(ss, ss, rr)
+            mpz_sub(eee, eee, ss)
+            mpz_divexact(ss, ss, rr)
+        elif i == 2: # g == x^2 + rr*x + ss
+            mpz_sub(aaa, a, qq)
+            A = Integer(f[1])
+            mpz_set(rr, A.value)
+            mpz_init(tt)
+            mpz_mul(tt, rr, qq)
+            mpz_set(bbb,b)
+            mpz_submul_ui(bbb, tt, ui2)
+            mpz_set(ccc,c)
+            mpz_submul(ccc, tt, rr)
+            A = Integer(f[0])
+            mpz_set(ss, A.value)
+            mpz_mul(tt, ss, qq)
+            mpz_set(eee,e)
+            mpz_submul(eee, tt, ss)
+            mpz_mul_ui(tt, tt, ui2)
+            mpz_sub(ccc, ccc, tt)
+            mpz_set(ddd,d)
+            mpz_submul(ddd, tt, rr)
+            mpz_clear(tt)
+        mpz_divexact(aaa, aaa, pp)
+        mpz_divexact(bbb, bbb, pp)
+        mpz_divexact(ccc, ccc, pp)
+        mpz_divexact(ddd, ddd, pp)
+        mpz_divexact(eee, eee, pp)
+        # now aaa,bbb,ccc,ddd,eee represents h(x)
+
+        result = 0
+        mpz_init(tt)
+        for i from 0 <= i < j:
+            mpz_mul(tt, aaa, roots[i])
+            mpz_add(tt, tt, bbb)
+            mpz_mul(tt, tt, roots[i])
+            mpz_add(tt, tt, ccc)
+            mpz_mul(tt, tt, roots[i])
+            mpz_add(tt, tt, ddd)
+            mpz_mul(tt, tt, roots[i])
+            mpz_add(tt, tt, eee)
+            # tt == h(r) mod p
+            mpz_mod(tt, tt, pp)
+            if mpz_sgn(tt) == 0:
+                fmpz_poly_zero(f1)
+                fmpz_poly_zero(linear)
+                fmpz_poly_set_coeff_mpz(f1, 0, e)
+                fmpz_poly_set_coeff_mpz(f1, 1, d)
+                fmpz_poly_set_coeff_mpz(f1, 2, c)
+                fmpz_poly_set_coeff_mpz(f1, 3, b)
+                fmpz_poly_set_coeff_mpz(f1, 4, a)
+                fmpz_poly_set_coeff_mpz(linear, 0, roots[i])
+                fmpz_poly_set_coeff_mpz(linear, 1, pp)
+                fmpz_poly_compose(f1, f1, linear)
+                fmpz_poly_scalar_div_mpz(f1, f1, pp)
+                fmpz_poly_scalar_div_mpz(f1, f1, pp)
+
+                mpz_init(aa)
+                mpz_init(bb)
+                mpz_init(cc)
+                mpz_init(dd)
+                mpz_init(ee)
+                fmpz_poly_get_coeff_mpz(aa, f1, 4)
+                fmpz_poly_get_coeff_mpz(bb, f1, 3)
+                fmpz_poly_get_coeff_mpz(cc, f1, 2)
+                fmpz_poly_get_coeff_mpz(dd, f1, 1)
+                fmpz_poly_get_coeff_mpz(ee, f1, 0)
+                result = Zp_soluble_siksek_large_p(aa, bb, cc, dd, ee, pp, f1, linear)
+                mpz_clear(aa)
+                mpz_clear(bb)
+                mpz_clear(cc)
+                mpz_clear(dd)
+                mpz_clear(ee)
+                if result == 1:
+                    break
+        mpz_clear(aaa)
+        mpz_clear(bbb)
+        mpz_clear(ccc)
+        mpz_clear(ddd)
+        mpz_clear(eee)
+        mpz_clear(tt)
+        return result
+    else:
+        # Step II in Alg. 5.3.1 of Siksek's thesis
+        A = Integer(0); B = Integer(0); C = Integer(0); D = Integer(0); E = Integer(0); P = Integer(0)
+        mpz_set(A.value, a); mpz_set(B.value, b); mpz_set(C.value, c); mpz_set(D.value, d); mpz_set(E.value, e); mpz_set(P.value, pp)
+        f = ntl.ZZ_pX([E,D,C,B,A], P)
+        f /= ntl.ZZ_pX([A], P) # now f is monic
+        f_factzn = f.factor()
+
+        has_roots = 0
+        has_single_roots = 0
+        j = 0
+        for factor, exponent in f_factzn:
+            if factor.degree() == 1:
+                has_roots = 1
+                if exponent == 1:
+                    has_single_roots = 1
+                    break
+                A = P - Integer(factor[0])
+                mpz_set(roots[j], A.value)
+                j += 1
+
+        if not has_roots: return 0
+        if has_single_roots: return 1
+
+        result = 0
+        if j > 0:
+            mpz_init(aa)
+            mpz_init(bb)
+            mpz_init(cc)
+            mpz_init(dd)
+            mpz_init(ee)
+        for i from 0 <= i < j:
+            fmpz_poly_zero(f1)
+            fmpz_poly_zero(linear)
+            fmpz_poly_set_coeff_mpz(f1, 0, e)
+            fmpz_poly_set_coeff_mpz(f1, 1, d)
+            fmpz_poly_set_coeff_mpz(f1, 2, c)
+            fmpz_poly_set_coeff_mpz(f1, 3, b)
+            fmpz_poly_set_coeff_mpz(f1, 4, a)
+            fmpz_poly_set_coeff_mpz(linear, 0, roots[i])
+            fmpz_poly_set_coeff_mpz(linear, 1, pp)
+            fmpz_poly_compose(f1, f1, linear)
+            fmpz_poly_scalar_div_mpz(f1, f1, pp)
+            fmpz_poly_get_coeff_mpz(aa, f1, 4)
+            fmpz_poly_get_coeff_mpz(bb, f1, 3)
+            fmpz_poly_get_coeff_mpz(cc, f1, 2)
+            fmpz_poly_get_coeff_mpz(dd, f1, 1)
+            fmpz_poly_get_coeff_mpz(ee, f1, 0)
+            result = Zp_soluble_siksek_large_p(aa, bb, cc, dd, ee, pp, f1, linear)
+            if result == 1:
+                break
+        if j > 0:
+            mpz_clear(aa)
+            mpz_clear(bb)
+            mpz_clear(cc)
+            mpz_clear(dd)
+            mpz_clear(ee)
+        return result
+
 cdef bint Qp_soluble_siksek(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
                             mpz_t p, unsigned long P,
                             zmod_poly_factor_t f_factzn, fmpz_poly_t f1,
@@ -539,6 +779,40 @@ cdef bint Qp_soluble_siksek(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
     zmod_poly_clear(f)
     return result
 
+cdef bint Qp_soluble_siksek_large_p(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
+                                    mpz_t p, fmpz_poly_t f1, fmpz_poly_t linear):
+    """
+    Uses Samir Siksek's thesis results to determine whether the quartic is
+    locally soluble at p, when p is bigger than wordsize, and we can't use
+    FLINT.
+    """
+    cdef int result = 0
+    cdef mpz_t a,b,c,d,e
+
+    mpz_init_set(a,A)
+    mpz_init_set(b,B)
+    mpz_init_set(c,C)
+    mpz_init_set(d,D)
+    mpz_init_set(e,E)
+
+    if Zp_soluble_siksek_large_p(a,b,c,d,e,p,f1,linear):
+        result = 1
+    else:
+        mpz_set(a,A)
+        mpz_set(b,B)
+        mpz_set(c,C)
+        mpz_set(d,D)
+        mpz_set(e,E)
+        if Zp_soluble_siksek_large_p(e,d,c,b,a,p,f1,linear):
+            result = 1
+
+    mpz_clear(a)
+    mpz_clear(b)
+    mpz_clear(c)
+    mpz_clear(d)
+    mpz_clear(e)
+    return result
+
 cdef bint Qp_soluble_BSD(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e, mpz_t p):
     """
     Uses the original test of Birch and Swinnerton-Dyer to test for local
@@ -563,18 +837,21 @@ cdef bint Qp_soluble(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e, mpz_t p):
     cdef unsigned long pp
     cdef fmpz_poly_t f1, linear
     cdef zmod_poly_factor_t f_factzn
-    fmpz_poly_init(f1)
-    fmpz_poly_init(linear)
-    zmod_poly_factor_init(f_factzn)
     bsd_sol = Qp_soluble_BSD(a, b, c, d, e, p)
     if mpz_cmp_ui(p,N_RES_CLASSES_BSD)>0 and not bsd_sol:
-        pp = mpz_get_ui(p)
-        sik_sol = Qp_soluble_siksek(a,b,c,d,e,p,pp,f_factzn,f1,linear)
+        fmpz_poly_init(f1)
+        fmpz_poly_init(linear)
+        if mpz_fits_ulong_p(p):
+            zmod_poly_factor_init(f_factzn)
+            pp = mpz_get_ui(p)
+            sik_sol = Qp_soluble_siksek(a,b,c,d,e,p,pp,f_factzn,f1,linear)
+            zmod_poly_factor_clear(f_factzn)
+        else:
+            sik_sol = Qp_soluble_siksek_large_p(a,b,c,d,e,p,f1,linear)
+        fmpz_poly_clear(f1)
+        fmpz_poly_clear(linear)
     else:
         sik_sol = bsd_sol
-    fmpz_poly_clear(f1)
-    fmpz_poly_clear(linear)
-    zmod_poly_factor_clear(f_factzn)
     return sik_sol
 
 def test_qpls(a,b,c,d,e,p):
@@ -632,8 +909,6 @@ cdef int everywhere_locally_soluble(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e)
     Delta = f.discriminant()
     for p in prime_divisors(Delta):
         if p == 2: continue
-        if not mpz_fits_ulong_p(p.value):
-            raise ValueError('Modulus must be word-sized to use FLINT for factoring.')
         if not Qp_soluble(a,b,c,d,e,p.value): return 0
 
     return 1
@@ -820,7 +1095,7 @@ def two_descent_by_two_isogeny(E,
         sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
         3
 
-    ::
+    Using the verbosity option::
 
         sage: E = EllipticCurve('14a')
         sage: two_descent_by_two_isogeny(E, verbosity=1)
@@ -836,6 +1111,19 @@ def two_descent_by_two_isogeny(E,
         0 <= rank of E(Q) = rank of E'(Q) <= 0
         (2, 2, 2, 2)
 
+    Handling curves whose discriminants involve larger than wordsize primes::
+
+        sage: E = EllipticCurve('14a')
+        sage: E = E.quadratic_twist(next_prime(10^20))
+        sage: E
+        Elliptic Curve defined by y^2 = x^3 + x^2 + 716666666666666667225666666666666666775672*x - 391925925925925926384240370370370370549019837037037037060249356 over Rational Field
+        sage: E.discriminant().factor()
+        -1 * 2^18 * 7^3 * 100000000000000000039^6
+        sage: log(100000000000000000039.0, 2.0)
+        66.438...
+        sage: n1, n2, n1_prime, n2_prime = two_descent_by_two_isogeny(E)
+        sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
+        0
 
     """
     cdef Integer a1, a2, a3, a4, a6, s2, s4, s6

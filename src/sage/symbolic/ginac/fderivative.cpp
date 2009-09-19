@@ -267,7 +267,7 @@ unsigned fderivative::calchash() const
 	unsigned t = 1;
 	for (paramset::const_iterator i = parameter_set.begin(), 
 			end = parameter_set.end(); i != end; ++i) {
-		res += t* (*i);
+		res += t* (*i+1);
 		t <<=  1;
 	}
 	if (flags & status_flags::evaluated) {

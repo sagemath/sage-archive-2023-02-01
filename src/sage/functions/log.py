@@ -100,6 +100,9 @@ class Function_log(PrimitiveFunction):
             2.30258509299
             sage: log(2.718)
             0.999896315728952
+
+            sage: latex(x.log())
+            \log\left(x\right)
         """
         PrimitiveFunction.__init__(self, 'log', latex=r'\log',
                                    conversions=dict(maxima='log'),

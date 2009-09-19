@@ -672,102 +672,11 @@ a = I_class()
 I_constant = a.expression(constant=True)
 i = I = a.expression(constant=False)
 
-class E(Constant):
-    def __init__(self, name="e"):
-        """
-        The base of the natural logarithm.
-
-        EXAMPLES::
-
-            sage: RR(e)
-            2.71828182845905
-            sage: R = RealField(200); R
-            Real Field with 200 bits of precision
-            sage: R(e)
-            2.7182818284590452353602874713526624977572470936999595749670
-            sage: em = 1 + e^(1-e); em
-            e^(-e + 1) + 1
-            sage: R(em)
-            1.1793740787340171819619895873183164984596816017589156131574
-            sage: maxima(e).float()
-            2.718281828459045
-            sage: t = mathematica(e)               # optional
-            sage: t                                # optional
-            E
-            sage: float(t)                         # optional
-            2.7182818284590451
-
-            sage: loads(dumps(e))
-            e
-        """
-        conversions = dict(axiom='%e', maxima='%e', gp='exp(1)',
-                           kash='E', pari='exp(1)', mathematica='E',
-                           maple='exp(1)', octave='e')
-        Constant.__init__(self, name, conversions=conversions,
-                          latex='e', domain='real')
-
-    def expression(self):
-        """
-        .. note::
-
-           For e, we don't return a wrapper around a Pynac constant.
-           Instead, we return exp(1) so that Pynac can perform appropiate.
-
-        EXAMPLES::
-
-            sage: e + 2
-            e + 2
-            sage: e.operator()
-            exp
-            sage: e.operands()
-            [1]
-        """
-        from sage.symbolic.ring import SR
-        return SR(1).exp()
-
-    def __float__(self):
-        """
-        EXAMPLES::
-
-            sage: float(e)
-            2.7182818284590451
-            sage: e.__float__()
-            2.7182818284590451
-        """
-        return math.e
-
-    def _mpfr_(self, R):
-        """
-        EXAMPLES::
-
-            sage: e._mpfr_(RealField(100))
-            2.7182818284590452353602874714
-        """
-        return R(1).exp()
-
-    def _real_double_(self, R):
-        """
-        EXAMPLES::
-
-            sage: e._real_double_(RDF)
-            2.71828182846
-        """
-        return R(1).exp()
-
-    def _sympy_(self):
-        """
-        Converts e to sympy E.
-
-        EXAMPLES::
-
-            sage: import sympy
-            sage: sympy.E == e # indirect doctest
-            True
-        """
-        import sympy
-        return sympy.E
-
-e = E().expression()
+# The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
+# represented by exp(1). A dummy class to make this work with arithmetic and
+# coercion is implemented in the module sage.symbolic.constants_c for speed.
+from sage.symbolic.constants_c import E
+e = E()
 
 class NotANumber(Constant):
     """

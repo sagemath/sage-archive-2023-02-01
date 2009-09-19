@@ -5753,28 +5753,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x+=1
         return ans
 
-    def prove_BSD(self, verbosity=0, simon=False):
+    def prove_BSD(self, verbosity=0, simon=False, proof=None):
         """
-        Attempts to prove the Birch and Swinnerton-Dyer conjectural formula for
-        E, returning a list of primes p for which BSD(E,p) has not been
-        proven.
+        Attempts to prove the Birch and Swinnerton-Dyer conjectural
+        formula for `E`, returning a list of primes `p` for which this
+        function fails to prove BSD(E,p).  Here, BSD(E,p) is the
+        statement: "the Birch and Swinnerton-Dyer formula holds up to a
+        rational number coprime to `p`."
 
         INPUT:
 
-            - `verbosity` - int, how much information about the proof to print.
+            - ``verbosity`` - int, how much information about the proof to print.
 
                 - 0 - print nothing
                 - 1 - print sketch of proof
                 - 2 - print information about remaining primes
 
-            - `simon` - bool (default False), whether to use two_descent or
-                        simon_two_descent at p=2.
+            - ``simon`` - bool (default False), whether to use two_descent or
+              simon_two_descent at p=2.
+
+        -  ``proof`` - bool or None (default: None, see
+           proof.elliptic_curve or sage.structure.proof). If False, this
+           function just immediately returns the empty list.
 
         EXAMPLE::
 
             sage: for E in cremona_optimal_curves(range(15)):
             ....:     print E.label()
-            ....:     E.prove_BSD(2)
+            ....:     E.prove_BSD(verbosity=2)
             ....:
             11a1
             p = 2: true by 2-descent
@@ -5788,7 +5794,84 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             p = 3: reducible, surjective, good ordinary
             [3]
 
+        A rank two curve::
+
+            sage: E = EllipticCurve('389a')
+
+        We know nothing with proof=False::
+
+            sage: E.prove_BSD()
+            Set of all prime numbers: 2, 3, 5, 7, ...
+
+        We know everything with proof=True::
+
+            sage: E.prove_BSD(proof=False)
+            []
+
+        TESTS::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.rank()
+            1
+            sage: E._EllipticCurve_rational_field__rank
+            {True: 1}
+            sage: E._EllipticCurve_rational_field__rank = {True:0}
+            sage: E.prove_BSD()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: It seems that the rank conjecture does not hold for this curve (Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field)! This may be a counterexample to BSD, but is more likely a bug.
+
+        We check the error message indicating that this code doesn't
+        yet use Simon 2-descent in case of rational 2-torsion (though
+        it could with a little more work)::
+
+            sage: E = EllipticCurve('14a')
+            sage: E.prove_BSD(simon=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Simon two-descent only valid for curves without two torsion.
+
+        We test the consistency check for the 2-part of Sha::
+
+            sage: E = EllipticCurve('37a')
+            sage: S = E.sha(); S
+            Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: S.an = lambda : 4
+            sage: E.prove_BSD()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ord2(#Sha) was computed to be 0, but ord2(#Sha_an) is 2! This may be a counterexample to BSD, but is more likely a bug.
+
+        An example with a Tamagawa number at 5::
+
+            sage: E = EllipticCurve('123a1')
+            sage: E.prove_BSD(verbosity=2)
+            p = 2: true by 2-descent
+            True for p not in {2, 5} by Kolyvagin.
+            Remaining primes:
+            p = 5: reducible, surjective, good ordinary
+            [5]
+
+        A curve for which 3 divides the order of the Shafarevich-Tate group::
+
+            sage: E = EllipticCurve('681b')
+            sage: E.prove_BSD(verbosity=2)               # long time
+            p = 2: true by 2-descent
+            True for p not in {2, 3} by Kolyvagin.
+            ALERT: p = 3 left in Kolyvagin bound
+                ord_p(#Sha) <= 4
+                ord_p(#Sha_an) = 2
+            Remaining primes:
+            p = 3: irreducible, surjective, non-split multiplicative
+            [3]
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "elliptic_curve")
+        else:
+            proof = bool(proof)
+        if not proof:
+            return []
         two_tor_rk = self.two_torsion_rank()
         if simon:
             if two_tor_rk > 0:
@@ -5800,12 +5883,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise RuntimeError("Rank can't be computed precisely using Simon's program.")
         else:
             self.two_descent(False)
-            two_sel_rk = self.mwrank_curve()._mwrank_EllipticCurve__two_descent_data().getselmer() + two_tor_rk
+            two_sel_rk = self.mwrank_curve().selmer_rank_bound() + two_tor_rk
             rank = self.rank()
         if rank > 1:
-            raise NotImplementedError
+            # We do not know BSD(E,p) for even a single p, since it's
+            # an open problem to show that L^r(E,1)/(Reg*Omega) is
+            # rational for any curve with r >= 2.
+            from sage.sets.all import Primes
+            return Primes()
         if rank != self.analytic_rank():
-            raise RuntimeError("It seems that the rank conjecture does not hold for this curve! This may be a counterexample to BSD, but is more likely a bug.")
+            raise RuntimeError("It seems that the rank conjecture does not hold for this curve (%s)! This may be a counterexample to BSD, but is more likely a bug."%(self))
+
+        # We replace self by the optimal curve, which we can do since
+        # truth of BSD(E,p) is invariant under isogeny.
+        self = self.optimal_curve()
+
         Sha = self.sha()
         sha_an = Sha.an()
         N = self.conductor()
@@ -5816,7 +5908,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if verbosity > 0:
                 print 'p = 2: true by 2-descent'
         else:
-            raise RuntimeError("ord2(#Sha) was computed to be %d, but ord2(#Sha_an) is %d! This may be a counterexample to BSD, but is more likely a bug."%(sha_ord_2,sha_an.ord(2)))
+            raise RuntimeError("ord2(#Sha) was computed to be %d, but ord2(#Sha_an) is %d for this curve (%s)! This may be a counterexample to BSD, but is more likely a bug."%(sha_ord_2,sha_an.ord(2),self))
 
         # reduce set of remaining primes to a finite set
         remaining_primes = []
@@ -5861,9 +5953,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 for p in arith.prime_divisors(sha_an):
                     if p >= 5 and D_K%p != 0 and len(K.factor(p)) == 1:
                         if E.is_good(p) and I%p != 0:
-                            raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug."%p)
+                            raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug. %s"%(p,self))
                 if verbosity > 0:
-                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum) and Rubin.'%list(set(remaining_primes).union(set(kolyvagin_primes)))[1:-1]
+                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum -- unpublished) and Rubin.'%list(set(remaining_primes).union(set(kolyvagin_primes)))[1:-1]
         else: # no CM
             koly_primes = None
             heegner_index_odd_part = None
@@ -5885,7 +5977,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             primes_to_remove = []
             for p in remaining_primes:
                 if p > 3 and (E.is_ordinary(p) or E.is_good(p)) and E.is_surjective(p)[0]:
-                    p_bound = Sha.p_primary_bound(Integer(p)) # <--- BUG - that we need Integer(p)
+                    p_bound = Sha.p_primary_bound(p)
                     if sha_an.ord(p) == 0 and p_bound == 0:
                         if verbosity > 0:
                             print 'True for p=%d by Stein-Wuthrich.'%p
@@ -5912,7 +6004,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         assert 2 not in remaining_primes
         # Cha's hypothesis
         for p in remaining_primes:
-            if D_K%p != 0 and N%(p^2) != 0 and E.is_irreducible(p):
+            if D_K%p != 0 and N%(p**2) != 0 and E.is_irreducible(p):
                 if verbosity > 0:
                     print 'Kolyvagin\'s bound for p = %d applies by Cha.'%p
                 kolyvagin_primes.append(p)
@@ -5959,7 +6051,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         # Kato's bound
         if rank == 0 and not E.has_cm():
-            assert E.optimal_curve() == E
             L_over_Omega = E.lseries().L_ratio()
             kato_primes = Sha.bound_kato()
             primes_to_remove = []

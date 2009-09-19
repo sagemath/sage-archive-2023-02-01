@@ -564,7 +564,7 @@ class Sha(SageObject):
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
 
         """
-
+        p = Integer(p)
         if self.E.is_ordinary(p) or self.E.is_good(p):
             su, _ = self.E.is_surjective(p)
             if not su :

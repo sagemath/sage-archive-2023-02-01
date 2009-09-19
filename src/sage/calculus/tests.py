@@ -211,9 +211,9 @@ We verify several standard differentiation rules::
     sage: function('f, g')
     (f, g)
     sage: diff(f(t)*g(t),t)
-    D[0](f)(t)*g(t) + f(t)*D[0](g)(t)
+    f(t)*D[0](g)(t) + g(t)*D[0](f)(t)
     sage: diff(f(t)/g(t), t)
-    D[0](f)(t)/g(t) - f(t)*D[0](g)(t)/g(t)^2
+    -f(t)*D[0](g)(t)/g(t)^2 + D[0](f)(t)/g(t)
     sage: diff(f(t) + g(t), t)
     D[0](f)(t) + D[0](g)(t)
     sage: diff(c*f(t), t)

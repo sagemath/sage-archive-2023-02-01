@@ -2149,6 +2149,16 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: No differentiation variable specified.
+
+        Check if #6524 is fixed::
+
+            sage: f = function('f')
+            sage: f(x)*f(x).derivative(x)*f(x).derivative(x,2)
+            f(x)*D[0](f)(x)*D[0, 0](f)(x)
+            sage: g = f(x).diff(x)
+            sage: h = f(x).diff(x)*sin(x)
+            sage: h/g
+            sin(x)
         """
         if symb is None:
             # we specify a default value of None for symb and check for it here

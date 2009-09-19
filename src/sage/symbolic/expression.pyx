@@ -999,6 +999,14 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: d = {u: 3, v: 5}; sorted(d.values())
             [3, 5]
+
+        More checks for fderivative hashes #6851 ::
+
+            sage: hash(f(x).derivative(x)) == hash(f(x).derivative(x,2))
+            False
+            sage: d = dict( (f(x).derivative(x, i), i) for i in range(1,6) )
+            sage: len(d.keys())
+            5
         """
         return self._gobj.gethash()
 

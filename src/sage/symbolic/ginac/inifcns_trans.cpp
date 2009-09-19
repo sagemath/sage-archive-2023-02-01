@@ -142,7 +142,10 @@ static ex exp_imag_part(const ex & x)
 
 static ex exp_power(const ex & arg, const ex & p)
 {
-	return exp(p*arg);
+	if (is_exactly_a<numeric>(p) && ex_to<numeric>(p).is_integer())
+		return exp(p*arg);
+	else
+		return power(exp(arg), p).hold();
 }
 
 static void exp_print(const ex & arg, const print_context & c,

@@ -477,11 +477,12 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         generate the full Hecke algebra as a module over the base ring. Note
         that we include the `n` with `n` not coprime to the level.
 
-        At present this returns an unproven guess which appears to be valid for
-        `M_k(\Gamma_0(N))`, where k and N are the weight and level of self. (It
-        is clearly valid for *cuspidal* spaces of any fixed character, as a
-        consequence of the Sturm bound theorem.) It returns a hopelessly wrong
-        answer for spaces of full level `\Gamma_1`.
+        At present this returns an unproven guess for non-cuspidal spaces which
+        appears to be valid for `M_k(\Gamma_0(N))`, where k and N are the
+        weight and level of self. (It is clearly valid for *cuspidal* spaces
+        of any fixed character, as a consequence of the Sturm bound theorem.)
+        It returns a hopelessly wrong answer for spaces of full level
+        `\Gamma_1`.
 
         TODO: Get rid of this dreadful bit of code.
 
@@ -492,6 +493,11 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: ModularSymbols(Gamma1(17), 4).hecke_bound() # wrong!
             15
         """
+        try:
+            if self.is_cuspidal():
+                return Gamma0(self.level()).sturm_bound(self.weight())
+        except AttributeError:
+            pass
         misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
         return Gamma0(self.level()).sturm_bound(self.weight()) + 2*Gamma0(self.level()).dimension_eis(self.weight()) + 5
 

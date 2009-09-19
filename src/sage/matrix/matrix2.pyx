@@ -1744,6 +1744,27 @@ cdef class Matrix(matrix1.Matrix):
             s = s + self.get_unsafe(i,i)
         return s
 
+    def trace_of_product(self, Matrix other):
+        """
+        Returns the trace of self * other without computing the entire product.
+
+        EXAMPLES::
+
+            sage: M = random_matrix(ZZ, 10, 20)
+            sage: N = random_matrix(ZZ, 20, 10)
+            sage: M.trace_of_product(N)
+            -1629
+            sage: (M*N).trace()
+            -1629
+        """
+        if self._nrows != other._ncols or other._nrows != self._ncols:
+            raise ArithmeticError, "incompatible dimensions"
+        s = self._base_ring(0)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                s += self.get_unsafe(i, j) * other.get_unsafe(j, i)
+        return s
+
     #####################################################################################
     # Generic Hessenberg Form and charpoly algorithm
     #####################################################################################

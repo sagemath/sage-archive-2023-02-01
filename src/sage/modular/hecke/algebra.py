@@ -31,7 +31,6 @@ the full Hecke algebra, only with the anemic algebra.
 import math
 import weakref
 
-import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
@@ -43,6 +42,7 @@ from sage.misc.misc import verbose
 from sage.matrix.constructor import matrix
 from sage.rings.arith import lcm
 from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.all import ZZ, QQ
 
 def is_HeckeAlgebra(x):
     r"""
@@ -168,8 +168,6 @@ def _heckebasis(M):
         [0 1]
         [0 5]]
     """
-    QQ = rings.QQ
-    ZZ = rings.ZZ
     d = M.rank()
     VV = QQ**(d**2)
     WW = ZZ**(d**2)
@@ -471,7 +469,24 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         try:
             return self.__basis_cache
         except AttributeError:
-            self.__basis_cache=_heckebasis(self.__M)
+            pass
+        level = self.level()
+        bound = self.__M.hecke_bound()
+        dim = self.__M.rank()
+        span = [self.hecke_operator(n) for n in range(1, bound+1) if not self.is_anemic() or gcd(n, level) == 1]
+        rand_max = 5
+        while True:
+            # Project the full Hecke module to a random submodule to ease the HNF reduction.
+            v = (ZZ**dim).random_element(x=rand_max)
+            proj_span = matrix([T.matrix()*v for T in span])._clear_denom()[0]
+            proj_basis = proj_span.hermite_form()
+            if proj_basis[dim-1] == 0:
+                # We got unlucky, choose another projection.
+                rand_max *= 2
+                continue
+            # Lift the projected basis to a basis in the Hecke algebra.
+            trans = proj_span.solve_left(proj_basis)
+            self.__basis_cache = [sum(c*T for c,T in zip(row,span) if c != 0) for row in trans[:dim]]
             return self.__basis_cache
 
     def discriminant(self):
@@ -486,16 +501,25 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         *Conjectures about discriminants of Hecke algebras of prime
         level*, Springer LNCS 3076.
 
-        Not implemented at present.
-
         EXAMPLE::
 
             sage: BrandtModule(3, 4).hecke_algebra().discriminant()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            1
+            sage: ModularSymbols(65, sign=1).cuspidal_submodule().hecke_algebra().discriminant()
+            6144
         """
-        raise NotImplementedError
+        try:
+            return self.__disc
+        except AttributeError:
+            pass
+        basis = self.basis()
+        d = len(self.basis())
+        trace_matrix = matrix(ZZ, d)
+        for i in range(d):
+            for j in range(i+1):
+                trace_matrix[i,j] = trace_matrix[j,i] = basis[i].matrix().trace_of_product(basis[j].matrix())
+        self.__disc = trace_matrix.det()
+        return self.__disc
 
     def gens(self):
         r"""

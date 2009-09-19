@@ -115,6 +115,17 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         """
         return "Cuspidal subspace of dimension %s of %s"%(self.dimension(), self.ambient_module())
 
+    def is_cuspidal(self):
+        """
+        Return True since spaces of cusp forms are cuspidal.
+
+        EXAMPLES::
+
+	    sage: CuspForms(4,10).is_cuspidal()
+	    True
+        """
+        return True
+
     def modular_symbols(self, sign=0):
         """
         Return the corresponding space of modular symbols with the given sign.

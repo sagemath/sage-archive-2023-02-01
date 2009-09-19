@@ -1177,6 +1177,19 @@ class BrandtModule_class(AmbientHeckeModule):
         self.__eisenstein_subspace = V
         return V
 
+    def is_cuspidal(self):
+        r"""
+        Returns whether self is cuspidal, i.e. has no Eisenstein part.
+
+        EXAMPLES:
+            sage: B = BrandtModule(3, 4)
+            sage: B.is_cuspidal()
+            False
+            sage: B.eisenstein_subspace()
+            Brandt module of dimension 1 of level 3*4 of weight 2 over Rational Field
+        """
+        return self.eisenstein_subspace().dimension() == 0
+
     def monodromy_weights(self):
         r"""
         Return the weights for the monodromy pairing on this Brandt

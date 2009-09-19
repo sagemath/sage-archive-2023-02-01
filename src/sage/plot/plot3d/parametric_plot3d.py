@@ -156,6 +156,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         ...                     boundary_style={"color": "black", "thickness": 2})
 
     We can plot vectors::
+
         sage: x,y=var('x,y')
         sage: parametric_plot3d(vector([x-y,x*y,x*cos(y)]), (x,0,2), (y,0,2))
         sage: t=var('t')

@@ -5778,16 +5778,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLE::
 
-            sage: for E in cremona_optimal_curves(range(15)):
-            ....:     print E.label()
-            ....:     E.prove_BSD(verbosity=2)
-            ....:
-            11a1
+            sage: EllipticCurve('11a').prove_BSD(verbosity=2)
             p = 2: true by 2-descent
             True for p not in {2, 5} by Kolyvagin.
             True for p=5 by Mazur
             []
-            14a1
+
+            sage: EllipticCurve('14a').prove_BSD(verbosity=2)
             p = 2: true by 2-descent
             True for p not in {2, 3} by Kolyvagin.
             Remaining primes:
@@ -5798,17 +5795,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('389a')
 
-        We know nothing with proof=False::
+        We know nothing with proof=True::
 
             sage: E.prove_BSD()
             Set of all prime numbers: 2, 3, 5, 7, ...
 
-        We know everything with proof=True::
+        We (think we) know everything with proof=False::
 
             sage: E.prove_BSD(proof=False)
             []
 
-        TESTS::
+        A curve of rank 0 and prime conductor::
+
+            sage: E = EllipticCurve('19a')
+            sage: E.prove_BSD(verbosity=2)
+            p = 2: true by 2-descent
+            True for p not in {2, 3} by Kolyvagin.
+            True for p=3 by Mazur
+            []
 
             sage: E = EllipticCurve('37a')
             sage: E.rank()
@@ -5840,7 +5844,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.prove_BSD()
             Traceback (most recent call last):
             ...
-            RuntimeError: ord2(#Sha) was computed to be 0, but ord2(#Sha_an) is 2! This may be a counterexample to BSD, but is more likely a bug.
+            RuntimeError: ord2(#Sha) was computed to be 0, but ord2(#Sha_an) is 2 for this curve (Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field)! This may be a counterexample to BSD, but is more likely a bug.
 
         An example with a Tamagawa number at 5::
 
@@ -6068,9 +6072,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 remaining_primes.remove(p)
 
         # Mazur
-        if 5 in remaining_primes and E.is_reducible(5) and N.is_prime():
-            remaining_primes.remove(5)
-            print 'True for p=5 by Mazur'
+        if N.is_prime():
+            for p in remaining_primes:
+                if E.is_reducible(p):
+                    remaining_primes.remove(p)
+                    print 'True for p=%s by Mazur'%p
 
         # print some extra information
         if verbosity > 1:

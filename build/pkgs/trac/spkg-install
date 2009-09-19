@@ -1,0 +1,58 @@
+#!/bin/sh
+
+CUR=`pwd`
+
+cd "$CUR"
+cd clearsilver-0.10.4
+
+# get around a weird bug in the build system for clearsilver-0.10.4
+touch cgi/features.h
+$CP ../sage/cgiwrap.c cgi/
+
+CFLAGS=-L"$SAGE_LOCAL/lib/ " $CFLAGS
+export CFLAGS
+
+./configure --prefix="$SAGE_LOCAL" --disable-apache --disable-perl --disable-ruby --disable-java --disable-csharp --with-python="$SAGE_LOCAL/bin/python"
+if [ $? -ne 0 ]; then
+    echo "Error configuring clearsilver"
+    exit 1
+fi
+
+if [ $UNAME = "Darwin" ]; then
+
+    # this is a weird hack to get around
+    # the totally linux-ish assumptions of the build script.
+    $MAKE
+    cd python
+    python setup.py install
+    echo "depend:" > Makefile
+    echo "install:" >> Makefile
+    cd ..
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error making clearsilver"
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing clearsilver"
+    exit 1
+fi
+
+
+$RM -rf "$SAGE_LOCAL/share/trac"
+
+cd "$CUR"
+cd trac-0.10.3
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing trac"
+    exit 1
+fi
+

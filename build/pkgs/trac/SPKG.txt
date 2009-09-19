@@ -1,0 +1,86 @@
+SAGE PACKAGE: trac
+
+Created by William Stein on 2006-09-08.
+
+This includes trac and all dependencies:
+    - sqllite 3: http://www.sqlite.org/download.html
+    - pysqllite: http://www.initd.org/tracker/pysqlite/wiki/pysqlite
+    - clearsilver: http://www.clearsilver.net/downloads/
+       (build is a little funny):
+         ** change sage/cgiwrap.c which corr to
+                   cgi/cgiwrap.c
+This is the change:
+---------------
+/* #include <features.h> */
+#include "features.h"
+---------------
+
+USAGE:
+  It works from SAGE just like the moin moin wiki and SAGE notebook.
+    sage: trac('directory_name')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===========================================================
+
+DARCS?!?!
+ -- The SAGE distro of trac does *not* support DARCS.  You must use SVN.
+    I did once create a DARCS patches trac, and it mostly worked, but
+    was *INCREDIBLY SLOW* -- to the point of being unusable.
+    Here's what I did, in case we want to try again some day.
+
+Made with darcs support somewhat as explained here:
+
+    http://progetti.arstecnica.it/trac+darcs/wiki/DarcsPlugin
+
+darcs get --partial http://darcs.arstecnica.it/3rd/trac upstream-trac
+cd upstream-trac/trac/versioncontrol/
+darcs get http://darcs.arstecnica.it/trac-darcs darcs
+cd ../..
+patch -p1 < trac/versioncontrol/darcs/trac-setup-3012.patch
+
+NOTE:
+   This part of the install package could be greatly shrunk by
+   just doing
+         sage -python setup.py sdist
+   in the upstream-trac directory.
+   Then the package drops to 1MB.  If we include it in SAGE,
+   we should definitely do that.
+
+1. To configure a trac server from the SAGE command line:
+
+  sage: !trac-admin sage-trac initenv     # sage_trac is the directory
+
+   answer "darcs" for the version control system:
+   Repository type [svn]> darcs
+
+2. Unfortunately, now you have to modify the sage-trac/conf/trac.ini
+   by adding the following three lines to the end:
+
+[components]
+trac.versioncontrol.svn_fs.* = disabled
+tracdarcs.* = enabled
+
+3. Do this:
+sage: !trac-admin sage-trac upgrade
+Upgrade done.
+sage: !trac-admin sage-trac resync
+Resyncing repository history...
+[[This takes a VERY long time and is not verbose, which sucks.]]
+
+4. Next start the server:
+
+  sage: !tracd --port 8002 sage-trac
+
+

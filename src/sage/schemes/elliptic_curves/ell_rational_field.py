@@ -5753,6 +5753,264 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x+=1
         return ans
 
+    def prove_BSD(self, verbosity=0, simon=False):
+        """
+        Attempts to prove the Birch and Swinnerton-Dyer conjectural formula for
+        E, returning a list of primes p for which BSD(E,p) has not been
+        proven.
+
+        INPUT:
+
+            - `verbosity` - int, how much information about the proof to print.
+
+                - 0 - print nothing
+                - 1 - print sketch of proof
+                - 2 - print information about remaining primes
+
+            - `simon` - bool (default False), whether to use two_descent or
+                        simon_two_descent at p=2.
+
+        EXAMPLE::
+
+            sage: for E in cremona_optimal_curves(range(15)):
+            ....:     print E.label()
+            ....:     E.prove_BSD(2)
+            ....:
+            11a1
+            p = 2: true by 2-descent
+            True for p not in {2, 5} by Kolyvagin.
+            True for p=5 by Mazur
+            []
+            14a1
+            p = 2: true by 2-descent
+            True for p not in {2, 3} by Kolyvagin.
+            Remaining primes:
+            p = 3: reducible, surjective, good ordinary
+            [3]
+
+        """
+        two_tor_rk = self.two_torsion_rank()
+        if simon:
+            if two_tor_rk > 0:
+                raise RuntimeError("Simon two-descent only valid for curves without two torsion.")
+            rank_lower_bd, two_sel_rk = self.simon_two_descent()[:2]
+            if rank_lower_bd == two_sel_rk:
+                rank = rank_lower_bd
+            else:
+                raise RuntimeError("Rank can't be computed precisely using Simon's program.")
+        else:
+            self.two_descent(False)
+            two_sel_rk = self.mwrank_curve()._mwrank_EllipticCurve__two_descent_data().getselmer() + two_tor_rk
+            rank = self.rank()
+        if rank > 1:
+            raise NotImplementedError
+        if rank != self.analytic_rank():
+            raise RuntimeError("It seems that the rank conjecture does not hold for this curve! This may be a counterexample to BSD, but is more likely a bug.")
+        Sha = self.sha()
+        sha_an = Sha.an()
+        N = self.conductor()
+
+        # p = 2
+        sha_ord_2 = two_sel_rk - rank - two_tor_rk
+        if sha_an.ord(2) == sha_ord_2:
+            if verbosity > 0:
+                print 'p = 2: true by 2-descent'
+        else:
+            raise RuntimeError("ord2(#Sha) was computed to be %d, but ord2(#Sha_an) is %d! This may be a counterexample to BSD, but is more likely a bug."%(sha_ord_2,sha_an.ord(2)))
+
+        # reduce set of remaining primes to a finite set
+        remaining_primes = []
+        kolyvagin_primes = []
+        if self.has_cm():
+            # ensure that CM is by a maximal order
+            non_max_j_invs = [-12288000, 54000, 287496, 16581375]
+            if self.j_invariant() in non_max_j_invs:
+                for E in self.isogeny_class()[0]:
+                    if E.j_invariant() not in non_max_j_invs:
+                        Sha = E.sha()
+                        sha_an = Sha.an()
+                        if verbosity > 0:
+                            print 'CM by non maximal order: switching curves'
+                        break
+            else:
+                E = self
+            if E.analytic_rank() == 0:
+                if verbosity > 0:
+                    print 'p >= 5: true by Rubin'
+                remaining_primes.append(3)
+            else:
+                K = rings.QuadraticField(E.cm_discriminant(), 'a')
+                D_K = K.disc()
+                D_E = E.discriminant()
+                if len(K.factor(3)) == 1: # 3 does not split in K
+                    remaining_primes.append(3)
+                for p in arith.prime_divisors(D_K):
+                    if p >= 5:
+                        remaining_primes.append(p)
+                for p in arith.prime_divisors(D_E):
+                    if D_K%p and len(K.factor(p)) == 1: # p is inert in K
+                        remaining_primes.append(5)
+                D = E.heegner_discriminants_list(1)[0]
+                I = E.heegner_index(D).is_int()
+                if I[0]: I = I[1]
+                else: raise RuntimeError("Heegner index was not an integer.")
+                for p in arith.prime_divisors(I):
+                    if p >= 5 and D_E%p != 0 and D_K%p != 0 and len(K.factor(p)) == 1: # p is good for E and inert in K
+                        kolyvagin_primes.append(p)
+                assert sha_an in ZZ and sha_an > 0
+                for p in arith.prime_divisors(sha_an):
+                    if p >= 5 and D_K%p != 0 and len(K.factor(p)) == 1:
+                        if E.is_good(p) and I%p != 0:
+                            raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug."%p)
+                if verbosity > 0:
+                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum) and Rubin.'%list(set(remaining_primes).union(set(kolyvagin_primes)))[1:-1]
+        else: # no CM
+            koly_primes = None
+            heegner_index_odd_part = None
+            E = self
+            for D in E.heegner_discriminants_list(10):
+                kp, kb = Sha.bound_kolyvagin(D)
+                if kb == 0: continue
+                if koly_primes is None: koly_primes = set(kp)
+                else: koly_primes.intersection_update(kp)
+                if heegner_index_odd_part is None:
+                    heegner_index_odd_part = kb
+                else:
+                    heegner_index_odd_part = arith.gcd(heegner_index_odd_part, kb)
+                break
+            if verbosity > 0:
+                print 'True for p not in {' + str(list(koly_primes))[1:-1] + '} by Kolyvagin.'
+            koly_primes.remove(2)
+            remaining_primes = koly_primes
+            primes_to_remove = []
+            for p in remaining_primes:
+                if p > 3 and (E.is_ordinary(p) or E.is_good(p)) and E.is_surjective(p)[0]:
+                    p_bound = Sha.p_primary_bound(Integer(p)) # <--- BUG - that we need Integer(p)
+                    if sha_an.ord(p) == 0 and p_bound == 0:
+                        if verbosity > 0:
+                            print 'True for p=%d by Stein-Wuthrich.'%p
+                        primes_to_remove.append(p)
+                    else:
+                        print 'Analytic %d-rank is '%p + str(sha_an.ord(p)) + ', actual %d-rank is at most %d.'%(p, p_bound)
+                        print '    by Stein-Wuthrich.\n'
+            for p in primes_to_remove:
+                remaining_primes.remove(p)
+            kolyvagin_primes = []
+            for p in remaining_primes:
+                if E.is_surjective(p)[0]:
+                    kolyvagin_primes.append(p)
+            for p in kolyvagin_primes:
+                remaining_primes.remove(p)
+        # apply other hypotheses which imply Kolyvagin's bound holds
+        bounded_primes = []
+        for D in E.heegner_discriminants_list(100):
+            I = E.heegner_index(D).is_int()
+            if I[0]:
+                I = I[1]
+                break
+        D_K = rings.QuadraticField(D, 'a').disc()
+        assert 2 not in remaining_primes
+        # Cha's hypothesis
+        for p in remaining_primes:
+            if D_K%p != 0 and N%(p^2) != 0 and E.is_irreducible(p):
+                if verbosity > 0:
+                    print 'Kolyvagin\'s bound for p = %d applies by Cha.'%p
+                kolyvagin_primes.append(p)
+        # Stein et al.
+        if not E.has_cm():
+            L = arith.lcm([F.torsion_order() for F in E.isogeny_class()[0]])
+            for p in remaining_primes:
+                if L%p != 0:
+                    if len(arith.prime_divisors(D_K)) == 1:
+                        if D_K%p != 0:
+                            if verbosity > 0:
+                                print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
+                            kolyvagin_primes.append(p)
+                    else:
+                        if verbosity > 0:
+                            print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
+                        kolyvagin_primes.append(p)
+        for p in kolyvagin_primes:
+            if p in remaining_primes:
+                remaining_primes.remove(p)
+
+        prime_bounds = []
+        # apply Kolyvagin's bound - recall we have heegner_index_odd_part
+        primes_to_remove = []
+        for p in kolyvagin_primes:
+            if sha_an.ord(p) == 0:
+                if heegner_index_odd_part%p != 0:
+                    if verbosity > 0:
+                        print 'True for p = %d by Kolyvagin bound.'%p
+                    primes_to_remove.append(p)
+                    continue
+                if heegner_index_odd_part.ord(p) <= 1:
+                    if verbosity > 0:
+                        print 'True for p = %d by Kolyvagin bound & Cassels pairing.'%p
+                    primes_to_remove.append(p)
+                    continue
+            if verbosity > 0:
+                print 'ALERT: p = %d left in Kolyvagin bound'%p
+                print '    ord_p(#Sha) <=', 2*heegner_index_odd_part.ord(p)
+                print '    ord_p(#Sha_an) =', sha_an.ord(p)
+        for p in primes_to_remove:
+            kolyvagin_primes.remove(p)
+        remaining_primes = list( set(remaining_primes).union(set(kolyvagin_primes)) )
+
+        # Kato's bound
+        if rank == 0 and not E.has_cm():
+            assert E.optimal_curve() == E
+            L_over_Omega = E.lseries().L_ratio()
+            kato_primes = Sha.bound_kato()
+            primes_to_remove = []
+            for p in remaining_primes:
+                if p not in kato_primes:
+                    if verbosity > 0:
+                        print 'Kato further implies that #Sha[%d] is trivial.'%p
+                    primes_to_remove.append(p)
+                if p not in [2,3] and N%p != 0:
+                    if E.is_surjective(p)[0]:
+                        if verbosity > 1:
+                            print 'Kato might apply nontrivially for %d'%p
+                        # ordp(sha) <= ordp(L_over_omega)
+            for p in primes_to_remove:
+                remaining_primes.remove(p)
+
+        # Mazur
+        if 5 in remaining_primes and E.is_reducible(5) and N.is_prime():
+            remaining_primes.remove(5)
+            print 'True for p=5 by Mazur'
+
+        # print some extra information
+        if verbosity > 1:
+            if len(remaining_primes) > 0:
+                print 'Remaining primes:'
+            for p in remaining_primes:
+                s = 'p = ' + str(p) + ': '
+                if not E.is_reducible(p):
+                    s += 'ir'
+                s += 'reducible, '
+                if not E.is_surjective(p):
+                    s += 'not '
+                s += 'surjective, '
+                a_p = E.an(p)
+                if E.is_good(p):
+                    if a_p%p != 0:
+                        s += 'good ordinary'
+                    else:
+                        s += 'good, non-ordinary'
+                else:
+                    assert E.is_minimal()
+                    if a_p == 0:
+                        s += 'additive'
+                    elif a_p == 1:
+                        s += 'split multiplicative'
+                    elif a_p == -1:
+                        s += 'non-split multiplicative'
+                print s
+
+        return remaining_primes
+
     def integral_points(self, mw_base='auto', both_signs=False, verbose=False):
         """
         Computes all integral points (up to sign) on this elliptic curve.

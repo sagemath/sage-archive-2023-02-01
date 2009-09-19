@@ -113,11 +113,8 @@ static ex exp_eval(const ex & x)
 		return x.op(0);
 	
 	// exp(float) -> float
-	/* delay numeric evaluation to evalf,
-	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return exp(ex_to<numeric>(x));
-	*/
 	
 	return exp(x).hold();
 }
@@ -229,11 +226,8 @@ static ex log_eval(const ex & x)
 			return (Pi*I*_ex_1_2);
 
 		// log(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return log(ex_to<numeric>(x));
-		*/
 	}
 
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):
@@ -442,11 +436,8 @@ static ex sin_eval(const ex & x)
 	}
 	
 	// sin(float) -> float
-	/* delay numeric evaluation to evalf,
-	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return sin(ex_to<numeric>(x));
-	*/
 
 	// sin() is odd
 	if (x.info(info_flags::negative))
@@ -552,11 +543,8 @@ static ex cos_eval(const ex & x)
 	}
 	
 	// cos(float) -> float
-	/* delay numeric evaluation to evalf,
-	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return cos(ex_to<numeric>(x));
-	*/
 	
 	// cos() is even
 	if (x.info(info_flags::negative))
@@ -659,12 +647,9 @@ static ex tan_eval(const ex & x)
 	}
 	
 	// tan(float) -> float
-	/* delay numeric evaluation to evalf,
-	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x));
 	}
-	*/
 	
 	// tan() is odd
 	if (x.info(info_flags::negative))
@@ -756,11 +741,8 @@ static ex asin_eval(const ex & x)
 			return _ex_1_2*Pi;
 
 		// asin(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return asin(ex_to<numeric>(x));
-		*/
 
 		// asin() is odd
 		if (x.info(info_flags::negative))
@@ -829,11 +811,8 @@ static ex acos_eval(const ex & x)
 			return Pi;
 
 		// acos(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return acos(ex_to<numeric>(x));
-		*/
 
 		// acos(-x) -> Pi-acos(x)
 		if (x.info(info_flags::negative))
@@ -898,11 +877,8 @@ static ex atan_eval(const ex & x)
 			throw (pole_error("atan_eval(): logarithmic pole",0));
 
 		// atan(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return atan(ex_to<numeric>(x));
-		*/
 
 		// atan() is odd
 		if (x.info(info_flags::negative))
@@ -1045,12 +1021,9 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan(float, float) -> float
-	/* delay numeric evaluation to evalf,
-	 * where precision can be specified
 	if (is_a<numeric>(y) && !y.info(info_flags::crational) &&
 	    is_a<numeric>(x) && !x.info(info_flags::crational))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
-	*/
 
 	// atan(real, real) -> atan(y/x) +/- Pi
 	if (y.info(info_flags::real) && x.info(info_flags::real)) {
@@ -1134,11 +1107,8 @@ static ex sinh_eval(const ex & x)
 			return _ex0;        
 
 		// sinh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return sinh(ex_to<numeric>(x));
-		*/
 
 		// sinh() is odd
 		if (x.info(info_flags::negative))
@@ -1223,11 +1193,8 @@ static ex cosh_eval(const ex & x)
 			return _ex1;
 
 		// cosh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return cosh(ex_to<numeric>(x));
-		*/
 
 		// cosh() is even
 		if (x.info(info_flags::negative))
@@ -1312,11 +1279,8 @@ static ex tanh_eval(const ex & x)
 			return _ex0;
 
 		// tanh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return tanh(ex_to<numeric>(x));
-		*/
 
 		// tanh() is odd
 		if (x.info(info_flags::negative))
@@ -1425,11 +1389,8 @@ static ex asinh_eval(const ex & x)
 			return _ex0;
 
 		// asinh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return asinh(ex_to<numeric>(x));
-		*/
 
 		// asinh() is odd
 		if (x.info(info_flags::negative))
@@ -1488,11 +1449,8 @@ static ex acosh_eval(const ex & x)
 			return Pi*I;
 
 		// acosh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return acosh(ex_to<numeric>(x));
-		*/
 
 		// acosh(-x) -> Pi*I-acosh(x)
 		if (x.info(info_flags::negative))
@@ -1556,11 +1514,8 @@ static ex atanh_eval(const ex & x)
 			return NegInfinity;
 
 		// atanh(float) -> float
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return atanh(ex_to<numeric>(x));
-		*/
 
 		// atanh() is odd
 		if (x.info(info_flags::negative))

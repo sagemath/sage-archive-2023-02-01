@@ -167,11 +167,8 @@ static ex tgamma_eval(const ex & x)
 				return (pow(*_num_2_p, n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p))))*sqrt(Pi);
 			}
 		}
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!ex_to<numeric>(x).is_rational())
 			return tgamma(ex_to<numeric>(x));
-		*/
 	}
 	
 	return tgamma(x).hold();

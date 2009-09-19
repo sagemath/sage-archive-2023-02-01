@@ -556,11 +556,8 @@ static ex Li2_eval(const ex & x)
 		if (x.is_equal(-I))
 			return power(Pi,_ex2)/_ex_48 - Catalan*I;
 		// Li2(float)
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return Li2(ex_to<numeric>(x));
-		*/
 	}
 	
 	return Li2(x).hold();

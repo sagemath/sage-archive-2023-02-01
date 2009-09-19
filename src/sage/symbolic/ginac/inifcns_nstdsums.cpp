@@ -3858,12 +3858,9 @@ static ex zeta1_eval(const ex& m)
 			}
 		}
 		// zeta(float)
-		/* delay numeric evaluation to evalf,
-		 * where precision can be specified
 		if (y.info(info_flags::numeric) && !y.info(info_flags::crational)) {
-			return zeta1_evalf(m);
+			return zeta(y); // y is numeric
 		}
-		*/
 	}
 	return zeta(m).hold();
 }

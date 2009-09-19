@@ -12782,6 +12782,224 @@ class DiGraph(GenericGraph):
         """
         return sorted(self.out_degree_iterator(), reverse=True)
 
+
+    def feedback_edge_set(self,value_only=False):
+        r"""
+        Computes the minimum feedback edge set of a digraph
+        ( also called feedback arc set ).
+
+        The minimum feedback edge set of a digraph is a set of edges
+        that intersect all the circuits of the digraph.
+        Equivalently, a minimum feedback arc set of a DiGraph is a set
+        `S` of arcs such that the digraph `G-S` is acyclic.
+
+        For more informations, see
+        ( http://en.wikipedia.org/wiki/Feedback_arc_set )
+
+        INPUT :
+
+        - ``value_only`` (boolean) --
+            - When set to ``True``, only the minimum
+              cardinal of a minimum edge set is
+              returned.
+
+            - When set to ``False``, the ``Set`` of edges
+              of a minimal edge set is returned.
+
+        This problem is solved using Linear Programming, which certainly
+        is not the best way and will have to be updated. The program solved
+        is the following :
+
+        .. MATH:
+            \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
+            \mbox{Such that : }&\\
+            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
+            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
+            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
+            &\forall (u,v)\in G, d_u-d_v+nb_{(u,v)}\geq 0\\
+
+        An explanation :
+
+        An acyclic digraph can be seen as a poset, and every poset has
+        a linear extension. This means that in any acyclic digraph
+        the vertices can be ordered with a total order `<` in such a way
+        that if `(u,v)\in G`, then `u<v`.
+
+        Thus, this linear program is built in order to assign to each vertex
+        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        an edge `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is
+        removed (`\Rightarrow x_{(u,v)}=1`).
+
+        The number of edges removed is then minimized, which is
+        the objective.
+
+        EXAMPLE :
+
+        If the digraph is created from a graph, and hence is symmetric
+        ( if `uv` is an edge, then `vu` is an edge too ), then
+        obviously the cardinality of its feedback arc set is the number
+        of edges in the first graph ::
+
+            sage: cycle=graphs.CycleGraph(5)
+            sage: dcycle=DiGraph(cycle)
+            sage: cycle.size()
+            5
+            sage: dcycle.feedback_edge_set(value_only=True)    # optional - requires GLPK or CBC
+            5.0
+
+        And in this situation, for any edge `uv` of the first graph, `uv` of `vu`
+        is in the returned feedback arc set::
+
+           sage: g = graphs.RandomGNP(5,.3)
+           sage: dg = DiGraph(g)
+           sage: feedback = dg.feedback_edge_set()
+           sage: (u,v,l) = g.edge_iterator().next()
+           sage: (u,v) in feedback or (v,u) in feedback
+           True
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p=MixedIntegerLinearProgram(maximization=False)
+
+        b=p.new_variable()
+        x=p.new_variable(dim=2)
+        d=p.new_variable()
+        n=self.order()
+        N=range(n)
+
+        # First and second constraints
+        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
+        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+
+        # Definition of d_v
+        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+
+        # The removed vertices cover all the back arcs ( third condition )
+        [p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=0) for (u,v) in self.edges(labels=None)]
+
+        p.set_binary(b)
+        p.set_binary(x)
+
+        p.set_objective(sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            p.solve()
+
+            b_sol=p.get_values(b)
+
+            from sage.sets.set import Set
+            return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
+
+    def feedback_vertex_set(self,value_only=False):
+        r"""
+        Computes the minimum feedback vertex set of a digraph.
+
+        The minimum feedback vertex set of a digraph is a set of vertices
+        that intersect all the circuits of the digraph.
+        Equivalently, a minimum feedback vertex set of a DiGraph is a set
+        `S` of vertices such that the digraph `G-S` is acyclic.
+
+        For more informations, see
+        ( http://en.wikipedia.org/wiki/Feedback_vertex_set )
+
+        INPUT :
+
+        - ``value_only`` (boolean) --
+            - When set to ``True``, only the minimum
+              cardinal of a minimum vertex set is
+              returned.
+
+            - When set to ``False``, the ``Set`` of vertices
+              of a minimal feedback vertex set is returned.
+
+        This problem is solved using Linear Programming, which certainly
+        is not the best way and will have to be replaced by a better algorithm.
+        The program solved is the following :
+
+        .. MATH:
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\\
+            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
+            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
+            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
+            &\forall (u,v)\in G, d_u-d_v+nb_u+nb_v\geq 0\\
+
+        A brief explanation :
+
+        An acyclic digraph can be seen as a poset, and every poset has
+        a linear extension. This means that in any acyclic digraph
+        the vertices can be ordered with a total order `<` in such a way
+        that if `(u,v)\in G`, then `u<v`.
+        Thus, this linear program is built in order to assign to each vertex
+        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        an edge `(u,v)\in G` such that `d_v<d_u`, then either `u` is removed
+        (`\Rightarrow b_u=1`) or `v` is removed (`\Rightarrow b_v=1`).
+        The number of vertices removed is then minimized, which is
+        the objective.
+
+        EXAMPLE:
+
+        In a digraph built from a graph, any edge is replaced by arcs going
+        in the two opposite directions, thus creating a cycle of length two.
+        Hence, to remove all the cycles from the graph, each edge must see
+        one of its neighbors removed : a feedback vertex set is in this
+        situation a vertex cover ::
+
+            sage: cycle=graphs.CycleGraph(5)
+            sage: dcycle=DiGraph(cycle)
+            sage: cycle.vertex_cover(value_only=True)         # optional - requires GLPK or CBC
+            3
+            sage: feedback = dcycle.feedback_vertex_set() # optional - requires GLPK or CBC
+            sage: feedback.cardinality()
+            3
+            sage: (u,v,l) = cycle.edge_iterator().next()
+            sage: u in feedback or v in feedback
+
+        For a circuit, the minimum feedback arc set is clearly `1` ::
+
+            sage: circuit = digraphs.Circuit(5)
+            sage: circuit.feedback_vertex_set(value_only=True) == 1
+            True
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p=MixedIntegerLinearProgram(maximization=False)
+
+        b=p.new_variable()
+        x=p.new_variable(dim=2)
+        d=p.new_variable()
+        n=self.order()
+        N=range(n)
+
+        # First and second constraints
+        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
+        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+
+        # Definition of d_v
+        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+
+        # The removed vertices cover all the back arcs ( third condition )
+        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=0) for (u,v) in self.edges(labels=None)]
+
+        p.set_binary(b)
+        p.set_binary(x)
+
+        p.set_objective(sum([b[v] for v in self]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            p.solve()
+            b_sol=p.get_values(b)
+
+            from sage.sets.set import Set
+            return Set([v for v in self if b_sol[v]==1])
+
+
     ### Construction
 
     def reverse(self):

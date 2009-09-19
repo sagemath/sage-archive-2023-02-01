@@ -954,6 +954,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * Specialized echelon form
     ########################################################################
 
+    def _clear_denom(self):
+        """
+        INPUT:
+
+        -  ``self`` - a matrix
+
+        OUTPUT:  self, 1
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ,2,[1,2,3,4])
+            sage: a._clear_denom()
+            ([1 2]
+            [3 4], 1)
+        """
+        return self, ZZ(1)
+
     def charpoly(self, var='x', algorithm='linbox'):
         """
         INPUT:

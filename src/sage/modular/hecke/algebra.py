@@ -473,21 +473,29 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         level = self.level()
         bound = self.__M.hecke_bound()
         dim = self.__M.rank()
-        span = [self.hecke_operator(n) for n in range(1, bound+1) if not self.is_anemic() or gcd(n, level) == 1]
-        rand_max = 5
-        while True:
-            # Project the full Hecke module to a random submodule to ease the HNF reduction.
-            v = (ZZ**dim).random_element(x=rand_max)
-            proj_span = matrix([T.matrix()*v for T in span])._clear_denom()[0]
-            proj_basis = proj_span.hermite_form()
-            if proj_basis[dim-1] == 0:
-                # We got unlucky, choose another projection.
-                rand_max *= 2
-                continue
-            # Lift the projected basis to a basis in the Hecke algebra.
-            trans = proj_span.solve_left(proj_basis)
-            self.__basis_cache = [sum(c*T for c,T in zip(row,span) if c != 0) for row in trans[:dim]]
-            return self.__basis_cache
+        if dim == 0:
+            basis = []
+        elif dim == 1:
+            basis = [self.hecke_operator(1)]
+        else:
+            span = [self.hecke_operator(n) for n in range(1, bound+1) if not self.is_anemic() or gcd(n, level) == 1]
+            rand_max = 5
+            while True:
+                # Project the full Hecke module to a random submodule to ease the HNF reduction.
+                v = (ZZ**dim).random_element(x=rand_max)
+                proj_span = matrix([T.matrix()*v for T in span])._clear_denom()[0]
+                proj_basis = proj_span.hermite_form()
+                if proj_basis[dim-1] == 0:
+                    # We got unlucky, choose another projection.
+                    rand_max *= 2
+                    continue
+                # Lift the projected basis to a basis in the Hecke algebra.
+                trans = proj_span.solve_left(proj_basis)
+                basis = [sum(c*T for c,T in zip(row,span) if c != 0) for row in trans[:dim]]
+                break
+
+        self.__basis_cache = tuple(basis)
+        return basis
 
     def discriminant(self):
         r"""
@@ -507,13 +515,18 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             1
             sage: ModularSymbols(65, sign=1).cuspidal_submodule().hecke_algebra().discriminant()
             6144
+            sage: ModularSymbols(1,4,sign=1).cuspidal_submodule().hecke_algebra().discriminant()
+            1
         """
         try:
             return self.__disc
         except AttributeError:
             pass
         basis = self.basis()
-        d = len(self.basis())
+        d = len(basis)
+        if d <= 1:
+            self.__disc = ZZ(1)
+            return self.__disc
         trace_matrix = matrix(ZZ, d)
         for i in range(d):
             for j in range(i+1):

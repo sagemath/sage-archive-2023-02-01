@@ -1989,11 +1989,17 @@ ex function::derivative(const symbol & s) const
 
 int function::compare(const basic& other) const
 {
+	static const tinfo_t function_id = find_tinfo_key("function");
+	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
+
 	const tinfo_t typeid_this = tinfo();
 	const tinfo_t typeid_other = other.tinfo();
 	if (typeid_this==typeid_other) {
 		GINAC_ASSERT(typeid(*this)==typeid(other));
 		return compare_same_type(other);
+	} else if (typeid_this == function_id &&
+			typeid_other == fderivative_id) {
+		return -1;
 	} else {
 		return 1;
 	}

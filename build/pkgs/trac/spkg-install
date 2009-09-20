@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+set -e
+
+export INSTALL_DIR="$SAGE_LOCAL/lib/python/site-packages"
+
+set +e
+
+success() {
+    if [ $? -ne 0 ]; then
+        echo "Error building Trac: '$1'"
+        exit 1
+    fi
+}
+
+cd src
+
+echo "Deleting previous Genshi installation"
+rm -rf "$INSTALL_DIR"/Genshi-*
+success 'deleting previous Genshi installation'
+echo "Installing Genshi"
+cd Genshi-0.5.1
+# If the C extension module doesn't compile, consider disabling it
+# (see http://genshi.edgewall.org/wiki/Documentation/install.html):
+# python setup.py --without-speedups install
+python setup.py install
+success 'installing Genshi'
+cd ..
+
+echo "Deleting previous Trac installation"
+rm -rf "$INSTALL_DIR"/Trac-*
+success 'deleting previous Trac installation'
+echo "Installing Trac"
+cd Trac-0.11.5
+python setup.py install
+success 'installing Trac'
+cd ..
+
+echo "Deleting previous TracMercurial installation"
+rm -rf "$INSTALL_DIR"/TracMercurial-*
+success 'deleting previous TracMercurial installation'
+echo "Installing TracMercurial plug-in"
+cd mercurial-plugin-0.11
+python setup.py install
+success 'installing TracMercurial plug-in'
+cd ..
+
+set -e
+
+echo "Finished installing Trac."

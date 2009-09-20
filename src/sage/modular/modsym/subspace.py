@@ -493,12 +493,9 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         EXAMPLES::
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
-            sage: a = f.diamond_bracket_operator(2).matrix(); a
-            [ 1  1]
-            [-1  0]
-            sage: a^2
-            [ 0  1]
-            [-1 -1]
+            sage: a = f.diamond_bracket_operator(2).matrix()
+            sage: a.charpoly()
+            x^2 - x + 1
             sage: a^12
             [1 0]
             [0 1]

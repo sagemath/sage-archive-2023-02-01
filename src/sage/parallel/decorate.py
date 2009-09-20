@@ -8,6 +8,7 @@ import types
 from sage.rings.all import Integer
 
 from reference import parallel_iter as p_iter_reference
+from use_fork import p_iter_fork
 import multiprocessing
 
 def normalize_input(a):
@@ -45,39 +46,27 @@ def normalize_input(a):
         return ((a,), {})
 
 
-class parallel:
+class Parallel:
     """
-    Create paralleled functions.
+    Create parallel decorated function.
 
-    INPUT:
-        p_iter -- parallel iterator function or string:
-                  'multiprocessing' -- use multiprocessing (aka pyprocessing)
-                  'reference'       -- use a fake serial reference
-                                       implementation
-                  DSage instance    -- use dsage
     """
-    def __init__(self, p_iter = 'multiprocessing'):
-        """
-        Create a parallel iterator decorator object.
-
-        EXAMPLES:
-            sage: @parallel()
-            ... def f(N): return N^2
-            sage: v = list(f([1,2,4])); v.sort(); v
-            [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
-            sage: @parallel('reference')
-            ... def f(N): return N^2
-            sage: v = list(f([1,2,4])); v.sort(); v
-            [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
-        """
+    def __init__(self, p_iter = 'fork', ncpus=None, **kwds):
         # The default p_iter is currently the reference implementation.
         # This may change.
         self.p_iter = None
 
         if isinstance(p_iter, (int, long, Integer)):
-            self.p_iter = multiprocessing.pyprocessing(p_iter)
+            p_iter, ncpus = 'fork', p_iter
+
+        if ncpus is None:
+            from ncpus import ncpus as compute_ncpus
+            ncpus = compute_ncpus()
+
+        if p_iter == 'fork':
+            self.p_iter = p_iter_fork(ncpus, **kwds)
         elif p_iter == 'multiprocessing':
-            self.p_iter = multiprocessing.pyprocessing()
+            self.p_iter = multiprocessing.pyprocessing(ncpus)
         elif p_iter == 'reference':
             self.p_iter = p_iter_reference
         elif isinstance(p_iter, str):
@@ -92,6 +81,8 @@ class parallel:
 
             if self.p_iter is None:
                 self.p_iter = p_iter
+
+
 
     def __call__(self, f):
         """
@@ -118,4 +109,66 @@ class parallel:
             else:
                 return f(*args, **kwds)
         return g
+
+def parallel(p_iter = 'fork', ncpus=None, **kwds):
+    """
+    This is a decorator that gives a function a parallel interface,
+    allowing it to be called with a list of inputs, whose valuaes will
+    be computed in parallel.
+
+    INPUT:
+        - ``p_iter`` -- parallel iterator function or string:
+                  - `fork'            -- (default) use a new fork for each input
+                  - 'multiprocessing' -- use multiprocessing library
+                  - 'reference'       -- use a fake serial reference implementation
+                  - DSage instance    -- use dsage
+
+        - ``ncpus`` -- integer, number of cpus
+
+        - ``timeout`` -- number of seconds until task is killed (only supported by 'fork')
+
+
+    EXAMPLES::
+
+    We create a simple decoration for a simple function.  The nummber
+    of cpus is automatically detected::
+
+        sage: @parallel
+        ... def f(n): return n*n
+        sage: f(10)
+        100
+        sage: sorted(list(f([1,2,3])))
+        [(((1,), {}), 1), (((2,), {}), 4), (((3,), {}), 9)]
+
+    We use exactly 2 cpus::
+
+        sage: @parallel(2)
+        ... def f(n): return n*n
+
+
+    We create a decorator that uses 3 processes, and times out
+    individual processes after 10 seconds::
+
+        sage: @parallel(ncpus=3, timeout=10)
+        ... def fac(n): return factor(2^n-1)
+        sage: for X, Y in sorted(list(fac([101,119,151,197,209]))): print X,Y
+        ((101,), {}) 7432339208719 * 341117531003194129
+        ((119,), {}) 127 * 239 * 20231 * 131071 * 62983048367 * 131105292137
+        ((151,), {}) 18121 * 55871 * 165799 * 2332951 * 7289088383388253664437433
+        ((197,), {}) 7487 * 26828803997912886929710867041891989490486893845712448833
+        ((209,), {}) 23 * 89 * 524287 * 94803416684681 * 1512348937147247 * 5346950541323960232319657
+
+        sage: @parallel('multiprocessing')
+        ... def f(N): return N^2
+        sage: v = list(f([1,2,4])); v.sort(); v
+        [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
+        sage: @parallel('reference')
+        ... def f(N): return N^2
+        sage: v = list(f([1,2,4])); v.sort(); v
+        [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
+    """
+    import types
+    if isinstance(p_iter, types.FunctionType):
+        return Parallel()(p_iter)
+    return Parallel(p_iter, ncpus, **kwds)
 

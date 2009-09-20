@@ -75,6 +75,7 @@ factor `x`.
 from   sage.misc.search import search
 import sage.misc.latex as latex
 import sage.misc.misc as misc
+from sage.misc.cachefunc import cached_method
 
 import sage.matrix.matrix_space as matrix_space
 import sage.modules.free_module_element as free_module_element
@@ -1910,6 +1911,41 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         S.name("Star involution on %s"%self)
         self.__star_involution = S
         return self.__star_involution
+
+    @cached_method
+    def diamond_bracket_operator(self, d):
+        r"""
+        Return the diamond bracket d operator on this modular symbols space.
+
+        INPUT:
+
+            - `d` -- integer
+
+        OUTPUT:
+
+            - ``matrix`` - the matrix of the diamond bracket operator
+              on this space.
+
+        EXAMPLES::
+
+            sage: e = kronecker_character(7)
+            sage: M = ModularSymbols(e,2,sign=1)
+            sage: M.diamond_bracket_operator(5)
+            Hecke module morphism Diamond bracket operator <5> on Modular Symbols space of dimension 4 and level 28, weight 2, character [-1, -1], sign 1, over Rational Field defined by the matrix
+            [-1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            Domain: Modular Symbols space of dimension 4 and level 28, weight 2, ...
+            Codomain: Modular Symbols space of dimension 4 and level 28, weight 2, ...
+            sage: [M.diamond_bracket_operator(d).matrix()[0,0] for d in [0..6]]
+            [0, 1, 0, 1, 0, -1, 0]
+            sage: [e(d) for d in [0..6]]
+            [0, 1, 0, 1, 0, -1, 0]
+        """
+        S = self.__heilbronn_operator(self, [[-d,0, 0,d]], 1)
+        S.name("Diamond bracket operator <%s> on %s"%(d,self))
+        return S
 
     def submodule(self, M, dual_free_module=None, check=True):
         r"""

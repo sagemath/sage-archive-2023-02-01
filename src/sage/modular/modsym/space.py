@@ -37,6 +37,8 @@ from sage.modular.arithgroup.all import Gamma0 # for Sturm bound given a charact
 
 import hecke_operator
 
+from sage.misc.cachefunc import cached_method
+
 def is_ModularSymbolsSpace(x):
     r"""
     Return True if x is a space of modular symbols.
@@ -1103,6 +1105,81 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     #  Computation of a basis using eigenforms
     #
     #########################################################################
+
+    @cached_method
+    def q_eigenform_character(self, names=None):
+        """
+        Return the Dirichlet character associated to the specific
+        choice of `q`-eigenform attached to this simple cuspidal
+        modular symbols space.
+
+        INPUT::
+
+            - ``names` -- string, name of the variable.
+
+        OUTPUT:
+
+            - a Dirichlet character taking values in the Hecke eigenvalue
+            field, where the indeterminant of that field is determined
+            by the given variable name.
+
+        EXAMPLES::
+
+            sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
+            sage: eps = f.q_eigenform_character('a'); eps
+            [-alpha - 1]
+            sage: parent(eps)
+            Group of Dirichlet characters of modulus 13 over Number Field in alpha with defining polynomial x^2 + 3*x + 3
+            sage: eps(3)
+            alpha + 1
+
+        The modular symbols space must be simple.::
+
+            sage: ModularSymbols(Gamma1(17),2,sign=1).cuspidal_submodule().q_eigenform_character('a')
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be simple.
+
+        If the character is specified when making the modular symbols
+        space, then names need not be given and the returned character
+        is just the character of the space.::
+
+            sage: f = ModularSymbols(kronecker_character(19),2,sign=1).cuspidal_subspace().decomposition()[0]
+            sage: f
+            Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 10 and level 76, weight 2, character [-1, -1], sign 1, over Rational Field
+            sage: f.q_eigenform_character()
+            [-1, -1]
+            sage: f.q_eigenform_character() is f.character()
+            True
+
+        The input space must be cuspidal::
+
+            sage: ModularSymbols(Gamma1(13),2,sign=1).q_eigenform_character('a')
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be cuspidal.
+
+        The modular symbols space does not have to come from a decomposition::
+
+            sage: ModularSymbols(Gamma1(16),2,sign=1).cuspidal_submodule().q_eigenform_character('a')
+            [1, -alpha - 1]
+        """
+        eps = self.character()
+        if eps is not None:
+            # easy case
+            return eps
+
+        f = self.q_eigenform(1,names)
+        v = self.dual_eigenvector()
+        i = v.nonzero_positions()[0]
+        K = v.base_ring()
+        from sage.modular.dirichlet import DirichletGroup
+        G = DirichletGroup(self.level(), K)
+        G.unit_gens()
+        M = self.ambient_module()
+        # act on right since v is a in the dual
+        b = [(M.diamond_bracket_operator(u).matrix()*v)[i] / v[i] for u in G.unit_gens()]
+        return G(b)
 
     def q_eigenform(self, prec, names=None):
         """

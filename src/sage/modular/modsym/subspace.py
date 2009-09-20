@@ -34,6 +34,8 @@ import sage.modular.modsym.space
 
 import sage.modular.modsym.element
 
+from sage.misc.cachefunc import cached_method
+
 class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, hecke.HeckeSubmodule):
     """
     Subspace of ambient space of modular symbols
@@ -474,3 +476,31 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         self.__star_involution = S.restrict(self)
         return self.__star_involution
 
+    @cached_method
+    def diamond_bracket_operator(self, d):
+        r"""
+        Return the diamond bracket d operator on this modular symbols space.
+
+        INPUT:
+
+            - `d` -- integer
+
+        OUTPUT:
+
+            - ``matrix`` - the matrix of the diamond bracket operator
+              on this space.
+
+        EXAMPLES::
+
+            sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
+            sage: a = f.diamond_bracket_operator(2).matrix(); a
+            [ 1  1]
+            [-1  0]
+            sage: a^2
+            [ 0  1]
+            [-1 -1]
+            sage: a^12
+            [1 0]
+            [0 1]
+        """
+        return self.ambient_hecke_module().diamond_bracket_operator(d).restrict(self)

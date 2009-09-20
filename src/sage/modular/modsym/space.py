@@ -1170,17 +1170,15 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             return eps
 
         f = self.q_eigenform(1,names)
-        L = f.parent().base_ring()
-        v = self.dual_eigenvector()
+        v = self.dual_eigenvector(names=names)
         i = v.nonzero_positions()[0]
         K = v.base_ring()
-        phi = K.hom([L.gen(0)])
         from sage.modular.dirichlet import DirichletGroup
-        G = DirichletGroup(self.level(), L)
+        G = DirichletGroup(self.level(), K)
         G.unit_gens()
         M = self.ambient_module()
         # act on right since v is a in the dual
-        b = [phi((M.diamond_bracket_operator(u).matrix()*v)[i] / v[i]) for u in G.unit_gens()]
+        b = [(M.diamond_bracket_operator(u).matrix()*v)[i] / v[i] for u in G.unit_gens()]
         return G(b)
 
     def q_eigenform(self, prec, names=None):

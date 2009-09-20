@@ -31,7 +31,7 @@ class Function_cos(PrimitiveFunction):
         """
         The cosine function.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: cos(pi)
             -1
@@ -124,6 +124,18 @@ class Function_sec(PrimitiveFunction):
         else:
             return 1/cos_x
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(sec(x), x) == diff(1/cos(x), x))
+            True
+            sage: diff(sec(x), x)
+            tan(x)*sec(x)
+        """
+        x = args[0]
+        return sec(x)*tan(x)
+
 sec = Function_sec()
 
 class Function_csc(PrimitiveFunction):
@@ -178,6 +190,17 @@ class Function_csc(PrimitiveFunction):
         else:
             return 1/sin_x
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(csc(x), x) == diff(1/sin(x), x))
+            True
+            sage: diff(csc(x), x)
+            -csc(x)*cot(x)
+        """
+        x = args[0]
+        return -csc(x)*cot(x)
 
 csc = Function_csc()
 
@@ -230,6 +253,18 @@ class Function_cot(PrimitiveFunction):
             1.0000000000000000000000000000
         """
         return x.n(prec).cot()
+
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(cot(x), x) == diff(1/tan(x), x))
+            True
+            sage: diff(cot(x), x)
+            -csc(x)^2
+        """
+        x = args[0]
+        return -csc(x)**2
 
 cot = Function_cot()
 
@@ -359,6 +394,18 @@ class Function_arccot(PrimitiveFunction):
         from sage.symbolic.constants import pi
         return (pi/2 - x.arctan()).n(prec)
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(acot(x), x) == -diff(atan(x), x))
+            True
+            sage: diff(acot(x), x)
+            -1/(x^2 + 1)
+        """
+        x = args[0]
+        return -1/(x**2 + 1)
+
 arccot = acot = Function_arccot()
 
 class Function_arccsc(PrimitiveFunction):
@@ -388,6 +435,16 @@ class Function_arccsc(PrimitiveFunction):
         """
         return (1/x).arcsin().n(prec)
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: diff(acsc(x), x)
+            -1/(sqrt(-1/x^2 + 1)*x^2)
+        """
+        x = args[0]
+        return -1/(x**2 * (1 - x**(-2)).sqrt())
+
 arccsc = acsc = Function_arccsc()
 
 class Function_arcsec(PrimitiveFunction):
@@ -416,6 +473,16 @@ class Function_arcsec(PrimitiveFunction):
             1.0471975511965977461542144611
         """
         return (1/x).arccos().n(prec)
+
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: diff(asec(x), x)
+            1/(sqrt(-1/x^2 + 1)*x^2)
+        """
+        x = args[0]
+        return 1/(x**2 * (1 - x**(-2)).sqrt())
 
 arcsec = asec = Function_arcsec()
 

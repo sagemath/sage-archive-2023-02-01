@@ -111,6 +111,18 @@ class Function_coth(HyperbolicFunction):
         PrimitiveFunction.__init__(self, "coth", latex=r"\coth",
                                    approx=lambda x: 1/math.tanh(x))
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
+            True
+            sage: diff(coth(x), x)
+            -csch(x)^2
+        """
+        x = args[0]
+        return -csch(x)**2
+
 coth = Function_coth()
 
 class Function_sech(HyperbolicFunction):
@@ -131,6 +143,18 @@ class Function_sech(HyperbolicFunction):
         """
         PrimitiveFunction.__init__(self, "sech", latex=r"\sech",
                                    approx=lambda x: 1/math.cosh(x))
+
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(sech(x), x) == diff(1/cosh(x), x))
+            True
+            sage: diff(sech(x), x)
+            -tanh(x)*sech(x)
+        """
+        x = args[0]
+        return -sech(x)*tanh(x)
 
 sech = Function_sech()
 
@@ -153,6 +177,18 @@ class Function_csch(HyperbolicFunction):
         """
         PrimitiveFunction.__init__(self, "csch", latex=r"\text{csch}",
                                    approx=lambda x: 1/math.sinh(x))
+
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: bool(diff(csch(x), x) == diff(1/sinh(x), x))
+            True
+            sage: diff(csch(x), x)
+            -coth(x)*csch(x)
+        """
+        x = args[0]
+        return -csch(x)*coth(x)
 
 csch = Function_csch()
 
@@ -283,6 +319,17 @@ class Function_arccoth(HyperbolicFunction):
         """
         return arctanh(1/x).n(prec)
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+            sage: bool(diff(acoth(x), x) == diff(atanh(x), x))
+            True
+            sage: diff(acoth(x), x)
+            -1/(x^2 - 1)
+        """
+        x = args[0]
+        return -1/(x**2 - 1)
+
 arccoth = acoth = Function_arccoth()
 
 class Function_arcsech(HyperbolicFunction):
@@ -312,6 +359,16 @@ class Function_arcsech(HyperbolicFunction):
         """
         return arccosh(1/x).n(prec)
 
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: diff(asech(x), x)
+            -1/((x + 1)*x*sqrt(-(x - 1)/(x + 1)))
+        """
+        x = args[0]
+        return -1/(x * (x+1) * ( (1-x)/(1+x) ).sqrt())
+
 arcsech = asech = Function_arcsech()
 
 class Function_arccsch(HyperbolicFunction):
@@ -340,5 +397,15 @@ class Function_arccsch(HyperbolicFunction):
             0.88137358701954302523260932497979230902816032826163541075330
         """
         return arcsinh(1/x).n(prec)
+
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: diff(acsch(x), x)
+            -1/(sqrt(1/x^2 + 1)*x^2)
+        """
+        x = args[0]
+        return -1/(x**2 * (1 + x**(-2)).sqrt())
 
 arccsch = acsch = Function_arccsch()

@@ -6,15 +6,24 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cd src
+# Apply patches
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+if [ $UNAME = "Darwin" ]; then
+   # See
+   # http://duriansoftware.com/joe/PSA:-avoiding-the-%22ucontext-routines-are-deprecated%22-error-on-Mac-OS-X-Snow-Leopard.html
+   echo "Patching mach_dep.c -- needed for OS X 10.6"
+   $CP patches/mach_dep.c src/
+fi
+
+if [ $UNAME = "Darwin" -a "$SAGE64" = "yes" ]; then
    echo "64 bit MacIntel"
    CFLAGS="-O2 -g -fPIC -m64 "; export CFLAGS
    LDFLAGS="-m64"; export LDFLAGS
 fi
 
+cd src
 ./configure --prefix=$SAGE_LOCAL --enable-large-config
+
 if [ $? -ne 0 ]; then
    echo "Error configuring BoehmGC."
    exit 1

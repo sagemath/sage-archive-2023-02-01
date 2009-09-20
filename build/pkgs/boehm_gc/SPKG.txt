@@ -10,8 +10,7 @@ Permissive BSD + GPL 2.0+
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
- * Gary Furnish
+  * William Stein
 
 == Upstream Contact ==
 
@@ -27,6 +26,9 @@ None.
 None. Sources in src are vanilla.
 
 == Changelog ==
+
+=== boehm_gc-7.1.p2 (William Stein, September 20th, 2009) ===
+ * add OS X Snow Leopoard support
 
 === boehm_gc-7.1.p1 (Michael Abshoff, January 20th, 2009) ===
  * add 64 bit OSX support

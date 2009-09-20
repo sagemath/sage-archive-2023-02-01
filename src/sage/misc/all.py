@@ -153,7 +153,7 @@ from trace import trace
 
 from constant_function import ConstantFunction
 
-from cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method
+from cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method, disk_cached_function
 
 from lazy_attribute import lazy_attribute
 

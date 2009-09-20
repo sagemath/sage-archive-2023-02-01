@@ -1127,11 +1127,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: eps = f.q_eigenform_character('a'); eps
-            [-alpha - 1]
+            [-a - 1]
             sage: parent(eps)
-            Group of Dirichlet characters of modulus 13 over Number Field in alpha with defining polynomial x^2 + 3*x + 3
+            Group of Dirichlet characters of modulus 13 over Number Field in a with defining polynomial x^2 + 3*x + 3
             sage: eps(3)
-            alpha + 1
+            a + 1
 
         The modular symbols space must be simple.::
 
@@ -1162,7 +1162,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         The modular symbols space does not have to come from a decomposition::
 
             sage: ModularSymbols(Gamma1(16),2,sign=1).cuspidal_submodule().q_eigenform_character('a')
-            [1, -alpha - 1]
+            [1, -a - 1]
         """
         eps = self.character()
         if eps is not None:
@@ -1170,15 +1170,17 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             return eps
 
         f = self.q_eigenform(1,names)
+        L = f.parent().base_ring()
         v = self.dual_eigenvector()
         i = v.nonzero_positions()[0]
         K = v.base_ring()
+        phi = K.hom([L.gen(0)])
         from sage.modular.dirichlet import DirichletGroup
-        G = DirichletGroup(self.level(), K)
+        G = DirichletGroup(self.level(), L)
         G.unit_gens()
         M = self.ambient_module()
         # act on right since v is a in the dual
-        b = [(M.diamond_bracket_operator(u).matrix()*v)[i] / v[i] for u in G.unit_gens()]
+        b = [phi((M.diamond_bracket_operator(u).matrix()*v)[i] / v[i]) for u in G.unit_gens()]
         return G(b)
 
     def q_eigenform(self, prec, names=None):

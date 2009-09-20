@@ -26,7 +26,6 @@ Website: http://ecls.sourceforge.net/
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * David Kirkby
 
 == Upstream Contact ==
@@ -42,6 +41,10 @@ Website: http://ecls.sourceforge.net/
  * delete the msvc directory
 
 == Changelog ==
+
+=== ecl-9.8.4-20090913cvs.p1 (William Stein, Sept 20th, 2009) ===
+  * Make the name more canonical
+  * Patch for boehm GC code to also work on OS X 10.6
 
 === ecl-9.8.4-cvs-13th-Sept-2009  (David Kirkby and Minh Van Nguyen, Sept 15th, 2009) ===
   * Download the latest CVS from the ECL web site, as version

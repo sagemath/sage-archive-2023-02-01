@@ -8,6 +8,8 @@ include module_list.py
 include spkg-delauto spkg-dist spkg-install
 include sage/libs/gmp/__init__.py
 include sage/libs/linbox/matrix_rational_dense_linbox.cpp
+include sage/libs/polybori/__init__.py
+include sage/libs/polybori/decl.pxd
 include sage/matrix/padics/__init__.py
 include sage/numerical/test.py
 include sage/rings/bernmm/README.txt

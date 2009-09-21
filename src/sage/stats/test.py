@@ -2,5 +2,5 @@
 Statistics in Sage
 
 EXAMPLES:
-    sage: import rpy
+    sage: import rpy2
 """

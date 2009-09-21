@@ -518,7 +518,7 @@ class R(Expect):
 
         EXAMPLES:
             sage: r.version()
-            ((2, 6, 1), 'R version 2.6.1 (2007-11-26)')
+            ((2, 9, 2), 'R version 2.9.2 (2009-08-24)')
         """
         major_re = re.compile('^major\s*(\d.*?)$', re.M)
         minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
@@ -837,7 +837,7 @@ class R(Expect):
         EXAMPLES:
             sage: dummy = r.trait_names(use_disk_cache=False)    #clean doctest
             sage: r.completions('tes')
-            ['testPlatformEquivalence', 'testVirtual']
+            ['testInheritedMethods', 'testPlatformEquivalence', 'testVirtual']
         """
         return [name for name in self.trait_names() if name[:len(s)] == s]
 
@@ -1862,7 +1862,7 @@ def r_version():
     """
     EXAMPLES:
         sage: r.version()
-        ((2, 6, 1), 'R version 2.6.1 (2007-11-26)')
+        ((2, 9, 2), 'R version 2.9.2 (2009-08-24)')
     """
     return r.version()
 

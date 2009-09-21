@@ -266,7 +266,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
-            sage: M.nonzero_positions()
+            sage: M._nonzero_positions_by_row()
             [(0, 3), (1, 1), (1, 6)]
 
         """
@@ -284,6 +284,39 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         if copy:
             return list(nzp)
         return nzp
+
+    def _nonzero_positions_by_column(self, copy=True):
+        """
+        Returns the list of pairs (i,j) such that self[i,j] != 0, but
+        sorted by columns, i.e., column j=0 entries occur first, then
+        column j=1 entries, etc.
+
+        It is safe to change the resulting list (unless you give the option copy=False).
+
+        EXAMPLE::
+            sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
+            [0 0 0 1 0 0 0 0]
+            [0 1 0 0 0 0 1 0]
+            sage: M._nonzero_positions_by_column()
+            [(1, 1), (0, 3), (1, 6)]
+
+        """
+        x = self.fetch('nonzero_positions_by_column')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
+        nzc = [[] for _ in xrange(self._ncols)]
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._matrix[i].num_nonzero:
+                p = self._matrix[i].positions[j]
+                nzc[p].append((i,p))
+        nzc = sum(nzc,[])
+        self.cache('nonzero_positions_by_column', nzc)
+        if copy:
+            return list(nzc)
+        return nzc
 
     def _mod_int(self, modulus):
         return self._mod_int_c(modulus)

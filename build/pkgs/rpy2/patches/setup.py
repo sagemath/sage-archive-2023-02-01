@@ -1,233 +1,188 @@
-"""
-This file builds rpy.
 
-It has been adapted to allow multiple versions of the rpy shared
-library to be included in the build.  To enable this, set the
-environment variable "RHOMES" to a colon-delimited
-(semicolon-delimited on MS-Windows) list of R installation directories.
-
-For linux csh derivatives (including tcsh) use something like
-
-  setenv RHOMES  /usr/local/R-2.1.0/lib/R:/usr/local/R-2.1.1/lib/R
-  python setup.py bdist
-
-For linux sh derivatives (including bash) use something like:
-
-  RHOMES=/usr/local/R-2.1.0/lib/R:/usr/local/R-2.1.1/lib/R
-  export RHOMES
-  python setup.py bdist
-
-For windows, edit setup.32 to include the correct paths, then use
-something like:
-
-  copy setup.Win32 setup.cfg
-  python setup.py build --compiler=mingw32 bdist_wininst
-
-setup.py will automatically look in C:\Program Files\R to determine
-which versions of R are installed, and will build an installer that
-can be used for each of these R versions.
-
-See the files INSTALL.UNIX and INSTALL.WINDOWS for more details.
-"""
-
-DEBUG=True
-
-import os, os.path, sys, shutil
+import os, os.path, sys, shutil, re, itertools
 from distutils.core import setup, Extension
-from distutils.sysconfig import *
-from distutils.errors import *
-import rpy_tools
-if sys.platform=="win32":
-    import rpy_wintools
 
-# Get list of R Home directories that we will be processing
-try:
-    if sys.platform=="win32":
-        RHOMES = os.environ['RHOMES'].split(';')
+
+pack_name = 'rpy2'
+pack_version = __import__('rpy').__version__
+
+RHOMES = os.getenv('RHOMES')
+
+if RHOMES is None:
+
+    RHOMES = os.popen("R RHOME").readlines()
+    if len(RHOMES) == 0:
+        raise RuntimeError(
+            "R_HOME not defined, and no R command in the PATH."
+            )
+
+    #Twist if 'R RHOME' spits out a warning
+    if RHOMES[0].startswith("WARNING"):
+        RHOMES = RHOMES[1]
     else:
-        RHOMES = os.environ['RHOMES'].split(':')
-except:
-    RHOMES = []
+        RHOMES = RHOMES[0]
+    RHOMES = [RHOMES, ]
+else:
+    RHOMES = RHOMES.split(os.pathsep)
 
-print "RHOMES=", RHOMES
-print "DEBUG=", DEBUG
 
-if not RHOMES:
-    if sys.platform=="win32":
-        RHOMES=rpy_wintools.get_RHOMES()
+def get_rversion(RHOME):
+    r_exec = os.path.join(RHOME, 'bin', 'R')
+    # Twist if Win32
+    if sys.platform == "win32":
+        rp = os.popen3('"'+r_exec+'" --version')[2]
     else:
-        RHOMES = [rpy_tools.get_R_HOME(force_exec=False)]
-    print "Setting RHOMES to ", RHOMES
+        rp = os.popen('"'+r_exec+'" --version')
+    rversion = rp.readline()
+    #Twist if 'R RHOME' spits out a warning
+    if rversion.startswith("WARNING"):
+        rversion = rp.readline()
+    m = re.match('^R version ([^ ]+) .+$', rversion)
+    rversion = m.groups()[0]
+    rversion = rversion.split('.')
+    rversion[0] = int(rversion[0])
+    rversion[1] = int(rversion[1])
+    return rversion
 
-# ensure RHOMES is in ascii, since most command line tools are unhappy with unicode...
-RHOMES = map( lambda x: x.encode('ascii'), RHOMES )
+def cmp_version(x, y):
+    if (x[0] < y[0]):
+        return -1
+    if (x[0] > y[0]):
+        return 1
+    if (x[0] == y[0]):
+        if len(x) == 1 or len(y) == 1:
+            return 0
+        return cmp_version(x[1:], y[1:])
 
-# On windows, check for/create the python link library
-#if sys.platform=="win32":
-#    rpy_wintools.CreatePythonWinLib()
+def get_rconfig(RHOME, about, allow_empty = False):
+    r_exec = os.path.join(RHOME, 'bin', 'R')
+    cmd = '"'+r_exec+'" CMD config '+about
+    rp = os.popen(cmd)
+    rconfig = rp.readline()
+    #Twist if 'R RHOME' spits out a warning
+    if rconfig.startswith("WARNING"):
+        rconfig = rp.readline()
+    rconfig = rconfig.strip()
+    #sanity check of what is returned into rconfig
+    rconfig_m = re.match('^(-L.+) (-l.+)$', rconfig)
+    #cheap fix for the case -lblas is returned
+    #FIXME: clean/unify that at one point
+    if rconfig_m is None:
+        rconfig_m = re.match('^(-l.+)$', rconfig)
+    if rconfig_m is None:
+        # MacOSX
+        rconfig_m = re.match('^(-F.+) (-framework.+)$', rconfig)
+    if rconfig_m is None:
+        # MacOSX
+        rconfig_m = re.match('^(-framework.+)$', rconfig)
+    if rconfig_m is None:
+        rconfig_m = re.match('^(-I.+)$', rconfig)
 
+    if (rconfig_m is None):
+        if allow_empty:
+            return ()
+        else:
+            raise Exception(cmd + '\nreturned\n' + rconfig)
+    else:
+        return rconfig_m.groups()
 
-#  For sage
-import os
-SAGE_LOCAL=os.environ['SAGE_LOCAL']
-
-# Find the directory where the g95 libraries are; it looks like this:
-#        GCC_LIB_DIR= SAGE_LOCAL+'/lib/gcc-lib/i686-pc-linux-gnu/4.0.3'
-
-GCC_LIB_DIR=SAGE_LOCAL+"/lib/"
-if os.path.exists(GCC_LIB_DIR + "gcc-lib"):
-    GCC_LIB_DIR += "gcc-lib/"
-    GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
-    GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
-
-###
-
-modules = []
+rnewest = [0, 0, 0]
+rversions = []
 for RHOME in RHOMES:
-
     RHOME = RHOME.strip()
+    rversion = get_rversion(RHOME)
+    if cmp_version(rversion[:2], [2, 7]) == -1:
+        raise Exception("R >= 2.7 required.")
+    rversions.append(rversion)
 
-    if DEBUG:
-        # to avoid strict prototypes errors from R includes
-        get_config_vars()['OPT'] = '-g -Wall'
+def getRinterface_ext(RHOME, r_packversion):
+    r_libs = [os.path.join(RHOME, 'lib'), os.path.join(RHOME, 'modules')]
+
+    #FIXME: crude way (will break in many cases)
+    #check how to get how to have a configure step
+    define_macros = []
+
+    if sys.platform == 'win32':
+        define_macros.append(('Win32', 1))
     else:
-        # to avoid strict prototypes errors from R includes
-        get_config_vars()['OPT'] = '-DNDEBUG -g -O3 -Wall'
+        define_macros.append(('R_INTERFACE_PTRS', 1))
 
-    # get the Python version
-    if sys.version[:3] >= '2.2':
-        DEFINE = []
-        UNDEF = ['PRE_2_2']
-    else:
-        DEFINE = [('PRE_2_2', None)]
-        UNDEF = []
+    define_macros.append(('CSTACK_DEFNS', 1))
+    define_macros.append(('RIF_HAS_RSIGHAND', 1))
 
-    # configure the R paths
-    RVERSION = rpy_tools.get_R_VERSION(RHOME, force_exec=True)
-    RVER     = rpy_tools.get_R_VERSION_CODE(RVERSION)
+    # defines for debugging
+    #define_macros.append(('RPY_DEBUG_PRESERVE', 1))
+    #define_macros.append(('RPY_DEBUG_PROMISE', 1))
+    #define_macros.append(('RPY_DEBUG_OBJECTINIT', 1))
+    #define_macros.append(('RPY_DEBUG_CONSOLE', 1))
 
-    print "### Using R verion %s installed at %s ###" % (RVERSION, RHOME)
+    include_dirs = get_rconfig(RHOME, '--cppflags')[0].split()
+    for i, d in enumerate(include_dirs):
+        if d.startswith('-I'):
+           include_dirs[i] = d[2:]
 
-    r_libs = [ # Different verisons of R put .so/.dll in different places
-              os.path.join(RHOME, 'bin'),  # R 2.0.0+
-              os.path.join(RHOME, 'lib'),  # Pre 2.0.0
-             ]
+    rinterface_ext = Extension(
+            pack_name + '.rinterface.rinterface',
+            [os.path.join('rpy', 'rinterface', 'array.c'),
+             os.path.join('rpy', 'rinterface', 'r_utils.c'),
+             os.path.join('rpy', 'rinterface', 'rinterface.c')],
+            include_dirs = include_dirs +
+                            [os.path.join('rpy', 'rinterface'),],
+            libraries = ['R', ],
+            library_dirs = r_libs,
+            define_macros = define_macros,
+            runtime_library_dirs = r_libs,
+            #extra_compile_args=['-O0', '-g'],
+            extra_link_args = get_rconfig(RHOME, '--ldflags') +\
+                              get_rconfig(RHOME, 'LAPACK_LIBS',
+                                          allow_empty = True)
+                              #+\
+                              #get_rconfig(RHOME, 'BLAS_LIBS'),
+            )
 
-    print "RHOME=",RHOME
-
-    base_source_files = ["src/rpymodule.c", "src/R_eval.c",
-                         "src/io.c"]
-
-    exists = os.path.exists
-    mtime = os.path.getmtime
-
-    # Make one copy of the source files for this R version
-    source_files = []
-    for f in base_source_files:
-        # file.c => file2010.c
-        nfile = f[0:-2] + RVER + '.c'
-        print "copying %s -> %s" % (f, nfile)
-        if (not exists(nfile)) or  ( mtime(f) > mtime(nfile) ):
-            shutil.copy(f, nfile)
-        source_files.append(nfile)
-
-    if sys.platform=='win32':
-        include_dirs = [ os.path.join(RHOME.strip(), 'include'),
-                         'src' ]
-        libraries= ['R']
-        library_dirs = r_libs
-        runtime_libs = []
-        extra_compile_args= []
-        source_files = source_files + ["src\\setenv.c"]
-    elif sys.platform=='darwin':
-        include_dirs = [ os.path.join(RHOME.strip(), 'include'),
-                         'src' ]
-        libraries=['R']
-        library_dirs= r_libs
-        runtime_libs = r_libs
-        extra_compile_args=[]
-    elif sys.platform=='osf1V5':
-        include_dirs = [ os.path.join(RHOME.strip(), 'include'),
-                         'src' ]
-        libraries=['R','Rlapack']
-        library_dirs = r_libs
-        runtime_libs = r_libs
-        extra_compile_args=["-shared"]
-        source_files = source_files + ["src/setenv.c"]
-    else: # unix-like systems, this is known to work for Linux and Solaris
-        include_dirs = [ os.path.join(RHOME.strip(), 'include'),
-                         'src', '/usr/share/R/include' ]
-        libraries=['R'] # changed for Sage: since we build R with ATLAS we don't need RLapack
-        library_dirs = r_libs
-        runtime_libs = r_libs
-        extra_compile_args=["-shared"]
-        source_files = source_files + ["src/setenv.c"]
-
-    # Discover which array packages are present
-    try:
-        import numpy
-        DEFINE.append(('WITH_NUMERIC', '3'))
-        DEFINE.append(('PY_ARRAY_TYPES_PREFIX', 'PyArray_'))
-        include_dirs.append(numpy.get_include())
-    except ImportError:
-        # fall back to Numeric
-        try:
-            import Numeric
-            DEFINE.append(('WITH_NUMERIC', '1'))
-        except ImportError:
-            UNDEF.append('WITH_NUMERIC')
-
-    # Added for Sage
-    libraries.append('lapack')
-    if sys.platform=='darwin':
-       libraries.append('Rblas')
-    else:
-       libraries.append('cblas')
-       libraries.append('atlas')
-    if os.popen2('which_fortran')[1].read().startswith('g95'):
-        libraries.append('f95')
-    else:
-        libraries.append('gfortran')
-    library_dirs.append(GCC_LIB_DIR)
-
-    # get the RPy version
-    from rpy_version import rpy_version
-
-    LONG_DESC = """RPy provides a robust Python interface to the R
-    programming language.  It can manage all kinds of R objects and can
-    execute arbitrary R functions. All the errors from the R language are
-    converted to Python exceptions."""
-
-    # use R version specific shared library name
-    shlib_name = "_rpy%s" % RVER
-    DEFINE.append( ('RPY_SHNAME', shlib_name))
-    DEFINE.append( ('INIT_RPY', 'init_rpy%s' % RVER ) )
+    return rinterface_ext
 
 
-    # add debugging
+rinterface_exts = []
+rinterface_rversions = []
 
-    modules.append( Extension(
-        shlib_name,
-        source_files,
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        define_macros=DEFINE,
-        undef_macros=UNDEF,
-        extra_compile_args=extra_compile_args,
-        runtime_library_dirs = runtime_libs,
-        ) )
+for rversion, RHOME in itertools.izip(rversions, RHOMES):
+    RHOME = RHOME.strip()
+    #if (cmp_version(rversion, rnewest) == 0):
+    #r_packversion = None
+    r_packversion = '%i%02i%s' %(rversion[0], rversion[1], rversion[2])
+    ri_ext = getRinterface_ext(RHOME, r_packversion)
+    rinterface_exts.append(ri_ext)
+    rinterface_rversions.append(r_packversion)
 
+pack_dir = {pack_name: 'rpy'}
 
-setup(name="rpy",
-      version=rpy_version,
-      description="Python interface to the R language",
-      maintainer="Gregory R. Warnes",
-      maintainer_email="warnes@bst.rochester.edu",
-      url="http://rpy.sourceforge.net",
-      license="GPL",
-      long_description=LONG_DESC,
-      py_modules=['rpy', 'rpy_io', 'rpy_version', 'rpy_tools', 'rpy_options',
-                  'rpy_wintools'],
-      ext_modules=modules
+import distutils.command.install
+for scheme in distutils.command.install.INSTALL_SCHEMES.values():
+    scheme['data'] = scheme['purelib']
+
+setup(name = pack_name,
+      version = pack_version,
+      description = "Python interface to the R language",
+      url = "http://rpy.sourceforge.net",
+      license = "(L)GPL",
+      author = "Laurent Gautier <lgautier@gmail.com>",
+      ext_modules = rinterface_exts,
+      package_dir = pack_dir,
+      packages = [pack_name,
+                  pack_name+'.rlike',
+                  pack_name+'.rlike.tests',
+                  pack_name+'.robjects',
+                  pack_name+'.robjects.tests'] + \
+                 [pack_name + '.rinterface', pack_name + '.rinterface.tests'],
+                 #[pack_name + '.rinterface_' + x for x in rinterface_rversions] + \
+                 #[pack_name + '.rinterface_' + x + '.tests' for x in rinterface_rversions]
+      classifiers = ['Programming Language :: Python',
+                     'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Science/Research',
+                     'Development Status :: 5 - Production/Stable'
+                    ],
+      data_files = [(os.path.join('rpy2','images'), [os.path.join('doc', 'source', 'rpy2_logo.png')])]
       )
+

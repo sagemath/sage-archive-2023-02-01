@@ -21,7 +21,7 @@ fi
 CUR=`pwd`
 
 # set CPPFLAGS so that Sage's readline is picked up
-CPPFLAGS=-I"$SAGE_LOCAL"/inlcude; export CPPFLAGS
+CPPFLAGS=-I"$SAGE_LOCAL"/include; export CPPFLAGS
 
 # copy an R file that has corrected R includes, i.e. <foo.h> vs. "foo.h"
 cp patches/sys-std.c src/src/unix/sys-std.c
@@ -126,7 +126,7 @@ echo "Now install rpy"
 
 cd "$CUR"
 
-RPY_VER=rpy-1.0.1.p2
+RPY_VER=rpy2-2.0.6
 
 sage -f "$RPY_VER".spkg
 if [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then

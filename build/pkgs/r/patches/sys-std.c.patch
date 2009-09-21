@@ -1,20 +1,20 @@
---- sys-std.c.orig	2008-09-30 07:14:13.000000000 -0700
-+++ sys-std.c	2008-09-30 07:14:50.000000000 -0700
-@@ -398,7 +398,7 @@
+--- patches/sys-std.c	2009-09-16 11:44:46.000000000 -0500
++++ src/src/unix/sys-std.c	2009-08-17 21:05:03.000000000 -0500
+@@ -413,7 +413,7 @@
  #ifdef HAVE_LIBREADLINE
  
  # ifdef HAVE_READLINE_READLINE_H
--#  include <readline/readline.h>
-+#  include "readline/readline.h"
+-#  include "readline/readline.h"
++#  include <readline/readline.h>
  /* For compatibility with pre-readline4.2 systems: */
  #  if !defined (_RL_FUNCTION_TYPEDEF)
  typedef void rl_vcpfunc_t (char *);
-@@ -428,7 +428,7 @@
+@@ -447,7 +447,7 @@
  
  
  # ifdef HAVE_READLINE_HISTORY_H
--#  include <readline/history.h>
-+#  include "readline/history.h"
+-#  include "readline/history.h"
++#  include <readline/history.h>
  # endif
  
  

@@ -41,7 +41,6 @@
 #endif
 
 #include "Fileio.h"
-#include <Rdevices.h>		/* for KillAllDevices */
 #include "Runix.h"
 #include "Startup.h"
 #include <R_ext/Riconv.h>
@@ -66,7 +65,7 @@ extern FILE* ifp;
  *  1) FATAL MESSAGES AT STARTUP
  */
 
-void attribute_hidden Rstd_Suicide(char *s)
+void attribute_hidden Rstd_Suicide(const char *s)
 {
     REprintf("Fatal error: %s\n", s);
     /* Might be called before translation is running */
@@ -118,16 +117,25 @@ int R_SelectEx(int  n,  fd_set  *readfds,  fd_set  *writefds,
 	       void (*intr)(void))
 {
     if (timeout != NULL && timeout->tv_sec == 0 && timeout->tv_usec == 0)
+	/* Is it right for select calls with a timeout to be
+	   non-interruptable? LT */
 	return select(n, readfds, writefds, exceptfds, timeout);
     else {
 	volatile sel_intr_handler_t myintr = intr != NULL ? intr : onintr;
+	volatile int old_interrupts_suspended = R_interrupts_suspended;
 	if (SIGSETJMP(seljmpbuf, 1)) {
 	    myintr();
+	    R_interrupts_suspended = old_interrupts_suspended;
 	    error(_("interrupt handler must not return"));
 	    return 0; /* not reached */
 	}
 	else {
 	    int val;
+
+	    /* make sure interrupts are enabled -- this will be
+	       restored if there is a LONGJMP from myintr() to another
+	       context. */
+	    R_interrupts_suspended = FALSE;
 
 	    /* install a temporary signal handler for breaking out of
 	       a blocking select */
@@ -143,6 +151,7 @@ int R_SelectEx(int  n,  fd_set  *readfds,  fd_set  *writefds,
 	       signal handler, and return the result of the select. */
 	    val = select(n, readfds, writefds, exceptfds, timeout);
 	    signal(SIGINT, oldSigintHandler);
+	    R_interrupts_suspended = old_interrupts_suspended;
 	    return val;
 	}
     }
@@ -193,6 +202,7 @@ addInputHandler(InputHandler *handlers, int fd, InputHandlerProc handler,
     input->activity = activity;
     input->fileDescriptor = fd;
     input->handler = handler;
+    input->userData = (void*) NULL;
 
     tmp = handlers;
 
@@ -229,6 +239,7 @@ removeInputHandler(InputHandler **handlers, InputHandler *it)
 
     if(*handlers == it) {
 	*handlers = (*handlers)->next;
+	free(it);
 	return(1);
     }
 
@@ -237,6 +248,7 @@ removeInputHandler(InputHandler **handlers, InputHandler *it)
     while(tmp) {
 	if(tmp->next == it) {
 	    tmp->next = it->next;
+	    free(it);
 	    return(1);
 	}
 	tmp = tmp->next;
@@ -353,16 +365,19 @@ setSelectMask(InputHandler *handlers, fd_set *readMask)
 
 void R_runHandlers(InputHandler *handlers, fd_set *readMask)
 {
-    InputHandler *tmp = handlers;
+    InputHandler *tmp = handlers, *next;
 
     if (readMask == NULL)
 	R_PolledEvents();
     else
 	while(tmp) {
+	    /* Do this way as the handler function might call
+	       removeInputHandlers */
+	    next = tmp->next;
 	    if(FD_ISSET(tmp->fileDescriptor, readMask)
 	       && tmp->handler != NULL)
-		tmp->handler((void*) NULL);
-	    tmp = tmp->next;
+		tmp->handler(tmp->userData);
+	    tmp = next;
 	}
 }
 
@@ -418,7 +433,11 @@ static void initialize_rlcompletion(void); /* forward declaration */
 attribute_hidden
 char *R_ExpandFileName_readline(const char *s, char *buff)
 {
+#if defined(__APPLE__)
+    char *s2 = tilde_expand((char *)s);
+#else
     char *s2 = tilde_expand(s);
+#endif
 
     strncpy(buff, s2, PATH_MAX);
     if(strlen(s2) >= PATH_MAX) buff[PATH_MAX-1] = '\0';
@@ -492,7 +511,7 @@ static struct {
   and keeps a record of it on the top of the R readline stack.
  */
 static void
-pushReadline(char *prompt, rl_vcpfunc_t f)
+pushReadline(const char *prompt, rl_vcpfunc_t f)
 {
    if(ReadlineStack.current >= ReadlineStack.max) {
      warning(_("An unusual circumstance has arisen in the nesting of readline input. Please report using bug.report()"));
@@ -509,13 +528,13 @@ pushReadline(char *prompt, rl_vcpfunc_t f)
   Unregister the current readline handler and pop it from R's readline
   stack, followed by re-registering the previous one.
 */
-static void popReadline()
+static void popReadline(void)
 {
   if(ReadlineStack.current > -1) {
      rl_callback_handler_remove();
      ReadlineStack.fun[ReadlineStack.current--] = NULL;
      if(ReadlineStack.current > -1 && ReadlineStack.fun[ReadlineStack.current])
-        rl_callback_handler_install("", ReadlineStack.fun[ReadlineStack.current]);
+	rl_callback_handler_install("", ReadlineStack.fun[ReadlineStack.current]);
   }
 }
 
@@ -547,6 +566,7 @@ static void readline_handler(char *line)
 	rl_top->readline_buf[0] = '\n';
 	rl_top->readline_buf[1] = '\0';
     }
+    free(line);
     rl_top->readline_gotaline = 1;
 }
 
@@ -622,7 +642,7 @@ static void initialize_rlcompletion(void)
 	    return;
 	}
 	/* First check if namespace is loaded */
-	if(findVarInFrame(R_NamespaceRegistry, install("rcompgen"))
+	if(findVarInFrame(R_NamespaceRegistry, install("utils"))
 	   != R_UnboundValue) rcompgen_active = 1;
 	else { /* Then try to load it */
 	    SEXP cmdSexp, cmdexpr;
@@ -637,7 +657,7 @@ static void initialize_rlcompletion(void)
 		    eval(VECTOR_ELT(cmdexpr, i), R_GlobalEnv);
 	    }
 	    UNPROTECT(2);
-	    if(findVarInFrame(R_NamespaceRegistry, install("rcompgen"))
+	    if(findVarInFrame(R_NamespaceRegistry, install("utils"))
 	       != R_UnboundValue) rcompgen_active = 1;
 	    else {
 		rcompgen_active = 0;
@@ -646,7 +666,7 @@ static void initialize_rlcompletion(void)
 	}
     }
 
-    rcompgen_rho = R_FindNamespace(mkString("rcompgen"));
+    rcompgen_rho = R_FindNamespace(mkString("utils"));
 
     RComp_assignBufferSym  = install(".assignLinebuffer");
     RComp_assignStartSym   = install(".assignStart");
@@ -798,7 +818,7 @@ handleInterrupt(void)
 static void *cd = NULL;
 
 int attribute_hidden
-Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
+Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 		 int addtohistory)
 {
     if(!R_Interactive) {
@@ -819,9 +839,12 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 	if(strlen(R_StdinEnc) && strcmp(R_StdinEnc, "native.enc")) {
 #if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
 	    size_t res, inb = strlen((char *)buf), onb = len;
+	    /* NB: this is somewhat dangerous.  R's main loop and
+	       scan will not call it with a larger value, but
+	       contributed code might. */
 	    char obuf[CONSOLE_BUFFER_SIZE+1];
 	    const char *ib = (const char *)buf;
-            char *ob = obuf;
+	    char *ob = obuf;
 	    if(!cd) {
 		cd = Riconv_open("", R_StdinEnc);
 		if(!cd) error(_("encoding '%s' is not recognised"), R_StdinEnc);
@@ -830,7 +853,8 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 	    *ob = '\0';
 	    err = res == (size_t)(-1);
 	    /* errors lead to part of the input line being ignored */
-	    if(err) fputs(_("<ERROR: invalid input in encoding> "), stdout);
+	    if(err) printf(_("<ERROR: re-encoding failure from encoding '%s'>\n"),
+			   R_StdinEnc);
 	    strncpy((char *)buf, obuf, len);
 #else
 	    if(!cd) {
@@ -838,7 +862,7 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 		cd = (void *)1;
 	    }
 #endif
-    	}
+	}
 /* according to system.txt, should be terminated in \n, so check this
    at eof and error */
 	if ((err || feof(ifp ? ifp : stdin))
@@ -853,7 +877,7 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
     }
     else {
 #ifdef HAVE_LIBREADLINE
-        R_ReadlineData rl_data;
+	R_ReadlineData rl_data;
 	if (UsingReadline) {
 	    rl_data.readline_gotaline = 0;
 	    rl_data.readline_buf = buf;
@@ -917,7 +941,7 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 	/* Write a text buffer to the console. */
 	/* All system output is filtered through this routine (unless R_Consolefile is used). */
 
-void attribute_hidden Rstd_WriteConsole(char *buf, int len)
+void attribute_hidden Rstd_WriteConsole(const char *buf, int len)
 {
     printf("%s", buf);
     fflush(stdout);
@@ -925,7 +949,7 @@ void attribute_hidden Rstd_WriteConsole(char *buf, int len)
 
 /* The extended version allows the distinction of errors and warnings.
    It is not enabled by default unless pretty-printing is desired. */
-void attribute_hidden Rstd_WriteConsoleEx(char *buf, int len, int otype)
+void attribute_hidden Rstd_WriteConsoleEx(const char *buf, int len, int otype)
 {
     if (otype)
       printf("\033[1m%s\033[0m", buf);
@@ -1044,7 +1068,7 @@ void attribute_hidden Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 	break;
     case SA_SUICIDE:
     default:
-        break;
+	break;
     }
     R_RunExitFinalizers();
     CleanEd();
@@ -1066,14 +1090,14 @@ void attribute_hidden Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 # include <errno.h>
 #endif
 int attribute_hidden
-Rstd_ShowFiles(int nfile, 		/* number of files */
-		   char **file,		/* array of filenames */
-		   char **headers,	/* the `headers' args of file.show.
+Rstd_ShowFiles(int nfile,		/* number of files */
+	       const char **file,		/* array of filenames */
+	       const char **headers,	/* the `headers' args of file.show.
 					   Printed before each file. */
-		   char *wtitle,	/* title for window
+	       const char *wtitle,	/* title for window
 					   = `title' arg of file.show */
-		   Rboolean del,	/* should files be deleted after use? */
-		   char *pager)		/* pager to be used */
+	       Rboolean del,	/* should files be deleted after use? */
+	       const char *pager)		/* pager to be used */
 
 {
 /*
@@ -1089,9 +1113,9 @@ Rstd_ShowFiles(int nfile, 		/* number of files */
     char buf[1024];
 
     if (nfile > 0) {
-        if (pager == NULL || strlen(pager) == 0) pager = "more";
+	if (pager == NULL || strlen(pager) == 0) pager = "more";
 	filename = R_tmpnam(NULL, R_TempDir); /* mallocs result */
-        if ((tfp = R_fopen(filename, "w")) != NULL) {
+	if ((tfp = R_fopen(filename, "w")) != NULL) {
 	    for(i = 0; i < nfile; i++) {
 		if (headers[i] && *headers[i])
 		    fprintf(tfp, "%s\n\n", headers[i]);
@@ -1108,12 +1132,8 @@ Rstd_ShowFiles(int nfile, 		/* number of files */
 			unlink(R_ExpandFileName(file[i]));
 		}
 		else
-#ifdef HAVE_STRERROR
-		    fprintf(tfp, _("Cannot open file '%s', reason '%s'\n\n"),
+		    fprintf(tfp, _("Cannot open file '%s': %s\n\n"),
 			    file[i], strerror(errno));
-#else
-		    fprintf(tfp, _("Cannot open file '%s'\n\n"), file[i]);
-#endif
 	    }
 	    fclose(tfp);
 	}
@@ -1148,13 +1168,13 @@ int attribute_hidden Rstd_ChooseFile(int _new, char *buf, int len)
 }
 
 
-void attribute_hidden Rstd_ShowMessage(char *s)
+void attribute_hidden Rstd_ShowMessage(const char *s)
 {
     REprintf("%s\n", s);
 }
 
 
-void attribute_hidden Rstd_read_history(char *s)
+void attribute_hidden Rstd_read_history(const char *s)
 {
 #ifdef HAVE_LIBREADLINE
 # ifdef HAVE_READLINE_HISTORY_H
@@ -1222,7 +1242,7 @@ void attribute_hidden Rstd_addhistory(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     stamp = CAR(args);
     if (!isString(stamp))
-    	errorcall(call, _("invalid timestamp"));
+	errorcall(call, _("invalid timestamp"));
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
     if(R_Interactive && UsingReadline)
 	for (i = 0; i < LENGTH(stamp); i++)
@@ -1281,9 +1301,11 @@ SEXP attribute_hidden do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
     for (;;) {
 	fd_set *what;
 	tm = R_MIN(tm, 2e9); /* avoid integer overflow */
-        Timeout = (int) (R_wait_usec ? R_MIN(tm, R_wait_usec) : tm);
+	Timeout = (int) (R_wait_usec ? R_MIN(tm, R_wait_usec) : tm);
 	what = R_checkActivity(Timeout, 1);
 
+	/* For polling, elapsed time limit ... */
+	R_CheckUserInterrupt();
 	/* Time up? */
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&tv, NULL);

@@ -1,10 +1,29 @@
-#!/bin/sh
+#!@R_SHELL@
 # Shell wrapper for R executable.
 
 R_HOME_DIR=
-if test -n "${R_HOME}" && \
-   test "${R_HOME}" != "${R_HOME_DIR}"; then
-  echo "WARNING: ignoring environment value of R_HOME"
+if test "${R_HOME_DIR}" = "@prefix@/@LIBnn@/R"; then
+   case "@R_OS@" in
+   linux*)
+     run_arch=`uname -m`
+     case "$run_arch" in
+        x86_64|mips64|ppc64|powerpc64|sparc64|s390x)
+          libnn=lib64
+          libnn_fallback=lib
+        ;;
+        *)
+          libnn=lib
+          libnn_fallback=lib64
+        ;;
+     esac
+     if [ -x "@prefix@/${libnn}/R/bin/exec/R" ]; then
+        R_HOME_DIR="@prefix@/${libnn}/R"
+     elif [ -x "@prefix@/${libnn_fallback}/R/bin/exec/R" ]; then
+        R_HOME_DIR="@prefix@/${libnn_fallback}/R"
+     ## else -- leave alone (might be a sub-arch)
+     fi
+     ;;
+  esac
 fi
 
 # HACK for Sage to avoid hardcoding.  NOthing
@@ -12,6 +31,10 @@ fi
 #R_HOME_DIR="${SAGE_LOCAL}/lib/R/"
 #SAGEHACK#
 
+if test -n "${R_HOME}" && \
+   test "${R_HOME}" != "${R_HOME_DIR}"; then
+  echo "WARNING: ignoring environment value of R_HOME"
+fi
 R_HOME="${R_HOME_DIR}"
 export R_HOME
 R_SHARE_DIR="${R_HOME_DIR}/share"
@@ -43,7 +66,7 @@ Options:
   --no-save             Don't save it
   --no-environ          Don't read the site and user environment files
   --no-site-file        Don't read the site-wide Rprofile
-  --no-init-file        Don't read the .Rprofile or ~/.Rprofile files
+  --no-init-file        Don't read the user R profile
   --restore             Do restore previously saved objects at startup
   --no-restore-data     Don't restore previously saved objects
   --no-restore-history  Don't restore the R history file
@@ -59,11 +82,12 @@ Options:
   -q, --quiet           Don't print startup message
   --silent              Same as --quiet
   --slave               Make R run as quietly as possible
+  --interactive         Force an interactive session
   --verbose             Print more information about progress
   -d, --debugger=NAME   Run R through debugger NAME
   --debugger-args=ARGS  Pass ARGS as arguments to the debugger
   -g, --gui=TYPE	Use TYPE as GUI; possible values are 'X11'
-			(default), 'Tk' and (with package gnomeGUI) 'gnome'
+			(default) and 'Tk'.
   --arch=NAME		Specify a sub-architecture
   --args                Skip the rest of the command line
   -f, --file=FILE       Take input from 'FILE'
@@ -84,7 +108,10 @@ Commands:
   Sd2Rd			Convert S documentation to Rd format
   Stangle		Extract S/R code from Sweave documentation
   Sweave		Process Sweave documentation
-  config                Obtain configuration information about R
+  Rdiff			Diff R output ignoring headers etc
+  config		Obtain configuration information about R
+  javareconf		Update the Java configuration variables
+  rtags                 Create Emacs-style tag files from C, R, and Rd files
 
 Please use 'R CMD command --help' to obtain further information about
 the usage of 'command'.
@@ -99,6 +126,12 @@ Report bugs to <r-bugs@r-project.org>."
 # You are welcome to redistribute it under the terms of the GNU
 # General Public License.  For more information about these matters,
 # see http://www.gnu.org/copyleft/gpl.html."
+
+
+## some systems have a more portable sed, e.g. /usr/xpg4/bin/sed on Solaris,
+## so make sure that is used.
+SED=@SED@
+export SED
 
 error () {
   echo "ERROR: $*" >&2
@@ -120,7 +153,7 @@ while test -n "${1}"; do
       . ${R_HOME}/etc${R_ARCH}/ldpaths
       exec sh "${R_HOME}/bin/Rcmd" @OSF_SH_BUG@ ;;
     -g|--gui)
-      if test -n "`echo ${2} | sed 's/^-.*//'`"; then
+      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
 	gui="${2}"
         args="${args} ${1} ${2}"
 	shift
@@ -129,20 +162,20 @@ while test -n "${1}"; do
       fi
       ;;
     --gui=*)
-      gui=`echo "${1}" | sed -e 's/[^=]*=//'`
+      gui=`echo "${1}" | ${SED} -e 's/[^=]*=//'`
       args="${args} ${1}"
       ;;
     -d|--debugger)
-      if test -n "`echo ${2} | sed 's/^-.*//'`"; then
+      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
 	debugger="${2}"; shift
       else
 	error "option '${1}' requires an argument"
       fi
       ;;
     --debugger=*)
-      debugger=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
+      debugger=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
     --debugger-args=*)
-      debugger_args=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
+      debugger_args=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
     -h|--help)
       echo "${usage}"; exit 0 ;;
 ## use the version in compiled code to always be in sync
@@ -151,7 +184,7 @@ while test -n "${1}"; do
     --args)
       break ;;
     --arch)
-      if test -n "`echo ${2} | sed 's/^-.*//'`"; then
+      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
 	R_ARCH="/${2}"
         shift
       else
@@ -159,12 +192,12 @@ while test -n "${1}"; do
       fi
       ;;
     --arch=*)
-      r_arch=`echo "${1}" | sed -e 's/[^=]*=//'`
+      r_arch=`echo "${1}" | ${SED} -e 's/[^=]*=//'`
       R_ARCH="/${r_arch}"
       ;;
     -e)
-      if test -n "`echo ${2} | sed 's/^-.*//'`"; then
-	a=`echo "${2}" | sed -e 's/ /~+~/g'`; shift
+      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
+	a=`echo "${2}" | ${SED} -e 's/ /~+~/g'`; shift
       else
 	error "option '${1}' requires an argument"
       fi
@@ -182,9 +215,6 @@ R_binary="${R_HOME}/bin/exec${R_ARCH}/R"
 export R_ARCH
 
 case "${gui}" in
-gnome|GNOME)
-  R_binary="${R_HOME}/bin/exec${R_ARCH}/Rgnome"
-  ;;
 Tk|tk|X11|x11)
   ;;
 "")

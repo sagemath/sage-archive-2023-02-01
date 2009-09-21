@@ -9,7 +9,7 @@
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
+ * Jason Grout
  * William Stein
 
 == Upstream Contact ==
@@ -22,6 +22,9 @@
  * in r-2.6.1.p12 we removed the recommneded tar.gzs. If we want to build those we need to add them back in. Until then it is better to save the 3MB compressed.
 
 == Changelog ==
+
+=== r-2.9.2 (Jason Grout, Sept 20, 2009) ===
+ * Also disable aqua support on 64 bit OSX
 
 === r-2.6.1.p22 (Michael Abshoff, January 20th, 2009) ===
  * Also disable aqua support on 64 bit OSX

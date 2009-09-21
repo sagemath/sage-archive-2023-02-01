@@ -83,8 +83,10 @@ def get_rconfig(RHOME, about, allow_empty = False):
             return ()
         else:
             raise Exception(cmd + '\nreturned\n' + rconfig)
-    else:
-        return rconfig_m.groups()
+
+    # program around some parsing oddities on some systems:
+    v = rconfig_m.groups()
+    return tuple([x for x in v if ':' not in x])
 
 rnewest = [0, 0, 0]
 rversions = []
@@ -135,10 +137,14 @@ def getRinterface_ext(RHOME, r_packversion):
             #extra_compile_args=['-O0', '-g'],
             extra_link_args = get_rconfig(RHOME, '--ldflags') +\
                               get_rconfig(RHOME, 'LAPACK_LIBS',
-                                          allow_empty = True)
-                              #+\
-                              #get_rconfig(RHOME, 'BLAS_LIBS'),
+                                          allow_empty = True) +\
+                              get_rconfig(RHOME, 'BLAS_LIBS', allow_empty=True)
             )
+
+    print get_rconfig(RHOME, '--ldflags') +\
+                              get_rconfig(RHOME, 'LAPACK_LIBS',
+                                          allow_empty = True) +\
+                              get_rconfig(RHOME, 'BLAS_LIBS', allow_empty=True)
 
     return rinterface_ext
 

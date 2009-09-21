@@ -32,6 +32,10 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.3.0p3 (Ondrej Certik, September 20th, 2009) ===
+ *  Move libntl.a out of the way temporarily on CYGWIN (this makes the package
+    built, because it will link to the .so lib instead)
+
 === flint-1.3.0p2 (David Kirkby, June 30th, 2009) ===
  *  Change '-a' to '-p' option spkg-install so flint installs
     on Solaris too. The usual GNUism. Only one byte is changed!

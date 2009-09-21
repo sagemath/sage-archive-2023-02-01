@@ -21,6 +21,9 @@ fi
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching src/numpy/linalg/setup.py"
     cp patches/cygwin-lapack_lite-setup.py src/numpy/linalg/setup.py
+
+    echo "CYGWIN: Patching src/numpy/core/setup.py"
+    cp patches/cygwin-core-setup.py src/numpy/core/setup.py
 fi
 
 cd src

@@ -59,6 +59,9 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
+=== numpy-1.3.0.p2 (Ondrej Certik, 20 September 2009) ===
+ * fix the build system to work in cygwin
+
 === numpy-1.3.0.p0 (William Stein, 8 July 2009) ===
  * Comment a line out in gnu.py to get distutils to work when building scipy on 64-bit OS X.
    See trac http://trac.sagemath.org/sage_trac/ticket/6493 and http://projects.scipy.org/numpy/ticket/1087

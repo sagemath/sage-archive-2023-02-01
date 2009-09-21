@@ -13,6 +13,12 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+if [ $UNAME = "CYGWIN" ]; then
+   # we'll move the libntl.a temporarily out of the way and move it back at the
+   # end of this spkg-install script
+   mv $SAGE_LOCAL/lib/libntl.a $SAGE_LOCAL/lib/xxx_libntl.a
+fi
+
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
    # This line causes *MAJOR* Illegal Instruction problems on
    # 64-bit Pentium 4's.  Do *not* do that!!  Only enable the
@@ -77,8 +83,16 @@ cd src
 if [ $UNAME != "Darwin" ]; then
     $MAKE libflint.so
     if [ $? -ne 0 ]; then
+        if [ $UNAME = "CYGWIN" ]; then
+           # let's move libntl.a back
+           mv $SAGE_LOCAL/lib/xxx_libntl.a $SAGE_LOCAL/lib/libntl.a
+        fi
         echo "Error building flint shared library."
         exit 1
+    fi
+    if [ $UNAME = "CYGWIN" ]; then
+       # let's move libntl.a back
+       mv $SAGE_LOCAL/lib/xxx_libntl.a $SAGE_LOCAL/lib/libntl.a
     fi
     echo "Deleting old FLINT"
     rm -f $SAGE_LOCAL/lib/libflint*

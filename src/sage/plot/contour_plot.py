@@ -170,7 +170,7 @@ class ContourPlot(GraphicPrimitive):
             else:
                 subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
 
-@options(plot_points=100, fill=True, contours=None,frame=True)
+@options(plot_points=100, fill=True, contours=None,frame=True, axes=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`

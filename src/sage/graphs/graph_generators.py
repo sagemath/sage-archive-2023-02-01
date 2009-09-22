@@ -2467,7 +2467,7 @@ class GraphGenerators():
                     #add edge
                     vert = "".join(v)
                     tmp_dict[vert] = None
-            v[0] = tmp_bit
+                v[0] = tmp_bit
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name="(%d,%d)-star"%(n,k))
 

@@ -281,6 +281,17 @@ def complex_plot(f, xrange, yrange, **options):
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3), figsize=[1,1])
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3)).show(figsize=[1,1]) # These are equivalent
+
+    TESTS:
+
+    Test to make sure that using fast_callable functions works::
+
+        sage: f(x) = x^2
+        sage: g = fast_callable(f, domain=CC, vars='x')
+        sage: h = fast_callable(f, domain=CDF, vars='x')
+        sage: P = complex_plot(f, (-10, 10), (-10, 10))
+        sage: Q = complex_plot(g, (-10, 10), (-10, 10))
+        sage: R = complex_plot(h, (-10, 10), (-10, 10))
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     cdef double x, y

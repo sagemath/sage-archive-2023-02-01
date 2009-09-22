@@ -1,6 +1,6 @@
---- src/setupext.py	2009-08-01 12:15:24.000000000 -0700
-+++ patches/setupext.py	2009-08-08 23:43:29.000000000 -0700
-@@ -44,14 +44,16 @@
+--- src/setupext.py	2009-08-23 00:27:32.000000000 -0500
++++ patches/setupext.py	2009-09-22 14:21:04.000000000 -0500
+@@ -44,10 +44,13 @@
  import os
  import re
  import subprocess
@@ -14,13 +14,17 @@
 +    'linux2' : [sage_lib],
      'linux'  : ['/usr/local', '/usr',],
      'cygwin' : ['/usr/local', '/usr',],
--    'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
--                '/usr', '/sw'],
+     '_darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
+@@ -57,7 +60,7 @@
+     # people to :
+     #   make -f make.osx fetch deps mpl_build mpl_install
+ 
+-    'darwin' : [],
 +    'darwin' : [sage_lib],
+ 
      'freebsd4' : ['/usr/local', '/usr'],
      'freebsd5' : ['/usr/local', '/usr'],
-     'freebsd6' : ['/usr/local', '/usr'],
-@@ -321,7 +323,9 @@
+@@ -328,7 +331,9 @@
  
      module.include_dirs.extend(incdirs)
      module.include_dirs.append('.')
@@ -30,7 +34,7 @@
  
  def getoutput(s):
      'get the output of a system command'
-@@ -505,7 +509,7 @@
+@@ -512,7 +517,7 @@
      module.include_dirs.append(numpy.get_include())
  
  def add_png_flags(module):
@@ -39,11 +43,3 @@
      add_base_flags(module)
      add_numpy_flags(module)
      module.libraries.append('z')
-@@ -1034,6 +1038,7 @@
-         #      of distros.
- 
-         # Query Tcl/Tk system for library paths and version string
-+        tk_ver = ''
-         try:
-             tcl_lib_dir, tk_lib_dir, tk_ver = query_tcltk()
-         except:

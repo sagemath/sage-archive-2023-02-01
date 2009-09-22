@@ -32,6 +32,9 @@ The following is in the patches subdirectory.  It is copied in during the build 
 
 == Changelog ==
 
+=== matplotlib-0.99.1 (Jason Grout, 22 Sep 2009) ===
+ * Update to matplotlib 0.99.1.  Several of our patches were incorporated upstream, so deleted those and updated the others.
+
 === matplotlib-0.99.0 (Jason Grout, August 9th, 2009) ===
  * Update to matplotlib 0.99.0
 

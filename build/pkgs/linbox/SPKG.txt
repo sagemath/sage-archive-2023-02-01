@@ -9,7 +9,6 @@ LGPL V2 or later
 
 == Maintainers ==
  * Clement Pernet
- * Michael Abshoff
  * William Stein
 
 == Upstream Contact ==
@@ -23,6 +22,9 @@ LGPL V2 or later
  * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
 
 == Changelog ==
+
+=== linbox-1.1.6.p1 (William Stein, Sept 21, 2009) ===
+ * Use systemwide lapack on windows.
 
 === linbox-1.1.6.p0 (Mike Hansen, June 20th, 2008) ===
  * Applied Peter Jeremy's FreeBSD fix at #5870.

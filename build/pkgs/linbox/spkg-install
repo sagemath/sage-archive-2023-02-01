@@ -49,11 +49,19 @@ elif [ $UNAME = "Linux" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     LINBOX_BLAS="-lcblas -latlas"
 
-elif [ $UNAME = "CYGWIN" -a -f "${SAGE_LOCAL}/lib/libcblas.a" ]; then
+elif [ $UNAME = "CYGWIN" ]; then
 
-    echo "Linux cblas"
-
-    LINBOX_BLAS="-lcblas -latlas"
+    echo "Using system-wide Cygwin LAPACK BLAS."
+    if [ ! -f "/usr/lib/libblas.a" ]; then
+        echo "*************************************************"
+        echo "*"
+        echo "* On Cygwin you must install the standard LAPACK Cygwin package"
+        echo "* via the Cygwin setup.exe program in the 'Math' category."
+        echo "*"
+        echo "*************************************************"
+        exit 1
+    fi
+    LINBOX_BLAS="-lblas "
 
 elif [ $UNAME = "SunOS" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 

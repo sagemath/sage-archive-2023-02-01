@@ -1,5 +1,5 @@
---- ../src/Modules/readline.c	2008-11-04 12:43:31.000000000 -0800
-+++ readline.c	2009-06-16 17:18:44.000000000 -0700
+--- readline.c	2009-09-22 13:48:53.000000000 -0500
++++ readline.c-Itanium-fix	2009-09-22 13:49:58.000000000 -0500
 @@ -31,16 +31,11 @@
  #include <readline/readline.h>
  #include <readline/history.h>
@@ -17,7 +17,15 @@
  
  static void
  on_completion_display_matches_hook(char **matches,
-@@ -763,7 +758,10 @@
+@@ -759,11 +754,18 @@
+ static char **
+ flex_complete(char *text, int start, int end)
+ {
++#ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
++	rl_completion_append_character ='\0';
++	rl_completion_suppress_append = 0;
++#endif
+ 	Py_XDECREF(begidx);
  	Py_XDECREF(endidx);
  	begidx = PyInt_FromLong((long) start);
  	endidx = PyInt_FromLong((long) end);
@@ -29,11 +37,20 @@
  }
  
  
-@@ -768,16 +768,10 @@
+@@ -801,9 +803,6 @@
+ 	rl_completer_word_break_characters =
+ 		strdup(" \t\n`~!@#$%^&*()-=+[{]}\\|;:'\",<>/?");
+ 		/* All nonalphanums except '.' */
+-#ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
+-	rl_completion_append_character ='\0';
+-#endif
  
+ 	begidx = PyInt_FromLong(0L);
+ 	endidx = PyInt_FromLong(0L);
+@@ -854,15 +853,10 @@
  		while (!has_input)
  		{	struct timeval timeout = {0, 100000}; /* 0.1 seconds */
--
+ 
 -			/* [Bug #1552726] Only limit the pause if an input hook has been 
 -			   defined.  */
 -		 	struct timeval *timeoutp = NULL;

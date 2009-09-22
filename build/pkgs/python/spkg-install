@@ -43,6 +43,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
+cp patches/readline.c-spacebug src/Modules/readline.c
+if [ $? -ne 0 ]; then
+    echo "Error copying patched readline.c"
+    exit 1
+fi
+
+
 # We are setting LDFLAGS and CPPFLAGS so that we pick up Sage's readline
 LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS

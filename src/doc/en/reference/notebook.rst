@@ -21,4 +21,5 @@ The Sage Notebook
    sage/server/support
    sage/server/introspect
 
+   sage/server/trac/trac
    sage/server/simple/twist

@@ -65,6 +65,7 @@ js.keyhandler.add('comment',                key = "KEY_DOT",   ctrl=True)
 js.keyhandler.add('uncomment',              key = "KEY_COMMA", ctrl=True)
 js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
 js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
+js.keyhandler.add('fix_paren',              key = "KEY_0",     ctrl=True)
 
 js.keyhandler.add('control',                key = "KEY_CTRL")
 js.keyhandler.add('backspace',              key = "KEY_BKSPC")

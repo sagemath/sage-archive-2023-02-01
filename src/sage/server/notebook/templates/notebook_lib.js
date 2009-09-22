@@ -945,6 +945,140 @@ function halt_introspection() {
 
 ///////////////////////////////////////////////////////////////////
 //
+// Paren Matching
+//
+///////////////////////////////////////////////////////////////////
+
+function paren_jump(cell,i,c,eat) {
+    /*
+    INPUT:
+        cell: a textarea object
+        i:    the index of where to insert/replace a paren
+        c:    the character to insert (may be empty)
+        eat:  whether or not to eat the character at i
+
+    OUTPUT:
+        Replaces / inserts the desired paren, and moves the
+        cursor to immediately after the paren.
+    */
+    var j = i;
+    if(eat)
+        j++;
+    cell.value = cell.value.substring(0,i) + c + cell.value.substring(j);
+    set_cursor_position(cell, i+c.length);
+}
+
+function paren_match(cell) {
+    /*
+    Fix parentheses / braces / brackets.  If mis-matched parentheses
+    are found, fix them.  If an unmatched paren is found, insert it
+    at the cursor.  This is implemented via a character-by-character
+    lexer, so quotes and comments are handled appropriately.  Perhaps
+    in the future this lexer will be generalized so it can be used
+    for other stuff.
+
+    EXAMPLES:  (the pipe character indicates cursor position)
+        IN:
+            this = some(sample.code(
+                        "foo))",
+            #           bar)),
+                        baz|
+        OUT:
+            this = some.code(
+                        "foo)",
+            #           bar),
+                        baz)|
+
+        IN:
+            foo = bar(baz(],a,b,c)|
+        OUT:
+            foo = bar(baz()|,a,b,c)
+
+        IN:
+            foo = bar()|
+        OUT:
+            foo = bar()|
+
+        IN:
+            foo = bar]bar()|
+        OUT:
+            foo = bar|bar()
+
+        IN:
+            foo = barbar).baz|
+        OUT:
+            foo = barbar|.baz
+
+    INPUT:
+        a cell object (textarea)
+
+    OUTPUT:
+        the text in the cell is possibly changed, and the cursor may move.
+    */
+    var quote = '';
+    var comment = false;
+    var escape = false;
+    var txt = cell.value.substring(0,get_cursor_position(cell))
+    var n = txt.length;
+    var pstack = [];
+    var squo = "'", dquo = '"', hash = "#", cr   = '\n', esc  = '\\', empty = '',
+        lpar = '(', rpar = ')', lbrk = '[', rbrk = ']', lbrc = '{', rbrc = '}';
+    var deparen = Array();
+    deparen[lpar] = rpar;
+    deparen[lbrc] = rbrc;
+    deparen[lbrk] = rbrk;
+
+    for(i=0;i<n;i++) {
+        c = txt[i];
+        if(quote != empty) {
+            if(escape)
+                escape = false;
+            else if(c == quote)
+                quote=empty;
+            else if(c == esc)
+                escape=true;
+        } else if(comment) {
+            if(c == cr)
+                comment = false;
+        } else switch(c) {
+          case lpar:
+          case lbrc:
+          case lbrk:
+            pstack.push(c);
+            break;
+          case rpar:
+          case rbrc:
+          case rbrk:
+            if(pstack.length <= 0) {
+                paren_jump(cell,i,'',true);
+                return;
+            }
+            p = pstack.pop();
+            if(deparen[p] != c) {
+                paren_jump(cell,i,deparen[p],true);
+                return;
+            }
+            break;
+          case squo:
+            quote = squo;
+            break;
+          case dquo:
+            quote = dquo;
+            break;
+          case hash:
+            comment=true
+            break;
+        }
+    }
+    p = pstack.pop();
+    i = txt.length;
+    if(quote == empty && !comment && p != undefined)
+        paren_jump(cell,i,deparen[p],false);
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
 // WORKSHEET functions -- for switching between and managing worksheets
 //
 ///////////////////////////////////////////////////////////////////
@@ -1974,6 +2108,9 @@ function cell_input_key_event(id, e) {
        history_window();
     } else if (key_request_log(e)) {
        text_log_window(worksheet_filename);
+    } else if (key_fix_paren(e)) {
+       paren_match(cell_input);
+       return false;
     }
 
 

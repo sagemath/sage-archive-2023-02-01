@@ -377,6 +377,7 @@ notebook_help = [
        'Highlight text and press > to indent it all and < to unindent it all (works in Safari and Firefox).  In Firefox you can also press tab and shift-tab.'),
       ('Comment/Uncomment Blocks',
        'Highlight text and press <b>ctrl-.</b> to comment it and <b>ctrl-,</b> to uncomment it. Alternatively, use <b>ctrl-3</b> and <b>ctrl-4</b>.'),
+      ('Paren matching', 'To fix unmatched or mis-matched parentheses, braces or brackets, press ctrl-0.  Parentheses / brackets / braces to the left of / above the cursor will be matched, minding strings and comments.  Note, only python comments are recogized, so this won\'t work for c-style multiline comments, etc.'),
       # ('Emacs Keybindings',
       #  'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
     ]),

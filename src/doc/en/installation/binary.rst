@@ -28,24 +28,49 @@ in a directory which you have permission to read and write:
 
         tar zxvf sage-x.y.z-x86_64-Linux.tgz
 
-Change into the directory just created, e.g.,
-``sage-x.y.z-x86_64-Linux`` and type ``./sage`` to run Sage. The first
-time you run that command, the necessary environment variables are set
-for your system. If this command doesn't result in any errors, you
-should then quit Sage using ``exit`` and then start up Sage again
-using the command ``./sage -br main``. This would regenerate the
-necessary files for your local Sage installation.
+You can move the resulting directory ``sage-x.y.z-x86_64-Linux``
+anywhere and still run ``sage`` from it. You can also copy the file
+``sage`` from that directory and put it anywhere, e.g.,
+``/usr/local/bin/``, but then you have to edit the
+``SAGE_ROOT="....."`` line at the top of that file, replacing the dots
+with the path to the Sage directory ``sage-x.y.z-x86_64-Linux``.  As
+long as ``/usr/local/bin`` is in your ``$PATH``, you can then type
+``sage`` from the command line to run Sage.  Another approach is to
+create a symbolic link from ``sage-x.y.z-x86_64-Linux`` to, say,
+``/usr/local/share/sage``::
 
-You can move the directory ``sage-x.y.z-x86_64-Linux`` anywhere and still
-run ``sage`` from it. You can also copy ``sage`` and put it anywhere,
-e.g., ``/usr/local/bin/``, but you would have to edit the
-``ROOT="....."`` line at the top. If you have moved the directory
-``sage-x.y.z-x86_64-Linux`` to somewhere else in your system, it is
-recommended that you use a terminal program to cd to the new Sage top
-level directory and type ``./sage`` to reset all necessary Sage
-environment variables. Then exit Sage with ``exit`` and load Sage
-again with ``./sage -br main`` to regenerate necessary files for your
-local Sage installation.
+    ln -s /.../path_to/.../sage-x.y.z-x86_64-Linux /usr/local/share/sage
+
+Then put ``/usr/local/share/sage`` in your ``$PATH``.  If you do this,
+you can type ``sage`` from the command line to run Sage.  Also, if you
+install a different version of Sage, you just have to delete the old
+link and create one from the new directory to
+``/usr/local/share/sage``.
+
+Finally, you can also combine these two approaches, copying ``sage``
+to ``/usr/local/bin/``, creating a link from
+``sage-x.y.z-x86_64-Linux`` to ``/usr/local/share/sage``, and editing
+the file ``/usr/local/bin/sage``: change the line ::
+
+  SAGE_ROOT="....."
+
+to ::
+
+  SAGE_ROOT="/usr/local/share/sage"
+
+When you want to install a new version of Sage, just delete the old
+link and create a new one; you shouldn't have to replace or modify the
+file ``/usr/local/bin/sage``.
+
+The first time you run Sage, and any time you move the Sage directory
+or create a link as above, you may see a message saying
+
+::
+
+   The Sage install tree may have moved.
+   Regenerating Python.pyo and .pyc files that hardcode the install PATH
+   (please wait at most a few minutes)...
+   Do not interrupt this.
 
 We currently distribute ``.dmg`` files for OS X 10.4.x and 10.5.x. But
 we would like to make Sage more of a native application. Work for that

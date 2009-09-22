@@ -33,6 +33,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.9 (Burcin Erocal, September 22, 2009) ===
+ * Only simplify exp(a)^b -> exp(a*b) when b is an integer.
+ * Fix latex printing of log to \log (was \ln).
+ * Fix hash collision for fderivatives.
+ * Fix comparison of fderivatives and functions.
+ * Allow numeric approximation of functions on inexact input again.
+ * Change printing of lgamma to log_gamma and \log \Gamma.
+
 === pynac-0.1.8.p2 (Burcin Erocal, August 1, 2009) ===
  * Fix latex typesetting of conjugate(), real_part() and imag_part()
  * When calculating hash of fderivative use paramset to avoid collisions

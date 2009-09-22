@@ -1,7 +1,7 @@
 r"""
 Cliquer : routines for finding cliques in graphs
 
-This module defines functions based on Cliquer, an exact branch-and-bound algorithm developped by Patric R. J. Ostergard and written by Sampo Niskanen.
+This module defines functions based on Cliquer, an exact branch-and-bound algorithm developed by Patric R. J. Ostergard and written by Sampo Niskanen.
 
 AUTHORS:
 

@@ -75,7 +75,7 @@ patch()
     # Itanium Linux definitely does *not* work on anything else.
     if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
         echo "Updating readline.c for Linux/Itanium"
-	cp ../patches/readline.c Modules/readline.c
+	cp ../patches/readline.c-Itanium-fix Modules/readline.c
     fi
 }
 

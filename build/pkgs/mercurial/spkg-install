@@ -24,10 +24,8 @@ cd "$CUR"
 #Remove existing copies of Mercurial
 $RM -rf "$SAGE_LOCAL"/lib/python/mercurial
 
-$CP patches/util.py src/mercurial/util.py
 $CP patches/setup.py src/setup.py
-
-perl -p -i -e 's/>manifest</>browse all files</g' src/templates/*.tmpl
+$CP patches/posix.py src/mercurial/posix.py
 
 cd src
 
@@ -40,6 +38,7 @@ fi
 
 if [ `uname` = "Darwin" ]; then
    echo "Copying custom hgmerge script over to $SAGE_LOCAL/bin/"
+   cd "$CUR"
    $CP patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
 fi
 

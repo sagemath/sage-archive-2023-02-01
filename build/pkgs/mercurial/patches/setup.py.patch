@@ -1,38 +1,25 @@
-diff -r 59225a86ca65 setup.py
---- a/setup.py	Tue Jan 13 15:00:45 2009 -0800
-+++ b/setup.py	Tue Jan 13 15:02:03 2009 -0800
-@@ -107,20 +107,21 @@
- except ImportError:
-     pass
+--- ../src/setup.py	2009-07-23 10:58:06.000000000 -0700
++++ setup.py	2009-09-08 16:04:06.000000000 -0700
+@@ -236,14 +236,14 @@
+ packages = ['mercurial', 'mercurial.hgweb', 'hgext', 'hgext.convert',
+             'hgext.highlight', 'hgext.zeroconf', ]
  
--try:
--    import posix
--    ext_modules.append(Extension('mercurial.osutil', ['mercurial/osutil.c']))
-+## Disabled due to failure to build on Itanium
-+## try:
-+##     import posix
-+##     ext_modules.append(Extension('mercurial.osutil', ['mercurial/osutil.c']))
+-if sys.platform == 'linux2' and os.uname()[2] > '2.6':
+-    # The inotify extension is only usable with Linux 2.6 kernels.
+-    # You also need a reasonably recent C library.
+-    cc = new_compiler()
+-    if has_function(cc, 'inotify_add_watch'):
+-        ext_modules.append(Extension('hgext.inotify.linux._inotify',
+-                                     ['hgext/inotify/linux/_inotify.c']))
+-        packages.extend(['hgext.inotify', 'hgext.inotify.linux'])
++## if sys.platform == 'linux2' and os.uname()[2] > '2.6':
++##     # The inotify extension is only usable with Linux 2.6 kernels.
++##     # You also need a reasonably recent C library.
++##     cc = new_compiler()
++##     if has_function(cc, 'inotify_add_watch'):
++##         ext_modules.append(Extension('hgext.inotify.linux._inotify',
++##                                      ['hgext/inotify/linux/_inotify.c']))
++##         packages.extend(['hgext.inotify', 'hgext.inotify.linux'])
  
--    if sys.platform == 'linux2' and os.uname()[2] > '2.6':
--        # The inotify extension is only usable with Linux 2.6 kernels.
--        # You also need a reasonably recent C library.
--        cc = new_compiler()
--        if has_function(cc, 'inotify_add_watch'):
--            ext_modules.append(Extension('hgext.inotify.linux._inotify',
--                                         ['hgext/inotify/linux/_inotify.c']))
--            packages.extend(['hgext.inotify', 'hgext.inotify.linux'])
--except ImportError:
--    pass
-+##     if sys.platform == 'linux2' and os.uname()[2] > '2.6':
-+##         # The inotify extension is only usable with Linux 2.6 kernels.
-+##         # You also need a reasonably recent C library.
-+##         cc = new_compiler()
-+##         if has_function(cc, 'inotify_add_watch'):
-+##             ext_modules.append(Extension('hgext.inotify.linux._inotify',
-+##                                          ['hgext/inotify/linux/_inotify.c']))
-+##             packages.extend(['hgext.inotify', 'hgext.inotify.linux'])
-+## except ImportError:
-+##     pass
- 
- setup(name='mercurial',
-       version=mercurial.version.get_version(),
+ datafiles = []
+ for root in ('templates', 'i18n'):

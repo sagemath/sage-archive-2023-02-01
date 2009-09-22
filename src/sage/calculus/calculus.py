@@ -539,6 +539,21 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         -cos(x)
         sage: integrate(sin(x), 0, 1)
         -cos(1) + 1
+
+    Check if #780 is fixed::
+
+        sage: _ = var('x,y')
+        sage: f = log(x^2+y^2)
+        sage: res = integral(f,x,0.0001414, 1.); res
+        2.0*y*arctan(1/y) - 2.0*y*arctan(0.0001414/y) - 0.0001414*log(y^2 + 1.999396e-08) + log(y^2 + 1.0) - 1.9997172
+        sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
+        (1.4638323264144271, 1.6251803529759046e-14)
+        sage: res.subs(y=2).n()
+        1.46383232641
+        sage: nres = numerical_integral(f.subs(y=.5), 0.0001414, 1.); nres
+        (-0.66951170887280698, 7.7686781108547113e-15)
+        sage: res.subs(y=.5).n()
+        -0.669511708873
     """
     if b is None and a is not None:
         # two arguments, must be endpoints

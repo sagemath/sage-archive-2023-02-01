@@ -455,7 +455,7 @@ def py_print_fderivative_for_doctests(id, params, args):
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative
-        sage: var('x,y,z',ns=1)
+        sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
         sage: foo = function('foo', 2)
@@ -505,7 +505,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative
-        sage: var('x,y,z',ns=1)
+        sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
         sage: foo = function('foo', 2)

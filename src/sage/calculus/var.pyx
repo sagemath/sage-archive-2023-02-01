@@ -1,9 +1,9 @@
 import calculus
 from sage.symbolic.ring import var as new_var
 
-def var(s, ns=True):
+def var(s, **kwds):
     r"""
-    Create a symbolic variable with the name \emph{s}.
+    Create a symbolic variable with the name *s*.
 
     INPUT:
 
@@ -59,12 +59,29 @@ def var(s, ns=True):
         <type 'sage.symbolic.expression.Expression'>
         sage: parent(theta)
         Symbolic Ring
+
+    TESTS::
+
+        sage: var('q',ns=False)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer.
+        sage: q
+        Traceback (most recent call last):
+        ...
+        NameError: name 'q' is not defined
+        sage: var('q',ns=1)
+        doctest:...: DeprecationWarning: The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.
+        q
     """
     G = globals()  # this is the reason the code must be in Cython.
-    if ns:
-        v = new_var(s)
-    else:
-        v = calculus.var(s)
+    if kwds.has_key('ns'):
+        if kwds['ns']:
+            from sage.misc.misc import deprecation
+            deprecation("The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.")
+        else:
+            raise NotImplementedError, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer."
+    v = new_var(s)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

@@ -17,10 +17,12 @@ class inheritance hierarchy is:
       - :class:`DedekindDomain`
       - :class:`PrincipalIdealDomain`
 
-        - :class:`EuclideanDomain`
-        - :class:`Field`
+Subclasses of :class:`PrincipalIdealDomain` are
 
-          - :class:`FiniteField`
+- :class:`EuclideanDomain`
+- :class:`Field`
+
+  - :class:`FiniteField`
 
 Some aspects of this structure may seem strange, but this is an unfortunate
 consequence of the fact that Cython classes do not support multiple

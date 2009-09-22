@@ -9,13 +9,14 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 3-clause BSD
 
 == SPKG Maintainers ==
- * Michael Abshoff
- * Josh Kantor
  * David Kirkby
+ * William Stein
 
 == Upstream Contact ==
 
-Atlas devel mailing list.
+ * Atlas devel mailing list.
+
+ * Clint Whaley has frequently answered questions from the Sage project
 
 == Dependencies ==
 
@@ -31,6 +32,9 @@ Atlas devel mailing list.
  * Changes linker flags on Solaris if the Sun linker is used.
 
 == ChangeLog ==
+
+=== atlas-3.8.3.p7 (William Stein, Sept 21 2009) ===
+ * Make this into a dummy package on Cygwin that requires lapack.
 
 === atlas-3.8.3.p6 (David Kirkby, July 19th 2009) ===
  * Trac #6558

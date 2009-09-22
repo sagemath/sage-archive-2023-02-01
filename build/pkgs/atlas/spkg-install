@@ -2,6 +2,19 @@
 
 import os, random, sys, time
 
+######################################################################
+# On Cygwin we simply require that the system-wide lapack is installed.
+# This includes BLAS and is enough to build the rest of Sage.
+######################################################################
+if os.environ['UNAME'] == "CYGWIN":
+    if not os.path.exists('/usr/lib/libblas.a'):
+        print "*"*75
+        print "On Cygwin you must install the standard LAPACK Cygwin package"
+        print "via the Cygwin setup.exe program in the 'Math' category."
+        print "*"*75
+        sys.exit(1)
+    sys.exit(0)
+
 ##############################################
 # Apply a TEMPORARY fix to allow ATLAS to build with
 # gcc 4.4.0 on Solaris. Implemented 16th June 2009, by David Kirkby.

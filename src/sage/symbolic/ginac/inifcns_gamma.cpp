@@ -69,7 +69,7 @@ static ex lgamma_eval(const ex & x)
 				return Infinity;
 				//throw (pole_error("lgamma_eval(): logarithmic pole",0));
 		}
-		if (!ex_to<numeric>(x).is_rational())
+		if (!ex_to<numeric>(x).is_crational())
 			return lgamma(ex_to<numeric>(x));
 	}
 	
@@ -110,12 +110,12 @@ static ex lgamma_series(const ex & arg,
 	return (lgamma(arg+m+_ex1)-recur).series(rel, order, options);
 }
 
-
 REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
                           evalf_func(lgamma_evalf).
                           derivative_func(lgamma_deriv).
                           series_func(lgamma_series).
-                          latex_name("\\log \\Gamma"));
+                          latex_name("\\log \\Gamma").
+                          set_name("log_gamma"));
 
 
 //////////
@@ -167,7 +167,7 @@ static ex tgamma_eval(const ex & x)
 				return (pow(*_num_2_p, n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p))))*sqrt(Pi);
 			}
 		}
-		if (!ex_to<numeric>(x).is_rational())
+		if (!ex_to<numeric>(x).is_crational())
 			return tgamma(ex_to<numeric>(x));
 	}
 	

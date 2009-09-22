@@ -3873,15 +3873,31 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
     def lngamma(self):
+        r"""
+        This method is deprecated, please use :meth:`.log_gamma` instead.
+
+        See the :meth:`.log_gamma` method for documentation and examples.
+
+        EXAMPLES::
+
+            sage: RR(6).lngamma()
+            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+            4.78749174278205
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+        return self.log_gamma()
+
+    def log_gamma(self):
         """
         Return the logarithm of gamma of self.
 
         EXAMPLES::
 
             sage: R = RealField(53)
-            sage: R(6).lngamma()
+            sage: R(6).log_gamma()
             4.78749174278205
-            sage: R(1e10).lngamma()
+            sage: R(1e10).log_gamma()
             2.20258509288811e11
         """
         cdef RealNumber x

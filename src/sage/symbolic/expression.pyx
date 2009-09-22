@@ -4830,6 +4830,22 @@ cdef class Expression(CommutativeRingElement):
 
     def lgamma(self):
         """
+        This method is deprecated, please use the `.log_gamma()` function
+        instead.
+
+        Log gamma function evaluated at self.
+
+        EXAMPLES::
+            sage: x.lgamma()
+            doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
+            log_gamma(x)
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The lgamma() function is deprecated. Use log_gamma() instead.")
+        return self.log_gamma()
+
+    def log_gamma(self):
+        """
         Return the log-gamma function evaluated at self.
         This is the logarithm of gamma of self, where
         gamma is a complex function such that gamma(n)
@@ -4837,15 +4853,15 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
             sage: x = var('x')
-            sage: x.lgamma()
-            lgamma(x)
-            sage: SR(2).lgamma()
+            sage: x.log_gamma()
+            log_gamma(x)
+            sage: SR(2).log_gamma()
             0
-            sage: SR(5).lgamma()
+            sage: SR(5).log_gamma()
             log(24)
             sage: SR(5-1).factorial().log()
             log(24)
-            sage: set_verbose(-1); plot(lambda x: SR(x).lgamma(), -7,8, plot_points=1000).show()
+            sage: set_verbose(-1); plot(lambda x: SR(x).log_gamma(), -7,8, plot_points=1000).show()
             sage: math.exp(0.5)
             1.6487212707001282
             sage: plot(lambda x: (SR(x).exp() - SR(-x).exp())/2 - SR(x).sinh(), -1, 1)

@@ -1336,11 +1336,36 @@ elliptic_pi = EllipticPi()
 ##        raise NotImplementedError
 
 def lngamma(t):
+    r"""
+    This method is deprecated, please use :meth:`.log_gamma` instead.
+
+    See the :meth:`.log_gamma` method for documentation and examples.
+
+    EXAMPLES::
+
+        sage: lngamma(RR(6))
+        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+        4.78749174278205
+    """
+    from sage.misc.misc import deprecation
+    deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+    return log_gamma(t)
+
+def log_gamma(t):
     """
     The principal branch of the logarithm of the Gamma function of t.
+
+    EXAMPLES::
+
+        sage: log_gamma(RR(6))
+        4.78749174278205
+        sage: log_gamma(pari(6))
+        4.78749174278205
+        sage: log_gamma(x)
+        log_gamma(x)
     """
     try:
-        return t.lngamma()
+        return t.log_gamma()
     except AttributeError:
         raise NotImplementedError
 

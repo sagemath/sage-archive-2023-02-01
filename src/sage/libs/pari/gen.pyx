@@ -4322,7 +4322,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def lngamma(gen x, precision=0):
         r"""
-        x.lngamma(): logarithm of the gamma function of x.
+        This method is deprecated, please use :meth:`.log_gamma` instead.
+
+        See the :meth:`.log_gamma` method for documentation and examples.
+
+        EXAMPLES::
+
+            sage: pari(100).lngamma()
+            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+            359.134205369575
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+        return x.log_gamma(precision)
+
+    def log_gamma(gen x, precision=0):
+        r"""
+        Logarithm of the gamma function of x.
 
         This function returns the principal branch of the logarithm of the
         gamma function of `x`. The function
@@ -4340,7 +4356,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: pari(100).lngamma()
+            sage: pari(100).log_gamma()
             359.134205369575
         """
         _sig_on

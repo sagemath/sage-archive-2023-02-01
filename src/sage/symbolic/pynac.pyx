@@ -1359,9 +1359,9 @@ cdef public object py_tgamma(object x):
 
 cdef public object py_lgamma(object x):
     try:
-        return x.lngamma()
+        return x.log_gamma()
     except AttributeError:
-        return CC(x).lngamma()
+        return CC(x).log_gamma()
 
 cdef public object py_isqrt(object x):
     return Integer(x).isqrt()

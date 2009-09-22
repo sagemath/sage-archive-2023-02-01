@@ -549,7 +549,7 @@ October 2005, Sage contained the full distribution of GAP, though
 some of the GAP databases have to be added separately, and
 Singular. Adding Singular was not easy, due to the difficulty of
 compiling Singular from source. Version 0.9 was released in
-November. This version when through 34 releases! As of version
+November. This version went through 34 releases! As of version
 0.9.34 (definitely by version 0.10.0), Maxima and clisp were
 included with Sage. Version 0.10.0 was released January 12, 2006.
 The release of Sage 1.0 was made early February, 2006. As of

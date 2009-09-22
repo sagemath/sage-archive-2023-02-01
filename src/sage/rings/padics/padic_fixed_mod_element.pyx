@@ -1062,7 +1062,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     def residue(self, absprec=1):
         r"""
-        Reduces this mod $p^prec$
+        Reduces this mod $p^{\mbox{prec}}$
 
         INPUT::
 

@@ -1567,15 +1567,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         if absprec is None, returns True if self and right are equal to the minimum of their precisions.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - right -- a p-addic element
-            - absprec -- an integer or None
+        - self -- a p-adic element
+        - right -- a p-addic element
+        - absprec -- an integer or None
 
-        OUTPUT::
+        OUTPUT:
 
-            - boolean -- whether self is equal to right (modulo $p^{\mbox{absprec}}$)
+        - boolean -- whether self is equal to right (modulo $p^{\mbox{absprec}}$)
 
         EXAMPLES::
 
@@ -2123,7 +2123,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def residue(self, absprec=1):
         """
-        Reduces this element modulo $p^absprec$.
+        Reduces this element modulo $p^{\mbox{absprec}}$.
 
         INPUT::
 

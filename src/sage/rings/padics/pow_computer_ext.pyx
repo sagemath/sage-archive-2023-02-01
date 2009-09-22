@@ -2415,8 +2415,9 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
         return ZZ_pX_eis_shift_p(self, x, a, n, finalprec)
 
 def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type = "small", ext_type = "u", shift_seed = None):
-    """
-    Returns a PowComputer that caches the values $1, prime, prime^2, \ldots, prime^cache_limit$.
+    r"""
+    Returns a PowComputer that caches the values $1, prime, prime^2, \ldots, prime^{C}$,
+    where $C$ is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
     You can input any integer, even if it's outside of the precomputed range.

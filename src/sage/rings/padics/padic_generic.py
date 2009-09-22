@@ -380,7 +380,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def teichmuller_system(self):
         r"""
-        Returns a set of teichmuller representatives for the invertible elements of $\Z / p\Z$.
+        Returns a set of teichmuller representatives for the invertible elements of $\ZZ / p\ZZ$.
 
         INPUT:
 
@@ -388,7 +388,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        - list of elements -- a list of teichmuller representatives for the invertible elements of $\Z / p\Z$
+        - list of elements -- a list of teichmuller representatives for the invertible elements of $\ZZ / p\ZZ$
 
         EXAMPLES::
 

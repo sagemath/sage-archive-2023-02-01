@@ -534,8 +534,9 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
 # To speed up the creation of PowComputers with the same m, we might eventually want to copy over data from an existing PowComputer.
 
 def PowComputer(m, cache_limit, prec_cap, in_field = False):
-    """
-    Returns a PowComputer that caches the values $1, m, m^2, \ldots, m^cache_limit$.
+    r"""
+    Returns a PowComputer that caches the values $1, m, m^2, \ldots, m^{C}$,
+    where $C$ is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
 

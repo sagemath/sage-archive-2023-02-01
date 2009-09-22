@@ -182,19 +182,19 @@ def TensorProductOfCrystals(*crystals, **options):
 
     .. math::
 
-    f_i(b \otimes b') = \begin{cases}
-    f_i(b) \otimes b' & \text{if $\varepsilon_i(b) \ge \varphi_i(b')$}\\
-    b \otimes f_i(b') & \text{otherwise}
-    \end{cases}
+      f_i(b \otimes b') = \begin{cases}
+      f_i(b) \otimes b' & \text{if $\varepsilon_i(b) \ge \varphi_i(b')$}\\
+      b \otimes f_i(b') & \text{otherwise}
+      \end{cases}
 
     and
 
     .. math::
 
-    e_i(b \otimes b') = \begin{cases}
-    b \otimes e_i(b') & \text{if $\varepsilon_i(b) \le \varphi_i(b')$}\\
-    e_i(b) \otimes b' & \text{otherwise.}
-    \end{cases}
+      e_i(b \otimes b') = \begin{cases}
+      b \otimes e_i(b') & \text{if $\varepsilon_i(b) \le \varphi_i(b')$}\\
+      e_i(b) \otimes b' & \text{otherwise.}
+      \end{cases}
 
     Note that this is the opposite of Kashiwara's convention for tensor
     products of crystals.

@@ -4487,10 +4487,10 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent, g_sinh(self._gobj))
 
     def cosh(self):
-        """
+        r"""
         Return cosh of self.
 
-        We have $\sinh(x) = (e^{x} + e^{-x})/2$.
+        We have $\cosh(x) = (e^{x} + e^{-x})/2$.
 
         EXAMPLES::
 
@@ -4523,7 +4523,7 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent, g_cosh(self._gobj))
 
     def tanh(self):
-        """
+        r"""
         Return tanh of self.
 
         We have $\tanh(x) = \sinh(x) / \cosh(x)$.
@@ -4873,7 +4873,8 @@ cdef class Expression(CommutativeRingElement):
         gamma is a complex function such that gamma(n)
         equals factorial(n-1).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x')
             sage: x.log_gamma()
             log_gamma(x)

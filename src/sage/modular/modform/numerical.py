@@ -21,8 +21,7 @@ from sage.misc.prandom           import randint
 
 class NumericalEigenforms(SageObject):
     """
-    numerical_eigenforms(group, weight=2, eps=1e-20,
-                         delta=1e-2, tp=[2,3,5])
+    numerical_eigenforms(group, weight=2, eps=1e-20, delta=1e-2, tp=[2,3,5])
 
     INPUT:
 

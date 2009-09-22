@@ -952,7 +952,7 @@ class IntegerListsLex(CombinatorialClass):
 
     def ceiling(self, i):
         """
-        Returns the maximum part that can appear in the $i^{th}
+        Returns the maximum part that can appear in the $i^{th}$
         position in any list produced.
 
         EXAMPLES::

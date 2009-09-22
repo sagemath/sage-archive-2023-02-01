@@ -97,7 +97,7 @@ class Gamma_class(CongruenceSubgroup):
 
         .. math::
 
-        \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
+          \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
 
         EXAMPLE::
             sage: [Gamma(n).index() for n in [1..19]]

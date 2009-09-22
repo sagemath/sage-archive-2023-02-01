@@ -361,7 +361,11 @@ You are strongly encouraged to:
    .. note::
 
       In ReST documentation, you use backticks \` to mark LaTeX code
-      to be typeset.
+      to be typeset.  In Sage docstrings, unofficially you may use
+      dollar signs instead -- "unofficially" means that it ought to
+      work, but might be a little buggy.  Thus ```x^2 + y^2 = 1``` and
+      ``$x^2 + y^2 = 1$`` should produce identical output, typeset in math
+      mode.
 
       LaTeX style: typeset standard rings and fields like the integers
       and the real numbers using the locally-defined macro ``\\Bold``,

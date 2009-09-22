@@ -2592,8 +2592,32 @@ def binomial(x,m):
     instant) -- see trac 3309::
 
         sage: a = binomial(RR(1140000.78), 42000000)
+
+    We test conversion of arguments to Integers -- see trac 6870::
+
+        sage: binomial(1/2,1/1)
+        1/2
+        sage: binomial(10^20+1/1,10^20)
+        100000000000000000001
+        sage: binomial(SR(10**7),10**7)
+        1
+        sage: binomial(3/2,SR(1/1))
+        3/2
     """
-    if not isinstance(m, (int, long, integer.Integer)):
+    if isinstance(m,sage.symbolic.expression.Expression):
+        try:
+            # For performance reasons, we avoid to try to coerce
+            # to Integer in the symbolic case (see #6870)
+            m=m.pyobject()
+            m=ZZ(m)
+        except TypeError:
+            pass
+    else:
+        try:
+            m=ZZ(m)
+        except TypeError:
+            pass
+    if not isinstance(m,integer.Integer):
         try:
             m = ZZ(x-m)
         except TypeError:
@@ -2602,7 +2626,27 @@ def binomial(x,m):
             except AttributeError:
                 pass
             raise TypeError, 'Either m or x-m must be an integer'
-    if isinstance(x, (int, long, integer.Integer)):
+    # a (hopefully) temporary fix for #3309; eventually Pari should do
+    # this for us.
+    if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
+                      sage.rings.real_mpfr.RealLiteral)):
+        P = x.parent()
+        if m < 0:
+            return P(0)
+        from sage.functions.all import gamma
+        return gamma(x+1)/gamma(P(m+1))/gamma(x-m+1)
+    if isinstance(x,sage.symbolic.expression.Expression):
+        try:
+            x=x.pyobject()
+            x=ZZ(x)
+        except TypeError:
+            pass
+    else:
+        try:
+            x=ZZ(x)
+        except TypeError:
+            pass
+    if isinstance(x,integer.Integer):
         if x >= 0 and (m < 0 or m > x):
             return ZZ(0)
 
@@ -2618,12 +2662,6 @@ def binomial(x,m):
         P = type(x)
     if m < 0:
         return P(0)
-    # a (hopefully) temporary fix for #3309; eventually Pari should do
-    # this for us.
-    if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
-                      sage.rings.real_mpfr.RealLiteral)):
-        from sage.functions.all import gamma
-        return gamma(x+1)/gamma(P(m+1))/gamma(x-m+1)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
 def multinomial(*ks):

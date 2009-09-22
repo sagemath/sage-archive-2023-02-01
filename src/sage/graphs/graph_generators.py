@@ -2399,15 +2399,12 @@ class GraphGenerators():
             for i in xrange(1,n):
                 if v[0] != v[i]:
                     #swap 0th and ith element
-                    tmp_bit = v[0]
-                    v[0] = v[i]
-                    v[i] = tmp_bit
+                    v[0], v[i] = v[i], v[0]
                     #convert to str and add to list
                     vert = "".join(v)
                     tmp_dict[vert] = None
                     #swap back
-                    v[i] = v[0]
-                    v[0] = tmp_bit
+                    v[0], v[i] = v[i], v[0]
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name="HS(%d,%d)"%(n,k))
 
@@ -2415,9 +2412,9 @@ class GraphGenerators():
         r'''
         Returns the (n,k)-star graph.
 
-        The vertices of the (n,k)-star graph are the set of all arangements of
+        The vertices of the (n,k)-star graph are the set of all arrangements of
         n symbols into labels of length k. There are two adjacency rules for
-        the (n,k)-star graph. Frist, two vertices are adjacent if one can be
+        the (n,k)-star graph. First, two vertices are adjacent if one can be
         obtained from the other by swapping the first symbol with another
         symbol. Second, two vertices are adjacent if one can be obtained from
         the other by swapping the first symbol with an external symbol (a
@@ -2455,15 +2452,12 @@ class GraphGenerators():
             #add edges of dimension i
             for i in xrange(1,k):
                 #swap 0th and ith element
-                tmp_bit = v[0]
-                v[0] = v[i]
-                v[i] = tmp_bit
+                v[0], v[i] = v[i], v[0]
                 #convert to str and add to list
                 vert = "".join(v)
                 tmp_dict[vert] = None
                 #swap back
-                v[i] = v[0]
-                v[0] = tmp_bit
+                v[0], v[i] = v[i], v[0]
             #add other edges
             tmp_bit = v[0]
             for i in set:
@@ -2473,7 +2467,7 @@ class GraphGenerators():
                     #add edge
                     vert = "".join(v)
                     tmp_dict[vert] = None
-                    v[0] = tmp_bit
+            v[0] = tmp_bit
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name="(%d,%d)-star"%(n,k))
 
@@ -2483,7 +2477,7 @@ class GraphGenerators():
 
         The vertices of the n-star graph are the set of permutations on n
         symbols. There is an edge between two vertices if their labels differ
-        only the first and one other position.
+        only in the first and one other position.
 
         INPUT::
 
@@ -2518,15 +2512,12 @@ class GraphGenerators():
             for i in xrange(1,n):
                 if v[0] != v[i]:
                     #swap 0th and ith element
-                    tmp_bit = v[0]
-                    v[0] = v[i]
-                    v[i] = tmp_bit
+                    v[0], v[i] = v[i], v[0]
                     #convert to str and add to list
                     vert = "".join(v)
                     tmp_dict[vert] = None
                     #swap back
-                    v[i] = v[0]
-                    v[0] = tmp_bit
+                    v[0], v[i] = v[i], v[0]
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name = "%d-star"%n)
 
@@ -2563,15 +2554,12 @@ class GraphGenerators():
             #add all adjacencies
             for i in xrange(n-1):
                 #swap entries
-                tmp_label = v[i]
-                v[i] = v[i+1]
-                v[i+1] = tmp_label
+                v[i], v[i+1] = v[i+1], v[i]
                 #add new vertex
                 new_vert = ''.join(v)
                 tmp_dict[new_vert] = None
                 #swap back
-                v[i+1] = v[i]
-                v[i] = tmp_label
+                v[i], v[i+1] = v[i+1], v[i]
             #add adjacency dict
             d[''.join(v)] = tmp_dict
         return graph.Graph(d,name = "B(%d)"%n)

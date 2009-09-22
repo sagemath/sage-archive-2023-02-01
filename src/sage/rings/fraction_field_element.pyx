@@ -914,6 +914,9 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator == self.__denominator
 
+    def _symbolic_(self, ring):
+        return ring(self.__numerator)/ring(self.__denominator)
+
     def __reduce__(self):
         """
         EXAMPLES::

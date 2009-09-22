@@ -418,7 +418,7 @@ def gen_legendre_P(n,m,x):
         sage: gen_legendre_P(3, 1, t)
         -3/2*sqrt(-t^2 + 1)*(5*t^2 - 1)
         sage: gen_legendre_P(4, 3, t)
-        (105*t^3 - 105*t)*sqrt(-t^2 + 1)
+        105*sqrt(-t^2 + 1)*(t^2 - 1)*t
         sage: gen_legendre_P(7, 3, I).expand()
         -16695*sqrt(2)
         sage: gen_legendre_P(4, 1, 2.5)
@@ -444,7 +444,7 @@ def gen_legendre_Q(n,m,x):
 
         sage: P.<t> = QQ[]
         sage: gen_legendre_Q(2,0,t)
-        3/4*t^2*log((-t - 1)/(t - 1)) - 3/2*t - 1/4*log((-t - 1)/(t - 1))
+        3/4*t^2*log(-(t + 1)/(t - 1)) - 3/2*t - 1/4*log(-(t + 1)/(t - 1))
         sage: gen_legendre_Q(2,0,t) - legendre_Q(2, t)
         0
         sage: gen_legendre_Q(3,1,0.5)
@@ -583,7 +583,7 @@ def legendre_Q(n,x):
 
         sage: P.<t> = QQ[]
         sage: legendre_Q(2, t)
-        3/4*t^2*log((-t - 1)/(t - 1)) - 3/2*t - 1/4*log((-t - 1)/(t - 1))
+        3/4*t^2*log(-(t + 1)/(t - 1)) - 3/2*t - 1/4*log(-(t + 1)/(t - 1))
         sage: legendre_Q(3, 0.5)
         -0.198654771479482
         sage: legendre_Q(4, 2)

@@ -526,8 +526,10 @@ class Function_arctan2(PrimitiveFunction):
 
         Of course we can approximate as well::
 
-            sage: arctan2(-.5,1).n(100)
+            sage: arctan2(-1/2,1).n(100)
             -0.46364760900080611621425623146
+            sage: arctan2(2,3).n(100)
+            0.58800260354756755124561108063
 
         TESTS::
 
@@ -536,7 +538,6 @@ class Function_arctan2(PrimitiveFunction):
             arctan2
         """
         PrimitiveFunction.__init__(self, "arctan2", nargs=2, latex=r'\arctan',
-                                   approx=math.atan2,
                                    conversions=dict(maxima='atan2',
                                                     ginac='atan2'))
 

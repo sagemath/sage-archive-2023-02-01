@@ -1598,6 +1598,7 @@ class ExpectElement(RingElement):
 
             sage: gp(10.^80)._sage_repr()
             '1.0000000000000000000000000000000000000e80'    # 64-bit
+            '1.000000000000000000000000000e80'              # 32-bit
             sage: mathematica('10.^80')._sage_repr()  # optional - mathematica
             '1.e80'
 

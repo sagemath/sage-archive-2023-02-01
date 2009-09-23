@@ -566,6 +566,7 @@ class Gp(Expect):
 
             sage: repr(gp(10.^80)).replace(gp._exponent_symbol(), 'e')
             '1.0000000000000000000000000000000000000e80'    # 64-bit
+            '1.000000000000000000000000000e80'              # 32-bit
         """
         return ' E'
 

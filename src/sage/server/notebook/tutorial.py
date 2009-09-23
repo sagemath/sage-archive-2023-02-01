@@ -394,7 +394,7 @@ notebook_help = [
       ('Interactive Dynamic Widgets',
        'Put @interact on the line before a function definition.  Type interact? for more details.'),
       ('Autoevaluate Cells on Load',
-       'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),
+       'Type "%auto" on a line by itself at the beginning of a cell to automatically evaluate the cell when the worksheet is first opened.'),
       ('Time',
        'Type "%time" at the beginning of the cell.'),
           ]),

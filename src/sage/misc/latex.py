@@ -241,11 +241,33 @@ def str_function(x):
     #return "\\verb%s%s%s"%(delim, x, delim)
     #return "\\begin{verbatim}%s\\end{verbatim}"%x
 
+def dict_function(x):
+    r"""
+    Returns the LaTeX code for a dictionary ``x``.
+
+    INPUT: ``x`` - a dictionary
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import dict_function
+        sage: x,y,z = var('x,y,z')
+        sage: dict_function({x/2: y^2, "hallo": "world"})
+        '\\left\\{\\text{hallo}:\\: \\text{world}, \\frac{1}{2} \\, x:\\: y^{2}\\right\\}'
+        sage: d = {x: y/2, 2: x+sin(y^2), y: 2, z: [1,2, x^2]}
+        sage: latex(d) # 32-bit
+        \left\{2:\: x + \sin\left(y^{2}\right), z:\: \left[1, 2, x^{2}\right], y:\: 2, x:\: \frac{1}{2} \, y\right\}
+
+        sage: latex(d) # 64-bit
+        \left\{2:\: x + \sin\left(y^{2}\right), x:\: \frac{1}{2} \, y, y:\: 2, z:\: \left[1, 2, x^{2}\right]\right\}
+
+    """
+    return "\\left\\{" + ", ".join([latex(key) + ":\\: " + latex(value) for key,value in x.iteritems()]) + "\\right\\}"
+
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
 
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
-               str: str_function, int:str, long:str, float:str}
+               str: str_function, int:str, long:str, float:str, dict: dict_function}
 
 class LatexExpr(str):
     """

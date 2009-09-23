@@ -548,8 +548,27 @@ class PiecewisePolynomial:
 
     def base_ring(self):
         """
-        Returns the base-ring (ie, QQ[x]) - useful when this class is
-        extended.
+        Returns the base ring of the function pieces.   This
+        is useful when this class is extended.
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = x^2-5
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+            sage: base_ring(f)
+            Symbolic Ring
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f1 = x^0
+            sage: f2 = 10*x - x^2
+            sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
+            sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
+            sage: f.base_ring()
+            Rational Field
         """
         return (self.functions()[0]).base_ring()
 

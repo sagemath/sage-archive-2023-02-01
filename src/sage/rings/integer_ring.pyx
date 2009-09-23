@@ -837,6 +837,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 1
 
+    def is_integrally_closed(self):
+        """
+        Returns that the integer ring is, in fact, an
+        integrally closed ring.
+
+        EXAMPLE::
+
+            sage: ZZ.is_integrally_closed()
+            True
+        """
+        return True
+
     def completion(self, p, prec, extras = {}):
         """
         Returns the completion of Z at p.

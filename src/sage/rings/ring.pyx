@@ -1204,13 +1204,17 @@ cdef class IntegralDomain(CommutativeRing):
         EXAMPLES::
 
             sage: ZZ.is_integrally_closed()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            True
             sage: QQ.is_integrally_closed()
             True
             sage: QQbar.is_integrally_closed()
             True
+            sage: Z5 = Integers(5); Z5
+            Ring of integers modulo 5
+            sage: Z5.is_integrally_closed()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'IntegerModRing_generic' object has no attribute 'is_integrally_closed'
         """
         raise NotImplementedError
 
@@ -1328,15 +1332,12 @@ cdef class DedekindDomain(IntegralDomain):
 
         The following are examples of Dedekind domains (Noetherian integral
         domains of Krull dimension one that are integrally closed over its
-        field of fractions). (Note that the ring of integers does not have
-        an implemented ``is_integrally_closed`` function.)
+        field of fractions).
 
         ::
 
             sage: ZZ.is_integrally_closed()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            True
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.is_integrally_closed()
@@ -1681,7 +1682,7 @@ cdef class Field(PrincipalIdealDomain):
     def is_integrally_closed(self):
         """
         Return True since fields are trivially integrally closed in
-        their fraction field (since they are their fraction field).
+        their fraction field (since they are their own fraction field).
 
         EXAMPLES::
 

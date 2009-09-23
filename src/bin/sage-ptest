@@ -253,10 +253,20 @@ for gr in range(0,numglobaliteration):
 
     opts = ' '.join([X for X in argv if X[0] == '-'])
     argv = [X for X in argv if X[0] != '-']
-    infiles = argv[2:]
-    if len(infiles) == 0:
-        print "Usage: sage -t <files or directories>."
-        print "For more information, type 'sage -help'."
+
+    try:
+        numthreads = int(argv[1])
+        infiles = argv[2:]
+    except ValueError: # can't convert first arg to an integer: arg was probably omitted
+        numthreads = 1
+        infiles = argv[1:]
+
+    if numthreads < 1 or len(infiles) == 0:
+        if numthreads < 1:
+            print "Usage: sage -tp <numthreads> <files or directories>: <numthreads> must be positive."
+        else:
+            print "Usage: sage -tp <numthreads> <files or directories>: no files or directories specified."
+        print "For more information, type 'sage -advanced'."
         sys.exit(1)
 
     infiles.sort()
@@ -288,8 +298,6 @@ for gr in range(0,numglobaliteration):
             print "No cached timings exist; will create upon successful finish."
     done = False
 
-    numthreads = int(argv[1])
-
     CUR = abspath(os.getcwd())
 
     failed = []
@@ -299,14 +307,24 @@ for gr in range(0,numglobaliteration):
     if not os.path.exists(TMP):
         os.makedirs(TMP)
 
-
     populatefilelist(infiles)
     #Sort the files by test time
     files.sort(infiles_cmp)
     files.reverse()
     interrupt = False
 
-    print "Doctesting %i files doing %i jobs in parallel" % (len(files), numthreads)
+    numthreads = min(numthreads, len(files))  # don't use more threads than files
+
+    if len(files) == 1:
+        file_str = "1 file"
+    else:
+        file_str = "%i files" % len(files)
+    if numthreads == 1:
+        jobs_str = "using 1 thread"  # not in parallel if numthreads is 1
+    else:
+        jobs_str = "doing %s jobs in parallel" % numthreads
+
+    print "Doctesting %s %s" % (file_str, jobs_str)
 
     try:
         from processing import Pool

@@ -203,6 +203,15 @@ cdef class E(Expression):
             sage: import sympy
             sage: sympy.E == e # indirect doctest
             True
+
+        TESTS::
+
+            sage: t = e^a; t
+            e^a
+            sage: t^b
+            (e^a)^b
+            sage: SR(1).exp()
+            e
         """
         global exp_one
         exp_one = SR.one_element().exp()

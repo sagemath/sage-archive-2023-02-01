@@ -33,6 +33,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.9.p0 (Burcin Erocal, September 24, 2009) ===
+ * Put parenthesis around exp when printing powers.
+
 === pynac-0.1.9 (Burcin Erocal, September 22, 2009) ===
  * Only simplify exp(a)^b -> exp(a*b) when b is an integer.
  * Fix latex printing of log to \log (was \ln).

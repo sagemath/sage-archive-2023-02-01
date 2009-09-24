@@ -1,0 +1,11 @@
+530a531
+> 	${MKINSTALLDIRS} ${includedir}/singular
+535,536c536,540
+< 
+< 
+---
+> 	${INSTALL_PROGRAM} subexpr.h ${includedir}/singular
+> 	${INSTALL_PROGRAM} tok.h ${includedir}/singular
+> 	${INSTALL_PROGRAM} grammar.h ${includedir}/singular
+> 	${INSTALL_PROGRAM} ipid.h ${includedir}/singular
+> 	${INSTALL_PROGRAM} ipshell.h ${includedir}/singular

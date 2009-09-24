@@ -10,6 +10,9 @@
 == Releases ==
 
 
+=== singular-3-1-0-4-20090818.p0 (Georg S. Weber, September 24th, 2009) ===
+ * added three missing /patches/*.diff files
+
 === singular-3-1-0-4-20090818 (Martin Albrecht, August 18th, 2009) ===
  * more includes, GCC 4.4 fixes
 

@@ -1081,35 +1081,33 @@ cdef class PowerSeries(AlgebraElement):
             except TypeError:
                 return False
 
-    def sqrt(self, prec=None, extend=False,
-             all=False, name=None):
-        r"""
-        The square root function.
+    def sqrt(self, prec=None, extend=False, all=False, name=None):
+        r""" The square root function.
 
         INPUT:
 
-          - prec - integer (default: None): if not None and the series has
-            infinite precision, truncates series at precision prec.
+          - prec - integer (default: None): if not None and the series
+            has infinite precision, truncates series at precision
+            prec.
 
-          - extend - bool (default: False); if True, return a square root in an
-            extension ring, if necessary. Otherwise, raise a ValueError if the
-            square is not in the base power series ring. For example, if extend
-            is True the square root of a power series with odd degree leading
-            coefficient is defined as an element of a formal extension ring.
+          - extend - bool (default: False); if True, return a square
+            root in an extension ring, if necessary. Otherwise, raise
+            a ValueError if the square is not in the base power series
+            ring. For example, if extend is True the square root of a
+            power series with odd degree leading coefficient is
+            defined as an element of a formal extension ring.
 
-          - name - if extend is True, you must also specify the print name of
-            the formal square root.
+          - name - if extend is True, you must also specify the print
+            name of the formal square root.
 
-          - all - bool (default: False); if True, return
-            all square roots of self, instead of just one.
+          - all - bool (default: False); if True, return all square
+            roots of self, instead of just one.
 
         ALGORITHM: Newton's method
 
         .. math::
 
-                             x_{i+1} = \frac{1}{2}( x_i + self/x_i )
-
-
+           x_{i+1} = \frac{1}{2}( x_i + self/x_i )
 
         EXAMPLES::
 
@@ -1158,6 +1156,14 @@ cdef class PowerSeries(AlgebraElement):
             sage: parent(s)
             Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 - 2*t - t^3 + O(t^4)
 
+        TESTS::
+
+            sage: R.<x> = QQ[[]]
+            sage: (x^10/2).sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to take the square root of 1/2
+
         AUTHORS:
 
         - Robert Bradshaw
@@ -1193,6 +1199,7 @@ cdef class PowerSeries(AlgebraElement):
                     return a
 
         val = self.valuation()
+
         if formal_sqrt or val % 2 == 1:
             if extend:
                 if name is None:
@@ -1206,8 +1213,11 @@ cdef class PowerSeries(AlgebraElement):
                     return [a, -a]
                 else:
                     return a
+            elif formal_sqrt:
+                raise ValueError, "unable to take the square root of %s"%u[0]
             else:
                 raise ValueError, "power series does not have a square root since it has odd valuation."
+
 
         pr = self.prec()
         if pr == infinity:

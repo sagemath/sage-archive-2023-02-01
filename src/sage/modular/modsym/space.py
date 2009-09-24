@@ -1120,8 +1120,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         OUTPUT:
 
             - a Dirichlet character taking values in the Hecke eigenvalue
-            field, where the indeterminant of that field is determined
-            by the given variable name.
+              field, where the indeterminant of that field is determined
+              by the given variable name.
 
         EXAMPLES::
 

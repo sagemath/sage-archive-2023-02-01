@@ -44,7 +44,7 @@ extern "C" {
 #include "numeric.h"
 #include "constant.h"
 #include "operators.h"
-#include "inifcns.h" // for log() in power::derivative()
+#include "inifcns.h" // for log() in power::derivative() and exp for printing
 #include "matrix.h"
 #include "indexed.h"
 #include "symbol.h"
@@ -53,6 +53,7 @@ extern "C" {
 #include "utils.h"
 #include "relational.h"
 #include "compiler.h"
+#include "function.h"
 
 namespace GiNaC {
 
@@ -155,7 +156,15 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		}
 		if (precedence() <= level)
 			c.s << '(';
+		// exp function prints as e^a. Printing powers of this can be
+		// confusing, so we add parenthesis if the basis is exp
+		bool exp_parenthesis = is_ex_the_function(basis, exp) &&
+			basis.op(0) != _ex1;
+		if (exp_parenthesis)
+			c.s << '(';
 		basis.print(c, precedence());
+		if (exp_parenthesis)
+			c.s << ')';
 		if (!exponent.is_equal(_ex_1)) {
     		        c.s << "^" << expstr;
 		}

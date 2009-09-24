@@ -2355,7 +2355,7 @@ class GraphGenerators():
         return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
 
     def HyperStarGraph(self,n,k):
-        r'''
+        r"""
         Returns the hyper-star graph HS(n,k).
 
         The vertices of the hyper-star graph are the set of binary strings
@@ -2363,7 +2363,7 @@ class GraphGenerators():
         only if u can be obtained from v by swapping the first bit with a
         different symbol in another position.
 
-        INPUT::
+        INPUT:
 
         -  ``n``
 
@@ -2377,16 +2377,15 @@ class GraphGenerators():
         REFERENCES:
 
         - Lee, Hyeong-Ok, Jong-Seok Kim, Eunseuk Oh, and Hyeong-Seok Lim.
-         "Hyper-Star Graph: A New Interconnection Network Improving the
-         Network Cost of the Hypercube." In Proceedings of the First EurAsian
-         Conference on Information and Communication Technology, 858-865.
-         Springer-Verlag, 2002.
+          "Hyper-Star Graph: A New Interconnection Network Improving the
+          Network Cost of the Hypercube." In Proceedings of the First EurAsian
+          Conference on Information and Communication Technology, 858-865.
+          Springer-Verlag, 2002.
 
         AUTHORS:
 
         - Michael Yurko (2009-09-01)
-
-        '''
+        """
         from sage.combinat.permutation import Arrangements
         #set from which to permute
         set = [ "1" for i in xrange(k) ] + ["0" for i in xrange(n-k)]
@@ -2409,7 +2408,7 @@ class GraphGenerators():
         return graph.Graph(d, name="HS(%d,%d)"%(n,k))
 
     def NKStarGraph(self,n,k):
-        r'''
+        r"""
         Returns the (n,k)-star graph.
 
         The vertices of the (n,k)-star graph are the set of all arrangements of
@@ -2420,7 +2419,7 @@ class GraphGenerators():
         the other by swapping the first symbol with an external symbol (a
         symbol not used in the original label).
 
-        INPUT::
+        INPUT:
 
         -  ``n``
 
@@ -2434,14 +2433,13 @@ class GraphGenerators():
         REFERENCES:
 
         - Wei-Kuo, Chiang, and Chen Rong-Jaye. "The (n, k)-star graph: A
-        generalized star graph." Information Processing Letters 56,
-        no. 5 (December 8, 1995): 259-264.
+          generalized star graph." Information Processing Letters 56,
+          no. 5 (December 8, 1995): 259-264.
 
         AUTHORS:
 
         - Michael Yurko (2009-09-01)
-
-        '''
+        """
         from sage.combinat.permutation import Arrangements
         #set from which to permute
         set = [str(i) for i in xrange(1,n+1)]
@@ -2472,14 +2470,14 @@ class GraphGenerators():
         return graph.Graph(d, name="(%d,%d)-star"%(n,k))
 
     def NStarGraph(self,n):
-        r'''
+        r"""
         Returns the n-star graph.
 
         The vertices of the n-star graph are the set of permutations on n
         symbols. There is an edge between two vertices if their labels differ
         only in the first and one other position.
 
-        INPUT::
+        INPUT:
 
         -  ``n``
 
@@ -2491,15 +2489,13 @@ class GraphGenerators():
         REFERENCES:
 
         - S.B. Akers, D. Horel and B. Krishnamurthy, The star graph: An
-        attractive alternative to the previous n-cube. In: Proc. Internat.
-        Conf. on Parallel Processing (1987), pp. 393--400.
+          attractive alternative to the previous n-cube. In: Proc. Internat.
+          Conf. on Parallel Processing (1987), pp. 393--400.
 
         AUTHORS:
 
         - Michael Yurko (2009-09-01)
-
-
-        '''
+        """
         from sage.combinat.permutation import Permutations
         #set from which to permute
         set = [str(i) for i in xrange(1,n+1)]
@@ -2530,7 +2526,7 @@ class GraphGenerators():
         other by swapping the labels in the ith and (i+1)th position for
         `1 \leq i \leq n-1`.
 
-        INPUT::
+        INPUT:
 
         -  ``n``
 

@@ -2420,6 +2420,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return hash((self + QQbar_hash_offset).interval_exact(CIF))
 
+    def is_square(self):
+        """
+        Return whether or not this number is square, i.e. True.
+
+        EXAMPLES::
+
+            sage: AA(2).is_square()
+            True
+            sage: QQbar(I).is_square()
+            True
+        """
+        return True
+
     def sqrt(self):
         """
         Return the square root of this number.
@@ -2926,7 +2939,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         # Without this special case, we do not know the multiplicity
         # of the desired root
         if self.is_zero():
-            return AlgebriacNumber(0)
+            return AlgebraicNumber(0)
         argument_is_pi = False
         for prec in short_prec_seq():
             if prec is None:

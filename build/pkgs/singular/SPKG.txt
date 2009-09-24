@@ -14,6 +14,14 @@
  * added three missing /patches/*.diff files
  * change -O2 to -O0 on ia64 (see trac #6360 and #6240),
    original change: singular-3-1-0-2-20090618 (Craig Citro, June 18th, 2009)
+ * Make a copy of install-sh and put in the same directory as spkg-install,
+   SPKG.txt etc. For some reason, I believe one of the makefiles is looking
+   in the wrong directory for install-sh. There are about 5 identical copies
+   of this in the source. I'm not sure why there needs to be so many, and why
+   even with 5 or so copile, one can't be found.
+   Original change: singular-3-1-0-2-20090620.p0 (David Kirkby, July 19th, 2009)
+ * (don't include singular-3-1-0-2-20090620 patch, since no longer necessary:
+    Andrzej Giniewicz' fix GCC 4.4 compilation problem)
 
 === singular-3-1-0-4-20090818 (Martin Albrecht, August 18th, 2009) ===
  * more includes, GCC 4.4 fixes

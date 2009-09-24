@@ -47,9 +47,12 @@ else
   # singular-3-0-4-2-20080405 miscompiled with RHEL 5/Itanium
   # when we use "-O3" and the default compiler, so let's use
   # "-O2" for now.
+  # singular-3-1-0-2-20090512 test failure every time
+  # on *iras* (SUSE Itanium on skynet) when we use "-O2",
+  # so let's use "O0" for now (see trac #6360 and #6240)
   if [ `uname -m` = "ia64" ]; then
-    CXXFLAGS="$CXXFLAGS -O2 -g"
-    CFLAGS="$CFLAGS -O2 -g"
+    CXXFLAGS="$CXXFLAGS -O0 -g"
+    CFLAGS="$CFLAGS -O0 -g"
   else
     CXXFLAGS="$CXXFLAGS -O3 -g"
     CFLAGS="$CFLAGS -O3 -g"

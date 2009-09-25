@@ -6,6 +6,7 @@ from parametric_surface import ParametricSurface
 from shapes2 import line3d
 from texture import Texture
 from sage.plot.misc import ensure_subs
+from sage.misc.misc import xsrange, srange
 from sage.structure.element import is_Vector
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
@@ -467,7 +468,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: plot3d(u^2-v^2, (u, -1, 1), (u, -1, 1))
         Traceback (most recent call last):
         ...
-        ValueError: plot variables should be distinct, but both are u.
+        ValueError: range variables should be distinct, but there are duplicates
+
 
     From Trac #2858::
 
@@ -501,7 +503,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         f = tuple(f)
 
     if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
-        return sum([parametric_plot3d(v, urange, vrange, plot_points, **kwds) for v in f])
+        return sum([parametric_plot3d(v, urange, vrange, plot_points=plot_points, **kwds) for v in f])
 
     if not isinstance(f, (tuple, list)) or len(f) != 3:
         raise ValueError, "f must be a list, tuple, or vector of length 3"
@@ -509,14 +511,11 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
     if vrange is None:
         if plot_points == "automatic":
             plot_points = 75
-        G = _parametric_plot3d_curve(f, urange, plot_points, **kwds)
+        G = _parametric_plot3d_curve(f, urange, plot_points=plot_points, **kwds)
     else:
-        if urange[0] is vrange[0]:
-            raise ValueError, "plot variables should be distinct, but both are %s."%(urange[0],)
-
         if plot_points == "automatic":
             plot_points = [40,40]
-        G = _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds)
+        G = _parametric_plot3d_surface(f, urange, vrange, plot_points=plot_points, boundary_style=boundary_style, **kwds)
     G._set_extra_kwds(kwds)
     return G
 
@@ -525,40 +524,10 @@ def _parametric_plot3d_curve(f, urange, plot_points, **kwds):
     This function is used internally by the
     ``parametric_plot3d`` command.
     """
-    from sage.plot.plot import var_and_list_of_values
-    plot_points = int(plot_points)
-    u, vals = var_and_list_of_values(urange, plot_points)
-    w = []
-    fail = 0
-
-    if u is None:
-        try:
-            f, (u,) = adapt_to_callable(f, 1)
-        except TypeError:
-            pass
-
-    else:
-        f = fast_float(f, u)
-
-    f_x, f_y, f_z = f
-    if u is None or all(is_fast_float(f_i) for f_i in f):
-        for t in vals:
-            try:
-                w.append((float(f_x(t)), float(f_y(t)), float(f_z(t))))
-            except TypeError:
-                fail += 1
-
-    else:
-        f_x, f_y, f_z = [ensure_subs(m) for m in f]
-        for t in vals:
-            try:
-                w.append((float(f_x.subs({u:t})), float(f_y.subs({u:t})),
-                          float(f_z.subs({u:t}))))
-            except TypeError:
-                fail += 1
-
-    if fail > 0:
-        print "WARNING: Failed to evaluate parametric plot at %s points"%fail
+    from sage.plot.misc import setup_for_eval_on_grid
+    g, ranges = setup_for_eval_on_grid(f, [urange], plot_points)
+    f_x,f_y,f_z = g
+    w = [(f_x(u), f_y(u), f_z(u)) for u in xsrange(*ranges[0], include_endpoint=True)]
     return line3d(w, **kwds)
 
 def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds):
@@ -566,41 +535,17 @@ def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, *
     This function is used internally by the
     ``parametric_plot3d`` command.
     """
-    if not isinstance(plot_points, (list, tuple)) or len(plot_points) != 2:
-        raise ValueError, "plot_points must be a tuple of length 2"
-    points0, points1 = plot_points
-
-    from sage.plot.plot import var_and_list_of_values
-    u, u_vals = var_and_list_of_values(urange, int(points0))
-    v, v_vals = var_and_list_of_values(vrange, int(points1))
-
-    if u is None:
-        if not v is None:
-            raise ValueError, "both ranges must specify a variable or neither must"
-
-        try:
-            g, (u,v) = adapt_to_callable(f, 2)
-        except TypeError:
-            g = tuple(f)
-
-    else:
-        if v is None:
-            raise ValueError, "both ranges must specify a variable or neither must"
-
-        g = fast_float(f, str(u), str(v))
-
-    G = ParametricSurface(g, (u_vals, v_vals), **kwds)
-
-    # Canonicalize the urange and vrange for processing the boundary style
-    urange = urange if len(urange) == 3 else (u,) + urange
-    vrange = vrange if len(vrange) == 3 else (v,) + vrange
+    from sage.plot.misc import setup_for_eval_on_grid
+    g, ranges = setup_for_eval_on_grid(f, [urange,vrange], plot_points)
+    urange = srange(*ranges[0], include_endpoint=True)
+    vrange = srange(*ranges[1], include_endpoint=True)
+    G = ParametricSurface(g, (urange, vrange), **kwds)
 
     if boundary_style is not None:
-        for (var, extrema, bounds) in [(u, urange[1], vrange), (u, urange[2], vrange),
-                                       (v, vrange[1], urange), (v, vrange[2], urange)]:
-                f_prime = tuple(n.substitute({var: extrema}) for n in f)
-                G = G + parametric_plot3d(f_prime, bounds, **boundary_style)
-
+        for u in (urange[0], urange[-1]):
+            G += line3d([(g[0](u,v), g[1](u,v), g[2](u,v)) for v in vrange], **boundary_style)
+        for v in (vrange[0], vrange[-1]):
+            G += line3d([(g[0](u,v), g[1](u,v), g[2](u,v)) for u in urange], **boundary_style)
     return G
 
 
@@ -644,6 +589,9 @@ def adapt_to_callable(f, nargs=None):
 
     OUTPUT: functions, expected arguments
     """
+    from sage.misc.misc import deprecation
+    deprecation("adapt_to_callable is a deprecated function.  Please use functions from sage.misc.plot instead.")
+
     try:
         from sage.symbolic.callable import is_CallableSymbolicExpression
         if sum([is_CallableSymbolicExpression(z) for z in f]):

@@ -288,6 +288,7 @@ DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 DOCTEST_MODE = False
 import sage.misc.misc
+from sage.misc.misc import srange
 DOCTEST_MODE_FILE = sage.misc.misc.SAGE_TMP + '/test.png'
 SHOW_DEFAULT = True
 
@@ -2439,9 +2440,11 @@ def plot(funcs, *args, **kwds):
 
 def _plot(funcs, xrange, parametric=False,
               polar=False, fill=None, label='', randomize=True, **options):
-    if not is_fast_float(funcs):
-        funcs =  fast_float(funcs, expect_one_var=True)
 
+    from sage.plot.misc import setup_for_eval_on_grid
+    funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
+    xmin, xmax, delta = ranges[0]
+    xrange=ranges[0][:2]
     #parametric_plot will be a list or tuple of two functions (f,g)
     #and will plotted as (f(x), g(x)) for all x in the given range
     if parametric:
@@ -2450,15 +2453,6 @@ def _plot(funcs, xrange, parametric=False,
     else:
         f = funcs
 
-    # xrange has to be either of the form (var, xmin, xmax) or (xmin, xmax)
-    if not isinstance(xrange, (tuple, list)):
-        raise TypeError, "xrange must be a tuple or list"
-    if len(xrange) == 3:
-        xmin, xmax = xrange[1], xrange[2]
-    elif len(xrange) == 2:
-        xmin, xmax = xrange[0], xrange[1]
-    else:
-        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
 
     #check to see if funcs is a list of functions that will
     #be all plotted together.
@@ -2487,7 +2481,7 @@ def _plot(funcs, xrange, parametric=False,
             if fillcolor_temp == 'automatic':
                 fillcolor_temp = rainbow_colors[i]
 
-            G += plot(h, (xmin, xmax), polar = polar, fill = fill_temp, \
+            G += plot(h, xrange, polar = polar, fill = fill_temp, \
                       fillcolor = fillcolor_temp, **options_temp)
         return G
 
@@ -2637,7 +2631,7 @@ def parametric_plot(funcs, *args, **kwargs):
 
     A filled Hypotrochoid::
 
-        sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], 0, 8*pi, fill = True)
+        sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
 
         sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
 
@@ -2653,35 +2647,54 @@ def parametric_plot(funcs, *args, **kwargs):
         sage: parametric_plot((x, t^2), (x, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+        ValueError: there are more variables than variable ranges
 
         sage: parametric_plot((1, x+t), (x, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+        ValueError: there are more variables than variable ranges
 
         sage: parametric_plot((-t, x+t), (x, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+        ValueError: there are more variables than variable ranges
 
         sage: parametric_plot((1, x+t, y), (x, -4, 4), (t, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+        ValueError: there are more variables than variable ranges
 
+        sage: parametric_plot((1, x, y), 0, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are more variables than variable ranges
     """
-    num_funcs = len(funcs)
-    var_list = [list(getattr(f, 'variables', lambda : [])()) for f in funcs]
-    num_vars = len(set(sum(var_list, [])))
+    num_ranges=0
+    for i in args:
+        if isinstance(i, (list, tuple)):
+            num_ranges+=1
+        else:
+            break
 
-    if num_funcs == 2 and num_vars <= 1:
+    if num_ranges==0 and len(args)>=2:
+        from sage.misc.misc import deprecation
+        deprecation("variable ranges to parametric_plot must be given as tuples, like (2,4) or (t,2,3)")
+        args=tuple(args)
+        num_ranges=1
+
+    num_funcs = len(funcs)
+
+    num_vars=len(sage.plot.misc.unify_arguments(funcs)[0])
+    if num_vars>num_ranges:
+        raise ValueError, "there are more variables than variable ranges"
+
+    if num_funcs == 2 and num_ranges == 1:
         kwargs['parametric'] = True
         return plot(funcs, *args, **kwargs)
-    elif (num_funcs == 3 and num_vars <= 2):
+    elif (num_funcs == 3 and num_ranges <= 2):
         return sage.plot.plot3d.parametric_plot3d.parametric_plot3d(funcs, *args, **kwargs)
     else:
-        raise ValueError, "the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots"
+        raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
 
 def polar_plot(funcs, *args, **kwds):
     r"""
@@ -2997,10 +3010,10 @@ def graphics_array(array, n=None, m=None):
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,-2*pi,2*pi,color=hue(0.5))
-        sage: p2 = plot(g,-2*pi,2*pi,color=hue(0.9))
-        sage: p3 = parametric_plot((f,g),0,2*pi,color=hue(0.6))
-        sage: p4 = parametric_plot((f,h),0,2*pi,color=hue(1.0))
+        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5))
+        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9))
+        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6))
+        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0))
 
     Now make a graphics array out of the plots; then you can type
     either: ``ga.show()`` or ``ga.save()``.
@@ -3011,8 +3024,8 @@ def graphics_array(array, n=None, m=None):
 
     Here we give only one row::
 
-        sage: p1 = plot(sin,-4,4)
-        sage: p2 = plot(cos,-4,4)
+        sage: p1 = plot(sin,(-4,4))
+        sage: p2 = plot(cos,(-4,4))
         sage: g = graphics_array([p1, p2]); print g
         Graphics Array of size 1 x 2
         sage: g.show()
@@ -3048,6 +3061,7 @@ def var_and_list_of_values(v, plot_points):
 
         sage: from sage.plot.plot import var_and_list_of_values
         sage: var_and_list_of_values((var('theta'), 2, 5),  5)
+        doctest:...: DeprecationWarning: var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
         (theta, [2.0, 2.75, 3.5, 4.25, 5.0])
         sage: var_and_list_of_values((2, 5),  5)
         (None, [2.0, 2.75, 3.5, 4.25, 5.0])
@@ -3056,6 +3070,8 @@ def var_and_list_of_values(v, plot_points):
         sage: var_and_list_of_values((2, 5),  2)
         (None, [2.0, 5.0])
     """
+    from sage.misc.misc import deprecation
+    deprecation("var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
     plot_points = int(plot_points)
     if plot_points < 2:
         raise ValueError, "plot_points must be greater than 1"
@@ -3150,6 +3166,11 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
 
 def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     """
+    This function is deprecated.  Please use
+    sage.plot.misc.setup_for_eval_on_grid instead.  Please note that
+    that function has slightly different calling and return
+    conventions which make it more generally applicable.
+
     INPUT:
 
 
@@ -3181,6 +3202,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
 
         sage: x,y = var('x,y')
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
+        doctest:...: DeprecationWarning: sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
         ([<sage.ext... object at ...>],
          0.5,
          0.31415926535897931,
@@ -3200,35 +3222,12 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
 
 
     """
-    if len(xrange) == 3:
-        xvar = xrange[0]
-        xrange = xrange[1:]
-        yvar = yrange[0]
-        yrange = yrange[1:]
-    else:
-        xvar = None
-    xrange = tuple([float(z) for z in xrange])
-    yrange = tuple([float(z) for z in yrange])
-    plot_points = int(plot_points)
-    if plot_points <= 1:
-        plot_points = 2
-    xstep = abs(xrange[0] - xrange[1])/(plot_points-1)
-    ystep = abs(yrange[0] - yrange[1])/(plot_points-1)
+    from sage.misc.misc import deprecation
+    deprecation("sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
 
-    g = []
-    for f in v:
-        if isinstance(f, types.FunctionType):
-            g.append(f)
-        else:
-            # This code can be refactored at some point out of plot3d.
-            from sage.plot.plot3d.parametric_plot3d import adapt_to_callable
-            if xvar is None:
-                k, _ = adapt_to_callable([f], 2)
-                g.append(k[0])
-            else:
-                g.append(fast_float(f, str(xvar), str(yvar)))
-
-    return g, xstep, ystep, xrange, yrange
+    from sage.plot.misc import setup_for_eval_on_grid as setup
+    g, ranges=setup(v, [xrange, yrange], plot_points)
+    return list(g), ranges[0][2], ranges[1][2], ranges[0][:2], ranges[1][:2]
 
 
 def minmax_data(xdata, ydata, dict=False):
@@ -3416,10 +3415,10 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         sage: [len(generate_plot_points(f, (-pi, pi), plot_points=16, adaptive_recursion=i, randomize=False)) for i in [5, 10, 15]]
         [97, 499, 2681]
     """
-    x, data = var_and_list_of_values(xrange, plot_points)
-    xmin = data[0]
-    xmax = data[-1]
-    delta = float(xmax-xmin) / float(plot_points-1)
+    from sage.plot.misc import setup_for_eval_on_grid
+    ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
+    xmin, xmax, delta = ranges[0]
+    data = srange(*ranges[0], include_endpoint=True)
 
     random = current_randstate().python_random().random
     exceptions = 0; msg=''

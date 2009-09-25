@@ -215,11 +215,14 @@ def density_plot(f, xrange, yrange, **options):
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10), dpi=20)
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10)).show(dpi=20) # These are equivalent
     """
-    from sage.plot.plot import Graphics, setup_for_eval_on_grid
-    g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
+    from sage.plot.plot import Graphics
+    from sage.plot.misc import setup_for_eval_on_grid
+    g, ranges = setup_for_eval_on_grid([f], [xrange, yrange], options['plot_points'])
     g = g[0]
-    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
-                              for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
+    xrange,yrange=[r[:2] for r in ranges]
+
+    xy_data_array = [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                              for y in xsrange(*ranges[1], include_endpoint=True)]
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))

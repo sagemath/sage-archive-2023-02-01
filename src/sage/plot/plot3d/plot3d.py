@@ -170,29 +170,14 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (x,-2,2))
         Traceback (most recent call last):
         ...
-        ValueError: plot variables should be distinct, but both are x.
+        ValueError: range variables should be distinct, but there are duplicates
     """
-    if len(urange) == 2:
-        try:
-            f_list, (u,v) = parametric_plot3d.adapt_to_callable([f], 2)
-            f = f_list[0]
-            w = (u, v, f)
-            urange = (u, urange[0], urange[1])
-            vrange = (v, vrange[0], vrange[1])
-        except TypeError:
-             w = (fast_float_arg(0), fast_float_arg(1), f)
-    else:
-        u = urange[0]
-        v = vrange[0]
-        if u is v:
-            raise ValueError, "plot variables should be distinct, but both are %s."%(u,)
-
-        w = (u, v, f)
-
     if adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
-        P = parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
+        u=fast_float_arg(0)
+        v=fast_float_arg(1)
+        P=parametric_plot3d.parametric_plot3d((u,v,f), urange, vrange, **kwds)
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 
@@ -239,38 +224,16 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
         sage: from sage.plot.plot3d.plot3d import plot3d_adaptive
         sage: x,y=var('x,y'); plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
     """
-    if not (isinstance(x_range, (tuple, list)) and isinstance(y_range,(tuple,list)) and len(x_range) == len(y_range) and len(x_range) in [2,3]):
-        raise TypeError, "x_range and y_range must both be a 2 or 3-tuple"
-    if len(x_range) == 3:
-        # symbolic case
-        x, xmin, xmax = x_range
-        y, ymin, ymax = y_range
-        def g(xx,yy):
-            return float(f.subs({x:xx, y:yy}))
-
-    else:
-        xmin, xmax = x_range
-        ymin, ymax = y_range
-
-        g = f
-
     if initial_depth >= max_depth:
         max_depth = initial_depth
-    xmin = float(xmin)
-    xmax = float(xmax)
-    ymin = float(ymin)
-    ymax = float(ymax)
 
-    # Check if g has a fast float evaluation
-    #try:
-    #    g = g.fast_float_function()
-    #except AttributeError:
-    #    # Nope -- no prob.
-    #    pass
-    if kwds.has_key('opacity'):
-        opacity = kwds['opacity']
-    else:
-        opacity = 1
+    from sage.plot.misc import setup_for_eval_on_grid
+    g, ranges = setup_for_eval_on_grid(f, [x_range,y_range], plot_points=2)
+    xmin,xmax = ranges[0][:2]
+    ymin,ymax = ranges[1][:2]
+
+    opacity = kwds.get('opacity',1)
+
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')
     else:

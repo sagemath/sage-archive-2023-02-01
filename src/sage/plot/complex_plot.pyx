@@ -302,7 +302,8 @@ def complex_plot(f, xrange, yrange, **options):
 
         sage: complex_plot(sqrt, (-5, 5), (-5, 5))
     """
-    from sage.plot.plot import Graphics, setup_for_eval_on_grid
+    from sage.plot.plot import Graphics
+    from sage.plot.misc import setup_for_eval_on_grid
     from sage.ext.fast_callable import fast_callable
     from sage.rings.complex_double import CDF
 
@@ -312,14 +313,11 @@ def complex_plot(f, xrange, yrange, **options):
         pass
 
     cdef double x, y
-    ignore, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([], xrange, yrange, options['plot_points'])
-    xmin, xmax = xrange
-    ymin, ymax = yrange
-    xrange_list = srange(xmin, xmax+xstep, xstep, universe=float)
-    yrange_list = srange(ymin, ymax+ystep, ystep, universe=float)
+    ignore, ranges = setup_for_eval_on_grid([], [xrange, yrange], options['plot_points'])
+    xrange,yrange=[r[:2] for r in ranges]
     _sig_on
-    z_values = [[  f(new_CDF_element(x, y)) for x in xrange_list]
-                                            for y in yrange_list]
+    z_values = [[  f(new_CDF_element(x, y)) for x in srange(*ranges[0], include_endpoint=True)]
+                                            for y in srange(*ranges[1], include_endpoint=True)]
     _sig_off
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))

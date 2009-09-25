@@ -88,6 +88,7 @@ from sage.plot.plot3d.base cimport PrimitiveObject
 from sage.plot.plot3d.base import RenderParams, default_texture
 from sage.plot.plot3d.index_face_set cimport IndexFaceSet
 from sage.rings.all import RDF
+from sage.plot.misc import setup_for_eval_on_grid
 
 include '../../ext/cdefs.pxi'
 include '../../ext/stdsage.pxi'
@@ -895,73 +896,6 @@ cpdef render_implicit(f, xrange, yrange, zrange, plot_points, cube_marchers):
 
     return results
 
-def extract_vars_ranges_and_adapt(f, arity, *ranges):
-    """
-    Makes f into a fast callable function, while inferring its arguments and
-    canonicalizing the provided ranges.
-
-    INPUT:
-
-    -  ``f`` - a symbolic expression or a python function
-
-    -  ``arity`` - the arity of f
-
-    -  ``ranges`` - A list of ranges, one for each argument, describing the domain
-       of f. Ranges may be of the form (var, low, high) OR simply (low, high).
-
-    OUTPUT:
-
-        - fast callable function
-
-        - tuple of expected arguments
-
-        - list of canonicalized ranges of the form (low, high)
-
-    EXAMPLES::
-
-        sage: from sage.plot.plot3d.implicit_surface import extract_vars_ranges_and_adapt
-        sage: x, y = var('x, y')
-        sage: extract_vars_ranges_and_adapt(x + y, 2, (0, 1), (0, 1))
-        (<...>, (x, y), [(0, 1), (0, 1)])
-        sage: extract_vars_ranges_and_adapt(x + y, 2, (y, 0, 1), (x, 0, 1))
-        (<...>, (y, x), [(0, 1), (0, 1)])
-    """
-    from sage.ext.fast_eval import fast_float, fast_float_constant
-    if any([len(ranges[0]) != len(x) for x in ranges]):
-        raise ValueError, "invalid range; be consistent when explicitly specifying a variable"
-    vars = None
-    f_type = "symbolic"
-    if len(ranges[0]) == 3:
-        vars = [x[0] for x in ranges]
-        for unique_var in set(vars):
-            if vars.count(unique_var) > 1:
-                raise ValueError, "plot variables should be distinct"
-        vars = tuple(vars)
-        ranges = [x[1:] for x in ranges]
-    elif len(ranges[0]) == 2:
-        if hasattr(f, "variables"):
-           vars = f.variables()
-        else:
-            vars = ("_",) * arity
-            f_type = "constant"
-        ranges = list(ranges)
-    else:
-        raise ValueError, "invalid range; tuple should have 2 or 3 elements"
-    from types import FunctionType
-    if type(f) is FunctionType:
-        f_type = "function"
-    if len(vars) != arity:
-        raise ValueError, "function should have arity %i" % arity
-
-    f_result = None
-    if f_type == "symbolic":
-        f_result = fast_float(f, *vars)
-    elif f_type == "constant":
-        f_result = fast_float_constant(f)
-    elif f_type == "function":
-        f_result = f
-    return f_result, vars, ranges
-
 cdef class ImplicitSurface(IndexFaceSet):
     cdef readonly object f
     cdef readonly object vars
@@ -985,18 +919,17 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x^2 + y^2 + z^2, (-2, 2), (-2, 2), (-2, 2), contour=4)
+            sage: G = ImplicitSurface(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2), (z,-2, 2), contour=4)
             sage: show(G)
         """
         IndexFaceSet.__init__(self, [], [], **kwds)
         from sage.ext.fast_eval import fast_float
 
         orig_f = f
-        self.f, self.vars, ranges = \
-            extract_vars_ranges_and_adapt(f, 3, xrange, yrange, zrange)
-        self.xrange = (float(ranges[0][0]), float(ranges[0][1]))
-        self.yrange = (float(ranges[1][0]), float(ranges[1][1]))
-        self.zrange = (float(ranges[2][0]), float(ranges[2][1]))
+        self.f, ranges, self.vars = setup_for_eval_on_grid(f, [xrange, yrange, zrange], return_vars=True)
+        self.xrange = ranges[0][:2]
+        self.yrange = ranges[1][:2]
+        self.zrange = ranges[1][:2]
         if isinstance(contour, (list, tuple)):
             contours = contour
         else:
@@ -1060,7 +993,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
             sage: obj = G.obj_repr(G.default_render_params())
             sage: vertices = obj[2]
 
@@ -1097,7 +1030,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
             sage: G.tachyon_repr(G.default_render_params())[0].startswith('TRI')
             True
         """
@@ -1114,7 +1047,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
             sage: show(G, viewer='jmol')
         """
         self.triangulate()
@@ -1129,7 +1062,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
             sage: G.json_repr(G.default_render_params())[0].startswith('{vertices:')
             True
         """
@@ -1150,7 +1083,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
             sage: var('x,y,z')
             (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
             sage: len(G.vertex_list()), len(G.face_list())
             (0, 0)
             sage: G.triangulate()

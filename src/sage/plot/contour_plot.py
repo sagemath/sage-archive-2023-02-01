@@ -265,11 +265,14 @@ def contour_plot(f, xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,-2,0], fill=False)
     """
-    from sage.plot.plot import Graphics, setup_for_eval_on_grid
-    g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
+    from sage.plot.plot import Graphics
+    from sage.plot.misc import setup_for_eval_on_grid
+    g, ranges = setup_for_eval_on_grid([f], [xrange, yrange], options['plot_points'])
     g = g[0]
-    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
-                              for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
+    xrange,yrange=[r[:2] for r in ranges]
+
+    xy_data_array = [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                              for y in xsrange(*ranges[1], include_endpoint=True)]
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
@@ -437,7 +440,9 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
         sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
     """
 
-    from sage.plot.plot import Graphics, setup_for_eval_on_grid
+    from sage.plot.plot import Graphics
+    from sage.plot.misc import setup_for_eval_on_grid
+
     if not isinstance(f, (list, tuple)):
         f = [f]
 
@@ -445,10 +450,11 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     f = [equify(g, variables) for g in f]
 
-    g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid(f, xrange, yrange, plot_points)
+    g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
+    xrange,yrange=[r[:2] for r in ranges]
 
-    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
-                                             for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)], g)
+    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                             for y in xsrange(*ranges[1], include_endpoint=True)], g)
 
     xy_data_array = map(lambda *rows: map(lambda *vals: mangle_neg(vals), *rows), *xy_data_arrays)
 
@@ -461,7 +467,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     g = Graphics()
 
-    g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(plot_points=plot_points,
+    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(plot_points=plot_points,
                                                                     contours=[-1e307, 0, 1e307], cmap=cmap, fill=True)))
 
     if bordercol is not None:

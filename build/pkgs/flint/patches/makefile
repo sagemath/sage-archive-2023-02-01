@@ -36,6 +36,7 @@ else
 endif
 
 CFLAGS = $(INCS) $(FLINT_TUNE) -O2
+CFLAGS2 = $(INCS) $(FLINT_TUNE) -fopenmp -O2
 
 RM = rm -f
 
@@ -64,12 +65,9 @@ HEADERS = \
 	profiler.h \
 	test-support.h \
 	long_extras.h \
-	packed_vec.h \
 	zmod_poly.h \
 	theta.h \
 	zmod_mat.h \
-	mpz_mat.h \
-	d_mat.h \
 	F_mpz.h \
 	QS/tinyQS.h \
 	NTL-interface.h
@@ -106,12 +104,9 @@ FLINTOBJ = \
 	mpz_poly.o \
 	ZmodF_poly.o \
 	long_extras.o \
-	packed_vec.o \
 	zmod_poly.o \
 	theta.o \
 	zmod_mat.o \
-	mpz_mat.o \
-	d_mat.o \
 	F_mpz.o \
 	tinyQS.o \
 	factor_base.o \
@@ -530,7 +525,7 @@ bernoulli-profile: bernoulli-profile.o bernoulli-profile-tables.o $(PROFOBJ)
 ####### example programs
 
 delta_qexp.o: delta_qexp.c $(HEADERS)
-	$(CC) $(CFLAGS) -c delta_qexp.c -o delta_qexp.o
+	$(CPP) $(CFLAGS) -c delta_qexp.c -o delta_qexp.o
 
 delta_qexp: delta_qexp.o $(FLINTOBJ)
 	$(CPP) $(CFLAGS) -o delta_qexp delta_qexp.o $(FLINTOBJ) $(LIBS)
@@ -542,28 +537,28 @@ BPTJCubes: BPTJCubes.c $(FLINTOBJ)
 	$(CPP) $(CFLAGS) -o BPTJCubes BPTJCubes.c $(FLINTOBJ) $(LIBS)
 
 bernoulli.o: bernoulli.c $(HEADERS)
-	$(CC) $(CFLAGS) -c bernoulli.c -o bernoulli.o
+	$(CPP) $(CFLAGS) -c bernoulli.c -o bernoulli.o
 
 bernoulli: bernoulli.o $(FLINTOBJ)
 	$(CPP) $(CFLAGS) -o bernoulli bernoulli.o $(FLINTOBJ) $(LIBS)
 
 bernoulli_fmpz.o: bernoulli_fmpz.c $(HEADERS)
-	$(CC) $(CFLAGS) -c bernoulli_fmpz.c -o bernoulli_fmpz.o
+	$(CPP) $(CFLAGS) -c bernoulli_fmpz.c -o bernoulli_fmpz.o
 
 bernoulli_fmpz: bernoulli_fmpz.o $(FLINTOBJ)
 	$(CPP) $(CFLAGS) -o bernoulli_fmpz bernoulli_fmpz.o $(FLINTOBJ) $(LIBS)
 
 bernoulli_zmod.o: bernoulli_zmod.c $(HEADERS)
-	$(CC) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
+	$(CPP) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
 
 bernoulli_zmod: bernoulli_zmod.o $(FLINTOBJ)
 	$(CPP) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o $(FLINTOBJ) $(LIBS)
 
 thetaproduct.o: thetaproduct.c $(HEADERS)
-	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
+	$(CPP) $(CFLAGS2) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
 
 thetaproduct: thetaproduct.o $(FLINTOBJ)
-	$(CPP) $(CFLAGS) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS2) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
 
 ####### Quadratic sieve
 

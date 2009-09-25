@@ -1,5 +1,5 @@
---- ../flint-1.3.0/makefile	2009-06-12 13:04:30.000000000 -0700
-+++ makefile	2009-06-12 14:16:15.000000000 -0700
+--- ../src/makefile	2009-09-23 17:03:27.000000000 +0700
++++ makefile	2009-09-25 09:11:01.000000000 +0700
 @@ -1,3 +1,5 @@
 +# sage depends on the NTL interface, so we include it in the flint library
 +
@@ -16,9 +16,9 @@
  
  LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm 
  
-@@ -68,7 +71,8 @@
- 	mpz_mat.h \
- 	d_mat.h \
+@@ -66,7 +69,8 @@
+ 	theta.h \
+ 	zmod_mat.h \
  	F_mpz.h \
 -	QS/tinyQS.h
 +	QS/tinyQS.h \
@@ -26,7 +26,7 @@
  
  ####### library object files
  
-@@ -114,13 +118,14 @@
+@@ -109,13 +113,14 @@
  	poly.o \
  	sieve.o \
  	linear_algebra.o \
@@ -43,7 +43,7 @@
  
  check: test
  	./F_mpz-test
-@@ -144,16 +149,16 @@
+@@ -139,16 +144,16 @@
  library: $(FLINT_LIB)
  
  libflint.dylib: $(FLINTOBJ)
@@ -64,7 +64,7 @@
  
  ##### zn_poly object files
  
-@@ -350,55 +355,56 @@
+@@ -345,55 +350,56 @@
  ####### test program targets
  
  mpn_extras-test: mpn_extras-test.o test-support.o $(FLINTOBJ) $(HEADERS)
@@ -138,7 +138,7 @@
  
  ####### tuning program object files
  
-@@ -494,32 +500,32 @@
+@@ -489,70 +495,70 @@
  PROFOBJ = $(FLINTOBJ) profiler.o profiler-main.o
  
  fmpz_poly-profile: fmpz_poly-profile.o fmpz_poly-profile-tables.o test-support.o $(PROFOBJ)
@@ -179,8 +179,9 @@
  
  ####### example programs
  
-@@ -527,37 +533,37 @@
- 	$(CC) $(CFLAGS) -c delta_qexp.c -o delta_qexp.o
+ delta_qexp.o: delta_qexp.c $(HEADERS)
+-	$(CC) $(CFLAGS) -c delta_qexp.c -o delta_qexp.o
++	$(CPP) $(CFLAGS) -c delta_qexp.c -o delta_qexp.o
  
  delta_qexp: delta_qexp.o $(FLINTOBJ)
 -	$(CC) $(CFLAGS) -o delta_qexp delta_qexp.o $(FLINTOBJ) $(LIBS)
@@ -195,36 +196,40 @@
 +	$(CPP) $(CFLAGS) -o BPTJCubes BPTJCubes.c $(FLINTOBJ) $(LIBS)
  
  bernoulli.o: bernoulli.c $(HEADERS)
- 	$(CC) $(CFLAGS) -c bernoulli.c -o bernoulli.o
+-	$(CC) $(CFLAGS) -c bernoulli.c -o bernoulli.o
++	$(CPP) $(CFLAGS) -c bernoulli.c -o bernoulli.o
  
  bernoulli: bernoulli.o $(FLINTOBJ)
 -	$(CC) $(CFLAGS) -o bernoulli bernoulli.o $(FLINTOBJ) $(LIBS)
 +	$(CPP) $(CFLAGS) -o bernoulli bernoulli.o $(FLINTOBJ) $(LIBS)
  
  bernoulli_fmpz.o: bernoulli_fmpz.c $(HEADERS)
- 	$(CC) $(CFLAGS) -c bernoulli_fmpz.c -o bernoulli_fmpz.o
+-	$(CC) $(CFLAGS) -c bernoulli_fmpz.c -o bernoulli_fmpz.o
++	$(CPP) $(CFLAGS) -c bernoulli_fmpz.c -o bernoulli_fmpz.o
  
  bernoulli_fmpz: bernoulli_fmpz.o $(FLINTOBJ)
 -	$(CC) $(CFLAGS) -o bernoulli_fmpz bernoulli_fmpz.o $(FLINTOBJ) $(LIBS)
 +	$(CPP) $(CFLAGS) -o bernoulli_fmpz bernoulli_fmpz.o $(FLINTOBJ) $(LIBS)
  
  bernoulli_zmod.o: bernoulli_zmod.c $(HEADERS)
- 	$(CC) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
+-	$(CC) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
++	$(CPP) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
  
  bernoulli_zmod: bernoulli_zmod.o $(FLINTOBJ)
 -	$(CC) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o $(FLINTOBJ) $(LIBS)
 +	$(CPP) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o $(FLINTOBJ) $(LIBS)
  
  thetaproduct.o: thetaproduct.c $(HEADERS)
- 	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
+-	$(CC) $(CFLAGS2) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
++	$(CPP) $(CFLAGS2) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
  
  thetaproduct: thetaproduct.o $(FLINTOBJ)
--	$(CC) $(CFLAGS) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
+-	$(CC) $(CFLAGS2) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
++	$(CPP) $(CFLAGS2) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
  
  ####### Quadratic sieve
  
-@@ -595,12 +601,12 @@
+@@ -590,12 +596,12 @@
  	$(CC) $(CFLAGS) -c QS/mp_factor_base.c -o mp_factor_base.o
  
  mpQS: QS/mpQS.c QS/mpQS.h QS/tinyQS.h mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebra.o mp_lprels.o $(FLINTOBJ)

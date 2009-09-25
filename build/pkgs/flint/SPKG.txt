@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.5.0.p0 (Mike Hansen, September 25th, 2009) ===
+ * Updated to 1.5.0.
+
 === flint-1.3.0p3 (Ondrej Certik, September 20th, 2009) ===
  *  Move libntl.a out of the way temporarily on CYGWIN (this makes the package
     built, because it will link to the .so lib instead)

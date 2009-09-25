@@ -262,7 +262,15 @@ for gr in range(0,numglobaliteration):
         infiles = argv[1:]
 
     if numthreads == 0:
-        # set numthreads to be the number of processors
+        # Set numthreads to be the number of processors --- default.
+        # The detection of number of processors might not be reliable on some
+        # platforms. On a Sun SPARC T5240 (t2.math), the reported number of
+        # processors might not correspond to the actual number of processors.
+        # See ticket #6283 and the file SAGE_ROOT/makefile.
+        #
+        # WARNING: Unless you are certain that you want to use all the
+        # cores/processors on your system for parallel doctesting, use
+        # a (sensible) positive integer.
         try:
             numthreads = multiprocessing.cpu_count()
         except NotImplementedError:

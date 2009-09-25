@@ -292,12 +292,22 @@ def complex_plot(f, xrange, yrange, **options):
         sage: P = complex_plot(f, (-10, 10), (-10, 10))
         sage: Q = complex_plot(g, (-10, 10), (-10, 10))
         sage: R = complex_plot(h, (-10, 10), (-10, 10))
+        sage: complex_plot(exp(x)-sin(x), (-10, 10), (-10, 10))
+
+    Test to make sure symbolic functions still work without declaring
+    a variable.  (We don't do this in practice because it doesn't use
+    fast_callable, so it is much slower.)
+
+    ::
+
+        sage: complex_plot(sqrt, (-5, 5), (-5, 5))
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     from sage.ext.fast_callable import fast_callable
+    from sage.rings.complex_double import CDF
 
     try:
-        f = fast_callable(f, domain=complex, expect_one_var=True)
+        f = fast_callable(f, domain=CDF, expect_one_var=True)
     except (AttributeError, TypeError, ValueError):
         pass
 

@@ -849,7 +849,7 @@ cdef class ModuleElement(Element):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
 
-        Returning None indicates that this action is not implemented.
+        Returning None indicates that this action is not implemented here.
         """
         return None
 
@@ -861,7 +861,7 @@ cdef class ModuleElement(Element):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
 
-        Returning None indicates that this action is not implemented.
+        Returning None indicates that this action is not implemented here.
         """
         return None
 

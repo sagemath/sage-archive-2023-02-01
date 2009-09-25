@@ -439,7 +439,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f._rmul_(3)
             3*t + 2*t^4 + O(t^11)
         """
-        return PowerSeries_poly(self._parent, self.__f._rmul_(c), self._prec, check=False)
+        return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         """
@@ -453,7 +453,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: 2 * f
             2 + 6*t^4 + O(t^120)
         """
-        return PowerSeries_poly(self._parent, self.__f._lmul_(c), self._prec, check=False)
+        return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
 
     cpdef ModuleElement _ilmul_(self, RingElement c):
         """

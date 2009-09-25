@@ -569,10 +569,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: K(13,7) * a
         (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
         """
+        return None
+        # The code below has never been tested and is somehow subtly broken.
+
         if self._valaddeds is None:
             self._comp_valaddeds()
         if left != 0:
-            val, unit = left._val_unit()
+            val, unit = left.val_unit()
             left_rprec = left.precision_relative()
             relprecs = [min(left_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
         elif left._is_exact_zero():

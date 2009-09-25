@@ -1277,13 +1277,13 @@ class FGP_Module_class(Module):
             sage: A.gen(1)
             (1)
             sage: B = ZZ**1 / span([[3]], ZZ)
-            sage: A._hom_from_smith(Sequence([B.0]), B)
+            sage: A._hom_from_smith(Sequence([B.0]))
             Morphism from module over Integer Ring with invariants (3,) to module with invariants (3,) that sends the generators to [(1), (1)]
         """
         if len(im_smith_gens) != len(self.smith_form_gens()):
             raise ValueError, "im_gens must have length the same as self.smith_form_gens()"
 
-       # replace self by representation in which smith-gens g_i are a basis for V.
+        # replace self by representation in which smith-gens g_i are a basis for V.
         M, _ = self.optimized()
         # Define morphism from M to N
         f = M.V().hom([x.lift() for x in im_smith_gens])

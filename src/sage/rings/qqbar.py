@@ -120,7 +120,7 @@ We can coerce from symbolic expressions::
     2.236067977499790?*I
     sage: AA(sqrt(2) + sqrt(3))
     3.146264369941973?
-    sage: AA(sqrt(2)) + sqrt(3)
+    sage: QQbar(sqrt(2)) + sqrt(3)
     3.146264369941973?
     sage: sqrt(2) + QQbar(sqrt(3))
     3.146264369941973?
@@ -637,9 +637,6 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
         if from_par == AA:
-            return True
-        late_import()
-        if is_SymbolicExpressionRing(from_par):
             return True
         return False
 

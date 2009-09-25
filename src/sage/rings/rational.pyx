@@ -304,7 +304,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         1/8
         sage: Rational(QQbar(125/8).nth_root(3))
         5/2
-        sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*golden_ratio)
+        sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*AA(golden_ratio))
         53/7
         sage: QQ(float(1.5))
         3/2

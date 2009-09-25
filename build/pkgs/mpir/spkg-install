@@ -49,9 +49,13 @@ build()
             echo "Building 64 bit OSX version"
             ABI=64
         else
-            ABI=32
-            if [ "`uname -m`" = "i386" ]; then
-                remove_pic_osx_32_bit
+            # Do not set ABI=32 on OS X 10.6, since there everything
+            # defaults to 64-bit.
+            if [ `uname -r` != "10.0.0" ]; then
+                ABI=32
+                if [ "`uname -m`" = "i386" ]; then
+                    remove_pic_osx_32_bit
+                fi
             fi
         fi;;
 

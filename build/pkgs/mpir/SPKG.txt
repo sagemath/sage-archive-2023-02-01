@@ -26,6 +26,13 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.p6 (William Stein, Sept 25, 2009) ===
+ * Put ABI=32 back except on OS X 10.6
+
+=== mpir-1.2.p5 (William Stein, Sept 24, 2009) ===
+ * Remove explicit ABI=32 for OS X; instead let the OS decide. This is needed for 10.6 where
+   the default is 64-bit instead of 32-bit.
+
 === mpir-1.2.p3 (Nick Alexander, June 9, 2009) ===
  * Update to latest MPIR 1.2 final release.
 

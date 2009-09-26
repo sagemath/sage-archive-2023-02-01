@@ -147,7 +147,6 @@ from sage.combinat.words.words import Words_over_OrderedAlphabet, Words
 from sage.combinat.words.word import FiniteWord_class, Word_class
 from sage.combinat.words.alphabet import OrderedAlphabet
 from sage.plot.plot import arrow, line, polygon, point, Graphics
-from sage.plot.axes import GridLines
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
 from sage.rings.all import ZZ, RR, QuadraticField

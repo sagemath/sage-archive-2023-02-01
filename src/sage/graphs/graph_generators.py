@@ -204,12 +204,14 @@ class GraphGenerators():
                     - PetersenGraph
                     - ThomsenGraph
                 Families of Graphs:
+                    - BalancedTree
                     - CirculantGraph
                     - CompleteGraph
                     - CompleteBipartiteGraph
                     - CubeGraph
-                    - BalancedTree
+                    - KneserGraph
                     - LCFGraph
+                    - OddGraph
                 Pseudofractal Graphs:
                     - DorogovtsevGoltsevMendesGraph
                 Random Graphs:
@@ -1813,6 +1815,91 @@ class GraphGenerators():
             pos_dict[map[D[i]]] = [x,y]
         H.set_pos(pos_dict)
         return H
+
+    def KneserGraph(self,n,k):
+        r"""
+        Returns the Kneser Graph with parameters `n, k`.
+
+        The Kneser Graph with parameters `n,k` is the graph
+        whose vertices are the `k`-subsets of `[0,1,\dots,n-1]`, and such
+        that two vertices are adjacent if their corresponding sets
+        are disjoint.
+
+        For example, the Petersen Graph can be defined
+        as the Kneser Graph with parameters `5,2`.
+
+        EXAMPLE::
+
+            sage: KG=graphs.KneserGraph(5,2)
+            sage: print KG.vertices()
+            [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
+            sage: P=graphs.PetersenGraph()
+            sage: P.is_isomorphic(KG)
+            True
+
+        TESTS::
+
+            sage: KG=graphs.KneserGraph(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter n should be a strictly positive integer
+            sage: KG=graphs.KneserGraph(5,6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter k should be a strictly positive integer inferior to n
+        """
+
+        if not n>0:
+            raise ValueError, "Parameter n should be a strictly positive integer"
+        if not (k>0 and k<=n):
+            raise ValueError, "Parameter k should be a strictly positive integer inferior to n"
+
+        g=graph.Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+        from sage.combinat.subset import Subsets
+
+        if k>n/2:
+            g.add_vertices(Subsets(n,k).list())
+
+        S=Subsets(Subsets(n,k),2)
+        l=lambda x:list(x)
+        [g.add_edge(s,t) for [s,t] in map(l,S) if s.intersection(t).cardinality() ==0 ]
+        return g
+
+    def OddGraph(self,n):
+        r"""
+        Returns the Odd Graph with parameter `n`.
+
+        The Odd Graph with parameter `n` is defined as the
+        Kneser Graph with parameters `2n-1,n-1`.
+        Equivalently, the Odd Graph is the graph whose vertices
+        are the `n-1`-subsets of `[0,1,\dots,2(n-1)]`, and such
+        that two vertices are adjacent if their corresponding sets
+        are disjoint.
+
+        For example, the Petersen Graph can be defined
+        as the Odd Graph with parameter `3`.
+
+        EXAMPLE::
+
+            sage: OG=graphs.OddGraph(3)
+            sage: print OG.vertices()
+            [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
+            sage: P=graphs.PetersenGraph()
+            sage: P.is_isomorphic(OG)
+            True
+
+        TESTS::
+
+            sage: KG=graphs.OddGraph(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter n should be an integer strictly greater than 1
+        """
+
+        if not n>1:
+            raise ValueError, "Parameter n should be an integer strictly greater than 1"
+        return self.KneserGraph(2*n-1,n-1)
+
 
     def MoebiusKantorGraph(self):
         """

@@ -95,6 +95,7 @@ organized as follows::
     Random Graphs:
         - RandomGNP
         - RandomBarabasiAlbert
+        - RandomBipartite
         - RandomGNM
         - RandomNewmanWattsStrogatz
         - RandomHolmeKim
@@ -219,6 +220,7 @@ class GraphGenerators():
                 Random Graphs:
                     - RandomGNP
                     - RandomBarabasiAlbert
+                    - RandomBipartite
                     - RandomGNM
                     - RandomNewmanWattsStrogatz
                     - RandomHolmeKim
@@ -2924,6 +2926,55 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.barabasi_albert_graph(n,m,seed))
+
+    def RandomBipartite(self, n1,n2, p):
+        r"""
+        Returns a bipartite graph with `n1+n2` vertices
+        such that any edge from `[n1]` to `[n2]` exists
+        with probability `p`.
+
+        INPUT:
+
+            - ``n1,n2`` : Cardinalities of the two sets
+            - ``p``   : Probability for an edge to exist
+
+
+        EXAMPLE::
+
+            sage: g=graphs.RandomBipartite(5,2,0.5)
+            sage: g.vertices()
+            [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1)]
+
+        TESTS::
+
+            sage: g=graphs.RandomBipartite(5,-3,0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n1 and n2 should be integers strictly greater than 0
+            sage: g=graphs.RandomBipartite(5,3,1.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter p is a probability, and so should be a real value between 0 and 1
+
+        """
+        if not (p>=0 and p<=1):
+            raise ValueError, "Parameter p is a probability, and so should be a real value between 0 and 1"
+        if not (n1>0 and n2>0):
+            raise ValueError, "n1 and n2 should be integers strictly greater than 0"
+
+        from numpy.random import uniform
+        import sage.graphs.bipartite_graph as bipartite_graph
+        from sage.graphs.graph import Graph
+
+        g=Graph()
+
+        S1=[(0,i) for i in range(n1)]
+        S2=[(1,i) for i in range(n2)]
+        g.add_vertices(S1)
+        g.add_vertices(S2)
+        [g.add_edge((0,v),(1,w)) for v in range(n1) for w in range(n2) if uniform()<=p]
+
+        return bipartite_graph.BipartiteGraph(g,[S1,S2],name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
     def RandomGNM(self, n, m, dense=False, seed=None):
         """

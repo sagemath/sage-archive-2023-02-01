@@ -389,23 +389,38 @@ class NonDecreasingParkingFunction(CombinatorialObject):
         assert is_a(lst), '%s is not a non-decreasing parking function.' % lst
         CombinatorialObject.__init__(self, lst)
 
-    def __getitem__(self, key):
+    def __getitem__(self, n):
         """
-        TESTS::
+        Returns the `n^{th}` item in the underlying list.
 
-            sage: NonDecreasingParkingFunction([1, 1, 2, 2, 5, 6])[3]
+        .. note::
+
+           Note that this is different than the image of ``n`` under
+           function.  It is "off by one".
+
+        EXAMPLES::
+
+            sage: p = NonDecreasingParkingFunction([1, 1, 2, 2, 5, 6])
+            sage: p[0]
+            1
+            sage: p[2]
             2
         """
-        return self._list[key-1]
+        return self._list[n]
 
-    def keys(self):
+    def __call__(self, n):
         """
-        TESTS::
+        Returns the image of ``n`` under the parking function.
 
-            sage: NonDecreasingParkingFunction([1, 1, 2, 2, 5, 6]).keys()
-            [1, 2, 3, 4, 5, 6]
+        EXAMPLES::
+
+            sage: p = NonDecreasingParkingFunction([1, 1, 2, 2, 5, 6])
+            sage: p(3)
+            2
+            sage: p(6)
+            6
         """
-        return range(1, len(self)+1)
+        return self._list[n-1]
 
     def __mul__(self, lp):
         """

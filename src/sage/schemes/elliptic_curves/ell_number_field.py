@@ -38,10 +38,11 @@ from sage.rings.arith import lcm, gcd
 from sage.misc.misc import prod
 import sage.databases.cremona
 import ell_torsion
+from ell_generic import is_EllipticCurve
 
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal
+from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal,is_NumberField, GF, prime_range
 from sage.misc.misc import verbose, forall
 from sage.misc.functional import ideal
 from kodaira_symbol import KodairaSymbol
@@ -1249,4 +1250,230 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
 
+    def is_isogenous(self, other, proof=True, maxnorm=100):
+        """
+        Returns whether or not self is isogenous to other.
 
+        INPUT:
+
+        - ``other`` -- another elliptic curve.
+
+        - ``proof`` (default True) -- If ``False``, the function will
+          return ``True`` whenever the two curves have the same
+          conductor and are isogenous modulo `p` for all primes `p` of
+          norm up to ``maxp``.  If ``True``, the function returns
+          False when the previous condition does not hold, and if it
+          does hold we attempt to see if the curves are indeed
+          isogenous.  However, this has not been fully implemented
+          (see examples below), so we may not be able to determine
+          whether or not the curves are isogenous..
+
+        - ``maxnorm`` (integer, default 100) -- The maximum norm of
+          primes `p` for which isogeny modulo `p` will be checked.
+
+        OUTPUT:
+
+        (bool) True if there is an isogeny from curve ``self`` to
+        curve ``other``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ, 'x')
+            sage: F = NumberField(x^2 -2, 's'); F
+            Number Field in s with defining polynomial x^2 - 2
+            sage: E1 = EllipticCurve(F, [7,8])
+            sage: E2 = EllipticCurve(F, [0,5,0,1,0])
+            sage: E3 = EllipticCurve(F, [0,-10,0,21,0])
+            sage: E1.is_isogenous(E2)
+            False
+            sage: E1.is_isogenous(E1)
+            True
+            sage: E2.is_isogenous(E2)
+            True
+            sage: E2.is_isogenous(E1)
+            False
+            sage: E2.is_isogenous(E3)
+            True
+
+        ::
+
+            sage: x = polygen(QQ, 'x')
+            sage: F = NumberField(x^2 -2, 's'); F
+            Number Field in s with defining polynomial x^2 - 2
+            sage: E = EllipticCurve('14a1')
+            sage: EE = EllipticCurve('14a2')
+            sage: E1 = E.change_ring(F)
+            sage: E2 = EE.change_ring(F)
+            sage: E1.is_isogenous(E2)
+            True
+
+        ::
+
+            sage: x = polygen(QQ, 'x')
+            sage: F = NumberField(x^2 -2, 's'); F
+            Number Field in s with defining polynomial x^2 - 2
+            sage: k.<a> = NumberField(x^3+7)
+            sage: E = EllipticCurve(F, [7,8])
+            sage: EE = EllipticCurve(k, [2, 2])
+            sage: E.is_isogenous(EE)
+            Traceback (most recent call last):
+            ...
+            ValueError: Second argument must be defined over the same number field.
+
+        Some examples from Cremona's 1981 tables::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E1 = EllipticCurve([i + 1, 0, 1, -240*i - 400, -2869*i - 2627])
+            sage: E1.conductor()
+            Fractional ideal (-7*i + 4)
+            sage: E2 = EllipticCurve([1+i,0,1,0,0])
+            sage: E2.conductor()
+            Fractional ideal (-7*i + 4)
+            sage: E1.is_isogenous(E2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to 1000), but no isogeny has been constructed.
+            sage: E1.is_isogenous(E2, proof=False)
+            True
+
+        In this case E1 and E2 are in fact 9-isogenous, as may be
+        deduced from the following::
+
+           sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
+           sage: E3.is_isogenous(E1)
+           True
+           sage: E3.is_isogenous(E2)
+           True
+           sage: E1.isogeny_degree(E2)
+           9
+
+        """
+        if not is_EllipticCurve(other):
+            raise ValueError, "Second argument is not an Elliptic Curve."
+        if self.is_isomorphic(other):
+            return True
+        K = self.base_field()
+        if K != other.base_field():
+            raise ValueError, "Second argument must be defined over the same number field."
+
+        E1 = self.integral_model()
+        E2 = other.integral_model()
+        N = E1.conductor()
+        if N != E2.conductor():
+            return False
+
+        PI = K.primes_of_degree_one_iter()
+        while True:
+            P = PI.next()
+            if P.norm() > maxnorm: break
+            if not P.divides(N):
+                OP = K.residue_field(P)
+                if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
+                    return False
+
+        if not proof:
+            return True
+
+        # We have not yet implemented isogenies of all possible
+        # degrees, and do not know a bound on the possible degrees
+        # over general number fields.  But here we do at least try
+        # some easy cases:
+
+        for l in [2,3,5,7,13]:
+            if any([E2.is_isomorphic(f.codomain()) for f in E1.isogenies_prime_degree(l)]):
+                return True
+
+        # Next we try looking modulo some more primes:
+
+        while True:
+            if P.norm() > 10*maxnorm: break
+            if not P.divides(N):
+                OP = K.residue_field(P)
+                if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
+                    return False
+            P = PI.next()
+
+        # At this point is is highly likely that the curves are
+        # isogenous, but we have not proved it.
+
+        raise NotImplementedError, "Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm)
+
+    def isogeny_degree(self, other):
+        """
+        Returns the minimal degree of an isogeny between self and
+        other, or 0 if no isogeny exists.
+
+        INPUT:
+
+        - ``other`` -- another elliptic curve.
+
+        OUTPUT:
+
+        (int) The degree of an isogeny from ``self`` to ``other``, or 0.
+
+        .. warning::
+
+           Not all isogenies over number fields are yet implemented.
+           Currently the code only works if there is a chain of
+           isogenies from ``self`` to ``other`` of degrees 2, 3, 5, 7
+           and 13.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0
+            sage: F = NumberField(x^2 -2, 's'); F
+            Number Field in s with defining polynomial x^2 - 2
+            sage: E = EllipticCurve('14a1')
+            sage: EE = EllipticCurve('14a2')
+            sage: E1 = E.change_ring(F)
+            sage: E2 = EE.change_ring(F)
+            sage: E1.isogeny_degree(E2)
+            2
+            sage: E2.isogeny_degree(E2)
+            1
+            sage: E5 = EllipticCurve('14a5').change_ring(F)
+            sage: E1.isogeny_degree(E5)
+            6
+        """
+        if self.conductor() != other.conductor():
+            return Integer(0)
+
+        if self.is_isomorphic(other):
+            return Integer(1)
+
+        from sage.sets.set import Set
+
+        curves = [self]
+        degrees = [Integer(1)]
+        l_list = [l for l in Set([ZZ(f.degree()) for f in self.isogenies_prime_degree([2,3,5,7,13])])]
+
+        newcurves = []
+        newdegs = []
+        k = 0
+        while k<len(curves):
+            newcurves.extend([f.codomain() for f in curves[k].isogenies_prime_degree(l_list)])
+            newdegs.extend([degrees[k]*f.degree() for f in curves[k].isogenies_prime_degree(l_list)])
+            newisogpairs = dict(zip(newcurves, newdegs))
+            i = 0
+            while i<len(curves):
+                j = 0
+                while j<len(newcurves):
+                    if curves[i].is_isomorphic(newcurves[j]):
+                        newdegs.remove(newisogpairs[newcurves[j]])
+                        newcurves.remove(newcurves[j])
+                    else:
+                        j = j+1
+                i = i+1
+
+            m = 0
+            newisogpairs = dict(zip(newcurves, newdegs))
+            while m<len(newcurves):
+                if other.is_isomorphic(newcurves[m]):
+                    return newisogpairs[newcurves[m]]
+                m = m+1
+
+            curves.extend(newcurves)
+            degrees.extend(newdegs)
+            k = k+1
+
+        raise NotImplementedError, "Not all isogenies implemented over general number fields."

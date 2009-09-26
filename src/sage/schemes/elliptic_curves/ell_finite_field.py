@@ -42,7 +42,7 @@ from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 import ell_point
 from sage.functions.all import log
-from sage.rings.arith import integer_ceil, integer_floor, gcd
+from sage.rings.arith import integer_ceil, integer_floor, gcd, lcm
 from sage.structure.sequence import Sequence
 
 import sage.plot.all as plot
@@ -1619,3 +1619,125 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             else:
                 self.__abelian_group = AbelianGroup([n1,n2]), (P1,P2)
         return self.__abelian_group
+
+    def is_isogenous(self, other, field=None, proof=True):
+        """
+        Returns whether or not self is isogenous to other
+
+        INPUT:
+
+        - ``other`` -- another elliptic curve.
+
+        - ``field`` (default None) -- a field containing the base
+          fields of the two elliptic curves into which the two curves
+          may be extended to test if they are isogenous over this
+          field. By default is_isogenous will not try to find this
+          field unless one of the curves can be extended into the base
+          field of the other, in which case it will test over the
+          larger base field.
+
+        - ``proof`` (default True) -- this parameter is here only to
+          be consistent with versions for other types of elliptic
+          curves.
+
+        OUTPUT:
+
+        (bool) True if there is an isogeny from curve ``self`` to
+        curve ``other`` defined over ``field``.
+
+        EXAMPLES::
+
+            sage: E1 = EllipticCurve(GF(11^2,'a'),[2,7]); E1
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 7 over Finite Field in a of size 11^2
+            sage: E1.is_isogenous(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Second argument is not an Elliptic Curve.
+            sage: E1.is_isogenous(E1)
+            True
+
+            sage: E2 = EllipticCurve(GF(7^3,'b'),[3,1]); E2
+            Elliptic Curve defined by y^2 = x^3 + 3*x + 1 over Finite Field in b of size 7^3
+            sage: E1.is_isogenous(E2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base fields must have the same characteristic.
+
+            sage: E3 = EllipticCurve(GF(11^2,'c'),[4,3]); E3
+            Elliptic Curve defined by y^2 = x^3 + 4*x + 3 over Finite Field in c of size 11^2
+            sage: E1.is_isogenous(E3)
+            False
+
+            sage: E4 = EllipticCurve(GF(11^6,'d'),[6,5]); E4
+            Elliptic Curve defined by y^2 = x^3 + 6*x + 5 over Finite Field in d of size 11^6
+            sage: E1.is_isogenous(E4)
+            True
+
+            sage: E5 = EllipticCurve(GF(11^7,'e'),[4,2]); E5
+            Elliptic Curve defined by y^2 = x^3 + 4*x + 2 over Finite Field in e of size 11^7
+            sage: E1.is_isogenous(E5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Curves have different base fields: use the field parameter.
+
+        When the field is given:
+
+            sage: E1 = EllipticCurve(GF(13^2,'a'),[2,7]); E1
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 7 over Finite Field in a of size 13^2
+            sage: E1.is_isogenous(5,GF(13^6,'f'))
+            Traceback (most recent call last):
+            ...
+            ValueError: Second argument is not an Elliptic Curve.
+            sage: E6 = EllipticCurve(GF(11^3,'g'),[9,3]); E6
+            Elliptic Curve defined by y^2 = x^3 + 9*x + 3 over Finite Field in g of size 11^3
+            sage: E1.is_isogenous(E6,QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base fields must have the same characteristic.
+            sage: E7 = EllipticCurve(GF(13^5,'h'),[2,9]); E7
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 9 over Finite Field in h of size 13^5
+            sage: E1.is_isogenous(E7,GF(13^4,'i'))
+            Traceback (most recent call last):
+            ...
+            ValueError: Field must be an extension of the base fields of both curves
+            sage: E1.is_isogenous(E7,GF(13^10,'j'))
+            False
+            sage: E1.is_isogenous(E7,GF(13^30,'j'))
+            False
+        """
+        from ell_generic import is_EllipticCurve
+        if not is_EllipticCurve(other):
+            raise ValueError, "Second argument is not an Elliptic Curve."
+        if self.is_isomorphic(other):
+            return True
+        elif self.base_field().characteristic() != other.base_field().characteristic():
+            raise ValueError, "The base fields must have the same characteristic."
+        elif field==None:
+            if self.base_field().degree() == other.base_field().degree():
+                if self.cardinality() == other.cardinality():
+                    return True
+                else:
+                    return False
+            elif self.base_field().degree() == gcd(self.base_field().degree(),other.base_field().degree()):
+                if self.cardinality(extension_degree=other.base_field().degree()//self.base_field().degree()) == other.cardinality():
+                    return True
+                else:
+                    return False
+            elif other.base_field().degree() == gcd(self.base_field().degree(),other.base_field().degree()):
+                if other.cardinality(extension_degree=self.base_field().degree()//other.base_field().degree()) == self.cardinality():
+                    return True
+                else:
+                    return False
+            else:
+                raise ValueError, "Curves have different base fields: use the field parameter."
+        else:
+            if not lcm(self.base_field().degree(), other.base_field().degree()).divides(field.degree()):
+                raise ValueError, "Field must be an extension of the base fields of both curves"
+            else:
+                if \
+self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
+ == other.cardinality(extension_degree=field.degree()//other.base_field().degree()):
+                      return True
+                else:
+                      return False
+

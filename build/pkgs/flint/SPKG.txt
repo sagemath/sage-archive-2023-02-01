@@ -12,8 +12,8 @@ GPL V2+
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * Burcin Erocal
+ * Mike Hansen
  * William Stein
 
 == Upstream Contact ==
@@ -31,6 +31,9 @@ GPL V2+
 We patch the makefile slightly to add 64 bit OSX build support and also changes LIBS and LIBS slightly since we use the NTL interface per default.
 
 == Changelog ==
+
+=== flint-1.5.0.p1 (William Stein, September 25th, 2009) ===
+ * Included a cygwin fix that involves naming the library .dll instead of .so.
 
 === flint-1.5.0.p0 (Mike Hansen, September 25th, 2009) ===
  * Updated to 1.5.0.

@@ -93,6 +93,8 @@ if [ $UNAME != "Darwin" ]; then
     if [ $UNAME = "CYGWIN" ]; then
        # let's move libntl.a back
        mv $SAGE_LOCAL/lib/xxx_libntl.a $SAGE_LOCAL/lib/libntl.a
+       # also name flint library correctly for MS Windows (an so won't work).
+       mv libflint.so libflint.dll
     fi
     echo "Deleting old FLINT"
     rm -f $SAGE_LOCAL/lib/libflint*

@@ -1,3 +1,5 @@
+# cython: profile=False
+
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"

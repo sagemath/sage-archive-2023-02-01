@@ -1974,7 +1974,8 @@ cdef class BooleanMonomial(MonoidElement):
             sage: B.<x,y> = BooleanPolynomialRing()
             sage: m = x.lm()
             sage: m.stable_hash()
-            173100285919
+            -845955105                 # 32-bit
+            173100285919               # 64-bit
 
         .. note::
 
@@ -3938,7 +3939,8 @@ cdef class BooleanPolynomial(MPolynomial):
 
             sage: B.<x,y> = BooleanPolynomialRing()
             sage: x.stable_hash()
-            173100285919
+            -845955105                 # 32-bit
+            173100285919               # 64-bit
 
         .. note::
 
@@ -4847,7 +4849,8 @@ cdef class BooleSet:
             sage: B.<x,y> = BooleanPolynomialRing()
             sage: s = x.set()
             sage: s.stable_hash()
-            173100285919
+            -845955105                 # 32-bit
+            173100285919               # 64-bit
 
         .. note::
 

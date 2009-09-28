@@ -1011,7 +1011,8 @@ def random_boolean_function(n):
         sage: B.nvariables()
         9
         sage: B.nonlinearity()
-        222
+        217                     # 32-bit
+        222                     # 64-bit
     """
     from sage.misc.randstate import current_randstate
     r = current_randstate().python_random()

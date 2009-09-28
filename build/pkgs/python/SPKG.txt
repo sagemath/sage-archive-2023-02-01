@@ -2,42 +2,61 @@
 
 == Description ==
 
-Python is a dynamic object-oriented programming language that can be used for many kinds of software development. It offers strong support for integration with other languages and tools, comes with extensive standard libraries, and can be learned in a few days. Many Python programmers report substantial productivity gains and feel the language encourages the development of higher quality, more maintainable code.
+Python is a dynamic object-oriented programming language that can be
+used for many kinds of software development. It offers strong support
+for integration with other languages and tools, comes with extensive
+standard libraries, and can be learned in a few days. Many Python
+programmers report substantial productivity gains and feel the
+language encourages the development of higher quality, more
+maintainable code.
 
 For more details see http://www.python.org
 
 == License ==
 
-Python is licensed under the PSF LICENSE. The Python license imposes very few restrictions on what you can do with Python. Most of the source code is copyrighted by the Python Software Foundation (PSF). A few files have a different copyright owner, but the same license applies to all of them. Python's licesning is GPL compatible.
+Python is licensed under the PSF LICENSE. The Python license imposes
+very few restrictions on what you can do with Python. Most of the
+source code is copyrighted by the Python Software Foundation (PSF). A
+few files have a different copyright owner, but the same license
+applies to all of them. Python's licensing is GPL compatible.
 
 For more details see http://www.python.org/psf/license/
 
 == SPKG Maintainers ==
- * Michael Abshoff
  * William Stein
  * Mike Hansen
 
 == Upstream Contact ==
 
-There are a large number of cimmunity resources. For more details see http://www.python.org/community/
+There are a large number of community resources. For more details see
+http://www.python.org/community/
 
 == Dependencies ==
  * None
 
 == Special Update/Build Instructions ==
 
- * Remove src/Lib/distutils/command/wininst-6.exe and src/Lib/distutils/command/wininst-7.1.exe. Once we support Windows we will likely need to add them back in.
- * We used to block parallel MAKE, but extensive testing [make -j64] showed that there is no longer any problem. The problem was the a parallel make install causes trouble
- * Patch ctypes__init__.patch: Disable pre-Python 2.5 problem workaround on OSX.
+ * Remove src/Lib/distutils/command/wininst-6.exe and
+   src/Lib/distutils/command/wininst-7.1.exe. Once we support Windows
+   we will likely need to add them back in.
+ * We used to block parallel MAKE, but extensive testing [make -j64]
+   showed that there is no longer any problem. The problem was the a
+   parallel make install causes trouble
+ * Patch ctypes__init__.patch: Disable pre-Python 2.5 problem
+   workaround on OSX.
  * Patch locale.py: Work around import failures for locals
- * Patch pkgutil.patch: Make Python's help command work in Sage, work around failures for locals.
- * Patch readline-Itanium-fix.patch: Fix Itanium specific readline extension problem.
+ * Patch pkgutil.patch: Make Python's help command work in Sage, work
+   around failures for locals.
+ * Patch readline-Itanium-fix.patch: Fix Itanium specific readline
+   extension problem.
  * Patch sdist.py: Make sure that sdist copies over the .hg directory.
 
 == Changelog ==
 
 === python-2.6.2.p2 (Jason Grout Sep 22, 2009) ===
- * Patch for readline-6.0: http://bugs.python.org/issue5833 (we applied the small patch http://bugs.python.org/file14599/python-2.6-readline.patch)
+ * Patch for readline-6.0: http://bugs.python.org/issue5833 (we
+   applied the small patch
+   http://bugs.python.org/file14599/python-2.6-readline.patch)
 
 === python-2.6.2.p0 (Robert Miller June 25th, 2009) ===
  * Fixed issue with "import _ssl"
@@ -49,8 +68,12 @@ There are a large number of cimmunity resources. For more details see http://www
     had been fixed upstream.
 
 === python-2.5.4.p0 (Mike Hansen, May 28th, 2009) ===
- * Fixed issue with distutils's sdist command not copying over our .hg repository.  This change that caused this was http://bugs.python.org/issue1725737.
- * Included a fix by Michael Abshoff: patch posixmodule.c to avoid an incorrectly detected out of memory error - see http://bugs.python.org/issue1608818
+ * Fixed issue with distutils's sdist command not copying over our .hg
+   repository.  This change that caused this was
+   http://bugs.python.org/issue1725737.
+ * Included a fix by Michael Abshoff: patch posixmodule.c to avoid an
+   incorrectly detected out of memory error - see
+   http://bugs.python.org/issue1608818
 
 === python-2.5.4 (Michael Abshoff, February 15th, 2008) ===
  * rebase to latest upstream 2.5.4 release
@@ -59,11 +82,13 @@ There are a large number of cimmunity resources. For more details see http://www
  * disable parallel make install
 
 === python-2.5.2.p7 (Robert Miller, International Talk Like a Pirate Day, 2008) ===
- * 'oist th' fwrapv option on itanium, ya landlubber what deserves the black spot!
+ * 'oist th' fwrapv option on itanium, ya landlubber what deserves the
+   black spot!
 
 === python-2.5.2.p6 (Michael Abshoff, September 14th, 2008) ===
  * disable pymalloc if SAGE_VALGRIND is set to "yes"
- * since we now support parallel building of python sleep three seconds before testing for a working python
+ * since we now support parallel building of python sleep three
+   seconds before testing for a working python
 
 === python-2.5.2.p5 (Michael Abshoff, August 30th, 2008) ===
  * also disabled OSX extensions on 32 bit Darwin

@@ -11,6 +11,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# This tells Bash to exit the script if any statement returns a non-true
+# value.
+set -e
+
 # PATCH
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
@@ -67,7 +71,8 @@ fi
 # Program around weird bug in build process:
 #      Apparently if you have this:
 #         export DISTUTILS_DEBUG=1
-#      in your environment variables, the build craps out.  No idea why this is.
+#      in your environment variables, the build craps out.  No idea why this
+#       is.
 #       -- Yi Qiang
 
 unset DISTUTILS_DEBUG
@@ -121,7 +126,8 @@ build()
 
     # running 'make install' in parallel is a bad, bad idea
     MAKE=make; export MAKE
-    make -i install        # the "-i" is crucial, esp., in the case of a major upgrade
+    # the "-i" is crucial, esp., in the case of a major upgrade
+    make -i install
     if [ $? -ne 0 ]; then
         echo "Error installing Python."
         exit 1
@@ -130,7 +136,17 @@ build()
 
 patch
 
+# Do not exit script if there is an error, but instead print an
+# informative error message. This is helps in determining why the
+# configuration, compilation or installation failed. So put this before the
+# build() function.
+set +e
+
 build
+
+# This tells Bash to exit the script if any statement returns a non-true
+# value.
+set -e
 
 cd $SAGE_LOCAL/lib
 
@@ -141,11 +157,13 @@ fi
 rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
 ln -s python2.6 python
 
-# sleeping for three seconds so that parallel 'make install' catches up with the following test
+# Sleeping for three seconds so that parallel 'make install' catches up
+# with the following test.
 echo "Sleeping for three seconds before testing python"
 sleep 3
 
-# Make sure sufficient crypto support is available in the built python.  This is critical.
+# Make sure sufficient crypto support is available in the built python.
+# This is critical.
 python -c "import hashlib"
 
 if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
@@ -155,4 +173,3 @@ else
     echo "hashlib module failed to import"
     exit 1
 fi
-

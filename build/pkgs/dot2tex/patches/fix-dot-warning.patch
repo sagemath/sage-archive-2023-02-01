@@ -1,6 +1,6 @@
 diff --git a/src/dot2tex-2.8.6/dot2tex/dot2tex.py b/src/dot2tex-2.8.6/dot2tex/dot2tex.py
---- a/src/dot2tex-2.8.6/dot2tex/dot2tex.py
-+++ b/src/dot2tex-2.8.6/dot2tex/dot2tex.py
+--- a/src/dot2tex/dot2tex.py
++++ b/src/dot2tex/dot2tex.py
 @@ -204,7 +204,6 @@ def create_xdot(dotdata,prog='dot'):
      log.debug('Creating xdot data with: %s',cmd)
      stdin, stdout, stderr = os.popen3(cmd,'t')

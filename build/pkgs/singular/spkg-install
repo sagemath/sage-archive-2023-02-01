@@ -93,7 +93,7 @@ patch()
     cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
-    cp patches/factory.GNUMakefile.in src/factory/GNUMakefile.in
+    cp patches/factory.GNUmakefile.in src/factory/GNUmakefile.in
     cp patches/libfac.charset.alg_factor.cc src/libfac/charset/alg_factor.cc
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
     cp patches/Singular.Makefile.in src/Singular/Makefile.in

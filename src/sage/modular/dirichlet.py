@@ -476,6 +476,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return str(list(self.values_on_gens()))
 
+    def _latex_(self):
+        """
+        LaTeX representation of self.
+
+        EXAMPLES::
+
+            sage: G.<a,b> = DirichletGroup(20)
+            sage: latex(a) # indirect doctest
+            [-1, 1]
+        """
+        return self._repr_()
+
     def base_ring(self):
         """
         Returns the base ring of this Dirichlet character.

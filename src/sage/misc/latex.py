@@ -33,7 +33,7 @@ SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.
 
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
 
-import os, shutil
+import os, shutil, re
 
 import os.path
 
@@ -216,30 +216,28 @@ def bool_function(x):
 
 def str_function(x):
     r"""
-    Returns the LaTeX code for a string ``x``.
+    Returns the LaTeX code for a string ``x``.  If ``x`` contains only
+    digits, then return ``x`` itself.  Otherwise, enclose ``x`` in
+    "\texttt{}" and return that, making sure to escape underscores:
+    replace "_" with "\\_".
 
     INPUT: ``x`` - a string
 
     EXAMPLES::
 
         sage: from sage.misc.latex import str_function
-        sage: str_function('hello world')
-        '\\text{hello world}'
+        sage: str_function('34')
+        '34'
+        sage: str_function('abc')
+        '\\texttt{abc}'
+        sage: str_function('hello_world')
+        '\\texttt{hello\\_world}'
     """
-    #if EMBEDDED_MODE:
-    return '\\text{%s}'%(x.replace('_','\\_'))
-    #return "\\mbox{\\rm %s}"%x'
-
-    # this messes up too many things.
-
-    #if not '#' in x:
-    #    delim = '#'
-    #elif not '@' in x:
-    #    delim = '@'
-    #elif not '~' in x:
-    #    delim = '~'
-    #return "\\verb%s%s%s"%(delim, x, delim)
-    #return "\\begin{verbatim}%s\\end{verbatim}"%x
+    m = re.match('[0-9]*$', x)
+    if m is None:  # x contains something other than digits
+        return '\\texttt{%s}'%(x.replace('_','\\_'))
+    else:
+        return x
 
 def dict_function(x):
     r"""
@@ -303,6 +301,42 @@ class LatexExpr(str):
         """
         return str(self)
 
+def has_latex_attr(x):
+    """
+    Return True if ``x`` has a ``_latex_`` attribute, except if ``x``
+    is a ``type``, in which case return False.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import has_latex_attr
+        sage: has_latex_attr(identity_matrix(3))
+        True
+        sage: has_latex_attr("abc")  # strings have no _latex_ method
+        False
+
+    Types inherit the _latex_ method of the class to which they refer,
+    but calling it is broken::
+
+        sage: T = type(identity_matrix(3)); T
+        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        sage: hasattr(T, '_latex_')
+        True
+        sage: T._latex_()
+        Traceback (most recent call last):
+        ...
+        TypeError: descriptor '_latex_' of 'sage.matrix.matrix0.Matrix' object needs an argument
+        sage: has_latex_attr(T)
+        False
+    """
+    if hasattr(x, '_latex_'):
+        try:
+            x._latex_()
+            return True
+        except TypeError:
+            return False
+    else:
+        return False
+
 from sage.structure.sage_object import SageObject
 
 class _Latex_prefs_object(SageObject):
@@ -343,7 +377,7 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: latex_extra_preamble()
-        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\Bold{I} \\Bold{R}}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
+        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\texttt{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\Bold{I} \\Bold{R}}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
     """
     from sage.misc.latex_macros import sage_latex_macros
     return (_Latex_prefs._option['preamble'] + "\n"
@@ -592,7 +626,7 @@ class Latex:
             sage: print latex([x,2])
             \left[x, 2\right]
         """
-        if hasattr(x, '_latex_'):
+        if has_latex_attr(x):
             return LatexExpr(x._latex_())
 
         try:
@@ -1168,7 +1202,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     MACROS = latex_extra_preamble()
 
     process = True
-    if hasattr(objects, '_latex_'):
+    if has_latex_attr(objects):
         objects = [objects]
 
     if hasattr(objects, '__doc__') and hasattr(objects, 'func_name'):
@@ -1338,17 +1372,29 @@ class JSMath:
             <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
             sage: JSMath().eval(3, mode='inline')
             <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
+            sage: JSMath().eval(type(3), mode='inline')
+            <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\hbox{ < type 'sage.rings.integer.Integer' > }</span></html>
         """
         # try to get a latex representation of the object
-        if hasattr(x, '_latex_'):
+        if isinstance(x, LatexExpr):
+            # already a latex expression, so the output of
+            # latex(blah).  so treat as a string.
+            x = "\\hbox{%s}"%str(x)
+            # add spaces around < and > to help jsMath to parse them
+            x = x.replace('<', ' < ')
+            x = x.replace('>', ' > ')
+        elif has_latex_attr(x):
             x = LatexExpr(x._latex_())
         else:
             try:
                 f = latex_table[type(x)]
-                x = LatexExpr(f(x))
+                x = LatexExpr(f(x).replace('\\texttt','\\hbox'))
             except KeyError:
                 # otherwise just get the string representation
-                x = str(x)
+                x = "\\hbox{%s}"%str(x)
+                # add spaces around < and > to help jsMath to parse them
+                x = x.replace('<', ' < ')
+                x = x.replace('>', ' > ')
 
         # in JSMath:
         # inline math: <span class="math">...</span>
@@ -1672,9 +1718,9 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\text{a} + \\left(t - 2\\right)\\text{s} + \\left(t^{12} + 2\\right)\\text{}'
+        '-t\\texttt{a} + \\left(t - 2\\right)\\texttt{s} + \\left(t^{12} + 2\\right)'
         sage: repr_lincomb(['a', 'b'], [1,1])
-        '\\text{a} + \\text{b}'
+        '\\texttt{a} + \\texttt{b}'
 
     Verify that a certain corner case works (see trac 5707 and 5766)::
 
@@ -1802,7 +1848,7 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: sys.displayhook
-        <html><span class="math">...<function pretty_print at ...></span></html>
+        <html><span class="math">...\hbox{ < function pretty_print at ... > }</span></html>
         sage: pretty_print_default(False)
         sage: sys.displayhook == sys.__displayhook__
         True

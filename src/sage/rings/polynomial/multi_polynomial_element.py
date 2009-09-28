@@ -373,7 +373,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
             sage: R.<x,y>=QQbar[]
             sage: latex(-x^2-y+1)
-            -x^{2} - y + \text{1}
+            -x^{2} - y + 1
             sage: K.<I>=QuadraticField(-1)
             sage: R.<x,y>=K[]
             sage: latex(-I*y+I*x^2)

@@ -408,7 +408,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         EXAMPLES::
 
             sage: latex(CuspForms(3, 24).hecke_algebra()) # indirect doctest
-            \mathbf{T}_{\text{Cuspidal subspace of dimension 7 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(3) of weight 24 over Rational Field}}
+            \mathbf{T}_{\texttt{Cuspidal subspace of dimension 7 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(3) of weight 24 over Rational Field}}
         """
         from sage.misc.latex import latex
         return "\\mathbf{T}_{%s}" % latex(self.__M)

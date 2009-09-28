@@ -1106,7 +1106,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: m = ModularSymbols(11,weight=12)
             sage: latex(m) # indirect doctest
-            \mathrm{ModSym}_{12}(\Gamma_0(11),\text{[1]};\Bold{Q})
+            \mathrm{ModSym}_{12}(\Gamma_0(11),[1];\Bold{Q})
         """
         return "\\mathrm{ModSym}_{%s}(%s,%s;%s)"%(self.weight(),
                                                      latex.latex(self.group()),

@@ -1,6 +1,6 @@
 diff --git a/src/dot2tex-2.8.6/dot2tex/dotparsing.py b/src/dot2tex-2.8.6/dot2tex/dotparsing.py
---- a/src/dot2tex-2.8.6/dot2tex/dotparsing.py
-+++ b/src/dot2tex-2.8.6/dot2tex/dotparsing.py
+--- a/src/dot2tex/dotparsing.py
++++ b/src/dot2tex/dotparsing.py
 @@ -19,11 +19,11 @@ import string
  
  from exceptions import KeyError, AttributeError
@@ -17,8 +17,8 @@ diff --git a/src/dot2tex-2.8.6/dot2tex/dotparsing.py b/src/dot2tex-2.8.6/dot2tex
      restOfLine, cStyleComment, nums, alphanums, printables, empty, quotedString,
      ParseException, ParseResults, CharsNotIn, _noncomma, dblQuotedString, QuotedString, ParserElement,
 diff --git a/src/dot2tex-2.8.6/setup.py b/src/dot2tex-2.8.6/setup.py
---- a/src/dot2tex-2.8.6/setup.py
-+++ b/src/dot2tex-2.8.6/setup.py
+--- a/src/setup.py
++++ b/src/setup.py
 @@ -34,7 +34,7 @@ Graphviz_, a more LaTeX friendly look an
          'Topic :: Text Processing :: Markup :: LaTeX',
          'Topic :: Utilities',

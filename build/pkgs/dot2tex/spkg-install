@@ -11,7 +11,7 @@ fi
 patch -p 1 < patches/use-matplotlib-pyparsing.patch
 patch -p 1 < patches/fix-dot-warning.patch
 
-cd src/dot2tex-2.8.?
+cd src
 
 python setup.py build
 python setup.py install

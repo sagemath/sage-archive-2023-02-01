@@ -36,9 +36,15 @@ patches/fix-dot-warning.patch
 
 == Changelog ==
 
-0.3:
+2.6.8:
 
  - Removed pyparsing, replaced by a quick patch to let dot2tex use the
    one included in matplotlib.pyparsing
+ - Moved the dot2tex sources one level up to src, since there is now a
+   single python package
  - Include patches/fix-dot-warning.patch until problem is fixed upstream
    (see discussion on sage-combinat-devel 28/09/2009
+
+0.2:
+
+ - Experimental release

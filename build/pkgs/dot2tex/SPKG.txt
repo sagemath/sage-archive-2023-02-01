@@ -9,10 +9,6 @@ PGF/TikZ commands.
 
 http://www.fauskes.net/code/dot2tex/
 
-This spkg includes also the required pyparsing module:
-
-http://pyparsing.wikispaces.com/
-
 == License ==
 
 MIT
@@ -27,12 +23,20 @@ Kjell Magne Fauske, km@fauskes.net
 
 == Dependencies ==
 
-graphviz
+Uses pyparsing readily included in matplotlib. To this end, the patch
+in patch/ replaces the "import pyparsing" by "import
+matplotlib.pyparsing".
+
+graphviz (www.graphviz.org) should be installed and in the path (for
+example via the graphviz spkg).
 
 == Special Update/Build Instructions ==
 
-None
+Check that the patch
 
 == Changelog ==
 
-Provide a changelog of the spkg here.
+0.3:
+
+ - Removed pyparsing, replaced by a quick patch to let dot2tex use the
+   one included in matplotlib.pyparsing

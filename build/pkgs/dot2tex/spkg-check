@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd src/dot2tex-2.8.?/tests/
+for file in test_*; do
+    python $file

@@ -641,16 +641,16 @@ def knapsack(seq, binary=True, max=1, value_only=False):
     if reals:
         seq = [(x,1) for x in seq]
 
-    from sage.numerical.mip import MIP
-    p = MIP(sense=1)
-    present = p.newvar()
-    p.setobj(sum([present[i] * seq[i][1] for i in range(len(seq))]))
-    p.addconstraint(sum([present[i] * seq[i][0] for i in range(len(seq))]), max=max)
+    from sage.numerical.mip import MixedIntegerLinearProgram
+    p = MixedIntegerLinearProgram(sense=1)
+    present = p.new_variable()
+    p.set_objective(sum([present[i] * seq[i][1] for i in range(len(seq))]))
+    p.add_constraint(sum([present[i] * seq[i][0] for i in range(len(seq))]), max=max)
 
     if binary:
-        p.setbinary(present)
+        p.set_binary(present)
     else:
-        p.setinteger(present)
+        p.set_integer(present)
 
     if value_only:
         return p.solve(objective_only=True)

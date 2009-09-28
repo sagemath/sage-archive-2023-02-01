@@ -28,12 +28,12 @@ def solveGlpk(self,log=False,objective_only=False):
     # Upper and lower bounds on the variables
 
     for i in self.variables.keys():
-        if self.getmin(i) != None and self.getmax(i) != None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_DB, self.getmin(i), self.getmax(i))
-        elif self.getmin(i) == None and self.getmax(i) != None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_UP, 0, self.getmax(i))
-        elif self.getmin(i) != None and self.getmax(i) == None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_LO, self.getmin(i), 0)
+        if self.get_min(i) != None and self.get_max(i) != None:
+            glp_set_col_bnds(lp, self.variables[i], GLP_DB, self.get_min(i), self.get_max(i))
+        elif self.get_min(i) == None and self.get_max(i) != None:
+            glp_set_col_bnds(lp, self.variables[i], GLP_UP, 0, self.get_max(i))
+        elif self.get_min(i) != None and self.get_max(i) == None:
+            glp_set_col_bnds(lp, self.variables[i], GLP_LO, self.get_min(i), 0)
         else:
             glp_set_col_bnds(lp, self.variables[i], GLP_FR, 0, 0)
 
@@ -79,9 +79,9 @@ def solveGlpk(self,log=False,objective_only=False):
     # Sets variables as integers when needed
 
     for i in self.variables.keys():
-        if self.isinteger(i):
+        if self.is_integer(i):
             glp_set_col_kind(lp, self.variables[i], GLP_IV)
-        elif self.isbinary(i):
+        elif self.is_binary(i):
             glp_set_col_kind(lp, self.variables[i], GLP_BV)
         else:
             glp_set_col_kind(lp, self.variables[i], GLP_CV)
@@ -106,6 +106,6 @@ def solveGlpk(self,log=False,objective_only=False):
 
     if objective_only == False:
         for (v, id) in self.variables.items():
-            self.values[v] = glp_mip_col_val(lp, id) if self.isreal(v) else round(glp_mip_col_val(lp, id))
+            self.values[v] = glp_mip_col_val(lp, id) if self.is_real(v) else round(glp_mip_col_val(lp, id))
     glp_delete_prob(lp)
     return obj

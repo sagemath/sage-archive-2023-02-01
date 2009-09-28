@@ -2103,7 +2103,7 @@ def xydata_from_point_list(points):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=None, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, __original_opts=True)
+         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -2184,6 +2184,9 @@ def plot(funcs, *args, **kwds):
     - ``markeredgecolor`` - the markerfacecolor can be any color arg
 
     - ``markeredgewidth`` - the size of the marker edge in points
+
+    - ``exclude`` - (Default: None) values which are excluded from the plot range.
+      Either a list of real numbers, or an equation in one variable.
 
     FILLING OPTIONS:
     INPUT:
@@ -2399,6 +2402,24 @@ def plot(funcs, *args, **kwds):
         sage: plot(sin(x^2), (x, -3, 3), figsize=[8,2])
         sage: plot(sin(x^2), (x, -3, 3)).show(figsize=[8,2]) # These are equivalent
 
+    A example with excluded values::
+
+        sage: plot(floor(x), (x, 1, 10), exclude = [1..10])
+
+    We exclude all points where prime_pi makes a jump::
+
+        sage: jumps = [n for n in [1..100] if prime_pi(n) != prime_pi(n-1)]
+        sage: plot(lambda x: prime_pi(x), (x, 1, 100), exclude = jumps)
+
+    Excluded points can also be given by an equation::
+
+        sage: g(x) = x^2-2*x-2
+        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5)
+
+    ``exclude`` and ``detect_poles`` can be used together::
+        sage: f(x) = (floor(x)+0.5) / (1-(x-0.5)^2)
+        sage: plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = [-3..3], ymin = -5, ymax = 5)
+
     TESTS:
 
     We do not randomize the endpoints::
@@ -2556,9 +2577,39 @@ def _plot(funcs, xrange, parametric=False,
     adaptive_recursion = options.pop('adaptive_recursion')
     plot_points = int(options.pop('plot_points'))
 
-    data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+    exclude = options.pop('exclude')
+    if exclude is not None:
+        from sage.symbolic.expression import Expression
+        if isinstance(exclude, Expression) and exclude.is_relational() == True:
+            if len(exclude.variables()) > 1:
+                raise ValueError('exclude has to be an equation of only one variable')
+            v = exclude.variables()[0]
+            points = [e.right() for e in exclude.solve(v) if e.left() == v and (v not in e.right().variables())]
+            # We are only interested in real solutions
+            exclude = []
+            for x in points:
+                try:
+                    exclude.append(float(x))
+                except TypeError:
+                    pass
+
+        if isinstance(exclude, (list, tuple)):
+            exclude = sorted(exclude)
+            # We make sure that points plot points close to the excluded points are computed
+            epsilon = 0.001*(xmax - xmin)
+            initial_points = reduce(lambda a,b: a+b, [[x - epsilon, x + epsilon] for x in exclude], [])
+            data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize, initial_points)
+        else:
+            raise ValueError('exclude needs to be a list of numbers or an equation')
+
+        if exclude == []:
+            exclude = None
+    else:
+        data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
 
     if parametric:
+        # We need the original x-values to be able to exclude points in parametric plots
+        exclude_data = data
         data = [(fdata, g(x)) for x, fdata in data]
 
     G = Graphics()
@@ -2618,35 +2669,59 @@ def _plot(funcs, xrange, parametric=False,
             filldata = [(y*cos(x), y*sin(x)) for x, y in filldata]
         G += polygon(filldata, **fill_options)
 
+    # We need the original data to be able to exclude points in polar plots
+    if not parametric:
+        exclude_data = data
     if polar:
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
     from sage.plot.all import line, text
 
     detect_poles = options.pop('detect_poles', False)
-    if not (polar or parametric) and detect_poles != False:
+    if exclude is not None or detect_poles != False:
+        start_index = 0
+        # setup for pole detection
         from sage.rings.all import RDF
         epsilon = 0.0001
-        startIndex = 0
         pole_options = {}
         pole_options['linestyle'] = '--'
         pole_options['thickness'] = 1
         pole_options['rgbcolor'] = '#ccc'
+
+        # setup for exclusion points
+        exclusion_point = 0
+        if exclude is not None:
+            exclude.reverse()
+            exclusion_point = exclude.pop()
+
         for i in range(len(data)-1):
-            x0, y0 = data[i]
-            x1, y1 = data[i+1]
-            if (y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0):
+            x0, y0 = exclude_data[i]
+            x1, y1 = exclude_data[i+1]
+            # detect poles
+            if (not (polar or parametric)) and detect_poles != False \
+               and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
                 # calculate the slope of the line segment
                 dy = abs(y1-y0)
                 dx = x1 - x0
                 alpha = (RDF(dy)/RDF(dx)).arctan()
                 if alpha >= RDF(pi/2) - epsilon:
-                    G += line(data[startIndex:i], **options)
+                    G += line(data[start_index:i], **options)
                     if detect_poles == 'show':
                         # draw a vertical asymptote
                         G += line([(x0, y0), (x1, y1)], **pole_options)
-                    startIndex = i+2
-        G += line(data[startIndex:], **options)
+                    start_index = i+2
+
+            # exclude points
+            if exclude is not None and (x0 <= exclusion_point <= x1):
+                G += line(data[start_index:i], **options)
+                start_index = i + 2
+                try:
+                    exclusion_point = exclude.pop()
+                except IndexError:
+                    # all excluded points were considered
+                    exclude = None
+
+        G += line(data[start_index:], **options)
     else:
         G += line(data, **options)
 
@@ -2807,6 +2882,11 @@ def polar_plot(funcs, *args, **kwds):
     Fill the area between several spirals::
 
         sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
+
+    Exclude points at discontinuities::
+
+        sage: polar_plot(log(floor(x)), (x, 1, 4*pi), aspect_ratio = 1, exclude = [1..12])
+
     """
     kwds['polar']=True
     return plot(funcs, *args, **kwds)
@@ -3412,7 +3492,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     else:
         return []
 
-def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize = True):
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize = True, initial_points = None):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3438,6 +3518,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
       is the initial subinterval size for the given xrange and plot_points, then
       the algorithm will consider it significant.
 
+    - ``initial_points`` - (default: None) a list of points that should be evaluated.
+
     OUTPUT:
 
     - a list of points (x, f(x)) in the interval xrange, which approximate
@@ -3448,6 +3530,10 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         sage: from sage.plot.plot import generate_plot_points
         sage: generate_plot_points(sin, (0, pi), plot_points=2, adaptive_recursion=0)
         [(0.0, 0.0), (3.1415926535897931, 1.2246...e-16)]
+
+        sage: from sage.plot.plot import generate_plot_points
+        sage: generate_plot_points(lambda x: x^2, (0, 6), plot_points=2, adaptive_recursion=0, initial_points = [1,2,3])
+        [(0.0, 0.0), (1.0, 1.0), (2.0, 4.0), (3.0, 9.0), (6.0, 36.0)]
 
         sage: generate_plot_points(sin(x).function(x), (-pi, pi), randomize=False)
         [(-3.1415926535897931, -1.2246...e-16), (-2.748893571891069,
@@ -3488,14 +3574,23 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     data = srange(*ranges[0], include_endpoint=True)
 
     random = current_randstate().python_random().random
-    exceptions = 0; msg=''
-    exception_indices = []
+
     for i in range(len(data)):
         xi = data[i]
         # Slightly randomize the interior sample points if
         # randomize is true
         if randomize and i > 0 and i < plot_points-1:
             xi += delta*(random() - 0.5)
+            data[i] = xi
+
+    # add initial points
+    if isinstance(initial_points, list):
+        data = sorted(data + initial_points)
+
+    exceptions = 0; msg=''
+    exception_indices = []
+    for i in range(len(data)):
+        xi = data[i]
 
         try:
             data[i] = (float(xi), float(f(xi)))

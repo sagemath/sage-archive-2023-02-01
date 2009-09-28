@@ -9,6 +9,7 @@ fi
 #rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
 
 patch -p 1 < patches/use-matplotlib-pyparsing.patch
+patch -p 1 < patches/fix-dot-warning.patch
 
 cd src/dot2tex-2.8.?
 

@@ -32,7 +32,7 @@ example via the graphviz spkg).
 
 == Special Update/Build Instructions ==
 
-Check that the patch
+patches/fix-dot-warning.patch
 
 == Changelog ==
 
@@ -40,3 +40,5 @@ Check that the patch
 
  - Removed pyparsing, replaced by a quick patch to let dot2tex use the
    one included in matplotlib.pyparsing
+ - Include patches/fix-dot-warning.patch until problem is fixed upstream
+   (see discussion on sage-combinat-devel 28/09/2009

@@ -14,7 +14,9 @@
 #####################################################
 
 # Standard system libraries
-import os, sys, urllib
+import os
+import sys
+import urllib
 
 # Make sure the SAGE_ROOT variable is set.  This should always be set
 # because sage-update is only supposed to be called by sage-upgrade,
@@ -25,39 +27,36 @@ SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 
 # Figure out what the package server is, where we will download our
 # spkg's.  This defaults to the 'best' mirror server by some heuristics,
-# falls back to SAGE_SERVER in case of an exception, but can be overriden
+# falls back to SAGE_SERVER in case of an exception, but can be overridden
 # by the first command line argument.
 
-def get_sage_mirror(ask = False):
-    '''
-    Find a good Sage Mirror
+def get_sage_mirror(ask=False):
+    """
+    Find a good Sage mirror.
 
     Retrieves official list of active and up-to-date mirrors.
-    This only works in conjunction with a server script, that
+    This only works in conjunction with a server script that
     generates the SAGE_SERVER/mirror_list file every 10 minutes.
     Then selects one of the top 3 mirrors, where pinging
     the host for index.html responses fastest.
 
-    @return: String, URL of suiteable Sage mirror
-    '''
+    @return: String, URL of suitable Sage mirror
+    """
 
-    import urllib
     import re
-    import subprocess
     import time
     import threading
     import random
     import socket
 
-    # sometimes, everything stalls since timetouts are not part of urllib!
+    # sometimes, everything stalls since timeouts are not part of urllib!
     # http://viralcontentnetwork.blogspot.com/2007/08/handling-timeouts-with-urllib2-in.html
-    import socket
     socket.setdefaulttimeout(20)
 
     # the list of active and up-to-date mirrors
     if not os.environ.has_key("SAGE_SERVER"):
-         print "The environment variable SAGE_SERVER must be set."
-         sys.exit(1)
+        print "The environment variable SAGE_SERVER must be set."
+        sys.exit(1)
     SAGE_SERVER = os.environ['SAGE_SERVER']
     mirrors = eval(urllib.urlopen(SAGE_SERVER + '/mirror_list').read())
     timings = []
@@ -65,45 +64,45 @@ def get_sage_mirror(ask = False):
     re_host = re.compile(r'://([^/]*)/')
 
     def pinger_urllib(host):
-         """
-         helper function timing the retrival of index.html's header
-         """
-         try:
-              t1 = time.time()
-              opener = urllib.FancyURLopener({})
-              u = opener.open(host + '/index.html')
-              if u.getcode() is not 200:
-                   return None
-              # u.read() to get the actual content
-              return (time.time() - t1) * 1000.0
-         except IOError:
-              # socket timeout
-              print '%-30s TIMEOUT' % (host)
-              return None
+        """
+        Helper function timing the retrieval of index.html's header.
+        """
+        try:
+            t1 = time.time()
+            opener = urllib.FancyURLopener({})
+            u = opener.open(host + '/index.html')
+            if u.getcode() is not 200:
+                return None
+            # u.read() to get the actual content
+            return (time.time() - t1) * 1000.0
+        except IOError:
+            # socket timeout
+            print '%-30s TIMEOUT' % (host)
+            return None
 
     def task(idx, m, timings):
-         """
-         the actual task of testing a mirror
-         """
-         host = re_host.search(m).group(1)
-         delay = pinger_urllib(m)
-         if delay is None:
-              return
-         timings.append((delay, m))
-         print '[%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
+        """
+        The actual task of testing a mirror.
+        """
+        host = re_host.search(m).group(1)
+        delay = pinger_urllib(m)
+        if delay is None:
+            return
+        timings.append((delay, m))
+        print '[%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
 
     # parallelization. safe, since most of the time we
     # are waiting for the network to respond
-    print 'Testing mirrors ...'
+    print 'Testing mirrors...'
     tasks = []
     for idx, m in enumerate(mirrors):
-         t = threading.Thread(target=task, args=(idx,m,timings))
-         t.start()
-         tasks.append(t)
+        t = threading.Thread(target=task, args=(idx,m,timings))
+        t.start()
+        tasks.append(t)
 
     # synchronization point
     for t in tasks:
-         t.join(timeout=30)
+        t.join(timeout=30)
 
     # select a random one from the top 3, to be fair
     top = sorted(timings)[0:min(len(timings), 3)]
@@ -133,7 +132,7 @@ try:
              # Server given on command line, typically a URL to a specific Sage install.
              PKG_SERVER = sys.argv[1]
     else:
-        # Best server: determine a suiteable and availabe mirror by some heuristics
+        # Best server: determine a suitable and available mirror by some heuristics
         #              fall back to default if there is an exception
         # Default server: specified by environment variable.
         PKG_SERVER = get_sage_mirror(ask = False)
@@ -230,7 +229,7 @@ def spkg_list(url):
         urllib.urlretrieve(web_url, file, reporthook)
     except IOError, msg:
         if "Permission denied" in str(msg):
-            # bail -- user isn't good enough to ugprade.
+            # bail -- user isn't good enough to upgrade.
             permission_error()
         raise
     r = open(file).read()
@@ -240,8 +239,8 @@ def spkg_list(url):
         print "Abort."
         sys.exit(2)
     print "Done"
-    # This is a pretty silly/abitrary way to do this but directory
-    # listings from http have links to each file, and the code below
+    # This is a pretty silly/arbitrary way to do this but directory
+    # listings from HTTP have links to each file, and the code below
     # simply finds (one each) via a silly approach all the spkg's
     # that are so listed.  This is just simple but works fine.
     r = r.split('"')

@@ -262,17 +262,23 @@ for gr in range(0,numglobaliteration):
         infiles = argv[1:]
 
     if numthreads == 0:
-        # Set numthreads to be the number of processors --- default.
+        # Set numthreads to be the number of processors, with a default
+        # maximum of 8.
+        #
         # The detection of number of processors might not be reliable on some
         # platforms. On a Sun SPARC T5240 (t2.math), the reported number of
         # processors might not correspond to the actual number of processors.
-        # See ticket #6283 and the file SAGE_ROOT/makefile.
+        # See tickets #6283, #7011, and the file SAGE_ROOT/makefile.
         #
-        # WARNING: Unless you are certain that you want to use all the
-        # cores/processors on your system for parallel doctesting, use
-        # a (sensible) positive integer.
+        # WARNING: If cpu_count() below reports <= 8 for your machine
+        # and you *don't* want to use all the cores/processors on your
+        # system for parallel doctesting, use a (sensible) positive
+        # integer.
+        #
+        # If cpu_count() reports > 8 and you want to use that many
+        # threads, you must manually specify the number of threads.
         try:
-            numthreads = multiprocessing.cpu_count()
+            numthreads = min(8, multiprocessing.cpu_count())
         except NotImplementedError:
             numthreads = 1
 

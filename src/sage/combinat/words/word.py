@@ -206,7 +206,6 @@ from sage.sets.set import Set, is_Set
 from sage.rings.all import Integer, Integers, Infinity, ZZ
 from sage.misc.latex import latex
 from sage.combinat.words.words import Words, Words_all
-from sage.combinat.words.word_content import WordContent
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.permutation import Permutation, Permutation_class

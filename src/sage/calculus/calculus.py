@@ -552,6 +552,20 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         (-0.66951170887280698, 7.7686781108547113e-15)
         sage: res.subs(y=.5).n()
         -0.669511708873
+
+    Check if #6189 is fixed (which, by the way, also
+    demonstrates it's not always good to expand)::
+
+        sage: n = N; n
+        <function numerical_approx at ...>
+        sage: F(x) = 1/sqrt(2*pi*1^2)*exp(-1/(2*1^2)*(x-0)^2)
+        sage: G(x) = 1/sqrt(2*pi*n(1)^2)*exp(-1/(2*n(1)^2)*(x-n(0))^2)
+        sage: integrate( (F(x)-F(x))^2, x, -infinity, infinity).n()
+        0.000000000000000
+        sage: integrate( ((F(x)-G(x))^2).expand(), x, -infinity, infinity).n()
+        -6.26376265908397e-17
+        sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()
+        0
     """
     if b is None and a is not None:
         # two arguments, must be endpoints

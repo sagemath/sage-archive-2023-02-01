@@ -126,7 +126,7 @@ cdef class PolynomialRealDense(Polynomial):
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], range(5)); f
-            4.00000000000000*x^4 + 3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
+            4.00000000000000*x^4 + 3.00000000000000*x^3 + 2.00000000000000*x^2 + x
             sage: f[0]
             0.000000000000000
             sage: f[3]
@@ -138,11 +138,11 @@ cdef class PolynomialRealDense(Polynomial):
 
             sage: R.<x> = RealField(10)[]
             sage: f = (x+1)^5; f
-            1.0*x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
+            x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
             sage: f[:3]
             10.*x^2 + 5.0*x + 1.0
             sage: f[3:]
-            1.0*x^5 + 5.0*x^4 + 10.*x^3
+            x^5 + 5.0*x^4 + 10.*x^3
             sage: f[1:4]
             10.*x^3 + 10.*x^2 + 5.0*x
 
@@ -253,7 +253,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'], [1, 2, 3]); f
             3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
             sage: f.shift(10)
-            3.00000000000000*x^12 + 2.00000000000000*x^11 + 1.00000000000000*x^10
+            3.00000000000000*x^12 + 2.00000000000000*x^11 + x^10
             sage: f.shift(-1)
             3.00000000000000*x + 2.00000000000000
             sage: f.shift(-10)
@@ -308,7 +308,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2,0,1])
             sage: -f
-            -1.00000000000000*x^2 + 2.00000000000000
+            -x^2 + 2.00000000000000
         """
         cdef Py_ssize_t i
         cdef mp_rnd_t rnd = self._base_ring.rnd
@@ -323,11 +323,11 @@ cdef class PolynomialRealDense(Polynomial):
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2,0,1]); f
-            1.00000000000000*x^2 - 2.00000000000000
+            x^2 - 2.00000000000000
             sage: g = PolynomialRealDense(RR['x'], range(5)); g
-            4.00000000000000*x^4 + 3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
+            4.00000000000000*x^4 + 3.00000000000000*x^3 + 2.00000000000000*x^2 + x
             sage: f+g
-            4.00000000000000*x^4 + 3.00000000000000*x^3 + 3.00000000000000*x^2 + 1.00000000000000*x - 2.00000000000000
+            4.00000000000000*x^4 + 3.00000000000000*x^3 + 3.00000000000000*x^2 + x - 2.00000000000000
             sage: g + f == f + g
             True
             sage: f + (-f)
@@ -356,11 +356,11 @@ cdef class PolynomialRealDense(Polynomial):
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-3,0,1]); f
-            1.00000000000000*x^2 - 3.00000000000000
+            x^2 - 3.00000000000000
             sage: g = PolynomialRealDense(RR['x'], range(4)); g
-            3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
+            3.00000000000000*x^3 + 2.00000000000000*x^2 + x
             sage: f-g
-            -3.00000000000000*x^3 - 1.00000000000000*x^2 - 1.00000000000000*x - 3.00000000000000
+            -3.00000000000000*x^3 - x^2 - x - 3.00000000000000
             sage: (f-g) == -(g-f)
             True
         """
@@ -390,7 +390,7 @@ cdef class PolynomialRealDense(Polynomial):
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-5,0,0,1]); f
-            1.00000000000000*x^3 - 5.00000000000000
+            x^3 - 5.00000000000000
             sage: 4.0 * f
             4.00000000000000*x^3 - 20.0000000000000
             sage: f * -0.2
@@ -417,13 +417,13 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'], [1e20, 1])
             sage: g = PolynomialRealDense(RR['x'], [1e30, 1])
             sage: f*g
-            1.00000000000000*x^2 + 1.00000000010000e30*x + 1.00000000000000e50
+            x^2 + 1.00000000010000e30*x + 1.00000000000000e50
             sage: f._mul_karatsuba(g)
-            1.00000000000000*x^2 + 1.00000000000000e50
+            x^2 + 1.00000000000000e50
             sage: f = PolynomialRealDense(RR['x'], range(5))
             sage: g = PolynomialRealDense(RR['x'], range(3))
             sage: f*g
-            8.00000000000000*x^6 + 10.0000000000000*x^5 + 7.00000000000000*x^4 + 4.00000000000000*x^3 + 1.00000000000000*x^2
+            8.00000000000000*x^6 + 10.0000000000000*x^5 + 7.00000000000000*x^4 + 4.00000000000000*x^3 + x^2
         """
         cdef Py_ssize_t i, j
         cdef mp_rnd_t rnd = left._base_ring.rnd
@@ -504,16 +504,16 @@ cdef class PolynomialRealDense(Polynomial):
             sage: g = PolynomialRealDense(RR['x'], [5, 1])
             sage: q, r = f.quo_rem(g)
             sage: q
-            1.00000000000000*x - 5.00000000000000
+            x - 5.00000000000000
             sage: r
             23.0000000000000
             sage: q*g + r == f
             True
             sage: fg = f*g
             sage: fg.quo_rem(f)
-            (1.00000000000000*x + 5.00000000000000, 0)
+            (x + 5.00000000000000, 0)
             sage: fg.quo_rem(g)
-            (1.00000000000000*x^2 - 2.00000000000000, 0)
+            (x^2 - 2.00000000000000, 0)
 
             sage: f = PolynomialRealDense(RR['x'], range(5))
             sage: g = PolynomialRealDense(RR['x'], [pi,3000,4])
@@ -559,11 +559,11 @@ cdef class PolynomialRealDense(Polynomial):
             sage: (x^3).gcd(x^5+1)
             1.00000000000000
             sage: (x^3).gcd(x^5+x^2)
-            1.00000000000000*x^2
+            x^2
             sage: f = (x+3)^2 * (x-1)
             sage: g = (x+3)^5
             sage: f.gcd(g)
-            1.00000000000000*x^2 + 6.00000000000000*x + 9.00000000000000
+            x^2 + 6.00000000000000*x + 9.00000000000000
 
         Unless the division is exact (i.e. no rounding occurs) the returned gcd is
         almost certain to be 1. ::

@@ -3704,17 +3704,17 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)
-            2.71828182846*x^2 + 1.0*x + 1.15572734979
+            2.71828182846*x^2 + x + 1.15572734979
             sage: g = f.polynomial(RR); g
-            2.71828182845905*x^2 + 1.00000000000000*x + 1.15572734979092
+            2.71828182845905*x^2 + x + 1.15572734979092
             sage: g.parent()
             Univariate Polynomial Ring in x over Real Field with 53 bits of precision
             sage: f.polynomial(RealField(100))
-            2.7182818284590452353602874714*x^2 + 1.0000000000000000000000000000*x + 1.1557273497909217179100931833
+            2.7182818284590452353602874714*x^2 + x + 1.1557273497909217179100931833
             sage: f.polynomial(CDF)
-            2.71828182846*x^2 + 1.0*x + 1.15572734979
+            2.71828182846*x^2 + x + 1.15572734979
             sage: f.polynomial(CC)
-            2.71828182845905*x^2 + 1.00000000000000*x + 1.15572734979092
+            2.71828182845905*x^2 + x + 1.15572734979092
 
         We coerce a multivariate polynomial with complex symbolic
         coefficients::

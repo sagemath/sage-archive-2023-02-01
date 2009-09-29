@@ -734,7 +734,7 @@ class Factorization(SageObject):
 
             sage: x = polygen(RDF, 'x')
             sage: F = factor(-2*x^2 - 1); F
-            (-2.0) * (1.0*x^2 + 0.5)
+            (-2.0) * (x^2 + 0.5)
 
         Note that the unit part of the factorization is `-2.0`.
 

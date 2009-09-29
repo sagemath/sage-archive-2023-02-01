@@ -774,7 +774,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R.<x> = RR[]
             sage: R.gens_dict()
-            {'x': 1.00000000000000*x}
+            {'x': x}
         """
         return dict(zip(self.variable_names(), self.gens()))
 

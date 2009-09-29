@@ -340,11 +340,11 @@ class Ideal_generic(MonoidElement):
         EXAMPLES:
             sage: psi = CC['x'].hom([-CC['x'].0])
             sage: J = ideal([CC['x'].0 + 1]); J
-            Principal ideal (1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            Principal ideal (x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: psi(J)
-            Principal ideal (-1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            Principal ideal (-x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: J.apply_morphism(psi)
-            Principal ideal (-1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            Principal ideal (-x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
 
             sage: psi = ZZ['x'].hom([-ZZ['x'].0])
             sage: J = ideal([ZZ['x'].0, 2]); J

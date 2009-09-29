@@ -34,8 +34,8 @@ EXAMPLES::
     sage: loads(dumps(c)) == c
     True
     sage: d = c.change_ring(CC['x']); d
-    [    5.00000000000000   1.00000000000000*x 1.00000000000000*x^2]
-    [1.00000000000000*x^3 1.00000000000000*x^4 1.00000000000000*x^5]
+    [5.00000000000000                x              x^2]
+    [             x^3              x^4              x^5]
     sage: latex(c)
     \left(\begin{array}{rrr}
     5 & x & x^{2} \\

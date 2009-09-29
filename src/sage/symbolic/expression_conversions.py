@@ -907,7 +907,7 @@ class PolynomialConverter(Converter):
             sage: p = PolynomialConverter(x, base_ring=RR)
 
             sage: p.relation(x==3, operator.eq)
-            1.00000000000000*x - 3.00000000000000
+            x - 3.00000000000000
             sage: p.relation(x==3, operator.lt)
             Traceback (most recent call last):
             ...
@@ -935,7 +935,7 @@ class PolynomialConverter(Converter):
             sage: p.arithmetic(pi+e, operator.add)
             5.85987448204884
             sage: p.arithmetic(x^2, operator.pow)
-            1.00000000000000*x^2
+            x^2
 
             sage: p = PolynomialConverter(x+y, base_ring=RR)
             sage: p.arithmetic(x*y+y^2, operator.add)

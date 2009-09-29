@@ -573,7 +573,7 @@ cdef class ExpressionTreeBuilder:
             sage: etb._clean_var(x)
             'x'
             sage: x = polygen(RR); x
-            1.00000000000000*x
+            x
             sage: etb._clean_var(x)
             'x'
         """

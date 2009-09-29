@@ -150,9 +150,9 @@ cdef class FractionFieldElement(FieldElement):
 
             sage: R.<x> = RealField(10)[]
             sage: f = (x^2+2*x+1)/(x+1); f
-            (1.0*x^2 + 2.0*x + 1.0)/(1.0*x + 1.0)
+            (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f
-            1.0*x + 1.0
+            x + 1.0
         """
         try:
             g = self.__numerator.gcd(self.__denominator)
@@ -310,11 +310,11 @@ cdef class FractionFieldElement(FieldElement):
 
             sage: R.<x> = RealField(20)[]
             sage: q = 1/(x^2 + 2)^2 + 1/(x-1); q
-            (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
+            (x^4 + 4.0000*x^2 + x + 3.0000)/(x^5 - x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
             sage: whole, parts = q.partial_fraction_decomposition(); parts
-            [1.0000/(1.0000*x - 1.0000), 1.0000/(1.0000*x^4 + 4.0000*x^2 + 4.0000)]
+            [1.0000/(x - 1.0000), 1.0000/(x^4 + 4.0000*x^2 + 4.0000)]
             sage: sum(parts)
-            (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
+            (x^4 + 4.0000*x^2 + x + 3.0000)/(x^5 - x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
 
         TESTS:
 
@@ -492,7 +492,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: 1/x + 1/(x*y)
             (y + 1)/(x*y)
             sage: Frac(CDF['x']).gen() + 3
-            1.0*x + 3.0
+            x + 3.0
         """
         r_numerator = (<FractionFieldElement>right).__numerator
         r_denominator = (<FractionFieldElement>right).__denominator
@@ -667,7 +667,7 @@ cdef class FractionFieldElement(FieldElement):
             -3
             sage: K.<x> = Frac(RR['x'])
             sage: x/x
-            1.00000000000000*x/(1.00000000000000*x)
+            x/x
             sage: int(x/x)
             1
             sage: int(K(.5))

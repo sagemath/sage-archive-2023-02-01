@@ -138,7 +138,7 @@ coercion system compared to Sage's::
     sage: x * 5
     5*x
     sage: x * 1.0
-    1.00000000000000*x
+    x
     sage: x * (2/3)
     2/3*x
     sage: y = magma(x)                                                    # optional - magma

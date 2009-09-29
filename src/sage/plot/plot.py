@@ -218,6 +218,15 @@ computation. For example,
     sage: grid(True)
     sage: savefig(os.path.join(SAGE_TMP, 'sage.png'))
 
+We test that ``imshow`` works as well, verifying that
+Trac ticket 2900 is fixed in Matplotlib.
+
+::
+
+    sage: imshow([[(0,0,0)]])
+    <matplotlib.image.AxesImage object at ...>
+    sage: savefig(os.path.join(SAGE_TMP, 'foo.png'))
+
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!
 

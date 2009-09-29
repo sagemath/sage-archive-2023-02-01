@@ -5581,6 +5581,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (z^5 - 1).solve(z)
             [z == e^(2/5*I*pi), z == e^(4/5*I*pi), z == e^(-4/5*I*pi), z == e^(-2/5*I*pi), z == 1]
 
+            sage: solve((z^3-1)^3, z, multiplicities=True)
+            ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
+
             sage: var('Q')
             Q
             sage: solve(Q*sqrt(Q^2 + 2) - 1,Q)

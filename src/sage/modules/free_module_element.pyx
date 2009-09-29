@@ -541,6 +541,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         else:
             return self.parent()(self.list())
 
+    def subs(self, in_dict=None, **kwds):
+        """
+        EXAMPLES::
+
+            sage: var('a,b,d,e')
+            (a, b, d, e)
+            sage: v = vector([a, b, d, e])
+            sage: v.substitute(a=1)
+            (1, b, d, e)
+            sage: v.subs(a=b, b=d)
+            (b, d, d, e)
+        """
+        return self.parent()([ a.subs(in_dict, **kwds) for a in self.list() ])
+
     def set_immutable(self):
         """
         Make this vector immutable. This operation can't be undone.

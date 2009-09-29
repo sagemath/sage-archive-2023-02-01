@@ -1082,11 +1082,22 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: f = log(log(x))/log(x)
         sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
         0
+        sage: forget()
 
     Here ind means "indefinite but bounded"::
 
         sage: lim(sin(1/x), x = 0)
         ind
+
+    We check that Trac ticket 3718 is fixed, so that
+    Maxima gives correct limits for the floor function::
+
+        sage: limit(floor(x),x=0,dir='below')
+        -1
+        sage: limit(floor(x),x=0,dir='above')
+        0
+        sage: limit(floor(x),x=0)
+        und
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)

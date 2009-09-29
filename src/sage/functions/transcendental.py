@@ -230,37 +230,39 @@ def zeta_symmetric(s):
 #   return real_field.RealField(prec).pi()
 
 
-def Ei(z):
+def Ei(z, prec=None):
     """
     Return the value of the complex exponential integral Ei(z) at a
     complex number z.
 
-    .. warning::
-
-       Calculations are done to double precision, and the output is a
-       complex double element, no matter how big the precision of the
-       input is.
-
     EXAMPLES::
 
         sage: Ei(10)
-        2492.22897624
+        2492.22897624188
+        sage: Ei(20)
+        2.56156526640566e7
         sage: Ei(I)
-        0.337403922901 + 2.51687939716*I
+        0.337403922900968 + 2.51687939716208*I
         sage: Ei(3+I)
-        7.823134676 + 6.09751978399*I
+        7.82313467600158 + 6.09751978399231*I
 
-    The branch cut for this function is along the positive real axis::
+    The branch cut for this function is along the negative real axis::
 
-        sage: Ei(3 + 0.1*I)
-        9.91152770287 + 0.668898200718*I
-        sage: Ei(3 - 0.1*I)
-        9.91152770287 + 5.61428710646*I
+        sage: Ei(-3 + 0.1*I)
+        -0.0129379427181693 + 3.13993830250942*I
+        sage: Ei(-3 - 0.1*I)
+        -0.0129379427181693 - 3.13993830250942*I
 
-    ALGORITHM: Uses SciPy's special.exp1 function.
+    ALGORITHM: Uses mpmath.
     """
-    import scipy.special, math
-    return CDF(-scipy.special.exp1(-complex(z)) + complex(0,math.pi))
+    if prec is None:
+        try:
+            prec = z.prec()
+        except AttributeError:
+            prec = 53
+
+    import sage.libs.mpmath.all as mp
+    return mp.call(mp.ei, z, prec=prec)
 
 def Li(x, eps_rel=None, err_bound=False):
     r"""

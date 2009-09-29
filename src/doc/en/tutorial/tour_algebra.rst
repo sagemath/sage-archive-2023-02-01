@@ -260,7 +260,7 @@ This can be plotted parametrically using
 
     sage: t = var('t')
     sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),\
-    ...   0, 2*pi, rgbcolor=hue(0.9))
+    ...   (t, 0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
 The individual components can be plotted using
@@ -268,8 +268,8 @@ The individual components can be plotted using
 ::
 
     sage: t = var('t')
-    sage: p1 = plot(cos(2*t) + 2*cos(t), 0, 2*pi, rgbcolor=hue(0.3))
-    sage: p2 = plot(4*cos(t) - cos(2*t), 0, 2*pi, rgbcolor=hue(0.6))
+    sage: p1 = plot(cos(2*t) + 2*cos(t), (t,0, 2*pi), rgbcolor=hue(0.3))
+    sage: p2 = plot(4*cos(t) - cos(2*t), (t,0, 2*pi), rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
 (For more on plotting, see :ref:`section-plot`.)

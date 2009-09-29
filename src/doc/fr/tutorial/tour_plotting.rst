@@ -72,16 +72,16 @@ paramétriques :
 ::
 
     sage: x = var('x')
-    sage: parametric_plot((cos(x),sin(x)^3),0,2*pi,rgbcolor=hue(0.6))
+    sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
 
 Différents graphiques peuvent se combiner sur une même image :
 
 ::
 
     sage: x = var('x')
-    sage: p1 = parametric_plot((cos(x),sin(x)),0,2*pi,rgbcolor=hue(0.2))
-    sage: p2 = parametric_plot((cos(x),sin(x)^2),0,2*pi,rgbcolor=hue(0.4))
-    sage: p3 = parametric_plot((cos(x),sin(x)^3),0,2*pi,rgbcolor=hue(0.6))
+    sage: p1 = parametric_plot((cos(x),sin(x)),(x,0,2*pi),rgbcolor=hue(0.2))
+    sage: p2 = parametric_plot((cos(x),sin(x)^2),(x,0,2*pi),rgbcolor=hue(0.4))
+    sage: p3 = parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
     sage: show(p1+p2+p3, axes=false)
 
 Une manière commode de tracer des formes pleines est de préparer une

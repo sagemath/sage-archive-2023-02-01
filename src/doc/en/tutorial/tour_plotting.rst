@@ -71,16 +71,16 @@ also:
 ::
 
     sage: x = var('x')
-    sage: parametric_plot((cos(x),sin(x)^3),0,2*pi,rgbcolor=hue(0.6))
+    sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
 
 You can combine several plots by adding them:
 
 ::
 
     sage: x = var('x')
-    sage: p1 = parametric_plot((cos(x),sin(x)),0,2*pi,rgbcolor=hue(0.2))
-    sage: p2 = parametric_plot((cos(x),sin(x)^2),0,2*pi,rgbcolor=hue(0.4))
-    sage: p3 = parametric_plot((cos(x),sin(x)^3),0,2*pi,rgbcolor=hue(0.6))
+    sage: p1 = parametric_plot((cos(x),sin(x)),(x,0,2*pi),rgbcolor=hue(0.2))
+    sage: p2 = parametric_plot((cos(x),sin(x)^2),(x,0,2*pi),rgbcolor=hue(0.4))
+    sage: p3 = parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
     sage: show(p1+p2+p3, axes=false)
 
 A good way to produce filled-in shapes is to produce a list of
@@ -173,7 +173,7 @@ formula:
 ::
 
     sage: x, y, z = var('x, y, z')
-    sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (-2, 2), (-2, 2), (-2, 2))
+    sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (x,-2, 2), (y,-2, 2), (z,-2, 2))
 
 Here are some more examples:
 

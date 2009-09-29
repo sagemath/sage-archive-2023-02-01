@@ -231,8 +231,8 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: sol = desolve_system([de1, de2], [x,y], ics=[0,1,2]); sol
         [x(t) == -sin(t) + 1, y(t) == cos(t) + 1]
         sage: solnx, solny = sol[0].rhs(), sol[1].rhs()
-        sage: plot([solnx,solny],0,1)
-        sage: parametric_plot((solnx,solny),0,1)
+        sage: plot([solnx,solny],(0,1))
+        sage: parametric_plot((solnx,solny),(0,1))
 
     AUTHOR: Robert Bradshaw (10-2008)
     """
@@ -303,8 +303,8 @@ def desolve_system_strings(des,vars,ics=None):
         sage: solnx, solny = map(SR, soln)
         sage: RR(solnx(s=3))
         1.28224001611973
-        sage: P1 = plot([solnx,solny],0,1)
-        sage: P2 = parametric_plot((solnx,solny),0,1)
+        sage: P1 = plot([solnx,solny],(0,1))
+        sage: P2 = parametric_plot((solnx,solny),(0,1))
 
         Now type show(P1), show(P2) to view these.
 

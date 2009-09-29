@@ -239,7 +239,7 @@ On peut en tracer le graphe paramétrique en utilisant
 
     sage: t = var('t')
     sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),\
-    ...   0, 2*pi, rgbcolor=hue(0.9))
+    ...   (t, 0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
 Les coordonnées individuelles peuvent être tracées en utilisant
@@ -247,8 +247,8 @@ Les coordonnées individuelles peuvent être tracées en utilisant
 ::
 
     sage: t = var('t')
-    sage: p1 = plot(cos(2*t) + 2*cos(t), 0, 2*pi, rgbcolor=hue(0.3))
-    sage: p2 = plot(4*cos(t) - cos(2*t), 0, 2*pi, rgbcolor=hue(0.6))
+    sage: p1 = plot(cos(2*t) + 2*cos(t), (t, 0, 2*pi), rgbcolor=hue(0.3))
+    sage: p2 = plot(4*cos(t) - cos(2*t), (t, 0, 2*pi), rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
 (Pour plus d'information sur le tracé de graphe, voir :ref:`section-plot`.)

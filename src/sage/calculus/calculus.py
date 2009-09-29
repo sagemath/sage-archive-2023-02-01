@@ -405,9 +405,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         log(x)
 
     Note that an exception is raised when a definite integral is
-    divergent.
-
-    ::
+    divergent::
 
         sage: forget()
 
@@ -420,10 +418,11 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         ...
         ValueError: Integral is divergent.
 
-    .. note::
+    But Sage can calculate the convergent improper integral of
+    this function::
 
-       Above, putting assume(n == -1) does not yield the right
-       behavior.
+        sage: integrate(1/x^3,x,1,infinity)
+        1/2
 
     The examples in the Maxima documentation::
 

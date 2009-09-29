@@ -72,6 +72,19 @@ restricted to function definitions, and ``search_doc(string)``
 searches the Sage documentation.  See their docstrings for more
 information and more options.
 
+An Example is Worth a Thousand Words
+====================================
+
+For all of the conventions discussed here, you can find many examples
+in the Sage library.  Browsing through the code is helpful, but so is
+searching: the functions ``search_src``, ``search_def``, and
+``search_doc`` are worth knowing about.  Briefly, from the "sage:"
+prompt, ``search_src(string)`` searches Sage library code for
+``string``, ``search_def(string)`` does a similar search but
+restricted to function definitions, and ``search_doc(string)``
+searches the Sage documentation.  See their docstrings for more
+information and more options.
+
 Headings of Sage Library Code Files
 ===================================
 

@@ -29,6 +29,12 @@ cd src
 # Now build
 python setup.py build
 
+if [ $UNAME = "Darwin" -a `uname -r` = "10.0.0" ]; then
+    echo "Running a horrible hack to force ft2font.so to build in a way that doen't crash."
+    echo "This is of course temporary.  See http://trac.sagemath.org/sage_trac/ticket/7022"
+    ../patches/osx10.6hack
+fi
+
 if [ $? -ne 0 ]; then
    echo "Error building matplotlib package."
    exit 1

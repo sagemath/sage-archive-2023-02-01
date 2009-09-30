@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+gcc -fno-strict-aliasing -DNDEBUG -g -O3  -Wall -Wstrict-prototypes -DPY_ARRAYAUNIQUE_SYMBOL=MPL_ARRAY_API -I$SAGE_LOCAL/lib/python/site-packages/numpy/core/include -I. -I$SAGE_LOCAL/include/ -I$SAGE_LOCAL/lib/python/site-packages/numpy/core/include/freetype2 -I./freetype2 -I$SAGE_LOCAL/include/freetype2 -I$SAGE_LOCAL/include/python2.6 -c src/ft2font.cpp -o build/temp.macosx*/src/ft2font.o
+
+g++ -L$SAGE_LOCAL/lib -bundle -undefined dynamic_lookup build/temp.*/src/ft2font.o build/temp.*/src/mplutils.o build/temp.*/CXX/cxx_extensions.o build/temp.*/CXX/cxxsupport.o build/temp.*/CXX/IndirectPythonInterface.o build/temp.*/CXX/cxxextensions.o -L$SAGE_LOCAL/lib/ -lfreetype -lz -lstdc++ -lm -o build/lib.macosx-10.3-i386-2.6/matplotlib/ft2font.so
+
+python setup.py install
+

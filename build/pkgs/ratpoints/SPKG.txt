@@ -36,3 +36,6 @@ Michael Stoll's program which searches for rational points on hyperelliptic curv
  * Work around SSE2 build issues by disabling on fail
  * Helped Michael Stoll fix several memory leaks.
 
+=== ratpoints-2.1.3 (Robert Miller, 30 September 2009) ===
+ * Updated to 2.1.3
+

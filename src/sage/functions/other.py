@@ -380,7 +380,15 @@ floor = Function_floor()
 class Function_gamma(PrimitiveFunction):
     def __init__(self):
         r"""
-        The Gamma function.
+        The Gamma function.  This is defined by
+        `\Gamma(z) = \int_0^\infty t^{z-1}e^{-t} dt`
+        for complex input `z` with real part greater
+        than zero, and by analytic continuation on
+        the rest of the complex plane (except for negative
+        integers, which are poles).
+
+       It is computed by various libraries within Sage,
+       depending on the input type.
 
         EXAMPLES::
 
@@ -388,6 +396,11 @@ class Function_gamma(PrimitiveFunction):
             -4.05370307804e-10 - 5.77329983455e-10*I
             sage: gamma(CDF(I))
             -0.154949828302 - 0.498015668118*I
+
+        Recall that `Gamma(n)` is `n` factorial.
+
+        ::
+
             sage: gamma(11) == factorial(10)
             True
             sage: gamma(6)
@@ -414,12 +427,23 @@ class Function_gamma(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "gamma", latex=r'\Gamma',
                 conversions=dict(ginac='tgamma'))
 
-    def __call__(self, x):
+    def __call__(self, x, prec=None):
         """
+        INPUT:
+
+        -  ``x`` - a number
+
+        -  ``prec`` - integer (default: None): if None, returns
+           an exact value for exact input, and uses the standard
+           53 bits of precision otherwise; if prec is given,
+           returns the value of gamma to the given bits of precision.
+
         EXAMPLES::
 
             sage: gamma(6)
             120
+            sage: gamma(6, prec=53)
+            120.000000000000
             sage: gamma(float(6))
             120.000000000000
             sage: gamma(x)
@@ -429,6 +453,8 @@ class Function_gamma(PrimitiveFunction):
 
             sage: gamma(pi)
             gamma(pi)
+            sage: gamma(pi,prec=100)
+            2.2880377953400324179595889091
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I
             sage: Q.<i> = NumberField(x^2+1)
@@ -436,18 +462,54 @@ class Function_gamma(PrimitiveFunction):
             -0.154949828301811 - 0.498015668118356*I
             sage: gamma(int(5))
             24
+
+        TESTS:
+
+        Test that Trac ticket 5556 is fixed::
+
+            sage: gamma(3/4)
+            gamma(3/4)
+            sage: gamma(3/4,prec=100)
+            1.2254167024651776451290983034
+            sage: gamma(3/4).n(100)
+            1.2254167024651776451290983034
+
+        Check that negative integer input works::
+
+            sage: (-1).gamma()
+            Infinity
+            sage: (-1.).gamma()
+            NaN
+            sage: CC(-1).gamma()
+            Infinity
+            sage: RDF(-1).gamma()
+            NaN
+            sage: CDF(-1).gamma()
+            Infinity
         """
         from sage.structure.element import is_Element
         try:
-            return x.gamma()
+            return x.gamma(prec)
+        except TypeError:
+            try:
+                if prec:
+                    return x.gamma().n(prec)
+                return x.gamma()
+            except AttributeError:
+                pass
         except AttributeError:
             pass
         if isinstance(x, (int, long)):
+            if prec:
+                return RealField(prec)(x).gamma()
             return Integer(x).gamma()
-        if is_Element(x) and x.parent() is SR:
+        if is_Element(x) and x.parent() is SR: # for symbolic input, prec is ignored
             return SFunction.__call__(self, x)
-        if isinstance(x, float):
+        if isinstance(x, float): # for floats, prec is meaningless so we ignore it
             return RR(x).gamma()
+        from sage.rings.all import ComplexField
+        if prec:
+            return ComplexField(prec)(x).gamma()
         return CC(x).gamma()
 
 gamma = Function_gamma()

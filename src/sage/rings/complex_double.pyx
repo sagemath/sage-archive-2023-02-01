@@ -1971,10 +1971,19 @@ cdef class ComplexDoubleElement(FieldElement):
             0.498015668118 - 0.154949828302*I
             sage: CDF(0).gamma()
             Infinity
+            sage: CDF(-1,0).gamma()
+            Infinity
         """
-        if self._complex.dat[0] == 0 and self._complex.dat[1] == 0:
-            import infinity
-            return infinity.unsigned_infinity
+        if self._complex.dat[1] == 0:
+            if self._complex.dat[0] == 0:
+                import infinity
+                return infinity.unsigned_infinity
+            try:
+                from sage.rings.all import Integer, CC
+                if Integer(self._complex.dat[0]) < 0:
+                    return CC(self).gamma()
+            except TypeError:
+                pass
         cdef pari_sp sp
         sp = avma
         return self._new_from_gen_c(  ggamma(self._gen(), PREC),   sp)

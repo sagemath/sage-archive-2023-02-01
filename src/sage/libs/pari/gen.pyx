@@ -4181,6 +4181,13 @@ cdef class gen(sage.structure.element.RingElement):
             sage: C.<i> = ComplexField()
             sage: pari(1+i).gamma()
             0.498015668118356 - 0.154949828301811*I
+
+        TESTS::
+
+            sage: pari(-1).gamma()
+            Traceback (most recent call last):
+            ...
+            PariError:  (8)
         """
         _sig_on
         return P.new_gen(ggamma(s.g, pbw(precision)))

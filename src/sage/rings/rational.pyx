@@ -2583,8 +2583,8 @@ cdef class Rational(sage.structure.element.FieldElement):
     def gamma(self, prec=None):
         """
         Return the gamma function evaluated at self. This value is exact
-        for integers and half-integers, otherwise a numerical approximation
-        is returned.
+        for integers and half-integers, and returns a symbolic value
+        otherwise.  For a numerical approximation, use keyword ``prec``.
 
         EXAMPLES::
 
@@ -2597,7 +2597,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: gamma(6/1)
             120
             sage: gamma(1/3)
-            2.67893853470775
+            gamma(1/3)
 
         This function accepts an optional precision argument::
 
@@ -2606,7 +2606,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (1/2).gamma(prec=100)
             1.7724538509055160272981674833
         """
-        if prec is None:
+        if prec:
+            return self.n(prec).gamma()
+        else:
             if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
                 return integer.Integer(self).gamma()
             elif mpz_cmp_ui(mpq_denref(self.value), 2) == 0:
@@ -2616,8 +2618,8 @@ cdef class Rational(sage.structure.element.FieldElement):
                 from sage.functions.all import sqrt
                 return sqrt(pi) * rat_part
             else:
-                prec = 53
-        return self.n(prec).gamma()
+                from sage.symbolic.all import SR
+                return SR(self).gamma()
 
     def floor(self):
         """

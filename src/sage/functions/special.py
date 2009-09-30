@@ -1354,10 +1354,14 @@ def lngamma(t):
 def log_gamma(t):
     """
     The principal branch of the logarithm of the Gamma function of t.
+    This function is currently always immediately evaluated for
+    non-symbolic input.
 
     EXAMPLES::
 
         sage: log_gamma(RR(6))
+        4.78749174278205
+        sage: log_gamma(6)
         4.78749174278205
         sage: log_gamma(pari(6))
         4.78749174278205
@@ -1367,28 +1371,64 @@ def log_gamma(t):
     try:
         return t.log_gamma()
     except AttributeError:
-        raise NotImplementedError
+        from sage.rings.real_mpfr import RR
+        try:
+            return RR(t).log_gamma()
+        except:
+            raise NotImplementedError
 
 def exp_int(t):
     r"""
-    The exponential integral `\int_x^\infty e^{-x}/x dx` (t
-    belongs to RR).
+    The exponential integral `\int_t^\infty e^{-x}/x dx` (t
+    belongs to RR).  This function is deprecated - please use
+    ``Ei`` or ``exponential_integral_1`` as needed instead.
+
+    EXAMPLES::
+
+        sage: exp_int(6)
+        doctest:...: DeprecationWarning: The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
+        0.000360082452162655
     """
+    from sage.misc.misc import deprecation
+    deprecation("The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
     try:
         return t.eint1()
     except AttributeError:
-        raise NotImplementedError
+        from sage.libs.pari.all import pari
+        try:
+            return pari(t).eint1()
+        except:
+            raise NotImplementedError
 
 def error_fcn(t):
     r"""
     The complementary error function
     `\frac{2}{\sqrt{\pi}}\int_t^\infty e^{-x^2} dx` (t belongs
-    to RR).
+    to RR).  This function is currently always
+    evaluated immediately.
+
+    EXAMPLES::
+
+        sage: error_fcn(6)
+        2.15197367124989e-17
+        sage: error_fcn(RealField(100)(1/2))
+        0.47950012218695346231725334611
+
+    Note this is literally equal to `1 - erf(t)`::
+
+        sage: 1 - error_fcn(0.5)
+        0.520499877813047
+        sage: erf(0.5)
+        0.520499877813047
     """
     try:
         return t.erfc()
     except AttributeError:
-        raise NotImplementedError
+        from sage.rings.real_mpfr import RR
+        try:
+            return RR(t).erfc()
+        except:
+            raise NotImplementedError
 
 
 

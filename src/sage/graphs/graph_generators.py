@@ -78,16 +78,18 @@ organized as follows::
         - PetersenGraph
         - ThomsenGraph
     Families of Graphs:
+        - BalancedTree
+        - BubbleSortGraph
         - CirculantGraph
         - CompleteGraph
         - CompleteBipartiteGraph
         - CubeGraph
         - HyperStarGraph
+        - KneserGraph
+        - LCFGraph
         - NKStarGraph
         - NStarGraph
-        - BubbleSortGraph
-        - BalancedTree
-        - LCFGraph
+        - OddGraph
     Pseudofractal Graphs:
         - DorogovtsevGoltsevMendesGraph
     Random Graphs:
@@ -1898,7 +1900,9 @@ class GraphGenerators():
 
         if not n>1:
             raise ValueError, "Parameter n should be an integer strictly greater than 1"
-        return self.KneserGraph(2*n-1,n-1)
+        g = self.KneserGraph(2*n-1,n-1)
+        g.name("Odd Graph with parameter %s" % n)
+        return g
 
 
     def MoebiusKantorGraph(self):

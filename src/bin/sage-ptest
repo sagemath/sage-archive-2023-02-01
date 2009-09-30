@@ -318,7 +318,7 @@ for gr in range(0,numglobaliteration):
     failed = []
 
     SAGE_ROOT=os.environ['SAGE_ROOT']
-    TMP=SAGE_ROOT + "/tmp/test/"
+    TMP=os.environ['SAGE_TESTDIR'] + "/tmp/test/"
     if not os.path.exists(TMP):
         os.makedirs(TMP)
 

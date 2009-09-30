@@ -187,6 +187,20 @@ def assume(*args):
         sage: forget()
         sage: sin(n*pi).simplify()
         sin(pi*n)
+
+    TESTS:
+
+    Test that you can do two non-relational
+    declarations at once (fixing Trac ticket 7084)::
+
+        sage: var('m')
+        m
+        sage: assume(n, 'integer'); assume(m, 'integer')
+        sage: sin(n*pi).simplify()
+        0
+        sage: sin(m*pi).simplify()
+        0
+        sage: forget()
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):

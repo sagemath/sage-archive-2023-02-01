@@ -1325,7 +1325,13 @@ cdef class Expression(CommutativeRingElement):
                 from sage.symbolic.assumptions import assumptions
                 assumption_list = assumptions()
                 if len(assumption_list) > 0:
-                    assumption_vars = set(sum([eqn.variables() for eqn in assumptions()], ()))
+                    assumption_var_list = []
+                    for eqn in assumption_list:
+                        try:
+                            assumption_var_list.append(eqn.variables())
+                        except AttributeError: # if we have a GenericDeclaration
+                            assumption_var_list.append((eqn._var,))
+                    assumption_vars = set(sum(assumption_var_list, ()))
                     if set(vars).intersection(assumption_vars):
                         need_assumptions = True
 

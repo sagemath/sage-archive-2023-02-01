@@ -27,7 +27,7 @@ TESTS:
     sage: s(_)                                                     # optional - mupad
     s[2, 1] + s[3] - s[1, 1, 1]
 
-    sage: combinat.tableaux.list(3)                                # optional - mupad
+    sage: combinat.tableaux.list(3)                                # optional - mupad # note: the order of the result seems to depend on the version of MuPAD / MuPAD-Combinat
                 --                                      +---+ --
                 |                                       | 3 |  |
                 |                 +---+      +---+      +---+  |
@@ -589,6 +589,35 @@ class MupadElement(ExpectElement):
         s = P._eval_line('generate::TeX(%s)'%self.name())
         s = s.replace('\\\\','\\').strip().strip('"')
         return s
+
+    def __len__(self):
+        r"""
+        The analogue in MuPAD of Python's len is the method nops
+
+        EXAMPLES::
+
+            sage: len(mupad([1,2,3])) # indirect doctest # optional - mupad
+            3
+            sage: type(len(mupad([1,2,3])))              # optional - mupad
+            <type 'int'>
+
+            sage: len(mupad(4))                          # optional - mupad
+            1
+
+        Implementing this is necessary for using MuPAD's lists as
+        standard containers::
+
+            sage: map(ZZ, list(mupad([1,2,3])))          # optional - mupad
+            [1, 2, 3]
+
+            sage: [int(x) for x in mupad([1,2,3]) ]      # optional - mupad
+            [1, 2, 3]
+
+            sage: [int(x) for x in mupad("{1,2,3,5}") ]  # optional - mupad
+            [1, 2, 3, 5]
+
+        """
+        return mupad.nops(self)
 
 # An instance
 mupad = Mupad(script_subdirectory='user')

@@ -3803,6 +3803,22 @@ cdef class Expression(CommutativeRingElement):
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
 
+        TESTS:
+
+        This shows that the issue at trac #5755 is fixed (attempting to
+        coerce a symbolic expression to a non-symbolic polynomial ring
+        caused an error::
+
+            sage: xx = var('xx')
+            sage: RDF['xx'](1.0*xx)
+            xx
+            sage: RDF['xx'](2.0*xx)
+            2.0*xx
+            sage: RR['xx'](1.0*xx)
+            xx
+            sage: RR['xx'](2.0*xx)
+            2.00000000000000*xx
+
         This shows that the issue at trac #4246 is fixed (attempting to
         coerce an expression containing at least one variable that's not in
         `R` raises an error)::

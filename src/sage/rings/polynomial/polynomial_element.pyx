@@ -2407,6 +2407,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
+
+        TESTS:
+
+        This came up in ticket #7088::
+
+            sage: R.<x>=PolynomialRing(ZZ)
+            sage: f = 12*x^10 + x^9 + 432*x^3 + 9011
+            sage: g = 13*x^11 + 89*x^3 + 1
+            sage: F = f^2 * g^3
+            sage: F = f^2 * g^3; F.factor()
+            (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
+            sage: F = f^2 * g^3 * 7; F.factor()
+            7 * (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
         """
 
         # PERFORMANCE NOTE:
@@ -2605,34 +2618,69 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._factor_pari_helper(G, n)
 
     def _factor_pari_helper(self, G, n=None, unit=None):
+        """
+        Fix up and normalize a factorization that came from Pari.
+
+        TESTS::
+
+            sage: R.<x>=PolynomialRing(ZZ)
+            sage: f = (2*x + 1) * (3*x^2 - 5)^2
+            sage: f._factor_pari_helper(pari(f).factor())
+            (2*x + 1) * (3*x^2 - 5)^2
+            sage: f._factor_pari_helper(pari(f).factor(), unit=11)
+            11 * (2*x + 1) * (3*x^2 - 5)^2
+            sage: (8*f)._factor_pari_helper(pari(f).factor())
+            8 * (2*x + 1) * (3*x^2 - 5)^2
+            sage: (8*f)._factor_pari_helper(pari(f).factor(), unit=11)
+            88 * (2*x + 1) * (3*x^2 - 5)^2
+            sage: QQ['x'](f)._factor_pari_helper(pari(f).factor())
+            (18) * (x + 1/2) * (x^2 - 5/3)^2
+            sage: QQ['x'](f)._factor_pari_helper(pari(f).factor(), unit=11)
+            (198) * (x + 1/2) * (x^2 - 5/3)^2
+
+            sage: f = prod((k^2*x^k + k)^(k-1) for k in primes(10))
+            sage: F = f._factor_pari_helper(pari(f).factor()); F
+            1323551250 * (2*x^2 + 1) * (3*x^3 + 1)^2 * (5*x^5 + 1)^4 * (7*x^7 + 1)^6
+            sage: F.prod() == f
+            True
+            sage: QQ['x'](f)._factor_pari_helper(pari(f).factor())
+            (1751787911376562500) * (x^2 + 1/2) * (x^3 + 1/3)^2 * (x^5 + 1/5)^4 * (x^7 + 1/7)^6
+
+            sage: g = GF(19)['x'](f)
+            sage: G = g._factor_pari_helper(pari(g).factor()); G
+            (4) * (x + 3) * (x + 16)^5 * (x + 11)^6 * (x^2 + 7*x + 9)^4 * (x^2 + 15*x + 9)^4 * (x^3 + 13)^2 * (x^6 + 8*x^5 + 7*x^4 + 18*x^3 + 11*x^2 + 12*x + 1)^6
+            sage: G.prod() == g
+            True
+        """
         pols = G[0]
         exps = G[1]
-        F = []
         R = self.parent()
-        c = R.base_ring()(1)
-        for i in xrange(len(pols)):
-            f = R(pols[i])
-            e = int(exps[i])
-            if unit is None:
-                c *= f.leading_coefficient()
-            F.append((f,e))
+        F = [(R(f), int(e)) for f, e in zip(pols, exps)]
+
         if unit is None:
-            unit = R.base_ring()(self.leading_coefficient()/c)
-        if not unit.is_unit():
+            unit = self.leading_coefficient()
+        else:
+            unit *= self.leading_coefficient()
 
-            F.append((R(unit), ZZ(1)))
-            unit = R.base_ring()(1)
-
-        elif R.base_ring().is_field():
+        if R.base_ring().is_field():
             # When the base ring is a field we normalize
             # the irreducible factors so they have leading
             # coefficient 1.
-            one = R.base_ring()(1)
-            for i in range(len(F)):
-                c = F[i][0].leading_coefficient()
-                if c != 1:
-                    unit *= c
-                    F[i] = (F[i][0].monic(), F[i][1])
+            for i, (f, e) in enumerate(F):
+                if not f.is_monic():
+                    F[i] = (f.monic(), e)
+
+        else:
+            # Otherwise we have to adjust for
+            # the content ignored by Pari.
+            content_fix = R.base_ring()(1)
+            for f, e in F:
+                if not f.is_monic():
+                    content_fix *= f.leading_coefficient()**e
+            unit //= content_fix
+            if not unit.is_unit():
+                F.append((R(unit), ZZ(1)))
+                unit = R.base_ring()(1)
 
         if not n is None:
             pari.set_real_precision(n)  # restore precision

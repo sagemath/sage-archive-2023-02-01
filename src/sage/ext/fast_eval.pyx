@@ -1078,7 +1078,7 @@ cdef class FastDoubleFunc:
             sage: from sage.ext.fast_eval import fast_float_arg
             sage: f = fast_float_arg(0).arcsin()
             sage: f(0.5)
-            0.5235987755982989...
+            0.523598775598298...
         """
         return self.cfunc(&asin)
 

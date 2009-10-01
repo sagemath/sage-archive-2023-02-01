@@ -29,7 +29,8 @@ raise an ValueError exception::
     ...
     ValueError: sequence 'sage' not found
 
-To look up the sequence
+To look up the sequence "2, 3, 5, 7", simply put the numbers in a list.
+The second argument specifies that at most 2 results will be returned.
 
 ::
 
@@ -37,13 +38,20 @@ To look up the sequence
     Searching Sloane's online database...
     [[40, 'The prime numbers.', [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271]], [41, 'a(n) = number of partitions of n (the partition numbers).', [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134]]]
 
-To return no more than 2 results (default is 30), type
+To return no more than 3 results (default is 30), type
 
 ::
 
-    sage: sloane_find([1,2,3,4,5], 2)      # optional - internet
+    sage: len(sloane_find([1,2,3,4,5], 3))      # optional - internet
     Searching Sloane's online database...
-    [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers p^k (p prime, k &gt;= 0).', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
+    3
+
+Sequence A137443 includes Sage code, and a "b file" that was computed
+with Sage::
+
+    sage: sloane_find([7, 71, 281, 4523, 74713])  # optional - internet
+    Searching Sloane's online database...
+    [[137443, 'First n-digit prime in consecutive digits of e.', [7, 71, 281, 4523, 74713, 904523, 6028747, 72407663, 360287471, 7427466391, 75724709369, 749669676277, 8284590452353, 99959574966967, 724709369995957, 2470936999595749, 28459045235360287, 571382178525166427]]]
 
 Note that the OEIS (http://www.research.att.com/ njas/sequences/)
 claims to limit the number of results to 100. Results are lists of

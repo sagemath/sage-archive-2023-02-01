@@ -509,6 +509,21 @@ documentation, keep the following points in mind:
    ``0``. For more information on preparsing, see
    :ref:`section-preparsing`.
 
+-  If a test outputs to a file, the file should be in a temporary
+   directory.  For example (taken from the file
+   ``SAGE_ROOT/devel/sage/sage/plot/plot.py``)::
+
+        sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+
+   Here ``fig.savefig`` is the function doing the saving,
+   ``SAGE_TMP`` is a temporary directory -- this variable will always
+   be defined properly during automated testing -- and ``os.path.join`` is
+   the preferred way to construct a path from a directory and a file:
+   it works more generally than a Unix-flavored construction like
+   ``SAGE_TMP + '/test.png'``.  (If you want to use ``SAGE_TMP`` in
+   Sage code, not just in a doctest, then you need to import it:
+   search the Sage code for examples.)
+
 -  If a test line contains the text ``random``, it is
    executed by ``sage-doctest`` but ``sage-doctest`` does
    not check that the output agrees with the output in the

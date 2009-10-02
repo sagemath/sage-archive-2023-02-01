@@ -216,7 +216,7 @@ computation. For example,
     sage: yl = ylabel('voltage (mV)')
     sage: t = title('About as simple as it gets, folks')
     sage: grid(True)
-    sage: savefig(SAGE_TMP + 'sage.png')
+    sage: savefig(os.path.join(SAGE_TMP, 'sage.png'))
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!
@@ -274,7 +274,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-import types
+import os, types
 
 from sage.structure.sage_object import SageObject
 
@@ -289,7 +289,7 @@ EMBEDDED_MODE = False
 DOCTEST_MODE = False
 import sage.misc.misc
 from sage.misc.misc import srange
-DOCTEST_MODE_FILE = sage.misc.misc.SAGE_TMP + '/test.png'
+DOCTEST_MODE_FILE = os.path.join(sage.misc.misc.SAGE_TMP, 'test.png')
 SHOW_DEFAULT = True
 
 def show_default(default=None):
@@ -1964,7 +1964,7 @@ class SelectiveFormatter(Formatter):
         sage: line=ax.plot(t, s)
         sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
         sage: ax.xaxis.set_major_formatter(formatter)
-        sage: fig.savefig('test.png')
+        sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
     """
     def __init__(self, formatter,skip_values):
         """
@@ -1989,7 +1989,7 @@ class SelectiveFormatter(Formatter):
             sage: line=ax.plot(t, s)
             sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
             sage: ax.xaxis.set_major_formatter(formatter)
-            sage: fig.savefig('test.png')
+            sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
         """
         self.formatter=formatter
         self.skip_values=skip_values

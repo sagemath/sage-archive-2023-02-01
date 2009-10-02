@@ -71,7 +71,7 @@ def solveGlpk(self,log=False,objective_only=False):
         a = a + 1
 
     # Direction of the problem : maximization, minimization...
-    if self.sense == -1:
+    if self.maximization == False:
         glp_set_obj_dir(lp, GLP_MIN)
     else:
         glp_set_obj_dir(lp, GLP_MAX)

@@ -1757,6 +1757,18 @@ def maxima_options(**kwds):
 _augmented_syms = {}
 
 def _find_var(name):
+    """
+    Function to pass to Parser for constructing
+    variables from strings.  For internal use.
+
+    EXAMPLES::
+
+        sage: y = var('y')
+        sage: sage.calculus.calculus._find_var('y')
+        y
+        sage: sage.calculus.calculus._find_var('I')
+        I
+    """
     try:
         return (_augmented_syms or _syms)[name]
     except KeyError:
@@ -1767,6 +1779,20 @@ def _find_var(name):
         return var(name)
 
 def _find_func(name):
+    """
+    Function to pass to Parser for constructing
+    functions from strings.  For internal use.
+
+    EXAMPLES::
+
+        sage: sage.calculus.calculus._find_func('limit')
+        limit
+        sage: sage.calculus.calculus._find_func('zeta_zeros')
+        zeta_zeros
+        sage: f(x)=sin(x)
+        sage: sage.calculus.calculus._find_func('f')
+        f
+    """
     try:
         func = (_augmented_syms or _syms)[name]
         if not isinstance(func, Expression):
@@ -1786,6 +1812,29 @@ SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                    make_function = _find_func)
 
 def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
+    """
+    Given a string, (attempt to) parse it and return the
+    corresponding Sage symbolic expression.  Normally used
+    to return Maxima output to the user.
+
+    INPUT:
+
+
+    -  ``s`` - a string
+
+    -  ``syms`` - (default: None) dictionary of
+       strings to be regarded as symbols or functions
+
+    -  ``accept_sequence`` - (default: False) controls whether
+       to allow a (possibly nested) set of lists and tuples
+       as input
+
+    EXAMPLES::
+
+        sage: y = var('y')
+        sage: sage.calculus.calculus.symbolic_expression_from_string('[sin(0)*x^2,3*spam+e^pi]',syms={'spam':y},accept_sequence=True)
+        [0, 3*y + e^pi]
+    """
     # from sage.functions.constants import I # can't import this at the top, but need it now
     # _syms['i'] = _syms['I'] = I
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression

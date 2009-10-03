@@ -66,6 +66,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.3.p2 (Minh Van Nguyen, October 02nd, 2009) ===
+ * Change optimization flag of src/config/get_cc from "-O3" to
+   "-O1". This fixes a build issue on 32-bit Fedora 11. See ticket #7092.
+
 === pari-2.3.3.p1 (David Kirkby, June 30th, 2009)    ===
  * Change code in spkg-install which was supposed to add -fPIC on
    Solaris, to code that actually does add -fPIC on Solaris.

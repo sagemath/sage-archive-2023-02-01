@@ -1,0 +1,181 @@
+# Exported variables
+_cc_list="__gnuc__ CC CFLAGS optimization DBGFLAGS OPTFLAGS exe_suff suffix ASMINLINE"
+
+# Which optimization ?
+if test "$fastread" != yes; then
+  cat << EOT
+==========================================================================
+The default is to fully optimize the compilation. You may choose to build
+  an executable for debugging or profiling instead. Choose among :
+       full       debugging       profiling
+EOT
+  echo $n ..."Which optimization do you prefer ? $c"
+  dflt=$optimization; rep='full debugging profiling'; . ./myread
+  optimization=$ans
+fi
+
+case "$osname-$arch" in
+  os2-*)   exe_suff=.exe; extraflag="-Zexe";;
+  cygwin*) exe_suff=.exe; extraflag="";;
+  *)       exe_suff=;     extraflag="";;
+esac
+
+if test -z "$CC"; then
+  echo Looking for the compilers ...
+  # Native Compilers
+  cc=`./locate cc '' $pathspace`
+  case "$osname" in
+    hpux) if test "$cc" = /usr/ccs/bin/cc -a -f /opt/ansic/bin/cc; then
+            cc=/opt/ansic/bin/cc; fi ;;  # This is a better compiler
+  esac
+  case "$cc" in ?:/*|/*) echo ..."cc is $cc";;
+      *) echo ..."I could not find cc.";; esac
+  # GNU Compilers
+  gcc=`./locate gcc '' $pathspace`
+  if test -z "$gcc"; then
+    exe=$osname-$arch-gnu$$
+    $cc $extraflag -o $exe gnu.c
+    if $exe; then gcc=$cc; fi; rm -f $exe
+  fi
+  case "$gcc" in
+?:/*|/*) echo ..."gcc is $gcc";;
+      *) echo ..."I could not find gcc."; gcc=;;
+  esac
+  if test -n "$gcc"; then
+    # avoid internationalization trouble by setting LANG=C
+    __gnuc__=`env LANG=C LC_ALL=C LC_MESSAGES=C $gcc -v 2>&1 | sed -n 's/.*version //p'`
+    if test -z "$__gnuc__"; then __gnuc__=unknown; fi
+    echo GNU compiler version $__gnuc__
+  fi
+  case "$osname" in
+    aix)   __gnuc__=;; # Native compilers are faster
+    hpux)  __gnuc__=;; # versions older than 2.7 cannot build PIC code
+                       # gp built with recent versions has bugs
+    concentrix) case "$__gnuc__" in 2.[78].*);; *)
+              __gnuc__=;; esac;;
+  esac
+  # Choosing the compiler
+  if test -n "$__gnuc__"; then CC=$gcc; else CC=$cc; fi
+fi
+
+if test "$fastread" != yes; then
+  cat << EOT
+==========================================================================
+Only ANSI C and C++ compilers are supported.  Choosing the GNU compiler
+gcc/g++ enables the inlining of kernel routines (about 20% speedup; if you
+use g++, it is a good idea to include the -fpermissive flag).  If you choose
+not to use gcc, the C++ version of Pari will be a little faster because of
+general inlining, but can be used in library mode only with C++ programs.
+We strongly recommand using gcc all the way through.
+EOT
+  echo $n ..."Which C compiler shall I use ? $c"
+  dflt=$CC; rep=; . ./myread
+  CC=$ans
+fi
+
+exe=$osname-$arch-ansi$$
+if ($CC $extraflag -o $exe ansi.c 2>/dev/null); then :
+else
+  cat << EOT
+******************************************************************
+* C compiler does not work. PARI/GP requires an ANSI C compiler! *
+* Aborting.                                                      *
+******************************************************************
+Compiler was: $CC
+EOT
+  exit 1;
+fi
+rm -f $exe $exe$exe_suff
+
+if test "$CC" != "$gcc"; then __gnuc__=; fi
+if test -z "$__gnuc__"; then
+  exe=$osname-$arch-gnu$$
+  $CC $extraflag -o $exe gnu.c
+  if $exe; then
+    # avoid internationalization trouble by setting LANG=C
+    __gnuc__=`env LANG=C LC_ALL=C LC_MESSAGES=C $CC -v 2>&1 | sed -n 's/.*version //p'`
+    echo GNU compiler version $__gnuc__
+  fi
+  rm -f $exe $exe$exe_suff
+fi
+
+# Which Flags for Compiler ?
+#
+cflags=
+ASMINLINE=
+if test -n "$__gnuc__"; then
+  __GNUC__="-D__GNUC__"
+  warn="-Wall"
+  # Work around for building on 32-bit Fedora 11. See ticket #7092.
+  OPTFLAGS=-O1
+  ASMINLINE=yes
+  case "$asmarch" in
+    alpha)
+      case "$__gnuc__" in
+        2.95.[3-9]*|[3-9].*) ;;
+        *) ASMINLINE=;; # doesn't work with 2.95.2.
+      esac
+    ;;
+  esac
+  OPTFLAGS="$OPTFLAGS $warn"
+  case "$__gnuc__" in
+    2.95.[3-9]*|[3-9].*) OPTFLAGS="$OPTFLAGS -fno-strict-aliasing";;
+  esac
+
+  DBGFLAGS=${DBGFLAGS:-"-g $warn"}
+  # Specific optimisations for some architectures
+  case "$arch" in
+    sparcv8*) cflags=-mv8;;
+    i?86|x86_64)
+      case "$__gnuc__" in
+        4.0.*) cflags=-fno-gcse-after-reload
+      esac
+  esac
+  # problems on some architectures
+  case "$osname" in
+    os2)      cflags="$cflags -Zmt -Zsysv-signals";;
+    nextstep) cflags="$cflags -traditional-cpp";;
+    darwin) # don't use broken pre-compiled headers on old Darwin
+      if ($CC -no-cpp-precomp ansi.c 2>/dev/null); then :
+      else
+        cflags="$cflags -no-cpp-precomp"
+      fi;;
+  esac
+
+  # omit-frame-pointer incompatible with -pg
+  PRFFLAGS="-pg $OPTFLAGS"
+  case "$optimization" in
+    full) OPTFLAGS="$OPTFLAGS -fomit-frame-pointer";;
+  esac
+else
+  DBGFLAGS=${DBGFLAGS:-'-g'}
+  PRFFLAGS='-pg'
+  case "$osname-$arch" in
+    hpux-*) # -Ae is for ANSI C + defines HPUX_SOURCE
+                  OPTFLAGS=-O; cflags=-Ae;;
+    aix-*)        OPTFLAGS='-O2 -qtune=auto -qmaxmem=8192'
+                  cflags='-qlanglvl=ansi';;
+    osf1-*)       OPTFLAGS='-O4 -migrate -ifo -Olimit 9999';;
+    sunos-*)      OPTFLAGS=-fast; PRFFLAGS='-pg -Bstatic';;
+    solaris-*)    OPTFLAGS='-fast -fsimple=1'; PRFFLAGS=-xpg;
+                case "$arch" in
+                  sparc*) OPTFLAGS="$OPTFLAGS -xalias_level=any";;
+                esac;;
+    concentrix-*) OPTFLAGS=-Ogi;;
+    *)            OPTFLAGS=-O;;
+  esac
+  PRFFLAGS="$PRFFLAGS $OPTFLAGS"
+fi
+
+case "$optimization" in
+  full)      suffix=;     cflags="$OPTFLAGS $cflags";;
+  profiling) suffix=.prf; cflags="$PRFFLAGS $cflags";;
+  debugging) suffix=.dbg; cflags="-DMEMSTEP=1048576 $DBGFLAGS $cflags";;
+esac
+
+CFLAGS="$cflags $CFLAGS $CPPFLAGS"
+if test "$fastread" != yes; then
+  echo $n ..."With which flags ? $c"
+  dflt=$CFLAGS; rep=; . ./myread
+  CFLAGS=$ans
+fi

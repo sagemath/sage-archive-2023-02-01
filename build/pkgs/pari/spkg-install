@@ -5,17 +5,19 @@
 
 TOP=`pwd`
 
-# As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it needs to be.
+# As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it
+# needs to be.
 if [ `uname` = "SunOS" ]; then
-  sed 's/-fomit-frame-pointer/-fomit-frame-pointer -fPIC/g' src/config/get_cc > src/config/get_cc.$$
-  mv src/config/get_cc.$$ src/config/get_cc
+    sed 's/-fomit-frame-pointer/-fomit-frame-pointer -fPIC/g' src/config/get_cc > src/config/get_cc.$$
+    mv src/config/get_cc.$$ src/config/get_cc
 fi
 
 cd src
 
 cp "$TOP"/patches/get_dlld config/
 
-# mabshoff: This patch is to get around problem in PPC 32-bit linux build (but it is ok on any other machine)
+# mabshoff: This patch is to get around problem in PPC 32-bit Linux build
+# (but it is ok on any other machine)
 cp "$TOP"/patches/get_dlcflags config/
 
 # cwitty: disable -rpath
@@ -27,8 +29,11 @@ cp "$TOP"/patches/gphelp.in doc/
 # mabshoff: copy over patched hnf routine (#2204)
 cp "$TOP"/patches/alglin2.c src/basemath/
 
+# Minh Van Nguyen: copy over patched get_cc (#7092)
+cp "$TOP"/patches/get_cc config/get_cc
+
 # This is needed or there are weird locale problems involving rpath
-# with building SAGE.
+# with building Sage.
 LC_ALL=C
 export LC_ALL
 LANG=C
@@ -36,16 +41,16 @@ export LANG
 
 build()
 {
-    #  add the proper flags for 64 bit build mode on OSX
+    #  add the proper flags for 64-bit build mode on OS X
     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-       CFLAGS="-g -m64 " && export CFLAGS
+	CFLAGS="-g -m64 " && export CFLAGS
     fi
 
     CUR=`pwd`
 
-    # On my systems PARI does *not* build correctly with these set! (and they are
-    # set by sage-env).  It builds, but doesn't run.  Something about missing _start
-    # symbol.
+    # On my systems PARI does *not* build correctly with these set! (and
+    # they are set by sage-env).  It builds, but doesn't run.  Something
+    # about missing _start symbol.
     unset LD
     unset AR
     unset AS
@@ -77,8 +82,8 @@ build()
     fi
 
     if [ $? -ne 0 ]; then
-         echo "Error building GP"
-         exit 1
+        echo "Error building GP"
+        exit 1
     fi
 
     $CP -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
@@ -95,8 +100,8 @@ build()
     $MAKE install-lib-sta
 
     if [ $? -ne 0 ]; then
-         echo "Error installing PARI static library"
-         exit 1
+        echo "Error installing PARI static library"
+        exit 1
     fi
 
     # Instead of "make install" we do the following, to avoid building
@@ -106,8 +111,8 @@ build()
     $MAKE install-include
 
     if [ $? -ne 0 ]; then
-         echo "Error installing PARI include files"
-         exit 1
+        echo "Error installing PARI include files"
+        exit 1
     fi
 
     $CP -f libpari* $SAGE_LOCAL/lib/
@@ -117,10 +122,10 @@ build()
     # directory as the gp binary, or it doesn't find it.
     # Note that just using a symlink doesn't work.
     if [ $UNAME = "CYGWIN" ]; then
-	 CUR="`pwd`"
-         cd "$SAGE_LOCAL"/bin/
-         $CP -f "$SAGE_LOCAL"/lib/*pari*.dll .
-         cd "$CUR"
+        CUR="`pwd`"
+        cd "$SAGE_LOCAL"/bin/
+        $CP -f "$SAGE_LOCAL"/lib/*pari*.dll .
+        cd "$CUR"
     fi
 
     # The following is a hack to get the library installed correctly
@@ -131,7 +136,7 @@ build()
 	$MAKE install-lib-sta
 
         if [ $? -ne 0 ]; then
-            echo "Error RE-installing PARI static libraries (os x trick)"
+            echo "Error Re-installing PARI static libraries (OS X trick)"
             exit 1
         fi
 
@@ -139,8 +144,8 @@ build()
         $CP -f libpari* $SAGE_LOCAL/lib
         cd "$CUR"
 
-        # Also another patch since paripriv.h won't compile right on OSX
-        # when used by client SAGE code.  So we replace it by a slightly
+        # Also another patch since paripriv.h won't compile right on OS X
+        # when used by client Sage code.  So we replace it by a slightly
         # modified version.
 	$CP -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
     fi
@@ -155,21 +160,20 @@ build()
 
 build
 
-if [  $? -ne 0  ];  then
+if [ $? -ne 0 ]; then
     echo "Error building PARI."
     exit 1
 fi
 
-if [ $UNAME="Darwin" -a -f $SAGE_LOCAL/lib/libpari.dylib ];  then
+if [ $UNAME="Darwin" -a -f $SAGE_LOCAL/lib/libpari.dylib ]; then
     exit 0
 fi
 
-if [ -f $SAGE_LOCAL/lib/libpari.so ];  then
+if [ -f $SAGE_LOCAL/lib/libpari.so ]; then
     exit 0
 fi
 
-if [  $? -ne 0  ];  then
+if [ $? -ne 0 ]; then
     echo "Error building PARI."
     exit 1
 fi
-

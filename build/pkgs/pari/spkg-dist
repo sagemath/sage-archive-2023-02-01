@@ -12,8 +12,8 @@ def cmd(x):
 cmd("rm -rf Odos")
 
 # Now modify init.c so we abort instead of exiting, so that
-# SAGE can catch errors that PARI raises.
-print "Modifying init.c for SAGE usage"
+# Sage can catch errors that PARI raises.
+print "Modifying init.c for Sage usage"
 
 init_c = "src/language/init.c"
 init = open(init_c).read()

@@ -29,8 +29,11 @@ cp "$TOP"/patches/gphelp.in doc/
 # mabshoff: copy over patched hnf routine (#2204)
 cp "$TOP"/patches/alglin2.c src/basemath/
 
-# Minh Van Nguyen: copy over patched get_cc (#7092)
-cp "$TOP"/patches/get_cc config/get_cc
+# Minh Van Nguyen: copy over patched get_cc (see ticket #7092). It's
+# reported that 32-bit Fedora 11 would fail to build otherwise.
+if [ `uname` = "Linux" ]; then
+    cp "$TOP"/patches/get_cc config/get_cc
+fi
 
 # This is needed or there are weird locale problems involving rpath
 # with building Sage.

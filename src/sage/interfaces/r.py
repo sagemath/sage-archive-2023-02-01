@@ -553,10 +553,8 @@ class R(Expect):
         """
         ret = self.eval('require("%s")'%library_name)
         # try hard to parse the message string in a locale-independent way
-        if 'Warning message' in ret:    # fortunately a locale-independent part
-            # not all warnings (e.g. "closing unused connection 3") are fatal
-            if 'library(' in ret:       # locale-independent key-word
-                raise ImportError, "%s"%ret
+        if ' library(' in ret:       # locale-independent key-word
+            raise ImportError, "%s"%ret
         else:
             try:
                 # We need to rebuild keywords!

@@ -6217,6 +6217,77 @@ cdef class Expression(CommutativeRingElement):
             return [(self, 1)]
 
     ###################################################################
+    # Units
+    ###################################################################
+    def convert(self, target=None):
+        """
+        Calls the convert function in the units package.
+
+        INPUT:
+
+            - `self` -- the symbolic expression converting from
+            - `target` -- (default None) the symbolic expression converting to
+
+        OUTPUT:
+
+            - `symbolic expression`
+
+		EXAMPLES::
+
+            sage: units.length.foot.convert()
+		    381/1250*meter
+            sage: units.mass.kilogram.convert(units.mass.pound)
+			100000000/45359237*pound
+
+        Raises ValueError if self and target are not convertible::
+
+            sage: units.mass.kilogram.convert(units.length.foot)
+            Traceback (most recent call last):
+            ...
+            ValueError: Incompatible units
+            sage: (units.length.meter^2).convert(units.length.foot)
+            Traceback (most recent call last):
+            ...
+            ValueError: Incompatible units
+
+        Recognizes derived unit relationships to base units and other derived units::
+
+            sage: (units.length.foot/units.time.second^2).convert(units.acceleration.galileo)
+            762/25*galileo
+            sage: (units.mass.kilogram*units.length.meter/units.time.second^2).convert(units.force.newton)
+            newton
+            sage: (units.length.foot^3).convert(units.area.acre*units.length.inch)
+            1/3630*acre*inch
+            sage: (units.charge.coulomb).convert(units.current.ampere*units.time.second)
+            ampere*second
+            sage: (units.pressure.pascal*units.si_prefixes.kilo).convert(units.pressure.pounds_per_square_inch)
+			1290320000000/8896443230521*pounds_per_square_inch
+
+        For decimal answers multiply by 1.0::
+
+            sage: (units.pressure.pascal*units.si_prefixes.kilo).convert(units.pressure.pounds_per_square_inch)*1.0
+			0.145037737730209*pounds_per_square_inch
+
+		Converting temperatures works as well::
+
+			sage: s = 68*units.temperature.fahrenheit
+			sage: s.convert(units.temperature.celsius)
+			20*celsius
+			sage: s.convert()
+			293.150000000000*kelvin
+
+		Trying to multiply temperatures by another unit then converting raises a ValueError::
+
+			sage: wrong = 50*units.temperature.celsius*units.length.foot
+			sage: wrong.convert()
+			Traceback (most recent call last):
+			...
+			ValueError: Cannot convert
+        """
+        import units
+        return units.convert(self, target)
+
+    ###################################################################
     # solve
     ###################################################################
     def roots(self, x=None, explicit_solutions=True, multiplicities=True, ring=None):

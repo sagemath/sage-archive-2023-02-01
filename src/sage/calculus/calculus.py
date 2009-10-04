@@ -278,7 +278,6 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
                             is_RealNumber, is_ComplexNumber, RR, is_NumberFieldElement,
                             Integer, Rational, CC, QQ, CDF, ZZ,
-                            QuadDoubleElement,
                             PolynomialRing, ComplexField, RealDoubleElement,
                             algdep, Integer, RealNumber, RealIntervalField)
 

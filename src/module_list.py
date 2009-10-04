@@ -61,7 +61,6 @@ if os.environ.has_key('SAGE_DEBIAN'):
                          "/usr/include/pari",
                          "/usr/include/polybori",
                          "/usr/include/polybori/groebner",
-                         "/usr/include/qd",
                          "/usr/include/singular",
                          "/usr/include/singular/singular",
                          "/usr/include/symmetrica",
@@ -173,7 +172,7 @@ ext_modules = [
     Extension('sage.combinat.partitions',
               sources = ['sage/combinat/partitions.pyx',
                          'sage/combinat/partitions_c.cc'],
-              libraries = ['qd', 'gmp', 'mpfr'],
+              libraries = ['gmp', 'mpfr'],
               depends = ['sage/combinat/partitions_c.h'],
               language='c++'),
 
@@ -1047,10 +1046,10 @@ ext_modules = [
               sources = ['sage/rings/real_mpfr.pyx'],
               libraries = ['mpfr', 'pari', 'gmp']),
 
-    Extension('sage.rings.real_rqdf',
-              sources = ["sage/rings/real_rqdf.pyx"],
-              libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
-              language='c++'),
+    #Extension('sage.rings.real_rqdf',
+    #          sources = ["sage/rings/real_rqdf.pyx"],
+    #          libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
+    #          language='c++'),
 
     Extension('sage.rings.residue_field',
               sources = ['sage/rings/residue_field.pyx']),
@@ -1249,7 +1248,8 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.real_roots',
               sources = ['sage/rings/polynomial/real_roots.pyx'],
-              libraries=['mpfr', 'qd'],
+              #libraries=['mpfr', 'qd],
+              libraries=['mpfr'],
               include_dirs = numpy_include_dirs),
 
     Extension('sage.rings.polynomial.symmetric_reduction',

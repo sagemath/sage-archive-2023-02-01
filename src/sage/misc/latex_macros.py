@@ -166,7 +166,6 @@ macros = [["ZZ"],
           ["RDF"],
           ["RIF"],
           ["RLF"],
-          ["RQDF"],
           ["CFF"],
           ]
 

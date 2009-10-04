@@ -45,7 +45,9 @@ AUTHORS:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
 #   Vigenere ciphers
 
-from sage.monoids.string_monoid import StringMonoid_class, AlphabeticStringMonoid
+from sage.monoids.string_monoid import (
+    StringMonoid_class,
+    AlphabeticStringMonoid)
 from sage.monoids.string_monoid_element import StringMonoidElement
 from sage.monoids.string_ops import strip_encoding
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -136,10 +138,10 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
         """
         if not isinstance(S, StringMonoid_class):
-            raise TypeError, "S (= %s) must be a string monoid."%S
+            raise TypeError("S (= %s) must be a string monoid." % S)
         R = IntegerModRing(S.ngens())
-        M = MatrixSpace(R,m,m)
-        SymmetricKeyCryptosystem.__init__(self, S, S, M, block_length = m)
+        M = MatrixSpace(R, m, m)
+        SymmetricKeyCryptosystem.__init__(self, S, S, M, block_length=m)
 
     def __call__(self, A):
         """
@@ -177,7 +179,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             try:
                 A = M(A)
             except:
-                raise TypeError, "A (= %s) must specify a square matrix of degree %s." % (A, m)
+                raise TypeError("A (= %s) must specify a square matrix of degree %s." % (A, m))
         return HillCipher(self, A)
 
     def _repr_(self):
@@ -250,7 +252,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         m = M.nrows()
         N = Integer(self.cipher_domain().ngens())
         while True:
-            A = M([ randint(0,N-1) for i in range(m**2) ])
+            A = M([ randint(0, N-1) for i in range(m**2) ])
             if N.gcd(A.det()) == 1:
                 break
         return A
@@ -282,14 +284,14 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         S = self.plaintext_space()
         M = self.key_space()
         if not A in M:
-            raise TypeError, "A (= %s) must be a matrix in the key space of %s." % (A, self)
+            raise TypeError("A (= %s) must be a matrix in the key space of %s." % (A, self))
         m = self.block_length()
-        MatZZ = MatrixSpace(ZZ,m)
-        AZ = MatZZ([ [ A[i,j].lift() for j in range(m) ] for i in range(m) ])
+        MatZZ = MatrixSpace(ZZ, m)
+        AZ = MatZZ([ [ A[i, j].lift() for j in range(m) ] for i in range(m) ])
         AZ_adj = AZ.adjoint()
-        u, r, s = xgcd(A.det().lift(),S.ngens())
+        u, r, s = xgcd(A.det().lift(), S.ngens())
         if u != 1:
-            raise ValueError, "Argument:\n\n%s\n\nis not invertible."%(A)
+            raise ValueError("Argument:\n\n%s\n\nis not invertible." % (A))
         return r * A.parent()(AZ_adj)
 
     def encoding(self, M):
@@ -317,12 +319,12 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         S = self.cipher_domain()
-        if isinstance(S,AlphabeticStringMonoid):
+        if isinstance(S, AlphabeticStringMonoid):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
         except:
-            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+            raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, A, C):
         """
@@ -616,9 +618,10 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         # sanity check
-        from sage.monoids.string_monoid import ( AlphabeticStringMonoid,
-                                                 BinaryStringMonoid,
-                                                 HexadecimalStringMonoid )
+        from sage.monoids.string_monoid import (
+            AlphabeticStringMonoid,
+            BinaryStringMonoid,
+            HexadecimalStringMonoid)
         if not isinstance(A, ( AlphabeticStringMonoid,
                                BinaryStringMonoid,
                                HexadecimalStringMonoid )):
@@ -1067,6 +1070,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
         sage: E == loads(dumps(E))
         True
     """
+
     def __init__(self, S):
         """
         See ``SubstitutionCryptosystem`` for full documentation.
@@ -1079,7 +1083,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             Substitution cryptosystem on Free alphabetic string monoid on A-Z
         """
         if not isinstance(S, StringMonoid_class):
-            raise TypeError, "S (= %s) must be a string monoid."%S
+            raise TypeError("S (= %s) must be a string monoid." % S)
         SymmetricKeyCryptosystem.__init__(self, S, S, S)
 
     def __call__(self, K):
@@ -1105,9 +1109,9 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             GSVXZGRMGSVSZG
         """
         if not isinstance(K, StringMonoidElement):
-            raise TypeError, "K (= %s) must be a string."%K
+            raise TypeError("K (= %s) must be a string." % K)
         if K.parent() != self.key_space():
-            raise TypeError, "K (= %s) must be a string in the key space."%K
+            raise TypeError("K (= %s) must be a string in the key space." % K)
         return SubstitutionCipher(self, K)
 
     def _repr_(self):
@@ -1208,12 +1212,12 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         S = self.cipher_domain()
-        if isinstance(S,AlphabeticStringMonoid):
+        if isinstance(S, AlphabeticStringMonoid):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
         except:
-            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+            raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):
         """
@@ -1302,6 +1306,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         sage: E == loads(dumps(E))
         True
     """
+
     def __init__(self, S, n):
         """
         See ``TranspositionCryptosystem`` for full documentation.
@@ -1314,9 +1319,9 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
         """
         if not isinstance(S, StringMonoid_class):
-            raise TypeError, "S (= %s) must be a string monoid."%S
+            raise TypeError("S (= %s) must be a string monoid." % S)
         key_space = SymmetricGroup(n)
-        SymmetricKeyCryptosystem.__init__(self, S, S, key_space, block_length = n)
+        SymmetricKeyCryptosystem.__init__(self, S, S, key_space, block_length=n)
 
     def __call__(self, K):
         """
@@ -1345,9 +1350,9 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             try:
                 K = G(K)
             except:
-                raise TypeError, "K (= %s) must specify a permutation."%K
+                raise TypeError("K (= %s) must specify a permutation." % K)
         if not isinstance(K, PermutationGroupElement) and K.parent() == G:
-            raise TypeError, "K (= %s) must be a permutation or list specifying a permutation."%K
+            raise TypeError("K (= %s) must be a permutation or list specifying a permutation." % K)
         return TranspositionCipher(self, K)
 
     def _repr_(self):
@@ -1423,7 +1428,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         """
         if check:
             if not K in self.key_space():
-                raise TypeError, "Argument K (= %s) is not in the key space." % K
+                raise TypeError("Argument K (= %s) is not in the key space." % K)
         return K**-1
 
     def encoding(self, M):
@@ -1451,12 +1456,12 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         S = self.cipher_domain()
-        if isinstance(S,AlphabeticStringMonoid):
+        if isinstance(S, AlphabeticStringMonoid):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
         except:
-            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+            raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):
         """
@@ -1562,8 +1567,8 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
         """
         if not isinstance(S, StringMonoid_class):
-            raise TypeError, "S (= %s) must be a string monoid."%S
-        SymmetricKeyCryptosystem.__init__(self, S, S, S, block_length = 1, period = n)
+            raise TypeError("S (= %s) must be a string monoid." % S)
+        SymmetricKeyCryptosystem.__init__(self, S, S, S, block_length=1, period=n)
 
     def __call__(self, K):
         """
@@ -1592,9 +1597,9 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             try:
                 K = S(K)
             except:
-                raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
+                raise TypeError("K (= %s) must specify a string of length %s." % (K, m))
         if not len(K) == m:
-            raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
+            raise TypeError("K (= %s) must specify a string of length %s." % (K, m))
         return VigenereCipher(self, K)
 
     def _repr_(self):
@@ -1639,7 +1644,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         S = self.key_space()
         n = S.ngens()
         m = self.period()
-        return S([ randint(0,n-1) for i in range(m) ])
+        return S([ randint(0, n-1) for i in range(m) ])
 
     def inverse_key(self, K):
         """
@@ -1694,12 +1699,12 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         S = self.cipher_domain()
-        if isinstance(S,AlphabeticStringMonoid):
+        if isinstance(S, AlphabeticStringMonoid):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
         except:
-            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+            raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):
         """

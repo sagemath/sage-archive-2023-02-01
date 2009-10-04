@@ -951,11 +951,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         INPUT:
 
-        - ``R, Q`` -- points on self.curve()
+        - ``R, Q`` -- points on self.curve() with ``Q`` nonzero.
 
         OUTPUT:
 
-        An element of the base field self.curve().base_field()
+        An element of the base field self.curve().base_field().
+        A ValueError is raised if ``Q`` is zero.
 
         EXAMPLES::
 
@@ -977,6 +978,13 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P._line_(P,Q) == a^4 + a^3 + a^2 + 1
             True
 
+        See trac #7116::
+
+            sage: P._line_ (Q,O)
+            Traceback (most recent call last):
+            ...
+            ValueError: Q must be nonzero.
+
         ..NOTES:
 
             This function is used in _miller_ algorithm.
@@ -985,6 +993,9 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         - David Hansen (2009-01-25)
         """
+        if Q.is_zero():
+            raise ValueError, "Q must be nonzero."
+
         if self.is_zero() or R.is_zero():
             if self == R:
                 return self.curve().base_field().one_element()
@@ -1014,13 +1025,14 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         INPUT:
 
-        - ``Q`` -- a point on self.curve().
+        - ``Q`` -- a nonzero point on self.curve().
 
         - ``n`` -- an integer such that `n*P = n*Q = (0:1:0)` where `P`=self.
 
         OUTPUT:
 
         An element in the base field self.curve().base_field()
+        A ValueError is raised if ``Q`` is zero.
 
         EXAMPLES::
 
@@ -1036,6 +1048,10 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             True
             sage: Qx._miller_(Px,41) == b^13 + b^10 + b^8 + b^7 + b^6 + b^5
             True
+            sage: P._miller_(E(0),41)
+            Traceback (most recent call last):
+            ...
+            ValueError: Q must be nonzero.
 
         An example of even order::
 
@@ -1067,6 +1083,9 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         - David Hansen (2009-01-25)
 
         """
+        if Q.is_zero():
+            raise ValueError, "Q must be nonzero."
+
         t = self.curve().base_field().one_element()
         V = self
         S = 2*V

@@ -977,11 +977,60 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: K; invK
             0
             0
+
+        TESTS:
+
+        The key ``K`` must satisfy the inequality `0 \leq K < n` with `n`
+        being the size of the plaintext, ciphertext, and key spaces. For the
+        shift cryptosystem, all these spaces are the same alphabet. This
+        inequality must be satisfied for each of the supported alphabets.
+        The capital letters of the English alphabet::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: S.inverse_key(S.alphabet_size())
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=26) is outside the range of acceptable values for a key of this shift cryptosystem.
+            sage: S.inverse_key(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=-1) is outside the range of acceptable values for a key of this shift cryptosystem.
+
+        The hexadecimal number system::
+
+            sage: S = ShiftCryptosystem(HexadecimalStrings())
+            sage: S.inverse_key(S.alphabet_size())
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=16) is outside the range of acceptable values for a key of this shift cryptosystem.
+            sage: S.inverse_key(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=-1) is outside the range of acceptable values for a key of this shift cryptosystem.
+
+        The binary number system::
+
+            sage: S = ShiftCryptosystem(BinaryStrings())
+            sage: S.inverse_key(S.alphabet_size())
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=2) is outside the range of acceptable values for a key of this shift cryptosystem.
+            sage: S.inverse_key(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: K (=-1) is outside the range of acceptable values for a key of this shift cryptosystem.
         """
-        # Let A be the alphabet of this cryptosystem and let n be the number
-        # of elements in A. If k is a key, then the corresponding inverse
-        # key is -k mod n.
-        return self.key_space()(-Integer(K)).lift()
+        # Sanity check: the key K must satisfy the inequality
+        # 0 <= K < n with n being the size of the plaintext, ciphertext, and
+        # key spaces. For the shift cryptosystem, all these spaces are the
+        # same alphabet.
+        if 0 <= K < self.alphabet_size():
+            # Let A be the alphabet of this cryptosystem and let n be the
+            # number of elements in A. If k is a key, then the corresponding
+            # inverse key is -k mod n.
+            return self.key_space()(-Integer(K)).lift()
+        else:
+            raise ValueError("K (=%s) is outside the range of acceptable values for a key of this shift cryptosystem." % K)
 
     def random_key(self):
         r"""

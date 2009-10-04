@@ -480,7 +480,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         return s
 
     def _latex_(self):
-        return "\\I \\R"
+        r"""
+        LaTeX representation for Real Interval Field.
+
+        EXAMPLES::
+
+            sage: RIF._latex_()
+            '\\Bold{I} \\Bold{R}'
+        """
+        return "\\Bold{I} \\Bold{R}"
 
     def _sage_input_(self, sib, coerce):
         r"""

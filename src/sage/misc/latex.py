@@ -343,7 +343,7 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: latex_extra_preamble()
-        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
+        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\Bold{I} \\Bold{R}}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
     """
     from sage.misc.latex_macros import sage_latex_macros
     return (_Latex_prefs._option['preamble'] + "\n"

@@ -640,7 +640,7 @@ class MixedIntegerLinearProgram:
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
             sage: p.solve()           # optional - requires Glpk or COIN-OR/CBC
             6.6666666666666661
-            sage: p.get_values(x)     # optional - requires Glpk or COIN-OR/CBC
+            sage: p.get_values(x)     # optional random - requires Glpk or COIN-OR/CBC
             {1: 0.0, 2: 1.3333333333333333}
 
             sage: ### Computation of a maximum stable set in Petersen's graph

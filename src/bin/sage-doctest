@@ -495,7 +495,7 @@ def pythonify_rst(F):
         while True:
             # regular expression search in string s[pos:] for:
             # whitespace followed by "::" at the start of a line
-            srch = re.search('^(\s*)::', s[pos:], re.M)
+            srch = re.search('^(\s*).*::\s*$', s[pos:], re.M)
 
             #Return -1 if we don't find anything.
             if srch is None:

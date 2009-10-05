@@ -26,7 +26,7 @@ import copy
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.real_rqdf import RR
+from sage.rings.real_mpfr import RR
 from sage.rings.arith import prime_divisors, valuation, hilbert_symbol
 from sage.quadratic_forms.extras import sgn
 from sage.rings.fraction_field import FractionField

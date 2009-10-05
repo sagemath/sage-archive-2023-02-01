@@ -382,13 +382,12 @@ class Function_gamma(PrimitiveFunction):
         r"""
         The Gamma function.  This is defined by
         `\Gamma(z) = \int_0^\infty t^{z-1}e^{-t} dt`
-        for complex input `z` with real part greater
-        than zero, and by analytic continuation on
-        the rest of the complex plane (except for negative
-        integers, which are poles).
+        for complex input `z` with real part greater than zero, and by
+        analytic continuation on the rest of the complex plane (except
+        for negative integers, which are poles).
 
-       It is computed by various libraries within Sage,
-       depending on the input type.
+        It is computed by various libraries within Sage, depending on
+        the input type.
 
         EXAMPLES::
 
@@ -397,9 +396,7 @@ class Function_gamma(PrimitiveFunction):
             sage: gamma(CDF(I))
             -0.154949828302 - 0.498015668118*I
 
-        Recall that `Gamma(n)` is `n` factorial.
-
-        ::
+        Recall that `\Gamma(n)` is `n-1` factorial::
 
             sage: gamma(11) == factorial(10)
             True

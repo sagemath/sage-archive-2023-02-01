@@ -98,6 +98,17 @@ pixels wide as it is tall::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[8,4])
 
+Note that the axes will not cross if the data is not on both sides of
+both axes, even if it is quite close::
+
+    sage: plot(x^3,(x,1,10))
+
+When the labels have quite different orders of magnitude or are very
+large, scientific notation (the `e` notation for powers of ten) is used::
+
+    sage: plot(x^2,(x,480,500))  # no scientific notation
+    sage: plot(x^2,(x,300,500))  # scientific notation on y-axis
+
 Next we construct the reflection of the above polygon about the
 `y`-axis by iterating over the list of first-coordinates of
 the first graphic element of `P` (which is the actual
@@ -703,6 +714,11 @@ class Graphics(SageObject):
         Now when you plot p, you see x and y axes labels::
 
             sage: p
+
+        Notice that some may prefer axes labels which are not
+        typeset::
+
+            sage: plot(sin(x), (x, 0, 10), axes_labels=['x','y'])
         """
         if l is None:
             try:
@@ -2226,6 +2242,20 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(sin(1/x), (x, -1, 1))
 
+    Via the matplotlib library, Sage makes it easy to tell whether
+    a graph is on both sides of both axes, as the axes only cross
+    if the origin is actually part of the viewing area::
+
+        sage: plot(x^3,(x,0,2))  # this one has the origin
+        sage: plot(x^3,(x,1,2))  # this one does not
+
+    Another thing to be aware of with axis labeling is that when
+    the labels have quite different orders of magnitude or are very
+    large, scientific notation (the `e` notation for powers of ten) is used::
+
+        sage: plot(x^2,(x,480,500))  # this one has no scientific notation
+        sage: plot(x^2,(x,300,500))  # this one has scientific notation on y-axis
+
     Note that the independent variable may be omitted if there is no
     ambiguity::
 
@@ -2337,6 +2367,11 @@ def plot(funcs, *args, **kwds):
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
 
     Extra options will get passed on to show(), as long as they are valid::
+
+        sage: plot(sin(x^2), (x, -3, 3), axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        sage: plot(sin(x^2), (x, -3, 3), axes_labels=['x','y']) # These will not
+
+    ::
 
         sage: plot(sin(x^2), (x, -3, 3), figsize=[8,2])
         sage: plot(sin(x^2), (x, -3, 3)).show(figsize=[8,2]) # These are equivalent

@@ -73,6 +73,14 @@ also:
     sage: x = var('x')
     sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
 
+It's important to notice that the axes of the plots will only
+intersect if the origin is in the viewing range of the graph, and
+that with sufficiently large values scientific notation may be used:
+
+::
+
+    sage: plot(x^2,(x,300,500))
+
 You can combine several plots by adding them:
 
 ::

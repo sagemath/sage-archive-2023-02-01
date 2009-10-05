@@ -255,8 +255,14 @@ def contour_plot(f, xrange, yrange, **options):
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: f(x, y) = cos(x) + sin(y)
-        sage: contour_plot(f, (0, pi), (0, pi), axes=False)
-        sage: contour_plot(f, (0, pi), (0, pi)).show(axes=False) # These are equivalent
+        sage: contour_plot(f, (0, pi), (0, pi), axes=True)
+        sage: contour_plot(f, (0, pi), (0, pi)).show(axes=True) # These are equivalent
+
+    Note that with ``fill=False`` and grayscale contours, there is the
+    possibility of confusion between the contours and the axes, so use
+    ``fill=False`` together with ``axes=True`` with caution::
+
+        sage: contour_plot(f, (-pi, pi), (-pi, pi), fill=False, axes=True)
 
     TESTS:
 

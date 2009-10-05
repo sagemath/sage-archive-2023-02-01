@@ -39,7 +39,6 @@ AUTHORS:
 #*****************************************************************************
 
 # TODO: check off this todo list:
-# - methods for cryptanalysis of the shift cipher
 # - implement the affine cipher
 # - methods for cryptanalysis of the affine cipher
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -416,11 +415,13 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
     alphabets are supported for the shift cipher:
 
     - capital letters of the English alphabet as implemented in
-      :func:`AlphabeticStrings() <sage.monoids.string_monoid.AlphabeticStrings>`
+      :func:`AlphabeticStrings()
+      <sage.monoids.string_monoid.AlphabeticStrings>`
 
     - the alphabet consisting of the hexadecimal number system as
       implemented in
-      :func:`HexadecimalStrings() <sage.monoids.string_monoid.HexadecimalStrings>`
+      :func:`HexadecimalStrings()
+      <sage.monoids.string_monoid.HexadecimalStrings>`
 
     - the alphabet consisting of the binary number system as implemented in
       :func:`BinaryStrings() <sage.monoids.string_monoid.BinaryStrings>`
@@ -731,6 +732,719 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
         # over the same non-empty alphabet. The cipher domain is the same
         # as the alphabet used for the plaintext and ciphertext spaces.
         return "Shift cryptosystem on %s" % self.cipher_domain()
+
+    def rank_by_chi_square(self, C, pdict):
+        r"""
+        Use the chi-square statistic to rank all possible keys. Currently,
+        this method only applies to the capital letters of the English
+        alphabet.
+
+        ALGORITHM:
+
+        Consider a non-empty alphabet `A` consisting of `n`
+        elements, and let `C` be a ciphertext encoded using elements of
+        `A`. The plaintext `P` corresponding to `C` is also encoded using
+        elements of `A`. Let `M` be a candidate decipherment of `C`,
+        i.e. `M` is the result of attempting to decrypt `C` using a key
+        `k \in \ZZ/n\ZZ` which is not necessarily the same key used to
+        encrypt `P`. Suppose `F_A(e)` is the characteristic frequency
+        probability of `e \in A` and let `F_M(e)` be the message frequency
+        probability with respect to `M`. The characteristic frequency
+        probability distribution of an alphabet is the expected frequency
+        probability distribution for that alphabet. The message frequency
+        probability distribution of `M` provides a distribution of the ratio
+        of character occurrences over message length. One can interpret the
+        characteristic frequency probability `F_A(e)` as the expected
+        probability, while the message frequency probability `F_M(e)` is
+        the observed probability. If `M` is of length `L`, then the observed
+        frequency of `e \in A` is
+
+        .. MATH::
+
+            O_M(e)
+            =
+            F_M(e) \cdot L
+
+        and the expected frequency of `e \in A` is
+
+        .. MATH::
+
+            E_A(e)
+            =
+            F_A(e) \cdot L
+
+        The chi-square rank `R_{\chi^2}(M)` of `M` corresponding to a key
+        `k \in \ZZ/n\ZZ` is given by
+
+        .. MATH::
+
+            R_{\chi^2}(M)
+            =
+            \sum_{e \in A} \frac {\big( O_M(e) - E_A(e) \big)^2}
+                                 {E_A(e)}
+
+        Cryptanalysis by exhaustive key search produces a candidate
+        decipherment `M_{k}` for each possible key `k \in \ZZ/n\ZZ`. For
+        a set
+        `D = \big\{M_{k_1}, M_{k_2}, \dots, M_{k_r} \big\}`
+        of all candidate decipherments corresponding to a ciphertext `C`,
+        the smaller is the rank `R_{\chi^2}(M_{k_i})` the more likely
+        that `k_i` is the secret key. This key ranking method is based on
+        the Pearson chi-square test [PearsonTest09]_.
+
+        INPUT:
+
+        - ``C`` -- The ciphertext, a non-empty string. The ciphertext
+          must be encoded using the upper-case letters of the English
+          alphabet.
+
+        - ``pdict`` -- A dictionary of key, possible plaintext pairs.
+          This should be the output of :func:`brute_force` with
+          ``ranking="none"``.
+
+        OUTPUT:
+
+        - A list ranking the most likely keys first. Each element of the
+          list is a tuple of key, possible plaintext pairs.
+
+        EXAMPLES:
+
+        Use the chi-square statistic to rank all possible keys and their
+        corresponding decipherment::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: P = S.encoding("Shi."); P
+            SHI
+            sage: K = 5
+            sage: C = S.enciphering(K, P)
+            sage: Pdict = S.brute_force(C)
+            sage: S.rank_by_chi_square(C, Pdict)
+            <BLANKLINE>
+            [(9, ODE),
+            (5, SHI),
+            (20, DST),
+            (19, ETU),
+            (21, CRS),
+            (10, NCD),
+            (25, YNO),
+            (6, RGH),
+            (12, LAB),
+            (8, PEF),
+            (1, WLM),
+            (11, MBC),
+            (18, FUV),
+            (17, GVW),
+            (2, VKL),
+            (4, TIJ),
+            (3, UJK),
+            (0, XMN),
+            (16, HWX),
+            (15, IXY),
+            (23, APQ),
+            (24, ZOP),
+            (22, BQR),
+            (7, QFG),
+            (13, KZA),
+            (14, JYZ)]
+
+        As more ciphertext is available, the reliability of the chi-square
+        ranking function increases::
+
+            sage: P = S.encoding("Shift cipher."); P
+            SHIFTCIPHER
+            sage: C = S.enciphering(K, P)
+            sage: Pdict = S.brute_force(C)
+            sage: S.rank_by_chi_square(C, Pdict)
+            <BLANKLINE>
+            [(5, SHIFTCIPHER),
+            (9, ODEBPYELDAN),
+            (18, FUVSGPVCURE),
+            (2, VKLIWFLSKHU),
+            (20, DSTQENTASPC),
+            (19, ETURFOUBTQD),
+            (21, CRSPDMSZROB),
+            (6, RGHESBHOGDQ),
+            (7, QFGDRAGNFCP),
+            (12, LABYMVBIAXK),
+            (17, GVWTHQWDVSF),
+            (24, ZOPMAJPWOLY),
+            (1, WLMJXGMTLIV),
+            (0, XMNKYHNUMJW),
+            (11, MBCZNWCJBYL),
+            (8, PEFCQZFMEBO),
+            (25, YNOLZIOVNKX),
+            (10, NCDAOXDKCZM),
+            (3, UJKHVEKRJGT),
+            (4, TIJGUDJQIFS),
+            (22, BQROCLRYQNA),
+            (16, HWXUIRXEWTG),
+            (15, IXYVJSYFXUH),
+            (14, JYZWKTZGYVI),
+            (13, KZAXLUAHZWJ),
+            (23, APQNBKQXPMZ)]
+
+        TESTS:
+
+        The ciphertext cannot be an empty string::
+
+            sage: S.rank_by_chi_square("", Pdict)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute 'parent'
+            sage: S.rank_by_chi_square(S.encoding(""), Pdict)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ciphertext must be a non-empty string.
+            sage: S.rank_by_chi_square(S.encoding(" "), Pdict)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ciphertext must be a non-empty string.
+
+        The ciphertext must be encoded using the capital letters of the
+        English alphabet as implemented in
+        :func:`AlphabeticStrings()
+        <sage.monoids.string_monoid.AlphabeticStrings>`::
+
+            sage: H = HexadecimalStrings()
+            sage: S.rank_by_chi_square(H.encoding("shift"), Pdict)
+            Traceback (most recent call last):
+            ...
+            TypeError: The ciphertext must be capital letters of the English alphabet.
+            sage: B = BinaryStrings()
+            sage: S.rank_by_chi_square(B.encoding("shift"), Pdict)
+            Traceback (most recent call last):
+            ...
+            TypeError: The ciphertext must be capital letters of the English alphabet.
+
+        The dictionary ``pdict`` cannot be empty::
+
+            sage: S.rank_by_chi_square(C, {})
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+
+        REFERENCES:
+
+        .. [PearsonTest09] `Pearson chi-square test
+          <http://en.wikipedia.org/wiki/Goodness_of_fit>`_. Wikipedia,
+          accessed 13th October 2009.
+        """
+        # sanity check
+        from sage.monoids.string_monoid import (
+            AlphabeticStringMonoid,
+            AlphabeticStrings)
+        if not isinstance(C.parent(), AlphabeticStringMonoid):
+            raise TypeError("The ciphertext must be capital letters of the English alphabet.")
+        if str(C) == "":
+            raise ValueError("The ciphertext must be a non-empty string.")
+
+        # compute the rank of each key
+        AS = AlphabeticStrings()
+        # the alphabet in question
+        Alph = self.encoding("".join([str(e) for e in AS.gens()]))
+        StrAlph = str(Alph)
+        # message length
+        L = len(C)
+        # expected frequency tally
+        EA = AS.characteristic_frequency()
+        for e in EA:
+            EA[e] *= L
+        # the rank R(M, k) of M for each key
+        Rank = []
+        for key in xrange(self.alphabet_size()):
+            # observed frequency tally
+            OM = pdict[key].frequency_distribution().function()
+            for e in Alph:
+                if e in OM:
+                    OM[e] *= L
+                else:
+                    OM.setdefault(e, 0.0)
+            # the rank R(M, K) of M with shift key k
+            RMk = [(OM[AS(e)] - EA[e])**2 / EA[e] for e in StrAlph]
+            Rank.append((sum(RMk), key))
+        # Sort in non-decreasing order of chi-square statistic. It's
+        # possible that two different keys share the same chi-square
+        # statistic.
+        Rank = sorted(Rank)
+        RankedList = []
+        # In the following line, the value of val is not used at all, making
+        # it redundant to access val in the first place. This line
+        # of code is written with readability in mind.
+        [RankedList.append((key, pdict[key])) for val, key in Rank]
+        return RankedList
+
+    def rank_by_squared_differences(self, C, pdict):
+        r"""
+        Use the squared-differences measure to rank all possible keys.
+        Currently, this method only applies to the capital letters of
+        the English alphabet.
+
+        ALGORITHM:
+
+        Consider a non-empty alphabet `A` consisting of `n`
+        elements, and let `C` be a ciphertext encoded using elements of
+        `A`. The plaintext `P` corresponding to `C` is also encoded using
+        elements of `A`. Let `M` be a candidate decipherment of `C`,
+        i.e. `M` is the result of attempting to decrypt `C` using a key
+        `k \in \ZZ/n\ZZ` which is not necessarily the same key used to
+        encrypt `P`. Suppose `F_A(e)` is the characteristic frequency
+        probability of `e \in A` and let `F_M(e)` be the message
+        frequency probability with respect to `M`. The characteristic
+        frequency probability distribution of an alphabet is the expected
+        frequency probability distribution for that alphabet. The message
+        frequency probability distribution of `M` provides a distribution
+        of the ratio of character occurrences over message length. One can
+        interpret the characteristic frequency probability `F_A(e)` as the
+        expected probability, while the message frequency probability
+        `F_M(e)` is the observed probability. If `M` is of length `L`, then
+        the observed frequency of `e \in A` is
+
+        .. MATH::
+
+            O_M(e)
+            =
+            F_M(e) \cdot L
+
+        and the expected frequency of `e \in A` is
+
+        .. MATH::
+
+            E_A(e)
+            =
+            F_A(e) \cdot L
+
+        The squared-differences, or residual sum of squares, rank
+        `R_{RSS}(M)` of `M` corresponding to a key
+        `k \in \ZZ/n\ZZ` is given by
+
+        .. MATH::
+
+            R_{RSS}(M)
+            =
+            \sum_{e \in A} \big( O_M(e) - E_A(e) \big)^2
+
+        Cryptanalysis by exhaustive key search produces a candidate
+        decipherment `M_{k}` for each possible key `k \in \ZZ/n\ZZ`. For
+        a set
+        `D = \big\{M_{k_1}, M_{k_2}, \dots, M_{k_r} \big\}`
+        of all candidate decipherments corresponding to a ciphertext `C`,
+        the smaller is the rank `R_{RSS}(M_{k_i})` the more likely
+        that `k_i` is the secret key. This key ranking method is based
+        on the residual sum of squares measure [RSS09]_.
+
+        INPUT:
+
+        - ``C`` -- The ciphertext, a non-empty string. The ciphertext
+          must be encoded using the upper-case letters of the English
+          alphabet.
+
+        - ``pdict`` -- A dictionary of key, possible plaintext pairs.
+          This should be the output of :func:`brute_force` with
+          ``ranking="none"``.
+
+        OUTPUT:
+
+        - A list ranking the most likely keys first. Each element of the
+          list is a tuple of key, possible plaintext pairs.
+
+        EXAMPLES:
+
+        Use the method of squared differences to rank all possible keys
+        and their corresponding decipherment::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: P = S.encoding("Shi."); P
+            SHI
+            sage: K = 5
+            sage: C = S.enciphering(K, P)
+            sage: Pdict = S.brute_force(C)
+            sage: S.rank_by_squared_differences(C, Pdict)
+            <BLANKLINE>
+            [(19, ETU),
+            (9, ODE),
+            (20, DST),
+            (5, SHI),
+            (8, PEF),
+            (4, TIJ),
+            (25, YNO),
+            (21, CRS),
+            (6, RGH),
+            (10, NCD),
+            (12, LAB),
+            (23, APQ),
+            (24, ZOP),
+            (0, XMN),
+            (13, KZA),
+            (15, IXY),
+            (1, WLM),
+            (16, HWX),
+            (22, BQR),
+            (11, MBC),
+            (18, FUV),
+            (2, VKL),
+            (17, GVW),
+            (7, QFG),
+            (3, UJK),
+            (14, JYZ)]
+
+        As more ciphertext is available, the reliability of the squared
+        differences ranking function increases::
+
+            sage: P = S.encoding("Shift cipher."); P
+            SHIFTCIPHER
+            sage: C = S.enciphering(K, P)
+            sage: Pdict = S.brute_force(C)
+            sage: S.rank_by_squared_differences(C, Pdict)
+            <BLANKLINE>
+            [(20, DSTQENTASPC),
+            (5, SHIFTCIPHER),
+            (9, ODEBPYELDAN),
+            (19, ETURFOUBTQD),
+            (6, RGHESBHOGDQ),
+            (16, HWXUIRXEWTG),
+            (8, PEFCQZFMEBO),
+            (21, CRSPDMSZROB),
+            (22, BQROCLRYQNA),
+            (25, YNOLZIOVNKX),
+            (3, UJKHVEKRJGT),
+            (18, FUVSGPVCURE),
+            (4, TIJGUDJQIFS),
+            (10, NCDAOXDKCZM),
+            (7, QFGDRAGNFCP),
+            (24, ZOPMAJPWOLY),
+            (2, VKLIWFLSKHU),
+            (12, LABYMVBIAXK),
+            (17, GVWTHQWDVSF),
+            (1, WLMJXGMTLIV),
+            (13, KZAXLUAHZWJ),
+            (0, XMNKYHNUMJW),
+            (15, IXYVJSYFXUH),
+            (14, JYZWKTZGYVI),
+            (11, MBCZNWCJBYL),
+            (23, APQNBKQXPMZ)]
+
+        TESTS:
+
+        The ciphertext cannot be an empty string::
+
+            sage: S.rank_by_squared_differences("", Pdict)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute 'parent'
+            sage: S.rank_by_squared_differences(S.encoding(""), Pdict)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ciphertext must be a non-empty string.
+            sage: S.rank_by_squared_differences(S.encoding(" "), Pdict)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ciphertext must be a non-empty string.
+
+        The ciphertext must be encoded using the capital letters of the
+        English alphabet as implemented in
+        :func:`AlphabeticStrings()
+        <sage.monoids.string_monoid.AlphabeticStrings>`::
+
+            sage: H = HexadecimalStrings()
+            sage: S.rank_by_squared_differences(H.encoding("shift"), Pdict)
+            Traceback (most recent call last):
+            ...
+            TypeError: The ciphertext must be capital letters of the English alphabet.
+            sage: B = BinaryStrings()
+            sage: S.rank_by_squared_differences(B.encoding("shift"), Pdict)
+            Traceback (most recent call last):
+            ...
+            TypeError: The ciphertext must be capital letters of the English alphabet.
+
+        The dictionary ``pdict`` cannot be empty::
+
+            sage: S.rank_by_squared_differences(C, {})
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+
+        REFERENCES:
+
+        .. [RSS09] `Residual sum of squares
+          <http://en.wikipedia.org/wiki/Residual_sum_of_squares>`_.
+          Wikipedia, accessed 13th October 2009.
+        """
+        # NOTE: the code in this method is very similar to that in the
+        # method rank_by_chi_square(). The only difference here is the
+        # line that computes the list RMk.
+
+        # sanity check
+        from sage.monoids.string_monoid import (
+            AlphabeticStringMonoid,
+            AlphabeticStrings)
+        if not isinstance(C.parent(), AlphabeticStringMonoid):
+            raise TypeError("The ciphertext must be capital letters of the English alphabet.")
+        if str(C) == "":
+            raise ValueError("The ciphertext must be a non-empty string.")
+
+        # compute the rank of each key
+        AS = AlphabeticStrings()
+        # the alphabet in question
+        Alph = self.encoding("".join([str(e) for e in AS.gens()]))
+        StrAlph = str(Alph)
+        # message length
+        L = len(C)
+        # expected frequency tally
+        EA = AS.characteristic_frequency()
+        for e in EA:
+            EA[e] *= L
+        # the rank R(M, k) of M for each key
+        Rank = []
+        for key in xrange(self.alphabet_size()):
+            # observed frequency tally
+            OM = pdict[key].frequency_distribution().function()
+            for e in Alph:
+                if e in OM:
+                    OM[e] *= L
+                else:
+                    OM.setdefault(e, 0.0)
+            # the rank R(M, K) of M with shift key k
+            RMk = [(OM[AS(e)] - EA[e])**2 for e in StrAlph]
+            Rank.append((sum(RMk), key))
+        # Sort in non-decreasing order of chi-square statistic. It's
+        # possible that two different keys share the same chi-square
+        # statistic.
+        Rank = sorted(Rank)
+        RankedList = []
+        # In the following line, the value of val is not used at all, making
+        # it redundant to access val in the first place. This line
+        # of code is written with readability in mind.
+        [RankedList.append((key, pdict[key])) for val, key in Rank]
+        return RankedList
+
+    def brute_force(self, C, ranking="none"):
+        r"""
+        Attempt a brute force cryptanalysis of the ciphertext ``C``.
+
+        INPUT:
+
+        - ``C`` -- A ciphertext over one of the supported alphabets of this
+          shift cryptosystem. See the class :class:`ShiftCryptosystem` for
+          documentation on the supported alphabets.
+
+        - ``ranking`` -- (default ``"none"``) the method to use for
+          ranking all possible keys. If ``ranking="none"``, then do not
+          use any ranking function. The following ranking functions are
+          supported:
+
+          - ``"chisquare"`` -- the chi-square ranking function as
+            implemented in the method :func:`rank_by_chi_square`.
+
+          - ``"squared_differences"`` -- the squared differences ranking
+            function as implemented in the method
+            :func:`rank_by_squared_differences`.
+
+        OUTPUT:
+
+        - All the possible plaintext sequences corresponding to the
+          ciphertext ``C``. This method effectively uses all the possible
+          keys in this shift cryptosystem to decrypt ``C``. The method is
+          also referred to as exhaustive key search. The output is
+          a dictionary of key, plaintext pairs.
+
+        EXAMPLES:
+
+        Cryptanalyze using all possible keys for various alphabets. Over
+        the upper-case letters of the English alphabet::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: P = S.encoding("The shift cryptosystem generalizes the Caesar cipher.")
+            sage: K = 7
+            sage: C = S.enciphering(K, P)
+            sage: Dict = S.brute_force(C)
+            sage: for k in xrange(len(Dict)):
+            ...       if Dict[k] == P:
+            ...           print "key =", k
+            ...
+            key = 7
+
+        Over the hexadecimal number system::
+
+            sage: S = ShiftCryptosystem(HexadecimalStrings())
+            sage: P = S.encoding("Encryption & decryption shifts along the alphabet.")
+            sage: K = 5
+            sage: C = S.enciphering(K, P)
+            sage: Dict = S.brute_force(C)
+            sage: for k in xrange(len(Dict)):
+            ...       if Dict[k] == P:
+            ...           print "key =", k
+            ...
+            key = 5
+
+        And over the binary number system::
+
+            sage: S = ShiftCryptosystem(BinaryStrings())
+            sage: P = S.encoding("The binary alphabet is very insecure.")
+            sage: K = 1
+            sage: C = S.enciphering(K, P)
+            sage: Dict = S.brute_force(C)
+            sage: for k in xrange(len(Dict)):
+            ...       if Dict[k] == P:
+            ...           print "key =", k
+            ...
+            key = 1
+
+        Don't use any ranking functions, i.e. ``ranking="none"``::
+
+            sage: S = ShiftCryptosystem(AlphabeticStrings())
+            sage: P = S.encoding("Shifting using modular arithmetic.")
+            sage: K = 8
+            sage: C = S.enciphering(K, P)
+            sage: pdict = S.brute_force(C)
+            sage: sorted(pdict.items())
+            <BLANKLINE>
+            [(0, APQNBQVOCAQVOUWLCTIZIZQBPUMBQK),
+            (1, ZOPMAPUNBZPUNTVKBSHYHYPAOTLAPJ),
+            (2, YNOLZOTMAYOTMSUJARGXGXOZNSKZOI),
+            (3, XMNKYNSLZXNSLRTIZQFWFWNYMRJYNH),
+            (4, WLMJXMRKYWMRKQSHYPEVEVMXLQIXMG),
+            (5, VKLIWLQJXVLQJPRGXODUDULWKPHWLF),
+            (6, UJKHVKPIWUKPIOQFWNCTCTKVJOGVKE),
+            (7, TIJGUJOHVTJOHNPEVMBSBSJUINFUJD),
+            (8, SHIFTINGUSINGMODULARARITHMETIC),
+            (9, RGHESHMFTRHMFLNCTKZQZQHSGLDSHB),
+            (10, QFGDRGLESQGLEKMBSJYPYPGRFKCRGA),
+            (11, PEFCQFKDRPFKDJLARIXOXOFQEJBQFZ),
+            (12, ODEBPEJCQOEJCIKZQHWNWNEPDIAPEY),
+            (13, NCDAODIBPNDIBHJYPGVMVMDOCHZODX),
+            (14, MBCZNCHAOMCHAGIXOFULULCNBGYNCW),
+            (15, LABYMBGZNLBGZFHWNETKTKBMAFXMBV),
+            (16, KZAXLAFYMKAFYEGVMDSJSJALZEWLAU),
+            (17, JYZWKZEXLJZEXDFULCRIRIZKYDVKZT),
+            (18, IXYVJYDWKIYDWCETKBQHQHYJXCUJYS),
+            (19, HWXUIXCVJHXCVBDSJAPGPGXIWBTIXR),
+            (20, GVWTHWBUIGWBUACRIZOFOFWHVASHWQ),
+            (21, FUVSGVATHFVATZBQHYNENEVGUZRGVP),
+            (22, ETURFUZSGEUZSYAPGXMDMDUFTYQFUO),
+            (23, DSTQETYRFDTYRXZOFWLCLCTESXPETN),
+            (24, CRSPDSXQECSXQWYNEVKBKBSDRWODSM),
+            (25, BQROCRWPDBRWPVXMDUJAJARCQVNCRL)]
+
+        Use the chi-square ranking function, i.e. ``ranking="chisquare"``::
+
+            sage: S.brute_force(C, ranking="chisquare")
+            <BLANKLINE>
+            [(8, SHIFTINGUSINGMODULARARITHMETIC),
+            (14, MBCZNCHAOMCHAGIXOFULULCNBGYNCW),
+            (20, GVWTHWBUIGWBUACRIZOFOFWHVASHWQ),
+            (13, NCDAODIBPNDIBHJYPGVMVMDOCHZODX),
+            (1, ZOPMAPUNBZPUNTVKBSHYHYPAOTLAPJ),
+            (23, DSTQETYRFDTYRXZOFWLCLCTESXPETN),
+            (10, QFGDRGLESQGLEKMBSJYPYPGRFKCRGA),
+            (6, UJKHVKPIWUKPIOQFWNCTCTKVJOGVKE),
+            (22, ETURFUZSGEUZSYAPGXMDMDUFTYQFUO),
+            (15, LABYMBGZNLBGZFHWNETKTKBMAFXMBV),
+            (12, ODEBPEJCQOEJCIKZQHWNWNEPDIAPEY),
+            (21, FUVSGVATHFVATZBQHYNENEVGUZRGVP),
+            (16, KZAXLAFYMKAFYEGVMDSJSJALZEWLAU),
+            (25, BQROCRWPDBRWPVXMDUJAJARCQVNCRL),
+            (9, RGHESHMFTRHMFLNCTKZQZQHSGLDSHB),
+            (24, CRSPDSXQECSXQWYNEVKBKBSDRWODSM),
+            (3, XMNKYNSLZXNSLRTIZQFWFWNYMRJYNH),
+            (5, VKLIWLQJXVLQJPRGXODUDULWKPHWLF),
+            (7, TIJGUJOHVTJOHNPEVMBSBSJUINFUJD),
+            (2, YNOLZOTMAYOTMSUJARGXGXOZNSKZOI),
+            (18, IXYVJYDWKIYDWCETKBQHQHYJXCUJYS),
+            (4, WLMJXMRKYWMRKQSHYPEVEVMXLQIXMG),
+            (11, PEFCQFKDRPFKDJLARIXOXOFQEJBQFZ),
+            (19, HWXUIXCVJHXCVBDSJAPGPGXIWBTIXR),
+            (0, APQNBQVOCAQVOUWLCTIZIZQBPUMBQK),
+            (17, JYZWKZEXLJZEXDFULCRIRIZKYDVKZT)]
+
+        Use the squared differences ranking function, i.e.
+        ``ranking="squared_differences"``::
+
+            sage: S.brute_force(C, ranking="squared_differences")
+            <BLANKLINE>
+            [(8, SHIFTINGUSINGMODULARARITHMETIC),
+            (23, DSTQETYRFDTYRXZOFWLCLCTESXPETN),
+            (12, ODEBPEJCQOEJCIKZQHWNWNEPDIAPEY),
+            (2, YNOLZOTMAYOTMSUJARGXGXOZNSKZOI),
+            (9, RGHESHMFTRHMFLNCTKZQZQHSGLDSHB),
+            (7, TIJGUJOHVTJOHNPEVMBSBSJUINFUJD),
+            (21, FUVSGVATHFVATZBQHYNENEVGUZRGVP),
+            (22, ETURFUZSGEUZSYAPGXMDMDUFTYQFUO),
+            (1, ZOPMAPUNBZPUNTVKBSHYHYPAOTLAPJ),
+            (16, KZAXLAFYMKAFYEGVMDSJSJALZEWLAU),
+            (20, GVWTHWBUIGWBUACRIZOFOFWHVASHWQ),
+            (24, CRSPDSXQECSXQWYNEVKBKBSDRWODSM),
+            (14, MBCZNCHAOMCHAGIXOFULULCNBGYNCW),
+            (13, NCDAODIBPNDIBHJYPGVMVMDOCHZODX),
+            (3, XMNKYNSLZXNSLRTIZQFWFWNYMRJYNH),
+            (10, QFGDRGLESQGLEKMBSJYPYPGRFKCRGA),
+            (15, LABYMBGZNLBGZFHWNETKTKBMAFXMBV),
+            (6, UJKHVKPIWUKPIOQFWNCTCTKVJOGVKE),
+            (11, PEFCQFKDRPFKDJLARIXOXOFQEJBQFZ),
+            (25, BQROCRWPDBRWPVXMDUJAJARCQVNCRL),
+            (17, JYZWKZEXLJZEXDFULCRIRIZKYDVKZT),
+            (19, HWXUIXCVJHXCVBDSJAPGPGXIWBTIXR),
+            (4, WLMJXMRKYWMRKQSHYPEVEVMXLQIXMG),
+            (0, APQNBQVOCAQVOUWLCTIZIZQBPUMBQK),
+            (18, IXYVJYDWKIYDWCETKBQHQHYJXCUJYS),
+            (5, VKLIWLQJXVLQJPRGXODUDULWKPHWLF)]
+
+        TESTS:
+
+        Currently, the octal number system is not supported as an alphabet for
+        this shift cryptosystem::
+
+            sage: SA = ShiftCryptosystem(AlphabeticStrings())
+            sage: OctStr = OctalStrings()
+            sage: C = OctStr([1, 2, 3])
+            sage: SA.brute_force(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: ciphertext must be encoded using one of the supported cipher domains of this shift cryptosystem.
+
+        Nor is the radix-64 alphabet supported::
+
+            sage: Rad64 = Radix64Strings()
+            sage: C = Rad64([1, 2, 3])
+            sage: SA.brute_force(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: ciphertext must be encoded using one of the supported cipher domains of this shift cryptosystem.
+        """
+        # Sanity check: ensure that C is encoded using one of the
+        # supported alphabets of this shift cryptosystem.
+        from sage.monoids.string_monoid import (
+            AlphabeticStringMonoid,
+            BinaryStringMonoid,
+            HexadecimalStringMonoid)
+        if not isinstance(C.parent(), (
+                AlphabeticStringMonoid,
+                BinaryStringMonoid,
+                HexadecimalStringMonoid)):
+            raise TypeError("ciphertext must be encoded using one of the supported cipher domains of this shift cryptosystem.")
+        ranking_functions = ["none", "chisquare", "squared_differences"]
+        if ranking not in ranking_functions:
+            raise ValueError("Keyword 'ranking' must be either 'none', 'chisquare', or 'squared_differences'.")
+
+        # Now do the actual task of cryptanalysis by means of exhaustive key
+        # search, also known as the brute force method.
+        # let D be a dictionary of key/plaintext pairs
+        D = {}
+
+        # NOTE: This loop is a good candidate for loop unrolling. Unless we
+        # can justify that this block of code is a bottleneck on the runtime
+        # of the method, we should leave it as is. For the alphabets that
+        # are supported by this shift cryptosystem, it can be a waste of
+        # time optimizing the code when the largest alphabet size is less
+        # than 100.
+        for k in xrange(self.alphabet_size()):
+            D.setdefault(k, self.deciphering(k, C))
+
+        if ranking == "none":
+            return D
+        if ranking == "chisquare":
+            return self.rank_by_chi_square(C, D)
+        if ranking == "squared_differences":
+            return self.rank_by_squared_differences(C, D)
 
     def deciphering(self, K, C):
         r"""

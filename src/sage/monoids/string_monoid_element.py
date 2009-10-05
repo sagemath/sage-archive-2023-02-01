@@ -316,9 +316,152 @@ class StringMonoidElement(FreeMonoidElement):
         ci_den = nn*(nn-1)
         return RR(ci_num)/ci_den
 
+    def character_count(self):
+        r"""
+        Return the count of each unique character.
+
+        EXAMPLES:
+
+        Count the character frequency in an object comprised of capital
+        letters of the English alphabet::
+
+            sage: M = AlphabeticStrings().encoding("abcabf")
+            sage: sorted(M.character_count().items())
+            [(A, 2), (B, 2), (C, 1), (F, 1)]
+
+        In an object comprised of binary numbers::
+
+            sage: M = BinaryStrings().encoding("abcabf")
+            sage: sorted(M.character_count().items())
+            [(0, 28), (1, 20)]
+
+        In an object comprised of octal numbers::
+
+            sage: A = OctalStrings()
+            sage: M = A([1, 2, 3, 2, 5, 3])
+            sage: sorted(M.character_count().items())
+            [(1, 1), (2, 2), (3, 2), (5, 1)]
+
+        In an object comprised of hexadecimal numbers::
+
+            sage: A = HexadecimalStrings()
+            sage: M = A([1, 2, 4, 6, 2, 4, 15])
+            sage: sorted(M.character_count().items())
+            [(1, 1), (2, 2), (4, 2), (6, 1), (f, 1)]
+
+        In an object comprised of radix-64 characters::
+
+            sage: A = Radix64Strings()
+            sage: M = A([1, 2, 63, 45, 45, 10]); M
+            BC/ttK
+            sage: sorted(M.character_count().items())
+            [(B, 1), (C, 1), (K, 1), (t, 2), (/, 1)]
+
+        TESTS:
+
+        Empty strings return no counts of character frequency::
+
+            sage: M = AlphabeticStrings().encoding("")
+            sage: M.character_count()
+            {}
+            sage: M = BinaryStrings().encoding("")
+            sage: M.character_count()
+            {}
+            sage: A = OctalStrings()
+            sage: M = A([])
+            sage: M.character_count()
+            {}
+            sage: A = HexadecimalStrings()
+            sage: M = A([])
+            sage: M.character_count()
+            {}
+            sage: A = Radix64Strings()
+            sage: M = A([])
+            sage: M.character_count()
+            {}
+        """
+        # the character frequency, i.e. the character count
+        CF = {}
+        for e in self:
+            if e in CF:
+                CF[e] += 1
+            else:
+                CF.setdefault(e, 1)
+        return CF
+
     def frequency_distribution(self, length=1, prec=0):
         """
-        Returns the probability space of character frequencies.
+        Returns the probability space of character frequencies. The output
+        of this method is different from that of the method
+        :func:`characteristic_frequency()
+        <sage.monoids.string_monoid.AlphabeticStringMonoid.characteristic_frequency>`.
+        One can think of the characteristic frequency probability of an
+        element in an alphabet `A` as the expected probability of that element
+        occurring. Let `S` be a string encoded using elements of `A`. The
+        frequency probability distribution corresponding to `S` provides us
+        with the frequency probability of each element of `A` as observed
+        occurring in `S`. Thus one distribution provides expected
+        probabilities, while the other provides observed probabilities.
+
+        INPUT:
+
+        - ``length`` -- (default ``1``) if ``length=1`` then consider the
+          probability space of monogram frequency, i.e. probability
+          distribution of single characters. If ``length=2`` then consider
+          the probability space of digram frequency, i.e. probability
+          distribution of pairs of characters. This method currently
+          supports the generation of probability spaces for monogram
+          frequency (``length=1``) and digram frequency (``length=2``).
+
+        - ``prec`` -- (default ``0``) a non-negative integer representing
+          the precision (in number of bits) of a floating-point number. The
+          default value ``prec=0`` means that we use 53 bits to represent
+          the mantissa of a floating-point number. For more information on
+          the precision of floating-point numbers, see the function
+          :func:`RealField_constructor() <sage.rings.real_mpfr.RealField_constructor>` or refer to the module
+          :mod:`real_mpfr <sage.rings.real_mpfr>`.
+
+        EXAMPLES:
+
+        Capital letters of the English alphabet::
+
+            sage: M = AlphabeticStrings().encoding("abcd")
+            sage: L = M.frequency_distribution().function()
+            sage: sorted(L.items())
+            <BLANKLINE>
+            [(A, 0.250000000000000),
+            (B, 0.250000000000000),
+            (C, 0.250000000000000),
+            (D, 0.250000000000000)]
+
+        The binary number system::
+
+            sage: M = BinaryStrings().encoding("abcd")
+            sage: L = M.frequency_distribution().function()
+            sage: sorted(L.items())
+            [(0, 0.593750000000000), (1, 0.406250000000000)]
+
+        The hexadecimal number system::
+
+            sage: M = HexadecimalStrings().encoding("abcd")
+            sage: L = M.frequency_distribution().function()
+            sage: sorted(L.items())
+            <BLANKLINE>
+            [(1, 0.125000000000000),
+            (2, 0.125000000000000),
+            (3, 0.125000000000000),
+            (4, 0.125000000000000),
+            (6, 0.500000000000000)]
+
+        Get the observed frequency probability distribution of digrams in the
+        string "ABCD". This string consists of the following digrams: "AB",
+        "BC", and "CD". Now find out the frequency probability of each of
+        these digrams as they occur in the string "ABCD"::
+
+            sage: M = AlphabeticStrings().encoding("abcd")
+            sage: D = M.frequency_distribution(length=2).function()
+            sage: sorted(D.items())
+            [(AB, 0.333333333333333), (BC, 0.333333333333333), (CD, 0.333333333333333)]
         """
         if not length in (1, 2):
             raise NotImplementedError("Not implemented")
@@ -344,4 +487,6 @@ class StringMonoidElement(FreeMonoidElement):
                 X[c] += eps
             else:
                 X[c] = eps
+        # Return a dictionary of probability distribution. This should
+        # allow for easier parsing of the dictionary.
         return DiscreteProbabilitySpace(Alph, X, RR)

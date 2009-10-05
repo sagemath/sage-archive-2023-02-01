@@ -114,12 +114,12 @@ def lattice_paths(t1,t2):
     ``(t1[last], t2[last])``, and at each grid point, going either
     right or up.  See the examples.
 
-    INPUT:
-
-    -  ``t1``, ``t2`` - tuples, lists, other iterables.
-
-    OUTPUT: list of lists of vertices making up the paths as described
-    above
+    :param t1: labeling for vertices
+    :param t2: labeling for vertices
+    :type t1: tuple, list, other iterable
+    :type t2: tuple, list, other iterable
+    :return: list of lists of vertices making up the paths as described above
+    :rtype: list of lists
 
     This is used when triangulating the product of simplices.
 
@@ -162,11 +162,9 @@ class Simplex(SageObject):
     by specifying a set of vertices.  It is represented in Sage by the
     tuple of the vertices.
 
-    INPUT:
-
-    -  ``X`` - set of vertices
-
-    OUTPUT: simplex with those vertices
+    :param X: set of vertices
+    :type X: integer or list, tuple, or other iterable
+    :return: simplex with those vertices
 
     ``X`` may be a non-negative integer `n`, in which case the
     simplicial complex will have `n+1` vertices `(0, 1, ..., n)`, or
@@ -303,9 +301,7 @@ class Simplex(SageObject):
         Simplex obtained by concatenating the underlying tuples of the
         two arguments.
 
-        INPUT:
-
-        -  ``other`` - another simplex.
+        :param other: another simplex
 
         EXAMPLES::
 
@@ -319,12 +315,9 @@ class Simplex(SageObject):
         """
         The nth face of this simplex.
 
-        INPUT:
-
-        -  ``n`` - an integer between 0 and the dimension of this simplex
-
-        OUTPUT: the simplex obtained by removing the nth vertex from
-        this simplex
+        :param n: an integer between 0 and the dimension of this simplex
+        :type n: integer
+        :return: the simplex obtained by removing the nth vertex from this simplex
 
         EXAMPLES::
 
@@ -388,18 +381,17 @@ class Simplex(SageObject):
         The join of two simplices `[v_0, ..., v_k]` and `[w_0, ...,
         w_n]` is the simplex `[v_0, ..., v_k, w_0, ..., w_n]`.
 
-        INPUT:
+        :param right: the other simplex (the right-hand factor)
 
-        -  ``right`` - the other simplex (the right-hand factor)
+        :param rename_vertices: If this is True, the vertices in the
+            join will be renamed by this formula: vertex "v" in the
+            left-hand factor --> vertex "Lv" in the join, vertex "w"
+            in the right-hand factor --> vertex "Rw" in the join.  If
+            this is false, this tries to construct the join without
+            renaming the vertices; this may cause problems if the two
+            factors have any vertices with names in common.
 
-        -  ``rename_vertices`` -- boolean (optional, default True).  If
-           this is True, the vertices in the join will be renamed by
-           this formula: vertex "v" in the left-hand factor --> vertex
-           "Lv" in the join, vertex "w" in the right-hand factor -->
-           vertex "Rw" in the join.  If this is false, this tries to
-           construct the join without renaming the vertices; this may
-           cause problems if the two factors have any vertices with
-           names in common.
+        :type rename_vertices: boolean; optional, default True
 
         EXAMPLES::
 
@@ -422,20 +414,19 @@ class Simplex(SageObject):
         """
         The product of this simplex with another one, as a list of simplices.
 
-        INPUT:
+        :param other: the other simplex
 
-        -  ``other`` - the other simplex
+        :param rename_vertices: If this is False, then the vertices in
+            the product are the set of ordered pairs `(v,w)` where `v`
+            is a vertex in the left-hand factor (``self``) and `w` is
+            a vertex in the right-hand factor (``other``). If this is
+            True, then the vertices are renamed as "LvRw" (e.g., the
+            vertex (1,2) would become "L1R2").  This is useful if you
+            want to define the Stanley-Reisner ring of the complex:
+            vertex names like (0,1) are not suitable for that, while
+            vertex names like "L0R1" are.
 
-        - ``rename_vertices`` -- boolean (optional, default True). If
-           this is False, then the vertices in the product are the set
-           of ordered pairs `(v,w)` where `v` is a vertex in the
-           left-hand factor (``self``) and `w` is a vertex in the
-           right-hand factor (``other``). If this is True, then the
-           vertices are renamed as "LvRw" (e.g., the vertex (1,2)
-           would become "L1R2").  This is useful if you want to define
-           the Stanley-Reisner ring of the complex: vertex names like
-           (0,1) are not suitable for that, while vertex names like
-           "L0R1" are.
+        :type rename-vertices: boolean; optional, default True
 
         Algorithm: see Hatcher, p. 277-278 (who in turn refers to
         Eilenberg-Steenrod, p. 68): given ``Simplex(m)`` and
@@ -485,9 +476,7 @@ class Simplex(SageObject):
         is, if the vertices of the two are the same, even with a
         different ordering
 
-        INPUT:
-
-        -  ``other`` - the other simplex
+        :param other: the other simplex
 
         EXAMPLES::
 
@@ -551,21 +540,17 @@ class SimplicialComplex(SageObject):
     """
     Define a simplicial complex.
 
-    INPUT:
-
-    -  ``vertex_set`` - set of vertices
-
-    -  ``maximal_faces`` - set of maximal faces
-
-    -  ``vertex_check`` - boolean (optional, default True)
-
-    -  ``maximality_check`` - boolean (optional, default True)
-
-    -  ``sort_facets`` - boolean (optional, default True)
-
-    -  ``name_check`` - boolean (optional, default False)
-
-    OUTPUT: a simplicial complex
+    :param vertex_set: set of vertices
+    :param maximal_faces: set of maximal faces
+    :param vertex_check: see below
+    :type vertex_check: boolean; optional, default True
+    :param maximality_check: see below
+    :type maximality_check: boolean; optional, default True
+    :param sort_facets: see below
+    :type sort_facets: boolean; optional, default True
+    :param name_check: see below
+    :type name_check: boolean; optional, default False
+    :return: a simplicial complex
 
     ``vertex_set`` may be a non-negative integer `n` (in which case
     the simplicial complex will have `n+1` vertices `\{0, 1, ...,
@@ -793,11 +778,10 @@ class SimplicialComplex(SageObject):
         argument ``subcomplex`` is present, then return only the
         faces which are *not* in the subcomplex.
 
-        INPUT:
+        :param subcomplex: a subcomplex of this simplicial complex.
+            Return faces which are not in this subcomplex.
 
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default None).  Return faces which are not in
-           this subcomplex.
+        :type subcomplex: optional, default None
 
         EXAMPLES::
 
@@ -862,13 +846,11 @@ class SimplicialComplex(SageObject):
         return the ``n``-dimensional faces which are *not* in the
         subcomplex.
 
-        INPUT:
-
-        -  ``n`` - non-negative integer
-
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default None).  Return ``n``-dimensional faces
-           which are not in this subcomplex.
+        :param n: non-negative integer
+        :param subcomplex: a subcomplex of this simplicial complex.
+           Return ``n``-dimensional faces which are not in this
+           subcomplex.
+        :type subcomplex: optional, default None
 
         EXAMPLES::
 
@@ -989,20 +971,19 @@ class SimplicialComplex(SageObject):
         """
         The product of this simplicial complex with another one.
 
-        INPUT:
-
-        -  ``right`` - the other simplicial complex (the right-hand
+        :param right: the other simplicial complex (the right-hand
            factor)
 
-        - ``rename_vertices`` -- boolean (optional, default True). If
-           this is False, then the vertices in the product are the set
-           of ordered pairs `(v,w)` where `v` is a vertex in ``self``
-           and `w` is a vertex in ``right``. If this is True, then the
-           vertices are renamed as "LvRw" (e.g., the vertex (1,2)
-           would become "L1R2").  This is useful if you want to define
-           the Stanley-Reisner ring of the complex: vertex names like
-           (0,1) are not suitable for that, while vertex names like
-           "L0R1" are.
+        :param rename_vertices: If this is False, then the vertices in
+           the product are the set of ordered pairs `(v,w)` where `v`
+           is a vertex in ``self`` and `w` is a vertex in
+           ``right``. If this is True, then the vertices are renamed
+           as "LvRw" (e.g., the vertex (1,2) would become "L1R2").
+           This is useful if you want to define the Stanley-Reisner
+           ring of the complex: vertex names like (0,1) are not
+           suitable for that, while vertex names like "L0R1" are.
+
+        :type rename_vertices: boolean; optional, default True
 
         The vertices in the product will be the set of ordered pairs
         `(v,w)` where `v` is a vertex in self and `w` is a vertex in
@@ -1058,19 +1039,17 @@ class SimplicialComplex(SageObject):
         ..., v_k, w_0, ..., w_n]` for all simplices `[v_0, ..., v_k]` in
         `S` and `[w_0, ..., w_n]` in `T`.
 
-        INPUT:
+        :param right: the other simplicial complex (the right-hand factor)
 
-        -  ``right`` - the other simplicial complex (the right-hand
-           factor)
+        :param rename_vertices: If this is True, the vertices in the
+           join will be renamed by the formula: vertex "v" in the
+           left-hand factor --> vertex "Lv" in the join, vertex "w" in
+           the right-hand factor --> vertex "Rw" in the join.  If this
+           is false, this tries to construct the join without renaming
+           the vertices; this will cause problems if the two factors
+           have any vertices with names in common.
 
-        -  ``rename_vertices`` -- boolean (optional, default True).  If
-           this is True, the vertices in the join will be renamed by
-           the formula: vertex "v" in the left-hand factor --> vertex
-           "Lv" in the join, vertex "w" in the right-hand factor -->
-           vertex "Rw" in the join.  If this is false, this tries to
-           construct the join without renaming the vertices; this will
-           cause problems if the two factors have any vertices with
-           names in common.
+        :type rename_vertices: boolean; optional, default True
 
         EXAMPLES::
 
@@ -1124,10 +1103,9 @@ class SimplicialComplex(SageObject):
         """
         The suspension of this simplicial complex.
 
-        INPUT:
+        :param n: positive integer -- suspend this many times.
 
-        -  ``n`` - positive integer (optional, default 1): suspend this
-           many times.
+        :type n: optional, default 1
 
         The suspension is the simplicial complex formed by adding two
         new vertices `S_0` and `S_1` and simplices of the form `[S_0,
@@ -1160,34 +1138,30 @@ class SimplicialComplex(SageObject):
         """
         The chain complex associated to this simplicial complex.
 
-        INPUT:
-
-        -  ``dimensions`` - if None, compute the chain complex in all
+        :param dimensions: if None, compute the chain complex in all
            dimensions.  If a list or tuple of integers, compute the
            chain complex in those dimensions, setting the chain groups
            in all other dimensions to zero.
-
-        -  ``base_ring`` - commutative ring (optional, default ZZ)
-
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default empty).  Compute the chain complex
-           relative to this subcomplex.
-
-        -  ``augmented`` - boolean (optional, default False).  If True,
-           return the augmented chain complex (that is, include a class
-           in dimension `-1` corresponding to the empty cell).  This is
-           ignored if ``dimensions`` is specified.
-
-        -  ``cochain`` - boolean (optional, default False).  If True,
-           return the cochain complex (that is, the dual of the chain
-           complex).
-
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the chain complex is computed.
-
-        -  ``check_diffs`` - boolean (optional, default False).  If True,
-           make sure that the chain complex is actually a chain complex:
-           the differentials are composable and their product is zero.
+        :param base_ring: commutative ring
+        :type base_ring: optional, default ZZ
+        :param subcomplex: a subcomplex of this simplicial complex.
+           Compute the chain complex relative to this subcomplex.
+        :type subcomplex: optional, default empty
+        :param augmented: If True, return the augmented chain complex
+           (that is, include a class in dimension `-1` corresponding
+           to the empty cell).  This is ignored if ``dimensions`` is
+           specified.
+        :type augmented: boolean; optional, default False
+        :param cochain: If True, return the cochain complex (that is,
+           the dual of the chain complex).
+        :type cochain: boolean; optional, default False
+        :param verbose: If True, print some messages as the chain
+           complex is computed.
+        :type verbose: boolean; optional, default False
+        :param check_diffs: If True, make sure that the chain complex
+           is actually a chain complex: the differentials are
+           composable and their product is zero.
+        :type check_diffs: boolean; optional, default False
 
         .. note::
 
@@ -1315,39 +1289,48 @@ class SimplicialComplex(SageObject):
         """
         The reduced homology of this simplicial complex.
 
-        INPUT:
-
-        -  ``dim`` - integer or list of integers or None (optional,
-           default None).  If None, then return the homology in every
+        :param dim: If None, then return the homology in every
            dimension.  If ``dim`` is an integer or list, return the
            homology in the given dimensions.  (Actually, if ``dim`` is
            a list, return the homology in the range from ``min(dim)``
            to ``max(dim)``.)
 
-        -  ``base_ring`` - commutative ring (optional, default ZZ).
-           Must be ZZ or a field.
+        :type dim: integer or list of integers or None; optional,
+                   default None
 
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default None).  Compute homology relative to
-           this subcomplex.
+        :param base_ring: commutative ring. Must be ZZ or a field.
 
-        -  ``cohomology`` - boolean (optional, default False).  If True,
-           compute cohomology rather than homology.
+        :type base_ring: optional, default ZZ
 
-        -  ``enlarge`` - boolean (optional, default True).  If True,
-           find a new subcomplex homotopy equivalent to, and probably
-           larger than, the given one.
+        :param subcomplex: a subcomplex of this simplicial complex.
+           Compute homology relative to this subcomplex.
 
-        -  ``algorithm`` - string (optional, default 'auto').  This
-           only has an effect if working over the integers.  If 'dhsw',
-           then preprocess each boundary matrix using the Dumas,
-           Heckenbach, Saunders, and Welker elimination algorithm.  If
-           'pari', then compute elementary divisors using Pari.  If
-           'linbox', then use LinBox.  If 'auto', then use 'dhsw' for
-           large matrices and Pari for small ones.
+        :type subcomplex: optional, default None
 
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the homology is computed.
+        :param cohomology: If True, compute cohomology rather than
+           homology.
+
+        :type cohomology: boolean; optional, default False
+
+        :param enlarge: If True, find a new subcomplex homotopy
+           equivalent to, and probably larger than, the given one.
+
+        :type enlarge: boolean; optional, default True
+
+        :param algorithm: This only has an effect if working over the
+           integers.  If 'dhsw', then preprocess each boundary matrix
+           using the Dumas, Heckenbach, Saunders, and Welker
+           elimination algorithm.  If 'pari', then compute elementary
+           divisors using Pari.  If 'linbox', then use LinBox.  If
+           'auto', then use 'dhsw' for large matrices and Pari for
+           small ones.
+
+        :type algorithm: string; optional, default 'auto'
+
+        :param verbose: If True, print some messages as the homology
+           is computed.
+
+        :type verbose: boolean; optional, default False
 
         Algorithm: if ``subcomplex`` is None, replace it with a facet
         -- a contractible subcomplex of the original complex.  Then no
@@ -1454,36 +1437,43 @@ class SimplicialComplex(SageObject):
         """
         The reduced cohomology of this simplicial complex.
 
-        INPUT:
+        :param dim: If None, then return the cohomology in every
+           dimension.  If ``dim`` is an integer or list, return the
+           cohomology in the given dimensions.  (Actually, if ``dim`` is
+           a list, return the cohomology in the range from ``min(dim)``
+           to ``max(dim)``.)
 
-        -  ``dim`` - integer or list of integers or None (optional,
-           default None).  If None, then return the cohomology in
-           every dimension.  If ``dim`` is an integer or list, return
-           the cohomology in the given dimensions.  (Actually, if
-           ``dim`` is a list, return the cohomology in the range from
-           ``min(dim)`` to ``max(dim)``.)
+        :type dim: integer or list of integers or None; optional,
+                   default None
 
-        -  ``base_ring`` - commutative ring (optional, default ZZ).
-           Must be ZZ or a field.
+        :param base_ring: commutative ring. Must be ZZ or a field.
 
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default empty).  Compute cohomology relative to
-           this subcomplex.
+        :type base_ring: optional, default ZZ
 
-        -  ``enlarge`` - boolean (optional, default True).  If True,
-           find a new subcomplex homotopy equivalent to, and probably
-           larger than, the given one.
+        :param subcomplex: a subcomplex of this simplicial complex.
+           Compute cohomology relative to this subcomplex.
 
-        -  ``algorithm`` - string (optional, default 'auto').  This
-           only has an effect if working over the integers.  If
-           'dhsw', then preprocess each boundary matrix using the
-           Dumas, Heckenbach, Saunders, and Welker elimination
-           algorithm.  If 'pari', then compute elementary divisors
-           using Pari.  If 'linbox', then use LinBox.  If 'auto', then
-           use 'dhsw' for large matrices and Pari for small ones.
+        :type subcomplex: optional, default None
 
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the cohomology is computed.
+        :param enlarge: If True, find a new subcomplex homotopy
+           equivalent to, and probably larger than, the given one.
+
+        :type enlarge: boolean; optional, default True
+
+        :param algorithm: This only has an effect if working over the
+           integers.  If 'dhsw', then preprocess each boundary matrix
+           using the Dumas, Heckenbach, Saunders, and Welker
+           elimination algorithm.  If 'pari', then compute elementary
+           divisors using Pari.  If 'linbox', then use LinBox.  If
+           'auto', then use 'dhsw' for large matrices and Pari for
+           small ones.
+
+        :type algorithm: string; optional, default 'auto'
+
+        :param verbose: If True, print some messages as the cohomology
+           is computed.
+
+        :type verbose: boolean; optional, default False
 
         EXAMPLES::
 
@@ -1519,20 +1509,22 @@ class SimplicialComplex(SageObject):
         The Betti numbers of this simplicial complex as a dictionary
         (or a single Betti number, if only one dimension is given).
 
-        INPUT:
-
-        -  ``dim`` - integer or list of integers or None (optional,
-           default None).  If None, then return every Betti number, as
-           a dictionary with keys the non-negative integers.  If
-           ``dim`` is an integer or list, return the Betti number for
-           each given dimension.  (Actually, if ``dim`` is a list,
-           return the Betti numbers, as a dictionary, in the range
-           from ``min(dim)`` to ``max(dim)``.  If ``dim`` is a number,
+        :param dim: If None, then return every Betti number, as a
+           dictionary with keys the non-negative integers.  If ``dim``
+           is an integer or list, return the Betti number for each
+           given dimension.  (Actually, if ``dim`` is a list, return
+           the Betti numbers, as a dictionary, in the range from
+           ``min(dim)`` to ``max(dim)``.  If ``dim`` is a number,
            return the Betti number in that dimension.)
 
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-           (optional, default None).  Compute the Betti numbers of the
-           homology relative to this subcomplex.
+        :type dim: integer or list of integers or None; optional,
+           default None
+
+        :param subcomplex: a subcomplex of this simplicial complex.
+           Compute the Betti numbers of the homology relative to this
+           subcomplex.
+
+        :type subcomplex: optional, default None
 
         EXAMPLES: Build the two-sphere as a three-fold join of a
         two-point space with itself::
@@ -1558,9 +1550,7 @@ class SimplicialComplex(SageObject):
         """
         Add a face to this simplicial complex
 
-        INPUT:
-
-        -  ``face`` - a subset of the vertex set
+        :param face: a subset of the vertex set
 
         This changes the simplicial complex, adding a new face and all
         of its subfaces.
@@ -1614,9 +1604,7 @@ class SimplicialComplex(SageObject):
         """
         Remove a face from this simplicial complex
 
-        INPUT:
-
-        -  ``face`` - a face of the simplicial complex
+        :param face: a face of the simplicial complex
 
         This changes the simplicial complex, removing the given face
         any face which contains it.
@@ -1653,9 +1641,7 @@ class SimplicialComplex(SageObject):
         all simplices `G` which are disjoint from `F` but for which `F
         \cup G` is a simplex.
 
-        INPUT:
-
-        -  ``simplex`` - a simplex in this simplicial complex.
+        :param simplex: a simplex in this simplicial complex.
 
         EXAMPLES::
 
@@ -1681,9 +1667,7 @@ class SimplicialComplex(SageObject):
         Return the complement of a simplex in the vertex set of this
         simplicial complex.
 
-        INPUT:
-
-        -  ``simplex`` - a simplex (need not be in the simplicial complex)
+        :param simplex: a simplex (need not be in the simplicial complex)
 
         OUTPUT: its complement: the simplex formed by the vertices not
         contained in ``simplex``.
@@ -1709,9 +1693,7 @@ class SimplicialComplex(SageObject):
         simplex is formed by taking a vertex from each simplex from
         ``L``.
 
-        INPUT:
-
-        -  ``simplices`` - a bunch of simplices
+        :param simplices: a bunch of simplices
 
         If ``simplices`` consists of `(f_0, f_1, f_2, ...)`, then the
         output consists of all possible simplices of the form `(v_0,
@@ -1815,12 +1797,10 @@ class SimplicialComplex(SageObject):
         The polynomial algebra of which the Stanley-Reisner ring is a
         quotient.
 
-        INPUT:
-
-        -  ``base_ring`` - a commutative ring (optional, default ZZ)
-
-        OUTPUT: a polynomial algebra with coefficients in base_ring,
-        with one generator for each vertex in the simplicial complex.
+        :param base_ring: a commutative ring
+        :type base_ring: optional, default ZZ
+        :return: a polynomial algebra with coefficients in base_ring,
+          with one generator for each vertex in the simplicial complex.
 
         See the documentation for ``stanley_reisner_ring`` for a
         warning about the names of the vertices.
@@ -1840,14 +1820,10 @@ class SimplicialComplex(SageObject):
         """
         The Stanley-Reisner ring of this simplicial complex.
 
-        INPUT:
-
-        -  ``base_ring`` - a commutative ring (optional, default ZZ)
-
-        OUTPUT:
-
-        -  a quotient of a polynomial algebra with coefficients in
-           ``base_ring``, with one generator for each vertex in the
+        :param base_ring: a commutative ring
+        :type base_ring: optional, default ZZ
+        :return: a quotient of a polynomial algebra with coefficients
+           in ``base_ring``, with one generator for each vertex in the
            simplicial complex, by the ideal generated by the products
            of those vertices which do not form faces in it.
 
@@ -1996,9 +1972,7 @@ class SimplicialComplex(SageObject):
         complex obtained by discarding all of the simplices in
         dimensions larger than `n`.
 
-        INPUT:
-
-        -  ``n`` - non-negative integer
+        :param n: non-negative integer
 
         EXAMPLES::
 
@@ -2017,10 +1991,9 @@ class SimplicialComplex(SageObject):
         Find a contractible subcomplex `L` of this simplicial complex,
         preferably one which is as large as possible.
 
-        INPUT:
-
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the simplicial complex is computed.
+        :param verbose: If True, print some messages as the simplicial
+           complex is computed.
+        :type verbose: boolean; optional, default False
 
         Motivation: if `K` is the original complex and if `L` is
         contractible, then the relative homology `H_*(K,L)` is
@@ -2063,15 +2036,12 @@ class SimplicialComplex(SageObject):
         `H_{*}(K,L)` will be smaller than that for computing
         `H_{*}(K,S)`, so the computations should be faster.
 
-        INPUT:
-
-        -  ``subcomplex`` - a subcomplex of this simplicial complex
-
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the simplicial complex is computed.
-
-        OUTPUT: a complex `L` containing ``subcomplex`` and contained
-        in ``self``, homotopy equivalent to ``subcomplex``.
+        :param subcomplex: a subcomplex of this simplicial complex
+        :param verbose: If True, print some messages as the simplicial
+           complex is computed.
+        :type verbose: boolean; optional, default False
+        :return: a complex `L` containing ``subcomplex`` and contained
+           in ``self``, homotopy equivalent to ``subcomplex``.
 
         Algorithm: start with the subcomplex `S` and loop through the
         facets of `K` which are not in `S`.  For each one, see whether

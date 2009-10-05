@@ -1313,8 +1313,10 @@ class FastCallableConverter(Converter):
             sage: x,y = var('x,y')
             sage: sin(sqrt(x+y))._fast_callable_(etb)
             sin(sqrt(add(v_0, v_1)))
+            sage: arctan2(x,y)._fast_callable_(etb)
+            {arctan2}(v_0, v_1)
         """
-        return self.etb.call(function, self.etb(*ex.operands()))
+        return self.etb.call(function, *ex.operands())
 
 
 def fast_callable(ex, etb):

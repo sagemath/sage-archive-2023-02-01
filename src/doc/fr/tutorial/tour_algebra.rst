@@ -142,6 +142,7 @@ différentielle est :math:`x(t) = e^{-t}(e^{t}+c)`.
 
 Il est aussi possible de calculer des transformées de Laplace. La
 transformée de Laplace de :math:`t^2e^t -\sin(t)` s'obtient comme suit :
+
 ::
 
     sage: s = var("s")

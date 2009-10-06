@@ -588,6 +588,8 @@ to Singular:
     'setring R;'
     sage: L = singular.eval("POINTS;")
 
+.. link
+
 ::
 
     sage: print L
@@ -600,39 +602,14 @@ to Singular:
           0
     [2]:
        [1]:
-          0
+          0    # 32-bit
+          -2   # 64-bit
        [2]:
-          0
+          0    # 32-bit
+          -1   # 64-bit
        [3]:
           1
-    [3]:
-       [1]:
-          -2
-       [2]:
-          1
-       [3]:
-          1
-    [4]:
-       [1]:
-          2
-       [2]:
-          -2
-       [3]:
-          1
-    [5]:
-       [1]:
-          2
-       [2]:
-          2
-       [3]:
-          1
-    [6]:
-       [1]:
-          -2
-       [2]:
-          -1
-       [3]:
-          1
+    ...
 
 From looking at the output, notice that our wrapper function will
 need to parse the string represented by :math:`L` above, so let
@@ -772,10 +749,13 @@ demonstrate computing the places on a curve in a particular case.
     sage: singular.set_ring(R)
     sage: L = singular.new('POINTS')
 
+.. link
+
 ::
 
     sage: [(L[i][1], L[i][2], L[i][3]) for i in range(1,7)]
-          [(0, 1, 0), (-2, 1, 1), (0, 0, 1), (2, 2, 1), (-2, -1, 1), (2, -2, 1)]
+    [(0, 1, 0), (2, 2, 1), (0, 0, 1), (-2, -1, 1), (-2, 1, 1), (2, -2, 1)]  # 32-bit
+    [(0, 1, 0), (-2, 1, 1), (-2, -1, 1), (2, 2, 1), (0, 0, 1), (2, -2, 1)]  # 64-bit
 
 Next we implement the general function (for brevity we omit the
 docstring, which is the same as above). Note that the

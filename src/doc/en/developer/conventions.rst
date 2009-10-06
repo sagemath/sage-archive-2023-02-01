@@ -532,6 +532,8 @@ documentation, keep the following points in mind:
    ``SAGE_ROOT/devel/sage/sage/combinat/combinat.py`` includes
    the lines
 
+   .. skip
+
    ::
 
            sage: hash(c) #random

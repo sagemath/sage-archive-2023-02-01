@@ -145,7 +145,11 @@ the :math:`5`-adic and :math:`997`-adic regulators of this curve.
 Before the new algorithm mentioned above, even computing a
 :math:`7`-adic regulator to :math:`3` digits of precision was a
 nontrivial computational challenge. Now in Sage computing the
-:math:`100003`-adic regulator is routine::
+:math:`100003`-adic regulator is routine:
+
+.. link
+
+::
 
     sage: E.padic_regulator(100003,5)  # a couple of seconds
     42582*100003^2 + 35250*100003^3 + 12790*100003^4 + 64078*100003^5 + O(100003^6)

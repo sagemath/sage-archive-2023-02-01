@@ -162,7 +162,7 @@ quickly).
     sage: f.gcd(g)
     x^4 + x^3 + x^2 + 1
 
-.. _index::
+.. index::
    pair: polynomial; roots
 
 .. _section-roots:

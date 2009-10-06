@@ -12,7 +12,11 @@ In Sage, we can create the number field
 
 The above creates *two* Sage objects, :math:`K` and
 :math:`\alpha`. Here :math:`K` "is" (isomorphic to) the number
-field :math:`\QQ(\sqrt[3]{2})`, as we confirm below::
+field :math:`\QQ(\sqrt[3]{2})`, as we confirm below:
+
+.. link
+
+::
 
     sage: K
     Number Field in alpha with defining polynomial x^3 - 2
@@ -20,7 +24,11 @@ field :math:`\QQ(\sqrt[3]{2})`, as we confirm below::
 and :math:`\alpha` is a root of :math:`x^3 - 2`, so
 :math:`\alpha` is an abstract choice of :math:`\sqrt[3]{2}` (no
 specific embedding of the number field :math:`K` into
-:math:`\CC` is chosen by default in Sage-3.1.2)::
+:math:`\CC` is chosen by default in Sage-3.1.2):
+
+.. link
+
+::
 
     sage: alpha^3
     2

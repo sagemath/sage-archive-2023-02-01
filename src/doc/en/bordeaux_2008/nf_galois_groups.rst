@@ -100,7 +100,11 @@ have Magma.
 Computing complex embeddings
 ----------------------------
 
-You can also enumerate all complex embeddings of a number field::
+You can also enumerate all complex embeddings of a number field:
+
+.. link
+
+::
 
     sage: K.complex_embeddings()
     [

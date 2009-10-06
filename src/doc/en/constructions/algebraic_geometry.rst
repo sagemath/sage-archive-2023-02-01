@@ -90,6 +90,8 @@ Other methods
    Gröbner basis), corresponding to the (distinct affine closed)
    points of :math:`V(I)`. Here's an example:
 
+   .. skip
+
    ::
 
        sage: singular_console()
@@ -179,6 +181,8 @@ Other methods
    Above we defined a curve :math:`X = \{f = 0\}` over
    :math:`GF(8)` in Singular.
 
+   .. link
+
    ::
 
        sage: print klein1
@@ -222,6 +226,8 @@ Other methods
 
    For the places of degree :math:`3`:
 
+   .. link
+
    ::
 
        sage: print klein2[3]
@@ -245,6 +251,8 @@ Other methods
           3,7
 
    Each point below is a pair: (degree, point index number).
+
+   .. link
 
    ::
 
@@ -270,11 +278,13 @@ Other methods
 
    To actually get the points of :math:`X(GF(8))`:
 
+   .. link
+
    ::
 
        sage: R = klein3[1][5]
        sage: R.set_ring()
-       sage: singular("POINTS")
+       sage: singular("POINTS;")
        [1]:
           [1]:
              0
@@ -289,25 +299,10 @@ Other methods
              0
           [3]:
              0
-       [3]:
-          [1]:
-             (a^2+a)
-          [2]:
-             (a)
-          [3]:
-             1
-       [4]:
-          [1]:
-             (a+1)
-          [2]:
-             (a^2)
-          [3]:
-             1
        ...
 
-   plus 19 others (omitted). There are a total of :math:`23`
-   rational points. Here :math:`a` represents a primitive element in
-   :math:`GF(8)`.
+   plus 21 others (omitted). There are a total of :math:`23`
+   rational points.
 
 .. index:: Riemann-Roch space
 
@@ -338,7 +333,8 @@ to Singular or Singular itself. Both are illustrated below.
        sage: C = Curve(f); pts = C.rational_points()
        sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
        sage: C.riemann_roch_basis(D)
-       [z/(y + x)]
+       [x^8*y/(x^6*z^3 - x^5*y*z^3 + ...  # 32-bit
+       [(x^9 + x^8*y)/(x^6*z^3 - ...  # 64-bit
 
    The output is somewhat random.
 
@@ -383,9 +379,9 @@ to Singular or Singular itself. Both are illustrated below.
    ::
 
        sage: singular.eval("intvec G = 4,4,4,0,0,0;")
-       ''
+       'intvec G = 4,4,4,0,0,0;'
        sage: singular.eval("def R = X[1][2];")
-       'def R = HC[1][2];'
+       'def R = X[1][2];'
        sage: singular.eval("setring R;")
        'setring R;'
        sage: print singular.eval("list LG = BrillNoether(G,X);")
@@ -394,15 +390,27 @@ to Singular or Singular itself. Both are illustrated below.
        <BLANKLINE>
        Vector basis successfully computed
        <BLANKLINE>
-       sage: print singular.eval("LG;") # here is the vector basis of L(G):
-       [1]:
-          _[1]=-1
-          _[2]=-1
-       [2]:
-          _[1]=2x2+xz+z2
-          _[2]=-x2-xz+y2
-       ...
 
+   Here is the vector basis of L(G):
+
+   .. link
+
+   ::
+
+       sage: print singular.eval("LG;")
+       [1]:                     # 32-bit
+          _[1]=x2               # 32-bit
+          _[2]=x2+z2            # 32-bit
+       [2]:                     # 32-bit
+          _[1]=-x4+x2z2         # 32-bit
+          _[2]=x2y2+y2z2        # 32-bit
+       [1]:                               # 64-bit
+          _[1]=-x5+x4z-x3y2+2x3z2+x2y2z   # 64-bit
+          _[2]=-x4z+x3y2+z5               # 64-bit
+       [2]:                               # 64-bit
+          _[1]=-2x5-x4z+2x3y2+2x3z2+x2z3  # 64-bit
+          _[2]=-x4z+x3y2+z5               # 64-bit
+       ...
 
 .. index::
    pair: codes; algebraic-geometric
@@ -444,10 +452,10 @@ command.
     sage: print singular.eval("HC = extcurve(2,HC1);")
     Total number of rational places : NrRatPl = 9
 
-    sage: singular.eval("intvec G = 5;")      # the rational divisor G = 5*HC[3][1]
-    'intvec G = 5;'
-    sage: singular.eval("def R = HC[1][2];")
-    'def R = HC[1][2];'
+We set the following to ``junk`` to discard the output::
+
+    sage: junk = singular.eval("intvec G = 5;")      # the rational divisor G = 5*HC[3][1]
+    sage: junk = singular.eval("def R = HC[1][2];")
     sage: singular.eval("setring R;")
     'setring R;'
 
@@ -457,6 +465,8 @@ The vector :math:`G` represents the divisor
 .. index:: Riemann-Roch space
 
 Next, we compute the Riemann-Roch space.
+
+.. link
 
 ::
 

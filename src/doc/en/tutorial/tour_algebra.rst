@@ -74,16 +74,17 @@ Solving Equations Numerically
 Often times, ``solve`` will not be able to find an exact solution to
 the equation or equations specified.  When it fails, you can use
 ``find_root`` to find a numerical solution.  For example, solve does
-not return anything intersting for the following equation::
+not return anything interesting for the following equation::
 
     sage: theta = var('theta')
-    sage: solve(cos(theta)==sin(theta))
+    sage: solve(cos(theta)==sin(theta), theta)
     [sin(theta) == cos(theta)]
 
 On the other hand, we can use ``find_root`` to find a solution to the
-above equation in range :math:`0 < \theta < \pi/2`::
+above equation in the range :math:`0 < \phi < \pi/2`::
 
-    sage: find_root(cos(theta)==sin(theta),0,pi/2)
+    sage: phi = var('phi')
+    sage: find_root(cos(phi)==sin(phi),0,pi/2)
     0.78539816339744839
 
 Differentiation, Integration, etc.

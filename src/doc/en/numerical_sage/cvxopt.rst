@@ -130,6 +130,8 @@ For a simple linear programming example, if we want to solve
      3: -9.0000e+00 -9.0000e+00  2e-05  3e-16  5e-06  4e-06
      4: -9.0000e+00 -9.0000e+00  2e-07  1e-16  5e-08  4e-08
 
+.. link
+
 ::
 
     sage: print sol['x']

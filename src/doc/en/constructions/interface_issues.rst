@@ -189,6 +189,8 @@ Yes, you can output some of your results into LaTeX.
         7.00000000000000 & 8.00000000000000 & 9.00000000000000
         \end{array}\right)
 
+.. skip
+
 ::
 
     sage: view(A)

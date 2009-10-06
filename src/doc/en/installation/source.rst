@@ -307,6 +307,8 @@ components do not build if there are spaces in the path.
 
    Try running Gap, Singular or GP from Sage:
 
+   .. skip
+
    ::
 
        sage: gap_console()
@@ -315,11 +317,15 @@ components do not build if there are spaces in the path.
        4
        [ctrl-d]
 
+   .. skip
+
    ::
 
        sage: gp_console()
        ...
        [ctrl-d]
+
+   .. skip
 
    ::
 

@@ -215,8 +215,7 @@ Multivariate Polynomials
 ------------------------
 
 To work with polynomials of several variables, we declare the
-polynomial ring and variables first, in one of two ways.
-
+polynomial ring and variables first.
 
 ::
 

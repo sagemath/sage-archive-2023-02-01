@@ -23,8 +23,8 @@ you might have to press ``shift-return`` rather than ``shift-enter``.)
    tour_plotting
    tour_functions
    tour_rings
-   tour_polynomial
    tour_linalg
+   tour_polynomial
    tour_groups
    tour_numtheory
    tour_advanced

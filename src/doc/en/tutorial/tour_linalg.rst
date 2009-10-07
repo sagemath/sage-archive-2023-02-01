@@ -1,3 +1,5 @@
+.. _section-linalg:
+
 Linear Algebra
 ==============
 
@@ -37,7 +39,7 @@ Evaluating ``A.solve_right(Y)`` returns a matrix (or vector)
     sage: X = A.solve_right(Y)
     sage: X
     (-2, 1, 0)
-    sage: A * X   #checking our answer...
+    sage: A * X   # checking our answer...
     (0, -4, -1)
 
 A backslash ``\`` can be used in the place of ``solve_right``; use
@@ -64,9 +66,48 @@ If there is no solution, Sage returns an error:
 Similarly, use ``A.solve_left(Y)`` to solve for :math:`X` in
 :math:`XA=Y`.
 
-We create the space :math:`\text{Mat}_{3\times 3}(\QQ)`:
+Sage can also compute eigenvalues and eigenvectors::
 
-::
+    sage: A = matrix([[0, 4], [-1, 0]])
+    sage: A.eigenvalues ()
+    [-2*I, 2*I]
+    sage: B = matrix([[1, 3], [3, 1]])
+    sage: B.eigenvectors_left()
+    [(4, [
+    (1, 1)
+    ], 1), (-2, [
+    (1, -1)
+    ], 1)]
+
+(The syntax for the output of ``eigenvectors_left`` is a list of
+triples: (eigenvalue, eigenvector, multiplicity).)  Eigenvalues and
+eigenvectors over ``QQ`` or ``RR`` can also be computed
+using Maxima (see :ref:`section-maxima` below).
+
+As noted in :ref:`section-rings`, the ring over which a matrix is
+defined affects some of its properties.  In the following, the first
+argument to the ``matrix`` command tells Sage to view the matrix as a
+matrix of integers (the ``ZZ`` case), a matrix of rational numbers
+(``QQ``), or a matrix of reals (``RR``)::
+
+    sage: AZ = matrix(ZZ, [[2,0], [0,1]])
+    sage: AQ = matrix(QQ, [[2,0], [0,1]])
+    sage: AR = matrix(RR, [[2,0], [0,1]])
+    sage: AZ.echelon_form()
+    [2 0]
+    [0 1]
+    sage: AQ.echelon_form()
+    [1 0]
+    [0 1]
+    sage: AR.echelon_form()
+    [ 1.00000000000000 0.000000000000000]
+    [0.000000000000000  1.00000000000000]
+
+Matrix spaces
+-------------
+
+We create the space :math:`\text{Mat}_{3\times 3}(\QQ)` of `3 \times
+3` matrices with rational entries::
 
     sage: M = MatrixSpace(QQ,3)
     sage: M
@@ -137,7 +178,7 @@ fields:
     [(1, 1, 0, 0, 1, 1, 1, 1), (0, 1, 0, 0, 1, 0, 1, 1),
      (0, 0, 1, 0, 1, 1, 0, 1), (0, 0, 1, 1, 1, 1, 1, 0)]
 
-We make the subspace over :math:`\GF{2}` spanned by the above
+We make the subspace over `\GF{2}` spanned by the above
 rows.
 
 .. link
@@ -159,14 +200,14 @@ rows.
     [0 0 1 0 1 1 0 1]
     [0 0 0 1 0 0 1 1]
 
-The basis of :math:`S` used by Sage is obtained from the non-zero
+The basis of `S` used by Sage is obtained from the non-zero
 rows of the reduced row echelon form of the matrix of generators of
-:math:`S`.
+`S`.
 
 Sparse Linear Algebra
 ---------------------
 
-Sage has support for sparse linear algebra over PID's.
+Sage has support for sparse linear algebra over PIDs.
 
 ::
 
@@ -194,23 +235,3 @@ Note that Python is case sensitive:
     Traceback (most recent call last):
     ...
     TypeError: MatrixSpace() got an unexpected keyword argument 'Sparse'
-
-Sage can compute eigenvalues and eigenvectors:
-
-::
-
-
-    sage: g = matrix(GF(7), [[5, 1], [4, 1]])
-    sage: g.eigenvalues()
-    [4, 2]
-    sage: g.eigenvectors_right() # returns (eigenvalue, [eigenvectors], algebraic multiplicity)
-    [(4, [
-    (1, 6)
-    ], 1), (2, [
-    (1, 4)
-    ], 1)]
-
-
-
-Eigenvalues and eigenvectors over or can also be computed using
-Maxima (see :ref:`section-maxima` below).

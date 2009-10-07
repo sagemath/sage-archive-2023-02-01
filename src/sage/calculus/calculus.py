@@ -546,7 +546,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         sage: res = integral(f,x,0.0001414, 1.); res
         2.0*y*arctan(1/y) - 2.0*y*arctan(0.0001414/y) - 0.0001414*log(y^2 + 1.999396e-08) + log(y^2 + 1.0) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
-        (1.4638323264144271, 1.6251803529759046e-14)
+        (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
         1.46383232641
         sage: nres = numerical_integral(f.subs(y=.5), 0.0001414, 1.); nres

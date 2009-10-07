@@ -1473,7 +1473,7 @@ class Notebook(SageObject):
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test', 'admin')
             sage: nb.html_worksheet_revision_list('admin', W)
-            '\n<!D...seconds ago</span></td>\n    </tr>\n\n</table>\n\n\n    </body>\n</html>'
+            '\n<!D...</html>'
         """
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
 

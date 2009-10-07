@@ -251,8 +251,8 @@ def dict_function(x):
 
         sage: from sage.misc.latex import dict_function
         sage: x,y,z = var('x,y,z')
-        sage: dict_function({x/2: y^2, "hallo": "world"})
-        '\\left\\{\\text{hallo}:\\: \\text{world}, \\frac{1}{2} \\, x:\\: y^{2}\\right\\}'
+        sage: dict_function({x/2: y^2})
+        '\\left\\{\\frac{1}{2} \\, x:\\: y^{2}\\right\\}'
         sage: d = {(1,2,x^2): [sin(z^2), y/2]}
         sage: latex(d)
         \left\{\left(1, 2, x^{2}\right):\: \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\right\}

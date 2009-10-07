@@ -45,10 +45,10 @@ Login to a new session::
     ___S_A_G_E___
     sage: session = re.match(r'.*"session": "([^"]*)"', login_page, re.DOTALL).groups()[0]
 
-Run a command::
+Run a command (we use a large timeout below to make sure this test works on slow systems)::
 
     sage: sleep(0.5)
-    sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=2*2' % (port, session))
+    sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=2*2&timeout=60' % (port, session))
     {
     "status": "done",
     "files": [],

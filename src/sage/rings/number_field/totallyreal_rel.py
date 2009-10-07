@@ -44,8 +44,9 @@ def integral_elements_in_box(K, C):
         sage: len(ls)
         19
 
-        sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
-        [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3]
+        sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
+        sage: v.sort(); v
+        [0, -alpha + 3, -alpha + 2, 4, 3, 2, 1, alpha + 3, alpha + 2]
     """
     d = K.degree()
     Z_F = K.maximal_order()

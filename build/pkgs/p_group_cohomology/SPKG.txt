@@ -1,4 +1,4 @@
-= p_group_cohomology-1.1 =
+= p_group_cohomology-1.2 =
 
 == Description ==
 
@@ -9,8 +9,8 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
-Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
-                   David J. Green <david.green@uni-jena.de>
+Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie>,
+                   David J. Green <david.green@uni-jena.de>, and
 
 Distributed under the terms of the GNU General Public License (GPL),
 version 2 or later (at your choice).
@@ -41,6 +41,21 @@ Simon A. King <simon.king@nuigalway.ie>
 
 Simon A. King  <simon.king@nuigalway.ie>
 David J. Green <david.green@uni-jena.de>
+
+== Acknowledgements ==
+
+The development of the initial version of this SPKG was funded by
+the German Science Foundation, DFG project GR 1585/4.1, and was
+accomplished at the Friedrich Schiller University Jena.
+
+Since version 1.0.1, the further work on this SPKG is funded
+by Marie Curie grant MTKD-CT-2006-042685 and is pursued at
+the National University of Ireland, Galway.
+
+We thank William Stein for giving us access to various computers
+on which we could build test the SPKG and on which some huge computations
+could be completed, and acknowledge the support by National Science
+Foundation Grant No. DMS-0821725.
 
 == Dependencies ==
 
@@ -92,4 +107,6 @@ is 1 (do "export SAGE_CHECK=1" on the command line before installation).
   * 1.0.1: Licensing GPL 2 or later (July 2009)
   * 1.0.2: Fixing a computation time regression and two
     minor bugs (July 2009). Changing Simon King's email address
-  * 1.1: Yoneda cocomplex, Restricted Massey powers and general Massey products (Simon King, August 2009)
+  * 1.1: Yoneda cocomplex, Restricted Massey powers and general Massey products (August 2009).
+  * 1.2: Modified printing for cocycles, minor bug fixes and code improvements.
+    New: Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and Simon King (October 2009).

@@ -159,7 +159,9 @@ if [ `uname` = "Linux" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
     export SAGESOFLAGS
 elif [ `uname` = "Darwin" ]; then
-    SAGESOFLAGS="-shared -dynamiclib"
+    MACOSX_DEPLOYMENT_TARGET="10.3"
+    export MACOSX_DEPLOYMENT_TARGET
+    SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
     export SAGESOFLAGS
 elif [ `uname` = "SunOS" ]; then
     SAGESOFLAGS="-G -Bdynamic"
@@ -213,4 +215,9 @@ else
 fi
 
 cp -f *.h "$SAGE_LOCAL/include/cliquer/"
-cp -f libcliquer.so "$SAGE_LOCAL/lib/"
+if [ `uname` = "Darwin" ]; then
+    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dylib"
+else
+    cp -f libcliquer.so "$SAGE_LOCAL/lib/"
+fi
+

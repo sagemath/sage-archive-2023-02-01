@@ -109,4 +109,6 @@ is 1 (do "export SAGE_CHECK=1" on the command line before installation).
     minor bugs (July 2009). Changing Simon King's email address
   * 1.1: Yoneda cocomplex, Restricted Massey powers and general Massey products (August 2009).
   * 1.2: Modified printing for cocycles, minor bug fixes and code improvements.
-    New: Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and Simon King (October 2009).
+    The data base at sage.math has moved.
+    New: Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and
+    Simon King (October 2009).

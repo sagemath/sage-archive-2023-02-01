@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# remove older biopython installs
+#CUR=`pwd`
+#cd $SAGE_LOCAL/lib/python/site-packages/
+#rm -rf Bio Martel/ BioSQL/ biopython-*
+#cd $CUR
+
+cd biopython
+python setup.py build
+python setup.py install
+if [ $? -ne 0 ]; then
+   echo "Error install biopython"
+   exit 1
+fi

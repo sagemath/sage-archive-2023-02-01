@@ -1,0 +1,33 @@
+= biopython =
+
+MAINTAINER:
+  -- Marshall Hampton, mhampton at d.umn.edu or hamptonio at gmail.com.
+
+== Changelog ==
+
+=== biopython-1.45 ===
+
+Adding a changelog!
+
+Updating to biopython-1.45, which was released March 22, 2008.
+
+=== biopython-1.47 ===
+
+Updating to biopython-1.47, which was released July 5, 2008.
+
+=== biopython-1.49b ===
+
+Updating to biopython-1.49beta, which was released November 7, 2008.
+
+=== biopython-1.51b ===
+
+Updating to biopython-1.51beta, which was released June 23rd, 2009.
+
+=== biopython-1.51 ===
+
+Updating to biopython-1.51, which was released August 17, 2009.
+Biopython has eliminated several dependencies such as Numeric and mx-text-tools, so this is now easier to install and maintain.
+
+=== biopython-1.52 ===
+
+Updating to biopython-1.52, which was released September 22, 2009.  Main improvements were to alignment and sequence file conversion, population genetics statistics, and the Bio.SeqIO.indexed_dict() for handling large numbers of sequences.

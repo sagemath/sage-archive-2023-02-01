@@ -36,8 +36,9 @@ patches/fix-dot-warning.patch
 
 == Changelog ==
 
-2.6.8:
+2.8.7:
 
+ - Upgraded to dot2tex 2.8.7
  - Removed pyparsing, replaced by a quick patch to let dot2tex use the
    one included in matplotlib.pyparsing
  - Moved the dot2tex sources one level up to src, since there is now a

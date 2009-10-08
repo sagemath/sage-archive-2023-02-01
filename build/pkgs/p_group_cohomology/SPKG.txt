@@ -9,8 +9,8 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
-Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie>,
-                   David J. Green <david.green@uni-jena.de>, and
+Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
+                   David J. Green <david.green@uni-jena.de>
 
 Distributed under the terms of the GNU General Public License (GPL),
 version 2 or later (at your choice).

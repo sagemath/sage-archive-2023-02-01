@@ -3514,6 +3514,61 @@ class GenericGraph(SageObject):
 
     __getitem__ = neighbors
 
+
+    def merge_vertices(self,vertices):
+        r"""
+        Merge vertices.
+
+        This function replaces a set `S` of vertices by a single vertex
+        `v_{new}`, such that the edge `uv_{new}` exists if and only if
+        `\exists v'\in S: (u,v')\in G`.
+
+        The new vertex is named after the first vertex in the list
+        given in argument.
+
+        In the case of multigraphs, the multiplicity is preserved.
+
+        INPUT:
+
+        - ``vertices`` -- the set of vertices to be merged
+
+        EXAMPLE::
+
+            sage: g=graphs.CycleGraph(3)
+            sage: g.merge_vertices([0,1])
+            sage: g.edges()
+            [(0, 2, None)]
+            sage: # With a Multigraph :
+            sage: g=graphs.CycleGraph(3)
+            sage: g.allow_multiple_edges(True)
+            sage: g.merge_vertices([0,1])
+            sage: g.edges()
+            [(0, 2, None), (0, 2, None)]
+            sage: P=graphs.PetersenGraph()
+            sage: P.merge_vertices([5,7])
+            sage: P.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 8, 9]
+
+        """
+
+        if self.is_directed():
+            out_edges=self.edge_boundary(vertices)
+            in_edges=self.edge_boundary([v for v in self if not v in vertices])
+            self.delete_vertices(vertices[1:])
+            self.add_edges([(vertices[0],v,l) for (u,v,l) in out_edges if u!=vertices[0]])
+            self.add_edges([(v,vertices[0],l) for (v,u,l) in in_edges if u!=vertices[0]])
+        else:
+            edges=self.edge_boundary(vertices)
+            self.delete_vertices(vertices[1:])
+            add_edges=[]
+            for (u,v,l) in edges:
+                if (v in vertices) and not (u in vertices) and v != vertices[0]:
+                    add_edges.append((vertices[0],u,l))
+                if not (v in vertices) and u in vertices and u!=vertices[0]:
+                    add_edges.append((vertices[0],v,l))
+            self.add_edges(add_edges)
+
+
     ### Edge handlers
 
     def add_edge(self, u, v=None, label=None):
@@ -3949,15 +4004,13 @@ class GenericGraph(SageObject):
         vertices1 = [v for v in vertices1 if v in self]
         output = []
         if self._directed:
-            output.extend(self.outgoing_edge_iterator(vertices1))
+            output.extend(self.outgoing_edge_iterator(vertices1,labels=labels))
         else:
-            output.extend(self.edge_iterator(vertices1))
+            output.extend(self.edge_iterator(vertices1,labels=labels))
         if vertices2 is not None:
-            output = [e for e in output if e[1] in vertices2]
+            output = [e for e in output if (e[1] in vertices2 or e[0] in vertices2) ]
         else:
-            output = list(output)
-        if not labels:
-            output = [(u,v) for u,v,l in output]
+            output = [e for e in output if (e[1] not in vertices1 or e[0] not in vertices1)]
         return output
 
     def edge_iterator(self, vertices=None, labels=True, ignore_direction=False):

@@ -648,6 +648,7 @@ class EllipticCurveIsogeny(Morphism):
 
     __this_hash = None
 
+    __check = None
     #
     # pre isomorphism
     #
@@ -726,7 +727,7 @@ class EllipticCurveIsogeny(Morphism):
     # Python Special Functions
     #
 
-    def __init__(self, E, kernel, codomain=None, degree=None, model=None):
+    def __init__(self, E, kernel, codomain=None, degree=None, model=None, check=True):
         r"""
         Constructor for EllipticCurveIsogeny class.
 
@@ -755,7 +756,12 @@ class EllipticCurveIsogeny(Morphism):
             sage: triv.rational_maps()
             (x, y)
 
-        """
+            sage: E = EllipticCurve('49a3')
+            sage: R.<X> = QQ[]
+            sage: EllipticCurveIsogeny(E,X^3-13*X^2-58*X+503,check=False)
+            Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
+
+       """
 
         if not is_EllipticCurve(E):
             raise ValueError, "E parameter must be an EllipticCurve."
@@ -768,6 +774,8 @@ class EllipticCurveIsogeny(Morphism):
         # calculate the kernel polynomial
         pre_isom = None
         post_isom = None
+
+        self.__check = check
 
         if (None == kernel) and (None != codomain):
 
@@ -1486,9 +1494,10 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi._EllipticCurveIsogeny__init_from_kernel_list([E(0), E((0,0))])
 
         """
-        for P in kernel_gens:
-            if not P.has_finite_order():
-                raise ValueError, "The points in the kernel must be of finite order."
+        if self.__check :
+            for P in kernel_gens:
+                if not P.has_finite_order():
+                    raise ValueError, "The points in the kernel must be of finite order."
         # work around the current implementation of torsion points. When they are done better this could be
         # reduced but it won't speed things up too much.
         kernel_list = Set([self.__E1(0)])
@@ -1936,7 +1945,7 @@ class EllipticCurveIsogeny(Morphism):
 
 
         #check if the polynomial really divides the two_torsion_polynomial
-        if  E.division_polynomial(2)(self.__x_var) % psi_G  != 0 :
+        if  self.__check and E.division_polynomial(2)(self.__x_var) % psi_G  != 0 :
             raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
 
         n = psi_G.degree()
@@ -2035,7 +2044,7 @@ class EllipticCurveIsogeny(Morphism):
         d = 2*n + 1
 
         # check if the polynomial really divides the torsion polynomial :
-        if E.division_polynomial(d)(self.__x_var) % psi != 0:
+        if self.__check and E.division_polynomial(d)(self.__x_var) % psi != 0:
             raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
 
         x = self.__x_var

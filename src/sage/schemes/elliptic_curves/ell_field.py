@@ -544,7 +544,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         return D
 
 
-    def isogeny(self, kernel, codomain=None, degree=None, model=None):
+    def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):
         r"""
         Returns an elliptic curve isogeny from self.
 
@@ -602,7 +602,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             ValueError: The polynomial does not define a finite subgroup of the elliptic curve.
 
         """
-        return EllipticCurveIsogeny(self, kernel, codomain, degree, model)
+        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
 
 
     def isogeny_codomain(self, kernel, degree=None):

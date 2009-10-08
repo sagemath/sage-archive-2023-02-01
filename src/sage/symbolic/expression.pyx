@@ -5441,9 +5441,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x^2-1)^2).roots(multiplicities=False)
             [-1, 1]
 
-        A complicated example.
-
-        ::
+        A complicated example::
 
             sage: f = expand((x^2 - 1)^3*(x^2 + 1)*(x-a)); f
             -a*x^8 + x^9 + 2*a*x^6 - 2*x^7 - 2*a*x^2 + 2*x^3 + a - x
@@ -5472,6 +5470,14 @@ cdef class Expression(CommutativeRingElement):
             sage: f.roots(x)
             [(0, 1)]
 
+        .. note::
+
+            It is possible to solve a greater variety of equations
+            using ``solve()`` and the keyword ``to_poly_solve``,
+            but only at the price of possibly encountering
+            approximate solutions.  See documentation for f.solve
+            for more details.
+
         We derive the roots of a general quadratic polynomial::
 
             sage: var('a,b,c,x')
@@ -5480,11 +5486,8 @@ cdef class Expression(CommutativeRingElement):
             [(-1/2*(b + sqrt(-4*a*c + b^2))/a, 1), (-1/2*(b - sqrt(-4*a*c + b^2))/a, 1)]
 
         By default, all the roots are required to be explicit rather than
-        implicit. To get implicit roots, pass
-        ``explicit_solutions=False`` to
-        ``.roots()``
-
-        ::
+        implicit. To get implicit roots, pass ``explicit_solutions=False``
+        to ``.roots()`` ::
 
             sage: var('x')
             x
@@ -5550,7 +5553,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             return [ rt for rt, mul in rt_muls ]
 
-    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=None):
+    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
         r"""
         Analytically solve the equation ``self == 0`` for the
         variable `x`.
@@ -5566,14 +5569,19 @@ cdef class Expression(CommutativeRingElement):
         -  ``x`` - variable to solve for
 
         -  ``multiplicities`` - bool (default: False); if True,
-           return corresponding multiplicities.
+           return corresponding multiplicities.  This keyword is
+           incompatible with ``to_poly_solve=True``.
 
         -  ``solution_dict`` - bool (default: False); if True,
            return a list of dictionaries containing solutions.
 
-        - ``explicit_solutions`` - bool; if True, require that all
-           solutions returned be explicit (rather than implicit)
+        -  ``explicit_solutions`` - bool (default: False); require that
+           all roots be explicit rather than implicit
 
+        -  ``to_poly_solve`` - bool (default: False); use Maxima's
+           ``to_poly_solver`` package to search for more possible
+           solutions, but possibly encounter approximate solutions.
+           This keyword is incompatible with ``multiplicities=True``.
 
         EXAMPLES::
 
@@ -5584,10 +5592,59 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
 
+        A simple example to show use of the keyword
+        ``multiplicities``::
+
+            sage: ((x^2-1)^2).solve(x)
+            [x == -1, x == 1]
+            sage: ((x^2-1)^2).solve(x,multiplicities=True)
+            ([x == -1, x == 1], [2, 2])
+            sage: ((x^2-1)^2).solve(x,multiplicities=True,to_poly_solve=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: to_poly_solve does not return multiplicities
+
+        Here is how the ``explicit_solutions`` keyword functions::
+
+            sage: solve(sin(x)==x,x)
+            [x == sin(x)]
+            sage: solve(sin(x)==x,x,explicit_solutions=True)
+            []
+            sage: solve(x*sin(x)==x^2,x)
+            [x == 0, x == sin(x)]
+            sage: solve(x*sin(x)==x^2,x,explicit_solutions=True)
+            [x == 0]
+
+        The following examples show use of the keyword ``to_poly_solve``::
+
+            sage: solve(abs(1-abs(1-x)) == 10, x)
+            []
+            sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
+            [x == -10, x == 12]
+
+            sage: solve(sin(x)==cos(x),x, to_poly_solve=True)
+            [x == -3/4*pi + 2*pi*z37, x == 1/4*pi + 2*pi*z39]
+
             sage: var('Q')
             Q
-            sage: solve(Q*sqrt(Q^2 + 2) - 1,Q)
-            [Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+            sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
+            [Q == 1/sqrt(Q^2 + 2)]
+            sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True) # not tested - bug in next release of Maxima fixes spurious solutions in answer [Q == -1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(-sqrt(2) + 1), Q == -1/sqrt(sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+			[Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+
+        In some cases (usually involving trigonometric functions),
+        there may be infinitely many solutions indexed by a dummy
+        variable which is implicitly assumed to be an integer::
+
+            sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
+            [x == 1/4*pi + pi*z45]
+
+        TEST::
+
+            sage: (x^2>0).solve(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: solving only implemented for equalities
         """
         import operator
         cdef Expression ex
@@ -5597,6 +5654,9 @@ cdef class Expression(CommutativeRingElement):
             ex = self
         else:
             ex = (self == 0)
+
+        if multiplicities and to_poly_solve:
+            raise NotImplementedError, "to_poly_solve does not return multiplicities"
 
         if x is None:
             v = ex.variables()
@@ -5613,37 +5673,60 @@ cdef class Expression(CommutativeRingElement):
         m = ex._maxima_()
         P = m.parent()
         if explicit_solutions:
-            P.eval('solveexplicit: true')
+            P.eval('solveexplicit: true') # switches Maxima to looking for only explicit solutions
         s = m.solve(x).str()
         if explicit_solutions:
-            P.eval('solveexplicit: false')
+            P.eval('solveexplicit: false') # switches Maxima back to default
 
         from sage.symbolic.relation import string_to_list_of_solutions
 
-        X = string_to_list_of_solutions(s)
+        X = string_to_list_of_solutions(s) # our initial list of solutions
 
+        if multiplicities: # to_poly_solve does not return multiplicities, so in this case we end here
+            if len(X) == 0:
+                return X, []
+            else:
+                if solution_dict:
+                    X=[dict([[sol.left(),sol.right()]]) for sol in X]
+                return X, [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
 
-        #################
-        # to_poly_solve #
-        #################
-        if explicit_solutions is not False:
+        ########################################################
+        # Maxima's to_poly_solver package converts difficult   #
+        # equations to (quasi)-polynomial systems and uses     #
+        # Maxima's algsys function to try to solve them.       #
+        # This allows a much larger range of solved equations, #
+        # but also allows for the possibility of approximate   #
+        # solutions being returned.                            #
+        ########################################################
+        if to_poly_solve:
+            if len(X)==0: # if Maxima's solve gave no solutions, only try it
+                try:
+                    s = m.to_poly_solve(x)
+                    T = string_to_list_of_solutions(repr(s))
+                    X = [t[0] for t in T]
+                except: # if that gives an error, stick with no solutions
+                    X = []
+
             for eq in X:
-                if repr(x) in map(repr, eq.rhs().variables()):
+                if repr(x) in map(repr, eq.rhs().variables()): # If the RHS of one solution also has the variable, try another way to get solutions
                     from sage.calculus.calculus import symbolic_expression_from_maxima_element
-                    X = symbolic_expression_from_maxima_element(m.to_poly_solve(x))
-                    X = [eq[0] for eq in X]
-                    break
+                    try:
+                        Y = symbolic_expression_from_maxima_element((eq._maxima_()).to_poly_solve(x)) # try to solve it using to_poly_solve
+                        X.remove(eq)
+                        X.extend([y[0] for y in Y]) # replace with the new solutions
+                    except TypeError, mess:
+                        if "Error executing code in Maxima" in str(mess):
+                            if explicit_solutions:
+                                X.remove(eq) # this removes an implicit solution
+                            else:
+                                pass # we keep this implicit solution
+                        else:
+                            raise
 
         if solution_dict is True:
             X=[dict([[sol.left(),sol.right()]]) for sol in X]
 
-        if multiplicities:
-            if len(X) == 0:
-                return X, []
-            else:
-                return X, [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
-        else:
-            return X
+        return X
 
     def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
         """
@@ -5711,23 +5794,26 @@ cdef class Expression(CommutativeRingElement):
             sage: v.find_root(0, 0.002)
             0.001540327067911417...
 
-        ::
+        With this expression, we can see there is a
+        zero very close to the origin::
 
             sage: a = .004*(8*e^(-(300*t)) - 8*e^(-(1200*t)))*(720000*e^(-(300*t)) - 11520000*e^(-(1200*t))) +.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))^2
-
-        There is a 0 very close to the origin::
-
             sage: show(plot(a, 0, .002), xmin=0, xmax=.002)
 
-        Using solve does not work to find it::
-
-            sage: a.solve(t)
-            []
-
-        However ``find_root`` works beautifully::
+        It is easy to approximate with ``find_root``::
 
             sage: a.find_root(0,0.002)
             0.0004110514049349...
+
+        Using solve takes more effort, and even then gives
+        only a solution with free (integer) variables::
+
+            sage: a.solve(t)
+            []
+            sage: a.solve(t, to_poly_solve=True)
+            [t == 1/450*I*pi*z55 + 1/900*log(-15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494), t == 1/450*I*pi*z57 + 1/900*log(15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494)]
+            sage: n(1/900*log(-15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494))
+            0.000411051404934985
 
         We illustrate that root finding is only implemented in one
         dimension::

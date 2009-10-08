@@ -308,7 +308,7 @@ from sage.symbolic.pynac import symbol_table
 
 arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
 
-maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true; load(topoly_solver)'],
+maxima = Maxima(init_code = ['display2d:false', 'domain: complex', 'keepfloat: true', 'load(to_poly_solver)'],
                 script_subdirectory=None)
 
 ########################################################
@@ -1676,6 +1676,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     if equals_sub:
         s = s.replace('=','==')
+
+    #replace %union from to_poly_solve with a list
+    if s[0:5]=='union':
+        s = s[5:]
+        s = s[s.find("(")+1:s.rfind(")")]
+        s = "[" + s + "]" # turn it into a string that looks like a list
 
     #replace all instances of Maxima's scientific notation
     #with regular notation

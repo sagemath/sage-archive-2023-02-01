@@ -406,8 +406,8 @@ def string_to_list_of_solutions(s):
 
 def solve(f, *args, **kwds):
     r"""
-    Algebraically solve an equation or system of equations for given
-    variables.
+    Algebraically solve an equation or system of equations (over the
+    complex numbers) for given variables.
 
     INPUT:
 
@@ -431,6 +431,8 @@ def solve(f, *args, **kwds):
          [x == 1/2*I*sqrt(3) - 1/2, y == 1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)],
          [x == 0, y == -1],
          [x == 0, y == 1]]
+        sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)
+        [[x == -5/2*I*sqrt(5) + 5, y == 5/2*I*sqrt(5) + 5], [x == 5/2*I*sqrt(5) + 5, y == -5/2*I*sqrt(5) + 5]]
         sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
         sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
         -0.500 - 0.866*I , -1.27 + 0.341*I
@@ -439,6 +441,37 @@ def solve(f, *args, **kwds):
         -0.500 + 0.866*I , 1.27 + 0.341*I
         0.000 , -1.00
         0.000 , 1.00
+
+    Whenever possible, answers will be symbolic, but with systems of
+    equations, at times approximations will be given, due to the
+    underlying algorithm in Maxima::
+
+        sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
+        ([x == 0, y == 0], [x == (0.309016994375 + 0.951056516295*I),  y == (-0.809016994375 - 0.587785252292*I)])
+        sage: sols[0][0].rhs().pyobject().parent()
+        Complex Double Field
+
+    If ``f`` is only one equation or expression, we use the solve method
+    for symbolic expressions, which defaults to exact answers only::
+
+        sage: solve([y^6==y],y)
+        [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi), y == e^(-2/5*I*pi), y == 1, y == 0]
+        sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
+        True
+
+    .. note::
+
+        For more details about solving a single equations, see
+        the documentation for its solve.
+
+    ::
+
+        sage: from sage.symbolic.expression import Expression
+        sage: Expression.solve(x^2==1,x)
+        [x == -1, x == 1]
+
+    We must solve with respect to actual variables::
+
         sage: z = 5
         sage: solve([8*z + y == 3, -z +7*y == 0],y,z)
         Traceback (most recent call last):
@@ -455,6 +488,24 @@ def solve(f, *args, **kwds):
         sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
         x: 2, y: 4
         x: -2, y: 4
+
+    If there is a parameter in the answer, that will show up as
+    a new variable.  In the following example, `r1` is a free variable::
+
+        sage: solve([x+y == 3, 2*x+2*y == 6],x,y)
+        [[x == -r1 + 3, y == r1]]
+
+    However, in certain circumstances, especially with trigonometric
+    functions, the dummy variable may be implicitly an integer::
+
+        sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
+        [[x == 1/4*pi + pi*z34, y == -1/4*pi - pi*z34]]
+
+    Expressions which are not equations are assumed to be set equal
+    to zero, as with `x` in the following example::
+
+        sage: solve([x, y == 2],x,y)
+        [[x == 0, y == 2]]
 
     If ``True`` appears in the list of equations it is
     ignored, and if ``False`` appears in the list then no
@@ -475,7 +526,7 @@ def solve(f, *args, **kwds):
         sage: solve([1==3, 1.00000000000000*x^3 == 0], x)
         []
 
-    ::
+    Completely symbolic solutions are supported::
 
         sage: var('s,j,b,m,g')
         (s, j, b, m, g)
@@ -486,12 +537,25 @@ def solve(f, *args, **kwds):
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
         sage: solve(sys,[s,j])
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
+
+    TESTS::
+
+        sage: solve([sin(x)==x,y^2==x],x,y)
+        Traceback (most recent call last):
+        ...
+        ValueError: Sage is unable to determine whether the system [sin(x) == x, y^2 == x] can be solved for (x, y)
     """
-    try:
+    from sage.symbolic.expression import is_Expression
+    if is_Expression(f): # f is a single expression
         return f.solve(*args,**kwds)
-    except AttributeError:
+    elif len(f)==1 and is_Expression(f[0]): # f is a list with a single expression
+        f = f[0]
+        return f.solve(*args,**kwds)
+    else:  # f is a list of such expressions or equations
         from sage.symbolic.ring import is_SymbolicVariable
 
+        if len(args)==0:
+            raise TypeError, "Please input variables to solve for."
         if is_SymbolicVariable(args[0]):
             variables = args
         else:
@@ -509,12 +573,26 @@ def solve(f, *args, **kwds):
         if any(s is False for s in f):
             return []
 
+        from sage.calculus.calculus import maxima
         m = maxima(f)
 
         try:
             s = m.solve(variables)
-        except:
-            raise ValueError, "Unable to solve %s for %s"%(f, args)
+        except: # if Maxima gave an error, try its to_poly_solve
+            try:
+                s = m.to_poly_solve(variables)
+            except TypeError, mess: # if that gives an error, raise an error.
+                if "Error executing code in Maxima" in str(mess):
+                    raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
+                else:
+                    raise
+
+        if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
+            try:
+                s = m.to_poly_solve(variables)
+            except: # if that gives an error, stick with no solutions
+                s = []
+
         sol_list = string_to_list_of_solutions(repr(s))
         if 'solution_dict' in kwds and kwds['solution_dict']==True:
             if isinstance(sol_list[0], list):

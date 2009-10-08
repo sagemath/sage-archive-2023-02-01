@@ -1461,7 +1461,7 @@ cdef class NumberFieldElement(FieldElement):
                 poly = self.minpoly()
                 roots = []
                 var = SR(poly.variable_name())
-                for soln in SR(poly).solve(var):
+                for soln in SR(poly).solve(var, to_poly_solve=True):
                     if soln.lhs() == var:
                         roots.append(soln.rhs())
                 if len(roots) != poly.degree():

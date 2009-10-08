@@ -21,34 +21,46 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
+# import operator
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
-from sage.structure.element import MonoidElement
+# from sage.structure.element import MonoidElement
 from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
 def is_StringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement)
 
 def is_AlphabeticStringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.AlphabeticStringMonoid)
 
 def is_BinaryStringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.BinaryStringMonoid)
 
 def is_OctalStringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.OctalStringMonoid)
 
 def is_HexadecimalStringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.HexadecimalStringMonoid)
 
 def is_Radix64StringMonoidElement(x):
+    r"""
+    """
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.Radix64StringMonoid)
 
@@ -57,6 +69,7 @@ class StringMonoidElement(FreeMonoidElement):
     """
     Element of a free string monoid.
     """
+
     def __init__(self, S, x, check=True):
         """
         Create the element ``x`` of the StringMonoid ``S``.
@@ -67,8 +80,9 @@ class StringMonoidElement(FreeMonoidElement):
         if isinstance(x, list):
             if check:
                 for b in x:
-                    if not isinstance(b, (int,long,Integer)):
-                        raise TypeError, "x (= %s) must be a list of integers."%x
+                    if not isinstance(b, (int, long, Integer)):
+                        raise TypeError(
+                            "x (= %s) must be a list of integers." % x)
             self._element_list = list(x) # make copy
         elif isinstance(x, str):
             alphabet = list(self.parent().alphabet())
@@ -77,10 +91,11 @@ class StringMonoidElement(FreeMonoidElement):
                 try:
                     b = alphabet.index(x[i])
                 except ValueError:
-                    raise TypeError, "Argument x (= %s) is not a valid string."%x
+                    raise TypeError(
+                        "Argument x (= %s) is not a valid string." % x)
                 self._element_list += [b]
         else:
-            raise TypeError, "Argument x (= %s) is of the wrong type."%x
+            raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
     def __cmp__(left, right):
         """
@@ -99,7 +114,6 @@ class StringMonoidElement(FreeMonoidElement):
             True
         """
         return cmp(left._element_list, right._element_list)
-
 
     def _repr_(self):
         """
@@ -139,7 +153,7 @@ class StringMonoidElement(FreeMonoidElement):
             01
         """
         if not isinstance(y, StringMonoidElement):
-            raise TypeError, "Argument y (= %s) is of wrong type."%y
+            raise TypeError("Argument y (= %s) is of wrong type." % y)
         S = self.parent()
         x_elt = self._element_list
         y_elt = y._element_list
@@ -170,9 +184,9 @@ class StringMonoidElement(FreeMonoidElement):
             IndexError: Argument n (= -1) must be non-negative.
         """
         if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "Argument n (= %s) must be an integer."%n
+            raise TypeError("Argument n (= %s) must be an integer." % n)
         if n < 0:
-            raise IndexError, "Argument n (= %s) must be non-negative."%n
+            raise IndexError("Argument n (= %s) must be non-negative." % n)
         elif n == 0:
             return self.parent()('')
         elif n == 1:
@@ -199,21 +213,22 @@ class StringMonoidElement(FreeMonoidElement):
         """
         return len(self._element_list)
 
-    def __getitem__(self,n):
+    def __getitem__(self, n):
         """
         Return the n-th string character.
         """
         try:
             c = self._element_list[n]
         except:
-            raise IndexError, "Argument n (= %s) is not a valid index." % n
-        if not isinstance(c,list):
+            raise IndexError("Argument n (= %s) is not a valid index." % n)
+        if not isinstance(c, list):
             c = [c]
         return self.parent()(c)
 
-    def decoding(self,padic=False):
+    def decoding(self, padic=False):
         r"""
-        The byte string associated to a binary or hexadecimal string monoid element.
+        The byte string associated to a binary or hexadecimal string
+        monoid element.
 
         EXAMPLES::
 
@@ -242,11 +257,11 @@ class StringMonoidElement(FreeMonoidElement):
         """
         S = self.parent()
         from Crypto.Util.number import long_to_bytes
-        if isinstance(S,string_monoid.AlphabeticStringMonoid):
+        if isinstance(S, string_monoid.AlphabeticStringMonoid):
             return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
         n = self.__len__()
-        if isinstance(S,string_monoid.HexadecimalStringMonoid):
-            if not n%2 == 0:
+        if isinstance(S, string_monoid.HexadecimalStringMonoid):
+            if not n % 2 == 0:
                 "String %s must have even length to determine a byte character string." % str(self)
             s = []
             x = self._element_list
@@ -258,8 +273,8 @@ class StringMonoidElement(FreeMonoidElement):
                     c = long_to_bytes(16*x[m]+x[m+1])
                 s.append(c)
             return ''.join(s)
-        if isinstance(S,string_monoid.BinaryStringMonoid):
-            if not n%8 == 0:
+        if isinstance(S, string_monoid.BinaryStringMonoid):
+            if not n % 8 == 0:
                 "String %s must have even length 0 mod 8 to determine a byte character string." % str(self)
             pows = [ 2**i for i in range(8) ]
             s = []
@@ -272,9 +287,10 @@ class StringMonoidElement(FreeMonoidElement):
                     c = long_to_bytes(sum([ x[m+7-i]*pows[i] for i in range(8) ]))
                 s.append(c)
             return ''.join(s)
-        raise TypeError, "Argument %s must be an alphabetic, binary, or hexadecimal string."
+        raise TypeError(
+            "Argument %s must be an alphabetic, binary, or hexadecimal string." % str(self))
 
-    def coincidence_index(self, prec = 0):
+    def coincidence_index(self, prec=0):
         """
         Returns the probability of two randomly chosen characters being equal.
         """
@@ -284,7 +300,10 @@ class StringMonoidElement(FreeMonoidElement):
             RR = RealField(prec)
         char_dict = {}
         for i in self._element_list:
-            if char_dict.has_key(i):
+            # if char_dict.has_key(i):
+            # The method .has_key() has been deprecated since Python 2.2. Use
+            # "k in Dict" instead of "Dict.has_key(k)".
+            if i in char_dict:
                 char_dict[i] += 1
             else:
                 char_dict[i] = 1
@@ -297,12 +316,12 @@ class StringMonoidElement(FreeMonoidElement):
         ci_den = nn*(nn-1)
         return RR(ci_num)/ci_den
 
-    def frequency_distribution(self, length = 1, prec = 0):
+    def frequency_distribution(self, length=1, prec=0):
         """
         Returns the probability space of character frequencies.
         """
-        if not length in (1,2):
-            raise NotImplementedError, "Not implemented"
+        if not length in (1, 2):
+            raise NotImplementedError("Not implemented")
         if prec == 0:
             RR = RealField()
         else:
@@ -318,9 +337,11 @@ class StringMonoidElement(FreeMonoidElement):
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
-            if X.has_key(c):
+            # if X.has_key(c):
+            # The method .has_key() has been deprecated since Python 2.2. Use
+            # "k in Dict" instead of "Dict.has_key(k)".
+            if c in X:
                 X[c] += eps
             else:
                 X[c] = eps
-        return DiscreteProbabilitySpace(Alph,X,RR)
-
+        return DiscreteProbabilitySpace(Alph, X, RR)

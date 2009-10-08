@@ -9,10 +9,12 @@ check_error() {
     fi
 }
 
-FRICAS_CLISP=ecl
+FRICAS_LISP=ecl
 mkdir build-dir
 cd build-dir
-../src/configure --prefix=$SAGE_LOCAL --with-lisp="$FRICAS_CLISP"
+../src/configure --prefix=$SAGE_LOCAL \
+                 --with-lisp="$FRICAS_LISP" \
+                 --disable-aldor
 check_error "Failed to configure FriCAS."
 make
 check_error "Failed to make FriCAS."

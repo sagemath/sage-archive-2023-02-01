@@ -47,6 +47,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+cp patches/pickle.py src/Lib/pickle.py
+if [ $? -ne 0 ]; then
+    echo "Error copying patched pickle.py"
+    exit 1
+fi
+
+cp patches/cPickle.c src/Modules/cPickle.c
+if [ $? -ne 0 ]; then
+    echo "Error copying patched cPickle.c"
+    exit 1
+fi
+
 # Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
 cp patches/readline.c-spacebug src/Modules/readline.c
 if [ $? -ne 0 ]; then

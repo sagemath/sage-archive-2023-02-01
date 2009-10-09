@@ -1,0 +1,12 @@
+2614,2618d2613
+< 	if (PyType_IsSubtype(type, &PyType_Type)) {
+< 		res = save_global(self, args, NULL);
+< 		goto finally;
+< 	}
+< 
+2633a2629,2633
+> 	        if (PyType_IsSubtype(type, &PyType_Type)) {
+> 		        res = save_global(self, args, NULL);
+> 		        goto finally;
+> 	        }
+> 

@@ -391,6 +391,7 @@ from sage.rings.rational import Rational
 from sage.plot.misc import options
 import sage.groups.perm_gps.partn_ref.refinement_graphs
 from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
+from sage.misc.misc import deprecated_function_alias
 
 
 class GenericGraph(SageObject):
@@ -1772,7 +1773,7 @@ class GenericGraph(SageObject):
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:
-                for u in self.predecessor_iterator(v):
+                for u in self.neighbor_in_iterator(v):
                     edges = self.edge_boundary([u], [v], labels)
                     if len(edges) > 1:
                         multi_edges += edges
@@ -3331,7 +3332,7 @@ class GenericGraph(SageObject):
         output = set()
         if self._directed:
             for v in vertices1:
-                output.update(self.successor_iterator(v))
+                output.update(self.neighbor_out_iterator(v))
         else:
             for v in vertices1:
                 output.update(self.neighbor_iterator(v))
@@ -3548,8 +3549,8 @@ class GenericGraph(SageObject):
             [1, 2, 3]
         """
         if self._directed:
-            return iter(set(self.successor_iterator(vertex)) \
-                    | set(self.predecessor_iterator(vertex)))
+            return iter(set(self.neighbor_out_iterator(vertex)) \
+                    | set(self.neighbor_in_iterator(vertex)))
         else:
             return iter(set(self._backend.iterator_nbrs(vertex)))
 
@@ -4287,7 +4288,7 @@ class GenericGraph(SageObject):
         if self.allows_multiple_edges():
             if self._directed:
                 for v in self:
-                    for u in self.predecessor_iterator(v):
+                    for u in self.neighbor_in_iterator(v):
                         edges = self.edge_boundary([u], [v])
                         if len(edges) > 1:
                             self.delete_edges(edges[1:])
@@ -5997,7 +5998,7 @@ class GenericGraph(SageObject):
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
         if self.is_directed():
-            iterator=self.successor_iterator
+            iterator=self.neighbor_out_iterator
         else:
             iterator=self.neighbor_iterator
         all_paths = []      # list of
@@ -6398,9 +6399,9 @@ class GenericGraph(SageObject):
         ``neighbors`` to be the :meth:`.predecessor` function of the graph::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.breadth_first_search(5,neighbors=D.predecessors, distance=2))
+            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_in, distance=2))
             [5, 1, 2, 0]
-            sage: list(D.breadth_first_search(5,neighbors=D.successors, distance=2))
+            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_out, distance=2))
             [5, 7, 0]
             sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
             [5, 1, 2, 7, 0, 4, 6]
@@ -6419,7 +6420,7 @@ class GenericGraph(SageObject):
             if not self._directed or ignore_direction:
                 neighbors=self.neighbor_iterator
             else:
-                neighbors=self.successor_iterator
+                neighbors=self.neighbor_out_iterator
         seen=set([])
         if isinstance(start, list):
             queue=[(v,0) for v in start]
@@ -6509,9 +6510,9 @@ class GenericGraph(SageObject):
         ``neighbors`` to be the :meth:`.predecessor` function of the graph::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.depth_first_search(5,neighbors=D.predecessors, distance=2))
+            sage: list(D.depth_first_search(5,neighbors=D.neighbors_in, distance=2))
             [5, 2, 0, 1]
-            sage: list(D.depth_first_search(5,neighbors=D.successors, distance=2))
+            sage: list(D.depth_first_search(5,neighbors=D.neighbors_out, distance=2))
             [5, 7, 0]
             sage: list(D.depth_first_search(5,neighbors=D.neighbors, distance=2))
             [5, 7, 6, 0, 2, 1, 4]
@@ -6529,7 +6530,7 @@ class GenericGraph(SageObject):
             if not self._directed or ignore_direction:
                 neighbors=self.neighbor_iterator
             else:
-                neighbors=self.successor_iterator
+                neighbors=self.neighbor_out_iterator
         seen=set([])
         if isinstance(start, list):
             # Reverse the list so that the initial vertices come out in the same order
@@ -11967,40 +11968,50 @@ class DiGraph(GenericGraph):
         """
         return list(self.outgoing_edge_iterator(vertices, labels=labels))
 
-    def predecessor_iterator(self, vertex):
+    def neighbor_in_iterator(self, vertex):
         """
-        Returns an iterator over predecessor vertices of vertex.
+        Returns an iterator over the in-neighbors of vertex.
+
+        An vertex `u` is an in-neighbor of a vertex `v` if `uv` in an edge.
 
         EXAMPLES::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: for a in D.predecessor_iterator(0):
+            sage: for a in D.neighbor_in_iterator(0):
             ...    print a
             1
             4
         """
         return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
-    def predecessors(self, vertex):
+    predecessor_iterator = deprecated_function_alias(neighbor_in_iterator, 'Sage Version 4.2, Release Date: 2009-10-24')
+
+    def neighbors_in(self, vertex):
         """
-        Returns a list of predecessor vertices of vertex.
+        Returns the list of the in-neighbors of a given vertex.
+
+        An vertex `u` is an in-neighbor of a vertex `v` if `uv` in an edge.
 
         EXAMPLES::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.predecessors(0)
+            sage: D.neighbors_in(0)
             [1, 4]
         """
-        return list(self.predecessor_iterator(vertex))
+        return list(self.neighbor_in_iterator(vertex))
 
-    def successor_iterator(self, vertex):
+    predecessors = deprecated_function_alias(neighbors_in, 'Sage Version 4.2, Release Date: 2009-10-24')
+
+    def neighbor_out_iterator(self, vertex):
         """
-        Returns an iterator over successor vertices of vertex.
+        Returns an iterator over the out-neighbors of a given vertex.
+
+        An vertex `u` is an out-neighbor of a vertex `v` if `vu` in an edge.
 
         EXAMPLES::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: for a in D.successor_iterator(0):
+            sage: for a in D.neighbor_out_iterator(0):
             ...    print a
             1
             2
@@ -12008,17 +12019,23 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
-    def successors(self, vertex):
+    successor_iterator = deprecated_function_alias(neighbor_out_iterator, 'Sage Version 4.2, Release Date: 2009-10-24')
+
+    def neighbors_out(self, vertex):
         """
-        Returns a list of successor vertices of vertex.
+        Returns the list of the out-neighbors of a given vertex.
+
+        An vertex `u` is an out-neighbor of a vertex `v` if `vu` in an edge.
 
         EXAMPLES::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.successors(0)
+            sage: D.neighbors_out(0)
             [1, 2, 3]
         """
-        return list(self.successor_iterator(vertex))
+        return list(self.neighbor_out_iterator(vertex))
+
+    successors = deprecated_function_alias(neighbors_out, 'Sage Version 4.2, Release Date: 2009-10-24')
 
     ### Degree functions
 

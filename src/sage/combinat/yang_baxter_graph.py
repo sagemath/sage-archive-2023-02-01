@@ -323,7 +323,7 @@ class YangBaxterGraph_generic(SageObject):
         seen[self._root] = True
         while queue:
             u = queue.pop()
-            for w in digraph.successors(u):
+            for w in digraph.neighbor_out_iterator(u):
                 if w not in seen:
                     seen[w] = True
                     queue.append(w)

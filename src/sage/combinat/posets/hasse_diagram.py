@@ -669,7 +669,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.upper_covers_iterator(7))
             []
         """
-        for x in self.successor_iterator(element):
+        for x in self.neighbor_out_iterator(element):
             yield x
 
     def lower_covers_iterator(self,element):
@@ -684,7 +684,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.lower_covers_iterator(4))
             [1, 2]
         """
-        for x in self.predecessor_iterator(element):
+        for x in self.neighbor_in_iterator(element):
             yield x
 
     def size(self):

@@ -1308,13 +1308,51 @@ def inverse_laplace(ex, t, s):
         ex = SR(ex)
     return ex.parent()(ex._maxima_().ilt(var(t), var(s)))
 
+###################################################################
+# symbolic evaluation "at" a point
+###################################################################
+def at(ex, **kwds):
+    """
+    Parses ``at`` formulations from other systems, such as Maxima.
+    Replaces evaluation 'at' a point with substitution method of
+    a symbolic expression.
 
+    EXAMPLES:
 
+    We do not import ``at`` at the top level, but we can use it
+    as a synonym for substitution if we import it::
 
+        sage: g = x^3-3
+        sage: from sage.calculus.calculus import at
+        sage: at(g, x=1)
+        -2
+        sage: g.subs(x=1)
+        -2
 
+    We find a formal Taylor expansion::
 
+        sage: h,x = var('h,x')
+        sage: u = function('u')
+        sage: u(x + h)
+        u(h + x)
+        sage: diff(u(x+h), x)
+        D[0](u)(h + x)
+        sage: taylor(u(x+h),h,0,4)
+        1/24*h^4*D[0, 0, 0, 0](u)(x) + 1/6*h^3*D[0, 0, 0](u)(x) + 1/2*h^2*D[0, 0](u)(x) + h*D[0](u)(x) + u(x)
 
+    We compute a Laplace transform::
 
+        sage: var('s,t')
+        (s, t)
+        sage: f=function('f', t)
+        sage: f.diff(t,2)
+        D[0, 0](f)(t)
+        sage: f.diff(t,2).laplace(t,s)
+        s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
+    """
+    if not isinstance(ex, (Expression, SFunction)):
+        ex = SR(ex)
+    return ex.subs(**kwds)
 
 
 #############################################3333
@@ -1682,7 +1720,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions) > 0:
         for X in delayed_functions:
-            syms[X[2:]] = SFunction(X[2:])
+            if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+                pass
+            else:
+                syms[X[2:]] = SFunction(X[2:])
         s = s.replace("?%","")
 
     s = multiple_replace(symtable, s)
@@ -1712,6 +1753,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     syms['integrate'] = dummy_integrate
     syms['laplace'] = dummy_laplace
     syms['ilt'] = dummy_inverse_laplace
+
+    syms['at'] = at
 
     global is_simplified
     try:

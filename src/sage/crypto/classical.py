@@ -3,6 +3,7 @@ Classical Cryptosystems
 
 A convenient user interface to various classical ciphers. These include:
 
+- affine cipher; see :class:`AffineCryptosystem`
 - Hill or matrix cipher; see :class:`HillCryptosystem`
 - shift cipher; see :class:`ShiftCryptosystem`
 - substitution cipher; see :class:`SubstitutionCryptosystem`
@@ -27,7 +28,7 @@ AUTHORS:
 - David Kohel (2007): initial version with the Hill, substitution,
   transposition, and Vigenere cryptosystems.
 
-- Minh Van Nguyen (2009-08): shift cipher
+- Minh Van Nguyen (2009-08): shift cipher, affine cipher
 """
 
 #*****************************************************************************
@@ -39,7 +40,6 @@ AUTHORS:
 #*****************************************************************************
 
 # TODO: check off this todo list:
-# - implement the affine cipher
 # - methods for cryptanalysis of the affine cipher
 # - methods to cryptanalyze the Hill, substitution, transposition, and
 #   Vigenere ciphers
@@ -60,11 +60,621 @@ from sage.matrix.matrix_space import MatrixSpace
 
 from cryptosystem import SymmetricKeyCryptosystem
 from classical_cipher import (
-     HillCipher,
-     ShiftCipher,
-     SubstitutionCipher,
-     TranspositionCipher,
-     VigenereCipher)
+    AffineCipher,
+    HillCipher,
+    ShiftCipher,
+    SubstitutionCipher,
+    TranspositionCipher,
+    VigenereCipher)
+
+class AffineCryptosystem(SymmetricKeyCryptosystem):
+    r"""
+    Create an affine cryptosystem.
+
+    Let `A = \{ a_0, a_1, a_2, \dots, a_{n-1} \}` be a non-empty alphabet
+    consisting of `n` unique elements. Define a mapping
+    `f : A \longrightarrow \ZZ / n\ZZ` from the alphabet `A` to
+    the set `\ZZ / n\ZZ` of integers modulo `n`, given by
+    `f(a_i) = i`. Thus we can identify each element of the alphabet `A`
+    with a unique integer `0 \leq i < n`. A key of the affine cipher is an
+    ordered pair of integers `(a, b) \in \ZZ / n\ZZ \times \ZZ / n\ZZ` such
+    that `\gcd(a, n) = 1`. Therefore the key space is
+    `\ZZ / n\ZZ \times \ZZ / n\ZZ`. Since we assume that `A` does not have
+    repeated elements, the mapping `f : A \longrightarrow \ZZ/ n\ZZ` is
+    bijective. Encryption and decryption functions are both affine functions.
+    Let `(a,b)` be a secret key, i.e. an element of the key space, and let
+    `p` be a plaintext character and consequently `p \in \ZZ / n\ZZ`. Then
+    the ciphertext character `c` corresponding to `p` is given by
+
+    .. MATH::
+
+        c \equiv ap + b \pmod{n}
+
+    Similarly, given a ciphertext character `c \in \ZZ / n\ZZ` and a secret
+    key `(a,b)`, we can recover the corresponding plaintext character as
+    follows:
+
+    .. MATH::
+
+        p \equiv a^{-1} (c - b) \pmod{n}
+
+    where `a^{-1}` is the inverse of `a` modulo `n`. Use the bijection
+    `f : A \longrightarrow \ZZ / n\ZZ` to convert `c` and `p` back to
+    elements of the alphabet `A`. Currently, only the following alphabet is
+    supported for the affine cipher:
+
+    - capital letters of the English alphabet as implemented in
+      :func:`AlphabeticStrings()
+      <sage.monoids.string_monoid.AlphabeticStrings>`
+
+    EXAMPLES:
+
+    Encryption and decryption over the capital letters of the English
+    alphabet::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings()); A
+        Affine cryptosystem on Free alphabetic string monoid on A-Z
+        sage: P = A.encoding("The affine cryptosystem generalizes the shift cipher.")
+        sage: P
+        THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+        sage: a, b = (9, 13)
+        sage: C = A.enciphering(a, b, P); C
+        CYXNGGHAXFKVSCJTVTCXRPXAXKNIHEXTCYXTYHGCFHSYXK
+        sage: A.deciphering(a, b, C)
+        THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+        sage: A.deciphering(a, b, C) == P
+        True
+
+    We can also use functional notation to work through the previous
+    example::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings()); A
+        Affine cryptosystem on Free alphabetic string monoid on A-Z
+        sage: P = A.encoding("The affine cryptosystem generalizes the shift cipher.")
+        sage: P
+        THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+        sage: a, b = (9, 13)
+        sage: E = A(a, b); E
+        Affine cipher on Free alphabetic string monoid on A-Z
+        sage: C = E(P); C
+        CYXNGGHAXFKVSCJTVTCXRPXAXKNIHEXTCYXTYHGCFHSYXK
+        sage: aInv, bInv = A.inverse_key(a, b)
+        sage: D = A(aInv, bInv); D
+        Affine cipher on Free alphabetic string monoid on A-Z
+        sage: D(C)
+        THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+        sage: D(C) == P
+        True
+        sage: D(C) == P == D(E(P))
+        True
+
+    Encrypting the ciphertext with the inverse key also produces the
+    plaintext::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings())
+        sage: P = A.encoding("Encrypt with inverse key.")
+        sage: a, b = (11, 8)
+        sage: C = A.enciphering(a, b, P)
+        sage: P; C
+        ENCRYPTWITHINVERSEKEY
+        AVENMRJQSJHSVFANYAOAM
+        sage: aInv, bInv = A.inverse_key(a, b)
+        sage: A.enciphering(aInv, bInv, C)
+        ENCRYPTWITHINVERSEKEY
+        sage: A.enciphering(aInv, bInv, C) == P
+        True
+
+    For a secret key `(a,b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ`, if `a = 1` then
+    any affine cryptosystem with key `(1, b)` for any `b \in \ZZ/n\ZZ` is
+    a shift cryptosystem. Here is how we can create a Caesar cipher using
+    an affine cipher::
+
+        sage: caesar = AffineCryptosystem(AlphabeticStrings())
+        sage: a, b = (1, 3)
+        sage: P = caesar.encoding("abcdef"); P
+        ABCDEF
+        sage: C = caesar.enciphering(a, b, P); C
+        DEFGHI
+        sage: caesar.deciphering(a, b, C) == P
+        True
+
+    Any affine cipher with keys of the form
+    `(a,0) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` is called a decimation cipher on
+    the Roman alphabet, or decimation cipher for short::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings())
+        sage: P = A.encoding("A decimation cipher is a specialized affine cipher.")
+        sage: a, b = (17, 0)
+        sage: C = A.enciphering(a, b, P)
+        sage: P; C
+        ADECIMATIONCIPHERISASPECIALIZEDAFFINECIPHER
+        AZQIGWALGENIGVPQDGUAUVQIGAFGJQZAHHGNQIGVPQD
+        sage: A.deciphering(a, b, C) == P
+        True
+
+    Generate a random key for encryption and decryption::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings())
+        sage: P = A.encoding("An affine cipher with a random key.")
+        sage: a, b = A.random_key()
+        sage: C = A.enciphering(a, b, P)
+        sage: A.deciphering(a, b, C) == P
+        True
+
+    TESTS:
+
+    The binary number system is currently not a supported alphabet of
+    this affine cryptosystem::
+
+        sage: AffineCryptosystem(BinaryStrings())
+        Traceback (most recent call last):
+        ...
+        TypeError: A (= Free binary string monoid) is not supported as a cipher domain of this affine cryptosystem.
+
+    Nor are the octal, hexadecimal, and radix-64 number systems supported::
+
+        sage: AffineCryptosystem(OctalStrings())
+        Traceback (most recent call last):
+        ...
+        TypeError: A (= Free octal string monoid) is not supported as a cipher domain of this affine cryptosystem.
+        sage: AffineCryptosystem(HexadecimalStrings())
+        Traceback (most recent call last):
+        ...
+        TypeError: A (= Free hexadecimal string monoid) is not supported as a cipher domain of this affine cryptosystem.
+        sage: AffineCryptosystem(Radix64Strings())
+        Traceback (most recent call last):
+        ...
+        TypeError: A (= Free radix 64 string monoid) is not supported as a cipher domain of this affine cryptosystem.
+
+    A secret key `(a,b)` must be an element of `\ZZ/n\ZZ \times \ZZ/n\ZZ` with
+    `\gcd(a,n) = 1`. This rules out the case `a = 0` irrespective of the
+    value of `b`. For the upper-case letters of the English alphabet, where
+    the alphabet size is `n = 26`, `a` cannot take on any even value::
+
+        sage: A = AffineCryptosystem(AlphabeticStrings())
+        sage: A(0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: (a, b) = (0, 1) is outside the range of acceptable values for a key of this affine cryptosystem.
+        sage: A(2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: (a, b) = (2, 1) is outside the range of acceptable values for a key of this affine cryptosystem.
+
+    REFERENCES:
+
+    .. [Sti06] Douglas R. Stinson. *Cryptography: Theory and Practice*.
+      3rd edition, Chapman \& Hall/CRC, 2006.
+    """
+
+    def __init__(self, A):
+        r"""
+        See ``AffineCryptosystem`` for full documentation.
+
+        INPUT:
+
+        - ``A`` -- a string monoid over some alphabet; this is the non-empty
+          alphabet over which the plaintext and ciphertext spaces
+          are defined.
+
+        OUTPUT:
+
+        - An affine cryptosystem over the alphabet ``A``.
+
+        EXAMPLES:
+
+        Testing of dumping and loading objects::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A == loads(dumps(A))
+            True
+        """
+        # sanity check
+        if not isinstance(A, AlphabeticStringMonoid):
+            raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
+        # List L of invertible linear coefficients modulo n, where n is the
+        # alphabet size. Each e in L satisfies gcd(e, n) = 1.
+        from sage.rings.arith import gcd
+        n = A.ngens()
+        self._invertible_A = [i for i in xrange(n) if gcd(i, n) == 1]
+        # Initialize the affine cryptosystem with the plaintext, ciphertext,
+        # and key spaces.
+        SymmetricKeyCryptosystem.__init__(
+            self, A, A,
+            key_space=(IntegerModRing(A.ngens()), IntegerModRing(A.ngens())))
+
+    def __call__(self, a, b):
+        r"""
+        Create an affine cipher with secret key ``(a,b)``.
+
+        INPUT:
+
+        - ``(a,b)`` -- a secret key; this key is used for both encryption and
+          decryption. For the affine cryptosystem whose plaintext and
+          ciphertext spaces are `A`, a key is an ordered pair
+          `(a,b) \in \ZZ / n\ZZ \times \ZZ / n\ZZ` where `n` is the size or
+          cardinality of the set `A` and `\gcd(a,n) = 1`.
+
+        OUTPUT:
+
+        - An affine cipher with secret key ``(a,b)``.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: P = A.encoding("Fine here, fine there."); P
+            FINEHEREFINETHERE
+            sage: a, b = (17, 3)
+            sage: E = A(a, b); E
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: E(P)
+            KJQTSTGTKJQTOSTGT
+            sage: C = E(P)
+            sage: C
+            KJQTSTGTKJQTOSTGT
+            sage: aInv, bInv = A.inverse_key(a, b)
+            sage: D = A(aInv, bInv); D
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: P == D(C)
+            True
+            sage: D(E(P))
+            FINEHEREFINETHERE
+
+        TESTS:
+
+        The key must be an ordered pair
+        `(a,b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` with `n` being the size of the
+        plaintext and ciphertext spaces. Furthermore, `a` must be
+        relatively prime to `n`, i.e. `\gcd(a,n) = 1`::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A(2, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: (a, b) = (2, 3) is outside the range of acceptable values for a key of this affine cryptosystem.
+        """
+        # Sanity check: the key K = (a,b) must be an element of
+        # ZZ/nZZ x ZZ/nZZ where n is the size of the plaintext and ciphertext
+        # spaces. For the affine cryptosystem, these two spaces are the
+        # same alphabet.
+        try:
+            n = self.alphabet_size()
+            # If a is an element of the multiplicative group G of ZZ/nZZ, then
+            # gcd(a,n) = 1. So here we don't need to explicitly test that
+            # a is coprime to n since we assume that the list
+            # self._invertible_A contains all the elements of G.
+            if (a in self._invertible_A) and (0 <= b < n):
+                return AffineCipher(self, key=(a,b))
+            else:
+                raise ValueError
+        except:
+            raise ValueError("(a, b) = (%s, %s) is outside the range of acceptable values for a key of this affine cryptosystem." % (a, b))
+
+    def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings()); A
+            Affine cryptosystem on Free alphabetic string monoid on A-Z
+        """
+        # The affine cipher has the plaintext and ciphertext spaces defined
+        # over the same non-empty alphabet. The cipher domain is the same
+        # as the alphabet used for the plaintext and ciphertext spaces.
+        return "Affine cryptosystem on %s" % self.cipher_domain()
+
+    def deciphering(self, a, b, C):
+        r"""
+        Decrypt the ciphertext ``C`` with the key ``(a, b)`` using affine
+        cipher decryption.
+
+        INPUT:
+
+        - ``a, b`` -- a secret key belonging to the key space of this affine
+          cipher. This key must be an element of
+          `\ZZ/n\ZZ \times \ZZ/n\ZZ` such that `\gcd(a,n) = 1` with `n`
+          being the size of the ciphertext and plaintext spaces.
+
+        - ``C`` -- a string of ciphertext; possibly an empty string.
+          Characters in this string must be encoded using one of the
+          supported alphabets. See the method :func:`encoding()` for more
+          information.
+
+        OUTPUT:
+
+        - The plaintext corresponding to the ciphertext ``C``.
+
+        EXAMPLES:
+
+        Decryption over the capital letters of the English alphabet::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: a, b = (5, 2)
+            sage: P = A.encoding("Affine functions are linear functions.")
+            sage: C = A.enciphering(a, b, P); C
+            CBBQPWBYPMTQUPOCJWFQPWCJBYPMTQUPO
+            sage: P == A.deciphering(a, b, C)
+            True
+
+        The previous example can also be worked through using functional
+        notation::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: a, b = (5, 2)
+            sage: P = A.encoding("Affine functions are linear functions.")
+            sage: E = A(a, b); E
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: C = E(P); C
+            CBBQPWBYPMTQUPOCJWFQPWCJBYPMTQUPO
+            sage: aInv, bInv = A.inverse_key(a, b)
+            sage: D = A(aInv, bInv); D
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: D(C) == P
+            True
+
+        If the ciphertext is an empty string, then the plaintext is also
+        an empty string regardless of the value of the secret key::
+
+            sage: a, b = A.random_key()
+            sage: A.deciphering(a, b, A.encoding(""))
+            <BLANKLINE>
+            sage: A.deciphering(a, b, A.encoding(" "))
+            <BLANKLINE>
+
+        TESTS:
+
+        The key must be an ordered pair
+        `(a,b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` with `n` being the size of the
+        plaintext and ciphertext spaces. Furthermore, `a` must be
+        relatively prime to `n`, i.e. `\gcd(a,n) = 1`::
+
+            sage: A.deciphering(2, 6, P)
+            Traceback (most recent call last):
+            ...
+            ValueError: (a, b) = (2, 6) is outside the range of acceptable values for a key of this affine cipher.
+        """
+        aInv, bInv = self.inverse_key(a, b)
+        D = self(aInv, bInv)
+        return D(C)
+
+    def enciphering(self, a, b, P):
+        r"""
+        Encrypt the plaintext ``P`` with the key ``(a, b)`` using affine cipher
+        encryption.
+
+        INPUT:
+
+        - ``a, b`` -- a secret key belonging to the key space of this affine
+          cipher. This key must be an element of
+          `\ZZ/n\ZZ \times \ZZ/n\ZZ` such that `\gcd(a,n) = 1` with `n`
+          being the size of the ciphertext and plaintext spaces.
+
+        - ``P`` -- a string of plaintext; possibly an empty string.
+          Characters in this string must be encoded using one of the
+          supported alphabets. See the method :func:`encoding()` for more
+          information.
+
+        OUTPUT:
+
+        - The ciphertext corresponding to the plaintext ``P``.
+
+        EXAMPLES:
+
+        Encryption over the capital letters of the English alphabet::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: a, b = (3, 6)
+            sage: P = A.encoding("Affine ciphers work with linear functions.")
+            sage: A.enciphering(a, b, P)
+            GVVETSMEZBSFIUWFKUELBNETSGFVOTMLEWTI
+
+        Now work through the previous example using functional notation::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: a, b = (3, 6)
+            sage: P = A.encoding("Affine ciphers work with linear functions.")
+            sage: E = A(a, b); E
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: E(P)
+            GVVETSMEZBSFIUWFKUELBNETSGFVOTMLEWTI
+
+        If the plaintext is an empty string, then the ciphertext is also
+        an empty string regardless of the value of the secret key::
+
+            sage: a, b = A.random_key()
+            sage: A.enciphering(a, b, A.encoding(""))
+            <BLANKLINE>
+            sage: A.enciphering(a, b, A.encoding(" "))
+            <BLANKLINE>
+
+        TESTS:
+
+        The key must be an ordered pair
+        `(a,b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` with `n` being the size of the
+        plaintext and ciphertext spaces. Furthermore, `a` must be
+        relatively prime to `n`, i.e. `\gcd(a,n) = 1`::
+
+            sage: A.enciphering(2, 6, P)
+            Traceback (most recent call last):
+            ...
+            ValueError: (a, b) = (2, 6) is outside the range of acceptable values for a key of this affine cryptosystem.
+        """
+        E = self(a, b)
+        return E(P)
+
+    def encoding(self, S):
+        r"""
+        The encoding of the string ``S`` over the string monoid of this
+        affine cipher. For example, if the string monoid of this cryptosystem
+        is
+        :class:`AlphabeticStringMonoid <sage.monoids.string_monoid.AlphabeticStringMonoid>`,
+        then the encoding of ``S`` would be its upper-case equivalent
+        stripped of all non-alphabetic characters. Only the following alphabet
+        is supported for the affine cipher:
+
+        - capital letters of the English alphabet as implemented in
+          :func:`AlphabeticStrings() <sage.monoids.string_monoid.AlphabeticStrings>`
+
+        INPUT:
+
+        - ``S`` -- a string, possibly empty.
+
+        OUTPUT:
+
+        - The encoding of ``S`` over the string monoid of this cryptosystem.
+          If ``S`` is an empty string, return an empty string.
+
+        EXAMPLES:
+
+        Encoding over the upper-case letters of the English alphabet::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A.encoding("Affine cipher over capital letters of the English alphabet.")
+            AFFINECIPHEROVERCAPITALLETTERSOFTHEENGLISHALPHABET
+
+        The argument ``S`` can be an empty string, in which case an empty
+        string is returned::
+
+            sage: AffineCryptosystem(AlphabeticStrings()).encoding("")
+            <BLANKLINE>
+        """
+        D = self.cipher_domain()
+        if isinstance(D, AlphabeticStringMonoid):
+            return D(strip_encoding(S))
+        try:
+            return D.encoding(S)
+        except:
+            raise TypeError("Argument S = %s does not encode in the cipher domain" % S)
+
+    def inverse_key(self, a, b):
+        r"""
+        The inverse key corresponding to the secret key `(a,b)`. If `p` is
+        a plaintext character so that `p \in \ZZ/n\ZZ` and `n` is the
+        alphabet size, then the ciphertext `c` corresponding to `p` is
+
+        .. MATH::
+
+            c \equiv ap + b \pmod{n}
+
+        As `(a,b)` is a key, then the multiplicative inverse `a^{-1}`
+        exists and the original plaintext can be recovered as follows
+
+        .. MATH::
+
+            p \equiv a^{-1} (c - b) \pmod{n}
+              \equiv a^{-1}c + a^{-1}(-b) \pmod{n}
+
+        Therefore the ordered pair `(a^{-1}, -ba^{-1})` is the inverse key
+        corresponding to `(a,b)`.
+
+        INPUT:
+
+        - ``a, b`` -- a secret key for this affine cipher. The ordered pair
+          `(a,b)` must be an element of `\ZZ/n\ZZ \times \ZZ/n\ZZ` such that
+          `\gcd(a,n) = 1`.
+
+        OUTPUT:
+
+        - The inverse key `(a^{-1}, -ba^{-1})` corresponding to `(a,b)`.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: a, b = (1, 2)
+            sage: A.inverse_key(a, b)
+            (1, 24)
+            sage: A.inverse_key(3, 2)
+            (9, 8)
+
+        Suppose that the plaintext and ciphertext spaces are the capital
+        letters of the English alphabet so that `n = 26`. If `\varphi(n)`
+        is the Euler phi function of `n`, then there are `\varphi(n)`
+        integers `0 \leq a < n` that are relatively prime to `n`. For the
+        capital letters of the English alphabet, there are 12 such integers
+        relatively prime to `n`::
+
+            sage: euler_phi(A.alphabet_size())
+            12
+
+        And here is a list of those integers::
+
+            sage: n = A.alphabet_size()
+            sage: L = [i for i in xrange(n) if gcd(i, n) == 1]; L
+            [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]
+
+        Then a secret key `(a,b)` of this shift cryptosystem is
+        such that `a` is an element of the list ``L`` in the last example.
+        Any inverse key `(A, B)` corresponding to `(a,b)` is such that
+        `A` is also in the list ``L`` above::
+
+            sage: a, b = (3, 9)
+            sage: a in L
+            True
+            sage: aInv, bInv = A.inverse_key(a, b)
+            sage: aInv, bInv
+            (9, 23)
+            sage: aInv in L
+            True
+
+        TESTS:
+
+        Any ordered pair of the form `(0, b)` for any integer `b` cannot be
+        a secret key of this affine cipher. Hence `(0, b)` does not have
+        a corresponding inverse key::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A.inverse_key(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: (a, b) = (0, 1) is outside the range of acceptable values for a key of this affine cipher.
+        """
+        try:
+            from sage.rings.arith import inverse_mod
+            from sage.rings.integer_mod import Mod
+            n = self.alphabet_size()
+            aInv = inverse_mod(a, n)
+            bInv = Mod(-b * aInv, n).lift()
+            return (aInv, bInv)
+        except:
+            raise ValueError("(a, b) = (%s, %s) is outside the range of acceptable values for a key of this affine cipher." % (a, b))
+
+    def random_key(self):
+        r"""
+        Generate a random key within the key space of this affine cipher.
+        The generated secret key is an ordered pair
+        `(a, b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` with `n` being the size of
+        the cipher domain and `\gcd(a, n) = 1`. Let `\varphi(n)` denote
+        the Euler phi function of `n`. Then the affine cipher has
+        `n \cdot \varphi(n)` possible keys (see page 10 of [Sti06]_).
+
+        OUTPUT:
+
+        - A random key within the key space of this affine cryptosystem.
+          The output key is an ordered pair `(a,b)`.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A.random_key()  # random
+            (17, 25)
+
+        If `(a,b)` is a secret key and `n` is the size of the plaintext and
+        ciphertext alphabets, then `\gcd(a, n) = 1`::
+
+            sage: a, b = A.random_key()
+            sage: n = A.alphabet_size()
+            sage: gcd(a, n)
+            1
+        """
+        # Return a random element in ZZ/nZZ x ZZ/nZZ where n is the number
+        # of elements in the plaintext/ciphertext alphabet.
+        from sage.misc.prandom import randint
+        n = self.alphabet_size()
+        L = len(self._invertible_A)
+        a = Integer(self._invertible_A[randint(0, L - 1)])
+        b = Integer(randint(0, n - 1))
+        return (a, b)
 
 class HillCryptosystem(SymmetricKeyCryptosystem):
     """
@@ -929,10 +1539,13 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
           <http://en.wikipedia.org/wiki/Goodness_of_fit>`_. Wikipedia,
           accessed 13th October 2009.
         """
+        # NOTE: the code here is very similar to that in the method
+        # rank_by_chi_square() of the class AffineCryptosystem. The most
+        # significant change in the code below is in how the secret key k
+        # is processed.
+
         # sanity check
-        from sage.monoids.string_monoid import (
-            AlphabeticStringMonoid,
-            AlphabeticStrings)
+        from sage.monoids.string_monoid import AlphabeticStrings
         if not isinstance(C.parent(), AlphabeticStringMonoid):
             raise TypeError("The ciphertext must be capital letters of the English alphabet.")
         if str(C) == "":
@@ -1206,8 +1819,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             # the rank R(M, K) of M with shift key k
             RMk = [(OM[AS(e)] - EA[e])**2 for e in StrAlph]
             Rank.append((sum(RMk), key))
-        # Sort in non-decreasing order of chi-square statistic. It's
-        # possible that two different keys share the same chi-square
+        # Sort in non-decreasing order of squared-differences statistic. It's
+        # possible that two different keys share the same squared-differences
         # statistic.
         Rank = sorted(Rank)
         RankedList = []

@@ -1,14 +1,16 @@
 from classical import (
-     HillCryptosystem,
-     SubstitutionCryptosystem,
-     ShiftCryptosystem,
-     TranspositionCryptosystem,
-     VigenereCryptosystem)
+    AffineCryptosystem,
+    HillCryptosystem,
+    SubstitutionCryptosystem,
+    ShiftCryptosystem,
+    TranspositionCryptosystem,
+    VigenereCryptosystem)
 
-from stream import (LFSRCryptosystem,
-                    ShrinkingGeneratorCryptosystem)
+from stream import (
+    LFSRCryptosystem,
+    ShrinkingGeneratorCryptosystem)
 
-from lfsr import (lfsr_sequence,
-                  lfsr_autocorrelation,
-                  lfsr_connection_polynomial)
-
+from lfsr import (
+    lfsr_sequence,
+    lfsr_autocorrelation,
+    lfsr_connection_polynomial)

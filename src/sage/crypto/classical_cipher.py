@@ -14,6 +14,145 @@ from cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
 from sage.modules.free_module import FreeModule
 
+class AffineCipher(SymmetricKeyCipher):
+    r"""
+    Affine cipher class. This is the class that does the actual work of
+    encryption and decryption. Users should not directly instantiate or
+    create objects of this class. Instead, functionalities of this class
+    should be accessed via
+    :class:`AffineCryptosystem <sage.crypto.classical.AffineCryptosystem>`
+    as the latter provides a convenient user interface.
+    """
+
+    def __init__(self, parent, key):
+        r"""
+        Create an affine cipher.
+
+        INPUT:
+
+        - ``parent`` -- an ``AffineCryptosystem`` object.
+
+        - ``key`` -- a secret key. Let `N` be the size of the cipher domain.
+          A key of this affine cipher is an ordered pair
+          `(a, b) \in \ZZ_N \times \ZZ_N` such that `\gcd(a, N) = 1`.
+
+        EXAMPLES:
+
+        Testing of dumping and loading object::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: AC = A(3, 5)
+            sage: AC == loads(dumps(AC))
+            True
+        """
+        SymmetricKeyCipher.__init__(self, parent, key)
+
+    def __eq__(self, other):
+        r"""
+        Comparing this ``AffineCipher`` with ``other``. Two ``AffineCipher``
+        objects are the same if they are of the same type, have the same
+        parent, and share the same secret key.
+
+        INPUT:
+
+        - ``other`` -- another object to compare with.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` and ``other`` are the same ``AffineCipher``
+          object; ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: aff1 = AffineCryptosystem(AlphabeticStrings())
+            sage: aff2 = AffineCryptosystem(AlphabeticStrings())
+            sage: aff1 == aff2
+            True
+            sage: aff1(1, 2) == aff2(1, 2)
+            True
+        """
+        return type(self) == type(other) and self.parent() == other.parent() and self.key() == other.key()
+
+    def __call__(self, M):
+        r"""
+        Return the ciphertext (respectively, plaintext) corresponding to
+        ``M``. This is the main place where encryption and decryption takes
+        place.
+
+        INPUT:
+
+        - ``M`` -- a message to be encrypted or decrypted. This message must
+          be encoded using the plaintext or ciphertext alphabet. The current
+          behaviour is that the plaintext and ciphertext alphabets are the
+          same alphabet.
+
+        - ``algorithm`` -- (default ``"encrypt"``) whether to use the
+          encryption or decryption algorithm on ``M``. The flag ``"encrypt"``
+          signifies using the encryption algorithm, while ``"decrypt"``
+          signifies using the decryption algorithm. The only acceptable
+          values for ``algorithm`` are: ``"encrypt"`` and ``"decrypt"``.
+
+        OUTPUT:
+
+        - The ciphertext or plaintext corresponding to ``M``.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings()); A
+            Affine cryptosystem on Free alphabetic string monoid on A-Z
+            sage: P = A.encoding("The affine cryptosystem generalizes the shift cipher.")
+            sage: P
+            THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+            sage: a, b = (9, 13)
+            sage: E = A(a, b); E
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: C = E(P); C
+            CYXNGGHAXFKVSCJTVTCXRPXAXKNIHEXTCYXTYHGCFHSYXK
+            sage: aInv, bInv = A.inverse_key(a, b)
+            sage: D = A(aInv, bInv); D
+            Affine cipher on Free alphabetic string monoid on A-Z
+            sage: D(C)
+            THEAFFINECRYPTOSYSTEMGENERALIZESTHESHIFTCIPHER
+            sage: D(C) == P
+            True
+            sage: D(C) == P == D(E(P))
+            True
+        """
+        # sanity check
+        D = self.domain()  # = plaintext_space = ciphertext_space
+        if M.parent() != D:
+            raise TypeError("Argument M must be a string in the plaintext/ciphertext space.")
+
+        from sage.rings.integer_mod import Mod
+        A = list(D.alphabet())     # plaintext/ciphertext alphabet as a list
+        N = self.domain().ngens()  # number of elements in this alphabet
+        a, b = self.key()          # encryption/decryption key (a,b)
+        # Let I be the index list of M. That is, the i-th element of M has
+        # index k in the cipher domain D. We store this cipher domain index
+        # as the i-th element of I.
+        I = [A.index(str(e)) for e in M]
+
+        # Encrypt the plaintext M. For each element i in I, the ciphertext
+        # corresponding to i is ai + b (mod N). This can also be used for
+        # decryption, in which case (a, b) is the inverse key corresponding
+        # to a secret key.
+        return D([ A.index(A[Mod(a*i + b, N).lift()]) for i in I ])
+
+    def _repr_(self):
+        r"""
+        Return the string representation of this affine cipher.
+
+        EXAMPLES::
+
+            sage: A = AffineCryptosystem(AlphabeticStrings())
+            sage: A(1, 2)
+            Affine cipher on Free alphabetic string monoid on A-Z
+        """
+        # The affine cipher has the plaintext and ciphertext spaces defined
+        # over the same non-empty alphabet. The cipher domain is the same
+        # as the alphabet used for the plaintext and ciphertext spaces.
+        return "Affine cipher on %s" % self.parent().cipher_domain()
+
 class HillCipher(SymmetricKeyCipher):
     """
     Hill cipher class
@@ -104,6 +243,7 @@ class ShiftCipher(SymmetricKeyCipher):
     :class:`ShiftCryptosystem <sage.crypto.classical.ShiftCryptosystem>`
     as the latter provides a convenient user interface.
     """
+
     def __init__(self, parent, key):
         r"""
         Create a shift cipher.

@@ -439,6 +439,7 @@ class EllipticCurveIsogeny(Morphism):
                       of the kernel polynomial with the two torsion polynomial of ``E``.
     - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if
                       ``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
+     - ``check`` (default: True) checks if the input is valid to define an isogeny
 
     EXAMPLES:
 

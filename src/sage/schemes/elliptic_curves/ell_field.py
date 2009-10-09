@@ -565,6 +565,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None, then this must be the codomain of a separable normalized isogeny, furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this must be isomorphic to the codomain of the normalized separable isogeny defined by ``kernel``, in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
         - ``degree``    - an integer (default:None). If ``kernel`` is None, then this is the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this is used to determine whether or not to skip a gcd of the kernel polynomial with the two torsion polynomial of ``E``.
         - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
+        - ``check`` (default: True) checks if the input is valid to define an isogeny
 
         OUTPUT:
 

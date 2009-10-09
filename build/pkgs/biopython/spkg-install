@@ -6,13 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# remove older biopython installs
-#CUR=`pwd`
-#cd $SAGE_LOCAL/lib/python/site-packages/
-#rm -rf Bio Martel/ BioSQL/ biopython-*
-#cd $CUR
-
-cd biopython
+cd src
 python setup.py build
 python setup.py install
 if [ $? -ne 0 ]; then

@@ -1,7 +1,24 @@
 = biopython =
 
-MAINTAINER:
+== Description ==
+
+Biopython is a set of freely available tools for biological computation written in Python by an international team of developers.
+
+It is a distributed collaborative effort to develop Python libraries and applications which address the needs of current and future work in bioinformatics.
+
+== License ==
+
+Biopython License
+
+== SPKG Maintainers ==
+
   -- Marshall Hampton, mhampton at d.umn.edu or hamptonio at gmail.com.
+  -- Adam Webb, maxthemouse at googlemail.com
+
+== Upstream Contact ==
+
+  -- wiki, http://biopython.org/wiki/Main_Page
+
 
 == Changelog ==
 

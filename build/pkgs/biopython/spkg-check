@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+python setup.py build
+python setup.py test
+
+# There is one failure due to how the test is run from Sage. The test will pass
+# if done from the command line.
+echo "Note: There is one expected failure with Doctest: Bio.Wise._build_align_cmdline."
+echo "Other test failures should be examined."
+
+if [ $? -ne 0 ]; then
+   echo "Error testing biopython"
+   exit 1
+fi

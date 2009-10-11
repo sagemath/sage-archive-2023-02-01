@@ -16,7 +16,9 @@ ClasscallMetaclass
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-class ClasscallMetaclass(type):
+from nested_class import NestedClassMetaclass
+
+class ClasscallMetaclass(NestedClassMetaclass):
     """
     A (trivial) metaclass for customizing class calls via a static method
 
@@ -59,7 +61,6 @@ class ClasscallMetaclass(type):
 
     Todo: any better name for ``__classcall__``?
     """
-
     def __call__(cls, *args, **options):
         """
         This method implements ``cls(<some arguments>)``.

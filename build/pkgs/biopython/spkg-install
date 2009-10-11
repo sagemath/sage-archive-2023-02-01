@@ -6,9 +6,13 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# copy patched file
+cp patches/__init__.py src/Bio/Wise/
+
 cd src
 python setup.py build
 python setup.py install
+
 if [ $? -ne 0 ]; then
    echo "Error install biopython"
    exit 1

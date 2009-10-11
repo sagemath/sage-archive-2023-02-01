@@ -13,7 +13,6 @@ Biopython License
 == SPKG Maintainers ==
 
   -- Marshall Hampton, mhampton at d.umn.edu or hamptonio at gmail.com.
-  -- Adam Webb, maxthemouse at googlemail.com
 
 == Upstream Contact ==
 
@@ -48,3 +47,4 @@ Biopython has eliminated several dependencies such as Numeric and mx-text-tools,
 === biopython-1.52 ===
 
 Updating to biopython-1.52, which was released September 22, 2009.  Main improvements were to alignment and sequence file conversion, population genetics statistics, and the Bio.SeqIO.indexed_dict() for handling large numbers of sequences.
+Add a patch to Bio/Wise/__init__.py to skip the doctest. This test fails during the install when using 'sage -i' and SAGE_CHECK="yes".

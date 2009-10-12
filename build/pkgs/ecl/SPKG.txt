@@ -42,6 +42,9 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-9.8.4-20090913cvs.p2 (William Stein, Oct 11, 2009) ===
+  * trac 7186 -- make sure ecl still works when sage is moved
+
 === ecl-9.8.4-20090913cvs.p1 (William Stein, Sept 20th, 2009) ===
   * Make the name more canonical
   * Patch for boehm GC code to also work on OS X 10.6

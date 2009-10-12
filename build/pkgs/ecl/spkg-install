@@ -177,9 +177,25 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+# Remove old install of ecl, if any.
+rm -rf "$SAGE_LOCAL/lib/ecl-*"
+if [ $? -ne 0 ]; then
+   echo "Failed to remove old ECL install ... exiting"
+   exit 1
+fi
+
 make install
 if [ $? -ne 0 ]; then
    echo "Failed to install ECL ... exiting"
    exit 1
 fi
 
+# Create symbolic link to lib/ecl-version directory.
+# This is important when the Sage install is moved.
+cd "$SAGE_LOCAL/lib/" && rm -f ecl && ln -s ecl-* ecl
+
+# It is very important that the above line worked.
+if [ $? -ne 0 ]; then
+   echo "Failed to create ecl library symbolic link ... exiting"
+   exit 1
+fi

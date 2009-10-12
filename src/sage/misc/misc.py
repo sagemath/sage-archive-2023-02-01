@@ -71,6 +71,12 @@ if ' ' in DOT_SAGE:
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
 
+if UNAME == "Darwin":
+    if os.uname()[2] == "10.0.0":
+        print "WARNING: There is one major known bug in Sage on OS X 10.6 that causes"
+        print "an 'Abort trap' crash when doing certain symbolic computations."
+        print "See http://trac.sagemath.org/sage_trac/ticket/7095/."
+
 #################################################
 # Now that the variable DOT_SAGE has been set,
 # we make sure that the DOT_SAGE directory

@@ -1174,6 +1174,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             x*y^5*z^2
             sage: (x^4*y^7*z^1 + x^4*y^2*z^3).lm()
             x^4*y^7*z
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+            sage: R.<x,y>=MPolynomialRing_polydict(GF(2),2,order='lex')
+            sage: f=x+y
+            sage: f.lm()
+            x
+
         """
         try:
             return self.__lm
@@ -1183,7 +1192,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero_element(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1224,6 +1233,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f=3*x^2-y^2-x*y
             sage: f.lt()
             -y^2
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+            sage: R.<x,y>=MPolynomialRing_polydict(GF(2),2,order='lex')
+            sage: f=x+y
+            sage: f.lt()
+            x
+
         """
         try:
             return self.__lt
@@ -1233,7 +1251,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero_element(),force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):

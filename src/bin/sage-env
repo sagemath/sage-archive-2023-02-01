@@ -273,7 +273,7 @@ if [ "$MAKEFLAGS" != "" ]; then
 fi
 
 # See trac 7186 -- this is needed if ecl is moved
-ECLDIR="$SAGE_LOCAL/lib/ecl" && export ECLDIR
+ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
 
 # Export variable names.
 export SHAREDFLAGS

@@ -1294,6 +1294,41 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 #
 ###
 
+    def var(self, i=0):
+        """
+        Returns the i-th generator of this boolean polynomial ring.
+
+        INPUT:
+
+        - ``i`` - an integer or a boolean monomial in one variable
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P.var()
+            x
+            sage: P.var(2)
+            z
+            sage: m = x.monomials()[0]
+            sage: P.var(m)
+            x
+
+        TESTS::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3, order='dp')
+            sage: P.var(0)
+            x
+        """
+        if PY_TYPE_CHECK(i, BooleanMonomial):
+            if len(i) == 1:
+                i = i.index()
+            else:
+                raise TypeError, "Boolean monomials must be in one variable only."
+        i = int(i)
+        if i < 0 or i >= self._pbring.nVariables():
+            raise ValueError, "Generator not defined."
+        return new_BP_from_DD(self, self._pbring.variable(self.pbind[i]))
+
     def _change_ordering(self, int order):
         r"""
         Change the ordering of this boolean polynomial ring. Do NOT call
@@ -4195,6 +4230,9 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
           to ``True`` linear algebra takes affect in this
           block. (default: ``True``)
 
+        - "gauss_on_linear" - perform Gaussian elimination on linear
+           polynomials (default: ``True``)
+
         - ``selection_size`` - maximum number of polynomials for
           parallel reductions (default: ``1000``)
 
@@ -4266,9 +4304,9 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         if "redsb" not in kwds:
             kwds["redsb"]=True
         set_cring(self.ring())
-        #_sig_on
+        _sig_on
         gb = groebner_basis(self.gens(), **kwds)
-        #_sig_off
+        _sig_off
         if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy()
             for p in gb:
@@ -5247,6 +5285,36 @@ cdef class BooleanPolynomialVector:
             raise IndexError
         return new_BP_from_PBPoly(self._parent, self._vec.get(i))
 
+
+    def __setitem__(self, ind, p):
+        """
+        EXAMPLE::
+
+            sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
+            sage: from polybori import BooleanPolynomialVector
+            sage: l = [B.random_element() for _ in range(3)]
+            sage: v = BooleanPolynomialVector(l)
+            sage: len(v)
+            3
+            sage: v[0] = a; v[0]
+            a
+            sage: v[-1] = b; v[-1]
+            b
+            sage: v[3] = c
+            Traceback (most recent call last):
+            ...
+            IndexError
+        """
+        cdef long i = int(ind)
+        while i < 0:
+            i += self._vec.size()
+        if i >= self._vec.size():
+            raise IndexError
+        if not PY_TYPE_CHECK(p, BooleanPolynomialVector):
+            p = self._parent(p)
+
+        PBPolyVector_set(self._vec, i, (<BooleanPolynomial>p)._pbpoly)
+
     def append(self, el):
         """
         Append the element ``el`` to this vector.
@@ -5425,7 +5493,7 @@ cdef class ReductionStrategy:
             sage: red.add_generator(y*z + z)
 
             sage: red.head_normal_form(x + y*z)
-            x + y*z
+            y + z + 1
 
             sage; red.nf(x + y*z)
             y + z + 1
@@ -6991,6 +7059,53 @@ def substitute_variables(vec, BooleanPolynomial poly):
         for f in vec:
             _vec.append(f)
     return new_BP_from_PBPoly((<BooleanPolynomialRing>poly._parent), pb_substitute_variables(_vec._vec, poly._pbpoly))
+
+
+def set_random_seed(seed):
+    """
+    The the PolyBoRi random seed to ``seed``
+
+    EXAMPLE::
+
+        sage: from polybori import random_set, set_random_seed
+        sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
+        sage: (a*b*c*d).lm()
+        a*b*c*d
+        sage: set_random_seed(1337)
+        sage: random_set((a*b*c*d).lm(),2)
+        {{b,c}, {b}}
+        sage: random_set((a*b*c*d).lm(),2)
+        {{a,c}, {}}
+
+        sage: set_random_seed(1337)
+        sage: random_set((a*b*c*d).lm(),2)
+        {{b,c}, {b}}
+        sage: random_set((a*b*c*d).lm(),2)
+        {{a,c}, {}}
+    """
+    pb_set_random_seed(seed)
+
+def random_set(BooleanMonomial variables, length):
+    """
+    Return a random set of monomials with ``length`` elements with
+    each element in the variables ``variables``.
+
+    EXAMPLE::
+
+        sage: from polybori import random_set, set_random_seed
+        sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
+        sage: (a*b*c*d).lm()
+        a*b*c*d
+        sage: set_random_seed(1337)
+        sage: random_set((a*b*c*d).lm(),10)
+        {{a,b,c,d}, {a,b,d}, {a,c}, {a,d}, {a}, {b,c}, {b}, {c,d}, {c}, {}}
+    """
+    cdef PBSet r
+    r =  pb_random_set(variables._pbmonom, length)
+    return new_BS_from_PBSet(r, variables._ring)
+
+def easy_linear_factors(BooleanPolynomial p):
+    return new_BPV_from_PBPolyVector(p._parent, pb_easy_linear_factors(p._pbpoly))
 
 def unpickle_BooleanPolynomial(ring, string):
     """

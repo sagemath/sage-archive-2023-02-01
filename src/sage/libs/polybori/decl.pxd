@@ -431,6 +431,8 @@ cdef extern from "pb_wrap.h":
 
     PBPolyVector pb_gauss_on_polys "gauss_on_polys" (PBPolyVector inp)
 
+    PBPolyVector pb_easy_linear_factors "easy_linear_factors"(PBPoly p)
+
     PBPoly pb_substitute_variables "substitute_variables<std::vector<BoolePolynomial>, BoolePolynomial>" (PBPolyVector vec, PBPoly poly)
 
     void pb_append_block "BooleEnv::appendBlock" (int ind)
@@ -441,6 +443,11 @@ cdef extern from "pb_wrap.h":
     char * pb_get_variable_name "BooleEnv::getVariableName" \
         (int idx)
 
+    PBSet pb_random_set "random_set" (PBMonom variables, int length)
+    void pb_set_random_seed "set_random_seed" (unsigned int seed)
+
     #M4RI initialization
     void m4ri_build_all_codes()
     void m4ri_destroy_all_codes()
+
+    void PBPolyVector_set(PBPolyVector v, int i, PBPoly p)

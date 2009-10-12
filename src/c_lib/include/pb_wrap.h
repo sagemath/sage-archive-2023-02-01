@@ -3,6 +3,7 @@
 #include "nf.h"
 #include "fglm.h"
 #include "interpolate.h"
+#include "randomset.h"
 #include "ccobject.h"
 
 // M4RI
@@ -85,3 +86,4 @@ static void implications(GroebnerStrategy& strat, int i){
     strat.addNonTrivialImplicationsDelayed(strat.generators[i]);
 }
 
+#define PBPolyVector_set(v,i,p) v[i] = p

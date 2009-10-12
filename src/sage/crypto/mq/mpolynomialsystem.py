@@ -1147,6 +1147,7 @@ class MPolynomialSystem_generic(SageObject):
                     ij = ij - len(r)
                 else:
                     return r[ij]
+            raise IndexError("index out of range")
 
     def __contains__(self, element):
         """

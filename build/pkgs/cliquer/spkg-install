@@ -217,6 +217,9 @@ fi
 cp -f *.h "$SAGE_LOCAL/include/cliquer/"
 if [ `uname` = "Darwin" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dylib"
+    # On OS X 10.6 at least, the above does *NOT* work at all.
+    # So I'm also doing the following, which can't hurt.
+    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
 else
     cp -f libcliquer.so "$SAGE_LOCAL/lib/"
 fi

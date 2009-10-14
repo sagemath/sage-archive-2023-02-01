@@ -129,8 +129,8 @@ def coverage(filename, file):
     score = 100 * (len(good)) / float(num_functions)
     score = int(score)
 
-    if 'class' in file and 'loads' not in file:
-        print "ERROR: Please define a s == loads(dumps(s)) doctest."
+    if re.search("^\s*(cdef)?\s*class\s+", file, re.M) and 'loads' not in file and 'TestSuite(' not in file:
+        print "ERROR: Please add a `TestSuite(s).run()` doctest."
 
     if score < 0:
         score = 0

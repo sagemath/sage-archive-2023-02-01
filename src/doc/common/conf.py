@@ -113,7 +113,7 @@ html_static_path = [os.path.join(SAGE_DOC, 'common/static'), 'static']
 # array.  We can override / overwrite selected files by putting them
 # in the remaining paths.
 if 'SAGE_DOC_JSMATH' in os.environ:
-    jsmath_static = os.path.join(SAGE_ROOT, 'local/notebook/javascript/jsmath')
+    jsmath_static = os.path.join(SAGE_ROOT, 'local/lib/python/site-packages/sagenb/data/javascript/jsmath/')
     html_static_path.insert(0, jsmath_static)
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,

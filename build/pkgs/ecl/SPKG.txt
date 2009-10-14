@@ -42,6 +42,10 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-9.8.4-20090913cvs.p3 (William Stein, Oct 14, 2009) ===
+  * trac 7213 -- put * in right place in rm command to make
+    sure ecl still works when sage is moved (properly delete old versions)
+
 === ecl-9.8.4-20090913cvs.p2 (William Stein, Oct 11, 2009) ===
   * trac 7186 -- make sure ecl still works when sage is moved
 

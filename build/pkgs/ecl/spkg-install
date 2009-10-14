@@ -178,7 +178,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Remove old install of ecl, if any.
-rm -rf "$SAGE_LOCAL/lib/ecl-*"
+rm -rf "$SAGE_LOCAL/lib/ecl-"*
 if [ $? -ne 0 ]; then
    echo "Failed to remove old ECL install ... exiting"
    exit 1

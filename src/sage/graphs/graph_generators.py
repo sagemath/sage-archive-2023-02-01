@@ -84,6 +84,7 @@ organized as follows::
         - CompleteGraph
         - CompleteBipartiteGraph
         - CubeGraph
+        - GeneralizedPetersenGraph
         - HyperStarGraph
         - KneserGraph
         - LCFGraph
@@ -138,6 +139,8 @@ AUTHORS:
 
 - Michael Yurko (2009-9-01): added hyperstar, (n,k)-star, n-star, and
   bubblesort graphs
+
+- Anders Jonsson (2009-10-15): added generalized Petersen graphs
 """
 
 ################################################################################
@@ -1593,19 +1596,8 @@ class GraphGenerators():
         - [1] Harary, F. Graph Theory. Reading, MA: Addison-Wesley,
           1994.
         """
-        pos_dict = {}
-        for i in range(10):
-            x = float(cos(pi/2 + ((2*pi)/10)*i))
-            y = float(sin(pi/2 + ((2*pi)/10)*i))
-            pos_dict[i] = [x,y]
-        for i in range(20)[10:]:
-            x = float(0.5*cos(pi/2 + ((2*pi)/10)*i))
-            y = float(0.5*sin(pi/2 + ((2*pi)/10)*i))
-            pos_dict[i] = [x,y]
-        G = graph.Graph({0:[1,9,10], 1:[2,11], 2:[3,12], 3:[4,13], 4:[5,14],\
-                   5:[6,15], 6:[7,16], 7:[8,17], 8:[9,18], 9:[19], 10:[13,17],\
-                   11:[14,18], 12:[15,19], 13:[16], 14:[17], 15:[18], 16:[19]},\
-                  pos = pos_dict, name="Desargues Graph")
+        G=graphs.GeneralizedPetersenGraph(10,3)
+        G.name("Desargues Graph")
         return G
 
     def FlowerSnark(self):
@@ -1916,14 +1908,7 @@ class GraphGenerators():
         Hamiltonian. It has diameter = 4, girth = 6, and chromatic number =
         2. It is identical to the Generalized Petersen graph, P[8,3].
 
-        PLOTTING: Upon construction, the position dictionary is filled to
-        overwrite the spring-layout algorithm. By convention, the first 8
-        nodes are drawn counter-clockwise in an outer circle, with the
-        remaining eight drawn likewise nested in a smaller circular
-        pattern. The Moebius-Kantor graph is constructed directly below
-        from a dictionary with nodes as keys and entries represented the
-        nodes they are connected to. Please browse this dictionary or
-        display an example to further understand the plotting convention.
+        PLOTTING: See the plotting section for the generalized Petersen graphs.
 
         REFERENCES:
 
@@ -1941,18 +1926,9 @@ class GraphGenerators():
             'OhCGKE?O@?ACAC@I?Q_AS'
             sage: (graphs.MoebiusKantorGraph()).show() # long time
         """
-        pos_dict = {}
-        for i in range(8):
-            x = float(2*(cos((pi/2) + ((pi)/4)*i)))
-            y = float(2*(sin((pi/2) + ((pi)/4)*i)))
-            pos_dict[i] = [x,y]
-        for i in range(16)[8:]:
-            x = float(cos((pi/2) + ((pi)/4)*(i)))
-            y = float(sin((pi/2) + ((pi)/4)*(i)))
-            pos_dict[i] = [x,y]
-        return graph.Graph({0:[1,7,8],1:[2,9],2:[3,10],3:[4,11],4:[5,12], \
-                            5:[6,13],6:[7,14],9:[12,14],11:[8,14],13:[8,10], \
-                            15:[7,10,12]}, pos=pos_dict, name="Moebius-Kantor Graph")
+        G=graphs.GeneralizedPetersenGraph(8,3)
+        G.name("Moebius-Kantor Graph")
+        return G
 
     def PappusGraph(self):
         """
@@ -1991,15 +1967,7 @@ class GraphGenerators():
         The Petersen Graph is a common counterexample. For example, it is
         not Hamiltonian.
 
-        PLOTTING: When plotting the Petersen graph with the spring-layout
-        algorithm, we see that this graph is not very symmetric and thus
-        the display may not be very meaningful. Efficiency of construction
-        and plotting is not an issue, as the Petersen graph only has 10
-        vertices.
-
-        Our labeling convention here is to start on the outer pentagon from
-        the top, moving counterclockwise. Then the nodes on the inner star,
-        starting at the top and moving counterclockwise.
+        PLOTTING: See the plotting section for the generalized Petersen graphs.
 
         EXAMPLES: We compare below the Petersen graph with the default
         spring-layout versus a planned position dictionary of [x,y]
@@ -2010,18 +1978,8 @@ class GraphGenerators():
             sage: petersen_database = graphs.PetersenGraph()
             sage: petersen_database.show() # long time
         """
-        pos_dict = {}
-        for i in range(5):
-            x = float(cos(pi/2 + ((2*pi)/5)*i))
-            y = float(sin(pi/2 + ((2*pi)/5)*i))
-            pos_dict[i] = [x,y]
-        for i in range(10)[5:]:
-            x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            pos_dict[i] = [x,y]
-        P = graph.Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9],\
-            5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]},\
-            pos=pos_dict, name="Petersen graph")
+        P=graphs.GeneralizedPetersenGraph(5,2)
+        P.name("Petersen graph")
         return P
 
     def ThomsenGraph(self):
@@ -2446,6 +2404,75 @@ class GraphGenerators():
             pos[vertex] = [x,y]
 
         return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
+
+    def GeneralizedPetersenGraph(self, n,k):
+        r"""
+        Returns a generalized Petersen graph with `2n` nodes. The variables
+        `n`, `k` are integers such that `n>2` and `0<k\leq\lfloor(n-1)`/`2\rfloor`
+
+        For `k=1` the result is a graph isomorphic to the circular ladder graph
+        with the same `n`. The regular Petersen Graph has `n=5` and `k=2`.
+        Other named graphs that can be described using this notation include
+        the Desargues graph and the Moebius-Kantor graph.
+
+        INPUT:
+
+        -  ``n`` - the number of nodes is `2*n`.
+
+        -  ``k`` - integer `0<k\leq\lfloor(n-1)`/`2\rfloor`. Decides how inner
+        vertices are connected.
+
+        PLOTTING: Upon construction, the position dictionary is filled to
+        override the spring-layout algorithm. By convention, the generalized
+        Petersen graphs are displayed as an inner and outer cycle pair, with
+        the first n nodes drawn on the outer circle. The first (0) node is
+        drawn at the top of the outer-circle, moving counterclockwise after that.
+        The inner circle is drawn with the (n)th node at the top, then
+        counterclockwise as well.
+
+        EXAMPLES: For `k=1` the resulting graph will be isomorphic to a circular
+        ladder graph.
+
+        ::
+
+            sage: g = graphs.GeneralizedPetersenGraph(13,1)
+            sage: g2 = graphs.CircularLadderGraph(13)
+            sage: g.is_isomorphic(g2)
+            True
+
+
+        The Desargues graph:
+
+        ::
+            sage: g = graphs.GeneralizedPetersenGraph(10,3)
+            sage: g.girth()
+            6
+            sage: g.is_bipartite()
+            True
+
+        AUTHORS:
+
+        - Anders Jonsson (2009-10-15)
+        """
+        if (n < 3):
+                raise ValueError("n must be larger than 2")
+        if (k < 1 or k>((n-1)/2)):
+                raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
+        pos_dict = {}
+        G=graphs.EmptyGraph()
+        for i in range(n):
+            x = float(2*(cos((pi/2) + ((2*pi)/n)*i)))
+            y = float(2*(sin((pi/2) + ((2*pi)/n)*i)))
+            pos_dict[i] = [x,y]
+        for i in range(2*n)[n:]:
+            x = float(cos((pi/2) + ((2*pi)/n)*(i-n)))
+            y = float(sin((pi/2) + ((2*pi)/n)*(i-n)))
+            pos_dict[i] = [x,y]
+        for i in range(n):
+            G.add_edge(i, (i+1) % n)
+            G.add_edge(i, i+n)
+            G.add_edge(i+n, n + (i+k)% n)
+        return graph.Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
 
     def HyperStarGraph(self,n,k):
         r"""

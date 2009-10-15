@@ -205,6 +205,7 @@ from sage.structure.sage_object import SageObject
 from sage.sets.set import Set, is_Set
 from sage.rings.all import Integer, Integers, Infinity, ZZ
 from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_method
 from sage.combinat.words.words import Words, Words_all
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import CombinatorialClass
@@ -1947,6 +1948,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 res[j] = i - p[i-1]
         return res
 
+    @cached_method
     def suffix_trie(self):
         r"""
         Returns the suffix trie of self.
@@ -1961,13 +1963,13 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word("cacao")
-            sage: w.suffix_trie()                   # not implemented
+            sage: w.suffix_trie()
             Suffix Trie of the word: cacao
 
         ::
 
             sage: w = Word([0,1,0,1,1])
-            sage: w.suffix_trie()                   # not implemented
+            sage: w.suffix_trie()
             Suffix Trie of the word: 01011
         """
         from sage.combinat.words.suffix_trees import SuffixTrie
@@ -1989,25 +1991,26 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word("cacao")
-            sage: w.implicit_suffix_tree()          # not implemented
+            sage: w.implicit_suffix_tree()
             Implicit Suffix Tree of the word: cacao
 
         ::
 
             sage: w = Word([0,1,0,1,1])
-            sage: w.implicit_suffix_tree()          # not implemented
+            sage: w.implicit_suffix_tree()
             Implicit Suffix Tree of the word: 01011
         """
         from sage.combinat.words.suffix_trees import ImplicitSuffixTree
         return ImplicitSuffixTree(self)
 
+    @cached_method
     def suffix_tree(self):
         r"""
         Alias for implicit_suffix_tree().
 
         EXAMPLES::
 
-            sage: Word('abbabaab').suffix_tree() # not implemented
+            sage: Word('abbabaab').suffix_tree()
             Implicit Suffix Tree of the word: abbabaab
         """
         return self.implicit_suffix_tree()
@@ -2033,6 +2036,12 @@ exponent %s: the length of the word (%s) times the exponent \
             13
             sage: map(w.number_of_factors, range(6))
             [1, 3, 3, 3, 2, 1]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:100]
+            sage: [w.number_of_factors(i) for i in range(10)]
+            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24]
 
         ::
 
@@ -2136,22 +2145,129 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.suffix_tree().factor_iterator(n)
 
-    def factor_set(self):
+    def factor_set(self, n=None):
         r"""
-        Returns the set of factors of self.
+        Returns the set of factors (of length n) of self.
+
+        INPUT:
+
+        - ``n`` - an integer or ``None`` (default: None).
+
+        OUTPUT:
+
+            If ``n`` is an integer, returns the set of all distinct
+            factors of length ``n``. If ``n`` is ``None``, returns the set
+            of all distinct factors.
 
         EXAMPLES::
 
-            sage: Word('1213121').factor_set()   # random
-            Set of elements of <generator object at 0xa8fde6c>
-            sage: sorted(  Word([1,2,1,2,3]).factor_set()  )
+            sage: w = Word('121')
+            sage: s = w.factor_set()
+            sage: sorted(s)
+            [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
+
+        ::
+
+            sage: w = Word('1213121')
+            sage: for i in range(w.length()): sorted(w.factor_set(i))
+            [word: ]
+            [word: 1, word: 2, word: 3]
+            [word: 12, word: 13, word: 21, word: 31]
+            [word: 121, word: 131, word: 213, word: 312]
+            [word: 1213, word: 1312, word: 2131, word: 3121]
+            [word: 12131, word: 13121, word: 21312]
+            [word: 121312, word: 213121]
+
+        ::
+
+            sage: w = Word([1,2,1,2,3])
+            sage: s = w.factor_set()
+            sage: sorted(s)
             [word: , word: 1, word: 12, word: 121, word: 1212, word: 12123, word: 123, word: 2, word: 21, word: 212, word: 2123, word: 23, word: 3]
-            sage: sorted(  Word("xx").factor_set()  )
+
+        TESTS::
+
+            sage: w = Word("xx")
+            sage: s = w.factor_set()
+            sage: sorted(s)
             [word: , word: x, word: xx]
-            sage: set( Word().factor_set() )
-            set([word: ])
+
+        ::
+
+            sage: Set(Word().factor_set())
+            {word: }
         """
-        return Set(set(self.factor_iterator()))
+        return Set(set(self.factor_iterator(n)))
+
+    def rauzy_graph(self, n):
+        r"""
+        Returns the Rauzy graph of the factors of length n of self.
+
+        The vertices are the factors of length `n` and there is an edge from
+        `u` to `v` if `ua = bv` is a factor of length `n+1` for some letters
+        `a` and `b`.
+
+        INPUT:
+
+        - ``n`` - integer
+
+        EXAMPLES::
+
+            sage: w = Word(range(10)); w
+            word: 0123456789
+            sage: g = w.rauzy_graph(3); g
+            Looped digraph on 8 vertices
+            sage: WordOptions(identifier='')
+            sage: g.vertices()
+            [012, 123, 234, 345, 456, 567, 678, 789]
+            sage: g.edges()
+            [(012, 123, None),
+             (123, 234, None),
+             (234, 345, None),
+             (345, 456, None),
+             (456, 567, None),
+             (567, 678, None),
+             (678, 789, None)]
+            sage: WordOptions(identifier='word: ')
+
+        ::
+
+            sage: f = words.FibonacciWord()[:100]
+            sage: f.rauzy_graph(8)
+            Looped digraph on 9 vertices
+
+        ::
+
+            sage: w = Word('1111111')
+            sage: g = w.rauzy_graph(3)
+            sage: g.edges()
+            [(word: 111, word: 111, None)]
+
+        ::
+
+            sage: w = Word('111')
+            sage: for i in range(5) : w.rauzy_graph(i)
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped multi-digraph on 0 vertices
+
+        """
+        d = {}
+        if n == self.length():
+            d[self] = []
+        else:
+            for w in self.factor_iterator(n+1):
+                u = w[:-1]
+                v = w[1:]
+                if d.has_key(u):
+                    d[u].append(v)
+                else:
+                    d[u] = [v]
+
+        from sage.graphs.graph import DiGraph
+        return DiGraph(d, loops=True)
 
     def commutes_with(self, other):
         r"""
@@ -2693,6 +2809,7 @@ exponent %s: the length of the word (%s) times the exponent \
             else:
                 return self[-l-1:].lps(f=f)
 
+    @cached_method
     def palindromic_lacunas_study(self, f=None):
         r"""
         Returns interesting statistics about longest (`f`-)palindromic suffixes

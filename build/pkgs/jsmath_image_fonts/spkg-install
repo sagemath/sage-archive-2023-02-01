@@ -13,7 +13,12 @@ if [ ! -d "$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb" ]; then
     # user is using an old version of sage before the new notebook.
     install_dir="$SAGE_ROOT/local/notebook/javascript/jsmath"
 else
-    install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
+    if [ ! -d "$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/jsmath" ]; then
+	# pre-#7196 new notebook
+	install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
+    else
+	install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/jsmath"
+    fi
 fi
 
 export install_dir

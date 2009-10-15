@@ -22,47 +22,44 @@
 #
 ##########################################################################
 
-
+# GUESS SAGE_ROOT from pwd
 SAVEDIR="`pwd`"
-
-if [ "$SAGE_ROOT" = "" ]; then
-    if [ -f sage -a -d spkg ]; then
-       SAGE_ROOT="`pwd`"
-       export SAGE_ROOT
-    else
-       if [ -f ../../sage -a -d ../../spkg ]; then
-           cd ../../
-           SAGE_ROOT="`pwd`"
-           export SAGE_ROOT
-       else
-           echo "You must set the SAGE_ROOT environment variable or"
-           echo "run this script from the SAGE_ROOT or "
-           echo "SAGE_ROOT/local/bin/ directory."
-        fi
-    fi
+if [ -f sage -a -d spkg ]; then
+    GUESSED_SAGE_ROOT="`pwd`"
 else
-    if [ -f sage -a -d spkg ]; then
-       if [ "$SAGE_ROOT" != "`pwd`" ]; then
-           echo "Warning: Attempted to overwrite SAGE_ROOT enviroment variable"
-       fi
+    if [ -f ../../sage -a -d ../../spkg ]; then
+        cd ../../
+        GUESSED_SAGE_ROOT="`pwd`"
     else
-       if [ -f ../../sage -a -d ../../spkg ]; then
-           cd ../../
-           if [ "$SAGE_ROOT" != "`pwd`" ]; then
-              echo "Warning: Attempted to overwrite SAGE_ROOT enviroment variable"
-           fi
-       else
-           echo "You must set the SAGE_ROOT environment variable or"
-           echo "run this script from the SAGE_ROOT or "
-           echo "SAGE_ROOT/local/bin/ directory."
-       fi
+        GUESSED_SAGE_ROOT=""
     fi
 fi
 cd "$SAVEDIR"
 
+
 if [ "$SAGE_ROOT" = "" ]; then
-    echo "SAGE_ROOT must be set"
-    exit 1
+    if [ "$GUESSED_SAGE_ROOT" = "" ]; then
+        echo "Error: You must set the SAGE_ROOT environment"
+        echo "variable or run this script from the SAGE_ROOT or "
+        echo "SAGE_ROOT/local/bin/ directory."
+        exit 1
+    else
+        SAGE_ROOT="$GUESSED_SAGE_ROOT"
+        export SAGE_ROOT
+    fi
+else
+    if [ -f "$SAGE_ROOT"/sage -a -d "$SAGE_ROOT"/spkg ]; then
+        # SAGE_ROOT points to a sage installation as expected
+        if [ "$SAGE_ROOT" != "$GUESSED_SAGE_ROOT" ]; then
+            echo "Warning: Attempted to overwrite SAGE_ROOT environment variable"
+        fi
+    else
+        echo "Error: The SAGE_ROOT environment variable is set to"
+        echo "a bad value. You must correct it or erase it and"
+        echo "run this script from the SAGE_ROOT or"
+        echo "SAGE_ROOT/local/bin/ directory."
+        exit 1
+    fi
 fi
 
 

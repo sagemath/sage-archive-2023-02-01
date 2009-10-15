@@ -25,6 +25,10 @@ Davide P. Cervone, dpvc@union.edu
 
 == Changelog ==
 
+=== jsmath-image-fonts-1.4 (Robert Marik, October 15th, 2009) ===
+ * jsmath fonts install to a different directory from Sage 4.1.2
+   (after big notebook rewrite)
+
 === jsmath-image-fonts-1.3.p1 (Michael Abshoff, December 24th, 2008) ===
  * clean up SPKG.txt
  * delete old fonts directory before upgrading

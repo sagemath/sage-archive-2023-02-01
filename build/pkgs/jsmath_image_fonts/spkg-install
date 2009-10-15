@@ -6,9 +6,20 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-export top_level=`pwd`
-export install_dir="$SAGE_ROOT/local/notebook/javascript/jsmath"
+top_level=`pwd`
+export top_level
+
+if [ ! -d "$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb" ]; then
+    # user is using an old version of sage before the new notebook.
+    install_dir="$SAGE_ROOT/local/notebook/javascript/jsmath"
+else
+    install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
+fi
+
+export install_dir
+
 mkdir -p $install_dir
+
 if [ $? -ne 0 ]; then
    echo "Error making installation directory:"
    echo $install_dir

@@ -209,7 +209,11 @@ cdef extern from "libsingular.h":
         int (*rows)()
         int (*cols)()
         int (*length)()
+        int (*resize)(size_t s)
         int (*get "operator[]")(int i)
+        int row
+        int col
+
 
     # omalloc bins
 
@@ -261,6 +265,7 @@ cdef extern from "libsingular.h":
         void *R
         int *S_2_R
 
+
     ctypedef struct data_union:
         ring *uring
 
@@ -298,6 +303,10 @@ cdef extern from "libsingular.h":
     # omalloc bin for rings
 
     cdef omBin *sip_sring_bin
+
+    # omalloc bin for lists
+
+    cdef omBin *slists_bin
 
     # integer conversion constant
 
@@ -421,6 +430,12 @@ cdef extern from "libsingular.h":
     # get the coefficient of the current list element p in r
 
     number *p_GetCoeff(poly *p, ring *r)
+
+    # get the module component
+    int p_GetComp(poly *p, ring *r)
+
+    # set the module component
+    void p_SetComp(poly *p, int v, ring *r)
 
     # set the exponent e at index v for the monomial p, v starts at 1
 
@@ -862,9 +877,11 @@ cdef extern from "libsingular.h":
 
     cdef int CMD_M
     cdef int INT_CMD
+    cdef int INTMAT_CMD
     cdef int POLY_CMD
     cdef int PROC_CMD
     cdef int RING_CMD
+    cdef int QRING_CMD
 
     cdef int STRING_CMD
     cdef int VECTOR_CMD
@@ -875,6 +892,8 @@ cdef extern from "libsingular.h":
     cdef int LIST_CMD
     cdef int RING_CMD
     cdef int INTVEC_CMD
+    cdef int NONE
+    cdef int RESOLUTION_CMD
 
 
     cdef int V_SHOW_MEM
@@ -926,5 +945,18 @@ cdef extern from "stairc.h":
     # Computes the monomial basis for R[x]/I
     ideal *scKBase(int deg, ideal *s, ideal *Q)
 
+cdef extern from "lists.h":
+    ctypedef struct lists "slists":
+        int    nr
+        leftv  *m
+        void (*Init)(int n)
 
+cdef extern from "intvec.h":
+    # for the moment we need only new, as we use the cleanup of sleftv
+    # to get rid of it again
+    intvec* intvec_new "New<intvec>"()
+    intvec* intvec_new_int3 "new intvec"(int, int, int)
 
+cdef extern from "syz.h":
+    ctypedef struct syStrategy "ssyStrategy":
+        short references

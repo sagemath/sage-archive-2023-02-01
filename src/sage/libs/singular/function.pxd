@@ -15,8 +15,16 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.libs.singular.decl cimport leftv, idhdl
+from sage.libs.singular.decl cimport leftv, idhdl, syStrategy, matrix, poly, ideal, intvec
+from sage.libs.singular.decl cimport ring as singular_ring
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular
+
+cdef class RingWrap:
+    cdef singular_ring *_ring
+
+cdef class Resolution:
+    cdef syStrategy *_resolution
+    cdef MPolynomialRing_libsingular base_ring
 
 cdef class Converter(SageObject):
     cdef leftv *args
@@ -29,6 +37,18 @@ cdef class Converter(SageObject):
     cdef int append_number(self, n) except -1
     cdef int append_int(self, n) except -1
     cdef int append_str(self, n) except -1
+    cdef int append_intmat(self, a) except -1
+    cdef int append_resolution(self, Resolution resolution) except -1
+    cdef int append_vector(self, v) except -1
+    cdef int append_intvec(self, v) except -1
+    cdef int append_list(self, l) except -1
+    cdef int append_matrix(self, a) except -1
+    cdef int append_ring(self, MPolynomialRing_libsingular r) except -1
+    cdef int append_module(self, m) except -1
+    cdef to_sage_integer_matrix(self, intvec *mat)
+    cdef object to_sage_module_element_sequence_destructive(self, ideal *i)
+    cdef to_sage_vector_destructive(self, poly *p, free_module = ?)
+    cdef to_sage_matrix(self, matrix* mat)
     cdef to_python(self, leftv* to_convert)
 
 cdef class BaseCallHandler:

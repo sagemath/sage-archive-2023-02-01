@@ -47,27 +47,72 @@ from sage.structure.sage_object cimport SageObject
 
 from sage.rings.integer cimport Integer
 
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
+from sage.modules.free_module_element cimport FreeModuleElement_generic_dense
+
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, new_MP
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
 from sage.rings.polynomial.multi_polynomial_ideal_libsingular cimport sage_ideal_to_singular_ideal, singular_ideal_to_sage_sequence
 
-from sage.libs.singular.decl cimport leftv, idhdl, poly, ideal, ring, number, intvec
-from sage.libs.singular.decl cimport sleftv_bin, omAllocBin, omFreeBin, omStrDup
+from sage.libs.singular.decl cimport leftv, idhdl, poly, ideal, ring, number, intvec, lists
+from sage.libs.singular.decl cimport sleftv_bin, omAllocBin, omFreeBin, omStrDup, slists_bin, omAlloc0Bin
 from sage.libs.singular.decl cimport iiMake_proc, iiExprArith1, iiExprArith2, iiExprArith3, iiExprArithM, iiLibCmd
-from sage.libs.singular.decl cimport ggetid, IDEAL_CMD, CMD_M, POLY_CMD, PROC_CMD, RING_CMD, NUMBER_CMD, INT_CMD, INTVEC_CMD
-from sage.libs.singular.decl cimport MODUL_CMD, LIST_CMD, MATRIX_CMD, VECTOR_CMD, STRING_CMD, V_LOAD_LIB, V_REDEFINE
+from sage.libs.singular.decl cimport ggetid, IDEAL_CMD, CMD_M, POLY_CMD, PROC_CMD, RING_CMD, QRING_CMD, NUMBER_CMD, INT_CMD, INTVEC_CMD, RESOLUTION_CMD
+from sage.libs.singular.decl cimport MODUL_CMD, LIST_CMD, MATRIX_CMD, VECTOR_CMD, STRING_CMD, V_LOAD_LIB, V_REDEFINE, INTMAT_CMD, NONE
 from sage.libs.singular.decl cimport IsCmd, rChangeCurrRing, currRing, p_Copy
-from sage.libs.singular.decl cimport IDROOT, enterid, currRingHdl
+from sage.libs.singular.decl cimport IDROOT, enterid, currRingHdl, memcpy
 from sage.libs.singular.decl cimport errorreported, verbose, Sy_bit
+from sage.libs.singular.decl cimport intvec_new_int3, intvec_new, matrix, mpNew
+from sage.libs.singular.decl cimport p_Add_q, p_SetComp, p_GetComp, pNext, p_Setm, IDELEMS
+from sage.libs.singular.decl cimport idInit, syStrategy
+
+from sage.libs.singular.polynomial cimport singular_vector_maximal_component
 
 from sage.libs.singular.singular cimport sa2si, si2sa, si2sa_intvec
 
 from sage.interfaces.singular import get_docstring
 
 from sage.misc.misc import get_verbose
+
+from sage.structure.sequence import Sequence
+
+cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
+    cdef poly *res = NULL
+    cdef poly *poly_component
+    cdef poly *p_iter
+    cdef int component
+
+    for (i, p) in enumerate(v):
+        component = <int>i+1
+        poly_component = p_Copy(
+            (<MPolynomial_libsingular>p)._poly, r)
+        p_iter = poly_component
+        while p_iter!=NULL:
+            p_SetComp(p_iter, component, r)
+            p_Setm(p_iter, r)
+            p_iter=pNext(p_iter)
+        res=p_Add_q(res, poly_component, r)
+    return res
+
+cdef class RingWrap:
+    def __repr__(self):
+        return "<RingWrap>"
+
+    def __dealloc__(self):
+        if self._ring!=NULL:
+            self._ring.ref -= 1
+
+cdef class Resolution:
+    def __init__(self, base_ring):
+        assert PY_TYPE_CHECK(base_ring, MPolynomialRing_libsingular)
+        self.base_ring = <MPolynomialRing_libsingular> base_ring
+    def __repr__(self):
+        return "<Resolution>"
+    def __dealloc__(self):
+        if self._resolution != NULL:
+            self._resolution.references -= 1
 
 cdef leftv* new_leftv(void *data, res_type):
     """
@@ -95,6 +140,53 @@ cdef free_leftv(leftv * args):
     args.CleanUp()
     omFreeBin(args, sleftv_bin)
 
+
+def all_polynomials(s):
+    """
+    Tests for a sequence ``s``, whether it consists of
+    singular polynomials.
+
+    EXAMPLE::
+
+        sage: from sage.libs.singular.function import all_polynomials
+        sage: P.<x,y,z> = QQ[]
+        sage: all_polynomials([x+1, y])
+        True
+        sage: all_polynomials([x+1, y, 1])
+        False
+    """
+    for p in s:
+        if not isinstance(p, MPolynomial_libsingular):
+            return False
+    return True
+
+def all_vectors(s):
+    """
+    Checks if a sequence ``s`` consists of free module
+    elements over a singular ring.
+
+    EXAMPLE::
+
+        sage: from sage.libs.singular.function import all_vectors
+        sage: P.<x,y,z> = QQ[]
+        sage: M = P**2
+        sage: all_vectors([x])
+        False
+        sage: all_vectors([(x,y)])
+        False
+        sage: all_vectors([M(0), M((x,y))])
+        True
+        sage: all_vectors([M(0), M((x,y)),(0,0)])
+        False
+    """
+    for p in s:
+        if not (isinstance(p, FreeModuleElement_generic_dense)\
+            and isinstance(p.parent().base_ring(), MPolynomialRing_libsingular)):
+            return False
+    return True
+
+
+
 cdef class Converter(SageObject):
     """
     A :class:`Converter` interfaces between Sage objects and Singular
@@ -120,25 +212,65 @@ cdef class Converter(SageObject):
         """
         self.args = NULL
         self._ring = ring
-
+        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         for a in args:
             if PY_TYPE_CHECK(a, MPolynomial_libsingular):
                 self.append_polynomial(<MPolynomial_libsingular> a)
+            elif PY_TYPE_CHECK(a, MPolynomialRing_libsingular):
+                self.append_ring(<MPolynomialRing_libsingular> a)
             elif PY_TYPE_CHECK(a, MPolynomialIdeal):
                 self.append_ideal(a)
             elif PY_TYPE_CHECK(a, int) or PY_TYPE_CHECK(a, long):
                 self.append_int(a)
             elif PY_TYPE_CHECK(a, basestring):
                 self.append_str(a)
+            elif PY_TYPE_CHECK(a, Matrix_mpolynomial_dense):
+                self.append_matrix(a)
+            elif PY_TYPE_CHECK(a, Matrix_integer_dense):
+                self.append_intmat(a)
+            elif PY_TYPE_CHECK(a, Resolution):
+                self.append_resolution(a)
+            elif PY_TYPE_CHECK(a, FreeModuleElement_generic_dense)\
+                and isinstance(
+                    a.parent().base_ring(),
+                    MPolynomialRing_libsingular):
+                self.append_vector(a)
+
+
+
+            # as output ideals get converted to sequences
+            # sequences of polynomials should get converted to ideals
+            # this means, that Singular lists should not be converted to Sequences,
+            # as we do not want ambiguities
+            elif PY_TYPE_CHECK(a, Sequence)\
+                and all_polynomials(a):
+                    self.append_ideal(ring.ideal(a))
+            elif PY_TYPE_CHECK(a, Sequence)\
+                and all_vectors(a):
+                    self.append_module(a)
+            elif PY_TYPE_CHECK(a, list):
+                self.append_list(a)
+
+            elif PY_TYPE_CHECK(a, tuple):
+                is_intvec = True
+                for i in a:
+                    if not (PY_TYPE_CHECK(i, int)
+                        or PY_TYPE_CHECK(i, Integer)):
+                        is_intvec = False
+                        break
+                if is_intvec:
+                    self.append_intvec(a)
+                else:
+                    self.append_list(a)
             elif a.parent() is self._ring.base_ring():
                 self.append_number(a)
             elif PY_TYPE_CHECK(a, Integer):
                 self.append_int(a)
+
             # ring
-            # string
             # vector
             # matrix
-            # list
             # modul
             else:
                 raise TypeError("unknown argument type '%s'"%(type(a),))
@@ -224,6 +356,112 @@ cdef class Converter(SageObject):
         """
         self._append_leftv( new_leftv(data, res_type) )
 
+    cdef to_sage_matrix(self, matrix* mat):
+        """
+            convert singular matrix
+            to matrix over the polynomial ring
+        """
+        from sage.matrix.constructor import Matrix
+        sage_ring = self._ring
+        cdef ring *singular_ring = (<MPolynomialRing_libsingular>\
+            sage_ring)._ring
+        ncols = mat.ncols
+        nrows = mat.nrows
+        result = Matrix(sage_ring, nrows, ncols)
+        cdef MPolynomial_libsingular p
+        for i in xrange(nrows):
+            for j in xrange(ncols):
+                p = MPolynomial_libsingular(sage_ring)
+                p._poly = mat.m[i*ncols+j]
+                mat.m[i*ncols+j]=NULL
+                result[i,j] = p
+        return result
+
+    cdef to_sage_vector_destructive(self, poly *p, free_module = None):
+        cdef ring *r=self._ring._ring
+        cdef int rank
+        if free_module:
+            rank = free_module.rank()
+        else:
+            rank = singular_vector_maximal_component(p, r)
+            free_module = self._ring**rank
+        cdef poly *acc
+        cdef poly *p_iter
+        cdef poly *first
+        cdef poly *previous
+        cdef int i
+        result = []
+        for i from 1 <= i <= rank:
+            previous = NULL
+            acc = NULL
+            first = NULL
+            p_iter=p
+            while p_iter != NULL:
+                if p_GetComp(p_iter, r) == i:
+                    p_SetComp(p_iter,0, r)
+                    p_Setm(p_iter, r)
+                    if acc == NULL:
+                        first = p_iter
+                    else:
+                        acc.next = p_iter
+                    acc = p_iter
+                    if p_iter==p:
+                        p=pNext(p_iter)
+                    if previous != NULL:
+                        previous.next=pNext(p_iter)
+                    p_iter = pNext(p_iter)
+                    acc.next = NULL
+                else:
+                    previous = p_iter
+                    p_iter = pNext(p_iter)
+            result.append(new_MP(self._ring, first))
+        return free_module(result)
+
+    cdef object to_sage_module_element_sequence_destructive(
+        self, ideal *i):
+        """
+        convert a SINGULAR module to a Sage Sequence (the format Sage
+        stores a Groebner basis in)
+
+        INPUT:
+
+        - ``i`` -- a SINGULAR ideal
+        - ``r`` -- a SINGULAR ring
+        - ``sage_ring`` -- a Sage ring matching r
+        """
+        cdef MPolynomialRing_libsingular sage_ring = self._ring
+        cdef int j
+        cdef int rank=i.rank
+        free_module = sage_ring**rank
+        l = []
+
+        for j from 0 <= j < IDELEMS(i):
+            p = self.to_sage_vector_destructive(
+                i.m[j], free_module)
+            i.m[j]=NULL#save it from getting freed
+            l.append( p )
+
+        return Sequence(l, check=False, immutable=True)
+
+
+    cdef to_sage_integer_matrix(self, intvec* mat):
+        """
+            convert singular matrix
+            to matrix over the polynomial ring
+        """
+        from sage.matrix.constructor import Matrix
+        from sage.rings.integer_ring import ZZ
+
+        ncols = mat.cols()
+        nrows = mat.rows()
+
+        result = Matrix(ZZ, nrows, ncols)
+        for i in xrange(nrows):
+            for j in xrange(ncols):
+                result[i,j] = mat.get(i*ncols+j)
+        return result
+
+
     cdef int append_polynomial(self, MPolynomial_libsingular p) except -1:
         """
         Append the polynomial ``p`` to the list.
@@ -238,6 +476,27 @@ cdef class Converter(SageObject):
         cdef ideal* singular_ideal = sage_ideal_to_singular_ideal(i)
         self._append(singular_ideal, IDEAL_CMD)
 
+    cdef int append_module(self, m) except -1:
+        """
+           Append sequence ``m`` of vectors over the polynomial
+           ring to the list
+        """
+        rank = max([v.parent().rank() for v in m])
+        cdef ideal *result
+        cdef ring *r = self._ring._ring
+        cdef ideal *i
+        cdef int j = 0
+
+
+
+        i = idInit(len(m),rank)
+        for f in m:
+            i.m[j] = sage_vector_to_poly(f, r)
+            j+=1
+        self._append(<void*> i, MODUL_CMD)
+
+
+
     cdef int append_number(self, n) except -1:
         """
         Append the number ``n`` to the list.
@@ -245,12 +504,99 @@ cdef class Converter(SageObject):
         cdef number *_n =  sa2si(n, self._ring._ring)
         self._append(<void *>_n, NUMBER_CMD)
 
+    cdef int append_ring(self, MPolynomialRing_libsingular r) except -1:
+        """
+        Append the ring ``r`` to the list.
+        """
+        cdef ring *_r =  <ring*> r._ring
+        _r.ref+=1
+        self._append(<void *>_r, RING_CMD)
+
+    cdef int append_matrix(self, mat) except -1:
+
+        sage_ring = mat.base_ring()
+        cdef ring *r=<ring*> (<MPolynomialRing_libsingular> sage_ring)._ring
+
+        cdef poly *p
+        ncols = mat.ncols()
+        nrows = mat.nrows()
+        cdef matrix* _m=mpNew(nrows,ncols)
+        for i in xrange(nrows):
+            for j in xrange(ncols):
+                p = p_Copy(
+                    (<MPolynomial_libsingular> mat[i,j])._poly, r)
+                _m.m[ncols*i+j]=p
+        self._append(_m, MATRIX_CMD)
+
     cdef int append_int(self, n) except -1:
         """
         Append the integer ``n`` to the list.
         """
         cdef long _n =  n
         self._append(<void*>_n, INT_CMD)
+
+
+
+    cdef int append_list(self, l) except -1:
+        """
+        Append the list ``l`` to the list.
+        """
+
+        cdef Converter c = Converter(l, self._ring)
+        n = len(c)
+
+        cdef lists *singular_list=<lists*>omAlloc0Bin(slists_bin)
+        singular_list.Init(n)
+        cdef leftv* iv
+        for i in xrange(n):
+          iv=c.pop_front()
+          memcpy(&singular_list.m[i],iv,sizeof(leftv))
+          omFreeBin(iv, sleftv_bin)
+
+        self._append(<void*>singular_list, LIST_CMD)
+        assert c.args==NULL
+
+    cdef int append_intvec(self, a) except -1:
+        """
+        Append ``a`` to the list as intvec.
+        """
+        s = len(a)
+        cdef intvec *iv=intvec_new()
+        iv.resize(s)
+        #new intvec(s);
+
+        for i in xrange(s):
+            iv.ivGetVec()[i]=<int>a[i]
+        self._append(<void*>iv, INTVEC_CMD)
+
+    cdef int append_vector(self, v) except -1:
+        """
+        Append vector ``v`` from free
+        module over polynomial ring.
+        """
+        cdef ring *r = self._ring._ring
+        cdef poly *p = sage_vector_to_poly(v, r)
+        self._append(<void*> p, VECTOR_CMD)
+
+    cdef int append_resolution(self, Resolution resolution) except -1:
+        """
+        Append free resolution ``r`` to the list.
+        """
+        resolution._resolution.references += 1
+        self._append(<void*> resolution._resolution, RESOLUTION_CMD)
+    cdef int append_intmat(self, a) except -1:
+        """
+        Append ``a`` to the list as intvec.
+        """
+        cdef int nrows = <int> a.nrows()
+        cdef int ncols = <int> a.ncols()
+        cdef intvec *iv=intvec_new_int3(nrows, ncols, 0)
+        #new intvec(s);
+
+        for i in xrange(nrows):
+            for j in xrange(ncols):
+                iv.ivGetVec()[i*ncols+j]=<int>a[i,j]
+        self._append(<void*>iv, INTMAT_CMD)
 
     cdef int append_str(self, n) except -1:
         """
@@ -269,12 +615,16 @@ cdef class Converter(SageObject):
         """
         cdef MPolynomial_libsingular res_poly
         cdef int rtyp = to_convert.rtyp
+        cdef lists *singular_list
+        cdef Resolution res_resolution
         if rtyp == IDEAL_CMD:
             return singular_ideal_to_sage_sequence(<ideal*>to_convert.data, self._ring._ring, self._ring)
 
         elif rtyp == POLY_CMD:
             res_poly = MPolynomial_libsingular(self._ring)
             res_poly._poly = <poly*>to_convert.data
+            to_convert.data = NULL
+            #prevent it getting free, when cleaning the leftv
             return res_poly
 
         elif rtyp == INT_CMD:
@@ -289,22 +639,46 @@ cdef class Converter(SageObject):
         elif rtyp == STRING_CMD:
             ret = <char *>to_convert.data
             return ret
-
         elif rtyp == VECTOR_CMD:
-            raise NotImplementedError("rtyp 'VECTOR_CMD' not implement yet.")
+            result = self.to_sage_vector_destructive(
+                <poly *> to_convert.data)
+            to_convert.data = NULL
+            return result
 
-        elif rtyp == RING_CMD:
-            raise NotImplementedError("rtyp 'RING_CMD' not implement yet.")
+
+        elif rtyp == RING_CMD or rtyp==QRING_CMD:
+            ring_wrap_result=RingWrap()
+            (<RingWrap> ring_wrap_result)._ring=<ring*> to_convert.data
+            (<RingWrap> ring_wrap_result)._ring.ref+=1
+            return ring_wrap_result
 
         elif rtyp == MATRIX_CMD:
-            raise NotImplementedError("rtyp 'MATRIX_CMD' not implement yet.")
+            return self.to_sage_matrix(<matrix*>  to_convert.data )
 
         elif rtyp == LIST_CMD:
-            raise NotImplementedError("rtyp 'LIST_CMD' not implement yet.")
+            singular_list = <lists*> to_convert.data
+            ret = []
+            for i in xrange(singular_list.nr+1):
+                ret.append(
+                    self.to_python(
+                        &(singular_list.m[i])))
+            return ret
+
 
         elif rtyp == MODUL_CMD:
-            raise NotImplementedError("rtyp 'MODUL_CMD' not implement yet.")
-
+            return self.to_sage_module_element_sequence_destructive(
+                <ideal*> to_convert.data
+            )
+        elif rtyp == INTMAT_CMD:
+            return self.to_sage_integer_matrix(
+                <intvec*> to_convert.data)
+        elif rtyp == RESOLUTION_CMD:
+            res_resolution = Resolution(self._ring)
+            res_resolution._resolution = <syStrategy*> to_convert.data
+            res_resolution._resolution.references += 1
+            return res_resolution
+        elif rtyp == NONE:
+            return None
         else:
             raise NotImplementedError("rtyp %d not implemented."%(rtyp))
 
@@ -541,13 +915,32 @@ cdef class SingularFunction(SageObject):
 
         - ``ring`` - an optional ring to check
         """
+        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         for a in args:
             if PY_TYPE_CHECK(a, MPolynomialIdeal):
                 ring2 = a.ring()
             elif PY_TYPE_CHECK(a, MPolynomial_libsingular):
                 ring2 = a.parent()
+            elif PY_TYPE_CHECK(a, MPolynomialRing_libsingular):
+                ring2 = a
             elif PY_TYPE_CHECK(a, int) or PY_TYPE_CHECK(a, long) or PY_TYPE_CHECK(a, basestring):
                 continue
+            elif PY_TYPE_CHECK(a, Matrix_integer_dense):
+                continue
+            elif PY_TYPE_CHECK(a, Matrix_mpolynomial_dense):
+                ring2 = a.base_ring()
+            elif PY_TYPE_CHECK(a, list) or PY_TYPE_CHECK(a, tuple)\
+                or PY_TYPE_CHECK(a, Sequence):
+                #TODO: catch exception, if recursion finds no ring
+                ring2 = self.common_ring(tuple(a), ring)
+            elif PY_TYPE_CHECK(a, Resolution):
+                ring2 = (<Resolution> a).base_ring
+            elif PY_TYPE_CHECK(a, FreeModuleElement_generic_dense)\
+                and PY_TYPE_CHECK(
+                    a.parent().base_ring(),
+                     MPolynomialRing_libsingular):
+                ring2 = a.parent().base_ring()
             elif ring is not None:
                 a.parent() is ring
                 continue
@@ -745,6 +1138,83 @@ def singular_function(name):
         sage: std = singular_function("std")
         sage: std(I)
         [3*y - 8*z - 4, 4*x + 1]
+        sage: singular_list = singular_function("list")
+        sage: singular_list(2, 3, 6, ring=P)
+        [2, 3, 6]
+        sage: size = singular_function("size")
+        sage: size([2, 3, 3], ring=P)
+        3
+        sage: size("sage", ring=P)
+        4
+        sage: size(["hello", "sage"], ring=P)
+        2
+        sage: factorize = singular_function("factorize")
+        sage: factorize(f)
+        [[1, 3*x*y + 2*z + 1], (1, 1)]
+        sage: singular_lib('primdec.lib')
+        sage: primdecGTZ = singular_function("primdecGTZ")
+        sage: primdecGTZ(I)
+        [[[3*y - 8*z - 4, 4*x + 1], [3*y - 8*z - 4, 4*x + 1]]]
+        sage: singular_list((1,2,3),3,[1,2,3], ring=P)
+        [(1, 2, 3), 3, [1, 2, 3]]
+        sage: ringlist=singular_function("ringlist")
+        sage: l = ringlist(P)
+        sage: l[3].__class__
+        <class 'sage.structure.sequence.Sequence'>
+        sage: l
+        [0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0]]
+        sage: ring=singular_function("ring")
+        sage: ring(l, ring=P)
+        <RingWrap>
+        sage: matrix = Matrix(P,2,2)
+        sage: matrix.randomize(terms=1)
+        sage: det = singular_function("det")
+        sage: det(matrix)
+        -3/5*x*y*z
+        sage: coeffs = singular_function("coeffs")
+        sage: coeffs(x*y+y+1,y)
+        [    1]
+        [x + 1]
+        sage: F.<x,y,z> = GF(3)[]
+        sage: intmat = Matrix(ZZ, 2,2, [100,2,3,4])
+        sage: det(intmat, ring=F)
+        394
+        sage: random = singular_function("random")
+        sage: random(10,2,3, ring =F)
+        [-3 -3 -8]
+        [10  3 10]
+        sage: P.<x,y,z> = PolynomialRing(QQ)
+        sage: M=P**3
+        sage: leadcoef = singular_function("leadcoef")
+        sage: v=M((100*x,5*y,10*z*x*y))
+        sage: leadcoef(v)
+        10
+        sage: v = M([x+y,x*y+y**3,z])
+        sage: lead = singular_function("lead")
+        sage: lead(v)
+        (0, y^3)
+        sage: jet = singular_function("jet")
+        sage: jet(v, 2)
+        (x + y, x*y, z)
+        sage: syz = singular_function("syz")
+        sage: ideal = P.ideal([x+y,x*y-y, y*2,x**2+1])
+        sage: M = syz(ideal)
+        sage: M
+        [(-2*y, 2, y + 1, 0), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, -x - 1, -1, -x)]
+        sage: singular_lib("mprimdec.lib")
+        sage: syz(M)
+        [(-x - 1, y - 1, 2*x, -2*y)]
+        sage: GTZmod = singular_function("GTZmod")
+        sage: GTZmod(M)
+        [[[(-2*y, 2, y + 1, 0), (0, x + 1, 1, -y), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, 0, 0, -x - y)], [0]]]
+        sage: mres = singular_function("mres")
+        sage: resolution = mres(M, 0)
+        sage: resolution
+        <Resolution>
+        sage: singular_list(resolution)
+        [[(-2*y, 2, y + 1, 0), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, -x - 1, -1, -x)], [(-x - 1, y - 1, 2*x, -2*y)], [(0)]]
+
+
     """
 
     cdef SingularFunction fnc

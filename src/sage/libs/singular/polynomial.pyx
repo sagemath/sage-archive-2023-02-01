@@ -25,6 +25,8 @@ from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCo
 from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, pLDeg
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete, n_GreaterZero, n_Sub, nInvers
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
+from sage.libs.singular.decl cimport p_GetComp, p_SetComp
+
 
 from sage.libs.singular.singular cimport sa2si, si2sa, overflow_check
 
@@ -493,3 +495,16 @@ cdef inline int singular_polynomial_length_bounded(poly *p, int bound):
         count += 1
     return count
 
+cdef int singular_vector_maximal_component(poly *v, ring *r) except -1:
+    """
+    returns the maximal module component of the vector ``v``.
+    INPUT:
+
+       - ``v`` - a polynomial/vector
+       - ``r`` - a ring
+    """
+    cdef int res=0
+    while v!=NULL:
+        res=max(p_GetComp(v, r), res)
+        v = pNext(v)
+    return res

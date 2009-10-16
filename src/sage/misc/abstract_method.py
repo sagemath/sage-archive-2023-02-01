@@ -1,19 +1,10 @@
 """
 Abstract methods
 """
-
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -25,8 +16,8 @@ def abstract_method(f = None, optional = False):
 
     INPUT:
 
-     - ``f``: a function
-     - ``optional``: a boolean; defaults to False
+     - ``f`` -- a function
+     - ``optional`` -- a boolean; defaults to False
 
     The decorator :obj:`abstract_method` can be used to declare
     methods that should be implemented by all concrete derived
@@ -231,3 +222,58 @@ class AbstractMethod(object):
             return NotImplemented
         else:
             raise NotImplementedError(repr(self))
+
+    def is_optional(self):
+        """
+        Returns whether an abstract method is optional or not.
+
+        EXAMPLES::
+
+            sage: class AbstractClass:
+            ...       @abstract_method
+            ...       def required(): pass
+            ...
+            ...       @abstract_method(optional = True)
+            ...       def optional(): pass
+            sage: AbstractClass.required.is_optional()
+            False
+            sage: AbstractClass.optional.is_optional()
+            True
+        """
+        return self._optional
+
+def abstract_methods_of_class(cls):
+    """
+    Returns the required and optional abstract methods of the class
+
+    EXAMPLES::
+
+        sage: class AbstractClass:
+        ...       @abstract_method
+        ...       def required1(): pass
+        ...
+        ...       @abstract_method(optional = True)
+        ...       def optional2(): pass
+        ...
+        ...       @abstract_method(optional = True)
+        ...       def optional1(): pass
+        ...
+        ...       @abstract_method
+        ...       def required2(): pass
+        ...
+        sage: sage.misc.abstract_method.abstract_methods_of_class(AbstractClass)
+        {'required': ['required1', 'required2'], 'optional': ['optional1', 'optional2']}
+
+    """
+    result = { "required"  : [],
+               "optional"  : []
+               }
+    for name in dir(cls):
+        entry = getattr(cls, name)
+        if not isinstance(entry, AbstractMethod):
+            continue
+        if entry.is_optional():
+            result["optional"].append(name)
+        else:
+            result["required"].append(name)
+    return result

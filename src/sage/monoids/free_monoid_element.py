@@ -82,6 +82,20 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
+    def __iter__(self):
+        """
+        Returns an iterator which yields tuples of variable and exponent.
+
+        EXAMPLES::
+
+            sage: a = FreeMonoid(5, 'a').gens()
+            sage: list(a[0]*a[1]*a[4]**3*a[0])
+            [(a0, 1), (a1, 1), (a4, 3), (a0, 1)]
+        """
+        gens=self.parent().gens()
+        return ((gens[index], exponent) \
+                for (index, exponent) in self._element_list)
+
 ##     def __cmp__(left, right):
 ##         """
 ##         Compare two free monoid elements with the same parents.

@@ -63,6 +63,8 @@ AUTHORS:
 -  Stephen Hartke (2009-08-22): Fixed bug in blocks_and_cut_vertices()
    where the list of cut_vertices is not treated as a set.
 
+-  Anders Jonsson (2009-10-10): Counting of spanning trees and out-trees added.
+
 
 Graph Format
 ------------
@@ -1115,19 +1117,41 @@ class GenericGraph(SageObject):
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, **kwds):
+    def kirchhoff_matrix(self, weighted=None, indegree=True, **kwds):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
-        The Kirchhoff matrix is defined to be D - M, where D is the
+        The Kirchhoff matrix is defined to be `D - M`, where `D` is the
         diagonal degree matrix (each diagonal entry is the degree of the
-        corresponding vertex), and M is the adjacency matrix.
+        corresponding vertex), and `M` is the adjacency matrix.
 
-        If weighted == True, the weighted adjacency matrix is used for M,
-        and the diagonal entries are the row-sums of M.
+        ( In the special case of DiGraphs, `D` is defined as the diagonal
+        in-degree matrix or diagonal out-degree matrix according to the
+        value of ``indegree``)
+
+        INPUT:
+
+        - ``weighted`` -- Binary variable :
+            - If ``weighted == True``, the weighted adjacency matrix is used for `M`,
+              and the diagonal matrix `D` takes into account the weight of edges
+              (replace in the definition "degree" by "sum of the incident edges" ).
+            - Else, each edge is assumed to have weight 1.
+
+            Default is to take weights into consideration if and only if the graph is
+            weighted.
+
+        - ``indegree`` -- Binary variable  :
+            - If ``indegree=True``, each diagonal entry of `D` is equal to the
+              in-degree of the corresponding vertex.
+            - Else, each diagonal entry of `D` is equal to the
+              out-degree of the corresponding vertex.
+
+              By default, ``indegree`` is set to ``True``
+
+            ( This variable only matters when the graph is a digraph )
 
         Note that any additional keywords will be passed on to either
-        the adjacency_matrix or weighted_adjacency_matrix method.
+        the ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
 
         AUTHORS:
 
@@ -1169,10 +1193,17 @@ class GenericGraph(SageObject):
             [-1 -1  3 -1]
             [-1  0 -1  2]
 
-	A weighted directed graph with loops::
+	A weighted directed graph with loops, changing the variable ``indegree`` ::
 
 	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
             sage: G.laplacian_matrix()
+	    [ 4 -3]
+	    [-4  3]
+
+::
+
+	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
+            sage: G.laplacian_matrix(indegree=False)
 	    [ 3 -3]
 	    [-4  4]
         """
@@ -1189,17 +1220,31 @@ class GenericGraph(SageObject):
 
         A = -M
 
+
         if M.is_sparse():
             row_sums = {}
-            for (i,j), entry in M.dict().iteritems():
-                row_sums[i] = row_sums.get(i, 0) + entry
-        else:
-            ones = matrix(M.base_ring(), M.nrows(), 1, [1]*M.nrows())
-            S = M*ones
-            row_sums = dict((i, S[i,0]) for i in range(M.nrows()))
+            if indegree:
+                for (i,j), entry in M.dict().iteritems():
+                    row_sums[j] = row_sums.get(j, 0) + entry
+            else:
+                for (i,j), entry in M.dict().iteritems():
+                    row_sums[i] = row_sums.get(i, 0) + entry
 
-        for i in range(M.nrows()):
-            A[i,i] += row_sums.get(i, 0)
+
+            for i in range(M.nrows()):
+                A[i,i] += row_sums.get(i, 0)
+
+        else:
+            if indegree:
+                ones = matrix(M.base_ring(), 1,  M.nrows(), [1]*M.nrows())
+                S = ones*M
+                for i in range(M.nrows()):
+                    A[i,i] += S[0,i]
+            else:
+                ones = matrix(M.base_ring(),  M.nrows(), 1, [1]*M.nrows())
+                S = M*ones
+                for i in range(M.nrows()):
+                    A[i,i] += S[i,0]
         return A
 
     laplacian_matrix = kirchhoff_matrix
@@ -2205,6 +2250,83 @@ class GenericGraph(SageObject):
                 # If there is none, we are done !
                 else:
                     return d
+
+    def spanning_trees_count(self, root_vertex=None):
+        """
+        Returns the number of spanning trees in a graph. In the case of a
+        digraph, couts the number of spanning out-trees rooted in
+        ``root_vertex``.
+        Default is to set first vertex as root.
+
+        This computation uses Kirchhoff's Matrix Tree Theorem [1] to calculate
+        the number of spanning trees. For complete graphs on `n` vertices the
+        result can also be reached using Cayley's formula: the number of
+        spanning trees are `n^(n-2)`.
+
+        For digraphs, the augmented Kirchhoff Matrix as defined in [2] is
+        used for calculations. Here the result is the number of out-trees
+        rooted at a specific vertex.
+
+        INPUT:
+
+        - ``root_vertex`` -- integer (default: the first vertex) This is the vertex
+        that will be used as root for all spanning out-trees if the graph
+        is a directed graph.
+        This argument is ignored if the graph is not a digraph.
+
+        REFERENCES:
+
+        - [1] http://mathworld.wolfram.com/MatrixTreeTheorem.html
+
+        - [2] Lih-Hsing Hsu, Cheng-Kuan Lin, "Graph Theory and Interconnection
+        Networks"
+
+        AUTHORS:
+
+        - Anders Jonsson (2009-10-10)
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.spanning_trees_count()
+            2000
+
+        ::
+
+            sage: n = 11
+            sage: G = graphs.CompleteGraph(n)
+            sage: ST = G.spanning_trees_count()
+            sage: ST == n^(n-2)
+            True
+
+        ::
+
+            sage: M=matrix(3,3,[0,1,0,0,0,1,1,1,0])
+            sage: D=DiGraph(M)
+            sage: D.spanning_trees_count()
+            1
+            sage: D.spanning_trees_count(0)
+            1
+            sage: D.spanning_trees_count(2)
+            2
+
+        """
+        if self.is_directed() == False:
+            M=self.kirchhoff_matrix()
+            M.subdivide(1,1)
+            M2 = M.subdivision(1,1)
+            return abs(M2.determinant())
+        else:
+            if root_vertex == None:
+                root_vertex=self.vertex_iterator().next()
+            if root_vertex not in self.vertices():
+                raise ValueError, ("Vertex (%s) not in the graph."%root_vertex)
+
+            M=self.kirchhoff_matrix()
+
+            index=self.vertices().index(root_vertex)
+            M[index,index]+=1
+            return abs(M.determinant())
 
     ### Planarity
 

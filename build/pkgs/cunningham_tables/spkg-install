@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -rf $SAGE_DATA/cunningham_tables
+cp -r src/cunningham_tables $SAGE_DATA/cunningham_tables

@@ -5,8 +5,8 @@ A partition `p` of a nonnegative integer `n` is a
 non-increasing list of positive integers (the *parts* of the
 partition) with total sum `n`.
 
-A partition can be depicted by a diagram made of rows of boxes,
-where the number of boxes in the `i^{th}` row starting from
+A partition can be depicted by a diagram made of rows of cells,
+where the number of cells in the `i^{th}` row starting from
 the top is the `i^{th}` part of the partition.
 
 The coordinate system related to a partition applies from the top
@@ -210,6 +210,7 @@ from integer_vector import IntegerVectors
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 from sage.functions.other import ceil
+from sage.misc.misc import deprecation
 
 def Partition(mu=None, **keyword):
     """
@@ -264,7 +265,6 @@ def Partition(mu=None, **keyword):
     elif 'core' in keyword and 'canonical_quotient' in keyword and len(keyword)==2:
         raise NotImplementedError
     elif 'core_and_quotient' in keyword and len(keyword)==1:
-        from sage.misc.misc import deprecation
         deprecation('"core_and_quotient=(*)" is deprecated. Use "core=[*], quotient=[*]" instead.')
         return from_core_and_quotient(*keyword['core_and_quotient'])
     else:
@@ -560,7 +560,7 @@ class Partition_class(CombinatorialObject):
     def up(self):
         r"""
         Returns a generator for partitions that can be obtained from pi by
-        adding a box.
+        adding a cell.
 
         EXAMPLES::
 
@@ -581,7 +581,7 @@ class Partition_class(CombinatorialObject):
     def up_list(self):
         """
         Returns a list of the partitions that can be formed from the
-        partition p by adding a box.
+        partition p by adding a cell.
 
         EXAMPLES::
 
@@ -595,7 +595,7 @@ class Partition_class(CombinatorialObject):
     def down(self):
         r"""
         Returns a generator for partitions that can be obtained from p by
-        removing a box.
+        removing a cell.
 
         EXAMPLES::
 
@@ -621,7 +621,7 @@ class Partition_class(CombinatorialObject):
     def down_list(self):
         """
         Returns a list of the partitions that can be obtained from the
-        partition p by removing a box.
+        partition p by removing a cell.
 
         EXAMPLES::
 
@@ -675,16 +675,16 @@ class Partition_class(CombinatorialObject):
                 return False
         return bool(sum(p1) >= sum(p2))
 
-    def boxes(self):
+    def cells(self):
         """
-        Return the coordinates of the boxes of self. Coordinates are given
+        Return the coordinates of the cells of self. Coordinates are given
         as (row-index, column-index) and are 0 based.
 
         EXAMPLES::
 
-            sage: Partition([2,2]).boxes()
+            sage: Partition([2,2]).cells()
             [(0, 0), (0, 1), (1, 0), (1, 1)]
-            sage: Partition([3,2]).boxes()
+            sage: Partition([3,2]).cells()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
         """
         res = []
@@ -692,6 +692,20 @@ class Partition_class(CombinatorialObject):
             for j in range(self[i]):
                 res.append( (i,j) )
         return res
+
+    def boxes(self):
+        r"""
+        Deprecated, please use ''cells'' instead.
+
+        TESTS::
+
+            sage: Partition([3,2]).boxes()
+            doctest:...: DeprecationWarning: boxes is deprecated. Please use cells instead
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+        """
+        deprecation('boxes is deprecated. Please use cells instead')
+        return self.cells()
+
 
     def generalized_pochhammer_symbol(self, a, alpha):
         r"""
@@ -705,7 +719,7 @@ class Partition_class(CombinatorialObject):
             12
         """
         res = 1
-        for (i,j) in self.boxes():
+        for (i,j) in self.cells():
             res *= (a - (i-1)/alpha+j-1)
         return res
 
@@ -773,25 +787,25 @@ class Partition_class(CombinatorialObject):
         """
         return self.conjugate()
 
-    def arm(self, i, j):
+    def arm_length(self, i, j):
         """
-        Returns the arm of cell (i,j) in partition p. The arm of cell (i,j)
-        is the number of boxes that appear to the right of cell (i,j). Note
-        that i and j are 0-based indices. If your coordinates are in the
-        form [i,j], use Python's \*-operator.
+        Returns the length of the arm of cell (i,j) in partition p. The arm of
+        cell (i,j) is the cells that appear to the right of cell (i,j). Note
+        that i and j are 0-based indices. If your coordinates are in the form
+        [i,j], use Python's \*-operator.
 
         EXAMPLES::
 
             sage: p = Partition([2,2,1])
-            sage: p.arm(0, 0)
+            sage: p.arm_length(0, 0)
             1
-            sage: p.arm(0, 1)
+            sage: p.arm_length(0, 1)
             0
-            sage: p.arm(2, 0)
+            sage: p.arm_length(2, 0)
             0
-            sage: Partition([3,3]).arm(0, 0)
+            sage: Partition([3,3]).arm_length(0, 0)
             2
-            sage: Partition([3,3]).arm(*[0,0])
+            sage: Partition([3,3]).arm_length(*[0,0])
             2
         """
         p = self
@@ -800,12 +814,24 @@ class Partition_class(CombinatorialObject):
         else:
             #Error: invalid coordinates
             pass
+    def arm(self, i, j):
+        r"""
+        Deprecated. Please use ''arm_length'' instead.
+
+        TESTS::
+
+            sage: Partition([2,2,1]).arm(0, 0)
+            doctest:...: DeprecationWarning: arm is deprecated. Please use arm_length instead.
+            1
+        """
+        deprecation('arm is deprecated. Please use arm_length instead.')
+        return self.arm_length(i,j)
 
     def arm_lengths(self, flat=False):
         """
-        Returns a tableau of shape p where each box is filled its arm. The
-        optional boolean parameter flat provides the option of returning a
-        flat list.
+        Returns a tableau of shape p where each cell is filled its arm
+        length. The optional boolean parameter flat provides the option of
+        returning a flat list.
 
         EXAMPLES::
 
@@ -826,25 +852,25 @@ class Partition_class(CombinatorialObject):
             return res
 
 
-    def leg(self, i, j):
+    def leg_length(self, i, j):
         """
-        Returns the leg of box (i,j) in partition p. The leg of box (i,j)
-        is defined to be the number of boxes below it in partition p. Note
-        that i and j are 0-based. If your coordinates are in the form
-        [i,j], use Python's \*-operator.
+        Returns the length of the leg of cell (i,j) in partition p. The leg of
+        cell (i,j) is defined to be the cells below it in partition p (in
+        english notations). Note that i and j are 0-based. If your coordinates
+        are in the form [i,j], use Python's \*-operator.
 
         EXAMPLES::
 
             sage: p = Partition([2,2,1])
-            sage: p.leg(0, 0)
+            sage: p.leg_length(0, 0)
             2
-            sage: p.leg(0,1)
+            sage: p.leg_length(0,1)
             1
-            sage: p.leg(2,0)
+            sage: p.leg_length(2,0)
             0
-            sage: Partition([3,3]).leg(0, 0)
+            sage: Partition([3,3]).leg_length(0, 0)
             1
-            sage: cell = [0,0]; Partition([3,3]).leg(*cell)
+            sage: cell = [0,0]; Partition([3,3]).leg_length(*cell)
             1
         """
 
@@ -855,10 +881,23 @@ class Partition_class(CombinatorialObject):
             #Error: invalid coordinates
             pass
 
+    def leg(self, i, j):
+        r"""
+        Deprecated. Please use ''leg_length'' instead.
+
+        TESTS::
+
+            sage: Partition([2,2,1]).leg(0, 0)
+            doctest:...: DeprecationWarning: leg is deprecated. Please use leg_length instead.
+            2
+        """
+        deprecation('leg is deprecated. Please use leg_length instead.')
+        return self.leg_length(i,j)
+
     def leg_lengths(self, flat=False):
         """
-        Returns a tableau of shape p with each box filled in with its leg.
-        The optional boolean parameter flat provides the option of
+        Returns a tableau of shape p with each cell filled in with its leg
+        length.  The optional boolean parameter flat provides the option of
         returning a flat list.
 
         EXAMPLES::
@@ -957,29 +996,41 @@ class Partition_class(CombinatorialObject):
         return res
 
 
-    def hook(self, i, j):
+    def hook_length(self, i, j):
         """
-        Returns the hook of box (i,j) in the partition p. The hook of box
-        (i,j) is defined to be one more than the sum of number of boxes to
-        the right and the number of boxes below (in the English
-        convention). Note that i and j are 0-based. If your coordinates are
-        in the form [i,j], use Python's \*-operator.
+        Returns the length of the hook of cell (i,j) in the partition p. The
+        hook of cell (i,j) is defined as the cells to the right or below (in
+        the English convention). Note that i and j are 0-based. If your
+        coordinates are in the form [i,j], use Python's \*-operator.
 
         EXAMPLES::
 
             sage: p = Partition([2,2,1])
-            sage: p.hook(0, 0)
+            sage: p.hook_length(0, 0)
             4
-            sage: p.hook(0, 1)
+            sage: p.hook_length(0, 1)
             2
-            sage: p.hook(2, 0)
+            sage: p.hook_length(2, 0)
             1
-            sage: Partition([3,3]).hook(0, 0)
+            sage: Partition([3,3]).hook_length(0, 0)
             4
-            sage: cell = [0,0]; Partition([3,3]).hook(*cell)
+            sage: cell = [0,0]; Partition([3,3]).hook_length(*cell)
             4
         """
-        return self.leg(i,j)+self.arm(i,j)+1
+        return self.leg_length(i,j)+self.arm_length(i,j)+1
+    def hook(self, i, j):
+        r"""
+        Deprecated. Please use ''hook_length'' instead.
+
+        TESTS::
+
+            sage: Partition([2,2,1]).hook(0, 0)
+            doctest:...: DeprecationWarning: hook is deprecated. Please use hook_length instead.
+            4
+        """
+        deprecation('hook is deprecated. Please use hook_length instead.')
+        return self.hook_length(i,j)
+
 
     def hooks(self):
         """
@@ -998,11 +1049,11 @@ class Partition_class(CombinatorialObject):
 
     def hook_lengths(self):
         r"""
-        Returns a tableau of shape p with the boxes filled in with the
+        Returns a tableau of shape p with the cells filled in with the
         hook lengths.
 
-        In each box, put the sum of one plus the number of boxes
-        horizontally to the right and vertically below the box (the
+        In each cell, put the sum of one plus the number of cells
+        horizontally to the right and vertically below the cell (the
         hook length).
 
         For example, consider the partition [3,2,1] of 6 with Ferrers
@@ -1012,7 +1063,7 @@ class Partition_class(CombinatorialObject):
             # #
             #
 
-        When we fill in the boxes with the hook lengths, we obtain::
+        When we fill in the cells with the hook lengths, we obtain::
 
             5 3 1
             3 1
@@ -1041,11 +1092,11 @@ class Partition_class(CombinatorialObject):
 
     def upper_hook(self, i, j, alpha):
         r"""
-        Returns the upper hook length of the box (i,j) in self. When alpha
+        Returns the upper hook length of the cell (i,j) in self. When alpha
         == 1, this is just the normal hook length. As usual, indices are 0
         based.
 
-        The upper hook length of a box (i,j) in a partition
+        The upper hook length of a cell (i,j) in a partition
         `\kappa` is defined by
 
         .. math::
@@ -1059,9 +1110,9 @@ class Partition_class(CombinatorialObject):
             sage: p = Partition([2,1])
             sage: p.upper_hook(0,0,1)
             3
-            sage: p.hook(0,0)
+            sage: p.hook_length(0,0)
             3
-            sage: [ p.upper_hook(i,j,x) for i,j in p.boxes() ]
+            sage: [ p.upper_hook(i,j,x) for i,j in p.cells() ]
             [2*x + 1, x, x]
         """
         p = self
@@ -1073,7 +1124,7 @@ class Partition_class(CombinatorialObject):
         Returns the upper hook lengths of the partition. When alpha == 1,
         these are just the normal hook lengths.
 
-        The upper hook length of a box (i,j) in a partition
+        The upper hook length of a cell (i,j) in a partition
         `\kappa` is defined by
 
         .. math::
@@ -1097,10 +1148,10 @@ class Partition_class(CombinatorialObject):
 
     def lower_hook(self, i, j, alpha):
         r"""
-        Returns the lower hook length of the box (i,j) in self. When alpha
+        Returns the lower hook length of the cell (i,j) in self. When alpha
         == 1, this is just the normal hook length. Indices are 0-based.
 
-        The lower hook length of a box (i,j) in a partition
+        The lower hook length of a cell (i,j) in a partition
         `\kappa` is defined by
 
         .. math::
@@ -1114,9 +1165,9 @@ class Partition_class(CombinatorialObject):
             sage: p = Partition([2,1])
             sage: p.lower_hook(0,0,1)
             3
-            sage: p.hook(0,0)
+            sage: p.hook_length(0,0)
             3
-            sage: [ p.lower_hook(i,j,x) for i,j in p.boxes() ]
+            sage: [ p.lower_hook(i,j,x) for i,j in p.cells() ]
             [x + 2, 1, 1]
         """
         p = self
@@ -1129,7 +1180,7 @@ class Partition_class(CombinatorialObject):
         Returns the lower hook lengths of the partition. When alpha == 1,
         these are just the normal hook lengths.
 
-        The lower hook length of a box (i,j) in a partition
+        The lower hook length of a cell (i,j) in a partition
         `\kappa` is defined by
 
         .. math::
@@ -1155,7 +1206,7 @@ class Partition_class(CombinatorialObject):
     def weighted_size(self):
         """
         Returns sum([i\*p[i] for i in range(len(p))]). It is also the
-        sum of the leg of every cell in b, or the sum of
+        sum of the leg length of every cell in b, or the sum of
         binomial(s[i],2) for s the conjugate partition of p.
 
         EXAMPLES::
@@ -1302,7 +1353,7 @@ class Partition_class(CombinatorialObject):
             sage: Partition([2,1]).content(0,1)
             1
             sage: p = Partition([3,2])
-            sage: sum([p.content(*c) for c in p.boxes()])
+            sage: sum([p.content(*c) for c in p.cells()])
             2
         """
 
@@ -1334,7 +1385,7 @@ class Partition_class(CombinatorialObject):
     def corners(self):
         """
         Returns a list of the corners of the partitions. These are the
-        positions where we can remove a box. Indices are of the form [i,j]
+        positions where we can remove a cell. Indices are of the form [i,j]
         where i is the row-index and j is the column-index, and are
         0-based.
 
@@ -1367,7 +1418,7 @@ class Partition_class(CombinatorialObject):
 
     def outside_corners(self):
         """
-        Returns a list of the positions where we can add a box so that the
+        Returns a list of the positions where we can add a cell so that the
         shape is still a partition. Indices are of the form [i,j] where i
         is the row-index and j is the column-index, and are 0-based.
 
@@ -1486,8 +1537,8 @@ class Partition_class(CombinatorialObject):
         core is commonly referred to as the `k`-core, `p`-core, `r`-core, ... . The
         quotient is a list of `r` partitions, constructed in the following
         way. Label each cell in `p` with its content, modulo `r`. Let `R_i` be
-        the set of rows ending in a box labelled `i`, and `C_i` be the set of
-        columns ending in a box labelled `i`. Then the `j`-th component of the
+        the set of rows ending in a cell labelled `i`, and `C_i` be the set of
+        columns ending in a cell labelled `i`. Then the `j`-th component of the
         quotient of `p` is the partition defined by intersecting `R_j` with
         `C_j+1`.
 
@@ -1540,9 +1591,9 @@ class Partition_class(CombinatorialObject):
 
         return result
 
-    def add_box(self, i, j = None):
+    def add_cell(self, i, j = None):
         r"""
-        Returns a partition corresponding to self with a box added in row
+        Returns a partition corresponding to self with a cell added in row
         i. i and j are 0-based row and column indices. This does not change
         p.
 
@@ -1551,9 +1602,9 @@ class Partition_class(CombinatorialObject):
 
         EXAMPLES::
 
-            sage: Partition([3, 2, 1, 1]).add_box(0)
+            sage: Partition([3, 2, 1, 1]).add_cell(0)
             [4, 2, 1, 1]
-            sage: cell = [4, 0]; Partition([3, 2, 1, 1]).add_box(*cell)
+            sage: cell = [4, 0]; Partition([3, 2, 1, 1]).add_cell(*cell)
             [3, 2, 1, 1, 1]
         """
 
@@ -1571,26 +1622,40 @@ class Partition_class(CombinatorialObject):
                 pl[i] += 1
             return Partition(pl)
 
-        raise ValueError, "[%s, %s] is not an addable box"%(i,j)
+        raise ValueError, "[%s, %s] is not an addable cell"%(i,j)
 
-    def remove_box(self, i, j = None):
+    def add_box(self, i, j = None):
+        r"""
+        Deprecated, please use ''add_cell'' instead.
+
+        TESTS::
+
+            sage: Partition([3, 2, 1, 1]).add_box(0)
+            doctest:...: DeprecationWarning: add_box is deprecated. Please use add_cell instead
+            [4, 2, 1, 1]
         """
-        Returns the partition obtained by removing a box at the end of row
+        deprecation('add_box is deprecated. Please use add_cell instead')
+        return self.add_cell(i,j)
+
+
+    def remove_cell(self, i, j = None):
+        """
+        Returns the partition obtained by removing a cell at the end of row
         i.
 
         EXAMPLES::
 
-            sage: Partition([2,2]).remove_box(1)
+            sage: Partition([2,2]).remove_cell(1)
             [2, 1]
-            sage: Partition([2,2,1]).remove_box(2)
+            sage: Partition([2,2,1]).remove_cell(2)
             [2, 2]
-            sage: #Partition([2,2]).remove_box(0)
+            sage: #Partition([2,2]).remove_cell(0)
 
         ::
 
-            sage: Partition([2,2]).remove_box(1,1)
+            sage: Partition([2,2]).remove_cell(1,1)
             [2, 1]
-            sage: #Partition([2,2]).remove_box(1,0)
+            sage: #Partition([2,2]).remove_cell(1,0)
         """
 
         if i >= len(self):
@@ -1607,6 +1672,18 @@ class Partition_class(CombinatorialObject):
         else:
             return Partition(self[:i] + [ self[i:i+1][0] - 1 ] + self[i+1:])
 
+    def remove_box(self, i, j = None):
+        r"""
+        Deprecated, please use ''remove_cell'' instead.
+
+        TESTS::
+
+            sage: Partition([2,2]).remove_box(1,1)
+            doctest:...: DeprecationWarning: remove_box is deprecated. Please use remove_cell instead.
+            [2, 1]
+        """
+        deprecation('remove_box is deprecated. Please use remove_cell instead.')
+        return self.remove_cell(i,j)
 
 
     def k_skew(self, k):
@@ -1650,7 +1727,7 @@ class Partition_class(CombinatorialObject):
         s_conj_rl = s.conjugate().row_lengths()
 
         #Find the leftmost column with less than
-        # or equal to kdiff boxes
+        # or equal to kdiff cells
         kdiff = k - self[0]
 
         if s_outer == []:
@@ -1840,7 +1917,7 @@ class Partition_class(CombinatorialObject):
 
         .. math::
 
-             [ (1 - q^{arm(c)} * t^{leg(c) + 1}) ] /            [ (1 - q^{arm(c) + 1} * t^{leg(c)}) ]
+             [ (1 - q^{arm_length(c)} * t^{leg_length(c) + 1}) ] /            [ (1 - q^{arm_length(c) + 1} * t^{leg_length(c)}) ]
 
 
 
@@ -1856,8 +1933,8 @@ class Partition_class(CombinatorialObject):
         QQqt = PolynomialRing(QQ, ['q', 't'])
         (q,t) = QQqt.gens()
         if i < len(self) and j < self[i]:
-            res =  (1-q**self.arm(i,j) * t**(self.leg(i,j)+1))
-            res /= (1-q**(self.arm(i,j)+1) * t**self.leg(i,j))
+            res =  (1-q**self.arm_length(i,j) * t**(self.leg_length(i,j)+1))
+            res /= (1-q**(self.arm_length(i,j)+1) * t**self.leg_length(i,j))
             return res
         else:
             return ZZ(1)
@@ -2741,11 +2818,11 @@ def Partitions(n=None, **kwargs):
         sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4, outer=[6,5,2])]
         [[6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2]]
 
-      Note that if you specify min_part=0, then the objects produced
-      will have parts equal to zero which violates some internal
-      assumptions that the Partition class makes.
+    Note that if you specify min_part=0, then the objects produced will have
+    parts equal to zero which violates some internal assumptions that the
+    Partition class makes.
 
-      ::
+    ::
 
         sage: [x for x in Partitions(4, length=3, min_part=0)]
         doctest:... RuntimeWarning: Currently, setting min_part=0 produces Partition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
@@ -2753,15 +2830,15 @@ def Partitions(n=None, **kwargs):
         sage: [x for x in Partitions(4, min_length=3, min_part=0)]
         [[4, 0, 0], [3, 1, 0], [2, 2, 0], [2, 1, 1], [1, 1, 1, 1]]
 
-      Except for very special cases, counting is done by brute force
-      iteration through all the partitions. However the iteration
-      itself has a reasonable complexity (constant memory, constant
-      amortized time), which allow for manipulating large partitions::
+    Except for very special cases, counting is done by brute force iteration
+    through all the partitions. However the iteration itself has a reasonable
+    complexity (constant memory, constant amortized time), which allow for
+    manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()
         [[1000]]
 
-      In particular, getting the first element is also constant time::
+    In particular, getting the first element is also constant time::
 
         sage: Partitions(30, max_part=29).first()
         [29, 1]

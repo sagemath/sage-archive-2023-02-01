@@ -165,7 +165,7 @@ class SkewTableau_class(CombinatorialObject):
 
     def size(self):
         """
-        Returns the number of boxes in the skew tableau.
+        Returns the number of cells in the skew tableau.
 
         EXAMPLES::
 
@@ -414,7 +414,7 @@ class SkewTableau_class(CombinatorialObject):
             #Check to see if there is nothing to the right
             if spot[1] == len(new_st[spot[0]]) - 1:
                 #print "nr"
-                #Swap the hole with the box below
+                #Swap the hole with the cell below
                 new_st[spot[0]][spot[1]] = new_st[spot[0]+1][spot[1]]
                 new_st[spot[0]+1][spot[1]] = None
                 spot[0] += 1
@@ -423,7 +423,7 @@ class SkewTableau_class(CombinatorialObject):
             #Check to see if there is nothing below
             if (spot[0] == len(new_st) - 1) or (len(new_st[spot[0]+1]) <= spot[1]):
                 #print "nb"
-                #Swap the hole with the box to the right
+                #Swap the hole with the cell to the right
                 new_st[spot[0]][spot[1]] = new_st[spot[0]][spot[1]+1]
                 new_st[spot[0]][spot[1]+1] = None
                 spot[1] += 1
@@ -433,14 +433,14 @@ class SkewTableau_class(CombinatorialObject):
             below = new_st[spot[0]+1][spot[1]]
             right = new_st[spot[0]][spot[1]+1]
             if below <= right:
-                #Swap with the box below
+                #Swap with the cell below
                 #print "b"
                 new_st[spot[0]][spot[1]] = new_st[spot[0]+1][spot[1]]
                 new_st[spot[0]+1][spot[1]] = None
                 spot[0] += 1
                 continue
             else:
-                #Swap with the box to the right
+                #Swap with the cell to the right
                 #print "r"
                 new_st[spot[0]][spot[1]] = new_st[spot[0]][spot[1]+1]
                 new_st[spot[0]][spot[1]+1] = None
@@ -551,22 +551,22 @@ class SkewTableau_class(CombinatorialObject):
         """
         return [ [i for i in row if i is not None] for row in self ]
 
-    def boxes_by_content(self, c):
+    def cells_by_content(self, c):
         """
-        Returns the coordinates of the boxes in self with content c.
+        Returns the coordinates of the cells in self with content c.
 
         ::
 
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
-            sage: s.boxes_by_content(0)
+            sage: s.cells_by_content(0)
             [(1, 1)]
-            sage: s.boxes_by_content(1)
+            sage: s.cells_by_content(1)
             [(0, 1), (1, 2)]
-            sage: s.boxes_by_content(2)
+            sage: s.cells_by_content(2)
             [(0, 2)]
-            sage: s.boxes_by_content(-1)
+            sage: s.cells_by_content(-1)
             [(1, 0)]
-            sage: s.boxes_by_content(-2)
+            sage: s.cells_by_content(-2)
             [(2, 0)]
         """
         if len(self) == 0:
@@ -609,16 +609,16 @@ class SkewTableau_class(CombinatorialObject):
             sage: s.entries_by_content(-2)
             [6]
         """
-        return [self[i][j] for i,j in self.boxes_by_content(c)]
+        return [self[i][j] for i,j in self.cells_by_content(c)]
 
-    def boxes(self):
+    def cells(self):
         """
-        Returns on the entries in self with content c.
+        Returns the cells in self.
 
         EXAMPLES::
 
             sage: s = SkewTableau([[None,1,2],[3],[6]])
-            sage: s.boxes()
+            sage: s.cells()
             [(0, 1), (0, 2), (1, 0), (2, 0)]
         """
         res = []

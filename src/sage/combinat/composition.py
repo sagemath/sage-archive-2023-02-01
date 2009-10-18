@@ -421,8 +421,8 @@ class Composition_class(CombinatorialObject):
     def to_skew_partition(self, overlap=1):
         """
         Returns the skew partition obtained from the composition co. The
-        parameter overlap indicates the number of boxes that are covered by
-        boxes of the previous line.
+        parameter overlap indicates the number of cells that are covered by
+        cells of the previous line.
 
         EXAMPLES::
 

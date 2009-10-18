@@ -10,7 +10,7 @@ that `p_1` and `p_2` are respectively the *inner*
 and *outer* partitions of `skp`.
 
 A skew partition can be depicted by a diagram made of rows of
-boxes, in the same way as a partition. Only the boxes of the outer
+cells, in the same way as a partition. Only the cells of the outer
 partition `p_1` which are not in the inner partition
 `p_2` appear in the picture. For example, this is the
 diagram of the skew partition [[5,4,3,1],[3,3,1]].
@@ -25,7 +25,7 @@ diagram of the skew partition [[5,4,3,1],[3,3,1]].
 
 A skew partition can be *connected*, which can easily be described
 in graphic terms: for each pair of consecutive rows, there are at
-least two boxes (one in each row) which have a common edge. This is
+least two cells (one in each row) which have a common edge. This is
 the diagram of the connected skew partition [[5,4,3,1],[3,1]]::
 
     sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
@@ -279,7 +279,7 @@ class SkewPartition_class(CombinatorialObject):
         Returns True if self is a connected skew partition.
 
         A skew partition is said to be *connected* if for each pair of
-        consecutive rows, there are at least two boxes (one in each row)
+        consecutive rows, there are at least two cells (one in each row)
         which have a common edge.
 
         EXAMPLES::
@@ -297,7 +297,7 @@ class SkewPartition_class(CombinatorialObject):
         Returns the overlap of self.
 
         The overlap of two consecutive rows in a skew partition is the
-        number of pairs of boxes (one in each row) that share a common
+        number of pairs of cells (one in each row) that share a common
         edge. This number can be positive, zero, or negative.
 
         The overlap of a skew partition is the minimum of the overlap of
@@ -479,14 +479,14 @@ class SkewPartition_class(CombinatorialObject):
 
     def rows_intersection_set(self):
         """
-        Returns the set of boxes in the lines of lambda which intersect the
+        Returns the set of cells in the lines of lambda which intersect the
         skew partition.
 
         EXAMPLES::
 
             sage: skp = SkewPartition([[3,2,1],[2,1]])
-            sage: boxes = Set([ (0,0), (0, 1), (0,2), (1, 0), (1, 1), (2, 0)])
-            sage: skp.rows_intersection_set() == boxes
+            sage: cells = Set([ (0,0), (0, 1), (0,2), (1, 0), (1, 1), (2, 0)])
+            sage: skp.rows_intersection_set() == cells
             True
         """
         res = []
@@ -502,14 +502,14 @@ class SkewPartition_class(CombinatorialObject):
 
     def columns_intersection_set(self):
         """
-        Returns the set of boxes in the lines of lambda which intersect the
+        Returns the set of cells in the lines of lambda which intersect the
         skew partition.
 
         EXAMPLES::
 
             sage: skp = SkewPartition([[3,2,1],[2,1]])
-            sage: boxes = Set([ (0,0), (0, 1), (0,2), (1, 0), (1, 1), (2, 0)])
-            sage: skp.columns_intersection_set() == boxes
+            sage: cells = Set([ (0,0), (0, 1), (0,2), (1, 0), (1, 1), (2, 0)])
+            sage: skp.columns_intersection_set() == cells
             True
         """
         res = [ (x[1], x[0]) for x in self.conjugate().rows_intersection_set()]

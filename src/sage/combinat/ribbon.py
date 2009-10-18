@@ -57,7 +57,7 @@ class Ribbon_class(CombinatorialObject):
     def ribbon_shape(self):
         """
         Returns the ribbon shape. The ribbon shape is given just by the
-        number of boxes in each row.
+        number of cells in each row.
 
         EXAMPLES::
 
@@ -102,7 +102,7 @@ class Ribbon_class(CombinatorialObject):
 
     def size(self):
         """
-        Returns the size ( number of boxes ) in the ribbon.
+        Returns the size ( number of cells ) in the ribbon.
 
         EXAMPLES::
 

@@ -737,7 +737,7 @@ class MultiSkewTableau_class(CombinatorialObject):
         """
         inv = []
         for k in range(len(self)):
-            for b in self[k].boxes():
+            for b in self[k].cells():
                 inv += self._inversion_pairs_from_position(k,b)
         return inv
 
@@ -765,7 +765,7 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def _inversion_pairs_from_position(self, k, ij):
         """
-        Returns the number of inversions at the box position i,j in the kth
+        Returns the number of inversions at the cell position i,j in the kth
         tableaux in self.
 
         EXAMPLES::
@@ -782,12 +782,12 @@ class MultiSkewTableau_class(CombinatorialObject):
         pi,pj = ij
         c = pi - pj
         value = self[pk][pi][pj]
-        pk_boxes = self[pk].boxes_by_content(c)
-        same_diagonal  = [ t.boxes_by_content(c) for t in self[pk+1:] ]
-        above_diagonal = [ t.boxes_by_content(c+1) for t in self[pk+1:] ]
+        pk_cells = self[pk].cells_by_content(c)
+        same_diagonal  = [ t.cells_by_content(c) for t in self[pk+1:] ]
+        above_diagonal = [ t.cells_by_content(c+1) for t in self[pk+1:] ]
 
         res = []
-        for i,j in pk_boxes:
+        for i,j in pk_cells:
             if pi < i and value > self[pk][i][j]:
                 res.append( ((pk,(pi,pj)), (pk,(i,j))) )
         for k in range(len(same_diagonal)):

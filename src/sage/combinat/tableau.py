@@ -268,7 +268,7 @@ class Tableau_class(CombinatorialObject):
 
     def descents(self):
         """
-        Returns a list of the boxes (i,j) such that
+        Returns a list of the cells (i,j) such that
         self[i][j] > self[i-1][j].
 
         EXAMPLES::
@@ -289,7 +289,7 @@ class Tableau_class(CombinatorialObject):
         """
         Returns the major index of self. The major index is defined to be
         the sum of the number of descents of self and the sum of their
-        legs.
+        legs length.
 
         EXAMPLES
 
@@ -302,11 +302,11 @@ class Tableau_class(CombinatorialObject):
         """
         descents = self.descents()
         p = self.shape()
-        return len(descents) + sum([ p.leg(*d) for d in descents])
+        return len(descents) + sum([ p.leg_length(*d) for d in descents])
 
     def attacking_pairs(self):
         """
-        Returns a list of the attacking pairs of self. An pair of boxes (c,
+        Returns a list of the attacking pairs of self. An pair of cells (c,
         d) is said to be attacking if one of the following conditions
         hold:
 
@@ -373,11 +373,11 @@ class Tableau_class(CombinatorialObject):
             0
         """
         p = self.shape()
-        return len(self.inversions()) - sum([ p.arm(*box) for box in self.descents() ])
+        return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    def entry(self, box):
+    def entry(self, cell):
         """
-        Returns the entry of box in self. Box is a tuple (i,j) of
+        Returns the entry of cell in self. Cell is a tuple (i,j) of
         coordinates.
 
         EXAMPLES::
@@ -388,7 +388,7 @@ class Tableau_class(CombinatorialObject):
             sage: t.entry( (1,1) )
             4
         """
-        i,j = box
+        i,j = cell
         return self[i][j]
 
     def evaluation(self):
@@ -496,13 +496,13 @@ class Tableau_class(CombinatorialObject):
 
         return Tableau([ [l for l in reversed(row)] for row in reversed(self) ])
 
-    def boxes(self):
+    def cells(self):
         """
-        Returns a list of the coordinates of the boxes of self.
+        Returns a list of the coordinates of the cells of self.
 
         EXAMPLES::
 
-            sage: Tableau([[1,2],[3,4]]).boxes()
+            sage: Tableau([[1,2],[3,4]]).cells()
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
         s = []
@@ -534,7 +534,7 @@ class Tableau_class(CombinatorialObject):
         """
         res = []
         w = self.weight()
-        s = self.boxes()
+        s = self.cells()
 
         for l in range(1,len(w)+1):
             new_s = [(i,j) for i,j in s if self[i][j] == l]
@@ -589,7 +589,7 @@ class Tableau_class(CombinatorialObject):
 
     def anti_restrict(self, n):
         """
-        Returns the skew tableau formed by removing all of the boxes from
+        Returns the skew tableau formed by removing all of the cells from
         self that are filled with a number less than
 
         EXAMPLES::
@@ -617,13 +617,13 @@ class Tableau_class(CombinatorialObject):
     def up(self):
         """
         An iterator for all the tableaux that can be obtained from self by
-        adding a box. EXAMPLES::
+        adding a cell. EXAMPLES::
 
             sage: t = Tableau([[1,2]])
             sage: [x for x in t.up()]
             [[[1, 2, 3]], [[1, 2], [3]]]
         """
-        #Get a list of all places where we can add a box
+        #Get a list of all places where we can add a cell
         #to the shape of self
 
         outside_corners = self.shape().outside_corners()
@@ -643,7 +643,7 @@ class Tableau_class(CombinatorialObject):
     def up_list(self):
         """
         Returns a list of all the tableaux that can be obtained from self
-        by adding a box.
+        by adding a cell.
 
         EXAMPLES::
 
@@ -656,7 +656,7 @@ class Tableau_class(CombinatorialObject):
     def down(self):
         """
         An iterator for all the tableaux that can be obtained from self by
-        removing a box. Note that this iterates just over a single
+        removing a cell. Note that this iterates just over a single
         tableaux. EXAMPLES::
 
             sage: t = Tableau([[1,2],[3]])
@@ -668,7 +668,7 @@ class Tableau_class(CombinatorialObject):
     def down_list(self):
         """
         Returns a list of all the tableaux that can be obtained from self
-        by removing a box. Note that this is just a single tableaux.
+        by removing a cell. Note that this is just a single tableaux.
 
         EXAMPLES::
 
@@ -1907,8 +1907,8 @@ class StandardTableaux_partition(CombinatorialClass):
         partition pi
 
         A formula for the number of Young tableaux associated with a given
-        partition. In each box, write the sum of one plus the number of
-        boxes horizontally to the right and vertically below the box (the
+        partition. In each cell, write the sum of one plus the number of
+        cells horizontally to the right and vertically below the cell (the
         hook length). The number of tableaux is then n! divided by the
         product of all hook lengths.
 
@@ -1919,7 +1919,7 @@ class StandardTableaux_partition(CombinatorialClass):
             # #
             #
 
-        When we fill in the boxes with the hook
+        When we fill in the cells with the hook
         lengths, we obtain::
 
             5 3 1
@@ -2151,7 +2151,7 @@ class StandardTableaux_partition(CombinatorialClass):
             #Assign m to cell
             t[cell[0]][cell[1]] = m
 
-            p = p.remove_box(cell[0])
+            p = p.remove_cell(cell[0])
 
             cells.remove(cell)
 

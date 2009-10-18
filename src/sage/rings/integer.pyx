@@ -2846,6 +2846,48 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 
+    def _factor_cunningham(self, proof=True):
+        """
+        Return factorization of self obtained using trial division
+        for all primes in the so called Cunningham table. This is
+        efficient if self has some factors of type $b^n+1$ or $b^n-1$,
+        with $b$ in $\{2,3,5,6,7,10,11,12\}$.
+
+        You need to install an optional package to use this method,
+        this can be done with the following command line:
+        ``sage -i cunningham_tables-1.0``
+
+        INPUT:
+
+        -  ``proof`` - bool (default: True) whether or not to
+           prove primality of each factor, this is only for factors
+           not in the Cunningham table.
+
+        EXAMPLES::
+
+            sage: (2^257-1)._factor_cunningham() # optional - cunningham
+            535006138814359 * 1155685395246619182673033 * 374550598501810936581776630096313181393
+            sage: ((3^101+1)*(2^60).next_prime())._factor_cunningham(proof=False) # optional - cunningham
+            2^2 * 379963 * 1152921504606847009 * 1017291527198723292208309354658785077827527
+
+        """
+        cunningham_prime_factors = sage.databases.cunningham_tables.cunningham_prime_factors()
+        if self.nbits() < 100 or len(cunningham_prime_factors) == 0:
+            return self.factor(proof=proof)
+        n = Integer(self)
+        L = []
+        for p in cunningham_prime_factors:
+            if p>n:
+                break
+            if p.divides(n):
+                v,n = n.val_unit(p)
+                L.append( (p,v) )
+        from sage.structure.factorization import Factorization
+        if n.is_one():
+            return Factorization(L)
+        else:
+            return Factorization(L)*n.factor(proof=proof)
+
     def support(self):
         """
         Return a sorted list of the primes dividing this integer.

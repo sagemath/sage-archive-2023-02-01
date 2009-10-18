@@ -96,3 +96,5 @@ from db_class_polynomials import \
      HilbertClassPolynomialDatabase
 
 from symbolic_data import SymbolicData
+
+from cunningham_tables import cunningham_prime_factors

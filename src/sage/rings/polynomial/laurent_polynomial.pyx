@@ -283,7 +283,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def variables(self, sort=True):
         """
-        Return a list of all variables occurring in self.
+        Return a tuple of all variables occurring in self.
 
         INPUT:
 
@@ -294,9 +294,9 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.variables()
-            [z, y, x]
+            (z, y, x)
             sage: f.variables(sort=False) #random
-            [y, z, x]
+            (y, z, x)
         """
         d = self.dict();
         g = self.parent().gens()
@@ -309,7 +309,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         v = [ g[i] for i in vars]
         if sort:
             v.sort()
-        return v
+        return tuple(v)
 
     def dict(self):
         """

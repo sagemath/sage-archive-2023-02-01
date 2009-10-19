@@ -540,17 +540,17 @@ class QuotientRingElement(ring_element.RingElement):
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
             sage: a.variables()
-            [a]
+            (a,)
             sage: b.variables()
-            [b]
+            (b,)
             sage: s = a^2 + b^2 + 1; s
             1
             sage: s.variables()
-            []
+            ()
             sage: (a+b).variables()
-            [a, b]
+            (a, b)
         """
-        return [QuotientRingElement(self.parent(),v) for v in self.__rep.variables()]
+        return tuple([QuotientRingElement(self.parent(),v) for v in self.__rep.variables()])
 
     def monomials(self):
         """

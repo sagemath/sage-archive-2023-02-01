@@ -366,23 +366,23 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def variables(self):
         """
-        Return the variables occurring in self (list of elements of some polynomial ring)
+        Return the variables occurring in self (tuple of elements of some polynomial ring)
 
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: p = x[1] + x[2] - 2*x[1]*x[3]
             sage: p.variables()
-            [x3, x2, x1]
+            (x3, x2, x1)
             sage: x[1].variables()
-            [x1]
+            (x1,)
             sage: X(1).variables()
-            []
+            ()
 
         """
         if hasattr(self._p, 'variables'):
-            return list(self._p.variables())
-        return []
+            return tuple(self._p.variables())
+        return ()
 
     @cached_method
     def max_index(self):

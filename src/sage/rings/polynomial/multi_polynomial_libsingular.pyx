@@ -3076,14 +3076,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def variables(self):
         """
-        Return a list of all variables occurring in self.
+        Return a tuple of all variables occurring in self.
 
         EXAMPLES::
 
             sage: P.<x,y,z> = GF(2)[]
             sage: f = x*z^2 + z + 1
             sage: f.variables()
-            [x, z]
+            (x, z)
         """
         cdef poly *p, *v
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
@@ -3101,7 +3101,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     l.append(new_MP(self._parent, v))
                     si.add(i)
             p = pNext(p)
-        return sorted(l,reverse=True)
+        return tuple(sorted(l,reverse=True))
 
     def variable(self, i=0):
         """
@@ -3114,7 +3114,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z> = GF(2)[]
             sage: f = x*z^2 + z + 1
             sage: f.variables()
-            [x, z]
+            (x, z)
             sage: f.variable(1)
             z
         """

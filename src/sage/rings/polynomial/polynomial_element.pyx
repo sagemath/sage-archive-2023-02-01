@@ -4467,7 +4467,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def variables(self):
         """
-        Returns the list of variables occurring in this polynomial.
+        Returns the tuple of variables occurring in this polynomial.
 
         EXAMPLES::
 

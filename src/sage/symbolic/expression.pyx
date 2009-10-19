@@ -2958,7 +2958,7 @@ cdef class Expression(CommutativeRingElement):
 
     def variables(self):
         """
-        Return sorted list of variables that occur in this expression.
+        Return sorted tuple of variables that occur in this expression.
 
         EXAMPLES::
 

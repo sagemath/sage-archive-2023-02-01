@@ -2146,7 +2146,7 @@ cdef class BooleanMonomial(MonoidElement):
 
     def variables(self):
         """
-        Return a list of the variables in this monomial.
+        Return a tuple of the variables in this monomial.
 
         EXAMPLE::
 
@@ -2154,9 +2154,9 @@ cdef class BooleanMonomial(MonoidElement):
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*z).variables() # indirect doctest
-            [x, z]
+            (x, z)
         """
-        return list(self)
+        return tuple(self)
 
     def iterindex(self):
         """
@@ -3089,34 +3089,34 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def variables(self):
         r"""
-        Return a list of all variables appearing in ``self``.
+        Return a tuple of all variables appearing in ``self``.
 
         EXAMPLE::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x + y).variables()
-            [x, y]
+            (x, y)
 
         ::
 
             sage: (x*y + z).variables()
-            [x, y, z]
+            (x, y, z)
 
         ::
 
             sage: P.zero_element().variables()
-            []
+            ()
 
         ::
 
             sage: P.one_element().variables()
-            [1]
+            (1,)
         """
         P = self.parent()
         o = P.one_element()
         if self is o or self == o:
-            return [o]
-        return list(self.vars_as_monomial())
+            return tuple([o])
+        return tuple(self.vars_as_monomial())
 
     def nvariables(self):
         """

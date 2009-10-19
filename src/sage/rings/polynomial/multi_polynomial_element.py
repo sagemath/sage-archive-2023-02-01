@@ -1080,20 +1080,28 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def variables(self):
         """
-        Returns the list of variables occurring in this polynomial.
+        Returns the tuple of variables occurring in this polynomial.
 
         EXAMPLES::
 
             sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
-            [x, y]
+            (x, y)
             sage: g = f.subs({x:10}); g
             700*y^2 + (-2)*y + 305
             sage: g.variables()
-            [y]
+            (y,)
+
+        TESTS:
+
+        This shows that the issue at trac ticket 7077 is fixed::
+
+            sage: x,y,z=polygens(QQ,'x,y,z')
+            sage: (x^2).variables()
+            (x,)
         """
-        return [self.parent().gen(index) for index in self.degrees().nonzero_positions()]
+        return tuple([self.parent().gen(index) for index in self.degrees().nonzero_positions()])
 
     def variable(self,i):
         """

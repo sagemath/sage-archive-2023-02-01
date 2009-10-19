@@ -391,7 +391,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
     def variables(self):
         """
-        Return an unordered list of variables appearing in polynomials
+        Return an unordered tuple of variables appearing in polynomials
         in this system.
 
         EXAMPLE::
@@ -399,6 +399,8 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
             sage: R1 = F.round(1)
+            sage: R1.variables()
+            (k000, k001, k002, k003)
             sage: sorted(R1.variables())
             [k003, k002, k001, k000]
         """
@@ -406,7 +408,7 @@ class MPolynomialRoundSystem_generic(SageObject):
         for f in self._gens:
             for v in f.variables():
                 V.add(v)
-        return list(V)
+        return tuple(V)
 
     def monomials(self):
         """

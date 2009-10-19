@@ -600,14 +600,14 @@ def all_tickets(report='11'):
         raise IOError, "could not fetch %s" % url
 
     import re
-    number_regexp = re.compile('ticket/([0-9]+)"')
-    title_regexp = re.compile('positive review](.*)</a>$')
+    title_regexp = re.compile('href="/sage_trac/ticket/(\d+)">(?:\[.*\])?(?:\s*)(.*?)</a>$')
     tickets = []
     for line in f.readlines():
+        if 'View ticket' not in line or '#' in line:
+            continue
         title_match = title_regexp.search(line)
         if title_match:
-            title = title_match.groups()[0]
-            number = number_regexp.search(line).groups()[0]
+            number, title = title_match.groups()
             tickets.append((number, title))
 
     f.close()

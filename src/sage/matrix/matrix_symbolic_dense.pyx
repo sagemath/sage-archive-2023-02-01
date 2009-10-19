@@ -280,15 +280,17 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         EXAMPLES:
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
-            (d - t)*(a - t) - b*c
-            sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
+            t^2 + (-a - d)*t + a*d - b*c
+            sage: matrix(SR, 5, [1..5^2]).charpoly()
             x^5 - 65*x^4 - 250*x^3
 
         """
+        from sage.symbolic.ring import SR
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We
         # correct for the discrepancy.
         cp = self._maxima_(maxima).charpoly(var)._sage_()
+        cp = cp.expand().polynomial(None, ring=SR[var])
         if self.nrows() % 2 == 1:
             cp = -cp
         return cp
@@ -320,7 +322,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [(x^2 - 65*x - 250, 1), (x, 3)]
 
         """
-        return Factorization(self.charpoly(var).factor_list())
+        from sage.symbolic.ring import SR
+        sub_dict = {var: SR.var(var)}
+        return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
 
     def is_simplified(self):
         """

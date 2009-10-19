@@ -3917,25 +3917,39 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: db=digraphs.DeBruijn(2,2)
+            sage: db=digraphs.DeBruijn(2,2); db
+            De Bruijn digraph (n=2, k=2): Looped digraph on 4 vertices
             sage: db.order()
             4
             sage: db.size()
             8
+
+        TESTS::
+
+            sage: digraphs.DeBruijn(5,0)
+            De Bruijn digraph (n=5, k=0): Looped multi-digraph on 1 vertex
+            sage: digraphs.DeBruijn(0,0)
+            De Bruijn digraph (n=0, k=0): Looped multi-digraph on 0 vertices
+
         """
-
         from sage.combinat.words.words import Words
-        from sage.combinat.words.word import Word
 
-        words=Words(n,k)
-        alphabet=[Word([l]) for l in words.alphabet()]
-        g=graph.DiGraph(loops=True)
-        for w in words:
-            ww=w[1:]
-            for l in alphabet:
-                g.add_edge(w,ww.concatenate(l),l)
-        g.name("De Bruijn digraph (n="+str(n)+",k="+str(k)+")")
+        W = Words(n, k)
+        A = Words(n, 1)
+        g = graph.DiGraph(loops=True)
 
+        if k == 0 :
+            g.allow_multiple_edges(True)
+            v = W[0]
+            for a in A:
+                g.add_edge(v, v, a)
+        else:
+            for w in W:
+                ww = w[1:]
+                for a in A:
+                    g.add_edge(w, ww*a, a)
+
+        g.name( "De Bruijn digraph (n=%s, k=%s)"%(n,k) )
         return g
 
 

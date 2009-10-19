@@ -3679,6 +3679,10 @@ class DiGraphGenerators():
                     - RandomDirectedGNC
                     - RandomDirectedGNR
 
+                Families of Graphs:
+                    - DeBruijn
+
+
 
     ORDERLY GENERATION: digraphs(vertices, property=lambda x: True,
     augment='edges', size=None)
@@ -3886,6 +3890,54 @@ class DiGraphGenerators():
         else:
             raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
         return graph.DiGraph(butterfly)
+
+    def DeBruijn(self,n,k):
+        r"""
+        Returns the De Bruijn diraph with parameters `n,k`.
+
+        The De Bruijn diraph with parameters `n,k` is built
+        upon a set of vertices equal to the set of words of
+        length `k` from a dictionary of `n` letters.
+
+        In this digraph, there is an arc `w_1w_2` if `w_2`
+        can be obtained from `w_1` by removing the leftmost
+        letter and adding a new letter at its right end.
+        ( more information on this page :
+        http://en.wikipedia.org/wiki/De_Bruijn_graph )
+
+        INPUT:
+
+        - ``n`` -- Two possibilities for this parameter :
+              - an integer equal to the cardinality of the
+                alphabet to use.
+              - An iterable object to be used as the set
+                of letters
+        - ``k`` -- An integer equal to the length of words in
+          the De Bruijn digraph.
+
+        EXAMPLES::
+
+            sage: db=digraphs.DeBruijn(2,2)
+            sage: db.order()
+            4
+            sage: db.size()
+            8
+        """
+
+        from sage.combinat.words.words import Words
+        from sage.combinat.words.word import Word
+
+        words=Words(n,k)
+        alphabet=[Word([l]) for l in words.alphabet()]
+        g=graph.DiGraph(loops=True)
+        for w in words:
+            ww=w[1:]
+            for l in alphabet:
+                g.add_edge(w,ww.concatenate(l),l)
+        g.name("De Bruijn digraph (n="+str(n)+",k="+str(k)+")")
+
+        return g
+
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """

@@ -61,19 +61,6 @@ class FreeAlgebraElement(AlgebraElement):
         else:
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def __iter__(self):
-        """
-        Returns an iterator which yields tuples of coefficient and monomial.
-
-        EXAMPLES::
-
-            sage: a = FreeAlgebra(QQ, 5, 'a').gens()
-            sage: list(3*a[0]*a[1]*a[4]**3*a[0]+1)
-            [(1, 1), (3, a0*a1*a4^3*a0)]
-        """
-        for (key,val) in self.__monomial_coefficients.iteritems():
-            yield (val,key)
-
     def _repr_(self):
         """
         Return string representation of self.

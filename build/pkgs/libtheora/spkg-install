@@ -31,3 +31,4 @@ if [ $? -ne 0 ]; then
 fi
 
 cp examples/png2theora $SAGE_LOCAL/bin
+cp examples/png2theora-png2theora.o $SAGE_LOCAL/bin

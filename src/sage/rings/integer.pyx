@@ -102,6 +102,8 @@ floating real field R.
     sage: RR = RealField(200)
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
+
+
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -358,11 +360,53 @@ cdef inline Integer as_Integer(x):
         return Integer(x)
 
 cdef class IntegerWrapper(Integer):
+    r"""
+    Rationale for the ``IntegerWrapper`` class:
+
+    With ``Integers``, the allocation/deallocation function slots are
+    hijacked with custom functions that stick already allocated
+    ``Integers`` (with initialized ``parent`` and ``mpz_t`` fields)
+    into a pool on "deallocation" and then pull them out whenever a
+    new one is needed. Because ``Integers`` are so common, this is
+    actually a significant savings. However , this does cause issues
+    with subclassing a Python class directly from ``Integer`` (but
+    that's ok for a Cython class).
+
+    As a workaround, one can instead derive a class from the
+    intermediate class ``IntegerWrapper``, which sets statically its
+    alloc/dealloc methods to the *original* ``Integer`` alloc/dealloc
+    methods, before they are swapped manually for the custom ones.
+
+    The constructor of ``IntegerWrapper`` further allows for
+    specifying an alternative parent to ``IntegerRing()``.
     """
-    Python classes have problems inheriting from Integer directly, but
-    they don't have issues with inheriting from IntegerWrapper.
-    """
-    pass
+
+    def __init__(self, x=None, unsigned int base=0, parent = None):
+        """
+        We illustrate how to create integers with parents different
+        from ``IntegerRing()``::
+
+            sage: from sage.rings.integer import IntegerWrapper
+
+            sage: n = IntegerWrapper(3, parent = Primes()) # indirect doctest
+            sage: n
+            3
+            sage: n.parent()
+            Set of all prime numbers: 2, 3, 5, 7, ...
+
+        Pickling is not yet completely functional::
+
+            sage: nn = loads(dumps(n))
+            sage: nn
+            3
+            sage: nn.parent()
+            Integer Ring
+
+            sage: TestSuite(n).run() # todo: not implemented
+        """
+        if parent is not None:
+            Element.__init__(self, parent = parent)
+        Integer.__init__(self, x, base = base)
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -598,7 +642,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         pass
 
                 raise TypeError, "unable to coerce %s to an integer" % type(x)
-
 
     def __reduce__(self):
         """

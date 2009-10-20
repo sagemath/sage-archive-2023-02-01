@@ -2221,13 +2221,13 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: g.vertices()
             [012, 123, 234, 345, 456, 567, 678, 789]
             sage: g.edges()
-            [(012, 123, None),
-             (123, 234, None),
-             (234, 345, None),
-             (345, 456, None),
-             (456, 567, None),
-             (567, 678, None),
-             (678, 789, None)]
+            [(012, 123, 3),
+             (123, 234, 4),
+             (234, 345, 5),
+             (345, 456, 6),
+             (456, 567, 7),
+             (567, 678, 8),
+             (678, 789, 9)]
             sage: WordOptions(identifier='word: ')
 
         ::
@@ -2241,7 +2241,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word('1111111')
             sage: g = w.rauzy_graph(3)
             sage: g.edges()
-            [(word: 111, word: 111, None)]
+            [(word: 111, word: 111, word: 1)]
 
         ::
 
@@ -2261,10 +2261,11 @@ exponent %s: the length of the word (%s) times the exponent \
             for w in self.factor_iterator(n+1):
                 u = w[:-1]
                 v = w[1:]
+                a = w[-1:]
                 if d.has_key(u):
-                    d[u].append(v)
+                    d[u][v] = a
                 else:
-                    d[u] = [v]
+                    d[u] = {v:a}
 
         from sage.graphs.graph import DiGraph
         return DiGraph(d, loops=True)

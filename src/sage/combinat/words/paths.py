@@ -2,17 +2,17 @@
 r"""
 Word paths
 
-This module implements word paths which belongs to Discrete Geometry seen from
-Combinatorics on Words point of view. A word path is the representation of a
-word as a discrete path in a two (or more) dimensions space using a one-to-one
-correspondence between the alphabet and a set of vectors called steps. Using
-combinatorics on words, many problems on discrete polygons on 2d lattice grid
-may be solved in linear time in length of the perimeter (self-intersecting,
-area, inertia moment, etc.).
+This module implements word paths, which is an application of Combinatorics
+on Words to Discrete Geometry. A word path is the representation of a word
+as a discrete path in a vector space using a one-to-one correspondence
+between the alphabet and a set of vectors called steps. Many problems
+surrounding 2d lattice polygons (such as questions of self-intersection,
+area, inertia moment, etc.) can be solved in linear time (linear in the
+length of the perimeter) using theory from Combinatorics on Words.
 
-On the square grid, the encoding of a path on a four-letter alphabet (for
-East, North, West and South directions) is also known as the Freeman chain
-code [1,2] (see [3] for further reading).
+On the square grid, the encoding of a path using a four-letter alphabet
+(for East, North, West and South directions) is also known as the Freeman
+chain code [1,2] (see [3] for further reading).
 
 AUTHORS:
 
@@ -145,13 +145,13 @@ a callable or a finite iterator::
 REFERENCES:
 
 - [1] Freeman, H.: On the encoding of arbitrary geometric configurations.
-  IRE Trans. Electronic Computer 10 (1961) 260–268.
+  IRE Trans. Electronic Computer 10 (1961) 260-268.
 - [2] Freeman, H.: Boundary encoding and processing. In Lipkin, B., Rosenfeld,
   A., eds.: Picture Processing and Psychopictorics, Academic Press, New York
-  (1970) 241–266.
+  (1970) 241-266.
 - [3] Braquelaire, J.P., Vialard, A.: Euclidean paths: A new representation of
   boundary of discrete regions. Graphical Models and Image Processing 61 (1999)
-  16–43.
+  16-43.
 - [4] http://en.wikipedia.org/wiki/Regular_tiling
 - [5] http://en.wikipedia.org/wiki/Dyck_word
 

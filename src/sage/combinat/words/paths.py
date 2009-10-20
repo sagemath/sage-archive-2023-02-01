@@ -2,9 +2,17 @@
 r"""
 Word paths
 
-A word path is a word represented as a discrete path in a two (or more)
-dimensions space using a one-to-one correspondence between the alphabet and
-a set of steps.
+This module implements word paths which belongs to Discrete Geometry seen from
+Combinatorics on Words point of view. A word path is the representation of a
+word as a discrete path in a two (or more) dimensions space using a one-to-one
+correspondence between the alphabet and a set of vectors called steps. Using
+combinatorics on words, many problems on discrete polygons on 2d lattice grid
+may be solved in linear time in length of the perimeter (self-intersecting,
+area, inertia moment, etc.).
+
+On the square grid, the encoding of a path on a four-letter alphabet (for
+East, North, West and South directions) is also known as the Freeman chain
+code [1,2] (see [3] for further reading).
 
 AUTHORS:
 
@@ -38,6 +46,18 @@ ask whether p is a closed path, plot it and many other::
     sage: p.is_closed()
     False
     sage: p.plot()
+
+To obtain a list of all the available word path specific functions,
+use ``help(p)``::
+
+    sage: help(p)
+    Help on FiniteWordPath_2d_str in module sage.combinat.words.paths object:
+    ...
+    Methods inherited from FiniteWordPath_2d:
+    ...
+    Methods inherited from FiniteWordPath_all:
+    ...
+    This only works on Python classes that derive from SageObject.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -124,9 +144,17 @@ a callable or a finite iterator::
 
 REFERENCES:
 
-- http://en.wikipedia.org/wiki/Regular_tiling
+- [1] Freeman, H.: On the encoding of arbitrary geometric configurations.
+  IRE Trans. Electronic Computer 10 (1961) 260–268.
+- [2] Freeman, H.: Boundary encoding and processing. In Lipkin, B., Rosenfeld,
+  A., eds.: Picture Processing and Psychopictorics, Academic Press, New York
+  (1970) 241–266.
+- [3] Braquelaire, J.P., Vialard, A.: Euclidean paths: A new representation of
+  boundary of discrete regions. Graphical Models and Image Processing 61 (1999)
+  16–43.
+- [4] http://en.wikipedia.org/wiki/Regular_tiling
+- [5] http://en.wikipedia.org/wiki/Dyck_word
 
-- http://en.wikipedia.org/wiki/Dyck_word
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,

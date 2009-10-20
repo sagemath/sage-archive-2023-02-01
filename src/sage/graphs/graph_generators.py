@@ -2417,10 +2417,10 @@ class GraphGenerators():
 
         INPUT:
 
-        -  ``n`` - the number of nodes is `2*n`.
+        - ``n`` - the number of nodes is `2*n`.
 
-        -  ``k`` - integer `0<k\leq\lfloor(n-1)`/`2\rfloor`. Decides how inner
-        vertices are connected.
+        - ``k`` - integer `0<k\leq\lfloor(n-1)`/`2\rfloor`. Decides
+          how inner vertices are connected.
 
         PLOTTING: Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, the generalized
@@ -2461,17 +2461,17 @@ class GraphGenerators():
         pos_dict = {}
         G=graphs.EmptyGraph()
         for i in range(n):
-            x = float(2*(cos((pi/2) + ((2*pi)/n)*i)))
-            y = float(2*(sin((pi/2) + ((2*pi)/n)*i)))
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
         for i in range(2*n)[n:]:
-            x = float(cos((pi/2) + ((2*pi)/n)*(i-n)))
-            y = float(sin((pi/2) + ((2*pi)/n)*(i-n)))
+            x = float(0.5*cos((pi/2) + ((2*pi)/n)*i))
+            y = float(0.5*sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
         for i in range(n):
             G.add_edge(i, (i+1) % n)
             G.add_edge(i, i+n)
-            G.add_edge(i+n, n + (i+k)% n)
+            G.add_edge(i+n, n + (i+k) % n)
         return graph.Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
 
     def HyperStarGraph(self,n,k):

@@ -934,25 +934,20 @@ cdef class Parent(category_object.CategoryObject):
             sage: act(G((1, 2, 3)), t)
             3*x + y + 2*z
 
+        This should fail, since we haven't registered the left
+        action::
+
+            sage: G((1,2)) * t
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
+
+        Now let's make it work::
+
             sage: R._unset_coercions_used()
             sage: R.register_action(act)
             sage: G((1, 2)) * t
             2*x + y + 3*z
-
-            This should fail, since we haven't defined a right action::
-
-            sage: t * G((1, 2, 3))
-            Traceback (most recent call last):
-            ...
-            AttributeError: ...
-
-            Now let's make it work::
-
-            sage: R._unset_coercions_used()
-            sage: R.register_action(SymmetricGroupAction(G, R, is_left=False))
-
-            sage: t * G((1, 2, 3))
-            3*x + y + 2*z
         """
         assert not self._coercions_used, "coercions must all be registered up before use"
         from sage.categories.action import Action

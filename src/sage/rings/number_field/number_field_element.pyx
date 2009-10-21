@@ -151,21 +151,27 @@ def _inverse_mod_generic(elt, I):
         sage: w = OE.ring_generators()[0]
         sage: from sage.rings.number_field.number_field_element import _inverse_mod_generic
         sage: _inverse_mod_generic(w, 13*OE)
-        -7*w^2 - 13*w + 7
+        6*w^2 - 6
     """
     from sage.matrix.constructor import matrix
     R = elt.parent()
+    try:
+        I = R.ideal(I)
+    except ValueError:
+        raise ValueError, "inverse is only defined modulo integral ideals"
+    if I == 0:
+        raise ValueError, "inverse is not defined modulo the zero ideal"
     n = R.absolute_degree()
-    I = R.ideal_monoid()(I)
-    if not I.is_integral():
-        raise TypeError, "inverse modulo non-integral ideals not defined"
-    m = matrix(ZZ, [R.coordinates(y) for y in I.integral_basis()] + [R.coordinates(elt*s) for s in R.gens()])
-    a,b = m.echelon_form(transformation=True)
-    if (a[0:n] != 1):
+    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in R.gens()]))
+    a, b = m.echelon_form(transformation=True)
+    if a[0:n] != 1:
         raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
     v = R.coordinates(1)
-    y = sum([b[j,i+n] * R.gens()[i] * v[j] for i in xrange(n) for j in xrange(n)])
-    return y
+    y = R(0)
+    for j in xrange(n):
+        if v[j] != 0:
+            y += v[j] * sum([b[j,i+n] * R.gen(i) for i in xrange(n)])
+    return I.small_residue(y)
 
 __pynac_pow = False
 
@@ -285,7 +291,7 @@ cdef class NumberFieldElement(FieldElement):
                 newf = ppr(0)
                 Zbasis = self.number_field().pari_nf().getattr('zk')
                 # Note that this integral basis is not the same as that returned by parent.integral_basis() !
-                for i from 0 <= i < parent.degree():
+                for i from 0 <= i < parent.absolute_degree():
                     if f[i] != 0:
                         newf += QQ(f[i]) * ppr(Zbasis[i])
                 f = newf
@@ -2573,6 +2579,49 @@ cdef class NumberFieldElement(FieldElement):
         # absolute extension.
         raise NotImplementedError
 
+    def inverse_mod(self, I):
+        """
+        Returns the inverse of self mod the integral ideal I.
+
+        INPUT:
+
+        -  ``I`` - may be an ideal of self.parent(), or an element or list
+           of elements of self.parent() generating a nonzero ideal. A ValueError
+           is raised if I is non-integral or zero. A ZeroDivisionError is
+           raised if I + (x) != (1).
+
+        NOTE: It's not implemented yet for non-integral elements.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: N = k.ideal(3)
+            sage: d = 3*a + 1
+            sage: d.inverse_mod(N)
+            1
+
+        ::
+
+            sage: k.<a> = NumberField(x^3 + 11)
+            sage: d = a + 13
+            sage: d.inverse_mod(a^2)*d - 1 in k.ideal(a^2)
+            True
+            sage: d.inverse_mod((5, a + 1))*d - 1 in k.ideal(5, a + 1)
+            True
+            sage: K.<b> = k.extension(x^2 + 3)
+            sage: b.inverse_mod([37, a - b])
+            7
+            sage: 7*b - 1 in K.ideal(37, a - b)
+            True
+            sage: b.inverse_mod([37, a - b]).parent() == K
+            True
+        """
+        R = self.number_field().ring_of_integers()
+        try:
+            return _inverse_mod_generic(R(self), I)
+        except TypeError: # raised by failure of R(self)
+            raise NotImplementedError, "inverse_mod is not implemented for non-integral elements"
+
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
@@ -2857,46 +2906,6 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         v = self._coefficients()
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))
-
-    def inverse_mod(self, I):
-        """
-        Returns the inverse of self mod the integral ideal I.
-
-        INPUT:
-
-        -  ``I`` - may be an ideal of self.parent(), or an element or list
-           of elements of self.parent() generating a nonzero ideal. A TypeError
-           is raised if I is non-integral, and a ValueError if the generators
-           are all zero. A ZeroDivisionError is raised if I + (x) != (1).
-
-        NOTE: It's not implemented yet for non-integral elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = NumberField(x^2 + 23)
-            sage: N = k.ideal(3)
-            sage: d = 3*a + 1
-            sage: d.inverse_mod(N)
-            1
-
-        ::
-
-            sage: k.<a> = NumberField(x^3 + 11)
-            sage: d = a + 13
-            sage: d.inverse_mod(a^2) * d - 1 in k.ideal(a^2)
-            True
-            sage: d.inverse_mod((5, a + 1))*d - 1 in k.ideal(5, a + 1)
-            True
-
-        """
-        k = self.number_field()
-        R = k.ring_of_integers()
-        I = k.ideal(I)
-
-        try:
-            return I.small_residue(_inverse_mod_generic(R(self), I))
-        except TypeError:
-            raise NotImplementedError, "inverse_mod is not implemented for non-integral elements"
 
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
@@ -3298,9 +3307,8 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
 
         -  ``I`` - may be an ideal of self.parent(), or an
            element or list of elements of self.parent() generating a nonzero
-           ideal. A TypeError is raised if I is non-integral, and a ValueError
-           if the generators are all zero. A ZeroDivisionError is raised if I
-           + (x) != (1).
+           ideal. A ValueError is raised if I is non-integral or is zero.
+           A ZeroDivisionError is raised if I + (x) != (1).
 
 
         EXAMPLES::
@@ -3308,15 +3316,18 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
             sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
             sage: w = OE.ring_generators()[0]
             sage: w.inverse_mod(13*OE)
-            -7*w^2 - 13*w + 7
+            6*w^2 - 6
             sage: w * (w.inverse_mod(13)) - 1 in 13*OE
+            True
+            sage: w.inverse_mod(13).parent() == OE
             True
             sage: w.inverse_mod(2*OE)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: w is not invertible modulo Fractional ideal (2)
         """
-        return _inverse_mod_generic(self, I)
+        R = self.parent()
+        return R(_inverse_mod_generic(self, I))
 
     def __invert__(self):
         r"""
@@ -3440,19 +3451,22 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
 
         -  ``I`` - may be an ideal of self.parent(), or an
            element or list of elements of self.parent() generating a nonzero
-           ideal. A TypeError is raised if I is non-integral, and a ValueError
-           if the generators are all zero. A ZeroDivisionError is raised if I
-           + (x) != (1).
+           ideal. A ValueError is raised if I is non-integral or is zero.
+           A ZeroDivisionError is raised if I + (x) != (1).
+
 
         EXAMPLES::
 
-            sage: E.<a,b> = NumberField([x^2 - x + 2, x^2+ 1])
+            sage: E.<a,b> = NumberField([x^2 - x + 2, x^2 + 1])
             sage: OE = E.ring_of_integers()
             sage: t = OE(b - a).inverse_mod(17*b)
-            sage: (t * (b-a) - 1) in E.ideal(17*b)
+            sage: t*(b - a) - 1 in E.ideal(17*b)
+            True
+            sage: t.parent() == OE
             True
         """
-        return _inverse_mod_generic(self, I)
+        R = self.parent()
+        return R(_inverse_mod_generic(self, I))
 
     def charpoly(self, var='x'):
         r"""

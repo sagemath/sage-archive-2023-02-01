@@ -1478,18 +1478,32 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         r"""
         Return an inverse of self modulo the given ideal.
 
+        INPUT:
+
+
+        -  ``I`` - may be an ideal of self.parent(), or an
+           element or list of elements of self.parent() generating a nonzero
+           ideal. A ValueError is raised if I is non-integral or is zero.
+           A ZeroDivisionError is raised if I + (x) != (1).
+
+
         EXAMPLES::
 
             sage: OE = QuadraticField(-7, 's').ring_of_integers()
             sage: w = OE.ring_generators()[0]
-            sage: w.inverse_mod(13) + (7*w + 6) in 13*OE
+            sage: w.inverse_mod(13) == 6*w - 6
+            True
+            sage: w*(6*w - 6) - 1
+            -13
+            sage: w.inverse_mod(13).parent() == OE
             True
             sage: w.inverse_mod(2*OE)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: 1/2*s + 1/2 is not invertible modulo Fractional ideal (2)
         """
-        return _inverse_mod_generic(self, I)
+        R = self.parent()
+        return R(_inverse_mod_generic(self, I))
 
 cdef class Q_to_quadratic_field_element(Morphism):
     """

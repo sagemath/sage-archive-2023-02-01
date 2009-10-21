@@ -300,6 +300,19 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return "Infinite polynomial ring in %s over %s"%(", ".join(self._names), self._base)
 
+    def _an_element_(self):
+        """
+        Returns an element of this ring.
+
+        EXAMPLES::
+
+            sage: R.<x> = InfinitePolynomialRing(QQ)
+            sage: R.an_element()
+            x1 + x0
+        """
+        x = self.gen(0)
+        return x[0] + x[1]
+
     def _latex_(self):
         """
         EXAMPLES::

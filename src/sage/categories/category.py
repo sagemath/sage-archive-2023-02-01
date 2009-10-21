@@ -171,7 +171,7 @@ class Category(SageObject):
         return set([])
 
     def category(self):
-        return Sets()
+        return Objects()
 
 def is_Category(x):
     """

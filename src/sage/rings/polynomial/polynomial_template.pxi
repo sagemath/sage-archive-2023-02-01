@@ -225,6 +225,55 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
+    cpdef ModuleElement _rmul_(self, RingElement left):
+        """
+        EXAMPLES::
+
+            sage: P.<x> = GF(2)[]
+            sage: t = x^2 + x + 1
+            sage: 0*t
+            0
+            sage: 1*t
+            x^2 + x + 1
+
+            sage: R.<y> = GF(5)[]
+            sage: u = y^2 + y + 1
+            sage: 3*u
+            3*y^2 + 3*y + 3
+            sage: 5*u
+            0
+            sage: (2^81)*u
+            2*y^2 + 2*y + 2
+            sage: (-2^81)*u
+            3*y^2 + 3*y + 3
+        """
+        cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
+        celement_construct(&r.x, get_cparent((<Polynomial_template>self)._parent))
+        r._parent = (<Polynomial_template>self)._parent
+        celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, get_cparent((<Polynomial_template>self)._parent))
+        return r
+
+    cpdef ModuleElement _lmul_(self, RingElement right):
+        """
+        EXAMPLES::
+
+            sage: P.<x> = GF(2)[]
+            sage: t = x^2 + x + 1
+            sage: t*0
+            0
+            sage: t*1
+            x^2 + x + 1
+
+            sage: R.<y> = GF(5)[]
+            sage: u = y^2 + y + 1
+            sage: u*3
+            3*y^2 + 3*y + 3
+            sage: u*5
+            0
+        """
+        # all currently implemented rings are commutative
+        return self._rmul_(right)
+
     cpdef RingElement _mul_(self, RingElement right):
         """
         EXAMPLE::

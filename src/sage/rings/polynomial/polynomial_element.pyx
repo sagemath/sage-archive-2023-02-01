@@ -1110,9 +1110,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (37) * (x - 2/3)^2
             sage: x = polygen(GF(3))
             sage: x.squarefree_decomposition()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Squarefree decomposition not implemented for Univariate Polynomial Ring in x over Finite Field of size 3
+            x
         """
 
         # Wikipedia says this works for arbitrary fields of

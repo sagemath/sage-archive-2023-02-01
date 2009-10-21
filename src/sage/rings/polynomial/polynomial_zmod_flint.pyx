@@ -24,8 +24,17 @@ AUTHORS:
 - Burcin Erocal (2008-11) initial implementation
 - Martin Albrecht (2009-01) another initial implementation
 """
+#*****************************************************************************
+#       Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
+#
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
+from sage.structure.factorization import Factorization
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -47,8 +56,6 @@ include "../../libs/flint/zmod_poly_linkage.pxi"
 
 # and then the interface
 include "polynomial_template.pxi"
-
-from sage.libs.all import pari
 
 cdef extern from "zn_poly/zn_poly.h":
     ctypedef struct zn_mod_struct:
@@ -90,6 +97,20 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             except AttributeError:
                 pass
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
+
+    cdef Polynomial_template _new(self):
+        """
+        EXAMPLES::
+
+            sage: P.<x> = GF(5)[]
+            sage: (2*x+1).monic() #indirect doctest
+            x + 3
+        """
+        cdef Polynomial_template e = <Polynomial_template>PY_NEW(self.__class__)
+        zmod_poly_init(&e.x, self._parent.modulus())
+        e._parent = self._parent
+        return e
+
 
     cdef _set_list(self, x):
         """
@@ -163,12 +184,24 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             5
             sage: f(3)
             3
+
+            sage: f(x+1)
+            x^2 + 2*x + 2
         """
+        cdef Polynomial_zmod_flint t
         K = self._parent.base_ring()
         if len(kwds) == 0 and len(x) == 1:
             try:
                 x = K._coerce_(x[0])
-                return K(zmod_poly_evaluate_horner(&self.x, int(x)))
+                return K(zmod_poly_evaluate(&self.x, int(x)))
+            except TypeError:
+                pass
+            try:
+                x = self.parent().coerce(x[0])
+                t = self._new()
+                zmod_poly_compose_horner(&t.x, &self.x,
+                        &(<Polynomial_zmod_flint>x).x)
+                return t
             except TypeError:
                 pass
         return Polynomial.__call__(self, *x, **kwds)
@@ -305,3 +338,244 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         zn_mod_clear(&zn_mod)
         return r
 
+    cpdef _mul_short(self, Polynomial_zmod_flint other, n):
+        """
+        Return the product of this polynomial and other truncated to the
+        given length `n`.
+
+        This function is usually more efficient than simply doing the
+        multiplication and then truncating. The function is tuned for length
+        `n` about half the length of a full product.
+
+
+        EXAMPLES::
+
+            sage: P.<a>=GF(7)[]
+            sage: a = P(range(10)); b = P(range(5, 15))
+            sage: a._mul_short(b, 5)
+            4*a^4 + 6*a^3 + 2*a^2 + 5*a
+
+        TESTS::
+
+            sage: a._mul_short(b, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: length must be > 0
+        """
+        cdef Polynomial_zmod_flint res = self._new()
+        if n <= 0:
+            raise ValueError, "length must be > 0"
+        zmod_poly_mul_trunc_n(&res.x, &self.x, &other.x, n)
+        return res
+
+    cpdef _mul_short_opposite(self, Polynomial_zmod_flint other, n):
+        """
+        Return the product of this polynomial and other ignoring the least
+        significant `n` terms of the result which may be set to anything.
+
+        This function is more efficient than doing the full multiplication if
+        the operands are relatively short. It is tuned for `n` about half the
+        length of a full product.
+
+        EXAMPLES::
+
+            sage: P.<a>=GF(7)[]
+            sage: a = P(range(10)); b = P(range(5, 15))
+            sage: a._mul_short_opposite(b, 10)
+            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
+            sage: a._mul_short_opposite(b, 18)
+            0
+
+        TESTS::
+
+            sage: a._mul_short_opposite(b, -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: length must be >= 0
+        """
+        cdef Polynomial_zmod_flint res = self._new()
+        if n < 0:
+            raise ValueError, "length must be >= 0"
+        zmod_poly_mul_trunc_left_n(&res.x, &self.x, &other.x, n)
+        return res
+
+    cpdef rational_reconstruct(self, m, n_deg=0, d_deg=0):
+        """
+        Construct a rational function n/d such that `p*d` is equivalent to `n`
+        modulo `m` where `p` is this polynomial.
+
+        EXAMPLES::
+
+            sage: P.<x> = GF(5)[]
+            sage: p = 4*x^5 + 3*x^4 + 2*x^3 + 2*x^2 + 4*x + 2
+            sage: n, d = p.rational_reconstruct(x^9, 4, 4); n, d
+            (3*x^4 + 2*x^3 + x^2 + 2*x, x^4 + 3*x^3 + x^2 + x)
+            sage: (p*d % x^9) == n
+            True
+        """
+        if n_deg < 0 or d_deg < 0:
+            raise ValueError, "The degree bounds n_deg and d_deg should be positive."
+
+        if n_deg == 0:
+            n_deg = (m.degree() - 1)//2
+        if d_deg == 0:
+            d_deg = (m.degree() - 1)//2
+        P = self._parent
+
+        cdef Polynomial_zmod_flint s0 = self._new()
+        cdef Polynomial_zmod_flint t0 = P.one_element()
+        cdef Polynomial_zmod_flint s1 = m
+        cdef Polynomial_zmod_flint t1 = self%m
+
+        cdef Polynomial_zmod_flint q
+        cdef Polynomial_zmod_flint r0
+        cdef Polynomial_zmod_flint r1
+
+        while zmod_poly_length(&t1.x) != 0 and n_deg < zmod_poly_degree(&t1.x):
+            q = self._new()
+            r1 = self._new()
+            zmod_poly_divrem(&q.x, &r1.x, &s1.x, &t1.x)
+            r0 = s0 - q*t0
+            s0 = t0
+            s1 = t1
+            t0 = r0
+            t1 = r1
+
+        assert(t0 != 0)
+        if d_deg < zmod_poly_degree(&t0.x):
+            raise ValueError, "could not complete rational reconstruction"
+
+        # make the denominator monic
+        c = t0.leading_coefficient()
+        t0 = t0.monic()
+        t1 = t1/c
+
+        return t1, t0
+
+    def is_irreducible(self):
+        """
+        Return True if this polynomial is irreducible.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(5)[]
+            sage: (x^2 + 1).is_irreducible()
+            False
+            sage: (x^3 + x + 1).is_irreducible()
+            True
+
+        TESTS::
+
+            sage: R(0).is_irreducible()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be nonzero
+            sage: R(1).is_irreducible()
+            False
+            sage: R(2).is_irreducible()
+            False
+
+            sage: S.<s> = Zmod(10)[]
+            sage: (s^2).is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
+            sage: S(1).is_irreducible()
+            False
+            sage: S(2).is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
+        """
+        if self.is_zero():
+            raise ValueError, "must be nonzero"
+        if self.is_unit():
+            return False
+
+        if not self.base_ring().is_field():
+            raise NotImplementedError, "checking irreducibility of polynomials over rings with composite characteristic is not implemented"
+
+        if 1 == zmod_poly_isirreducible(&self.x):
+            return True
+        else:
+            return False
+
+    def squarefree_decomposition(self):
+        """
+        Returns the squarefree decomposition of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(5)[]
+            sage: ((x+1)*(x^2+1)^2*x^3).squarefree_decomposition()
+            (x + 1) * (x^2 + 1)^2 * x^3
+
+        TESTS::
+
+            sage: (2*x*(x+1)^2).squarefree_decomposition()
+            (2) * x * (x + 1)^2
+            sage: P.<x> = Zmod(10)[]
+            sage: (x^2).squarefree_decomposition()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: square free factorization of polynomials over rings with composite characteristic is not implemented
+
+        """
+        if not self.base_ring().is_field():
+            raise NotImplementedError, "square free factorization of polynomials over rings with composite characteristic is not implemented"
+
+        return factor_helper(self, True)
+
+    def factor(self):
+        """
+        Returns the factorization of the polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(5)[]
+            sage: (x^2 + 1).factor()
+            (x + 2) * (x + 3)
+
+        TESTS::
+
+            sage: (2*x^2 + 2).factor()
+            (2) * (x + 2) * (x + 3)
+            sage: P.<x> = Zmod(10)[]
+            sage: (x^2).factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
+
+        """
+        if not self.base_ring().is_field():
+            raise NotImplementedError, "factorization of polynomials over rings with composite characteristic is not implemented"
+
+        return factor_helper(self)
+
+    def monic(self):
+        """
+        Return this polynomial divided by its leading coefficient.
+
+        Raises ValueError if the leading cofficient is not invertible in the
+        base ring.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(5)[]
+            sage: (2*x^2+1).monic()
+            x^2 + 3
+
+        TESTS::
+
+            sage: R.<x> = Zmod(10)[]
+            sage: (5*x).monic()
+            Traceback (most recent call last):
+            ...
+            ValueError: leading coefficient must be invertible
+        """
+        if self.base_ring().characteristic().gcd(\
+                self.leading_coefficient()) != 1:
+            raise ValueError, "leading coefficient must be invertible"
+        cdef Polynomial_zmod_flint res = self._new()
+        zmod_poly_make_monic(&res.x, &self.x)
+        return res

@@ -211,6 +211,25 @@ cdef inline int celement_neg(GF2X_c* res, GF2X_c* a, long parent) except -2:
     """
     res[0] = a[0]
 
+cdef inline int celement_mul_scalar(GF2X_c* res, GF2X_c* p, object c,
+        long parent) except -1:
+    """
+    TESTS::
+
+        sage: P.<x> = GF(2)[]
+        sage: p = P.random_element()
+        sage: 0*p
+        0
+        sage: 1*p == p
+        True
+        sage: (3^97)*p == p
+        True
+    """
+    if int(c) == 0:
+        GF2X_conv_long(res[0], 0)
+    else:
+        res[0] = p[0]
+
 cdef inline int celement_mul(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:

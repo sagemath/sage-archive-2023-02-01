@@ -711,7 +711,14 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: (2*x).is_irreducible()
             True
 
+        TESTS::
+            sage: R(0).is_irreducible()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be nonzero
         """
+        if self.is_zero():
+            raise ValueError, "must be nonzero"
         S = PolynomialRing(ZZ, self.variable_name())
         f = S(self.denominator()*self)
         f //= f.content()

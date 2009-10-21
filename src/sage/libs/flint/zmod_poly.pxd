@@ -242,6 +242,26 @@ cdef extern from "FLINT/zmod_poly.h":
     cdef int zmod_poly_gcd_invert(zmod_poly_t res, zmod_poly_t poly1, zmod_poly_t poly2)
     cdef void zmod_poly_xgcd(zmod_poly_t res, zmod_poly_t s, zmod_poly_t t, zmod_poly_t poly1, zmod_poly_t poly2)
 
+    # Composition / evaluation
+
+    cdef unsigned long zmod_poly_evaluate(zmod_poly_t, unsigned long)
+    cdef void zmod_poly_compose_horner(zmod_poly_t, zmod_poly_t, zmod_poly_t)
+
+    # Factorization
+
+    cdef int zmod_poly_isirreducible(zmod_poly_t p)
+
+    ctypedef struct zmod_poly_factors_struct:
+        unsigned long num_factors
+        unsigned long* exponents
+        zmod_poly_t* factors
+
+    ctypedef zmod_poly_factors_struct* zmod_poly_factor_t
+
+    cdef void zmod_poly_factor_init(zmod_poly_factor_t)
+    cdef void zmod_poly_factor_clear(zmod_poly_factor_t)
+    cdef void zmod_poly_factor_square_free(zmod_poly_factor_t, zmod_poly_t)
+    cdef void zmod_poly_factor(zmod_poly_factor_t, zmod_poly_t)
 
     # FLINT 1.1 will have:
     # cdef void zmod_poly_powmod(zmod_poly_t res, zmod_poly_t pol, long exp, zmod_poly_t f)

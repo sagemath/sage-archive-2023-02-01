@@ -9,10 +9,11 @@ AUTHOR:
     -- Burcin Erocal (2008-11) initial implementation
 """
 #*****************************************************************************
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008-2009 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -293,6 +294,20 @@ cdef inline int celement_neg(zmod_poly_t res, zmod_poly_t a, unsigned long n) ex
         6*x + 5
     """
     zmod_poly_neg(res, a)
+
+cdef inline int celement_mul_scalar(zmod_poly_t res, zmod_poly_t p,
+        object c, unsigned long n) except -2:
+    """
+    TESTS::
+
+        sage: P.<x> = GF(32003)[]
+        sage: p = P.random_element()
+        sage: 389*p
+        12219*x^2 + 2340*x + 11045
+        sage: p*983
+        29561*x^2 + 18665*x + 17051
+    """
+    zmod_poly_scalar_mul(res, p, (<unsigned long>c)%n)
 
 cdef inline int celement_mul(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
     """
@@ -599,47 +614,32 @@ cdef inline int celement_xgcd(zmod_poly_t res, zmod_poly_t s, zmod_poly_t t, zmo
     zmod_poly_xgcd(res, s, t, a, b)
 
 
-cdef inline unsigned long zmod_poly_evaluate_horner(zmod_poly_t _poly, unsigned long c):
+cdef factor_helper(Polynomial_zmod_flint poly, bint squarefree=False):
     """
-    Evaluate _poly at c using Horner's rule.
+    EXAMPLES::
 
-    AUTHOR:
-        -- Bill Hart (2009-01)
-
-    EXAMPLE:
-        sage: P.<x> = PolynomialRing(GF(7))
-        sage: f= x^2 + 1
-        sage: f(0)
-        1
-        sage: f(2)
-        5
-        sage: f(3)
-        3
-
-    NOTE:
-        This function should be removed as soon as we update the the
-        new FLINT version which has this function natively.
+        sage: P.<x> = GF(1009)[]
+        sage: (prod(P.random_element() for i in range(5))).factor()
+        (920) * (x + 96) * (x + 288) * (x + 362) * (x + 432) * (x + 603) * (x + 709) * (x^2 + x + 585) * (x^2 + 40*x + 888)
+        sage: (prod(P.random_element()^i for i in range(5))).squarefree_decomposition()
+        (54) * (x^2 + 55*x + 839) * (x^2 + 48*x + 496)^2 * (x^2 + 435*x + 104)^3 * (x^2 + 176*x + 156)^4
     """
-    cdef zmod_poly_struct *poly = <zmod_poly_struct *>_poly
-    cdef long i
-    cdef unsigned long bits
-    if poly.length == 0:
-        return 0
+    cdef zmod_poly_factor_t factors_c
+    zmod_poly_factor_init(factors_c)
 
-    cdef unsigned long p = poly.p
-    cdef double pinv = poly.p_inv
-
-    cdef unsigned long value = poly.coeffs[poly.length - 1]
-
-    if FLINT_BITS == 64:
-        bits = FLINT_BIT_COUNT(p)
-        if bits < FLINT_D_BITS:
-            for i in xrange(poly.length - 2, -1, -1):
-                value = z_addmod(z_mulmod_precomp(value, c, p, pinv), poly.coeffs[i], p)
-        else:
-            for i in xrange(poly.length - 2, -1, -1):
-                value = z_addmod(z_mulmod2_precomp(value, c, p, pinv), poly.coeffs[i], p)
+    if squarefree:
+        zmod_poly_factor_square_free(factors_c, &poly.x)
     else:
-        for i in xrange(poly.length - 2, -1, -1):
-            value = z_addmod(z_mulmod2_precomp(value, c, p, pinv), poly.coeffs[i], p)
-    return value
+        zmod_poly_factor(factors_c, &poly.x)
+
+    factor_list = []
+    cdef Polynomial_zmod_flint t
+    for i in range(factors_c.num_factors):
+        t = poly._new()
+        zmod_poly_swap(&t.x, factors_c.factors[i])
+        factor_list.append((t, factors_c.exponents[i]))
+
+    zmod_poly_factor_clear(factors_c)
+
+    return Factorization(factor_list, unit=poly.leading_coefficient(),
+            sort=(not squarefree))

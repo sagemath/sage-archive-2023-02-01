@@ -436,8 +436,6 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f = t + 3*t^4 + O(t^11)
             sage: f * GF(7)(3)
             3*t + 2*t^4 + O(t^11)
-            sage: f._rmul_(3)
-            3*t + 2*t^4 + O(t^11)
         """
         return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
@@ -448,8 +446,6 @@ cdef class PowerSeries_poly(PowerSeries):
         EXAMPLES:
             sage: R.<t> = GF(11)[[]]
             sage: f = 1 + 3*t^4 + O(t^120)
-            sage: f._lmul_(2)
-            2 + 6*t^4 + O(t^120)
             sage: 2 * f
             2 + 6*t^4 + O(t^120)
         """

@@ -673,6 +673,18 @@ cdef bitset_string(bitset_t bits):
     sage_free(s)
     return py_s
 
+cdef list bitset_list(bitset_t bits):
+    """
+    Return a list of elements in the bitset.
+    """
+    cdef list elts = []
+    cdef long elt = bitset_first(bits)
+    while elt >= 0:
+        elts.append(elt)
+        elt = bitset_next(bits, elt+1)
+    return elts
+
+
 
 #############################################################################
 # Aliases for functions

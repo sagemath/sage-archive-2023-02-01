@@ -408,6 +408,7 @@ def test_bitset(py_a, py_b, long n):
         sage: from sage.misc.misc_c import test_bitset
         sage: test_bitset('00101', '01110', 4)
         a 00101
+        list a [2, 4]
         a.size 5
         len(a) 2
         a.limbs 1
@@ -447,6 +448,7 @@ def test_bitset(py_a, py_b, long n):
 
         sage: test_bitset('11101', '11001', 2)
         a 11101
+        list a [0, 1, 2, 4]
         a.size 5
         len(a) 4
         a.limbs 1
@@ -487,6 +489,7 @@ def test_bitset(py_a, py_b, long n):
     Test a corner-case: a bitset that is a multiple of words
         sage: test_bitset('00'*64, '01'*64, 127)
         a 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        list a []
         a.size 128
         len(a) 0
         a.limbs ...
@@ -537,6 +540,7 @@ def test_bitset(py_a, py_b, long n):
     Large enough to span multiple limbs.  We don't explicitly check the number of limbs below because it will be different in the 32 bit versus 64 bit cases:
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
         a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        list a [0, 1, 2, 5, 6, 7, 8, 11, 12, 13, 14, 17, 18, 19, 20, 23, 24, 25, 26, 29, 30, 31, 32, 35, 36, 37, 38, 41, 42, 43, 44, 47, 48, 49, 50, 53, 54, 55, 56, 59, 60, 61, 62, 65, 66, 67, 68, 71, 72, 73, 74, 77, 78, 79, 80, 83, 84, 85, 86, 89, 90, 91, 92, 95, 96, 97, 98, 101, 102, 103, 104, 107, 108, 109, 110, 113, 114, 115, 116, 119, 120, 121, 122, 125, 126, 127, 128, 131, 132, 133, 134, 137, 138, 139, 140, 143, 144, 145, 146, 149]
         a.size 150
         len(a) 100
         a.limbs ...
@@ -594,6 +598,7 @@ def test_bitset(py_a, py_b, long n):
         raise ValueError, "inputs must have same size"
 
     print "a", bitset_string(a)
+    print "list a", bitset_list(a)
     print "a.size", a.size
     print "len(a)" , bitset_len(a)
     print "a.limbs", a.limbs

@@ -59,16 +59,22 @@ cdef class FrozenBitset:
         sage: a=FrozenBitset('1101')
         sage: loads(dumps(a))==a
         True
+
+        sage: a=FrozenBitset('1101'*64)
+        sage: loads(dumps(a))==a
+        True
     """
 
     def __cinit__(self, iter=None, capacity=None):
         """
         Allocate the bitset.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('1101')
             1101
+            sage: FrozenBitset('1101'*32)
+            11011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101
         """
         if capacity is None:
             bitset_init(self._bitset, 1)
@@ -79,10 +85,12 @@ cdef class FrozenBitset:
         """
         Deallocate the C bitset data structure.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=FrozenBitset('11010')
             sage: del a
+            sage: b=FrozenBitset('11010'*64)
+            sage: del b
         """
         bitset_free(self._bitset)
 
@@ -99,7 +107,7 @@ cdef class FrozenBitset:
         it is an iterable, then it is assumed to contain a list of
         integers, and those integers are placed in the set.
 
-        - ``size`` - The maximum size of the bitset.  If this is not
+        - ``capacity`` - The maximum capacity of the bitset.  If this is not
         specified, then it is automatically calculated from the passed
         iterable.  It must be at least one.
 
@@ -109,6 +117,8 @@ cdef class FrozenBitset:
             000
             sage: FrozenBitset('11011')
             11011
+            sage: FrozenBitset('110'*32)
+            110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110
             sage: FrozenBitset([0,3,2])
             1011
             sage: FrozenBitset(set([0,3,2]))
@@ -117,6 +127,8 @@ cdef class FrozenBitset:
             11011
             sage: FrozenBitset([0,3,2], capacity=10)
             1011000000
+            sage: FrozenBitset([i for i in range(100) if i%2==0])
+            101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101
 
         TESTS:
 
@@ -125,7 +137,8 @@ cdef class FrozenBitset:
             sage: FrozenBitset()
             0
 
-        If size is specified, it must match up with the initialization items::
+        If capacity is specified, it must match up with the
+        initialization items::
 
             sage: FrozenBitset('10', capacity=3)
             Traceback (most recent call last):
@@ -166,11 +179,15 @@ cdef class FrozenBitset:
             bitset_from_str(self._bitset, iter)
         else: # an iterable
             iter = list(iter)
-            need_capacity = max(iter)+1
+            if len(iter)>0:
+                need_capacity = max(iter)+1
+            else:
+                need_capacity=1
             if capacity is None:
                 bitset_realloc(self._bitset, need_capacity)
             elif self._bitset.size < need_capacity:
                 raise ValueError, "bitset capacity does not allow storing the passed iterable"
+            bitset_clear(self._bitset)
             for n in iter:
                 bitset_add(self._bitset, n)
 
@@ -191,6 +208,8 @@ cdef class FrozenBitset:
 
             sage: FrozenBitset('1101').__getstate__()
             '1101'
+            sage: FrozenBitset('110'*32).__getstate__()
+            '110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110'
 
         """
         return str(self)
@@ -205,9 +224,29 @@ cdef class FrozenBitset:
             sage: a.__setstate__('1101')
             sage: a
             1101
+            sage: a.__setstate__('110'*32)
+            sage: a
+            110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110
         """
         bitset_realloc(self._bitset, len(state))
         bitset_from_str(self._bitset, state)
+
+    def __iter__(self):
+        """
+        Return an iterator over self.
+
+        EXAMPLES::
+
+            sage: list(FrozenBitset('11011'))
+            [0, 1, 3, 4]
+            sage: list(FrozenBitset('00001'*20))
+            [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 54, 59, 64, 69, 74, 79, 84, 89, 94, 99]
+            sage: set(FrozenBitset('11011'))
+            set([0, 1, 3, 4])
+        """
+        return iter(bitset_list(self._bitset))
+
+
 
 
     cpdef FrozenBitset _larger_capacity_(self, long capacity):
@@ -227,7 +266,7 @@ cdef class FrozenBitset:
           capacity.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=FrozenBitset('11010')
             sage: a.capacity()
@@ -243,6 +282,11 @@ cdef class FrozenBitset:
             False
             sage: b.capacity()
             6
+            sage: c=a._larger_capacity_(98)
+            sage: c
+            11010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: c.capacity()
+            98
         """
         cdef FrozenBitset temp
         if self._bitset.size >= capacity:
@@ -259,10 +303,14 @@ cdef class FrozenBitset:
         that can be stored in the current underlying bitset is
         ``self.capacity()-1``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('11000').capacity()
             5
+            sage: FrozenBitset('110'*32).capacity()
+            96
+            sage: FrozenBitset(range(20),capacity=450).capacity()
+            450
         """
         return self._bitset.size
 
@@ -270,7 +318,7 @@ cdef class FrozenBitset:
         """
         Return a hash value for a bitset
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(FrozenBitset(capacity=5))
             0
@@ -290,11 +338,15 @@ cdef class FrozenBitset:
         """
         Return True if the bitset is empty; False otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset().isempty()
             True
             sage: FrozenBitset([1]).isempty()
+            False
+            sage: FrozenBitset([],capacity=110).isempty()
+            True
+            sage: FrozenBitset(range(99)).isempty()
             False
         """
         return bitset_isempty(self._bitset)
@@ -320,6 +372,8 @@ cdef class FrozenBitset:
             sage: FrozenBitset('11') > FrozenBitset('10')
             True
             sage: FrozenBitset('11') >= FrozenBitset('10')
+            True
+            sage: FrozenBitset('11') < FrozenBitset('110'*32)
             True
         """
         cdef FrozenBitset left, right
@@ -357,6 +411,8 @@ cdef class FrozenBitset:
             False
             sage: FrozenBitset('01').issubset(FrozenBitset('11'))
             True
+            sage: FrozenBitset('01').issubset(FrozenBitset('01'*45))
+            True
         """
         if other is None:
             raise ValueError, "other can not be None"
@@ -382,6 +438,8 @@ cdef class FrozenBitset:
             sage: FrozenBitset('11').issuperset(FrozenBitset('01'))
             True
             sage: FrozenBitset('01').issuperset(FrozenBitset('11'))
+            False
+            sage: FrozenBitset('01').issuperset(FrozenBitset('10'*45))
             False
         """
         if other is None:
@@ -409,6 +467,8 @@ cdef class FrozenBitset:
             False
             sage: FrozenBitset('01').isdisjoint(FrozenBitset('001'))
             True
+            sage: FrozenBitset('00101').isdisjoint(FrozenBitset('110'*35))
+            False
         """
         cdef bint retval
         if other is None:
@@ -448,6 +508,10 @@ cdef class FrozenBitset:
             False
             sage: 10 in FrozenBitset([0,1])
             False
+            sage: 121 in FrozenBitset('110'*50)
+            True
+            sage: 122 in FrozenBitset('110'*50)
+            False
         """
         if n < self._bitset.size:
             return bitset_in(self._bitset, n)
@@ -459,10 +523,12 @@ cdef class FrozenBitset:
         Return the number of elements in the bitset (which may be
         different from the capacity of the bitset).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: len(FrozenBitset([0,1],capacity=10))
             2
+            sage: len(FrozenBitset(range(98)))
+            98
         """
         return bitset_len(self._bitset)
 
@@ -470,11 +536,13 @@ cdef class FrozenBitset:
         """
         Return a string representing the bitset as a binary vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=FrozenBitset('10110')
             sage: str(a)
             '10110'
+            sage: str(FrozenBitset('110'*32))
+            '110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110'
         """
         return bitset_string(self._bitset)
 
@@ -482,11 +550,13 @@ cdef class FrozenBitset:
         """
         Return a string representing the bitset as a binary vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=FrozenBitset('10110')
             sage: repr(a)
             '10110'
+            sage: repr(FrozenBitset('110'*32))
+            '110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110'
         """
         return self.__str__()
 
@@ -497,10 +567,21 @@ cdef class FrozenBitset:
         In order to get a Cython "union" function, we have to use the
         underscore since "union" is a C keyword.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101')._union(FrozenBitset('11100'))
             11101
+            sage: FrozenBitset('10101'*10)._union(FrozenBitset('01010'*10))
+            11111111111111111111111111111111111111111111111111
+
+        TESTS::
+
+            sage: set(FrozenBitset('10101'*10)._union(FrozenBitset('01010'*10)))==set(FrozenBitset('10101'*10)).union(FrozenBitset('01010'*10))
+            True
+            sage: set(FrozenBitset('10101')._union(FrozenBitset('01010'*20)))==set(FrozenBitset('10101')).union(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20)._union(FrozenBitset('01010')))==set(FrozenBitset('10101'*20)).union(FrozenBitset('01010'))
+            True
         """
         if other is None:
             raise ValueError, "other can not be None"
@@ -522,10 +603,21 @@ cdef class FrozenBitset:
         """
         Return the union of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101').union(FrozenBitset('11100'))
             11101
+            sage: FrozenBitset('10101'*10).union(FrozenBitset('01010'*10))
+            11111111111111111111111111111111111111111111111111
+
+        TESTS::
+
+            sage: set(FrozenBitset('10101'*10).union(FrozenBitset('01010'*10)))==set(FrozenBitset('10101'*10)).union(FrozenBitset('01010'*10))
+            True
+            sage: set(FrozenBitset('10101').union(FrozenBitset('01010'*20)))==set(FrozenBitset('10101')).union(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20).union(FrozenBitset('01010')))==set(FrozenBitset('10101'*20)).union(FrozenBitset('01010'))
+            True
         """
         return self._union(other)
 
@@ -533,10 +625,21 @@ cdef class FrozenBitset:
         """
         Return the union of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101') | FrozenBitset('11100')
             11101
+            sage: FrozenBitset('10101'*10) | FrozenBitset('01010'*10)
+            11111111111111111111111111111111111111111111111111
+
+       TESTS::
+
+            sage: set(FrozenBitset('10101'*10) | FrozenBitset('01010'*10))==set(FrozenBitset('10101'*10)) | set(FrozenBitset('01010'*10))
+            True
+            sage: set(FrozenBitset('10101') | FrozenBitset('01010'*20))==set(FrozenBitset('10101')) | set(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20) | FrozenBitset('01010'))==set(FrozenBitset('10101'*20)) | set(FrozenBitset('01010'))
+            True
         """
         return self._union(other)
 
@@ -544,10 +647,21 @@ cdef class FrozenBitset:
         """
         Return the intersection of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101').intersection(FrozenBitset('11100'))
             10100
+            sage: FrozenBitset('11111'*10).intersection(FrozenBitset('010101'*10))
+            010101010101010101010101010101010101010101010101010000000000
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10).intersection(FrozenBitset('010101'*10)))==set(FrozenBitset('11111'*10)).intersection(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5).intersection(FrozenBitset('01010'*20)))==set(FrozenBitset('1'*5)).intersection(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20).intersection(FrozenBitset('1'*5)))==set(FrozenBitset('10101'*20)).intersection(FrozenBitset('1'*5))
+            True
         """
         if other is None:
             raise ValueError, "other can not be None"
@@ -569,10 +683,21 @@ cdef class FrozenBitset:
         """
         Return the intersection of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101') & FrozenBitset('11100')
             10100
+            sage: FrozenBitset('11111'*10) & FrozenBitset('010101'*10)
+            010101010101010101010101010101010101010101010101010000000000
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10) & FrozenBitset('010101'*10))==set(FrozenBitset('11111'*10)) & set(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5) & FrozenBitset('01010'*20))==set(FrozenBitset('1'*5)) & set(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20) & FrozenBitset('1'*5))==set(FrozenBitset('10101'*20)) & set(FrozenBitset('1'*5))
+            True
         """
         return self.intersection(other)
 
@@ -580,10 +705,21 @@ cdef class FrozenBitset:
         """
         Return the difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101').difference(FrozenBitset('11100'))
             00001
+            sage: FrozenBitset('11111'*10).difference(FrozenBitset('010101'*10))
+            101010101010101010101010101010101010101010101010100000000000
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10).difference(FrozenBitset('010101'*10)))==set(FrozenBitset('11111'*10)).difference(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5).difference(FrozenBitset('01010'*20)))==set(FrozenBitset('1'*5)).difference(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20).difference(FrozenBitset('1'*5)))==set(FrozenBitset('10101'*20)).difference(FrozenBitset('1'*5))
+            True
         """
         if other is None:
             raise ValueError, "other can not be None"
@@ -604,10 +740,21 @@ cdef class FrozenBitset:
         """
         Return the difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101') - FrozenBitset('11100')
             00001
+            sage: FrozenBitset('11111'*10)-FrozenBitset('010101'*10)
+            101010101010101010101010101010101010101010101010100000000000
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10)-FrozenBitset('010101'*10))==set(FrozenBitset('11111'*10))-set(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5)-FrozenBitset('01010'*20))==set(FrozenBitset('1'*5))-set(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20)-FrozenBitset('1'*5))==set(FrozenBitset('10101'*20))-set(FrozenBitset('1'*5))
+            True
         """
         return self.difference(other)
 
@@ -615,10 +762,21 @@ cdef class FrozenBitset:
         """
         Return the symmetric difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101').symmetric_difference(FrozenBitset('11100'))
             01001
+            sage: FrozenBitset('11111'*10).symmetric_difference(FrozenBitset('010101'*10))
+            101010101010101010101010101010101010101010101010100101010101
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10).symmetric_difference(FrozenBitset('010101'*10)))==set(FrozenBitset('11111'*10)).symmetric_difference(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5).symmetric_difference(FrozenBitset('01010'*20)))==set(FrozenBitset('1'*5)).symmetric_difference(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20).symmetric_difference(FrozenBitset('1'*5)))==set(FrozenBitset('10101'*20)).symmetric_difference(FrozenBitset('1'*5))
+            True
         """
         if other is None:
             raise ValueError, "other can not be None"
@@ -642,10 +800,21 @@ cdef class FrozenBitset:
 
         Note that because of the Sage preprocessor, in Sage, ``^^`` is the exclusive or, rather than ``^``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FrozenBitset('10101') ^^ FrozenBitset('11100')
             01001
+            sage: FrozenBitset('11111'*10) ^^ FrozenBitset('010101'*10)
+            101010101010101010101010101010101010101010101010100101010101
+
+        TESTS::
+
+            sage: set(FrozenBitset('11111'*10) ^^ FrozenBitset('010101'*10))==set(FrozenBitset('11111'*10)) ^^ set(FrozenBitset('010101'*10))
+            True
+            sage: set(FrozenBitset('1'*5) ^^ FrozenBitset('01010'*20))==set(FrozenBitset('1'*5)) ^^ set(FrozenBitset('01010'*20))
+            True
+            sage: set(FrozenBitset('10101'*20) ^^ FrozenBitset('1'*5))==set(FrozenBitset('10101'*20)) ^^ set(FrozenBitset('1'*5))
+            True
         """
         return self.symmetric_difference(other)
 
@@ -653,12 +822,16 @@ cdef class FrozenBitset:
         """
         Return self (since self is immutable).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=FrozenBitset('10101')
             sage: from copy import copy
             sage: b=copy(a)
             sage: b is a
+            True
+            sage: c=FrozenBitset('1010'*32)
+            sage: d=copy(c)
+            sage: d is c
             True
         """
         return self
@@ -693,14 +866,16 @@ cdef class Bitset(FrozenBitset):
         sage: a=Bitset('1101')
         sage: loads(dumps(a))==a
         True
-
+        sage: a=Bitset('1101'*32)
+        sage: loads(dumps(a))==a
+        True
     """
 
     cpdef __copy__(self):
         """
         Return a copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a=Bitset('10101')
             sage: from copy import copy
@@ -709,6 +884,13 @@ cdef class Bitset(FrozenBitset):
             False
             sage: b==a
             True
+            sage: c=Bitset('1010'*32)
+            sage: d=copy(c)
+            sage: d is c
+            False
+            sage: d==c
+            True
+
         """
         cdef FrozenBitset temp = self._new(self._bitset.size)
         bitset_copy(temp._bitset, self._bitset)
@@ -751,6 +933,8 @@ cdef class Bitset(FrozenBitset):
             True
             sage: Bitset('11') >= Bitset('10')
             True
+            sage: FrozenBitset('11') < FrozenBitset('110'*32)
+            True
         """
         cdef FrozenBitset left, right
 
@@ -792,12 +976,19 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to include items in other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a.update(Bitset('0101'))
             sage: a
             1101
+            sage: a_set = set(a)
+            sage: a.update(Bitset('00011'*25))
+            sage: a
+            11011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011
+            sage: a_set.update(Bitset('00011'*25))
+            sage: set(a)==a_set
+            True
         """
         if other is None:
             raise TypeError, "other can not be None"
@@ -818,12 +1009,19 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to include items in other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a |= Bitset('0101')
             sage: a
             1101
+            sage: a_set = set(a)
+            sage: a |= Bitset('00011'*25)
+            sage: a
+            11011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011000110001100011
+            sage: a_set |= set(Bitset('00011'*25))
+            sage: set(a)==a_set
+            True
         """
         self.update(other)
         return self
@@ -832,12 +1030,19 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the intersection of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a.intersection_update(Bitset('0101'))
             sage: a
             0100
+            sage: a_set = set(a)
+            sage: a.intersection_update(Bitset('0110'*25))
+            sage: a
+            0100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a_set.intersection_update(Bitset('0110'*25))
+            sage: set(a)==a_set
+            True
         """
         if other is None:
             raise TypeError, "other can not be None"
@@ -858,12 +1063,19 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the intersection of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a &= Bitset('0101')
             sage: a
             0100
+            sage: a_set = set(a)
+            sage: a &= Bitset('0110'*25)
+            sage: a
+            0100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a_set &= set(Bitset('0110'*25))
+            sage: a_set==set(a)
+            True
         """
         self.intersection_update(other)
         return self
@@ -872,12 +1084,34 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a.difference_update(Bitset('0101'))
             sage: a
             1000
+            sage: a_set=set(a)
+            sage: a.difference_update(FrozenBitset('010101'*10)); a
+            100000000000000000000000000000000000000000000000000000000000
+            sage: a_set.difference_update(FrozenBitset('010101'*10))
+            sage: a_set==set(a)
+            True
+            sage: a.difference_update(FrozenBitset('110'))
+            sage: a_set.difference_update(FrozenBitset('110'))
+            sage: a_set==set(a)
+            True
+            sage: a.difference_update(FrozenBitset('01010'*20)); a
+            0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a_set.difference_update(FrozenBitset('01010'*20))
+            sage: a_set==set(a)
+            True
+            sage: b=Bitset('10101'*20)
+            sage: b_set=set(b)
+            sage: b.difference_update(FrozenBitset('1'*5)); b
+            0000010101101011010110101101011010110101101011010110101101011010110101101011010110101101011010110101
+            sage: b_set.difference_update(FrozenBitset('1'*5))
+            sage: b_set==set(b)
+            True
         """
         if other is None:
             raise TypeError, "other can not be None"
@@ -898,12 +1132,32 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a -= Bitset('0101')
             sage: a
             1000
+            sage: a_set=set(a)
+            sage: a-=FrozenBitset('010101'*10); a
+            100000000000000000000000000000000000000000000000000000000000
+            sage: a_set-=set(FrozenBitset('010101'*10))
+            sage: a_set==set(a)
+            True
+            sage: a=Bitset('110')
+            sage: a_set=set(a)
+            sage: a-=FrozenBitset('01010'*20); a
+            1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a_set-=set(FrozenBitset('01010'*20))
+            sage: a_set==set(a)
+            True
+            sage: b=FrozenBitset('10101'*20)
+            sage: b_set = set(b)
+            sage: b -= FrozenBitset('1'*5); b
+            0000010101101011010110101101011010110101101011010110101101011010110101101011010110101101011010110101
+            sage: b_set -= FrozenBitset('1'*5)
+            sage: b_set==set(b)
+            True
         """
         self.difference_update(other)
         return self
@@ -912,12 +1166,30 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the symmetric difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a.symmetric_difference_update(Bitset('0101'))
             sage: a
             1001
+            sage: a_set=set(a)
+            sage: a.symmetric_difference_update(FrozenBitset('010101'*10)); a
+            110001010101010101010101010101010101010101010101010101010101
+            sage: a_set.symmetric_difference_update(FrozenBitset('010101'*10))
+            sage: a_set==set(a)
+            True
+            sage: a.symmetric_difference_update(FrozenBitset('01010'*20)); a
+            1001011111000001111100000111110000011111000001111100000111110101001010010100101001010010100101001010
+            sage: a_set.symmetric_difference_update(FrozenBitset('01010'*20))
+            sage: a_set==set(a)
+            True
+            sage: b=Bitset('10101'*20)
+            sage: b_set=set(b)
+            sage: b.symmetric_difference_update( FrozenBitset('1'*5)); b
+            0101010101101011010110101101011010110101101011010110101101011010110101101011010110101101011010110101
+            sage: b_set.symmetric_difference_update( FrozenBitset('1'*5))
+            sage: b_set==set(b)
+            True
         """
         if other is None:
             raise TypeError, "other can not be None"
@@ -938,12 +1210,30 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset to the symmetric difference of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a ^^=Bitset('0101')
             sage: a
             1001
+            sage: a_set=set(a)
+            sage: a ^^=FrozenBitset('010101'*10); a
+            110001010101010101010101010101010101010101010101010101010101
+            sage: a_set ^^=set(FrozenBitset('010101'*10))
+            sage: a_set==set(a)
+            True
+            sage: a ^^=FrozenBitset('01010'*20); a
+            1001011111000001111100000111110000011111000001111100000111110101001010010100101001010010100101001010
+            sage: a_set ^^=set(FrozenBitset('01010'*20))
+            sage: a_set==set(a)
+            True
+            sage: b=Bitset('10101'*20)
+            sage: b_set=set(b)
+            sage: b ^^=FrozenBitset('1'*5); b
+            0101010101101011010110101101011010110101101011010110101101011010110101101011010110101101011010110101
+            sage: b_set ^^=set(FrozenBitset('1'*5))
+            sage: b_set==set(b)
+            True
         """
         self.symmetric_difference_update(other)
         return self
@@ -952,12 +1242,17 @@ cdef class Bitset(FrozenBitset):
         """
         Update the bitset by adding `n`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('110')
             sage: a.add(5)
             sage: a
             110001
+            sage: a.add(100)
+            sage: sorted(list(a))
+            [0, 1, 5, 100]
+            sage: a.capacity()
+            101
         """
         if n >= self._bitset.size:
             bitset_realloc(self._bitset, n+1)
@@ -984,6 +1279,10 @@ cdef class Bitset(FrozenBitset):
             KeyError: 4L
             sage: a
             100
+            sage: a=Bitset('000001'*15); sorted(list(a))
+            [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89]
+            sage: a.remove(83); sorted(list(a))
+            [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 89]
         """
         if n >= self._bitset.size:
             raise KeyError, n
@@ -1004,6 +1303,12 @@ cdef class Bitset(FrozenBitset):
             sage: a.discard(4)
             sage: a
             100
+            sage: a=Bitset('000001'*15); sorted(list(a))
+            [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89]
+            sage: a.discard(83); sorted(list(a))
+            [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 89]
+            sage: a.discard(82); sorted(list(a))
+            [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 89]
         """
         if n < self._bitset.size:
             bitset_discard(self._bitset, n)
@@ -1029,6 +1334,11 @@ cdef class Bitset(FrozenBitset):
             Traceback (most recent call last):
             ...
             KeyError: 'pop from an empty set'
+            sage: a = Bitset('0001'*32)
+            sage: a.pop()
+            3
+            sage: [a.pop() for _ in range(20)]
+            [7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63, 67, 71, 75, 79, 83]
         """
         return bitset_pop(self._bitset)
 
@@ -1037,11 +1347,15 @@ cdef class Bitset(FrozenBitset):
         """
         Removes all elements from the set
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Bitset('011')
             sage: a.clear()
             sage: a
             000
+            sage: a = Bitset('011'*32)
+            sage: a.clear()
+            sage: set(a)
+            set([])
         """
         bitset_clear(self._bitset)

@@ -14,6 +14,8 @@ You can construct the following permutation groups:
 
 -- CyclicPermutationGroup, $C_n$ of order $n$
 
+-- DiCyclicGroup, nonabelian groups of order `4m` with a unique element of order 2
+
 -- TransitiveGroup, $i^{th}$ transitive group of degree $n$
                       from the GAP tables of transitive groups (requires
                       the "optional" package database_gap)
@@ -21,6 +23,8 @@ You can construct the following permutation groups:
 -- MathieuGroup(degree), Mathieu group of degree 9, 10, 11, 12, 21, 22, 23, or 24.
 
 -- KleinFourGroup, subgroup of $S_4$ of order $4$ which is not $C_2 \times C_2$
+
+-- QuaternionGroup, non-abelian group of order `8`, `\{\pm 1, \pm I, \pm J, \pm K\}`
 
 -- PGL(n,q), projective general linear group of $n\times n$ matrices over
              the finite field GF(q)
@@ -351,6 +355,190 @@ class CyclicPermutationGroup(PermutationGroup_generic):
         G = AbelianGroup(len(a),invs)
         return G
 
+class DiCyclicGroup(PermutationGroup_generic):
+    r"""
+    The dicyclic group of order `4n`, for `n\geq 2`.
+
+    INPUT:
+        - n -- a positive integer, two or greater
+
+    OUTPUT:
+
+    This is a nonabelian group similar in some respects to the
+    dihedral group of the same order, but with far fewer
+    elements of order 2 (it has just one).  The permutation
+    representation constructed here is based on the presentation
+
+    .. MATH::
+
+        \langle a, x\mid a^{2n}=1, x^{2}=a^{n}, x^{-1}ax=a^{-1}\rangle
+
+    For `n=2` this is the group of quaternions
+    (`{\pm 1, \pm I,\pm J, \pm K}`), which is the nonabelian
+    group of order 8 that is not the dihedral group `D_4`,
+    the symmetries of a square.  For `n=3` this is the nonabelian
+    group of order 12 that is not the dihedral group `D_6`
+    nor the alternating group `A_4`.  This group of order 12 is
+    also the semi-direct product of of `C_2` by `C_4`,
+    `C_3\rtimes C_4`.  [CONRAD2009]_
+
+
+    When the order of the group is a
+    power of 2 it is known as a "generalized quaternion group."
+
+    IMPLEMENTATION:
+
+    The presentation above means every element can be written as
+    `a^{i}x^{j}` with `0\leq j<2n`, `j=0,1`.  We code `a^i` as the symbol
+    `i+1` and code `a^{i}x` as the symbol `2n+i+1`.  The two generators
+    are then represented using a left regular representation.
+
+    EXAMPLES:
+
+    A dicyclic group of order 384, with a large power of 2 as a divisor::
+
+        sage: n = 3*2^5
+        sage: G = DiCyclicGroup(n)
+        sage: G.order()
+        384
+        sage: a = G.gen(0)
+        sage: x = G.gen(1)
+        sage: a^(2*n)
+        ()
+        sage: a^n==x^2
+        True
+        sage: x^-1*a*x==a^-1
+        True
+
+    A large generalized quaternion group (order is a power of 2)::
+
+        sage: n = 2^10
+        sage: G=DiCyclicGroup(n)
+        sage: G.order()
+        4096
+        sage: a = G.gen(0)
+        sage: x = G.gen(1)
+        sage: a^(2*n)
+        ()
+        sage: a^n==x^2
+        True
+        sage: x^-1*a*x==a^-1
+        True
+
+    Just like the dihedral group, the dicyclic group has
+    an element whose order is half the order of the group.
+    Unlike the dihedral group, the dicyclic group has only
+    one element of order 2.  Like the dihedral groups of
+    even order, the center of the dicyclic group is a
+    subgroup of order 2 (thus has the unique element of
+    order 2 as its non-identity element). ::
+
+        sage: G=DiCyclicGroup(3*5*4)
+        sage: G.order()
+        240
+        sage: two = [g for g in G if g.order()==2]; two
+        [(1,5)(2,6)(3,7)(4,8)(9,13)(10,14)(11,15)(12,16)]
+        sage: G.center().order()
+        2
+
+    For small orders, we check this is really a group
+    we do not have in Sage otherwise. ::
+
+        sage: G = DiCyclicGroup(2)
+        sage: H = DihedralGroup(4)
+        sage: G.is_isomorphic(H)
+        False
+        sage: G = DiCyclicGroup(3)
+        sage: H = DihedralGroup(6)
+        sage: K = AlternatingGroup(6)
+        sage: G.is_isomorphic(H) or G.is_isomorphic(K)
+        False
+
+    REFERENCES:
+
+        .. [CONRAD2009] `Groups of order 12
+          <http://www.math.uconn.edu/~kconrad/blurbs/grouptheory/group12.pdf>`_.
+          Keith Conrad, accessed 21 October 2009.
+
+    AUTHOR:
+        - Rob Beezer (2009-10-18)
+    """
+    def __init__(self, n):
+        r"""
+        The dicyclic group of order `4*n`, as a permutation group.
+
+        INPUT:
+            n -- a positive integer, two or greater
+
+        EXAMPLES:
+            sage: G = DiCyclicGroup(3*8)
+            sage: G.order()
+            96
+            sage: loads(G.dumps()) == G
+            True
+        """
+        n = Integer(n)
+        if n < 2:
+            raise ValueError, "n (=%s) must be 2 or greater"%n
+
+        # Certainly 2^2 is part of the first factor of the order
+        #   r is maximum power of 2 in the order
+        #   m is the rest, the odd part
+        order = 4*n
+        factored = order.factor()
+        r = factored[0][0]**factored[0][1]
+        m = order//r
+        halfr, fourthr = r//2, r//4
+
+        # Representation of  a
+        # Two cycles of length halfr
+        a = [tuple(range(1, halfr+1)), tuple(range(halfr+1, r+1))]
+        # With an odd part, a cycle of length m will give the right order for a
+        if m > 1:
+            a.append( tuple(range(r+1,r+m+1)) )
+
+        # Representation of  x
+        # Four-cycles that will conjugate the generator  a  properly
+        x = [(i+1, (-i)%halfr + halfr + 1, (fourthr+i)%halfr + 1, (-fourthr-i)%halfr + halfr + 1)
+                for i in range(0, fourthr)]
+        # With an odd part, transpositions will conjugate the m-cycle to create inverse
+        if m > 1:
+            x += [(r+i+1,r+m-i) for i in range(0, (m-1)//2)]
+
+        PermutationGroup_generic.__init__(self, gens=[a,x])
+
+    def _repr_(self):
+        r"""
+        EXAMPLES:
+            sage: DiCyclicGroup(12)
+            Diyclic group of order 48 as a permutation group
+        """
+        return "Diyclic group of order %s as a permutation group"%self.order()
+
+    def is_commutative(self):
+        r"""
+        Return True if this group is commutative.
+
+        EXAMPLES::
+
+            sage: D = DiCyclicGroup(12)
+            sage: D.is_commutative()
+            False
+        """
+        return False
+
+    def is_abelian(self):
+        r"""
+        Return True if this group is abelian.
+
+        EXAMPLES::
+
+            sage: D = DiCyclicGroup(12)
+            sage: D.is_abelian()
+            False
+        """
+        return False
+
 class KleinFourGroup(PermutationGroup_generic):
     def __init__(self):
         r"""
@@ -384,6 +572,64 @@ class KleinFourGroup(PermutationGroup_generic):
         """
         return 'The Klein 4 group of order 4, as a permutation group'
 
+class QuaternionGroup(DiCyclicGroup):
+    r"""
+    The quaternion group of order 8.
+
+    OUTPUT:
+        The quaternion group of order 8, as a permutation group.
+        See the ``DiCyclicGroup`` class for a generalization of this
+        construction.
+
+    EXAMPLES:
+
+    The quaternion group is one of two non-abelian groups of order 8,
+    the other being the dihedral group `D_4`.  One way to describe this
+    group is with three generators, `I, J, K`, so the whole group is
+    then given as the set `\{\pm 1, \pm I, \pm J, \pm K\}` with relations
+    such as `I^2=J^2=K^2=-1`, `IJ=K` and `JI=-K`.
+
+    The examples below illustrate how to use this group in a similar
+    manner, by testing some of these relations.  The representation used
+    here is the left-regular representation. ::
+
+        sage: Q = QuaternionGroup()
+        sage: I = Q.gen(0)
+        sage: J = Q.gen(1)
+        sage: K = I*J
+        sage: [I,J,K]
+        [(1,2,3,4)(5,6,7,8), (1,5,3,7)(2,8,4,6), (1,8,3,6)(2,7,4,5)]
+        sage: neg_one = I^2; neg_one
+        (1,3)(2,4)(5,7)(6,8)
+        sage: J^2 == neg_one and K^2 == neg_one
+        True
+        sage: J*I == neg_one*K
+        True
+        sage: Q.center().order() == 2
+        True
+        sage: neg_one in Q.center()
+        True
+
+    AUTHOR:
+        -- Rob Beezer (2009-10-09)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: Q = QuaternionGroup()
+            sage: Q == loads(dumps(Q))
+            True
+        """
+        DiCyclicGroup.__init__(self, 2)
+
+    def _repr_(self):
+        r"""
+        EXAMPLES:
+            sage: Q=QuaternionGroup(); Q
+            Quaternion group of order 8 as a permutation group
+        """
+        return "Quaternion group of order 8 as a permutation group"
 
 class DihedralGroup(PermutationGroup_generic):
     def __init__(self, n):

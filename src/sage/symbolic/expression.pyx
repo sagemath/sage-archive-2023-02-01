@@ -5040,7 +5040,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. note::
 
-           Currently, this does just sends the expression to Maxima
+           Currently, this just sends the expression to Maxima
            and converts it back to Sage.
 
         .. seealso::

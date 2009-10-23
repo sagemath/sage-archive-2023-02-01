@@ -1,95 +1,217 @@
 include 'mipGlpk.pxd'
 include '../../../../devel/sage/sage/ext/stdsage.pxi'
 
-def solveGlpk(self,log=False,objective_only=False):
+cdef int BINARY = 1
+cdef int REAL = -1
+cdef int INTEGER = 0
+
+
+def solve_glpk(self, log=False,objective_only=False):
     r"""
     Solves the MIP using GLPK. Use solve() instead.
     """
-    if self.objective == None:
+
+    # Raises an exception if no objective has been defined
+    if self._objective_i == None:
         raise Exception("No objective function has been defined!")
+
+    # Creates the structures
     cdef c_glp_prob * lp
-    k = 1
-    for c in self.constraints:
-        k = k + c["card"]
     lp = glp_create_prob()
-    glp_add_rows(lp, len(self.constraints))
-    glp_add_cols(lp, len(self.variables))
+    cdef c_glp_iocp * iocp
+    iocp = new_c_glp_iocp()
+    glp_init_iocp(iocp)
 
 
-    # Gives an ID to each one of the variable. It will be their index
-    # in the problem Matrix self.setVariablesId();
+    # Builds the GLPK version of the problem
+    build_glp_prob(lp, iocp, self,log,False)
+
+    # Solves the problem
+    glp_intopt(lp, iocp)
+
+    cdef int status = glp_mip_status(lp)
+    if status == GLP_UNDEF:
+        glp_delete_prob(lp)
+        from sage.numerical.mip import MIPSolverException
+        raise MIPSolverException, "GLPK : Solution is undefined"
+    elif status == GLP_OPT:
+        # Everything is fine !
+        obj = glp_mip_obj_val(lp)
+
+        # If the users is interested in the variables' value
+        # fills self._values
+        if objective_only == False:
+            for (v, id) in self._variables.items():
+                self._values[v] = glp_mip_col_val(lp, id+1) if self._variables_type[id]==REAL else round(glp_mip_col_val(lp, id+1))
+
+        glp_delete_prob(lp)
+        return obj
+
+    elif status == GLP_FEAS:
+        glp_delete_prob(lp)
+        from sage.numerical.mip import MIPSolverException
+        raise MIPSolverException, "GLPK : Feasible solution found, while optimality has not been proven"
+    elif status == GLP_NOFEAS:
+        glp_delete_prob(lp)
+        from sage.numerical.mip import MIPSolverException
+        raise MIPSolverException, "GLPK : There is no feasible integer solution to this Linear Program"
+    else:
+        glp_delete_prob(lp)
+        raise ValueError, "The value returned by the solver is unknown !"
 
 
-    # Definition of the objective function
-    for (id, coeff) in [(id, coeff) for (id, coeff) in self._NormalForm(self.objective).items() if id != -1]:
-        #glp_set_obj_coef(lp, self.variables[i],self.objective[i] )
-        glp_set_obj_coef(lp, id, coeff )
 
-    # Upper and lower bounds on the variables
+def write_mps(self, filename,modern=True):
+    r"""
+    Writes the MPS file corresponding to the LP
+    """
 
-    for i in self.variables.keys():
-        if self.get_min(i) != None and self.get_max(i) != None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_DB, self.get_min(i), self.get_max(i))
-        elif self.get_min(i) == None and self.get_max(i) != None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_UP, 0, self.get_max(i))
-        elif self.get_min(i) != None and self.get_max(i) == None:
-            glp_set_col_bnds(lp, self.variables[i], GLP_LO, self.get_min(i), 0)
+    # Raises an exception if no objective has been defined
+    if self._objective_i == None:
+        raise Exception("No objective function has been defined!")
+
+    # Creates the structures
+    cdef c_glp_prob * lp
+    lp = glp_create_prob()
+    cdef c_glp_iocp * iocp
+    iocp = new_c_glp_iocp()
+    glp_init_iocp(iocp)
+
+    # Builds the GLPK version of the problem
+    build_glp_prob(lp, iocp, self,False,True)
+
+    if modern:
+        glp_write_mps(lp,GLP_MPS_FILE,NULL,filename)
+    else:
+        glp_write_mps(lp,GLP_MPS_DECK,NULL,filename)
+
+def write_lp(self, filename):
+
+    # Raises an exception if no objective has been defined
+    if self._objective_i == None:
+        raise Exception("No objective function has been defined!")
+
+    # Creates the structures
+    cdef c_glp_prob * lp
+    lp = glp_create_prob()
+    cdef c_glp_iocp * iocp
+    iocp = new_c_glp_iocp()
+    glp_init_iocp(iocp)
+
+    # Builds the GLPK version of the problem
+    build_glp_prob(lp, iocp, self,False,True)
+
+    glp_write_lp(lp,NULL,filename)
+
+
+cdef int build_glp_prob(c_glp_prob * lp, c_glp_iocp * iocp, LP, int log, bool names):
+    r"""
+    Builds the GLPK structure corresponding to the LP
+
+    INPUT:
+
+    - ``lp`` -- the ``c_glp_prob`` structure to be filled
+    - ``iocp`` -- the ``c_glp_iocp`` structure to be filled
+    - ``LP`` -- The data defining the LP
+    - ``log`` -- integer indicating the level of verbosity
+    - ``names`` -- should the names ( both variables and constraints ) be included
+      in the problem ? ( only useful when the problem is to be written in a file )
+    """
+
+    glp_add_rows(lp, len(LP._constraints_bounds_max))
+    glp_add_cols(lp, len(LP._variables_bounds_min))
+
+    cdef int * c_matrix_i = <int*> sage_malloc((len(LP._constraints_matrix_i)+1)*sizeof(int))
+    cdef int * c_matrix_j = <int*> sage_malloc((len(LP._constraints_matrix_j)+1)*sizeof(int))
+    cdef double * c_matrix_values = <double*> sage_malloc((len(LP._constraints_matrix_values)+1)*sizeof(double))
+
+    # iterator faster than "for 0<= i < len(LP.constraints.matrix.i)" ?
+    cdef int c = 1
+    for v in LP._constraints_matrix_i:
+        c_matrix_i[c]=v+1
+        c=c+1
+
+    c=1
+    for v in LP._constraints_matrix_j:
+        c_matrix_j[c]=v+1
+        c=c+1
+
+    c=1
+    for v in LP._constraints_matrix_values:
+        c_matrix_values[c]=v
+        c=c+1
+
+
+    glp_load_matrix(lp, len(LP._constraints_matrix_i),c_matrix_i,c_matrix_j,c_matrix_values)
+
+
+    for 0<= i < len(LP._objective_i):
+        glp_set_obj_coef(lp, LP._objective_i[i]+1, LP._objective_values[i])
+
+
+    for 0<= i < len(LP._variables_bounds_min):
+        # Upper and lower bounds on the variables
+        if LP._variables_bounds_min[i] != None and LP._variables_bounds_max[i] != None:
+            glp_set_col_bnds(lp, i+1, GLP_DB, LP._variables_bounds_min[i], LP._variables_bounds_max[i])
+        elif LP._variables_bounds_min[i] == None and LP._variables_bounds_max[i] != None:
+            glp_set_col_bnds(lp, i+1, GLP_UP, 0, LP._variables_bounds_max[i])
+        elif LP._variables_bounds_min[i] != None and LP._variables_bounds_max[i] == None:
+            glp_set_col_bnds(lp, i+1, GLP_LO, LP._variables_bounds_min[i], 0)
         else:
-            glp_set_col_bnds(lp, self.variables[i], GLP_FR, 0, 0)
+            glp_set_col_bnds(lp, i+1, GLP_FR, 0, 0)
+
+        # Types
+        if LP._variables_type[i]==INTEGER:
+            glp_set_col_kind(lp, i+1, GLP_IV)
+        elif LP._variables_type[i]==BINARY:
+            glp_set_col_kind(lp, i+1, GLP_BV)
+        else:
+            glp_set_col_kind(lp, i+1, GLP_CV)
 
 
 
-    # Definition of the problem matrix
-
-    cdef int * ia = <int*> sage_malloc(k*sizeof(int))
-    cdef int * ja = <int*> sage_malloc(k*sizeof(int))
-    cdef double * ar = <double*> sage_malloc(k*sizeof(double))
-    a = 1
-    b = 1
-    for c in self.constraints:
-        minimum = c["min"]
-        maximum = c["max"]
-
-        function = c["function"]
-        for (id, coeff) in [(id, coeff) for (id, coeff) in self._NormalForm(function).items() if id != -1]:
-            ar[b] = coeff
-            ia[b] = a
-            ja[b] = id
-            b = b + 1
-
-        if minimum != None and maximum != None:
-            if minimum == maximum:
-                glp_set_row_bnds(lp, a, GLP_FX, minimum, maximum)
+    for 0<= i < len(LP._constraints_bounds_max):
+        if LP._constraints_bounds_min[i] != None and LP._constraints_bounds_max[i] != None:
+            if LP._constraints_bounds_min[i] == LP._constraints_bounds_max[i]:
+                glp_set_row_bnds(lp, i+1, GLP_FX, LP._constraints_bounds_min[i], LP._constraints_bounds_max[i])
             else:
-                glp_set_row_bnds(lp, a, GLP_DB, minimum, maximum)
-        elif minimum == None and maximum != None:
-            glp_set_row_bnds(lp, a, GLP_UP, 0, maximum)
-        elif minimum != None and maximum == None:
-            glp_set_row_bnds(lp, a, GLP_LO, minimum, 0)
+                glp_set_row_bnds(lp, i+1, GLP_DB, LP._constraints_bounds_min[i], LP._constraints_bounds_max[i])
+        elif LP._constraints_bounds_min[i] == None and LP._constraints_bounds_max[i] != None:
+            glp_set_row_bnds(lp, i+1, GLP_UP, 0, LP._constraints_bounds_max[i])
+        elif LP._constraints_bounds_min[i] != None and LP._constraints_bounds_max[i] == None:
+            glp_set_row_bnds(lp, i+1, GLP_LO, LP._constraints_bounds_min[i], 0)
         else:
-            glp_set_row_bnds(lp, a, GLP_FR, 0, 0)
-        a = a + 1
+            glp_set_row_bnds(lp, i+1, GLP_FR, 0, 0)
+
+
 
     # Direction of the problem : maximization, minimization...
-    if self.maximization == False:
+    if LP._maximization == False:
         glp_set_obj_dir(lp, GLP_MIN)
     else:
         glp_set_obj_dir(lp, GLP_MAX)
 
-    # Sets variables as integers when needed
+    # Writing the names if needed
 
-    for i in self.variables.keys():
-        if self.is_integer(i):
-            glp_set_col_kind(lp, self.variables[i], GLP_IV)
-        elif self.is_binary(i):
-            glp_set_col_kind(lp, self.variables[i], GLP_BV)
-        else:
-            glp_set_col_kind(lp, self.variables[i], GLP_CV)
+    if names:
+        if LP._name != None:
+            glp_set_prob_name(lp, LP._name)
+        if LP._objective_name != None:
+            glp_set_obj_name(lp, LP._objective_name)
 
-    glp_load_matrix(lp, k-1, ia, ja, ar)
-    cdef c_glp_iocp * iocp
-    iocp = new_c_glp_iocp()
-    glp_init_iocp(iocp)
+
+        c=1
+        for s in LP._constraints_name:
+            if s!=None:
+                glp_set_row_name(lp,c,s)
+            c+=1
+        c=1
+        for s in LP._variables_name:
+            if s!=None:
+                glp_set_col_name(lp,c,s)
+            c+=1
+
+
 
     iocp.presolve = GLP_ON
     # stuff related to the loglevel
@@ -101,11 +223,5 @@ def solveGlpk(self,log=False,objective_only=False):
         iocp.msg_lev = GLP_MSG_ON
     else:
         iocp.msg_lev = GLP_MSG_ALL
-    glp_intopt(lp, iocp)
-    obj = glp_mip_obj_val(lp)
 
-    if objective_only == False:
-        for (v, id) in self.variables.items():
-            self.values[v] = glp_mip_col_val(lp, id) if self.is_real(v) else round(glp_mip_col_val(lp, id))
-    glp_delete_prob(lp)
-    return obj
+

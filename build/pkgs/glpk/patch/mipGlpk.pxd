@@ -29,6 +29,13 @@ cdef extern from "../../../local/include/glpk.h":
      double glp_mip_col_val(c_glp_prob *, int)
      double glp_mip_obj_val(c_glp_prob *)
      void glp_set_col_kind(c_glp_prob *, int, int)
+     int glp_write_mps(c_glp_prob *lp, int fmt, void *parm, char *fname)
+     int glp_write_lp(c_glp_prob *lp, void *parm, char *fname)
+     void glp_set_prob_name(c_glp_prob *lp, char *name)
+     void glp_set_obj_name(c_glp_prob *lp, char *name)
+     void glp_set_row_name(c_glp_prob *lp, int i, char *name)
+     void glp_set_col_name(c_glp_prob *lp, int i, char *name)
+     int glp_mip_status(c_glp_prob *lp)
 
      int GLP_ON
      int GLP_MAX
@@ -45,3 +52,10 @@ cdef extern from "../../../local/include/glpk.h":
      int GLP_MSG_ERR
      int GLP_MSG_ON
      int GLP_MSG_ALL
+     int GLP_MPS_DECK
+     int GLP_MPS_FILE
+
+     int GLP_UNDEF
+     int GLP_OPT
+     int GLP_FEAS
+     int GLP_NOFEAS

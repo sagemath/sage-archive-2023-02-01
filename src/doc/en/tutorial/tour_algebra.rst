@@ -85,7 +85,7 @@ above equation in the range :math:`0 < \phi < \pi/2`::
 
     sage: phi = var('phi')
     sage: find_root(cos(phi)==sin(phi),0,pi/2)
-    0.78539816339744839
+    0.785398163397448...
 
 Differentiation, Integration, etc.
 ----------------------------------

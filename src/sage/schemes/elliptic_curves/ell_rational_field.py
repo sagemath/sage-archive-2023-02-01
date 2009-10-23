@@ -2228,12 +2228,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         sat = [self(P) for P in sat]
         return sat, index, R(reg)
 
+
     def CPS_height_bound(self):
-        """
-        Return the Cremona-Prickett-Siksek height bound. This is a floating
-        point number B such that if P is a point on the curve, then the
-        naive logarithmic height of P differs from the canonical height by
-        at most B.
+        r"""
+        Return the Cremona-Prickett-Siksek height bound. This is a
+        floating point number B such that if P is a rational point on
+        the curve, then `|h(P) - \hat{h}(P)| \leq B`, where `h(P)` is
+        the naive logarithmic height of `P` and `\hat{h}(P)` is the
+        canonical height.
+
+        SEE ALSO: silverman_height_bound for a bound that also works for
+        points over number fields.
 
         EXAMPLES::
 
@@ -2255,39 +2260,79 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.65551583769728516
 
         IMPLEMENTATION:
-
-        Call the corresponding mwrank C++ library function.
+            Call the corresponding mwrank C++ library function.  Note that
+            the formula in the [CPS] paper is given for number fields.  It's
+            only the implementation in Sage that restricts to the rational
+            field.
         """
         if not self.is_minimal():
             raise RuntimeError, "curve must be minimal."
         return self.mwrank_curve().CPS_height_bound()
 
 
-    def silverman_height_bound(self):
-        r""" Return the Silverman height bound.  This is a positive real
-        (floating point) number B such that for all rational points
-        `P` on the curve,
-
-        .. math::
-
-                          h(P) \le \hat{h}(P) + B
-
-
-        where h(P) is the logarithmic height of `P` and
+    def silverman_height_bound(self, algorithm='default'):
+        r"""
+        Return the Silverman height bound.  This is a positive real
+        (floating point) number B such that for all points `P` on the
+        curve over any number field, `|h(P) - \hat{h}(P)| \leq B`,
+        where `h(P)` is the naive logarithmic height of `P` and
         `\hat{h}(P)` is the canonical height.
 
-        Note that the CPS_height_bound is often better (i.e. smaller)
-        than the Silverman bound.
+        INPUT:
+
+            - ``algorithm`` --
+
+                 - 'default' (default) -- compute using a Python
+                   implementation in Sage
+
+                 - 'mwrank' -- use a C++ implementation in the mwrank
+                   library
+
+        NOTES:
+
+           - The CPS_height_bound is often better (i.e. smaller) than
+             the Silverman bound, but it only applies for points over
+             the base field, whereas the Silverman bound works over
+             all number fields.
+
+           - The Silverman bound is also fairly straightforward to
+             compute over number fields, but isn't implemented here.
+
+           - Silverman's paper is 'The Difference Between the Weil
+             Height and the Canonical Height on Elliptic Curves',
+             Math. Comp., Volume 55, Number 192, pages 723-743.  We
+             use a correction by Bremner with 0.973 replaced by 0.961,
+             as explained in the source code to mwrank (htconst.cc).
 
         EXAMPLES::
 
             sage: E=EllipticCurve('37a1')
             sage: E.silverman_height_bound()
             4.8254007581809182
+            sage: E.silverman_height_bound(algorithm='mwrank')
+            4.8254007581809182
             sage: E.CPS_height_bound()
             0.16397076103046915
         """
-        return self.mwrank_curve().silverman_bound()
+        if algorithm == 'default':
+            Delta   = self.discriminant()
+            j       = self.j_invariant()
+            b2      = self.b2()
+            twostar = 2 if b2 else 1
+            from math import log
+            def h(x):
+                return log(max(abs(x.numerator()), abs(x.denominator())))
+            def h_oo(x):
+                return log(max(abs(x),1))
+            mu    = h(Delta)/12 + h_oo(j)/12 + h_oo(b2/12)/2 + log(twostar)/2
+            lower = 2*(-h(j)/24 - mu - 0.961)
+            upper = 2*(mu + 1.07)
+            return max(abs(lower), abs(upper))
+        elif algorithm == 'mwrank':
+            return self.mwrank_curve().silverman_bound()
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
+
 
 
     def point_search(self, height_limit, verbose=True):

@@ -6,6 +6,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+LIBOGG=`cd $SAGE_ROOT/spkg/standard/; ./newest_version libogg`
+if [ $? -ne 0 ]; then
+    echo "Failed to find libogg.  Please install the libogg spkg"
+    exit 1
+fi
+
 unset RM
 
 cd src

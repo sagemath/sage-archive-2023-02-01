@@ -232,7 +232,7 @@ class AnInfinity:
         """
         TESTS::
 
-            maxima(-oo)
+            sage: maxima(-oo)
             minf
             sage: [x._maxima_init_() for x in [unsigned_infinity, oo, -oo]]
             ['inf', 'inf', 'minf']
@@ -242,11 +242,31 @@ class AnInfinity:
         else:
             return 'inf'
 
+    def _pari_(self):
+        """
+        Convert self to a Pari object.
+
+        This always raises an exception since Pari does not have
+        infinities.
+
+        TESTS::
+
+            sage: pari(-oo)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert infinity to Pari
+            sage: pari(oo)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert infinity to Pari
+        """
+        raise TypeError, 'cannot convert infinity to Pari'
+
     def _latex_(self):
         """
         EXAMPLES::
 
-            latex(oo)
+            sage: latex(oo)
             +\infty
             sage: [x._latex_() for x in [unsigned_infinity, oo, -oo]]
             ['\\infty', '+\\infty', '-\\infty']

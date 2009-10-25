@@ -10,7 +10,7 @@ def install_scripts(bin_directory=None):
     ``install_scripts(bin_directory)`` to create scripts
     in the given bin directory that, independently of Sage, run various
     software components included with Sage: ['gap', 'gp', 'singular',
-    'maxima', 'M2', 'kash', 'mwrank', 'ipython', 'hg', 'hgmerge', 'R']
+    'maxima', 'M2', 'kash', 'mwrank', 'ipython', 'hg', 'R']
 
     This command:
 
@@ -56,7 +56,7 @@ def install_scripts(bin_directory=None):
         raise RuntimeError, "'%s' must exist and be a directory"%bin_directory
 
     for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash', \
-              'mwrank', 'ipython', 'hg', 'hgmerge', 'R']:
+              'mwrank', 'ipython', 'hg', 'R']:
         print "\nChecking that Sage has the command '%s' installed"%c
         if os.system('which %s > /dev/null'%c):
             print "The command '%s' is not available; not adding shortcut"%c

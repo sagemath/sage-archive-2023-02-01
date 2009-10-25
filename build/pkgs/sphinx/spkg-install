@@ -19,6 +19,18 @@ echo "Removing old version..."
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
 success 'Error deleting previous version'
 
+CUR=`pwd`
+
+echo "Deleting old documentation output..."
+cd "$SAGE_ROOT"/devel/
+for dir in `ls`; do
+    if [ -d "$dir"/doc/output ]; then
+        rm -rf "$dir"/doc/output
+    fi
+done
+cd "$CUR"
+success 'Error deleting old documentation output'
+
 #Copy the patched file over
 cp patches/highlighting.py src/sphinx/
 cp patches/autodoc.py src/sphinx/ext/

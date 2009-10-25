@@ -32,6 +32,10 @@ A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
 
+=== 0.6.3.p2 (Tim Dumol, 2009-10-25) ===
+
+ * Modify spkg-install to delete `doc/output` folders, to fix #7286.
+
 === 0.6.3.p1 (John Palmieri, 2009-09-04) ===
 
  * Modify spkg-install, in line with the ideas at

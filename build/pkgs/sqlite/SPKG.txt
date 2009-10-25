@@ -6,6 +6,12 @@ serverless, zero-configuration, transactional SQL database engine.
 == Upstream contact ==
  * URL: http://www.sqlite.org
 
+=== sqlite-3.6.17 (Dan Drake, October 25th, 2009) ===
+
+  * Remove obsolete Makefile.in "patch" for Cygwin, since the new sqlite
+    source uses autoconf. Remove special Cygwin bits from spkg-install;
+    we don't need the client on Cygwin, but we install it anyway.
+
 === sqlite-3.6.17 (David Kirkby, August 16th, 2009) ===
  * Update to the latest upstream source. This compiles without
    any issues on the Sun Studio 12 update 1. Previously

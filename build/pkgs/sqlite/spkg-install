@@ -50,14 +50,6 @@ export CPPFLAGS="$CPPFLAGS -I $SAGE_LOCAL/include"
 export FC=$SAGE_FORTRAN
 export F77=$SAGE_FORTRAN
 
-
-if [ $UNAME = "CYGWIN" ]; then
-    # Replace the makefile with a new makefile whose install: target
-    # does *not* install the sqlite3 client.  This isn't needed at
-    # all for Sage.
-    cp patches/Makefile.in src/Makefile.in
-fi
-
 cd src
 
 echo "Building sqlite using CC=$CC"

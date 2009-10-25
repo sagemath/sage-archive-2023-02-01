@@ -61,3 +61,16 @@ if [ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]; then
    echo "Deleting Maxima commandlist cache. It will be recreated at the next start of Sage"
    rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
 fi
+
+#build maxima as a lisp library
+#and install it in the ecl library directory
+
+cd src
+echo "building Maxima as an ecl library"
+ecl -eval "(require 'asdf)" -eval '(load "maxima-build.lisp")' -eval  '(asdf:make-build :maxima :type :fasl)' -eval "(quit)"
+ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+echo
+echo "installing Maxima library as $ECLLIB/maxima.fas"
+cp maxima.fasb $ECLLIB/maxima.fas
+cd ..
+

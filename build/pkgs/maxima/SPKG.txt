@@ -41,6 +41,9 @@ The following files are patched:
 
 == Changelog ==
 
+=== maxima-5.19.1.p2 (Mike Hansen, Nils Bruin,  December 2nd, 2009) ===
+ * Added building Maxima as an ecl library to spkg-install
+
 === maxima-5.19.1.p1 (Robert Marik, November 11th, 2009) ===
  * Added new CVS version for solve_rat_ineq.mac to close work on ticket #7325
    (Sage cannot solve inequalities)

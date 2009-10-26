@@ -5357,7 +5357,7 @@ class GenericGraph(SageObject):
         (k_i\*(k_i-1)/2) where k_i is the degree of vertex i, [1]. A
         coefficient for the whole graph is the average of the c_i.
         Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [1].
+        triangles, T = 3\*triangles/triads, [HSSNX]_.
 
         INPUT:
 
@@ -5371,7 +5371,7 @@ class GenericGraph(SageObject):
 
         REFERENCE:
 
-        - [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+        .. [HSSNX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
           documentation. [Online] Available:
           https://networkx.lanl.gov/reference/networkx/
 
@@ -6494,6 +6494,126 @@ class GenericGraph(SageObject):
                         pred[u][v] = pred[w][v]
 
         return dist, pred
+
+    def wiener_index(self):
+        r"""
+        Returns the Wiener index of the graph.
+
+        The Wiener index of a graph `G` can be defined in two equivalent
+        ways [KRG96]_ :
+
+        - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
+          vertices `u` and `v`.
+
+        - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
+          contains exactly one shortest `u-v` path for each set `\{u,v\}` of vertices
+          in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the paths from `\Omega`
+          containing `e`. We then have `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+
+        EXAMPLE:
+
+        From [GYLL93]_, cited in [KRG96]_::
+
+            sage: g=graphs.PathGraph(10)
+            sage: w=lambda x: (x*(x*x -1)/6)
+            sage: g.wiener_index()==w(10)
+            True
+
+        REFERENCE:
+
+        .. [KRG96] Klavzar S., Rajapakse A., Gutman I. (1996). The Szeged and
+          the Wiener index of graphs .
+          Applied Mathematics Letters, 9 (5), pp. 45-49.
+
+        .. [GYLL93] I Gutman, YN Yeh, SL Lee, YL Luo (1993),
+          Some recent results in the theory of the Wiener number.
+          INDIAN JOURNAL OF CHEMISTRY SECTION A
+          PUBLICATIONS & INFORMATION DIRECTORATE, CSIR
+
+        """
+
+        distances=self.shortest_path_all_pairs(default_weight=Integer(1))[0]
+        return sum([sum(v.itervalues()) for v in distances.itervalues()])/2
+
+    def average_distance(self):
+        r"""
+        Returns the average distance between vertices of the graph.
+
+        Formally, for a graph `G` this value is equal to
+        `\frac 1 {n(n-1)} \sum_{u,v\in G} d(u,v)` where `d(u,v)`
+        denotes the distance between vertices `u` and `v` and `n`
+        is the number of vertices in `G`.
+
+        EXAMPLE:
+
+        From [GYLL93]_::
+
+            sage: g=graphs.PathGraph(10)
+            sage: w=lambda x: (x*(x*x -1)/6)/(x*(x-1)/2)
+            sage: g.average_distance()==w(10)
+            True
+
+
+        REFERENCE:
+
+        .. [GYLL93] I Gutman, YN Yeh, SL Lee, YL Luo (1993),
+          Some recent results in the theory of the Wiener number.
+          INDIAN JOURNAL OF CHEMISTRY SECTION A
+          PUBLICATIONS & INFORMATION DIRECTORATE, CSIR
+
+        """
+
+        return self.wiener_index()/((self.order()*(self.order()-1))/2)
+
+    def szeged_index(self):
+        r"""
+        Returns the Szeged index of the graph.
+
+        For any `uv\in E(G)`, let
+        `N_u(uv) = \{w\in G:d(u,w)<d(v,w)\}, n_u(uv)=|N_u(uv)|`
+
+        The Szeged index of a graph is then defined as [KRG96]_ :
+        `\sum_{uv \in E(G)}n_u(uv)\times n_v(uv)`
+
+        EXAMPLE:
+
+        True for any connected graph [KRG96]_::
+
+            sage: g=graphs.PetersenGraph()
+            sage: g.wiener_index()<= g.szeged_index()
+            True
+
+        True for all trees [KRG96]_::
+
+            sage: g=Graph()
+            sage: g.add_edges(graphs.CubeGraph(5).min_spanning_tree())
+            sage: g.wiener_index() == g.szeged_index()
+            True
+
+
+        REFERENCE:
+
+        .. [KRG96] Klavzar S., Rajapakse A., Gutman I. (1996). The Szeged and
+          the Wiener index of graphs .
+          Applied Mathematics Letters, 9 (5), pp. 45-49.
+
+        """
+        distances=self.shortest_path_all_pairs()[0]
+        s=0
+        for (u,v) in self.edges(labels=None):
+            du=distances[u]
+            dv=distances[v]
+            n1=n2=0
+            for w in self:
+                if du[w] < dv[w]:
+                    n1+=1
+                elif dv[w] < du[w]:
+                    n2+=1
+            s+=(n1*n2)
+        return s
+
+
+
 
     ### Searches
 
@@ -10599,7 +10719,7 @@ class Graph(GenericGraph):
         paths that go through each vertex) as a dictionary keyed by
         vertices. The betweenness is normalized by default to be in range
         (0,1). This wraps NetworkX's implementation of the algorithm
-        described in [1].
+        described in [Brandes2003]_.
 
         Measures of the centrality of a vertex within a graph determine the
         relative importance of that vertex to its graph. Vertices that
@@ -10615,7 +10735,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        - [1] Ulrik Brandes. (2003). Faster Evaluation of
+        .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
           Shortest-Path Based Centrality Indices. [Online] Available:
           http://citeseer.nj.nec.com/brandes00faster.html
 
@@ -10680,7 +10800,7 @@ class Graph(GenericGraph):
         a given vertex from all other vertices... Closeness is an inverse
         measure of centrality in that a larger value indicates a less
         central actor while a smaller value indicates a more central
-        actor,' [1].
+        actor,' [Borgatti95]_.
 
         INPUT:
 
@@ -10691,7 +10811,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        - [1] Stephen P Borgatti. (1995). Centrality and AIDS.
+        .. [Borgatti95] Stephen P Borgatti. (1995). Centrality and AIDS.
           [Online] Available:
           http://www.analytictech.com/networks/centaids.htm
 

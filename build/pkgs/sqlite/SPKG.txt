@@ -6,11 +6,14 @@ serverless, zero-configuration, transactional SQL database engine.
 == Upstream contact ==
  * URL: http://www.sqlite.org
 
-=== sqlite-3.6.17.p0 (Dan Drake, October 25th, 2009) ===
+=== sqlite-3.6.19.p0 (Mike Hansen, October 26th, 2009) ===
+ * Updated to 3.6.19 with http://sqlite.org/sqlite-amalgamation-3.6.19.tar.gz.
 
-  * Remove obsolete Makefile.in "patch" for Cygwin, since the new sqlite
-    source uses autoconf. Remove special Cygwin bits from spkg-install;
-    we don't need the client on Cygwin, but we install it anyway.
+=== sqlite-3.6.17.p0 (Dan Drake, October 25th, 2009) ===
+ * Remove obsolete Makefile.in "patch" for Cygwin, since the new
+   sqlite source uses autoconf. Remove special Cygwin bits from
+   spkg-install; we don't need the client on Cygwin, but we install it
+   anyway.
 
 === sqlite-3.6.17 (David Kirkby, August 16th, 2009) ===
  * Update to the latest upstream source. This compiles without

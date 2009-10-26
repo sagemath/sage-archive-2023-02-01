@@ -3562,9 +3562,9 @@ class GenericGraph(SageObject):
             self.delete_vertices(vertices[1:])
             add_edges=[]
             for (u,v,l) in edges:
-                if (v in vertices) and not (u in vertices) and v != vertices[0]:
+                if v in vertices and v != vertices[0]:
                     add_edges.append((vertices[0],u,l))
-                if not (v in vertices) and u in vertices and u!=vertices[0]:
+                if u in vertices and u!=vertices[0]:
                     add_edges.append((vertices[0],v,l))
             self.add_edges(add_edges)
 

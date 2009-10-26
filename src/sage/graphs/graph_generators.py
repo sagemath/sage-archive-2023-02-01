@@ -2431,19 +2431,15 @@ class GraphGenerators():
         counterclockwise as well.
 
         EXAMPLES: For `k=1` the resulting graph will be isomorphic to a circular
-        ladder graph.
-
-        ::
+        ladder graph. ::
 
             sage: g = graphs.GeneralizedPetersenGraph(13,1)
             sage: g2 = graphs.CircularLadderGraph(13)
             sage: g.is_isomorphic(g2)
             True
 
+        The Desargues graph::
 
-        The Desargues graph:
-
-        ::
             sage: g = graphs.GeneralizedPetersenGraph(10,3)
             sage: g.girth()
             6

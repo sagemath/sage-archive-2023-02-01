@@ -134,6 +134,7 @@ from sage.logic.all      import *
 from sage.numerical.all  import *
 
 from sage.stats.all      import *
+import sage.stats.all as stats
 
 import sage.finance.all  as finance
 

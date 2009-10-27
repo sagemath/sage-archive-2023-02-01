@@ -1955,9 +1955,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def denominator(self):
         """
-        Return the least common multiple of the denominators of the entries
-        of self, when this makes sense, i.e., when the coefficients have a
-        denominator function.
+        Return a denominator of self.
+
+        First, the lcm of the denominators of the entries of self
+        is computed and returned. If this computation fails, the
+        unit of the parent of self is returned.
+
+        Note that some subclasses may implement their own
+        denominator function. For example, see
+        :class:`sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense`
 
         .. warning::
 
@@ -1998,19 +2004,91 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x + RR('0.3'); f
             x + 0.300000000000000
             sage: f.denominator()
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.rings.real_mpfr.RealNumber' object has no attribute 'denominator'
+            1.00000000000000
         """
         if self.degree() == -1:
             return 1
-        R = self.base_ring()
+        #This code was in the original algorithm, but seems irrelevant
+        #R = self.base_ring()
         x = self.list()
-        d = x[0].denominator()
-        for y in x:
-            d = d.lcm(y.denominator())
-        return d
+        try:
+            d = x[0].denominator()
+            for y in x:
+                d = d.lcm(y.denominator())
+            #If we return self.parent(d) instead, automatic test
+            #start to fail, ex. "sage/rings/polynomial/complex_roots.py"
+            return d
+        except(AttributeError):
+            return self.parent().one_element()
 
+    def numerator(self):
+        """
+        Return a numerator of self computed as self * self.denominator()
+
+        Note that some subclases may implement its own numerator
+        function. For example, see
+        :class:`sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense`
+
+        .. warning::
+
+        This is not the numerator of the rational function
+        defined by self, which would always be self since self is a
+        polynomial.
+
+        EXAMPLES:
+
+        First we compute the numerator of a polynomial with
+        integer coefficients, which is of course self.
+
+        ::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 + 17*x + 1
+            sage: f.numerator()
+            x^3 + 17*x + 1
+            sage: f == f.numerator()
+            True
+
+        Next we compute the numerator of a polynomial with rational
+        coefficients.
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = (1/17)*x^19 - (2/3)*x + 1/3; f
+            1/17*x^19 - 2/3*x + 1/3
+            sage: f.numerator()
+            3*x^19 - 34*x + 17
+            sage: f == f.numerator()
+            False
+
+        We try to compute the denominator of a polynomial with
+        coefficients in the real numbers, which is a ring whose elements do
+        not have a denominator method.
+
+        ::
+
+            sage: R.<x> = RR[]
+            sage: f = x + RR('0.3'); f
+            x + 0.300000000000000
+            sage: f.numerator()
+            x + 0.300000000000000
+
+        We check that the computation the numerator and denominator
+        are valid
+
+        ::
+
+            sage: K=NumberField(symbolic_expression('x^3+2'),'a')['s,t']['x']
+            sage: f=K.random_element()
+            sage: f.numerator() / f.denominator() == f
+            True
+            sage: R=RR['x']
+            sage: f=R.random_element()
+            sage: f.numerator() / f.denominator() == f
+            True
+        """
+        return self * self.denominator()
 
     def derivative(self, *args):
         r"""

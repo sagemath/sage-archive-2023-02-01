@@ -120,41 +120,7 @@ import sage.rings.integer
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
-#
-# This function was moved from sage/rings/arith.py
-#
-def power(a, m, one=1):
-    r"""
-    Generic powering function.
-
-    INPUT:
-
-    - ``a`` -- any Python object on which multiplication is defined.
-
-    - ``m`` -- a non-negative integer.
-
-    OUTPUT:
-
-    The ``m``-th power of ``a``.
-
-    ALGORITHM:
-
-    Standard binary powering algorithm.
-
-    EXAMPLES::
-
-        sage: power(2,5)
-        32
-        sage: power(RealField()('2.5'),4)
-        39.0625000000000
-        sage: power(0,0)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: 0^0 is undefined.
-        sage: power(2,-3)
-        1/8
-    """
-    return sage.structure.element.generic_power(a,m,one)
+from sage.structure.element import generic_power as power
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -1045,34 +1011,64 @@ def order_from_multiple(P, m, plist=None, operation='+',
     assert multiple(P,M,operation=operation) == identity
 
     if plist==None:
-        plist = M.prime_factors()
-
-    # For each p in plist we determine the power of p dividing
-    # the order, accumulating the order in N
-
-    # Efficiency improvement (2009-04-01, suggested by Ryan Hinton,
-    # implemented by John Cremona): avoid the last multiplication by p
-    # for each prime.  For example, if M itself is prime the code used
-    # to compute M*P twice (unless P=0), now it does it once.
+        F = M.factor()
+        plist = [p for p,e in F]
+    else:
+        F = [(p,M.valuation(p)) for p in plist]
 
     if M == plist[0]:
         return M
 
-    for p in plist:
-        e, M0 = M.val_unit(p)
-        Q = multiple(P,M0,operation=operation)
-        # so Q has p-power order, at most p**e
-        e0 = 0
-        while (Q != identity) and (e0<e-1):
-            Q = multiple(Q,p,operation=operation)
-            N *= p
-            e0 +=1
-        if (Q != identity) and (e0==e-1):
-            # avoid the final multiplication of Q by p
-            N *=p
+    # Efficiency improvement (2009-10-27, implemented by Yann Laigle-Chapuy):
+    # we use an internal recursive function to avoid unnecessary computations.
+    def _order_from_multiple_helper(Q, L, S):
+        """
+        internal use, to minimize the number of group operations.
+        """
+        l = len(L)
+        if l == 1:
+            # we determine the power of p dividing the order,
 
-    # now N is the exact order of self
-    return N
+            # Efficiency improvement (2009-04-01, suggested by Ryan Hinton,
+            # implemented by John Cremona): avoid the last multiplication by p.
+            # For example, if M itself is prime the code used to compute M*P
+            # twice (unless P=0), now it does it once.
+            p,e = L[0]
+            e0 = 0
+            while (Q != identity) and (e0<e-1):
+                Q = multiple(Q,p,operation=operation)
+                e0 += 1
+            if (Q != identity):
+                e0 += 1
+            return p**e0
+        else:
+            # try to split the list wisely
+            sum_left = 0
+            i = 0
+            for k in range(l):
+                p,e = L[k]
+                # multiplying by p**e require roughly 'e log_2(p) / 2' additions
+                v = e * sage.functions.log.log(float(p))
+                if abs(sum_left + v - (S / 2)) > abs(sum_left - (S / 2)):
+                    break
+                sum_left += v
+            L1 = L[:k]
+            L2 = L[k:]
+            # recursive calls
+            o1 = _order_from_multiple_helper(
+                multiple(Q, sage.misc.misc.prod([p**e for p,e in L2]), operation),
+                L1,
+                sum_left)
+            o2 = _order_from_multiple_helper(
+                multiple(Q, o1                                       , operation),
+                L2,
+                S-sum_left)
+            return o1*o2
+
+    return _order_from_multiple_helper(P, F, sage.functions.log.log(float(M)) )
+
+
+
 
 def order_from_bounds(P, bounds, d=None, operation='+',
                          identity=None, inverse=None, op=None):

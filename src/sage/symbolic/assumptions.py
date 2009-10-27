@@ -193,14 +193,18 @@ def assume(*args):
     Test that you can do two non-relational
     declarations at once (fixing Trac ticket 7084)::
 
-        sage: var('m')
-        m
+        sage: var('m,n')
+        (m, n)
         sage: assume(n, 'integer'); assume(m, 'integer')
         sage: sin(n*pi).simplify()
         0
         sage: sin(m*pi).simplify()
         0
         sage: forget()
+        sage: sin(n*pi).simplify()
+        sin(pi*n)
+        sage: sin(m*pi).simplify()
+        sin(pi*m)
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
@@ -303,6 +307,23 @@ def _forget_all():
         False
         sage: bool(x*y > 0)      # might not be true
         False
+
+    TESTS:
+
+    Check that Trac ticket 7315 is fixed::
+
+        sage: var('m,n')
+        (m, n)
+        sage: assume(n, 'integer'); assume(m, 'integer')
+        sage: sin(n*pi).simplify()
+        0
+        sage: sin(m*pi).simplify()
+        0
+        sage: forget()
+        sage: sin(n*pi).simplify()
+        sin(pi*n)
+        sage: sin(m*pi).simplify()
+        sin(pi*m)
     """
     from sage.calculus.calculus import maxima
     global _assumptions
@@ -313,7 +334,7 @@ def _forget_all():
     except TypeError:
         pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
-    for x in _assumptions:
+    for x in _assumptions[:]: # need to do this because x.forget() removes x from _assumptions
         if isinstance(x, GenericDeclaration):
             # these don't show up in facts()
             x.forget()

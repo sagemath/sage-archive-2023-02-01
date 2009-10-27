@@ -449,7 +449,7 @@ def sage_getdef(obj, obj_name=''):
     except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
 
-def sage_getdoc(obj, obj_name=''):
+def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
 
@@ -457,6 +457,11 @@ def sage_getdoc(obj, obj_name=''):
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
+
+    If optional argument ``embedded_override`` is False (its default
+    value), then the string is formatted according to the value of
+    EMBEDDED_MODE.  If this argument is True, then it is formatted as
+    if EMBEDDED_MODE were True.
 
     EXAMPLES::
 
@@ -485,7 +490,7 @@ def sage_getdoc(obj, obj_name=''):
     if r is None:
         return ''
 
-    s = sage.misc.sagedoc.format(str(r), embedded=EMBEDDED_MODE)
+    s = sage.misc.sagedoc.format(str(r), embedded=(embedded_override or EMBEDDED_MODE))
 
     # If there is a Cython embedded position, it needs to be stripped
     pos = _extract_embedded_position(s)

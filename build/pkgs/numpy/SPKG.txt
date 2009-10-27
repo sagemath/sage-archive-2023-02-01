@@ -59,6 +59,9 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
+=== numpy-1.3.0.p3 (Mike Hansen, 27 October 2009) ===
+ * Make sage_fortran the default compiler for cygwin.  See #7321.
+
 === numpy-1.3.0.p2 (Ondrej Certik, 20 September 2009) ===
  * fix the build system to work in cygwin
 

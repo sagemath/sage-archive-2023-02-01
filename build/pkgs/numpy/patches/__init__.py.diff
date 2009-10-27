@@ -1,10 +1,12 @@
---- src/numpy/distutils/fcompiler/__init__.py	2007-11-07 14:05:14.000000000 -0800
-+++ patches/__init__.py	2008-01-06 19:41:14.000000000 -0800
-@@ -683,10 +683,10 @@
+--- ../src/numpy/distutils/fcompiler/__init__.py	2009-03-29 03:24:21.000000000 -0800
++++ __init__.py	2009-10-26 21:19:36.443176800 -0800
+@@ -682,11 +682,11 @@
+ _default_compilers = (
      # sys.platform mappings
      ('win32', ('gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
-     ('cygwin.*', ('gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
+-    ('cygwin.*', ('gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
 -    ('linux.*', ('gnu','intel','lahey','pg','absoft','nag','vast','compaq',
++    ('cygwin.*', ('sage_fortran', 'gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
 +    ('linux.*', ('sage_fortran','gnu','intel','lahey','pg','absoft','nag','vast','compaq',
                  'intele','intelem','gnu95','g95')),
 -    ('darwin.*', ('nag', 'absoft', 'ibm', 'intel', 'gnu', 'gnu95', 'g95')),

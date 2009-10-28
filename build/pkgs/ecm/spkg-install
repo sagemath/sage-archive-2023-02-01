@@ -19,7 +19,7 @@ fi
 # remove old executable/headers/library
 echo "Removing old binary, headers and static library"
 rm -f "$SAGE_LOCAL"/bin/ecm
-rm -f "$SAGE_LCOAL"/lib/libecm.*
+rm -f "$SAGE_LOCAL"/lib/libecm.*
 rm -r "$SAGE_LOCAL"/include/ecm.h
 
 cd src

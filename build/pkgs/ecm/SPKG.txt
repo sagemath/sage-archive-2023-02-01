@@ -29,6 +29,11 @@ src contains upstream code, no patches were applied.
 
 == Changelog ==
 
+=== ecm-6.2.1.p1 (François Bissey, October 26th, 2009) ===
+ * The removal of the old version of ecm in ecm-6.2.1_p0.spkg is
+   broken because of the typo "SAGE_LCOAL"; notice that it should be
+   "SAGE_LOCAL".
+
 === ecm-6.2.1.p0 (Michael Abshoff, January 19th, 2008) ===
  * bump version to force recompile due to gmp -> MPIR switch
 

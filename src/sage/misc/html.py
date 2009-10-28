@@ -167,7 +167,10 @@ class HTML:
 
     def table(self, x, header = False):
         r"""
-        Print a nested list as a HTML table.
+        Print a nested list as a HTML table.  Strings of html
+        will be parsed for math inside dollar and double-dollar signs.
+        2D graphics will be displayed in the cells.  Expressions will
+        be latexed.
 
         EXAMPLES:
             sage: html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
@@ -200,13 +203,13 @@ class HTML:
             </div>
             </html>
 
-            sage: html.table(["Functions", sin(x), cos(x)], header = True)
+            sage: html.table(["Functions $f(x)$", sin(x), cos(x)], header = True)
             <html>
             <div class="notruncate">
             <table class="table_form">
             <tbody>
             <tr>
-            <th>Functions</th>
+            <th>Functions <span class="math">f(x)</span></th>
             </tr>
             <tr class ="row-a">
             <td><span class="math">\sin\left(x\right)</span></td>
@@ -250,8 +253,8 @@ class HTML:
         Print the items of a list as the columns of a HTML table.
 
         TESTS:
-            sage: html._table_columns(["a",1, sin(x)])
-            <td>a</td>
+            sage: html._table_columns(["a $x^2$",1, sin(x)])
+            <td>a <span class="math">x^2</span></td>
             <td><span class="math">1</span></td>
             <td><span class="math">\sin\left(x\right)</span></td>
 
@@ -274,7 +277,7 @@ class HTML:
             if isinstance(row[column], Graphics):
                 print column_tag % row[column].show(linkmode = True)
             elif isinstance(row[column], str):
-                print column_tag % row[column]
+                print column_tag % math_parse(row[column])
             else:
                 print column_tag % ('<span class="math">' + latex(row[column]) + '</span>')
 

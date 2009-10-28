@@ -1626,6 +1626,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         documentation for the global derivative() function for more
         details.
 
+        :meth:`diff` is an alias of this function.
+
         EXAMPLES::
 
             sage: v = vector([1,x,x^2])
@@ -1642,6 +1644,85 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0, 0, 2)
         """
         return multi_derivative(self, args)
+
+    diff = derivative
+
+    def integral(self, *args, **kwds):
+        """
+        Returns a symbolic integral of the vector, component-wise.
+
+        :meth:`integrate` is an alias of the function.
+
+        EXAMPLES::
+
+            sage: t=var('t')
+            sage: r=vector([t,t^2,sin(t)])
+            sage: r.integral(t)
+            (1/2*t^2, 1/3*t^3, -cos(t))
+            sage: integrate(r,t)
+            (1/2*t^2, 1/3*t^3, -cos(t))
+            sage: r.integrate(t,0,1)
+            (1/2, 1/3, -cos(1) + 1)
+
+        """
+        from sage.misc.functional import integral
+
+        # If Cython supported lambda functions, we would just do
+        # return self.apply_map(lambda x: integral(x,*args, **kwds) for x in self)
+
+        if self.is_sparse():
+            v = dict([(i,integral(z,*args,**kwds)) for i,z in self.dict(copy=False).items()])
+        else:
+            v = [integral(z,*args,**kwds) for z in self.list()]
+
+        return vector(v,sparse=self.is_sparse())
+
+    integrate=integral
+
+
+    def nintegral(self, *args, **kwds):
+        """
+        Returns a numeric integral of the vector, component-wise, and
+        the result of the nintegral command on each component of the
+        input.
+
+        :meth:`nintegrate` is an alias of the function.
+
+        EXAMPLES::
+
+            sage: t=var('t')
+            sage: r=vector([t,t^2,sin(t)])
+            sage: vec,answers=r.nintegral(t,0,1)
+            sage: vec
+            (0.5, 0.333333333333, 0.459697694132)
+            sage: type(vec)
+            <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
+            sage: answers
+            [(0.5, 5.5511151231257843e-15, 21, 0),
+            (0.33333333333333343, 3.7007434154171903e-15, 21, 0),
+            (0.45969769413186018, 5.1036696439228408e-15, 21, 0)]
+
+            sage: r=vector([t,0,1], sparse=True)
+            sage: r.nintegral(t,0,1)
+            ((0.5, 0.0, 1.0),
+            {0: (0.5, 5.5511151231257843e-15, 21, 0),
+            2: (1.0, 1.110223024625157e-14, 21, 0)})
+
+        """
+        # If Cython supported lambda functions, we would just do
+        # return self.apply_map(lambda x: x.nintegral(*args, **kwds) for x in self)
+
+        if self.is_sparse():
+            v = [(i,z.nintegral(*args,**kwds)) for i,z in self.dict(copy=False).items()]
+            answers = dict([(i,a[0]) for i,a in v])
+            v=dict(v)
+        else:
+            v = [z.nintegral(*args,**kwds) for z in self.list()]
+            answers = [a[0] for a in v]
+
+        return (vector(answers,sparse=self.is_sparse()), v)
+
+    nintegrate=nintegral
 
 #############################################
 # Generic dense element

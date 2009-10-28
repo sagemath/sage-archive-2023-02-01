@@ -247,11 +247,11 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         reg = lp.Dp_valued_regulator(prec=prec)
         return reg
     else:
+        if self.rank() == 0:
+            return Qp(p,prec)(1)
         if height is None:
             height = self.padic_height(p, prec, check_hypotheses=False)
         d = self.padic_height_pairing_matrix(p=p, prec=prec, height=height, check_hypotheses=False)
-        if d.nrows() == 0:
-            return d.base_ring()(1)
         return d.determinant()
 
 

@@ -318,7 +318,7 @@ class Sha(SageObject):
         - ``prec`` (optional) - the precision used in the computation of the `p`-adic L-Series
 
         - ``use_twists`` (default = True) - If true the algorithm may change
-          use a quadratic twist with minimal conductor to do the modular
+          to a quadratic twist with minimal conductor to do the modular
           symbol computations rather than using the modular symbols of the
           curve itself. If False it forces the computation using the
           modular symbols of the curve itself.
@@ -349,6 +349,11 @@ class Sha(SageObject):
 
             sage: EllipticCurve('11a1').sha().an_padic(11) #rank 0
             1 + O(11)
+
+        Non-split, but rank 0 case (trac #7331)::
+
+            sage: EllipticCurve('270b1').sha().an_padic(5) #rank 0
+            1 + O(5^3)
 
         The output has the correct sign ::
 
@@ -431,7 +436,10 @@ class Sha(SageObject):
             lg = log(K(1+p))
 
             if (self.E.is_good(p) or self.E.ap(p) == -1):
-                eps = (1-arith.kronecker_symbol(D,p)/lp.alpha())**2
+                if not self.E.is_good(p):
+                    eps = 2
+                else:
+                    eps = (1-arith.kronecker_symbol(D,p)/lp.alpha())**2
                 # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series divided by sha:
                 bsdp = tam * reg * eps/tors/lg**r
             else:
@@ -539,9 +547,9 @@ class Sha(SageObject):
         if this algorithm does not fail, then it proves that the `p`-primary
         part of Sha is finite.
 
-        INPUT: ``p`` -- a prime > 3
+        INPUT: ``p`` -- a prime > 2
 
-        OUTPUT:  integer -- power of `p` that bounds `Sha(E)(p)` from above
+        OUTPUT:  integer -- power of `p` that bounds the order of `Sha(E)(p)` from above
 
         The result is a proven upper bound on the order of `Sha(E)(p)`.
         So in particular it proves it finiteness even if the rank of
@@ -549,9 +557,19 @@ class Sha(SageObject):
         if one assumes the main conjecture of Iwasawa theory of
         elliptic curves (and this is known in certain cases).
 
+        Currently the algorithm is only implemented when certain conditions are verified.
+
+        - The mod `p` Galois representation must be surjective.
+        - The reduction at `p` is not allowed to be additive.
+        - If the reduction at `p` is non-split multiplicative, then the rank has to be 0.
+        - If `p=3` then the reduction at 3 must be good ordinary or split multiplicative.
+
+
         EXAMPLES::
 
             sage: e = EllipticCurve('11a3')
+            sage: e.sha().p_primary_bound(3)
+            0
             sage: e.sha().p_primary_bound(7)
             0
             sage: e.sha().p_primary_bound(11)

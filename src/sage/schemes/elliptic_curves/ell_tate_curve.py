@@ -639,15 +639,16 @@ class TateCurve(SageObject):
             2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + 3*5^9 + 3*5^10 + 3*5^12 + 4*5^13 + 3*5^15 + 2*5^16 + 3*5^18 + 4*5^19 + O(5^20)
 
         """
-        if not self.is_split():
-            raise NotImplementedError, "The curve must have split multiplicative reduction"
-
         prec = prec + 4
 
         K = Qp(self._p, prec=prec)
         rank = self._E.rank()
         if rank == 0:
             return K(1)
+
+        if not self.is_split():
+            raise NotImplementedError, "The p-adic regulator is not implemented for non-split multiplicative reduction."
+
 
         basis = self._E.gens()
         M = matrix.matrix(K, rank, rank, 0)

@@ -1,6 +1,6 @@
---- ../src/polybori-0.6/pyroot/polybori/PyPolyBoRi.py	2009-04-28 22:38:30.000000000 +0100
+--- ../src/polybori/pyroot/polybori/PyPolyBoRi.py	2009-10-28 10:47:25.156004052 +0000
 +++ PyPolyBoRi.py	2009-08-20 13:44:41.000000000 +0100
-@@ -1,121 +1,22 @@
+@@ -1,130 +1,22 @@
 -from sys import modules
 -from itertools import chain
 -import re
@@ -122,6 +122,16 @@
 -if compatibility_mode:
 -    GroebnerStrategy.__getattr__=_strategy_getattr
 -    GroebnerStrategy.__setattr__=_strategy_setattr
+-
+-_add_up_polynomials=add_up_polynomials
+-def add_up_polynomials(polys):
+-    if not isinstance(polys, BoolePolynomialVector):
+-        vec = BoolePolynomialVector
+-        for p in polys:
+-            vec.append(p)
+-        polys=vec
+-    return _add_up_polynomials(polys)
+\ No newline at end of file
 +from sage import all
 +from sage.rings.polynomial.pbori import *
 +

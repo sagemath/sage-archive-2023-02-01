@@ -1,6 +1,6 @@
---- ../src/polybori-0.6/SConstruct	2009-07-24 01:26:48.000000000 -0700
-+++ SConstruct	2009-08-27 02:48:19.588518718 -0700
-@@ -146,7 +146,12 @@
+--- /tmp/polybori/SConstruct	2009-10-28 10:47:24.893003797 +0000
++++ SConstruct	2009-10-28 10:56:12.568030415 +0000
+@@ -147,7 +147,13 @@
  opts.Add('CXXFLAGS', "C++ compiler flags",
           "-std=c++98 -ftemplate-depth-100",
           converter = Split)
@@ -11,10 +11,11 @@
 +if os.environ['SAGE64'] == "yes":
 +         opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
 +#End modifications
++
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
  opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
-@@ -320,7 +325,7 @@
+@@ -321,7 +327,7 @@
  Help(opts.GenerateHelpText(env))
  
  have_l2h = have_t4h = False
@@ -23,7 +24,7 @@
  
  if not env.GetOption('clean'):
      conf = Configure(env)
-@@ -510,8 +515,11 @@
+@@ -511,8 +517,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -37,7 +38,7 @@
  
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
-@@ -1269,6 +1277,11 @@
+@@ -1232,6 +1241,11 @@
      env.AlwaysBuild(ipboribin)   
      env.Alias('install', ipboribin)
  

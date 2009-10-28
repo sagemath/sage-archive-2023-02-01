@@ -34,6 +34,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.3-r1647-20091028 (Martin Albrecht, October 29th, 2009) ===
+ * upgraded to current mercurial tip (which did pass the PolyBoRi testsuite last night)
+
 === polybori-0.6.3-20090827 (Martin Albrecht, August 27th, 2009) ===
  * create flags.conf if it doesnt exist
 

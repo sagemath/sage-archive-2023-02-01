@@ -562,7 +562,7 @@ class Sha(SageObject):
         - The mod `p` Galois representation must be surjective.
         - The reduction at `p` is not allowed to be additive.
         - If the reduction at `p` is non-split multiplicative, then the rank has to be 0.
-        - If `p=3` then the reduction at 3 must be good ordinary or split multiplicative.
+        - If `p=3` then the reduction at 3 must be good ordinary or split multiplicative and the rank must be 0.
 
 
         EXAMPLES::

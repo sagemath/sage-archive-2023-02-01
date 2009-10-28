@@ -8962,58 +8962,56 @@ class Graph(GenericGraph):
     r"""
     Undirected graph.
 
-    A Graph is a set of vertices connected by edges
+    A graph is a set of vertices connected by edges
     (cf. http://en.wikipedia.org/wiki/Graph_(mathematics) ).
 
-    One can very easily create a graph in sage by typing::
+    One can very easily create a graph in Sage by typing::
 
-        sage: g=Graph()
+        sage: g = Graph()
 
-    By typing the name of the Graph, one can get some basic information
+    By typing the name of the graph, one can get some basic information
     about it::
 
         sage: g
         Graph on 0 vertices
 
-    This graph is not very interesting as it is by default the empty graph. But
-    Sage contains a large collection of pre-defined graph classes that can be listed
-    this way:
+    This graph is not very interesting as it is by default the empty graph.
+    But Sage contains a large collection of pre-defined graph classes that
+    can be listed this way:
 
-        * Type in Sage : graphs.
-          ( do not press "Enter", and do not forget the final "." )
-        * Hit "tab".
+    * Within a Sage session, type ``graphs.``
+      (Do not press "Enter", and do not forget the final period ".")
+    * Hit "tab".
 
     You will see a list of methods which will construct named graphs. For
     example::
 
-        sage: g=graphs.PetersenGraph()
+        sage: g = graphs.PetersenGraph()
         sage: g.plot()
 
     or::
 
-        sage: g=graphs.ChvatalGraph()
+        sage: g = graphs.ChvatalGraph()
         sage: g.plot()
 
     In order to obtain more information about these graph constructors, access
-    the documentation as follows::
+    the documentation using the command ``graphs.RandomGNP?``.
 
-        sage: graphs.RandomGNP?
+    Once you have defined the graph you want, you can begin to work on it
+    by using the almost 200 functions on graphs in the Sage library!
+    If your graph is named ``g``, you can list these functions as previously
+    this way
 
-    Once you have defined the graph you want, you can begin to work on it by using the
-    almost 200 functions on graphs in the Sage library !
-    If your graph is named ``g``, you can list these functions as previously this way
+    * Within a Sage session, type ``g.``
+      (Do not press "Enter", and do not forget the final period "." )
+    * Hit "tab".
 
-        * Type in Sage : ``g.``
-          ( do not press "Enter", and do not forget the final "." )
-        * Hit "tab".
+    As usual, you can get some information about what these functions do by
+    typing (e.g. if you want to know about the ``diameter()`` method)
+    ``g.diameter?``.
 
-    As usual, you can get some information about what these functions do by typing
-    (e.g. if you want to know about the ``diameter()`` method)::
-
-        sage: g.diameter?
-
-    If you have defined a graph ``g`` having several connected components ( i.e.
-    ``g.is_connected()`` returns False ), you can print each one of its
+    If you have defined a graph ``g`` having several connected components
+    (i.e. ``g.is_connected()`` returns False), you can print each one of its
     connected components with only two lines::
 
         sage: for component in g.connected_components():
@@ -9022,23 +9020,23 @@ class Graph(GenericGraph):
 
     INPUT:
 
-    -  ``data`` -  can be any of the following:
+    -  ``data`` -- can be any of the following:
 
-       #.  A dictionary of dictionaries
+      #.  A dictionary of dictionaries
 
-       #.  A dictionary of lists
+      #.  A dictionary of lists
 
-       #.  A numpy matrix or ndarray
+      #.  A NumPy matrix or ndarray
 
-       #.  A Sage adjacency matrix or incidence matrix
+      #.  A Sage adjacency matrix or incidence matrix
 
-       #.  A pygraphviz agraph
+      #.  A pygraphviz agraph
 
-       #.  A SciPy sparse matrix
+      #.  A SciPy sparse matrix
 
-       #.  A NetworkX digraph
+      #.  A NetworkX digraph
 
-    -  ``pos`` - a positioning dictionary: for example, the
+    -  ``pos`` -  a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
          {0: [-0.91679746, 0.88169588],
@@ -9048,16 +9046,16 @@ class Graph(GenericGraph):
           4: [-1.125     ,-0.50118505]}
 
     -  ``name`` - (must be an explicitly named parameter,
-       i.e., name="complete") gives the graph a name
+       i.e., ``name="complete")`` gives the graph a name
 
     -  ``loops`` - boolean, whether to allow loops (ignored
-       if data is an instance of the Graph class)
+       if data is an instance of the ``Graph`` class)
 
     -  ``multiedges`` - boolean, whether to allow multiple
-       edges (ignored if data is an instance of the Graph class)
+       edges (ignored if data is an instance of the ``Graph`` class)
 
     -  ``weighted`` - whether graph thinks of itself as
-       weighted or not. See self.weighted()
+       weighted or not. See ``self.weighted()``
 
     -  ``format`` - if None, Graph tries to guess- can be
        several values, including:
@@ -9103,7 +9101,9 @@ class Graph(GenericGraph):
        only the integers 0, ..., n-1, where n is the number of vertices.
 
 
-    EXAMPLES: We illustrate the first six input formats (the other two
+    EXAMPLES:
+
+    We illustrate the first six input formats (the other two
     involve packages that are currently not standard in Sage):
 
     #. A dictionary of dictionaries::
@@ -9170,7 +9170,7 @@ class Graph(GenericGraph):
           [1 0 1 1 0 1]
           [0 1 1 1 1 0]
 
-    #. A numpy matrix or ndarray::
+    #. A NumPy matrix or ndarray::
 
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
@@ -10876,62 +10876,60 @@ class DiGraph(GenericGraph):
     """
     Directed graph.
 
-    A DiGraph is a set of vertices connected by oriented edges
-    (cf. http://en.wikipedia.org/wiki/Digraph_%28mathematics%29 ).
+    A digraph or directed graph is a set of vertices connected by oriented
+    edges (cf. http://en.wikipedia.org/wiki/Digraph_%28mathematics%29 ).
 
-    One can very easily create a directed graph in sage by typing::
+    One can very easily create a directed graph in Sage by typing::
 
-        sage: g=DiGraph()
+        sage: g = DiGraph()
 
-    By typing the name of the DiGraph, one can get some basic information
+    By typing the name of the digraph, one can get some basic information
     about it::
 
         sage: g
         Digraph on 0 vertices
 
-    This digraph is not very interesting as it is by default the empty graph. But
-    Sage contains several pre-defined digraph classes that can be listed
-    this way:
+    This digraph is not very interesting as it is by default the empty
+    graph. But Sage contains several pre-defined digraph classes that can
+    be listed this way:
 
-        * Type in Sage : digraphs.
-          ( do not press "Enter", and do not forget the final "." )
-        * Hit "tab".
+    * Within a Sage sessions, type ``digraphs.``
+      (Do not press "Enter", and do not forget the final period "." )
+    * Hit "tab".
 
     You will see a list of methods which will construct named digraphs. For
     example::
 
-        sage: g=digraphs.ButterflyGraph(3)
+        sage: g = digraphs.ButterflyGraph(3)
         sage: g.plot()
 
-    You can also use the collection of pre-defined graphs, then create a DiGraph
-    from them. ::
+    You can also use the collection of pre-defined graphs, then create a
+    digraph from them. ::
 
-        sage: g=DiGraph(graphs.PetersenGraph())
+        sage: g = DiGraph(graphs.PetersenGraph())
         sage: g.plot()
 
-    Calling ``Digraph`` on a graph returns the original graph in which every edge
-    is replaced by two different edges going toward opposite directions.
+    Calling ``Digraph`` on a graph returns the original graph in which every
+    edge is replaced by two different edges going toward opposite directions.
 
-    In order to obtain more information about these degraph constructors, access
-    the documentation as follows::
+    In order to obtain more information about these digraph constructors,
+    access the documentation by typing ``digraphs.RandomDirectedGNP?``.
 
-        sage: digraphs.RandomDirectedGNP?
+    Once you have defined the digraph you want, you can begin to work on it
+    by using the almost 200 functions on graphs and digraphs in the Sage
+    library! If your digraph is named ``g``, you can list these functions as
+    previously this way
 
-    Once you have defined the digraph you want, you can begin to work on it by using the
-    almost 200 functions on graphs and digraphs in the Sage library !
-    If your digraph is named ``g``, you can list these functions as previously this way
+    * Within a Sage session, type ``g.``
+      (Do not press "Enter", and do not forget the final period "." )
+    * Hit "tab".
 
-        * Type in Sage : ``g.``
-          ( do not press "Enter", and do not forget the final "." )
-        * Hit "tab".
+    As usual, you can get some information about what these functions do by
+    typing (e.g. if you want to know about the ``diameter()`` method)
+    ``g.diameter?``.
 
-    As usual, you can get some information about what these functions do by typing
-    (e.g. if you want to know about the ``diameter()`` method)::
-
-        sage: g.diameter?
-
-    If you have defined a digraph ``g`` having several connected components ( i.e.
-    ``g.is_connected()`` returns False ), you can print each one of its
+    If you have defined a digraph ``g`` having several connected components
+    ( i.e. ``g.is_connected()`` returns False ), you can print each one of its
     connected components with only two lines::
 
         sage: for component in g.connected_components():

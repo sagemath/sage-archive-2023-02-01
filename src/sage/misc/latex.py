@@ -260,8 +260,29 @@ def dict_function(x):
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
 
+def float_function(x):
+    r"""
+    Returns the LaTeX code for a python float ``x``.
+
+    INPUT: ``x`` - a python float
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import float_function
+        sage: float_function(float(3.14))
+        3.14000000000000
+        sage: float_function(float(1e-10))
+        1.00000000000000 \times 10^{-10}
+        sage: float_function(float(2e10))
+        2.00000000000000 \times 10^{10}
+        sage: latex(float(2e-13))
+        2.00000000000000 \times 10^{-13}
+    """
+    from sage.all import RR
+    return latex(RR(x))
+
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
-               str: str_function, int:str, long:str, float:str, dict: dict_function}
+               str: str_function, int:str, long:str, float:float_function, dict: dict_function}
 
 class LatexExpr(str):
     """

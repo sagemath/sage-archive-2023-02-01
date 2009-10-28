@@ -60,10 +60,10 @@ EXAMPLES::
 Sage can perform a number of operations on simplicial complexes, such
 as the join and the product, and it can also compute homology::
 
-    sage: S = SimplicialComplex(3, [[0,1], [1,2], [0,2]]) # circle
+    sage: S = SimplicialComplex(2, [[0,1], [1,2], [0,2]]) # circle
     sage: T = S.product(S)  # torus
     sage: T
-    Simplicial complex with 16 vertices and 18 facets
+    Simplicial complex with 9 vertices and 18 facets
     sage: T.homology()   # this computes reduced homology
     {0: 0, 1: Z x Z, 2: Z}
     sage: T.euler_characteristic()
@@ -1507,7 +1507,8 @@ class SimplicialComplex(SageObject):
     def betti(self, dim=None, subcomplex=None):
         """
         The Betti numbers of this simplicial complex as a dictionary
-        (or a single Betti number, if only one dimension is given).
+        (or a single Betti number, if only one dimension is given):
+        the ith Betti number is the rank of the ith homology group.
 
         :param dim: If None, then return every Betti number, as a
            dictionary with keys the non-negative integers.  If ``dim``
@@ -1531,7 +1532,7 @@ class SimplicialComplex(SageObject):
 
             sage: S = SimplicialComplex(1, [[0], [1]])
             sage: (S*S*S).betti()
-            {0: 0, 1: 0, 2: 1}
+            {0: 1, 1: 0, 2: 1}
             sage: (S*S*S).betti([1,2])
             {1: 0, 2: 1}
             sage: (S*S*S).betti(2)
@@ -1542,6 +1543,8 @@ class SimplicialComplex(SageObject):
         try:
             for n in H.keys():
                 dict[n] = H[n].dimension()
+                if n == 0:
+                    dict[n] += 1
             return dict
         except AttributeError:
             return H.dimension()

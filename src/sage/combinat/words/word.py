@@ -2247,28 +2247,35 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: w = Word('111')
             sage: for i in range(5) : w.rauzy_graph(i)
+            Looped multi-digraph on 1 vertex
             Looped digraph on 1 vertex
             Looped digraph on 1 vertex
             Looped digraph on 1 vertex
-            Looped digraph on 1 vertex
-            Looped multi-digraph on 0 vertices
+            Looped digraph on 0 vertices
 
+        Multi-edges are allowed for the empty word::
+
+            sage: W = Words('abcde')
+            sage: w = W('abc')
+            sage: w.rauzy_graph(0)
+            Looped multi-digraph on 1 vertex
+            sage: _.edges()
+            [(word: , word: , word: a),
+             (word: , word: , word: b),
+             (word: , word: , word: c)]
         """
-        d = {}
+        from sage.graphs.graph import DiGraph
+        multiedges = True if n == 0 else False
+        g = DiGraph(loops=True, multiedges=multiedges)
         if n == self.length():
-            d[self] = []
+            g.add_vertex(self)
         else:
             for w in self.factor_iterator(n+1):
                 u = w[:-1]
                 v = w[1:]
                 a = w[-1:]
-                if d.has_key(u):
-                    d[u][v] = a
-                else:
-                    d[u] = {v:a}
-
-        from sage.graphs.graph import DiGraph
-        return DiGraph(d, loops=True)
+                g.add_edge(u,v,a)
+        return g
 
     def commutes_with(self, other):
         r"""

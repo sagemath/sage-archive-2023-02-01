@@ -1,2 +1,36 @@
+= Django =
+
+== Description ==
+
+PIL (Python Imaging Library) is a widely used imaging library for Python.
+
+== License ==
+
+BSD License (http://www.pythonware.com/library/pil/handbook/license.htm)
+
+== SPKG Maintainers ==
+
+William Stein <wstein@gmail.com>, Tim Dumol <tim@timdumol.com>
+
+== Upstream Contact ==
+
+PIL
+Author: Pythonware <http://www.pythonware.com>
+Homepage: http://www.pythonware.com/library/index.htm
+
+== Dependencies ==
+
+Depends on libjpeg>=7, libtiff>=3.9.1, libpng>=1.2.*
+
+== Special Update/Build Instructions ==
+
+None.
+
+== Changelog ==
+
+=== pil-1.1.6 (Tim Dumol, October 29, 2008) ===
+  * Changed SPKG and spkg-install to depend on libjpeg, libtiff and
+    libpng. Disabled TCL/TK support.
+
 === pil-1.1.6 (William Stein, November, 2008) ===
   * initial version, straight from website with no changes

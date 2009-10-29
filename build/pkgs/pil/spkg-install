@@ -1,11 +1,29 @@
 #!/usr/bin/env sh
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+success() {
+    if [ $? -ne 0 ]; then
+        echo "Error building Django: '$1'"
+        exit 1
+    fi
+}
+
+set +e
+
+echo "Deleting old versions..."
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/PIL
+rm -f "$SAGE_LOCAL"/lib/python/site-packages/PIL.pth
+success "Error deleting previous version"
+
 cd src
 
+cp ../patches/setup.py .
 python setup.py install
+success "Error installing PIL"
 
-if [ $? -ne 0 ]; then
-     echo "Try again without tkinter"
-     cp ../patches/setup.py .
-     python setup.py install
-fi
+set -e

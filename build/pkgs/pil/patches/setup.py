@@ -34,11 +34,12 @@ def libinclude(root):
 #
 # TIFF_ROOT = libinclude("/opt/tiff")
 
-FREETYPE_ROOT = None
-JPEG_ROOT = None
-TIFF_ROOT = None
-ZLIB_ROOT = None
-TCL_ROOT = None
+FREETYPE_ROOT = libinclude(os.environ['SAGE_LOCAL'])
+JPEG_ROOT = libinclude(os.environ['SAGE_LOCAL'])
+TIFF_ROOT = libinclude(os.environ['SAGE_LOCAL'])
+ZLIB_ROOT = libinclude(os.environ['SAGE_LOCAL'])
+# Disables TCL
+TCL_ROOT = 'NOWHERE'
 
 # FIXME: add mechanism to explicitly *disable* the use of a library
 
@@ -85,13 +86,13 @@ from distutils import sysconfig
 from distutils.core import Extension, setup
 from distutils.command.build_ext import build_ext
 
-try:
-    import _tkinter
-except ImportError:
-    _tkinter = None
-
-# Force None, so don't build tk -- this helps on some platforms.
+# Disables TCL/TK
+# try:
+#     import _tkinter
+# except ImportError:
+#     _tkinter = None
 _tkinter = None
+
 
 def add_directory(path, dir, where=None):
     if dir and os.path.isdir(dir) and dir not in path:
@@ -124,63 +125,63 @@ class pil_build_ext(build_ext):
         add_directory(include_dirs, "libImaging")
 
         #
-        # add platform directories
+        # Don't add platform directories
 
-        if sys.platform == "cygwin":
-            # pythonX.Y.dll.a is in the /usr/lib/pythonX.Y/config directory
-            add_directory(library_dirs, os.path.join(
-                "/usr/lib", "python%s" % sys.version[:3], "config"
-                ))
+        # if sys.platform == "cygwin":
+        #     # pythonX.Y.dll.a is in the /usr/lib/pythonX.Y/config directory
+        #     add_directory(library_dirs, os.path.join(
+        #         "/usr/lib", "python%s" % sys.version[:3], "config"
+        #         ))
 
-        elif sys.platform == "darwin":
-            # attempt to make sure we pick freetype2 over other versions
-            add_directory(include_dirs, "/sw/include/freetype2")
-            add_directory(include_dirs, "/sw/lib/freetype2/include")
-            # fink installation directories
-            add_directory(library_dirs, "/sw/lib")
-            add_directory(include_dirs, "/sw/include")
-            # darwin ports installation directories
-            add_directory(library_dirs, "/opt/local/lib")
-            add_directory(include_dirs, "/opt/local/include")
+        # elif sys.platform == "darwin":
+        #     # attempt to make sure we pick freetype2 over other versions
+        #     add_directory(include_dirs, "/sw/include/freetype2")
+        #     add_directory(include_dirs, "/sw/lib/freetype2/include")
+        #     # fink installation directories
+        #     add_directory(library_dirs, "/sw/lib")
+        #     add_directory(include_dirs, "/sw/include")
+        #     # darwin ports installation directories
+        #     add_directory(library_dirs, "/opt/local/lib")
+        #     add_directory(include_dirs, "/opt/local/include")
 
-        add_directory(library_dirs, "/usr/local/lib")
-        # FIXME: check /opt/stuff directories here?
+        # add_directory(library_dirs, "/usr/local/lib")
+        # # FIXME: check /opt/stuff directories here?
 
-        prefix = sysconfig.get_config_var("prefix")
-        if prefix:
-            add_directory(library_dirs, os.path.join(prefix, "lib"))
-            add_directory(include_dirs, os.path.join(prefix, "include"))
+        # prefix = sysconfig.get_config_var("prefix")
+        # if prefix:
+        #     add_directory(library_dirs, os.path.join(prefix, "lib"))
+        #     add_directory(include_dirs, os.path.join(prefix, "include"))
 
-        #
+        # Disable TCL/TK
         # locate tkinter libraries
 
-        if _tkinter:
-            TCL_VERSION = _tkinter.TCL_VERSION[:3]
+        # if _tkinter:
+        #     TCL_VERSION = _tkinter.TCL_VERSION[:3]
 
-        if _tkinter and not TCL_ROOT:
-            # we have Tkinter but the TCL_ROOT variable was not set;
-            # try to locate appropriate Tcl/Tk libraries
-            PYVERSION = sys.version[0] + sys.version[2]
-            TCLVERSION = TCL_VERSION[0] + TCL_VERSION[2]
-            roots = [
-                # common installation directories, mostly for Windows
-                # (for Unix-style platforms, we'll check in well-known
-                # locations later)
-                os.path.join("/py" + PYVERSION, "Tcl"),
-                os.path.join("/python" + PYVERSION, "Tcl"),
-                "/Tcl", "/Tcl" + TCLVERSION, "/Tcl" + TCL_VERSION,
-                os.path.join(os.environ.get("ProgramFiles", ""), "Tcl"),
-                ]
-            for TCL_ROOT in roots:
-                TCL_ROOT = os.path.abspath(TCL_ROOT)
-                if os.path.isfile(os.path.join(TCL_ROOT, "include", "tk.h")):
-                    # FIXME: use distutils logging (?)
-                    print "--- using Tcl/Tk libraries at", TCL_ROOT
-                    print "--- using Tcl/Tk version", TCL_VERSION
-                    TCL_ROOT = libinclude(TCL_ROOT)
-                    break
-            else:
-                TCL_ROOT = None
+        # if _tkinter and not TCL_ROOT:
+        #     # we have Tkinter but the TCL_ROOT variable was not set;
+        #     # try to locate appropriate Tcl/Tk libraries
+        #     PYVERSION = sys.version[0] + sys.version[2]
+        #     TCLVERSION = TCL_VERSION[0] + TCL_VERSION[2]
+        #     roots = [
+        #         # common installation directories, mostly for Windows
+        #         # (for Unix-style platforms, we'll check in well-known
+        #         # locations later)
+        #         os.path.join("/py" + PYVERSION, "Tcl"),
+        #         os.path.join("/python" + PYVERSION, "Tcl"),
+        #         "/Tcl", "/Tcl" + TCLVERSION, "/Tcl" + TCL_VERSION,
+        #         os.path.join(os.environ.get("ProgramFiles", ""), "Tcl"),
+        #         ]
+        #     for TCL_ROOT in roots:
+        #         TCL_ROOT = os.path.abspath(TCL_ROOT)
+        #         if os.path.isfile(os.path.join(TCL_ROOT, "include", "tk.h")):
+        #             # FIXME: use distutils logging (?)
+        #             print "--- using Tcl/Tk libraries at", TCL_ROOT
+        #             print "--- using Tcl/Tk version", TCL_VERSION
+        #             TCL_ROOT = libinclude(TCL_ROOT)
+        #             break
+        #     else:
+        #         TCL_ROOT = None
 
         #
         # add configured kits
@@ -196,11 +197,11 @@ class pil_build_ext(build_ext):
         #
         # add standard directories
 
-        add_directory(library_dirs, "/usr/local/lib")
-        add_directory(include_dirs, "/usr/local/include")
+        # add_directory(library_dirs, "/usr/local/lib")
+        # add_directory(include_dirs, "/usr/local/include")
 
-        add_directory(library_dirs, "/usr/lib")
-        add_directory(include_dirs, "/usr/include")
+        # add_directory(library_dirs, "/usr/lib")
+        # add_directory(include_dirs, "/usr/include")
 
         #
         # insert new dirs *before* default libs, to avoid conflicts

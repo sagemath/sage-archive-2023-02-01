@@ -1,0 +1,84 @@
+"""
+Plotting 3D fields
+"""
+#*****************************************************************************
+#       Copyright (C) 2009 Jason Grout <jason-sage@creativetrax.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.misc.misc import srange
+from matplotlib.cm import get_cmap
+from matplotlib.colors import LinearSegmentedColormap
+from sage.plot.misc import setup_for_eval_on_grid
+from sage.modules.free_module_element import vector
+from sage.plot.plot import plot
+
+def plot_vector_field3d(functions, xrange, yrange, zrange,
+                        plot_points=5, colors='jet', center_arrows=False,**kwds):
+    r"""
+    Plot a 3d vector field
+
+    INPUT:
+
+    - ``functions`` - a list of three functions, representing the x-,
+      y-, and z-coordinates of a vector
+
+    - ``xrange``, ``yrange``, and ``zrange`` - three tuples of the
+      form (var, start, stop), giving the variables and ranges for each axis
+
+    - ``plot_points`` (default 5) - either a number or list of three
+      numbers, specifying how many points to plot for each axis
+
+    - ``colors`` (default 'jet') - a color, list of colors (which are
+      interpolated between), or matplotlib colormap name, giving the coloring
+      of the arrows.  If a list of colors or a colormap is given,
+      coloring is done as a function of length of the vector
+
+    - ``center_arrows`` (default False) - If True, draw the arrows
+      centered on the points; otherwise, draw the arrows with the tail
+      at the point
+
+    - any other keywords are passed on to the plot command for each arrow
+
+    EXAMPLES::
+
+        sage: x,y,z=var('x y z')
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi))
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),colors=['red','green','blue'])
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),colors='red')
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),plot_points=4)
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),plot_points=[3,5,7])
+        sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),center_arrows=True)
+    """
+    (ff,gg,hh), ranges = setup_for_eval_on_grid(functions, [xrange, yrange, zrange], plot_points)
+    xpoints, ypoints, zpoints = [srange(*r, include_endpoint=True) for r in ranges]
+    points = [vector((i,j,k)) for i in xpoints for j in ypoints for k in zpoints]
+    vectors = [vector((ff(*point), gg(*point), hh(*point))) for point in points]
+
+    try:
+        cm=get_cmap(colors)
+        assert(cm is not None)
+    except (TypeError, AssertionError):
+        if isinstance(colors, (list, tuple)):
+            cm=LinearSegmentedColormap.from_list('mymap',colors)
+        else:
+            cm = lambda x: colors
+
+    max_len = max(v.norm() for v in vectors)
+    scaled_vectors = [v/max_len for v in vectors]
+
+    if center_arrows:
+        return sum([plot(v,color=cm(v.norm()),**kwds).translate(p-v/2) for v,p in zip(scaled_vectors, points)])
+    else:
+        return sum([plot(v,color=cm(v.norm()),**kwds).translate(p) for v,p in zip(scaled_vectors, points)])
+

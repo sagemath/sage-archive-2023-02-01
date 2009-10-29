@@ -8,7 +8,7 @@ fi
 
 success() {
     if [ $? -ne 0 ]; then
-        echo "Error building Django: '$1'"
+        echo "Error building PIL: '$1'"
         exit 1
     fi
 }
@@ -24,6 +24,12 @@ cd src
 
 cp ../patches/setup.py .
 python setup.py install
+
+if [ $? -ne 0 ]; then
+    export SAGE_PIL_NOTK='yes'
+    python setup.py install
+fi
+
 success "Error installing PIL"
 
 set -e

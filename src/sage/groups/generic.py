@@ -934,29 +934,24 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
 #
 ################################################################
 
-def order_from_multiple(P, m, plist=None, operation='+',
-                         identity=None, inverse=None, op=None):
+def order_from_multiple(P, m, plist=None, factorization=None, check=True,
+                        operation='+'):
     r"""
     Generic function to find order of a group element given a multiple
     of its order.
 
     INPUT:
 
-    - ``P`` - a Sage object which is a group element
+    - ``P`` - a Sage object which is a group element;
     - ``m`` - a Sage integer which is a multiple of the order of ``P``,
-      i.e. we require that ``m*P=0`` (or ``P**m=1``).
-    - ``plist`` - a list of the prime factors of ``m``, or ``None``, in
-      which case this function will need to factor ``m``.
-    - ``operation`` - string: '+' (default ) or '*' or other.
-      If other, the following must be supplied:
-
-      - ``identity``: the identity element for the group;
-
-      - ``inverse()``: a function of one argument giving
-        the inverse of a group element;
-
-      - ``op()``: a function of 2 arguments defining
-        the group binary operation.
+      i.e. we require that ``m*P=0`` (or ``P**m=1``);
+    - ``check`` - a Boolean (default:True), indicating wether we check if ``m``
+      really is a multiple of the order;
+    - ``factorization`` - the factorization of ``m``, or ``None`` in which
+      case this function will need to factor ``m``;
+    - ``plist`` - a list of the prime factors of ``m``, or ``None`` - kept for compatibility only,
+      prefer the use of ``factorization``;
+    - ``operation`` - string: '+' (default) or '*'.
 
     .. note::
 
@@ -973,11 +968,11 @@ def order_from_multiple(P, m, plist=None, operation='+',
         sage: P = E(3*a^4 + 3*a , 2*a + 1 )
         sage: M = E.cardinality(); M
         3227
-        sage: plist = M.prime_factors()
-        sage: order_from_multiple(P, M, plist, operation='+')
+        sage: F = M.factor()
+        sage: order_from_multiple(P, M, factorization=F, operation='+')
         3227
         sage: Q = E(0,2)
-        sage: order_from_multiple(Q, M, plist, operation='+')
+        sage: order_from_multiple(Q, M, factorization=F, operation='+')
         7
 
         sage: K.<z>=CyclotomicField(230)
@@ -987,36 +982,38 @@ def order_from_multiple(P, m, plist=None, operation='+',
 
         sage: F=GF(2^1279,'a')
         sage: n=F.cardinality()-1 # Mersenne prime
-        sage: order_from_multiple(F.random_element(),n,[n],operation='*')==n
+        sage: order_from_multiple(F.random_element(),n,factorization=[(n,1)],operation='*')==n
         True
+
+        sage: K.<a> = GF(3^60)
+        sage: order_from_multiple(a, 3^60-1, operation='*', check=False)
+        42391158275216203514294433200
     """
     from operator import mul, add
     Z = integer_ring.ZZ
 
     if operation in multiplication_names:
-        op = mul
         identity = P.parent()(1)
     elif operation in addition_names:
-        op = add
         identity = P.parent()(0)
     else:
-        if op==None:
-            raise ValueError, "operation and identity must be specified"
+        raise ValueError, "unknown group operation"
 
-    N=Z(1)
     if P == identity:
-        return N
+        return Z(1)
 
     M=Z(m)
-    assert multiple(P,M,operation=operation) == identity
+    if check:
+        assert multiple(P,M,operation=operation) == identity
 
-    if plist==None:
-        F = M.factor()
-        plist = [p for p,e in F]
-    else:
+    if factorization:
+        F = factorization
+    elif plist:
         F = [(p,M.valuation(p)) for p in plist]
+    else:
+        F = M.factor()
 
-    if M == plist[0]:
+    if len(F) == 1 and list(F) == [(M,1)]:
         return M
 
     # Efficiency improvement (2009-10-27, implemented by Yann Laigle-Chapuy):

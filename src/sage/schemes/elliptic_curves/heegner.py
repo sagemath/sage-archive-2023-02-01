@@ -6543,6 +6543,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     verbose("CPS bound = %s"%B)
     H = h
     p = 3
+    from sage.all import next_prime
     while True:
         c = h/(2*p**2) + B
         if c < max_height:

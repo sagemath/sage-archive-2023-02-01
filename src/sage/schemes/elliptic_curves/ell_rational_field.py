@@ -5404,8 +5404,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x+=1
         return ans
 
-    def prove_BSD(self, verbosity=0, simon=False, proof=None):
-        """
+    def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
+        r"""
         Attempts to prove the Birch and Swinnerton-Dyer conjectural
         formula for `E`, returning a list of primes `p` for which this
         function fails to prove BSD(E,p).  Here, BSD(E,p) is the
@@ -5423,24 +5423,64 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             - ``simon`` - bool (default False), whether to use two_descent or
               simon_two_descent at p=2.
 
-        -  ``proof`` - bool or None (default: None, see
-           proof.elliptic_curve or sage.structure.proof). If False, this
-           function just immediately returns the empty list.
+            - ``proof`` - bool or None (default: None, see
+              proof.elliptic_curve or sage.structure.proof). If False, this
+              function just immediately returns the empty list.
 
-        EXAMPLE::
+            - ``secs_hi`` - maximum number of seconds to try to compute the
+              Heegner index before switching over to trying to compute the
+              Heegner index bound. (Rank 0 only!)
+
+        NOTE:
+
+        When printing verbose output, phrases such as "by Mazur" are referring
+        to the following list of papers:
+
+        REFERENCES:
+
+        .. [Cha] B. Cha. Vanishing of some cohomology goups and bounds for the
+           Shafarevich-Tate groups of elliptic curves. J. Number Theory, 111:154-
+           178, 2005.
+        .. [Jetchev] D. Jetchev. Global divisibility of Heegner points and
+           Tamagawa numbers. Compos. Math. 144 (2008), no. 4, 811--826.
+        .. [Kato] K. Kato. p-adic Hodge theory and values of zeta functions of
+           modular forms. Astérisque, (295):ix, 117-290, 2004.
+        .. [Kolyvagin] V. A. Kolyvagin. On the structure of Shafarevich-Tate
+           groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
+           Springer, Berlin, 1991.
+        .. [LumStein] A. Lum, W. Stein. Verification of the Birch and
+           Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
+           Multiplication (unpublished)
+        .. [Mazur] B. Mazur. Modular curves and the Eisenstein ideal. Inst.
+           Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
+        .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
+           imaginary quadratic fields. Invent. Math. 103 (1991), no. 1, 25--68.
+        .. [SteinWuthrich] W. Stein and C. Wuthrich. Computations about
+           Tate-Shafarevich groups using Iwasawa theory.
+           http://wstein.org/papers/shark, February 2008.
+        .. [SteinEtAl] G. Grigorov, A. Jorza, S. Patrikis, W. Stein,
+           C. Tarniţǎ. Computational verification of the Birch and
+           Swinnerton-Dyer conjecture for individual elliptic curves.
+           Math. Comp. 78 (2009), no. 268, 2397--2425.
+
+
+        EXAMPLES::
 
             sage: EllipticCurve('11a').prove_BSD(verbosity=2)
-            p = 2: true by 2-descent
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 5} by Kolyvagin.
             True for p=5 by Mazur
-            []
+            Remaining primes:
+            p = 2: irreducible, surjective, good, non-ordinary
+            [2]
 
             sage: EllipticCurve('14a').prove_BSD(verbosity=2)
-            p = 2: true by 2-descent
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 3} by Kolyvagin.
             Remaining primes:
-            p = 3: reducible, surjective, good ordinary
-            [3]
+            p = 2: reducible, surjective, non-split multiplicative, divides a Tamagawa number
+            p = 3: reducible, surjective, good ordinary, divides a Tamagawa number
+            [2, 3]
 
         A rank two curve::
 
@@ -5460,10 +5500,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('19a')
             sage: E.prove_BSD(verbosity=2)
-            p = 2: true by 2-descent
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 3} by Kolyvagin.
             True for p=3 by Mazur
-            []
+            Remaining primes:
+            p = 2: irreducible, surjective, good, non-ordinary
+            [2]
 
             sage: E = EllipticCurve('37a')
             sage: E.rank()
@@ -5493,32 +5535,61 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: S.an = lambda : 4
             sage: E.prove_BSD()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: ord2(#Sha) was computed to be 0, but ord2(#Sha_an) is 2 for this curve (Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field)! This may be a counterexample to BSD, but is more likely a bug.
+            [2]
 
         An example with a Tamagawa number at 5::
 
             sage: E = EllipticCurve('123a1')
             sage: E.prove_BSD(verbosity=2)
-            p = 2: true by 2-descent
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 5} by Kolyvagin.
             Remaining primes:
-            p = 5: reducible, surjective, good ordinary
-            [5]
+            p = 2: irreducible, surjective, good, non-ordinary
+            p = 5: reducible, surjective, good ordinary, divides a Tamagawa number
+            [2, 5]
 
         A curve for which 3 divides the order of the Shafarevich-Tate group::
 
             sage: E = EllipticCurve('681b')
             sage: E.prove_BSD(verbosity=2)               # long time
-            p = 2: true by 2-descent
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 3} by Kolyvagin.
             ALERT: p = 3 left in Kolyvagin bound
-                ord_p(#Sha) <= 4
+                0 <= ord_p(#Sha) <= 2
                 ord_p(#Sha_an) = 2
             Remaining primes:
+            p = 2: reducible, surjective, good ordinary, divides a Tamagawa number
             p = 3: irreducible, surjective, non-split multiplicative
-            [3]
+            [2, 3]
+
+        A curve for which we need to use ``heegner_index_bound``::
+
+            sage: E = EllipticCurve('198b')
+            sage: E.prove_BSD(verbosity=1, secs_hi=1)
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
+            Timeout stopped Heegner index computation...
+            Proceeding to use heegner_index_bound instead.
+            True for p not in {2, 3} by Kolyvagin.
+            [2, 3]
+
+        TESTS::
+
+            sage: E = EllipticCurve('438e1')
+            sage: E.prove_BSD(verbosity=1)
+            p = 2: mwrank did not achieve a tight bound on the Selmer rank.
+            True for p not in {2} by Kolyvagin.
+            [2]
+
+        ::
+
+            sage: E = EllipticCurve('960d1')
+            sage: E.prove_BSD(verbosity=1)
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
+            Timeout stopped Heegner index computation...
+            Proceeding to use heegner_index_bound instead.
+            True for p not in {2} by Kolyvagin.
+            [2]
+
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -5537,8 +5608,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else:
                 raise RuntimeError("Rank can't be computed precisely using Simon's program.")
         else:
-            self.two_descent(False)
-            two_sel_rk = self.mwrank_curve().selmer_rank_bound() + two_tor_rk
+            two_sel_rk_bd = self.mwrank_curve().selmer_rank_bound()
             rank = self.rank()
         if rank > 1:
             # We do not know BSD(E,p) for even a single p, since it's
@@ -5558,16 +5628,82 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         N = self.conductor()
 
         # p = 2
-        sha_ord_2 = two_sel_rk - rank - two_tor_rk
-        if sha_an.ord(2) == sha_ord_2:
+        if two_sel_rk_bd > rank:
             if verbosity > 0:
-                print 'p = 2: true by 2-descent'
+                print 'p = 2: mwrank did not achieve a tight bound on the Selmer rank.'
+            two_proven = False
+        elif two_sel_rk_bd < rank:
+            raise RuntimeError("MWrank seems to have computed an incorrect lower bound of %d on the rank."%two_sel_rk_bd)
         else:
-            raise RuntimeError("ord2(#Sha) was computed to be %d, but ord2(#Sha_an) is %d for this curve (%s)! This may be a counterexample to BSD, but is more likely a bug."%(sha_ord_2,sha_an.ord(2),self))
+            # until we can easily access the computed rank of Sha[2]:
+            two_proven = False
+            if verbosity > 0:
+                print 'p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank'
 
         # reduce set of remaining primes to a finite set
+        import signal
         remaining_primes = []
         kolyvagin_primes = []
+        heegner_index = None
+        if self.rank() == 0:
+            try:
+                old_alarm = signal.alarm(secs_hi)
+                old_alarm_set = (old_alarm != 0)
+                for D in self.heegner_discriminants_list(10):
+                    I = self.heegner_index(D)
+                    J = I.is_int()
+                    if J[0] and J[1]>0:
+                        I = J[1]
+                    else:
+                        J = (2*I).is_int()
+                        if J[0] and J[1]>0:
+                            I = J[1]
+                        else:
+                            I = None
+                    if I is not None:
+                        if heegner_index is None:
+                            heegner_index = I
+                            break # no big long loops just yet...
+                old_alarm_sub = signal.alarm(0)
+                if old_alarm_set:
+                    old_alarm -= old_alarm_sub
+            except KeyboardInterrupt:
+                if signal.alarm(0)==0:
+                    print 'Timeout stopped Heegner index computation...'
+                    print 'Proceeding to use heegner_index_bound instead.'
+                else:
+                    raise KeyboardInterrupt
+            if old_alarm_set: # in case alarm was already set...
+                if old_alarm <= 0:
+                    raise KeyboardInterrupt
+                signal.alarm(old_alarm)
+            if heegner_index is None:
+                for D in self.heegner_discriminants_list(100):
+                    heegner_primes, _ = self.heegner_index_bound(D)
+                    if isinstance(heegner_primes, list):
+                        break
+                if not isinstance(heegner_primes, list):
+                    raise RuntimeError("Tried 100 Heegner discriminants, and heegner_index_bound failed each time.")
+                if 2 in heegner_primes:
+                    heegner_primes.remove(2)
+            else:
+                heegner_primes = [p for p in arith.prime_divisors(heegner_index) if p!=2]
+        else: # rank 1
+            for D in self.heegner_discriminants_list(10):
+                I = self.heegner_index(D)
+                J = I.is_int()
+                if J[0] and J[1]>0:
+                    I = J[1]
+                else:
+                    J = (2*I).is_int()
+                    if J[0] and J[1]>0:
+                        I = J[1]
+                    else:
+                        continue
+                heegner_index = I
+                break
+            heegner_primes = [p for p in arith.prime_divisors(heegner_index) if p!=2]
+
         if self.has_cm():
             # ensure that CM is by a maximal order
             non_max_j_invs = [-12288000, 54000, 287496, 16581375]
@@ -5595,43 +5731,50 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     if p >= 5:
                         remaining_primes.append(p)
                 for p in arith.prime_divisors(D_E):
-                    if D_K%p and len(K.factor(p)) == 1: # p is inert in K
-                        remaining_primes.append(5)
-                D = E.heegner_discriminants_list(1)[0]
-                I = E.heegner_index(D).is_int()
-                if I[0]: I = I[1]
-                else: raise RuntimeError("Heegner index was not an integer.")
-                for p in arith.prime_divisors(I):
+                    if p >= 5 and D_K%p and len(K.factor(p)) == 1: # p is inert in K
+                        remaining_primes.append(p)
+                for p in heegner_primes:
                     if p >= 5 and D_E%p != 0 and D_K%p != 0 and len(K.factor(p)) == 1: # p is good for E and inert in K
                         kolyvagin_primes.append(p)
                 assert sha_an in ZZ and sha_an > 0
                 for p in arith.prime_divisors(sha_an):
                     if p >= 5 and D_K%p != 0 and len(K.factor(p)) == 1:
-                        if E.is_good(p) and I%p != 0:
-                            raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug. %s"%(p,self))
+                        if E.is_good(p):
+                            if verbosity > 2 and p in heegner_primes and heegner_index is None:
+                                print 'ALERT: Prime p (%d) >= 5 dividing sha_an, good for E, inert in K, in heegner_primes, should not divide the actual Heegner index'
+                            # Note that the following check is not entirely
+                            # exhaustive, in case there is a p not dividing
+                            # the Heegner index in heegner_primes,
+                            # for which only an outer bound was computed
+                            if p not in heegner_primes:
+                                raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug. %s"%(p,self))
                 if verbosity > 0:
-                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum -- unpublished) and Rubin.'%list(set(remaining_primes).union(set(kolyvagin_primes)))[1:-1]
+                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum -- unpublished) and Rubin.'%str(list(set(remaining_primes).union(set(kolyvagin_primes))))[1:-1]
         else: # no CM
-            koly_primes = None
-            heegner_index_odd_part = None
             E = self
-            for D in E.heegner_discriminants_list(10):
-                kp, kb = Sha.bound_kolyvagin(D)
-                if kb == 0: continue
-                if koly_primes is None: koly_primes = set(kp)
-                else: koly_primes.intersection_update(kp)
-                if heegner_index_odd_part is None:
-                    heegner_index_odd_part = kb
-                else:
-                    heegner_index_odd_part = arith.gcd(heegner_index_odd_part, kb)
-                break
+            # do some tricks to get to a finite set without calling bound_kolyvagin
+            remaining_primes = [p for p, reason in E.non_surjective()]
+            for p in heegner_primes:
+                if p not in remaining_primes:
+                    remaining_primes.append(p)
+            assert sha_an in ZZ and sha_an > 0
+            for p in arith.prime_divisors(sha_an):
+                if p not in remaining_primes:
+                    remaining_primes.append(p)
+            if 2 in remaining_primes: remaining_primes.remove(2)
             if verbosity > 0:
-                print 'True for p not in {' + str(list(koly_primes))[1:-1] + '} by Kolyvagin.'
-            koly_primes.remove(2)
-            remaining_primes = koly_primes
+                print 'True for p not in {' + str([2]+list(remaining_primes))[1:-1] + '} by Kolyvagin.'
             primes_to_remove = []
             for p in remaining_primes:
-                if p > 3 and (E.is_ordinary(p) or E.is_good(p)) and E.is_surjective(p)[0]:
+                if E.is_surjective(p)[0] and not E.has_additive_reduction(p):
+                    if E.has_nonsplit_multiplicative_reduction(p):
+                        if E.rank() > 0:
+                            continue
+                    if p==3:
+                        if (not (E.is_ordinary(p) and E.is_good(p))) and (not E.has_split_multiplicative_reduction(p)):
+                            continue
+                        if E.rank() > 0:
+                            continue
                     p_bound = Sha.p_primary_bound(p)
                     if sha_an.ord(p) == 0 and p_bound == 0:
                         if verbosity > 0:
@@ -5650,11 +5793,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 remaining_primes.remove(p)
         # apply other hypotheses which imply Kolyvagin's bound holds
         bounded_primes = []
-        for D in E.heegner_discriminants_list(100):
-            I = E.heegner_index(D).is_int()
-            if I[0]:
-                I = I[1]
-                break
         D_K = rings.QuadraticField(D, 'a').disc()
         assert 2 not in remaining_primes
         # Cha's hypothesis
@@ -5667,6 +5805,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if not E.has_cm():
             L = arith.lcm([F.torsion_order() for F in E.isogeny_class()[0]])
             for p in remaining_primes:
+                if p in kolyvagin_primes: continue
                 if L%p != 0:
                     if len(arith.prime_divisors(D_K)) == 1:
                         if D_K%p != 0:
@@ -5682,23 +5821,38 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 remaining_primes.remove(p)
 
         prime_bounds = []
-        # apply Kolyvagin's bound - recall we have heegner_index_odd_part
+        # apply Kolyvagin's bound
         primes_to_remove = []
         for p in kolyvagin_primes:
-            if sha_an.ord(p) == 0:
-                if heegner_index_odd_part%p != 0:
+            if sha_an.ord(p) == 0 and p not in heegner_primes:
                     if verbosity > 0:
                         print 'True for p = %d by Kolyvagin bound.'%p
                     primes_to_remove.append(p)
                     continue
-                if heegner_index_odd_part.ord(p) <= 1:
+            if heegner_index is not None: # p must divide heegner_index
+                ord_p_bound = 2*heegner_index.ord(p)
+                # Here Jetchev's results apply.
+                m_max = max([E.tamagawa_number(q).ord(p) for q in N.prime_divisors()])
+                if m_max > 0 and verbosity > 0:
+                    print 'Jetchev\'s results apply with m_max =', m_max
+                ord_p_bound -= 2*m_max
+                if ord_p_bound == 0:
+                    if sha_an.ord(p) != 0:
+                        raise RuntimeError("p = %d: ord_p_bound == 0, but sha_an.ord(p) == %d. This appears to be a counterexample to BSD, but is more likely a bug."%(p,sha_an.ord(p)))
                     if verbosity > 0:
-                        print 'True for p = %d by Kolyvagin bound & Cassels pairing.'%p
+                        print 'True for p = %d by Kolyvagin bound.'%p
                     primes_to_remove.append(p)
                     continue
+            elif p not in heegner_primes:
+                ord_p_bound = 0
+            else:
+                from sage.rings.infinity import Infinity
+                ord_p_bound = Infinity
+                if verbosity > 0:
+                    print 'p = %d may divide the Heegner index, for which only a bound was computed.'%p
             if verbosity > 0:
                 print 'ALERT: p = %d left in Kolyvagin bound'%p
-                print '    ord_p(#Sha) <=', 2*heegner_index_odd_part.ord(p)
+                print '    0 <= ord_p(#Sha) <=', ord_p_bound
                 print '    ord_p(#Sha_an) =', sha_an.ord(p)
         for p in primes_to_remove:
             kolyvagin_primes.remove(p)
@@ -5727,9 +5881,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for p in remaining_primes:
                 if E.is_reducible(p):
                     remaining_primes.remove(p)
-                    print 'True for p=%s by Mazur'%p
+                    if verbosity > 0:
+                        print 'True for p=%s by Mazur'%p
+
+        if two_proven is False:
+            remaining_primes.append(2)
 
         # print some extra information
+        remaining_primes.sort()
         if verbosity > 1:
             if len(remaining_primes) > 0:
                 print 'Remaining primes:'
@@ -5755,6 +5914,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         s += 'split multiplicative'
                     elif a_p == -1:
                         s += 'non-split multiplicative'
+                if E.tamagawa_product()%p==0:
+                    s += ', divides a Tamagawa number'
                 print s
 
         return remaining_primes

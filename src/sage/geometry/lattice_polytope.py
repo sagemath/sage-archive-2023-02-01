@@ -19,8 +19,8 @@ If `L` is a lattice polytope, the dual polytope of
 
 
 A *reflexive polytope* is a lattice polytope, such that its polar
-is also a lattice polytope, i.e. has vertices with integer
-coordinates.
+is also a lattice polytope, i.e. it is bounded and has vertices with
+integer coordinates.
 
 This Sage module uses Package for Analyzing Lattice Polytopes
 (PALP), which is a program written in C by Maximilian Kreuzer and
@@ -80,6 +80,8 @@ AUTHORS:
 
     - plot3d, skeleton_show
 
+- Andrey Novoseltsev (2009-08-26): dropped maximal dimension requirement
+
 - Maximilian Kreuzer and Harald Skarke: authors of PALP (which was
   also used to obtain the list of 3-dimensional reflexive polytopes)
 
@@ -88,8 +90,8 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007-2008 William Stein <wstein@gmail.com>
-#                     2007-2008 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2007-2009 William Stein <wstein@gmail.com>
+#                     2007-2009 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -106,7 +108,7 @@ from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
 from sage.plot.plot3d.tachyon import Tachyon
-from sage.rings.all import Integer, ZZ, QQ, gcd
+from sage.rings.all import Integer, ZZ, QQ, gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject, load, loads
@@ -165,15 +167,14 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
     -  ``data`` - matrix whose columns are vertices of the
        polytope (unless ``compute_vertices`` is True); a file
        with matrix data, open for reading; or a filename of such a file.
-       See ``read_palp_matrix`` for the file format. Points
-       of the given matrix must span the space.
+       See ``read_palp_matrix`` for the file format.
 
     -  ``desc`` - (default: "A lattice polytope")
        description of the polytope.
 
     -  ``compute_vertices`` - (default: True) if True, the
        convex hull of the given points will be computed for determining
-       vertices. Otherwise, the given points are vertices.
+       vertices. Otherwise, the given points must be vertices.
 
     -  ``copy_vertices`` - (default: True) if False, and
        compute_vertices is False, and ``data`` is a matrix of
@@ -236,19 +237,25 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         sage: p
         A lattice polytope with WRONG vertices: 3-dimensional, 7 vertices.
 
-    Points of the given matrix must always span the space, this
-    conditions will be checked unless you specify
-    ``compute_vertices=False`` option::
+    Given points must be in the lattice::
 
-        sage: m = matrix(ZZ, [[1, 0, -1,  0],
-        ...                   [0, 1,  0, -1],
-        ...                   [0, 0,  0,  0]])
-        ...
-        sage: p = LatticePolytope(m)
+        sage: LatticePolytope(matrix([1/2, 3/2]))
         Traceback (most recent call last):
         ...
-        ValueError: Points must span the space!
+        ValueError: Points must be integral!
         Given:
+        [1/2 3/2]
+
+    But it is OK to create polytopes of non-maximal dimension::
+
+        sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
+        ...                   [0, 1, 0,  0, -1,  0, 0],
+        ...                   [0, 0, 0,  0,  0,  0, 0]])
+        ...
+        sage: p = LatticePolytope(m)
+        sage: p
+        A lattice polytope: 2-dimensional, 4 vertices.
+        sage: p.vertices()
         [ 1  0 -1  0]
         [ 0  1  0 -1]
         [ 0  0  0  0]
@@ -302,7 +309,6 @@ def ReflexivePolytope(dim, n):
         ...
         NotImplementedError: only 2- and 3-dimensional reflexive polytopes are available!
     """
-
     if dim == 2:
         if n > 15:
             raise ValueError, "there are only 16 reflexive polygons!"
@@ -373,25 +379,21 @@ class LatticePolytopeClass(SageObject):
         TESTS::
 
             sage: LatticePolytope(matrix(ZZ,[[1,2,3],[4,5,6]]))
-            Traceback (most recent call last):
-            ...
-            ValueError: Points must span the space!
-            Given:
-            [1 2 3]
-            [4 5 6]
+            A lattice polytope: 1-dimensional, 2 vertices.
         """
         if is_Matrix(data):
+            if data.base_ring() != ZZ:
+                try:
+                    data = matrix(ZZ, data)
+                except TypeError:
+                    raise ValueError("Points must be integral!\nGiven:\n%s" %data)
             if desc == None:
                 self._desc = "A lattice polytope"
             else:
                 self._desc = desc
             if compute_vertices:
-                shifted = matrix(ZZ,[data.column(i, from_list=True) - data.column(0, from_list=True)
-                        for i in range(1, data.ncols())])
-                if shifted.rank() != data.nrows():
-                    raise ValueError, "Points must span the space!\nGiven:\n%s" % data
-                self._vertices = data   # for using poly_x
-                self._vertices = read_palp_matrix(self.poly_x("v"))
+                self._vertices = data       # Temporary assignment
+                self._compute_dim(compute_vertices=True)
             else:
                 if copy_vertices:
                     self._vertices = data.__copy__()
@@ -450,6 +452,68 @@ class LatticePolytopeClass(SageObject):
             for partition in self._nef_partitions:
                 partition._polytope = self
 
+    def _compute_dim(self, compute_vertices):
+        r"""
+        Compute the dimension of this polytope and its vertices, if necessary.
+
+        If ``compute_vertices`` is ``True``, then ``self._vertices`` should
+        contain points whose convex hull will be computed and placed back into
+        ``self._vertices``.
+
+        If the dimension of this polytope is not equal to its ambient dimension,
+        auxiliary polytope will be created and stored for using PALP commands.
+
+        TESTS::
+
+            sage: p = LatticePolytope(matrix([1, 2, 3]), compute_vertices=False)
+            sage: p.vertices() # wrong, since these were not vertices
+            [1 2 3]
+            sage: hasattr(p, "_dim")
+            False
+            sage: p._compute_dim(compute_vertices=True)
+            sage: p.vertices()
+            [1 3]
+            sage: p._dim
+            1
+        """
+        if hasattr(self, "_dim"):
+            return
+        if compute_vertices:
+            points = []
+            for point in self._vertices.columns(copy=False):
+                if not point in points:
+                    points.append(point)
+        else:
+            points = self._vertices.columns(copy=False)
+        p0 = points[0]
+        if p0 != 0:
+            points = [point - p0 for point in points]
+        N = ZZ**self.ambient_dim()
+        H = N.submodule(points)
+        self._dim = H.rank()
+        if self._dim == 0:
+            if compute_vertices:
+                self._vertices = matrix(p0).transpose()
+        elif self._dim == self.ambient_dim():
+            if compute_vertices:
+                if len(points) < self._vertices.ncols():  # Repeated vertices
+                    if p0 != 0:
+                        points = [point + p0 for point in points]
+                    self._vertices = matrix(ZZ, points).transpose()
+                self._vertices = read_palp_matrix(self.poly_x("v"))
+        else:
+            # Setup auxiliary polytope and maps
+            H = H.saturation()
+            H_points = [H.coordinates(point) for point in points]
+            H_polytope = LatticePolytope(matrix(ZZ, H_points).transpose(),
+                compute_vertices=True)
+            self._sublattice = H
+            self._sublattice_polytope = H_polytope
+            self._embedding_matrix = H.basis_matrix().transpose()
+            self._shift_vector = p0
+            if compute_vertices:
+                self._vertices = self._embed(H_polytope.vertices())
+
     def _compute_faces(self):
         r"""
         Compute and cache faces of this polytope.
@@ -470,19 +534,15 @@ class LatticePolytopeClass(SageObject):
             sage: o.__dict__.has_key("_faces")
             True
         """
-        try:
-            if self._constructed_as_polar:
+        if hasattr(self, "_constructed_as_polar"):
                 # "Polar of polar polytope" computed by poly.x may have the
                 # order of vertices different from the original polytope. Thus,
                 # in order to have consistent enumeration of vertices and faces
                 # we must run poly.x on the original polytope.
-                self._faces = Sequence([], cr=True)
-                for polar_d_faces in reversed(self._polar.faces()):
-                    self._faces.append([_PolytopeFace(self, f._facets,
-                                        f._vertices) for f in polar_d_faces])
-                self._faces.set_immutable()
-                return
-        except AttributeError:
+                self._copy_faces(self._polar, reverse=True)
+        elif hasattr(self, "_constructed_as_affine_transform"):
+                self._copy_faces(self._original)
+        else:
             self._read_faces(self.poly_x("i"))
 
     def _compute_hodge_numbers(self):
@@ -501,6 +561,86 @@ class LatticePolytopeClass(SageObject):
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
         """
         raise NotImplementedError, "use nef_partitions(hodge_numbers=True)!"
+
+    def _copy_faces(self, other, reverse=False):
+        r"""
+        Copy facial structure of another polytope.
+
+        This may be necessary for preserving natural correspondence of faces,
+        e.g. between this polytope and its multiple or translation. In case of
+        reflexive polytopes, faces of this polytope and its polar are in
+        inclusion reversing bijection.
+
+        .. note::
+
+            This function does not perform any checks that this operation makes
+            sense.
+
+        INPUT:
+
+        - ``other`` - another LatticePolytope, whose facial structure will be
+          copied
+
+        -  ``reverse`` - (default: False) if True, the facial structure of the
+          other polytope will be reversed, i.e. vertices will correspond to
+          facets etc.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: p = LatticePolytope(o.vertices())
+            sage: p._copy_faces(o)
+            sage: str(o.faces()) == str(p.faces())
+            True
+            sage: c = o.polar()
+            sage: p._copy_faces(c, reverse=True)
+            sage: str(o.faces()) == str(p.faces())
+            True
+        """
+        self._faces = Sequence([], cr=True)
+        if reverse:
+            for d_faces in reversed(other.faces()):
+                self._faces.append([_PolytopeFace(self, f._facets, f._vertices)
+                                     for f in d_faces])
+        else:
+            for d_faces in other.faces():
+                self._faces.append([_PolytopeFace(self, f._vertices, f._facets)
+                                     for f in d_faces])
+        self._faces.set_immutable()
+
+    def _embed(self, data):
+        r"""
+        Embed given point(s) into the ambient space of this polytope.
+
+        INPUT:
+
+        - ``data`` - point or matrix of points (as columns) in the affine
+          subspace spanned by this polytope
+
+        OUTPUT: The same point(s) in the coordinates of the ambient space of
+        this polytope.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o._embed(o.vertices()) == o.vertices()
+            True
+            sage: m = matrix(ZZ, 3)
+            sage: m[0, 0] = 1
+            sage: m[1, 1] = 1
+            sage: p = o.affine_transform(m)
+            sage: p._embed((0,0))
+            (1, 0, 0)
+        """
+        if self.ambient_dim() == self.dim():
+            return data
+        elif is_Matrix(data):
+            r = self._embedding_matrix * data
+            for i, col in enumerate(r.columns(copy=False)):
+                r.set_column(i, col + self._shift_vector)
+            return r
+        else:
+            return self._embedding_matrix * vector(QQ, data) + self._shift_vector
 
     def _face_compute_points(self, face):
         r"""
@@ -577,11 +717,17 @@ class LatticePolytopeClass(SageObject):
         face._interior_points.set_immutable()
         face._boundary_points.set_immutable()
 
-    def _palp(self, command):
+    def _palp(self, command, reduce_dimension=False):
         r"""
         Run ``command`` on vertices of this polytope.
 
         Returns the output of ``command`` as a string.
+
+        .. note::
+        PALP cannot be called for polytopes that do not span the ambient space.
+        If you specify ``reduce_dimension=True`` argument, PALP will be
+        called for vertices of this polytope in some basis of the affine space
+        it spans.
 
         TESTS::
 
@@ -594,30 +740,95 @@ class LatticePolytopeClass(SageObject):
             H:[0] P:2 V:3 4 5       0sec  0cpu
             H:[0] P:3 V:4 5       0sec  0cpu
             np=3 d:1 p:1    0sec     0cpu
+
+            sage: p = LatticePolytope(matrix([1]))
+            sage: p._palp("poly.x -f")
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot run "poly.x -f" for the zero-dimensional polytope!
+            Polytope: A lattice polytope: 0-dimensional, 1 vertices.
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p._palp("poly.x -f")
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot run PALP for a 2-dimensional polytope in a 3-dimensional space!
+            sage: p._palp("poly.x -f", reduce_dimension=True)
+            'M:5 4 F:4\n'
         """
         if self.dim() == 0:
             raise ValueError, ("Cannot run \"%s\" for the zero-dimensional "
                 + "polytope!\nPolytope: %s") % (command, self)
-        p = subprocess.Popen(command, shell=True, bufsize=2048,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             close_fds=True)
-        stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
-        write_palp_matrix(self._vertices, stdin)
-        stdin.close()
-        err = stderr.read()
-        if len(err) > 0:
-            raise RuntimeError, ("Error executing \"%s\" for the given polytope!"
-                + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
-                self, self.vertices(), err)
-        result = stdout.read()
+        if self.dim() < self.ambient_dim() and not reduce_dimension:
+            raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
+            "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
+        if _always_use_files:
+            fn = _palp(command, [self], reduce_dimension)
+            f = open(fn)
+            result = f.read()
+            f.close()
+            os.remove(fn)
+        else:
+            p = subprocess.Popen(command, shell=True, bufsize=2048,
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 close_fds=True)
+            stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
+            write_palp_matrix(self._pullback(self._vertices), stdin)
+            stdin.close()
+            err = stderr.read()
+            if len(err) > 0:
+                raise RuntimeError, ("Error executing \"%s\" for the given polytope!"
+                    + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
+                    self, self.vertices(), err)
+            result = stdout.read()
+            p.terminate()
         if len(result) == 0 or result.find("!") != -1:
             raise ValueError, ("Error executing \"%s\" for the given polytope!"
                 + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                 self, self.vertices(), result)
-        p.terminate()
         return result
+
+    def _pullback(self, data):
+        r"""
+        Pull back given point(s) to the affine subspace spanned by this polytope.
+
+        INPUT:
+
+        - ``data`` - rational point or matrix of points (as columns) in the
+        ambient space
+
+        OUTPUT: The same point(s) in the coordinates of the affine subspace
+        space spanned by this polytope.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o._pullback(o.vertices()) == o.vertices()
+            True
+            sage: m = matrix(ZZ, 3)
+            sage: m[0, 0] = 1
+            sage: m[1, 1] = 1
+            sage: p = o.affine_transform(m)
+            sage: p._pullback((0, 0, 0))
+            [-1, 0]
+        """
+        if self.ambient_dim() == self.dim():
+            return data
+        elif data is self._vertices:
+            return self._sublattice_polytope._vertices
+        elif is_Matrix(data):
+            r = matrix([self._pullback(col)
+                    for col in data.columns(copy=False)]).transpose()
+            return r
+        else:
+            data = vector(QQ, data)
+            return self._sublattice.coordinates(data - self._shift_vector)
 
     def _read_equations(self, data):
         r"""
@@ -888,6 +1099,93 @@ class LatticePolytopeClass(SageObject):
         s += ": %d-dimensional, %d vertices." % (self.dim(), self.nvertices())
         return s
 
+    def affine_transform(self, a=1, b=0):
+        r"""
+        Return a*P+b, where P is this lattice polytope.
+
+        .. note::
+
+        #. While ``a`` and ``b`` may be rational, the final result must be a
+        lattice polytope, i.e. all vertices must be integral.
+
+        #. If the transform (restricted to this polytope) is bijective, facial
+        structure will be preserved, e.g. the first facet of the image will be
+        spanned by the images of vertices which span the first facet of the
+        original polytope.
+
+        INPUT:
+
+        - ``a`` - (default: 1) rational scalar or matrix
+
+        - ``b`` - (default: 0) rational scalar or vector, scalars are
+          interpreted as vectors with the same components
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o.affine_transform(2).vertices()
+            [ 2  0 -2  0]
+            [ 0  2  0 -2]
+            sage: o.affine_transform(1,1).vertices()
+            [2 1 0 1]
+            [1 2 1 0]
+            sage: o.affine_transform(b=1).vertices()
+            [2 1 0 1]
+            [1 2 1 0]
+            sage: o.affine_transform(b=(1, 0)).vertices()
+            [ 2  1  0  1]
+            [ 0  1  0 -1]
+            sage: a = matrix(QQ, 2, [1/2, 0, 0, 3/2])
+            sage: o.polar().vertices()
+            [-1  1 -1  1]
+            [ 1  1 -1 -1]
+            sage: o.polar().affine_transform(a, (1/2, -1/2)).vertices()
+            [ 0  1  0  1]
+            [ 1  1 -2 -2]
+
+        While you can use rational transformation, the result must be integer::
+
+            sage: o.affine_transform(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: Points must be integral!
+            Given:
+            [ 1/2    0 -1/2    0]
+            [   0  3/2    0 -3/2]
+        """
+        new_vertices = a * self.vertices()
+        if b in QQ:
+            b = vector(QQ, [b]*new_vertices.nrows())
+        else:
+            b = vector(QQ, b)
+        for i, col in enumerate(new_vertices.columns(copy=False)):
+            new_vertices.set_column(i, col + b)
+        r = LatticePolytope(new_vertices, compute_vertices=True)
+        if (a in QQ and a != 0) or r.dim() == self.dim():
+            r._constructed_as_affine_transform = True
+            if hasattr(self, "_constructed_as_affine_transform"):
+                # Prevent long chains of "original-transform"
+                r._original = self._original
+            else:
+                r._original = self
+        return r
+
+    def ambient_dim(self):
+        r"""
+        Return the dimension of the ambient space of this polytope.
+
+        EXAMPLES: We create a 3-dimensional octahedron and check its
+        ambient dimension::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.ambient_dim()
+            3
+        """
+        return self._vertices.nrows()
+
     def dim(self):
         r"""
         Return the dimension of this polytope.
@@ -898,8 +1196,22 @@ class LatticePolytopeClass(SageObject):
             sage: o = lattice_polytope.octahedron(3)
             sage: o.dim()
             3
+
+        Now we create a 2-dimensional diamond in a 3-dimensional space::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.dim()
+            2
+            sage: p.ambient_dim()
+            3
         """
-        return self._vertices.nrows()
+        if not hasattr(self, "_dim"):
+            self._compute_dim(compute_vertices=False)
+        return self._dim
 
     def distances(self, point=None):
         r"""
@@ -912,6 +1224,11 @@ class LatticePolytopeClass(SageObject):
 
         If point is specified, integral distances from the point to all
         facets of this polytope will be computed.
+
+        This function CAN be used for polytopes whose dimension is smaller
+        than the dimension of the ambient space. In this case distances are
+        computed in the affine subspace spanned by the polytope and if the
+        point is given, it must be in this subspace.
 
         EXAMPLES: The matrix of distances for a 3-dimensional octahedron::
 
@@ -939,17 +1256,38 @@ class LatticePolytopeClass(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert sqrt(2) to a rational
+
+        Now we create a non-spanning polytope::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.distances()
+            [0 2 2 0 1]
+            [2 2 0 0 1]
+            [0 0 2 2 1]
+            [2 0 0 2 1]
+            sage: p.distances((1/2, 3, 0))
+            (7/2, 9/2, -5/2, -3/2)
+            sage: p.distances((1, 1, 1))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
         """
         if point != None:
-            if self.is_reflexive():
+            if self.dim() < self.ambient_dim():
+                return self._sublattice_polytope.distances(self._pullback(point))
+            elif self.is_reflexive():
                 return (self._polar._vertices.transpose() * vector(QQ, point)
                         + vector(QQ, [1]*self.nfacets()))
             else:
                 return self._facet_normals*vector(QQ, point)+self._facet_constants
-        try:
-            return self._distances
-        except AttributeError:
-            if self.is_reflexive():
+        if not hasattr(self, "_distances"):
+            if self.dim() < self.ambient_dim():
+                return self._sublattice_polytope.distances()
+            elif self.is_reflexive():
                 V = self._polar._vertices.transpose()
                 P = self.points()
                 self._distances = V * P
@@ -962,7 +1300,7 @@ class LatticePolytopeClass(SageObject):
                     for j in range(self._distances.ncols()):
                         self._distances[i,j] += self._facet_constants[i]
             self._distances.set_immutable()
-            return self._distances
+        return self._distances
 
     def edges(self):
         r"""
@@ -1133,14 +1471,29 @@ class LatticePolytopeClass(SageObject):
             sage: p = LatticePolytope(m)
             sage: p.is_reflexive()
             False
+
+        Only full-dimensional polytopes can be reflexive (otherwise the polar
+        set is not a polytope at all, since it is unbounded)::
+
+            sage: m = matrix(ZZ, [[0, 1, 0, -1,  0],
+            ...                   [0, 0, 1,  0, -1],
+            ...                   [0, 0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.is_reflexive()
+            False
         """
-        try:
-            return self._is_reflexive
-        except AttributeError:
-            # Determine if the polytope is reflexive by computing vertices
-            # of the dual polytope and save all obtained information.
-            self._read_equations(self.poly_x("e"))
-            return self._is_reflexive
+        # In the last doctest above the origin is added intentionall - it
+        # causes the sublattice polytope to be reflexive, yet the original
+        # still should not be one.
+        if not hasattr(self, "_is_reflexive"):
+            if self.dim() != self.ambient_dim():
+                self._is_reflexive = False
+            else:
+                # Determine if the polytope is reflexive by computing vertices
+                # of the dual polytope and save all obtained information.
+                self._read_equations(self.poly_x("e"))
+        return self._is_reflexive
 
     def mif(self, partition):
         r"""
@@ -1396,20 +1749,34 @@ class LatticePolytopeClass(SageObject):
 
             sage: LatticePolytope(matrix([1,2])).nfacets()
             2
+
+        Now consider a 2-dimensional diamond in a 3-dimensional space::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.nfacets()
+            4
         """
-        try:
-            return self._nfacets
-        except AttributeError:
+        if not hasattr(self, "_nfacets"):
             if self.is_reflexive():
                 self._nfacets = self.polar().nvertices()
-            else:
+            elif self.dim() == self.ambient_dim():
                 self._nfacets = self._facet_normals.nrows()
-            return self._nfacets
+            else:
+                self._nfacets = self._sublattice_polytope.nfacets()
+        return self._nfacets
 
     def normal_form(self):
-        r"""Return the normal form of vertices of the polytope.
-        Two lattice polytopes are in the same GL(Z)-orbit if and only if
-        their normal forms are the same.
+        r"""
+        Return the normal form of vertices of the polytope.
+
+        Two full-dimensional lattice polytopes are in the same GL(Z)-orbit if
+        and only if their normal forms are the same. Normal form is not defined
+        and thus cannot be used for polytopes whose dimension is smaller than
+        the dimension of the ambient space.
 
         EXAMPLES: We compute the normal form of the "diamond"::
 
@@ -1430,13 +1797,28 @@ class LatticePolytopeClass(SageObject):
             sage: lattice_polytope.ReflexivePolytope(2,3).vertices()
             [ 1  0  0 -1]
             [ 0  1 -1  0]
+
+        It is not possible to compute normal forms for polytopes which do not
+        span the space::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.normal_form()
+            Traceback (most recent call last):
+            ...
+            ValueError: Normal form is not defined for a 2-dimensional polytope in a 3-dimensional space!
         """
-        try:
-            return self._normal_form
-        except AttributeError:
+        if not hasattr(self, "_normal_form"):
+            if self.dim() < self.ambient_dim():
+                raise ValueError(
+                ("Normal form is not defined for a %d-dimensional polytope " +
+                "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
             self._normal_form = read_palp_matrix(self.poly_x("N"))
             self._normal_form.set_immutable()
-            return self._normal_form
+        return self._normal_form
 
     def npoints(self):
         r"""
@@ -1496,7 +1878,12 @@ class LatticePolytopeClass(SageObject):
             show_pindices=None, pindex_color=(0,0,0),
             index_shift=1.1):
         r"""
-        Return a 3d-plot of a 3-dimensional polytope.
+        Return a 3d-plot of this polytope.
+
+        Polytopes with ambient dimension 1 and 2 will be plotted along x-axis
+        or in xy-plane respectively. Polytopes of dimension 3 and less with
+        ambient dimension 4 and greater will be plotted in some basis of the
+        spanned space.
 
         By default, everything is shown with more or less pretty
         combination of size and color parameters.
@@ -1579,23 +1966,36 @@ class LatticePolytopeClass(SageObject):
             sage: p.plot3d()
         """
         dim = self.dim()
-        if  dim > 3:
+        amb_dim = self.ambient_dim()
+        if dim > 3:
             raise ValueError, "%d-dimensional polytopes can not be plotted in 3D!" % self.dim()
+        elif amb_dim > 3:
+            return self._sublattice_polytope.plot3d(
+                show_facets, facet_opacity, facet_color,
+                facet_colors,
+                show_edges, edge_thickness, edge_color,
+                show_vertices, vertex_size, vertex_color,
+                show_points, point_size, point_color,
+                show_vindices, vindex_color,
+                vlabels,
+                show_pindices, pindex_color,
+                index_shift)
         elif dim == 3:
             vertices = self.vertices().columns(copy=False)
             if show_points or show_pindices:
                 points = self.points().columns(copy=False)[self.nvertices():]
         else:
-            vertices = [vector(ZZ, list(self.vertex(i))+[0]*(3-dim)) for i in range(self.nvertices())]
+            vertices = [vector(ZZ, list(self.vertex(i))+[0]*(3-amb_dim))
+                        for i in range(self.nvertices())]
             if show_points or show_pindices:
-                points = [vector(ZZ, list(self.point(i))+[0]*(3-dim))
+                points = [vector(ZZ, list(self.point(i))+[0]*(3-amb_dim))
                         for i in range(self.nvertices(), self.npoints())]
         pplot = 0
         if show_facets:
             if dim == 2:
                 pplot += IndexFaceSet([self.traverse_boundary()],
                         vertices, opacity=facet_opacity, rgbcolor=facet_color)
-            elif self.dim() == 3:
+            elif dim == 3:
                 if facet_colors != None:
                     for i, f in enumerate(self.facets()):
                         pplot += IndexFaceSet([f.traverse_boundary()],
@@ -1695,12 +2095,24 @@ class LatticePolytopeClass(SageObject):
             [-1  1 -1  1 -1  1 -1  1 -1 -1 -1 -1 -1  0  0  0  0  0  0  0  0  0  1  1  1  1  1]
             [-1 -1  1  1 -1 -1  1  1 -1  0  0  0  1 -1 -1 -1  0  0  0  1  1  1 -1  0  0  0  1]
             [ 1  1  1  1 -1 -1 -1 -1  0 -1  0  1  0 -1  0  1 -1  0  1 -1  0  1  0 -1  0  1  0]
+
+        Lattice points of a 2-dimensional diamond in a 3-dimensional space::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.points()
+            [ 1  0 -1  0  0]
+            [ 0  1  0 -1  0]
+            [ 0  0  0  0  0]
         """
-        try:
-            return self._points
-        except AttributeError:
-            self._points = read_palp_matrix(self.poly_x("p"))
-            return self._points
+        if not hasattr(self, "_points"):
+            self._points = self._embed(read_palp_matrix(
+                            self.poly_x("p", reduce_dimension=True)))
+            self._points.set_immutable()
+        return self._points
 
     def polar(self):
         r"""
@@ -1739,7 +2151,7 @@ class LatticePolytopeClass(SageObject):
             raise ValueError, ("The given polytope is not reflexive!\n"
                                 + "Polytope: %s") % self
 
-    def poly_x(self, keys):
+    def poly_x(self, keys, reduce_dimension=False):
         r"""
         Run poly.x with given ``keys`` on vertices of this
         polytope.
@@ -1749,6 +2161,10 @@ class LatticePolytopeClass(SageObject):
 
         -  ``keys`` - a string of options passed to poly.x. The
            key "f" is added automatically.
+
+        -  ``reduce_dimension`` - (default: False) if ``True`` and this
+           polytope is not full-dimensional, poly.x will be called for the
+           vertices of this polytope in some basis of the spanned affine space.
 
 
         OUTPUT: the output of poly.x as a string.
@@ -1790,8 +2206,31 @@ class LatticePolytopeClass(SageObject):
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0 -1]
             Output:
             increase POLY_Dmax!
+
+        You cannot call poly.x for polytopes that don't span the space (if you
+        could, it would crush anyway)::
+
+            sage: m = matrix(ZZ, [[1, 0, -1,  0],
+            ...                   [0, 1,  0, -1],
+            ...                   [0, 0,  0,  0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p.poly_x("e")
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot run PALP for a 2-dimensional polytope in a 3-dimensional space!
+
+        But if you know what you are doing, you can call it for the polytope in
+        some basis of the spanned space::
+
+            sage: print p.poly_x("e", reduce_dimension=True)
+            4 2  Equations of P
+              -1   1     0
+               1   1     2
+              -1  -1     0
+               1  -1     2
         """
-        return self._palp("poly.x -f" + keys)
+        return self._palp("poly.x -f" + keys, reduce_dimension)
 
     def skeleton(self):
         r"""
@@ -1867,7 +2306,7 @@ class LatticePolytopeClass(SageObject):
 
     def skeleton_show(self, normal=None):
         r"""Show the graph of one-skeleton of this polytope.
-        Works only for 3-dimensional polytopes.
+        Works only for polytopes in a 3-dimensional space.
 
         INPUT:
 
@@ -1882,7 +2321,18 @@ class LatticePolytopeClass(SageObject):
 
             sage: o = lattice_polytope.octahedron(3)
             sage: o.skeleton_show([1,2,4])
+
+        Does not work for a diamond at the moment::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.skeleton_show()
+            Traceback (most recent call last):
+            ...
+            ValueError: need a polytope in a 3-dimensional space! Got:
+            An octahedron: 2-dimensional, 4 vertices.
         """
+        if self.ambient_dim() != 3:
+            raise ValueError("need a polytope in a 3-dimensional space! Got:\n%s" % self)
         if normal == None:
             normal = [ZZ.random_element(20),ZZ.random_element(20),ZZ.random_element(20)]
         normal = matrix(QQ,3,1,list(normal))
@@ -2433,7 +2883,7 @@ class _PolytopeFace(SageObject):
         start = pcol[self.vertices()[0]]
         end = pcol[self.vertices()[1]]
         primitive = end - start
-        primitive = primitive * (1/gcd(primitive.list()))
+        primitive = primitive * (1/integral_length(primitive.list()))
         result = [self.vertices()[0]]
         start = start + primitive
         while start != end:
@@ -2539,13 +2989,19 @@ def _create_octahedron(dim):
 
 _octahedrons = dict()       # Dictionary for storing created octahedrons
 
-def _palp(command, polytopes):
+def _palp(command, polytopes, reduce_dimension=False):
     r"""
     Run ``command`` on vertices of given
     ``polytopes``.
 
     Returns the name of the file containing the output of
     ``command``. You should delete it after using.
+
+    .. note::
+    PALP cannot be called for polytopes that do not span the ambient space.
+    If you specify ``reduce_dimension=True`` argument, PALP will be
+    called for vertices of this polytope in some basis of the affine space
+    it spans.
 
     TESTS::
 
@@ -2556,11 +3012,33 @@ def _palp(command, polytopes):
         ['M:7 6 N:27 8 Pic:17 Cor:0\n']
         sage: f.close()
         sage: os.remove(result_name)
+
+        sage: m = matrix(ZZ, [[1, 0, -1,  0],
+        ...                   [0, 1,  0, -1],
+        ...                   [0, 0,  0,  0]])
+        ...
+        sage: p = LatticePolytope(m)
+        sage: lattice_polytope._palp("poly.x -f", [p])
+        Traceback (most recent call last):
+        ValueError: Cannot run PALP for a 2-dimensional polytope in a 3-dimensional space!
+
+        sage: result_name = lattice_polytope._palp("poly.x -f", [p], reduce_dimension=True)
+        sage: f = open(result_name)
+        sage: f.readlines()
+        ['M:5 4 F:4\n']
+        sage: f.close()
+        sage: os.remove(result_name)
     """
     input_file_name = tmp_filename()
     input_file = open(input_file_name, "w")
     for p in polytopes:
-        write_palp_matrix(p._vertices, input_file)
+        if p.dim() == 0:
+            raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
+                + "polytope!\nPolytope: %s") % (command, p))
+        if p.dim() < p.ambient_dim() and not reduce_dimension:
+            raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
+            "in a %d-dimensional space!") % (p.dim(), p.ambient_dim()))
+        write_palp_matrix(p._pullback(p._vertices), input_file)
     input_file.close()
     output_file_name = tmp_filename()
     c = "%s <%s >%s" % (command, input_file_name, output_file_name)
@@ -2761,7 +3239,7 @@ def all_faces(polytopes):
         ...
         ValueError: Cannot read face structure for a polytope constructed as polar, use _compute_faces!
     """
-    result_name = _palp("poly.x -fi", polytopes)
+    result_name = _palp("poly.x -fi", polytopes, reduce_dimension=True)
     result = open(result_name)
     for p in polytopes:
         p._read_faces(result)
@@ -2843,10 +3321,10 @@ def all_points(polytopes):
         [ 0  1  0  0 -1  0  0]
         [ 0  0  1  0  0 -1  0]
     """
-    result_name = _palp("poly.x -fp", polytopes)
+    result_name = _palp("poly.x -fp", polytopes, reduce_dimension=True)
     result = open(result_name)
     for p in polytopes:
-        p._points = read_palp_matrix(result)
+        p._points = p._embed(read_palp_matrix(result))
         if p._points.nrows() == 0:
             raise RuntimeError, ("Cannot read points of a polytope!"
                                                         +"\nPolytope: %s" % p)
@@ -2879,6 +3357,46 @@ def all_polars(polytopes):
         p._read_equations(result)
     result.close()
     os.remove(result_name)
+
+
+_always_use_files = True
+
+
+def always_use_files(new_state=None):
+    r"""
+    Set or get the way of using PALP for lattice polytopes.
+
+    INPUT:
+
+    - ``new_state`` - (default:None) if specified, must be ``True`` or ``False``.
+
+    OUTPUT: The current state of using PALP. If ``True``, files are used
+    for all calls to PALP, otherwise pipes are used for single polytopes.
+    While the latter may have some advantage in speed, the first method
+    is more reliable when working with large outputs. The initial state
+    is ``True``.
+
+    EXAMPLES::
+
+        sage: lattice_polytope.always_use_files()
+        True
+        sage: p = LatticePolytope(matrix([1, 20]))
+        sage: p.npoints()
+        20
+
+    Now let's use pipes instead of files::
+
+        sage: lattice_polytope.always_use_files(False)
+        False
+        sage: p = LatticePolytope(matrix([1, 20]))
+        sage: p.npoints()
+        20
+    """
+    global _always_use_files
+    if new_state != None:
+        _always_use_files = new_state
+    return _always_use_files
+
 
 def convex_hull(points):
     r"""
@@ -3002,6 +3520,32 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
     return result
 
 
+def integral_length(v):
+    """
+    Compute the integral length of a given rational vector.
+
+    INPUT:
+
+    -  ``v`` - any object which can be converted to a list of rationals
+
+    OUTPUT: Rational number ``r`` such that ``v = r u``, where ``u`` is the
+    primitive integral vector in the direction of ``v``.
+
+    EXAMPLES::
+
+        sage: lattice_polytope.integral_length([1, 2, 4])
+        1
+        sage: lattice_polytope.integral_length([2, 2, 4])
+        2
+        sage: lattice_polytope.integral_length([2/3, 2, 4])
+        2/3
+    """
+    data = [QQ(e) for e in list(v)]
+    ns = [e.numerator() for e in data]
+    ds = [e.denominator() for e in data]
+    return gcd(ns)/lcm(ds)
+
+
 def minkowski_sum(points1, points2):
     r"""
     Compute the Minkowski sum of two convex polytopes.
@@ -3110,6 +3654,8 @@ def positive_integer_relations(points):
         [1 0 0 1 1 0]
         [1 1 1 0 0 0]
         [0 0 0 0 0 1]
+        sage: lattice_polytope.positive_integer_relations(ReflexivePolytope(2,1).vertices())
+        [2 1 1]
     """
     points = points.transpose().base_extend(QQ)
     relations = points.kernel().echelonized_basis_matrix()
@@ -3148,7 +3694,7 @@ def positive_integer_relations(points):
     relations = relations.matrix_from_rows(relations.transpose().pivots())
     # Switch to integers
     for i in range(n):
-        relations.rescale_row(i, 1/gcd(relations.row(i).list()))
+        relations.rescale_row(i, 1/integral_length(relations[i]))
     return relations.change_ring(ZZ)
 
 
@@ -3223,11 +3769,12 @@ def read_all_polytopes(file_name, desc=None):
     polytopes = Sequence([], LatticePolytope, cr=True)
     f = open(file_name)
     n = 0
-    p = LatticePolytope(f, desc=(desc % n), compute_vertices=False)
-    while p.dim() != 0:
-        polytopes.append(p)
+    m = read_palp_matrix(f)
+    while m.nrows() != 0:
+        polytopes.append(LatticePolytope(m,
+            desc=(desc % n), compute_vertices=False, copy_vertices=False))
         n += 1
-        p = LatticePolytope(f, desc=(desc % n), compute_vertices=False)
+        m = read_palp_matrix(f)
     f.close()
     return polytopes
 
@@ -3348,8 +3895,7 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
     -  ``comment`` - a string (default: empty) see output
        description
 
-    -  ``format`` - a format string used to print matrix
-       entries. By default, "
+    -  ``format`` - a format string used to print matrix entries.
 
 
     OUTPUT: First line: number_of_rows number_of_columns comment

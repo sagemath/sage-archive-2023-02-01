@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+############################################################################
+#
+# Searches for the latest online package in each repository in $SAGE_SERVER
+#
+# License: GPLv2+ = GPLv2 or any later version at the user's option
+#
+############################################################################
+from __future__ import print_function
+import os, sys, urllib2, re
+from urllib2 import HTTPError
+
+# Define SAGE_ROOT and PKG_SERVER based on the environment.
+
+if not os.environ.has_key("SAGE_ROOT"):
+     sys.exit("The environment variable SAGE_ROOT must be set.")
+SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
+
+if not os.environ.has_key("SAGE_SERVER"):
+     sys.exit("The environment variable SAGE_SERVER must be set.")
+
+PKG_SERVER=os.environ['SAGE_SERVER'] + '/packages'
+
+strip_version_re = re.compile(r'-.+')
+
+def strip_version(string):
+     return strip_version_re.sub('', string)
+
+# Adapted from `sage-update`
+def spkg_list(repo):
+    """
+    INPUT:
+
+        - repo -- repository to look for the package in.
+
+    OUTPUT:
+
+        - returns the array of packages
+    """
+    web_url = "%s/%s/list"%(PKG_SERVER, repo)
+    # Download the spkg/ directory listing.
+    try:
+         data = urllib2.urlopen(web_url)
+    except HTTPError:
+         sys.exit("Could not download file from {0}.".format(web_url))
+    return data.read().splitlines()
+
+if __name__ == '__main__':
+     if len(sys.argv) < 2:
+          sys.exit("Usage: {0} <package name>".format(sys.argv[0]))
+
+     package_name = sys.argv[1]
+     for repository in ['optional', 'standard', 'experimental', 'archive']:
+          packages = spkg_list(repository)
+          for package in packages:
+               if package_name == strip_version(package):
+                    print(package)
+                    sys.exit(0)
+     sys.exit("Could not find a version for {0}.".format(package_name))

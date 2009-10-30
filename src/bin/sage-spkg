@@ -33,10 +33,16 @@
 mymkdir()
 {
     if [ ! -d $1 ]; then
-	mkdir $1
+	    mkdir $1
     fi
 }
 
+no_version()
+{
+    if [ -z "`echo "$1" | grep -o -`" ]; then
+        echo "no version"
+    fi
+}
 # The following sets environment variables for building
 # packages.  (Using dot suggested by W. Cheung.)
 
@@ -68,15 +74,15 @@ fi
 
 FORCE=0
 if [ $1 = '-f' ]; then
-   FORCE=1
-   shift
+    FORCE=1
+    shift
 fi
 export FORCE
 
 DELETE_TMP=1
 if [ $1 = '-s' -o $1 = '-m' ]; then
-   DELETE_TMP=0
-   shift
+    DELETE_TMP=0
+    shift
 fi
 
 INSTALLED="$SAGE_PACKAGES/installed/"
@@ -84,6 +90,7 @@ PKG_NAME=`echo "$1" | sed -e "s/\.spkg$//"`
 PKG_NAME=`basename "$PKG_NAME"`
 PKG_SRC="$1"
 PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`
+
 # check if noclobber is set and warn about it
 if [ $PKG_SRC == "noclobber" ]; then
     echo "***********************************************************"
@@ -104,6 +111,18 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         if [ -f "$SAGE_PACKAGES/optional/$PKG_NAME.spkg" ]; then
             PKG_SRC="$SAGE_PACKAGES/optional/$PKG_NAME.spkg"
+        else
+            CUR=`pwd`
+            cd "$SAGE_PACKAGES"
+            PKG_NEWEST_VER=`./standard/newest_version "$PKG_NAME" 2> /dev/null`
+            if [ -n "$PKG_NEWEST_VER" ]; then
+                PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NEWEST_VER.spkg"
+            else
+                PKG_NEWEST_VER=`./standard/newest_version -base "$PKG_NAME" 2> /dev/null`
+                if [ -n "$PKG_NEWEST_VER" ]; then
+                    PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NEWEST_VER.spkg"
+                fi
+            fi
         fi
     fi
 fi
@@ -143,7 +162,7 @@ if [ $DELETE_TMP -eq 1 ]; then
     # a scary "rm -rf".
     cd "$SAGE_PACKAGES/build"
     if [ $? -ne 0 ]; then
-         echo "Unable to find build directory."
+        echo "Unable to find build directory."
     else
         rm -rf "$PKG_BASE-"*
     fi
@@ -162,10 +181,22 @@ if [ ! -f "$PKG_SRC" ]; then
         $MKDIR optional
     fi
     cd optional
-    sage-download_package "$1"
+
+    if [ -n "`no_version "$PKG_NAME"`" ]; then
+        echo "Searching for latest version of $PKG_NAME"
+        PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
+        if [ $? -eq 0 ]; then
+            echo "Found package $PKG_NAME"
+        else
+            echo "$PKG_NAME"
+            exit 1
+        fi
+    fi
+
+    sage-download_package "$PKG_NAME"
     if [ ! -f "$PKG_NAME.spkg" ]; then
-	echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
-	exit 1
+	    echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
+	    exit 1
     fi
     PKG_SRC="`pwd`/$PKG_NAME.spkg"
     cd "$CUR"
@@ -190,38 +221,48 @@ fi
 echo "Finished extraction"
 
 if [ ! -d "$PKG_NAME" ]; then
-   echo "sage: After decompressing the directory $PKG_NAME does not exist"
-   echo "This means that the corresponding .spkg needs to be downloaded"
-   echo "again."
-   sage-download_package "$PKG_NAME"
-   echo `pwd`
-   bunzip2 -c "$PKG_NAME.spkg"  | tar fxv -
-   if [ ! -d "$PKG_NAME.spkg" ]; then
-       tar fxv "$PKG_NAME.spkg"
-   fi
-   if [ ! -d "$PKG_NAME" ]; then
-       echo "Second download resulted in a corrupted package."
-       exit 1
-   fi
+    echo "sage: After decompressing the directory $PKG_NAME does not exist"
+    echo "This means that the corresponding .spkg needs to be downloaded"
+    echo "again."
+    if [ -n "`no_version "$PKG_NAME"`" ]; then
+        echo "Searching for latest version of $PKG_NAME"
+        PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
+        if [ $? -eq 0 ]; then
+            echo "Found package $PKG_NAME"
+        else
+            echo "$PKG_NAME"
+            exit 1
+        fi
+    fi
+    sage-download_package "$PKG_NAME"
+    echo `pwd`
+    bunzip2 -c "$PKG_NAME.spkg"  | tar fxv -
+    if [ ! -d "$PKG_NAME.spkg" ]; then
+        tar fxv "$PKG_NAME.spkg"
+    fi
+    if [ ! -d "$PKG_NAME" ]; then
+        echo "Second download resulted in a corrupted package."
+        exit 1
+    fi
 fi
 
 cd "$PKG_NAME"
 if [ ! -f spkg-install ]; then
-  echo "#!/usr/bin/env bash" > spkg-install
-  echo "" >> spkg-install
-  if [ -f setup.py ]; then
-      echo "python setup.py install" >> spkg-install
-  else
-      if [ -f configure ]; then
-         echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
-         echo "make" >> spkg-install
-         echo "make install" >> spkg-install
-      else
-         echo "There is no spkg-install script, no setup.py, and no configure script,"
-         echo "so I do not know how to install $PKG_SRC."
-         exit 1
-      fi
-  fi
+    echo "#!/usr/bin/env bash" > spkg-install
+    echo "" >> spkg-install
+    if [ -f setup.py ]; then
+        echo "python setup.py install" >> spkg-install
+    else
+        if [ -f configure ]; then
+            echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
+            echo "make" >> spkg-install
+            echo "make install" >> spkg-install
+        else
+            echo "There is no spkg-install script, no setup.py, and no configure script,"
+            echo "so I do not know how to install $PKG_SRC."
+            exit 1
+        fi
+    fi
 fi
 
 chmod +x spkg-install
@@ -235,7 +276,7 @@ echo "Host system"
 echo "uname -a:"
 uname -a
 if [ $? -ne 0 ]; then
-   echo "Unable to determine host system information."
+    echo "Unable to determine host system information."
 fi
 echo "****************************************************"
 
@@ -244,7 +285,7 @@ echo "CC Version"
 echo "$CC -v"
 $CC -v
 if [ $? -ne 0 ]; then
-   echo "Unable to determine C compiler version."
+    echo "Unable to determine C compiler version."
 fi
 echo "****************************************************"
 
@@ -252,81 +293,81 @@ BASEDIR=`pwd`
 if [ -n "$DEBIAN_RELEASE" ]; then
     SAGE_CHECK=''
     if [ -e ./spkg-debian ]; then
-	time ./spkg-debian
+	    time ./spkg-debian
     else
-	time sage-build-debian $BASEDIR
+	    time sage-build-debian $BASEDIR
     fi
 else
     time ./spkg-install
 fi
 
 if [ $? -eq 0 ]; then
-   cd $INSTALLED
-   # TURNED OFF: Remove all old packages with the same name up to the first "-":
-   # rm -f $PKG_BASE-*
+    cd $INSTALLED
+    # TURNED OFF: Remove all old packages with the same name up to the first "-":
+    # rm -f $PKG_BASE-*
 
-   # Mark that the new package has been installed.
-   # This file will eventually be a certificate like in OS X.
-   echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
-   echo "INSTALL DATE: `date`" >> "$PKG_NAME"
-   echo "UNAME: `uname -a`" >> "$PKG_NAME"
-   echo "Sage VERSION: `grep Sage $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
-   echo "Successfully installed $PKG_NAME"
+    # Mark that the new package has been installed.
+    # This file will eventually be a certificate like in OS X.
+    echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
+    echo "INSTALL DATE: `date`" >> "$PKG_NAME"
+    echo "UNAME: `uname -a`" >> "$PKG_NAME"
+    echo "Sage VERSION: `grep Sage $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
+    echo "Successfully installed $PKG_NAME"
 
-   cd $BASEDIR
-   if [ "$SAGE_CHECK" != "" -a -f spkg-check ]; then
-       echo "Running the test suite."
-       chmod +x spkg-check
-       ./spkg-check
-       if [ $? -ne 0 ]; then
-           echo "*************************************"
-           echo "Error testing package ** $PKG_NAME **"
-           echo "*************************************"
-           rm -f $SAGE_ROOT/spkg/installed/$PKG_NAME
-           echo "sage: An error occurred while testing $PKG_NAME"
-           echo "Please email sage-devel http://groups.google.com/group/sage-devel"
-           echo "explaining the problem and send the relevant part of"
-           echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
-           echo "If you want to try to fix the problem yourself, *don't* just cd to"
-           echo "`pwd` and type 'make check' or whatever is appropriate."
-           echo "Instead type \"$SAGE_ROOT/sage -sh\""
-           echo "in order to set all environment variables correctly, then cd to"
-           echo "`pwd`"
-           echo "(When you are done debugging, you can type \"exit\" to leave the"
-           echo "subshell.)"
-           exit 1
-       else
-           echo "TEST SUITE: passed" >> "$PKG_NAME"
-       fi
-   fi
+    cd $BASEDIR
+    if [ "$SAGE_CHECK" != "" -a -f spkg-check ]; then
+        echo "Running the test suite."
+        chmod +x spkg-check
+        ./spkg-check
+        if [ $? -ne 0 ]; then
+            echo "*************************************"
+            echo "Error testing package ** $PKG_NAME **"
+            echo "*************************************"
+            rm -f $SAGE_ROOT/spkg/installed/$PKG_NAME
+            echo "sage: An error occurred while testing $PKG_NAME"
+            echo "Please email sage-devel http://groups.google.com/group/sage-devel"
+            echo "explaining the problem and send the relevant part of"
+            echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
+            echo "If you want to try to fix the problem yourself, *don't* just cd to"
+            echo "`pwd` and type 'make check' or whatever is appropriate."
+            echo "Instead type \"$SAGE_ROOT/sage -sh\""
+            echo "in order to set all environment variables correctly, then cd to"
+            echo "`pwd`"
+            echo "(When you are done debugging, you can type \"exit\" to leave the"
+            echo "subshell.)"
+            exit 1
+        else
+            echo "TEST SUITE: passed" >> "$PKG_NAME"
+        fi
+    fi
 
 
-   # Delete the temporary build directory if required.
-   if [ $DELETE_TMP -eq 1 ]; then
-       echo "Now cleaning up tmp files."
-       if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
+    # Delete the temporary build directory if required.
+    if [ $DELETE_TMP -eq 1 ]; then
+        echo "Now cleaning up tmp files."
+        if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
            # the if is there only to avoid the possibility of a weird bug.
-           rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
-       fi
-   else
-       echo "You can safely delete the temporary build directory"
-       echo "$SAGE_PACKAGES/build/$PKG_NAME"
-   fi
+            rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
+        fi
+    else
+        echo "You can safely delete the temporary build directory"
+        echo "$SAGE_PACKAGES/build/$PKG_NAME"
+    fi
 
 else
 
-   echo "sage: An error occurred while installing $PKG_NAME"
-   echo "Please email sage-devel http://groups.google.com/group/sage-devel"
-   echo "explaining the problem and send the relevant part of"
-   echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
-   echo "If you want to try to fix the problem yourself, *don't* just cd to"
-   echo "`pwd` and type 'make'."
-   echo "Instead type \"$SAGE_ROOT/sage -sh\""
-   echo "in order to set all environment variables correctly, then cd to"
-   echo "`pwd`"
-   echo "(When you are done debugging, you can type \"exit\" to leave the"
-   echo "subshell.)"
-   exit 1
+    echo "sage: An error occurred while installing $PKG_NAME"
+    echo "Please email sage-devel http://groups.google.com/group/sage-devel"
+    echo "explaining the problem and send the relevant part of"
+    echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
+    echo "If you want to try to fix the problem yourself, *don't* just cd to"
+    echo "`pwd` and type 'make'."
+    echo "Instead type \"$SAGE_ROOT/sage -sh\""
+    echo "in order to set all environment variables correctly, then cd to"
+    echo "`pwd`"
+    echo "(When you are done debugging, you can type \"exit\" to leave the"
+    echo "subshell.)"
+    exit 1
 fi
 
 

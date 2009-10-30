@@ -305,11 +305,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, object S1, object S2):
     return cmp(sorted(MM1.rows()), sorted(MM2.rows()))
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, object S):
-    cdef MatrixStruct M = <MatrixStruct> S
-    cdef bint equiv = 1
-    for BCS in M.symbol_structs:
-        equiv &= all_binary_children_are_equivalent(PS, BCS)
-    return equiv
+    return 0
 
 def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_matrix=10, density_range=(.1,.9)):
     """

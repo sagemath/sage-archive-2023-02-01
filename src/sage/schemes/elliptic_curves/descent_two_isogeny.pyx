@@ -53,7 +53,7 @@ def test_valuation(a, p):
 
     EXAMPLE::
 
-        sage: from sage.schemes.elliptic_curves.descent import test_valuation as tv
+        sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_valuation as tv
         sage: for i in [1..20]:
         ...    print '%10s'%factor(i), tv(i,2), tv(i,3), tv(i,5)
                  1 0 0 0
@@ -1086,11 +1086,12 @@ def two_descent_by_two_isogeny(E,
         sage: n1, n2, n1_prime, n2_prime = two_descent_by_two_isogeny(E)
         sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
         1
-        sage: E = EllipticCurve('1088j1')
+        sage: x,y = var('x,y')
+        sage: E = EllipticCurve(y^2 == x^3 + x^2 - 25*x + 39)
         sage: n1, n2, n1_prime, n2_prime = two_descent_by_two_isogeny(E)
         sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
         2
-        sage: E = EllipticCurve('59450i')
+        sage: E = EllipticCurve(y^2 + x*y + y == x^3 - 131*x + 558)
         sage: n1, n2, n1_prime, n2_prime = two_descent_by_two_isogeny(E)
         sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
         3

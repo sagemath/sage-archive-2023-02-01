@@ -5152,8 +5152,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     cdef void __normalize(self):
         x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
-        while n >= 0 and x[n].is_zero():
-#        while n > 0 and x[n] == 0:
+        while n >= 0 and not x[n]:
             del x[n]
             n -= 1
 

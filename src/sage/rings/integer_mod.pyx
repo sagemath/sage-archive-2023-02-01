@@ -1,3 +1,5 @@
+# cython: cdivision=True
+
 r"""
 Elements of `\ZZ/n\ZZ`
 

@@ -122,6 +122,7 @@ doc="""
 Integers
 """
 
+import cython
 
 import operator
 
@@ -3185,6 +3186,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return z
 
+    @cython.cdivision(True)
     def multifactorial(self, int k):
         r"""
         Computes the k-th factorial `n!^{(k)}` of self. For k=1

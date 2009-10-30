@@ -201,7 +201,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     cdef int cur_iter, cur_edge
     cdef int i, j, x
 
-    cdef double t = 1, dt = t/iterations, k = sqrt(1.0/n)
+    cdef double t = 1, dt = t/(1e-20 + iterations), k = sqrt(1.0/n)
     cdef double square_dist, force, scale
     cdef double* disp_i
     cdef double* disp_j

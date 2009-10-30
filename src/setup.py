@@ -667,7 +667,7 @@ def compile_command(p):
             outfile += ".c"
 
         # call cython, abort if it failed
-        cmd = "python `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python `which cython` --embed-positions --directive cdivision=True -I%s -o %s %s"%(os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r

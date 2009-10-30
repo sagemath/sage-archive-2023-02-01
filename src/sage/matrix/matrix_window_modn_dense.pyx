@@ -1,3 +1,5 @@
+# cython: cdivision=True
+
 """
 TESTS:
     sage: a = random_matrix(GF(11), 30, 40)

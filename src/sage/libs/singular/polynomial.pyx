@@ -488,7 +488,7 @@ cdef inline int singular_polynomial_length_bounded(poly *p, int bound):
     - ``bound`` - an integer > 0
     """
     cdef int count = 0
-    while p and count < bound:
+    while p != NULL and count < bound:
         p = pNext(p)
         count += 1
     return count

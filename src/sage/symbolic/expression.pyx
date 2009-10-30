@@ -6404,9 +6404,9 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
        return rop
     elif rop == equal:
        return lop
-    elif (lop in [less, less_or_equal] and rop in [less, less_or_equal]):
+    elif lop in [less, less_or_equal] and rop in [less, less_or_equal]:
        return less
-    elif (lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]):
+    elif lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]:
        return greater
     else:
         raise TypeError, "incompatible relations"

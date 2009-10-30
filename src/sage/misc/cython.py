@@ -342,7 +342,7 @@ setup(ext_modules = ext_modules,
 
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
-    options = ['-p', '--incref-local-binop']
+    options = ['-p']
     if annotate:
         options.append('-a')
     if sage_namespace:

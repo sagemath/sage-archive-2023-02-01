@@ -16,9 +16,20 @@ AUTHORS:
 
 from sage.structure.sage_object cimport SageObject
 from sage.libs.singular.decl cimport leftv, idhdl
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular
 
-cdef class Converter(SageObject)
+cdef class Converter(SageObject):
+    cdef leftv *args
+    cdef MPolynomialRing_libsingular _ring
+    cdef leftv* pop_front(self) except NULL
+    cdef void _append_leftv(self, leftv *v)
+    cdef void _append(self, void* data, int res_type)
+    cdef int append_polynomial(self, MPolynomial_libsingular p) except -1
+    cdef int append_ideal(self,  i) except -1
+    cdef int append_number(self, n) except -1
+    cdef int append_int(self, n) except -1
+    cdef int append_str(self, n) except -1
+    cdef to_python(self, leftv* to_convert)
 
 cdef class BaseCallHandler:
     cdef leftv* handle_call(self, Converter argument_list) except NULL

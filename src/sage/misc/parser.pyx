@@ -296,7 +296,7 @@ cdef class Tokenizer:
             while is_alphanumeric(s[pos]):
                 pos += 1
             # matrices
-            if s[self.pos:pos] == 'matrix':
+            if s[self.pos:pos] == b'matrix':
                 self.pos = pos
                 return MATRIX
             self.pos = pos

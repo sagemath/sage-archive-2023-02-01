@@ -100,8 +100,6 @@ cdef class Converter(SageObject):
     A :class:`Converter` interfaces between Sage objects and Singular
     interpreter objects.
     """
-    cdef leftv *args
-    cdef MPolynomialRing_libsingular _ring
 
     def __init__(self, args, ring):
         """

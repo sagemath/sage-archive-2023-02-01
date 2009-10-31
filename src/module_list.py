@@ -781,6 +781,9 @@ ext_modules = [
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']),
 
+    Extension('sage.misc.bitset',
+              sources = ['sage/misc/bitset.pyx']),
+
     Extension('sage.misc.citation',
               sources = ['sage/misc/citation.pyx']),
 

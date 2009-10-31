@@ -33,6 +33,8 @@ cdef inline bint bitset_init(bitset_t bits, unsigned long size) except -1:
     """
     Allocates a bitset of size size.  The set will probably be filled
     with random elements.
+
+    size must be at least 1
     """
     bits.size = size
     bits.limbs = (size - 1)/(8*sizeof(unsigned long)) + 1
@@ -409,6 +411,18 @@ cdef inline long bitset_len(bitset_t bits):
         i=bitset_next(bits, i+1)
     return len
 
+cdef inline long bitset_hash(bitset_t bits):
+    """
+    Calculate a (very naive) hash function.
+
+    This function should not depend on the size of the bitset, only on
+    the items in the bitset.
+    """
+    cdef unsigned long hash = 0
+    cdef long i
+    for i from 0 <= i < bits.limbs:
+        hash ^= bits.bits[i]
+    return hash
 
 #############################################################################
 # Bitset Arithmetic
@@ -658,6 +672,18 @@ cdef bitset_string(bitset_t bits):
     py_s = s
     sage_free(s)
     return py_s
+
+cdef list bitset_list(bitset_t bits):
+    """
+    Return a list of elements in the bitset.
+    """
+    cdef list elts = []
+    cdef long elt = bitset_first(bits)
+    while elt >= 0:
+        elts.append(elt)
+        elt = bitset_next(bits, elt+1)
+    return elts
+
 
 
 #############################################################################

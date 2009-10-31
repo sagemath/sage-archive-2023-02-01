@@ -168,6 +168,8 @@ from sage_unittest import TestSuite
 
 from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
 
+from bitset import FrozenBitset, Bitset
+
 ##########################################################################
 def benchmark(n=-1):
     """

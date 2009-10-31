@@ -840,13 +840,11 @@ class PolynomialConverter(Converter):
         self.ex = ex
 
         if ring is not None:
-            base_ring = ring.base_ring()
-            G = ring.variable_names_recursive()
-            for v in ex.variables():
-                if repr(v) not in G and v not in base_ring:
-                    raise TypeError, "%s is not a variable of %s" %(v, ring)
+            G = map(repr, ring.gens())
+            if any([repr(v) not in G for v in ex.variables()]):
+                raise TypeError, "%s is not a variable of %s" %(v, ring)
             self.ring = ring
-            self.base_ring = base_ring
+            self.base_ring = ring.base_ring()
         elif base_ring is not None:
             self.base_ring = base_ring
             vars = self.ex.variables()

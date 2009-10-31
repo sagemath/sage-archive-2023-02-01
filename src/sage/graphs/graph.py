@@ -3963,17 +3963,17 @@ class GenericGraph(SageObject):
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
-        Returns a list of edges (u,v,l) with u in vertices1 and v in
-        vertices2. If vertices2 is None, then it is set to the complement
-        of vertices1.
+        Returns a list of edges `(u,v,l)` with `u` in ``vertices1``
+        and `v` in ``vertices2``. If ``vertices2`` is ``None``, then
+        it is set to the complement of ``vertices1``.
 
-        In a digraph, the external boundary of a vertex v are those
-        vertices u with an arc (v, u).
+        In a digraph, the external boundary of a vertex `v` are those
+        vertices `u` with an arc `(v, u)`.
 
         INPUT:
 
 
-        -  ``labels`` - if False, each edge is a tuple (u,v) of
+        -  ``labels`` - if ``False``, each edge is a tuple `(u,v)` of
            vertices.
 
 
@@ -4000,6 +4000,12 @@ class GenericGraph(SageObject):
             [(0, 1, None), (0, 2, None)]
             sage: D.edge_boundary([0], labels=False)
             [(0, 1), (0, 2)]
+
+        TESTS::
+
+            sage: G=graphs.DiamondGraph()
+            sage: G.edge_boundary([0,1])
+            [(0, 2, None), (1, 2, None), (1, 3, None)]
         """
         vertices1 = [v for v in vertices1 if v in self]
         output = []

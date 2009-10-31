@@ -1728,12 +1728,22 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = CyclicPermutationGroup(5)
             sage: G.isomorphism_type_info_simple_group()
             rec( series := "Z", parameter := 5, name := "Z(5)" )
+
+        TESTS: This shows that the issue at trac ticket 7360 is fixed::
+
+            sage: G = KleinFourGroup()
+            sage: G.is_simple()
+            False
+            sage: G.isomorphism_type_info_simple_group()
+            Traceback (most recent call last):
+            ...
+            TypeError: Group must be simple.
         """
         if self.is_simple():
             info = self._gap_().IsomorphismTypeInfoFiniteSimpleGroup()
             return info
         else:
-            return TypeError, "Group must be simple."
+            raise TypeError, "Group must be simple."
 
     ######################  Boolean tests #####################
 

@@ -10491,6 +10491,88 @@ class Graph(GenericGraph):
         except:
             return False
 
+    def degree_constrained_subgraph(self, bounds=None):
+        r"""
+        Returns a degree-constrained subgraph.
+
+        Given a graph `G` and two functions `f, g:V(G)\rightarrow \mathbb Z`
+        such that `f \leq g`, a degree-constrained subgraph in `G` is
+        a subgraph `G' \subseteq G` such that for any vertex `v \in G`,
+        `f(v) \leq d_{G'}(v) \leq g(v)`.
+
+        INPUT:
+
+        - ``bounds`` -- Two possibilities :
+            - A dictionary whose keys are the vertices, and values a pair of
+              real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
+            - A function associating to each vertex a pair of
+              real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
+
+        OUTPUT:
+
+        - When a solution exists, this method outputs the degree-constained subgraph
+          as a Graph object.
+        - When no solution exists, returns ``False``
+
+        NOTES:
+
+        - This algorithm computes the degree-constrained subgraph of minimum weight.
+        - If the graph's edges are weighted, these are taken into account.
+        - This problem can be solved in polynomial time.
+
+        EXAMPLES ::
+
+        Is there a perfect matching in an even cycle ?
+
+            sage: g = graphs.CycleGraph(6)
+            sage: bounds = lambda x : [1,1]
+            sage: m=g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC
+            sage: m.size()
+            3
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+
+        p = MixedIntegerLinearProgram(maximization=False)
+        b = p.new_variable()
+
+        reorder = lambda x: (min(x[0],x[1]),max(x[0],x[1]),x[2])
+
+        if bounds == None:
+            raise ValueError,"The `bounds` keyword can not be equal to None"
+        elif isinstance(bounds,dict):
+            f_bounds = lambda x : bounds[x]
+        else:
+            f_bounds = bounds
+
+
+        if self.weighted():
+            weight = lambda x: x[2] if x[2] != None else 1
+        else:
+            weight = lambda x: 1
+
+        for v in self:
+            minimum,maximum = f_bounds(v)
+            p.add_constraint(sum([ b[reorder(e)]*weight(e) for e in self.edges_incident(v)]),min=minimum, max=maximum)
+
+        p.set_objective(sum([ b[reorder(e)]*weight(e) for e in self.edge_iterator()]))
+        p.set_binary(b)
+
+        try:
+            p.solve()
+            g = self.copy()
+            b = p.get_values(b)
+            g.delete_edges([e for e in g.edge_iterator() if b[reorder(e)] == 0])
+            return g
+
+
+        except MIPSolverException:
+            return False
+
+
+
+
+
     ### Coloring
 
     def bipartite_color(self):

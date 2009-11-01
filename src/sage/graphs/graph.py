@@ -11098,6 +11098,113 @@ class Graph(GenericGraph):
 
 
 
+    ### Orientations
+
+    def strong_orientation(self):
+        r"""
+        Returns a strongly connected orientation of the current graph.
+        ( cf. http://en.wikipedia.org/wiki/Strongly_connected_component )
+
+        An orientation of a an undirected graph is a digraph obtained by
+        giving an unique direction to each of its edges. An orientation
+        is said to be strong if there is a directed path between each
+        pair of vertices.
+
+        If the graph is 2-edge-connected, a strongly connected orientation
+        can be found in linear time. If the given graph is not 2-connected,
+        the orientation returned will ensure that each 2-connected component
+        has a strongly connected orientation.
+
+        OUTPUT:
+
+        A digraph representing an orientation of the current graph.
+
+        NOTES:
+
+        - This method assumes the graph is connected.
+        - This algorithm works in O(m).
+
+        EXAMPLE:
+
+        For a 2-regular graph, a strong orientation gives to each vertex
+        an out-degree equal to 1::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.strong_orientation().out_degree()
+            [1, 1, 1, 1, 1]
+
+        The Petersen Graph is 2-edge connected. It then has a strongly
+        connected orientation::
+
+            sage: g = graphs.PetersenGraph()
+            sage: o = g.strong_orientation()
+            sage: len(o.strongly_connected_components())
+            1
+
+        The same goes for the CubeGraph in any dimension ::
+
+            sage: for i in range(2,5):
+            ...     g = graphs.CubeGraph(i)
+            ...     o = g.strong_orientation()
+            ...     len(o.strongly_connected_components())
+            1
+            1
+            1
+
+        """
+
+        d = DiGraph(multiedges=self.allows_multiple_edges())
+
+        id = {}
+        i = 0
+
+        # The algorithm works through a depth-first search. Any edge
+        # used in the depth-first search is oriented in the direction
+        # in which it has been used. All the other edges are oriented
+        # backward
+
+        v = self.vertex_iterator().next()
+        seen = {}
+        i=1
+
+        # Time at which the vertices have been discovered
+        seen[v] = i
+
+        # indicates the stack of edges to explore
+        next = self.edges_incident(v)
+
+        while next:
+            e = next.pop(-1)
+            # We assume e[0] to be a `seen` vertex
+            e = e if seen.get(e[0],False) != False else (e[1],e[0],e[2])
+
+            # If we discovered a new vertex
+            if seen.get(e[1],False) == False:
+                d.add_edge(e)
+                next.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
+                i+=1
+                seen[e[1]]=i
+
+            # Else, we orient the edges backward
+            else:
+                if seen[e[0]] < seen[e[1]]:
+                    d.add_edge((e[1],e[0],e[2]))
+                else:
+                    d.add_edge(e)
+
+        # Case of multiple edges. If another edge has already been inserted, we add the new one
+        # in the opposite direction.
+        tmp = None
+        for e in self.multiple_edges():
+            if tmp == (e[0],e[1]):
+                if d.has_edge(e[0].e[1]):
+                    d.add_edge(e[1],e[0],e[2])
+                else:
+                    d.add_edge(e)
+            tmp = (e[0],e[1])
+
+        return d
+
     ### Coloring
 
     def bipartite_color(self):

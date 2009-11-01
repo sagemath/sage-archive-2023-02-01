@@ -1068,7 +1068,8 @@ cdef class FiniteField_givaro_iterator:
     Iterator over FiniteField_givaro elements of degree 1. We iterate
     over fields of higher degree using the VectorSpace iterator.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: for x in GF(2^2,'a'): print x
         0
         a
@@ -1078,6 +1079,8 @@ cdef class FiniteField_givaro_iterator:
 
     def __init__(self, FiniteField_givaro parent):
         """
+        EXAMPLE::
+
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
             sage: i
@@ -1088,6 +1091,8 @@ cdef class FiniteField_givaro_iterator:
 
     def __next__(self):
         """
+        EXAMPLE::
+
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
             sage: i.next()
@@ -1106,13 +1111,24 @@ cdef class FiniteField_givaro_iterator:
 
     def __repr__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: k.<a> = GF(3^4)
             sage: i = iter(k)
             sage: i # indirect doctest
             Iterator over Finite Field in a of size 3^4
         """
         return "Iterator over %s"%self._parent
+
+    def __iter__(self):
+        """
+        EXAMPLE::
+
+            sage: K.<a> = GF(4)
+            sage: K.list() # indirect doctest
+            [0, a, a + 1, 1]
+        """
+        return self
 
 cdef FiniteField_givaro_copy(FiniteField_givaro orig):
     cdef FiniteField_givaro copy

@@ -139,7 +139,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         F = self.base_ring()
         if not F.is_prime_field():
             raise NotImplementedError
-        self.__gp = gp_cremona.ellinit(self.a_invariants(), F.characteristic())
+        self.__gp = gp_cremona.ellinit(list(self.a_invariants()), F.characteristic())
         return self.__gp
 
     def plot(self, *args, **kwds):
@@ -1102,7 +1102,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         k = self.base_ring()
         p = k.characteristic()
         if k.degree()==1:
-            return sea.ellsea(self.a_invariants(), p, early_abort=early_abort)
+            return sea.ellsea(list(self.a_invariants()), p, early_abort=early_abort)
         else:
             raise ValueError, "cardinality_sea() only works over prime fields."
 

@@ -88,7 +88,7 @@ class Sympow(SageObject):
         return w
 
     def _curve_str(self, E):
-        return '-curve "%s"'%(str(E.minimal_model().a_invariants()).replace(' ',''))
+        return '-curve "%s"'%(str(list(E.minimal_model().a_invariants())).replace(' ',''))
 
     def L(self, E, n, prec):
         r"""

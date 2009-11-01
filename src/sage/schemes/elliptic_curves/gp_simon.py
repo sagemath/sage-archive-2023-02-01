@@ -88,9 +88,9 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
             print "%s = Mod(y,K.pol);" % K.gen()
 
     if K == QQ:
-        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % tuple(F.ainvs())
+        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % F.ainvs()
     else:
-        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % tuple(F.ainvs())
+        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % F.ainvs()
 
     gp('DEBUGLEVEL=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
         verbose, lim1, lim3, limtriv, maxprob, limbigprime))

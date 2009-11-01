@@ -434,7 +434,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
 
         if F==None:  # easy case
             baseWI.__init__(self,*urst)
-            F=EllipticCurve(baseWI.__call__(self,E.a_invariants()))
+            F=EllipticCurve(baseWI.__call__(self,list(E.a_invariants())))
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
             self._domain_curve = E
             self._codomain_curve = F
@@ -443,7 +443,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         if E==None:  # easy case in reverse
             baseWI.__init__(self,*urst)
             inv_urst=baseWI.__invert__(self)
-            E=EllipticCurve(baseWI.__call__(inv_urst,F.a_invariants()))
+            E=EllipticCurve(baseWI.__call__(inv_urst,list(F.a_invariants())))
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
             self._domain_curve = E
             self._codomain_curve = F
@@ -462,7 +462,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
 
         # none of the parameters is None:
         baseWI.__init__(self,*urst)
-        if F!=EllipticCurve(baseWI.__call__(self,E.a_invariants())):
+        if F!=EllipticCurve(baseWI.__call__(self,list(E.a_invariants()))):
             raise ValueError, "second argument is not an isomorphism from first argument to third argument"
         else:
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))

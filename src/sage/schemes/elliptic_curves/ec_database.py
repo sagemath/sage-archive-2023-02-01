@@ -76,11 +76,11 @@ class EllipticCurves:
         ::
 
             sage: e = elliptic_curves.rank(6)[0]; e.ainvs(), e.conductor()
-            ([1, 1, 0, -2582, 48720], 5187563742)
+            ((1, 1, 0, -2582, 48720), 5187563742)
             sage: e = elliptic_curves.rank(7)[0]; e.ainvs(), e.conductor()
-            ([0, 0, 0, -10012, 346900], 382623908456)
+            ((0, 0, 0, -10012, 346900), 382623908456)
             sage: e = elliptic_curves.rank(8)[0]; e.ainvs(), e.conductor()
-            ([0, 0, 1, -23737, 960366], 457532830151317)
+            ((0, 0, 1, -23737, 960366), 457532830151317)
 
         """
         db = "%s/ellcurves/"%os.environ['SAGE_DATA']

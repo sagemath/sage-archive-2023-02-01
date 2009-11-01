@@ -999,7 +999,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
                 l = (R[1] - self[1])/(R[0] - self[0])
                 return Q[1] - self[1] - l * (Q[0] - self[0])
         else:
-            [a1, a2, a3, a4, a6] = self.curve().a_invariants()
+            a1, a2, a3, a4, a6 = self.curve().a_invariants()
             numerator = (3*self[0]**2 + 2*a2*self[0] + a4 - a1*self[1])
             denominator = (2*self[1] + a1*self[0] + a3)
             if denominator == 0:

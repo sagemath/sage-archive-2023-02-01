@@ -90,7 +90,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             if isinstance(y, str):
                 field = x
                 X = sage.databases.cremona.CremonaDatabase()[y]
-                ainvs = X.a_invariants()
+                ainvs = list(X.a_invariants())
             else:
                 field = x
                 ainvs = y
@@ -295,7 +295,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                    ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
         for z in ai:
             assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
-        return EllipticCurve(ai)
+        return EllipticCurve(list(ai))
 
     integral_model = global_integral_model
 
@@ -316,21 +316,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a>=NumberField(x^2-38)
             sage: E=EllipticCurve([a, -5*a + 19, -39*a + 237, 368258520200522046806318224*a - 2270097978636731786720858047, 8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505])
             sage: E.ainvs()
-            [a,
+            (a,
             -5*a + 19,
             -39*a + 237,
             368258520200522046806318224*a - 2270097978636731786720858047,
-            8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505]
+            8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505)
             sage: E._tidy_model().ainvs()
-            [a,
+            (a,
             a + 1,
             a + 1,
             368258520200522046806318444*a - 2270097978636731786720859345,
-            8456608930173478039472018047583706316424*a - 52130038506793883217874390501829588391299]
+            8456608930173478039472018047583706316424*a - 52130038506793883217874390501829588391299)
             sage: EllipticCurve([101,202,303,404,505])._tidy_model().ainvs()
-            [1, 1, 0, -2509254, 1528863051]
+            (1, 1, 0, -2509254, 1528863051)
             sage: EllipticCurve([-101,-202,-303,-404,-505])._tidy_model().ainvs()
-            [1, -1, 0, -1823195, 947995262]
+            (1, -1, 0, -1823195, 947995262)
         """
         ZK = self.base_ring().maximal_order()
         try:
@@ -520,7 +520,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
             sage: P=K.ideal(a)
             sage: E.local_minimal_model(P).ainvs()
-            [0, 1, 0, a - 33, -2*a + 64]
+            (0, 1, 0, a - 33, -2*a + 64)
         """
         if proof is None:
             import sage.structure.proof.proof

@@ -6,20 +6,53 @@ The Sage Notebook
 .. toctree::
    :maxdepth: 2
 
-   sage/server/notebook/notebook
-   sage/server/notebook/cell
-   sage/server/notebook/worksheet
-   sage/server/notebook/twist
+   sagenb/notebook/config
+   sagenb/notebook/interact
+   sagenb/notebook/cell
+   sagenb/notebook/worksheet
+   sagenb/notebook/notebook
+   sagenb/notebook/js
+   sagenb/notebook/css
+   sagenb/notebook/template
 
-   sage/server/notebook/interact
-   sage/server/notebook/js
-   sage/server/notebook/css
-   sage/server/notebook/docHTMLProcessor
-   sage/server/notebook/template
+Servers
+-------
 
-   sage/server/misc
-   sage/server/support
-   sage/server/introspect
+.. toctree::
+   :maxdepth: 2
 
+   sagenb/notebook/twist
+   sagenb/simple/twist
    sage/server/trac/trac
-   sage/server/simple/twist
+   sagenb/notebook/challenge
+
+Miscellaneous
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sagenb/misc/misc
+   sagenb/misc/support
+   sagenb/misc/introspect
+   sagenb/misc/sageinspect
+   sagenb/misc/sphinxify
+   sagenb/notebook/docHTMLProcessor
+
+Storage
+-------
+
+.. toctree::
+   :maxdepth: 2
+
+   sagenb/storage/abstract_storage
+   sagenb/storage/filesystem_storage
+
+.. Commented out, for now.
+
+   Interfaces
+   ----------
+
+   SKIP sagenb/interfaces/worksheet_process
+   SKIP sagenb/interfaces/reference
+   SKIP sagenb/interfaces/expect

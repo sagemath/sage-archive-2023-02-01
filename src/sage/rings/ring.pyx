@@ -1769,6 +1769,17 @@ cdef class FiniteFieldIterator:
         """
         return self.parent(self.iter.next())
 
+    def __iter__(self):
+        """
+
+        EXAMPLE::
+
+            sage: K = GF(7^6,'a')
+            sage: K.list()[:10]
+            [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]
+        """
+        return self
+
 cdef class FiniteField(Field):
 #    def __init__(self):
 #        """

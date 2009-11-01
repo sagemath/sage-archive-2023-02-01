@@ -2105,6 +2105,97 @@ class GenericGraph(SageObject):
 
     num_edges = size
 
+    ### Orientations
+
+    def eulerian_orientation(self):
+        r"""
+        Returns a DiGraph which is an eulerian orientation of the current graph.
+
+        An eulerian graph being a graph such that any vertex has an even degree,
+        an eulerian orientation of a graph is an orientation of its edges such
+        that each vertex `v` verifies `d^+(v)=d^-(v)=d(v)/2`, where `d^+` and
+        `d^-` respectively represent the out-degree and the in-degree of a vertex.
+
+        If the graph is not eulerian, the orientation verifies for any vertex `v`
+        that `| d^+(v)-d^-(v) | \leq 1`.
+
+        ALGORITHM:
+
+        This algorithm is a random walk through the edges of the graph, which
+        orients the edges according to the walk. When a vertex is reached which
+        has no non-oriented edge ( this vertex must have odd degree ), the
+        walk resumes at another vertex of odd degree, if any.
+
+        This algorithm has complexity `O(m)`, where `m` is the number of edges
+        in the graph.
+
+        EXAMPLES:
+
+        The CubeGraph with parameter 4, which is regular of even degree, has an
+        eulerian orientation such that `d^+=d^-`::
+
+            sage: g=graphs.CubeGraph(4)
+            sage: g.degree()
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+            sage: o=g.eulerian_orientation()
+            sage: o.in_degree()
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            sage: o.out_degree()
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+        Secondly, the Petersen Graph, which is 3 regular has an orientation
+        such that the difference between `d^+` and `d^-` is at most 1::
+
+            sage: g=graphs.PetersenGraph()
+            sage: o=g.eulerian_orientation()
+            sage: o.in_degree()
+            [2, 2, 2, 2, 1, 2, 1, 1, 1, 1]
+            sage: o.out_degree()
+            [1, 1, 1, 1, 2, 1, 2, 2, 2, 2]
+        """
+
+        g=self.copy()
+        d=DiGraph()
+        d.add_vertices(g.vertex_iterator())
+
+
+        # list of vertices of odd degree
+        from itertools import izip
+        odd=[x for (x,deg) in izip(g.vertex_iterator(),g.degree_iterator()) if deg%2==1]
+
+        # Picks the first vertex, which is preferably an odd one
+        if len(odd)>0:
+            v=odd.pop()
+        else:
+            v=g.edge_iterator(labels=None).next()[0]
+            odd.append(v)
+        # Stops when there is no edge left
+        while True:
+
+            # If there is an edge adjacent to the current one
+            if g.degree(v)>0:
+                e = g.edge_iterator(v).next()
+                g.delete_edge(e)
+                if e[0]!=v:
+                    e=(e[1],e[0],e[2])
+                d.add_edge(e)
+                v=e[1]
+
+            # The current vertex is isolated
+            else:
+                odd.remove(v)
+
+                # jumps to another odd vertex if possible
+                if len(odd)>0:
+                    v=odd.pop()
+                # Else jumps to an ever vertex which is not isolated
+                elif g.size()>0:
+                    v=g.edge_iterator().next()[0]
+                    odd.append(v)
+                # If there is none, we are done !
+                else:
+                    return d
+
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

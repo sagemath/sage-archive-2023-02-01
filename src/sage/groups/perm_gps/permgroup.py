@@ -1258,16 +1258,18 @@ class PermutationGroup_generic(group.FiniteGroup):
         return PermutationGroup_subgroup(self, gens)
 
 
-    def quotient_group(self, N):
+    def quotient(self, N):
         """
-        Returns the quotient group permgp/N, where N is a normal subgroup.
+        Returns the quotient of this permutation group by the normal
+        subgroup `N`.
+
         Wraps the GAP operator "/".
 
         EXAMPLES::
 
             sage: G = PermutationGroup([(1,2,3), (2,3)])
             sage: N = PermutationGroup([(1,2,3)])
-            sage: G.quotient_group(N)
+            sage: G.quotient(N)
             Permutation Group with generators [(1,2)]
         """
         G = self
@@ -1276,13 +1278,41 @@ class PermutationGroup_generic(group.FiniteGroup):
         gap.eval("Q := G/N;")
         gap.eval("phi := RegularActionHomomorphism( Q );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
-        N = Integer(gap.eval("N := Length(gens);"))
-        if N>0:
-            gens = [self._element_class()(gap.eval("gens[%s];"%i)) for i in range(1,N+1)]
+        n = Integer(gap.eval("n := Length(gens);"))
+        if n>0:
+            gens = [self._element_class()(gap.eval("gens[%s];"%i)) for i in range(1,n+1)]
             Q = PermutationGroup(gens)
             return Q
         else:
             return PermutationGroup([()])
+
+    def quotient_group(self, N):
+        """
+        This function has been deprecated and will be removed in a
+        future version of Sage; use ``quotient`` instead.
+
+        Original docstring follows.
+
+        Returns the quotient of this permutation group by the normal
+        subgroup `N`.
+
+        Wraps the GAP operator "/".
+
+        TESTS::
+
+            sage: G = PermutationGroup([(1,2,3), (2,3)])
+            sage: N = PermutationGroup([(1,2,3)])
+            sage: G.quotient_group(N)
+            doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
+            Permutation Group with generators [(1,2)]
+        """
+        import warnings
+        warnings.warn('quotient_group() is deprecated; use quotient() instead.', DeprecationWarning, stacklevel=2)
+        from sage.misc.misc import deprecation
+        deprecation('quotient_group() is deprecated; use quotient() instead.')
+
+        return self.quotient(N)
+
 
     def cohomology(self, n, p = 0):
         r"""

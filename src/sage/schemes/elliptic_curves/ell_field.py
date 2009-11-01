@@ -19,6 +19,7 @@ import sage.rings.all as rings
 from constructor import EllipticCurve
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
+from ell_wp import weierstrass_p
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
@@ -630,3 +631,55 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         """
         return isogeny_codomain_from_kernel(self, kernel, degree=None)
+
+    def weierstrass_p(self, prec=20, algorithm=None):
+        r"""
+        Computes the Weierstrass `\wp`-function of the elliptic curve.
+
+        INPUT:
+
+        - ``mprec`` - precision
+        - ``algorithm`` - string (default:``None``) an algorithm identifier indicating using the ``pari``, ``fast`` or ``quadratic`` algorithm. If the algorithm is ``None``, then this function determines the best algorithm to use.
+
+        OUTPUT:
+
+        a Laurent series in one variable `z` with coefficients in the base field `k` of `E`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: E.weierstrass_p(prec=10)
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + O(z^10)
+            sage: E.weierstrass_p(prec=8)
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
+            sage: Esh = E.short_weierstrass_model()
+            sage: Esh.weierstrass_p(prec=8)
+            z^-2 + 13392/5*z^2 + 1080432/7*z^4 + 59781888/25*z^6 + O(z^8)
+
+            sage: E.weierstrass_p(prec=8, algorithm='pari')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
+            sage: E.weierstrass_p(prec=8, algorithm='quadratic')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
+
+            sage: k = GF(101)
+            sage: E = EllipticCurve(k, [2,3])
+            sage: E.weierstrass_p(prec=30)
+            z^-2 + 40*z^2 + 14*z^4 + 62*z^6 + 15*z^8 + 47*z^10 + 66*z^12 + 61*z^14 + 79*z^16 + 98*z^18 + 93*z^20 + 82*z^22 + 15*z^24 + 71*z^26 + 27*z^28 + O(z^30)
+
+            sage: k = GF(11)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: E.weierstrass_p(prec=6, algorithm='fast')
+            z^-2 + 2*z^2 + 3*z^4 + O(z^6)
+            sage: E.weierstrass_p(prec=7, algorithm='fast')
+            Traceback (most recent call last):
+            ...
+            ValueError: For computing the Weierstrass p-function via the fast algorithm, the characteristic (11) of the underlying field must be greater than prec + 4 = 11.
+            sage: E.weierstrass_p(prec=8 ,algorithm='pari')
+            z^-2 + 2*z^2 + 3*z^4 + 5*z^6 + O(z^8)
+            sage: E.weierstrass_p(prec=9, algorithm='pari')
+            Traceback (most recent call last):
+            ...
+            ValueError: For computing the Weierstrass p-function via pari, the characteristic (11) of the underlying field must be greater than prec + 2 = 11.
+
+        """
+        return weierstrass_p(self, prec=prec, algorithm=algorithm)

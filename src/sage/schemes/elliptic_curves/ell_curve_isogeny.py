@@ -5,10 +5,42 @@ An isogeny `\varphi: E_1\to E_2` between two elliptic curves `E_1` and `E_2` is 
 origin of `E_1` to the origin of `E_2`. Such a morphism is automatically a morphism of group schemes and the kernel is a finite subgroup scheme of `E_1`.
 Such a subscheme can either be given by a list of generators, which have to be torsion points, or by a polynomial in the coordinate `x` of the Weierstrass equation of `E_1`.
 
+The usual way to create and work with isogenies is illustrated with the following example::
+
+    sage: k = GF(11)
+    sage: E = EllipticCurve(k,[1,1])
+    sage: Q = E(6,5)
+    sage: phi = E.isogeny(Q)
+    sage: phi
+    Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 11 to Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 11
+    sage: P = E(4,5)
+    sage: phi(P)
+    (10 : 0 : 1)
+    sage: phi.codomain()
+    Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 11
+    sage: phi.rational_maps()
+    ((x^7 + 4*x^6 - 3*x^5 - 2*x^4 - 3*x^3 + 3*x^2 + x - 2)/(x^6 + 4*x^5 - 4*x^4 - 5*x^3 + 5*x^2), (x^9*y - 5*x^8*y - x^7*y + x^5*y - x^4*y - 5*x^3*y - 5*x^2*y - 2*x*y - 5*y)/(x^9 - 5*x^8 + 4*x^6 - 3*x^4 + 2*x^3))
+
+The functions directly accessible from an elliptic curve ``E`` over a field are ``isogeny`` and ``isogeny_codomain``.
+
+The most useful functions that apply to isogenies are
+
+- ``codomain``
+- ``degree``
+- ``domain``
+- ``dual``
+- ``rational_maps``
+- ``kernel_polynomial``
+
+.. Warning::
+
+   Only cyclic isogenies are implemented (except for [2]). Some algorithms may need the isogeny to be normalized.
+
 AUTHORS:
 
 - Daniel Shumow <shumow@gmail.com>: 2009-04-19: initial version
 - Chris Wuthrich : 7/09: changes: add check of input, not the full list is needed.
+  10/09: eliminating some bugs.
 """
 
 #*****************************************************************************
@@ -26,6 +58,7 @@ from sage.categories.morphism import Morphism
 
 from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.all import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.all import is_EllipticCurve
@@ -45,9 +78,9 @@ def isogeny_determine_algorithm(E, kernel, codomain, degree, model):
     r"""
     Helper function that allows the various isogeny functions to infer the algorithm type from the parameters passed in.
 
-    If kernel is a list of points on the EllipticCurve `E`, then we assume the algorithm to use is Velu.
+    If ``kernel`` is a list of points on the EllipticCurve `E`, then we assume the algorithm to use is Velu.
 
-    If kernel is a list of coefficients or a univariate polynomial we try to use the Kohel's algorithms.
+    If ``kernel`` is a list of coefficients or a univariate polynomial we try to use the Kohel's algorithms.
 
     EXAMPLES:
 
@@ -98,8 +131,7 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
 
     - ``kernel`` - Either a list of points in the kernel of the isogeny, or a kernel polynomial (specified as a either a univariate polynomial or a coefficient list.)
 
-    - ``degree`` - an integer, (default:None)  optionally specified degree of the kernel.
-
+    - ``degree`` - an integer, (default:``None``)  optionally specified degree of the kernel.
 
     OUTPUT:
 
@@ -371,7 +403,7 @@ def compute_codomain_kohel(E, kernel, degree):
 def two_torsion_part(E, poly_ring, psi, degree):
     r"""
 
-    Returns the greatest common divisor of ``psi`` and the 2 torsion polynomial of E.
+    Returns the greatest common divisor of ``psi`` and the 2 torsion polynomial of `E`.
 
     EXAMPLES:
 
@@ -410,7 +442,7 @@ class EllipticCurveIsogeny(Morphism):
     r"""
     Class Implementing Isogenies of Elliptic Curves
 
-    This class implements separable, normalized isogenies of elliptic curves.
+    This class implements cyclic, separable, normalized isogenies of elliptic curves.
 
     Several different algorithms for computing isogenies are available.  These include:
 
@@ -420,26 +452,21 @@ class EllipticCurveIsogeny(Morphism):
 
     - Kohel's Formulas:
       Kohel's original formulas for computing isogenies.
-      This algorithm is selected by giving as the ``kernel`` parameter a polynomial (or a coefficient list (little endian)) which will define the kernel of the isogeny.
+      This algorithm is selected by giving as the ``kernel`` parameter a monic polynomial (or a coefficient list (little endian)) which will define the kernel of the isogeny.
 
     INPUT:
 
     - ``E``         - an elliptic curve, the domain of the isogeny to initialize.
-    - ``kernel``    - a kernel, either a point in ``E``, a list of points in ``E``, a kernel polynomial, or ``None``.
-                      If initiating from a domain/codomain, this must be set to None.
-    - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None,
-                      then this must be the codomain of a separable normalized isogeny,
-                      furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``.
-                      If ``kernel`` is not None, then this must be isomorphic to the codomain of the
-                      normalized separable isogeny defined by ``kernel``,
-                      in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
-    - ``degree``    - an integer (default:None).
-                      If ``kernel`` is None, then this is the degree of the isogeny from ``E`` to ``codomain``.
-                      If ``kernel`` is not None, then this is used to determine whether or not to skip a gcd
-                      of the kernel polynomial with the two torsion polynomial of ``E``.
-    - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if
-                      ``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
-     - ``check`` (default: True) checks if the input is valid to define an isogeny
+    - ``kernel``    - a kernel, either a point in ``E``, a list of points in ``E``, a monic kernel polynomial, or ``None``.
+      If initiating from a domain/codomain, this must be set to None.
+    - ``codomain``  - an elliptic curve (default:``None``).  If ``kernel`` is ``None``, then this must be the codomain of a cyclic, separable, normalized isogeny, furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not ``None``, then this must be isomorphic to the codomain of the cyclic normalized separable isogeny defined by ``kernel``, in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
+    - ``degree``    - an integer (default:``None``).
+      If ``kernel`` is ``None``, then this is the degree of the isogeny from ``E`` to ``codomain``.
+      If ``kernel`` is not ``None``, then this is used to determine whether or not to skip a gcd
+      of the kernel polynomial with the two torsion polynomial of ``E``.
+    - ``model``     - a string (default:``None``).  Only supported variable is ``minimal``, in which case if
+      ``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
+    - ``check`` (default: ``True``) checks if the input is valid to define an isogeny
 
     EXAMPLES:
 
@@ -562,7 +589,7 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi_k.is_separable()
         True
 
-    A more complicated example over the rationals (with odd degree isogeny)::
+    A more complicated example over the rationals (of odd degree)::
 
         sage: E = EllipticCurve('11a1')
         sage: P_list = E.torsion_points()
@@ -628,6 +655,39 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi_s.rational_maps() == phi.rational_maps()
         True
 
+    However only cyclic normalized isogenies can be constructed this way. So it won't find the
+    isogeny [3]::
+
+        sage: E.isogeny(None, codomain=E,degree=9)
+        Traceback (most recent call last):
+        ...
+        ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 9
+
+    Also the presumed isogeny between the domain and codomain must be normalized::
+
+        sage: E2.isogeny(None,codomain=E,degree=5)
+        Traceback (most recent call last):
+        ...
+        ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 5
+        sage: phi.dual()
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+        sage: phi.dual().is_normalized()
+        False
+
+    Here an example of a construction of a endomorphisms with cyclic kernel on a cm-curve::
+
+        sage: K.<i> = NumberField(x^2+1)
+        sage: E = EllipticCurve(K, [1,0])
+        sage: RK.<X> = K[]
+        sage: f = X^2 - 2/5*i + 1/5
+        sage: phi= E.isogeny(f)
+        sage: isom = phi.codomain().isomorphism_to(E)
+        sage: phi.set_post_isomorphism(isom)
+        sage: phi.codomain() == phi.domain()
+        True
+        sage: phi.rational_maps()
+        (((-4/25*i - 3/25)*x^5 + (-4/5*i + 2/5)*x^3 + x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
+        ((2/125*i - 11/125)*x^6*y + (64/125*i + 23/125)*x^4*y + (162/125*i - 141/125)*x^2*y + (-4/25*i - 3/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
 
     """
 
@@ -635,6 +695,7 @@ class EllipticCurveIsogeny(Morphism):
     # member variables
     ####################
 
+    __check = None
     #
     # variables common to all algorithms
     #
@@ -783,7 +844,7 @@ class EllipticCurveIsogeny(Morphism):
             if (None == degree):
                 raise ValueError, "If specifying isogeny by domain and codomain, degree parameter must be set."
 
-            # save the domain/codomain: not really used now
+            # save the domain/codomain: really used now (trac #7096)
             old_domain = E
             old_codomain = codomain
 
@@ -808,7 +869,7 @@ class EllipticCurveIsogeny(Morphism):
             self.set_pre_isomorphism(pre_isom)
 
         if (None != post_isom):
-            self.set_post_isomorphism(post_isom)
+            self.__set_post_isomorphism(old_codomain, post_isom)   #(trac #7096)
 
         # Inheritance house keeping
 
@@ -923,6 +984,11 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi_p.__hash__() == phi_v.__hash__()
             False
 
+            sage: E = EllipticCurve('49a3')
+            sage: R.<X> = QQ[]
+            sage: EllipticCurveIsogeny(E,X^3-13*X^2-58*X+503,check=False)
+            Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
+
         """
 
         if (None != self.__this_hash):
@@ -964,6 +1030,13 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi_p = EllipticCurveIsogeny(E_F17, [0,1])
             sage: phi_p == phi_v
             False
+            sage: E = EllipticCurve('11a1')
+            sage: phi = E.isogeny(E(5,5))
+            sage: psi = E.isogeny(phi.kernel_polynomial())
+            sage: phi == psi
+            True
+            sage: phi.dual() == psi.dual()
+            True
 
 
         """
@@ -1850,6 +1923,9 @@ class EllipticCurveIsogeny(Morphism):
 
         n = len(kernel_polynomial)-1
 
+        if kernel_polynomial[-1] != 1:
+            raise ValueError, "The kernel polynomial must be monic."
+
         self.__kernel_polynomial_list = kernel_polynomial
 
         psi = 0
@@ -2255,8 +2331,7 @@ class EllipticCurveIsogeny(Morphism):
         # So in this case, we do some explicit casting to make sure
         # everything comes out right
 
-        if is_NumberField(self.__base_field) and \
-                (1 < self.__base_field.degree()) :
+        if is_NumberField(self.__base_field) and (1 < self.__base_field.degree()) :
             xP_out = self.__poly_ring(xP_out).constant_coefficient()
             yP_out = self.__poly_ring(yP_out).constant_coefficient()
 
@@ -2455,7 +2530,7 @@ class EllipticCurveIsogeny(Morphism):
         r"""
         This function returns a bool indicating whether or not this isogeny is separable.
 
-        This function always returns true.  This class only implements separable isogenies.
+        This function always returns ``True`` as currently this class only implements separable isogenies.
 
         EXAMPLES::
 
@@ -2655,7 +2730,7 @@ class EllipticCurveIsogeny(Morphism):
     def get_pre_isomorphism(self):
         r"""
         Returns the pre-isomorphism of this isogeny.
-        If there has been no pre-isomorphism set, this returns None.
+        If there has been no pre-isomorphism set, this returns ``None``.
 
         EXAMPLES::
 
@@ -2690,7 +2765,7 @@ class EllipticCurveIsogeny(Morphism):
     def get_post_isomorphism(self):
         r"""
         Returns the post-isomorphism of this isogeny.
-        If there has been no post-isomorphism set, this returns None.
+        If there has been no post-isomorphism set, this returns ``None``.
 
         EXAMPLES::
 
@@ -2711,9 +2786,9 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi2 = EllipticCurveIsogeny(E, None, E2, 2)
             sage: phi2.get_post_isomorphism()
             Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
-              To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + 77*y = x^3 + 49*x + 28 over Finite Field of size 83
-              Via:  (u,r,s,t) = (82, 7, 41, 3)
+            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
+            To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + 77*y = x^3 + 49*x + 28 over Finite Field of size 83
+            Via:  (u,r,s,t) = (1, 7, 42, 80)
 
         """
         return self.__post_isomorphism
@@ -2775,21 +2850,19 @@ class EllipticCurveIsogeny(Morphism):
         """
         self.set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
 
-
-    def is_normalized(self, check_by_pullback=True):
+    def is_normalized(self, via_formal=True, check_by_pullback=True):
         r"""
-        Returns true if this isogeny is normalized.
-
-        This code does two things.  If the check_by_pullback flag is set, then the code checks that the coefficient on the pullback of the
-        invariant differential is 1.  However, in some cases (after a translation has been applied) the underlying polynomial algebra code
-        can not sufficiently simplify the pullback expression.  As such, we also cheat a little by falling back and seeing if the post isomorphism
-        on this isogeny is a translation with no rescaling.
+        Returns ``True`` if this isogeny is normalized. An isogeny `\varphi\colon E\to E_2` between two given Weierstrass
+        equations is said to be normalized if the constant `c` is `1` in `\varphi*(\omega_2) = c\cdot\omega`, where `\omega` and `omega_2`
+        are the invariant differentials on `E` and `E_2` corresponding to the given equation.
 
         INPUT:
 
-        - ``check_by_pullback`` - If this flag is true then the code
-          checks the coefficient on the pullback of the invariant
-          differential.  (default:True)
+        - ``via_formal`` - (default: ``True``) If ``True`` it simply checks if the leading
+          term of the formal series is 1. Otherwise it uses a deprecated algorithm
+          involving the second optional argument.
+
+        - ``check_by_pullback`` -  (default:``True``) Deprecated.
 
         EXAMPLES::
 
@@ -2851,7 +2924,12 @@ class EllipticCurveIsogeny(Morphism):
             True
 
         """
+        # easy algorithm using the formal expansion.
+        if via_formal:
+            phi_formal = self.formal(prec=5)
+            return phi_formal[1] == 1
 
+        # this is the old algorithm. it should be deprecated.
         check_prepost_isomorphism = False
 
         f_normalized = True
@@ -2880,7 +2958,7 @@ class EllipticCurveIsogeny(Morphism):
             inv_diff_quo = domain_inv_diff/codomain_inv_diff
 
             if (1 == inv_diff_quo):
-                f_normalized
+                f_normalized = True
             else:
                 # For some reason, in certain cases, when the isogeny is pre or post composed with a translation
                 # the resulting rational functions are too complicated for sage to simplify down to a constant
@@ -2923,10 +3001,12 @@ class EllipticCurveIsogeny(Morphism):
 
         return f_normalized
 
-
     def dual(self):
         r"""
-        Computes and returns the dual isogeny of this isogeny.
+        Computes and returns the dual isogeny of this isogeny. If `\varphi\colon E \to E_2` is the given isogeny,
+        then the dual is by definition the unique isogeny `\hat\varphi\colon E_2\to E` such that the compositions
+        `\hat\varphi\circ\varphi` and `\varphi\circ\hat\varphi` are the multiplication `[n]` by the
+        degree of `\varphi` on `E` and `E_2` respectively.
 
         EXAMPLES::
 
@@ -2960,8 +3040,6 @@ class EllipticCurveIsogeny(Morphism):
             sage: Xm = Xhat.subs(x=X, y=Y)
             sage: Ym = Yhat.subs(x=X, y=Y)
             sage: (Xm, Ym) == E.multiplication_by_m(7)
-            False
-            sage: (Xm, -Ym) == E.multiplication_by_m(7)
             True
 
             sage: E = EllipticCurve(GF(31), [0,0,0,1,8])
@@ -2978,9 +3056,29 @@ class EllipticCurveIsogeny(Morphism):
             sage: Xm = Xhat.subs(x=X, y=Y)
             sage: Ym = Yhat.subs(x=X, y=Y)
             sage: (Xm, Ym) == E.multiplication_by_m(5)
-            False
-            sage: (Xm, -Ym) == E.multiplication_by_m(5)
             True
+
+        Test (for trac ticket 7096)::
+
+            sage: E = EllipticCurve('11a1')
+            sage: phi = E.isogeny(E(5,5))
+            sage: phi.dual().dual() == phi
+            True
+
+            sage: k = GF(103)
+            sage: E = EllipticCurve(k,[11,11])
+            sage: phi = E.isogeny(E(4,4))
+            sage: phi
+            Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 11*x + 11 over Finite Field of size 103 to Elliptic Curve defined by y^2 = x^3 + 25*x + 80 over Finite Field of size 103
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(),(5,0,1,2)))
+            sage: phi.dual().dual() == phi
+            True
+
+            sage: E = EllipticCurve(GF(103),[1,0,0,1,-1])
+            sage: phi = E.isogeny(E(60,85))
+            sage: phi.dual()
+            Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 + 84*x + 34 over Finite Field of size 103 to Elliptic Curve defined by y^2 + x*y = x^3 + x + 102 over Finite Field of size 103
 
         """
 
@@ -2990,14 +3088,21 @@ class EllipticCurveIsogeny(Morphism):
         if (None != self.__dual):
             return self.__dual
 
-        E1 = self.__intermediate_codomain
-        E2pr = self.__intermediate_domain
+        # trac 7096
+        (E1, E2pr, pre_isom, post_isom) = compute_intermediate_curves(self.codomain(), self.domain())
 
         F = self.__base_field
 
         d = self.__degree
 
-        isom = WeierstrassIsomorphism(E2pr, (1/F(d), 0, 0, 0))
+        # trac 7096
+        if F(d) == 0:
+            raise NotImplementedError, "The dual isogeny is not separable, but only separable isogenies are implemented so far"
+
+        # trac 7096
+        # this should take care of the case when the isogeny is not normalized.
+        u = self.formal(prec=5)[1]
+        isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
 
         E2 = isom.codomain().codomain()
 
@@ -3008,11 +3113,69 @@ class EllipticCurveIsogeny(Morphism):
 
         phi_hat.set_pre_isomorphism(pre_isom)
         phi_hat.set_post_isomorphism(post_isom)
+        phi_hat.__perform_inheritance_housekeeping()
+
+        assert phi_hat.codomain() == self.domain()
+
+        # trac 7096 : this adjust a posteriori the automorphism
+        # on the codomain of the dual isogeny.
+        # we used _a_ Weierstrass isomorphism to get to the original
+        # curve, but we may have to change it my an automorphism.
+        # we impose that the composition has the degree
+        # as a leading coefficient in the formal expansion.
+
+        phi_sc = self.formal(prec=5)[1]
+        phihat_sc = phi_hat.formal(prec=5)[1]
+
+        sc = phi_sc * phihat_sc/F(d)
+
+        if sc != 1:
+            auts = phi_hat.codomain().automorphsims()
+            aut = [a for a in auts if a.u == sc]
+            if len(aut) != 1:
+                raise ValueError, "There is a bug in dual()."
+            phi_hat.set_post_isomorphism(a[0])
 
         self.__dual = phi_hat
 
         return phi_hat
 
+    def formal(self,prec=20):
+        r"""
+        Computes the formal isogeny as a power series in the variable `t=-x/y`
+        on the domain curve.
+
+        INPUT:
+
+        - ``prec``: (default = 20), the precision with which the computations in the formal group are carried out.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(13),[1,7])
+            sage: phi = E.isogeny(E(10,4))
+            sage: phi.formal()
+            t + 12*t^13 + 2*t^17 + 8*t^19 + 2*t^21 + O(t^23)
+
+            sage: E = EllipticCurve([0,1])
+            sage: phi = E.isogeny(E(2,3))
+            sage: phi.formal(prec=10)
+            t + 54*t^5 + 255*t^7 + 2430*t^9 + 19278*t^11 + O(t^13)
+
+            sage: E = EllipticCurve('11a2')
+            sage: R.<x> = QQ[]
+            sage: phi = E.isogeny(x^2 + 101*x + 12751/5)
+            sage: phi.formal(prec=7)
+            t - 2724/5*t^5 + 209046/5*t^7 - 4767/5*t^8 + 29200946/5*t^9 + O(t^10)
+
+
+        """
+        Eh = self.__E1.formal()
+        f, g = self.rational_maps()
+        xh = Eh.x(prec=prec)
+        yh = Eh.y(prec=prec)
+        fh = f(xh,yh)
+        gh = g(xh,yh)
+        return -fh/gh
 
     #
     # Overload Morphism methods that we want to
@@ -3042,7 +3205,7 @@ class EllipticCurveIsogeny(Morphism):
     def is_injective(self):
         r"""
         Method inherited from the morphism class.
-        Returns True if and only if this isogeny has trivial kernel.
+        Returns ``True`` if and only if this isogeny has trivial kernel.
 
         EXAMPLES::
 
@@ -3073,7 +3236,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def is_surjective(self):
         r"""
-        For elliptic curve isogenies, always returns True (as a non-constant map of algebraic curves must be surjective).
+        For elliptic curve isogenies, always returns ``True`` (as a non-constant map of algebraic curves must be surjective).
 
         EXAMPLES::
 
@@ -3164,696 +3327,14 @@ class EllipticCurveIsogeny(Morphism):
         """
         raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogenies"
 
+# no longer needed (trac 7096)
+# def starks_find_r_and_t(T, Z):
 
-def truncated_reciprocal_quadratic(f, n):
-    r"""
-    Computes the truncated reciprocal of `f`, to precision `n`.
-    This algorithm has complexity `O(dM(n))`, where `M(n)` is the cost of a multiplication and `d` is the degree of `f`.
-
-    INPUT:
-
-    - ``f`` - polynomial, to compute the truncated reciprocal of
-    - ``n`` - integer, precision to compute reciprocal to
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `gf \equiv 1 \pmod {z^n}`
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 2.1 of [BMSS]
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: f = 1 + x + 7*x^2 + 9*x^5
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_reciprocal_quadratic
-        sage: R.<x> = QQ[]
-        sage: f = 1 + x + 7*x^2 + 9*x^5
-        sage: truncated_reciprocal_quadratic(f, 5)
-        29*x^4 + 13*x^3 - 6*x^2 - x + 1
-        sage: (f*truncated_reciprocal_quadratic(f, 5)).quo_rem(x**5)[1]
-        1
-
-    """
-
-    R = f.parent()
-    d = f.degree()
-
-    f_coef = f.coeffs()
-    for j in xrange(len(f_coef), n):
-        f_coef.append(0)
-
-    g_coef = [0 for j in xrange(n)]
-
-    g_coef[0] = g0 = 1/f.constant_coefficient()
-
-    for j in xrange(1,n):
-        gj = 0
-        for k in xrange(1,min(j+1,d+1)):
-            gj += f_coef[k]*g_coef[j-k]
-        gj = -g0*gj
-        g_coef[j] = gj
-
-    g = R(g_coef)
-
-    return g
-
-
-def truncated_reciprocal_newton(f, n):
-    r"""
-    Computes the truncated reciprocal of `f`, to precision `n` by newton iteration.
-    This algorithm has complexity `O(M(n))`, where `M(n)` is the cost of a multiplication.
-
-    INPUT:
-
-    - ``f`` - polynomial, to compute the truncated reciprocal of
-    - ``n`` - integer, precision to compute reciprocal to
-
-    OUTPUT:
-
-    polynomial -- polynomial `g`, such that `gf \equiv 1 \pmod {z^n}`
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 2.1 of [BMSS]
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, SCHOST, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_reciprocal_newton
-        sage: R.<x> = GF(53)[]
-        sage: f = 4 + 3*x^3 + 47*x^7
-        sage: truncated_reciprocal_newton(f, 6)
-        23*x^3 + 40
-        sage: (f*truncated_reciprocal_newton(f, 6)).quo_rem(x**6)[1]
-        1
-
-    """
-
-    hj = 1/f.constant_coefficient()
-
-    if (f.is_constant()):
-        return hj
-
-    z = f.variables()[0]
-
-    loop_condition = 2
-
-    while (loop_condition < 2*n):
-        hj_next = hj*(2 - f*hj)
-        (hj_quo, hj) = hj_next.quo_rem(z**loop_condition)
-        loop_condition *= 2
-
-    (hj_quo, g) = hj.quo_rem(z**n)
-
-    return g
-
-
-def truncated_reciprocal(f, n, algorithm="newtoniteration"):
-    r"""
-    Computes the truncated reciprocal of `f`, to precision `n`.
-
-    INPUT:
-
-    - ``f``         - polynomial, to compute the truncated reciprocal of
-    - ``n``         - integer, precision to compute reciprocal to
-    - ``algorithm`` - string (default:"newtoniteration"), string that selects the algorithm to use.  Choices are "newtoniteration" or "quadratic"
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `gf \equiv 1 \pmod {z^n}`
-
-    ALGORITHM:
-
-    "newtoniteration" algorithm has complexity `O(M(n))` and "quadratic" has algorithm complexity `O(dM(n))`.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_reciprocal
-        sage: R.<x> = GF(101)[]
-        sage: f = 4 + x - x^2 + 50*x^3 + 91*x^5
-        sage: truncated_reciprocal(f, 5)
-        37*x^4 + 43*x^3 + 49*x^2 + 82*x + 76
-        sage: (f*truncated_reciprocal(f, 5)).quo_rem(x**5)[1]
-        1
-
-    """
-
-    if ("quadratic"==algorithm):
-        trunc_recip = truncated_reciprocal_quadratic(f, n)
-    elif ("newtoniteration"==algorithm):
-        trunc_recip = truncated_reciprocal_newton(f, n)
-    else:
-        raise ValueError, "Unknown algorithm for computing reciprocal"
-
-    return trunc_recip
-
-
-def truncated_log(f, n):
-    r"""
-    Computes the truncated logarithm of polynomial `f` to precision `n`.
-    The complexity of this function is `O(M(n))`.
-
-    INPUT:
-
-    - ``f``         - polynomial, to compute the truncated logarithm of;  `f(0)` must not equal 0.
-    - ``n``         - integer, precision to compute logarithm to
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `\exp_n (g) \equiv f \pmod {z^n}`
-
-    ALGORITHM:
-
-    Uses the algorithm from section 2.2 of [BMSS].
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_log, truncated_exp
-        sage: R.<x> = GF(31)[]
-        sage: f = 1 + x + 2*x^2 + 3*x^3
-        sage: truncated_log(f, 4)
-        3*x^3 + 2*x^2 + x
-        sage: g = truncated_log(f, 4)
-        sage: truncated_exp(g, 4)
-        3*x^3 + 2*x^2 + x + 1
-
-    """
-
-    R = f.parent()
-    K = R.base_ring()
-
-    z = R.gen()
-
-    z_mod = z**n
-
-    g = 1 - f
-    cur_pow = g
-
-    sum_acc = 0
-
-    for j in xrange(1,n):
-        sum_acc -= K(1/j)*cur_pow
-        cur_pow *= g
-        cur_pow = cur_pow.quo_rem(z_mod)[1]
-
-    return sum_acc
-
-
-def truncated_exp_quadratic(f, n):
-    r"""
-    Computes the truncated exponential of `f`, to precision `n`, using a straight forward power series approximation.
-
-    This algorithm has complexity `O(nM(n))`, where `M(n)` is the
-    cost of a multiplication.
-
-    INPUT:
-
-    - ``f`` - polynomial, to compute the truncated exponential of
-    - ``n`` - integer, precision to compute reciprocal to
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `\log_n(g) \equiv f \pmod {z^n}`.
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 2.2 of [BMSS]
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_exp_quadratic
-        sage: R.<x> = GF(127)[]
-        sage: f = 1 + x^10
-        sage: truncated_exp_quadratic(f, 10)
-        31
-        sage: truncated_exp_quadratic(f, 11)
-        31*x^10 + 123
-
-    """
-
-    R = f.parent()
-    K = R.base_ring()
-
-    z = R.gen()
-
-    z_mod = z**n
-
-    g = R(1)
-    cur_coef = K(1)
-
-    cur_pow = R(1)
-
-    for j in xrange(1,n):
-        cur_coef = cur_coef/K(j)
-        cur_pow = cur_pow * f
-        cur_pow = cur_pow.quo_rem(z_mod)[1]
-        g += cur_coef*cur_pow
-
-    return g
-
-
-def truncated_exp_fast(f, n):
-    r"""
-    Computes the truncated exponential of `f`, to precision `n`, using an efficient newton iteration.
-    This algorithm has complexity `O(M(n))`, where `M(n)` is the cost of a multiplication.
-
-    INPUT:
-
-    - ``f`` - polynomial, to compute the truncated exponential of
-    - ``n`` - integer, precision to compute reciprocal to
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `\log_n(g) \equiv f \pmod {z^n}`.
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 2.2 of [BMSS]
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_exp_fast
-
-        sage: R.<x> = GF(27, 'a')[]
-        sage: f = 1 + x^2 + 2*x^3 + x^4
-        sage: truncated_exp_fast(f, 4)
-        x^3 + 2
-        sage: truncated_exp_fast(f, 3)
-        2*x^2 + 2
-
-    """
-
-    R = f.parent()
-    K = R.base_ring()
-
-    z = R.gen()
-
-    gi = R(1)
-
-    j = 0
-    m = 0
-
-    while (m < n):
-
-        m = 2**j + 1
-
-        if (n < m):
-            m = n
-
-        g_nexti = gi*(1 + f - truncated_log(gi, m))
-        gi = g_nexti.quo_rem(z**m)[1]
-
-        j += 1
-
-    return gi
-
-
-def truncated_exp(f, n, algorithm="fast"):
-    r"""
-    Computes the truncated exponential of `f`, to precision `n`, using an efficient newton iteration.
-    This algorithm has complexity `O(M(n))`, where `M(n)` is the cost of a multiplication.
-
-    INPUT:
-
-    - ``f``         - polynomial, to compute the truncated exponential of
-    - ``n``         - integer, precision to compute reciprocal to
-    - ``algorithm`` - string (default:"fast") indicates which algorithm to use, choices are "fast" or "quadratic"
-
-    OUTPUT:
-
-    polynomial -- a polynomial `g`, such that `\log_n(g) \equiv f \pmod {z^n}`.
-
-    ALGORITHM:
-
-    algorithm "fast" uses newton iteration and has complexity O(M(n)), algorithm "quadratic" has complexity O(n*M(n))
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import truncated_exp
-
-        sage: R.<x> = GF(29)[]
-        sage: f = 1+x+3*x^3
-        sage: truncated_exp(f, 3)
-        x + 2
-
-    """
-
-    if ("quadratic"==algorithm):
-        trunc_exp = truncated_exp_quadratic(f, n)
-    elif ("fast"==algorithm):
-        trunc_exp = truncated_exp_fast(f, n)
-    else:
-        raise ValueError, "Unknown algorithm for computing truncated exponential."
-
-    return trunc_exp
-
-
-def solve_linear_differential_system(a, b, c, alpha, z, n):
-    r"""
-    Solves a system of linear differential equations:
-    `af' + bf = c`, `f'(0) = \alpha`
-    where `a`, `b`, `c`, `f`, `f'` are polynomials in variable `z`, and `f`, `f'` are computed to precision `n`.
-
-    EXAMPLES:
-
-    The following examples inherently exercises this function::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_kernel_polynomial, solve_linear_differential_system
-
-        sage: R.<x> = GF(47)[]
-        sage: E = EllipticCurve(GF(47), [0,0,0,1,0])
-        sage: E2 = EllipticCurve(GF(47), [0,0,0,16,0])
-        sage: compute_isogeny_kernel_polynomial(E, E2, 4, algorithm="starks")
-        z^3 + z
-
-    """
-
-    z_mod = z**(n-1)
-
-    a_recip = truncated_reciprocal(a, n-1)
-
-    B = (b*a_recip).quo_rem(z_mod)[1]
-
-    C = (c*a_recip).quo_rem(z_mod)[1]
-
-    int_B = B.integral()
-
-    J = truncated_exp(int_B, n)
-
-    J_recip = truncated_reciprocal(J, n)
-
-    CJ = (C*J).quo_rem(z_mod)[1]
-
-    int_CJ = CJ.integral()
-
-    f = (J_recip*(alpha + int_CJ)).quo_rem(z*z_mod)[1]
-
-    return f
-
-
-def compute_pe_quadratic(R, A, B, ell):
-    r"""
-    Computes the truncated Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`.
-    Uses an algorithm that is of complexity `O(\ell^2)`.
-
-    Let `p` be the characteristic of the underlying field: Then we must have either `p=0`, or `p > 2\ell + 3`.
-
-    INPUT:
-
-     - ``poly_ring`` - polynomial ring, to compute the `\wp` function in (assumes that the generator is `z^2` for efficiency of storage/operations.)
-     - ``A``         - field element corresponding to the `x` coefficient in the Weierstrass equation of an elliptic curve
-     - ``B``         - field element corresponding to the constant coefficient in the Weierstrass equation of an elliptic curve
-     - ``ell``       - degree of `z` to compute the truncated function to.  If `p` is the characteristic of the underlying field.     If `p > 0` then we must have `2\ell + 3 < p`.
-
-    OUTPUT:
-
-    polynomial -- the element in ``poly_ring`` that corresponds to the truncated function to precision `2\ell`.
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 3.2 of [BMSS].
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_pe_quadratic
-
-        sage: R.<x> = GF(37)[]
-        sage: compute_pe_quadratic(R, GF(37)(1), GF(37)(8), 7)
-        (7*x^7 + 9*x^5 + x^4 + 20*x^3 + 22*x^2 + 1)/x
-
-        sage: R.<x> = QQ[]
-        sage: compute_pe_quadratic(R, 1, 8, 7)
-        (-16/5775*x^7 + 23902/238875*x^6 + 24/385*x^5 + 1/75*x^4 - 8/7*x^3 - 1/5*x^2 + 1)/x
-
-    """
-
-    c = [0 for j in xrange(ell)]
-    c[0] = -A/5
-    c[1] = -B/7
-
-    Z = R.gen()
-    pe = Z**-1 + c[0]*Z + c[1]*Z**2
-
-    for k in xrange(3, ell):
-        t = 0
-        for j in xrange(1,k-1):
-            t += c[j-1]*c[k-2-j]
-        ck = (3*t)/((k-2)*(2*k+3))
-        pe += ck*Z**k
-        c[k-1] = ck
-
-    return pe
-
-
-def compute_pe_fast(poly_ring, A, B, ell):
-    r"""
-    Computes the truncated Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`.
-    It does this with time complexity `O(M(n))`.
-
-    Let `p` be the characteristic of the underlying field: Then we must have either `p=0`, or `p > 2\ell + 3`.
-
-    INPUT:
-
-     - ``poly_ring`` - polynomial ring, to compute the function in (assumes that the generator is `z^2` for efficiency of storage/operations.)
-     - ``A``         - field element corresponding to the `x` coefficient in the Weierstrass equation of an elliptic curve
-     - ``B``         - field element corresponding to the constant coefficient in the Weierstrass equation of an elliptic curve
-     - ``ell``       - degree of `z` to compute the truncated function to.  If `p` is the characteristic of the underlying field and `p > 0`, then we must have `2\ell + 3 < p`.
-
-    OUTPUT:
-
-    polynomial -- the element in ``poly_ring`` that corresponds to the truncated `\wp` function to precision `2\ell`.
-
-    ALGORITHM:
-
-    This function uses the algorithm described in section 3.3 of
-    [BMSS].
-
-    .. note::
-
-       Occasionally this function will fail to give the right answer,
-       it faithfully implements the above published algorithm, so
-       compute_pe_quadratic should be used as a fallback.
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_pe_fast
-        sage: R.<x> = QQ[]
-        sage: compute_pe_fast(R, 1, 8, 7)
-        (-16/5775*x^7 + 23902/238875*x^6 + 24/385*x^5 + 1/75*x^4 - 8/7*x^3 - 1/5*x^2 + 1)/x
-
-        sage: R.<x> = GF(37)[]
-        sage: compute_pe_fast(R, GF(37)(1), GF(37)(8), 5)
-        (9*x^5 + x^4 + 20*x^3 + 22*x^2 + 1)/x
-
-    """
-
-    z = poly_ring.gen()
-
-    f1 = z
-
-    s = 2
-
-    # solve the nonlinear differential equation
-
-    n = 2*ell + 4
-
-    while (s < n):
-        f1pr = f1.derivative()
-
-        next_s = 2*s - 1
-
-        if ( n < next_s):
-            next_s = n
-
-        a = 2*f1pr
-        b = -(6*B*(f1**5) + 4*A*(f1**3))
-        c = B*(f1**6) + A*f1**4 + 1 - (f1pr**2)
-
-        z_mod = z**(next_s)
-
-        a = a.quo_rem(z_mod)[1]
-        b = b.quo_rem(z_mod)[1]
-        c = c.quo_rem(z_mod)[1]
-
-        f2 = solve_linear_differential_system(a, b, c, 0, z, next_s)
-
-        f1 = f1 + f2
-
-        s = next_s
-
-    R = f1
-
-
-    Q = (R**2).quo_rem(z**(2*ell+5))[1]
-
-    pe_denom = Q.quo_rem(z**2)[0]
-
-    pe_numer1 = truncated_reciprocal(pe_denom, 2*ell+1)
-
-    pe_numer1_list = pe_numer1.list()
-
-    pe_numer2 = 0
-
-    # now we go through and make this a polynomial in the even powers
-    for j in xrange(ell+1):
-        pe_numer2 = pe_numer2*z + pe_numer1_list[2*(ell - j)]
-
-    pe = pe_numer2/(z)
-
-    return pe
-
-
-def compute_pe(R, E, ell, algorithm=None):
-    r"""
-    Computes the truncated Weierstrass function on an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`.
-    Uses the algorithm specified by the algorithm parameter.
-
-    INPUT:
-
-    - ``R``         - polynomial ring, the ring to compute the truncated `\wp` function in (treats the generator as a power of 2 for ease of storage/use.)
-    - ``E``         - Elliptic Curve, must be in short Weierstrass form `0 = a_1 =  a_2 = a_3`
-    - ``ell``       - precision to compute the truncated function to
-    - ``algorithm`` - string (default:None) an algorithm identifier indicating using the "fast" or "quadratic" algorithm. If the algorithm is None, then this function determines the best algorithm to use.
-
-    OUTPUT:
-
-    polynomial - a polynomial corresponding to the truncated Weierstrass `\wp` function in ``R``.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_pe
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 10) * (x + 12) * (x + 16)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: pe = compute_pe(R, E, 7, algorithm="quadratic")
-        sage: pe = pe(x^2)
-        sage: pe
-        (7*x^14 + 9*x^10 + x^8 + 20*x^6 + 22*x^4 + 1)/x^2
-
-    """
-    Ea_inv = E.a_invariants()
-    if ( (0,0,0) != (Ea_inv[0], Ea_inv[1], Ea_inv[2]) ):
-        raise ValueError, "elliptic curve parameter must be in short Weierstrass form"
-
-    p = R.base_ring().characteristic()
-
-    # if the algorithm is not set, try to determine algorithm from input
-    if (None == algorithm):
-        if (0 == p) or (p < 2*ell + 5):
-            algorithm = "fast"
-        elif (p < 2*ell + 3):
-            algorithm = "quadratic"
-        else:
-            raise NotImplementedError, "algorithms for computing pe function for that characteristic / precision pair not implemented."
-
-    A = Ea_inv[3]
-    B = Ea_inv[4]
-
-    if ("quadratic"==algorithm):
-
-        if (0 < p) and (p < 2*ell + 3):
-            raise ValueError, "For computing pe via quadratic algorithm, characteristic of underlying field must be greater than or equal to 2*ell + 3"
-
-        pe = compute_pe_quadratic(R, A, B, ell)
-
-    elif ("fast"==algorithm):
-
-        if (0 < p) and (p < 2*ell + 4):
-            raise ValueError, "For computing pe via the fast algorithm, characteristic of underlying field must be greater than or equal to 2*ell + 4"
-
-        pe = compute_pe_fast(R, A, B, ell)
-
-    else:
-        raise ValueError, "unknown algorithm for computing pe."
-
-    return pe
-
-
-def starks_find_r_and_t(T, Z):
-    r"""
-    Helper function for starks algorithm.
-
-    INPUT:
-
-    - ``T`` - Rational function in ``Z``.
-    - ``Z`` - Variable of the rational function ``T``.
-
-    OUTPUT:
-
-    tuple -- `(r, t)` where `r` is the largest exponent such that the
-    coefficient `t` of `1/Z^r` is nonzero, where `T` is regarded as
-    a polynomial in `1/Z`.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import starks_find_r_and_t
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_pe
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 10) * (x + 12) * (x + 16)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: pe = compute_pe(R, E, 7, algorithm="quadratic")
-        sage: pe = pe(x^2)
-        sage: starks_find_r_and_t(pe, x)
-        (2, 1)
-
-    """
-    Tdenom = T.denominator()
-    Tdenom_lc = Tdenom.leading_coefficient()
-    Tnumer = (1/Tdenom_lc)*T.numerator()
-
-    r = Tdenom.degree()
-
-    t_r = Tnumer.constant_coefficient()
-
-    if (0 == r) and (t_r == 0):
-        Tnumer_quo = Tnumer
-        Tnumer_rem = 0
-        while (0 == Tnumer_rem):
-            (Tnumer_quo, Tnumer_rem) = Tnumer_quo.quo_rem(Z)
-            r -= 1
-        r += 1
-        t_r = Tnumer_rem
-
-    return (r, t_r)
-
-
-def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
+def compute_isogeny_starks(E1, E2, ell):
     r"""
     Computes the degree ``ell`` isogeny between ``E1`` and ``E2`` via
     Stark's algorithm.  There must be a degree ``ell``, separable,
-    normalized isogeny from ``E1`` to ``E2``.
+    normalized cyclic isogeny from ``E1`` to ``E2``.
 
     INPUT:
 
@@ -3878,7 +3359,7 @@ def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
 
     REFERENCES:
 
-    - [BMSS] Boston, Morain, Salvy, SCHOST, "Fast Algorithms for Isogenies."
+    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
     - [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
     - [S72] Stark, "Class-numbers of complex quadratic fields."
 
@@ -3891,8 +3372,8 @@ def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
         sage: (isom1, isom2, E1pr, E2pr, ker_poly) = compute_sequence_of_maps(E, E2, 11)
-        sage: compute_isogeny_starks(E1pr, E2pr, 11, pe_algorithm="quadratic")
-        z^10 + 37*z^9 + 53*z^8 + 66*z^7 + 66*z^6 + 17*z^5 + 57*z^4 + 6*z^3 + 89*z^2 + 53*z + 8
+        sage: compute_isogeny_starks(E1pr, E2pr, 11)
+        x^10 + 37*x^9 + 53*x^8 + 66*x^7 + 66*x^6 + 17*x^5 + 57*x^4 + 6*x^3 + 89*x^2 + 53*x + 8
 
         sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
         sage: R.<x> = GF(37)[]
@@ -3900,7 +3381,7 @@ def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
         sage: compute_isogeny_starks(E, E2, 5)
-        z^4 + 14*z^3 + z^2 + 34*z + 21
+        x^4 + 14*x^3 + x^2 + 34*x + 21
         sage: f**2
         x^4 + 14*x^3 + x^2 + 34*x + 21
 
@@ -3909,87 +3390,79 @@ def compute_isogeny_starks(E1, E2, ell, pe_algorithm="fast"):
         sage: f = x
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
-        sage: compute_isogeny_starks(E, E2, 2, pe_algorithm="fast")
-        z
+        sage: compute_isogeny_starks(E, E2, 2)
+        x
 
     """
 
     K = E1.base_field()
+    R = PolynomialRing(K, 'x')
+    x = R.gen()
 
-    R = PolynomialRing(K, 'z')
-    z = R.gen()
+    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS claim 2*ell is enough, but it is not M09
+    wp2 = E2.weierstrass_p(prec=4*ell+4)
 
-    S = PolynomialRing(K, 'Z')
+    # viewed them as power series in Z = z^2
+    S = LaurentSeriesRing(K, 'Z')
     Z = S.gen()
+    pe1 = 1/Z
+    pe2 = 1/Z
+    for i in xrange(2*ell+1):
+        pe1 += wp1[2*i] * Z**i
+        pe2 += wp2[2*i] * Z**i
+    pe1 = pe1.add_bigoh(2*ell+2)
+    pe2 = pe2.add_bigoh(2*ell+2)
 
-    pe1 = compute_pe(S, E1, 2*ell, pe_algorithm)
-    pe2 = compute_pe(S, E2, 2*ell, pe_algorithm)
+    #print 'wps = ',pe1
+    #print 'wps2 = ',pe2
 
     n = 1
     q = [R(1), R(0)]
-
+    #p = [R(0), R(1)]
     T = pe2
 
     while ( q[n].degree() < (ell-1) ):
-#        print 'n=', n
-#        print 'T = ', T
+        #print 'n=', n
 
-        n = n + 1
+        n += 1
         a_n = 0
-
-        (r, t_r) = starks_find_r_and_t(T, Z)
-
-        while ( 0 <= r ):
-#            print 'r=',r
-#            print 't_r=',t_r
-            a_n = a_n + t_r*z**r
+        r = -T.valuation()
+        while ( 0 <= r and T != 0):
+            t_r = T[-r]
+            #print '    r=',r
+            #print '    t_r=',t_r
+            #print '    T=',T
+            a_n = a_n + t_r * x**r
             T = T - t_r*pe1**r
-            (r, t_r) = starks_find_r_and_t(T, Z)
+            r = -T.valuation()
+
 
         q_n = a_n*q[n-1] + q[n-2]
         q.append(q_n)
+        #p_n = a_n*p[n-1] + q[n-2]
+        #p.append(p_n)
 
-        if (n == ell+1):
+        if (n == ell+1 or T==0):
+            if T.valuation()<2:
+                raise ValueError, "The two curves are not linked by a cyclic normalized isogeny of degree %s"%ell
+            #print 'breaks here'
             break
 
-        (r, t_r) = starks_find_r_and_t(T, Z)
-
-        Tdenom_lc = T.denominator().leading_coefficient()
-        Tnumer = (1/Tdenom_lc)*T.numerator()
-
-#        print 'Tnumer before divide out=', Tnumer
-
-        Tdenom_next = Z**(-r)
-
-#        print 'r=', r
-
-#        print 'Tdenom_next = ', Tdenom_next
-
-        # compute the highest power of z**2 that divides the numerator
-        (Tnumer, Tnumer_rem) = Tnumer.quo_rem(Tdenom_next);
-
-#        if (0 != Tnumer_rem):
-#            print 'ERROR expected remainder =0 was not 0.'
-
-#        print 'Tnumer after divide out = ', Tnumer
-        Tnumer_next = truncated_reciprocal(Tnumer, 2*ell)
-#        print "recip check", Tnumer*Tnumer_next
-
-#        print 'Tnumer_next =', Tnumer_next
-#        print 'Tdenom_next =', Tdenom_next
-
-        T = Tnumer_next/Tdenom_next
-
-#        print 'q_n=', q_n
-#        print 'a_n=', a_n
-
-#    print q
+        T = 1/T
+        #print '  a_n=', a_n
+        #print '  q_n=', q_n
+        #print '  p_n=', p_n
+        #print '  T = ', T
 
     qn = q[n]
+    #pn= p[n]
+    #print 'final  T = ', T
+    #print '  f =', pn/qn
+
     qn = (1/qn.leading_coefficient())*qn
+    #pn = (1/qn.leading_coefficient())*pn
 
     return qn
-
 
 def split_kernel_polynomial(E1, ker_poly, ell):
     r"""
@@ -4011,10 +3484,10 @@ def split_kernel_polynomial(E1, ker_poly, ell):
         sage: E2 = phi.codomain()
         sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_starks
         sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import split_kernel_polynomial
-        sage: ker_poly = compute_isogeny_starks(E, E2, 7, pe_algorithm="quadratic"); ker_poly
-        z^6 + 2*z^5 + 20*z^4 + 11*z^3 + 36*z^2 + 35*z + 16
+        sage: ker_poly = compute_isogeny_starks(E, E2, 7); ker_poly
+        x^6 + 2*x^5 + 20*x^4 + 11*x^3 + 36*x^2 + 35*x + 16
         sage: split_kernel_polynomial(E, ker_poly, 7)
-        z^3 + z^2 + 28*z + 33
+        x^3 + x^2 + 28*x + 33
 
     """
 
@@ -4033,11 +3506,9 @@ def split_kernel_polynomial(E1, ker_poly, ell):
 
 def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
     r"""
-    Computes the degree ``ell`` isogeny between ``E1`` and ``E2``.
-
-    There must be a degree ``ell``, separable, normalized isogeny from
-    ``E1`` to ``E2``.  If no algorithm is specified, this function
-    determines the best algorithm to use.
+    Computes the kernel polynomial of the degree ``ell`` isogeny between ``E1`` and ``E2``.
+    There must be a degree ``ell``, cyclic, separable, normalized isogeny from
+    ``E1`` to ``E2``.
 
     INPUT:
 
@@ -4047,17 +3518,11 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
 
     - ``ell``       - the degree of the isogeny from ``E1`` to ``E2``.
 
-    - ``algorithm`` - string (default:"starks") if None, this function automatically determines best algorithm to use.
-                   Otherwise uses the algorithm specified by the string.  Valid values are "starks" or "fastElkies"
+    - ``algorithm`` - currently only ``starks`` (default) is implemented.
 
     OUTPUT:
 
     polynomial -- over the field of definition of ``E1``, ``E2``, that is the kernel polynomial of the isogeny from ``E1`` to ``E2``.
-
-    .. note::
-
-       When using Stark's algorithm, occasionally the fast pe
-       computation fails, so we retry with the quadratic algorithm, which works in all cases (for valid inputs.)
 
     EXAMPLES::
 
@@ -4069,7 +3534,7 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
         sage: compute_isogeny_kernel_polynomial(E, E2, 5)
-        z^2 + 7*z + 13
+        x^2 + 7*x + 13
         sage: f
         x^2 + 7*x + 13
 
@@ -4078,28 +3543,12 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
         sage: E = EllipticCurve(K, [0,0,0,1,0])
         sage: E2 = EllipticCurve(K, [0,0,0,16,0])
         sage: compute_isogeny_kernel_polynomial(E, E2, 4)
-        z^3 + z
+        x^3 + x
 
     """
 
-    if ("starks"==algorithm):
-        ker_poly = compute_isogeny_starks(E1, E2, ell)
-    elif ("fastElkies"==algorithm):
-        raise NotImplementedError
-    else:
-        raise ValueError, "algorithm parameter was for an unknown algorithm."
-
-    #
-    # Everything that follows here is how we get the kernel polynomial in the form we want
-    # i.e. a separable polynomial (no repeated roots.)
-    #
+    ker_poly = compute_isogeny_starks(E1, E2, ell)
     ker_poly = split_kernel_polynomial(E1, ker_poly, ell)
-
-    # in case we catastrophically failed using the fast pe algorithm fall back to quadratic algorithm
-    # this is a bug and should be fixed, but this is a work around for now
-    if (ker_poly.degree() < ell/2) and ("starks"==algorithm):
-        ker_poly = compute_isogeny_starks(E1, E2, ell, pe_algorithm="quadratic")
-        ker_poly = split_kernel_polynomial(E1, ker_poly, ell)
 
     return ker_poly
 
@@ -4223,7 +3672,7 @@ def compute_sequence_of_maps(E1, E2, ell):
           Via:  (u,r,s,t) = (1, -1/3, 0, 1/2),
          Elliptic Curve defined by y^2 = x^3 - 31/3*x - 2501/108 over Rational Field,
          Elliptic Curve defined by y^2 = x^3 - 23461/3*x - 28748141/108 over Rational Field,
-         z^2 - 61/3*z + 658/9)
+         x^2 - 61/3*x + 658/9)
 
         sage: K.<i> = NumberField(x^2 + 1)
         sage: E = EllipticCurve(K, [0,0,0,1,0])
@@ -4239,7 +3688,7 @@ def compute_sequence_of_maps(E1, E2, ell):
           Via:  (u,r,s,t) = (1, 0, 0, 0),
          Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
          Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1,
-         z^3 + z)
+         x^3 + x)
 
         sage: E = EllipticCurve(GF(97), [1,0,1,1,0])
         sage: R.<x> = GF(97)[]; f = x^5 + 27*x^4 + 61*x^3 + 58*x^2 + 28*x + 21
@@ -4256,7 +3705,7 @@ def compute_sequence_of_maps(E1, E2, ell):
           Via:  (u,r,s,t) = (1, 89, 49, 53),
          Elliptic Curve defined by y^2 = x^3 + 52*x + 31 over Finite Field of size 97,
          Elliptic Curve defined by y^2 = x^3 + 41*x + 66 over Finite Field of size 97,
-         z^5 + 67*z^4 + 13*z^3 + 35*z^2 + 77*z + 69)
+         x^5 + 67*x^4 + 13*x^3 + 35*x^2 + 77*x + 69)
 
     """
 

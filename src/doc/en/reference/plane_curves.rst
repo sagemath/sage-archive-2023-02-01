@@ -24,6 +24,7 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/kodaira_symbol
    sage/schemes/elliptic_curves/weierstrass_morphism
    sage/schemes/elliptic_curves/ell_curve_isogeny
+   sage/schemes/elliptic_curves/ell_wp
    sage/schemes/elliptic_curves/period_lattice
    sage/schemes/elliptic_curves/formal_group
    sage/schemes/elliptic_curves/ell_tate_curve

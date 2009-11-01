@@ -1,11 +1,12 @@
 r"""
 Elliptic curves over a general ring.
 
-Elliptic curves are always represented by 'Weierstrass Models' with
-five coefficients `[a_1,a_2,a_3,a_4,a_6]` in standard
-notation. In Magma, 'Weierstrass Model' means a model with
-a1=a2=a3=0, which is called 'Short Weierstrass Model' in Sage;
-these only exist in characteristics other than 2 and 3.
+Sage defines an elliptic curve over a ring `R` as a 'Weierstrass Model' with
+five coefficients `[a_1,a_2,a_3,a_4,a_6]` in `R` given by
+
+`y^2 + a_1 xy + a_3 y = x^3 +a_2 x^2 +a_4 x +a_6`.
+
+Note that the (usual) scheme-theoretic definition of an elliptic curve over `R` would require the discriminant to be a unit in `R`, Sage only imposes that the discriminant is non-zero. Also, in Magma, 'Weierstrass Model' means a model with `a1=a2=a3=0`, which is called 'Short Weierstrass Model' in Sage; these do not always exist in characteristics 2 and 3.
 
 EXAMPLES:
 

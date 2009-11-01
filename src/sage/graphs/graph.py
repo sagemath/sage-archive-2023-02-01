@@ -4423,6 +4423,48 @@ class GenericGraph(SageObject):
         for v in vertices:
             yield filter(v, self)
 
+
+    def is_regular(self, k = None):
+        """
+        Return ``True`` if this graph is (`k`-)regular.
+
+        INPUT:
+
+        - ``k`` (default: ``None``) - the degree of regularity to
+          check for
+
+        EXAMPLES::
+
+            sage: G = graphs.HoffmanSingletonGraph()
+            sage: G.is_regular()
+            True
+            sage: G.is_regular(9)
+            False
+
+        So the Hoffman-Singleton graph is regular, but not
+        9-regular.  In fact, we can now find the degree easily as
+        follows::
+
+            sage: G.degree_iterator().next()
+            7
+
+        The house graph is not regular::
+
+            sage: graphs.HouseGraph().is_regular()
+            False
+        """
+        deg_it = self.degree_iterator()
+        if k is None:
+            k = deg_it.next()
+
+        for d in deg_it:
+            if d != k:
+                return False
+
+        return True
+
+
+
     ### Substructures
 
     def subgraph(self, vertices=None, edges=None, inplace=False,

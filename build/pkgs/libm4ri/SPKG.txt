@@ -20,6 +20,17 @@ Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Releases ==
 
+=== libm4ri-20091101 (Martin Albrecht, November 1st, 2009) ===
+ * new upstream release
+   + switched to LQUP instead of PLUQ for better performance
+   + because of this and other improvements much better handling of sparse-ish matrices
+   + overall better performance for elimination
+   + better performance for mzd_transpose
+   + dropped the check for the numer of CPUs from configure which was unused and not cross platform
+   + optional tuning code to calculate cache sizes (not enabled by default)
+   + some refactoring
+   + mzd_row_add_offset() fixed a segfault
+
 === libm4ri-20090615 (Martin Albrecht, June 15th, 2009) ===
  * new upstream release with bugfixes and new functionality (nullspace)
 

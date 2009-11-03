@@ -272,6 +272,36 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             assert is_MPolynomialRing(self.__mpoly_ring)
             self.__power_series_class = power_series_mpoly.PowerSeries_mpoly
 
+    def variable_names_recursive(self, depth=None):
+        r"""
+        Returns the list of variable names of this and its base rings.
+
+        EXAMPLES::
+
+            sage: R = QQ[['x']][['y']][['z']]
+            sage: R.variable_names_recursive()
+            ('x', 'y', 'z')
+            sage: R.variable_names_recursive(2)
+            ('y', 'z')
+        """
+        if depth is None:
+            from sage.rings.infinity import infinity
+            depth = infinity
+
+        if depth <= 0:
+            all = ()
+        elif depth == 1:
+            all = self.variable_names()
+        else:
+            my_vars = self.variable_names()
+            try:
+               all = self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+            except AttributeError:
+                all = my_vars
+        if len(all) > depth:
+            all = all[-depth:]
+        return all
+
     def __reduce__(self):
         """
         TESTS::

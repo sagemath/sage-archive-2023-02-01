@@ -1095,12 +1095,8 @@ cdef class Matrix(matrix1.Matrix):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        if is_SymbolicExpressionRing(R):
-            var = 'A0123456789'
-            var = R(var)
-            c = self.charpoly(var, "df").coefficient(var, 0)
-        else:
-            c = self.charpoly('x', "df")[0]
+        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
+        c = self.charpoly(var, "df")[0]
 
         if self._nrows % 2:
             c = -c
@@ -1211,6 +1207,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
+
+        We can take the minimal polynomail of symbolic matrices::
+
+            sage: t = var('t')
+            sage: m = matrix(2,[1,2,4,t])
+            sage: m.minimal_polynomial()
+            x^2 + (-t - 1)*x + t - 8
         """
         f = self.fetch('minpoly')
         if not f is None:

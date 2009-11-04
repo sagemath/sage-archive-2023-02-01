@@ -100,7 +100,7 @@ class Scheme(ParentWithBase):
 
     __add__ = union
 
-    def _point_morphism_class(self):
+    def _point_morphism_class(self, *args, **kwds):
         """
         EXAMPLES::
 

@@ -1103,23 +1103,45 @@ class Permutation_class(CombinatorialObject):
 
         return runs
 
-    def longest_increasing_subsequence(self):
+    def longest_increasing_subsequence_length(self):
         r"""
-        Returns a list of the longest increasing subsequences of the
+        Returns the length of the longest increasing subsequences of the
         permutation p.
 
         EXAMPLES::
 
-            sage: Permutation([2,3,4,1]).longest_increasing_subsequence()
-            [[2, 3, 4]]
+            sage: Permutation([2,3,1,4]).longest_increasing_subsequence_length()
+            3
+            sage: all([i.longest_increasing_subsequence_length() == len(i.robinson_schensted()[0][0]) for i in Permutations(5)])
+            True
         """
-        runs = self.runs()
-        lis = []
-        max_length = max([len(r) for r in runs])
-        for run in runs:
-            if len(run) == max_length:
-                lis.append(run)
-        return lis
+        r=[]
+        for x in self:
+            if max(r+[0]) > x:
+                y = min(filter(lambda z: z > x, r))
+                r[r.index(y)] = x
+            else:
+                r.append(x)
+        return len(r)
+
+    def longest_increasing_subsequences(self):
+        r"""
+        Returns the list of the longest increasing subsequences of the
+        permutation p.
+
+        .. note::
+
+           The algorithm is not optimal.
+
+        EXAMPLES::
+
+            sage: Permutation([2,3,4,1]).longest_increasing_subsequences()
+            [[2, 3, 4]]
+            sage: Permutation([5, 7, 1, 2, 6, 4, 3]).longest_increasing_subsequences()
+            [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
+        """
+        patt=range(1,self.longest_increasing_subsequence_length()+1)
+        return map(lambda m : map(lambda i : self[i],m) , self.pattern_positions(patt))
 
     def cycle_type(self):
         r"""

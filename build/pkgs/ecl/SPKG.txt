@@ -42,6 +42,10 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-9.10.2-20091105cvs.p0 (Mike Hansen, November 5, 2009) ===
+  * Updated to the latest version of ECL.  This has a number of fixes
+    in it, including the patch that was in patches/mach_dep.c.
+
 === ecl-9.8.4-20090913cvs.p3 (William Stein, Oct 14, 2009) ===
   * trac 7213 -- put * in right place in rm command to make
     sure ecl still works when sage is moved (properly delete old versions)

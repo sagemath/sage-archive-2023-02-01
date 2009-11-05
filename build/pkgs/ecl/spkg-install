@@ -11,10 +11,6 @@ fi
 
 set -e
 
-
-$CP patches/mach_dep.c src/src/gc/
-
-
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
 

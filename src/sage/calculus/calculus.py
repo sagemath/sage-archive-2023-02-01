@@ -327,26 +327,26 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     If ``self`` has only one variable, then it returns the
     integral with respect to that variable.
 
-    INPUT:
+     INPUT:
 
 
-    -  ``v`` - (optional) a variable or variable name
+    - ``v`` - (optional) a variable or variable name.  This can also
+       be a tuple of the variable (optional) and endpoints (i.e.,
+       ``(x,0,1)`` or ``(0,1)``).
 
-    -  ``a`` - (optional) lower endpoint of definite
-       integral
+    - ``a`` - (optional) lower endpoint of definite integral
 
-    -  ``b`` - (optional) upper endpoint of definite
-       integral
+    - ``b`` - (optional) upper endpoint of definite integral
 
-    - ``algorithm`` - (default: 'maxima')  one of
+    - ``algorithm`` - (default: 'maxima') one of
 
-              - 'maxima' - use maxima (the default)
+       - 'maxima' - use maxima (the default)
 
-              - 'sympy' - use sympy (also in Sage)
+       - 'sympy' - use sympy (also in Sage)
 
-              - 'mathematica_free' - use http://integrals.wolfram.com/
+       - 'mathematica_free' - use http://integrals.wolfram.com/
 
-    EXAMPLES::
+     EXAMPLES::
 
         sage: x = var('x')
         sage: h = sin(x)/(cos(x))^2
@@ -375,13 +375,18 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
     The variable and endpoints are both optional::
 
+        sage: y=var('y')
         sage: integral(sin(x))
         -cos(x)
-        sage: integral(sin(x), var('y'))
+        sage: integral(sin(x), y)
         y*sin(x)
         sage: integral(sin(x), pi, 2*pi)
         -2
-        sage: integral(sin(x), var('y'), pi, 2*pi)
+        sage: integral(sin(x), y, pi, 2*pi)
+        pi*sin(x)
+        sage: integral(sin(x), (pi, 2*pi))
+        -2
+        sage: integral(sin(x), (y, pi, 2*pi))
         pi*sin(x)
 
     Constraints are sometimes needed::
@@ -409,7 +414,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
         sage: forget()
 
-        sage: integrate(1/x^3,x,0,1)
+        sage: integrate(1/x^3,(x,0,1))
         Traceback (most recent call last):
         ...
         ValueError: Integral is divergent.
@@ -493,7 +498,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
     ::
 
-        sage: integral(e^(-x^2),x, 0, 0.1)
+        sage: integral(e^(-x^2),(x, 0, 0.1))
         0.0562314580091*sqrt(pi)
 
     ALIASES: integral() and integrate() are the same.
@@ -553,6 +558,33 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         sage: res.subs(y=.5).n()
         -0.669511708873
 
+    Check if #6816 is fixed::
+
+        sage: var('t,theta')
+        (t, theta)
+        sage: integrate(t*cos(-theta*t),t,-oo,oo)
+        0
+        sage: integrate(t*cos(-theta*t),(t,-oo,oo))
+        0
+        sage: integrate(t*cos(-theta*t),(t))
+        (t*theta*sin(t*theta) + cos(t*theta))/theta^2
+        sage: integrate(t*cos(-theta*t),(-oo,oo)) # probably shouldn't be allowed to work, but for now we let it
+        0
+        sage: integrate(x^2,(x)) # this worked before
+        1/3*x^3
+        sage: integrate(x^2,(x,)) # this didn't
+        1/3*x^3
+        sage: integrate(x^2,()) # nor did this
+        1/3*x^3
+        sage: integrate(x^2,(1,2)) # this case should always be allowed to work
+        7/3
+        sage: integrate(x^2,(x,1,2))
+        7/3
+        sage: integrate(x^2,(x,1,2,3))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
+
     Check if #6189 is fixed (which, by the way, also
     demonstrates it's not always good to expand)::
 
@@ -567,7 +599,19 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()
         0
     """
-    if b is None and a is not None:
+    if isinstance(v, (list, tuple)) and a is None and b is None:
+        if len(v)==1: # bare variable in a tuple
+            v,=v
+        elif len(v)==3: # variable and endpoints
+            v,a,b=v
+        elif len(v)==2: # endpoints only
+            a,b=v
+            v=None
+        elif len(v)==0:
+            v=None
+        else:
+            raise ValueError, "invalid input %s - please use variable, with or without two endpoints"%repr(v)
+    elif b is None and a is not None:
         # two arguments, must be endpoints
         a, b = v, a
         v = None

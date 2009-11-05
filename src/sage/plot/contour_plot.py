@@ -19,7 +19,7 @@ Contour Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword
+from sage.plot.misc import options, suboptions, rename_keyword
 from sage.plot.colors import rgbcolor, get_cmap
 from sage.misc.misc import verbose, xsrange
 import operator
@@ -110,10 +110,14 @@ class ContourPlot(GraphicPrimitive):
                         a list of colors, or an instance of a
                         matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
                         for available colormap names.""",
-                       'fill':'Fill contours or not',
-                'contours':"""Either an integer specifying the number of
-                       contour levels, or a sequence of numbers giving
-                       the actual contours to use.""",
+                'fill':'Fill contours or not',
+                 'contours':"""Either an integer specifying the number of
+                        contour levels, or a sequence of numbers giving
+                        the actual contours to use.""",
+                'linewidths':'the width of the lines to be plotted (ignored if fill=True)',
+                'linestyles':'the style of the lines to be plotted (ignored if fill=True)',
+                'labels':'show line labels or not (ignored if fill=True)',
+                'label_options':'a dictionary of options for the labels',
                 'zorder':'The layer level in which to draw'}
 
     def _repr_(self):
@@ -155,22 +159,35 @@ class ContourPlot(GraphicPrimitive):
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
+
+        if isinstance(contours, (int, Integer)):
+            contours = int(contours)
+
         if fill:
             if contours is None:
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
-            elif isinstance(contours, (int, Integer)):
-                subplot.contourf(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
             else:
                 subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
         else:
+            linewidths = options['linewidths']
+            if isinstance(linewidths, (int, Integer)):
+                linewidths = int(linewidths)
+            elif isinstance(linewidths, (list, tuple)):
+                linewidths = tuple(int(x) for x in linewidths)
+            linestyles = options['linestyles']
             if contours is None:
-                subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
-            elif isinstance(contours, (int, Integer)):
-                subplot.contour(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
+                CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
+                                     linewidths=linewidths, linestyles=linestyles)
             else:
-                subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
+                CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
+                                linewidths=linewidths, linestyles=linestyles)
+            if options['labels']:
+                label_options = options['label_options']
+                label_options['fontsize'] = int(label_options['fontsize'])
+                subplot.clabel(CS, **label_options)
 
-@options(plot_points=100, fill=True, contours=None,frame=True, axes=False)
+@suboptions('label', fontsize=9, colors=None, inline=True, inline_spacing=5, fmt='%1.3f')
+@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -210,6 +227,37 @@ def contour_plot(f, xrange, yrange, **options):
       is passed (or the option is not given), then the number of contour
       lines is determined automatically, and is usually about 5.
 
+    - ``linewidths`` -- integer or list of integer (default: None), if a
+      single integer all levels will be of the width given, otherwise the
+      levels will be plotted with the width in the order given.  This option
+      is ignored if fill=True.
+
+    - ``linestyles`` -- string or list of strings (default: None), the style of
+      the lines to be plotted, one of: solid, dashed, dashdot, or dotted.
+      This option is ignored if fill=True.
+
+    - ``labels`` -- boolean (default: False) Show level labels or not.
+      This option is ignored if fill=True.
+
+    The following options are to adjust the style and placement of labels,
+    they have no effect if no labels are shown.
+
+    - ``label_fontsize`` -- integer (default: 9), the font size of the labels.
+
+    - ``label_colors`` -- string or sequence of colors (default: None) If a
+      string, gives the name of a single color with which to draw all labels.
+      If a sequence, gives the colors of the labels.  A color is a string giving
+      the name of one or a 3-tuple of floats.
+
+    - ``label_inline`` -- boolean (default: True), controls whether the
+      underlying contour is removed or not.
+
+    - ``label_inline_spacing``  -- integer (default: 5), When inline, this is
+      the amount of contour that is removed from each side, in pixels.
+
+    - ``label_fmt`` -- a format string (default: "%1.3f"), this is used to
+      get the label text from the level.
+
 
     EXAMPLES:
 
@@ -245,7 +293,22 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(f, (-2, 2), (-2, 2))
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False, aspect_ratio=1)
+
+    We can change the style of the lines::
+
+        sage: contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
+        sage: contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
+
+    We can add labels and play with them::
+
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True)
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fmt="%1.0f", label_colors='black')
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fontsize=18)
+
+    If we do not specify fill=False, then the label and line options are ignored::
+
+        sage: contour_plot(f, (-2,2), (-2,2), labels=True, linestyles='dashed')
 
     This should plot concentric circles centered at the origin::
 
@@ -312,6 +375,13 @@ def implicit_plot(f, xrange, yrange, **options):
     - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
       `f(x,y) < 0`.
 
+    - ``linewidth`` -- integer (default: None), if a single integer all levels
+      will be of the width given, otherwise the levels will be plotted with the
+      widths in the order given. This option is ignored if fill=True.
+
+    - ``linestyle`` -- string (default: None), the style of the line to be
+      plotted, one of: solid, dashed, dashdot or dotted. This option is ignored
+      if fill=True.
 
     EXAMPLES:
 
@@ -329,6 +399,14 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: f(x,y) = x^2 + y^2 - 2
         sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True).show(aspect_ratio=1)
+
+    The same circle but with a different line width::
+
+        sage: implicit_plot(f, (-3,3), (-3,3), linewidth=6).show(aspect_ratio=1)
+
+    And again the same circle but this time with a dashdot border::
+
+        sage: implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot').show(aspect_ratio=1)
 
     You can also plot an equation::
 
@@ -370,10 +448,12 @@ def implicit_plot(f, xrange, yrange, **options):
         if f.operator() != operator.eq:
             raise ValueError, "input to implicit plot must be function or equation"
         f = f.lhs() - f.rhs()
-    return contour_plot(f, xrange, yrange, **options)
+    linewidths = options.pop('linewidth', None)
+    linestyles = options.pop('linestyle', None)
+    return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None)
-def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
+@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None)
+def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`
     and plots the region where f is True over the specified
@@ -399,8 +479,17 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     - ``outcol`` -- a color (default: ``'white'``), the color of the outside
       of the region
 
-    - ``bordercol`` -- a color (default: ``None``), the color of the border
-      (``incol`` if not specified)
+    If any of these options are specified, the border will be shown as indicated,
+    otherwise it is only implicit (with color ``incol``) as the border of the
+    inside of the region.
+
+     - ``bordercol`` -- a color (default: ``None``), the color of the border
+      (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but not ``bordercol``)
+
+    - ``borderstyle``  -- string (default: 'solid'), one of 'solid', 'dashed', 'dotted', 'dashdot'
+
+    - ``borderwidth``  -- integer (default: None), the width of the border in pixels
+
 
     EXAMPLES:
 
@@ -413,9 +502,9 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
         sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
 
-    An even more complicated plot::
+    An even more complicated plot, with dashed borders::
 
-        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=250)
+        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', borderstyle='dashed', plot_points=250)
 
     A disk centered at the origin::
 
@@ -433,17 +522,17 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
         sage: region_plot([y>0, x>0, x^2+y^2<1], (-1.1, 1.1), (-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
 
-    Here is another plot::
+    Here is another plot, with a huge border::
 
-        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', borderwidth=10, plot_points=50)
 
     If we want to keep only the region where x is positive::
 
-        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3), incol='lightblue', plot_points=50)
 
     Here we have a cut circle::
 
-        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1)
     """
 
     from sage.plot.plot import Graphics
@@ -473,13 +562,24 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     g = Graphics()
 
-    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(plot_points=plot_points,
-                                                                    contours=[-1e307, 0, 1e307], cmap=cmap, fill=True)))
+    opt = contour_plot.options.copy()
+    opt.pop('plot_points')
+    opt.pop('fill')
+    opt.pop('contours')
+    opt.pop('frame')
 
-    if bordercol is not None:
-        bordercol = rgbcolor(bordercol)
+    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(plot_points=plot_points,
+                                                                    contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, **opt)))
+
+    if bordercol or borderstyle or borderwidth:
+        cmap = [rgbcolor(bordercol)] if bordercol else ['black']
+        linestyles = [borderstyle] if borderstyle else None
+        linewidths = [borderwidth] if borderwidth else None
+        opt.pop('linestyles')
+        opt.pop('linewidths')
         g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(plot_points=plot_points,
-                                                                       contours=[0], cmap=[bordercol], fill=False)))
+                                                                       linestyles=linestyles, linewidths=linewidths,
+                                                                       contours=[0], cmap=[bordercol], fill=False, **opt)))
 
     return g
 

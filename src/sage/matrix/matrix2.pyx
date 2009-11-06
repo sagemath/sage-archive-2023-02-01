@@ -105,8 +105,22 @@ cdef class Matrix(matrix1.Matrix):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+
+        TESTS::
+
+            sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
+            sage: B = vector(QQ,2, [2,1])
+            sage: X = A.solve_left(B)
+            sage: X*A == B
+            True
+            sage: X
+            (-1, 2, 0, 0)
+
         """
-        return self.transpose().solve_right(B.transpose(), check=check).transpose()
+        if is_Vector(B):
+            return self.transpose().solve_right(B, check=check)
+        else:
+            return self.transpose().solve_right(B.transpose(), check=check).transpose()
 
     def solve_right(self, B, check=True):
         r"""

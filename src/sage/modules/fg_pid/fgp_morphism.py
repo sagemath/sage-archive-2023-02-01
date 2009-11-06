@@ -434,7 +434,7 @@ class FGP_Morphism(Morphism):
 
         # Solve z*H = w.
         try:
-            z = H.solve_left(w)[0]  # [0] to get first solution vector
+            z = H.solve_left(w)
             if z.denominator() != 1:
                 raise ValueError
         except ValueError:

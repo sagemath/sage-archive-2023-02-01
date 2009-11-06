@@ -339,7 +339,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         H, U = A.hermite_form(transformation=True,include_zero_rows=False)
         Y = H.solve_left(vector(self.codomain().coordinates(x)))
         C = Y*U
-        t = self.domain().linear_combination_of_basis(C.row(0))
+        t = self.domain().linear_combination_of_basis(C)
         assert self(t) == x
         return t
 

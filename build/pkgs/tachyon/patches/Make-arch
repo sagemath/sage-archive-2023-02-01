@@ -967,7 +967,7 @@ win32:
 	$(MAKE) all \
 	"ARCH = win32" \
 	"CC = gcc" \
-	"CFLAGS = -mpentium -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \
@@ -978,7 +978,7 @@ win32-mpi:
 	$(MAKE) all \
 	"ARCH = win32-mpi" \
 	"CC = gcc" \
-	"CFLAGS = -mpentium -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
+	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \

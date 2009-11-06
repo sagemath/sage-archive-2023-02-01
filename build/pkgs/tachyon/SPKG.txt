@@ -29,6 +29,9 @@ See blow. This needs to be cleaned up for the 0.98.1 update (#5281)
 
 == Changelog ==
 
+=== tachyon-0.98beta.p10 (Mike Hansen, November 6th, 2009) ===
+ * Fixed tachyon on Cygwin (#7335)
+
 === tachyon-0.98beta.p9 (Mike Hansen, June 19th, 2009) ===
  * Applied Peter Jeremy's fix at #5875.
 

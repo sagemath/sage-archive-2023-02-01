@@ -1626,9 +1626,10 @@ class SimplicialComplex(SageObject):
         This changes the simplicial complex, removing the given face
         any face which contains it.
 
-        Algorithm: check if the face is a maximal facet. if so, simply add its faces and remove it.
-        otherwise, take the Alexander dual, add the complement of
-        ``face``, and then take the Alexander dual again.
+        Algorithm: check if the face is a facet. If so, simply add its
+        faces and remove it. Otherwise, take the Alexander dual, add
+        the complement of ``face``, and then take the Alexander dual
+        again.
 
         EXAMPLES::
 
@@ -1645,7 +1646,6 @@ class SimplicialComplex(SageObject):
             sage: S.remove_face([0,1,2])
             sage: S
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
-
         """
         face = Simplex(face)
         if not Simplex(face).is_face(self.vertices()):
@@ -2002,7 +2002,10 @@ class SimplicialComplex(SageObject):
         """
         The 1-skeleton of this simplicial complex, as a graph.
 
-        This is a method that may give incorrect results when applied to SimplicialComplexes constructed with maximality_check=False.
+        .. warning::
+
+           This may give the wrong answer if the simplicial complex
+           was constructed with ``maximality_check`` set to False.
 
         EXAMPLES::
 
@@ -2059,7 +2062,6 @@ class SimplicialComplex(SageObject):
             sage: X = simplicial_complexes.ChessboardComplex(3,3)
             sage: X.is_flag_complex()
             True
-
         """
         return self==self.graph().clique_complex()
 
@@ -2067,8 +2069,11 @@ class SimplicialComplex(SageObject):
         """
         Returns True if and only if self is connected.
 
-        This is gauranteed to give correct results only if self was created with maximality_check=True.
-        See the final example.
+        .. warning::
+
+           This may give the wrong answer if the simplicial complex
+           was constructed with ``maximality_check`` set to False.
+           See the final example.
 
         EXAMPLES::
 
@@ -2097,7 +2102,6 @@ class SimplicialComplex(SageObject):
             sage: S = SimplicialComplex(2,[[0,1],[1],[0]],maximality_check=False)
             sage: S.is_connected()
             False
-
         """
         return self.graph().is_connected()
 

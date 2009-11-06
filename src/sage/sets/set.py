@@ -31,6 +31,7 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.latex import latex
 import sage.rings.infinity
+from sage.misc.misc import is_iterator
 
 def Set(X):
     r"""
@@ -90,6 +91,10 @@ def Set(X):
         sage: list(Set(iter([1, 2, 3, 4, 5])))
         [1, 2, 3, 4, 5]
 
+    TESTS::
+
+        sage: Set(Primes())
+        Set of all prime numbers: 2, 3, 5, 7, ...
     """
     if is_Set(X):
         return X
@@ -103,11 +108,11 @@ def Set(X):
             return Set_object_enumerated(X)
     except AttributeError:
         pass
-    if hasattr(X, 'next'):
-        X = list(X)
+    if is_iterator(X):
         # Note we are risking an infinite loop here,
         # but this is the way Python behaves too: try
         # sage: set(an iterator which does not terminate)
+        X = list(X)
     return Set_object(X)
 
 def EnumeratedSet(X):

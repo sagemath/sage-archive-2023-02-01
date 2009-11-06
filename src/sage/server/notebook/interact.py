@@ -145,6 +145,7 @@ from base64 import standard_b64encode, standard_b64decode
 import inspect
 import math
 import types
+import itertools
 
 # Sage libraries
 from sage.misc.all import srange, sage_eval
@@ -3272,17 +3273,7 @@ def list_of_first_n(v,n):
         sage: sage.server.notebook.interact.list_of_first_n(QQ, 10)
         [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3]
     """
-    if not hasattr(v, 'next'):
-        v = v.__iter__()
-    w = []
-    while n > 0:
-        try:
-            w.append(v.next())
-        except StopIteration:
-            return w
-        n -= 1
-    return w
-
+    return list(itertools.islice(v, 0, n))
 
 def update(cell_id, var, adapt, value, globs):
     r"""

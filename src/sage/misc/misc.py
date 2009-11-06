@@ -1341,6 +1341,58 @@ def ellipsis_iter(*args, **kwds):
 
 
 #################################################################
+# is_iterator function
+#################################################################
+def is_iterator(it):
+    """
+    Tests if it is an iterator.
+
+    The mantra ``if hasattr(it, 'next')`` was used to tests if ``it`` is an
+    iterator. This is not quite correct since ``it`` could have a ``next``
+    methods with a different semantic.
+
+    EXAMPLES::
+
+        sage: it = iter([1,2,3])
+        sage: is_iterator(it)
+        True
+
+        sage: class wrong():
+        ...      def __init__(self): self.n = 5
+        ...      def next(self):
+        ...          self.n -= 1
+        ...          if self.n == 0: raise StopIteration
+        ...          return self.n
+        sage: x = wrong()
+        sage: is_iterator(x)
+        False
+        sage: list(x)
+        Traceback (most recent call last):
+        ...
+        TypeError: iteration over non-sequence
+
+        sage: class good(wrong):
+        ...      def __iter__(self): return self
+        sage: x = good()
+        sage: is_iterator(x)
+        True
+        sage: list(x)
+        [4, 3, 2, 1]
+
+        sage: P = Partitions(3)
+        sage: is_iterator(P)
+        False
+        sage: is_iterator(iter(P))
+        True
+    """
+    # see trac #7398 for a discussion
+    try:
+        return it is iter(it)
+    except:
+        return False
+
+
+#################################################################
 # Useful but hard to classify
 #################################################################
 

@@ -32,7 +32,8 @@ from stream import Stream, Stream_class
 from series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer, Ring, prod
 from functools import partial
-from sage.misc.misc import repr_lincomb
+from sage.misc.misc import repr_lincomb, is_iterator
+
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
@@ -188,7 +189,7 @@ class LazyPowerSeriesRing(Algebra):
         if hasattr(x, "__iter__") and not isinstance(x, Stream_class):
             x = iter(x)
 
-        if hasattr(x, 'next'):
+        if is_iterator(x):
             x = Stream(x)
 
         if isinstance(x, Stream_class):

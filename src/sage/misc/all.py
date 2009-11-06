@@ -2,7 +2,7 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
-                  exists, forall,
+                  exists, forall, is_iterator,
                   random_sublist, mul, walltime, generic_cmp,
                   repr_lincomb, tmp_dir, tmp_filename,
                   pad_zeros, attrcall,

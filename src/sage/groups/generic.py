@@ -945,7 +945,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
     - ``P`` - a Sage object which is a group element;
     - ``m`` - a Sage integer which is a multiple of the order of ``P``,
       i.e. we require that ``m*P=0`` (or ``P**m=1``);
-    - ``check`` - a Boolean (default:True), indicating wether we check if ``m``
+    - ``check`` - a Boolean (default:True), indicating whether we check if ``m``
       really is a multiple of the order;
     - ``factorization`` - the factorization of ``m``, or ``None`` in which
       case this function will need to factor ``m``;

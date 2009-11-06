@@ -127,6 +127,24 @@ class Words_all(InfiniteAbstractCombinatorialClass):
     """
     @lazy_attribute
     def _element_classes(self):
+        r"""
+        Returns a dictionary that gives the class of the element of self.
+
+        The word may be finite, infinite or of unknown length.
+        Its data may be str, list, tuple, a callable or an iterable.
+        For callable and iterable, the data may be cached.
+
+        TESTS::
+
+            sage: d = Words()._element_classes
+            sage: type(d)
+            <type 'dict'>
+            sage: len(d)
+            13
+            sage: e = Words('abcdefg')._element_classes
+            sage: d == e
+            True
+        """
         import sage.combinat.words.word as word
         return {
             'FiniteWord_list': word.FiniteWord_list,

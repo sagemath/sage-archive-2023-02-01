@@ -18,7 +18,7 @@ word, which provides a useful reference.
 EXAMPLES::
 
     sage: t = words.ThueMorseWord(); t
-    Thue-Morse word over Ordered Alphabet [0, 1]
+    word: 0110100110010110100101100110100110010110...
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>,
@@ -93,38 +93,22 @@ class LowerChristoffelWord(FiniteWord_list):
 
     EXAMPLES::
 
-        sage: w = words.LowerChristoffelWord(1,0); w
-        Lower Christoffel word of slope 1/0 over Ordered Alphabet [0, 1]
-        sage: print w
-        word: 1
-
-    ::
-
-        sage: w = words.LowerChristoffelWord(0,1,'xy'); w
-        Lower Christoffel word of slope 0/1 over Ordered Alphabet ['x', 'y']
-        sage: print w
-        word: x
-
-    ::
-
-        sage: w = words.LowerChristoffelWord(1,1); w
-        Lower Christoffel word of slope 1/1 over Ordered Alphabet [0, 1]
-        sage: print w
-        word: 01
-
-    ::
-
-        sage: w = words.LowerChristoffelWord(4,7); w
-        Lower Christoffel word of slope 4/7 over Ordered Alphabet [0, 1]
-        sage: print w
+        sage: words.LowerChristoffelWord(4,7)
         word: 00100100101
 
     ::
 
-        sage: w = words.LowerChristoffelWord(4,7,alphabet='ab'); w
-        Lower Christoffel word of slope 4/7 over Ordered Alphabet ['a', 'b']
-        sage: print w
+        sage: words.LowerChristoffelWord(4,7,alphabet='ab')
         word: aabaabaabab
+
+    TESTS::
+
+        sage: words.LowerChristoffelWord(1,0)
+        word: 1
+        sage: words.LowerChristoffelWord(0,1,'xy')
+        word: x
+        sage: words.LowerChristoffelWord(1,1)
+        word: 01
     """
 
     def __init__(self, p, q, alphabet=(0,1)):
@@ -166,15 +150,6 @@ class LowerChristoffelWord(FiniteWord_list):
         super(LowerChristoffelWord, self).__init__(Words(alphabet), w)
         self.__p = p
         self.__q = q
-
-    def __repr__(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = words.LowerChristoffelWord(4,7,alphabet='ab'); w
-            Lower Christoffel word of slope 4/7 over Ordered Alphabet ['a', 'b']
-        """
-        return "Lower Christoffel word of slope %s/%s over %s" % (self.__p, self.__q, self.parent().alphabet())
 
     def markoff_number(self):
         r"""
@@ -226,9 +201,9 @@ class LowerChristoffelWord(FiniteWord_list):
             sage: w = words.LowerChristoffelWord(51,37)
             sage: w1, w2 = w.standard_factorization()
             sage: w1
-            Lower Christoffel word of slope 11/8 over Ordered Alphabet [0, 1]
+            word: 0101011010101101011
             sage: w2
-            Lower Christoffel word of slope 40/29 over Ordered Alphabet [0, 1]
+            word: 0101011010101101011010101101010110101101...
             sage: w1 * w2 == w
             True
         """
@@ -263,7 +238,7 @@ class ChristoffelWord_Lower(LowerChristoffelWord):
             sage: from sage.combinat.words.word_generators import ChristoffelWord_Lower
             sage: w = ChristoffelWord_Lower(1,0); w
             doctest:1: DeprecationWarning: ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead
-            Lower Christoffel word of slope 1/0 over Ordered Alphabet [0, 1]
+            word: 1
         """
         from sage.misc.misc import deprecation
         deprecation("ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead")
@@ -302,32 +277,25 @@ class WordGenerator(object):
         Thue-Morse word::
 
             sage: t = words.ThueMorseWord(); t
-            Thue-Morse word over Ordered Alphabet [0, 1]
-            sage: print t[:50]
-            word: 01101001100101101001011001101001100101100110100101
+            word: 0110100110010110100101100110100110010110...
 
         Thue-Morse word on other alphabets::
 
             sage: t = words.ThueMorseWord('ab'); t
-            Thue-Morse word over Ordered Alphabet ['a', 'b']
-            sage: print t[:50]
-            word: abbabaabbaababbabaababbaabbabaabbaababbaabbabaabab
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
 
         ::
 
-            sage: t = words.ThueMorseWord(['L1', 'L2']); t
-            Thue-Morse word over Ordered Alphabet ['L1', 'L2']
-            sage: words.ThueMorseWord(['L1','L2'])[:8]
+            sage: t = words.ThueMorseWord(['L1', 'L2'])
+            sage: t[:8]
             word: L1,L2,L2,L1,L2,L1,L1,L2
 
         Generalized Thue Morse word::
 
             sage: words.ThueMorseWord(alphabet=(0,1,2), base=2)
-            Generalized Thue-Morse word using base 2 over Ordered Alphabet [0, 1, 2]
+            word: 0112122012202001122020012001011212202001...
             sage: t = words.ThueMorseWord(alphabet=(0,1,2), base=5); t
-            Generalized Thue-Morse word using base 5 over Ordered Alphabet [0, 1, 2]
-            sage: t[:20]
-            word: 01201120122012001201
+            word: 0120112012201200120112012120122012001201...
             sage: t[100:130].critical_exponent()
             10/3
 
@@ -354,13 +322,8 @@ class WordGenerator(object):
 
         alphabet = w.parent().alphabet()
         m = w.parent().size_of_alphabet()
-        if base == 2 and m == 2 :
-            name = "Thue-Morse word over %s" % alphabet
-        elif base < 2 or m < 2 :
+        if base < 2 or m < 2 :
             raise ValueError, "base (=%s) and size of alphabet (=%s) must be at least 2"%(base, m)
-        else:
-            name = "Generalized Thue-Morse word using base %s over %s" %(base, alphabet)
-        w.rename(name)
         return w
 
     def _ThueMorseWord_nth_digit(self, n, alphabet=(0,1), base=2):
@@ -420,7 +383,7 @@ class WordGenerator(object):
         -  ``alphabet`` - any container of length two that is suitable to
            build an instance of OrderedAlphabet (list, tuple, str, ...)
         -  ``construction_method`` - can be any of the following:
-           "recursive", "fixed point" (see below for definitions).
+           "recursive", "fixed point", "function" (see below for definitions).
 
         Recursive construction: the Fibonacci word is the limit of the
         following sequence of words: `S_0 = 0`, `S_1 = 01`,
@@ -436,33 +399,37 @@ class WordGenerator(object):
         |    move to the next letter of the word.
         |
 
+        Function: Over the alphabet `\{1, 2\}`, the n-th letter of the
+        Fibonacci word is
+        `\lfloor (n+2) \varphi \rfloor - \lfloor (n+1) \varphi \rfloor`
+        where `\varphi=(1+\sqrt{5})/2` is the golden ratio.
+
         EXAMPLES::
 
             sage: w = words.FibonacciWord(construction_method="recursive"); w
-            Fibonacci word over Ordered Alphabet [0, 1], defined recursively
-            sage: print w[:99]
-            word: 010010100100101001010010010100100101001010010010100101001001010010010100101001001010010010100101001
+            word: 0100101001001010010100100101001001010010...
 
         ::
 
             sage: v = words.FibonacciWord(construction_method="recursive", alphabet='ab'); v
-            Fibonacci word over Ordered Alphabet ['a', 'b'], defined recursively
-            sage: print v[:99]
-            word: abaababaabaababaababaabaababaabaababaababaabaababaababaabaababaabaababaababaabaababaabaababaababaab
+            word: abaababaabaababaababaabaababaabaababaaba...
 
         ::
 
             sage: u = words.FibonacciWord(construction_method="fixed point"); u
-            Fibonacci word over Ordered Alphabet [0, 1], defined as the fixed point of a morphism
-            sage: print u[:99]
-            word: 010010100100101001010010010100100101001010010010100101001001010010010100101001001010010010100101001
+            word: 0100101001001010010100100101001001010010...
 
         ::
 
-            sage: x = words.FibonacciWord(construction_method="fixed point", alphabet=[4, 1]); x
-            Fibonacci word over Ordered Alphabet [1, 4], defined as the fixed point of a morphism
-            sage: print x[:99]
-            word: 414414144144141441414414414144144141441414414414144141441441414414414144141441441414414414144141441
+            sage: words.FibonacciWord(construction_method="fixed point", alphabet=[4, 1])
+            word: 4144141441441414414144144141441441414414...
+
+        ::
+
+            sage: words.FibonacciWord([0,1], 'function')
+            word: 0100101001001010010100100101001001010010...
+            sage: words.FibonacciWord('ab', 'function')
+            word: abaababaabaababaababaabaababaabaababaaba...
 
         TESTS::
 
@@ -481,19 +448,30 @@ class WordGenerator(object):
             ...
             TypeError: alphabet does not contain two distinct elements
         """
-        if len(set(alphabet)) != 2:
+        from sage.combinat.words.alphabet import Alphabet
+        alphabet = Alphabet(alphabet)
+        if alphabet.cardinality() != 2:
             raise TypeError, "alphabet does not contain two distinct elements"
+
+        a,b = alphabet
+        W = Words(alphabet)
+
         if construction_method == "recursive":
-            w = Words(alphabet)(\
-                    self._FibonacciWord_RecursiveConstructionIterator(alphabet), \
+            w = W(self._FibonacciWord_RecursiveConstructionIterator(alphabet), \
                     datatype='iter')
-            w.rename("Fibonacci word over %s, defined recursively" % w.parent().alphabet())
             return w
+
         elif construction_method in ("fixed point", "fixed_point"):
-            d = {alphabet[1]:[alphabet[0]],alphabet[0]:[alphabet[0],alphabet[1]]}
-            w = self.FixedPointOfMorphism(d, alphabet[0])
-            w.rename("Fibonacci word over %s, defined as the fixed point of a morphism" % w.parent().alphabet())
+            d = {b:[a],a:[a,b]}
+            w = self.FixedPointOfMorphism(d, a)
             return w
+
+        elif construction_method == "function":
+            from sage.functions.other import sqrt, floor
+            phi = (1 + sqrt(5))/2 # the golden ratio
+            f = lambda n:a if floor((n+2)*phi) - floor((n+1)*phi) == 2 else b
+            return W(f)
+
         else:
             raise NotImplementedError
 
@@ -545,7 +523,7 @@ class WordGenerator(object):
 
             sage: mu = {0:[0,1], 1:[1,0]}
             sage: tm = words.FixedPointOfMorphism(mu,0); tm
-            Fixed point beginning with 0 of the morphism WordMorphism: 0->01, 1->10
+            word: 0110100110010110100101100110100110010110...
             sage: TM = words.ThueMorseWord()
             sage: tm[:1000] == TM[:1000]
             True
@@ -554,17 +532,15 @@ class WordGenerator(object):
 
             sage: mu = {0:[0,1], 1:[0]}
             sage: f = words.FixedPointOfMorphism(mu,0); f
-            Fixed point beginning with 0 of the morphism WordMorphism: 0->01, 1->0
+            word: 0100101001001010010100100101001001010010...
             sage: F = words.FibonacciWord(); F
-            Fibonacci word over Ordered Alphabet [0, 1], defined recursively
+            word: 0100101001001010010100100101001001010010...
             sage: f[:1000] == F[:1000]
             True
 
         ::
 
             sage: fp = words.FixedPointOfMorphism('a->abc,b->,c->','a'); fp
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->abc, b->, c->
-            sage: fp[:10]
             word: abc
         """
         return WordMorphism(morphism).fixed_point(letter=first_letter)
@@ -583,15 +559,12 @@ class WordGenerator(object):
 
             sage: alpha = 0.45
             sage: beta = 0.48
-            sage: w = words.CodingOfRotationWord(0.45, 0.48); w
-            Coding of rotation with parameters (0.450000000000000, 0.480000000000000, 0)
-            sage: w[:100]
+            sage: words.CodingOfRotationWord(0.45, 0.48)
             word: 1101010101001010101011010101010010101010...
 
         ::
 
-            sage: w = words.CodingOfRotationWord(0.45, 0.48, alphabet='xy')
-            sage: w[:100]
+            sage: words.CodingOfRotationWord(0.45, 0.48, alphabet='xy')
             word: yyxyxyxyxyxxyxyxyxyxyyxyxyxyxyxxyxyxyxyx...
 
         TESTS::
@@ -612,7 +585,6 @@ class WordGenerator(object):
         from functools import partial
         f = partial(self._CodingOfRotationWord_function,alpha=alpha,beta=beta,x=x,alphabet=alphabet)
         w = Words(alphabet)(f, datatype='callable')
-        w.rename("Coding of rotation with parameters (%s, %s, %s)"%(alpha,beta,x))
         return w
 
     def _CodingOfRotationWord_function(self, n, alpha, beta, x=0, alphabet=(0,1)):
@@ -670,9 +642,9 @@ class WordGenerator(object):
             ...     while True: yield 1
             ...
             sage: F = words.CharacteristicSturmianWord(cf()); F
-            Characteristic Sturmian word over Ordered Alphabet [0, 1], defined recursively
+            word: 0100101001001010010100100101001001010010...
             sage: Fib = words.FibonacciWord(); Fib
-            Fibonacci word over Ordered Alphabet [0, 1], defined recursively
+            word: 0100101001001010010100100101001001010010...
             sage: F[:10000] == Fib[:10000]
             True
 
@@ -683,7 +655,7 @@ class WordGenerator(object):
             ...     while True: yield 1
             ...
             sage: G = words.CharacteristicSturmianWord(cf(),'rs'); G
-            Characteristic Sturmian word over Ordered Alphabet ['r', 's'], defined recursively
+            word: rsrrsrsrrsrrsrsrrsrsrrsrrsrsrrsrrsrsrrsr...
             sage: print G[:50]
             word: rsrrsrsrrsrrsrsrrsrsrrsrrsrsrrsrrsrsrrsrsrrsrrsrsr
 
@@ -703,8 +675,6 @@ class WordGenerator(object):
         w = Words(alphabet)( \
                 self._CharacteristicSturmianWord_LetterIterator(d,alphabet), \
                 datatype='iter')
-        w.rename("Characteristic Sturmian word over %s, defined recursively" \
-                % w.parent().alphabet())
         return w
 
     def _CharacteristicSturmianWord_LetterIterator(self, d, alphabet=(0,1)):
@@ -757,25 +727,17 @@ class WordGenerator(object):
         EXAMPLES::
 
             sage: Fibonacci = words.StandardEpisturmianWord(Words('ab')('ab')); Fibonacci
-            Standard episturmian word over Ordered Alphabet ['a', 'b']
-            sage: Fibonacci[:25]
-            word: abaababaabaababaababaabaa
+            word: abaababaabaababaababaabaababaabaababaaba...
             sage: Tribonacci = words.StandardEpisturmianWord(Words('abc')('abc')); Tribonacci
-            Standard episturmian word over Ordered Alphabet ['a', 'b', 'c']
-            sage: Tribonacci[:25]
-            word: abacabaabacababacabaabaca
+            word: abacabaabacababacabaabacabacabaabacababa...
             sage: S = words.StandardEpisturmianWord(Words('abcd')('aabcabada')); S
-            Standard episturmian word over Ordered Alphabet ['a', 'b', 'c', 'd']
-            sage: print S[:75]
-            word: aabaacaabaaabaacaabaabaacaabaaabaacaabaaabaacaabaabaacaabaaabaacaabaadaabaa
+            word: aabaacaabaaabaacaabaabaacaabaaabaacaabaa...
             sage: S = words.StandardEpisturmianWord(Fibonacci); S
-            Standard episturmian word over Ordered Alphabet ['a', 'b']
+            word: abaabaababaabaabaababaabaababaabaabaabab...
             sage: S[:25]
             word: abaabaababaabaabaababaaba
             sage: S = words.StandardEpisturmianWord(Tribonacci); S
-            Standard episturmian word over Ordered Alphabet ['a', 'b', 'c']
-            sage: S[:25]
-            word: abaabacabaabaabacabaababa
+            word: abaabacabaabaabacabaababaabacabaabaabaca...
             sage: words.StandardEpisturmianWord(123)
             Traceback (most recent call last):
             ...
@@ -800,8 +762,6 @@ class WordGenerator(object):
         epistandard = directive_word.parent()(\
                 self._StandardEpisturmianWord_LetterIterator(directive_word), \
                 datatype='iter')
-        epistandard.rename("Standard episturmian word over %s" % \
-                epistandard.parent().alphabet())
         return epistandard
 
     def _StandardEpisturmianWord_LetterIterator(self, directive_word):
@@ -954,30 +914,22 @@ class WordGenerator(object):
 
         EXAMPLES::
 
-            sage: w = words.UpperChristoffelWord(1,0); w
-            Upper Christoffel word of slope 1/0 over Ordered Alphabet [0, 1]
-            sage: print w
+            sage: words.UpperChristoffelWord(1,0)
             word: 1
 
         ::
 
-            sage: w = words.UpperChristoffelWord(0,1); w
-            Upper Christoffel word of slope 0/1 over Ordered Alphabet [0, 1]
-            sage: print w
+            sage: words.UpperChristoffelWord(0,1)
             word: 0
 
         ::
 
-            sage: w = words.UpperChristoffelWord(1,1); w
-            Upper Christoffel word of slope 1/1 over Ordered Alphabet [0, 1]
-            sage: print w
+            sage: words.UpperChristoffelWord(1,1)
             word: 10
 
         ::
 
-            sage: w = words.UpperChristoffelWord(4,7); w
-            Upper Christoffel word of slope 4/7 over Ordered Alphabet [0, 1]
-            sage: print w
+            sage: words.UpperChristoffelWord(4,7)
             word: 10100100100
 
         TESTS:::
@@ -988,7 +940,6 @@ class WordGenerator(object):
             ValueError: alphabet must contain exactly two distinct elements
         """
         w = words.LowerChristoffelWord(p, q, alphabet=alphabet).reversal()
-        w.rename("Upper Christoffel word of slope %s/%s over %s" % (p, q, w.parent().alphabet()))
         return w
 
     @cached_method

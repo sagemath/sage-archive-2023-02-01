@@ -54,11 +54,9 @@ Infinite fixed point of morphism::
 
     sage: fix = m.fixed_point('x')
     sage: fix
-    Fixed point beginning with 'x' of the morphism WordMorphism: s->xyss, x->xyxsxss, y->ys
+    word: xyxsxssysxyxsxssxyssxyxsxssxyssxyssysxys...
     sage: fix.length()
     +Infinity
-    sage: fix[100:]
-    word: ysxyxsxssxyssxyxsxssxyssxyssxyxsxssysxys...
 
 Incidence matrix::
 
@@ -378,7 +376,7 @@ class WordMorphism(SageObject):
         3. The infinitely iterated image of a letter::
 
             sage: tm('a', oo)
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->ba
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
 
         4. The image of an infinite word::
 
@@ -521,6 +519,14 @@ class WordMorphism(SageObject):
             sage: p2.codomain()
             Words over Ordered Alphabet ['a', 'b']
 
+        ::
+
+            sage: m = WordMorphism('0->a,1->b')
+            sage: n = WordMorphism('a->c,b->e',codomain=Words('abcde'))
+            sage: p = n * m
+            sage: p.codomain()
+            Words over Ordered Alphabet ['a', 'b', 'c', 'd', 'e']
+
         TESTS::
 
             sage: m = WordMorphism('a->b,b->c,c->a')
@@ -533,7 +539,7 @@ class WordMorphism(SageObject):
         """
         #TODO : Est-ce que c'est le comportement que l'on veut pour le produit
         #par le morphisme vide? Voir lignes ci-haut.
-        return WordMorphism(dict((key, self(w)) for (key, w) in other._morph.iteritems()))
+        return WordMorphism(dict((key, self(w)) for (key, w) in other._morph.iteritems()), codomain=self.codomain())
 
     def __pow__(self, exp):
         r"""
@@ -1195,16 +1201,16 @@ class WordMorphism(SageObject):
         1. Infinite fixed point::
 
             sage: WordMorphism('a->ab,b->ba').fixed_point(letter='a')
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->ba
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
             sage: WordMorphism('a->ab,b->a').fixed_point(letter='a')
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->a
+            word: abaababaabaababaababaabaababaabaababaaba...
             sage: WordMorphism('a->ab,b->b,c->ba').fixed_point(letter='a')
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->b, c->ba
+            word: abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
 
         2. Infinite fixed point of an erasing morphism::
 
             sage: WordMorphism('a->ab,b->,c->ba').fixed_point(letter='a')
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->, c->ba
+            word: ab
 
         3. Finite fixed point::
 
@@ -1215,8 +1221,6 @@ class WordMorphism(SageObject):
 
             sage: m = WordMorphism('a->abc,b->,c->')
             sage: fp = m.fixed_point('a'); fp
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->abc, b->, c->
-            sage: fp[:10]
             word: abc
             sage: m = WordMorphism('a->ba,b->')
             sage: m('ba')
@@ -1228,7 +1232,7 @@ class WordMorphism(SageObject):
 
             sage: m = WordMorphism('a->ba,b->ab')
             sage: (m^2).fixed_point(letter='a')
-            Fixed point beginning with 'a' of the morphism WordMorphism: a->abba, b->baab
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
 
         TESTS::
 
@@ -1262,7 +1266,6 @@ class WordMorphism(SageObject):
 
         # Construct the word.
         w = self.codomain()(self.letter_iterator(letter), datatype='iter')
-        w.rename("Fixed point beginning with %r of the morphism %s"%(letter,self))
         return w
 
     def list_fixed_points(self):

@@ -127,7 +127,7 @@ be the morphism defined by `a\mapsto ab, b\mapsto ba`::
     sage: mu = WordMorphism('a->ab,b->ba'); print mu
     WordMorphism: a->ab, b->ba
     sage: mu.fixed_point('a')
-    Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->ba
+    word: abbabaabbaababbabaababbaabbabaabbaababba...
 
 Infinite words in a specific combinatorial class::
 
@@ -833,7 +833,7 @@ class Word_class(SageObject):
         For infinite words::
 
             sage: t = words.ThueMorseWord([0,1]); t
-            Thue-Morse word over Ordered Alphabet [0, 1]
+            word: 0110100110010110100101100110100110010110...
             sage: t.apply_morphism({0:8,1:9})
             word: 8998988998898998988989988998988998898998...
         """

@@ -5,6 +5,10 @@ AUTHORS:
 
 - John H. Palmieri (2009-04)
 
+- D. Benjamin Antieau (2009-06) - added is_connected, generated_subcomplex,
+  remove_facet, and is_flag_complex methods;
+  cached the output of the graph() method.
+
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
 is a collection `K` of subsets of `V` satisfying the condition that if
@@ -707,6 +711,8 @@ class SimplicialComplex(SageObject):
         # indexed by subcomplexes.  For use in the _enlarge_subcomplex
         # method.
         self.__enlarged = {}
+        # initialize self._graph to None.
+        self._graph = None
 
     def __cmp__(self,right):
         """
@@ -1601,6 +1607,14 @@ class SimplicialComplex(SageObject):
                             self._faces[None][dim] = self._faces[None][dim].union(all_new_faces[dim])
                         else:
                             self._faces[None][dim] = all_new_faces[dim]
+                # update self._graph if necessary
+                if self._graph is None:
+                    pass
+                else:
+                    d = new_face.dimension()+1
+                    for i in range(d):
+                        for j in range(i+1,d):
+                            self._graph.add_edge(new_face[i],new_face[j])
             return None
 
     def remove_face(self, face):
@@ -1612,7 +1626,8 @@ class SimplicialComplex(SageObject):
         This changes the simplicial complex, removing the given face
         any face which contains it.
 
-        Algorithm: take the Alexander dual, add the complement of
+        Algorithm: check if the face is a maximal facet. if so, simply add its faces and remove it.
+        otherwise, take the Alexander dual, add the complement of
         ``face``, and then take the Alexander dual again.
 
         EXAMPLES::
@@ -1623,18 +1638,54 @@ class SimplicialComplex(SageObject):
             sage: Z.remove_face([1,2])
             sage: Z
             Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 3, 4), (2, 3, 4)}
+
+            sage: S = SimplicialComplex(4,[[0,1,2],[2,3]])
+            sage: S
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3)}
+            sage: S.remove_face([0,1,2])
+            sage: S
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
+
         """
+        face = Simplex(face)
         if not Simplex(face).is_face(self.vertices()):
             raise ValueError, "The face to be removed is not a subset of the vertex set."
         else:
-            X = self.alexander_dual()
-            X.add_face(self._complement(face))
-            self._facets = X.alexander_dual()._facets
-            if None in self._faces:
-                s = Simplex(face)
-                bad_faces = SimplicialComplex(self.vertices(), [s]).faces()
-                for dim in range(0, s.dimension()+1):
-                    self._faces[None][dim] = self._faces[None][dim].difference(bad_faces[dim])
+            # first, we check if face is a maximal facet.
+            # if so, there is a faster method, which we use.
+            count = 0
+            ec = 0
+            for i in self.facets():
+                if face == i:
+                    ec = ec+1
+                if face.is_face(i):
+                    count = count+1
+            if ec == 1 and count == 1:
+                F = SimplicialComplex(face.tuple(),[face])
+                G = F.n_skeleton(face.dimension()-1)
+                old_facets = self.facets().list()
+                old_facets.remove(face)
+                new_facets = old_facets + G.facets().list()
+                self.__init__(self.vertices(),new_facets,maximality_check=True)
+            else:
+                X = self.alexander_dual()
+                X.add_face(self._complement(face))
+                self._facets = X.alexander_dual()._facets
+                if None in self._faces:
+                    s = Simplex(face)
+                    bad_faces = SimplicialComplex(self.vertices(), [s]).faces()
+                    for dim in range(0, s.dimension()+1):
+                        self._faces[None][dim] = self._faces[None][dim].difference(bad_faces[dim])
+            # update self._graph if necessary
+            if self._graph is None:
+                pass
+            else:
+                d = Simplex(face).dimension()
+                if d==1:
+                    self._graph.delete_edge([face[0],face[1]])
+                if d==0:
+                    self._graph.delete_vertex(face[0])
+            return None
 
     def link(self, simplex):
         """
@@ -1951,6 +2002,8 @@ class SimplicialComplex(SageObject):
         """
         The 1-skeleton of this simplicial complex, as a graph.
 
+        This is a method that may give incorrect results when applied to SimplicialComplexes constructed with maximality_check=False.
+
         EXAMPLES::
 
             sage: S = SimplicialComplex(3, [[0,1,2,3]])
@@ -1958,16 +2011,95 @@ class SimplicialComplex(SageObject):
             Graph on 4 vertices
             sage: G.edges()
             [(0, 1, None), (0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None), (2, 3, None)]
+
+            sage: S = SimplicialComplex(3,[[1,2,3],[1]],maximality_check=False)
+            sage: G = S.graph()
+            sage: G.is_connected()
+            False
+            sage: G.vertices()
+            [1, 2, 3, (1,)]
+            sage: G.edges()
+            [(1, 2, None), (1, 3, None), (2, 3, None)]
+
         """
-        edges = self.n_faces(1)
-        d = {}
-        for e in edges:
-            v = min(e)
-            if v in d:
-                d[v].append(max(e))
-            else:
-                d[v] = [max(e)]
-        return Graph(d)
+        if self._graph is None:
+            edges = self.n_faces(1)
+            vertices = filter(lambda f: f.dimension() == 0, self._facets)
+            used_vertices = []  # vertices which are in an edge
+            d = {}
+            for e in edges:
+                v = min(e)
+                if v in d:
+                    d[v].append(max(e))
+                else:
+                    d[v] = [max(e)]
+                used_vertices.extend(list(e))
+            for v in vertices:
+                if v not in used_vertices:
+                    d[v] = []
+            self._graph = Graph(d)
+        return self._graph
+
+    def is_flag_complex(self):
+        """
+        Returns True if and only if self is a flag complex.
+
+        A flag complex is a simplicial complex that is the largest simplicial complex on
+        its 1-skeleton. Thus a flag complex is the clique complex of its graph.
+
+        EXAMPLES::
+
+            sage: h = Graph({0:[1,2,3,4],1:[2,3,4],2:[3]})
+            sage: x = h.clique_complex()
+            sage: x
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (0, 1, 2, 3)}
+            sage: x.is_flag_complex()
+            True
+
+            sage: X = simplicial_complexes.ChessboardComplex(3,3)
+            sage: X.is_flag_complex()
+            True
+
+        """
+        return self==self.graph().clique_complex()
+
+    def is_connected(self):
+        """
+        Returns True if and only if self is connected.
+
+        This is gauranteed to give correct results only if self was created with maximality_check=True.
+        See the final example.
+
+        EXAMPLES::
+
+            sage: V = SimplicialComplex([0,1,2,3],[[0,1,2],[3]])
+            sage: V
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (3,)}
+            sage: V.is_connected()
+            False
+
+            sage: X = SimplicialComplex([0,1,2,3],[[0,1,2]])
+            sage: X.is_connected()
+            True
+
+            sage: U = simplicial_complexes.ChessboardComplex(3,3)
+            sage: U.is_connected()
+            True
+
+            sage: W = simplicial_complexes.Sphere(3)
+            sage: W.is_connected()
+            True
+
+            sage: S = SimplicialComplex(4,[[0,1],[2,3]])
+            sage: S.is_connected()
+            False
+
+            sage: S = SimplicialComplex(2,[[0,1],[1],[0]],maximality_check=False)
+            sage: S.is_connected()
+            False
+
+        """
+        return self.graph().is_connected()
 
     def n_skeleton(self, n):
         """
@@ -2022,8 +2154,8 @@ class SimplicialComplex(SageObject):
             sage: sphere
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
             sage: L = sphere._contractible_subcomplex(); L
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3), (0, 1, 3)}
-            sage: L.homology()
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3)}
+
             {0: 0, 1: 0, 2: 0}
         """
         vertices = self.vertices()

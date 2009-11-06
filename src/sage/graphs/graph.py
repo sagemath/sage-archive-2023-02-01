@@ -10734,6 +10734,37 @@ class Graph(GenericGraph):
         import networkx.cliques
         return networkx.cliques.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques, with_labels)
 
+    def clique_complex(self):
+        """
+        Returns the clique complex of self. This is the largest simplicial complex on
+        the vertices of self whose 1-skeleton is self.
+
+        This is only makes sense for undirected simple graphs.
+
+        EXAMPLES::
+
+            sage: g = Graph({0:[1,2],1:[2],4:[]})
+            sage: g.clique_complex()
+            Simplicial complex with vertex set (0, 1, 2, 4) and facets {(4,), (0, 1, 2)}
+
+            sage: h = Graph({0:[1,2,3,4],1:[2,3,4],2:[3]})
+            sage: x = h.clique_complex()
+            sage: x
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (0, 1, 2, 3)}
+            sage: i = x.graph()
+            sage: i==h
+            True
+            sage: x==i.clique_complex()
+            True
+
+        """
+        if self.is_directed() or self.has_loops() or self.has_multiple_edges():
+            raise ValueError, "Self must be an undirected simple graph to have a clique_complex."
+        import sage.homology.simplicial_complex
+        C = sage.homology.simplicial_complex.SimplicialComplex(self.vertices(),self.cliques_maximal(),maximality_check=True)
+        C._graph = self
+        return C
+
     ### Miscellaneous
 
     def min_spanning_tree(self, weight_function=lambda e: 1,

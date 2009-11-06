@@ -93,10 +93,11 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         return L
     else:
         v = []
-        texture = Texture(kwds)
         if kwds.has_key('texture'):
             kwds = kwds.copy()
-            del kwds['texture']
+            texture = kwds.pop('texture')
+        else:
+            texture = Texture(kwds)
         for i in range(len(points) - 1):
             line = shapes.arrow3d if i == len(points)-2 and arrow_head else shapes.LineSegment
             v.append(line(points[i], points[i+1], texture=texture, radius=radius, **kwds))

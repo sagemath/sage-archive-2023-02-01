@@ -492,7 +492,7 @@ resolution 400 400
          camera
             zoom 1.0
             aspectratio 1.0
-            antialiasing 1
+            antialiasing %s
             raydepth 8
             center  2.3 2.4 2.0
             viewdir  -2.3 -2.4 -2.0
@@ -516,7 +516,7 @@ resolution 400 400
 
     %s
 
-end_scene""" % (
+end_scene""" % (render_params.antialiasing,
                "\n".join([t.tachyon_str() for t in self.texture_set()]),
                "\n".join(flatten_list(self.tachyon_repr(render_params))))
 
@@ -769,15 +769,15 @@ end_scene""" % (
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
             sage: print G.mtl_str()
             newmtl ...
-            Ka 0.5 0.0 0.0
-            Kd 1.0 0.0 0.0
+            Ka 0.5 5e-06 5e-06
+            Kd 1.0 1e-05 1e-05
             Ks 0.0 0.0 0.0
             illum 1
             Ns 1
             d 1
             newmtl ...
-            Ka 0.5 0.5 0.0
-            Kd 1.0 1.0 0.0
+            Ka 0.5 0.5 5e-06
+            Kd 1.0 1.0 1e-05
             Ks 0.0 0.0 0.0
             illum 1
             Ns 1
@@ -826,7 +826,7 @@ end_scene""" % (
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(1.0, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max,
-                                               frame=frame, axes=axes, thickness=0.5,
+                                               frame=frame, axes=axes, thickness=.75,
                                                labels = False)  # no tachyon text implemented yet
 
     def _box_for_aspect_ratio(self, aspect_ratio, box_min, box_max):
@@ -1785,6 +1785,7 @@ class RenderParams(SageObject):
     force_reload = False
     mesh = False
     dots = False
+    antialiasing = 8
 
     def __init__(self, **kwds):
         """

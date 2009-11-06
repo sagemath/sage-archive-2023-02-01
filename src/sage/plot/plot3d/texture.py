@@ -57,7 +57,12 @@ def parse_color(info, base=None):
         except KeyError:
             raise ValueError, "unknown color '%s'"%info
     else:
-        return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
+        r, g, b = base
+        # We don't want to loose the data when we split it into its respective components.
+        if not r: r = 1e-5
+        if not g: g = 1e-5
+        if not b: b = 1e-5
+        return (float(info*r), float(info*g), float(info*b))
 
 
 class Texture_class(SageObject):

@@ -7467,6 +7467,7 @@ class GenericGraph(SageObject):
             raise NotImplementedError("3D plotting of multiple edges or loops not implemented.")
         if engine == 'jmol':
             from sage.plot.plot3d.all import sphere, line3d, arrow3d
+            from sage.plot.plot3d.texture import Texture
             kwds.setdefault('aspect_ratio', [1,1,1])
             verts = self.vertices()
 
@@ -7491,8 +7492,9 @@ class GenericGraph(SageObject):
             try:
                 graphic = 0
                 for color in vertex_colors:
+                    texture = Texture(color=color, ambient=0.1, diffuse=0.9, specular=0.03)
                     for v in vertex_colors[color]:
-                        graphic += sphere(center=pos3d[v], size=vertex_size, color=color, **kwds)
+                        graphic += sphere(center=pos3d[v], size=vertex_size, texture=texture, **kwds)
                 if self._directed:
                     for color in edge_colors:
                         for u, v, l in edge_colors[color]:
@@ -7500,8 +7502,9 @@ class GenericGraph(SageObject):
 
                 else:
                     for color in edge_colors:
+                        texture = Texture(color=color, ambient=0.1, diffuse=0.9, specular=0.03)
                         for u, v, l in edge_colors[color]:
-                            graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, color=color, closed=False, **kwds)
+                            graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, texture=texture, closed=False, **kwds)
 
                 return graphic
 

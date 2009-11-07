@@ -2019,7 +2019,7 @@ class SimplicialComplex(SageObject):
             sage: G = S.graph()
             sage: G.is_connected()
             False
-            sage: G.vertices()
+            sage: G.vertices() #random order
             [1, 2, 3, (1,)]
             sage: G.edges()
             [(1, 2, None), (1, 3, None), (2, 3, None)]

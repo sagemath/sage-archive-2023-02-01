@@ -185,6 +185,10 @@ def download_file(file):
     else:
         old_versions = []
 
+    if file in old_versions:
+        print "%s already present"%file
+        return
+
     print "[",
     urllib.urlretrieve(url, file+'.part', reporthook)
     print "]"

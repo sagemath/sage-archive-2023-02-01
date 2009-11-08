@@ -2211,31 +2211,32 @@ class Permutation_class(CombinatorialObject):
             [[], []]
 
         """
-        p = []
-        q = []
+        from bisect import bisect
+        from itertools import izip
+        p = []       #the "left" tableau
+        q = []       #the "recording" tableau
 
-        for i in range(1, len(self)+1):
-            #Row insert self[i-1] into p
-            row_counter = 0
-            if row_counter == len(p):
-                p.append([])
-            r = p[row_counter]
-            x = self[i-1]
-            while max(r+[0]) > x:
-                y = min(filter(lambda z: z > x, r))
-                r[r.index(y)] = x
-                x = y
-                row_counter += 1
-                if row_counter == len(p):
-                    p.append([])
-                r = p[row_counter]
+        #For each x in self, insert x into the tableau p.
+        for i, x in enumerate(self):
+            for r,qr in izip(p,q):
+                if r[-1] > x:
+                    #Figure out where to insert x into the row r.  The
+                    #bisect command returns the position of the least
+                    #element of r greater than x.  We will call it y.
+                    y_pos = bisect(r, x)
+
+                    #Switch x and y
+                    x, r[y_pos] = r[y_pos], x
+                else:
+                    break
+            else:
+                #We made through all of the rows of p without breaking
+                #so we need to add a new row to p and q.
+                r = []; p.append(r)
+                qr = []; q.append(qr)
+
             r.append(x)
-
-            #Insert i into q in the same place as we inserted
-            #i into p
-            if row_counter == len(q):
-                q.append([])
-            q[row_counter].append(i)
+            qr.append(i+1)
 
         return [tableau.Tableau(p),tableau.Tableau(q)]
 

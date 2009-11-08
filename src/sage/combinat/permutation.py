@@ -2193,14 +2193,19 @@ class Permutation_class(CombinatorialObject):
 
     def robinson_schensted(self):
         """
-        Returns the pair of standard tableau obtained by running the
+        Returns the pair of standard tableaux obtained by running the
         Robinson-Schensted Algorithm on self.
 
         EXAMPLES::
 
-            sage: p = Permutation([6,2,3,1,7,5,4])
-            sage: p.robinson_schensted()
+            sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
+
+        It also works in the case of repeated letters. In this case only the
+        second tableau is standard::
+
+            sage: Permutation([2,3,3,2,1,3,2,3]).robinson_schensted()
+            [[[1, 2, 2, 3, 3], [2, 3], [3]], [[1, 2, 3, 6, 8], [4, 7], [5]]]
 
         TESTS:
 

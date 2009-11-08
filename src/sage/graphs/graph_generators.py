@@ -72,6 +72,7 @@ organized as follows::
         - FlowerSnark
         - FruchtGraph
         - HeawoodGraph
+        - HigmanSimsGraph
         - HoffmanSingletonGraph
         - MoebiusKantorGraph
         - Pappus Graph
@@ -204,6 +205,7 @@ class GraphGenerators():
                     - FlowerSnark
                     - FruchtGraph
                     - HeawoodGraph
+                    - HigmanSimsGraph
                     - HoffmanSingletonGraph
                     - MoebiusKantorGraph
                     - PappusGraph
@@ -1727,6 +1729,172 @@ class GraphGenerators():
         import networkx
         G = networkx.heawood_graph()
         return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+
+    def HigmanSimsGraph(self, relabel=True):
+        r"""
+        The Higman-Sims graph is a remarkable strongly regular
+        graph of degree 22 on 100 vertices.  For example, it can
+        be split into two sets of 50 vertices each, so that each
+        half induces a subgraph isomorphic to the
+        Hoffman-Singleton graph
+        (:meth:`~HoffmanSingletonGraph`).
+        This can be done in 352 ways (see [BROUWER-HS-2009]_).
+
+        Its most famous property is that the automorphism
+        group has an index 2 subgroup which is one of the
+        26 sporadic groups. [HIGMAN1968]_
+
+        The construction used here follows [HAFNER2004]_.
+
+        INPUT:
+
+        - ``relabel`` - default: ``True``.  If ``True`` the
+          vertices will be labeled with consecutive integers.
+          If ``False`` the labels are strings that are three
+          digits long. "xyz" means the vertex is in group
+          x (zero through three), pentagon or pentagram y
+          (zero through four), and is vertex z (zero
+          through four) of that pentagon or pentagram.
+          See [HAFNER2004]_ for more.
+
+        OUTPUT:
+
+        The Higman-Sims graph.
+
+        EXAMPLES:
+
+        A split into the first 50 and last 50 vertices
+        will induce two copies of the Hoffman-Singleton graph,
+        and we illustrate another such split, which is obvious
+        based on the construction used. ::
+
+            sage: H = graphs.HigmanSimsGraph()
+            sage: A = H.subgraph(range(0,50))
+            sage: B = H.subgraph(range(50,100))
+            sage: K = graphs.HoffmanSingletonGraph()
+            sage: K.is_isomorphic(A) and K.is_isomorphic(B)
+            True
+            sage: C = H.subgraph(range(25,75))
+            sage: D = H.subgraph(range(0,25)+range(75,100))
+            sage: K.is_isomorphic(C) and K.is_isomorphic(D)
+            True
+
+        The automorphism group contains only one nontrivial
+        proper normal subgroup, which is of index 2 and is
+        simple.  It is known as the Higman-Sims group.  ::
+
+            sage: H = graphs.HigmanSimsGraph()
+            sage: G = H.automorphism_group()
+            sage: g=G.order(); g
+            88704000
+            sage: K = G.normal_subgroups()[1]
+            sage: K.is_simple()
+            True
+            sage: g//K.order()
+            2
+
+        REFERENCES:
+
+            .. [BROUWER-HS-2009] `Higman-Sims graph
+               <http://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_.
+               Andries E. Brouwer, accessed 24 October 2009.
+            .. [HIGMAN1968] A simple group of order 44,352,000,
+               Math.Z. 105 (1968) 110-113. D.G. Higman & C. Sims.
+            .. [HAFNER2004] `On the graphs of Hoffman-Singleton and
+               Higman-Sims
+               <http://www.combinatorics.org/Volume_11/PDF/v11i1r77.pdf>`_.
+               The Electronic Journal of Combinatorics 11 (2004), #R77,
+               Paul R. Hafner, accessed 24 October 2009.
+
+        AUTHOR:
+
+            - Rob Beezer (2009-10-24)
+        """
+        HS = graph.Graph()
+        HS.name('Higman-Sims graph')
+
+        # Four groups of either five pentagons, or five pentagrams
+        # 4 x 5 x 5 = 100 vertices
+        # First digit is "group", second is "penta{gon|gram}", third is "vertex"
+        vlist = ['%d%d%d'%(g,p,v)
+                        for g in range(4) for p in range(5) for v in range(5)]
+        for avertex in vlist:
+            HS.add_vertex(avertex)
+
+        # Edges: Within groups 0 and 2, joined as pentagons
+        # Edges: Within groups 1 and 3, joined as pentagrams
+        for g in range(4):
+            shift = 1
+            if g in [1,3]:
+                shift += 1
+            for p in range(5):
+                for v in range(5):
+                    HS.add_edge(('%d%d%d'%(g,p,v), '%d%d%d'%(g,p,(v+shift)%5)))
+
+        # Edges: group 0 to group 1
+        for x in range(5):
+            for m in range(5):
+                for c in range(5):
+                    y = (m*x+c)%5
+                    HS.add_edge(('0%d%d'%(x,y), '1%d%d'%(m,c)))
+
+        # Edges: group 1 to group 2
+        for m in range(5):
+            for A in range(5):
+                for B in range(5):
+                    c = (2*(m-A)*(m-A)+B)%5
+                    HS.add_edge(('1%d%d'%(m,c), '2%d%d'%(A,B)))
+
+        # Edges: group 2 to group 3
+        for A in range(5):
+            for a in range(5):
+                for b in range(5):
+                    B = (2*A*A+3*a*A-a*a+b)%5
+                    HS.add_edge(('2%d%d'%(A,B), '3%d%d'%(a,b)))
+
+        # Edges: group 3 to group 0
+        for a in range(5):
+            for b in range(5):
+                for x in range(5):
+                    y = ((x-a)*(x-a)+b)%5
+                    HS.add_edge(('3%d%d'%(a,b), '0%d%d'%(x,y)))
+
+        # Edges: group 0 to group 2
+        for x in range(5):
+            for A in range(5):
+                for B in range(5):
+                    y = (3*x*x+A*x+B+1)%5
+                    HS.add_edge(('0%d%d'%(x,y), '2%d%d'%(A,B)))
+                    y = (3*x*x+A*x+B-1)%5
+                    HS.add_edge(('0%d%d'%(x,y), '2%d%d'%(A,B)))
+
+        # Edges: group 1 to group 3
+        for m in range(5):
+            for a in range(5):
+                for b in range(5):
+                    c = (m*(m-a)+b+2)%5
+                    HS.add_edge(('1%d%d'%(m,c), '3%d%d'%(a,b)))
+                    c = (m*(m-a)+b-2)%5
+                    HS.add_edge(('1%d%d'%(m,c), '3%d%d'%(a,b)))
+
+        # Rename to integer vertex labels, creating dictionary
+        # Or not, and create identity mapping
+        if relabel:
+            vmap = HS.relabel(return_map=True)
+        else:
+            vmap={}
+            for v in vlist:
+                vmap[v] = v
+        # Layout vertices in a circle
+        # In the order given in vlist
+        # Using labels from vmap
+        pos_dict = {}
+        for i in range(100):
+            x = float(cos((pi/2) + ((2*pi)/100)*i))
+            y = float(sin((pi/2) + ((2*pi)/100)*i))
+            pos_dict[vmap[vlist[i]]] = [x,y]
+        HS.set_pos(pos_dict)
+        return HS
 
     def HoffmanSingletonGraph(self):
         r"""

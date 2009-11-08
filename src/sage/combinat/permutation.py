@@ -3189,26 +3189,18 @@ def robinson_schensted_inverse(p, q):
     if not q.is_standard():
         raise ValueError, "q(=%s) must be standard"%q
 
-    size = p.size()
+    from bisect import bisect
+
     permutation = []
-    d = dict((q[i][j],(i,j)) for i in range(len(q)) for j in range(len(q[i])))
+    d = dict((qij,i) for i,Li in enumerate(q) for qij in Li)
     p = map(list, p)
-    for n in range(size, 0, -1):
-        i,j = d[n]
-        x = p[i][j]
-        del p[i][j]
-        if len(p[i]) == 0:
-            del p[i]
-        while i > 0:
-            row = p[i-1]
-            y = max(filter(lambda z: z<x, row ))
-            row[row.index(y)] = x
-            x = y
-            i = i-1
-        permutation.insert(0, x)
-    return Permutation(permutation)
-
-
+    for i in reversed(d.values()):
+        x = p[i].pop()
+        for row in reversed(p[:i]):
+            y = bisect(row,x) - 1
+            x, row[y] = row[y], x
+        permutation.append(x)
+    return Permutation(reversed(permutation))
 
 class StandardPermutations_descents(CombinatorialClass):
     def __init__(self, d, n):

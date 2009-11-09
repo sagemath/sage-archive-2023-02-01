@@ -4304,6 +4304,72 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return i
 
+
+    def numerator(self):
+        """
+        Return a numerator of self computed as self * self.denominator()
+
+        If the base_field of self is the Rational Field then the
+        numerator is a polynomial whose base_ring is the Integer Ring,
+        this is done for compatibility to the univariate case.
+
+    .. warning::
+
+        This is not the numerator of the rational function
+        defined by self, which would always be self since self is a
+        polynomial.
+
+    EXAMPLES:
+
+    First we compute the numerator of a polynomial with
+    integer coefficients, which is of course self.
+
+    ::
+
+        sage: R.<x, y> = ZZ[]
+        sage: f = x^3 + 17*y + 1
+        sage: f.numerator()
+        x^3 + 17*y + 1
+        sage: f == f.numerator()
+        True
+
+    Next we compute the numerator of a polynomial with rational
+    coefficients.
+
+    ::
+
+        sage: R.<x,y> = PolynomialRing(QQ)
+        sage: f = (1/17)*x^19 - (2/3)*y + 1/3; f
+        1/17*x^19 - 2/3*y + 1/3
+        sage: f.numerator()
+        3*x^19 - 34*y + 17
+        sage: f == f.numerator()
+        False
+        sage: f.numerator().base_ring()
+        Integer Ring
+
+    We check that the computation the numerator and denominator
+    are valid
+
+    ::
+
+        sage: K=QQ['x,y']
+        sage: f=K.random_element()
+        sage: f.numerator() / f.denominator() == f
+        True
+        """
+        if self.base_ring() == RationalField():
+            #This part is for compatibility with the univariate case,
+            #where the numerator of a polynomial over RationalField
+            #is a polynomial over IntegerRing
+            integer_polynomial_ring = MPolynomialRing_libsingular(ZZ,\
+            self.parent().ngens(), self.parent().gens(), order =\
+            self.parent().term_order())
+            return integer_polynomial_ring(self * self.denominator())
+        else:
+            return self * self.denominator()
+
+
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """
     Deserialize an ``MPolynomial_libsingular`` object

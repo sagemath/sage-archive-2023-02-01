@@ -493,7 +493,7 @@ class Permutation_class(CombinatorialObject):
         """
         Returns the permutation p as a list of disjoint cycles.
 
-        If ``singleton=False`` is given, don't returns the singleton in the
+        If ``singletons=False`` is given, don't returns the singletons in the
         list of cycles.
 
         EXAMPLES::
@@ -503,7 +503,7 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
 
-        The algorithme is of complexity `O(n)` where `n` is the size of the
+        The algorithm is of complexity `O(n)` where `n` is the size of the
         given permutation.
 
         TESTS::

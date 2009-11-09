@@ -860,6 +860,19 @@ class CombinatorialClass(SageObject):
         deprecation("The usage of count for combinatorial classes is deprecated. Please use cardinality")
         return self.cardinality()
 
+    def is_finite(self):
+        """
+        Returns whether self is finite or not.
+
+        EXAMPLES::
+
+            sage: Partitions(5).is_finite()
+            True
+            sage: Permutations().is_finite()
+            False
+        """
+        from sage.rings.all import infinity
+        return self.cardinality() != infinity
 
     def __getitem__(self, i):
         """

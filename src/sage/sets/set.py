@@ -95,6 +95,8 @@ def Set(X):
 
         sage: Set(Primes())
         Set of all prime numbers: 2, 3, 5, 7, ...
+        sage: Set(Subsets([1,2,3])).cardinality()
+        8
     """
     if is_Set(X):
         return X
@@ -512,6 +514,10 @@ class Set_object(Set_generic):
         try:
             if not self.is_finite():
                 return sage.rings.infinity.infinity
+        except AttributeError:
+            pass
+        try:
+            return self.__object.cardinality()
         except AttributeError:
             pass
         try:

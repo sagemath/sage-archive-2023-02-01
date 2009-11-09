@@ -799,8 +799,11 @@ class Permutation_class(CombinatorialObject):
         r"""
         Returns the inversion vector of a permutation p.
 
-        If iv is the inversion vector, then iv[i] is the number of elements
-        larger than i that appear to the left of i in the permutation.
+        If `iv` is the inversion vector, then `iv[i]` is the number of elements
+        larger than `i` that appear to the left of `i` in the permutation.
+
+        The algorithm is of complexity `O(n\log(n))` where `n` is the size of
+        the given permutation.
 
         EXAMPLES::
 
@@ -810,18 +813,154 @@ class Permutation_class(CombinatorialObject):
             [3, 2, 7, 3, 4, 3, 1, 0, 0, 0]
             sage: Permutation([3,2,4,1,5]).to_inversion_vector()
             [3, 1, 0, 0, 0]
+
+        TESTS::
+
+            sage: from sage.combinat.permutation import from_inversion_vector
+            sage: all(from_inversion_vector(p.to_inversion_vector()) == p
+            ...     for n in range(6) for p in Permutations(n))
+            True
+
+            sage: P = Permutations(1000)
+            sage: sample = (P.random_element() for i in range(5))
+            sage: all(from_inversion_vector(p.to_inversion_vector()) == p
+            ...     for p in sample)
+            True
         """
-        p = self[:]
-        inversion_vector = [0]*len(p)
-        for i in range(len(p)):
-            j = 0
-            while p[j] != i+1:
-                if p[j] > i+1:
-                    inversion_vector[i] += 1
-                j += 1
+        p = self._list
+        l = len(p)
+        # lightning fast if the length is less than 3
+        # (is it really usefull?)
+        if l<4:
+            if l==0:
+                return []
+            if l==1:
+                return [0]
+            if l==2:
+                return [p[0]-1,0]
+            if l==3:
+                if p[0]==1:
+                    return [0,p[1]-2,0]
+                if p[0]==2:
+                    if p[1]==1:
+                        return [1,0,0]
+                    return [2,0,0]
+                return [p[1],1,0]
+        # choose the best one
+        if l<411:
+            return self._to_inversion_vector_small()
+        else:
+            return self._to_inversion_vector_divide_and_conquer()
 
-        return inversion_vector
+    def _to_inversion_vector_orig(self):
+        r"""
+        Returns the inversion vector of a permutation p.
 
+        (it's probably not the most efficient implementation)
+
+        If iv is the inversion vector, then iv[i] is the number of elements
+        larger than i that appear to the left of i in the permutation.
+
+        EXAMPLE::
+            sage: p = Permutation([5,9,1,8,2,6,4,7,3])
+            sage: p._to_inversion_vector_orig()
+            [2, 3, 6, 4, 0, 2, 2, 1, 0]
+
+        """
+        p = self._list
+        iv = [0]*len(p)
+        for i in xrange(len(p)):
+            for pj in p:
+                if pj>i+1:
+                    iv[i]+=1
+                elif pj == i+1:
+                    break
+        return iv
+
+    def _to_inversion_vector_small(self):
+        r"""
+        Returns the inversion vector of a permutation p.
+
+        (best choice for `5 < size < 420` approximately)
+
+        If iv is the inversion vector, then iv[i] is the number of elements
+        larger than i that appear to the left of i in the permutation.
+
+        EXAMPLE::
+            sage: p = Permutation([5,9,1,8,2,6,4,7,3])
+            sage: p._to_inversion_vector_small()
+            [2, 3, 6, 4, 0, 2, 2, 1, 0]
+
+        """
+        p = self._list
+        l = len(p)+1
+        iv = [0]*l
+        checked = [1]*l
+        for pi in reversed(p):
+            checked[pi] = 0
+            iv[pi] = sum(checked[pi:])
+        return iv[1:]
+
+    def _to_inversion_vector_divide_and_conquer(self):
+        r"""
+        Returns the inversion vector of a permutation p.
+
+        (best choice for `size > 410` approximately)
+
+        If iv is the inversion vector, then iv[i] is the number of elements
+        larger than i that appear to the left of i in the permutation.
+
+        EXAMPLE::
+            sage: p = Permutation([5,9,1,8,2,6,4,7,3])
+            sage: p._to_inversion_vector_divide_and_conquer()
+            [2, 3, 6, 4, 0, 2, 2, 1, 0]
+
+        """
+        # for big permutations,
+        # we use a divide-and-conquer strategy
+        # it's a merge sort, plus counting inversions
+        def merge_and_countv((ivA,A),(ivB,B)):
+            # iv* is the inversion vector of *
+            C = []
+            i,j = 0,0
+            ivC = []
+            lA, lB = len(A), len(B)
+            while( i<lA and j<lB ):
+                if B[j] < A[i]:
+                    C.append(B[j])
+                    ivC.append(ivB[j] + lA - i)
+                    j += 1
+                else:
+                    C.append(A[i])
+                    ivC.append(ivA[i])
+                    i += 1
+            if i < lA:
+                C.extend(A[i:])
+                ivC.extend(ivA[i:])
+            else:
+                C.extend(B[j:])
+                ivC.extend(ivB[j:])
+            return ivC,C
+
+        def base_case(L):
+            s = sorted(L)
+            d = dict((j,i) for (i,j) in enumerate(s))
+            iv = [0]*len(L)
+            checked = [1]*len(L)
+            for pi in reversed(L):
+                dpi = d[pi]
+                checked[dpi] = 0
+                iv[dpi] = sum(checked[dpi:])
+            return iv,s
+
+        def sort_and_countv(L):
+            if len(L)<250:
+                return base_case(L)
+            l = len(L)//2
+            return merge_and_countv( sort_and_countv(L[:l]),
+                                     sort_and_countv(L[l:]) )
+
+        return sort_and_countv(self._list)[0]
 
     def inversions(self):
         r"""
@@ -1160,6 +1299,7 @@ class Permutation_class(CombinatorialObject):
     def to_lehmer_code(self):
         r"""
         Returns the Lehmer code of the permutation p.
+        `c[i]` is the number of `j>i` such that `p(j)<p(i)`.
 
         EXAMPLES::
 
@@ -1169,28 +1309,50 @@ class Permutation_class(CombinatorialObject):
             sage: q = Permutation([3,1,2])
             sage: q.to_lehmer_code()
             [2, 0, 0]
+
+
+        TESTS::
+
+            sage: from sage.combinat.permutation import from_lehmer_code
+            sage: all(from_lehmer_code(p.to_lehmer_code()) == p
+            ...     for n in range(6) for p in Permutations(n))
+            True
+
+            sage: P = Permutations(1000)
+            sage: sample = (P.random_element() for i in range(5))
+            sage: all(from_lehmer_code(p.to_lehmer_code()) == p
+            ...     for p in sample)
+            True
+
         """
-        p = self[:]
-        n = len(p)
-        lehmer = [None]*n
-        checked = [0]*n
-        ident = range(1,n+1)
+        l = len(self._list)
+        # choose the best implementations
+        if l<577:
+            return self._to_lehmer_code_small()
+        else:
+            return self.inverse().to_inversion_vector()
 
-        #Compute the factoradic / Lehmer code of the permutation
-        for i in range(n):
-            j = 0
-            pos = 0
-            while j < n:
-                if checked[j] != 1:
-                    if ident[j] == p[i]:
-                        checked[j] = 1
-                        break
-                    pos += 1
-                j += 1
-            lehmer[i] = pos
+    def _to_lehmer_code_small(self):
+        r"""
+        Returns the Lehmer code of the permutation p.
+        `c[i]` is the number of `j>i` such that `p(j)<p(i)`.
 
+        (best choice for `size<577` approximately)
+
+        EXAMPLES::
+
+            sage: p = Permutation([7, 6, 10, 2, 3, 4, 8, 1, 9, 5])
+            sage: p._to_lehmer_code_small()
+            [6, 5, 7, 1, 1, 1, 2, 0, 1, 0]
+        """
+        p = self._list
+        l = len(p)
+        lehmer = []
+        checked = [1]*l
+        for pi in p:
+            checked[pi-1] = 0
+            lehmer.append(sum(checked[:pi]))
         return lehmer
-
 
     def to_lehmer_cocode(self):
         r"""

@@ -167,7 +167,7 @@ class ContourPlot(GraphicPrimitive):
             if contours is None:
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
+                subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
         else:
             linewidths = options['linewidths']
             if isinstance(linewidths, (int, Integer)):
@@ -299,6 +299,7 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False, aspect_ratio=1)
+        sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,0,1])
 
     We can change the style of the lines::
 

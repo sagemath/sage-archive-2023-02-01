@@ -178,6 +178,51 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             raise ArithmeticError, "could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible"
         return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
+    def eigenvectors_left(self):
+        """
+        Compute the left eigenvectors of a matrix.
+
+        For each distinct eigenvalue, returns a list of the form (e,V,n)
+        where e is the eigenvalue, V is a list of eigenvectors forming a
+        basis for the corresponding left eigenspace, and n is the
+        algebraic multiplicity of the eigenvalue.
+
+        EXAMPLES::
+            sage: A = matrix(SR,3,3,range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: es = A.eigenvectors_left(); es
+            [(-3*sqrt(6) + 6, [(1, -1/5*sqrt(6) + 4/5, -2/5*sqrt(2)*sqrt(3) + 3/5)], 1), (3*sqrt(6) + 6, [(1, 1/5*sqrt(6) + 4/5, 2/5*sqrt(2)*sqrt(3) + 3/5)], 1), (0, [(1, -2, 1)], 1)]
+            sage: eval, [evec], mult = es[0]
+            sage: delta = eval*evec - evec*A
+            sage: abs(abs(delta)) < 1e-10
+            abs(sqrt(144/25*(sqrt(2)*sqrt(3) - sqrt(6))^2 + 1/25*(3*(sqrt(6) - 2)*(2*sqrt(2)*sqrt(3) - 3) + 16*sqrt(2)*sqrt(3) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 4)*(sqrt(6) - 2) + 14*sqrt(2)*sqrt(3) + 4*sqrt(6) - 42)^2)) < (1.00000000000000e-10)
+            sage: abs(abs(delta)).n() < 1e-10
+            True
+
+        ::
+
+            sage: A = matrix(SR, 2, 2, var('a,b,c,d'))
+            sage: A.eigenvectors_left()
+            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d + sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d - sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1)]
+            sage: es = A.eigenvectors_left(); es
+            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d + sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d - sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1)]
+            sage: eval, [evec], mult = es[0]
+            sage: delta = eval*evec - evec*A
+            sage: delta.apply_map(lambda x: x.full_simplify())
+            (0, 0)
+        """
+        from sage.modules.free_module_element import vector
+        from sage.all import ZZ
+
+        [evals,mults],evecs=self.transpose()._maxima_(maxima).eigenvectors()._sage_()
+        result=[]
+        for e,evec,m in zip(evals,evecs,mults):
+            result.append((e,[vector(v) for v in evec], ZZ(m)))
+
+        return result
+
     def exp(self):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix

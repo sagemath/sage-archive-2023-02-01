@@ -1088,12 +1088,26 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(x > 3)
             False
 
+        If you make inconsistent or meaningless assumptions,
+        Sage will let you know::
+
+            sage: forget()
+            sage: assume(x<0)
+            sage: assume(x>0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Assumption is inconsistent
+            sage: assumptions()
+            [x < 0]
+            sage: forget()
+
         TESTS::
 
             sage: v,c = var('v,c')
             sage: assume(c != 0)
             sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
             -75/8*sqrt(c^2)*arcsin(sqrt(c^2)*v/c^2) - 17/8*v^3/(sqrt(-v^2/c^2 + 1)*c^2) - 1/4*v^5/(sqrt(-v^2/c^2 + 1)*c^4) + 83/8*v/sqrt(-v^2/c^2 + 1)
+            sage: forget()
         """
         from sage.symbolic.assumptions import _assumptions
         from sage.calculus.calculus import maxima
@@ -1101,7 +1115,9 @@ cdef class Expression(CommutativeRingElement):
             raise TypeError, "self (=%s) must be a relational expression"%self
         if not self in _assumptions:
             m = self._maxima_init_assume_()
-            maxima.assume(m)
+            s = maxima.assume(m)
+            if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
+                raise ValueError, "Assumption is %s"%str(s._sage_()[0])
             _assumptions.append(self)
 
     def forget(self):
@@ -1272,8 +1288,10 @@ cdef class Expression(CommutativeRingElement):
             sage: f.is_zero()
             True
 
-        A bunch of tests of nonzero (which is called by bool) for
-        symbolic relations::
+        TESTS:
+
+        First, a bunch of tests of nonzero (which is called by bool)
+        for symbolic relations::
 
             sage: x = var('x')
             sage: bool((x-1)^2 == x^2 - 2*x + 1)
@@ -1306,6 +1324,57 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: bool(-SR(oo) != SR(oo))
             True
+
+        Next, tests to ensure assumptions are correctly used::
+
+            sage: x, y, z = var('x, y, z')
+            sage: assume(x>=y,y>=z,z>=x)
+            sage: bool(x==z)
+            True
+            sage: bool(z<x)
+            False
+            sage: bool(z>y)
+            False
+            sage: bool(y==z)
+            True
+            sage: bool(y<=z)
+            True
+            sage: forget()
+            sage: assume(x>=1,x<=1)
+            sage: bool(x==1)
+            True
+            sage: bool(x != 1)
+            False
+            sage: bool(x>1)
+            False
+            sage: forget()
+            sage: assume(x>0)
+            sage: bool(x==0)
+            False
+            sage: bool(x != 0)
+            True
+            sage: bool(x == 1)
+            False
+
+        The following must be true, even though we don't
+        know for sure that x isn't 1, as symbolic comparisons
+        elsewhere rely on x!=y unless we are sure it is not
+        true; there is no equivalent of Maxima's ``unknown``.
+        Since it is False that x==1, it is True that x != 1.
+
+        ::
+
+            sage: bool(x != 1)
+            True
+            sage: forget()
+            sage: assume(x>y)
+            sage: bool(x==y)
+            False
+            sage: bool(x != y)
+            True
+            sage: bool(x != y) # The same comment as above applies here as well
+            True
+            sage: forget()
         """
         if self.is_relational():
             #If both the left hand side and right hand side are wrappers
@@ -1316,7 +1385,15 @@ cdef class Expression(CommutativeRingElement):
 
             res = relational_to_bool(self._gobj)
             if res:
-                return True
+                if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
+                    m = self._maxima_()
+                    s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
+                    if s == 'false':
+                        return False
+                    else:
+                        return True
+                else:
+                    return True
 
             # If assumptions are involved, falsification is more complicated...
             need_assumptions = False
@@ -3638,7 +3715,7 @@ cdef class Expression(CommutativeRingElement):
             -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
             sage: p.poly(a)
             -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
-            sage: bool(expand(p.poly(a)) == p)
+            sage: bool(p.poly(a) == (x-a*sqrt(2))^2 + x + 1)
             True
             sage: p.poly(x)
             -(2*sqrt(2)*a - 1)*x + 2*a^2 + x^2 + 1
@@ -4114,13 +4191,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sqrt(-2).imag_part()
             sqrt(2)
 
-        We simplify `\ln(\exp(z))` to `z` for
-        `-\pi<{\rm Im}(z)<=\pi`::
+        We simplify `\ln(\exp(z))` to `z`.  This should only
+        be for `-\pi<{\rm Im}(z)<=\pi`, but Maxima does not
+        have a symbolic imaginary part function, so we cannot
+        use ``assume`` to assume that first::
 
             sage: z = var('z')
             sage: f = log(exp(z))
-            sage: assume(-pi < imag(z))
-            sage: assume(imag(z) <= pi)
             sage: f
             log(e^z)
             sage: f.simplify()

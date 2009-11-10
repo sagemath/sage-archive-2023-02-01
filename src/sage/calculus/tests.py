@@ -142,8 +142,9 @@ Todo - Mathematica can do this and gets `\pi^2/15`.
 ::
 
     sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)  # not tested
-    [boom!]
-    Integral is divergent
+    Traceback (most recent call last):
+    ...
+    ValueError: Integral is divergent.
 
 ::
 
@@ -185,10 +186,8 @@ Maple documentation::
 
     sage: var('a b')
     (a, b)
-    sage: assume(b-a>0)      # annoying -- maple doesn't require this...
-    sage: print integrate(sin(x), x, a, b)
-                                    cos(a) - cos(b)
-    sage: forget()
+    sage: integrate(sin(x), x, a, b)
+    cos(a) - cos(b)
 
 ::
 

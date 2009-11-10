@@ -34,7 +34,9 @@ class GenericDeclaration(SageObject):
             sage: sin(x*pi)
             sin(pi*x)
 
-        Here is the list of acceptable features::
+        Here is the list of acceptable features.
+
+        ::
 
             sage: maxima('features')
             [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
@@ -82,6 +84,11 @@ class GenericDeclaration(SageObject):
             sage: decl.assume()
             sage: cos(x*pi).simplify()
             1
+            sage: decl2 = GenericDeclaration(x, 'odd')
+            sage: decl2.assume()
+            Traceback (most recent call last):
+            ...
+            ValueError: Assumption is inconsistent
             sage: decl.forget()
         """
         from sage.calculus.calculus import maxima
@@ -92,7 +99,13 @@ class GenericDeclaration(SageObject):
                 raise ValueError, "%s not a valid assumption, must be one of %s" % (self._assumption, valid_features)
             cur = maxima.get("context")
             self._context = maxima.newcontext('context' + maxima._next_var_name())
-            maxima.eval("declare(%s, %s)" % (repr(self._var), self._assumption))
+            try:
+                maxima.eval("declare(%s, %s)" % (repr(self._var), self._assumption))
+            except TypeError, mess:
+                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
+                    raise ValueError, "Assumption is inconsistent"
+                else:
+                    raise
             maxima.set("context", cur)
 
         if not self in _assumptions:
@@ -115,12 +128,18 @@ class GenericDeclaration(SageObject):
             cos(pi*x)
         """
         from sage.calculus.calculus import maxima
-        try:
-            _assumptions.remove(self)
-        except ValueError:
-            return
         if self._context is not None:
+            try:
+                _assumptions.remove(self)
+            except ValueError:
+                return
             maxima.deactivate(self._context)
+        else: # trying to forget a declaration explicitly rather than implicitly
+            for x in _assumptions:
+                if repr(self) == repr(x): # so by implication x is also a GenericDeclaration
+                    x.forget()
+                    break
+            return
 
 def preprocess_assumptions(args):
     """
@@ -188,6 +207,49 @@ def assume(*args):
         sage: sin(n*pi).simplify()
         sin(pi*n)
 
+    If you make inconsistent or meaningless assumptions,
+    Sage will let you know::
+
+        sage: assume(x<0)
+        sage: assume(x>0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Assumption is inconsistent
+        sage: assume(x<1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Assumption is redundant
+        sage: assumptions()
+        [x < 0]
+        sage: forget()
+        sage: assume(x,'even')
+        sage: assume(x,'odd')
+        Traceback (most recent call last):
+        ...
+        ValueError: Assumption is inconsistent
+        sage: forget()
+
+    You can also use assumptions to evaluate simple
+    truth values::
+
+        sage: x, y, z = var('x, y, z')
+        sage: assume(x>=y,y>=z,z>=x)
+        sage: bool(x==z)
+        True
+        sage: bool(z<x)
+        False
+        sage: bool(z>y)
+        False
+        sage: bool(y==z)
+        True
+        sage: forget()
+        sage: assume(x>=1,x<=1)
+        sage: bool(x==1)
+        True
+        sage: bool(x>1)
+        False
+        sage: forget()
+
     TESTS:
 
     Test that you can do two non-relational
@@ -239,14 +301,17 @@ def forget(*args):
         sage: forget(x>0, z==1)
         sage: assumptions()
         [y > 0]
-        sage: assume(y, 'even')
+        sage: assume(y, 'even', z, 'complex')
         sage: assumptions()
-        [y > 0, y is even]
+        [y > 0, y is even, z is complex]
         sage: cos(y*pi).simplify()
         1
-        sage: forget()
+        sage: forget(y,'even')
         sage: cos(y*pi).simplify()
         cos(pi*y)
+        sage: assumptions()
+        [y > 0, z is complex]
+        sage: forget()
         sage: assumptions()
         []
     """
@@ -255,7 +320,7 @@ def forget(*args):
         return
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
-            assume(*x)
+            forget(*x)
         else:
             try:
                 x.forget()

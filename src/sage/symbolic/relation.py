@@ -333,6 +333,42 @@ def test_relation_maxima(relation):
         True
         sage: test_relation_maxima( x - 2 > x )
         False
+
+    Here are some examples involving assumptions::
+
+        sage: x, y, z = var('x, y, z')
+        sage: assume(x>=y,y>=z,z>=x)
+        sage: test_relation_maxima(x==z)
+        True
+        sage: test_relation_maxima(z<x)
+        False
+        sage: test_relation_maxima(z>y)
+        False
+        sage: test_relation_maxima(y==z)
+        True
+        sage: forget()
+        sage: assume(x>=1,x<=1)
+        sage: test_relation_maxima(x==1)
+        True
+        sage: test_relation_maxima(x>1)
+        False
+        sage: test_relation_maxima(x>=1)
+        True
+        sage: test_relation_maxima(x!=1)
+        False
+        sage: test_relation_maxima(x<>1) # alternate syntax for not equal
+        False
+        sage: forget()
+        sage: assume(x>0)
+        sage: test_relation_maxima(x==0)
+        False
+        sage: test_relation_maxima(x>-1)
+        True
+        sage: test_relation_maxima(x!=0)
+        True
+        sage: test_relation_maxima(x!=1)
+        False
+        sage: forget()
     """
     m = relation._maxima_()
 
@@ -342,15 +378,28 @@ def test_relation_maxima(relation):
     elif repr(m) in ['0#0', '1#1']:
         return False
 
-    try:
-        s = m.parent()._eval_line('is (%s)'%m.name())
-    except TypeError, msg:
-        raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+    if relation.operator() == operator.eq: # operator is equality
+        try:
+            s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
+        except TypeError, msg:
+            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+
+    elif relation.operator() == operator.ne: # operator is not equal
+        try:
+            s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
+        except TypeError, msg:
+            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+
+    else: # operator is < or > or <= or >=, which Maxima handles fine
+        try:
+            s = m.parent()._eval_line('is (%s)'%repr(m))
+        except TypeError, msg:
+            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
 
     if s == 'true':
         return True
-    elif s == 'unknown':
-        return False
+    elif s == 'false':
+        return False # if neither of these, s=='unknown' and we try a few other tricks
 
     if relation.operator() != operator.eq:
         return False

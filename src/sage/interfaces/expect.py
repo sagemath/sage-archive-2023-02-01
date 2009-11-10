@@ -1131,6 +1131,9 @@ If this all works, you can then make calls like:
     def _greaterthan_symbol(self):
         return '>'
 
+    def _inequality_symbol(self):
+        return '!='
+
     def _relation_symbols(self):
         """
         Returns a dictionary with operators as the keys and their
@@ -1143,7 +1146,7 @@ If this all works, you can then make calls like:
             sage: symbols[operator.eq]
             '=='
         """
-        return dict([(operator.eq, self._equality_symbol()), (operator.ne, "!="),
+        return dict([(operator.eq, self._equality_symbol()), (operator.ne, self._inequality_symbol()),
                      (operator.lt, self._lessthan_symbol()), (operator.le, "<="),
                      (operator.gt, self._greaterthan_symbol()), (operator.ge, ">=")])
 

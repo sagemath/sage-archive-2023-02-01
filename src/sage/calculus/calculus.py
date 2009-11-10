@@ -255,10 +255,15 @@ Set x to be 5 in maxima::
     sage: maxima('x + x + %pi')
     %pi+10
 
-This simplification is done using maxima (behind the scenes)::
+Simplifications like these are now done using Pynac::
 
     sage: x + x + pi
-     pi + 2*x
+    pi + 2*x
+
+But this still uses Maxima::
+
+    sage: (x + x + pi).simplify()
+    pi + 2*x
 
 Note that ``x`` is still ``x``, since the
 maxima used by the calculus package is different than the one in
@@ -988,11 +993,12 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     There is a difference between algorithm='algebraic' and
     algorithm='numerical'::
 
-        sage: cos(pi/22).minpoly(algorithm='algebraic')
-        x^10 - 11/4*x^8 + 11/4*x^6 - 77/64*x^4 + 55/256*x^2 - 11/1024
-        sage: cos(pi/22).minpoly(algorithm='numerical')
+        sage: cos(pi/33).minpoly(algorithm='algebraic')
+        x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
+        sage: cos(pi/33).minpoly(algorithm='numerical')
         Traceback (most recent call last):
-        NotImplementedError: Could not prove minimal polynomial x^10 - 11/4*x^8 + 11/4*x^6 - 77/64*x^4 + 55/256*x^2 - 11/1024 (epsilon ...)
+        ...
+        NotImplementedError: Could not prove minimal polynomial x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024 (epsilon ...)
 
     Sometimes it fails.
 
@@ -1744,8 +1750,16 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     EXAMPLES::
 
-        sage: sage.calculus.calculus.symbolic_expression_from_maxima_string('x^%e + %e^%pi + %i + sin(0)')
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('x^%e + %e^%pi + %i + sin(0)')
         x^e + e^pi + I
+        sage: f = function('f',x)
+        sage: sefms('?%at(f(x),x=2)#1')
+        f(2) != 1
+        sage: a = sage.calculus.calculus.maxima("x#0"); a
+        x#0
+        sage: a.sage()
+        x != 0
     """
     syms = dict(_syms)
 
@@ -1778,6 +1792,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = multiple_replace(symtable, s)
     s = s.replace("%","")
+
+    s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
     if equals_sub:
         s = s.replace('=','==')

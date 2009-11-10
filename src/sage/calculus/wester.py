@@ -13,6 +13,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
+    sage: # (YES) factorial of 50, and factor it
     sage: factorial(50)
     30414093201713378043612608166064768844377641568960512000000000000
     sage: factor(factorial(50))
@@ -20,13 +21,13 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # 1/2+...+1/10 = 4861/2520
+    sage: # (YES) 1/2+...+1/10 = 4861/2520
     sage: sum(1/n for n in range(2,10+1)) == 4861/2520
     True
 
 ::
 
-    sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
+    sage: # (YES) Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
     sage: a = e^(pi*sqrt(163)); a
     e^(pi*sqrt(163))
     sage: print RealField(150)(a)
@@ -34,13 +35,13 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
+    sage: # (YES) Evaluate the Bessel function J[2] numerically at z=1+I.
     sage: bessel_J (2, 1+I)
     0.0415798869439621 + 0.247397641513306*I
 
 ::
 
-    sage: # Obtain period of decimal fraction 1/7=0.(142857).
+    sage: # (YES) Obtain period of decimal fraction 1/7=0.(142857).
     sage: a = 1/7
     sage: print a
     1/7
@@ -49,21 +50,22 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # Continued fraction of 3.1415926535
+    sage: # (YES) Continued fraction of 3.1415926535
     sage: a = 3.1415926535
     sage: continued_fraction(a)
     [3, 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
 
 ::
 
-    sage: # (not exactly ok) Sqrt(2*Sqrt(3)+4)=1+Sqrt(3).
-    sage: # The Maxima backend equality checker fails this; maybe it *should*, since
-    sage: # the equality only holds for one choice of sign.
+    sage: # (YES) Sqrt(2*Sqrt(3)+4)=1+Sqrt(3).
+    sage: # The Maxima backend equality checker does this;
+    sage: # note the equality only holds for one choice of sign,
+    sage: # but Maxima always chooses the "positive" one
     sage: a = sqrt(2*sqrt(3) + 4); b = 1 + sqrt(3)
     sage: print float(a-b)
     0.0
     sage: print bool(a == b)
-    False
+    True
     sage: # We can, of course, do this in a quadratic field
     sage: k.<sqrt3> = QuadraticField(3)
     sage: asqr = 2*sqrt3 + 4
@@ -73,7 +75,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (not exactly ok) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
+    sage: # (NOT REALLY) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
     sage: a = sqrt(14+3*sqrt(3+2*sqrt(5-12*sqrt(3-2*sqrt(2)))))
     sage: b = 3+sqrt(2)
     sage: a, b
@@ -97,6 +99,7 @@ explicit calls to Maxima or other systems.
 
     sage: # (NO) Hypothesis testing with t-distribution.
     sage: # (NO) Hypothesis testing with chi^2 distribution
+    sage: # (But both are included in Scipy and R)
 
 ::
 
@@ -108,8 +111,8 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (YES -- Maxima doesn't consider them equal,
-    sage: # but Sage does additional testing to show that they are)
+    sage: # (YES -- Maxima doesn't immediately consider them
+    sage: # equal, but simplification shows that they are)
     sage: # (Exp(x)-1)/(Exp(x/2)+1)=Exp(x/2)-1.
     sage: f = (exp(x)-1)/(exp(x/2)+1)
     sage: g = exp(x/2)-1
@@ -117,6 +120,8 @@ explicit calls to Maxima or other systems.
     (e^x - 1)/(e^(1/2*x) + 1)
     sage: g
     e^(1/2*x) - 1
+    sage: f.simplify_full(),g
+    (e^(1/2*x) - 1, e^(1/2*x) - 1)
     sage: f(x=10.0).n(53), g(x=10.0).n(53)
     (147.413159102577, 147.413159102577)
     sage: bool(f == g)
@@ -187,22 +192,18 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Partial fraction decomposition of (x^2+2*x+3)/(x^3+4*x^2+5*x+2)
     sage: f = (x^2+2*x+3)/(x^3+4*x^2+5*x+2); f
     (x^2 + 2*x + 3)/(x^3 + 4*x^2 + 5*x + 2)
-
-::
-
     sage: f.partial_fraction()
     -2/(x + 1) + 2/(x + 1)^2 + 3/(x + 2)
 
 ::
 
-    sage: # (BUG?) Assuming  x>=y,  y>=z,  z>=x, deduce  x=z.
-    sage: # Maxima doesn't agree that x==z is a conclusion...
+    sage: # (YES) Assuming  x>=y,  y>=z,  z>=x, deduce  x=z.
     sage: forget()
     sage: var('x,y,z')
     (x, y, z)
     sage: assume(x>=y, y>=z,z>=x)
     sage: print bool(x==z)
-    False
+    True
 
 ::
 
@@ -216,11 +217,12 @@ explicit calls to Maxima or other systems.
     sage: forget()
     sage: print assumptions()
     []
-    sage: # Solve the inequality Abs(x-1)>2.
 
 ::
 
-    sage: # (NO) Maxima doesn't solve inequalities:
+    sage: # (NO) Solve the inequality Abs(x-1)>2.
+    sage: # Maxima doesn't solve inequalities
+    sage: # (but some Maxima packages do):
     sage: eqn = abs(x-1) > 2
     sage: print eqn
                                     abs(x - 1) > 2
@@ -250,8 +252,16 @@ explicit calls to Maxima or other systems.
     sage: h = f-g
     sage: print h.trig_simplify()
                                            0
-    sage: # (NO) Define rewrite rules to match  Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2.
-    sage: # Sage has no notion of "rewrite rules".
+
+::
+
+    sage: # (GOOD ENOUGH) Define rewrite rules to match  Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2.
+    sage: # Sage has no notion of "rewrite rules", but
+    sage: # it can simplify both to the same thing.
+    sage: (cos(3*x)/cos(x)).simplify_full()
+    4*cos(x)^2 - 3
+    sage: (cos(x)^2-3*sin(x)^2).simplify_full()
+    4*cos(x)^2 - 3
 
 ::
 
@@ -276,14 +286,13 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (YES) (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3))-6 = 0
-    sage: ## same issue as above -- can only do using number fields
     sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6; a
     (2^(1/3) + 4^(1/3))^3 - 6*2^(1/3) - 6*4^(1/3) - 6
     sage: bool(a==0)
     True
     sage: abs(float(a)) < 1e-10
     True
-    sage: ## but we can do it using number fields.
+    sage: ## or we can do it using number fields.
     sage: reset('x')
     sage: k.<b> = NumberField(x^3-2)
     sage: a = (b  + b^2)^3 - 6*(b  + b^2) - 6
@@ -301,9 +310,6 @@ explicit calls to Maxima or other systems.
     False
     sage: [float(f(x=i/10)) for i in range(1,5)]
     [5.5511151231257827e-17, -5.5511151231257827e-17, -5.5511151231257827e-17, -1.6653345369377348e-16]
-
-::
-
     sage: # Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
     sage: g = f.derivative()
     sage: abs(float(f(x=0))) < 1e-10
@@ -315,7 +321,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (NO?) Ln((2*Sqrt(r) + 1)/Sqrt(4*r 4*Sqrt(r) 1))=0.
+    sage: # (NO) Ln((2*Sqrt(r) + 1)/Sqrt(4*r 4*Sqrt(r) 1))=0.
     sage: var('r')
     r
     sage: f = log( (2*sqrt(r) + 1) / sqrt(4*r  + 4*sqrt(r) +  1))
@@ -328,7 +334,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (NO, except numerically)
+    sage: # (NO)
     sage: # (4*r+4*Sqrt(r)+1)^(Sqrt(r)/(2*Sqrt(r)+1))*(2*Sqrt(r)+1)^(2*Sqrt(r)+1)^(-1)-2*Sqrt(r)-1=0, assuming r>0.
     sage: assume(r>0)
     sage: f = (4*r+4*sqrt(r)+1)^(sqrt(r)/(2*sqrt(r)+1))*(2*sqrt(r)+1)^(2*sqrt(r)+1)^(-1)-2*sqrt(r)-1
@@ -364,8 +370,10 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (YES) Simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi.
-    sage: assume(-pi < imag(z))
-    sage: assume(imag(z) <= pi)
+    sage: # Unfortunately (?), Maxima does this even without
+    sage: # any assumptions.
+    sage: # We *would* use assume(-pi < imag(z))
+    sage: # and assume(imag(z) <= pi)
     sage: f = log(exp(z)); f
     log(e^z)
     sage: f.simplify()
@@ -393,12 +401,14 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (SOMEWHAT) Solve Exp(x)=1 and get all solutions.
+    sage: # to_poly_solve in Maxima can do this.
     sage: solve(exp(x) == 1, x)
     [x == 0]
 
 ::
 
     sage: # (SOMEWHAT) Solve Tan(x)=1 and get all solutions.
+    sage: # to_poly_solve in Maxima can do this.
     sage: solve(tan(x) == 1, x)
     [x == 1/4*pi]
 
@@ -451,15 +461,12 @@ explicit calls to Maxima or other systems.
     sage: d = m.determinant()
     sage: print d
     a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
-
-::
-
     sage: print d.factor()
     (-1) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
 
 ::
 
-    sage: # Find the eigenvalues of a 3x3 integer matrix.
+    sage: # (YES) Find the eigenvalues of a 3x3 integer matrix.
     sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])
     sage: m.eigenspaces()
     [
@@ -476,7 +483,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # OK Verify some standard limits found by L'Hopital's rule:
+    sage: # (YES) Verify some standard limits found by L'Hopital's rule:
     sage: #   Verify(Limit(x,Infinity) (1+1/x)^x, Exp(1));
     sage: #   Verify(Limit(x,0) (1-Cos(x))/x^2, 1/2);
     sage: limit( (1+1/x)^x, x = oo)
@@ -569,7 +576,7 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # [OK] Compute Legendre polynomials directly from Rodrigues's formula, P[n]=1/(2^n*n!) *(Deriv(x,n)(x^2-1)^n).
+    sage: # (OK) Compute Legendre polynomials directly from Rodrigues's formula, P[n]=1/(2^n*n!) *(Deriv(x,n)(x^2-1)^n).
     sage: #      P(n,x) := Simplify( 1/(2*n)!! *
     sage: #        Deriv(x,n) (x^2-1)^n );
     sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
@@ -585,7 +592,6 @@ explicit calls to Maxima or other systems.
     a5*x^5 + a4*x^4 + a3*x^3 + a2*x^2 + a1*x
     sage: ps.parent()
     Symbolic Ring
-
     sage: # algebraically
     sage: R = PolynomialRing(QQ,5,names='a')
     sage: S.<x> = PolynomialRing(R)

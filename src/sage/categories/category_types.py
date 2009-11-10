@@ -1311,7 +1311,7 @@ category_hierarchy = {\
     GroupAlgebras          : [MonoidAlgebras, Algebras, Sets],\
     MatrixAlgebras         : [Algebras, Sets],\
     RingModules            : [AbelianGroups, Sets],\
-    ChainComplexes         : [],\
+    ChainComplexes         : [RingModules, AbelianGroups, Sets],\
     FreeModules            : [RingModules, AbelianGroups, Sets],\
     VectorSpaces           : [FreeModules, RingModules, AbelianGroups, Sets],\
     HeckeModules           : [FreeModules, RingModules, AbelianGroups, Sets],\

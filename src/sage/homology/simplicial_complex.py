@@ -1179,11 +1179,11 @@ class SimplicialComplex(SageObject):
 
             sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
             sage: circle.chain_complex()
-            Chain complex with at most 2 nonzero terms over Integer Ring.
+            Chain complex with at most 2 nonzero terms over Integer Ring
             sage: circle.chain_complex()._latex_()
             '\\Bold{Z}^{3} \\xrightarrow{d_{1}} \\Bold{Z}^{3}'
             sage: circle.chain_complex(base_ring=QQ, augmented=True)
-            Chain complex with at most 3 nonzero terms over Rational Field.
+            Chain complex with at most 3 nonzero terms over Rational Field
         """
         # initialize subcomplex
         if subcomplex is None:
@@ -1750,7 +1750,8 @@ class SimplicialComplex(SageObject):
 
     def generated_subcomplex(self,sub_vertex_set):
         """
-        Returns the largest sub SimplicialComplex of self containing exactly the sub_vertex_set as vertices.
+        Returns the largest sub-simplicial complex of self containing
+        exactly ``sub_vertex_set`` as vertices.
 
         EXAMPLES::
 

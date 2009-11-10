@@ -338,12 +338,12 @@ class ChainComplex(SageObject):
     EXAMPLES::
 
         sage: ChainComplex()
-        Chain complex with at most 0 nonzero terms over Integer Ring.
+        Chain complex with at most 0 nonzero terms over Integer Ring
         sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
         sage: C
-        Chain complex with at most 2 nonzero terms over Integer Ring.
+        Chain complex with at most 2 nonzero terms over Integer Ring
         sage: D = ChainComplex([matrix(ZZ, 2, 2, [0, 1, 0, 0]), matrix(ZZ, 2, 2, [0, 1, 0, 0])], base_ring=GF(2)); D
-        Chain complex with at most 3 nonzero terms over Finite Field of size 2.
+        Chain complex with at most 3 nonzero terms over Finite Field of size 2
         sage: D == loads(dumps(D))
         True
 
@@ -361,9 +361,9 @@ class ChainComplex(SageObject):
     Defining the base ring implicitly::
 
         sage: ChainComplex([matrix(QQ, 3, 1), matrix(ZZ, 4, 3)])
-        Chain complex with at most 2 nonzero terms over Rational Field.
+        Chain complex with at most 2 nonzero terms over Rational Field
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1), matrix(ZZ, 4, 3)])
-        Chain complex with at most 2 nonzero terms over Finite Field in a of size 5^3.
+        Chain complex with at most 2 nonzero terms over Finite Field in a of size 5^3
 
     If the matrices are defined over incompatible rings, an error results::
 
@@ -389,10 +389,10 @@ class ChainComplex(SageObject):
         EXAMPLES::
 
             sage: C = ChainComplex(); C
-            Chain complex with at most 0 nonzero terms over Integer Ring.
+            Chain complex with at most 0 nonzero terms over Integer Ring
             sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: D
-            Chain complex with at most 2 nonzero terms over Integer Ring.
+            Chain complex with at most 2 nonzero terms over Integer Ring
         """
         try:
             deg = grading_group(degree)
@@ -882,12 +882,12 @@ class ChainComplex(SageObject):
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C._repr_()
-            'Chain complex with at most 2 nonzero terms over Integer Ring.'
+            'Chain complex with at most 2 nonzero terms over Integer Ring'
         """
         diffs = filter(lambda mat: mat.nrows() + mat.ncols() > 0,
                        self._diff.values())
         string1 = "Chain complex with at most"
-        string2 = " %s nonzero terms over %s." % (len(diffs),
+        string2 = " %s nonzero terms over %s" % (len(diffs),
                                                   self._base_ring)
         return string1 + string2
 

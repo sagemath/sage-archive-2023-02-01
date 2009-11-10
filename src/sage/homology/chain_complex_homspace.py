@@ -16,14 +16,14 @@ EXAMPLES::
     sage: D = T.chain_complex(augmented=True,cochain=True)
     sage: G = Hom(C,D)
     sage: G
-    Set of Morphisms from Chain complex with at most 4 nonzero terms over Integer Ring. to Chain complex with at most 4 nonzero terms over Integer Ring. in Category of chain complexes over Integer Ring
+    Set of Morphisms from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring in Category of chain complexes over Integer Ring
 
     sage: S = simplicial_complexes.ChessboardComplex(3,3)
     sage: H = Hom(S,S)
     sage: i = H.identity()
     sage: x = i.associated_chain_complex_morphism(augmented=True)
     sage: x
-    Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring. to Chain complex with at most 4 nonzero terms over Integer Ring.
+    Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring
     sage: x._matrix_dictionary
     {0: [1 0 0 0 0 0 0 0 0]
     [0 1 0 0 0 0 0 0 0]
@@ -62,11 +62,11 @@ EXAMPLES::
     sage: i = A.identity()
     sage: x = i.associated_chain_complex_morphism()
     sage: x
-    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring. to Chain complex with at most 3 nonzero terms over Integer Ring.
+    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
     sage: y = x*4
     sage: z = y*y
     sage: (y+z)
-    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring. to Chain complex with at most 3 nonzero terms over Integer Ring.
+    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
     sage: f = x._matrix_dictionary
     sage: C = S.chain_complex()
     sage: G = Hom(C,C)
@@ -122,7 +122,7 @@ class ChainComplexHomspace(sage.categories.homset.Homset):
         sage: C = T.chain_complex(augmented=True,cochain=True)
         sage: G = Hom(C,C)
         sage: G
-        Set of Morphisms from Chain complex with at most 5 nonzero terms over Integer Ring. to Chain complex with at most 5 nonzero terms over Integer Ring. in Category of chain complexes over Integer Ring
+        Set of Morphisms from Chain complex with at most 5 nonzero terms over Integer Ring to Chain complex with at most 5 nonzero terms over Integer Ring in Category of chain complexes over Integer Ring
 
     """
     def __call__(self, f):

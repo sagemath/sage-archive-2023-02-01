@@ -980,6 +980,15 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: _.parent()
          Multivariate Polynomial Ring in x, y over Rational Field
 
+         sage: s,t=var('s,t')
+         sage: expr=t^2-2*s*t+1
+         sage: expr.polynomial(None,ring=SR['t'])
+         t^2 - 2*s*t + 1
+         sage: _.parent()
+         Univariate Polynomial Ring in t over Symbolic Ring
+
+
+
     The polynomials can have arbitrary (constant) coefficients so long as
     they coerce into the base ring::
 

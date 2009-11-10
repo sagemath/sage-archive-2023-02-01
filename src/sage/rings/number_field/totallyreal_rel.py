@@ -36,17 +36,46 @@ import math, bisect, sys
 
 def integral_elements_in_box(K, C):
     r"""
+    Return all integral elements of the totally real field `K` whose
+    embeddings lie *numerically* within the bounds specified by the
+    list `C`.  The output is architecture dependent, and one may want
+    to expand the bounds that define C by some epsilon.
+
+    INPUT:
+
+        - `K` -- a totally real number field
+
+        - `C` -- a list [[lower, upper], ...] of lower and upper bounds,
+                 for each embedding
+
+
     EXAMPLES:
+
+        sage: x = polygen(QQ)
         sage: K.<alpha> = NumberField(x^2-2)
-        sage: ls = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,10]])
-        sage: sorted([ x.trace() for x in ls ])
+        sage: eps = 10e-6
+        sage: C = [[0-eps,5+eps],[0-eps,10+eps]]
+        sage: ls = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
+        sage: sorted([ a.trace() for a in ls ])
         [0, 2, 4, 4, 4, 6, 6, 6, 6, 8, 8, 8, 10, 10, 10, 10, 12, 12, 14]
         sage: len(ls)
         19
 
-        sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
-        sage: sorted([str(a) for a in v])
-        ['-alpha + 2', '-alpha + 3', '0', '1', '2', '3', '4', '5', 'alpha + 2', 'alpha + 3']
+        sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
+        sage: sorted(v)
+        [-alpha + 3, -alpha + 2, 5, 4, 3, 2, 1, 0, alpha + 6, alpha + 5, alpha + 4, alpha + 3, alpha + 2, 2*alpha + 7, 2*alpha + 6, 2*alpha + 5, 2*alpha + 4, 2*alpha + 3, 3*alpha + 5]
+
+
+    A cubic field::
+
+        sage: x = polygen(QQ)
+        sage: K.<a> = NumberField(x^3 - 16*x +16)
+        sage: eps = 10e-6
+        sage: C = [[0-eps,5+eps]]*3
+        sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
+        sage: sorted(v)
+        [-1/2*a + 2, 1/4*a^2 + 1/2*a, 0, 1, 2, 3, 4, -1/4*a^2 - 1/2*a + 5, 1/2*a + 3, -1/4*a^2 + 5]
+
     """
     d = K.degree()
     Z_F = K.maximal_order()

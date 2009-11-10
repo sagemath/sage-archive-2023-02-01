@@ -60,4 +60,5 @@ from prime_pi import prime_pi
 from wigner import (wigner_3j, clebsch_gordan, racah, wigner_6j,
                     wigner_9j, gaunt)
 
-from generalized import (dirac_delta, heaviside, unit_step)
+from generalized import (dirac_delta, heaviside, unit_step, sgn,
+                         kronecker_delta)

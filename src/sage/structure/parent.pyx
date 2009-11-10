@@ -1330,7 +1330,9 @@ cdef class Parent(category_object.CategoryObject):
                 if mor_found  >= num_paths:
                     return best_mor
             else:
-                connecting = mor._domain.coerce_map_from(S)
+                connection = None
+                if EltPair(mor._domain, S, "coerce") not in _coerce_test_dict:
+                    connecting = mor._domain.coerce_map_from(S)
                 if connecting is not None:
                     mor = mor * connecting
                     if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
@@ -1875,7 +1877,7 @@ cdef class Set_PythonType_class(Set_generic):
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their
 # arguments, leading to an infinite loop.
 
-cdef object _coerce_test_list = []
+cdef object _coerce_test_dict = {}
 
 cdef class EltPair:
     cdef x, y, tag
@@ -1883,36 +1885,44 @@ cdef class EltPair:
         self.x = x
         self.y = y
         self.tag = tag
+
     def __richcmp__(EltPair self, EltPair other, int op):
         cdef bint eq = self.x is other.x and self.y is other.y and self.tag is other.tag
         if op in [Py_EQ, Py_GE, Py_LE]:
             return eq
         else:
             return not eq
+
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.parent import EltPair
+            sage: a = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            True
+        """
+        return hash((self.x, self.y, self.tag))
+
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)
+
     def __repr__(self):
         return "%r: %r (%r), %r (%r)" % (self.tag, self.x, type(self.x), self.y, type(self.y))
 
 cdef bint _register_pair(x, y, tag) except -1:
     both = EltPair(x,y,tag)
-#    print _coerce_test_list, " + ", both
-    if both in _coerce_test_list:
-#        print "Uh oh..."
-#        print _coerce_test_list
-#        print both
+
+    if both in _coerce_test_dict:
         xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
         yp = type(y) if PY_TYPE_CHECK(y, Parent) else parent_c(y)
-        #print xp, yp
-#        if str(y) != "Complex Double Field":
-#            raise Exception, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
         raise CoercionException, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
-    _coerce_test_list.append(both)
+    _coerce_test_dict[both] = True
     return 0
 
 cdef bint _unregister_pair(x, y, tag) except -1:
     try:
-        _coerce_test_list.remove(EltPair(x,y,tag))
+        _coerce_test_dict.pop(EltPair(x,y,tag), None)
     except (ValueError, CoercionException):
         pass
 

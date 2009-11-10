@@ -186,7 +186,7 @@ class ContourPlot(GraphicPrimitive):
                 label_options['fontsize'] = int(label_options['fontsize'])
                 subplot.clabel(CS, **label_options)
 
-@suboptions('label', fontsize=9, colors=None, inline=True, inline_spacing=5, fmt='%1.3f')
+@suboptions('label', fontsize=9, colors=None, inline=True, inline_spacing=3, fmt="%1.2f")
 @options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
@@ -227,14 +227,18 @@ def contour_plot(f, xrange, yrange, **options):
       is passed (or the option is not given), then the number of contour
       lines is determined automatically, and is usually about 5.
 
-    - ``linewidths`` -- integer or list of integer (default: None), if a
-      single integer all levels will be of the width given, otherwise the
-      levels will be plotted with the width in the order given.  This option
-      is ignored if fill=True.
+    - ``linewidths`` -- integer or list of integer (default: None), if
+      a single integer all levels will be of the width given,
+      otherwise the levels will be plotted with the width in the order
+      given.  If the list is shorter than the number of contours, then
+      the widths will be repeated cyclically.  This option is ignored
+      if fill=True.
 
-    - ``linestyles`` -- string or list of strings (default: None), the style of
-      the lines to be plotted, one of: solid, dashed, dashdot, or dotted.
-      This option is ignored if fill=True.
+    - ``linestyles`` -- string or list of strings (default: None), the
+      style of the lines to be plotted, one of: solid, dashed,
+      dashdot, or dotted.  If the list is shorter than the number of
+      contours, then the styles will be repeated cyclically.  This
+      option is ignored if fill=True.
 
     - ``labels`` -- boolean (default: False) Show level labels or not.
       This option is ignored if fill=True.
@@ -252,12 +256,13 @@ def contour_plot(f, xrange, yrange, **options):
     - ``label_inline`` -- boolean (default: True), controls whether the
       underlying contour is removed or not.
 
-    - ``label_inline_spacing``  -- integer (default: 5), When inline, this is
+    - ``label_inline_spacing``  -- integer (default: 3), When inline, this is
       the amount of contour that is removed from each side, in pixels.
 
-    - ``label_fmt`` -- a format string (default: "%1.3f"), this is used to
-      get the label text from the level.
-
+    - ``label_fmt`` -- a format string (default: "%1.2f"), this is
+      used to get the label text from the level.  This can also be a
+      dictionary with the contour levels as keys and corresponding
+      text string labels as values.
 
     EXAMPLES:
 
@@ -299,12 +304,16 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
+        sage: contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],linewidths=[1,5],linestyles=['solid','dashed'],fill=False)
 
     We can add labels and play with them::
 
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True)
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fmt="%1.0f", label_colors='black')
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, contours=[-4,0,4], label_fmt={-4:"low", 0:"medium", 4: "hi"}, label_colors='black')
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fontsize=18)
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline_spacing=1)
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline=False)
 
     If we do not specify fill=False, then the label and line options are ignored::
 

@@ -929,7 +929,7 @@ cdef class ImplicitSurface(IndexFaceSet):
         self.f, ranges, self.vars = setup_for_eval_on_grid(f, [xrange, yrange, zrange], return_vars=True)
         self.xrange = ranges[0][:2]
         self.yrange = ranges[1][:2]
-        self.zrange = ranges[1][:2]
+        self.zrange = ranges[2][:2]
         if isinstance(contour, (list, tuple)):
             contours = contour
         else:

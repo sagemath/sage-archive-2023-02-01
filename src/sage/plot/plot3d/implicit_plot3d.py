@@ -211,10 +211,16 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=(10, 40, 40), contour=4)
 
-    Test using different plot ranges in the different directions; this should
-    generate half of a sphere::
+    Test using different plot ranges in the different directions; each
+    of these should generate half of a sphere.  Note that we need to use
+    the ``aspect_ratio`` keyword to make it look right with the unequal
+    plot ranges::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, 0, 2), (y, -2, 2), (z, -2, 2), contour=4)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, 0, 2), (y, -2, 2), (z, -2, 2), contour=4, aspect_ratio=1)
+
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, 0, 2), (z, -2, 2), contour=4, aspect_ratio=1)
+
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, 0, 2), contour=4, aspect_ratio=1)
 
     Extra keyword arguments will be passed to show()::
 

@@ -3192,16 +3192,11 @@ def from_inversion_vector(iv):
         [5, 9, 1, 8, 2, 6, 4, 7, 3]
     """
 
-    p = [None] * len(iv)
+    p = iv[:]
     open_spots = range(len(iv))
+    for i,ivi in enumerate(iv):
+        p[open_spots.pop(ivi)] = i+1
 
-    for i in range(len(iv)):
-        if iv[i] != 0:
-            p[open_spots[iv[i]]] = i+1
-            open_spots.remove(open_spots[iv[i]])
-        else:
-            p[open_spots[0]] = i+1
-            open_spots.remove(open_spots[0])
     return Permutation(p)
 
 def from_cycles(n, cycles):
@@ -3236,25 +3231,12 @@ def from_lehmer_code(lehmer):
         [2, 1, 5, 4, 3]
     """
 
-    n = len(lehmer)
-    if n==0:
-        return Permutation([])
-    perm = [None] * n
+    p = []
+    open_spots = range(1,len(lehmer)+1)
+    for ivi in lehmer:
+        p.append(open_spots.pop(ivi))
 
-    #Convert the factoradic to a permutation
-    temp = [None] * n
-    for i in range(n):
-        lehmer[i] += 1
-        temp[i] = lehmer[i]
-
-    perm[n-1] = 1
-    for i in reversed(range(n-1)):
-        perm[i] = temp[i]
-        for j in range(i+1, n):
-            if perm[j] >= perm[i]:
-                perm[j] += 1
-
-    return Permutation([ p for p in perm ])
+    return Permutation(p)
 
 def from_reduced_word(rw):
     r"""

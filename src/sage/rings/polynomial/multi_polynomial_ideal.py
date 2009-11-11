@@ -1917,6 +1917,7 @@ class MPolynomialIdeal_singular_repr:
             sage: I.variety()
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             [{y: -0.86602540378443... - 0.50000000000000...*I},
              {y: -0.86602540378443... + 0.50000000000000...*I},
              {y: 0.86602540378443... - 0.50000000000000...*I},
@@ -1992,6 +1993,17 @@ class MPolynomialIdeal_singular_repr:
             {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
             {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
 
+        Check that the issue at trac 7425 is fixed::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: I = R.ideal([x^2-y^3*z, x+y*z])
+            sage: I.dimension()
+            1
+            sage: I.variety()
+            Traceback (most recent call last):
+            ...
+            ValueError: The dimension of the ideal is 1, but it should be 0
+
         ALGORITHM: Uses triangular decomposition.
         """
         def _variety(T, V, v=None):
@@ -2019,6 +2031,10 @@ class MPolynomialIdeal_singular_repr:
                 _variety(Tbar,V,vbar)
 
             return V
+
+        d = self.dimension()
+        if d <> 0:
+            raise ValueError, "The dimension of the ideal is %s, but it should be 0"%d
 
         import sage.rings.complex_field as CCmod
         if type(self.base_ring()) == CCmod.ComplexField_class:

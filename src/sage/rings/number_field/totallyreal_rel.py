@@ -73,8 +73,12 @@ def integral_elements_in_box(K, C):
         sage: eps = 10e-6
         sage: C = [[0-eps,5+eps]]*3
         sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
+
+    Note that the output is platform dependent (sometimes a 5 is listed below, and
+    sometimes it isn't)::
+
         sage: sorted(v)
-        [-1/2*a + 2, 1/4*a^2 + 1/2*a, 0, 1, 2, 3, 4, -1/4*a^2 - 1/2*a + 5, 1/2*a + 3, -1/4*a^2 + 5]
+        [-1/2*a + 2, 1/4*a^2 + 1/2*a, 0, 1, 2, 3, 4,...-1/4*a^2 - 1/2*a + 5, 1/2*a + 3, -1/4*a^2 + 5]
 
     """
     d = K.degree()

@@ -26,6 +26,9 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.p8 (William Stein, Nov 10, 2009) ===
+ * Put ABI=32 back except on OS X 10.6 (all versions)
+
 === mpir-1.2.p6 (William Stein, Sept 25, 2009) ===
  * Put ABI=32 back except on OS X 10.6
 

@@ -46,12 +46,12 @@ build()
 
     Darwin)
         if [ "$SAGE64" = "yes" ]; then
-            echo "Building 64 bit OSX version"
+            echo "Building 64 bit OS X version"
             ABI=64
         else
             # Do not set ABI=32 on OS X 10.6, since there everything
             # defaults to 64-bit.
-            if [ `uname -r` != "10.0.0" ]; then
+            if [ `uname -r | sed 's/\..*//'` != "10" ]; then
                 ABI=32
                 if [ "`uname -m`" = "i386" ]; then
                     remove_pic_osx_32_bit

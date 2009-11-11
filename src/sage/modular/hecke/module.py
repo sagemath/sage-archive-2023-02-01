@@ -57,9 +57,9 @@ class HeckeModule_generic(sage.modules.module.Module):
     A very general base class for Hecke modules.
 
     We define a Hecke module of weight `k` to be a module over a commutative
-    ring equipped with an action of operators T_m for all positive integers m
-    coprime to some integer n (the level), which satisfy `T_r T_s = T_{rs}` for
-    r,s coprime, and for powers of a prime p, `T_{p^r} = T_{p} T_{p^{r-1}} -
+    ring equipped with an action of operators `T_m` for all positive integers `m`
+    coprime to some integer `n`(the level), which satisfy `T_r T_s = T_{rs}` for
+    `r,s` coprime, and for powers of a prime `p`, `T_{p^r} = T_{p} T_{p^{r-1}} -
     \varepsilon(p) p^{k-1} T_{p^{r-2}}`, where `\varepsilon(p)` is some
     endomorphism of the module which commutes with the `T_m`.
 
@@ -117,7 +117,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that
         `T_p` is known. This is carried out by recursion.
 
-        All derived classes must override either this function or self.character().
+        All derived classes must override either this function or ``self.character()``.
 
         EXAMPLE::
 
@@ -174,7 +174,7 @@ class HeckeModule_generic(sage.modules.module.Module):
 
     def _compute_dual_hecke_matrix(self, n):
         r"""
-        Compute the matrix of the Hecke operator T_n acting on the dual of self.
+        Compute the matrix of the Hecke operator `T_n` acting on the dual of self.
 
         EXAMPLE::
 
@@ -187,7 +187,7 @@ class HeckeModule_generic(sage.modules.module.Module):
 
     def _compute_hecke_matrix(self, n):
         r"""
-        Compute the matrix of the Hecke operator T_n acting on self.
+        Compute the matrix of the Hecke operator `T_n` acting on self.
 
         EXAMPLE::
 
@@ -581,7 +581,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         Return `T_n(x)` where `x` is a sparse modular
         symbol such that the image of `x` is nonzero under the dual
         projection map associated to this space, and `T_n` is the
-        `n`-th Hecke operator.
+        `n^{th}` Hecke operator.
 
         Used in the dual_eigenvector and eigenvalue methods.
 
@@ -868,7 +868,7 @@ class HeckeModule_free_module(HeckeModule_generic):
            use all Hecke operators up to the Sturm bound, and hence obtain the
            same result as one would obtain by using every element of the Hecke
            ring. If a fixed integer, decompose using only Hecke operators
-           T_p, with p prime, up to bound.
+           `T_p`, with `p` prime, up to bound.
 
 
         OUTPUT:
@@ -1122,7 +1122,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def dual_hecke_matrix(self, n):
         """
-        The matrix of the `n`-th Hecke operator acting on the dual
+        The matrix of the `n^{th}` Hecke operator acting on the dual
         embedded representation of self.
 
         EXAMPLE::
@@ -1276,7 +1276,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def hecke_matrix(self, n):
         """
-        The matrix of the `n`-th Hecke operator acting on given
+        The matrix of the `n^{th}` Hecke operator acting on given
         basis.
 
         EXAMPLE::
@@ -1296,7 +1296,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def hecke_operator(self, n):
         """
-        Returns the n-th Hecke operator `T_n`.
+        Returns the `n^{th}` Hecke operator `T_n`.
 
         INPUT:
 
@@ -1344,7 +1344,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def hecke_polynomial(self, n, var='x'):
         """
-        Return the characteristic polynomial of the n-th Hecke operator
+        Return the characteristic polynomial of the `n^{th}` Hecke operator
         acting on this space.
 
         INPUT:

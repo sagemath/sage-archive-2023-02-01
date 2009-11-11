@@ -72,9 +72,10 @@ if ' ' in DOT_SAGE:
         print "permissions to before you start sage."
 
 if UNAME == "Darwin":
-    if os.uname()[2] == "10.0.0":
-        print "WARNING: There is one major known bug in Sage on OS X 10.6 that causes"
-        print "an 'Abort trap' crash when doing certain symbolic computations."
+    if os.uname()[2].startswith("10."):
+        print "WARNING: There is one major unsolved bug in some versions of"
+        print "Sage on OS X 10.6 that causes an 'Abort trap' crash when"
+        print "doing certain symbolic computations."
         print "See http://trac.sagemath.org/sage_trac/ticket/7095/."
 
 #################################################

@@ -861,12 +861,14 @@ cdef class Parent(category_object.CategoryObject):
         Update the coercion model to use `mor : P \to \text{self}` to coerce
         from a parent ``P`` into ``self``.
 
+        For safety, an error is raised if another coercion has already
+        been registered or discovered between ``P`` and ``self``.
+
         EXAMPLES::
 
             sage: K.<a> = ZZ['a']
             sage: L.<b> = ZZ['b']
             sage: L_into_K = L.hom([-a]) # non-trivial automorphism
-            sage: K._unset_coercions_used()
             sage: K.register_coercion(L_into_K)
 
             sage: K(0) + b
@@ -880,20 +882,23 @@ cdef class Parent(category_object.CategoryObject):
             True
             sage: L(a) in L # this still goes through the convert mechanism of L
             True
+
+            sage: K.register_coercion(L_into_K)
+            Traceback (most recent call last):
+            ...
+            AssertionError: coercion from Univariate Polynomial Ring in b over Integer Ring to Univariate Polynomial Ring in a over Integer Ring already registered or discovered
         """
-        assert not self._coercions_used, "coercions must all be registered up before use"
         if PY_TYPE_CHECK(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError, "Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
-            self._coerce_from_list.append(mor)
-            self._coerce_from_hash[mor.domain()] = mor
         elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
-            P = mor
             mor = self._generic_convert_map(mor)
-            self._coerce_from_list.append(mor)
-            self._coerce_from_hash[P] = mor
         else:
             raise TypeError, "coercions must be parents or maps (got %s)" % type(mor)
+
+        assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
+        self._coerce_from_list.append(mor)
+        self._coerce_from_hash[mor.domain()] = mor
 
     cpdef register_action(self, action):
         r"""

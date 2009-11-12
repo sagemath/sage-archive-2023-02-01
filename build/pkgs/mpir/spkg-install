@@ -64,6 +64,10 @@ build()
            # For now we do the same thing -- namely "--enable-fat" --
            # on both 64-bit and 32-bit, though this is likely to
            # change.
+           if [ "`uname -m`" = "i686" ]; then
+                echo "** Building with FAT Binary Support (32-bit) **"
+                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
+           fi
            if [ "`uname -m`" = "i386" ]; then
                 echo "** Building with FAT Binary Support (32-bit) **"
                 SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"

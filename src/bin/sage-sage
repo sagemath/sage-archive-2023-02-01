@@ -674,11 +674,12 @@ if [ $1 = '-t' ]; then
 fi
 
 if [ $1 = '-tp' ]; then
+   cd "$CUR"
+   sage-starts
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
       echo "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
    fi
-   cd "$CUR"
    shift
    sage-ptest "$@"
    exit $?

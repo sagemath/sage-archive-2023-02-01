@@ -15,3 +15,4 @@ if ($ver_string =~ m/G95/)
 
 # The following patch is a temporary fix already included upstream.
 copy("patches/optimize.py","src/scipy/optimize/optimize.py");
+copy("patches/mstats_basic.py","src/scipy/stats/mstats_basic.py");

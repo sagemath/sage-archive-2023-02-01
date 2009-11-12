@@ -8,6 +8,9 @@
 
 == Changelog ==
 
+=== scipy-0.7.0.p3 (Mike Hansen; 12 Nov 2009) ===
+ * Fixed #6825 by adding a patch to scipy/stats/mstats_basic.py
+
 === scipy-0.7.0 (Jason Grout; 27 May 2009) ===
  * upgrade to scipy 0.7.0
  * add an upstream change in patches/optimize.py.  In the next version of scipy, this patch should be deleted.

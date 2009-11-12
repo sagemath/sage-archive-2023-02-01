@@ -3,7 +3,6 @@
 == maintainers ==
  * William Stein
  * Josh Kantor
- * Michael Abshoff
  * Jason Grout
 
 == Changelog ==

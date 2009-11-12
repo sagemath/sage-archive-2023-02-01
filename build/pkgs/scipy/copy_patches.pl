@@ -13,6 +13,9 @@ if ($ver_string =~ m/G95/)
     copy("patches/setup.py.stats", "src/scipy/stats/setup.py");
 }
 
-# The following patch is a temporary fix already included upstream.
+# The following patch (optimize.py) is a temporary fix already included upstream.
 copy("patches/optimize.py","src/scipy/optimize/optimize.py");
+
+
+# Fix an incorrect assert
 copy("patches/mstats_basic.py","src/scipy/stats/mstats_basic.py");

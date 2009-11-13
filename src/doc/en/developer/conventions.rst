@@ -288,7 +288,9 @@ following information:
   a similar purpose to a list of references in a research paper, or a
   bibliography in a monograph. If your method, function or class uses an
   algorithm that can be found in a standard reference, you should list
-  that reference under this block.
+  that reference under this block. The Sphinx/ReST markup for
+  citations is described at
+  http://sphinx.pocoo.org/rest.html#citations. See below for an example.
 
 -  An AUTHORS block (optional, but encouraged for important
    functions, so users can see from the docstring who wrote it and
@@ -340,14 +342,14 @@ indentation::
 
         NOTES:
 
-        This function uses the algorithm of [BCDT] to determine
+        This function uses the algorithm of [BCDT]_ to determine
         whether an elliptic curve E over Q is modular.
 
         ...
 
         REFERENCES:
 
-        - [BCDT] Breuil, Conrad, Diamond, Taylor, "Modularity ...."
+        .. [BCDT] Breuil, Conrad, Diamond, Taylor, "Modularity ...."
 
         AUTHORS:
 

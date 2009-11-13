@@ -335,9 +335,11 @@ class Ideal_generic(MonoidElement):
 
     def apply_morphism(self, phi):
         r"""
-        Apply the morphism phi to every element of this ideal.  Returns an ideal in the domain of phi.
+        Apply the morphism ``phi`` to every element of this ideal.
+        Returns an ideal in the domain of ``phi``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: psi = CC['x'].hom([-CC['x'].0])
             sage: J = ideal([CC['x'].0 + 1]); J
             Principal ideal (x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
@@ -345,6 +347,8 @@ class Ideal_generic(MonoidElement):
             Principal ideal (-x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: J.apply_morphism(psi)
             Principal ideal (-x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+
+        ::
 
             sage: psi = ZZ['x'].hom([-ZZ['x'].0])
             sage: J = ideal([ZZ['x'].0, 2]); J
@@ -354,7 +358,8 @@ class Ideal_generic(MonoidElement):
             sage: J.apply_morphism(psi)
             Ideal (-x, 2) of Univariate Polynomial Ring in x over Integer Ring
 
-        TESTS:
+        TESTS::
+
             sage: K.<a> = NumberField(x^2 + 1)
             sage: A = K.ideal(a)
             sage: taus = K.embeddings(K)
@@ -365,6 +370,8 @@ class Ideal_generic(MonoidElement):
             sage: A.apply_morphism(taus[0]) == A.apply_morphism(taus[1])
             True
 
+        ::
+
             sage: K.<a> = NumberField(x^2 + 5)
             sage: B = K.ideal([2, a + 1]); B
             Fractional ideal (2, a + 1)
@@ -372,11 +379,10 @@ class Ideal_generic(MonoidElement):
             sage: B.apply_morphism(taus[0]) # identity
             Fractional ideal (2, a + 1)
 
-            Since 2 is totally ramified, complex conjugation fixes it:
+        Since 2 is totally ramified, complex conjugation fixes it::
 
             sage: B.apply_morphism(taus[1]) # complex conjugation
             Fractional ideal (2, a + 1)
-
             sage: taus[1](B)
             Fractional ideal (2, a + 1)
         """
@@ -535,31 +541,184 @@ class Ideal_generic(MonoidElement):
         """
         raise NotImplementedError
 
-    def is_prime(self):
+    def is_primary(self, P=None):
         r"""
-        Returns True if the ideal is prime in the ring containing the
-        ideal.
+        Returns ``True`` if this ideal is primary (or `P`-primary, if
+        a prime ideal `P` is specified).
 
-        TODO: Make self.is_prime() work! Write this code!
+        Recall that an ideal `I` is primary if and only if `I` has a
+        unique associated prime (see page 52 in [AtiMac]_).  If this
+        prime is `P`, then `I` is said to be `P`-primary.
+
+        INPUT:
+
+        - ``P`` - (default: ``None``) a prime ideal in the same ring
+
+        EXAMPLES::
+
+            sage: R.<x, y> = QQ[]
+            sage: I = R.ideal([x^2, x*y])
+            sage: I.is_primary()
+            False
+            sage: J = I.primary_decomposition()[1]; J
+            Ideal (y, x^2) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: J.is_primary()
+            True
+            sage: J.is_prime()
+            False
+
+        Some examples from the Macaulay2 documentation::
+
+            sage: R.<x, y, z> = GF(101)[]
+            sage: I = R.ideal([y^6])
+            sage: I.is_primary()
+            True
+            sage: I.is_primary(R.ideal([y]))
+            True
+            sage: I = R.ideal([x^4, y^7])
+            sage: I.is_primary()
+            True
+            sage: I = R.ideal([x*y, y^2])
+            sage: I.is_primary()
+            False
+
+        NOTES: Uses the list of associated primes.
+
+        REFERENCES:
+
+        .. [AtiMac] Atiyah and Macdonald, "Introduction to commutative
+           algebra", Addison-Wesley, 1969.
+
+        """
+        try:
+            ass = self.associated_primes()
+        except (NotImplementedError, ValueError):
+            raise NotImplementedError
+        if P is None:
+            return (len(ass) == 1)
+        else:
+            return (len(ass) == 1) and (ass[0] == P)
+
+
+    def primary_decomposition(self):
+        r"""
+        Return a decomposition of this ideal into primary ideals.
 
         EXAMPLES::
 
             sage: R = ZZ[x]
             sage: I = R.ideal(7)
-            sage: I.is_prime()
+            sage: I.primary_decomposition()
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
 
+    def is_prime(self):
+        r"""
+        Returns ``True`` if the ideal is prime.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = QQ[]
+            sage: I = R.ideal([x, y])
+            sage: I.is_prime()        # a maximal ideal
+            True
+            sage: I = R.ideal([x^2-y])
+            sage: I.is_prime()        # a non-maximal prime ideal
+            True
+            sage: I = R.ideal([x^2, y])
+            sage: I.is_prime()        # a non-prime primary ideal
+            False
+            sage: I = R.ideal([x^2, x*y])
+            sage: I.is_prime()        # a non-prime non-primary ideal
+            False
+
+        Note that this method is not implemented for all rings where it
+        could be::
+
+            sage: R = ZZ[x]
+            sage: I = R.ideal(7)
+            sage: I.is_prime()        # when implemented, should be True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        NOTES: Uses the list of associated primes.
+        """
+        try:
+            ass = self.associated_primes()
+        except (NotImplementedError, ValueError):
+            raise NotImplementedError
+        if len(ass) <> 1:
+            return False
+        if self == ass[0]:
+            return True
+        else:
+            return False
+
+    def associated_primes(self):
+        r"""
+        Return the list of associated prime ideals of this ideal.
+
+        EXAMPLES::
+
+            sage: R = ZZ[x]
+            sage: I = R.ideal(7)
+            sage: I.associated_primes()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def minimal_associated_primes(self):
+        r"""
+        Return the list of minimal associated prime ideals of this ideal.
+
+        EXAMPLES::
+
+            sage: R = ZZ[x]
+            sage: I = R.ideal(7)
+            sage: I.minimal_associated_primes()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def embedded_primes(self):
+        r"""
+        Return the list of embedded primes of this ideal.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = QQ[]
+            sage: I = R.ideal(x^2, x*y)
+            sage: I.embedded_primes()
+            [Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field]
+        """
+        # by definition, embedded primes are associated primes that
+        # are not minimal (under inclusion)
+        ass = self.associated_primes()
+        min_ass = self.minimal_associated_primes()
+        emb = []
+        for p in ass:
+            try:
+                i = min_ass.index(p)
+            except ValueError:
+                emb.append(p)
+        emb.sort()
+        return emb
+
     def is_principal(self):
         r"""
-        Returns True if the ideal is principal in the ring containing the
+        Returns ``True`` if the ideal is principal in the ring containing the
         ideal.
 
         TODO: Code is naive. Only keeps track of ideal generators as set
-        during intiialization of the ideal. (Can the base ring change? See
+        during initialization of the ideal. (Can the base ring change? See
         example below.)
 
         EXAMPLES::

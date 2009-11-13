@@ -668,10 +668,14 @@ cdef class Ring(ParentWithGens):
             True
             sage: Qp(7).is_integral_domain()
             True
+            sage: R.<a,b> = QQ[]
+            sage: S.<x,y> = R.quo((b^3))
+            sage: S.is_integral_domain()
+            False
 
         This illustrates the use of the ``proof`` parameter::
 
-            sage: R.<a,b> = QQ[]
+            sage: R.<a,b> = ZZ[]
             sage: S.<x,y> = R.quo((b^3))
             sage: S.is_integral_domain(proof = True)
             Traceback (most recent call last):

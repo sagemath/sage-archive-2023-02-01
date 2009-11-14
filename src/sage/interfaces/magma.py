@@ -86,6 +86,46 @@ a robust manner.
     sage: a = magma.eval(t)                                            # optional - magma
     sage: a = magma(t)                                                 # optional - magma
 
+Garbage Collection
+------------------
+
+There is a subtle point with the Magma interface, which arises from
+how garbage collection works.  Consider the following session:
+
+First, create a matrix m in Sage::
+
+    sage: m=matrix(ZZ,2,[1,2,3,4])                                     # optional - magma
+
+Then I create a corresponding matrix A in Magma::
+
+    sage: A = magma(m)                                                 # optional - magma
+
+It is called _sage_[...] in Magma::
+
+    sage: s = A.name(); s                                              # optional - magma
+    '_sage_[...]'
+
+It's there::
+
+    sage: magma.eval(s)                                                # optional - magma
+    '[1 2]\n[3 4]'
+
+Now I delete the reference to that matrix::
+
+    sage: del A                                                        # optional - magma
+
+Now _sage_[...] is "zeroed out" in the Magma session::
+
+    sage: magma.eval(s)                                                # optional - magma
+    '0'
+
+If Sage did not do this garbage collection, then every single time you
+ever create any magma object from a sage object, e.g., by doing
+magma(m), you would use up a lot of memory in that Magma session.
+This would lead to a horrible memory leak situation, which would make
+the Magma interface nearly useless for serious work.
+
+
 Other Examples
 --------------
 

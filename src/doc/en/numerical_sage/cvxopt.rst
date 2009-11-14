@@ -134,7 +134,7 @@ For a simple linear programming example, if we want to solve
 
 ::
 
-    sage: print sol['x']
-       1.0000e+00
+    sage: print sol['x']      # ... below since can get -00 or +00 depending on architecture
+       1.0000e...00
        1.0000e+00
 

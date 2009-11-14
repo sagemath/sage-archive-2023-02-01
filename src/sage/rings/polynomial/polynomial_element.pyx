@@ -3255,6 +3255,70 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return R.fraction_field()[self.parent().variable_name()].quotient(self, names)
 
+    def sylvester_matrix(self, right):
+        """
+        Returns the Sylvester matrix of self and right.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: f = (6*x + 47)*(7*x^2 - 2*x + 38)
+            sage: g = (6*x + 47)*(3*x^3 + 2*x + 1)
+            sage: M = f.sylvester_matrix(g)
+            sage: print M
+            [  42  317  134 1786    0    0    0]
+            [   0   42  317  134 1786    0    0]
+            [   0    0   42  317  134 1786    0]
+            [   0    0    0   42  317  134 1786]
+            [  18  141   12  100   47    0    0]
+            [   0   18  141   12  100   47    0]
+            [   0    0   18  141   12  100   47]
+
+        If the polynomials share a non-constant common factor then the
+        determinant of the Sylvester matrix will be zero::
+
+            sage: M.determinant()
+            0
+
+            sage: f.sylvester_matrix(1 + g).determinant()
+            8493154736256
+
+        The rank of the Sylvester matrix is related to the degree of the
+        gcd of self and right::
+
+            sage: f.gcd(g).degree() == f.degree() + g.degree() - M.rank()
+            True
+        """
+
+        # This code is almost exactly the same as that of
+        # sylvester_matrix() in multi_polynomial.pyx.
+
+        if self.base_ring() != right.base_ring():
+            raise ValueError, "Both polynomials must be defined over the same base ring."
+
+        from sage.matrix.constructor import matrix
+
+        m = self.degree()
+        n = right.degree()
+
+        M = matrix(self.base_ring(), m + n, m + n)
+
+        r = 0
+        offset = 0
+        for _ in range(n):
+            for c in range(m, -1, -1):
+                M[r, m - c + offset] = self[c]
+            offset += 1
+            r += 1
+
+        offset = 0
+        for _ in range(m):
+            for c in range(n, -1, -1):
+                M[r, n - c + offset] = right[c]
+            offset += 1
+            r += 1
+
+        return M
 
     cpdef constant_coefficient(self):
         """

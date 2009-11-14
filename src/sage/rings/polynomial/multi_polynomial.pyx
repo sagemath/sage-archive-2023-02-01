@@ -999,6 +999,61 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
+    def sylvester_matrix(self, right, variable):
+        """
+        Returns the Sylvester matrix of self and right with respect to
+        the specified variable.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = PolynomialRing(ZZ)
+            sage: f = (y + 1)*x + 3*x**2
+            sage: g = (y + 2)*x + 4*x**2
+            sage: M = f.sylvester_matrix(g, x)
+            sage: print M
+            [    3 y + 1     0     0]
+            [    0     3 y + 1     0]
+            [    4 y + 2     0     0]
+            [    0     4 y + 2     0]
+
+        If the polynomials share a non-constant common factor then the
+        determinant of the Sylvester matrix will be zero::
+
+            sage: M.determinant()
+            0
+
+            sage: f.sylvester_matrix(1 + g, x).determinant()
+            y^2 - y + 7
+        """
+
+        # This code is almost exactly the same as that of
+        # sylvester_matrix() in polynomial_element.pyx.
+
+        from sage.matrix.constructor import matrix
+
+        m = self.degree(variable)
+        n = right.degree(variable)
+
+        M = matrix(self.parent(), m + n, m + n)
+
+        r = 0
+        offset = 0
+        for _ in range(n):
+            for c in range(m, -1, -1):
+                M[r, m - c + offset] = self.coefficient({variable:c})
+            offset += 1
+            r += 1
+
+        offset = 0
+        for _ in range(m):
+            for c in range(n, -1, -1):
+                M[r, n - c + offset] = right.coefficient({variable:c})
+            offset += 1
+            r += 1
+
+        return M
+
+
     def denominator(self):
         """
         Return a denominator of self.

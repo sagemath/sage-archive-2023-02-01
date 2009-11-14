@@ -534,6 +534,74 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return self._base.characteristic()
 
+    def is_field(self):
+        """
+        Return ``False``, since polynomial rings in infinitely many
+        variables are never fields.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = InfinitePolynomialRing(QQ)
+            sage: R.is_field()
+            False
+        """
+        return False
+
+    def is_integral_domain(self):
+        """
+        Return ``True``, since polynomial rings in infinitely many
+        variables over a field are always integral domains.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = InfinitePolynomialRing(QQ)
+            sage: R.is_integral_domain()
+            True
+        """
+        return True
+
+    def is_noetherian(self):
+        """
+        Return ``False``, since polynomial rings in infinitely many
+        variables are never Noetherian.
+
+        EXAMPLES::
+
+            sage: R.<x> = InfinitePolynomialRing(QQ)
+            sage: R.is_noetherian()
+            False
+        """
+        return False
+
+    def krull_dimension(self):
+        """
+        Return ``Infinity``, since polynomial rings in infinitely many
+        variables have infinite Krull dimension.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = InfinitePolynomialRing(QQ)
+            sage: R.krull_dimension()
+            +Infinity
+        """
+        from sage.rings.all import Infinity
+        return Infinity
+
+    def order(self):
+        """
+        Return ``Infinity``, since polynomial rings have infinitely
+        many elements.
+
+        EXAMPLES::
+
+            sage: R.<x> = InfinitePolynomialRing(GF(2))
+            sage: R.order()
+            +Infinity
+        """
+        from sage.rings.all import Infinity
+        return Infinity
+
+
 class InfinitePolynomialGen(SageObject):
     """
     This class provides the object which is responsible for returning

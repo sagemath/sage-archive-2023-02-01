@@ -692,7 +692,7 @@ cdef class Ring(ParentWithGens):
             return False
 
         if proof:
-            return NotImplementedError
+            raise NotImplementedError
         else:
             return False
 

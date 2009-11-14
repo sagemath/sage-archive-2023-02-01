@@ -35,10 +35,10 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 def QuotientRing(R, I, names=None):
     r"""
-    Creates a quotient ring of the ring R by the ideal I. Variables are
-    labeled by names. (If the quotient ring is a quotient of a
-    polynomial ring.). If names isn't given, 'bar' will be appended to
-    the variable names in R.
+    Creates a quotient ring of the ring `R` by the ideal `I`. Variables are
+    labeled by ``names``. (If the quotient ring is a quotient of a
+    polynomial ring.). If ``names`` isn't given, 'bar' will be appended to
+    the variable names in `R`.
 
     INPUTS:
 
@@ -48,9 +48,9 @@ def QuotientRing(R, I, names=None):
 
     - ``names`` - a list of
       strings to be used as names for the variables in the quotient ring
-      R/I
+      `R/I`
 
-    OUTPUTS: R/I - the quotient ring R mod the ideal I
+    OUTPUTS: `R/I` - the quotient ring `R` mod the ideal `I`
 
     EXAMPLES:
 
@@ -107,9 +107,9 @@ def QuotientRing(R, I, names=None):
         modulus x^2 + 1
 
     By Noether's homomorphism theorems, the quotient of a quotient ring
-    in R is just the quotient of R by the sum of the ideals. In this
-    example, we end up modding out the ideal (x) from the ring
-    QQ[x,y]::
+    of `R` is just the quotient of `R` by the sum of the ideals. In this
+    example, we end up modding out the ideal `(x)` from the ring
+    `\QQ[x,y]`::
 
         sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
@@ -155,7 +155,7 @@ def QuotientRing(R, I, names=None):
 
 def is_QuotientRing(x):
     """
-    Tests whether or not x inherits from QuotientRing_generic.
+    Tests whether or not ``x`` inherits from :class:`QuotientRing_generic`.
 
     EXAMPLES::
 
@@ -207,7 +207,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     """
     def __init__(self, R, I, names):
         """
-        Create the quotient ring of R by the ideal I.
+        Create the quotient ring of `R` by the ideal `I`.
 
         INPUT:
 
@@ -404,7 +404,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def is_field(self, proof = True):
         r"""
-        Returns True if the quotient ring is a field. Checks to see if the
+        Returns ``True`` if the quotient ring is a field. Checks to see if the
         defining ideal is maximal.
 
         TESTS:
@@ -428,8 +428,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def is_integral_domain(self, proof = True):
         r"""
-        If this function returns True then self is definitely an integral
-        domain. If it returns False, then either self is definitely not an
+        If this function returns ``True`` then self is definitely an integral
+        domain. If it returns ``False``, then either self is definitely not an
         integral domain or this function was unable to determine whether or
         not self is an integral domain.
 
@@ -460,13 +460,46 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             except NotImplementedError:
                 return False
 
+    def is_noetherian(self):
+        r"""
+        Return ``True`` if this ring is Noetherian.
+
+        EXAMPLES::
+
+            sage: R = QuotientRing(ZZ, 102*ZZ)
+            sage: R.is_noetherian()
+            True
+
+            sage: R = QuotientRing(QQ[x], x^2+1)
+            sage: R.is_noetherian()
+            True
+
+        If the cover ring of ``self`` is not Noetherian, we currently
+        have no way of testing whether ``self`` is Noetherian, so we
+        raise an error::
+
+            sage: R.<x> = InfinitePolynomialRing(QQ)
+            sage: R.is_noetherian()
+            False
+            sage: I = R.ideal([x[1]^2, x[2]])
+            sage: S = R.quotient(I)
+            sage: S.is_noetherian()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        # Naive test: if this is the quotient of a Noetherian ring,
+        # then it is Noetherian.  Otherwise we give up.
+        if self.cover_ring().is_noetherian():
+            return True
+
+        raise NotImplementedError
+
+
     def cover_ring(self):
         r"""
         Returns the cover ring of the quotient ring: that is, the original
-        ring R from which we modded out an ideal, I.
-
-        TODO: PolynomialQuotientRings_field objects don't have a
-        ``cover_ring`` function.
+        ring `R` from which we modded out an ideal, `I`.
 
         EXAMPLES::
 
@@ -478,9 +511,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
             sage: Q = QuotientRing(QQ[x], x^2 + 1)
             sage: Q.cover_ring()
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'PolynomialQuotientRing_field' object has no attribute 'cover_ring'
+            Univariate Polynomial Ring in x over Rational Field
         """
         return self.__R
 
@@ -538,7 +569,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def _coerce_impl(self, x):
         """
-        Return the coercion of x into this quotient ring.
+        Return the coercion of `x` into this quotient ring.
 
         The rings that coerce into the quotient ring canonically, are:
 
@@ -627,7 +658,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def gen(self, i=0):
         r"""
-        Returns the ith generator for this quotient ring.
+        Returns the `i`-th generator for this quotient ring.
 
         EXAMPLES::
 
@@ -660,7 +691,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Returns the Singular quotient ring of self if the base ring is
         coercible to Singular.
 
-        If a valid singular representation is found it is used otherwise a
+        If a valid Singular representation is found it is used otherwise a
         new 'qring' is created.
 
         INPUT:
@@ -699,7 +730,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     def _singular_init_(self,singular=singular_default):
         """
         Returns a newly created Singular quotient ring matching self if the
-        base ring is coecable to Singular.
+        base ring is coercible to Singular.
 
         See self._singular_
 
@@ -725,7 +756,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         INPUT:
 
 
-        -  ``magma`` - a magma instance
+        -  ``magma`` - a Magma instance
 
 
         EXAMPLE::

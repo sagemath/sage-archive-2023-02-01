@@ -555,6 +555,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         """
         return self.__ring
 
+    cover_ring = polynomial_ring
+
     def random_element(self):
         """
         Return a random element of this quotient ring.

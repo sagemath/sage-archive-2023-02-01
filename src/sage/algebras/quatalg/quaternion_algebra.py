@@ -1575,6 +1575,19 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [  0 1/2   0 1/2]
             [  0   0   1   0]
             [  0   0   0   1]
+
+        This shows that the issue at trac ticket 6760 is fixed::
+
+            sage: R.<i,j,k> = QuaternionAlgebra(-1, -13)
+            sage: I = R.ideal([2+i, 3*i, 5*j, j+k]); I
+            Fractional ideal (2 + i, 3*i, j + k, 5*k)
+            sage: I.free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [2 1 0 0]
+            [0 3 0 0]
+            [0 0 1 1]
+            [0 0 0 5]
         """
         try: return self.__free_module
         except AttributeError:

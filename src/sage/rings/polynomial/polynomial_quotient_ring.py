@@ -139,6 +139,13 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: f = x^2 + 1
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+
+    This shows that the issue at trac 5482 is solved::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: f = x^2-1
+        sage: R.quotient_by_principal_ideal(f)
+        Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 - 1
     """
     if not isinstance(ring, PolynomialRing_commutative):
         raise TypeError, "ring must be a polynomial ring"
@@ -149,6 +156,10 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     c = polynomial.leading_coefficient()
     if not c.is_unit():
         raise TypeError, "polynomial must have unit leading coefficient"
+    if names is None:
+        names = tuple([x + 'bar' for x in ring.variable_names()])
+    else:
+        names = sage.structure.parent_gens.normalize_names(ring.ngens(), names)
     R = ring.base_ring()
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:

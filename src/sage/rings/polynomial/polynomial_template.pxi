@@ -624,13 +624,21 @@ cdef class Polynomial_template(Polynomial):
             sage: f.shift(-1)
             x^2 + x
         """
+        if not PY_TYPE_CHECK(self, Polynomial_template):
+            if n > 0:
+                error_msg = "Cannot shift %s << %n."%(self, n)
+            else:
+                error_msg = "Cannot shift %s >> %n."%(self, n)
+            raise TypeError(error_msg)
+
+        cdef celement *gen
         cdef Polynomial_template r
         if n == 0:
             return self
 
         parent = (<Polynomial_template>self)._parent
         cdef cparent _parent = get_cparent(parent)
-        cdef celement *gen = celement_new(_parent)
+        gen = celement_new(_parent)
         celement_gen(gen, 0, _parent)
         celement_pow(gen, gen, abs(n), NULL, _parent)
         r = <Polynomial_template>PY_NEW(self.__class__)
@@ -638,9 +646,10 @@ cdef class Polynomial_template(Polynomial):
         r._parent = parent
 
         if n > 0:
-            celement_mul(&r.x, &self.x, gen, _parent)
+            celement_mul(&r.x, &(<Polynomial_template>self).x, gen, _parent)
         else:
-            celement_floordiv(&r.x, &self.x, gen, _parent)
+            celement_floordiv(&r.x, &(<Polynomial_template>self).x, gen, _parent)
+
         celement_delete(gen, _parent)
         return r
 
@@ -652,27 +661,10 @@ cdef class Polynomial_template(Polynomial):
             sage: f = x^3 + x^2 + 1
             sage: f << 1
             x^4 + x^3 + x
+            sage: f << -1
+            x^2 + x
         """
-        if not PY_TYPE_CHECK(self, Polynomial_template):
-            raise TypeError("Cannot %s << %n."%(self, n))
-        cdef celement *gen, *tmp
-        cdef Polynomial_template r
-        if n == 0:
-            return self
-        elif n < 0:
-            return self >> -n
-
-        parent = (<Polynomial_template>self)._parent
-        cdef cparent _parent = get_cparent(parent)
-        gen = celement_new(_parent)
-        celement_gen(gen, 0, _parent)
-        celement_pow(gen, gen, n, NULL, _parent)
-        r = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&r.x, _parent)
-        r._parent = parent
-        celement_mul(&r.x, &(<Polynomial_template>self).x, gen, _parent)
-        celement_delete(gen, _parent)
-        return r
+        return self.shift(n)
 
     def __rshift__(self, int n):
         """
@@ -686,27 +678,7 @@ cdef class Polynomial_template(Polynomial):
             sage: (x^2 + x) >> -1
             x^3 + x^2
         """
-        if not PY_TYPE_CHECK(self, Polynomial_template):
-            raise TypeError("Cannot %s >> %n."%(self, n))
-        cdef celement *gen
-        cdef Polynomial_template r
-        if n == 0:
-            return self
-        elif n < 0:
-            return self << -n
-
-        parent = (<Polynomial_template>self)._parent
-        cdef cparent _parent = get_cparent(parent)
-        gen = celement_new(_parent)
-        celement_gen(gen, 0, _parent)
-        celement_pow(gen, gen, n, NULL, _parent)
-        r = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&r.x, _parent)
-        r._parent = parent
-
-        celement_floordiv(&r.x, &(<Polynomial_template>self).x, gen, _parent)
-        celement_delete(gen, _parent)
-        return r
+        return self.shift(-n)
 
     def is_zero(self):
         """

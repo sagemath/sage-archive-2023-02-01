@@ -556,9 +556,19 @@ class Maxima(Expect):
             sage: m._start()
             sage: m.is_running()
             True
+
+        Test that we can use more than 256MB RAM (see trac 6722):
+
+            sage: a = maxima(10)^(10^5)
+            sage: b = a^600              # long time -- about 10-15 seconds
+
         """
         Expect._start(self)
         self._sendline(r":lisp (defun tex-derivative (x l r) (tex (if $derivabbrev (tex-dabbrev x) (tex-d x '\\partial)) l r lop rop ))")
+
+        # Remove limit on the max heapsize (since otherwise it defaults
+        # to 256MB with ECL).
+        self._sendline(":lisp (ext:set-limit 'ext:heap-size 0)")
         self._eval_line('0;')
 
     def __reduce__(self):

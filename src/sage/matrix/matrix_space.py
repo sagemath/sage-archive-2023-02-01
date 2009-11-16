@@ -551,6 +551,32 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         return "\\mathrm{Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
 
+    def __len__(self):
+        """
+        Return number of elements of this matrix space if it fits in
+        an int; raise a TypeError if there are infinitely many
+        elements, and raise an OverflowError if there are finitely
+        many but more than the size of an int.
+
+        EXAMPLES:
+
+            sage: len(MatrixSpace(GF(3),3,2))
+            729
+            sage: len(MatrixSpace(GF(3),2,3))
+            729
+            sage: 3^(2*3)
+            729
+            sage: len(MatrixSpace(GF(2003),3,2))
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert to int
+            sage: len(MatrixSpace(QQ,3,2))
+            Traceback (most recent call last):
+            ...
+            TypeError: len() of unsized object
+        """
+        return len(self.base_ring())**(self.nrows()*self.ncols())
+
     def __iter__(self):
         r"""
         Returns a generator object which iterates through the elements of

@@ -16,7 +16,7 @@ sys.path.append(os.environ['SAGE_DOC'])
 from common.conf import *
 
 # General information about the project.
-project = u'A Tour of Sage'
+project = u'Une tournée de Sage'
 name = 'a_tour_of_sage'
 
 # The name for this set of Sphinx documents.  If None, it defaults to

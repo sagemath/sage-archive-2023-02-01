@@ -369,7 +369,7 @@ cdef class Fmpz_poly(SageObject):
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2,6])
-            sage: f.derivative().list() == [4, 18]
+            sage: f.derivative().list() == [2, 12]
             True
         """
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)

@@ -8,9 +8,5 @@ computing their homology.
    :maxdepth: 2
 
    sage/homology/simplicial_complex
-   sage/homology/simplicial_complex_morphism
-   sage/homology/simplicial_complex_homset
    sage/homology/chain_complex
-   sage/homology/chain_complex_morphism
-   sage/homology/chain_complex_homset
    sage/homology/examples

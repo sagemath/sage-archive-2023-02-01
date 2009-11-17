@@ -1293,7 +1293,6 @@ category_hierarchy = {\
     Objects                : [Sets],\
     Sets                   : [],\
     GSets                  : [Sets],\
-    SimplicialComplexes    : [Sets],\
     Semigroups             : [Sets],\
     Monoids                : [Semigroups, Sets],\
     Groups                 : [Monoids, Semigroups, Sets],\
@@ -1311,7 +1310,6 @@ category_hierarchy = {\
     GroupAlgebras          : [MonoidAlgebras, Algebras, Sets],\
     MatrixAlgebras         : [Algebras, Sets],\
     RingModules            : [AbelianGroups, Sets],\
-    ChainComplexes         : [],\
     FreeModules            : [RingModules, AbelianGroups, Sets],\
     VectorSpaces           : [FreeModules, RingModules, AbelianGroups, Sets],\
     HeckeModules           : [FreeModules, RingModules, AbelianGroups, Sets],\

@@ -154,18 +154,6 @@ def Hom(X, Y, cat=None):
         from sage.schemes.generic.homset import SchemeHomset
         H = SchemeHomset(X, Y)
 
-    elif cat._is_subclass(category_types.SimplicialComplexes):
-
-        from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
-        H = SimplicialComplexHomset(X,Y)
-
-    elif cat._is_subclass(category_types.ChainComplexes):
-
-        from sage.homology.chain_complex_homspace import ChainComplexHomspace
-        H = ChainComplexHomspace(X,Y)
-
-
-
     else:  # default
         if hasattr(X, '_base') and X._base is not X and X._base is not None:
             H = HomsetWithBase(X, Y, cat)

@@ -558,7 +558,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         elements, and raise an OverflowError if there are finitely
         many but more than the size of an int.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: len(MatrixSpace(GF(3),3,2))
             729

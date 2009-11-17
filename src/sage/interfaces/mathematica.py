@@ -553,6 +553,35 @@ class MathematicaElement(ExpectElement):
         P = self._check_valid()
         return P.get(self._name, ascii_art=False).strip()
 
+    def _sage_(self):
+        r"""
+        Try to convert a mathematica expression back to a Sage expression.
+
+        This currently does not implement a parser for the Mathematica output language,
+        therefore only very simple expressions will convert successfully.
+
+        EXAMPLES::
+
+            sage: m = mathematica('x^2 + 5*y')                            # optional - mathematica
+            sage: m.sage()                                                # optional - mathematica
+            x^2 + 5*y
+
+        ::
+
+            sage: m = mathematica('Sin[Sqrt[1-x^2]] * (1 - Cos[1/x])^2')  # optional - mathematica
+            sage: m.sage()                                                # optional - mathematica
+            (cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))
+
+        """
+        result =  self.parent().eval('InputForm[%s]' % self.name())
+        try:
+            # The next few lines are a very crude excuse for a mathematica "parser".
+            result = str(result).lower().replace('[', '(').replace(']', ')')
+            from sage.symbolic.all import SR
+            return SR(result)
+        except TypeError:
+            raise NotImplementedError, "Unable to parse Mathematica output: %s" % result
+
     def __str__(self):
         P = self._check_valid()
         return P.get(self._name, ascii_art=True)

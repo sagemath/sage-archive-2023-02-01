@@ -72,6 +72,15 @@ However when this is ambiguous, Sage will raise an exception::
     ...
     ValueError: No differentiation variable specified.
 
+Simplifying symbolic sums is also possible, using the
+sum command, which also uses Maxima in the background::
+
+    sage: k, m = var('k, m')
+    sage: sum(1/k^4, k, 1, oo)
+    1/90*pi^4
+    sage: sum(binomial(m,k), k, 0, m)
+    2^m
+
 Substitution works similarly. We can substitute with a python
 dict::
 
@@ -319,11 +328,178 @@ from sage.symbolic.pynac import symbol_table
 
 arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
 
-maxima = Maxima(init_code = ['display2d:false', 'domain: complex', 'keepfloat: true', 'load(to_poly_solver)'],
+maxima = Maxima(init_code = ['display2d:false', 'domain: complex', 'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
                 script_subdirectory=None)
 
 ########################################################
+def symbolic_sum(expression, v, a, b, algorithm='maxima'):
+    r"""
+    Returns the symbolic sum `\sum_{v = a}^b expression` with respect
+    to the variable `v` with endpoints `a` and `b`.
 
+    INPUT:
+
+    - ``expression`` - a symbolic expression
+
+    - ``v`` - a variable or variable name
+
+    - ``a`` - lower endpoint of the sum
+
+    - ``b`` - upper endpoint of the sum
+
+    - ``algorithm`` - (default: 'maxima')  one of
+      - 'maxima' - use Maxima (the default)
+      - 'maple' - (optional) use Maple
+      - 'mathematica' - (optional) use Mathematica
+
+    EXAMPLES::
+
+        sage: k, n = var('k,n')
+        sage: from sage.calculus.calculus import symbolic_sum
+        sage: symbolic_sum(k, k, 1, n).factor()
+        1/2*(n + 1)*n
+
+    ::
+
+        sage: symbolic_sum(1/k^4, k, 1, oo)
+        1/90*pi^4
+
+    ::
+
+        sage: symbolic_sum(1/k^5, k, 1, oo)
+        zeta(5)
+
+    A well known binomial identity::
+
+        sage: symbolic_sum(binomial(n,k), k, 0, n)
+        2^n
+
+    And some truncations thereof::
+
+        sage: symbolic_sum(binomial(n,k),k,1,n)
+        2^n - 1
+        sage: symbolic_sum(binomial(n,k),k,2,n)
+        2^n - n - 1
+        sage: symbolic_sum(binomial(n,k),k,0,n-1)
+        2^n - 1
+        sage: symbolic_sum(binomial(n,k),k,1,n-1)
+        2^n - 2
+
+    The binomial theorem::
+
+        sage: x, y = var('x, y')
+        sage: symbolic_sum(binomial(n,k) * x^k * y^(n-k), k, 0, n)
+        (x + y)^n
+
+    ::
+
+        sage: symbolic_sum(k * binomial(n, k), k, 1, n)
+        n*2^(n - 1)
+
+    ::
+
+        sage: symbolic_sum((-1)^k*binomial(n,k), k, 0, n)
+        0
+
+    ::
+
+        sage: symbolic_sum(2^(-k)/(k*(k+1)), k, 1, oo)
+        -log(2) + 1
+
+    Summing a hypergeometric term::
+
+        sage: symbolic_sum(binomial(n, k) * factorial(k) / factorial(n+1+k), k, 0, n)
+        1/2*sqrt(pi)/factorial(n + 1/2)
+
+    We check a well known identity::
+
+        sage: bool(symbolic_sum(k^3, k, 1, n) == symbolic_sum(k, k, 1, n)^2)
+        True
+
+    A geometric sum::
+
+        sage: a, q = var('a, q')
+        sage: symbolic_sum(a*q^k, k, 0, n)
+        (a*q^(n + 1) - a)/(q - 1)
+
+    The geometric series::
+
+        sage: assume(abs(q) < 1)
+        sage: symbolic_sum(a*q^k, k, 0, oo)
+        -a/(q - 1)
+
+    A divergent geometric series.  Don't forget
+    to forget your assumptions::
+
+        sage: forget()
+        sage: assume(q > 1)
+        sage: symbolic_sum(a*q^k, k, 0, oo)
+        Traceback (most recent call last):
+        ...
+        ValueError: Sum is divergent.
+
+    This summation only Mathematica can perform::
+
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
+        pi*coth(pi)
+
+    Use Maple as a backend for summation::
+
+        sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
+        (x + 1)^n
+
+    .. note::
+
+       #. Sage can currently only understand a subset of the output of Maxima, Maple and
+          Mathematica, so even if the chosen backend can perform the summation the
+          result might not be convertable into a Sage expression.
+
+    """
+    if not is_SymbolicVariable(v):
+        if isinstance(v, str):
+            v = var(v)
+        else:
+            raise TypeError, "need a summation variable"
+
+    if v in SR(a).variables() or v in SR(b).variables():
+        raise ValueError, "summation limits must not depend on the summation variable"
+
+    if algorithm == 'maxima':
+        sum  = "'sum(%s, %s, %s, %s)" % tuple([repr(expr._maxima_()) for expr in (expression, v, a, b)])
+        try:
+            result = maxima.simplify_sum(sum)
+            result = result.ratsimp()
+            return expression.parent()(result)
+        except TypeError, error:
+            s = str(error)
+            if "divergent" in s or 'Pole encountered' in s:
+                raise ValueError, "Sum is divergent."
+            else:
+                raise
+
+    elif algorithm == 'mathematica':
+        try:
+            sum = "Sum[%s, {%s, %s, %s}]" % tuple([repr(expr._mathematica_()) for expr in (expression, v, a, b)])
+        except TypeError:
+            raise ValueError, "Mathematica cannot make sense of input"
+        from sage.interfaces.mathematica import mathematica
+        try:
+            result = mathematica(sum)
+        except TypeError:
+            raise ValueError, "Mathematica cannot make sense of: %s" % sum
+        return result.sage()
+
+    elif algorithm == 'maple':
+        sum = "sum(%s, %s=%s..%s)" % tuple([repr(expr._maple_()) for expr in (expression, v, a, b)])
+        from sage.interfaces.maple import maple
+        try:
+            result = maple(sum).simplify()
+        except TypeError:
+            raise ValueError, "Maple cannot make sense of: %s" % sum
+        return result.sage()
+
+    else:
+        raise ValueError, "unknown algorithm: %s" % algorithm
 
 ###################################################################
 # integration

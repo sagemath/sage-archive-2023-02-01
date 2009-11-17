@@ -542,6 +542,125 @@ def image(x):
     """
     return x.image()
 
+def symbolic_sum(expression, *args, **kwds):
+    r"""
+    Returns the symbolic sum `\sum_{v = a}^b expression` with respect
+    to the variable `v` with endpoints `a` and `b`.
+
+    INPUT:
+
+    - ``expression`` - a symbolic expression
+
+    - ``v`` - a variable or variable name
+
+    - ``a`` - lower endpoint of the sum
+
+    - ``b`` - upper endpoint of the sum
+
+    - ``algorithm`` - (default: 'maxima')  one of
+      - 'maxima' - use Maxima (the default)
+      - 'maple' - (optional) use Maple
+      - 'mathematica' - (optional) use Mathematica
+
+    EXAMPLES::
+
+        sage: k, n = var('k,n')
+        sage: sum(k, k, 1, n).factor()
+        1/2*(n + 1)*n
+
+    ::
+
+        sage: sum(1/k^4, k, 1, oo)
+        1/90*pi^4
+
+    ::
+
+        sage: sum(1/k^5, k, 1, oo)
+        zeta(5)
+
+    A well known binomial identity::
+
+        sage: sum(binomial(n,k), k, 0, n)
+        2^n
+
+    The binomial theorem::
+
+        sage: x, y = var('x, y')
+        sage: sum(binomial(n,k) * x^k * y^(n-k), k, 0, n)
+        (x + y)^n
+
+    ::
+
+        sage: sum(k * binomial(n, k), k, 1, n)
+        n*2^(n - 1)
+
+    ::
+
+        sage: sum((-1)^k*binomial(n,k), k, 0, n)
+        0
+
+    ::
+
+        sage: sum(2^(-k)/(k*(k+1)), k, 1, oo)
+        -log(2) + 1
+
+    Summing a hypergeometric term::
+
+        sage: sum(binomial(n, k) * factorial(k) / factorial(n+1+k), k, 0, n)
+        1/2*sqrt(pi)/factorial(n + 1/2)
+
+    We check a well known identity::
+
+        sage: bool(sum(k^3, k, 1, n) == sum(k, k, 1, n)^2)
+        True
+
+    A geometric sum::
+
+        sage: a, q = var('a, q')
+        sage: sum(a*q^k, k, 0, n)
+        (a*q^(n + 1) - a)/(q - 1)
+
+    The geometric series::
+
+        sage: assume(abs(q) < 1)
+        sage: sum(a*q^k, k, 0, oo)
+        -a/(q - 1)
+
+    A divergent geometric series.  Don't forget
+    to forget your assumptions::
+
+        sage: forget()
+        sage: assume(q > 1)
+        sage: sum(a*q^k, k, 0, oo)
+        Traceback (most recent call last):
+        ...
+        ValueError: Sum is divergent.
+
+    This summation only Mathematica can perform::
+
+        sage: sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
+        pi*coth(pi)
+
+    Use Maple as a backend for summation::
+
+        sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
+        (x + 1)^n
+
+    .. note::
+
+       #. Sage can currently only understand a subset of the output of Maxima, Maple and
+          Mathematica, so even if the chosen backend can perform the summation the
+          result might not be convertable into a Sage expression.
+
+    """
+    if hasattr(expression, 'sum'):
+        return expression.sum(*args, **kwds)
+    elif len(args) <= 1:
+        return sum(expression, *args)
+    else:
+        from sage.symbolic.ring import SR
+        return SR(expression).sum(*args, **kwds)
+
 def integral(x, *args, **kwds):
     """
     Returns an indefinite integral of an object x.

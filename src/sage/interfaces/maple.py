@@ -1075,6 +1075,36 @@ class MapleElement(ExpectElement):
         """
         return self.parent().eval('latex(%s)'%self.name())
 
+    def _sage_(self):
+        r"""
+        Convert a maple expression back to a Sage expression.
+
+        This currently does not implement a parser for the Maple output language,
+        therefore only very simple expressions will convert successfully.
+
+        EXAMPLE::
+
+            sage: m = maple('x^2 + 5*y')                            # optional - requires maple
+            sage: m.sage()                                          # optional - requires maple
+            x^2 + 5*y
+
+        ::
+
+            sage: m = maple('sin(sqrt(1-x^2)) * (1 - cos(1/x))^2')  # optional - requires maple
+            sage: m.sage()                                          # optional - requires maple
+            (cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))
+
+        """
+        result = repr(self)
+        # The next few lines are a very crude excuse for a maple "parser".
+        result = result.replace("Pi", "pi")
+
+        try:
+            from sage.symbolic.all import SR
+            return SR(result)
+        except:
+            raise NotImplementedError, "Unable to parse Maple output: %s" % result
+
 # An instance
 maple = Maple(script_subdirectory='user')
 

@@ -6158,6 +6158,137 @@ cdef class Expression(CommutativeRingElement):
     ############
     # Calculus #
     ############
+    def sum(self, *args, **kwds):
+        r"""
+        Returns the symbolic sum
+        `\sum_{v = a}^b self`
+
+        with respect to the variable `v` with endpoints
+        `a` and `b`.
+
+
+        INPUT:
+
+        -  ``v`` - a variable or variable name
+
+        -  ``a`` - lower endpoint of the sum
+
+        -  ``b`` - upper endpoint of the sum
+
+        - ``algorithm`` - (default: 'maxima')  one of
+
+                - 'maxima' - use Maxima (the default)
+
+                - 'maple' - (optional) use Maple
+
+                - 'mathematica' - (optional) use Mathematica
+
+
+        EXAMPLES::
+
+            sage: k, n = var('k,n')
+            sage: k.sum(k, 1, n).factor()
+            1/2*(n + 1)*n
+
+        ::
+
+            sage: (1/k^4).sum(k, 1, oo)
+            1/90*pi^4
+
+        ::
+
+            sage: (1/k^5).sum(k, 1, oo)
+            zeta(5)
+
+        A well known binomial identity::
+
+            sage: binomial(n,k).sum(k, 0, n)
+            2^n
+
+        And some truncations thereof::
+
+            sage: binomial(n,k).sum(k,1,n)
+            2^n - 1
+            sage: binomial(n,k).sum(k,2,n)
+            2^n - n - 1
+            sage: binomial(n,k).sum(k,0,n-1)
+            2^n - 1
+            sage: binomial(n,k).sum(k,1,n-1)
+            2^n - 2
+
+        The binomial theorem::
+
+            sage: x, y = var('x, y')
+            sage: (binomial(n,k) * x^k * y^(n-k)).sum(k, 0, n)
+            (x + y)^n
+
+        ::
+
+            sage: (k * binomial(n, k)).sum(k, 1, n)
+            n*2^(n - 1)
+
+        ::
+
+            sage: ((-1)^k*binomial(n,k)).sum(k, 0, n)
+            0
+
+        ::
+
+            sage: (2^(-k)/(k*(k+1))).sum(k, 1, oo)
+            -log(2) + 1
+
+        Summing a hypergeometric term::
+
+            sage: (binomial(n, k) * factorial(k) / factorial(n+1+k)).sum(k, 0, n)
+            1/2*sqrt(pi)/factorial(n + 1/2)
+
+        We check a well known identity::
+
+            sage: bool((k^3).sum(k, 1, n) == k.sum(k, 1, n)^2)
+            True
+
+        A geometric sum::
+
+            sage: a, q = var('a, q')
+            sage: (a*q^k).sum(k, 0, n)
+            (a*q^(n + 1) - a)/(q - 1)
+
+        The geometric series::
+
+            sage: assume(abs(q) < 1)
+            sage: (a*q^k).sum(k, 0, oo)
+            -a/(q - 1)
+
+        A divergent geometric series.  Don't forget
+        to forget your assumptions::
+
+            sage: forget()
+            sage: assume(q > 1)
+            sage: (a*q^k).sum(k, 0, oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: Sum is divergent.
+
+        This summation only Mathematica can perform::
+
+            sage: (1/(1+k^2)).sum(k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
+            pi*coth(pi)
+
+        Use Maple as a backend for summation::
+
+            sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional  -- requires maple
+            (x + 1)^n
+
+        .. note::
+
+           #. Sage can currently only understand a subset of the output of Maxima, Maple and
+              Mathematica, so even if the chosen backend can perform the summation the
+              result might not be convertable into a Sage expression.
+
+        """
+        from sage.calculus.calculus import symbolic_sum
+        return symbolic_sum(self, *args, **kwds)
+
     def integral(self, *args, **kwds):
         """
         Compute the integral of self.  Please see

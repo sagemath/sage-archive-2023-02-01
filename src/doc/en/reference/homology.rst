@@ -12,5 +12,5 @@ computing their homology.
    sage/homology/simplicial_complex_homset
    sage/homology/chain_complex
    sage/homology/chain_complex_morphism
-   sage/homology/chain_complex_homspace
+   sage/homology/chain_complex_homset
    sage/homology/examples

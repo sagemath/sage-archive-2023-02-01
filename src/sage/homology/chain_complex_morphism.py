@@ -5,7 +5,7 @@ AUTHORS:
 
 - Benjamin Antieau <d.ben.antieau@gmail.com> (2009.06)
 
-This module implements morphisms of chain complexes. The input is a dictionary whose
+This module implements morphisms of simplicial complexes. The input is a dictionary whose
 keys are in the grading group of the chain complex and whose values are matrix morphisms.
 
 EXAMPLES::
@@ -23,7 +23,7 @@ EXAMPLES::
     sage: G = Hom(C,C)
     sage: x = G(f)
     sage: x
-    Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+    Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring. to Chain complex with at most 2 nonzero terms over Integer Ring.
     sage: x._matrix_dictionary
     {0: [0 0 0]
     [0 0 0]
@@ -69,7 +69,7 @@ def is_ChainComplexMorphism(x):
         sage: i = H.identity()
         sage: x = i.associated_chain_complex_morphism()
         sage: x # indirect doctest
-        Chain complex morphism from Chain complex with at most 7 nonzero terms over Integer Ring to Chain complex with at most 7 nonzero terms over Integer Ring
+        Chain complex morphism from Chain complex with at most 7 nonzero terms over Integer Ring. to Chain complex with at most 7 nonzero terms over Integer Ring.
         sage: is_ChainComplexMorphism(x)
         True
 
@@ -99,7 +99,7 @@ class ChainComplexMorphism(category_types.SageObject):
             sage: G = Hom(C,C)
             sage: x = G(f)
             sage: x
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring. to Chain complex with at most 2 nonzero terms over Integer Ring.
             sage: x._matrix_dictionary
             {0: [0 0 0]
             [0 0 0]
@@ -225,7 +225,6 @@ class ChainComplexMorphism(category_types.SageObject):
         Returns self*x if self and x are composable morphisms or if x is an element of the base_ring.
 
         EXAMPLES::
-
             sage: S = simplicial_complexes.Sphere(2)
             sage: H = Hom(S,S)
             sage: i = H.identity()
@@ -271,36 +270,12 @@ class ChainComplexMorphism(category_types.SageObject):
                 raise TypeError, "Multiplication is not defined."
             f = dict()
             for i in self._matrix_dictionary.keys():
-                f[i] = self._matrix_dictionary[i] * y
+                f[i] = y * self._matrix_dictionary[i]
             return ChainComplexMorphism(f,self._domain,self._codomain)
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = x._matrix_dictionary[i]*self._matrix_dictionary[i]
         return ChainComplexMorphism(f,self._domain,x._codomain)
-
-    def __rmul__(self,x):
-        """
-        Returns x*self if x is an element of the base_ring.
-
-        EXAMPLES::
-
-            sage: S = simplicial_complexes.Sphere(2)
-            sage: H = Hom(S,S)
-            sage: i = H.identity()
-            sage: x = i.associated_chain_complex_morphism()
-            sage: 2*x == x*2
-            True
-            sage: 3*x == x*2
-            False
-        """
-        try:
-            y = self._domain.base_ring()(x)
-        except TypeError:
-            raise TypeError, "Multiplication is not defined."
-        f = dict()
-        for i in self._matrix_dictionary.keys():
-            f[i] = y * self._matrix_dictionary[i]
-        return ChainComplexMorphism(f,self._domain,self._codomain)
 
     def __sub__(self,x):
         """
@@ -343,7 +318,7 @@ class ChainComplexMorphism(category_types.SageObject):
             sage: i = H.identity()
             sage: x = i.associated_chain_complex_morphism()
             sage: x
-            Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring to Chain complex with at most 0 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring. to Chain complex with at most 0 nonzero terms over Integer Ring.
             sage: f = x._matrix_dictionary
             sage: C = S.chain_complex()
             sage: G = Hom(C,C)
@@ -368,9 +343,9 @@ class ChainComplexMorphism(category_types.SageObject):
             sage: i = H.identity()
             sage: x = i.associated_chain_complex_morphism()
             sage: x
-            Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring to Chain complex with at most 0 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring. to Chain complex with at most 0 nonzero terms over Integer Ring.
             sage: x._repr_()
-            'Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring to Chain complex with at most 0 nonzero terms over Integer Ring'
+            'Chain complex morphism from Chain complex with at most 0 nonzero terms over Integer Ring. to Chain complex with at most 0 nonzero terms over Integer Ring.'
 
         """
         return "Chain complex morphism from " + self._domain._repr_() + " to " + self._codomain._repr_()

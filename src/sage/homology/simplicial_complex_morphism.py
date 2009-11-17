@@ -94,8 +94,6 @@ import sage.matrix.all as matrix
 import sage.categories.category_types as category_types
 from sage.rings.integer_ring import ZZ
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
-from sage.combinat.permutation import Permutation
-from sage.algebras.steenrod_algebra_element import convert_perm
 
 def is_SimplicialComplexMorphism(x):
     """
@@ -195,13 +193,9 @@ class SimplicialComplexMorphism(category_types.SageObject):
         else:
             return True
 
-    def __call__(self,x,orientation=False):
+    def __call__(self,x):
         """
         Input is a simplex of the domain. Output is the image simplex.
-        If optional argument ``orientation`` is True, return a pair
-        ``(image simplex, oriented)`` where ``oriented`` is 1 or `-1`
-        depending on whether the map preserves or reverses the
-        orientation of the image simplex.
 
         EXAMPLES::
 
@@ -218,14 +212,6 @@ class SimplicialComplexMorphism(category_types.SageObject):
             sage: x(Simplex([0,2,3]))
             (0, 2, 3)
 
-        An orientation-reversing example::
-
-            sage: X = SimplicialComplex(1, [[0,1]])
-            sage: g = Hom(X,X)({0:1, 1:0})
-            sage: g(Simplex([0,1]))
-            (0, 1)
-            sage: g(Simplex([0,1]), orientation=True)
-            ((0, 1), -1)
         """
         dim = self._domain.dimension()
         if not isinstance(x,simplicial_complex.Simplex) or x.dimension() > dim or not x in self._domain.faces()[x.dimension()]:
@@ -234,14 +220,7 @@ class SimplicialComplexMorphism(category_types.SageObject):
         fx=[]
         for j in tup:
             fx.append(self._vertex_dictionary[j])
-        if orientation:
-            if len(set(fx)) == len(tup):
-                oriented = Permutation(convert_perm(fx)).signature()
-            else:
-                oriented = 1
-            return (simplicial_complex.Simplex(set(fx)), oriented)
-        else:
-            return simplicial_complex.Simplex(set(fx))
+        return simplicial_complex.Simplex(set(fx))
 
     def _repr_(self):
         """
@@ -276,7 +255,7 @@ class SimplicialComplexMorphism(category_types.SageObject):
             Simplicial complex morphism {0: 0, 1: 1, 2: 2} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
             sage: a = x.associated_chain_complex_morphism()
             sage: a
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring. to Chain complex with at most 3 nonzero terms over Integer Ring.
             sage: a._matrix_dictionary
             {0: [0 0 0]
             [0 1 0]
@@ -290,32 +269,14 @@ class SimplicialComplexMorphism(category_types.SageObject):
             [0 0 1],
              2: []}
             sage: x.associated_chain_complex_morphism(augmented=True)
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring. to Chain complex with at most 4 nonzero terms over Integer Ring.
             sage: x.associated_chain_complex_morphism(cochain=True)
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring. to Chain complex with at most 2 nonzero terms over Integer Ring.
             sage: x.associated_chain_complex_morphism(augmented=True,cochain=True)
-            Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring. to Chain complex with at most 3 nonzero terms over Integer Ring.
             sage: x.associated_chain_complex_morphism(base_ring=GF(11))
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Finite Field of size 11 to Chain complex with at most 3 nonzero terms over Finite Field of size 11
+            Chain complex morphism from Chain complex with at most 2 nonzero terms over Finite Field of size 11. to Chain complex with at most 3 nonzero terms over Finite Field of size 11.
 
-        Some simplicial maps which reverse the orientation of a few simplices::
-
-            sage: g = {0:1, 1:2, 2:0}
-            sage: H(g).associated_chain_complex_morphism()._matrix_dictionary
-            {0: [0 0 0]
-             [1 0 0]
-             [0 1 0]
-             [0 0 1], 1: [ 0  0  0]
-             [-1  0  0]
-             [ 0  0  0]
-             [ 0  0  1]
-             [ 0  0  0]
-             [ 0 -1  0], 2: []}
-
-            sage: X = SimplicialComplex(1, [[0, 1]])
-            sage: Hom(X,X)({0:1, 1:0}).associated_chain_complex_morphism()._matrix_dictionary
-            {0: [0 1]
-             [1 0], 1: [-1]}
         """
         max_dim = max(self._domain.dimension(),self._codomain.dimension())
         min_dim = min(self._domain.dimension(),self._codomain.dimension())
@@ -333,11 +294,11 @@ class SimplicialComplexMorphism(category_types.SageObject):
             num_faces_Y = len(Y_faces)
             mval = [0 for i in range(num_faces_X*num_faces_Y)]
             for i in X_faces:
-                y, oriented = self(i, orientation=True)
+                y = self(i)
                 if y.dimension() < dim:
                     pass
                 else:
-                    mval[X_faces.index(i)+(Y_faces.index(y)*num_faces_X)] = oriented
+                    mval[X_faces.index(i)+(Y_faces.index(y)*num_faces_X)] = 1
             m = matrix.Matrix(base_ring,num_faces_Y,num_faces_X,mval,sparse=True)
             if not cochain:
                 matrices[dim] = m

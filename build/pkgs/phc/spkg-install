@@ -6,17 +6,20 @@ sub_arch = uname[-1]
 print uname, main_arch, sub_arch
 if main_arch == "Darwin":
     if sub_arch == "i386":
-	#ARCH = "mac_intel"
-        # Currently there are problems compiling phcpack on mac intels, so for now use ppc binary
-        ARCH = "mac_ppc"
+	ARCH = "mac_intel64"
     elif sub_arch == "Power Macintosh":
 	ARCH = "mac_ppc"
     else:
 	print("Problem determining system type - please email sage-devel@google-groups.com to report this.")
 if main_arch == "Linux":
-    ARCH = "lin"
+    if 'x86_64' in uname:
+        ARCH = "lin_x86_64"
+    else:
+        ARCH = "lin_32"
 if main_arch == "AIX":
     ARCH = "aix"
+if main_arch == "SunOS":
+    ARCH = "sun"
 sage_local = os.environ['SAGE_LOCAL']
 print sage_local
 os.system('mv ' + 'binaries/phc_' + ARCH + ' ' + sage_local + '/bin/phc')

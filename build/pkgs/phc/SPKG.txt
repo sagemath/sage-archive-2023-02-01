@@ -28,6 +28,10 @@ OSX Intel is currently broken. Sources and binaries are available from http://ww
 
 == Changelog ==
 
+=== phc-2.3.51.p0 (Marshall Hampton, November 15th, 2009) ===
+ * added AIX binary back in (why not?)
+ * updated other binaries to 2.3.51
+
 === phc-2.3.39.p0 (Michael Abshoff, March 29th, 2008)  ===
  * remove AIX binary
  * add SPKG.txt

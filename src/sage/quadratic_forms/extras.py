@@ -23,6 +23,8 @@ def sgn(x):
         1, 0, or -1.
 
     EXAMPLES:
+
+        sage: from sage.quadratic_forms.extras import sgn
         sage: sgn(pi) == 1
         True
         sage: sgn(5/6) == 1

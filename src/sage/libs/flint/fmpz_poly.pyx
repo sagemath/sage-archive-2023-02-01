@@ -80,8 +80,14 @@ cdef class Fmpz_poly(SageObject):
             sage: f = Fmpz_poly(range(10))
             sage: f[7] = 100; f
             10  0 1 2 3 4 5 6 100 8 9
+            sage: f[2] = 10**100000
+            sage: f[2] == 10**100000
+            True
         """
-        fmpz_poly_set_coeff_si(self.poly, i, value)
+        if PY_TYPE_CHECK(value, Integer) :
+            fmpz_poly_set_coeff_mpz(self.poly, i, (<Integer>value).value)
+        else :
+            fmpz_poly_set_coeff_si(self.poly, i, value)
 
     def __getitem__(self, i):
         """
@@ -206,10 +212,14 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
         if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
-            if PY_TYPE_CHECK(left, Integer) or PY_TYPE_CHECK(left, int):
+            if PY_TYPE_CHECK(left, int) :
                 fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>right).poly, left)
-            elif PY_TYPE_CHECK(right, Integer) or PY_TYPE_CHECK(right, int):
+            elif PY_TYPE_CHECK(left, Integer) :
+                fmpz_poly_scalar_mul_mpz(res.poly, (<Fmpz_poly>right).poly, (<Integer>left).value)
+            elif  PY_TYPE_CHECK(right, int) :
                 fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>left).poly, right)
+            elif PY_TYPE_CHECK(right, Integer) :
+                fmpz_poly_scalar_mul_mpz(res.poly, (<Fmpz_poly>left).poly, (<Integer>right).value)
             else:
                 raise TypeError
         else:
@@ -306,6 +316,39 @@ cdef class Fmpz_poly(SageObject):
         fmpz_poly_divrem(Q.poly, R.poly, self.poly, other.poly)
         return Q, R
 
+
+    def left_shift(self, unsigned long n) :
+        """
+        Left shift self by n.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,2])
+            sage: f.left_shift(1).list() == [0,1,2]
+            True
+        """
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+
+        fmpz_poly_left_shift(res.poly, self.poly, n)
+
+        return res
+
+    def right_shift(self, unsigned long n) :
+        """
+        Right shift self by n.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,2])
+            sage: f.right_shift(1).list() == [2]
+            True
+        """
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+
+        fmpz_poly_right_shift(res.poly, self.poly, n)
+
+        return res
+
     def pseudo_div(self, Fmpz_poly other):
         cdef unsigned long d
         cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
@@ -319,6 +362,21 @@ cdef class Fmpz_poly(SageObject):
         fmpz_poly_pseudo_divrem(Q.poly, R.poly, &d, self.poly, other.poly)
         return Q, R, d
 
+    def derivative(self) :
+        """
+        Return the derivative of self.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,2,6])
+            sage: f.derivative().list() == [4, 18]
+            True
+        """
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+
+        fmpz_poly_derivative(res.poly, self.poly)
+
+        return res
 
     def __copy__(self):
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)

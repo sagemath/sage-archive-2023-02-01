@@ -85,6 +85,13 @@ cdef extern from "FLINT/fmpz_poly.h":
     void fmpz_poly_power_trunc_n(fmpz_poly_t output, fmpz_poly_t poly, \
             unsigned long exp, unsigned long n)
 
+    void fmpz_poly_left_shift ( fmpz_poly_t output ,
+                                fmpz_poly_t poly , unsigned long n )
+    void fmpz_poly_right_shift ( fmpz_poly_t output ,
+                                 fmpz_poly_t poly , unsigned long n )
+
+    void fmpz_poly_derivative ( fmpz_poly_t der , fmpz_poly_t poly )
+
     void fmpz_poly_content(fmpz_t c, fmpz_poly_t poly)
     void fmpz_poly_primitive_part(fmpz_poly_t prim, fmpz_poly_t poly)
 

@@ -26,6 +26,9 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.2 (William Stein, Nov 18, 2009) ===
+ * Upgraded to MPIR-1.2.2.
+
 === mpir-1.2.p9 (William Stein, Nov 12, 2009) ===
  * Also enable --enable-fat for i686.
 

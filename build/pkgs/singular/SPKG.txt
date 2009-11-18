@@ -10,6 +10,12 @@
 == Releases ==
 
 
+=== singular-3-1-0-4-20090818.p2 (Martin Albrecht, November 18th, 2009) ===
+ * installing lists.h from Singular (#7194)
+
+=== singular-3-1-0-4-20090818.p1 () ===
+ * we forgot to update this :(
+
 === singular-3-1-0-4-20090818.p0 (Georg S. Weber, September 24th, 2009) ===
  * added three missing /patches/*.diff files
  * change -O2 to -O0 on ia64 (see trac #6360 and #6240),

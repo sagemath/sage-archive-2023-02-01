@@ -1,11 +1,22 @@
-530a531
-> 	${MKINSTALLDIRS} ${includedir}/singular
-535,536c536,540
-< 
-< 
----
-> 	${INSTALL_PROGRAM} subexpr.h ${includedir}/singular
-> 	${INSTALL_PROGRAM} tok.h ${includedir}/singular
-> 	${INSTALL_PROGRAM} grammar.h ${includedir}/singular
-> 	${INSTALL_PROGRAM} ipid.h ${includedir}/singular
-> 	${INSTALL_PROGRAM} ipshell.h ${includedir}/singular
+--- ../src/Singular/Makefile.in	2009-05-20 10:44:37.000000000 +0100
++++ Singular.Makefile.in	2009-11-18 16:18:57.279004016 +0000
+@@ -528,12 +528,17 @@
+ 	${INSTALL_DATA} `pwd`/LIB/gftables/* ${slibdir}/gftables/
+ 
+ install-libsingular: libsingular
++	${MKINSTALLDIRS} ${includedir}/singular
+ 	for file in *.$(SO_SUFFIX); do \
+ 	  ${INSTALL_PROGRAM}  $$file ${libdir}; \
+ 	done
+ 	${INSTALL_PROGRAM} libsingular.h ${includedir}
+-
+-
++	${INSTALL_PROGRAM} subexpr.h ${includedir}/singular
++	${INSTALL_PROGRAM} tok.h ${includedir}/singular
++	${INSTALL_PROGRAM} grammar.h ${includedir}/singular
++	${INSTALL_PROGRAM} ipid.h ${includedir}/singular
++	${INSTALL_PROGRAM} ipshell.h ${includedir}/singular
++	${INSTALL_PROGRAM} lists.h ${includedir}/singular
+ 
+ uninstall: uninstallbin
+ 

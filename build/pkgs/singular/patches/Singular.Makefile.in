@@ -538,6 +538,7 @@ install-libsingular: libsingular
 	${INSTALL_PROGRAM} grammar.h ${includedir}/singular
 	${INSTALL_PROGRAM} ipid.h ${includedir}/singular
 	${INSTALL_PROGRAM} ipshell.h ${includedir}/singular
+	${INSTALL_PROGRAM} lists.h ${includedir}/singular
 
 uninstall: uninstallbin
 

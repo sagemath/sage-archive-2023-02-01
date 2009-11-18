@@ -108,6 +108,8 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
     -  ``dots`` - bool (default: False) whether to display
        dots at mesh grid points
 
+    -  ``plot_points`` - (default: "automatic") initial number of sample
+       points in each direction; an integer or a pair of integers
 
     .. note::
 
@@ -128,9 +130,17 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
 
     We plot some 3d symbolic functions::
 
-        sage: x, y = var('x,y')
+        sage: var('x,y')
+        (x, y)
         sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
         sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
+
+    We give a plot with extra sample points::
+
+        sage: var('x,y')
+        (x, y)
+        sage: plot3d(sin(x^2+y^2),(x,-5,5),(y,-5,5), plot_points=200)
+        sage: plot3d(sin(x^2+y^2),(x,-5,5),(y,-5,5), plot_points=[10,100])
 
     A 3d plot with a mesh::
 

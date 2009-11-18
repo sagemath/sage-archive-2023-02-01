@@ -1456,7 +1456,7 @@ ex function::eval(int level) const
 	return eval_result;
 }
 
-ex function::evalf(int level, int prec) const
+ex function::evalf(int level, PyObject* parent) const
 {
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
@@ -1472,7 +1472,7 @@ ex function::evalf(int level, int prec) const
 		--level;
 		exvector::const_iterator it = seq.begin(), itend = seq.end();
 		while (it != itend) {
-			eseq.push_back(it->evalf(level, prec));
+			eseq.push_back(it->evalf(level, parent));
 			++it;
 		}
 	}
@@ -1483,9 +1483,9 @@ ex function::evalf(int level, int prec) const
 	current_serial = serial;
 	if (opt.python_func && PyCallable_Check((PyObject*)opt.evalf_f)) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = exvector_to_PyTuple(eseq);
 		// create a dictionary {'prec':prec} for the precision argument
-		PyObject* kwds = Py_BuildValue("{s:i}","prec",prec);
+		PyObject* kwds = Py_BuildValue("{s:O}","parent",parent);
 		// call opt.evalf_f with this list
 		PyObject* pyresult = PyObject_Call((PyObject*)opt.evalf_f, 
 				args, kwds);
@@ -1503,37 +1503,37 @@ ex function::evalf(int level, int prec) const
 		return result;
 	}
 	if (opt.evalf_use_exvector_args)
-		return ((evalf_funcp_exvector)(opt.evalf_f))(seq, prec);
+		return ((evalf_funcp_exvector)(opt.evalf_f))(seq, parent);
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((evalf_funcp_1)(opt.evalf_f))(eseq[1-1], prec);
+		return ((evalf_funcp_1)(opt.evalf_f))(eseq[1-1], parent);
 	case 2:
-		return ((evalf_funcp_2)(opt.evalf_f))(eseq[1-1], eseq[2-1], prec);
+		return ((evalf_funcp_2)(opt.evalf_f))(eseq[1-1], eseq[2-1], parent);
 	case 3:
-		return ((evalf_funcp_3)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], prec);
+		return ((evalf_funcp_3)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], parent);
 	case 4:
-		return ((evalf_funcp_4)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], prec);
+		return ((evalf_funcp_4)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], parent);
 	case 5:
-		return ((evalf_funcp_5)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], prec);
+		return ((evalf_funcp_5)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], parent);
 	case 6:
-		return ((evalf_funcp_6)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], prec);
+		return ((evalf_funcp_6)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], parent);
 	case 7:
-		return ((evalf_funcp_7)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], prec);
+		return ((evalf_funcp_7)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], parent);
 	case 8:
-		return ((evalf_funcp_8)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], prec);
+		return ((evalf_funcp_8)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], parent);
 	case 9:
-		return ((evalf_funcp_9)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], prec);
+		return ((evalf_funcp_9)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], parent);
 	case 10:
-		return ((evalf_funcp_10)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], prec);
+		return ((evalf_funcp_10)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], parent);
 	case 11:
-		return ((evalf_funcp_11)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], prec);
+		return ((evalf_funcp_11)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], parent);
 	case 12:
-		return ((evalf_funcp_12)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], prec);
+		return ((evalf_funcp_12)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], parent);
 	case 13:
-		return ((evalf_funcp_13)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], prec);
+		return ((evalf_funcp_13)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], parent);
 	case 14:
-		return ((evalf_funcp_14)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], eseq[14-1], prec);
+		return ((evalf_funcp_14)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], eseq[14-1], parent);
 
 		// end of generated lines
 	}

@@ -688,7 +688,7 @@ ex power::eval(int level) const
 	                                               status_flags::evaluated);
 }
 
-ex power::evalf(int level, int prec) const
+ex power::evalf(int level, PyObject* parent) const
 {
 	ex ebasis;
 	ex eexponent;
@@ -699,9 +699,9 @@ ex power::evalf(int level, int prec) const
 	} else if (level == -max_recursion_level) {
 		throw(std::runtime_error("max recursion level reached"));
 	} else {
-		ebasis = basis.evalf(level-1, prec);
+		ebasis = basis.evalf(level-1, parent);
 		if (!is_exactly_a<numeric>(exponent))
-			eexponent = exponent.evalf(level-1, prec);
+			eexponent = exponent.evalf(level-1, parent);
 		else
 			eexponent = exponent;
 	}

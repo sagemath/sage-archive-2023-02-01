@@ -431,13 +431,13 @@ ex basic::eval(int level) const
 /** Function object to be applied by basic::evalf(). */
 struct evalf_map_function : public map_function {
 	int level;
-	int prec;
-	evalf_map_function(int l, int p) : level(l), prec(p) {}
-	ex operator()(const ex & e) { return evalf(e, level, prec); }
+	PyObject* parent;
+	evalf_map_function(int l, PyObject* p) : level(l), parent(p) {}
+	ex operator()(const ex & e) { return evalf(e, level, parent); }
 };
 
 /** Evaluate object numerically. */
-ex basic::evalf(int level, int prec) const
+ex basic::evalf(int level, PyObject* parent) const
 {
 	if (nops() == 0)
 		return *this;
@@ -447,7 +447,7 @@ ex basic::evalf(int level, int prec) const
 		else if (level == -max_recursion_level)
 			throw(std::runtime_error("max recursion level reached"));
 		else {
-			evalf_map_function map_evalf(level - 1, prec);
+			evalf_map_function map_evalf(level - 1, parent);
 			return map(map_evalf);
 		}
 	}

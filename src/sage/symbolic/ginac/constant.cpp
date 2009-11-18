@@ -165,12 +165,12 @@ bool constant::info(unsigned inf) const
 		return inherited::info(inf);
 }
 
-ex constant::evalf(int level, int prec) const
+ex constant::evalf(int level, PyObject* parent) const
 {
 	if (ef!=0) {
-        return ef(serial, prec);
+        return ef(serial, parent);
 	} else {
-		return number.evalf(level, prec);
+		return number.evalf(level, parent);
 	}
 	return *this;
 }

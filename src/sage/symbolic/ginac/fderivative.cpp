@@ -193,9 +193,9 @@ ex fderivative::eval(int level) const
 
 /** Numeric evaluation falls back to evaluation of arguments.
  *  @see basic::evalf */
-ex fderivative::evalf(int level, int prec) const
+ex fderivative::evalf(int level, PyObject* parent) const
 {
-	return basic::evalf(level, prec);
+	return basic::evalf(level, parent);
 }
 
 /** The series expansion of derivatives falls back to Taylor expansion.

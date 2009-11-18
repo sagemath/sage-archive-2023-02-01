@@ -394,9 +394,9 @@ numeric S_num(int n, int p, const numeric& x);
 
 
 // helper function for classical polylog Li
-numeric Lin_numeric(const numeric& n, const numeric& x, int prec)
+numeric Lin_numeric(const numeric& n, const numeric& x, PyObject* parent)
 {
-  return x.value.Li(n.value, prec);
+  return x.value.Li(n.value, parent);
 // 	if (n == 1) {
 // 		// just a log
 // 		return -cln::log(1-x.to_cl_N());
@@ -1218,7 +1218,7 @@ ex mLi_numeric(const lst& m, const lst& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex G2_evalf(const ex& x_, const ex& y, int prec)
+static ex G2_evalf(const ex& x_, const ex& y, PyObject* parent)
 {
   /*
 	if (!y.info(info_flags::positive)) {
@@ -1303,7 +1303,7 @@ unsigned G2_SERIAL::serial = function::register_new(function_options("G", 2).
 //                                print_func<print_latex>(G2_print_latex).
 
 
-static ex G3_evalf(const ex& x_, const ex& s_, const ex& y, int prec)
+static ex G3_evalf(const ex& x_, const ex& s_, const ex& y, PyObject* parent)
 {
   /*
 	if (!y.info(info_flags::positive)) {
@@ -1419,17 +1419,17 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 //////////////////////////////////////////////////////////////////////
 
 
-static ex Li_evalf(const ex& m_, const ex& x_, int prec)
+static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
 {
 	// classical polylogs
 	if (m_.info(info_flags::posint)) {
 		if (x_.info(info_flags::numeric)) {
-			return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), prec);
+			return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), parent);
 		} else {
 			// try to numerically evaluate second argument
-			ex x_val = x_.evalf(0, prec);
+			ex x_val = x_.evalf(0, parent);
 			if (x_val.info(info_flags::numeric)) {
-				return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_val), prec);
+				return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_val), parent);
 			}
 		}
 	}
@@ -1543,7 +1543,7 @@ static ex Li_eval(const ex& m_, const ex& x_)
 		}
 	}
 	/* if (m_.info(info_flags::posint) && x_.info(info_flags::numeric) && !x_.info(info_flags::crational)) { */
-	/* 	return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), prec); */
+	/* 	return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_)); */
 	/* } */
 
 	return Li(m_, x_).hold();
@@ -2028,14 +2028,14 @@ numeric S_num(int n, int p, const numeric& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex S_evalf(const ex& n, const ex& p, const ex& x, int prec)
+static ex S_evalf(const ex& n, const ex& p, const ex& x, PyObject* parent)
 {
   /*
 	if (n.info(info_flags::posint) && p.info(info_flags::posint)) {
 		if (is_a<numeric>(x)) {
 			return S_num(ex_to<numeric>(n).to_int(), ex_to<numeric>(p).to_int(), ex_to<numeric>(x));
 		} else {
-			ex x_val = x.evalf(0, prec);
+			ex x_val = x.evalf(0, parent);
 			if (is_a<numeric>(x_val)) {
 				return S_num(ex_to<numeric>(n).to_int(), ex_to<numeric>(p).to_int(), ex_to<numeric>(x_val));
 			}
@@ -3080,7 +3080,7 @@ Number_T H_do_sum(const std::vector<int>& m, const Number_T& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex H_evalf(const ex& x1, const ex& x2, int prec)
+static ex H_evalf(const ex& x1, const ex& x2, PyObject* parent)
 {
 // 	if (is_a<lst>(x1)) {
 		
@@ -3088,7 +3088,7 @@ static ex H_evalf(const ex& x1, const ex& x2, int prec)
 // 		if (is_a<numeric>(x2)) {
 // 			x = ex_to<numeric>(x2).to_cl_N();
 // 		} else {
-// 			ex x2_val = x2.evalf(0, prec);
+// 			ex x2_val = x2.evalf(0, parent);
 // 			if (is_a<numeric>(x2_val)) {
 // 				x = ex_to<numeric>(x2_val).to_cl_N();
 // 			}
@@ -3108,7 +3108,7 @@ static ex H_evalf(const ex& x1, const ex& x2, int prec)
 // 		if (*(--morg.end()) == 0) {
 // 			symbol xtemp("xtemp");
 // 			map_trafo_H_reduce_trailing_zeros filter;
-// 			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf(0, prec);
+// 			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf(0, parent);
 // 		}
 // 		// ... and expand parameter notation
 // 		bool has_minus_one = false;
@@ -3150,7 +3150,7 @@ static ex H_evalf(const ex& x1, const ex& x2, int prec)
 // 				// only positive parameters
 // 				//TODO
 // 				if (m_lst.nops() == 1) {
-// 					return Li(m_lst.op(0), x2).evalf(0, prec);
+// 					return Li(m_lst.op(0), x2).evalf(0, parent);
 // 				}
 // 				std::vector<int> m_int;
 // 				for (lst::const_iterator it = m_lst.begin(); it != m_lst.end(); it++) {
@@ -3183,7 +3183,7 @@ static ex H_evalf(const ex& x1, const ex& x2, int prec)
 // 			} else {
 // 				res = res.subs(H_polesign == I*Pi);
 // 			}
-// 			return res.subs(xtemp == numeric(x)).evalf(0, prec);
+// 			return res.subs(xtemp == numeric(x)).evalf(0, parent);
 // 		}
 		
 // 		// check transformations for 0.95 <= |x| < 2.0
@@ -3197,13 +3197,13 @@ static ex H_evalf(const ex& x1, const ex& x2, int prec)
 // 			// x -> 1-x
 // 			if (has_minus_one) {
 // 				map_trafo_H_convert_to_Li filter;
-// 				return filter(H(m, numeric(x)).hold()).evalf(0, prec);
+// 				return filter(H(m, numeric(x)).hold()).evalf(0, parent);
 // 			}
 // 			map_trafo_H_1mx trafo;
 // 			res *= trafo(H(m, xtemp));
 // 		}
 
-// 		return res.subs(xtemp == numeric(x)).evalf(0, prec);
+// 		return res.subs(xtemp == numeric(x)).evalf(0, parent);
 // 	}
 
 // 	return H(x1,x2).hold();
@@ -3775,7 +3775,7 @@ Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vect
 //////////////////////////////////////////////////////////////////////
 
 
-static ex zeta1_evalf(const ex& x, int prec)
+static ex zeta1_evalf(const ex& x, PyObject* parent)
 {
 	if (is_exactly_a<lst>(x) && (x.nops()>1)) {
 
@@ -3803,7 +3803,7 @@ static ex zeta1_evalf(const ex& x, int prec)
 
 		// decide on summation algorithm
 		// this is still a bit clumsy
-		int limit = ((prec/3)>17) ? 10 : 6;
+		int limit = 10;
 		if ((r[0] < limit) || ((count > 3) && (r[1] < limit/2))) {
 			return numeric(zeta_do_sum_Crandall(r));
 		} else {
@@ -3816,7 +3816,7 @@ static ex zeta1_evalf(const ex& x, int prec)
 		return UnsignedInfinity;
 	} else	if (is_exactly_a<numeric>(x)) {
 		try {
-			return zeta(ex_to<numeric>(x.evalf(0, prec)));
+			return zeta(ex_to<numeric>(x.evalf(0, parent)));
 		} catch (const dunno &e) { }
 	}
 
@@ -3915,7 +3915,7 @@ unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 
 //////////////////////////////////////////////////////////////////////
 
 
-static ex zeta2_evalf(const ex& x, const ex& s, int prec)
+static ex zeta2_evalf(const ex& x, const ex& s, PyObject* parent)
 {
 	if (is_exactly_a<lst>(x)) {
 

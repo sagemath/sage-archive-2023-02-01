@@ -159,7 +159,7 @@ namespace GiNaC {
     Number_T asinh() const;
     Number_T acosh() const;
     Number_T atanh() const;
-    Number_T Li(const Number_T &n, int prec) const;
+    Number_T Li(const Number_T &n, PyObject* parent) const;
     Number_T Li2() const;
     Number_T zeta() const;
     Number_T lgamma() const;
@@ -169,7 +169,7 @@ namespace GiNaC {
     Number_T factorial() const;
     Number_T doublefactorial() const;
     Number_T fibonacci() const;
-    Number_T evalf(int prec) const;
+    Number_T evalf(PyObject* parent) const;
     Number_T step() const;
     Number_T isqrt() const;
     Number_T sqrt() const;
@@ -233,7 +233,7 @@ namespace GiNaC {
     ex coeff(const ex & s, int n = 1) const;
     bool has(const ex &other, unsigned options = 0) const;
     ex eval(int level = 0) const;
-    ex evalf(int level = 0, int prec=0) const;
+    ex evalf(int level = 0, PyObject* parent=NULL) const;
     ex subs(const exmap & m, unsigned options = 0) const { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
     ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
     ex to_rational(exmap & repl) const;
@@ -446,10 +446,10 @@ namespace GiNaC {
 
   // numeric evaluation functions for class constant objects:
 
-  ex ConstantEvalf(unsigned serial, int prec=0);
-  ex UnsignedInfinityEvalf(unsigned serial, int prec=0);
-  ex InfinityEvalf(unsigned serial, int prec=0);
-  ex NegInfinityEvalf(unsigned serial, int prec=0);
+  ex ConstantEvalf(unsigned serial, PyObject* parent=NULL);
+  ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent=NULL);
+  ex InfinityEvalf(unsigned serial, PyObject* parent=NULL);
+  ex NegInfinityEvalf(unsigned serial, PyObject* parent=NULL);
 
 
 } // namespace GiNaC

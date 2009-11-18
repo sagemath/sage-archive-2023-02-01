@@ -791,7 +791,7 @@ ex mul::eval(int level) const
 	return this->hold();
 }
 
-ex mul::evalf(int level, int prec) const
+ex mul::evalf(int level, PyObject* parent) const
 {
 	if (level==1)
 		return mul(seq,overall_coeff);
@@ -806,10 +806,10 @@ ex mul::evalf(int level, int prec) const
 	epvector::const_iterator i = seq.begin(), end = seq.end();
 	while (i != end) {
 		s->push_back(combine_ex_with_coeff_to_pair(
-					i->rest.evalf(level, prec), i->coeff));
+					i->rest.evalf(level, parent), i->coeff));
 		++i;
 	}
-	return mul(s, overall_coeff.evalf(level, prec));
+	return mul(s, overall_coeff.evalf(level, parent));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const

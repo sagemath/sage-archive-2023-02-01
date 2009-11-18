@@ -41,7 +41,7 @@ namespace GiNaC {
 // Logarithm of Gamma function
 //////////
 
-static ex lgamma_evalf(const ex & x, int prec)
+static ex lgamma_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -122,7 +122,7 @@ REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
 // true Gamma function
 //////////
 
-static ex tgamma_evalf(const ex & x, int prec)
+static ex tgamma_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -223,7 +223,7 @@ REGISTER_FUNCTION(tgamma, eval_func(tgamma_eval).
 // beta-function
 //////////
 
-static ex beta_evalf(const ex & x, const ex & y, int prec)
+static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x) && is_exactly_a<numeric>(y)) {
 		try {
@@ -341,7 +341,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
 // Psi-function (aka digamma-function)
 //////////
 
-static ex psi1_evalf(const ex & x, int prec)
+static ex psi1_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -442,7 +442,7 @@ unsigned psi1_SERIAL::serial =
 // Psi-functions (aka polygamma-functions)  psi(0,x)==psi(x)
 //////////
 
-static ex psi2_evalf(const ex & n, const ex & x, int prec)
+static ex psi2_evalf(const ex & n, const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(n) && is_exactly_a<numeric>(x)) {
 		try {

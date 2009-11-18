@@ -64,7 +64,7 @@ static void atanh_print_dflt(const ex & arg, const print_context & c)
 // exponential function
 //////////
 
-static ex exp_evalf(const ex & x, int prec)
+static ex exp_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return exp(ex_to<numeric>(x));
@@ -202,7 +202,7 @@ REGISTER_FUNCTION(exp, eval_func(exp_eval).
 // natural logarithm
 //////////
 
-static ex log_evalf(const ex & x, int prec)
+static ex log_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return log(ex_to<numeric>(x));
@@ -368,7 +368,7 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
 // sine (trigonometric function)
 //////////
 
-static ex sin_evalf(const ex & x, int prec)
+static ex sin_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return sin(ex_to<numeric>(x));
@@ -475,7 +475,7 @@ REGISTER_FUNCTION(sin, eval_func(sin_eval).
 // cosine (trigonometric function)
 //////////
 
-static ex cos_evalf(const ex & x, int prec)
+static ex cos_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return cos(ex_to<numeric>(x));
@@ -582,7 +582,7 @@ REGISTER_FUNCTION(cos, eval_func(cos_eval).
 // tangent (trigonometric function)
 //////////
 
-static ex tan_evalf(const ex & x, int prec)
+static ex tan_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return tan(ex_to<numeric>(x));
@@ -708,7 +708,7 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 // inverse sine (arc sine)
 //////////
 
-static ex asin_evalf(const ex & x, int prec)
+static ex asin_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return asin(ex_to<numeric>(x));
@@ -778,7 +778,7 @@ REGISTER_FUNCTION(asin, eval_func(asin_eval).
 // inverse cosine (arc cosine)
 //////////
 
-static ex acos_evalf(const ex & x, int prec)
+static ex acos_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return acos(ex_to<numeric>(x));
@@ -849,7 +849,7 @@ REGISTER_FUNCTION(acos, eval_func(acos_eval).
 // inverse tangent (arc tangent)
 //////////
 
-static ex atan_evalf(const ex & x, int prec)
+static ex atan_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return atan(ex_to<numeric>(x));
@@ -962,7 +962,7 @@ REGISTER_FUNCTION(atan, eval_func(atan_eval).
 // inverse tangent (atan2(y,x))
 //////////
 
-static ex atan2_evalf(const ex &y, const ex &x, int prec)
+static ex atan2_evalf(const ex &y, const ex &x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(y) && is_exactly_a<numeric>(x))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
@@ -1090,7 +1090,7 @@ REGISTER_FUNCTION(atan2, eval_func(atan2_eval).
 // hyperbolic sine (trigonometric function)
 //////////
 
-static ex sinh_evalf(const ex & x, int prec)
+static ex sinh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return sinh(ex_to<numeric>(x));
@@ -1176,7 +1176,7 @@ REGISTER_FUNCTION(sinh, eval_func(sinh_eval).
 // hyperbolic cosine (trigonometric function)
 //////////
 
-static ex cosh_evalf(const ex & x, int prec)
+static ex cosh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return cosh(ex_to<numeric>(x));
@@ -1262,7 +1262,7 @@ REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
 // hyperbolic tangent (trigonometric function)
 //////////
 
-static ex tanh_evalf(const ex & x, int prec)
+static ex tanh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return tanh(ex_to<numeric>(x));
@@ -1372,7 +1372,7 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
 // inverse hyperbolic sine (trigonometric function)
 //////////
 
-static ex asinh_evalf(const ex & x, int prec)
+static ex asinh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return asinh(ex_to<numeric>(x));
@@ -1424,7 +1424,7 @@ REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
 // inverse hyperbolic cosine (trigonometric function)
 //////////
 
-static ex acosh_evalf(const ex & x, int prec)
+static ex acosh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return acosh(ex_to<numeric>(x));
@@ -1484,7 +1484,7 @@ REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
 // inverse hyperbolic tangent (trigonometric function)
 //////////
 
-static ex atanh_evalf(const ex & x, int prec)
+static ex atanh_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
 		return atanh(ex_to<numeric>(x));

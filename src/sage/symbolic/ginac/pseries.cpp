@@ -397,7 +397,7 @@ ex pseries::eval(int level) const
 }
 
 /** Evaluate coefficients numerically. */
-ex pseries::evalf(int level, int prec) const
+ex pseries::evalf(int level, PyObject* parent) const
 {
 	if (level == 1)
 		return *this;
@@ -410,7 +410,7 @@ ex pseries::evalf(int level, int prec) const
 	new_seq.reserve(seq.size());
 	epvector::const_iterator it = seq.begin(), itend = seq.end();
 	while (it != itend) {
-		new_seq.push_back(expair(it->rest.evalf(level-1, prec),
+		new_seq.push_back(expair(it->rest.evalf(level-1, parent),
 					it->coeff));
 		++it;
 	}

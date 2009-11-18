@@ -90,7 +90,7 @@ extern "C" {
 	PyObject* py_integer_from_long(long int x);
 	PyObject* py_integer_from_python_obj(PyObject* x);
 
-	PyObject* py_float(PyObject* a, int prec);
+	PyObject* py_float(PyObject* a, PyObject* parent);
 	PyObject* py_RDF_from_double(double x);
 
 	PyObject* py_factorial(PyObject* a);
@@ -130,7 +130,7 @@ extern "C" {
 	PyObject* py_iquo2(PyObject* n, PyObject* b);
 	int       py_int_length(PyObject* x);
 
-	PyObject* py_eval_constant(unsigned serial, long ndigits);
+	PyObject* py_eval_constant(unsigned serial, PyObject* parent);
 	PyObject* py_eval_unsigned_infinity();
 	PyObject* py_eval_infinity();
 	PyObject* py_eval_neg_infinity();
@@ -1247,9 +1247,9 @@ void Number_T::archive(archive_node &n) const {
     PY_RETURN(py_conjugate);
   }
   
-  Number_T Number_T::evalf(int prec) const {
+  Number_T Number_T::evalf(PyObject* parent) const {
 	  PyObject *a = Number_T_to_pyobject(*this);
-	  PyObject *ans = py_float(a, prec);
+	  PyObject *ans = py_float(a, parent);
 	  Py_DECREF(a);
 	  if (!ans)
 		  throw(std::runtime_error("numeric::evalf(): error calling py_float()"));
@@ -1329,13 +1329,12 @@ void Number_T::archive(archive_node &n) const {
     PY_RETURN(py_atanh);
   }
 
-  Number_T Number_T::Li(const Number_T &n, int prec) const {
-    PyObject *pp = PyInt_FromLong(prec);
+  Number_T Number_T::Li(const Number_T &n, PyObject* parent) const {
     PyObject *aa = Number_T_to_pyobject(*this);	
     PyObject* nn = Number_T_to_pyobject(n);	
-    PyObject *ans = py_li(aa, nn, pp);             
+    PyObject *ans = py_li(aa, nn, parent);             
     if (!ans) py_error("error calling function");
-    Py_DECREF(aa); Py_DECREF(nn); Py_DECREF(pp);
+    Py_DECREF(aa); Py_DECREF(nn);
     return ans; 
   }
 
@@ -1735,9 +1734,9 @@ void Number_T::archive(archive_node &n) const {
    *
    *  @param level  ignored, only needed for overriding basic::evalf.
    *  @return  an ex-handle to a numeric. */
-  ex numeric::evalf(int level, int prec) const
+  ex numeric::evalf(int level, PyObject* parent) const
   {
-     return (numeric)(value.evalf(prec));
+     return (numeric)(value.evalf(parent));
   }
 
   ex numeric::conjugate() const
@@ -2645,26 +2644,26 @@ void Number_T::archive(archive_node &n) const {
   }
 
   /** Floating point evaluation of Sage's constants. */
-  ex ConstantEvalf(unsigned serial, int prec)
+  ex ConstantEvalf(unsigned serial, PyObject* parent)
   { 
-    PyObject* x = py_eval_constant(serial, prec);
+    PyObject* x = py_eval_constant(serial, parent);
     if (!x) py_error("error getting digits of constant");
     return x;
   }
 
-    ex UnsignedInfinityEvalf(unsigned serial, int prec)
+    ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent)
 	{
 		PyObject* x = py_eval_unsigned_infinity();
 		return x;
 	}
 
-    ex InfinityEvalf(unsigned serial, int prec)
+    ex InfinityEvalf(unsigned serial, PyObject* parent)
 	{
 		PyObject* x = py_eval_infinity();
 		return x;
 	}
 
-    ex NegInfinityEvalf(unsigned serial, int prec)
+    ex NegInfinityEvalf(unsigned serial, PyObject* parent)
 	{
 		PyObject* x = py_eval_neg_infinity();
 		return x;

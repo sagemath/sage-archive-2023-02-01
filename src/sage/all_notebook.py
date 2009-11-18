@@ -27,6 +27,7 @@ from sage.misc.html import html
 
 from sage.server.support import help
 
+from sagenb.misc.support import automatic_names
 
 
 

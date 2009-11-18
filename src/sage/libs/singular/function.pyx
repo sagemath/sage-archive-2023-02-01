@@ -79,6 +79,10 @@ from sage.misc.misc import get_verbose
 from sage.structure.sequence import Sequence
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
+    """
+    Convert a vector or list of multivariate polynomials to a
+    polynomial by adding them all up.
+    """
     cdef poly *res = NULL
     cdef poly *poly_component
     cdef poly *p_iter
@@ -97,7 +101,21 @@ cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     return res
 
 cdef class RingWrap:
+    """
+    A simple wrapper around Singular's rings.
+    """
     def __repr__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.libs.singular.function import singular_function
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: ringlist = singular_function("ringlist")
+            sage: l = ringlist(P)
+            sage: ring = singular_function("ring")
+            sage: ring(l, ring=P)
+            <RingWrap>
+        """
         return "<RingWrap>"
 
     def __dealloc__(self):
@@ -105,12 +123,51 @@ cdef class RingWrap:
             self._ring.ref -= 1
 
 cdef class Resolution:
+    """
+    A simple wrapper around Singular's resolutions.
+    """
     def __init__(self, base_ring):
+        """
+        EXAMPLE::
+
+           sage: from sage.libs.singular.function import singular_function
+           sage: mres = singular_function("mres")
+           sage: syz = singular_function("syz")
+           sage: P.<x,y,z> = PolynomialRing(QQ)
+           sage: I = P.ideal([x+y,x*y-y, y*2,x**2+1])
+           sage: M = syz(I)
+           sage: resolution = mres(M, 0)
+        """
         assert PY_TYPE_CHECK(base_ring, MPolynomialRing_libsingular)
         self.base_ring = <MPolynomialRing_libsingular> base_ring
     def __repr__(self):
+        """
+        EXAMPLE::
+
+           sage: from sage.libs.singular.function import singular_function
+           sage: mres = singular_function("mres")
+           sage: syz = singular_function("syz")
+           sage: P.<x,y,z> = PolynomialRing(QQ)
+           sage: I = P.ideal([x+y,x*y-y, y*2,x**2+1])
+           sage: M = syz(I)
+           sage: resolution = mres(M, 0)
+           sage: resolution
+           <Resolution>
+        """
         return "<Resolution>"
     def __dealloc__(self):
+        """
+        EXAMPLE::
+
+           sage: from sage.libs.singular.function import singular_function
+           sage: mres = singular_function("mres")
+           sage: syz = singular_function("syz")
+           sage: P.<x,y,z> = PolynomialRing(QQ)
+           sage: I = P.ideal([x+y,x*y-y, y*2,x**2+1])
+           sage: M = syz(I)
+           sage: resolution = mres(M, 0)
+           sage: del resolution
+        """
         if self._resolution != NULL:
             self._resolution.references -= 1
 
@@ -268,10 +325,6 @@ cdef class Converter(SageObject):
             elif PY_TYPE_CHECK(a, Integer):
                 self.append_int(a)
 
-            # ring
-            # vector
-            # matrix
-            # modul
             else:
                 raise TypeError("unknown argument type '%s'"%(type(a),))
 
@@ -358,8 +411,7 @@ cdef class Converter(SageObject):
 
     cdef to_sage_matrix(self, matrix* mat):
         """
-            convert singular matrix
-            to matrix over the polynomial ring
+        Convert singular matrix to matrix over the polynomial ring.
         """
         from sage.matrix.constructor import Matrix
         sage_ring = self._ring
@@ -417,11 +469,10 @@ cdef class Converter(SageObject):
             result.append(new_MP(self._ring, first))
         return free_module(result)
 
-    cdef object to_sage_module_element_sequence_destructive(
-        self, ideal *i):
+    cdef object to_sage_module_element_sequence_destructive( self, ideal *i):
         """
-        convert a SINGULAR module to a Sage Sequence (the format Sage
-        stores a Groebner basis in)
+        Convert a SINGULAR module to a Sage Sequence (the format Sage
+        stores a Groebner basis in).
 
         INPUT:
 
@@ -446,8 +497,7 @@ cdef class Converter(SageObject):
 
     cdef to_sage_integer_matrix(self, intvec* mat):
         """
-            convert singular matrix
-            to matrix over the polynomial ring
+        Convert Singular matrix to matrix over the polynomial ring.
         """
         from sage.matrix.constructor import Matrix
         from sage.rings.integer_ring import ZZ
@@ -478,8 +528,8 @@ cdef class Converter(SageObject):
 
     cdef int append_module(self, m) except -1:
         """
-           Append sequence ``m`` of vectors over the polynomial
-           ring to the list
+        Append sequence ``m`` of vectors over the polynomial ring to
+        the list
         """
         rank = max([v.parent().rank() for v in m])
         cdef ideal *result
@@ -584,6 +634,7 @@ cdef class Converter(SageObject):
         """
         resolution._resolution.references += 1
         self._append(<void*> resolution._resolution, RESOLUTION_CMD)
+
     cdef int append_intmat(self, a) except -1:
         """
         Append ``a`` to the list as intvec.
@@ -1197,8 +1248,8 @@ def singular_function(name):
         sage: jet(v, 2)
         (x + y, x*y, z)
         sage: syz = singular_function("syz")
-        sage: ideal = P.ideal([x+y,x*y-y, y*2,x**2+1])
-        sage: M = syz(ideal)
+        sage: I = P.ideal([x+y,x*y-y, y*2,x**2+1])
+        sage: M = syz(I)
         sage: M
         [(-2*y, 2, y + 1, 0), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, -x - 1, -1, -x)]
         sage: singular_lib("mprimdec.lib")

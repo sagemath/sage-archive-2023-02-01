@@ -408,8 +408,11 @@ class InterfaceInit(Converter):
             sage: m = InterfaceInit(maxima)
             sage: m.symbol(x)
             'x'
+            sage: f(x) = x
+            sage: m.symbol(f)
+            'x'
         """
-        return repr(ex)
+        return repr(SR(ex))
 
     def pyobject(self, ex, obj):
         """

@@ -270,6 +270,12 @@ in Trac ticket #3779 is actually fixed::
     sage: f = function('F',x)
     sage: diff(f*SR(1),x)
     D[0](F)(x)
+
+Doubly ensure that Trac #7479 is working::
+
+    sage: f(x)=x
+    sage: integrate(f,x,0,1)
+    1/2
 """
 
 import weakref

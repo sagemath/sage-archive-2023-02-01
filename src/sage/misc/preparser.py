@@ -198,9 +198,6 @@ def implicit_multiplication(level=None):
       sage: preparse('2x')
       '2x'
     """
-    from sage.plot.plot import EMBEDDED_MODE
-    if EMBEDDED_MODE:
-        raise NotImplementedError, "Implicit multiplication not implemented for the notebook."
     global implicit_mul_level
     if level is None:
         return implicit_mul_level
@@ -924,9 +921,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False, numeric_lite
 ## Apply the preparser to an entire file
 ######################################################
 
-def preparse_file(contents, attached={}, magic=True,
+_attached={}
+def preparse_file(contents, attached=_attached, magic=True,
                   do_time=False, ignore_prompts=False,
-                  numeric_literals=True):
+                  numeric_literals=True, reload_attached=False):
     """
     NOTE: Temporarily, if @parallel is in the input, then numeric_literals
     is always set to False.
@@ -942,6 +940,13 @@ def preparse_file(contents, attached={}, magic=True,
         raise TypeError, "contents must be a string"
 
     assert isinstance(contents, str)
+
+    if reload_attached:
+        # add lines to load each attached file that has changed
+        for F, tm in attached.iteritems():
+            if os.path.exists(F) and os.path.getmtime(F) > tm:
+                contents = 'load "%s"\n'%F + contents
+
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
     # in creating a massive file and crashing.

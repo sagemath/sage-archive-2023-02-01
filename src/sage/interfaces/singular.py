@@ -358,8 +358,6 @@ class Singular(Expect):
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.
-        if not nodes:
-            generate_docstring_dictionary()
 
     def _start(self, alt_message=None):
         """
@@ -1736,6 +1734,8 @@ class SingularFunction(ExpectFunction):
             sage: singular.groebner._sage_doc_()
             '\ngroebner...Procedure from library `standard.lib...
         """
+        if not nodes:
+            generate_docstring_dictionary()
         try:
             return nodes[node_names[self._name]]
         except KeyError:
@@ -1751,6 +1751,8 @@ class SingularFunctionElement(FunctionElement):
             sage: A.nrows._sage_doc_()
             "\nnrows\n-----\n\n`*Syntax:*'\n ...
         """
+        if not nodes:
+            generate_docstring_dictionary()
         try:
             return nodes[node_names[self._name]]
         except KeyError:

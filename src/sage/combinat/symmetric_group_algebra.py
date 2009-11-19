@@ -5,17 +5,12 @@ Symmetric Group Algebra
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from sage.misc.cachefunc import cached_method
+from combinatorial_algebra import CombinatorialAlgebra
+from free_module import CombinatorialFreeModule
+from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
 import permutation
 import partition
 from tableau import Tableau, StandardTableaux_n, StandardTableaux_partition, StandardTableaux
@@ -52,13 +47,61 @@ def SymmetricGroupAlgebra(R,n):
         [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
         sage: b*a == a
         True
+
+    The canonical embedding from the symmetric group algebra of order
+    `n` to the symmetric group algebra of order `p>n` is available as
+    a coercion::
+
+        sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+        sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
+        sage: QS4.coerce_map_from(QS3)
+        Generic morphism:
+          From: Symmetric group algebra of order 3 over Rational Field
+          To:   Symmetric group algebra of order 4 over Rational Field
+
+        sage: x3  = QS3([3,1,2]) + 2 * QS3([2,3,1]); x3
+        2*[2, 3, 1] + [3, 1, 2]
+        sage: QS4(x3)
+        2*[2, 3, 1, 4] + [3, 1, 2, 4]
+
+    This allows for mixed expressions::
+
+        sage: x4  = 3*QS4([3, 1, 4, 2])
+        sage: x3 + x4
+        2*[2, 3, 1, 4] + [3, 1, 2, 4] + 3*[3, 1, 4, 2]
+
+        sage: QS0 = SymmetricGroupAlgebra(QQ, 0)
+        sage: QS1 = SymmetricGroupAlgebra(QQ, 1)
+        sage: x0 = QS0([])
+        sage: x1 = QS1([1])
+        sage: x0 * x1
+        [1]
+        sage: x3 - (2*x0 + x1) - x4
+        -3*[1, 2, 3, 4] + 2*[2, 3, 1, 4] + [3, 1, 2, 4] - 3*[3, 1, 4, 2]
+
+    Caveat: to achieve this, constructing ``SymmetricGroupAlgebra(QQ,
+    10)`` currently triggers the construction of all symmetric group
+    algebras of smaller order. Is this a feature we really want to have?
+
+    TESTS::
+
+        sage: TestSuite(QS3).run(verbose = True)
+        running ._test_additive_associativity() ... done
+        running ._test_an_element() ... done
+        running ._test_associativity() ... done
+        running ._test_element_pickling() ... done
+        running ._test_not_implemented_methods() ... done
+        running ._test_one() ... done
+        running ._test_pickling() ... done
+        running ._test_prod() ... done
+        running ._test_some_elements() ... done
+        running ._test_zero() ... done
+
     """
     return SymmetricGroupAlgebra_n(R,n)
 
-class SymmetricGroupAlgebraElement_n(CombinatorialAlgebraElement):
-    pass
+class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
-class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
     def __init__(self, R, n):
         """
         TESTS::
@@ -68,14 +111,32 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             True
         """
         self.n = n
-        self._combinatorial_class = permutation.Permutations(n)
         self._name = "Symmetric group algebra of order %s"%self.n
-        self._one = permutation.Permutation(range(1,n+1))
-        self._prefix = ""
-        self._element_class = SymmetricGroupAlgebraElement_n
-        CombinatorialAlgebra.__init__(self, R)
+        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), category = FiniteDimensionalAlgebrasWithBasis(R))
+        # This is questionable, and won't be inherited properly
+        if n > 0:
+            S = SymmetricGroupAlgebra(R, n-1)
+            self.register_coercion(S.canonical_embedding(self))
 
-    def _multiply_basis(self, left, right):
+    # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
+    _prefix = ""
+    _repr_option_bracket = False
+
+    @cached_method
+    def one_basis(self):
+        """
+        Returns the identity of the symmetric group, as per
+        ``AlgebrasWithBasis.ParentMethods.one_basis``
+
+        EXAMPLES::
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3.one_basis()
+            [1, 2, 3]
+        """
+        return permutation.Permutation(range(1,self.n+1))
+
+    def product_on_basis(self, left, right):
         """
         Returns the product of the basis elements indexed by left and
         right.
@@ -85,30 +146,85 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: p1 = Permutation([1,2,3])
             sage: p2 = Permutation([2,1,3])
-            sage: QS3._multiply_basis(p1,p2)
+            sage: QS3.product_on_basis(p1,p2)
             [2, 1, 3]
         """
-        return left * right
+        return self.term(left * right)
 
-    def _coerce_start(self, x):
+    def canonical_embedding(self, other):
         """
-        Coerce things into the symmetric group algebra.
+        INPUTS:
+
+         - ``self``, ``other`` -- two symmetric group algebras with respective
+           order 'p < n'
+
+        Returns the canonical embedding of self into other
 
         EXAMPLES::
 
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3._coerce_start([])
-            [1, 2, 3]
-            sage: QS3._coerce_start([2,1])
-            [2, 1, 3]
-            sage: _.parent()
-            Symmetric group algebra of order 3 over Rational Field
+            sage: QS2 = SymmetricGroupAlgebra(QQ, 2)
+            sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: phi = QS2.canonical_embedding(QS4); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Rational Field
+              To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: x = QS2([2,1]) + 2 * QS2([1,2])
+            sage: phi(x)
+            2*[1, 2, 3, 4] + [2, 1, 3, 4]
+
+            sage: loads(dumps(phi))
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Rational Field
+              To:   Symmetric group algebra of order 4 over Rational Field
         """
-        if x == []:
-            return self( self._one )
-        if len(x) < self.n and x in permutation.Permutations():
-            return self( list(x) + range(len(x)+1, self.n+1) )
-        raise TypeError
+        assert isinstance(other, SymmetricGroupAlgebra_n)
+        assert self.n < other.n
+        return self.module_morphism(other.term_from_smaller_permutation, codomain = other) # category = self.category() (currently broken)
+
+    def term_from_smaller_permutation(self, permutation):
+        """
+        Converts the input into a permutation, possibly extending it
+        to the appropriate size, and returns the corresponding basis
+        element.
+
+        EXAMPLES::
+
+            sage: QS5 = SymmetricGroupAlgebra(QQ, 5)
+            sage: QS5.term_from_smaller_permutation([])
+            [1, 2, 3, 4, 5]
+            sage: QS5.term_from_smaller_permutation(Permutation([3,1,2]))
+            [3, 1, 2, 4, 5]
+            sage: QS5.term_from_smaller_permutation([5,3,4,1,2])
+            [5, 3, 4, 1, 2]
+
+        TESTS::
+
+            sage: QS5.term_from_smaller_permutation([5,3,4,1,2]).parent()
+            Symmetric group algebra of order 5 over Rational Field
+        """
+        return self.term( self.basis().keys()(permutation) )
+
+
+#     def _coerce_start(self, x):
+#         """
+#         Coerce things into the symmetric group algebra.
+
+#         EXAMPLES::
+
+#             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+#             sage: QS3._coerce_start([])
+#             [1, 2, 3]
+#             sage: QS3._coerce_start([2,1])
+#             [2, 1, 3]
+#             sage: _.parent()
+#             Symmetric group algebra of order 3 over Rational Field
+#         """
+#         if x == []:
+#             return self( self._one )
+#         if len(x) < self.n and x in permutation.Permutations():
+#             return self( list(x) + range(len(x)+1, self.n+1) )
+#         raise TypeError
 
     def cpis(self):
         """
@@ -615,7 +731,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
         """
         self.n = n
-        self._combinatorial_class = permutation.Permutations(n)
+        self._basis_keys = permutation.Permutations(n)
         self._name = "Hecke algebra of the symmetric group of order %s"%self.n
         self._one = permutation.Permutation(range(1,n+1))
 
@@ -630,6 +746,10 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         self._q = q
 
         CombinatorialAlgebra.__init__(self, R)
+
+    # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
+    _prefix = ""
+    _repr_option_bracket = False
 
     def q(self):
         """
@@ -660,10 +780,8 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             return self( list(x) + range(len(x)+1, self.n+1) )
         raise TypeError
 
-class HeckeAlgebraSymmetricGroupElement_t(CombinatorialAlgebraElement):
-    pass
-
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
+
     def __init__(self, R, n, q=None):
         """
         TESTS::
@@ -673,7 +791,6 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             True
         """
         self._prefix = "T"
-        self._element_class = HeckeAlgebraSymmetricGroupElement_t
         HeckeAlgebraSymmetricGroup_generic.__init__(self, R, n, q)
         self._name += " on the T basis"
 
@@ -761,7 +878,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         if i not in range(1, self.n):
             raise ValueError, "i must be between 1 and n-1 (= %s)"%(self.n-1)
 
-        return self( permutation.Permutation( (i, i+1) ) )
+        return self.term(self.basis().keys()(permutation.Permutation( (i, i+1) ) ))
 
     def algebra_generators(self):
         """
@@ -785,7 +902,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
             sage: j2 = H3.jucys_murphy(2); j2
             q*T[1, 2, 3] + (q-1)*T[2, 1, 3]
-            sage: j3 = H3.jucys_murphy(3); j3
+            sage: j3 = H3.jucys_murphy(3); j3 #################### SEGFAULTS ################
             q^2*T[1, 2, 3] + (q^2-q)*T[1, 3, 2] + (q-1)*T[3, 2, 1]
             sage: j2*j3 == j3*j2
             True
@@ -804,3 +921,9 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             right *= self.t(j)
 
         return left*right
+
+
+# For unpickling backward compatibility (Sage <= 4.1)
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.symmetric_group_algebra', 'HeckeAlgebraSymmetricGroupElement_t',  CombinatorialFreeModule.Element)
+register_unpickle_override('sage.combinat.symmetric_group_algebra', 'SymmetricGroupAlgebraElement_n',  CombinatorialFreeModule.Element)

@@ -526,7 +526,7 @@ class WeylCharacterRing_class(Algebra):
         self._space = RootSystem(self._cartan_type).ambient_space()
         self._origin = self._space.zero()
         if prefix == None:
-            if ct.is_irreducible():
+            if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = ct.__repr__()
@@ -623,7 +623,7 @@ class WeylCharacterRing_class(Algebra):
         For type ['A',r], this coerces an element of the ambient space into SL(r+1,CC)
         by subtracting a (possibly fractional) power of the determinant.
         """
-        if self._cartan_type.is_irreducible():
+        if self._cartan_type.is_atomic():
             if self._cartan_type[0] == 'A':
                 x = x - self._space.det(sum(x.to_vector())/(self._rank+1))
         else:
@@ -1355,7 +1355,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     """
     if type(rule) == str:
         rule = get_branching_rule(R._cartan_type, S._cartan_type, rule)
-    elif R._cartan_type.is_reducible():
+    elif R._cartan_type.is_compound():
         Rtypes = R._cartan_type.component_types()
         Stypes = [CartanType(l[0]) for l in rule]
         rules = [l[1] for l in rule]
@@ -1401,7 +1401,7 @@ def get_branching_rule(Rtype, Stype, rule):
         if not s == r-1:
             raise ValueError, "Incompatible ranks"
         if Rtype[0] == 'A':
-            if Stype.is_reducible():
+            if Stype.is_compound():
                 if all(ct[0]=='A' for ct in Stype.component_types()) \
                        and rdim == sdim:
                     return lambda x : x
@@ -1412,7 +1412,7 @@ def get_branching_rule(Rtype, Stype, rule):
             else:
                 raise ValueError, "Rule not found"
         elif Rtype[0] in ['B', 'C', 'D']:
-            if Stype.is_irreducible():
+            if Stype.is_atomic():
                 if Stype[0] == 'A':
                     return  lambda x : x
                 elif Stype[0] == Rtype[0]:
@@ -1471,7 +1471,7 @@ def get_branching_rule(Rtype, Stype, rule):
         else:
             raise ValueError, "Rule not found"
     elif rule == "extended":
-        if Stype.is_reducible():
+        if Stype.is_compound():
             if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in Stype.component_types()):
                 if Rtype[0] == 'D':
                     rdeg = 2*r
@@ -1519,7 +1519,7 @@ def get_branching_rule(Rtype, Stype, rule):
         elif Rtype[0] == 'A' and r == 3 and Stype[0] == 'D':
             def rule(x): [x1, x2, x3, x4] = x; return [(x1+x2-x3-x4)/2, (x1-x2+x3-x4)/2, (x1-x2-x3+x4)/2]
             return rule
-        elif Rtype[0] == 'D' and r == 2 and Stype.is_reducible() and \
+        elif Rtype[0] == 'D' and r == 2 and Stype.is_compound() and \
                  all(t[0] == 'A' for t in Stype.component_types()):
             def rule(x): [t1, t2] = x; return [(t1-t2)/2, -(t1-t2)/2, (t1+t2)/2, -(t1+t2)/2]
             return rule
@@ -1529,7 +1529,7 @@ def get_branching_rule(Rtype, Stype, rule):
         else:
             raise ValueError, "Rule not found"
     elif rule == "tensor":
-        if not Stype.is_reducible():
+        if not Stype.is_compound():
             raise ValueError, "Tensor product requires more than one factor"
         if len(Stype.component_types()) is not 2:
             raise ValueError, "Not implemented"

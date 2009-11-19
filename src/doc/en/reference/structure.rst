@@ -16,10 +16,11 @@ Basic Structures
    sage/structure/sequence
    sage/structure/element_wrapper
 
-   sage/sets/finite_enumerated_set
-   sage/sets/set
-   sage/sets/primes
    sage/sets/family
+   sage/sets/set
+   sage/sets/finite_enumerated_set
+   sage/sets/non_negative_integers
+   sage/sets/primes
 
    sage/structure/parent
 

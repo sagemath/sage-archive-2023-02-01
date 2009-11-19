@@ -418,8 +418,9 @@ class EnumeratedSets(Category):
                     yield u
 
         # This @cached_method also allows for the temporary assignments
-        # an_element = EnumeratedSets.ParentMethods._an_element_
-        # in parents in this category (see e.g. examples/FiniteEnumeratedSets
+        # _an_element_ = EnumeratedSets.ParentMethods._an_element_
+        # in parents in this category (see e.g. examples/FiniteEnumeratedSets)
+        # until Parent won't override anymore the _an_element_ defined in categories
         @cached_method
         def _an_element_from_iterator(self):
             """
@@ -438,7 +439,8 @@ class EnumeratedSets(Category):
             """
             it = self.__iter__()
             return it.next()
-        # Should this implemented from first instead?
+
+        # Should this be implemented from first instead?
         _an_element_ = _an_element_from_iterator
 
         #FIXME: use combinatorial_class_from_iterator once class_from_iterator.patch is in

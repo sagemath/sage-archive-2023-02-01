@@ -293,7 +293,7 @@ class GroupAlgebra(Algebra):
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
             Category of group algebras over Ring of integers modulo 12
         """
-        from sage.categories.category_types import GroupAlgebras
+        from sage.categories.all import GroupAlgebras
         return GroupAlgebras(self.base_ring())
 
 

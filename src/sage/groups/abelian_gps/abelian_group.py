@@ -401,6 +401,10 @@ class AbelianGroup_class(group.AbelianGroup):
         [1]
         sage: AbelianGroup(3, [2, 1, 2], names=list('abc')).list()
         [1, b, a, a*b]
+
+        sage: F.category()
+        Category of groups
+
     """
     def __init__(self, n, invfac, names="f"):
         #invfac.sort()
@@ -424,6 +428,8 @@ class AbelianGroup_class(group.AbelianGroup):
         # *now* define ngens
         self.__ngens = len(self.__invariants)
         self._assign_names(names[:n])
+        from sage.categories.groups import Groups
+        group.Group.__init__(self, category = Groups()) # should be CommutativeGroups()
 
     def __call__(self, x):
         """

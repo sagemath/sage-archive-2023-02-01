@@ -18,8 +18,9 @@ Root lattice realization
 from sage.combinat.family import Family
 from sage.rings.all import ZZ
 from sage.misc.all import cached_method
+from sage.structure.sage_object import SageObject
 
-class RootLatticeRealization(object):
+class RootLatticeRealization(SageObject):
     def index_set(self):
         """
         EXAMPLES:

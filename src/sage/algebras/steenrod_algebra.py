@@ -446,7 +446,7 @@ class SteenrodAlgebra_generic(Algebra):
             sage: A.category()
             Category of algebras over Finite Field of size 3
         """
-        from sage.categories.category_types import Algebras
+        from sage.categories.all import Algebras
         return Algebras(GF(self.prime))
 
 

@@ -30,9 +30,30 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
     """
     Generic group class
     """
-    def __init__(self):
+    def __init__(self, category = None):
+        """
+
+        TESTS::
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.category()
+            Category of groups
+            sage: G = Group(category = Groups()) # todo: do the same test with some subcategory of Groups when there will exist one
+            sage: G.category()
+            Category of groups
+            sage: G = Group(category = CommutativeAdditiveGroups())
+            Traceback (most recent call last):
+            ...
+            AssertionError: Category of commutative additive groups is not a subcategory of Category of groups
+        """
+        from sage.categories.basic import Groups
+        if category is None:
+            category = Groups()
+        else:
+            assert category.is_subcategory(Groups()), "%s is not a subcategory of %s"%(category, Groups())
+
         sage.structure.parent_gens.ParentWithGens.__init__(self,
-                sage.rings.integer_ring.ZZ)
+                sage.rings.integer_ring.ZZ, category = category)
 
     def __call__(self, x):
         """
@@ -50,12 +71,12 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             return False
         return True
 
-    def category(self):
-        """
-        The category of all groups
-        """
-        import sage.categories.all
-        return sage.categories.all.Groups()
+#    def category(self):
+#        """
+#        The category of all groups
+#        """
+#        import sage.categories.all
+#        return sage.categories.all.Groups()
 
     def is_atomic_repr(self):
         """

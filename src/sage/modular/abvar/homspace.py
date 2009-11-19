@@ -216,7 +216,7 @@ class Homspace(HomsetWithBase):
             sage: Hom(J0(11), J0(11))
             Endomorphism ring of Abelian variety J0(11) of dimension 1
             sage: type(H)
-            <class 'sage.modular.abvar.homspace.Homspace'>
+            <class 'sage.modular.abvar.homspace.Homspace_with_category'>
             sage: H.homset_category()
             Category of modular abelian varieties over Rational Field
         """
@@ -698,7 +698,7 @@ class EndomorphismSubring(Homspace, Ring):
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J0(25))
             Endomorphism ring of Abelian variety J0(25) of dimension 0
             sage: type(J0(11).endomorphism_ring())
-            <class 'sage.modular.abvar.homspace.EndomorphismSubring'>
+            <class 'sage.modular.abvar.homspace.EndomorphismSubring_with_category'>
         """
         self._J = A.ambient_variety()
         self._A = A

@@ -57,7 +57,12 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         sage: Z == U
         True
 
-    TESTS:
+    TESTS::
+
+        sage: A = QQ^0; V = A.span([]) # corner case
+        sage: W = A.span([])
+        sage: U = V/W
+
         sage: loads(dumps(U)) == U
         True
         sage: type(loads(dumps(U)) )

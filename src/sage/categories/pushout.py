@@ -1,5 +1,5 @@
 from functor import Functor
-from category_types import *
+from basic import *
 
 from sage.structure.parent import CoercionException
 
@@ -109,6 +109,7 @@ class PolynomialFunctor(ConstructionFunctor):
     rank = 9
 
     def __init__(self, var, multi_variate=False):
+        from rings import Rings
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate

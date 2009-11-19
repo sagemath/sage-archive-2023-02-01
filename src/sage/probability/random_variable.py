@@ -15,8 +15,6 @@ functions.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.categories.all
-
 from sage.structure.parent_base import ParentWithBase
 from sage.misc.functional import sqrt, log
 from sage.rings.all import RealField, RationalField, is_RealField, is_RationalField

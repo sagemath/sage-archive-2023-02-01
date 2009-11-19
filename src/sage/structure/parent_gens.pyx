@@ -483,15 +483,6 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
             self._generator_orders = g
             return g
 
-    # This should eventually be inherited from the EnumeratedSets() category
-    list = parent.Parent._list_from_iterator_cached
-    """
-    TESTS::
-
-        sage: DirichletGroup(3).list()
-        [[1], [-1]]
-    """
-
     def __iter__(self):
         """
         Return an iterator over the elements in this object.
@@ -511,16 +502,6 @@ cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
                 g.append(x.additive_order())
             self._generator_orders = g
             return g
-
-    # This should eventually be inherited from the EnumeratedSets() category
-    list = parent.Parent._list_from_iterator_cached
-    """
-    TESTS::
-
-        sage: V = VectorSpace(GF(2,'a'),2)
-        sage: V.list()
-        [(0, 0), (1, 0), (0, 1), (1, 1)]
-    """
 
     def __iter__(self):
         """

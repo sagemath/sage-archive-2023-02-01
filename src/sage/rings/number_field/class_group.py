@@ -35,8 +35,12 @@ class ClassGroup(AbelianGroup_class):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23)
-            sage: K.class_group()
+            sage: G = K.class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
+
+            sage: G.category()
+            Category of groups
+            sage: TestSuite(G).run(verbose = True)  # todo: not implemented (test_an_element fails!)
         """
         self.__number_field = number_field
         self.__gens = Sequence([FractionalIdealClass(x, self) for x in gens], immutable=True,

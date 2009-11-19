@@ -143,27 +143,27 @@ def enum_affine_finite_field(X):
 
 import sage.structure.parent_old as parent_old
 
-from sage.categories.all import HomsetWithBase, Schemes
-from sage.rings.all      import (
-    is_FiniteField, is_RationalField, is_RingHomomorphism, ZZ)
+from sage.categories.homset import HomsetWithBase
+from sage.rings.integer_ring import ZZ
+from sage.rings.ring import is_FiniteField
+from sage.rings.rational_field import is_RationalField
+from sage.rings.morphism import is_RingHomomorphism
 import spec
 
 import morphism
 
-SCH = Schemes()
-
 def is_SchemeHomset(H):
     return isinstance(H, SchemeHomset_generic)
 
-def SchemeHomset(R, S, cat=None, check=True):
+def SchemeHomset(R, S, category=None, check=True):
     if spec.is_Spec(R) and spec.is_Spec(S):
-        return SchemeHomset_spec(R, S, cat=cat, check=check)
+        return SchemeHomset_spec(R, S, category=category, check=check)
     else:
-        return SchemeHomset_generic(R, S, cat=cat, check=check)
+        return SchemeHomset_generic(R, S, category=category, check=check)
 
 class SchemeHomset_generic(parent_old.Parent, HomsetWithBase):
-    def __init__(self, X, Y, cat=None, check=True, base=ZZ):
-        HomsetWithBase.__init__(self, X, Y, cat=cat, check=check, base=base)
+    def __init__(self, X, Y, category=None, check=True, base=ZZ):
+        HomsetWithBase.__init__(self, X, Y, category=category, check=check, base=base)
 
     def has_coerce_map_from_impl(self, S):
         if self == S:   # an obvious case
@@ -320,7 +320,7 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
             raise TypeError, "Unable to enumerate points over %s."%R
 
 class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
-    def __init__(self, X, S, cat=None, check=True):
+    def __init__(self, X, S, category=None, check=True):
         r"""
         EXAMPLES: The bug reported at trac #1785 is fixed::
 
@@ -341,7 +341,7 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
         if R != S:
             X = X.base_extend(S)
         Y = spec.Spec(S, R)
-        HomsetWithBase.__init__(self, Y, X, cat=cat,
+        HomsetWithBase.__init__(self, Y, X, category=category,
                                 check = check,
                                 base = sage.rings.integer_ring.ZZ)
 

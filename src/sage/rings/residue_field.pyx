@@ -102,7 +102,7 @@ include "../ext/stdsage.pxi"
 from sage.rings.field import Field
 from sage.rings.integer import Integer
 from sage.categories.homset import Hom
-from sage.categories.category_types import Fields, Rings
+from sage.categories.basic import Fields, Rings
 from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
 import weakref

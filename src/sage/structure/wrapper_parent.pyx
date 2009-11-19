@@ -47,7 +47,7 @@ include "../ext/stdsage.pxi"
 
 import copy
 import inspect
-from sage.categories.category_types import Objects
+from sage.categories.all import Objects
 from sage.categories.homset import Hom
 from sage.rings.ring import Ring
 from sage.categories.morphism import CallMorphism

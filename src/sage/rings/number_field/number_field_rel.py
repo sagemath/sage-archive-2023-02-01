@@ -631,7 +631,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.Hom(K)
             Automorphism group of Number Field in a with defining polynomial x^3 - 2 over its base field
             sage: type(K.Hom(K))
-            <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset'>
+            <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset_with_category'>
         """
         import morphism
         return morphism.RelativeNumberFieldHomset(self, codomain)

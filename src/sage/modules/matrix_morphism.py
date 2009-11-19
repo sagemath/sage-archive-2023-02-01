@@ -50,7 +50,7 @@ AUTHOR:
 """
 
 
-import sage.categories.all
+import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
 import sage.misc.misc as misc
@@ -71,7 +71,7 @@ def is_MatrixMorphism(x):
     """
     return isinstance(x, MatrixMorphism_abstract)
 
-class MatrixMorphism_abstract(sage.categories.all.Morphism):
+class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
     def __init__(self, parent):
         """
         INPUT:
@@ -94,7 +94,7 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         """
         if not sage.categories.homset.is_Homset(parent):
             raise TypeError, "parent must be a Hom space"
-        sage.categories.all.Morphism.__init__(self, parent)
+        sage.categories.morphism.Morphism.__init__(self, parent)
 
     def __cmp__(self, other):
         """

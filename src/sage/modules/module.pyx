@@ -23,12 +23,23 @@ cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """
+#    def __call__(self, x):
+#        """
+#        Coerce x into the ring.
+#        """
+#        raise NotImplementedError
+    # Should be deprecated as soon as all modules declare their
+    # category properly at initialization
     def category(self):
         """
         Return the category to which this module belongs.
         """
-        import sage.categories.all
-        return sage.categories.all.Modules(self.base_ring())
+        category = sage.structure.category_object.CategoryObject.category(self)
+        from sage.categories.all import Objects, Modules
+        if category == Objects():
+            return Modules(self.base_ring())
+        else:
+            return category
 
     def endomorphism_ring(self):
         """

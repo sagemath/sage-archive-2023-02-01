@@ -39,7 +39,7 @@ include "../ext/stdsage.pxi"
 cdef class Action(Functor):
 
     def __init__(self, G, S, bint is_left = 1, op=None):
-        from category_types import Groupoid
+        from groupoid import Groupoid
         Functor.__init__(self, Groupoid(G), S.category())
         self.G = G
         self.S = S

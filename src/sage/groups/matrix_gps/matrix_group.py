@@ -227,7 +227,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     def _Hom_(self, G, cat=None):
         if not (cat is None or (cat is G.category() and cat is self.category())):
-            raise NotImplementedError
+            raise TypeError
         if not is_MatrixGroup(G):
             raise TypeError, "G (=%s) must be a matrix group."%G
         import homset

@@ -80,6 +80,7 @@ from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 import sage.structure.coerce as coerce
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.arith import factor
+from sage.groups.group import FiniteGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even, log
 from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
@@ -185,6 +186,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group of order 4! as a permutation group
             sage: G.set()
             [1, 2, 3, 4]
+
+            sage: G.category()
+            Category of groups
         """
         self._set = self._get_set(n)
         self._deg = max(self._set)
@@ -198,9 +202,11 @@ class SymmetricGroup(PermutationGroup_symalt):
             if n > 2:
                 gens.append( tuple(self._set[:2]) )
 
-        #Note that we don't call the superclass initializer in order to
+        #Note that we skip the call to the superclass initializer in order to
         #avoid infinite recursion since SymmetricGroup is called by
         #PermutationGroupElement
+        FiniteGroup.__init__(self)
+
         gens = [PermutationGroupElement(g, self, check=False) for g in gens]
         self._gap_string = '%s(%s)'%(self._gap_name, n)
         self._gens = gens
@@ -254,6 +260,8 @@ class AlternatingGroup(PermutationGroup_symalt):
             Alternating group of order 4!/2 as a permutation group
             sage: G.set()
             [1, 2, 4, 5]
+            sage: G.category()
+            Category of groups
         """
         self._set = self._get_set(n)
         self._deg = max(self._set)
@@ -293,6 +301,8 @@ class CyclicPermutationGroup(PermutationGroup_generic):
             8
             sage: G
             Cyclic group of order 8 as a permutation group
+            sage: G.category()
+            Category of groups
             sage: loads(G.dumps()) == G
             True
             sage: C = CyclicPermutationGroup(10)
@@ -301,7 +311,6 @@ class CyclicPermutationGroup(PermutationGroup_generic):
             sage: C = CyclicPermutationGroup(10)
             sage: C.as_AbelianGroup()
             Multiplicative Abelian Group isomorphic to C2 x C5
-
         """
         n = Integer(n)
         if n < 1:
@@ -555,6 +564,8 @@ class KleinFourGroup(PermutationGroup_generic):
             [(), (3,4), (1,2), (1,2)(3,4)]
 
         TESTS:
+            sage: G.category()
+            Category of groups
             sage: G == loads(dumps(G))
             True
 
@@ -675,6 +686,8 @@ class DihedralGroup(PermutationGroup_generic):
             ValueError: n must be positive
 
         TESTS:
+            sage: G.category()
+            Category of groups
             sage: G == loads(dumps(G))
             True
         """
@@ -725,6 +738,8 @@ class MathieuGroup(PermutationGroup_generic):
             Mathieu group of degree 12 and order 95040 as a permutation group
 
         TESTS:
+            sage: G.category()
+            Category of groups
             sage: G == loads(dumps(G))
             True
         """
@@ -763,6 +778,8 @@ class TransitiveGroup(PermutationGroup_generic):
             sage: G.gens()                             # requires optional database_gap
             [(1,2,3,4,5), (1,4)(2,3)]
 
+            sage: G.category()
+            Category of groups
             sage: loads(G.dumps()) == G                # requires optional database_gap
             True
         """
@@ -834,6 +851,9 @@ class PGL(PermutationGroup_plg):
             Permutation Group with generators [(3,10,9,8,4,7,6,5), (1,2,4)(5,6,8)(7,9,10)]
             sage: G.base_ring()
             Finite Field in b of size 3^2
+
+            sage: G.category()
+            Category of groups
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
         id = 'Group([()])' if n == 1 else 'PGL(%s,%s)'%(n,q)
@@ -885,6 +905,8 @@ class PSL(PermutationGroup_plg):
             sage: G.base_ring()
             Finite Field in a of size 2^3
 
+            sage: G.category()
+            Category of groups
         """
         if n == 1:
             id = 'Group([()])'

@@ -1299,10 +1299,10 @@ class FGP_Module_class(Module):
             sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ); W = V.span([V.0+2*V.1, 9*V.0+2*V.1, 4*V.2])
             sage: Q = V/W
             sage: Q.Hom(Q)
-            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 16) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of ring modules over Integer Ring
+            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 16) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
             sage: M = V/V.zero_submodule()
             sage: M.Hom(Q)
-            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0, 0, 0) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of ring modules over Integer Ring
+            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0, 0, 0) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
         """
         return FGP_Homset(self, N)
 

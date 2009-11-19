@@ -25,8 +25,8 @@ AUTHORS:
 
 
 import sage.misc.misc as misc
-import sage.categories.all as cat
 from sage.modules.matrix_morphism import MatrixMorphism
+from sage.categories.morphism import Morphism
 
 # We also define other types of Hecke-module morphisms that aren't
 # specified by a matrix.  E.g., Hecke operators, or maybe morphisms on
@@ -54,7 +54,7 @@ def is_HeckeModuleMorphism_matrix(x):
     """
     return isinstance(x, HeckeModuleMorphism_matrix)
 
-class HeckeModuleMorphism(cat.Morphism):
+class HeckeModuleMorphism(Morphism):
     r"""
     Abstract base class for morphisms of Hecke modules.
     """

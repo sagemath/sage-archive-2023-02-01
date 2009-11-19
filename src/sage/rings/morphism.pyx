@@ -384,7 +384,6 @@ TESTS::
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 
-from sage.categories.all import is_Homset, Sets
 import ideal
 
 import homset
@@ -468,6 +467,7 @@ cdef class RingMap_lift(RingMap):
             sage: type(f)
             <type 'sage.rings.morphism.RingMap_lift'>
         """
+        from sage.categories.sets_cat import Sets
         H = R.Hom(S, Sets())
         RingMap.__init__(self, H)
         self.S = S  # for efficiency

@@ -37,7 +37,7 @@ from sage.misc.misc import repr_lincomb, is_iterator
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
-
+from sage.categories.all import Rings
 
 class LazyPowerSeriesRing(Algebra):
     def __init__(self, R, element_class = None, names=None):
@@ -50,7 +50,7 @@ class LazyPowerSeriesRing(Algebra):
             Lazy Power Series Ring over Rational Field
         """
         #Make sure R is a ring with unit element
-        if not isinstance(R, Ring):
+        if not R in Rings():
             raise TypeError, "Argument R must be a ring."
         try:
             z = R(Integer(1))

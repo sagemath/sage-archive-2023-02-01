@@ -462,11 +462,11 @@ def FGP_Homset(X, Y):
 
         sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2]); Q = V/W
         sage: Q.Hom(Q)           # indirect doctest
-        Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of ring modules over Integer Ring
+        Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of modules over Integer Ring
         sage: True # Q.Hom(Q) is Q.Hom(Q)
         True
         sage: type(Q.Hom(Q))
-        <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class'>
+        <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
     """
     key = (X,Y)
     try: return _fgp_homset[key]
@@ -484,7 +484,7 @@ class FGP_Homset_class(Homset):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2]); Q = V/W
             sage: type(Q.Hom(Q))
-            <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class'>
+            <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
         """
         Homset.__init__(self, X, Y)
         self._populate_coercion_lists_(element_constructor = FGP_Morphism,

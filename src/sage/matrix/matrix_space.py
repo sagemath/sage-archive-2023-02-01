@@ -84,6 +84,8 @@ import sage.modules.free_module_element
 import sage.modules.free_module
 from sage.structure.sequence import Sequence
 
+from sage.categories.rings import Rings
+
 def is_MatrixSpace(x):
     """
     Returns True if self is an instance of MatrixSpace returns false if
@@ -182,7 +184,7 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         sage: loads(M.dumps()) == M
         True
     """
-    if not sage.rings.ring.is_Ring(base_ring):
+    if not base_ring in Rings():
         raise TypeError, "base_ring (=%s) must be a ring"%base_ring
 
     if ncols is None: ncols = nrows
@@ -207,20 +209,35 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+        sage: MatrixSpace(ZZ,10,5).category()
+        Category of modules over Integer Ring
+
         sage: MatrixSpace(ZZ,10,2^31)
         Traceback (most recent call last):                                   # 32-bit
         ...                                                                  # 32-bit
         ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
         Full MatrixSpace of 10 by 2147483648 dense matrices over Integer Ring   # 64-bit
+
+        sage: MatrixSpace(ZZ,10,10).category()
+        Category of algebras over Integer Ring
+        sage: MatrixSpace(QQ,10).category()
+        Category of algebras over Rational Field
     """
+
     def __init__(self,  base_ring,
                         nrows,
                         ncols=None,
                         sparse=False):
-        parent_gens.ParentWithGens.__init__(self, base_ring)
-        if not isinstance(base_ring, ring.Ring):
-            raise TypeError, "base_ring must be a ring"
+
         if ncols == None: ncols = nrows
+        from sage.categories.all import Modules, Algebras
+        parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
+        # Temporary until the inheritance glitches are fixed
+        category = Algebras(base_ring) if nrows == ncols else Modules(base_ring)
+        sage.structure.category_object.CategoryObject._init_category_(self, category)
+
+        if not base_ring in Rings():
+            raise TypeError, "base_ring must be a ring"
         nrows = int(nrows)
         ncols = int(ncols)
         if nrows < 0:

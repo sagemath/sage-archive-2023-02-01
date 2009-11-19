@@ -111,7 +111,7 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
         sage: T = EK.torsion_subgroup(); T
         Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1
         sage: type(T)
-        <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup'>
+        <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
 
 
     AUTHORS:
@@ -149,7 +149,7 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
             sage: T = EK.torsion_subgroup(); T
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1
             sage: type(T)
-            <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup'>
+            <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
         """
         self.__E = E
         self.__K = E.base_field()

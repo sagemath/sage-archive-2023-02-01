@@ -1038,7 +1038,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
 
         MS = matrix_space.MatrixSpace(self.base_ring(), self.dimension(), M.dimension())
-        hom = hecke.HeckeModuleHomspace(self, M)
+        hom = self.Hom(M)
         if self.dimension() == 0 or M.dimension() == 0:
             A = MS(0)
             phi = hom(A, "Heilbronn operator(%s,%s)"%(H,t))

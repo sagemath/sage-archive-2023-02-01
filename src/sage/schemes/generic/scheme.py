@@ -19,12 +19,9 @@ AUTHORS:
 #*******************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
-from sage.categories.all import Schemes
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
                             ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
                             Rationals)
-
-SCH = Schemes()
 
 import homset
 
@@ -354,12 +351,14 @@ class Scheme(ParentWithBase):
         try:
             return self._base_morphism
         except AttributeError:
+            from sage.categories.schemes import Schemes
+            SCH = Schemes()
             if hasattr(self, '_base_scheme'):
-                self._base_morphism = self.Hom(self._base_scheme, cat=SCH).natural_map()
+                self._base_morphism = self.Hom(self._base_scheme, category=SCH).natural_map()
             elif hasattr(self, '_base_ring'):
-                self._base_morphism = self.Hom(spec.Spec(self._base_ring), cat=SCH).natural_map()
+                self._base_morphism = self.Hom(spec.Spec(self._base_ring), category=SCH).natural_map()
             else:
-                self._base_morphism = self.Hom(spec.SpecZ, cat=SCH).natural_map()
+                self._base_morphism = self.Hom(spec.SpecZ, category=SCH).natural_map()
             return self._base_morphism
 
     structure_morphism = base_morphism
@@ -374,6 +373,7 @@ class Scheme(ParentWithBase):
             sage: ProjectiveSpace(4, QQ).category()
             Category of schemes over Spectrum of Rational Field
         """
+        from sage.categories.schemes import Schemes
         return Schemes(self.base_scheme())
 
     def coordinate_ring(self):
@@ -468,7 +468,7 @@ class Scheme(ParentWithBase):
                 raise TypeError, "unable to determine codomain"
         return self.Hom(Y)(x)
 
-    def _Hom_(self, Y, cat=None, check=True):
+    def _Hom_(self, Y, category=None, check=True):
         """
         Return the set of scheme morphisms from self to Y.
 
@@ -479,7 +479,7 @@ class Scheme(ParentWithBase):
             sage: S._Hom_(P)
             Set of points of Projective Space of dimension 3 over Integer Ring defined over Integer Ring
         """
-        return homset.SchemeHomset(self, Y, cat=cat, check=check)
+        return homset.SchemeHomset(self, Y, category=category, check=check)
 
     point_set = point_homset
 

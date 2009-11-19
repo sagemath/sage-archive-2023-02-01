@@ -324,9 +324,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4.center()
             Permutation Group with generators [()]
+            sage: A4.category()
+            Category of groups
             sage: loads(A4.dumps()) == A4
             True
         """
+        super(PermutationGroup_generic, self).__init__()
         if (gens is None and gap_group is None):
             raise ValueError, "you must specify gens or gap_group"
 

@@ -8,7 +8,8 @@ Spec of a ring
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.rings.all import is_CommutativeRing, ZZ
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.integer_ring import ZZ
 import scheme
 import point
 

@@ -40,7 +40,7 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
     A space of homomorphisms between two objects in the category of Hecke
     modules over a given base ring.
     """
-    def __init__(self, X, Y):
+    def __init__(self, X, Y, category = None):
         r"""
         Create the space of homomorphisms between X and Y, which must have the
         same base ring.
@@ -61,7 +61,9 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
             raise TypeError, "X and Y must be Hecke modules"
         if X.base_ring() != Y.base_ring():
             raise TypeError, "X and Y must have the same base ring"
-        sage.categories.homset.HomsetWithBase.__init__(self, X, Y, X.category())
+        if category is None:
+            category = X.category()
+        sage.categories.homset.HomsetWithBase.__init__(self, X, Y, category = category)
 
     def __call__(self, A, name=''):
         r"""

@@ -18,7 +18,7 @@ AUTHORS:
 
 from sage.groups.group_homset import GroupHomset_generic
 from sage.categories.homset import HomsetWithBase
-from sage.categories.category_types import Groups
+from sage.categories.all import Groups
 GROUPS = Groups()
 
 import matrix_group_morphism

@@ -22,7 +22,7 @@ import math
 import operator
 
 import sage.algebras.algebra_element
-import sage.categories.all as cat
+from sage.categories.homset import End
 import sage.misc.latex as latex
 import sage.misc.misc as misc
 import sage.modules.module
@@ -145,7 +145,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         except AttributeError:
             T = self.matrix()
             M = self.domain()
-            H = cat.End(M)
+            H = End(M)
             if isinstance(self, HeckeOperator):
                 name = "T_%s"%self.index()
             else:

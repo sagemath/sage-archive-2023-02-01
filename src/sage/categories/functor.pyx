@@ -44,7 +44,7 @@ cdef class Functor(SageObject):
         True
         sage: I = IdentityFunctor(abgrps)
         sage: I
-        The identity functor on CommutativeAdditiveGroups
+        The identity functor on Category of commutative additive groups
         sage: I.domain()
         Category of commutative additive groups
         sage: is_Functor(I)
@@ -59,7 +59,7 @@ cdef class Functor(SageObject):
         self.__codomain = codomain
 
     def __repr__(self):
-        return "Functor from %s to %s"%(self.__domain.short_name(), self.__codomain.short_name())
+        return "Functor from %s to %s"%(self.__domain, self.__codomain)
 
     def __call__(self, x):
         if not (x in  self.__domain):
@@ -99,7 +99,7 @@ class ForgetfulFunctor_generic(Functor):
 
     def __repr__(self):
         return "The forgetful functor from %s to %s"%(
-            self.domain().short_name(), self.codomain().short_name())
+            self.domain(), self.codomain())
 
     def _apply_functor(self, x):
         return self.codomain()(x)
@@ -126,7 +126,7 @@ class IdentityFunctor_generic(ForgetfulFunctor_generic):
         return IdentityFunctor, (self.domain(), )
 
     def __repr__(self):
-        return "The identity functor on %s"%(self.domain().short_name())
+        return "The identity functor on %s"%(self.domain())
 
     def _apply_functor(self, x):
         return x
@@ -149,9 +149,8 @@ def ForgetfulFunctor(domain, codomain):
         sage: abgrps = CommutativeAdditiveGroups()
         sage: F = ForgetfulFunctor(rings, abgrps)
         sage: F
-        The forgetful functor from Rings to CommutativeAdditiveGroups
+        The forgetful functor from Category of rings to Category of commutative additive groups
     """
-    from category_types import category_hierarchy
     if domain == codomain:
         return IdentityFunctor(domain, codomain)
     if not domain.is_subcategory(codomain):

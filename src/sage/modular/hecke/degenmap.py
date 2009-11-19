@@ -89,7 +89,7 @@ class DegeneracyMap(morphism.HeckeModuleMorphism_matrix):
             True
         """
         self.__t = t
-        H = homspace.HeckeModuleHomspace(domain, codomain)
+        H = domain.Hom(codomain)
         if t == 1:
             pow = ""
         else:

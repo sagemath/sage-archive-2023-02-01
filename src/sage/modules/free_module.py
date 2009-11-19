@@ -572,6 +572,12 @@ class FreeModule_generic(module.Module):
         from sage.categories.pushout import VectorFunctor
         return VectorFunctor(self.rank(), self.is_sparse()), self.base_ring()
 
+    # FIXME: what's the level of generality of FreeModuleHomspace?
+    # Should there be a category for free modules accepting it as hom space?
+    def _Hom_(self, Y, category):
+        from free_module_homspace import FreeModuleHomspace
+        return FreeModuleHomspace(self, Y, category)
+
     def dense_module(self):
         """
         Return corresponding dense module.
@@ -985,6 +991,12 @@ class FreeModule_generic(module.Module):
             sage: W = V.subspace([V([1,1])])
             sage: print [x for x in W]
             [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
+
+        TESTS::
+
+            sage: V = VectorSpace(GF(2,'a'),2)
+            sage: V.list()
+            [(0, 0), (1, 0), (0, 1), (1, 1)]
         """
         G = self.gens()
         if len(G) == 0:
@@ -1009,28 +1021,32 @@ class FreeModule_generic(module.Module):
                 v[n] = zero
                 n += 1
 
-
-    def __len__(self):
+    def cardinality(self):
         r"""
         Return the cardinality of the free module.
 
-        N.B. Currently len(QQ) gives a TypeError, hence so does len(QQ3).
+        N.B. using len(QQ3) is now deprecated
+        N.B. Currently len(QQ) gives a TypeError, hence so does QQ3.cardinality()
 
         EXAMPLES::
 
             sage: k.<a> = FiniteField(9)
             sage: V = VectorSpace(k,3)
-            sage: len(V)
+            sage: V.cardinality()
             729
             sage: W = V.span([[1,2,1],[0,1,1]])
-            sage: len(W)
+            sage: W.cardinality()
             81
             sage: R = IntegerModRing(12)
             sage: M = FreeModule(R,2)
-            sage: len(M)
+            sage: M.cardinality()
             144
         """
+        # todo: use self.base_ring().cardinality() when it will be supported by all fields
+        # this will fix the NB above
         return len(self.base_ring())**self.rank()
+
+    __len__ = cardinality # for backward compatibility
 
     def ambient_module(self):
         """
@@ -2896,7 +2912,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         import sage.categories.all
         return sage.categories.all.VectorSpaces(self.base_field())
-
 
     def echelonized_basis_matrix(self):
         """

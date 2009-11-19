@@ -1633,7 +1633,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: QuadraticField(2,'d').category()
             Category of number fields
         """
-        from sage.categories.all import NumberFields
+        from sage.categories.number_fields import NumberFields
         return NumberFields()
 
     def __cmp__(self, other):

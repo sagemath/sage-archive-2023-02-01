@@ -592,10 +592,26 @@ cdef class SageObject:
         return self._interface_init_(gp)
 
 
+######################################################
+# A python-accessible version of the one in coerce.pxi
+# Where should it be?
+
+def have_same_parent(self, other):
+    """
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import have_same_parent
+        sage: have_same_parent(1, 3)
+        True
+        sage: have_same_parent(1, 1/2)
+        False
+        sage: have_same_parent(gap(1), gap(1/2))
+        True
+    """
+    from sage.structure.coerce import parent
+    return parent(self) == parent(other)
+
 ##################################################################
-
-
-
 
 def load(filename, compress=True, verbose=True):
     """
@@ -964,3 +980,4 @@ def unpickle_all(dir, debug=False):
     print "Failed to unpickle %s objects."%j
     if debug:
         return tracebacks
+

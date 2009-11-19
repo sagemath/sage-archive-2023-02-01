@@ -50,18 +50,19 @@ cdef int bad_parent_warnings = 0
 
 import generators
 import sage_object
+from sage.categories.category import JoinCategory
 
 def guess_category(obj):
     # this should be obsolete if things declare their categories
     try:
         if obj.is_field():
-            from sage.categories.category_types import Fields
+            from sage.categories.all import Fields
             return Fields()
     except:
         pass
     try:
         if obj.is_ring():
-            from sage.categories.category_types import CommutativeAlgebras, Algebras, CommutativeRings, Rings
+            from sage.categories.all import CommutativeAlgebras, Algebras, CommutativeRings, Rings
             if obj.is_commutative():
                 if obj._base is not obj:
                     return CommutativeAlgebras(obj._base)
@@ -74,32 +75,81 @@ def guess_category(obj):
                     return Rings()
     except:
         pass
+    from sage.structure.parent import Parent
+    #if isinstance(obj, Parent):
+    #    import sys
+    #    sys.stderr.write("bla: %s"%obj)
+    #    from sage.categories.all import Sets
+    #    return Sets()
     return None # don't want to risk importing stuff...
 
 cdef class CategoryObject(sage_object.SageObject):
     """
     An object in some category.
     """
-    def __init__(self, category, base = None):
+    def __init__(self, category = None, base = None):
         """
         Initializes an object in a category
 
         INPUT:
 
         - ``category`` - The category this object belongs to. If this object
-          belongs to multiple categories, pass in a join category.
+          belongs to multiple categories, those can be passed as a tuple
         - ``base`` - If this object has another object that should be
           considered a base in its primary category, you can include that base
           here.
+
+        EXAMPLES::
+
+            sage: from sage.structure.category_object import CategoryObject
+            sage: A = CategoryObject()
+            sage: A.category()
+            Category of objects
+            sage: A.base()
+
+            sage: A = CategoryObject(category = Rings(), base = QQ)
+            sage: A.category()
+            Category of rings
+            sage: A.base()
+            Rational Field
+
+            sage: A = CategoryObject(category = (Semigroups(), CommutativeAdditiveSemigroups()))
+            sage: A.category()
+            Join of Category of semigroups and Category of commutative additive semigroups
+
+        FIXME: the base and generators attributes have nothing to do with categories, do they?
         """
         if base is not None:
             self._base = base
+        self._generators = {}
+        if category is not None:
+            self._init_category_(category)
+
+    def _init_category_(self, category):
+        """
+        Sets the category or categories of this object.
+
+        EXAMPLES::
+
+            sage: A = sage.structure.category_object.CategoryObject()
+            sage: A._init_category_(Rings())
+            sage: A.category()
+            Category of rings
+            sage: A._init_category_((Semigroups(), CommutativeAdditiveSemigroups()))
+            sage: A.category()
+            Join of Category of semigroups and Category of commutative additive semigroups
+        """
         if category is None:
             if bad_parent_warnings:
                 print "No category for %s" % type(self)
             category = guess_category(self) # so generators don't crash
+        elif (type(category) == tuple or type(category) == list):
+            assert(len(category)>0) # or we should decide of the semantic for an empty category
+            if len(category) == 1:
+                category = category[0]
+            else:
+                category = JoinCategory(category)
         self._category = category
-        self._generators = {}
 
     def category(self):
         if self._category is None:
@@ -396,7 +446,7 @@ cdef class CategoryObject(sage_object.SageObject):
 #            raise TypeError, "base extension not defined for %s" % self
 
     # COERCE TODO: When everything has a category, move let it be an optional arg.
-    def base_ring(self):
+    def base_ring(self): # This should be in a category or elsewhere, but not here
         return self._base
 
     def base(self):
@@ -463,7 +513,7 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         try:
             return self._Hom_(codomain, cat)
-        except (TypeError, AttributeError):
+        except (AttributeError, TypeError):
             pass
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
@@ -556,7 +606,7 @@ cdef class CategoryObject(sage_object.SageObject):
                 try:
                     self._base = d['_base']
                     self._names = d['_names']
-                    from sage.categories.category_types import Objects
+                    from sage.categories.all import Objects
                     if d['_gens'] is None:
                         from sage.structure.generators import Generators
                         self._generators = Generators(self, None, Objects())

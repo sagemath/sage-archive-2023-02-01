@@ -52,12 +52,12 @@ cdef class ParentWithBase(parent_old.Parent):
     """
     This class is being deprecated, see parent.Parent for the new model.
     """
-    def __init__(self, base, coerce_from=[], actions=[], embeddings=[]):
+    def __init__(self, base, coerce_from=[], actions=[], embeddings=[], category=None):
         # TODO: SymbolicExpressionRing has base RR, which makes this bad
 #        print type(self), "base", base, coerce_from
 #        if base != self and not base in coerce_from:
 #            coerce_from.append(base)
-        parent_old.Parent.__init__(self, coerce_from=coerce_from, actions=actions, embeddings=embeddings)
+        parent_old.Parent.__init__(self, coerce_from=coerce_from, actions=actions, embeddings=embeddings, category=category)
         self._base = base
 
     def _richcmp(left, right, int op):
@@ -91,11 +91,11 @@ cdef class ParentWithBase(parent_old.Parent):
     ############################################################################
     # Homomorphism --
     ############################################################################
-    def Hom(self, codomain, cat=None):
+    def Hom(self, codomain, category = None):
         r"""
-        self.Hom(codomain, cat=None):
+        self.Hom(codomain, category = None):
 
-        Return the homspace \code{Hom(self, codomain, cat)} of all
+        Returns the homspace \code{Hom(self, codomain, category)} of all
         homomorphisms from self to codomain in the category cat.  The
         default category is \code{self.category()}.
 
@@ -114,12 +114,13 @@ cdef class ParentWithBase(parent_old.Parent):
             sage: QQ.Hom(ZZ, Sets())
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
         """
+        # NT 01-2009: what's the difference with parent.Parent.Hom???
         if self._element_constructor is None:
-            return parent.Parent.Hom(self, codomain, cat)
+            return parent.Parent.Hom(self, codomain, category)
         try:
-            return self._Hom_(codomain, cat)
-        except (TypeError, AttributeError):
+            return self._Hom_(codomain, category)
+        except (AttributeError, TypeError):
             pass
         from sage.categories.all import Hom
-        return Hom(self, codomain, cat)
+        return Hom(self, codomain, category)
 

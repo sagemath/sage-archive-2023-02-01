@@ -70,7 +70,8 @@ A simple example of registering coercions::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.categories.sets_cat import Sets
 from copy import copy
 
 cdef int bad_parent_warnings = 0
@@ -120,6 +121,27 @@ cdef extern from *:
 
 cdef inline Py_ssize_t PyDict_GET_SIZE(o):
     return (<dict>o).ma_used
+
+def is_extension_type(cls):
+    """
+    INPUT:
+     - cls: a class
+
+    Tests whether cls is an extension type (int, list, cython compiled classes, ...)
+
+    EXAMPLES
+        sage: from sage.structure.parent import is_extension_type
+        sage: is_extension_type(int)
+        True
+        sage: is_extension_type(list)
+        True
+        sage: is_extension_type(ZZ.__class__)
+        True
+        sage: is_extension_type(QQ.__class__)
+        False
+    """
+    # Robert B claims that this should be robust
+    return hasattr(cls, "__dictoffset__") and cls.__dictoffset__ == 0
 
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation
@@ -175,6 +197,8 @@ cdef bint guess_pass_parent(parent, element_constructor):
     else:
         return True
 
+from sage.categories.category import Category
+from sage.structure.dynamic_class import dynamic_class
 
 
 cdef class Parent(category_object.CategoryObject):
@@ -189,8 +213,49 @@ cdef class Parent(category_object.CategoryObject):
 
     """
 
-    def __init__(self, base=None, *, categories=[], element_constructor=None, gens=None, names=None, normalize=True, **kwds):
-        CategoryObject.__init__(self, categories, base)
+    def __init__(self, base=None, *, category=None, element_constructor=None, gens=None, names=None, normalize=True, **kwds):
+        """
+
+        category: a category or list/tuple of categories
+
+        If category is a list or tuple, a JoinCategory is created out
+        of them.  If category is not specified, the category will be
+        guessed (see CategoryObject), but won't be used to inherit
+        parent's or element's code from this category.
+
+        FIXME: eventually, category should be Sets() by default
+
+        INPUT:
+
+        - base -- An algebraic structure considered to be the "base"
+          of this parent (e.g. the base field for a vector space).
+
+        - category -- The category in which this parent lies.  Since
+          categories support more general super-categories, this
+          should be the most specific category possible.
+
+        - element_constructor -- A class or function that creates
+          elements of this Parent given appropriate input (can also be
+          filled in later with ``_populate_coercion_lists_``
+
+        - gens -- Generators for this object (can also be filled in
+          later with ``_populate_generators_``)
+
+        - names -- Names of generators.
+
+        - normalize -- Whether to standardize the names (remove punctuation, etc)
+        """
+
+        # TODO: in the long run, we want to get rid of the element_constructor = argument
+        # (element_constructor would always be set by inheritance)
+        # Then, all the element_constructor logic should be moved to init_coerce.
+
+        CategoryObject.__init__(self, base = base)
+        # Setting the categories is currently done in a separate
+        # method to let some subclasses (like ParentsWithBase)
+        # call it without calling the full constructor
+        self._init_category_(category)
+
         if len(kwds) > 0:
             if bad_parent_warnings:
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
@@ -206,16 +271,109 @@ cdef class Parent(category_object.CategoryObject):
             self._assign_names(names, normalize)
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
-        self._coerce_from_list = []
-        self._coerce_from_hash = {}
-        self._action_list = []
-        self._action_hash = {}
-        self._convert_from_list = []
-        self._convert_from_hash = {}
-        self._embedding = None
-        self._initial_coerce_list = []
-        self._initial_action_list = []
-        self._initial_convert_list = []
+        self.init_coerce(False)
+
+        for cls in self.__class__.mro():
+            # this calls __init_extra__ if it is *defined* in cls (not in a super class)
+            if "__init_extra__" in cls.__dict__:
+                cls.__init_extra__(self)
+
+    def _init_category_(self, category):
+        """
+        EXAMPLES::
+
+            sage: P = Parent()
+            sage: P.category()
+            Category of sets
+            sage: class MyParent(Parent):
+            ...       def __init__(self):
+            ...           self._init_category_(Groups())
+            sage: MyParent().category()
+            Category of groups
+        """
+        CategoryObject._init_category_(self, category)
+
+        # This substitutes the class of this parent to a subclass
+        # which also subclasses the parent_class of the category
+
+        if category is not None: #isinstance(self._category, Category) and not isinstance(self, Set_generic):
+            category = self._category # CategoryObject may have done some argument processing
+            # Some parent class may readily have their category classes attached
+            # TODO: assert that the category is consistent
+            from sage.categories.sets_cat import Sets
+            if not issubclass(self.__class__, Sets().parent_class) and not is_extension_type(self.__class__):
+                #documentation transfer is handled by dynamic_class
+                self.__class__     = dynamic_class("%s_with_category"%self.__class__.__name__, (self.__class__, category.parent_class, ), doccls=self.__class__)
+
+    # This probably should go into Sets().Parent
+    @lazy_attribute
+    def element_class(self):
+        """
+        The (default) class for the elements of this parent
+
+        FIXME's and design issues:
+         - If self.Element is "trivial enough", should we optimize it away with:
+           self.element_class = dynamic_class("%s.element_class"%self.__class__.__name__, (category.element_class,), self.Element)
+         - This should lookup for Element classes in all super classes
+        """
+        if hasattr(self, 'Element'):
+            return self.__make_element_class__(self.Element, "%s.element_class"%self.__class__.__name__)
+        else:
+            return NotImplemented
+
+
+    def __make_element_class__(self, cls, name = None, inherit = None):
+        """
+        A utility to construct classes for the elements of this
+        parent, with appropriate inheritance from the element class of
+        the category (only for pure python types so far).
+        """
+        if name is None:
+            name = "%s_with_category"%cls.__name__
+        # By default, don't fiddle with extension types yet; inheritance from
+        # categories will probably be achieved in a different way
+        if inherit is None:
+            inherit = not is_extension_type(cls)
+        if inherit:
+            return dynamic_class(name, (cls, self.category().element_class))
+        else:
+            return cls
+
+    def category(self):
+        """
+        EXAMPLES::
+
+            sage: P = Parent()
+            sage: P.category()
+            Category of sets
+            sage: class MyParent(Parent):
+            ...       def __init__(self): pass
+            sage: MyParent().category()
+            Category of sets
+        """
+        if self._category is None:
+            # COERCE TODO: we shouldn't need this
+            from sage.categories.sets_cat import Sets
+            self._category = Sets()
+        return self._category
+
+    def categories(self):
+        """
+        EXAMPLES::
+
+            sage: ZZ.categories()
+            [Category of commutative rings,
+             Category of rings,
+             Category of rngs,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of monoids,
+             Category of semigroups,
+             Category of sets,
+             Category of objects]
+        """
+        return self.category().all_super_categories()
 
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
@@ -326,7 +484,7 @@ cdef class Parent(category_object.CategoryObject):
 
         We check that the invariant::
 
-		self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+                self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
 
         is preserved (see #5979)::
 
@@ -340,7 +498,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: my_parent = MyParent()
             sage: x = my_parent("bla")
             my_parent bla
-            sage: x.parent()	     # indirect doctest
+            sage: x.parent()         # indirect doctest
             my_parent
 
             sage: x = my_parent()    # shouldn't this one raise an error?
@@ -487,7 +645,7 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
-    def list(self):
+    def _list_from_iterator_cached(self):
         """
         Return a list of all elements in this object, if possible (the
         object must define an iterator).
@@ -557,6 +715,7 @@ cdef class Parent(category_object.CategoryObject):
         elif op == 5: #>=
             return r >= 0
 
+    # Should be moved and merged into the EnumeratedSets() category
     def __len__(self):
         """
         Returns the number of elements in self. This is the naive algorithm
@@ -571,6 +730,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return len(self.list())
 
+    # Should be moved and merged into the EnumeratedSets() category
     def __getitem__(self, n):
         """
         Returns the `n^{th}` item of self, by getting self as a list.
@@ -621,7 +781,7 @@ cdef class Parent(category_object.CategoryObject):
        """
        raise NotImplementedError, "Verification of correctness of homomorphisms from %s not yet implemented."%self
 
-    def Hom(self, codomain, cat=None):
+    def Hom(self, codomain, category=None):
         r"""
         Return the homspace ``Hom(self, codomain, cat)`` of all
         homomorphisms from self to codomain in the category cat.  The
@@ -646,13 +806,18 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: QQ.Hom(ZZ, Sets())
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
+
+        A parent may specify how to construct certain homsets by
+        implementing a method :meth:`_Hom_`(codomain, category). This
+        method should either construct the requested homset or raise a
+        ``TypeError``.
         """
         try:
-            return self._Hom_(codomain, cat)
-        except (TypeError, AttributeError):
+            return self._Hom_(codomain, category)
+        except (AttributeError, TypeError):
             pass
-        from sage.categories.all import Hom
-        return Hom(self, codomain, cat)
+        from sage.categories.homset import Hom
+        return Hom(self, codomain, category)
 
     def hom(self, im_gens, codomain=None, check=None):
        r"""
@@ -1014,31 +1179,74 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
+            sage: S3 = AlternatingGroup(3)
+            sage: G = SL(3, QQ)
+            sage: p = S3[2]; p.matrix()
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+
+        By default, one can't mix matrices and permutations::
+
+            sage: G(p)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce (1,3,2) to a 3-by-3 matrix over Rational Field
+            sage: G(1) * p
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
+            sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
+            sage: phi(p)
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+            sage: S3._unset_coercions_used()
+            sage: S3.register_embedding(phi)
+            sage: S3.coerce_embedding()
+            Generic morphism:
+              From: AlternatingGroup(3)
+              To:   Special Linear Group of degree 3 over Rational Field
+            sage: S3.coerce_embedding()(p)
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+
+        Hmm, some more work is apparently in order::
+
+            sage: G(p)                               # todo: not implemented
+            sage: G(1) * p                           # todo: not implemented
+
+
+        The following more advanced examples fail since Sage 4.3, by
+        lack of support for field morphisms from a field into a
+        subfield of an algebra (they worked by abuse beforehand).
+
             sage: x = QQ['x'].0
             sage: t = abs(ZZ.random_element(10^6))
             sage: K = NumberField(x^2 + 2*3*7*11, "a"+str(t))
             sage: a = K.gen()
-            sage: K_into_MS = K.hom([a.matrix()])
+            sage: K_into_MS = K.hom([a.matrix()])    # todo: not implemented
             sage: K._unset_coercions_used()
-            sage: K.register_embedding(K_into_MS)
+            sage: K.register_embedding(K_into_MS)    # todo: not implemented
 
             sage: L = NumberField(x^2 + 2*3*7*11*19*31, "b"+str(abs(ZZ.random_element(10^6))))
             sage: b = L.gen()
-            sage: L_into_MS = L.hom([b.matrix()])
+            sage: L_into_MS = L.hom([b.matrix()])    # todo: not implemented
             sage: L._unset_coercions_used()
-            sage: L.register_embedding(L_into_MS)
+            sage: L.register_embedding(L_into_MS)    # todo: not implemented
 
-            sage: K.coerce_embedding()(a)
+            sage: K.coerce_embedding()(a)            # todo: not implemented
             [   0    1]
             [-462    0]
-            sage: L.coerce_embedding()(b)
+            sage: L.coerce_embedding()(b)            # todo: not implemented
             [      0       1]
             [-272118       0]
 
-            sage: a.matrix() * b
+            sage: a.matrix() * b                     # todo: not implemented
             [-272118       0]
             [      0    -462]
-            sage: a * b.matrix()
+            sage: a * b.matrix()                     # todo: not implemented
             [-272118       0]
             [      0    -462]
         """
@@ -1571,6 +1779,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return None
 
+# Should be taken care of by the category Sets().
     cpdef an_element(self):
         r"""
         Implementation of a function that returns an element (often non-trivial)
@@ -1678,19 +1887,26 @@ cdef class Parent(category_object.CategoryObject):
 cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is Parent
     """
     Abstract base class for sets.
+
+    TESTS::
+
+        sage: Set(QQ).category()
+        Category of sets
+
     """
-    def category(self):
-        """
-        The category that this set belongs to, which is the category
-        of all sets.
+#     def category(self):
+#         # TODO: remove once all subclasses specify their category, or
+#         # the constructor of Parent sets it to Sets() by default
+#         """
+#         The category that this set belongs to, which is the category
+#         of all sets.
 
-        EXAMPLES::
-
-            sage: Set(QQ).category()
-            Category of sets
-        """
-        import sage.categories.all
-        return sage.categories.all.Sets()
+#         EXAMPLES:
+#             sage: Set(QQ).category()
+#             Category of sets
+#         """
+#         from sage.categories.sets_cat import Sets
+#         return Sets()
 
     def object(self):
         return self
@@ -1728,6 +1944,17 @@ def Set_PythonType(theType):
         sage: S = Set_PythonType(tuple)
         sage: S([1,2,3])
         (1, 2, 3)
+
+      S is a parent which models the set of all lists:
+        sage: S.category()
+        Category of sets
+
+    EXAMPLES:
+        sage: R = sage.structure.parent.Set_PythonType(int)
+        sage: S = sage.structure.parent.Set_PythonType(float)
+        sage: Hom(R, S)
+        Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+
     """
     try:
         return _type_set_cache[theType]
@@ -1740,8 +1967,15 @@ cdef class Set_PythonType_class(Set_generic):
     cdef _type
 
     def __init__(self, theType):
-        from sage.categories.category import Sets
-        Set_generic.__init__(self, element_constructor=theType, categories=[Sets()])
+        """
+        EXAMPLES::
+
+            sage: S = sage.structure.parent.Set_PythonType(float)
+            sage: S.category()
+            Category of sets
+        """
+        from sage.categories.sets_cat import Sets
+        Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
 
     def __call__(self, x):
@@ -1757,6 +1991,7 @@ cdef class Set_PythonType_class(Set_generic):
             3.0
             sage: S(1/3)
             0.333333333333333...
+
         """
         return self._type(x)
 
@@ -1862,21 +2097,21 @@ cdef class Set_PythonType_class(Set_generic):
             import sage.rings.infinity
             return sage.rings.infinity.infinity
 
-    def _Hom_(self, domain, cat=None):
-        """
-        By default, create a homset in the category of sets.
+#     def _Hom_disabled(self, domain, cat=None):
+#         """
+#         By default, create a homset in the category of sets.
 
-        EXAMPLES:
-            sage: R = sage.structure.parent.Set_PythonType(int)
-            sage: S = sage.structure.parent.Set_PythonType(float)
-            sage: R._Hom_(S)
-            Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
-        """
-        from sage.categories.category import Sets
-        from sage.categories.homset import Homset
-        if cat is None:
-            cat = Sets()
-        return Homset(self, domain, cat)
+#         EXAMPLES:
+#             sage: R = sage.structure.parent.Set_PythonType(int)
+#             sage: S = sage.structure.parent.Set_PythonType(float)
+#             sage: R._Hom_(S)
+#             Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+#         """
+#         from sage.categories.sets_cat import Sets
+#         from sage.categories.homset import Homset
+#         if cat is None:
+#             cat = Sets()
+#         return Homset(self, domain, cat)
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their

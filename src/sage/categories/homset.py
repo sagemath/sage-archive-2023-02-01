@@ -8,6 +8,8 @@ AUTHORS:
 - David Joyner (2005-12-17): added examples
 
 - William Stein (2006-01-14): Changed from Homspace to Homset.
+
+- Nicolas M. Thiery (2008-12-): Updated for the new category framework
 """
 
 #*****************************************************************************
@@ -27,14 +29,17 @@ AUTHORS:
 
 import weakref
 
-import category
+from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_function
+import types
 
 _cache = {}
-def Hom(X, Y, cat=None):
+def Hom(X, Y, category=None):
     """
-    Create the space of homomorphisms from X to Y in the category cat.
+    Create the space of homomorphisms from X to Y in the category category.
 
     INPUT:
 
@@ -43,11 +48,11 @@ def Hom(X, Y, cat=None):
 
     -  ``Y`` - anything
 
-    -  ``cat`` - (optional) category in which the morphisms
+    -  ``category`` - (optional) category in which the morphisms
        must be
 
 
-    OUTPUT: a homset in cat
+    OUTPUT: a homset in category
 
     EXAMPLES::
 
@@ -61,107 +66,93 @@ def Hom(X, Y, cat=None):
         Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
-    """
-    if hasattr(X, '_Hom_'):
-        return X._Hom_(Y, cat)
 
+        sage: Hom(FreeModule(ZZ,1), FreeModule(QQ,1))
+        Set of Morphisms from Ambient free module of rank 1 over the principal ideal domain Integer Ring to Vector space of dimension 1 over Rational Field in Category of modules with basis over Integer Ring
+        sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
+        Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
+
+
+    TODO: design decision: how much of the homset comes from the
+    category of X and Y, and how much from the specific X and Y.  In
+    particular, do we need several parent classes depending on X and
+    Y, or does the difference only lie in the elements (i.e. the
+    morphism), and of course how the parent calls their constructors.
+
+    """
+
+
+    # This should use cache_function instead
+    # However it breaks somehow the coercion (see e.g. sage -t sage.rings.real_mpfr)
+    # To be investigated.
     global _cache
-    key = (X,Y,cat)
+    key = (X,Y,category)
     if _cache.has_key(key):
         H = _cache[key]()
-        if H: return H
+        # What is this test for? Why does the cache ever contain a 0 value?
+        # This actually occurs: see e.g. sage -t  sage-combinat/sage/categories/modules_with_basis.py
+        if H:
+            return H
 
-    if cat is None or (cat is X.category() and cat is Y.category()):
-        try:
-            H = X._Hom_(Y)
-        except AttributeError:
-            pass
+    try:
+        return X._Hom_(Y, category)
+    except (AttributeError, TypeError):
+        pass
 
-    import category_types
+#    if category is None or (category is X.category() and category is Y.category()):
+#        try:
+#            H = X._Hom_(Y)
+#        except AttributeError:
+#            pass
+#    import category_types
 
     cat_X = X.category()
     cat_Y = Y.category()
-    if cat is None:
+    if category is None:
         if cat_X.is_subcategory(cat_Y):
-            cat = cat_Y
+            category = cat_Y
         elif cat_Y.is_subcategory(cat_X):
-            if not (cat is None) and not (cat_X is cat_Y):
+            # NT: this "category is None" test is useless and could be removed
+            # NT: why is there an assymmetry between X and Y?
+            if not (category is None) and not (cat_X is cat_Y):
                 raise ValueError, "No unambiguous category found for Hom from %s to %s."%(X,Y)
-            cat = cat_X
+            category = cat_X
         else:
-            # try hard to find a suitable base category
-            subcats_X = category_types.category_hierarchy[cat_X.__class__]
-            subcats_Y = category_types.category_hierarchy[cat_Y.__class__]
-            cats = set(subcats_X).intersection(set(subcats_Y))
-            params = tuple(set(cat_X._parameters()).intersection(cat_Y._parameters()))
+            # Search for the lowest common super category
+            subcats_X = cat_X.all_super_categories(proper = True)
+            subcats_Y = set(cat_Y.all_super_categories(proper = True))
+            category = None
+            for c in subcats_X:
+                if c in subcats_Y:
+                    category = c
+                    break
 
-            cat = None
-            size = -1
-
-            for c in cats:
-                if len(category_types.category_hierarchy[c]) > size:
-                    try:
-                        cat = c(*params)
-                        size = len(category_types.category_hierarchy[c])
-                    except TypeError:
-                        pass
-
-            if cat is None:
-                for c in cats:
-                    if len(category_types.category_hierarchy[c]) > size:
-                        try:
-                            cat = c()
-                            size = len(category_types.category_hierarchy[c])
-                        except TypeError:
-                            pass
-
-            if cat is None:
+            if category is None:
                 raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
 
-    elif isinstance(cat, category.Category):
-        if not isinstance(cat, category.Category):
-            raise TypeError, "Argument cat (= %s) must be a category."%cat
-        if not cat_X.is_subcategory(cat) \
-               or not cat_Y.is_subcategory(cat):
+    elif isinstance(category, Category):
+        if not isinstance(category, Category):
+            raise TypeError, "Argument category (= %s) must be a category."%category
+        if not cat_X.is_subcategory(category) \
+               or not cat_Y.is_subcategory(category):
             raise TypeError, \
-                  "Argument cat (= %s) is incompatible with %s and %s."%(cat, X, Y)
+                  "Argument category (= %s) is incompatible with %s: %s and %s: %s."%(category, X, cat_X, Y, cat_Y)
     else:
-        raise TypeError, "Argument cat (= %s) must be a category."%cat
+        raise TypeError, "Argument category (= %s) must be a category."%category
 
 
     # coercing would be incredibly annoying, since the domain and codomain
     # are totally different objects
-    #X = cat(X); Y = cat(Y)
+    #X = category(X); Y = category(Y)
 
     # construct H
-    if cat._is_subclass(category_types.HeckeModules):
-
-        from sage.modular.hecke.homspace import HeckeModuleHomspace
-        H = HeckeModuleHomspace(X, Y)
-
-    elif cat._is_subclass(category_types.FreeModules):
-
-        from sage.modules.free_module_homspace import FreeModuleHomspace
-        H = FreeModuleHomspace(X, Y, cat)
-
-    elif cat._is_subclass(category_types.Rings):
-
-        from sage.rings.homset import RingHomset
-        H = RingHomset(X, Y)
-
-    elif cat._is_subclass(category_types.Schemes) or cat._is_subclass(category_types.Schemes_over_base):
-
-        from sage.schemes.generic.homset import SchemeHomset
-        H = SchemeHomset(X, Y)
-
-    else:  # default
-        if hasattr(X, '_base') and X._base is not X and X._base is not None:
-            H = HomsetWithBase(X, Y, cat)
-        else:
-            H = Homset(X, Y, cat)
+    # Design question: should the Homset classes get the category or the homset category?
+    # For the moment, this is the category, for compatibility with the current implementations
+    # of Homset in rings, schemes, ...
+    H = category.hom_category().parent_class(X, Y, category = category)
 
     ##_cache[key] = weakref.ref(H)
-    _cache[(X, Y, cat)] = weakref.ref(H)
+    _cache[(X, Y, category)] = weakref.ref(H)
 
     return H
 
@@ -179,19 +170,19 @@ def hom(X, Y, f):
     """
     return Hom(X,Y)(f)
 
-def End(X, cat=None):
+def End(X, category=None):
     r"""
-    Create the set of endomorphisms of X in the category cat.
+    Create the set of endomorphisms of X in the category category.
 
     INPUT:
 
 
     -  ``X`` - anything
 
-    -  ``cat`` - (optional) category in which to coerce X
+    -  ``category`` - (optional) category in which to coerce X
 
 
-    OUTPUT: a set of endomorphisms in cat
+    OUTPUT: a set of endomorphisms in category
 
     EXAMPLES::
 
@@ -212,17 +203,17 @@ def End(X, cat=None):
         sage: S.domain()
         Symmetric group of order 3! as a permutation group
 
-    Homsets are *not* objects in their category. They are currently
-    sets.
-
-    ::
+    To avoid creating superfluous categories, homsets are in the
+    homset category of the lowest category which currently says
+    something specific about its homsets. For example, S is not
+    in the category of hom sets of the category of groups::
 
         sage: S.category()
-        Category of sets
-        sage: S.domain().category()
-        Category of groups
+        Category of hom sets in Category of sets
+        sage: End(QQ).category()
+        Category of hom sets in Category of rings
     """
-    return Hom(X,X, cat)
+    return Hom(X,X, category)
 
 def end(X, f):
     """
@@ -254,19 +245,51 @@ class Homset(Set_generic):
         sage: loads(E.dumps()) == E
         True
     """
-    def __init__(self, X, Y, cat=None, check=True):
+    def __init__(self, X, Y, category=None, base = None, check=True):
+        """
+        TESTS::
+            sage: X = ZZ['x']; X.rename("X")
+            sage: Y = ZZ['y']; Y.rename("Y")
+            sage: class MyHomset(Homset):
+            ...       def my_function(self, x):
+            ...           return Y(x[0])
+            ...       def _an_element_(self):
+            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ...
+            sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
+            sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
+            sage: H
+            Set of Morphisms from X to Y in Category of monoids
+            sage: TestSuite(H).run()
+
+            sage: H = MyHomset(X, Y, category=1, base = ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: category (=1) must be a category
+
+            sage: H
+            Set of Morphisms from X to Y in Category of monoids
+            sage: TestSuite(H).run()
+            sage: H = MyHomset(X, Y, category=1, base = ZZ, check = False)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
+        """
+
         self._domain = X
         self._codomain = Y
-        if cat is None:
-            cat = X.category()
-        self.__category = cat
+        if category is None:
+            category = X.category()
+        self.__category = category
         if check:
-            if not isinstance(cat, category.Category):
-                raise TypeError, "cat (=%s) must be a category"%cat
-            #if not X in cat:
-            #    raise TypeError, "X (=%s) must be in cat (=%s)"%(X, cat)
-            #if not Y in cat:
-            #    raise TypeError, "Y (=%s) must be in cat (=%s)"%(Y, cat)
+            if not isinstance(category, Category):
+                raise TypeError, "category (=%s) must be a category"%category
+            #if not X in category:
+            #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
+            #if not Y in category:
+            #    raise TypeError, "Y (=%s) must be in category (=%s)"%(Y, category)
+
+        Parent.__init__(self, base = base, category = category.hom_category())
 
     def _repr_(self):
         return "Set of Morphisms from %s to %s in %s"%(
@@ -296,7 +319,7 @@ class Homset(Set_generic):
         """
         return self.__category
 
-    def __call__(self, x, y=None, check=True):
+    def __call__(self, x=None, y=None, check=True, on_basis=None):
         """
         Construct a morphism in this homset from x if possible.
 
@@ -327,10 +350,33 @@ class Homset(Set_generic):
                       From: SymmetricGroup(6)
                       To:   SymmetricGroup(7)
 
-        AUTHORS:
+            sage: H = Hom(ZZ, ZZ, Sets())
+            sage: f = H( lambda x: x + 1 )
+            sage: f.parent()
+            Set of Morphisms from Integer Ring to Integer Ring in Category of sets
+            sage: f.domain()
+            Integer Ring
+            sage: f.codomain()
+            Integer Ring
+            sage: f(1), f(2), f(3)
+            (2, 3, 4)
 
-        - Robert Bradshaw
+            sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
+            sage: f = H( lambda x: 4-x )
+            sage: f.parent()
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
+            sage: f(1), f(2), f(3) # todo: not implemented
+
+
+        - Robert Bradshaw, with changes by Nicolas M. Thiery
         """
+        # Temporary workaround: currently, HomCategory.ParentMethods's cannot override
+        # this __call__ method because of the class inheritance order
+        # This dispatches back the call there
+        if on_basis is not None:
+            return self.__call_on_basis__(on_basis = on_basis)
+        assert x is not None
+
         if isinstance(x, morphism.Morphism):
             if x.parent() is self:
                 return x
@@ -349,7 +395,31 @@ class Homset(Set_generic):
                         raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
                     x = mor * x
                 return x
+
+        if isinstance(x, types.FunctionType) or isinstance(x, types.MethodType):
+            return self.element_class_set_morphism(self, x)
+
         raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
+
+    @lazy_attribute
+    def element_class_set_morphism(self):
+        """
+        A base class for elements of this homset which are
+        also ``SetMorphism``, i.e. implemented by mean of a
+        Python function.
+
+        This is currently plain ``SetMorphism``, without inheritance
+        from categories.
+
+        Todo: refactor during the upcoming homset cleanup.
+
+        EXAMPLES::
+
+            sage: H = Hom(ZZ, ZZ)
+            sage: H.element_class_set_morphism
+            <type 'sage.categories.morphism.SetMorphism'>
+        """
+        return self.__make_element_class__(morphism.SetMorphism)
 
     def __cmp__(self, other):
         if not isinstance(other, Homset):
@@ -399,15 +469,15 @@ class Homset(Set_generic):
         EXAMPLES::
 
             sage: H = Hom(ZZ^2, ZZ^3); H
-            Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of free modules over Integer Ring
+            Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
             sage: type(H)
-            <class 'sage.modules.free_module_homspace.FreeModuleHomspace'>
+            <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
-            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of free modules over Integer Ring
+            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of hom sets in Category of modules with basis over Integer Ring
             sage: type(H.reversed())
-            <class 'sage.modules.free_module_homspace.FreeModuleHomspace'>
+            <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """
-        return self._codomain.Hom(self._domain)
+        return Hom(self.codomain(), self.domain(), category = self.category())
 
     ############### For compatibility with old coercion model #######################
 
@@ -417,13 +487,30 @@ class Homset(Set_generic):
     def coerce_map_from_c(self, R):
         return None
 
+# Really needed???
 class HomsetWithBase(Homset):
-    def __init__(self, X, Y, cat=None, check=True, base=None):
-        Homset.__init__(self, X, Y, cat, check)
+    def __init__(self, X, Y, category=None, check=True, base=None):
+        """
+        TESTS::
+            sage: X = ZZ['x']; X.rename("X")
+            sage: Y = ZZ['y']; Y.rename("Y")
+            sage: class MyHomset(HomsetWithBase):
+            ...       def my_function(self, x):
+            ...           return Y(x[0])
+            ...       def _an_element_(self):
+            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ...
+            sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
+            sage: H = MyHomset(X, Y, category=Monoids())
+            sage: H
+            Set of Morphisms from X to Y in Category of monoids
+            sage: H.base()
+            Integer Ring
+            sage: TestSuite(H).run()
+        """
         if base is None:
-            Parent.__init__(self, X.base_ring())
-        else:
-            Parent.__init__(self, base)
+            base = X.base_ring()
+        Homset.__init__(self, X, Y, check=check, category=category, base = base)
 
 def is_Homset(x):
     """

@@ -26,6 +26,7 @@ This module provides two utilities to workaround this issue:
  - :class:`NestedClassMetaclass` is a metaclass ensuring that nested_pickle is
    called on a class upon creation.
 
+See also :mod:`sage.misc.nested_class_test`.
 
 EXAMPLES::
 

@@ -55,7 +55,7 @@ cdef class Parent(parent.Parent):
     in computer science.
     """
 
-    def __init__(self, coerce_from=[], actions=[], embeddings=[]):
+    def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
         # TODO: many classes don't call this at all, but __new__ crashes Sage
 #        if len(coerce_from) > 0:
 #            print type(self), coerce_from
@@ -75,6 +75,13 @@ cdef class Parent(parent.Parent):
 
         # old
         self._has_coerce_map_from = {}
+        if category is not None:
+            self._init_category_(category)
+        else:
+            # Do not use sage.categories.all here to avoid initialization loop
+            # See e-mail on sage-combinat-devel by S. Labbe, 15 Jan 2009 17:14:37
+            from sage.categories.sets_cat import Sets
+            self._category = Sets()
 
     cdef int init_coerce(self, bint warn=False) except -1:
         parent.Parent.init_coerce(self, warn)

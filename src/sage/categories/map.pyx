@@ -129,6 +129,23 @@ cdef class Map(Element):
     cpdef codomain(self):
         return self._codomain
 
+    def category_for(self):
+        """
+        Returns the category self is a morphism for
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: X.<x> = ZZ[]
+            sage: Y = ZZ
+            sage: phi = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+            sage: phi.category_for()
+            Category of rings
+
+        FIXME: find a better name for this method
+        """
+        return self.parent().homset_category()
+
     def __call__(self, x, *args, **kwds):
         """
         Apply this map to x.
@@ -180,7 +197,7 @@ cdef class Map(Element):
 
     def __mul__(self, right):
         r"""
-        The multiplication * operator is operator composition.
+        The multiplication * operator is operator composition
 
         INPUT:
             self -- Map
@@ -188,26 +205,158 @@ cdef class Map(Element):
 
         OUTPUT:
             The map $x \mapsto self(right(x))$.
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: X.<x> = ZZ[]
+            sage: Y = ZZ
+            sage: Z = QQ
+            sage: phi_xy = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+            sage: phi_yz = SetMorphism(Hom(Y, Z, CommutativeAdditiveMonoids()), lambda y: QQ(y)/2)
+            sage: phi_yz * phi_xy
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Rational Field
+              Defn:   Generic morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Integer Ring
+                    then
+                      Generic morphism:
+                      From: Integer Ring
+                      To:   Rational Field
         """
         if not isinstance(right, Map):
             raise TypeError, "right (=%s) must be a map to multiply it by %s"%(right, self)
         if right.codomain() != self.domain():
             raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
-        H = homset.Hom(right.domain(), self.codomain(), self.parent().category())
+        return self._composition(right)
+
+    def _composition(self, right):
+        """
+        INPUT:
+         - ``self``  -- a Map in some ``Hom(Y, Z, category_left)``
+         - ``right`` -- a Map in some ``Hom(X, Y, category_right)``
+
+        Returns the composition of ``self`` and ``right`` as a
+        morphism in ``Hom(X, Z, category)`` where ``category`` is the
+        meet of ``category_left`` and ``category_right``.
+
+        Caveat: see the current restrictions on :method:`Category.meet`
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: X.<x> = ZZ[]
+            sage: Y = ZZ
+            sage: Z = QQ
+            sage: phi_xy = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+            sage: phi_yz = SetMorphism(Hom(Y, Z, CommutativeAdditiveMonoids()), lambda y: QQ(y)/2)
+            sage: phi_yz._composition(phi_xy)
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Rational Field
+              Defn:   Generic morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Integer Ring
+                    then
+                      Generic morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+            sage: phi_yz.category_for()
+            Category of commutative additive monoids
+        """
+        category = self.category_for().meet(right.category_for())
+        H = homset.Hom(right.domain(), self.codomain(), category)
         return self._composition_(right, H)
 
     def _composition_(self, right, homset):
+        """
+        INPUT:
+         - ``self``, ``right`` -- maps
+         - homset -- a homset
+
+        Returns the composition of ``self`` and ``right``, as a
+        morphism in ``homset``.
+
+        By default, this returns a formal composite map. Class
+        deriving from :class:`Map` are encouraged to override this
+        whenever meaningful.
+
+        EXAMPLES::
+
+            sage: Rx.<x> = ZZ['x']
+            sage: Ry.<y> = ZZ['y']
+            sage: Rz.<z> = ZZ['z']
+            sage: phi_xy = Rx.hom([y+1]); phi_xy
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in y over Integer Ring
+              Defn: x |--> y + 1
+            sage: phi_yz = Ry.hom([z+1]); phi_yz
+            Ring morphism:
+              From: Univariate Polynomial Ring in y over Integer Ring
+              To:   Univariate Polynomial Ring in z over Integer Ring
+              Defn: y |--> z + 1
+            sage: phi_xz = phi_yz._composition_(phi_xy, Hom(Rx, Rz, Monoids()))
+            sage: phi_xz
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in z over Integer Ring
+              Defn:   Ring morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Univariate Polynomial Ring in y over Integer Ring
+                      Defn: x |--> y + 1
+                    then
+                      Ring morphism:
+                      From: Univariate Polynomial Ring in y over Integer Ring
+                      To:   Univariate Polynomial Ring in z over Integer Ring
+                      Defn: y |--> z + 1
+            sage: phi_xz.category_for()
+            Category of monoids
+        """
         return FormalCompositeMap(homset, right, self)
 
     def pre_compose(self, right):
         if self.domain() is not right.codomain():
             right = right.extend_codomain(self.domain())
-        H = homset.Hom(right.domain(), self.codomain(), self.parent().category())
-        return self._composition_(right, H)
+        return self._composition(right)
 
     def post_compose(self, left):
-        H = homset.Hom(self.domain(), left.codomain(), self.parent().category())
-        return left._composition_(self, H)
+        """
+        INPUT:
+         - ``self`` -- a Map in some ``Hom(X, Y, category_right)``
+         - ``left`` -- a Map in some ``Hom(Y, Z, category_left)``
+
+        Returns the composition of ``self`` and ``right`` as a
+        morphism in ``Hom(X, Z, category)`` where ``category`` is the
+        meet of ``category_left`` and ``category_right``.
+
+        Caveat: see the current restrictions on :method:`Category.meet`
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: X.<x> = ZZ[]
+            sage: Y = ZZ
+            sage: Z = QQ
+            sage: phi_xy = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+            sage: phi_yz = SetMorphism(Hom(Y, Z, Monoids()), lambda y: QQ(y**2))
+            sage: phi_xy.post_compose(phi_yz)
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Rational Field
+              Defn:   Generic morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Integer Ring
+                    then
+                      Generic morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+            sage: phi_yz.category_for()
+            Category of monoids
+        """
+        return left._composition(self)
 
     def extend_domain(self, new_domain):
         r"""
@@ -324,7 +473,7 @@ cdef class Map(Element):
 cdef class Section(Map):
     def __init__(self, map):
         from sage.categories.homset import Hom
-        from sage.categories.category_types import SetsWithPartialMaps
+        from sage.categories.all import SetsWithPartialMaps
         Map.__init__(self, Hom(map.codomain(), map.domain(), SetsWithPartialMaps()))
         self._inverse = map
 

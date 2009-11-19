@@ -237,10 +237,25 @@ def normalize_names(int ngens, names=None):
 
 cdef class ParentWithGens(parent_base.ParentWithBase):
     # Derived class *must* call __init__ and set the base!
-    def __init__(self, base, names=None, normalize=True):
+    def __init__(self, base, names=None, normalize=True, category = None):
+        """
+        EXAMPLES::
+
+            sage: class MyParent(ParentWithGens):
+            ...       def ngens(self): return 3
+            sage: P = MyParent(base = QQ, names = 'a,b,c', normalize = True, category = Groups())
+            sage: P.category()
+            Category of groups
+            sage: P._names
+            ('a', 'b', 'c')
+        """
         self._base = base
         self._has_coerce_map_from = {}
         self._assign_names(names=names, normalize=normalize)
+
+        # Why does not this call ParentWithBase.__init__ ?
+        if category is not None:
+            self._init_category_(category)
 
 ##     def x__reduce__(self):
 ##         if self._base is self:
@@ -468,6 +483,15 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
             self._generator_orders = g
             return g
 
+    # This should eventually be inherited from the EnumeratedSets() category
+    list = parent.Parent._list_from_iterator_cached
+    """
+    TESTS::
+
+        sage: DirichletGroup(3).list()
+        [[1], [-1]]
+    """
+
     def __iter__(self):
         """
         Return an iterator over the elements in this object.
@@ -487,6 +511,16 @@ cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
                 g.append(x.additive_order())
             self._generator_orders = g
             return g
+
+    # This should eventually be inherited from the EnumeratedSets() category
+    list = parent.Parent._list_from_iterator_cached
+    """
+    TESTS::
+
+        sage: V = VectorSpace(GF(2,'a'),2)
+        sage: V.list()
+        [(0, 0), (1, 0), (0, 1), (1, 1)]
+    """
 
     def __iter__(self):
         """

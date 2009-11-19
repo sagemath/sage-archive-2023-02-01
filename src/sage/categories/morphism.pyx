@@ -72,6 +72,49 @@ cdef class Morphism(Map):
     def pushforward(self, I):
         raise NotImplementedError
 
+    def register_as_coercion(self):
+        r"""
+        Register this morphism as a coercion to Sage's coercion model
+        (see :mod:`sage.structure.coerce`).
+
+        EXAMPLES:
+
+        By default, adding polynomials over different variables triggers an error::
+
+            sage: X.<x> = ZZ[]
+            sage: Y.<y> = ZZ[]
+            sage: x^2 + y
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
+
+        Let us declare a coercion from `\ZZ[x]` to `\ZZ[z]`::
+
+            sage: Z.<z> = ZZ[]
+            sage: phi = Hom(X, Z)(z)
+            sage: phi(x^2+1)
+            z^2 + 1
+            sage: phi.register_as_coercion()
+
+        Now we can add elements from `\ZZ[x]` and `\ZZ[z]`, because
+        the elements of the former are allowed to be implicitly
+        coerced into the later::
+
+            sage: x^2 + z
+            z^2 + z
+
+        Caveat: the registration of the coercion must be done before any
+        other coercion is registered or discovered::
+
+            sage: phi = Hom(X, Y)(y)
+            sage: phi.register_as_coercion()
+            Traceback (most recent call last):
+            ...
+            AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in y over Integer Ring already registered or discovered
+
+        """
+        self.codomain().register_coercion(self)
+
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)

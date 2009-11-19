@@ -1,31 +1,32 @@
 """
 The set of prime numbers.
 
-TESTS:
-    sage: loads(dumps(Primes())) == Primes()
-    True
-"""
+AUTHORS:
 
+ - William Stein (2005): original version
+ - Florent Hivert (2009-11): adapted to the category framework. The following
+   methods were removed:
+
+    - cardinality, __len__, __iter__: provided by EnumeratedSets
+    - __cmp__(self, other): __eq__ is provided by UniqueRepresentation
+      and seems to do as good a job (all test pass)
+"""
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.all import Integer, ZZ, infinity
-
 from set import Set_generic
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.rings.arith import nth_prime
+from sage.structure.unique_representation import UniqueRepresentation
 
-class Primes_class(Set_generic):
+class Primes(Set_generic, UniqueRepresentation):
     """
     The set of prime numbers.
 
@@ -33,53 +34,58 @@ class Primes_class(Set_generic):
 
         sage: P = Primes(); P
         Set of all prime numbers: 2, 3, 5, 7, ...
-        sage: loads(P.dumps()) == P
+
+    We show various operations on the set of prime numbers::
+
+        sage: P.cardinality()
+        +Infinity
+        sage: R = Primes()
+        sage: P == R
         True
+        sage: 5 in P
+        True
+        sage: 100 in P
+        False
+
+        sage: len(P) 		# note: this used to be a TypeError
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: infinite list
     """
-    def __init__(self, proof=True):
+
+    @staticmethod
+    def __classcall__(cls, proof=True):
+        """
+        TESTS::
+
+            sage: Primes(proof=True) is Primes()
+            True
+            sage: Primes(proof=False) is Primes()
+            False
+        """
+        return super(Primes, cls).__classcall__(cls, proof)
+
+    def __init__(self, proof):
         """
         EXAMPLES::
 
             sage: P = Primes(); P
             Set of all prime numbers: 2, 3, 5, 7, ...
-        """
-        self.__proof = proof
 
-    def cardinality(self):
-        """
-        There is no largest prime number, so we say the set
-        has infinite cardinality.
+            sage: Q = Primes(proof = False); Q
+            Set of all prime numbers: 2, 3, 5, 7, ...
 
-        EXAMPLES::
-
-            sage: P = Primes()
-            sage: P.cardinality()
-            +Infinity
-        """
-        return infinity
-
-    def __len__(self):
-        """
         TESTS::
 
-            sage: len(Primes())
-            Traceback (most recent call last):
-            ...
-            TypeError
-        """
-        raise TypeError
+            sage: TestSuite(P).run()
+            sage: TestSuite(Q).run()
 
-
-    def __cmp__(self, right):
-        """
         The set of primes can be compared to various things,
-        but is only equal to itself.
-
-        EXAMPLES::
+        but is only equal to itself::
 
             sage: P = Primes()
             sage: R = Primes()
-            sage: P.__cmp__(R)
+            sage: cmp(P,R)
             0
             sage: P == R
             True
@@ -98,9 +104,8 @@ class Primes_class(Set_generic):
             sage: cmp('foo', Primes()) != cmp(Primes(), 'foo')
             True
         """
-        if isinstance(right, Primes_class):
-            return 0
-        return -1
+        super(Primes, self).__init__(category = InfiniteEnumeratedSets())
+        self.__proof = proof
 
     def _repr_(self):
         """
@@ -113,27 +118,9 @@ class Primes_class(Set_generic):
         """
         return "Set of all prime numbers: 2, 3, 5, 7, ..."
 
-    def __iter__(self):
-        """
-        Iterator for the set of primes.  This is an infinite set,
-        so USE WITH CAUTION!  That is, do not do things like
-        ``[p for p in Primes()]``.
-
-        EXAMPLES::
-
-            sage: P = Primes()
-            sage: iter(P).next()
-            2
-        """
-        p = Integer(2)
-        while True:
-            yield p
-            p = p.next_prime(self.__proof)
-
     def __contains__(self, x):
         """
-        Checks whether an object is a prime number.  If
-        it is not an integer, returns False.
+        Checks whether an object is a prime number.
 
         EXAMPLES::
 
@@ -154,27 +141,54 @@ class Primes_class(Set_generic):
         except TypeError:
             return False
 
-the_set_of_primes = {True: Primes_class(proof=True), False: Primes_class(proof=False)}
+    def _an_element_(self):
+        """
+        Returns a typical prime number.
 
-def Primes(proof=True):
-    """
-    Return the set of prime numbers.
+        EXAMPLES::
 
-    EXAMPLES::
+            sage: P = Primes()
+            sage: P._an_element_()
+            43
+        """
+        return ZZ(43)
 
-        sage: P = Primes(); P
-        Set of all prime numbers: 2, 3, 5, 7, ...
+    def first(self):
+        """
+        Returns the first prime number.
 
-    We show various methods about the primes::
+        EXAMPLES::
 
-        sage: P.cardinality()
-        +Infinity
-        sage: R = Primes()
-        sage: P == R
-        True
-        sage: 5 in P
-        True
-        sage: 100 in P
-        False
-    """
-    return the_set_of_primes[proof]
+            sage: P = Primes()
+            sage: P.first()
+            2
+        """
+        return ZZ(2)
+
+    def next(self, pr):
+        """
+        Returns the next prime number.
+
+        EXAMPLES::
+
+            sage: P = Primes()
+            sage: P.next(5)
+            7
+        """
+        pr = pr.next_prime(self.__proof)
+        return pr
+
+    def unrank(self, n):
+        """
+        Returns the n-th prime number.
+
+        EXAMPLES::
+            sage: P = Primes()
+            sage: P.unrank(0)
+            2
+            sage: P.unrank(5)
+            13
+            sage: P.unrank(42)
+            191
+        """
+        return nth_prime(n+1)

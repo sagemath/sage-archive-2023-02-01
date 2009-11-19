@@ -1269,18 +1269,20 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
         """
-        assert(t[0] in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'])
-        assert(t[1] in ZZ and t[1] >= 0)
-        if t[0] == 'D':
-            assert(t[1] >= 1)
-        if t[0] == 'E':
-            assert(t[1] <= 8 and t[1] >= 6)
-        if t[0] == 'F':
-            assert(t[1] == 4)
-        if t[0] == 'G':
-            assert(t[1] == 2)
-        if t[0] == 'H':
-            assert(t[1] <= 4)
+#         assert(t[0] in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'])
+#         assert(t[1] in ZZ and t[1] >= 0)
+#         if t[0] in ['B', 'C']:
+#             assert(t[1] >= 2)
+#         if t[0] == 'D':
+#             assert(t[1] >= 3)
+#         if t[0] == 'E':
+#             assert(t[1] <= 8)
+#         if t[0] == 'F':
+#             assert(t[1] <= 4)
+#         if t[0] == 'G':
+#             assert(t[1] <= 2)
+#         if t[0] == 'H':
+#             assert(t[1] <= 4)
         self.letter = letter
         self.n = n
 

@@ -124,6 +124,21 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         return self.sum(self.term(j) for j in range(i))
 
+    def det(self, k=1):
+        """
+        returns the vector (1, ... ,1) which in the ['A',r]
+        weight lattice, interpreted as a weight of GL(r+1,CC)
+        is the determinant. If the optional parameter k is
+        given, returns (k, ... ,k), the k-th power of the
+        determinant.
+
+        EXAMPLES:
+            sage: e = RootSystem(['A',3]).ambient_space()
+            sage: e.det(1/2)
+            (1/2, 1/2, 1/2, 1/2)
+        """
+        return self.sum(self.term(j)*k for j in range(self.n))
+
 
 from cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType_simple):
@@ -166,21 +181,6 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
         CartanType_standard_finite.__init__(self, "A", n)
 
     AmbientSpace = AmbientSpace
-
-    def det(self, k=1):
-        """
-        returns the vector (1, ... ,1) which in the ['A',r]
-        weight lattice, interpreted as a weight of GL(r+1,CC)
-        is the determinant. If the optional parameter k is
-        given, returns (k, ... ,k), the k-th power of the
-        determinant.
-
-        EXAMPLES:
-            sage: e = RootSystem(['A',3]).ambient_space()
-            sage: e.det(1/2)
-            (1/2, 1/2, 1/2, 1/2)
-        """
-        return self.sum(self.term(j)*k for j in range(self.n))
 
     def dynkin_diagram(self):
         """

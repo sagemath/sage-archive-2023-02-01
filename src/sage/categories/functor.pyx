@@ -33,20 +33,20 @@ cdef class Functor(SageObject):
     EXAMPLES::
 
         sage: rings  = Rings()
-        sage: abgrps = AbelianGroups()
+        sage: abgrps = CommutativeAdditiveGroups()
         sage: F = ForgetfulFunctor(rings, abgrps)
         sage: F.domain()
         Category of rings
         sage: F.codomain()
-        Category of abelian groups
+        Category of commutative additive groups
         sage: from sage.categories.functor import is_Functor
         sage: is_Functor(F)
         True
         sage: I = IdentityFunctor(abgrps)
         sage: I
-        The identity functor on AbelianGroups
+        The identity functor on CommutativeAdditiveGroups
         sage: I.domain()
-        Category of abelian groups
+        Category of commutative additive groups
         sage: is_Functor(I)
         True
     """
@@ -146,10 +146,10 @@ def ForgetfulFunctor(domain, codomain):
     EXAMPLES::
 
         sage: rings = Rings()
-        sage: abgrps = AbelianGroups()
+        sage: abgrps = CommutativeAdditiveGroups()
         sage: F = ForgetfulFunctor(rings, abgrps)
         sage: F
-        The forgetful functor from Rings to AbelianGroups
+        The forgetful functor from Rings to CommutativeAdditiveGroups
     """
     from category_types import category_hierarchy
     if domain == codomain:

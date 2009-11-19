@@ -145,6 +145,9 @@ ext_modules = [
     Extension('sage.categories.morphism',
               sources = ['sage/categories/morphism.pyx']),
 
+    Extension('sage.categories.examples.semigroups_cython',
+              sources = ['sage/categories/examples/semigroups_cython.pyx']),
+
     ################################
     ##
     ## sage.coding

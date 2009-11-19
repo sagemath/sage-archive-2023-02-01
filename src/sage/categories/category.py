@@ -952,7 +952,7 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Semigroups().example()
-            The leftmost-product semigroup
+            An example of a semigroup: the left zero semigroup
         """
         module_name = self.__module__.replace("sage.categories", "sage.categories.examples")
         import sys

@@ -251,9 +251,10 @@ class Category_over_base(Category):
 #############################################################
 class Category_over_base_ring(Category_over_base):
     def __init__(self, base, name=None):
-        Category_over_base.__init__(self, base, name)
-        if not is_Ring(base):
+        from sage.categories.rings import Rings
+        if base not in Rings():
             raise TypeError, "base must be a ring"
+        Category_over_base.__init__(self, base, name)
         self.__base = base
 
     def base_ring(self):
@@ -311,11 +312,14 @@ class Category_ideal(Category_in_ambient):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = Ideals(IntegerRing())
             sage: IntegerRing().zero_ideal() in C
             True
         """
+        if super(Category_ideal, self).__contains__(x):
+            return True
         import sage.rings.all
         if sage.rings.all.is_Ideal(x) and x.ring() == self.ring():
             return True

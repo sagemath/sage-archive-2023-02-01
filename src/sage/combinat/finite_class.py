@@ -48,12 +48,14 @@ class FiniteCombinatorialClass(CombinatorialClass):
         """
         self.l = list(l) # Probably would be better to use a tuple
 
-    def object_class(self, x):
+    def _element_constructor_(self, x):
         """
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
-            sage: F.object_class(1)
+            sage: F._element_constructor_(1)
+            1
+            sage: F(1)
             1
         """
         return x

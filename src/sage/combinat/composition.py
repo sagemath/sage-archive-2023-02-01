@@ -761,7 +761,7 @@ class Compositions_all(InfiniteAbstractCombinatorialClass):
         """
         return "Compositions of non-negative integers"
 
-    object_class = Composition_class
+    Element = Composition_class
 
     def __contains__(self, x):
         """

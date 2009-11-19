@@ -1800,7 +1800,7 @@ class StandardTableaux_n(CombinatorialClass):
         """
         self.n = n
 
-    object_class = Tableau_class
+    Element = Tableau_class
 
     def __repr__(self):
         """
@@ -2333,7 +2333,7 @@ class SemistandardTableaux_n(CombinatorialClass):
         """
         return x in SemistandardTableaux() and sum(map(len, x)) == self.n
 
-    object_class = Tableau_class
+    Element = Tableau_class
 
     def cardinality(self):
         """
@@ -2396,7 +2396,7 @@ class SemistandardTableaux_pmu(CombinatorialClass):
         self.p = p
         self.mu = mu
 
-    object_class = Tableau_class
+    Element = Tableau_class
 
     def __repr__(self):
         """
@@ -2484,7 +2484,7 @@ class SemistandardTableaux_p(CombinatorialClass):
         """
         self.p = p
 
-    object_class = Tableau_class
+    Element = Tableau_class
 
     def __contains__(self, x):
         """

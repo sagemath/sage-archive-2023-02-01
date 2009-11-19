@@ -230,6 +230,8 @@ from sage.libs.all import pari
 from sage.misc.prandom import randint
 from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
+from sage.structure.parent import Parent
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import deprecation
 ######### combinatorial sequences
 
@@ -907,7 +909,7 @@ class CombinatorialClass(SageObject):
         """
         EXAMPLES::
 
-            sage: repr(Partitions(5))
+            sage: repr(Partitions(5))   # indirect doctest
             'Partitions of the integer 5'
         """
         if hasattr(self, '_name') and self._name:
@@ -974,6 +976,11 @@ class CombinatorialClass(SageObject):
         return c
     cardinality = __cardinality_from_iterator
 
+    # __call__, element_class, and _element_constructor_ are poor
+    # man's versions of those from Parent. This is for transition,
+    # until all combinatorial classes are proper parents (in Parent)
+    # and use coercion, etcc
+
     def __call__(self, x):
         """
         Returns x as an element of the combinatorial class's object class.
@@ -993,9 +1000,48 @@ class CombinatorialClass(SageObject):
             ValueError: [2, 1] not in Partitions of the integer 5
         """
         if x in self:
-            return self.object_class(x)
+            return self._element_constructor_(x)
         else:
             raise ValueError, "%s not in %s"%(x, self)
+
+    Element = CombinatorialObject # mostly for backward compatibility
+
+    @lazy_attribute
+    def element_class(self):
+        """
+        This function is a temporary helper so that a CombinatorialClass
+        behaves as a parent for creating elements. This will disappear when
+        combinatorial classes will be turned into actual parents (in the
+        category EnumeratedSets).
+
+        TESTS::
+
+            sage: P5 = Partitions(5)
+            sage: P5.element_class
+            <class 'sage.combinat.partition.Partition_class'>
+        """
+        assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
+        if hasattr(self, "object_class"):
+            from sage.misc.misc import deprecation
+            deprecation("Using object_class for specifying the class of the elements of a combinatorial class is deprecated. Please use Element instead")
+        return self.Element
+
+    def _element_constructor_(self, x):
+        """
+        This function is a temporary helper so that a CombinatorialClass
+        behaves as a parent for creating elements. This will disappear when
+        combinatorial classes will be turned into actual parents (in the
+        category EnumeratedSets).
+
+        TESTS::
+
+            sage: P5 = Partitions(5)
+            sage: p = P5([3,2])      # indirect doctest
+            sage: type(p)
+            <class 'sage.combinat.partition.Partition_class'>
+        """
+        assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
+        return self.element_class(x)
 
     def __list_from_iterator(self):
         """
@@ -1017,7 +1063,7 @@ class CombinatorialClass(SageObject):
     list  = __list_from_iterator
 
     #Set the default object class to be CombinatorialObject
-    object_class = CombinatorialObject
+    Element = CombinatorialObject
 
     def __iterator_from_next(self):
         """
@@ -1203,7 +1249,7 @@ class CombinatorialClass(SageObject):
 
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random_element()
+            sage: C.random_element()       # indirect doctest
             1
         """
         c = self.cardinality()
@@ -1609,13 +1655,20 @@ class MapCombinatorialClass(CombinatorialClass):
     See CombinatorialClass.map for examples
     """
     def __init__(self, cc, f, name=None):
+        """
+        TESTS::
+
+            sage: Partitions(3).map(attrcall('conjugate'))
+            Image of Partitions of the integer 3 by *.conjugate()
+        """
         self.cc = cc
         self.f  = f
         self._name = name
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: Partitions(3).map(attrcall('conjugate'))
             Image of Partitions of the integer 3 by *.conjugate()
 
@@ -1629,7 +1682,8 @@ class MapCombinatorialClass(CombinatorialClass):
         """
         Returns the cardinality of this combinatorial class
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800
@@ -1641,7 +1695,8 @@ class MapCombinatorialClass(CombinatorialClass):
         """
         Returns an iterator over the elements of this combinatorial class
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800

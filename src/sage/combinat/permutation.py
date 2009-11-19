@@ -3105,7 +3105,8 @@ class StandardPermutations_all(InfiniteAbstractCombinatorialClass):
             sage: SP == loads(dumps(SP))
             True
         """
-        self.object_class = Permutation_class
+
+    Element = Permutation_class
 
     def __repr__(self):
         """
@@ -3173,8 +3174,22 @@ class StandardPermutations_n(CombinatorialClass):
             True
         """
         self.n = n
-        self.object_class = Permutation_class
 
+    Element = Permutation_class
+
+    def __call__(self, x):
+        """
+        A close variant of CombinatorialClass.__call__ which just
+        attempts to extend the permutation
+
+            sage: P = Permutations(5)
+            sage: P([2,3,1])
+            [2, 3, 1, 4, 5]
+        """
+
+        if len(x) < self.n:
+            x = list(x) + range(len(x)+1, self.n+1)
+        return super(StandardPermutations_n, self).__call__(x)
 
     def __contains__(self,x):
         """
@@ -3522,7 +3537,7 @@ class StandardPermutations_descents(CombinatorialClass):
         """
         return "Standard permutations of %s with descents %s"%(self.n, self.d)
 
-    object_class = Permutation_class
+    Element = Permutation_class
 
     def first(self):
         """
@@ -3676,7 +3691,7 @@ class StandardPermutations_recoilsfiner(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is finer than %s"%self.recoils
 
-    object_class = Permutation_class
+    Element = Permutation_class
 
     def list(self):
         """
@@ -3734,7 +3749,7 @@ class StandardPermutations_recoilsfatter(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is fatter than %s"%self.recoils
 
-    object_class = Permutation_class
+    Element = Permutation_class
 
     def list(self):
         """
@@ -3797,7 +3812,7 @@ class StandardPermutations_recoils(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is %s"%self.recoils
 
-    object_class = Permutation_class
+    Element = Permutation_class
 
 
     def list(self):

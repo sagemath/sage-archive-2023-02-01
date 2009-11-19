@@ -95,8 +95,16 @@ static ex exp_eval(const ex & x)
 	}
 
 	// exp(n*Pi*I/2) -> {+1|+I|-1|-I}
-	const ex TwoExOverPiI=(_ex2*x)/(Pi*I);
-	if (TwoExOverPiI.info(info_flags::integer)) {
+	ex TwoExOverPiI;
+	// Arithmetic with I can result in Python exceptions
+	// We just ignore the error in this case and skip this step
+	try {
+		TwoExOverPiI=(_ex2*x)/(Pi*I);
+	} catch (...) {
+	}
+	if (PyErr_Occurred()) {
+		PyErr_Clear();
+	} else if (TwoExOverPiI.info(info_flags::integer)) {
 		const numeric z = mod(ex_to<numeric>(TwoExOverPiI),*_num4_p);
 		if (z.is_equal(*_num0_p))
 			return _ex1;

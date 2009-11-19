@@ -5863,6 +5863,15 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: solving only implemented for equalities
+
+        Trac #7491 fixed::
+
+            sage: y=var('y')
+            sage: solve(y==y,y)
+            [y == r1]
+            sage: solve(y==y,y,multiplicities=True)
+            ([y == r1], [])
+
         """
         import operator
         cdef Expression ex
@@ -5895,6 +5904,16 @@ cdef class Expression(CommutativeRingElement):
         s = m.solve(x).str()
         if explicit_solutions:
             P.eval('solveexplicit: false') # switches Maxima back to default
+
+        if s == 'all':
+            if solution_dict:
+                ans = (dict([[x,self.parent().var('r1')]]))
+            else:
+                ans = ([x == self.parent().var('r1')])
+            if multiplicities:
+                return ans,[]
+            else:
+                return ans
 
         from sage.symbolic.relation import string_to_list_of_solutions
 

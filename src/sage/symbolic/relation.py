@@ -596,10 +596,11 @@ def solve(f, *args, **kwds):
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
-        return f.solve(*args,**kwds)
+        ans = f.solve(*args,**kwds)
+        return ans
     elif len(f)==1 and is_Expression(f[0]): # f is a list with a single expression
-        f = f[0]
-        return f.solve(*args,**kwds)
+        ans = f[0].solve(*args,**kwds)
+        return ans
     else:  # f is a list of such expressions or equations
         from sage.symbolic.ring import is_SymbolicVariable
 

@@ -65,8 +65,8 @@ class TestSuite(object):
     should use the utility :meth:`._tester` to handle standard options
     and report test failures. See the code of
     :meth:`._test_an_element` for an example. Note: Python's testunit
-    convention is to look for methods called .test*; we use instead
-    ._test_* so as not to pollute the object's interface.
+    convention is to look for methods called ``.test*``; we use instead
+    ``._test_*`` so as not to pollute the object's interface.
 
     Eventually, every implementation of a :class:`SageObject` should
     run a :class:`TestSuite` on one of its instances in its doctest
@@ -79,9 +79,9 @@ class TestSuite(object):
        This involves reimplementing the methods fail / failIf / ...
        of unittest.TestCase in InstanceTester
 
-     - Don't catch the exceptions if TestSuite(..).run() is called
-       under the debugger, or with %pdb on (how to detect this? see
-       IPython.ipapi.get(), IPython.Magic.shell.call_pdb, ...)
+     - Don't catch the exceptions if ``TestSuite(..).run()`` is called
+       under the debugger, or with ``%pdb`` on (how to detect this? see
+       ``IPython.ipapi.get()``, ``IPython.Magic.shell.call_pdb``, ...)
 
      - Run the tests according to the inheritance order, from most
        generic to most specific, rather than alphabetically. Then, the
@@ -92,7 +92,7 @@ class TestSuite(object):
 
      - Integration with unittest:
        Make TestSuite inherit from unittest.TestSuite?
-       Make .run(...) accept a result object
+       Make ``.run(...)`` accept a result object
 
      - Add some standard option ``proof = True``, asking for the
        test method to choose appropriately the elements so as to

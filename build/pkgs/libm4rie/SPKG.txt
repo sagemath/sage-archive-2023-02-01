@@ -20,6 +20,9 @@ Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Releases ==
 
+=== libm4ri-20091119 (Martin Albrecht, November 19th, 2009) ===
+ * portability improvements in configure.ac, cf. http://trac.sagemath.org/sage_trac/ticket/7375#comment:6
+
 === libm4ri-20091101 (Martin Albrecht, November 1st, 2009) ===
  * new upstream release
    + switched to LQUP instead of PLUQ for better performance

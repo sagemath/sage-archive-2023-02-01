@@ -10,13 +10,25 @@ fi
 
 unset RM
 
+COMPILER=`./testcc.sh`
+
 cd src
 
 $MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -Wall -pedantic -g"
+CFLAGS="$CFLAGS $INCLUDES -L$SAGE_LOCAL/lib -pedantic -g"
+
+
+if [ "x$COMPILER"  = "xGNU" ] ; then
+   CFLAGS="$CFLAGS -fPIC -Wall "
+elif [ "x$COMPILER" = "xSun_on_Solaris" ] ; then
+   CLFAGS="$CLFAGS -Kpic "
+elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
+   CFLAGS="$CFLAGS + z "
+fi
+
 CPPFLAGS="$INCLUDES"
 
 if [ "$SAGE_DEBUG" = "1" ]; then
@@ -27,10 +39,8 @@ else
    ENABLE_DEBUG=""
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-    echo "64 bit OSX build"
+if [ "x$SAGE64" = "xyes" ]; then
     CFLAGS="$CFLAGS -m64"
-    CPPFLAGS="$CPPFLAGS -m64"
 fi
 
 export CFLAGS

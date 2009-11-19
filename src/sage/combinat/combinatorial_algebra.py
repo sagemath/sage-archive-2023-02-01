@@ -16,11 +16,12 @@ symmetric functions.
 
     sage: class PowerSums(CombinatorialAlgebra):
     ...     def __init__(self, R):
-    ...         self._combinatorial_class = Partitions()
     ...         self._one = Partition([])
     ...         self._name = 'Power-sum symmetric functions'
-    ...         self._prefix = 'p'
-    ...         CombinatorialAlgebra.__init__(self, R)
+    ...         CombinatorialAlgebra.__init__(self, R, Partitions())
+    ...
+    ...     _prefix = 'p'
+    ...
     ...     def _multiply_basis(self, a, b):
     ...         l = list(a)+list(b)
     ...         l.sort(reverse=True)
@@ -38,7 +39,7 @@ symmetric functions.
     sage: ps(2)
     2*p[]
 
-The important things to define are ._combinatorial_class which
+The important things to define are ._basis_keys which
 specifies the combinatorial class that indexes the basis elements,
 ._one which specifies the identity element in the algebra, ._name
 which specifies the name of the algebra, ._prefix which is the
@@ -62,63 +63,55 @@ algebra.
 #*****************************************************************************
 
 from sage.rings.all import Integer
-from sage.algebras.algebra import Algebra
+#from sage.algebras.algebra import Algebra
 from sage.rings.ring import Ring
-from sage.algebras.algebra_element import AlgebraElement
-from sage.matrix.all import MatrixSpace
-from sage.combinat.free_module import CombinatorialFreeModuleElement, CombinatorialFreeModule, CombinatorialFreeModuleInterface
+#from sage.algebras.algebra_element import AlgebraElement
+from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleInterface
 from sage.misc.misc import repr_lincomb
+from sage.misc.cachefunc import cached_method
+from sage.categories.all import AlgebrasWithBasis
 
-class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
-    def __init__(self, A, x):
-        """
-        Create a combinatorial algebra element x. This should never be
-        called directly, but only through the parent combinatorial
-        algebra's __call__ method.
+# TODO: migrate this completely to the combinatorial free module + categories framework
 
-        TESTS::
+# for backward compatibility
+CombinatorialAlgebraElement = CombinatorialFreeModule.Element
 
-            sage: s = SFASchur(QQ)
-            sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
-            2*s[2, 1]
-            sage: a == loads(dumps(a))
-            True
-        """
-        AlgebraElement.__init__(self, A)
-        self._monomial_coefficients = x
+# Not used anymore
+class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
+#     def __init__(self, A, x):
+#         """
+#         Create a combinatorial algebra element x.  This should never
+#         be called directly, but only through the parent combinatorial
+#         algebra's __call__ method.
+
+#         TESTS:
+#             sage: s = SFASchur(QQ)
+#             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
+#             2*s[2, 1]
+#             sage: a == loads(dumps(a))
+#             True
+#         """
+#         AlgebraElement.__init__(self, A)
+#         self._monomial_coefficients = x
 
 
     def _mul_(self, y):
         """
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: a = s([2])
             sage: a._mul_(a) #indirect doctest
             s[2, 2] + s[3, 1] + s[4]
         """
-        return self.parent().multiply(self, y)
+        return self.parent().product(self, y)
 
-    def _div_(self, y):
-        """
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ)
-            sage: a = s([2])
-            sage: a._div_(s(2))
-            1/2*s[2]
-            sage: a._div_(a)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot invert self (= s[2])
-        """
-        return self.parent().multiply(self, ~y)
 
     def __invert__(self):
         """
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: ~s(2)
             1/2*s[]
             sage: ~s([2,1])
@@ -133,118 +126,18 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
         else:
             raise ValueError, "cannot invert self (= %s)"%self
 
-    def __pow__(self, n):
-        """
-        Returns self to the `n^{th}` power.
 
-        EXAMPLES::
 
-            sage: s = SFASchur(QQ)
-            sage: s([2])^2
-            s[2, 2] + s[3, 1] + s[4]
-
-        TESTS::
-
-            sage: s = SFASchur(QQ)
-            sage: z = s([2,1])
-            sage: z
-            s[2, 1]
-            sage: z^2
-            s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
-
-        ::
-
-            sage: e = SFAElementary(QQ)
-            sage: y = e([1])
-            sage: y^2
-            e[1, 1]
-            sage: y^4
-            e[1, 1, 1, 1]
-        """
-        if not isinstance(n, (int, Integer)):
-            raise TypeError, "n must be an integer"
-        A = self.parent()
-        z = A(Integer(1))
-        for _ in range(n):
-            z *= self
-        return z
-
-    def _matrix_(self, new_BR = None):
-        """
-        Returns a matrix version of self obtained by the action of self on
-        the left. If new_BR is specified, then the matrix will be over
-        new_BR.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: a = QS3([2,1,3])
-            sage: a._matrix_()
-            [0 0 1 0 0 0]
-            [0 0 0 0 1 0]
-            [1 0 0 0 0 0]
-            [0 0 0 0 0 1]
-            [0 1 0 0 0 0]
-            [0 0 0 1 0 0]
-            sage: a._matrix_(RDF)
-            [0.0 0.0 1.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 0.0 1.0 0.0]
-            [1.0 0.0 0.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 0.0 0.0 1.0]
-            [0.0 1.0 0.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 1.0 0.0 0.0]
-        """
-        parent = self.parent()
-
-        if parent.get_order() is None:
-            cc = parent._combinatorial_class
-        else:
-            cc = parent.get_order()
-
-        BR = parent.base_ring()
-        if new_BR is None:
-            new_BR = BR
-
-        MS = MatrixSpace(new_BR, parent.dimension(), parent.dimension())
-        l = [ (self*parent(m)).to_vector() for m in cc ]
-        return MS(l).transpose()
-
-    def to_matrix(self):
-        """
-        Returns a matrix version of self obtained by the action of self on
-        the left. If new_BR is specified, then the matrix will be over
-        new_BR.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: a = QS3([2,1,3])
-            sage: a._matrix_() # indirect doctest
-            [0 0 1 0 0 0]
-            [0 0 0 0 1 0]
-            [1 0 0 0 0 0]
-            [0 0 0 0 0 1]
-            [0 1 0 0 0 0]
-            [0 0 0 1 0 0]
-            sage: a._matrix_(RDF)
-            [0.0 0.0 1.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 0.0 1.0 0.0]
-            [1.0 0.0 0.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 0.0 0.0 1.0]
-            [0.0 1.0 0.0 0.0 0.0 0.0]
-            [0.0 0.0 0.0 1.0 0.0 0.0]
-        """
-        return self._matrix_()
 
 
     def __repr__(self):
         """
         EXAMPLES::
 
-            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: a = 2 + QS3([2,1,3])
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: a = 2 + s([3,2,1])
             sage: print a.__repr__()
-            2*[1, 2, 3] + [2, 1, 3]
+            2*s[] + s[3, 2, 1]
         """
         v = self._monomial_coefficients.items()
         v.sort()
@@ -257,20 +150,36 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
         else:
             return x
 
+class CombinatorialAlgebra(CombinatorialFreeModule):
+    """
 
-class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
-    def __init__(self, R, element_class = None):
+    Deprecated! Don't use!
+
+    """
+
+    # For backward compatibility
+    @cached_method
+    def one_basis(self):
         """
         TESTS::
 
-            sage: s = SFASchur(QQ)
-            sage: s == loads(dumps(s))
-            True
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: s.one_basis()
+            []
+        """
+        return self._one
+
+    def __init__(self, R, cc = None, element_class = None, category = None):
+        """
+        TESTS::
+
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: TestSuite(s).run()
         """
         #Check to make sure that the user defines the necessary
         #attributes / methods to make the combinatorial module
         #work
-        required = ['_combinatorial_class','_one',]
+        required = ['_one',]
         for r in required:
             if not hasattr(self, r):
                 raise ValueError, "%s is required"%r
@@ -280,17 +189,36 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         #Create a class for the elements of this combinatorial algebra
         #We need to do this so to distinguish between element of different
         #combinatorial algebras
-        if element_class is None:
-            if not hasattr(self, '_element_class'):
-                class CAElement(CombinatorialAlgebraElement):
-                    pass
-                self._element_class = CAElement
-        else:
-            self._element_class = element_class
+#         if element_class is None:
+#             if not hasattr(self, '_element_class'):
+#                 class CAElement(CombinatorialAlgebraElement):
+#                     pass
+#                 self._element_class = CAElement
+#         else:
+#             self._element_class = element_class
 
-        CombinatorialFreeModuleInterface.__init__(self, R, self._element_class)
+        if category is None:
+            category = AlgebrasWithBasis(R)
+
+        # for backward compatibility
+        if cc is None and hasattr(self, "_basis_keys"):
+            cc = self._basis_keys
+        assert(cc is not None)
+
+        CombinatorialFreeModule.__init__(self, R, cc, element_class, category = category)
+
+    # see sage.combinat.free_module._repr_term
+    # this emulates the _repr_ of CombinatorialAlgebraElement did not add brackets around the basis indices
+    _repr_option_bracket = False
 
     def __call__(self, x):
+        """
+        TESTS::
+
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: s([2])
+            s[2]
+        """
         try:
             return CombinatorialFreeModuleInterface.__call__(self, x)
         except TypeError:
@@ -322,7 +250,7 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
 
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: s._an_element_impl()
             s[]
             sage: _.parent() is s
@@ -334,8 +262,8 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         """
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
-            sage: s._coerce_impl(2)
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: s(2)          # indirect doctest
             2*s[]
         """
         try:
@@ -351,17 +279,17 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         # any ring that coerces to the base ring
         return self._coerce_try(x, [self.base_ring()])
 
-    def multiply(self,left,right):
+    def product(self, left, right):
         """
         Returns left\*right where left and right are elements of self.
-        multiply() uses either _multiply or _multiply basis to carry out
+        product() uses either _multiply or _multiply basis to carry out
         the actual multiplication.
 
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: a = s([2])
-            sage: s.multiply(a,a)
+            sage: s.product(a,a)
             s[2, 2] + s[3, 1] + s[4]
             sage: ZS3 = SymmetricGroupAlgebra(ZZ, 3)
             sage: a = 2 + ZS3([2,1,3])
@@ -380,8 +308,7 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         ABRzero = ABR(0)
         z_elt = {}
 
-        #Do the case where the user specifies how to multiply basis
-        #elements
+        #Do the case where the user specifies how to multiply basis elements
         if hasattr(self, '_multiply_basis'):
             for (left_m, left_c) in left._monomial_coefficients.iteritems():
                 for (right_m, right_c) in right._monomial_coefficients.iteritems():
@@ -423,3 +350,41 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
             del z_elt[m]
 
         return self._from_dict(z_elt)
+
+class TestAlgebra(CombinatorialAlgebra):
+
+    _name = "TestAlgebra"
+
+    def __init__(self, R):
+        """
+        TESTS::
+
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: TestSuite(s).run()
+        """
+        from sage.combinat.partition import Partition, Partitions
+        self._one = Partition([])
+        CombinatorialAlgebra.__init__(self, R, cc=Partitions())
+
+    def _multiply_basis(self, part1, part2):
+        """
+        TESTS::
+
+            sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: a = s([2])
+            sage: a._mul_(a) #indirect doctest
+            s[2, 2] + s[3, 1] + s[4]
+        """
+        from sage.combinat.sf.sfa import SFASchur
+        S = SFASchur(self.base_ring())
+        return self.sum_of_monomials(S(part1) * S(part2))
+
+    def prefix(self):
+        """
+        TESTS::
+
+            sage: sa = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
+            sage: x = sa([2]); x  # indirect doctest
+            s[2]
+        """
+        return "s"

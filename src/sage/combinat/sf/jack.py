@@ -617,7 +617,7 @@ class ZonalPolynomials(JackPolynomials_p):
         """
         EXAMPLES::
 
-            sage: Z = ZonalPolynomials(QQ)
+        sage: Z = ZonalPolynomials(QQ)
 
             sage: P = Z._P; P
             Jack polynomials in the P basis with t=2 over Rational Field
@@ -629,7 +629,11 @@ class ZonalPolynomials(JackPolynomials_p):
         TESTS::
 
             sage: TestSuite(Z).run(elements = [Z[1], Z[1,1]])
-            sage: TestSuite(Z).run() # long time
+            sage: TestSuite(Z).run(skip = ["_test_associativity", "_test_prod"])
+
+        Note: ``Z.an_element()`` is of degree 4; so we skip the
+        ``_test_associativity`` and ``_test_prod`` which involve
+        (currently?) expensive calculations up to degree 12.
         """
         JackPolynomials_p.__init__(self, R, t=R(2))
         self._name = "Zonal polynomials"

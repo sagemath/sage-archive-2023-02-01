@@ -16,9 +16,12 @@ class DualityCategory(Category):
     TESTS::
 
         sage: TestSuite(DualityCategory()).run() # mostly to silence sage -coverage on this abstract class
+        Failure in _test_not_implemented_methods:
         Traceback (most recent call last):
         ...
         AssertionError: Not implemented method: dual
+        ------------------------------------------------------------
+        The following tests failed: _test_not_implemented_methods
     """
     @abstract_method
     def dual(self):

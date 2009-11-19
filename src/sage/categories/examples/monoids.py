@@ -44,13 +44,14 @@ class FreeMonoid(FreeSemigroup):
     We conclude by running systematic tests on this monoid::
 
         sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_one() ... done
-        running ._test_pickling() ... done
-        running ._test_prod() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
     """
 
     def __init__(self, alphabet=('a','b','c','d')):

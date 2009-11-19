@@ -66,16 +66,16 @@ class HopfAlgebrasWithBasis(Category_over_base_ring, CategoryWithTensorProduct):
         B[(1,2,3)] # B[(1,2,3)]
 
         sage: TestSuite(A).run(verbose=True)
-        running ._test_additive_associativity() ... done
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_not_implemented_methods() ... done
-        running ._test_one() ... done
-        running ._test_pickling() ... done
-        running ._test_prod() ... done
-        running ._test_some_elements() ... done
-        running ._test_zero() ... done
+        running ._test_additive_associativity() . . . pass
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+        running ._test_zero() . . . pass
         sage: A.__class__
         <class 'sage.categories.examples.hopf_algebras_with_basis.MyGroupAlgebra_with_category'>
         sage: A.element_class

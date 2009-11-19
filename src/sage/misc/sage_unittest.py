@@ -11,6 +11,8 @@ Unit testing for Sage objects
 ##############################################################################
 
 import unittest
+import sys
+import traceback
 
 class TestSuite(object):
     """
@@ -25,8 +27,8 @@ class TestSuite(object):
     object, in alphabetic order::
 
         sage: TestSuite(ZZ).run(verbose = True)
-        running ._test_not_implemented_methods() ... done
-        running ._test_pickling() ... done
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
 
     Those methods are typically implemented by abstract
     super classes, in particular via categories, in order to
@@ -35,48 +37,63 @@ class TestSuite(object):
     finite semigroups, this checks that the multiplication is
     associative (at least on some elements)::
 
-        sage: S = FiniteSemigroups().example(alphabet = ('a', 'b')) # todo: not implemented (comes with the category patches)
-        sage: TestSuite(S).run(verbose = True)                      # todo: not implemented (comes with the category patches)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_enumerated_set_contains() ... done
-        running ._test_enumerated_set_iter_cardinality() ... done
-        running ._test_enumerated_set_iter_list() ... done
-        running ._test_not_implemented_methods() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        sage: S = FiniteSemigroups().example(alphabet = ('a', 'b'))
+        sage: TestSuite(S).run(verbose = True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_enumerated_set_contains() . . . pass
+        running ._test_enumerated_set_iter_cardinality() . . . pass
+        running ._test_enumerated_set_iter_list() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
 
     The different test methods can be called independently::
 
-        sage: S._test_associativity()                   # todo: not implemented (comes with the category patches)
+        sage: S._test_associativity()
 
     When meaningful, one can further customize on which elements
     the tests are run. Here, we use it to *prove* that the
     multiplication is indeed associative, by running the test on
     all the elements::
 
-        sage: S._test_associativity(elements = S)       # todo: not implemented (comes with the category patches)
+        sage: S._test_associativity(elements = S)
 
-    Adding a new test boils down to adding a new method in the
-    class of the object or any super class (e.g. in a
-    category). This method should use the utility :meth:`._tester`
-    to handle standard options and report test failures. See the
-    code of :meth:`._test_an_element` for an example.
+    Adding a new test boils down to adding a new method in the class
+    of the object or any super class (e.g. in a category). This method
+    should use the utility :meth:`._tester` to handle standard options
+    and report test failures. See the code of
+    :meth:`._test_an_element` for an example. Note: Python's testunit
+    convention is to look for methods called .test*; we use instead
+    ._test_* so as not to pollute the object's interface.
 
-    Eventually, every implementation of a :class:`SageObject`
-    should run a :class:`TestSuite` on one of its instances in its doctest
+    Eventually, every implementation of a :class:`SageObject` should
+    run a :class:`TestSuite` on one of its instances in its doctest
     (replacing the current ``loads(dumps(x))`` tests).
 
     TODO:
+
      - allow for customized behavior in case of failing assertion
        (warning, error, statistic accounting).
-       This involves reimplementing the method sfail / failIf
-       / ... of unittest.TestCase in InstanceTester
+       This involves reimplementing the methods fail / failIf / ...
+       of unittest.TestCase in InstanceTester
+
+     - Don't catch the exceptions if TestSuite(..).run() is called
+       under the debugger, or with %pdb on (how to detect this? see
+       IPython.ipapi.get(), IPython.Magic.shell.call_pdb, ...)
+
+     - Run the tests according to the inheritance order, from most
+       generic to most specific, rather than alphabetically. Then, the
+       first failure will be the most relevant, the others being
+       usually consequences.
+
      - Improve integration with doctests (statistics on failing/passing tests)
+
      - Integration with unittest:
        Make TestSuite inherit from unittest.TestSuite?
        Make .run(...) accept a result object
+
      - Add some standard option ``proof = True``, asking for the
        test method to choose appropriately the elements so as to
        prove the desired property. The test method may assume that
@@ -107,9 +124,16 @@ class TestSuite(object):
         return "Test suite for %s"%self._instance
 
 
-    def run(self, category = None, **options):
+    def run(self, category = None, skip = [], **options):
         """
         Run all the tests from this test suite:
+
+        INPUT:
+
+         - ``category`` - a category; reserved for future use
+         - ``skip` ` - a string or list (or iterable) of strings
+
+        All other options are passed down to the individual tests.
 
         EXAMPLES::
 
@@ -118,19 +142,90 @@ class TestSuite(object):
         We now use the ``verbose`` option::
 
             sage: TestSuite(ZZ).run(verbose = True)
-            running ._test_not_implemented_methods() ... done
-            running ._test_pickling() ... done
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
+
+        Some tests may be skipped using the ``skip`` option::
+
+            sage: TestSuite(ZZ).run(verbose = True, skip ="_test_pickling")
+            running ._test_not_implemented_methods() . . . pass
+            sage: TestSuite(ZZ).run(verbose = True, skip =["_test_pickling"])
+            running ._test_not_implemented_methods() . . . pass
+
+            sage: class Blah(SageObject):
+            ...       def _test_a(self, tester): pass
+            ...       def _test_b(self, tester): tester.fail()
+            ...       def _test_c(self, tester): pass
+            ...       def _test_d(self, tester): tester.fail()
+
+            sage: TestSuite(Blah()).run()
+            Failure in _test_b:
+            Traceback (most recent call last):
+              ...
+            AssertionError
+            ------------------------------------------------------------
+            Failure in _test_d:
+            Traceback (most recent call last):
+              ...
+            AssertionError
+            ------------------------------------------------------------
+            Failure in _test_pickling:
+            Traceback (most recent call last):
+              ...
+            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ------------------------------------------------------------
+            The following tests failed: _test_b, _test_d, _test_pickling
+
+            sage: TestSuite(Blah()).run(verbose = True)
+            running ._test_a() . . . pass
+            running ._test_b() . . . fail
+            Traceback (most recent call last):
+              ...
+            AssertionError
+            ------------------------------------------------------------
+            running ._test_c() . . . pass
+            running ._test_d() . . . fail
+            Traceback (most recent call last):
+              ...
+            AssertionError
+            ------------------------------------------------------------
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . fail
+            Traceback (most recent call last):
+              ...
+            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ------------------------------------------------------------
+            The following tests failed: _test_b, _test_d, _test_pickling
+
+            File "/opt/sage/local/lib/python/site-packages/sage/misc/sage_unittest.py", line 183, in run
+            test_method(tester = tester)
 
         """
+        if type(skip) == str:
+            skip = [skip]
+        else:
+            skip = tuple(skip)
         tester = self._instance._tester(**options)
+        failed = []
         for method_name in dir(self._instance):
-            # Note: testunit usually looks for methods called test* , but we don't want to catch self.test() here!
-            if method_name[0:6] == "_test_":
+            if method_name[0:6] == "_test_" and method_name not in skip:
                 # TODO: improve pretty printing
-                # could use the doc string of the test method
-                tester.info("running .%s() ..."%method_name, newline = False)
-                getattr(self._instance, method_name)(tester = tester)
-                tester.info("done")
+                # could use the doc string of the test method?
+                tester.info("running .%s() . . . "%method_name, newline = False)
+                test_method = getattr(self._instance, method_name)
+                try:
+                    test_method(tester = tester)
+                    tester.info("pass")
+                except:
+                    if tester._verbose:
+                        tester.info("fail")
+                    else:
+                        print "Failure in %s:"%method_name
+                    traceback.print_exc(file = sys.stdout)
+                    print "-" * 60
+                    failed.append(method_name)
+        if len(failed) > 0:
+            print "The following tests failed: %s"%(", ".join(failed))
 
 class InstanceTester(unittest.TestCase):
     """
@@ -176,7 +271,6 @@ class InstanceTester(unittest.TestCase):
             sage: from sage.misc.sage_unittest import InstanceTester
             sage: tester = InstanceTester(ZZ, verbose = True)
             sage: tester.runTest()
-
         """
         pass
 
@@ -197,16 +291,15 @@ class InstanceTester(unittest.TestCase):
             sage: tester.info("hello"); tester.info("world")
 
             sage: tester = InstanceTester(ZZ, verbose = True)
-            sage: tester.info("hello", newline = False); tester.info("world")
+            sage: tester.info("hello", newline = False); tester.info(" world")
             hello world
-
-
         """
         if self._verbose:
             if newline:
-                print message
+                sys.stdout.write(message+"\n")
             else:
-                print message,
+                sys.stdout.write(message)
+                sys.stdout.flush()
 
     def __repr__(self):
         """

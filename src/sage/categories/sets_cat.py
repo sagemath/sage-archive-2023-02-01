@@ -66,10 +66,11 @@ class Sets(Category):
     We run some generic checks on P::
 
         sage: TestSuite(P).run(verbose=True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
 
     Now, we manipulate some elements of P::
 

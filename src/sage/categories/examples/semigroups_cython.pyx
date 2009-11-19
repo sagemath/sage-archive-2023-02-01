@@ -225,11 +225,12 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
         3
 
         sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
 
         # That's really the only method which is obtained from the category ...
         sage: S(42).is_idempotent

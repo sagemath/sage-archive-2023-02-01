@@ -11,9 +11,8 @@ for categories), but deriving only from Parent::
     sage: from sage.misc.nested_class_test import TestParent1, TestParent2, TestParent3, TestParent4
     sage: P = TestParent1()
     sage: TestSuite(P).run()
-    Traceback (most recent call last):
-    ...
-    PicklingError: Can't pickle <class 'sage.misc.nested_class_test.Element'>: attribute lookup sage.misc.nested_class_test.Element failed
+    Failure ...
+    The following tests failed: _test_element_pickling, _test_pickling
 
 They actually need to be in the NestedClassMetaclass. However, due to
 a technical detail, this is currently not directly supported::
@@ -22,7 +21,7 @@ a technical detail, this is currently not directly supported::
     Traceback (most recent call last):
     ...
     TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-    sage: TestSuite(P).run()  # todo: not implemented
+    sage: TestSuite(P).run()  # not tested
 
 Instead, the easiest is to inherit from UniqueRepresentation, which is
 what you want to do anyway most of the time::

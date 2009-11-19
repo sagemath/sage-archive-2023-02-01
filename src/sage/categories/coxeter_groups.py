@@ -66,15 +66,21 @@ class CoxeterGroups(Category):
     TESTS::
 
         sage: W = CoxeterGroups().example(); TestSuite(W).run(verbose = "True")
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_inverse() ... done
-        running ._test_one() ... done
-        running ._test_pickling() ... done
-        running ._test_prod() ... done
-        running ._test_reduced_word() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_enumerated_set_contains() . . . pass
+        running ._test_enumerated_set_iter_cardinality() . . . pass
+        running ._test_enumerated_set_iter_list() . . . pass
+        running ._test_has_descent() . . . pass
+        running ._test_inverse() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_reduced_word() . . . pass
+        running ._test_simple_projections() . . . pass
+        running ._test_some_elements() . . . pass
     """
 
     @cached_method

@@ -404,7 +404,14 @@ cdef class IntegerWrapper(Integer):
             sage: nn.parent()
             Integer Ring
 
-            sage: TestSuite(n).run() # todo: not implemented
+            sage: TestSuite(n).run()
+            Failure in _test_pickling:
+            Traceback (most recent call last):
+            ...
+            AssertionError: 3 != 3
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         if parent is not None:
             Element.__init__(self, parent = parent)

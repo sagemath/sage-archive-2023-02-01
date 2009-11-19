@@ -768,9 +768,10 @@ class LazyFamily(AbstractFamily):
             sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i); f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
-            sage: f == loads(dumps(f))
-            True
-            sage: TestSuite(f).run() # __contains__ is not implemented (we should just desactivate the an_element)
+            sage: TestSuite(f).run()   # __contains__ is not implemented
+            Failure ...
+            The following tests failed: _test_an_element, _test_enumerated_set_contains, _test_some_elements
+
 
         Check for bug #5538::
 

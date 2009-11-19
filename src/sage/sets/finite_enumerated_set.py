@@ -50,15 +50,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         1
         sage: S.category()
         Category of finite enumerated sets
-        sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_enumerated_set_contains() ... done
-        running ._test_enumerated_set_iter_cardinality() ... done
-        running ._test_enumerated_set_iter_list() ... done
-        running ._test_not_implemented_methods() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        sage: TestSuite(S).run()
 
     Note that being and enumerated set, the result depends on the order::
 

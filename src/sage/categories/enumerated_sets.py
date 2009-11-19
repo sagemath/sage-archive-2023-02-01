@@ -523,7 +523,7 @@ class EnumeratedSets(Category):
                 ...           else:
                 ...               return obj in C
                 sage: CC = CCls()
-                sage: TestSuite(CC).run()
+                sage: CC._test_enumerated_set_contains()
                 Traceback (most recent call last):
                 ...
                 AssertionError
@@ -555,7 +555,7 @@ class EnumeratedSets(Category):
                 ...       def list(self):
                 ...           return [1,2,3,4]
                 sage: CC = CCls()
-                sage: TestSuite(CC).run()
+                sage: CC._test_enumerated_set_iter_list()
                 Traceback (most recent call last):
                 ...
                 AssertionError: 3 != 4

@@ -44,12 +44,12 @@ class LeftZeroSemigroup(UniqueRepresentation, Parent):
     TESTS::
 
         sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
-
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def __init__(self):
         r"""
@@ -163,12 +163,12 @@ class FreeSemigroup(UniqueRepresentation, Parent):
     TESTS::
 
         sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
-
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def __init__(self, alphabet=('a','b','c','d')):
         r"""
@@ -324,12 +324,12 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
     TESTS::
 
         sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
-
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def _element_constructor_(self, x):
         r"""
@@ -525,14 +525,25 @@ class IncompleteSubQuotientSemigroup(UniqueRepresentation,Parent):
 
             sage: S._test_not_implemented_methods()
             Traceback (most recent call last):
-            ...
+              ...
             AssertionError: Not implemented method: lift
 
             sage: TestSuite(S).run(verbose = True)   # todo: improve the error messages
+            running ._test_an_element() . . . pass
+            running ._test_associativity() . . . fail
             Traceback (most recent call last):
-            ...
+              ...
             NotImplementedError: <abstract method retract at ...>
-
+            ------------------------------------------------------------
+            running ._test_element_pickling() . . . pass
+            running ._test_not_implemented_methods() . . . fail
+            Traceback (most recent call last):
+              ...
+            AssertionError: Not implemented method: lift
+            ------------------------------------------------------------
+            running ._test_pickling() . . . pass
+            running ._test_some_elements() . . . pass
+            The following tests failed: _test_associativity, _test_not_implemented_methods
         """
         Parent.__init__(self, category=Semigroups().SubQuotients())
 

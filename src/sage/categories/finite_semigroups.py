@@ -41,8 +41,8 @@ class FiniteSemigroups(Category):
 
         sage: C = FiniteSemigroups()
         sage: TestSuite(C).run(verbose = True)
-        running ._test_not_implemented_methods() ... done
-        running ._test_pickling() ... done
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
 
     """
     @cached_method

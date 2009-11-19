@@ -183,7 +183,7 @@ class FiniteEnumeratedSets(Category):
                 ...       def cardinality(self):
                 ...           return 4
                 sage: CC = CCls()
-                sage: TestSuite(CC).run()
+                sage: CC._test_enumerated_set_iter_cardinality()
                 Traceback (most recent call last):
                 ...
                 AssertionError: 4 != 3

@@ -85,18 +85,7 @@ def SymmetricGroupAlgebra(R,n):
 
     TESTS::
 
-        sage: TestSuite(QS3).run(verbose = True)
-        running ._test_additive_associativity() ... done
-        running ._test_an_element() ... done
-        running ._test_associativity() ... done
-        running ._test_element_pickling() ... done
-        running ._test_not_implemented_methods() ... done
-        running ._test_one() ... done
-        running ._test_pickling() ... done
-        running ._test_prod() ... done
-        running ._test_some_elements() ... done
-        running ._test_zero() ... done
-
+        sage: TestSuite(QS3).run()
     """
     return SymmetricGroupAlgebra_n(R,n)
 

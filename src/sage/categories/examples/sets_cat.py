@@ -57,10 +57,11 @@ class PrimeNumbers(UniqueRepresentation, Parent):
         <type 'sage.rings.integer.Integer'>
 
         sage: TestSuite(P).run(verbose=True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def __init__(self):
         """
@@ -323,10 +324,11 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
         Set of prime numbers
 
         sage: TestSuite(P).run(verbose=True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
 
     See also::
 
@@ -436,10 +438,11 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
     TESTS::
 
         sage: TestSuite(P).run(verbose=True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def __init__(self):
         """
@@ -596,10 +599,11 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
     TESTS::
 
         sage: TestSuite(P).run(verbose=True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        running ._test_an_element() . . . pass
+        running ._test_element_pickling() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
     """
 
     def _repr_(self):

@@ -340,9 +340,7 @@ class LLT_spin(LLT_generic):
 
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
-            sage: HSp3 == loads(dumps(HSp3))
-            True
-            sage: TestSuite(HSp3).run() # todo: not implemented (long or does not terminate)
+            sage: TestSuite(HSp3).run(skip = ["_test_associativity", "_test_prod"]) # products are too expensive
         """
         self._name = "LLT polynomials in the HSp basis at level %s"%level
         self._prefix = "HSp"
@@ -439,9 +437,7 @@ class LLT_cospin(LLT_generic):
 
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
-            sage: HCosp3 == loads(dumps(HCosp3))
-            True
-            sage: TestSuite(HCosp3).run() # todo: not implemented (long or does not terminate)
+            sage: TestSuite(HCosp3).run(skip = ["_test_associativity", "_test_prod"]) # products are too expensive
         """
         self._name = "LLT polynomials in the HCosp basis at level %s"%level
         self._prefix = "HCosp"+str(level)

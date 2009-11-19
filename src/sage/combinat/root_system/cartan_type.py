@@ -1266,8 +1266,8 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         TESTS::
 
             sage: TestSuite(ct).run(verbose = True)
-            running ._test_not_implemented_methods() ... done
-            running ._test_pickling() ... done
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
         """
 #         assert(t[0] in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'])
 #         assert(t[1] in ZZ and t[1] >= 0)

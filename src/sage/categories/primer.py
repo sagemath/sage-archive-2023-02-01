@@ -328,14 +328,15 @@ Generic tests
 
     sage: S=FiniteSemigroups().example(alphabet=('a', 'b'))
     sage: TestSuite(S).run(verbose = True)
-    running ._test_an_element() ... done
-    running ._test_associativity() ... done
-    running ._test_element_pickling() ... done
-    running ._test_enumerated_set_contains() ... done
-    running ._test_enumerated_set_iter_cardinality() ... done
-    running ._test_enumerated_set_iter_list() ... done
-    running ._test_pickling() ... done
-    running ._test_some_elements() ... done
+    running ._test_an_element() . . . pass
+    running ._test_associativity() . . . pass
+    running ._test_element_pickling() . . . pass
+    running ._test_enumerated_set_contains() . . . pass
+    running ._test_enumerated_set_iter_cardinality() . . . pass
+    running ._test_enumerated_set_iter_list() . . . pass
+    running ._test_not_implemented_methods() . . . pass
+    running ._test_pickling() . . . pass
+    running ._test_some_elements() . . . pass
     sage: S._test_associativity?? # not tested
     sage: S._test_associativity(elements=S)
 

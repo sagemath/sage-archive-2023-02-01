@@ -209,12 +209,18 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     def __init__(self, R):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
-            sage: loads(dumps(Sym)) == Sym
-            True
-            sage: TestSuite(Sym).run() # todo: not implemented (an_element)
+
+        TESTS:
+
+        There are a lot of missing features for this abstract parent. But some tests do pass:
+
+            sage: TestSuite(Sym).run()
+            Failure ...
+            The following tests failed: _test_additive_associativity, _test_an_element, _test_associativity, _test_element_pickling, _test_not_implemented_methods, _test_one, _test_prod, _test_some_elements, _test_zero
+
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring

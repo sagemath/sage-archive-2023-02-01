@@ -61,15 +61,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
     This runs generic sanity checks on ``NN``::
 
-        sage: TestSuite(NN).run(verbose = True)
-        running ._test_an_element() ... done
-        running ._test_element_pickling() ... done
-        running ._test_enumerated_set_contains() ... done
-        running ._test_enumerated_set_iter_cardinality() ... done
-        running ._test_enumerated_set_iter_list() ... done
-        running ._test_not_implemented_methods() ... done
-        running ._test_pickling() ... done
-        running ._test_some_elements() ... done
+        sage: TestSuite(NN).run()
     """
 
     def __init__(self):

@@ -29,7 +29,6 @@ import random
 import copy
 from combinat import CombinatorialObject, CombinatorialClass, InfiniteAbstractCombinatorialClass
 from sage.graphs.graph import DiGraph
-import ribbon_tableau
 from integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
@@ -1097,6 +1096,7 @@ class SemistandardSkewTableaux_pmu(CombinatorialClass):
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
             [[[1, 1], [2]]]
         """
+        import ribbon_tableau
         res = ribbon_tableau.RibbonTableaux_shapeweightlength(self.p, self.mu, 1).list()
         return [ SkewTableau_class(x._list) for x in res]
 

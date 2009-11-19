@@ -18,13 +18,14 @@ Hall-Littlewood Polynomials
 
 from sage.combinat.combinat import CombinatorialClass
 from sage.libs.symmetrica.all import hall_littlewood
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 import sfa
 import sage.combinat.partition
 import kfpoly
 from sage.matrix.all import matrix, MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc import prod
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 
 
 ##################################
@@ -71,6 +72,32 @@ def HallLittlewoodP(R,t=None):
         sage: m = SFAMonomial(HLP.base_ring())
         sage: m(HLP([2,2,1])) == m([2,2,1])
         True
+
+
+    We end with some examples of coercions between:
+
+        1. Hall-Littlewood `P` basis.
+
+        2. Hall-Littlewood polynomials in the `Q` basis
+
+        3.  Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
+
+        4. Classical symmetric functions
+
+    EXAMPLES::
+
+        sage: HLP  = HallLittlewoodP(QQ)
+        sage: HLQ  = HallLittlewoodQ(QQ)
+        sage: HLQp = HallLittlewoodQp(QQ)
+        sage: s = SFASchur(HLP.base_ring()); p = SFAPower(HLP.base_ring())
+        sage: HLP(HLQ([2])) # indirect doctest
+        (-t+1)*P[2]
+        sage: HLP(HLQp([2]))
+        t*P[1, 1] + P[2]
+        sage: HLP(s([2]))
+        t*P[1, 1] + P[2]
+        sage: HLP(p([2]))
+        (t-1)*P[1, 1] + P[2]
     """
     return cache_p(R,t)
 
@@ -134,11 +161,55 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
             self.t = R(t)
             self._name += " with t=%s"%self.t
 
-        self._combinatorial_class = sage.combinat.partition.Partitions()
-        self._one = sage.combinat.partition.Partition([])
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
 
-        CombinatorialAlgebra.__init__(self, R)
+#        print self, self._s
+        # This coercion is broken: HLP = HallLittlewoodP(QQ); HLP(HLP._s[1])
 
+        # Bases defined by orthotriangularity should inherit from some
+        # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
+        if hasattr(self, "_s_cache"):
+            self._s = sfa.SFASchur(R)
+            # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+            category = sage.categories.all.ModulesWithBasis(self.base_ring())
+            self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
+            self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+
+    def _s_to_self(self, x):
+        """
+        Isomorphism from the Schur basis into self
+
+        EXAMPLES::
+
+            sage: P = HallLittlewoodP(QQ,t=2)
+            sage: s = SFASchur(P.base_ring())
+            sage: P._s_to_self(s[2,1])
+            6*P[1, 1, 1] + P[2, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: P(s[2,1])
+            6*P[1, 1, 1] + P[2, 1]
+        """
+        return self._from_cache(x, self._s_cache, self._s_to_self_cache, t = self.t)
+
+    def _self_to_s(self, x):
+        r"""
+        Isomorphism from self to the Schur basis
+
+        EXAMPLES::
+
+            sage: P = HallLittlewoodP(QQ,t=2)
+            sage: s = SFASchur(P.base_ring())
+            sage: P._self_to_s(P[2,1])
+            -6*s[1, 1, 1] + s[2, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: s(P[2,1])
+            -6*s[1, 1, 1] + s[2, 1]
+        """
+        return self._s._from_cache(x, self._s_cache, self._self_to_s_cache, t = self.t) # do we want this t = self.t?
 
     def transition_matrix(self, basis, n):
         """
@@ -174,7 +245,8 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
             m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
         return matrix(m)
 
-class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic):
+# TODO: move this as ElementHallLittlewood_generic.Element
+class ElementHallLittlewood_generic_Element(sfa.SymmetricFunctionAlgebra_generic.Element):
     def expand(self, n, alphabet='x'):
         """
         Expands the symmetric function as a symmetric polynomial in `n`
@@ -244,6 +316,7 @@ class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic)
         f = lambda part1, part2: part1.centralizer_size(t=parent.t)
         return parent._apply_multi_module_morphism(p(self),p(x),f,orthogonal=True)
 
+HallLittlewood_generic.Element = ElementHallLittlewood_generic_Element
 
 
 ###########
@@ -252,31 +325,31 @@ class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic)
 p_to_s_cache = {}
 s_to_p_cache = {}
 
-class HallLittlewoodElement_p(HallLittlewoodElement_generic):
-    pass
-
 class HallLittlewood_p(HallLittlewood_generic):
+
+    class Element(HallLittlewood_generic.Element):
+        pass
+
     def __init__(self, R, t=None):
         """
         EXAMPLES::
 
             sage: P = HallLittlewoodP(QQ)
-            sage: P == loads(dumps(P))
+            sage: loads(dumps(P)) == P
             True
+            sage: TestSuite(P).run() # todo: not implemented (multiplication test fails!)
         """
         self._name = "Hall-Littlewood polynomials in the P basis"
         self._prefix = "P"
-        self._element_class = HallLittlewoodElement_p
-
-        HallLittlewood_generic.__init__(self, R, t=t)
-
-        self._s = sfa.SFASchur(self.base_ring())
 
         self._self_to_s_cache = p_to_s_cache
         self._s_to_self_cache = s_to_p_cache
 
+        HallLittlewood_generic.__init__(self, R, t=t)
 
 
+
+    # We probably want to get rid of this one
     def _multiply(self, left, right):
         """
         Convert to the Schur basis, do the multiplication there, and
@@ -290,49 +363,13 @@ class HallLittlewood_p(HallLittlewood_generic):
         """
         return self( self._s(left) * self._s(right) )
 
-
-    def _coerce_start(self, x):
-        """
-        Coerce things into the Hall-Littlewood `P` basis.
-
-        1. Hall-Littlewood polynomials in the `Q` basis
-
-        2.  Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
-
-        3. Classical symmetric functions
-
-        EXAMPLES::
-
-            sage: HLP  = HallLittlewoodP(QQ)
-            sage: HLQ  = HallLittlewoodQ(QQ)
-            sage: HLQp = HallLittlewoodQp(QQ)
-            sage: s = SFASchur(HLP.base_ring()); p = SFAPower(HLP.base_ring())
-            sage: HLP(HLQ([2])) # indirect doctest
-            (-t+1)*P[2]
-            sage: HLP(HLQp([2]))
-            t*P[1, 1] + P[2]
-            sage: HLP(s([2]))
-            t*P[1, 1] + P[2]
-            sage: HLP(p([2]))
-            (t-1)*P[1, 1] + P[2]
-        """
-        BR = self.base_ring()
-        if isinstance(x, HallLittlewoodElement_q):
-            return self._change_by_proportionality(x, self._q_to_self)
-        elif isinstance(x, HallLittlewoodElement_qp):
-            return self( self._s(x) )
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            #Convert x to the Schur basis
-            x = self._s(x)
-            return self._from_cache(x, self._s_cache, self._s_to_self_cache,t=self.t)
-        else:
-            raise TypeError
-
     def _q_to_self(self, m):
         """
         Returns the scalar coefficient on self(m) when converting from the
         `Q` basis to the `P` basis. Note that this assumes that m is a
         Partition object.
+
+        Todo: find a better name
 
         EXAMPLES::
 
@@ -347,15 +384,15 @@ class HallLittlewood_p(HallLittlewood_generic):
                 coeff *= (1-t**j)/(1-t)
         return coeff
 
-    def _s_to_self(self, part):
+    def _s_to_self_base(self, part):
         """
         Returns a function which gives the coefficient of a partition
-        in the expansion of the Schur functions s(part) in self.
+        in the expansion of the Schur functions ``s(part)`` in self.
 
         EXAMPLES::
 
             sage: P = HallLittlewoodP(QQ)
-            sage: f21 = P._s_to_self(Partition([2,1]))
+            sage: f21 = P._s_to_self_base(Partition([2,1]))
             sage: [f21(p) for p in Partitions(3)]
             [0, 1, t^2 + t]
         """
@@ -387,7 +424,7 @@ class HallLittlewood_p(HallLittlewood_generic):
         """
 
         self._invert_morphism(n, ZZ['t'], self._self_to_s_cache, \
-                              self._s_to_self_cache, to_self_function = self._s_to_self, \
+                              self._s_to_self_cache, to_self_function = self._s_to_self_base, \
                               upper_triangular=True, ones_on_diagonal=True)
 
 
@@ -397,10 +434,11 @@ class HallLittlewood_p(HallLittlewood_generic):
 ###########
 # Q basis #
 ###########
-class HallLittlewoodElement_q(HallLittlewoodElement_generic):
-    pass
 
 class HallLittlewood_q(HallLittlewood_generic):
+    class Element(HallLittlewood_generic.Element):
+        pass
+
     def __init__(self, R, t=None):
         """
         EXAMPLES::
@@ -411,13 +449,18 @@ class HallLittlewood_q(HallLittlewood_generic):
         """
         self._name = "Hall-Littlewood polynomials in the Q basis"
         self._prefix = "Q"
-        self._element_class = HallLittlewoodElement_q
 
         HallLittlewood_generic.__init__(self, R, t=t)
 
         self._P = HallLittlewood_p(R, t=t)
+        # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
 
+        phi = self.module_morphism(diagonal = self._P._q_to_self, codomain = self._P, category = category)
+        self._P.register_coercion(phi)
+        self   .register_coercion(~phi)
 
+    # TODO: discard (except doctests)
     def _multiply(self, left, right):
         """
         Converts to the `P` basis, does the multiplication there, and
@@ -432,7 +475,8 @@ class HallLittlewood_q(HallLittlewood_generic):
         return self( self._P(left) * self._P(right) )
 
 
-    def _coerce_start(self, x):
+    # TODO: discard (except doctests)
+    def _coerce_start_disabled(self, x):
         """
         EXAMPLES::
 
@@ -443,20 +487,13 @@ class HallLittlewood_q(HallLittlewood_generic):
             sage: HLQ( HLP([2,1]) + HLP([3]) )
             (1/(t^2-2*t+1))*Q[2, 1] + (1/(-t+1))*Q[3]
             sage: HLQ(HLQp([2])) # indirect doctest
-            (-t/(-t^3+t^2+t-1))*Q[1, 1] + (1/(-t+1))*Q[2]
+            (t/(t^3-t^2-t+1))*Q[1, 1] + (1/(-t+1))*Q[2]
             sage: HLQ(s([2]))
-            (-t/(-t^3+t^2+t-1))*Q[1, 1] + (1/(-t+1))*Q[2]
+            (t/(t^3-t^2-t+1))*Q[1, 1] + (1/(-t+1))*Q[2]
             sage: HLQ(p([2]))
-            (-1/(-t^2+1))*Q[1, 1] + (1/(-t+1))*Q[2]
+            (1/(t^2-1))*Q[1, 1] + (1/(-t+1))*Q[2]
         """
-        if isinstance(x, HallLittlewoodElement_p):
-            return self._change_by_proportionality(x, self._p_to_self)
-        elif isinstance(x, HallLittlewoodElement_qp):
-            return self( self._P(x) )
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            return self( self._P(x) )
-        else:
-            raise TypeError
+        pass
 
     def _p_to_self(self, m):
         """
@@ -464,8 +501,9 @@ class HallLittlewood_q(HallLittlewood_generic):
         `Q` basis to the `P` basis. Note that this assumes that m is a
         Partition object.
 
-        EXAMPLES::
+        Note: this is not used anymore!
 
+        EXAMPLES::
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQ._p_to_self(Partition([2,1]))
             1/(t^2 - 2*t + 1)
@@ -483,11 +521,13 @@ class HallLittlewood_q(HallLittlewood_generic):
 qp_to_s_cache = {}
 s_to_qp_cache = {}
 
-class HallLittlewoodElement_qp(HallLittlewoodElement_generic):
-    pass
 
 
 class HallLittlewood_qp(HallLittlewood_generic):
+
+    class Element(HallLittlewood_generic.Element):
+        pass
+
     def __init__(self, R, t=None):
         """
         EXAMPLES::
@@ -498,17 +538,15 @@ class HallLittlewood_qp(HallLittlewood_generic):
         """
         self._name = "Hall-Littlewood polynomials in the Qp basis"
         self._prefix = "Qp"
-        self._element_class = HallLittlewoodElement_qp
-
-        HallLittlewood_generic.__init__(self,R, t=t)
-
-        self._s = sfa.SFASchur(self.base_ring())
 
         self._self_to_s_cache = qp_to_s_cache
         self._s_to_self_cache = s_to_qp_cache
 
+        HallLittlewood_generic.__init__(self,R, t=t)
 
-    def _coerce_start(self, x):
+
+    # TODO: discard (except doctests)
+    def _coerce_start_disabled(self, x):
         """
         Coerce things into the Hall-Littlewood `Q^\prime` basis.
 
@@ -533,16 +571,17 @@ class HallLittlewood_qp(HallLittlewood_generic):
             sage: HLQp(p([2]))
             -Qp[1, 1] + (t+1)*Qp[2]
         """
-        if isinstance(x, HallLittlewoodElement_q):
+        if isinstance(x, HallLittlewood_q.Element):
             return self( self._s( x ) )
-        elif isinstance(x, HallLittlewoodElement_p):
+        elif isinstance(x, HallLittlewood_p.Element):
             return self( self._s( x ) )
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
+        elif isinstance(x, sfa.SymmetricFunctionAlgebra_generic.Element):
             sx = self._s( x )
             return self._from_cache(sx, self._s_cache, self._s_to_self_cache,t=self.t)
         else:
             raise TypeError
 
+    # TODO: discard (except doctests)
     def _multiply(self, left, right):
         """
         Converts the Hall-Littlewood polynomial in the `Q^\prime` basis to a Schur
@@ -560,7 +599,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
     def _to_s(self, part):
         """
         Returns a function which gives the coefficient of a partition
-        in the Schur expansion of self(part).
+        in the Schur expansion of ``self(part)``.
 
         EXAMPLES::
 
@@ -613,3 +652,7 @@ cache_p = Cache(HallLittlewood_p)
 cache_q = Cache(HallLittlewood_q)
 cache_qp = Cache(HallLittlewood_qp)
 
+# Unpickling backward compatibility
+sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_p', HallLittlewood_p.Element)
+sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_q', HallLittlewood_q.Element)
+sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_qp', HallLittlewood_qp.Element)

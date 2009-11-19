@@ -16,10 +16,11 @@ Jack Polynomials
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.rings.all import Integer, gcd, lcm, QQ, is_PolynomialRing, is_FractionField
 import sage.combinat.partition
 from sage.misc.misc import prod
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom, End
 import sfa
 import copy
 
@@ -138,14 +139,16 @@ def JackPolynomialsQp(R, t=None):
 
     EXAMPLES::
 
-        sage: Qp = JackPolynomialsQp(QQ)
         sage: P = JackPolynomialsP(QQ)
+        sage: Qp = JackPolynomialsQp(QQ)
         sage: a = Qp([2])
         sage: a.scalar(P([2]))
         1
         sage: a.scalar(P([1,1]))
         0
-        sage: P(Qp([2]))
+        sage: P(Qp([2]))			# todo: missing auto normalization
+        ((2*t-2)/(2*t+2))*JackP[1, 1] + JackP[2]
+        sage: P._normalize(P(Qp([2])))
         ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
     """
     res = JackPolynomialsP(R, t=None).dual_basis(prefix="JackQp")
@@ -167,25 +170,6 @@ def ZonalPolynomials(R):
     """
     return cache_z(R)
 
-def _makeZonalPolynomials(R):
-    """
-    A utility function that is used to make the zonal polynomials from
-    the Jack polynomials on the P basis. This routine is called by the
-    cache.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.sf.jack import _makeZonalPolynomials
-        sage: _makeZonalPolynomials(QQ)
-        Zonal polynomials over Rational Field
-    """
-    res = JackPolynomialsP(R, t=R(2))
-    res = copy.copy(res)
-    res._name = "Zonal polynomials"
-    res._prefix = "Z"
-    return res
-
-
 ###################################################################
 def c1(part, t):
     """
@@ -196,7 +180,8 @@ def c1(part, t):
         sage: [c1(p,t) for p in Partitions(3)]
         [2*t^2 + 3*t + 1, t + 2, 6]
     """
-    return prod([1+t*part.arm_lengths(flat=True)[i]+part.leg_lengths(flat=True)[i] for i in range(sum(part))])
+    return prod([1+t*part.arm_lengths(flat=True)[i]+part.leg_lengths(flat=True)[i] for i in range(sum(part))],
+                t.parent()(1)) # FIXME: use .one()
 
 def c2(part, t):
     """
@@ -207,7 +192,8 @@ def c2(part, t):
         sage: [c2(p,t) for p in Partitions(3)]
         [6*t^3, 2*t^3 + t^2, t^3 + 3*t^2 + 2*t]
     """
-    return prod([t+t*part.arm_lengths(flat=True)[i]+part.leg_lengths(flat=True)[i] for i in range(sum(part))])
+    return prod([t+t*part.arm_lengths(flat=True)[i]+part.leg_lengths(flat=True)[i] for i in range(sum(part))],
+                t.parent()(1)) # FIXME: use .one()
 
 ####################################################################
 
@@ -231,11 +217,76 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             if str(t) != 't':
                 self._name += " with t=%s"%self.t
 
-        self._combinatorial_class = sage.combinat.partition.Partitions()
-        self._one = sage.combinat.partition.Partition([])
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
 
-        CombinatorialAlgebra.__init__(self, R)
+        # Bases defined by orthotriangularity should inherit from some
+        # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
+        if hasattr(self, "_m_cache"):
+            # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+            category = sage.categories.all.ModulesWithBasis(R)
+            self._m = sfa.SFAMonomial(self.base_ring())
+            self   .register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
+            self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
 
+    def _m_to_self(self, x):
+        """
+        Isomorphism from the monomial basis into self
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ,t=2)
+            sage: m = SFAMonomial(P.base_ring())
+            sage: P._m_to_self(m[2,1])
+            -3/2*JackP[1, 1, 1] + JackP[2, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: P(m[2,1])
+            -3/2*JackP[1, 1, 1] + JackP[2, 1]
+        """
+        return self._from_cache(x, self._m_cache, self._m_to_self_cache)
+
+    def _self_to_m(self, x):
+        r"""
+        Isomorphism from self to the monomial basis
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ,t=2)
+            sage: m = SFAMonomial(P.base_ring())
+            sage: P._self_to_m(P[2,1])
+            3/2*m[1, 1, 1] + m[2, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: m(P[2,1])
+            3/2*m[1, 1, 1] + m[2, 1]
+        """
+        return self._m._from_cache(x, self._m_cache, self._self_to_m_cache)
+
+    def c1(self, part):
+        """
+        Returns the t-Jack scalar product between J(part) and P(part).
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ)
+            sage: P.c1(Partition([2,1]))
+            t + 2
+        """
+        return c1(part, self.t)
+
+    def c2(self, part):
+        """
+        Returns the t-Jack scalar product between J(part) and Q(part).
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ)
+            sage: P.c2(Partition([2,1]))
+            2*t^3 + t^2
+        """
+        return c2(part, self.t)
 
     def _normalize_coefficients(self, c):
         """
@@ -282,8 +333,52 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         else:
             return c
 
-class JackPolynomial_generic(sfa.SymmetricFunctionAlgebraElement_generic):
-    def scalar_jack(self, x):
+    def _normalize(self, x):
+        """
+        Normalize the coefficients of `x`
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ)
+            sage: t = P.base_ring().gen()
+            sage: a = 2/(1/2*t+1/2)
+            sage: b = 1/(1/3+1/6*t)
+            sage: c = 24/(4*t^2 + 12*t + 8)
+            sage: P._normalize( a*P[1] + b*P[2] + c*P[2,1] )
+            (4/(t+1))*JackP[1] + (6/(t+2))*JackP[2] + (6/(t^2+3*t+2))*JackP[2, 1]
+
+        TODO: this should be a method on the elements (what's the
+        standard name for such methods?)
+        """
+        return x.map_coefficients(self._normalize_coefficients)
+
+    def _normalize_morphism(self, category):
+        """
+        Returns the normalize morphism
+
+        EXAMPLES::
+
+            sage: P = JackPolynomialsP(QQ); P.rename("JackP")
+            sage: normal = P._normalize_morphism(AlgebrasWithBasis(P.base_ring()))
+            sage: normal.parent()
+            Set of Homomorphisms from JackP to JackP
+            sage: normal.category_for()
+            Category of algebras with basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+
+            sage: t = P.t
+            sage: a = 2/(1/2*t+1/2)
+            sage: b = 1/(1/3+1/6*t)
+            sage: c = 24/(4*t^2 + 12*t + 8)
+            sage: normal( a*P[1] + b*P[2] + c*P[2,1] )
+            (4/(t+1))*JackP[1] + (6/(t+2))*JackP[2] + (6/(t^2+3*t+2))*JackP[2, 1]
+
+        TODO: this method should not be needed once short idioms to
+        construct morphisms will be available
+        """
+        return SetMorphism(End(self, category), self._normalize)
+
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
+      def scalar_jack(self, x):
         """
         EXAMPLES::
 
@@ -333,26 +428,8 @@ def scalar_jack(part1, part2, t):
 
 #P basis
 
-class JackPolynomial_p(JackPolynomial_generic):
-    def scalar_jack(self, x):
-        """
-        EXAMPLES::
-
-            sage: P = JackPolynomialsP(QQ)
-            sage: l = [P(p) for p in Partitions(3)]
-            sage: matrix([[a.scalar_jack(b) for a in l] for b in l])
-            [  6*t^3/(2*t^2 + 3*t + 1)                         0                         0]
-            [                        0     (2*t^3 + t^2)/(t + 2)                         0]
-            [                        0                         0 1/6*t^3 + 1/2*t^2 + 1/3*t]
-        """
-        if isinstance(x, JackPolynomials_p):
-            P = self.parent()
-            f = lambda p1, p2: c2(p1, P.t)/c1(p1, P.t) if p1 == p2 else 0
-            return P._apply_multi_module_morphism(self, x, f, orthogonal=True)
-        else:
-            return JackPolynomial_generic.scalar_jack(self, x)
-
 class JackPolynomials_p(JackPolynomials_generic):
+
     def __init__(self, R, t=None):
         """
         EXAMPLES::
@@ -363,14 +440,12 @@ class JackPolynomials_p(JackPolynomials_generic):
         """
         self._name = "Jack polynomials in the P basis"
         self._prefix = "JackP"
-        self._element_class = JackPolynomial_p
-        JackPolynomials_generic.__init__(self, R, t=t)
 
-        self._m = sfa.SFAMonomial(self.base_ring())
         self._m_to_self_cache = {}
         self._self_to_m_cache = {}
+        JackPolynomials_generic.__init__(self, R, t=t)
 
-    def _coerce_start(self, x):
+    def _coerce_start_disabled(self, x):
         """
         Coerce things into the Jack polynomials P basis.
 
@@ -400,24 +475,13 @@ class JackPolynomials_p(JackPolynomials_generic):
 
         ::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SFASchur(QQ) # todo: not implemented
+            sage: s = SFASchur(P.base_ring())
             sage: P(s([2,1]))
             ((2*t-2)/(t+2))*JackP[1, 1, 1] + JackP[2, 1]
             sage: s(_)
             s[2, 1]
         """
-        BR = self.base_ring()
-        if isinstance(x, JackPolynomial_q):
-            f = lambda part: (1/self(part).scalar_jack(self(part)))*self(part)
-            return self._apply_module_morphism(x, f).map_coefficients(self._normalize_coefficients)
-        elif isinstance(x, JackPolynomial_j):
-            f = lambda part: c1(part, self.t)*self(part)
-            return self._apply_module_morphism(x,f).map_coefficients(self._normalize_coefficients)
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._m(x)
-            return self._from_cache(x, self._m_cache, self._m_to_self_cache)
-        else:
-            raise TypeError
 
     def _m_cache(self, n):
         """
@@ -502,14 +566,87 @@ class JackPolynomials_p(JackPolynomials_generic):
         return self( self._m(left)*self._m(right) )
 
 
+    def scalar_jack_basis(self, part1, part2 = None):
+        """
+        Returns the scalar product of P[part1] and P[part2].
+
+        Todo: check all the results!
+
+        EXAMPLES:
+            sage: P = JackPolynomialsP(QQ)
+            sage: P.scalar_jack_basis(Partition([2,1]), Partition([1,1,1]))
+            0
+            sage: P._normalize_coefficients(P.scalar_jack_basis(Partition([3,2,1]), Partition([3,2,1])))
+            (12*t^6 + 20*t^5 + 11*t^4 + 2*t^3)/(2*t^3 + 11*t^2 + 20*t + 12)
+
+        With a single argument, takes part2 = part1
+            sage: P.scalar_jack_basis(Partition([2,1]), Partition([2,1]))
+            (2*t^3 + t^2)/(t + 2)
+
+        NT: those results do not quite with Macdonald Symmetric
+        Function and Orthogonal Polynomials p.12 (11.3). Is this P
+        basis a normalization variant of that of Macdo?
+        """
+
+        if part2 is not None and part1 != part2:
+            return self.base_ring().zero()
+        return self.c2(part1) / self.c1(part1)
+
+
+    class Element(JackPolynomials_generic.Element):
+        def scalar_jack(self, x):
+            """
+            EXAMPLES:
+                sage: P = JackPolynomialsP(QQ)
+                sage: l = [P(p) for p in Partitions(3)]
+                sage: matrix([[a.scalar_jack(b) for a in l] for b in l])
+                [  6*t^3/(2*t^2 + 3*t + 1)                         0                         0]
+                [                        0     (2*t^3 + t^2)/(t + 2)                         0]
+                [                        0                         0 1/6*t^3 + 1/2*t^2 + 1/3*t]
+            """
+            if isinstance(x, JackPolynomials_p):
+                P = self.parent()
+                return P._apply_multi_module_morphism(self, x, P.scalar_jack_basis, orthogonal=True)
+            else:
+                return JackPolynomials_generic.Element.scalar_jack(self, x)
+
+#Zonal polynomials ( =P(2) )
+
+class ZonalPolynomials(JackPolynomials_p):
+    def __init__(self, R):
+        """
+        EXAMPLES::
+
+            sage: Z = ZonalPolynomials(QQ)
+
+            sage: P = Z._P; P
+            Jack polynomials in the P basis with t=2 over Rational Field
+            sage: Z(P[2,1] + 2*P[3,1])
+            Z[2, 1] + 2*Z[3, 1]
+            sage: P(Z[2,1] + 2*Z[3,1])
+            JackP[2, 1] + 2*JackP[3, 1]
+
+        TESTS::
+
+            sage: TestSuite(Z).run(elements = [Z[1], Z[1,1]])
+            sage: TestSuite(Z).run() # long time
+        """
+        JackPolynomials_p.__init__(self, R, t=R(2))
+        self._name = "Zonal polynomials"
+        self._prefix = "Z"
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        self._P = JackPolynomialsP(self.base_ring(), t=R(2))
+        self   .register_coercion(SetMorphism(Hom(self._P, self, category), self.sum_of_monomials))
+        self._P.register_coercion(SetMorphism(Hom(self, self._P, category), self._P.sum_of_monomials))
+
+    class Element(JackPolynomials_p.Element):
+        pass
+
 
 #J basis
 
-
-class JackPolynomial_j(JackPolynomial_generic):
-    pass
-
 class JackPolynomials_j(JackPolynomials_generic):
+
     def __init__(self, R, t=None):
         """
         EXAMPLES::
@@ -520,12 +657,18 @@ class JackPolynomials_j(JackPolynomials_generic):
         """
         self._name = "Jack polynomials in the J basis"
         self._prefix = "JackJ"
-        self._element_class = JackPolynomial_j
         JackPolynomials_generic.__init__(self, R, t=t)
 
-        self._P = JackPolynomialsP(self.base_ring(),t=self.t)
+        # Should be shared with _q (and possibly other bases in Macdo/HL) as BasesByRenormalization
+        self._P = JackPolynomialsP(R, t)
+        # temporary until Hom(GradedHopfAlgebrasWithBasis) works better
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        phi = self.module_morphism(diagonal = self.c1, codomain = self._P, category = category)
+        # should use module_morphism(on_coeffs = ...) once it exists
+        self._P.register_coercion(self._P._normalize_morphism(category) * phi)
+        self   .register_coercion(self   ._normalize_morphism(category) *~phi)
 
-    def _coerce_start(self, x):
+    def _coerce_start_disabled(self, x):
         """
         EXAMPLES::
 
@@ -544,14 +687,6 @@ class JackPolynomials_j(JackPolynomials_generic):
             sage: J(s([1,1,1]))
             1/6*JackJ[1, 1, 1]
         """
-        BR = self.base_ring()
-        if isinstance(x, JackPolynomial_p):
-            f = lambda m: BR(1/c1(m, self.t))
-            return self._change_by_proportionality(x, f).map_coefficients(self._normalize_coefficients)
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            return self( self._P( x ) )
-        else:
-            raise TypeError
 
     def _multiply(self, left, right):
         """
@@ -565,12 +700,12 @@ class JackPolynomials_j(JackPolynomials_generic):
         """
         return self( self._P(left) * self._P(right) )
 
+    class Element(JackPolynomials_generic.Element):
+        pass
+
 
 
 #Q basis
-class JackPolynomial_q(JackPolynomial_generic):
-    pass
-
 class JackPolynomials_q(JackPolynomials_generic):
     def __init__(self, R, t=None):
         """
@@ -582,12 +717,17 @@ class JackPolynomials_q(JackPolynomials_generic):
         """
         self._name = "Jack polynomials in the Q basis"
         self._prefix = "JackQ"
-        self._element_class = JackPolynomial_q
         JackPolynomials_generic.__init__(self, R, t=t)
 
-        self._P = JackPolynomialsP(self.base_ring(), t=self.t)
+        # Should be shared with _j (and possibly other bases in Macdo/HL) as BasesByRenormalization
+        self._P = JackPolynomialsP(R, t)
+        # temporary until Hom(GradedHopfAlgebrasWithBasis) works better
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        phi = self._P.module_morphism(diagonal = self._P.scalar_jack_basis, codomain = self, category = category)
+        self   .register_coercion(self   ._normalize_morphism(category) *  phi)
+        self._P.register_coercion(self._P._normalize_morphism(category) * ~phi)
 
-    def _coerce_start(self, x):
+    def _coerce_start_disabled(self, x):
         """
         EXAMPLES::
 
@@ -606,14 +746,6 @@ class JackPolynomials_q(JackPolynomials_generic):
             sage: Q(s([1,1,1]))
             (1/6*t^3+1/2*t^2+1/3*t)*JackQ[1, 1, 1]
         """
-        BR = self.base_ring()
-        if isinstance(x, JackPolynomial_p):
-            f = lambda m: BR(self._P(m).scalar_jack(self._P(m)))
-            return self._change_by_proportionality(x, f).map_coefficients(self._normalize_coefficients)
-        elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            return self( self._P( x ) )
-        else:
-            raise TypeError
 
     def _multiply(self, left, right):
         """
@@ -627,6 +759,8 @@ class JackPolynomials_q(JackPolynomials_generic):
         """
         return self( self._P(left) * self._P(right) )
 
+    class Element(JackPolynomials_generic.Element):
+        pass
 
 
 
@@ -637,5 +771,10 @@ from sage.misc.cache import Cache
 cache_p = Cache(JackPolynomials_p)
 cache_j = Cache(JackPolynomials_j)
 cache_q = Cache(JackPolynomials_q)
-cache_z = Cache(_makeZonalPolynomials)
+cache_z = Cache(ZonalPolynomials)
 
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_j', JackPolynomials_j.Element)
+register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_p', JackPolynomials_p.Element)
+register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_q', JackPolynomials_q.Element)

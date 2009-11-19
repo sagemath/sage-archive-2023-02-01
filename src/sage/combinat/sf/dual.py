@@ -15,19 +15,45 @@ Generic dual bases symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa, multiplicative, classical
-import sage.combinat.partition
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 from sage.matrix.all import matrix
+import sage.combinat.partition
+import sfa, multiplicative, classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", prefix=None):
         """
-        TESTS::
+        Generic dual base of a basis of symmetric functions.
 
-            sage: e = SFAElementary(QQ)
-            sage: f = e.dual_basis()
-            sage: f == loads(dumps(f))
-            True
+        EXAMPLES::
+
+            sage: h = SFAElementary(QQ)
+            sage: f = h.dual_basis(prefix = "m")
+            sage: TestSuite(f).run()
+
+        This class defines canonical coercions between self and
+        self^*, as follow:
+
+        Lookup for the canonical isomorphism from self to `P`
+        (=powersum), and build the adjoint isomorphism from `P^*` to
+        self^*. Since `P` is self-adjoint for this scalar product,
+        derive an isomorphism from `P` to `self^*`, and by composition
+        with the above get an isomorphism from self to `self^*` (and
+        similarly for the isomorphism `self^*` to `self`).
+
+        This should be striped down to just (auto?) defining canonical
+        isomorphism by adjunction (as in MuPAD-Combinat), and let
+        the coercion handle the rest.
+
+        By transitivity, this defines indirect coercions to and from all other bases::
+
+            sage: s = SFASchur(QQ['t'].fraction_field())
+            sage: t = QQ['t'].fraction_field().gen()
+            sage: zee_hl = lambda x: x.centralizer_size(t=t)
+            sage: S = s.dual_basis(zee_hl)
+            sage: S(s([2,1]))
+            (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[1, 1, 1] + ((-t^2-1)/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[2, 1] + (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[3]
         """
         self._dual_basis = dual_basis
         self._scalar = scalar
@@ -51,7 +77,56 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         if prefix is None:
             prefix = 'd_'+dual_basis.prefix()
 
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, scalar_target, "dual_"+dual_basis.basis_name(), SymmetricFunctionAlgebraElement_dual, prefix)
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, scalar_target, "dual_"+dual_basis.basis_name(), prefix)
+
+        # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        self            .register_coercion(SetMorphism(Hom(self._dual_basis, self, category), self._dual_to_self))
+        self._dual_basis.register_coercion(SetMorphism(Hom(self, self._dual_basis, category), self._self_to_dual))
+
+
+    def _dual_to_self(self, x):
+        """
+        Coerce an element of the dual of self canonically into self
+
+        EXAMPLES::
+
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: h._dual_to_self(m([2,1]) + 3*m[1,1,1])
+            d_m[1, 1, 1] - d_m[2, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: h(m([2,1]) + 3*m[1,1,1])
+            d_m[1, 1, 1] - d_m[2, 1]
+        """
+        return self._element_class(self, dual = x)
+
+    def _self_to_dual(self, x):
+        """
+        Coerce an element of self canonically into the dual.
+
+        EXAMPLES::
+
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: h._self_to_dual(h([2,1]) + 3*h[1,1,1])
+            21*m[1, 1, 1] + 11*m[2, 1] + 4*m[3]
+
+        This is for internal use only. Please use instead:
+
+            sage: m(h([2,1]) + 3*h[1,1,1])
+            21*m[1, 1, 1] + 11*m[2, 1] + 4*m[3]
+
+        or::
+
+            sage: (h([2,1]) + 3*h[1,1,1]).dual()
+            21*m[1, 1, 1] + 11*m[2, 1] + 4*m[3]
+        """
+        return x.dual()
 
 
     def dual_basis(self, scalar=None, scalar_name="", prefix=None):
@@ -95,32 +170,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             return "Dual basis to %s"%self._dual_basis
 
 
-    def __call__(self, x):
-        """
-        Coerce things into self. We do this by coercing things into self's
-        dual basis, and then converting that to self.
-
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ['t'].fraction_field())
-            sage: t = QQ['t'].fraction_field().gen()
-            sage: zee_hl = lambda x: x.centralizer_size(t=t)
-            sage: S = s.dual_basis(zee_hl)
-            sage: S(s([2,1]))
-            (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[1, 1, 1] + ((-t^2-1)/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[2, 1] + (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[3]
-        """
-
-        if sfa.is_SymmetricFunction(x):
-            if x.parent() is self:
-                return x
-            else:
-                #Coerce x into the dual basis
-                d_x = self._dual_basis(x)
-                return self._element_class(self, dual=d_x)
-
-
-        return classical.SymmetricFunctionAlgebra_classical.__call__(self, x)
-
 
     def _precompute(self, n):
         """
@@ -133,7 +182,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: f = e.dual_basis()
             sage: f._precompute(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
-            sage: l(f._to_self_cache)
+            sage: l(f._to_self_cache) # note: this may depend on possible previous computations!
             [([1, 1], [([1, 1], 2), ([2], 1)]), ([2], [([1, 1], 1), ([2], 1)])]
             sage: l(f._from_self_cache)
             [([1, 1], [([1, 1], 1), ([2], -1)]), ([2], [([1, 1], -1), ([2], 2)])]
@@ -274,7 +323,8 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         return eclass(self, dual=d_product)
 
-class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraElement_classical):
+# TODO: finish to move as SymmetricFunctionAlgebra_dual.Element
+class SymmetricFunctionAlgebra_dual_Element(classical.SymmetricFunctionAlgebra_classical.Element):
     def __init__(self, A, dictionary=None, dual=None):
         """
         Create an element of a dual basis.
@@ -363,7 +413,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
         #Initialize self
         self._dual = dual
-        classical.SymmetricFunctionAlgebraElement_classical.__init__(self, A, dictionary)
+        classical.SymmetricFunctionAlgebra_classical.Element.__init__(self, A, dictionary)
 
 
     def dual(self):
@@ -521,3 +571,9 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
         """
         return self._dual.expand(n, alphabet)
+
+SymmetricFunctionAlgebra_dual.Element = SymmetricFunctionAlgebra_dual_Element
+
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.dual', 'SymmetricFunctionAlgebraElement_dual',  SymmetricFunctionAlgebra_dual.Element)

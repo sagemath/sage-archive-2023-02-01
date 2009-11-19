@@ -17,6 +17,7 @@ Schur symmetric functions
 #*****************************************************************************
 import sfa, classical, dual
 import sage.libs.symmetrica.all as symmetrica
+from sage.categories.basic import Monoids
 from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
@@ -28,7 +29,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s == loads(dumps(s))
             True
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "schur", SymmetricFunctionAlgebraElement_schur, 's')
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "schur", 's')
 
     def is_schur_basis(self):
         """
@@ -57,8 +58,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         else:
             return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
-
-    def _multiply(self, left, right):
+    def _multiply(self, left, right):	# TODO: factor out this code for all bases (as is done for coercions)
         """
         TESTS::
 
@@ -79,11 +79,6 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         ::
 
-            sage: len(s([2,1])^8) #long
-            1485
-            sage: len(s([2,1])^9) #long
-            2876
-
         ::
 
             sage: 0*s([2,1])
@@ -102,16 +97,64 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         z_elt = {}
         for (left_m, left_c) in left._monomial_coefficients.iteritems():
             for (right_m, right_c) in right._monomial_coefficients.iteritems():
+                c = left_c * right_c
                 d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})._monomial_coefficients
                 for m in d:
                     if m in z_elt:
-                        z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
+                        z_elt[ m ] = z_elt[m] + c * d[m]
                     else:
-                        z_elt[ m ] = left_c * right_c * d[m]
+                        z_elt[ m ] = c * d[m]
         return A._from_dict(z_elt)
 
-class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraElement_classical):
-    def omega(self):
+
+    class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+        # TODO: fix indentation
+
+
+      def __pow__(self, n):
+          """
+          Naive powering
+
+          See ``Monoids.Element.__pow__`` and ``Monoids.Element._pow_naive``.
+
+          EXAMPLES::
+
+              sage: s = SFASchur(QQ[x])
+              sage: len(s([2,1])^8) # long time (~ 4 s)
+              1485
+              sage: len(s([2,1])^9) # long time (~10 s)
+              2876
+
+          Binary exponentiation does not seem to bring any speedup for
+          schur functions. This most likely is because of the
+          explosion of the number of terms.
+
+          #    sage: s = SFASchur(QQ); y = s([1])
+          #    sage: n = 24
+          #    sage: %timeit y**n    # using binary exponentiation
+          #    10 loops, best of 3: 1.22 s per loop
+          #    sage: %timeit prod(y for i in range(n))
+          #    10 loops, best of 3: 1.06 s per loop
+
+          With polynomial coefficients, this is actually much *slower*
+          (although this should be profiled further; there seems to
+          be an unreasonable number of polynomial multiplication involved,
+          besides the fact that 1 * QQ[x].one() currently involves a
+          polynomial multiplication)
+
+          #    sage: sage: s = SFASchur(QQ[x])
+          #    sage: y = s([2,1])
+          #    sage: %timeit y**7
+          #    10 loops, best of 3: 18.9 s per loop
+          #    sage: %timeit y*y*y*y*y*y*y
+          #    10 loops, best of 3: 1.73 s per loop
+
+          Todo: do the same for the other non multiplicative bases?
+
+          """
+          return self._pow_naive(n)
+
+      def omega(self):
         """
         Returns the image of self under the Frobenius / omega
         automorphism.
@@ -128,7 +171,7 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
         return self.map_support(conj)
 
 
-    def scalar(self, x):
+      def scalar(self, x):
         """
         Returns the standard scalar product between self and x.
 
@@ -179,7 +222,7 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
         x = s(x)
         return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
 
-    def expand(self, n, alphabet='x'):
+      def expand(self, n, alphabet='x'):
         """
         Expands the symmetric function as a symmetric polynomial in n
         variables.
@@ -204,3 +247,6 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
         condition = lambda part: len(part) > n
         return self._expand(condition, n, alphabet)
 
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.schur', 'SymmetricFunctionAlgebraElement_schur',  SymmetricFunctionAlgebra_schur.Element)

@@ -204,7 +204,6 @@ import partitions as partitions_ext
 from sage.libs.all import pari
 import tableau
 import permutation
-import sf.sfa
 import composition
 from integer_vector import IntegerVectors
 from cartesian_product import CartesianProduct
@@ -2082,6 +2081,7 @@ class Partition_class(CombinatorialObject):
         x = P.gens()
 
         #Expand s_mu in the power sum basis
+        import sf.sfa
         s = sf.sfa.SFASchur(QQ)
         p = sf.sfa.SFAPower(QQ)
         ps_mu = p(s(self))

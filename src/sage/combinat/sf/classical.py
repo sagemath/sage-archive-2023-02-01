@@ -16,23 +16,20 @@ Classical symmetric functions.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.ring import Ring
 from sage.rings.integer import Integer
 
-from sage.algebras.algebra import Algebra
-
-import sage.combinat.partition
+from sage.combinat.partition import Partitions
 import sage.combinat.skew_partition
 import sage.structure.parent_gens
 import sage.libs.symmetrica.all as symmetrica
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 
 from sage.misc.misc import repr_lincomb
-from sage.algebras.algebra_element import AlgebraElement
 
 
 import operator
@@ -80,45 +77,33 @@ init()
 #                                 #
 ###################################
 class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
-    def __init__(self, R, basis, element_class, prefix):
+    """
+    TESTS::
+
+        sage: TestSuite(SymmetricFunctions(QQ).s()).run()
+    """
+
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
         """
-        TESTS::
-
-            sage: from sage.combinat.sf.classical import SymmetricFunctionAlgebra_classical
-            sage: s = SFASchur(QQ)
-            sage: isinstance(s, SymmetricFunctionAlgebra_classical)
-            True
+        A symmetric function.
         """
-        if not isinstance(R, Ring):
-            raise TypeError, "Argument R must be a ring."
-        try:
-            z = R(Integer(1))
-        except:
-            raise ValueError, "R must have a unit element"
+        pass
 
-        self._basis = basis
-        self._element_class = element_class
-        self._prefix = prefix
-        self._combinatorial_class = sage.combinat.partition.Partitions_all()
-        self._one = sage.combinat.partition.Partition_class([])
-        CombinatorialAlgebra.__init__(self, R)
-
-
-
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
-        Coerce x into self.
+        Convert x into self, if coercion failed
 
         EXAMPLES::
 
             sage: s = SFASchur(QQ)
             sage: s(2)
             2*s[]
-            sage: s([2,1])
+            sage: s([2,1]) # indirect doctest
             s[2, 1]
         """
         R = self.base_ring()
-        eclass = self._element_class
+
+        eclass = self.element_class
         if isinstance(x, int):
             x = Integer(x)
 
@@ -129,6 +114,9 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         if x in sage.combinat.partition.Partitions_all():
             return eclass(self, {sage.combinat.partition.Partition_class(filter(lambda x: x!=0, x)):R(1)})
 
+        # Todo: discard all of this which is taken care by Sage's coercion
+        # (up to changes of base ring)
+
         ##############
         # Dual bases #
         ##############
@@ -138,10 +126,21 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             #in the other basis
             return self(x.dual())
 
-        ########################################
-        # Symmetric Functions, different basis #
-        ########################################
-        elif isinstance(x, eclass):
+        ##################################################################
+        # Symmetric Functions, same basis, possibly different coeff ring #
+        ##################################################################
+
+        # self.Element is used below to test if another symmetric
+        # function is expressed in the same basis but in another
+        # ground ring.  This idiom is fragile and depends on the
+        # internal (unstable) specifications of parents and categories
+        #
+        # TODO: find the right idiom
+        #
+        # One cannot use anymore self.element_class: it is build by
+        # the category mecanism, and depends on the coeff ring.
+
+        elif isinstance(x, self.Element):
             P = x.parent()
             #same base ring
             if P is self:
@@ -153,7 +152,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ##################################################
         # Classical Symmetric Functions, different basis #
         ##################################################
-        elif isinstance(x, SymmetricFunctionAlgebraElement_classical):
+        elif isinstance(x, SymmetricFunctionAlgebra_classical.Element):
 
 
             R = self.base_ring()
@@ -179,32 +178,32 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ###############################
         # Hall-Littlewood Polynomials #
         ###############################
-        elif isinstance(x, hall_littlewood.HallLittlewoodElement_generic):
+        elif isinstance(x, hall_littlewood.HallLittlewood_generic.Element):
             #
             #Qp: Convert to Schur basis and then convert to self
             #
-            if isinstance(x, hall_littlewood.HallLittlewoodElement_qp):
+            if isinstance(x, hall_littlewood.HallLittlewood_qp.Element):
                 Qp = x.parent()
                 sx = Qp._s._from_cache(x, Qp._s_cache, Qp._self_to_s_cache, t=Qp.t)
                 return self(sx)
             #
             #P: Convert to Schur basis and then convert to self
             #
-            elif isinstance(x, hall_littlewood.HallLittlewoodElement_p):
+            elif isinstance(x, hall_littlewood.HallLittlewood_p.Element):
                 P = x.parent()
                 sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
                 return self(sx)
             #
             #Q: Convert to P basis and then convert to self
             #
-            elif isinstance(x, hall_littlewood.HallLittlewoodElement_q):
+            elif isinstance(x, hall_littlewood.HallLittlewood_q.Element):
                     return self( x.parent()._P( x ) )
 
         #######
         # LLT #
         #######
         #Convert to m and then to self.
-        elif isinstance(x, llt.LLTElement_generic):
+        elif isinstance(x, llt.LLT_generic.Element):
             P = x.parent()
             BR = self.base_ring()
             zero = BR(0)
@@ -225,21 +224,21 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         #########################
         # Macdonald Polynomials #
         #########################
-        elif isinstance(x, macdonald.MacdonaldPolynomial_generic):
-            if isinstance(x, macdonald.MacdonaldPolynomial_j):
+        elif isinstance(x, macdonald.MacdonaldPolynomials_generic.Element):
+            if isinstance(x, macdonald.MacdonaldPolynomials_j.Element):
                 J = x.parent()
                 sx = J._s._from_cache(x, J._s_cache, J._j_to_s_cache, q=J.q, t=J.t)
                 return self(sx)
-            elif isinstance(x, (macdonald.MacdonaldPolynomial_q, macdonald.MacdonaldPolynomial_p)):
+            elif isinstance(x, (macdonald.MacdonaldPolynomials_q.Element, macdonald.MacdonaldPolynomials_p.Element)):
                 J = x.parent()._J
                 jx = J(x)
                 sx = J._s._from_cache(jx, J._s_cache, J._j_to_s_cache, q=J.q, t=J.t)
                 return self(sx)
-            elif isinstance(x, (macdonald.MacdonaldPolynomial_h,macdonald.MacdonaldPolynomial_ht)):
+            elif isinstance(x, (macdonald.MacdonaldPolynomials_h.Element,macdonald.MacdonaldPolynomials_ht.Element)):
                 H = x.parent()
                 sx = H._s._from_cache(x, H._s_cache, H._self_to_s_cache, q=H.q, t=H.t)
                 return self(sx)
-            elif isinstance(x, macdonald.MacdonaldPolynomial_s):
+            elif isinstance(x, macdonald.MacdonaldPolynomials_s.Element):
                 S = x.parent()
                 sx = S._s._from_cache(x, S._s_cache, S._self_to_s_cache, q=S.q, t=S.t)
                 return self(sx)
@@ -249,12 +248,12 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ####################
         # Jack Polynomials #
         ####################
-        elif isinstance(x, jack.JackPolynomial_generic):
-            if isinstance(x, jack.JackPolynomial_p):
+        elif isinstance(x, jack.JackPolynomials_generic.Element):
+            if isinstance(x, jack.JackPolynomials_p.Element):
                 P = x.parent()
                 mx = P._m._from_cache(x, P._m_cache, P._self_to_m_cache, t=P.t)
                 return self(mx)
-            if isinstance(x, (jack.JackPolynomial_j, jack.JackPolynomial_q)):
+            if isinstance(x, (jack.JackPolynomials_j.Element, jack.JackPolynomials_q.Element)):
                 return self( x.parent()._P(x) )
             else:
                 raise TypeError
@@ -262,8 +261,8 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         #####################
         # k-Schur Functions #
         #####################
-        if isinstance(x, kschur.kSchurFunction_generic):
-            if isinstance(x, kschur.kSchurFunction_t):
+        if isinstance(x, kschur.kSchurFunctions_generic.Element):
+            if isinstance(x, kschur.kSchurFunctions_t.Element):
                 P = x.parent()
                 sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
                 return self(sx)
@@ -273,7 +272,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ####################################################
         # Bases defined by orthogonality and triangularity #
         ####################################################
-        elif isinstance(x, orthotriang.SymmetricFunctionAlgebraElement_orthotriang):
+        elif isinstance(x, orthotriang.SymmetricFunctionAlgebra_orthotriang.Element):
             #Convert to its base and then to self
             xp = x.parent()
             if self is xp._sf_base:
@@ -334,25 +333,19 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         return self.base_ring().is_commutative()
 
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Text representation of this symmetric function algebra.
 
         EXAMPLES::
 
-            sage: SFASchur(QQ).__repr__()
+            sage: SFASchur(QQ)._repr_()
             'Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis'
         """
         return "Symmetric Function Algebra over %s, %s symmetric functions as basis"%(self.base_ring(), self._basis.capitalize())
 
 
 
-
-class SymmetricFunctionAlgebraElement_classical(sfa.SymmetricFunctionAlgebraElement_generic):
-    """
-    A symmetric function.
-    """
-    pass
 
 ##     def __pow__(self, n):
 ##         """

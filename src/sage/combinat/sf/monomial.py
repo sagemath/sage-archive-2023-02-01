@@ -29,7 +29,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m == loads(dumps(m))
             True
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "monomial", SymmetricFunctionAlgebraElement_monomial, 'm')
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "monomial", 'm')
 
     def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
@@ -96,8 +96,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         return z_elt
 
 
-class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebraElement_classical):
-    def expand(self, n, alphabet='x'):
+    class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+      def expand(self, n, alphabet='x'):
         """
         Expands the symmetric function as a symmetric polynomial in n
         variables.
@@ -117,3 +117,6 @@ class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebr
         condition = lambda part: len(part) > n
         return self._expand(condition, n, alphabet)
 
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.monomial', 'SymmetricFunctionAlgebraElement_monomial',  SymmetricFunctionAlgebra_monomial.Element)

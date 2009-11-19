@@ -17,8 +17,9 @@ Power-sum symmetric functions
 #*****************************************************************************
 import sfa, multiplicative, classical
 
+# TODO: fix indentation
 class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_multiplicative):
-    def __init__(self, R):
+  def __init__(self, R):
         """
         TESTS::
 
@@ -26,12 +27,11 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             sage: p == loads(dumps(p))
             True
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "power", SymmetricFunctionAlgebraElement_power, 'p')
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "power", 'p')
 
 
-
-
-class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraElement_classical):
+  class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+    # TODO: fix indentation
     def omega(self):
         """
         Returns the image of self under the Frobenius / omega
@@ -132,3 +132,7 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
         """
         condition = lambda part: False
         return self._expand(condition, n, alphabet)
+
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.powersum', 'SymmetricFunctionAlgebraElement_power',  SymmetricFunctionAlgebra_power.Element)

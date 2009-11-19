@@ -19,9 +19,9 @@ import sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
 import sage.combinat.skew_partition
 from sage.rings.all import QQ, ZZ
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 import sage.combinat.partition
-
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 
 def LLT(R, k, t=None):
     """
@@ -38,6 +38,7 @@ def LLT(R, k, t=None):
     """
     return cache_llt(R, k, t)
 
+# This is to become the "abstract algebra" for llt polynomials
 class LLT_class:
     def __init__(self, R, k, t=None):
         """
@@ -248,11 +249,52 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
             self.t = R(t)
             self._name += " with t=%s"%self.t
 
-        self._combinatorial_class = sage.combinat.partition.Partitions()
-        self._one = sage.combinat.partition.Partition([])
         self._level = level
 
-        CombinatorialAlgebra.__init__(self, R)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
+
+        # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+        category = sage.categories.all.ModulesWithBasis(R)
+        self._m = sfa.SFAMonomial(self.base_ring())
+        self   .register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
+        self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
+
+    def _m_to_self(self, x):
+        """
+        Isomorphism from the monomial basis into self
+
+        EXAMPLES::
+
+            sage: HSp3 = LLTHSpin(QQ,3)
+            sage: m = SFAMonomial(HSp3.base_ring())
+            sage: HSp3._m_to_self(m[2,1])
+            -2*HSp[1, 1, 1] + (2*t^2+2*t+1)*HSp[2, 1] + (-2*t^2-t)*HSp[3]
+
+        This is for internal use only. Please use instead::
+
+            sage: HSp3(m[2,1])
+            -2*HSp[1, 1, 1] + (2*t^2+2*t+1)*HSp[2, 1] + (-2*t^2-t)*HSp[3]
+        """
+        return self._from_cache(x, self._m_cache, self._m_to_self_cache, t = self.t)
+
+    def _self_to_m(self, x):
+        """
+        Isomorphism from self to the monomial basis
+
+        EXAMPLES::
+
+            sage: HSp3 = LLTHSpin(QQ,3)
+            sage: m = SFAMonomial(HSp3.base_ring())
+            sage: HSp3._self_to_m(HSp3[2,1])
+            (t+2)*m[1, 1, 1] + (t+1)*m[2, 1] + t*m[3]
+
+        This is for internal use only. Please use instead::
+
+            sage: m(HSp3[2,1])
+            (t+2)*m[1, 1, 1] + (t+1)*m[2, 1] + t*m[3]
+        """
+        return self._m._from_cache(x, self._m_cache, self._self_to_m_cache)
+
 
     def level(self):
         """
@@ -267,9 +309,8 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         return self._level
 
-class LLTElement_generic(sfa.SymmetricFunctionAlgebraElement_generic):
-    pass
-
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
+        pass
 
 
 def LLTHSpin(R, level, t=None):
@@ -281,6 +322,12 @@ def LLTHSpin(R, level, t=None):
         sage: HSp3 = LLTHSpin(QQ,3)
         sage: HSp3([1])^2
         HSp[1, 1] + (-t+1)*HSp[2]
+
+        sage: s = SFASchur(HSp3.base_ring())
+        sage: HSp3(s([2]))
+        HSp[2]
+        sage: HSp3(s([1,1]))
+        HSp[1, 1] - t*HSp[2]
     """
     return cache_llt_spin(R, level, t)
 
@@ -295,20 +342,18 @@ class LLT_spin(LLT_generic):
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: HSp3 == loads(dumps(HSp3))
             True
+            sage: TestSuite(HSp3).run() # todo: not implemented (long or does not terminate)
         """
         self._name = "LLT polynomials in the HSp basis at level %s"%level
         self._prefix = "HSp"
-        self._element_class = LLTElement_spin
-
-        LLT_generic.__init__(self, R, level, t=t)
-
-        self._m = sfa.SFAMonomial(self.base_ring())
 
         if level not in hsp_to_m_cache:
             hsp_to_m_cache[level] = {}
             m_to_hsp_cache[level] = {}
         self._self_to_m_cache = hsp_to_m_cache[level]
         self._m_to_self_cache = m_to_hsp_cache[level]
+
+        LLT_generic.__init__(self, R, level, t=t)
 
 
     def _multiply(self, left, right):
@@ -362,29 +407,8 @@ class LLT_spin(LLT_generic):
         self._invert_morphism(n, self.base_ring(), self._self_to_m_cache, \
                               self._m_to_self_cache, to_other_function = self._to_m)
 
-    def _coerce_start(self, x):
-        """
-        Coerce things into the LLT HSp basis through the monomials.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.sf.llt import *
-            sage: HSp3 = LLT_spin(QQ, 3)
-            sage: s = SFASchur(HSp3.base_ring())
-            sage: HSp3._coerce_start(s([2]))
-            HSp[2]
-            sage: HSp3._coerce_start(s([1,1]))
-            HSp[1, 1] - t*HSp[2]
-        """
-        if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._m(x)
-            return self._from_cache(x, self._m_cache, self._m_to_self_cache, t=self.t)
-        else:
-            raise TypeError
-
-
-class LLTElement_spin(LLTElement_generic):
-    pass
+    class Element(LLT_generic.Element):
+        pass
 
 
 
@@ -397,6 +421,12 @@ def LLTHCospin(R, level, t=None):
         sage: HCosp3 = LLTHCospin(QQ,3)
         sage: HCosp3([1])^2
         1/t*HCosp3[1, 1] + ((t-1)/t)*HCosp3[2]
+
+        sage: s = SFASchur(HCosp3.base_ring())
+        sage: HCosp3(s([2]))
+        HCosp3[2]
+        sage: HCosp3(s([1,1]))
+        1/t*HCosp3[1, 1] - 1/t*HCosp3[2]
     """
     return cache_llt_cospin(R, level, t)
 
@@ -411,20 +441,17 @@ class LLT_cospin(LLT_generic):
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: HCosp3 == loads(dumps(HCosp3))
             True
+            sage: TestSuite(HCosp3).run() # todo: not implemented (long or does not terminate)
         """
         self._name = "LLT polynomials in the HCosp basis at level %s"%level
         self._prefix = "HCosp"+str(level)
-        self._element_class = LLTElement_cospin
-
-        LLT_generic.__init__(self, R, level, t=t)
-
-        self._m = sfa.SFAMonomial(self.base_ring())
 
         if level not in hcosp_to_m_cache:
             hcosp_to_m_cache[level] = {}
             m_to_hcosp_cache[level] = {}
         self._self_to_m_cache = hcosp_to_m_cache[level]
         self._m_to_self_cache = m_to_hcosp_cache[level]
+        LLT_generic.__init__(self, R, level, t=t)
 
 
     def _multiply(self, left, right):
@@ -479,32 +506,15 @@ class LLT_cospin(LLT_generic):
         self._invert_morphism(n, self.base_ring(), self._self_to_m_cache, \
                               self._m_to_self_cache, to_other_function = self._to_m)
 
-    def _coerce_start(self, x):
-        """
-        Coerce things into the LLT HCosp basis through the monomials.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.sf.llt import *
-            sage: HCosp3 = LLT_cospin(QQ, 3)
-            sage: s = SFASchur(HCosp3.base_ring())
-            sage: HCosp3._coerce_start(s([2]))
-            HCosp3[2]
-            sage: HCosp3._coerce_start(s([1,1]))
-            1/t*HCosp3[1, 1] - 1/t*HCosp3[2]
-        """
-        BR = self.base_ring()
-        if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._m(x)
-            return self._from_cache(x, self._m_cache, self._m_to_self_cache, t=self.t)
-        else:
-            raise TypeError
-
-class LLTElement_cospin(LLTElement_generic):
-    pass
-
+    class Element(LLT_generic.Element):
+        pass
 
 from sage.misc.cache import Cache
 cache_llt = Cache(LLT_class)
 cache_llt_cospin = Cache(LLT_cospin)
 cache_llt_spin = Cache(LLT_spin)
+
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.llt', 'LLTElement_spin',  LLT_spin.Element)
+register_unpickle_override('sage.combinat.sf.llt', 'LLTElement_cospin',  LLT_cospin.Element)

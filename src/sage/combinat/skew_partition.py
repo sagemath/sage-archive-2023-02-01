@@ -148,7 +148,6 @@ from sage.sets.set import Set
 from sage.graphs.graph import DiGraph
 from UserList import UserList
 from combinat import CombinatorialClass, CombinatorialObject
-import sage.combinat.sf.sfa as sfa
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.infinity import PlusInfinity
 infinity = PlusInfinity()
@@ -571,6 +570,7 @@ class SkewPartition_class(CombinatorialObject):
         """
         p = self.outer()
         q = self.inner()
+        import sage.combinat.sf.sfa as sfa
         if len(p) == 0 and len(q) == 0:
             return MatrixSpace(sfa.SFAHomogeneous(QQ), 0)(0)
         nn = len(p)

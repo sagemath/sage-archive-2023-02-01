@@ -16,7 +16,9 @@ Schubert Polynomials
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import combinatorial_algebra
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
+from sage.categories.all import GradedAlgebrasWithBasis
 from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
 import permutation
 import sage.libs.symmetrica.all as symmetrica
@@ -63,7 +65,7 @@ def is_SchubertPolynomial(x):
     """
     return isinstance(x, SchubertPolynomial_class)
 
-class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement):
+class SchubertPolynomial_class(CombinatorialFreeModule.Element):
     def expand(self):
         """
         EXAMPLES::
@@ -167,9 +169,12 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
         else:
             raise TypeError, "i must be an integer"
 
+# FIXME: inherit from CombinatorialFreeModule once the
+# coercion from ground ring is implemented in the category
+class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
 
+    Element = SchubertPolynomial_class
 
-class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
     def __init__(self, R):
         """
         EXAMPLES::
@@ -180,21 +185,20 @@ class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
         """
         self._name = "Schubert polynomial ring with X basis"
         self._prefix = "X"
-        self._combinatorial_class = permutation.Permutations()
+        self._repr_option_bracket = False
         self._one = permutation.Permutation([1])
-        self._element_class = SchubertPolynomial_class
-        combinatorial_algebra.CombinatorialAlgebra.__init__(self, R)
+        CombinatorialAlgebra.__init__(self, R, cc = permutation.Permutations(), category = GradedAlgebrasWithBasis(R))
 
-    def _coerce_start(self, x):
+    def _element_constructor_(self, x):
         """
         Coerce x into self.
 
         EXAMPLES::
 
             sage: X = SchubertPolynomialRing(QQ)
-            sage: X._coerce_start([2,1,3])
+            sage: X._element_constructor_([2,1,3])
             X[2, 1]
-            sage: X._coerce_start(Permutation([2,1,3]))
+            sage: X._element_constructor_(Permutation([2,1,3]))
             X[2, 1]
 
         ::

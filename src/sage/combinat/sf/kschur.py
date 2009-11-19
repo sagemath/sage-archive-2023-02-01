@@ -16,8 +16,10 @@ k-Schur Functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.rings.all import Integer, gcd, lcm, QQ, is_PolynomialRing, is_FractionField
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
+from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
 import sage.combinat.partition
 from sage.misc.misc import prod
 import sfa
@@ -43,15 +45,19 @@ def kSchurFunctions(R, k, t=None):
         sage: ks3(s([3, 2, 1]) + t*s([4, 1, 1]) + t*s([4, 2]) + t^2*s([5, 1]))
         ks3[3, 2, 1]
 
-    ::
+    k-Schurs are indexed by partitions with first part `\le
+    k`. Constructing a k-Schur function for a larger partition raises
+    an error::
 
-        sage: ks3([4,3,2,1])  # k-Schurs are indexed by partitions with first part \le k.
-        0
+        sage: ks3([4,3,2,1])  #
+        Traceback (most recent call last):
+        ...
+        TypeError: do not know how to make x (= [4, 3, 2, 1]) an element of self (=k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field)
 
-    Attempting to convert a function that is not in the linear span of
-    the k-Schur's raises an error.
+    Note: this used to return 0 instead. What is preferable?
 
-    ::
+    Similarly, attempting to convert a function that is not in the
+    linear span of the k-Schur's raises an error::
 
         sage: ks3(s([4]))
         Traceback (most recent call last):
@@ -189,13 +195,11 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         return self( self._s(left) * self._s(right) )
 
 
-class kSchurFunction_generic(sfa.SymmetricFunctionAlgebraElement_generic):
-    pass
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
+        pass
 
 s_to_k_cache = {}
 k_to_s_cache = {}
-class kSchurFunction_t(kSchurFunction_generic):
-    pass
 class kSchurFunctions_t(kSchurFunctions_generic):
     def __init__(self, R, k, t=None):
         """
@@ -212,9 +216,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         self.k = k
         self._name = "k-Schur Functions at level %s"%k
         self._prefix = "ks%s"%k
-        self._element_class = kSchurFunction_t
-        self._combinatorial_class = sage.combinat.partition.Partitions()
-        self._one = sage.combinat.partition.Partition([])
+        self._element_class = kSchurFunctions_t.Element
 
         if t is None:
             R = R['t']
@@ -226,23 +228,81 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             if str(t) != 't':
                 self._name += " with t=%s"%self.t
 
-
-        CombinatorialAlgebra.__init__(self, R)
-
-        self._s = sfa.SFASchur(self.base_ring())
         self._s_to_self_cache = s_to_k_cache.get(k, {})
         self._self_to_s_cache = k_to_s_cache.get(k, {})
 
-    def _coerce_start(self, x):
+        # This is an abuse, since kschur functions do not form a basis of Sym
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
+        # so we need to take some counter measures
+        self._basis_keys = sage.combinat.partition.Partitions(NonNegativeIntegers(), max_part=k)
+
+        self._s = sfa.SFASchur(self.base_ring())
+        # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        # This really should be a conversion, not a coercion (it can fail)
+        self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
+        self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+
+    def _s_to_self(self, x):
+        """
+        Partial morphism from the Schur basis into self
+
+        EXAMPLES::
+
+            sage: ks3 = kSchurFunctions(QQ, 3)
+            sage: s = SFASchur(ks3.base_ring())
+            sage: ks3._s_to_self(s[2, 1, 1] + ks3.t*s[3, 1])
+            ks3[2, 1, 1]
+            sage: ks3._s_to_self(s[2, 1, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: s[2, 1, 1] is not in the space spanned by k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field.
+
+        This is for internal use only. Please use instead::
+
+            sage: ks3(s[2, 1, 1] + ks3.t*s[3, 1])
+            ks3[2, 1, 1]
+            sage: ks3(s[2, 1, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: s[2, 1, 1] is not in the space spanned by k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field.
+        """
+        for p in x.support():
+            self._s_cache(p.size())
+        return self._change_by_triangularity(x, self._self_to_s_cache, True)
+
+    def _self_to_s(self, x):
+        r"""
+        Embedding from self to the Schur basis
+
+        EXAMPLES::
+
+            sage: ks3 = kSchurFunctions(QQ, 3)
+            sage: s = SFASchur(ks3.base_ring())
+            sage: ks3._self_to_s(ks3[2,1,1])
+            s[2, 1, 1] + t*s[3, 1]
+
+        This is for internal use only. Please use instead::
+
+            sage: s(ks3[2,1,1])
+            s[2, 1, 1] + t*s[3, 1]
+        """
+        return self._s._from_cache(x, self._s_cache, self._self_to_s_cache, t = self.t) # do we want this t = self.t?
+
+    def _coerce_start_disabled(self, x):
         """
         Coerce things into the k-Schurs through the Schurs.
 
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
-            sage: s = SFASchur(QQ)
+            sage: s = SFASchur(ks3.base_ring())
+            sage: ks3([3,3,2,1]) # indirect doctest
+            ks3[3, 3, 2, 1]
             sage: ks3([4,3,2,1]) # indirect doctest
-            0
+            Traceback (most recent call last):
+            ...
+            TypeError: do not know how to make x (= [4, 3, 2, 1]) an element of self (=k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field)
             sage: ks3(s([2,1]))
             ks3[2, 1]
             sage: ks3(s([4]))
@@ -250,19 +310,13 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             ...
             ValueError: s[4] is not in the space spanned by k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field.
         """
+        pass
         if x in sage.combinat.partition.Partitions():
             if len(x) > 0 and max(x) > self.k:
                 return self(0)
             x = sage.combinat.partition.Partition(x)
             return self._from_dict({x:self.base_ring()(1)})
 
-        if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._s(x)
-            for p in x.support():
-                self._s_cache(p.size())
-            return self._change_by_triangularity(x, self._self_to_s_cache, True)
-        else:
-            raise TypeError
 
     def _s_cache(self, n):
         """
@@ -302,10 +356,15 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             res = sum( [t**tab.charge()*s(tab.shape()) for tab in katom], zero)
             self._self_to_s_cache[n][p] = res.monomial_coefficients()
 
-
+    class Element(kSchurFunctions_generic.Element):
+        pass
 
 #############
 #   Cache   #
 #############
 from sage.misc.cache import Cache
 cache_t = Cache(kSchurFunctions_t)
+
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.kschur', 'kSchurFunction_t',  kSchurFunctions_t.Element)

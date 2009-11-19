@@ -39,13 +39,19 @@ functions from this definition.
 
 from sage.combinat.combinat import CombinatorialClass
 from sage.libs.symmetrica.all import hall_littlewood
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 import sfa
 import sage.combinat.partition
 from sage.matrix.all import matrix, MatrixSpace
 from sage.rings.all import ZZ, QQ
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 
 class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic):
+
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
+        pass
+
+
     def __init__(self, R, base, scalar, prefix, name, leading_coeff=None):
         """
         EXAMPLES::
@@ -54,25 +60,28 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
             sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
-            sage: s == loads(dumps(s))
+
+        TESTS::
+
+            sage: TestSuite(s).run(elements = [s[1,1]+2*s[2], s[1]+3*s[1,1]])
+            sage: TestSuite(s).run() # long time (an_element is of degree 4, which makes the associativity test expensive)
             True
         """
-        self._combinatorial_class = sage.combinat.partition.Partitions()
-        self._one = sage.combinat.partition.Partition_class([])
         self._sf_base = base
-        self._element_class = SymmetricFunctionAlgebraElement_orthotriang
         self._scalar = scalar
         self._prefix = prefix
         self._name = name
         self._leading_coeff = leading_coeff
-        CombinatorialAlgebra.__init__(self, R)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
 
         self._self_to_base_cache = {}
         self._base_to_self_cache = {}
+        self.register_coercion(SetMorphism(Hom(base, self), self._base_to_self))
+        base.register_coercion(SetMorphism(Hom(self, base), self._self_to_base))
 
-    def _coerce_start(self, x):
+    def _base_to_self(self, x):
         """
-        Coerce other symmetric functions into self through the base.
+        Coerce a symmetric function in base into self
 
         EXAMPLES::
 
@@ -80,14 +89,25 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
             sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
-            sage: s._coerce_start(m([2,1]))
+            sage: s._base_to_self(m([2,1]))
             -2*s[1, 1, 1] + s[2, 1]
         """
-        if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._sf_base(x)
-            return self._from_cache(x, self._base_cache, self._base_to_self_cache)
-        else:
-            raise TypeError
+        return self._from_cache(x, self._base_cache, self._base_to_self_cache)
+
+    def _self_to_base(self, x):
+        """
+        Coerce a symmetric function in self into base
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.sfa import zee
+            sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
+            sage: m = SFAMonomial(QQ)
+            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: s._self_to_base(s([2,1]))
+            2*m[1, 1, 1] + m[2, 1]
+        """
+        return self._sf_base._from_cache(x, self._base_cache, self._self_to_base_cache)
 
     def _base_cache(self, n):
         """
@@ -158,6 +178,6 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         """
         return self( self._sf_base(left)*self._sf_base(right) )
 
-
-class SymmetricFunctionAlgebraElement_orthotriang(sfa.SymmetricFunctionAlgebraElement_generic):
-    pass
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.orthotriang', 'SymmetricFunctionAlgebraElement_orthotriang',  SymmetricFunctionAlgebra_orthotriang.Element)

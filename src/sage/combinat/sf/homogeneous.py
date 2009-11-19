@@ -32,7 +32,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
             sage: h == loads(dumps(h))
             True
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "homogeneous", SymmetricFunctionAlgebraElement_homogeneous, 'h')
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "homogeneous", 'h')
 
     def dual_basis(self, scalar=None, prefix=None):
         """
@@ -52,8 +52,9 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
             return sfa.SymmetricFunctionAlgebra(self, scalar, prefix=prefix)
 
 
-class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlgebraElement_classical):
-    def omega(self):
+    class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+        # TODO: fix indentation
+      def omega(self):
         """
         Returns the image of self under the Frobenius / omega
         automorphism.
@@ -72,7 +73,7 @@ class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlg
         e = sfa.SFAElementary(self.parent().base_ring())
         return self.parent()(e._from_element(self))
 
-    def expand(self, n, alphabet='x'):
+      def expand(self, n, alphabet='x'):
         """
         Expands the symmetric function as a symmetric polynomial in n
         variables.
@@ -95,3 +96,7 @@ class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlg
         """
         condition = lambda part: False
         return self._expand(condition, n, alphabet)
+
+# Backward compatibility for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.homogeneous', 'SymmetricFunctionAlgebraElement_homogeneous',  SymmetricFunctionAlgebra_homogeneous.Element)

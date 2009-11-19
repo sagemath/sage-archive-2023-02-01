@@ -24,7 +24,7 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
         TESTS::
 
             sage: e = SFAElementary(QQ)
-            sage: e([2,1])^2
+            sage: e([2,1])^2  # indirect doctest
             e[2, 2, 1, 1]
 
         ::
@@ -42,9 +42,11 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
         ::
 
             sage: QQx.<x> = QQ[]
-            sage: p = SFAPower(QQx) # indirect doctest
+            sage: p = SFAPower(QQx)
             sage: (x*p([2]))^2
             x^2*p[2, 2]
+
+            sage: TestSuite(p).run() # to silence sage -coverage
         """
         m = list(left)+list(right)
         m.sort(reverse=True)

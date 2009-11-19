@@ -1,14 +1,21 @@
 r"""
 Symmetric Functions
 
-AUTHORS:
-
-- Mike Hansen (2007-06-15)
-
-::
+We define the algebra of symmetric functions in the Schur and elementary bases::
 
     sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
     sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
+
+Each is actually is a graded hopf algebra whose basis is indexed by
+integer partitions::
+
+    sage: s.category()
+    Join of Category of graded hopf algebras with basis over Rational Field and Category of commutative rings
+    sage: s.basis().keys()
+    Partitions
+
+Let us compute with some elements::
+
     sage: f1 = s([2,1]); f1
     s[2, 1]
     sage: f2 = e(f1); f2
@@ -33,9 +40,7 @@ AUTHORS:
     3*m[3, 1] - 1/2*m[4]
 
 Code needs to be added to coerce symmetric polynomials into
-symmetric functions.
-
-::
+symmetric functions::
 
     sage: p = SFAPower(QQ)
     sage: m = p(3)
@@ -129,6 +134,34 @@ symmetric functions.
     [[1, 1, 1], [2, 1]]
     sage: z.degree()
     3
+
+RECENT BACKWARD INCOMPATIBLE CHANGES:
+
+The symmetric functions code has been (partially) refactored to take
+advantate of the coercion systems. This introduced a couple glitches:
+
+- On some bases changes, coefficients in Jack polynomials are not normalized
+- Except in a few cases, conversions and coercions are only defined
+  between symmetric functions over the same coefficient ring. E.g.
+  the following does not work anymore:
+
+      sage: s  = SFASchur(QQ)
+      sage: s2 = SFASchur(QQ['t'])
+      sage: s([1]) + s([2]) # todo: not implemented
+
+  This feature will probably come back at some point through
+  improvements to the Sage coercion system.
+
+There is some large scale refactoring to come. See
+``SymmetricFunctions`` for a preview.
+
+Backward compatibility should be essentially retained.
+
+AUTHORS:
+
+- Mike Hansen (2007-06-15)
+- Nicolas M. Thiery (partial refactoring)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -144,13 +177,14 @@ symmetric functions.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.cachefunc import cached_method
 from sage.rings.all import Ring, Integer, PolynomialRing, is_Polynomial, is_MPolynomial, ZZ, QQ
 from sage.algebras.algebra import Algebra
 import sage.combinat.partition
 import sage.combinat.skew_partition
 import sage.structure.parent_gens
 import sage.libs.symmetrica.all as symmetrica
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import repr_lincomb, prod, uniq
 from sage.algebras.algebra_element import AlgebraElement
@@ -186,19 +220,23 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
         sage: SymmetricFunctionAlgebra(QQ, basis='power')
         Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
     """
+    # Todo: this is a backward compatibility function, and should be deprecated
+    from sage.combinat.sf.sf import SymmetricFunctions
+    Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
-        return cache_s(R)
+        return Sym.s()
     elif basis == "elementary" or  basis ==  'e':
-        return cache_e(R)
+        return Sym.e()
     elif basis == "homogeneous" or basis ==  'h':
-        return cache_h(R)
+        return Sym.h()
     elif basis == 'power' or basis ==  'p':
-        return cache_p(R)
+        return Sym.p()
     elif basis == 'monomial' or basis ==  'm':
-        return cache_m(R)
+        return Sym.m()
     else:
         raise ValueError, "unknown basis (= %s)"%basis
 
+# Todo: all the SFA* functions are for backward compatibility and should be deprecated
 def SFAPower(R):
     """
     Returns the symmetric function algebra over R with the power-sum
@@ -320,10 +358,106 @@ def is_SymmetricFunction(x):
         sage: is_SymmetricFunction(s([2,1]))
         True
     """
-    return isinstance(x, SymmetricFunctionAlgebraElement_generic)
+    return isinstance(x, SymmetricFunctionAlgebra_generic.Element)
 
-class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
+class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
+    """
+    TESTS::
+
+        sage: s = SFASchur(QQ)
+        sage: m = SFAMonomial(ZZ)
+        sage: s(m([2,1]))
+        -2*s[1, 1, 1] + s[2, 1]
+    """
+
+    def __init__(self, R, basis_name = None, prefix = None):
+        """
+        TESTS::
+
+            sage: from sage.combinat.sf.classical import SymmetricFunctionAlgebra_classical
+            sage: s = SFASchur(QQ)
+            sage: isinstance(s, SymmetricFunctionAlgebra_classical)
+            True
+            sage: TestSuite(s).run()
+        """
+        from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
+        if R not in CommutativeRings():
+            raise TypeError, "Argument R must be a commutative ring."
+        try:
+            z = R(Integer(1))
+        except:
+            raise ValueError, "R must have a unit element"
+
+        if basis_name is not None:
+            self._basis = basis_name
+        if prefix is not None:
+            self._prefix = prefix
+        CombinatorialFreeModule.__init__(self, R, sage.combinat.partition.Partitions(),
+                                         category = (GradedHopfAlgebrasWithBasis(R), CommutativeRings()))
+
+    @cached_method
+    def one_basis(self):
+        """
+        Returns the empty partition, as per
+        ``AlgebrasWithBasis.ParentMethods.one_basis``
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).s().one_basis()
+            []
+
+        TESTS::
+
+            sage: SymmetricFunctions(QQ).s().one_basis() == Partition([])
+            True
+        """
+        return sage.combinat.partition.Partitions()([])
+
     _print_style = 'lex'
+
+    # Todo: share this with ncsf and over algebras with basis indexed by word-like elements
+    def __getitem__(self, c, *rest):
+        """
+        This method implements the abuses of notations p[2,1], p[[2,1]], p[Partition([2,1])]
+
+        Todo: should call super.term so as not to interfer with the standard notation p['x,y,z']
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s[2,1]
+            s[2, 1]
+            sage: s[[2,1]]
+            s[2, 1]
+            sage: s[Partition([2,1])]
+            s[2, 1]
+        """
+        C = self.basis().keys()
+        if isinstance(c, C.element_class):
+            assert len(rest) == 0
+        else:
+            if len(rest) > 0 or type(c) is int or type(c) is Integer:
+                c = C([c]+list(rest))
+            else:
+                c = C(list(c))
+        return self.term(c)
+
+    # Todo: move this in the Bases(Sym) category once parent won't impose its own implementation
+    def an_element(self):
+        """
+        Returns a typical element of this algebra
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).s().an_element()
+            1/2*s[] + 3*s[1, 1, 1] + 2*s[2, 1, 1]
+        """
+        # Todo: put this back when coercion won't be looking up left and
+        # right actions by duck testing for _lmul_ and _rmul_ on an_element
+        #return 2 * self[2,1,3] + 3 * self[1,1,1] + 1/2 * self[[]]
+        K = self.base_ring()
+        C = self.basis().keys()
+        return self.sum_of_monomials( ((C([2,1,1]), K(2)), (C([1,1,1]), K(3)), (C([]), K(1)/K(2))) )
 
 
     def _change_by_proportionality(self, x, function):
@@ -436,34 +570,6 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
                 for my, cy in y._monomial_coefficients.iteritems():
                     res += cx*cy*f(mx,my)
             return res
-
-
-    def _coerce_impl(self, x):
-        """
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ)
-            sage: m = SFAMonomial(ZZ)
-            sage: s._coerce_impl(m([2,1]))
-            -2*s[1, 1, 1] + s[2, 1]
-        """
-        try:
-            R = x.parent()
-            #Coerce other symmetric functions in
-            if is_SymmetricFunctionAlgebra(R):
-                #Only perform the coercion if we can go from the base
-                #ring of x to the base ring of self
-                if self.base_ring().has_coerce_map_from( R.base_ring() ):
-                    return self(x)
-        except AttributeError:
-            pass
-
-        # any ring that coerces to the base ring of this free algebra.
-        return self._coerce_try(x, [self.base_ring()])
-
-
-
-
 
     def _from_element(self, x):
         """
@@ -1060,7 +1166,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
 
 
-class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
+class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def __repr__(self):
         """
         EXAMPLES::
@@ -1742,11 +1848,14 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def hl_creation_operator(self, nu):
         """
-        This is the vertex operator that generalizes Jing's operator It is
-        from: Hall-Littlewood Vertex Operators and Kostka Polynomials,
-        Shimizono-Zabrocki, Proposition 5 It is a linear operator that
-        raises the degree by sum(nu) This creation operator is a t-analogue
-        of multiplication by s(nu)
+        This is the vertex operator that generalizes Jing's operator.
+
+        It is a linear operator that raises the degree by
+        sum(nu). This creation operator is a t-analogue of
+        multiplication by s(nu)
+
+        See: Hall-Littlewood Vertex Operators and Kostka Polynomials,
+        Shimizono-Zabrocki, Proposition 5.
 
         INPUT:
 
@@ -1759,7 +1868,9 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             sage: s = SFASchur(QQ['t'])
             sage: s([2]).hl_creation_operator([3,2])
             s[3, 2, 2] + t*s[3, 3, 1] + t*s[4, 2, 1] + t^2*s[4, 3] + t^2*s[5, 2]
+
             sage: HLQp = HallLittlewoodQp(QQ)
+            sage: s = SFASchur(HLQp.base_ring()) # This makes sure that s and HLQp are over the same base ring
             sage: HLQp(s([2]).hl_creation_operator([2]).hl_creation_operator([3]))
             Qp[3, 2, 2]
             sage: s([2,2]).hl_creation_operator([2,1])
@@ -1783,17 +1894,17 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
                         res += c*s(lam)*self.skew_by(s(mu).plethysm((t-1)*s([1])))
         return res
 
+SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 
 #############
 #   Cache   #
 #############
-from sage.misc.cache import Cache
 import schur, monomial, powersum, elementary, homogeneous
-cache_s = Cache(schur.SymmetricFunctionAlgebra_schur)
-cache_m = Cache(monomial.SymmetricFunctionAlgebra_monomial)
-cache_p = Cache(powersum.SymmetricFunctionAlgebra_power)
-cache_e = Cache(elementary.SymmetricFunctionAlgebra_elementary)
-cache_h = Cache(homogeneous.SymmetricFunctionAlgebra_homogeneous)
+cache_s = schur.SymmetricFunctionAlgebra_schur
+cache_m = monomial.SymmetricFunctionAlgebra_monomial
+cache_p = powersum.SymmetricFunctionAlgebra_power
+cache_e = elementary.SymmetricFunctionAlgebra_elementary
+cache_h = homogeneous.SymmetricFunctionAlgebra_homogeneous
 
 
 ###################

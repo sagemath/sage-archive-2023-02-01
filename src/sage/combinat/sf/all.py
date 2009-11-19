@@ -1,3 +1,7 @@
+# In the long run, this will be the single entry point
+# Nothing else will be exported
+from sf import SymmetricFunctions
+
 from sfa import SymmetricFunctionAlgebra, SFAPower, SFASchur, SFAHomogeneous, SFAElementary, SFAMonomial
 
 from hall_littlewood import HallLittlewoodP, HallLittlewoodQ, HallLittlewoodQp

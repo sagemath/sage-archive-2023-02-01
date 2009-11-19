@@ -658,7 +658,7 @@ unsigned Li2_SERIAL::serial = function::register_new(function_options("dilog", 1
                        evalf_func(Li2_evalf).
                        derivative_func(Li2_deriv).
                        series_func(Li2_series).
-                       latex_name("\\mbox{Li}_2"));
+                       latex_name("{\\rm Li}_2"));
 
 //////////
 // trilogarithm
@@ -672,7 +672,7 @@ static ex Li3_eval(const ex & x)
 }
 
 REGISTER_FUNCTION(Li3, eval_func(Li3_eval).
-                       latex_name("\\mbox{Li}_3"));
+                       latex_name("{\\rm Li}_3"));
 
 //////////
 // Derivatives of Riemann's Zeta-function  zetaderiv(0,x)==zeta(x)

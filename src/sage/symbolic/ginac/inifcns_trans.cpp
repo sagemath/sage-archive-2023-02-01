@@ -44,20 +44,6 @@ namespace GiNaC {
    of "a" at the beginning.   This is for consistency with other
    computer algebra systems.   These print methods are registered
    below with each of the corresponding inverse trig function. */
-static void acos_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arccos("; arg.print(c); c.s << ")"; }
-static void asin_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arcsin("; arg.print(c); c.s << ")"; }
-static void atan_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arctan("; arg.print(c); c.s << ")"; }
-static void atan2_print_dflt(const ex & arg, const ex& arg2, const print_context & c)
-{  c.s << "arctan2("; arg.print(c); c.s << ", "; arg2.print(c); c.s << ")"; }
-static void acosh_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arccosh("; arg.print(c); c.s << ")"; }
-static void asinh_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arcsinh("; arg.print(c); c.s << ")"; }
-static void atanh_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "arctanh("; arg.print(c); c.s << ")"; }
 
 
 //////////
@@ -779,8 +765,7 @@ static ex asin_deriv(const ex & x, unsigned deriv_param)
 REGISTER_FUNCTION(asin, eval_func(asin_eval).
                         evalf_func(asin_evalf).
                         derivative_func(asin_deriv).
-                        latex_name("\\arcsin").
-                        print_func<print_dflt>(asin_print_dflt));
+			set_name("arcsin", "\\arcsin"));
 
 //////////
 // inverse cosine (arc cosine)
@@ -850,8 +835,7 @@ static ex acos_deriv(const ex & x, unsigned deriv_param)
 REGISTER_FUNCTION(acos, eval_func(acos_eval).
                         evalf_func(acos_evalf).
                         derivative_func(acos_deriv).
-                        latex_name("\\arccos").
-                	print_func<print_dflt>(acos_print_dflt));
+			set_name("arccos", "\\arccos"));
 
 //////////
 // inverse tangent (arc tangent)
@@ -963,8 +947,7 @@ REGISTER_FUNCTION(atan, eval_func(atan_eval).
                         evalf_func(atan_evalf).
                         derivative_func(atan_deriv).
                         series_func(atan_series).
-                        latex_name("\\arctan").
-                        print_func<print_dflt>(atan_print_dflt));
+			set_name("arctan", "\\arctan"));
 
 //////////
 // inverse tangent (atan2(y,x))
@@ -1092,7 +1075,7 @@ static ex atan2_deriv(const ex & y, const ex & x, unsigned deriv_param)
 REGISTER_FUNCTION(atan2, eval_func(atan2_eval).
                          evalf_func(atan2_evalf).
                          derivative_func(atan2_deriv).
-                         print_func<print_dflt>(atan2_print_dflt));
+			 set_name("arctan2"));
 
 //////////
 // hyperbolic sine (trigonometric function)
@@ -1426,7 +1409,7 @@ static ex asinh_deriv(const ex & x, unsigned deriv_param)
 REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
                          evalf_func(asinh_evalf).
                          derivative_func(asinh_deriv).
-                         print_func<print_dflt>(asinh_print_dflt));
+			 set_name("arcsinh"));
 
 //////////
 // inverse hyperbolic cosine (trigonometric function)
@@ -1486,7 +1469,7 @@ static ex acosh_deriv(const ex & x, unsigned deriv_param)
 REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
                          evalf_func(acosh_evalf).
                          derivative_func(acosh_deriv).
-                         print_func<print_dflt>(acosh_print_dflt));
+			 set_name("arccosh"));
 
 //////////
 // inverse hyperbolic tangent (trigonometric function)
@@ -1600,7 +1583,7 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
                          evalf_func(atanh_evalf).
                          derivative_func(atanh_deriv).
                          series_func(atanh_series).
-                        print_func<print_dflt>(atanh_print_dflt));
+			 set_name("arctanh"));
 
 
 } // namespace GiNaC

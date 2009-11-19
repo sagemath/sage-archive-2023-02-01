@@ -715,7 +715,7 @@ void container<C>::printseq(const print_context & c, const char* openbracket,
 		--itend;
 		while (it != itend) {
 			it->print(c, this_precedence);
-			c.s << delim;
+			c.s << delim << ' ';
 			++it;
 		}
 		it->print(c, this_precedence);

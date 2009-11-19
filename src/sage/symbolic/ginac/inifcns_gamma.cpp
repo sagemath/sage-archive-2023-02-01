@@ -114,8 +114,7 @@ REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
                           evalf_func(lgamma_evalf).
                           derivative_func(lgamma_deriv).
                           series_func(lgamma_series).
-                          latex_name("\\log \\Gamma").
-                          set_name("log_gamma"));
+                          set_name("log_gamma", "\\log \\Gamma"));
 
 
 //////////
@@ -333,7 +332,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
                         evalf_func(beta_evalf).
                         derivative_func(beta_deriv).
                         series_func(beta_series).
-                        latex_name("\\mbox{B}").
+                        latex_name("{\\rm B}").
 						set_symmetry(sy_symm(0, 1)));
 
 

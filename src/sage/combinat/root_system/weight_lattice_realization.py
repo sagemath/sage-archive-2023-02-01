@@ -165,16 +165,16 @@ class WeightLatticeRealization(RootLatticeRealization):
 
           The plot returned has a size of one fundamental polygon by default. We can
           ask plot to give a bigger plot by using the argument size
-            sage: G = RootSystem(['G',2,1]).weight_space().plot(size = [[0..1],[-1..1]]) #long time
-            sage: G = RootSystem(['A',2,1]).weight_space().plot(size = [[-1..1],[-1..1]]) #long time
+            sage: G = RootSystem(['G',2,1]).weight_space().plot(size = [[0..1],[-1..1]])
+            sage: G = RootSystem(['A',2,1]).weight_space().plot(size = [[-1..1],[-1..1]])
 
           A very important argument is the projection which will draw the plot. There are
           some usual projections is this method. If you want to draw in the plane a very
           special Cartan type, Sage will ask you to specify the projection. The projection
           is a matrix over a ring. In practice, calcul over float is a good way to draw.
             sage: L = RootSystem(['A',2,1]).weight_space()
-            sage: G = L.plot(projection=matrix(RR, [[0,0.5,-0.5],[0,0.866,0.866]])) #long time
-            sage: G = RootSystem(['C',2,1]).weight_space().plot() #long time
+            sage: G = L.plot(projection=matrix(RR, [[0,0.5,-0.5],[0,0.866,0.866]]))
+            sage: G = RootSystem(['C',2,1]).weight_space().plot()
 
           By default, the plot method draw the simple roots, this can be disabled by setting
           the argument simple_roots=False
@@ -187,7 +187,7 @@ class WeightLatticeRealization(RootLatticeRealization):
           There is in a plot an argument to draw alcoves walks. The good way to do this is
           to use the crystals theory. the plot method contains only the drawing part...
             sage: L = RootSystem(['A',2,1]).weight_space()
-            sage: G = L.plot(size=[[-1..1],[-1..1]],alcovewalks=[[0,2,0,1,2,1,2,0,2,1]]) # long time
+            sage: G = L.plot(size=[[-1..1],[-1..1]],alcovewalks=[[0,2,0,1,2,1,2,0,2,1]])
         """
 
         from sage.plot.plot import Graphics

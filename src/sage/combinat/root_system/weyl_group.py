@@ -23,6 +23,7 @@ from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realization import RootLatticeRealization
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
+from sage.sets.family import Family
 
 def WeylGroup(x):
     """
@@ -121,10 +122,10 @@ def WeylGroup(x):
 class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens):
     def __init__(self, lattice):
         """
-        EXAMPLES:
-            sage: G = WeylGroup(['F',4])
-            sage: G == loads(dumps(G))
-            True
+        EXAMPLES::
+
+            sage: G = WeylGroup(['B',3])
+            sage: TestSuite(G).run()
         """
         self._lattice = lattice
         if self.cartan_type().is_affine():
@@ -134,8 +135,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         else:
             category = WeylGroups()
         self._init_category_(category)
-        MatrixGroup_gens.__init__(self, [self.morphism_matrix(s) for s in lattice.simple_reflections()])
         self.n = lattice.dimension() # Really needed?
+        # MatrixGroup_gens takes plain matrices as input. So we can't do:
+        #MatrixGroup_gens.__init__(self, list(self.simple_reflections()))
+        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.lattice().simple_reflection(i)) for i in self.index_set()])
 
     @cached_method
     def cartan_type(self):
@@ -153,7 +156,19 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
     @cached_method
     def index_set(self):
-        return self.lattice().index_set()
+        """
+        Returns the index set of self.
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['F',4])
+            sage: G.index_set()
+            [1, 2, 3, 4]
+            sage: G = WeylGroup(['A',3,1])
+            sage: G.index_set()
+            [0, 1, 2, 3]
+        """
+        return self.cartan_type().index_set()
 
     # Should be implemented in (morphisms of) modules with basis
     def morphism_matrix(self, f):
@@ -516,6 +531,24 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     """
     A class for Classical Weyl Subgroup of a Weyl Group
 
+    EXAMPLES::
+
+        sage: G = WeylGroup(["A",3,1]).classical()
+        sage: G
+        Parabolic Subgroup of the Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
+        sage: G.category()
+        Category of finite weyl groups
+        sage: G.cardinality()
+        24
+        sage: TestSuite(G).run()
+
+    TESTS::
+
+        sage: from sage.combinat.root_system.weyl_group import ClassicalWeylSubgroup
+        sage: H = ClassicalWeylSubgroup(RootSystem(["A", 3, 1]).root_space())
+        sage: H is G
+        True
+
     Caveat: the interface is likely to change. The current main
     application is for plots.
 
@@ -523,18 +556,36 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
      - Parabolic subrootsystems
      - Parabolic subgroups with a set of nodes as argument
     """
-    def __init__(self, lattice):
+
+    @cached_method
+    def cartan_type(self):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.weyl_group import ClassicalWeylSubgroup
-            sage: G = ClassicalWeylSubgroup(RootSystem(["A", 3, 1]).root_space())
-            sage: G == loads(dumps(G))
-            True
+            sage: WeylGroup(['A',3,1]).classical().cartan_type()
+            ['A', 3]
+            sage: WeylGroup(['A',3,1]).classical().index_set()
+            [1, 2, 3]
+
+        Note: won't be needed, once the lattice will be a parabolic sub root system
         """
-        self._lattice = lattice
-        self.n = lattice.dimension()
-        MatrixGroup_gens.__init__(self, [self.morphism_matrix(lattice.simple_reflections()[s]) for s in range(1,self.n)])
+        return self.lattice().cartan_type().classical()
+
+    def simple_reflections(self):
+        """
+        EXAMPLES::
+
+            sage: WeylGroup(['A',2,1]).classical().simple_reflections()
+            Finite family {1: [ 1  0  0]
+                              [ 1 -1  1]
+                              [ 0  0  1],
+                           2: [ 1  0  0]
+                              [ 0  1  0]
+                              [ 1  1 -1]}
+
+        Note: won't be needed, once the lattice will be a parabolic sub root system
+        """
+        return Family(dict((i, self.from_morphism(self.lattice().simple_reflection(i))) for i in self.index_set()))
 
     def __repr__(self):
         """
@@ -549,7 +600,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: RootSystem(['C',4,1]).coweight_lattice().weyl_group().classical()
             Parabolic Subgroup of the Weyl Group of type ['C', 4, 1]^* (as a matrix group acting on the coweight lattice)
         """
-        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)"%(self.cartan_type(),
+        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)"%(self.lattice().cartan_type(),
                                                                            self._lattice._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
@@ -579,7 +630,6 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['B', 3, 1]).classical()._test_is_finite()
         """
         tester = self._tester(**options)
-        assert(self.cartan_type().is_affine())
         assert(not self.weyl_group().is_finite())
         assert(self.is_finite())
 
@@ -593,10 +643,7 @@ class WeylGroupElement(MatrixGroupElement):
 
             sage: G = WeylGroup(['A',2])
             sage: s1 = G.simple_reflection(1)
-            sage: loads(dumps(s1))
-            [0 1 0]
-            [1 0 0]
-            [0 0 1]
+            sage: TestSuite(s1).run()
         """
         MatrixGroupElement.__init__(self, g, parent)
         self.__matrix = self._MatrixGroupElement__mat

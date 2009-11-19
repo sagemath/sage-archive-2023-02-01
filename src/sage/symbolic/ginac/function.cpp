@@ -1217,11 +1217,9 @@ void function::print(const print_context & c, unsigned level) const
 		std::string* sout;
 		if (is_a<print_latex>(c)) {
 			sout = py_latex_function(serial, args);
-		} else if (is_a<print_dflt>(c)) {
+		} else 
 			sout = py_print_function(serial, args);
-		} else {
-			throw(std::runtime_error("print context must be either latex or dflt"));
-		}
+
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::print(): python print function raised exception"));
 		}
@@ -1378,12 +1376,12 @@ ex function::eval(int level) const
 	}
 	current_serial = serial;
 
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.eval_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.eval_f, 
-				args, NULL);
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+				"_eval_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::eval(): python function raised exception"));
@@ -1481,14 +1479,15 @@ ex function::evalf(int level, PyObject* parent) const
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.evalf_f)) {
+	if (opt.python_func) { 
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(eseq);
 		// create a dictionary {'prec':prec} for the precision argument
 		PyObject* kwds = Py_BuildValue("{s:O}","parent",parent);
 		// call opt.evalf_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.evalf_f, 
-				args, kwds);
+		PyObject* pyresult = PyEval_CallObjectWithKeywords(
+			PyObject_GetAttrString((PyObject*)opt.evalf_f,
+				"_evalf_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
 		if (!pyresult) { 
@@ -1577,7 +1576,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	ex res;
 	current_serial = serial;
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.series_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'order': order, 'options':options}
@@ -1587,8 +1586,9 @@ ex function::series(const relational & r, int order, unsigned options) const
 		// add the point of expansion as a keyword argument
 		PyDict_SetItemString(kwds, "at", ex_to_pyExpression(r.rhs()));
 		// call opt.series_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.series_f, 
-				args, kwds);
+		PyObject* pyresult = PyEval_CallObjectWithKeywords(
+			PyObject_GetAttrString((PyObject*)opt.series_f,
+				"_series_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
 		if (!pyresult) { 
@@ -1726,12 +1726,13 @@ ex function::conjugate() const
 		return conjugate_function(*this).hold();
 	}
 
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.conjugate_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.conjugate_f, 
-				args, NULL);
+		PyObject* pyresult = PyObject_CallMethod(
+				(PyObject*)opt.conjugate_f,
+				"_conjugate_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::conjugate(): python function raised exception"));
@@ -1793,12 +1794,12 @@ ex function::real_part() const
 	if (opt.real_part_f==0)
 		return basic::real_part();
 
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.real_part_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.real_part_f, 
-				args, NULL);
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+				"_real_part_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::real_part(): python function raised exception"));
@@ -1859,12 +1860,12 @@ ex function::imag_part() const
 	if (opt.imag_part_f==0)
 		return basic::imag_part();
 
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.imag_part_f)) {
+	if (opt.python_func ) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.imag_part_f, 
-				args, NULL);
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+				"_imag_part_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::imag_part(): python function raised exception"));
@@ -1938,8 +1939,7 @@ ex function::derivative(const symbol & s) const
 		if (opt.derivative_f == NULL)
 			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
 
-		if (opt.python_func && 
-				PyCallable_Check((PyObject*)opt.derivative_f)) {
+		if (opt.python_func) {
 			// convert seq to a PyTuple of Expressions
 			PyObject* args = exvector_to_PyTuple(seq);
 			// create a dictionary {'diff_param': s}
@@ -1947,9 +1947,11 @@ ex function::derivative(const symbol & s) const
 			PyObject* kwds = Py_BuildValue("{s:O}","diff_param",
 					symb);
 			// call opt.derivative_f with this list
-			PyObject* pyresult = PyObject_Call(
-					(PyObject*)opt.derivative_f, 
-					args, kwds);
+			PyObject* pyresult = PyEval_CallObjectWithKeywords(
+				PyObject_GetAttrString(
+					(PyObject*)opt.derivative_f,
+					"_derivative_"), args, kwds);
+			Py_DECREF(symb);
 			Py_DECREF(args);
 			Py_DECREF(kwds);
 			if (!pyresult) { 
@@ -2093,14 +2095,15 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.derivative_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'diff_param': diff_param}
 		PyObject* kwds = Py_BuildValue("{s:I}","diff_param",diff_param);
 		// call opt.derivative_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.derivative_f, 
-				args, kwds);
+		PyObject* pyresult = PyEval_CallObjectWithKeywords(
+			PyObject_GetAttrString((PyObject*)opt.derivative_f,
+				"_derivative_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
 		if (!pyresult) { 
@@ -2166,15 +2169,16 @@ ex function::power(const ex & power_param) const // power of function
 	                                               status_flags::evaluated);
 
 	current_serial = serial;
-	if (opt.python_func && PyCallable_Check((PyObject*)opt.power_f)) {
+	if (opt.python_func) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'power_param': power_param}
 		PyObject* kwds = PyDict_New();
 		PyDict_SetItemString(kwds, "power_param", ex_to_pyExpression(power_param));
 		// call opt.power_f with this list
-		PyObject* pyresult = PyObject_Call((PyObject*)opt.power_f, 
-				args, kwds);
+		PyObject* pyresult = PyEval_CallObjectWithKeywords(
+			PyObject_GetAttrString((PyObject*)opt.power_f,
+				"_power_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
 		if (!pyresult) { 

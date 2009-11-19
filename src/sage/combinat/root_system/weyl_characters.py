@@ -114,8 +114,7 @@ class WeylCharacter(AlgebraElement):
 
             sage: R = WeylCharacterRing("B3", prefix = "R")
             sage: r =  R(1,1,0)
-            sage: r == loads(dumps(r))
-            True
+            sage: TestSuite(r).run()
         """
         AlgebraElement.__init__(self, A)
         self._hdict = hdict
@@ -621,8 +620,7 @@ class WeylCharacterRing_class(Algebra):
         EXAMPLES::
 
             sage: R = WeylCharacterRing(['A',3])
-            sage: R == loads(dumps(R))
-            True
+            sage: TestSuite(R).run()
         """
         sage.structure.parent_base.ParentWithBase.__init__(self, base_ring)
 
@@ -1285,7 +1283,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: D4 = WeylCharacterRing("D4")
         sage: D5 = WeylCharacterRing("D5")
         sage: G2 = WeylCharacterRing("G2")
-        sage: F4 = WeylCharacterRing("F4",style="coroots") # long time
+        sage: F4 = WeylCharacterRing("F4",style="coroots")
         sage: E6=WeylCharacterRing("E6",style="coroots")
         sage: D5=WeylCharacterRing("D5",style="coroots")
         sage: [B3(w).branch(A2,rule="levi") for w in B3.fundamental_weights()]
@@ -1328,35 +1326,35 @@ def branch_weyl_character(chi, R, S, rule="default"):
          D4(1/2,1/2,1/2,-1/2) + D4(1/2,1/2,1/2,1/2)]
         sage: G2(1,0,-1).branch(A1,rule="levi")
          A1(0,-1) + A1(1,-1) + A1(1,0)
-        sage: E6=WeylCharacterRing("E6",style="coroots") # long time
-        sage: D5=WeylCharacterRing("D5",style="coroots") # long time
-        sage: fw = E6.fundamental_weights() # long time
-        sage: [E6(fw[i]).branch(D5,rule="levi") for i in [1,2,6]] # long time
+        sage: E6=WeylCharacterRing("E6",style="coroots")
+        sage: D5=WeylCharacterRing("D5",style="coroots")
+        sage: fw = E6.fundamental_weights()
+        sage: [E6(fw[i]).branch(D5,rule="levi") for i in [1,2,6]] # long time (3s)
         [D5(0,0,0,0,0) + D5(0,0,0,0,1) + D5(1,0,0,0,0),
          D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(0,0,0,0,1) + D5(0,1,0,0,0),
          D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(1,0,0,0,0)]
-        sage: E7=WeylCharacterRing("E7",style="coroots") # long time
-        sage: D6=WeylCharacterRing("D6",style="coroots") # long time
-        sage: fw = E7.fundamental_weights() # long time
-        sage: [E7(fw[i]).branch(D6,rule="levi") for i in [1,2,7]] # long time
+        sage: E7=WeylCharacterRing("E7",style="coroots")
+        sage: D6=WeylCharacterRing("D6",style="coroots")
+        sage: fw = E7.fundamental_weights()
+        sage: [E7(fw[i]).branch(D6,rule="levi") for i in [1,2,7]] # long time (26s)
         [3*D6(0,0,0,0,0,0) + 2*D6(0,0,0,0,1,0) + D6(0,1,0,0,0,0),
          3*D6(0,0,0,0,0,1) + 2*D6(1,0,0,0,0,0) + 2*D6(0,0,1,0,0,0) + D6(1,0,0,0,1,0),
          D6(0,0,0,0,0,1) + 2*D6(1,0,0,0,0,0)]
-        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True) # long time
-        sage: E8=WeylCharacterRing("E8",style="coroots",cache=True) # long time
-        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True) # long time
-        sage: E8(1,0,0,0,0,0,0,0).branch(D7,rule="levi") # long time
+        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True)
+        sage: E8=WeylCharacterRing("E8",style="coroots",cache=True)
+        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True)
+        sage: E8(1,0,0,0,0,0,0,0).branch(D7,rule="levi") # not tested (very long time) (160s)
          3*D7(0,0,0,0,0,0,0) + 2*D7(0,0,0,0,0,1,0) + 2*D7(0,0,0,0,0,0,1) + 2*D7(1,0,0,0,0,0,0)
          + D7(0,1,0,0,0,0,0) + 2*D7(0,0,1,0,0,0,0) + D7(0,0,0,1,0,0,0) + D7(1,0,0,0,0,1,0) + D7(1,0,0,0,0,0,1) + D7(2,0,0,0,0,0,0)
-        sage: E8(0,0,0,0,0,0,0,1).branch(D7,rule="levi") # long time
+        sage: E8(0,0,0,0,0,0,0,1).branch(D7,rule="levi") # long time (3s)
          D7(0,0,0,0,0,0,0) + D7(0,0,0,0,0,1,0) + D7(0,0,0,0,0,0,1) + 2*D7(1,0,0,0,0,0,0) + D7(0,1,0,0,0,0,0)
-        sage: [F4(fw).branch(B3,rule="levi") for fw in F4.fundamental_weights()] # long time
+        sage: [F4(fw).branch(B3,rule="levi") for fw in F4.fundamental_weights()] # long time (36s)
          [B3(0,0,0) + 2*B3(1/2,1/2,1/2) + 2*B3(1,0,0) + B3(1,1,0),
          B3(0,0,0) + 6*B3(1/2,1/2,1/2) + 5*B3(1,0,0) + 7*B3(1,1,0) + 3*B3(1,1,1)
          + 6*B3(3/2,1/2,1/2) + 2*B3(3/2,3/2,1/2) + B3(2,0,0) + 2*B3(2,1,0) + B3(2,1,1),
          3*B3(0,0,0) + 6*B3(1/2,1/2,1/2) + 4*B3(1,0,0) + 3*B3(1,1,0) + B3(1,1,1) + 2*B3(3/2,1/2,1/2),
          3*B3(0,0,0) + 2*B3(1/2,1/2,1/2) + B3(1,0,0)]
-        sage: [F4(fw).branch(C3,rule="levi") for fw in F4.fundamental_weights()] # long time
+        sage: [F4(fw).branch(C3,rule="levi") for fw in F4.fundamental_weights()] # long time (6s)
          [3*C3(0,0,0) + 2*C3(1,1,1) + C3(2,0,0),
          3*C3(0,0,0) + 6*C3(1,1,1) + 4*C3(2,0,0) + 2*C3(2,1,0) + 3*C3(2,2,0) + C3(2,2,2) + C3(3,1,0) + 2*C3(3,1,1),
          2*C3(1,0,0) + 3*C3(1,1,0) + C3(2,0,0) + 2*C3(2,1,0) + C3(2,1,1),
@@ -1397,7 +1395,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         [B3(0,0,0) + B3(1,0,0), B3(1,0,0) + B3(1,1,0), B3(1/2,1/2,1/2), B3(1/2,1/2,1/2)]
         sage: [D4(x).branch(G2,rule="symmetric") for x in D4.fundamental_weights()]
         [G2(0,0,0) + G2(1,0,-1), 2*G2(1,0,-1) + G2(2,-1,-1), G2(0,0,0) + G2(1,0,-1), G2(0,0,0) + G2(1,0,-1)]
-        sage: [E6(fw).branch(F4,rule="symmetric") for fw in E6.fundamental_weights()] # long time
+        sage: [E6(fw).branch(F4,rule="symmetric") for fw in E6.fundamental_weights()] # long time (36s)
         [F4(0,0,0,0) + F4(0,0,0,1),
          F4(0,0,0,1) + F4(1,0,0,0),
          F4(0,0,0,1) + F4(1,0,0,0) + F4(0,0,1,0),
@@ -1416,13 +1414,13 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: [G2(w).branch(A2, rule="extended") for w in G2.fundamental_weights()]
         [A2(0,0,0) + A2(1/3,1/3,-2/3) + A2(2/3,-1/3,-1/3),
          A2(1/3,1/3,-2/3) + A2(2/3,-1/3,-1/3) + A2(1,0,-1)]
-        sage: [F4(fw).branch(B4,rule="extended") for fw in F4.fundamental_weights()] # long time
+        sage: [F4(fw).branch(B4,rule="extended") for fw in F4.fundamental_weights()] # long time (9s)
         [B4(1/2,1/2,1/2,1/2) + B4(1,1,0,0),
          B4(1,1,0,0) + B4(1,1,1,0) + B4(3/2,1/2,1/2,1/2) + B4(3/2,3/2,1/2,1/2) + B4(2,1,1,0),
          B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0) + B4(1,1,0,0) + B4(1,1,1,0) + B4(3/2,1/2,1/2,1/2),
          B4(0,0,0,0) + B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0)]
 
-        sage: E6 = WeylCharacterRing("E6", style="coroots") # long time
+        sage: E6 = WeylCharacterRing("E6", style="coroots")
         sage: A2xA2xA2=WeylCharacterRing("A2xA2xA2",style="coroots")
         sage: A5xA1=WeylCharacterRing("A5xA1",style="coroots")
         sage: G2 = WeylCharacterRing("G2", style="coroots")
@@ -1432,25 +1430,25 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A2xA2 = WeylCharacterRing("A2xA2", style="coroots")
         sage: A1xC3 = WeylCharacterRing("A1xC3",style="coroots")
 
-        sage: E6(1,0,0,0,0,0).branch(A5xA1,rule="extended") # long time
+        sage: E6(1,0,0,0,0,0).branch(A5xA1,rule="extended") # (0.7s)
          A5xA1(0,0,0,1,0,0) + A5xA1(1,0,0,0,0,1)
-        sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # long time
+        sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # (0.7s)
          A2xA2xA2(0,0,0,1,1,0) + A2xA2xA2(0,1,1,0,0,0) + A2xA2xA2(1,0,0,0,0,1)
-        sage: E7=WeylCharacterRing("E7",style="coroots") # long time
-        sage: A7=WeylCharacterRing("A7",style="coroots") # long time
-        sage: E7(1,0,0,0,0,0,0).branch(A7,rule="extended") # long time
+        sage: E7=WeylCharacterRing("E7",style="coroots")
+        sage: A7=WeylCharacterRing("A7",style="coroots")
+        sage: E7(1,0,0,0,0,0,0).branch(A7,rule="extended") # long time (5s)
          A7(0,0,0,1,0,0,0) + A7(1,0,0,0,0,0,1)
-        sage: E8=WeylCharacterRing("E8",cache=true,style="coroots") # long time
-        sage: D8=WeylCharacterRing("D8",cache=true,style="coroots") # long time
-        sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time
+        sage: E8=WeylCharacterRing("E8",cache=true,style="coroots")
+        sage: D8=WeylCharacterRing("D8",cache=true,style="coroots")
+        sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time (19s)
          D8(0,0,0,0,0,0,1,0) + D8(0,1,0,0,0,0,0,0)
-        sage: F4(1,0,0,0).branch(A1xC3,rule="extended") # long time
+        sage: F4(1,0,0,0).branch(A1xC3,rule="extended") # (0.7s)
          A1xC3(0,2,0,0) + A1xC3(1,0,0,1) + A1xC3(2,0,0,0)
         sage: G2(0,1).branch(A1xA1, rule="extended")
          A1xA1(0,2) + A1xA1(2,0) + A1xA1(3,1)
-        sage: F4(0,0,0,1).branch(A2xA2, rule="extended") # long time
+        sage: F4(0,0,0,1).branch(A2xA2, rule="extended") # (0.4s)
          A2xA2(0,0,1,1) + A2xA2(0,1,0,1) + A2xA2(1,0,1,0)
-        sage: F4(0,0,0,1).branch(A3xA1,rule="extended") # long time
+        sage: F4(0,0,0,1).branch(A3xA1,rule="extended") # (0.34s)
          A3xA1(0,0,0,0) + A3xA1(0,0,0,2) + A3xA1(0,0,1,1) + A3xA1(0,1,0,0) + A3xA1(1,0,0,1)
         sage: D4=WeylCharacterRing("D4",style="coroots")
         sage: D2xD2=WeylCharacterRing("D2xD2",style="coroots") # We get D4 => A1xA1xA1xA1 by remembering that A1xA1 = D2.
@@ -2216,8 +2214,7 @@ class WeightRingElement(AlgebraElement):
 
             sage: A2 = WeylCharacterRing(['A',2])
             sage: a2 = WeightRing(A2)
-            sage: a2 == loads(dumps(a2))
-            True
+            sage: TestSuite(a2).run()
         """
         AlgebraElement.__init__(self, A)
         self._mdict = mdict
@@ -2505,8 +2502,7 @@ class WeightRing(Algebra):
 
             sage: R = WeylCharacterRing(['G',2], prefix = "R", base_ring = QQ)
             sage: S = WeightRing(R, prefix = "S")
-            sage: S == loads(dumps(S))
-            True
+            sage: TestSuite(S).run()
         """
         self._parent = A
         self._cartan_type = self._parent._cartan_type

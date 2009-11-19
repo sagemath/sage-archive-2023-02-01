@@ -1030,7 +1030,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     -  ``var`` - polynomial variable name (default 'x')
 
     -  ``algorithm`` - 'algebraic' or 'numerical' (default
-       both, algebraic first)
+       both, but with numerical first)
 
     -  ``bits`` - the number of bits to use in numerical
        approx
@@ -1058,8 +1058,8 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     correct, a ``NotImplementedError`` will be raised.
 
     ALGORITHM: Two distinct algorithms are used, depending on the
-    algorithm parameter. By default, the algebraic algorithm is
-    attempted first, then the numerical one.
+    algorithm parameter. By default, the numerical algorithm is
+    attempted first, then the algebraic one.
 
     Algebraic: Attempt to evaluate this expression in QQbar, using
     cyclotomic fields to resolve exponential and trig functions at
@@ -1092,6 +1092,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: minpoly(sqrt(2)-3^(1/3))
         x^6 - 6*x^4 + 6*x^3 + 12*x^2 + 36*x + 1
 
+
     Works with trig and exponential functions too.
 
     ::
@@ -1113,6 +1114,15 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: K.<a,b> = NumberField([x^2-2, x^2-3])
         sage: (a+b+a*b).absolute_minpoly()
         x^4 - 22*x^2 - 48*x - 23
+
+    The minpoly function is used implicitly when creating
+    number fields::
+
+        sage: x = var('x')
+        sage: eqn =  x^3 + sqrt(2)*x + 5 == 0
+        sage: a = solve(eqn, x)[0].rhs()
+        sage: QQ[a]
+        Number Field in a with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25
 
     Here we solve a cubic and then recover it from its complicated
     radical expansion.
@@ -1176,18 +1186,16 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         ...
         NotImplementedError: Could not prove minimal polynomial x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024 (epsilon ...)
 
-    Sometimes it fails.
+    Sometimes it fails, as it must given that some numbers aren't algebraic::
 
-    ::
-
-        sage: sin(1).minpoly()
+        sage: sin(1).minpoly(algorithm='numerical')
         Traceback (most recent call last):
         ...
         ValueError: Could not find minimal polynomial (1000 bits, degree 24).
 
     .. note::
 
-       Failure to produce a minimal polynomial does not
+       Of course, failure to produce a minimal polynomial does not
        necessarily indicate that this number is transcendental.
 
     AUTHORS:
@@ -1196,14 +1204,6 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
     - Robert Bradshaw (2008-10): algebraic algorithm
     """
-    if algorithm is None or algorithm == 'algebraic':
-        from sage.rings.all import QQbar
-        try:
-            return QQ[var](QQbar(ex).minpoly())
-        except (TypeError, ValueError):
-            if algorithm == 'algebraic':
-                raise
-
     if algorithm is None or algorithm.startswith('numeric'):
         bits_list = [bits] if bits else [100,200,500,1000]
         degree_list = [degree] if degree else [2,4,8,12,24]
@@ -1238,10 +1238,15 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                             # Otherwise fall back to numerical guess
                             elif epsilon and error < epsilon:
                                 return g
-                            else:
+                            elif algorithm is not None:
                                 raise NotImplementedError, "Could not prove minimal polynomial %s (epsilon %s)" % (g, RR(error).str(no_sci=False))
 
-        raise ValueError, "Could not find minimal polynomial (%s bits, degree %s)." % (bits, degree)
+        if algorithm is not None:
+            raise ValueError, "Could not find minimal polynomial (%s bits, degree %s)." % (bits, degree)
+
+    if algorithm is None or algorithm == 'algebraic':
+        from sage.rings.all import QQbar
+        return QQ[var](QQbar(ex).minpoly())
 
     raise ValueError, "Unknown algorithm: %s" % algorithm
 

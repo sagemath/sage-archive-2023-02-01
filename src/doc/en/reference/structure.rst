@@ -16,6 +16,7 @@ Basic Structures
    sage/structure/sequence
    sage/structure/element_wrapper
 
+   sage/sets/finite_enumerated_set
    sage/sets/set
    sage/sets/primes
    sage/sets/family

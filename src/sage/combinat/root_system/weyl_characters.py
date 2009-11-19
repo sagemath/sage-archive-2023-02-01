@@ -212,7 +212,7 @@ class WeylCharacter(AlgebraElement):
 
     def cartan_type(self):
         """
-        Returns the Cartan Type.
+        Returns the Cartan type.
 
         EXAMPLES::
 
@@ -316,11 +316,10 @@ class WeylCharacter(AlgebraElement):
 
         INPUT:
 
-
-        -  ``S`` - a Weyl character ring for a Lie subgroup or
+         - ``S`` - a Weyl character ring for a Lie subgroup or
            subalgebra
 
-        -  ``rule`` - a branching rule.
+         -  ``rule`` - a branching rule.
 
 
         See branch_weyl_character? for more information about branching
@@ -358,9 +357,9 @@ class WeylCharacter(AlgebraElement):
 
             sage: B3 = WeylCharacterRing(['B',3])
             sage: [B3(x).is_irreducible() for x in B3.fundamental_weights()]
-             [True, True, True]
+            [True, True, True]
             sage: sum(B3(x) for x in B3.fundamental_weights()).is_irreducible()
-             False
+            False
         """
         h = self.hlist()
         return len(h) is 1 and h[0][1] is 1
@@ -373,9 +372,8 @@ class WeylCharacter(AlgebraElement):
 
             sage: A2 = WeylCharacterRing("A2",style="coroots")
             sage: A2(1,0).symmetric_square()
-             A2(2,0)
+            A2(2,0)
         """
-
         cmlist = self.mlist()
         mdict = {}
         for j in range(len(cmlist)):
@@ -400,7 +398,7 @@ class WeylCharacter(AlgebraElement):
 
             sage: A2 = WeylCharacterRing("A2",style="coroots")
             sage: A2(1,0).exterior_square()
-             A2(0,1)
+            A2(0,1)
         """
         cmlist = self.mlist()
         mdict = {}
@@ -422,9 +420,11 @@ class WeylCharacter(AlgebraElement):
         """
         Returns:
 
-        1 if the representation is real (orthogonal)
-        -1 if the representation is quaternionic (symplectic)
-        0 if the representation is complex (not self dual)
+         - `1` if the representation is real (orthogonal)
+
+         - `-1` if the representation is quaternionic (symplectic)
+
+         - `0` if the representation is complex (not self dual)
 
         The Frobenius-Schur indicator of a character 'chi'
         of a compact group G is the Haar integral over the
@@ -484,20 +484,19 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False, style="lattice
 
     INPUT:
 
-    - ``ct`` - The Cartan Type
+     - ``ct`` -- The Cartan Type
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring`` -  (default: `\ZZ`)
+     - ``base_ring`` --  (default: `\ZZ`)
 
-    - ``prefix`` (default an automatically generated prefix
-      based on Cartan type)
+     - ``prefix`` -- (default: an automatically generated prefix based on Cartan type)
 
-    - ``cache`` -  (default False) setting cache = True is a substantial
-      speedup at the expense of some memory.
+     - ``cache`` --  (default False) setting cache = True is a substantial
+       speedup at the expense of some memory.
 
-    - ``style`` - (default "lattice") can be set style = "coroots"
-    to obtain an alternative representation of the elements.
+     - ``style`` -- (default "lattice") can be set style = "coroots"
+       to obtain an alternative representation of the elements.
 
     If no prefix specified, one is generated based on the Cartan type.
     It is good to name the ring after the prefix, since then it can
@@ -562,7 +561,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False, style="lattice
     ring represent characters of SL(r+1,CC), while in the default
     style, they represent characters of GL(r+1,CC).
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: A2 = WeylCharacterRing("A2")
         sage: L = A2.space()
@@ -815,7 +814,7 @@ class WeylCharacterRing_class(Algebra):
 
     def cartan_type(self):
         """
-        Returns the Cartan Type.
+        Returns the Cartan type.
 
         EXAMPLES::
 
@@ -2138,23 +2137,23 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
     through SO(8). The branching rule in question will
     describe how representations of SO(8) composed with
     this homomorphism decompose into irreducible characters
-    of SL(3).
+    of SL(3)::
 
         sage: A2 = WeylCharacterRing("A2")
         sage: A2 = WeylCharacterRing("A2", style="coroots")
         sage: ad = A2(1,1)
         sage: ad.degree()
-         8
+        8
         sage: ad.frobenius_schur_indicator()
-         1
+        1
 
-    This confirms that ad has degree 8 and is orthogonal,
-    hence factors through SO(8)=D4.
+    This confirms that `ad` has degree 8 and is orthogonal,
+    hence factors through SO(8)=D4::
 
         sage: br = branching_rule_from_plethysm(ad,"D4")
         sage: D4 = WeylCharacterRing("D4")
         sage: [D4(f).branch(A2,rule = br) for f in D4.fundamental_weights()]
-         [A2(1,1), A2(1,1) + A2(0,3) + A2(3,0), A2(1,1), A2(1,1)]
+        [A2(1,1), A2(1,1) + A2(0,3) + A2(3,0), A2(1,1), A2(1,1)]
     """
     ct = CartanType(cartan_type)
     if ct[0] not in ["A","B","C","D"]:
@@ -2376,7 +2375,7 @@ class WeightRingElement(AlgebraElement):
 
     def cartan_type(self):
         """
-        Returns the Cartan Type.
+        Returns the Cartan type.
 
         EXAMPLES::
 
@@ -2619,7 +2618,7 @@ class WeightRing(Algebra):
 
     def cartan_type(self):
         """
-        Returns the Cartan Type.
+        Returns the Cartan type.
 
         EXAMPLES::
 

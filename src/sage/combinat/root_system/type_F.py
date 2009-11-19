@@ -1,13 +1,24 @@
-from ambient_space import AmbientSpace
+"""
+Root system data for type F
+"""
+#*****************************************************************************
+#       Copyright (C) 2008-2009 Daniel Bump
+#       Copyright (C) 2008-2009 Justin Walker
+#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+import ambient_space
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
 # TODO: double check that this can't be defined over ZZ
 
-class ambient_space(AmbientSpace):
+class AmbientSpace(ambient_space.AmbientSpace):
     """
-    The lattice behind F4.  The computations are based on Bourbaki, Groupes et Algebres de Lie,
-    Ch. 4,5,6 (planche VIII).
+    The lattice behind F4.  The computations are based on Bourbaki,
+    Groupes et Algebres de Lie, Ch. 4,5,6 (planche VIII).
     """
     def __init__(self, root_system, base_ring):
         """
@@ -15,12 +26,16 @@ class ambient_space(AmbientSpace):
         Specify the Base, i.e., the simple roots w.r. to the canonical
         basis for R^4.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
+
+        TESTS::
+
             sage: e == loads(dumps(e))
             True
         """
-        AmbientSpace.__init__(self, root_system, base_ring)
+        ambient_space.AmbientSpace.__init__(self, root_system, base_ring)
         v = ZZ(1)/ZZ(2)
         self.Base = [self.root(1,2,p2=1),
                      self.root(2,3,p2=1),
@@ -30,7 +45,8 @@ class ambient_space(AmbientSpace):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
             sage: e.dimension()
             4
@@ -45,25 +61,27 @@ class ambient_space(AmbientSpace):
         Sadly, the base elements are indexed zero-based.
         We assume that if one of the indices is not given, the rest are not as well.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
             sage: [ e.root(i,j,p2=1) for i in xrange(e.n) for j in xrange(i+1,e.n) ]
             [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
         if i == j or j == None:
-            return (-1)**p1*self._term(i)
+            return (-1)**p1*self.term(i)
         if k == None:
-            return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)
+            return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)
         if l == None:
-            return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)+(-1)**p3*self._term(k)
-        return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)+(-1)**p3*self._term(k)+(-1)**p4*self._term(l)
+            return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)+(-1)**p3*self.term(k)
+        return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)+(-1)**p3*self.term(k)+(-1)**p4*self.term(l)
 
     def simple_root(self, i):
         """
         There are computed as what Bourbaki calls the Base:
             a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
             sage: e.simple_roots()
             Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 1), 4: (1/2, -1/2, -1/2, -1/2)}
@@ -74,7 +92,8 @@ class ambient_space(AmbientSpace):
         """
         Returns the negative roots in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
             sage: e.negative_roots()
             [(-1, 0, 0, 0),
@@ -109,7 +128,8 @@ class ambient_space(AmbientSpace):
         These are the roots positive w.r. to lexicographic ordering of the
         basis elements (e1<...<e4).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['F',4]).ambient_space()
             sage: e.positive_roots()
             [(1, 0, 0, 0),
@@ -141,7 +161,7 @@ class ambient_space(AmbientSpace):
         """
         v = ZZ(1)/ZZ(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ([ self._term(i) for i in xrange(self.n) ] +
+            self.PosRoots = ([ self.term(i) for i in xrange(self.n) ] +
                             [ self.root(i,j,p2=0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
                             [ self.root(i,j,p2=1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
                             [ v*self.root(0,1,2,3,0,p2,p3,p4) for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] ])
@@ -149,56 +169,88 @@ class ambient_space(AmbientSpace):
 
     def fundamental_weights(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e =  RootSystem(['F',4]).ambient_space()
             sage: e.fundamental_weights()
             Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
         """
         v = ZZ(1)/ZZ(2)
-        return Family({ 1: self._term(0)+self._term(1),
-                        2: 2*self._term(0)+self._term(1)+self._term(2),
-                        3: v*(3*self._term(0)+self._term(1)+self._term(2)+self._term(3)),
-                        4: self._term(0)})
+        return Family({ 1: self.term(0)+self.term(1),
+                        2: 2*self.term(0)+self.term(1)+self.term(2),
+                        3: v*(3*self.term(0)+self.term(1)+self.term(2)+self.term(3)),
+                        4: self.term(0)})
 
 
-def dynkin_diagram(t):
-    """
-    Returns a Dynkin diagram for type F.
 
-    EXAMPLES:
-        sage: from sage.combinat.root_system.type_F import dynkin_diagram
-        sage: ct = CartanType(['F',4])
-        sage: f = dynkin_diagram(ct);f
-        O---O=>=O---O
-        1   2   3   4
-        F4
-        sage: e = f.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic
+class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):
+    def __init__(self):
+        """
+        EXAMPLES::
 
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter='F', length=2, n=4)
-    g = DynkinDiagram_class(t)
-    for i in range(1, 4):
-        g.add_edge(i, i+1)
-    g.set_edge_label(2,3,2)
-    return g
+            sage: ct = CartanType(['F',4])
+            sage: ct
+            ['F', 4]
+            sage: ct._repr_(compact = True)
+            'F4'
 
-def affine_dynkin_diagram(t):
-    """
-    Returns the extended Dynkin diagram for affine type F.
+            sage: ct.is_irreducible()
+            True
+            sage: ct.is_finite()
+            True
+            sage: ct.is_crystalographic()
+            True
+            sage: ct.is_simply_laced()
+            False
+            sage: ct.dual()
+            ['F', 4]^*
+            sage: ct.affine()
+            ['F', 4, 1]
 
-    EXAMPLES:
-        sage: f = DynkinDiagram(['F', 4, 1])
-        sage: edges = f.edges(); edges.sort(); edges
-        [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+        TESTS::
 
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter="F", length=3, affine=1)
-    g = DynkinDiagram_class(t)
-    for i in range(1, 4):
-        g.add_edge(i, i+1)
-    g.set_edge_label(2,3,2)
-    g.add_edge(0, 1)
-    return g
+            sage: ct == loads(dumps(ct))
+            True
+        """
+        CartanType_standard_finite.__init__(self, "F", 4)
+
+    AmbientSpace = AmbientSpace
+
+    def dynkin_diagram(self):
+        """
+        Returns a Dynkin diagram for type F.
+
+        EXAMPLES::
+
+            sage: f = DynkinDiagram(['F',4])
+            sage: f
+            O---O=>=O---O
+            1   2   3   4
+            F4
+            sage: sorted(f.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+
+        """
+        from dynkin_diagram import DynkinDiagram_class
+        g = DynkinDiagram_class(self)
+        for i in range(1, 4):
+            g.add_edge(i, i+1)
+        g.set_edge_label(2,3,2)
+        return g
+
+    def ascii_art(self, label = lambda x: x):
+        """
+        Returns a ascii art representation of the extended Dynkin diagram
+
+        EXAMPLES::
+
+            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x+2)
+            O---O=>=O---O
+            3   4   5   6
+        """
+        return "O---O=>=O---O\n%s   %s   %s   %s"%tuple(label(i) for i in (1,2,3,4))
+
+# For unpickling backward compatibility (Sage <= 4.1)
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.root_system.type_F', 'ambient_space',  AmbientSpace)

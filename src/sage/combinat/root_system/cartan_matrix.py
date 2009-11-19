@@ -87,6 +87,9 @@ def cartan_matrix(t):
         sage: cartan_matrix(['G', 2])
         [ 2 -3]
         [-1  2]
+	sage: cartan_matrix(['A',1,1])
+	[ 2 -2]
+	[-2  2]
         sage: cartan_matrix(['A', 3, 1])
         [ 2 -1  0 -1]
         [-1  2 -1  0]

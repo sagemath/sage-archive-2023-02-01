@@ -1,8 +1,19 @@
-from ambient_space import AmbientSpace
+"""
+Root system data for type E
+"""
+#*****************************************************************************
+#       Copyright (C) 2008-2009 Daniel Bump
+#       Copyright (C) 2008-2009 Justin Walker
+#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+import ambient_space
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
-class ambient_space(AmbientSpace):
+class AmbientSpace(ambient_space.AmbientSpace):
     """
     The lattice behind E6, E7, or E8.  The computations are based on Bourbaki,
     Groupes et Algebres de Lie, Ch. 4,5,6 (planche V-VII).
@@ -13,7 +24,8 @@ class ambient_space(AmbientSpace):
         Specify the Base, i.e., the simple roots w.r. to the canonical
         basis for R^8.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: e == loads(dumps(e))
             True
@@ -28,7 +40,7 @@ class ambient_space(AmbientSpace):
            """
         v = ZZ(1)/ZZ(2)
         self.rank = root_system.cartan_type().rank()
-        AmbientSpace.__init__(self, root_system, baseRing)
+        ambient_space.AmbientSpace.__init__(self, root_system, baseRing)
         if self.rank == 6:
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
@@ -58,7 +70,8 @@ class ambient_space(AmbientSpace):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: e.dimension()
             8
@@ -75,7 +88,8 @@ class ambient_space(AmbientSpace):
         We assume that if one of the indices is not given, the rest are not as well.
         This should work for E6, E7, E8.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: [ e.root(i, j, p3=1) for i in xrange(e.n) for j in xrange(i+1, e.n) ]
             [(1, 1, 0, 0, 0, 0, 0, 0),
@@ -108,27 +122,28 @@ class ambient_space(AmbientSpace):
              (0, 0, 0, 0, 0, 0, 1, 1)]
         """
         if i1 == i2 or i2 == None:
-            return (-1)**p1*self._term(i1)
+            return (-1)**p1*self.term(i1)
         if i3 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)
         if i4 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)
         if i5 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)
         if i6 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)
         if i7 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)
         if i8 == None:
-            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)+(-1)**p7*self._term(i7)
-        return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)+(-1)**p7*self._term(i7)+(-1)**p8*self._term(i8)
+            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)+(-1)**p7*self.term(i7)
+        return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)+(-1)**p7*self.term(i7)+(-1)**p8*self.term(i8)
 
     def simple_root(self, i):
         """
         There are computed as what Bourbaki calls the Base:
             a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LE6 = RootSystem(['E',6]).ambient_space()
             sage: LE6.simple_roots()
             Finite family {1: (1/2, -1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), 2: (1, 1, 0, 0, 0, 0, 0, 0), 3: (-1, 1, 0, 0, 0, 0, 0, 0), 4: (0, -1, 1, 0, 0, 0, 0, 0), 5: (0, 0, -1, 1, 0, 0, 0, 0), 6: (0, 0, 0, -1, 1, 0, 0, 0)}
@@ -140,7 +155,8 @@ class ambient_space(AmbientSpace):
         """
         The negative negative roots.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: e.negative_roots()
             [(-1, -1, 0, 0, 0, 0, 0, 0),
@@ -187,7 +203,8 @@ class ambient_space(AmbientSpace):
         These are the roots positive w.r. to lexicographic ordering of the
         basis elements (e1<...<e4).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: e.positive_roots()
             [(1, 1, 0, 0, 0, 0, 0, 0),
@@ -379,7 +396,8 @@ class ambient_space(AmbientSpace):
 
     def fundamental_weights(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['E',6]).ambient_space()
             sage: e.fundamental_weights()
             Finite family {1: (0, 0, 0, 0, 0, -2/3, -2/3, 2/3), 2: (1/2, 1/2, 1/2, 1/2, 1/2, -1/2, -1/2, 1/2), 3: (-1/2, 1/2, 1/2, 1/2, 1/2, -5/6, -5/6, 5/6), 4: (0, 0, 1, 1, 1, -1, -1, 1), 5: (0, 0, 0, 1, 1, -2/3, -2/3, 2/3), 6: (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)}
@@ -412,71 +430,129 @@ class ambient_space(AmbientSpace):
                             8: self.root(6,7)})
 
 
-def dynkin_diagram(t):
-    """
-    Returns a Dynkin diagram for type E.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.type_E import dynkin_diagram
-        sage: ct = CartanType(['E',6])
-        sage: e = dynkin_diagram(ct);e
-                O 2
-                |
-                |
-        O---O---O---O---O
-        1   3   4   5   6
-        E6
-        sage: edges = e.edges(); edges.sort(); edges
-        [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1)]
-
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter="E", length=2, n_ge=3)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_edge(1,3)
-    g.add_edge(2,4)
-    for i in range(3,n):
-        g.add_edge(i, i+1)
-    return g
-
-def affine_dynkin_diagram(t):
-    """
-    Returns the extended Dynkin diagram for affine type E.
-
-    EXAMPLES:
-        sage: e = DynkinDiagram(['E', 6, 1])
-        sage: edges = e.edges(); edges.sort(); edges
-        [(0, 2, 1),
-         (1, 3, 1),
-         (2, 0, 1),
-         (2, 4, 1),
-         (3, 1, 1),
-         (3, 4, 1),
-         (4, 2, 1),
-         (4, 3, 1),
-         (4, 5, 1),
-         (5, 4, 1),
-         (5, 6, 1),
-         (6, 5, 1)]
-
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter="E", length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_edge(1,3)
-    g.add_edge(2,4)
-    for i in range(3,n):
-        g.add_edge(i, i+1)
-    if n == 6:
-        g.add_edge(0, 2)
-    elif n == 7:
-        g.add_edge(0, 1)
-    elif n == 8:
-        g.add_edge(0, 8)
-    else:
-        raise ValueError, "Invalid Cartan Type for Type E affine"
-    return g
 
 
+from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_simply_laced
+class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simply_laced):
+    def __init__(self, n):
+        """
+        EXAMPLES::
+
+            sage: ct = CartanType(['E',6])
+            sage: ct
+            ['E', 6]
+            sage: ct._repr_(compact = True)
+            'E6'
+            sage: ct.is_irreducible()
+            True
+            sage: ct.is_finite()
+            True
+            sage: ct.is_affine()
+            False
+            sage: ct.is_crystalographic()
+            True
+            sage: ct.is_simply_laced()
+            True
+            sage: ct.affine()
+            ['E', 6, 1]
+            sage: ct.dual()
+            ['E', 6]
+
+        TESTS:
+            sage: ct == loads(dumps(ct))
+            True
+        """
+        assert n >= 6 and n <= 8
+        CartanType_standard_finite.__init__(self, "E", n)
+
+    AmbientSpace = AmbientSpace
+
+    def dynkin_diagram(self):
+        """
+        Returns a Dynkin diagram for type E.
+
+        EXAMPLES::
+
+            sage: e = DynkinDiagram(['E',6])
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O
+            1   3   4   5   6
+            E6
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1)]
+            sage: e = DynkinDiagram(['E',7])
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O
+            1   3   4   5   6   7
+            E7
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1),
+             (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1),
+             (6, 7, 1), (7, 6, 1)]
+            sage: e = DynkinDiagram(['E',8])
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O---O
+            1   3   4   5   6   7   8
+            E8
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1),
+             (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1),
+             (6, 7, 1), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
+
+        """
+        from dynkin_diagram import DynkinDiagram_class
+        g = DynkinDiagram_class(self)
+        g.add_edge(1,3)
+        g.add_edge(2,4)
+        for i in range(3, self.n):
+            g.add_edge(i, i+1)
+        return g
+
+    def ascii_art(self, label = lambda x: x):
+        """
+        Returns a ascii art representation of the extended Dynkin diagram
+
+        EXAMPLES::
+
+            sage: print CartanType(['E',6]).ascii_art(label = lambda x: x+2)
+                    O 4
+                    |
+                    |
+            O---O---O---O---O
+            3   5   6   7   8
+            sage: print CartanType(['E',7]).ascii_art(label = lambda x: x+2)
+                    O 4
+                    |
+                    |
+            O---O---O---O---O---O
+            3   5   6   7   8   9
+            sage: print CartanType(['E',8]).ascii_art(label = lambda x: x+1)
+                    O 3
+                    |
+                    |
+            O---O---O---O---O---O---O
+            2   4   5   6   7   8   9
+        """
+        n = self.n
+        if n == 6:
+            return "        O %s\n        |\n        |\nO---O---O---O---O\n%s   %s   %s   %s   %s"\
+                %tuple(label(i) for i in (2,1,3,4,5,6))
+        elif n == 7:
+            return "        O %s\n        |\n        |\nO---O---O---O---O---O\n%s   %s   %s   %s   %s   %s"\
+                %tuple(label(i) for i in (2,1,3,4,5,6,7))
+        elif n == 8:
+            return "        O %s\n        |\n        |\nO---O---O---O---O---O---O\n%s   %s   %s   %s   %s   %s   %s"\
+                %tuple(label(i) for i in (2,1,3,4,5,6,7,8))
+
+# For unpickling backward compatibility (Sage <= 4.1)
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.root_system.type_E', 'ambient_space',  AmbientSpace)

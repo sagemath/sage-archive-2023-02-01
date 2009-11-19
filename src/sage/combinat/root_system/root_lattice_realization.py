@@ -15,12 +15,25 @@ Root lattice realization
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.family import Family
+
+from sage.misc.all import cached_method, attrcall
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.sets.family import Family
 from sage.rings.all import ZZ
-from sage.misc.all import cached_method
 from sage.structure.sage_object import SageObject
+from sage.combinat.backtrack import TransitiveIdeal
 
 class RootLatticeRealization(SageObject):
+    def cartan_type(self):
+        """
+        EXAMPLES::
+
+           sage: r = RootSystem(['A',4]).root_space()
+           sage: r.cartan_type()
+           ['A', 4]
+        """
+        return self.root_system.cartan_type()
+
     def index_set(self):
         """
         EXAMPLES:
@@ -32,7 +45,8 @@ class RootLatticeRealization(SageObject):
 
     def dynkin_diagram(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RootSystem(['A',4]).root_space()
             sage: r.dynkin_diagram()
             O---O---O---O
@@ -43,7 +57,8 @@ class RootLatticeRealization(SageObject):
 
     def _name_string_helper(self, name, capitalize=True, base_ring=True, type=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RootSystem(['A',4]).root_space()
             sage: r._name_string_helper("root")
             "Root space over the Rational Field of the Root system of type ['A', 4]"
@@ -84,33 +99,49 @@ class RootLatticeRealization(SageObject):
     # checks
     ##########################################################################
 
-    def check(self):
+    def _test_root_lattice_realization(self, **options):
         """
-        Checks to make sure that the scalar product between the simple root
-        and the simple coroot in this root lattice realization is the
-        corresponding entry in the Dynkin diagram.
+        Runs sanity checks on this root lattice realization:
+         - scalar products between simple roots and simple coroots
+         - ...
 
-        EXAMPLES:
-            sage: RootSystem(['A',3]).root_lattice().check()
-            True
+        See also: :class:`Test`
+
+        Examples::
+            sage: RootSystem(['A',3]).root_lattice()._test_root_lattice_realization()
         """
+        tester = self._tester(**options)
         alpha = self.simple_roots()
         alphacheck = self.simple_coroots()
+        tester.assertEqual(alpha     .keys(), self.index_set())
+        tester.assertEqual(alphacheck.keys(), self.index_set())
+
         dynkin_diagram = self.dynkin_diagram()
         for i in self.index_set():
             for j in self.index_set():
-                assert alpha[j].scalar(alphacheck[i]) == dynkin_diagram[i,j]
-        return True
+                tester.assertEqual(alpha[j].scalar(alphacheck[i]), dynkin_diagram[i,j])
+
+        if self.cartan_type().is_affine():
+            nullroot = self.null_root()
+            nullcoroot = self.null_coroot()
+            for k in alpha.keys():
+                assert (nullroot.scalar(alphacheck[k])).is_zero()
+                assert (alpha[k].scalar(nullcoroot)).is_zero()
+
+        # Todo: add tests of highest root, roots, has_descent, ...
+
 
     ##########################################################################
     # highest root
     ##########################################################################
 
+    @cached_method
     def highest_root(self):
         """
         Returns the highest root (for an irreducible finite root system)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',4]).ambient_space().highest_root()
             (1, 0, 0, 0, -1)
 
@@ -122,22 +153,22 @@ class RootLatticeRealization(SageObject):
         assert(self.root_system.is_irreducible())
         return self.a_long_simple_root().to_positive_chamber()
 
+    @cached_method
     def a_long_simple_root(self):
         """
         Returns a long simple root, corresponding to the highest outgoing edge
         in the Dynkin diagram.
 
-        Caveat: This depends on a direct identification between dynkin diagram
-        nodes and the simple roots, which is not yet valid in the ambient space
-
-        Caveat: this may be break in affine type A_2n^(2)
+        Caveat: this may be break in affine type `A_{2n}^{(2)}`
 
         Caveat: meaningful/broken for non irreducible?
 
-        TODO: implement DynkinDiagram.vertices_by_length as in
-        MuPAD-Combinat, and use it here
+        TODO: implement CartanType.nodes_by_length as in
+        MuPAD-Combinat (using CartanType.symmetrizer), and use it
+        here.
 
-        TESTS:
+        TESTS::
+
             sage: X=RootSystem(['A',1]).weight_space()
             sage: X.a_long_simple_root()
             2*Lambda[1]
@@ -158,19 +189,22 @@ class RootLatticeRealization(SageObject):
     # simple roots
     ##########################################################################
 
+    @cached_method
     def simple_root(self, i):
         """
-        Returns the $i$-th simple root.  This should be overridden by any
+        Returns the `i^{th}` simple root.  This should be overridden by any
         subclass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RootSystem(["A",3]).root_lattice()
             sage: r.simple_root(1)
             alpha[1]
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.root_system.root_lattice_realization import RootLatticeRealization
-            sage: RootLatticeRealization.simple_root(r, 1)
+            sage: RootLatticeRealization().simple_root(1)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -178,38 +212,43 @@ class RootLatticeRealization(SageObject):
         """
         raise NotImplementedError
 
+    @cached_method
     def simple_roots(self):
         """
-        Returns the family $(\alpha_i)_{i\in I}$ of the simple roots.
+        Returns the family `(\alpha_i)_{i\in I}` of the simple roots.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: alpha = RootSystem(["A",3]).root_lattice().simple_roots()
             sage: [alpha[i] for i in [1,2,3]]
             [alpha[1], alpha[2], alpha[3]]
         """
         if not hasattr(self,"_simple_roots"):
             self._simple_roots = Family(self.index_set(), self.simple_root)
+            # Should we use rename to set a nice name for this family?
             # self._simple_roots.rename("alpha")
-            # break some doctests
+            # This break some doctests
         return self._simple_roots
 
+    @cached_method
     def alpha(self):
-        """
-        Returns the family $(\alpha_i)_{i\in I}$ of the simple roots,
+        r"""
+        Returns the family `(\alpha_i)_{i\in I}` of the simple roots,
         with the extra feature that, for simple irreducible root
-        systems, $\alpha_0$ yields the opposite of the highest root.
+        systems, `\alpha_0` yields the opposite of the highest root.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: alpha = RootSystem(["A",2]).root_lattice().alpha()
             sage: alpha[1]
             alpha[1]
             sage: alpha[0]
-            alpha[1] + alpha[2]
+            -alpha[1] - alpha[2]
 
         """
         if self.root_system.is_finite() and self.root_system.is_irreducible():
             return Family(self.index_set(), self.simple_root, \
-                          hidden_keys = [0], hidden_function = lambda i: self.highest_root())
+                          hidden_keys = [0], hidden_function = lambda i: - self.highest_root())
         else:
             return self.simple_roots()
 
@@ -221,11 +260,70 @@ class RootLatticeRealization(SageObject):
         """
         Returns the roots of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',2]).ambient_lattice().roots()
             [(1, -1, 0), (1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1), (0, -1, 1)]
+
+
+        This matches with http://en.wikipedia.org/wiki/Root_systems::
+
+            sage: for T in CartanType.samples(finite = True, crystalographic = True):
+            ...       print "%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots()))
+            ['A', 1]   2   2
+            ['A', 5]  30  30
+            ['B', 1]   2   2
+            ['B', 5]  50  50
+            ['C', 1]   2   2
+            ['C', 5]  50  50
+            ['D', 2]   4   4
+            ['D', 3]  12  12
+            ['D', 5]  40  40
+            ['E', 6]  72  72
+            ['E', 7] 126 126
+            ['E', 8] 240 240
+            ['F', 4]  48  48
+            ['G', 2]  12  12
+
+        Todo: the result should be an enumerated set, and handle infinite root systems
+
         """
-        return self.positive_roots() + self.negative_roots()
+        return list(self.positive_roots()) + list(self.negative_roots())
+
+    def positive_roots(self):
+        r"""
+        Returns the positive roots of self.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',3]).root_lattice()
+            sage: sorted(L.positive_roots())
+            [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
+
+        Algorithm: generate them from the simple roots by applying
+        successive reflections toward the positive chamber.
+        """
+        assert self.cartan_type().is_finite()
+        return TransitiveIdeal(attrcall('pred'), self.simple_roots())
+
+    def negative_roots(self):
+        r"""
+        Returns the negative roots of self.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A', 2]).weight_lattice()
+            sage: sorted(L.negative_roots())
+            [-2*Lambda[1] + Lambda[2], -Lambda[1] - Lambda[2], Lambda[1] - 2*Lambda[2]]
+
+        Algorithm: negate the positive roots
+
+        """
+        assert self.cartan_type().is_finite()
+        from sage.combinat.combinat import MapCombinatorialClass
+        return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
+        # Todo: use this instead once TransitiveIdeal will be a proper enumerated set
+        #return self.positive_roots().map(attrcall('__negate__'))
 
     ##########################################################################
     # coroots
@@ -235,61 +333,91 @@ class RootLatticeRealization(SageObject):
         """
         Returns the coroot lattice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',2]).root_lattice().coroot_lattice()
             Coroot lattice of the Root system of type ['A', 2]
 
         """
         return self.root_system.coroot_lattice()
 
+    def coroot_space(self):
+        """
+        Returns the coroot lattice.
+
+        EXAMPLES::
+
+            sage: RootSystem(['A',2]).root_lattice().coroot_space()
+            Coroot space over the Rational Field of the Root system of type ['A', 2]
+
+        """
+        return self.root_system.coroot_space()
+
+
     def simple_coroot(self, i):
         """
-        Returns the $i^{th}$ simple coroot.
+        Returns the `i^{th}` simple coroot.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',2]).root_lattice().simple_coroot(1)
             alphacheck[1]
         """
         return self.coroot_lattice().simple_root(i)
 
+    @cached_method
     def simple_coroots(self):
         """
-        Returns the family $(\alpha^\vee_i)_{i\in I}$ of the simple coroots.
+        Returns the family `(\alpha^\vee_i)_{i\in I}` of the simple coroots.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: alphacheck = RootSystem(['A',3]).root_lattice().simple_coroots()
             sage: [alphacheck[i] for i in [1, 2, 3]]
             [alphacheck[1], alphacheck[2], alphacheck[3]]
 
-        TEST:
-            sage: alphacheck
-            alphacheck
         """
         if not hasattr(self,"cache_simple_coroots"):
             self.cache_simple_coroots = Family(self.index_set(), self.simple_coroot)
-            self.cache_simple_coroots.rename("alphacheck")
+            # Should we use rename to set a nice name for this family?
+            # self.cache_simple_coroots.rename("alphacheck")
+            # break some doctests
         return self.cache_simple_coroots
 
     def alphacheck(self):
-        """
-        Returns the family $(\alpha^\vee_i)_{i\in I}$ of the simple
-        coroots, with the extra feature that for simple irreducible
-        root systems, $\alpha^\vee_0$ yields the coroot associated to
-        the opposite of the highest root (caveat: this is usually not
-        the highest coroot!)
+        r"""
+        Returns the family `(\alpha^\vee_i)_{i\in I}` of the simple
+        coroots, with the extra feature that,  for simple irreducible
+        root systems, `\alpha^\vee_0` yields the coroot associated to
+        the opposite of the highest root (caveat: for non simply laced
+        root systems, this is not the opposite of the highest coroot!)
 
-        EXAMPLES:
-            sage: alphacheck = RootSystem(["A",3]).ambient_space().alphacheck()
-            sage: alphacheck[1]
-            (1, -1, 0, 0)
-            sage: alphacheck[0]
-            (1, 0, 0, -1)
+        EXAMPLES::
+
+            sage: alphacheck = RootSystem(["A",2]).ambient_space().alphacheck()
+            sage: alphacheck
+            Finite family {1: (1, -1, 0), 2: (0, 1, -1)}
+
+        Here is now `\alpha^\vee_0`:
+
+            (-1, 0, 1)
+
+        TODO: add a non simply laced example
+
+        Finaly, here is an affine example::
+
+            sage: RootSystem(["A",2,1]).weight_space().alphacheck()
+            Finite family {0: alphacheck[0], 1: alphacheck[1], 2: alphacheck[2]}
+
+            sage: RootSystem(["A",3]).ambient_space().alphacheck()
+            Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1)}
+
         """
         if self.root_system.is_finite() and self.root_system.is_irreducible():
             return Family(self.index_set(), self.simple_coroot, \
-                          hidden_keys = [0], hidden_function = lambda i: self.cohighest_root())
+                          hidden_keys = [0], hidden_function = lambda i: - self.cohighest_root())
         else:
-            return self.simple_roots()
+            return self.simple_coroots()
 
     @cached_method
     def cohighest_root(self):
@@ -297,12 +425,60 @@ class RootLatticeRealization(SageObject):
         Returns the associated coroot of the highest root.  Note that this is
         usually not the highest coroot.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A', 3]).ambient_space().cohighest_root()
             (1, 0, 0, -1)
         """
         return self.highest_root().associated_coroot()
 
+    ##########################################################################
+    # null_root
+    ##########################################################################
+
+    @cached_method
+    def null_root(self):
+        """
+        Returns the null root of self. The null root is the smallest
+        non trivial positive root which is orthogonal to all simple
+        coroots. It exists for any affine root system.
+
+        EXAMPLES::
+
+            sage: RootSystem(['C',2,1]).root_lattice().null_root()
+            alpha[0] + 2*alpha[1] + alpha[2]
+            sage: RootSystem(['D',4,1]).root_lattice().null_root()
+            alpha[0] + alpha[1] + 2*alpha[2] + alpha[3] + alpha[4]
+            sage: RootSystem(['F',4,1]).root_lattice().null_root()
+            alpha[0] + 2*alpha[1] + 3*alpha[2] + 4*alpha[3] + 2*alpha[4]
+        """
+        if self.cartan_type().is_affine():
+            coef = self.cartan_type().a()
+            return sum(coef[k]*self.simple_roots()[k] for k in coef.keys())
+
+    ##########################################################################
+    # null_coroot (Also called CanonicalCentralElement)
+    ##########################################################################
+
+    @cached_method
+    def null_coroot(self):
+        """
+        Returns the null coroot of self. The null coroot is the smallest
+        non trivial positive coroot which is orthogonal to all simple
+        roots. It exists for any affine root system.
+
+        EXAMPLES::
+
+            sage: RootSystem(['C',2,1]).root_lattice().null_coroot()
+            alphacheck[0] + alphacheck[1] + alphacheck[2]
+            sage: RootSystem(['D',4,1]).root_lattice().null_coroot()
+            alphacheck[0] + alphacheck[1] + 2*alphacheck[2] + alphacheck[3] + alphacheck[4]
+            sage: RootSystem(['F',4,1]).root_lattice().null_coroot()
+            alphacheck[0] + 2*alphacheck[1] + 3*alphacheck[2] + 2*alphacheck[3] + alphacheck[4]
+        """
+        assert(self.cartan_type().is_affine())
+        coef = self.cartan_type().acheck()
+        return sum(coef[k]*self.simple_coroots()[k] for k in coef.keys())
 
     ##########################################################################
     # reflections
@@ -314,7 +490,8 @@ class RootLatticeRealization(SageObject):
         hyperplane define by coroot, as a function from
         self to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space = RootSystem(['A',2]).weight_lattice()
             sage: x=space.simple_roots()[1]
             sage: y=space.simple_coroots()[1]
@@ -333,13 +510,15 @@ class RootLatticeRealization(SageObject):
     @cached_method
     def simple_reflection(self, i):
         """
-        Returns the $i^{th}$ simple reflection, as a function from
+        Returns the `i^{th}` simple reflection, as a function from
         self to self.
 
         INPUT:
-            i -- i is in self's index set
 
-        EXAMPLES:
+        - ``i`` - i is in self's index set
+
+        EXAMPLES::
+
             sage: space = RootSystem(['A',2]).ambient_lattice()
             sage: s = space.simple_reflection(1)
             sage: x = space.simple_roots()[1]
@@ -350,22 +529,26 @@ class RootLatticeRealization(SageObject):
         """
         return self.reflection(self.simple_root(i), self.simple_coroot(i))
 
+    @cached_method
     def simple_reflections(self):
         """
-        Returns the family $(s_i)_{i\in I}$ of the simple reflections
+        Returns the family `(s_i)_{i\in I}` of the simple reflections
         of this root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RootSystem(["A", 2]).root_lattice()
             sage: s = r.simple_reflections()
             sage: s[1]( r.simple_root(1) )
             -alpha[1]
 
-        TEST:
+        TEST::
+
             sage: s
             simple reflections
         """
         res =  self.alpha().zip(self.reflection, self.alphacheck())
+        # Should we use rename to set a nice name for this family?
         res.rename("simple reflections")
         return res
 
@@ -376,16 +559,17 @@ class RootLatticeRealization(SageObject):
     ##########################################################################
 
     def projection(self, root, coroot=None, to_negative=True):
-        """
+        r"""
         Returns the projection along the root, and across the
-        hyperplane define by coroot, as a function $\pi$ from self to
-        self. $\pi$ is a half-linear map which stabilizes the negative
+        hyperplane define by coroot, as a function `\pi` from self to
+        self. `\pi` is a half-linear map which stabilizes the negative
         half space, and acts by reflection on the positive half space.
 
         If to_negative is False, then this project onto the positive
         half space instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space = RootSystem(['A',2]).weight_lattice()
             sage: x=space.simple_roots()[1]
             sage: y=space.simple_coroots()[1]
@@ -405,16 +589,19 @@ class RootLatticeRealization(SageObject):
 
         return lambda v: v - v.scalar(coroot) * root if ((v.scalar(coroot) > 0) == to_negative) else v
 
+    @cached_method
     def simple_projection(self, i, to_negative=True):
         """
-        Returns the projection along the $i^{th}$ simple root, and across the
-        hyperplane define by the $i^{th}$ simple coroot, as a function from
+        Returns the projection along the `i^{th}` simple root, and across the
+        hyperplane define by the `i^{th}` simple coroot, as a function from
         self to self.
 
         INPUT:
-            i -- i is in self's index set
 
-        EXAMPLES:
+        - ``i`` - i is in self's index set
+
+        EXAMPLES::
+
             sage: space = RootSystem(['A',2]).weight_lattice()
             sage: x = space.simple_roots()[1]
             sage: pi = space.simple_projection(1)
@@ -430,12 +617,14 @@ class RootLatticeRealization(SageObject):
         """
         return self.projection(self.simple_root(i), self.simple_coroot(i), to_negative)
 
-    def simple_projections(self):
-        """
-        Returns the family $(s_i)_{i\in I}$ of the simple projections
+    @cached_method
+    def simple_projections(self, to_negative=True):
+        r"""
+        Returns the family `(s_i)_{i\in I}` of the simple projections
         of this root system
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space = RootSystem(['A',2]).weight_lattice()
             sage: pi = space.simple_projections()
             sage: x = space.simple_roots()
@@ -447,10 +636,18 @@ class RootLatticeRealization(SageObject):
             pi
         """
         res = self.alpha().zip(self.projection, self.alphacheck())
+        # Should this use rename to set a nice name for this family?
         res.rename("pi")
         return res
 
-    pi = simple_projections
+    @lazy_attribute
+    def pi(self):
+        return self.simple_projections()
+
+    @lazy_attribute
+    def opi(self):
+        return self.simple_projections(to_negative=False)
+
 
     ##########################################################################
     # Weyl group
@@ -460,7 +657,8 @@ class RootLatticeRealization(SageObject):
         """
         Returns the Weyl group associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['F',4]).ambient_space().weyl_group()
             Weyl Group of type ['F', 4] (as a matrix group acting on the ambient space)
             sage: RootSystem(['F',4]).root_space().weyl_group()
@@ -476,7 +674,8 @@ class RootLatticeRealizationElement(object):
         The natural pairing between this and the coroot lattice.  This should be overridden
         in subclasses.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RootSystem(['A',4]).root_lattice()
             sage: cr = RootSystem(['A',4]).coroot_lattice()
             sage: a1 = r.simple_root(1)
@@ -484,7 +683,8 @@ class RootLatticeRealizationElement(object):
             sage: a1.scalar(ac1)
             2
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.root_system.root_lattice_realization import RootLatticeRealizationElement
             sage: RootLatticeRealizationElement.scalar(a1, ac1)
             Traceback (most recent call last):
@@ -495,11 +695,16 @@ class RootLatticeRealizationElement(object):
         raise NotImplementedError
 
 
+    ##########################################################################
+    # Action and orbits w.r.t. the Weyl group
+    ##########################################################################
+
     def simple_reflection(self, i):
         """
-        The image of self by the $i$-th simple reflection.
+        The image of self by the `i^{th}` simple reflection.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: alpha = RootSystem(["A", 3]).root_lattice().alpha()
             sage: alpha[1].simple_reflection(2)
             alpha[1] + alpha[2]
@@ -508,12 +713,45 @@ class RootLatticeRealizationElement(object):
         # Subclasses should optimize whenever possible!
         return self.parent().simple_reflections()[i](self)
 
+    def simple_reflections(self):
+        """
+        The images of self by all the simple reflections
+        """
+        return [s(self) for s in self.parent().simple_reflections()]
+
+    def orbit(self):
+        r"""
+        The orbit of self under the action of the Weyl group
+
+        EXAMPLES::
+
+        `\rho` is a regular element whose orbit is in bijection with the Weyl group.
+        In particular, it as 6 elements for the symmetric group `S_3`::
+
+            sage: L = RootSystem(["A", 2]).ambient_lattice()
+            sage: sorted(L.rho().orbit())		# the output order is not specified
+            [(1, 2, 0), (1, 0, 2), (2, 1, 0), (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+
+            sage: L = RootSystem(["A", 3]).weight_lattice()
+            sage: len(L.rho().orbit())
+            24
+            sage: len(L.fundamental_weights()[1].orbit())
+            4
+            sage: len(L.fundamental_weights()[2].orbit())
+            6
+        """
+        return [x for x in TransitiveIdeal(attrcall('simple_reflections'), [self])]
+
+    ##########################################################################
+    #
+    ##########################################################################
 
     def associated_coroot(self):
         """
         Returns the coroot associated to this root.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: alpha = RootSystem(["A", 3]).root_lattice().alpha()
             sage: alpha[1].associated_coroot()
             Traceback (most recent call last):
@@ -529,14 +767,15 @@ class RootLatticeRealizationElement(object):
 
     def has_descent(self, i, positive=False):
         """
-        Test if self has a descent at position $i$, that is if self is
-        on the strict negative side of the $i$-th simple reflection
+        Test if self has a descent at position `i`, that is if self is
+        on the strict negative side of the `i^{th}` simple reflection
         hyperplane.
 
         If positive if True, tests if it is on the strict positive
         side instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space=RootSystem(['A',5]).weight_space()
             sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
             sage: [alpha[i].has_descent(1) for i in space.index_set()]
@@ -567,7 +806,8 @@ class RootLatticeRealizationElement(object):
         One can use the index_set option to restrict to the parabolic
         subgroup indexed by index_set.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space=RootSystem(['A',5]).weight_space()
             sage: alpha=space.simple_roots()
             sage: (alpha[1]+alpha[2]+alpha[4]).first_descent()
@@ -588,7 +828,8 @@ class RootLatticeRealizationElement(object):
         """
         Returns the descents of pt
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space=RootSystem(['A',5]).weight_space()
             sage: alpha=space.simple_roots()
             sage: (alpha[1]+alpha[2]+alpha[4]).descents()
@@ -610,7 +851,8 @@ class RootLatticeRealizationElement(object):
         negative chamber instead
 
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: space=RootSystem(['A',5]).weight_space()
             sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
             sage: alpha[1].to_positive_chamber()
@@ -628,16 +870,50 @@ class RootLatticeRealizationElement(object):
             else:
                 self = self.simple_reflection(i)
 
+    def reduced_word(self, index_set = None, positive = True):
+        """
+        Returns a shortest sequence of simple reflections mapping self
+        to the unique element of its orbit in the positive chamber.
+
+        With the index_set optional parameter, this is done with
+        respect to the corresponding parbolic subgroup
+
+        With positive = False, returns the shortest sequence to the
+        negative chamber instead
+
+        FIXME: better name?
+
+        EXAMPLES::
+
+            sage: space=RootSystem(['A',5]).weight_space()
+            sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
+            sage: alpha[1].reduced_word()
+            [2, 3, 4, 5]
+            sage: alpha[1].reduced_word([1,2])
+            [2]
+        """
+        result = []
+        if index_set is None:
+            index_set=self.parent().index_set()
+        while True:
+            # The first index where it is *not* yet on the positive side
+            i = self.first_descent(index_set, positive=(not positive))
+            if i is None:
+                return result
+            else:
+                self = self.simple_reflection(i)
+                result.append(i)
+
     def is_dominant(self, index_set = None, positive = True):
         """
         Returns whether self is dominant.
 
-        With positive = False, returns whether self is antidominant
-
         INPUT:
-            v -- an element of the lattice
 
-        EXAMPLES:
+        - ``v`` - an element of the lattice
+
+        EXAMPLES::
+
             sage: L = RootSystem(['A',2]).ambient_lattice()
             sage: Lambda = L.fundamental_weights()
             sage: [x.is_dominant() for x in Lambda]
@@ -658,3 +934,98 @@ class RootLatticeRealizationElement(object):
             [False, False, False, False, True, False]
         """
         return self.first_descent(index_set, not positive) is None
+
+    ##########################################################################
+    # weak order
+    ##########################################################################
+
+    def succ(self):
+        r"""
+        Returns the immediate successors of self for the weak order
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',3]).weight_lattice()
+            sage: Lambda = L.fundamental_weights()
+            sage: Lambda[1].succ()
+            [-Lambda[1] + Lambda[2]]
+            sage: L.rho().succ()
+            [-Lambda[1] + 2*Lambda[2] + Lambda[3], 2*Lambda[1] - Lambda[2] + 2*Lambda[3], Lambda[1] + 2*Lambda[2] - Lambda[3]]
+            sage: (-L.rho()).succ()
+            []
+       """
+        return [ self.simple_reflection(i) for i in self.descents(positive=True) ]
+
+    def pred(self):
+        r"""
+        Returns the immediate predecessors of self for the weak order
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',3]).weight_lattice()
+            sage: Lambda = L.fundamental_weights()
+            sage: Lambda[1].pred()
+            []
+            sage: L.rho().pred()
+            []
+            sage: (-L.rho()).pred()
+            [Lambda[1] - 2*Lambda[2] - Lambda[3], -2*Lambda[1] + Lambda[2] - 2*Lambda[3], -Lambda[1] - 2*Lambda[2] + Lambda[3]]
+        """
+        return [ self.simple_reflection(i) for i in self.descents() ]
+
+    def greater(self):
+        r"""
+        Returns the elements in the orbit of self which are
+        greater than self in the weak order.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',3]).ambient_lattice()
+            sage: e = L.basis()
+            sage: e[2].greater()
+            [(0, 0, 1, 0), (0, 0, 0, 1)]
+            sage: len(L.rho().greater())
+            24
+            sage: len((-L.rho()).greater())
+            1
+            sage: sorted([len(x.greater()) for x in L.rho().orbit()])
+            [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
+        """
+        return [x for x in TransitiveIdeal(attrcall('succ'), [self])]
+
+    def smaller(self):
+        r"""
+        Returns the elements in the orbit of self which are
+        smaller than self in the weak order.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',3]).ambient_lattice()
+            sage: e = L.basis()
+            sage: e[2].smaller()
+            [(0, 0, 1, 0), (0, 1, 0, 0), (1, 0, 0, 0)]
+            sage: len(L.rho().smaller())
+            1
+            sage: len((-L.rho()).smaller())
+            24
+            sage: sorted([len(x.smaller()) for x in L.rho().orbit()])
+            [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
+        """
+        return [x for x in TransitiveIdeal(attrcall('pred'), [self])]
+
+    ##########################################################################
+    # Level
+    ##########################################################################
+
+    def level(self):
+        """
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',2,1])
+            sage: rho = L.weight_lattice().rho()
+            sage: rho.level()
+            3
+        """
+        assert(self.parent().cartan_type().is_affine())
+        return self.scalar(self.parent().null_coroot())
+

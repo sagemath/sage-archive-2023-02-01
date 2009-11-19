@@ -18,69 +18,59 @@ Dynkin diagrams
 from sage.graphs.all import DiGraph
 from cartan_type import CartanType, CartanType_abstract
 from cartan_matrix import cartan_matrix
-from root_system import RootSystem
 
 def DynkinDiagram(*args):
     """
     INPUT:
 
+     -  ``ct`` - a Cartan Type
 
-    -  ``ct`` - A Cartan Type Returns a Dynkin diagram for
-       type ct.
+    Returns a Dynkin diagram for type ct.
 
 
     The edge multiplicities are encoded as edge labels. This uses the
-    convention in Kac / Fulton Harris Representation theory wikipedia
-    http://en.wikipedia.org/wiki/Dynkin_diagram, that is for i != j::
+    convention in Kac / Fulton Harris, Representation theory / Wikipedia
+    (http://en.wikipedia.org/wiki/Dynkin_diagram). That is for i != j::
 
        j --k--> i <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k
                   <==> multiple arrows point from the longer root
                        to the shorter one
 
-    TODO: say something about the node labelling conventions.
-
     EXAMPLES::
 
         sage: DynkinDiagram(['A', 4])
-         O---O---O---O
-         1   2   3   4
-         A4
+        O---O---O---O
+        1   2   3   4
+        A4
+
         sage: DynkinDiagram(['A',1],['A',1])
-         O
-         1
-         O
-         2
-         A1xA1
+        O
+        1
+        O
+        2
+        A1xA1
+
         sage: R = RootSystem("A2xB2xF4")
         sage: DynkinDiagram(R)
-         O---O
-         1   2
-         O=>=O
-         3   4
-         O---O=>=O---O
-         5   6   7   8
-         A2xB2xF4
+        O---O
+        1   2
+        O=>=O
+        3   4
+        O---O=>=O---O
+        5   6   7   8
+        A2xB2xF4
+
+    SEE ALSO: :func:`CartanType` for a general discussion on Cartan
+    types and in particular node labeling conventions.
     """
-    if len(args) == 1:
-        t = args[0]
+    if len(args) == 0:
+       return DynkinDiagram_class()
+    ct = CartanType(*args)
+    if hasattr(ct, "dynkin_diagram"):
+        return ct.dynkin_diagram()
     else:
-        t = CartanType(args)
-
-    if isinstance(t, RootSystem):
-        ct = t.cartan_type()
-    else:
-        ct = CartanType(t)
-
-    if ct.is_affine():
-        function = ct.tools.affine_dynkin_diagram
-    else:
-        function = ct.tools.dynkin_diagram
-
-    try:
-        return function(ct)
-    except KeyError:
-        raise TypeError, "Dynkin diagram data not yet hardcoded for type %s"%t
+        raise ValueError, "Dynkin diagram data not yet hardcoded for type %s"%ct
 
 def dynkin_diagram(t):
     """
@@ -103,221 +93,28 @@ def dynkin_diagram(t):
     return DynkinDiagram(t)
 
 
-def dynkin_diagram_ascii_art(t, shift=0, nolabel=False):
-    """
-    Returns ascii art representing a Dynkin diagram of a finite
-    Cartan type. Accessed through the __repr__ method of DynkinDiagram.
-
-    The optional parameter shift causes the indices to be shifted by
-    that amount, for use in Dynkin diagrams of reducible types.
-    The parameter nolabel, if set, inhibits the printing of the
-    Cartan type name as part of the ascii art.
-
-    EXAMPLES::
-
-        sage: DynkinDiagram("E6")
-                 O 2
-                 |
-                 |
-         O---O---O---O---O
-         1   3   4   5   6
-         E6
-    """
-    if type(t) == str:
-        t = CartanType(t)
-    if t.is_reducible():
-        types = t.component_types()
-        ret = ""
-        name = ""
-        for i in range(len(types)):
-            ret = ret + dynkin_diagram_ascii_art(types[i],shift=t._rshifts[i],nolabel=True) + "\n"
-            name += "%s%d"%(types[i][0],types[i][1])
-            if i < len(types)-1:
-                name += "x"
-        ret += name
-        return ret
-    r = t[1]
-    if t[0] == 'A':
-        ret = ""
-        if r == 0:
-            return "Dynkin diagram of type ['A', 0]"
-        ret += (r-1)*"O---"+"O\n"
-        for i in range(1,r+1):
-            ret += (i+shift).__repr__()
-            if i < r:
-                ret += "   "
-        if not nolabel:
-            ret += "\nA%d"%r
-        return ret
-    elif t[0] == 'B':
-        if r == 1:
-            return "Dynkin diagram of type ['B', 1]"
-        ret = (r-2)*"O---"+"O=>=O\n"
-        for i in range(1,r+1):
-            ret += (i+shift).__repr__()
-            if i < r:
-                ret += "   "
-        if not nolabel:
-            ret += "\nB%d"%r
-        return ret
-    elif t[0] == 'C':
-        if r == 1:
-            return "Dynkin diagram of type ['C', 1]"
-        ret = (r-2)*"O---"+"O=<=O\n"
-        for i in range(1,r+1):
-            ret += (i+shift).__repr__()
-            if i < r:
-                ret += "   "
-        if not nolabel:
-            ret += "\nC%d"%r
-        return ret
-    elif t[0] == 'D':
-        if r == 1:
-            raise ValueError, "invalid Cartan type"
-        if r == 2:
-            ret = "O   O\n%d   %d"%(1+shift,2+shift)
-        else:
-            ret = (4*(r-3))*" "+"O "+(r-1+shift).__repr__()+"\n"
-            ret += (4*(r-3))*" "+"|\n"+(4*(r-3))*" "+"|\n"
-            ret += (r-2)*"O---"+"O\n"
-            for i in range(1,r-1):
-                ret += (i+shift).__repr__()+"   "
-            ret += (r+shift).__repr__()
-        if not nolabel:
-            ret += "\nD%d"%r
-        return ret
-    elif t[0] == 'E':
-        if r == 6:
-            ret = "        O %d\n        |\n        |\nO---O---O---O---O\n%d   %d   %d   %d   %d"%(2+shift,1+shift,3+shift,4+shift,5+shift,6+shift)
-        elif r == 7:
-            ret = "        O %d\n        |\n        |\nO---O---O---O---O---O\n%d   %d   %d   %d   %d   %d"%(2+shift,1+shift,3+shift,4+shift,5+shift,6+shift,7+shift)
-        elif r == 8:
-            ret = "        O %d\n        |\n        |\nO---O---O---O---O---O---O\n%d   %d   %d   %d   %d   %d   %d"%(2+shift,1+shift,3+shift,4+shift,5+shift,6+shift,7+shift,8+shift)
-        else:
-            raise ValueError, "invalid Cartan type"
-        if not nolabel:
-            ret += "\nE%d"%r
-        return ret
-    elif t[0] == 'F':
-        if r == 4:
-            ret = "O---O=>=O---O\n%d   %d   %d   %d"%(1+shift,2+shift,3+shift,4+shift)
-            if not nolabel:
-                ret += "\nF%d"%r
-            return ret
-        else:
-            raise ValueError, "invalid Cartan type"
-    elif t[0] == 'G':
-        if r == 2:
-            ret = "  3\nO=<=O\n%d   %d"%(1+shift,2+shift)
-            if not nolabel:
-                ret += "\nG%d"%r
-            return ret
-        else:
-            raise ValueError, "invalid Cartan type"
-    else:
-        raise ValueError, "invalid Cartan type"
-    ret += t[0]+repr(t[1])
-    return ret
-
-def extended_dynkin_diagram_ascii_art(t):
-    """
-    Returns ascii art representing the extended Dynkin diagram of a finite
-    Cartan type. This is also the Dynkin diagram of the associated
-    untwisted affine root system.
-
-    EXAMPLES::
-
-        sage: DynkinDiagram(['E',6,1])
-                O 0
-                |
-                |
-                O 2
-                |
-                |
-        O---O---O---O---O
-        1   3   4   5   6
-        E6~
-    """
-    if type(t) == str or type(t) == list:
-        t = CartanType(t)
-    r = t[1]
-    if t[0] == 'A':
-        if r == 0:
-            return "Dynkin diagram of type ['A', 0, 1]"
-        if r == 1:
-            return "O<=>O\n0   1\nA1~"
-        ret = "0\nO"+(r-2)*"----"+"---+\n|"+(r-2)*"    "+"   |\n|"+(r-2)*"    "+"   |\n"
-        ret += (r-1)*"O---"+"O\n"
-        for i in range(1,r+1):
-            ret += i.__repr__()
-            if i < r:
-                ret += "   "
-        ret +="\nA%d~"%r
-        return ret
-    elif t[0] == 'B':
-        if r == 2:
-            return "O=>=O=<=O\n1   2   0"
-        ret = "    O 0\n    |\n    |\n" + (r-2)*"O---" + "O=>=O\n"
-        for i in range(1,r+1):
-            ret += i.__repr__()
-            if i < r:
-                ret += "   "
-        ret +="\nB%d~"%r
-        return ret
-    elif t[0] == 'C':
-        ret = "O=>=O"+(r-2)*"---O"+"=<=O\n0   "
-        for i in range(1,r+1):
-            ret += i.__repr__()
-            if i < r:
-                ret += "   "
-        ret +="\nC%d~"%r
-        return ret
-    elif t[0] == 'D':
-        if r == 4:
-            return "    O 4\n    |\n    |\nO---O---O\n1   |2  3\n    |\n    O 0\nD4~"
-        ret = "  0 O"+(4*(r-4)-1)*" "+"O "+(r-1).__repr__()+"\n"
-        ret += "    |"+(4*(r-4)-1)*" "+"|\n    |"+(4*(r-4)-1)*" "+"|\n"
-        ret += (r-2)*"O---"+"O\n"
-        for i in range(1,r-1):
-            ret += i.__repr__()+"   "
-        ret += r.__repr__()+"\nD%d~"%r
-        return ret
-    elif t[0] == 'E':
-        if r == 6:
-            return "        O 0\n        |\n        |\n        O 2\n        |\n        |\nO---O---O---O---O\n1   3   4   5   6\nE6~"
-        elif r == 7:
-            return "            O 2\n            |\n            |\nO---O---O---O---O---O---O\n0   1   3   4   5   6   7\nE7~"
-        elif r == 8:
-            return "        O 2\n        |\n        |\nO---O---O---O---O---O---O---O\n1   3   4   5   6   7   8   0\nE8~"
-        else:
-            raise ValueError, "invalid Cartan type"
-    elif t[0] == 'F':
-        if r == 4:
-            return "O---O---O=>=O---O\n0   1   2   3   4\nF4~"
-        else:
-            raise ValueError, "invalid Cartan type"
-    elif t[0] == 'G':
-        if r == 2:
-            return "  3\n0=<=O---O\n1   2   0\nG2~"
-        else:
-            raise ValueError, "invalid Cartan type"
-    else:
-        raise ValueError, "invalid Cartan type"
-
-
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
-    def __init__(self, t):
+    def __init__(self, t = None):
         """
+        INPUT:
+
+         - ``t`` - a Cartan type or None
+
         EXAMPLES::
 
             sage: d = DynkinDiagram(["A", 3])
             sage: d == loads(dumps(d))
             True
+
+        Implementation note: if a Cartan type is given, then the nodes
+        are initialized from the index set of this Cartan type.
         """
         DiGraph.__init__(self)
         self._cartan_type = t
+        if t is not None:
+            self.add_vertices(t.index_set())
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -327,19 +124,13 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             1   2
             G2
         """
-        try:
-            if self._cartan_type.is_finite():
-                return dynkin_diagram_ascii_art(self._cartan_type)
-            elif self._cartan_type.is_affine() and self._cartan_type.is_irreducible():
-                return extended_dynkin_diagram_ascii_art(self._cartan_type)
-        except AttributeError:
-            pass
-        except TypeError:
-            pass
-        if self._cartan_type is None:
-            return "Dynkin diagram of rank %s"%self.rank()
+        result = self.cartan_type().ascii_art() +"\n" if hasattr(self.cartan_type(), "ascii_art") else ""
+
+        if self.cartan_type() is None:
+            return result+"Dynkin diagram of rank %s"%self.rank()
         else:
-            return "Dynkin diagram of type %s"%self._cartan_type
+            return result+"%s"%self.cartan_type()._repr_(compact = True)
+            #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
 
     def add_edge(self, i, j, label=1):
         """
@@ -356,6 +147,43 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         DiGraph.add_edge(self, i, j, label)
         if not self.has_edge(j,i):
             self.add_edge(j,i,1)
+
+    def __hash__(self):
+        # Should assert for immutability!
+
+        #return hash(self.cartan_type(), self.vertices(), tuple(self.edges()))
+        # FIMXE: self.edges() currently tests at some point whether
+        # self is a vertex of itself which causes an infinite
+        # recursion loop. Current workaround: call self.edge_iterator directly
+        return hash((self.cartan_type(), tuple(self.vertices()), tuple(self.edge_iterator(self.vertices()))))
+
+    @staticmethod
+    def an_instance():
+        """
+        Returns an example of Dynkin diagram
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
+            sage: g = DynkinDiagram_class.an_instance()
+            sage: g
+            Dynkin diagram of rank 3
+            sage: g.cartan_matrix()
+            [ 2 -1 -1]
+            [-2  2 -1]
+            [-1 -1  2]
+
+        """
+        # hyperbolic Dynkin diagram of Exercise 4.9 p. 57 of Kac Infinite Dimensional Lie Algebras.
+        g = DynkinDiagram()
+        g.add_vertices([1,2,3])
+        g.add_edge(1,2,2)
+        g.add_edge(1,3)
+        g.add_edge(2,3)
+        return g
+
+    ##########################################################################
+    # Cartan type methods
 
     def index_set(self):
         """
@@ -435,11 +263,11 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         TESTS::
 
             sage: D = DynkinDiagram(['A',0]); D
-            Dynkin diagram of type ['A', 0]
+            A0
             sage: D.edges()
             []
             sage: D.dual()
-            Dynkin diagram of type ['A', 0]
+            A0
             sage: D.dual().edges()
             []
             sage: D = DynkinDiagram(['A',1])
@@ -458,6 +286,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             result.add_edge(target, source, label)
         result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
         return result
+
+    def is_crystalographic(self):
+        """
+        Implements :meth:`CartanType_abstract.is_crystalographic`
+
+        A Dynkin diagram always corresponds to a crystalographic root system.
+        """
+        return True
+
 
     def __getitem__(self, i):
         r"""

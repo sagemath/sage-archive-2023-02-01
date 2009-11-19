@@ -1,7 +1,17 @@
-from ambient_space import AmbientSpace
-from sage.rings.all import ZZ
+"""
+Root system data for type C
+"""
+#*****************************************************************************
+#       Copyright (C) 2008-2009 Daniel Bump
+#       Copyright (C) 2008-2009 Justin Walker
+#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+import ambient_space
 
-class ambient_space(AmbientSpace):
+class  AmbientSpace(ambient_space.AmbientSpace):
 
 # The coroots can't be defined with integer coefficients!
 #    @classmethod
@@ -10,7 +20,8 @@ class ambient_space(AmbientSpace):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['C',3]).ambient_space()
             sage: e.dimension()
             3
@@ -21,16 +32,18 @@ class ambient_space(AmbientSpace):
         """
         Note that indexing starts at 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['C',3]).ambient_space()
             sage: e.root(0, 1, 1, 1)
             (-1, -1, 0)
         """
-        return (-1)**p1 * self._term(i) + (-1)**p2 * self._term(j)
+        return (-1)**p1 * self.term(i) + (-1)**p2 * self.term(j)
 
     def simple_root(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['C',3]).ambient_space().simple_roots()
             Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 2)}
         """
@@ -39,7 +52,8 @@ class ambient_space(AmbientSpace):
 
     def positive_roots(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['C',3]).ambient_space().positive_roots()
             [(1, 1, 0),
              (1, 0, 1),
@@ -60,7 +74,8 @@ class ambient_space(AmbientSpace):
 
     def negative_roots(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['C',3]).ambient_space().negative_roots()
             [(-1, 1, 0),
              (-1, 0, 1),
@@ -82,62 +97,112 @@ class ambient_space(AmbientSpace):
 
     def fundamental_weight(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['C',3]).ambient_space().fundamental_weights()
             Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1, 1, 1)}
         """
-        return self.sum(self._term(j) for j in range(i))
+        return self.sum(self.term(j) for j in range(i))
 
+from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic, CartanType_simply_laced
+class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):
+    def __init__(self, n):
+        """
+        EXAMPLES::
 
-def dynkin_diagram(t):
-    """
-    Returns a Dynkin diagram for type C.
+            sage: ct = CartanType(['C',4])
+            sage: ct
+            ['C', 4]
+            sage: ct._repr_(compact = True)
+            'C4'
 
-    EXAMPLES:
-        sage: from sage.combinat.root_system.type_C import dynkin_diagram
-        sage: ct = CartanType(['C',3])
-        sage: c = dynkin_diagram(ct); c
-        O---O=<=O
-        1   2   3
-        C3
-        sage: e = c.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+            sage: ct.is_irreducible()
+            True
+            sage: ct.is_finite()
+            True
+            sage: ct.is_crystalographic()
+            True
+            sage: ct.is_simply_laced()
+            False
+            sage: ct.affine()
+            ['C', 4, 1]
+            sage: ct.dual()
+            ['B', 4]
 
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter='C', length=2, n_ge=2)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n,n-1,2)
-    return g
+            sage: ct = CartanType(['C',1])
+            sage: ct.is_simply_laced()
+            True
+            sage: ct.affine()
+            ['C', 1, 1]
 
-def affine_dynkin_diagram(t):
-    """
-    Returns the extended Dynkin diagram for affine type C.
+        TESTS:
+            sage: ct == loads(dumps(ct))
+            True
+        """
+        assert n >= 1
+        CartanType_standard_finite.__init__(self, "C", n)
+        if n == 1:
+            self._add_abstract_superclass(CartanType_simply_laced)
 
-    EXAMPLES:
-        sage: from sage.combinat.root_system.type_C import affine_dynkin_diagram
-        sage: ct = CartanType(['C',3,1])
-        sage: c = affine_dynkin_diagram(ct);c
-         O=>=O---O=<=O
-         0   1   2   3
-         C3~
-        sage: e = c.edges(); e.sort(); e
-        [(0, 1, 2), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+    AmbientSpace = AmbientSpace
 
-    """
-    from dynkin_diagram import precheck , DynkinDiagram_class
-    precheck(t, letter='C', length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n,n-1,2)
-    g.add_edge(0,1,1)
-    g.add_edge(0,1,2)
-    return g
+    def dual(self):
+        """
+        Types B and C are in duality:
 
+        EXAMPLES::
+
+            sage: CartanType(["C", 3]).dual()
+            ['B', 3]
+        """
+        import cartan_type
+        return cartan_type.CartanType(["B", self.n])
+
+    def dynkin_diagram(self):
+        """
+        Returns a Dynkin diagram for type C.
+
+        EXAMPLES::
+
+            sage: c = CartanType(['C',3]).dynkin_diagram()
+            sage: c
+            O---O=<=O
+            1   2   3
+            C3
+            sage: e = c.edges(); e.sort(); e
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+             sage: b = CartanType(['C',1]).dynkin_diagram()
+             sage: b
+             O
+             1
+             C1
+             sage: sorted(b.edges())
+             []
+        """
+        return self.dual().dynkin_diagram().dual()
+
+    def ascii_art(self, label = lambda x: x):
+        """
+        Returns a ascii art representation of the extended Dynkin diagram
+
+        EXAMPLES::
+
+            sage: print CartanType(['C',1]).ascii_art()
+            O
+            1
+            sage: print CartanType(['C',2]).ascii_art()
+            O=<=O
+            1   2
+            sage: print CartanType(['C',3]).ascii_art()
+            O---O=<=O
+            1   2   3
+            sage: print CartanType(['C',5]).ascii_art(label = lambda x: x+2)
+            O---O---O---O=<=O
+            3   4   5   6   7
+        """
+        return self.dual().ascii_art(label = label).replace("=>=", "=<=")
+
+# For unpickling backward compatibility (Sage <= 4.1)
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.root_system.type_C', 'ambient_space',  AmbientSpace)

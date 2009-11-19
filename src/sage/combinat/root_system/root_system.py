@@ -1,56 +1,64 @@
 """
 Root systems
+
+Quickref
+--------
+
+ - T = CartanType(["A", 3]), T.is_finite()          Cartan types
+ - T.dynkin_diagram(), DynkinDiagram(["G",2])       Dynkin diagrams
+ - T.cartan_matrix(),  CartanMatrix(["F",4])        Cartan matrices
+ - RootSystem(T).weight_lattice()                   Root systems
+ - WeylGroup(["B", 6, 1]).simple_reflections()      Affine weyl groups
+ - WeylCharacterRing(["D", 4])                      Weyl character rings
+
+Documentation
+-------------
+
+ - :mod:`sage.combinat.root_system`                 This current overview
+ - :class:`CartanType`	                            An introduction to Cartan types
+ - :class:`RootSystem`                              An introduction to root systems
+
+See also
+--------
+
+- :class:`CoxeterGroups`, :class:`WeylGroups`, ...  The categories of Coxeter and Weyl groups
+- :mod:`sage.combinat.crystals`                     An introduction to crystals
+- :mod:`.type_A`, :mod:`.type_B_affine`, ...        Type specific root system data
+
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
-#                          Justin Walker <justin at mac.com>
-#                          Nicolas M. Thiery <nthiery at users.sf.net>
+#       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
+#                               Justin Walker <justin at mac.com>
+#                     2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # Design largely inspired from MuPAD-Combinat
-from sage.structure.sage_object import SageObject
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 from cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from root_space import RootSpace
 from weight_space import WeightSpace
-import type_A
-import type_B
-import type_C
-import type_D
-import type_E
-import type_F
-import type_G
-import type_dual
-import type_reducible
-import type_None
 
-class RootSystem(SageObject):
+class RootSystem(UniqueRepresentation, Parent):
     r"""
-    Returns the root system associated to the Cartan type t.
+    A class for root systems.
 
-    EXAMPLES: We construct the root system for type `B_3`
+    EXAMPLES:
 
-    ::
+    We construct the root system for type `B_3`::
 
         sage: R=RootSystem(['B',3]); R
         Root system of type ['B', 3]
 
-    R models the root system abstractly. It comes equipped with various
+    ``R`` models the root system abstractly. It comes equipped with various
     realizations of the root and weight lattices, where all computation
-    take place. Let us play first with the root lattice.
-
-    ::
+    take place. Let us play first with the root lattice::
 
         sage: space = R.root_lattice()
         sage: space
@@ -78,9 +86,7 @@ class RootSystem(SageObject):
         Coroot lattice of the Root system of type ['B', 3]
 
     We construct the simple coroots, and do some computations (see
-    comments about duality below for some caveat).
-
-    ::
+    comments about duality below for some caveat)::
 
         sage: alphacheck = space.simple_coroots()
         sage: list(alphacheck)
@@ -211,9 +217,14 @@ class RootSystem(SageObject):
 
     ::
 
-        sage: all(RootSystem(T).check() for T in CartanType.samples(finite=True,crystalographic=True))
-        True
+        sage: for T in CartanType.samples(finite=True,crystalographic=True):
+        ...       TestSuite(RootSystem(T)).run()
     """
+
+    @staticmethod
+    def __classcall__(cls, cartan_type, as_dual_of=None):
+        return super(RootSystem, cls).__classcall__(cls, CartanType(cartan_type), as_dual_of)
+
     def __init__(self, cartan_type, as_dual_of=None):
         """
         TESTS::
@@ -223,40 +234,42 @@ class RootSystem(SageObject):
             Root system of type ['A', 3]
         """
         self._cartan_type = CartanType(cartan_type)
-        self.tools = self._cartan_type.tools
 
         # Duality
         # The root system can be defined as dual of another root system. This will
         # only affects the pretty printing
         if as_dual_of is None:
-            self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
             self.dual_side = False
+            self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
         else:
-            self.dual = as_dual_of
             self.dual_side = True
+            self.dual = as_dual_of
 
 
-    def check(self):
+    def _test_root_lattice_realizations(self, **options):
         """
-        Runs the checks on the root system.
+        Runs tests on all the root lattice realizations of this root
+        system.
 
         EXAMPLES::
 
-            sage: RootSystem(["A",3]).check()
-            True
+            sage: RootSystem(["A",3])._test_root_lattice_realizations()
+
+        See also :class:`TestSuite`.
         """
-        self.root_lattice().check()
-        self.root_space().check()
-        self.weight_lattice().check()
-        self.weight_space().check()
+        tester = self._tester(**options)
+        options.pop('tester', None)
+        from sage.misc.sage_unittest import TestSuite
+        TestSuite(self.root_lattice()).run(**options)
+        TestSuite(self.root_space()).run(**options)
+        TestSuite(self.weight_lattice()).run(**options)
+        TestSuite(self.weight_space()).run(**options)
         if self.ambient_lattice() is not None:
-            self.ambient_lattice().check()
+            TestSuite(self.ambient_lattice()).run(**options)
         if self.ambient_space() is not None:
-            self.ambient_space().check()
+            TestSuite(self.ambient_space()).run(**options)
 
-        return True
-
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -526,11 +539,12 @@ class RootSystem(SageObject):
         """
         # Intention: check that the ambient_space is implemented and that
         # base_ring contains the smallest base ring for this ambient space
-        if not self.tools.__dict__.has_key("ambient_space") or \
-            (base_ring == ZZ and self.tools.ambient_space.smallest_base_ring() == QQ):
+        if not hasattr(self.cartan_type(),"AmbientSpace"):
             return None
-        else:
-            return self.tools.ambient_space(self, base_ring)
+        AmbientSpace = self.cartan_type().AmbientSpace
+        if base_ring == ZZ and AmbientSpace.smallest_base_ring() == QQ:
+            return None
+        return AmbientSpace(self, base_ring)
 
 
 def WeylDim(ct, coeffs):

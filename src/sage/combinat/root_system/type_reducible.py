@@ -1,24 +1,28 @@
 from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple
-from sage.misc.flatten import flatten
 from sage.matrix.constructor import block_diagonal_matrix
-from ambient_space import AmbientSpace
+import ambient_space
 import sage.combinat.root_system as root_system
+from sage.structure.sage_object import SageObject
 
-class CartanType(CartanType_abstract):
+class CartanType(SageObject, CartanType_abstract):
     r"""
     A class for reducible Cartan types
     """
 
     def __init__(self, types):
         """
-        INPUT:
-           types -- a list of simple Cartan types
         Reducible root systems are ones that can be factored as
         direct products. Strictly speaking type D2 (corresponding
         to orthogonal groups of degree 4) are reducible since they
         are isomorphic to A1xA1. However type D2 is considered
         irreducible for our purposes.
-        EXAMPLES:
+
+        INPUT:
+
+        - ``types`` - a list of simple Cartan types
+
+        EXAMPLES::
+
            sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
            sage: CartanType([t1,t2])
            A1xB2
@@ -33,19 +37,22 @@ class CartanType(CartanType_abstract):
         self._rshifts = [sum(l[1] for l in types[:k]) for k in range(len(types))]
         self.tools = root_system.type_reducible
 
-    def __repr__(self):
+    def _repr_(self, compact = True): # We should make a consistent choice here
         """
-        EXAMPLES:
-           sage: ct = CartanType("A2","B2")
-           sage: repr(ct)
-           'A2xB2'
+        EXAMPLES::
+
+           sage: CartanType("A2","B2")
+           A2xB2
+
+           sage: CartanType("A2",CartanType("F4").dual())
+           A2xF4*
         """
-        names = [t[0]+str(t[1]) for t in self._types]
-        return  names[0]+"".join(flatten([["x",t] for t in names[1:]]))
+        return  "x".join(t._repr_(compact = True) for t in self._types)
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES:::
+
             sage: ct1 = CartanType(['A',1],['B',2])
             sage: ct2 = CartanType(['B',2],['A',1])
             sage: ct3 = CartanType(['A',4])
@@ -64,7 +71,8 @@ class CartanType(CartanType_abstract):
         """
         A list of Cartan types making up the reducible type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',2],['B',2]).component_types()
             [['A', 2], ['B', 2]]
         """
@@ -74,7 +82,8 @@ class CartanType(CartanType_abstract):
         """
         Returns "reducible" since the type is reducible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',2],['B',2]).type()
             'reducible'
         """
@@ -82,7 +91,8 @@ class CartanType(CartanType_abstract):
 
     def is_finite(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType(['A',2],['B',2])
             sage: ct.is_finite()
             True
@@ -93,17 +103,32 @@ class CartanType(CartanType_abstract):
         """
         Returns the rank of self.
 
-        EXAMPLES:
-           sage: CartanType("A2","A1").rank()
-           3
+        EXAMPLES::
+
+            sage: CartanType("A2","A1").rank()
+            3
         """
         return sum(t.rank() for t in self._types)
+
+    def index_set(self):
+        """
+        Implements :meth:`CartanType_abstract.index_set`.
+
+        For the moment, the index set is always of the form `{1,\dots,n}`.
+
+        EXAMPLES::
+
+            sage: CartanType("A2","A1").index_set()
+            [1, 2, 3]
+        """
+        return range(1, self.rank()+1)
 
     def root_system(self):
         """
         Returns the root system associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',4], ['B', 2]).root_system()
             Root system of type A4xB2
 
@@ -118,7 +143,8 @@ class CartanType(CartanType_abstract):
         reducibility but the subdivision can be suppressed with
         the option subdivide=False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType("A2","B2")
             sage: ct.cartan_matrix()
             [ 2 -1| 0  0]
@@ -134,35 +160,71 @@ class CartanType(CartanType_abstract):
         """
         return block_diagonal_matrix([t.cartan_matrix() for t in self._types], subdivide=subdivide)
 
+    def dynkin_diagram(t):
+        """
+        Returns a Dynkin diagram for type reducible.
+
+        EXAMPLES::
+
+            sage: dd = CartanType("A2xB2xF4").dynkin_diagram()
+            sage: dd
+            O---O
+            1   2
+            O=>=O
+            3   4
+            O---O=>=O---O
+            5   6   7   8
+            A2xB2xF4
+            sage: dd.edges()
+            [(1, 2, 1), (2, 1, 1), (3, 4, 2), (4, 3, 1), (5, 6, 1), (6, 5, 1), (6, 7, 2), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
+
+            sage: CartanType("F4xA2").dynkin_diagram()
+            O---O=>=O---O
+            1   2   3   4
+            O---O
+            5   6
+            F4xA2
+
+        """
+        from dynkin_diagram import DynkinDiagram, DynkinDiagram_class
+        g = DynkinDiagram_class(t)
+        for i in range(len(t._types)):
+            for [e1, e2, l] in DynkinDiagram(t._types[i]).edges():
+                shift = t._rshifts[i]
+                g.add_edge(e1+shift, e2+shift, label=l)
+        return g
+
+    def ascii_art(self, label = lambda x: x):
+        """
+        Returns an ascii art representation of this reducible Cartan type
+
+        EXAMPLES::
+            sage: print CartanType("F4xA2").ascii_art(label = lambda x: x+2)
+            O---O=>=O---O
+            3   4   5   6
+            O---O
+            7   8
+        """
+        types = self.component_types()
+        return "\n".join(types[i].ascii_art(label = lambda x: label(x+self._rshifts[i]))
+                         for i in range(len(types)))
+
     def is_irreducible(self):
         """
         Report that this Cartan type is not irreducible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType(['A',2],['B',2])
             sage: ct.is_irreducible()
             False
         """
         return False
 
-    def dynkin_diagram(self):
-        """
-        Returns the Dynkin diagram associated with self.
-
-        EXAMPLES::
-
-            sage: CartanType("F4xA2").dynkin_diagram()
-             O---O=>=O---O
-             1   2   3   4
-             O---O
-             5   6
-             F4xA2
-        """
-        return root_system.dynkin_diagram.DynkinDiagram(self)
-
     def dual(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType("A2xB2").dual()
             A2xC2
         """
@@ -172,7 +234,8 @@ class CartanType(CartanType_abstract):
         """
         Report that this reducible Cartan type is not affine
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',2],['B',2]).is_affine()
             False
         """
@@ -181,15 +244,17 @@ class CartanType(CartanType_abstract):
 
 
 
-class ambient_space(AmbientSpace):
+class AmbientSpace(ambient_space.AmbientSpace):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: RootSystem("A2xB2").ambient_space()
         Ambient space of the Root system of type A2xB2
     """
     def cartan_type(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A2xB2").ambient_space().cartan_type()
             A2xB2
         """
@@ -197,7 +262,8 @@ class ambient_space(AmbientSpace):
 
     def component_types(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A2xB2").ambient_space().component_types()
             [['A', 2], ['B', 2]]
         """
@@ -205,7 +271,8 @@ class ambient_space(AmbientSpace):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A2xB2").ambient_space().dimension()
             5
         """
@@ -216,7 +283,8 @@ class ambient_space(AmbientSpace):
         Returns a list of the irreducible Cartan types of which the
         given reducible Cartan type is a product.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A2xB2").ambient_space().ambient_spaces()
             [Ambient space of the Root system of type ['A', 2],
              Ambient space of the Root system of type ['B', 2]]
@@ -228,10 +296,13 @@ class ambient_space(AmbientSpace):
         Produces the corresponding element of the lattice.
 
         INPUT:
-          i -- an integer in range(self.components)
-          v -- a vector in the i-th component weight lattice
 
-        EXAMPLES:
+        - ``i`` - an integer in range(self.components)
+
+        - ``v`` - a vector in the i-th component weight lattice
+
+        EXAMPLES::
+
             sage: V = RootSystem("A2xB2").ambient_space()
             sage: [V.inject_weights(i,V.ambient_spaces()[i].fundamental_weights()[1]) for i in range(2)]
             [(1, 0, 0, 0, 0), (0, 0, 0, 1, 0)]
@@ -243,7 +314,8 @@ class ambient_space(AmbientSpace):
 
     def simple_roots(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A1xA2").ambient_space().simple_roots()
             [(1, -1, 0, 0, 0), (0, 0, 1, -1, 0), (0, 0, 0, 1, -1)]
         """
@@ -254,7 +326,8 @@ class ambient_space(AmbientSpace):
 
     def positive_roots(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A1xA2").ambient_space().positive_roots()
             [(1, -1, 0, 0, 0), (0, 0, 1, -1, 0), (0, 0, 1, 0, -1), (0, 0, 0, 1, -1)]
         """
@@ -265,7 +338,8 @@ class ambient_space(AmbientSpace):
 
     def negative_roots(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A1xA2").ambient_space().negative_roots()
             [(-1, 1, 0, 0, 0), (0, 0, -1, 1, 0), (0, 0, -1, 0, 1), (0, 0, 0, -1, 1)]
         """
@@ -276,7 +350,8 @@ class ambient_space(AmbientSpace):
 
     def fundamental_weights(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem("A2xB2").ambient_space().fundamental_weights()
             [(1, 0, 0, 0, 0), (1, 1, 0, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, 1/2, 1/2)]
         """
@@ -285,31 +360,5 @@ class ambient_space(AmbientSpace):
             ret.extend(self.inject_weights(i, v) for v in ambient_space.fundamental_weights())
         return ret
 
-def dynkin_diagram(t):
-    """
-    Returns a Dynkin diagram for type reducible.
 
-    EXAMPLES:
-        sage: t = CartanType("A2xB2xF4")
-        sage: dd = DynkinDiagram(t); dd
-         O---O
-         1   2
-         O=>=O
-         3   4
-         O---O=>=O---O
-         5   6   7   8
-         A2xB2xF4
-        sage: dd.edges()
-        [(1, 2, 1), (2, 1, 1), (3, 4, 2), (4, 3, 1), (5, 6, 1), (6, 5, 1), (6, 7, 2), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
-
-    """
-    from dynkin_diagram import DynkinDiagram, DynkinDiagram_class
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(len(t._types)):
-        for [e1, e2, l] in DynkinDiagram(t._types[i]).edges():
-            shift = t._rshifts[i]
-            g.add_edge(e1+shift, e2+shift, label=l)
-    return g
-
-
+CartanType.AmbientSpace = AmbientSpace

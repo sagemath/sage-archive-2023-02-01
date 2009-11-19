@@ -633,8 +633,13 @@ class NumberField_relative(NumberField_generic):
             sage: type(K.Hom(K))
             <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset_with_category'>
         """
-        import morphism
-        return morphism.RelativeNumberFieldHomset(self, codomain)
+
+        from number_field import is_NumberFieldHomsetCodomain
+        if is_NumberFieldHomsetCodomain(codomain):
+            import morphism
+            return morphism.RelativeNumberFieldHomset(self, codomain)
+        else:
+            raise TypeError
 
     def _latex_(self):
         r"""

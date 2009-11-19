@@ -130,6 +130,42 @@ from itertools import count, izip
 
 from sage.rings.integer_ring import IntegerRing
 
+def is_NumberFieldHomsetCodomain(codomain):
+    """
+    Returns whether ``codomain`` is a valid codomain for a number
+    field homset. This is used by NumberField._Hom_ to determine
+    whether the created homsets should be a
+    :class:`sage.rings.number_field.morphism.NumberFieldHomset`.
+
+    EXAMPLES:
+
+    This currently accepts any parent (CC, RR, ...) in :class:`Fields`()::
+
+        sage: from sage.rings.number_field.number_field import is_NumberFieldHomsetCodomain
+        sage: is_NumberFieldHomsetCodomain(QQ)
+        True
+        sage: is_NumberFieldHomsetCodomain(NumberField(x^2 + 1, 'x'))
+        True
+        sage: is_NumberFieldHomsetCodomain(ZZ)
+        False
+        sage: is_NumberFieldHomsetCodomain(3)
+        False
+        sage: is_NumberFieldHomsetCodomain(MatrixSpace(QQ, 2))
+        False
+        sage: is_NumberFieldHomsetCodomain(InfinityRing)
+        False
+
+    Question: should, for example, QQ-algebras be accepted as well?
+
+    Caveat: Gap objects are not (yet) in ``Fields()``, and therefore
+    not accepted as number field homset codomains::
+
+        sage: is_NumberFieldHomsetCodomain(gap.Rationals)
+        False
+    """
+    from sage.categories.fields import Fields
+    return codomain in Fields()
+
 def proof_flag(t):
     """
     Used for easily determining the correct proof flag to use.
@@ -995,9 +1031,17 @@ class NumberField_generic(number_field_base.NumberField):
             Automorphism group of Number Field in i with defining polynomial x^2 + 1
             sage: Hom(K, QuadraticField(-1, 'b'))
             Set of field embeddings from Number Field in i with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1
+
+        CHECKME: handling of the case where codomain is not a number field?
+
+           sage: Hom(K, VectorSpace(QQ,3))
+           Set of Morphisms from Number Field in i with defining polynomial x^2 + 1 to Vector space of dimension 3 over Rational Field in Category of commutative additive groups
         """
-        import morphism
-        return morphism.NumberFieldHomset(self, codomain)
+        if is_NumberFieldHomsetCodomain(codomain):
+            import morphism
+            return morphism.NumberFieldHomset(self, codomain)
+        else:
+            raise TypeError
 
     def _set_structure(self, from_self, to_self, unsafe_force_change=False):
         """
@@ -6378,8 +6422,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: End(CyclotomicField(21))
             Automorphism group of Cyclotomic Field of order 21 and degree 12
         """
-        import morphism
-        return morphism.CyclotomicFieldHomset(self, codomain)
+        if is_NumberFieldHomsetCodomain(codomain):
+            import morphism
+            return morphism.CyclotomicFieldHomset(self, codomain)
+        else:
+            raise TypeError
 
     def is_galois(self):
         """
@@ -6408,7 +6455,7 @@ class NumberField_cyclotomic(NumberField_absolute):
        """
        if not isinstance(other, NumberField_generic):
            raise ValueError, "other must be a generic number field."
-       return self._Hom_(other).order() > 0
+       return self.Hom(other).order() > 0
 
     def complex_embedding(self, prec=53):
         r"""

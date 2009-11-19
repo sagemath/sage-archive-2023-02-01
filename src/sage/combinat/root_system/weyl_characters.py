@@ -19,7 +19,9 @@ import cartan_type
 from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_element import vector
 from sage.structure.element import is_Element
+from sage.matrix.constructor import matrix
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc import repr_lincomb
 from sage.misc.functional import is_odd, is_even
@@ -346,6 +348,108 @@ class WeylCharacter(AlgebraElement):
             [[(1/2, 1/2, 1/2), 1]]
         """
         return [[k,m] for k,m in self._hdict.iteritems()]
+
+    def is_irreducible(self):
+        """
+        Returns True if self is an irreducible character.
+
+        EXAMPLES::
+
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: [B3(x).is_irreducible() for x in B3.fundamental_weights()]
+             [True, True, True]
+            sage: sum(B3(x) for x in B3.fundamental_weights()).is_irreducible()
+             False
+        """
+        h = self.hlist()
+        return len(h) is 1 and h[0][1] is 1
+
+    def symmetric_square(self):
+        """
+        Returns the symmetric square of the character.
+
+        EXAMPLES::
+
+            sage: A2 = WeylCharacterRing("A2",style="coroots")
+            sage: A2(1,0).symmetric_square()
+             A2(2,0)
+        """
+
+        cmlist = self.mlist()
+        mdict = {}
+        for j in range(len(cmlist)):
+            for i in range(j+1):
+                t = cmlist[i][0]+cmlist[j][0]
+                if i < j:
+                    coef = cmlist[i][1]*cmlist[j][1]
+                else:
+                    coef = cmlist[i][1]*(cmlist[i][1]+1)/2
+                if t in mdict:
+                    mdict[t] += coef
+                else:
+                    mdict[t] = coef
+        hdict = self._parent.char_from_weights(mdict)
+        return WeylCharacter(self._parent, hdict, mdict)
+
+    def exterior_square(self):
+        """
+        Returns the exterior square of the character.
+
+        EXAMPLES::
+
+            sage: A2 = WeylCharacterRing("A2",style="coroots")
+            sage: A2(1,0).exterior_square()
+             A2(0,1)
+        """
+        cmlist = self.mlist()
+        mdict = {}
+        for j in range(len(cmlist)):
+            for i in range(j+1):
+                t = cmlist[i][0]+cmlist[j][0]
+                if i < j:
+                    coef = cmlist[i][1]*cmlist[j][1]
+                else:
+                    coef = cmlist[i][1]*(cmlist[i][1]-1)/2
+                if t in mdict:
+                    mdict[t] += coef
+                else:
+                    mdict[t] = coef
+        hdict = self._parent.char_from_weights(mdict)
+        return WeylCharacter(self._parent, hdict, mdict)
+
+    def frobenius_schur_indicator(self):
+        """
+        Returns:
+
+        1 if the representation is real (orthogonal)
+        -1 if the representation is quaternionic (symplectic)
+        0 if the representation is complex (not self dual)
+
+        The Frobenius-Schur indicator of a character 'chi'
+        of a compact group G is the Haar integral over the
+        group of 'chi(g^2)'. Its value is 1,-1 or 0. This
+        method computes it for irreducible characters of
+        compact Lie groups by checking whether the symmetric
+        and exterior square characters contain the trivial
+        character.
+
+        EXAMPLES::
+
+            sage: B2 = WeylCharacterRing("B2",style="coroots")
+            sage: B2(1,0).frobenius_schur_indicator()
+             1
+            sage: B2(0,1).frobenius_schur_indicator()
+             -1
+        """
+        if not self.is_irreducible():
+            raise ValueError, "Frobenius-Schur indicator is only valid for irreducible characters"
+        z = self._parent.space().zero()
+        if z in self.symmetric_square()._hdict:
+            return 1
+        elif z in self.exterior_square()._hdict:
+            return -1
+        else:
+            return 0
 
     def mlist(self):
         """
@@ -895,9 +999,11 @@ def branch_weyl_character(chi, R, S, rule="default"):
     King, Branching rules for classical Lie groups using tensor and
     spinor methods. J. Phys. A 8 (1975), 429-449, Howe, Tan and
     Willenbring, Stable branching rules for classical symmetric pairs,
-    Trans. Amer. Math. Soc. 357 (2005), no. 4, 1601-1626 and McKay and
+    Trans. Amer. Math. Soc. 357 (2005), no. 4, 1601-1626, McKay and
     Patera, Tables of Dimensions, Indices and Branching Rules for
-    Representations of Simple Lie Algebras (Marcel Dekker, 1981).
+    Representations of Simple Lie Algebras (Marcel Dekker, 1981),
+    and Fauser, Jarvis, King and Wybourne, New branching rules induced
+    by plethysm. J. Phys. A 39 (2006), no. 11, 2611--2655.
 
     INPUT:
 
@@ -926,8 +1032,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     We will list give predefined rules that cover most cases where the
     branching rule is to a maximal subgroup. For convenience, we
     also give some branching rules to subgroups that are not maximal.
-    For example, a Levi subgroup may or may not be maximal, but you
-    can usually branch to it.
+    For example, a Levi subgroup may or may not be maximal.
 
     LEVI TYPE. These can be read off from the Dynkin diagram. If
     removing a node from the Dynkin diagram produces another Dynkin
@@ -1002,22 +1107,15 @@ def branch_weyl_character(chi, R, S, rule="default"):
     (e.g. B2xB3 -> D6) cannot be explained this way but for
     uniformity is implemented under rule="extended".
 
-    You can therefore get any branching rule
-
-    O(n) => O(a)xO(b)xO(c)x ... where n = a+b+c+ ...
-    Sp(2n) => Sp(2a)xSp(2b)xSp(2c)x ... where n = a+b+c+ ...
-
+    Using rule="extended" you can get any branching rule
+    SO(n) => SO(a) x SO(b) x SO(c) x ... where n = a+b+c+ ...
+    Sp(2n) => Sp(2a) x Sp(2b) x Sp(2c) x ... where n = a+b+c+ ...
     where O(a) = ['D',r] (a=2r) or ['B',r] (a=2r+1)
-    and Sp(2r)=['C',r] using rule="extended".
+    and Sp(2r)=['C',r].
 
-    TENSOR: The branching rule
+    TENSOR: There are branching rules
 
     ['A', rs-1] => ['A',r-1] x ['A',s-1]
-
-    corresponding to the tensor product homomorphism GL(r) x GL(s) -> GL(rs)
-    is implemented using rule="tensor". There are also branching rules
-    for types B,C and D. These are:
-
     ['B',2rs+r+s] => ['B',r] x ['B',s]
     ['D',2rs+s] => ['B',r] x ['D',s]
     ['D',2rs] => ['D',r] x ['D',s]
@@ -1025,8 +1123,17 @@ def branch_weyl_character(chi, R, S, rule="default"):
     ['C',2rs+s] => ['B',r] x ['C',s]
     ['C',2rs] => ['C',r] x ['D',s].
 
-    These are not implemented yet though you may obtain them using
-    handwritten rules.
+    corresponding to the tensor product homomorphism. For type
+    A, the homomorphism is GL(r) x GL(s) -> GL(rs). For the
+    classical types, the relevant fact is that if V,W are
+    orthogonal or symplectic spaces, that is, spaces endowed
+    with symmetric or skew-symmetric bilinear forms, then V
+    tensor W is also an orthogonal space (if V and W are both
+    orthogonal or both symplectic) or symplectic (if one of
+    V and W is orthogonal and the other symplectic).
+
+    The corresponding branching rules are obtained using rule="tensor".
+
 
     SYMMETRIC POWER: The k-th symmetric and exterior power homomorphisms
     map GL(n) --> GL(binomial(n+k-1,k)) and GL(binomial(n,k)). The
@@ -1038,12 +1145,18 @@ def branch_weyl_character(chi, R, S, rule="default"):
     ['B',r] => A1
     ['C',r] => A1
 
-    and these may be obtained using the rule "symmetric power".
+    and these may be obtained using the rule "symmetric_power".
 
     MISCELLANEOUS: Use rule="miscellaneous" for the following rule,
     which does not fit into the above framework.
 
     B3 => G2
+
+    BRANCHING RULES FROM PLETHYSMS
+
+    Nearly all branching rules G => H where G is of type A,B,C or D
+    are covered by the preceding rules. The function
+    branching_rules_from_plethysm covers the remaining cases.
 
     ISOMORPHIC TYPE: Although not usually referred to as a branching
     rule, the effects of the accidental isomorphisms may be handled
@@ -1219,18 +1332,26 @@ def branch_weyl_character(chi, R, S, rule="default"):
          A2xA1(1,0,2) + A2xA1(0,2,0),
          A2xA1(0,1,1)]
 
-    Although tensor products for the classical types are not implemented
-    as hard-coded rules, you may still write your own rule for any given
-    case. For example the tensor product homomorphism SO(3)xSO(3)-->SO(9)
-    gives a branching rule B4=>B1xB1 which may be computed as follows:
-
         sage: B4=WeylCharacterRing("B4",style="coroots")
         sage: B1xB1=WeylCharacterRing("B1xB1",style="coroots")
-        sage: [B4(hwv).branch(B1xB1, rule=lambda x : [x[0]-x[2]+x[3],x[0]+x[1]+x[2]]) for hwv in B4.fundamental_weights()]
+        sage: [B4(f).branch(B1xB1,rule="tensor") for f in B4.fundamental_weights()]
         [B1xB1(2,2),
          B1xB1(0,2) + B1xB1(2,0) + B1xB1(2,4) + B1xB1(4,2),
          B1xB1(0,2) + B1xB1(0,6) + B1xB1(2,0) + B1xB1(2,2) + B1xB1(2,4) + B1xB1(4,2) + B1xB1(4,4) + B1xB1(6,0),
          B1xB1(1,3) + B1xB1(3,1)]
+
+        sage: D4=WeylCharacterRing("D4",style="coroots")
+        sage: C2xC1=WeylCharacterRing("C2xC1",style="coroots")
+        sage: [D4(f).branch(C2xC1,rule="tensor") for f in D4.fundamental_weights()]
+        [C2xC1(1,0,1),
+         C2xC1(0,0,2) + C2xC1(0,1,2) + C2xC1(2,0,0),
+         C2xC1(1,0,1),
+         C2xC1(0,0,2) + C2xC1(0,1,0)]
+
+        sage: C3=WeylCharacterRing("C3",style="coroots")
+        sage: B1xC1=WeylCharacterRing("B1xC1",style="coroots")
+        sage: [C3(f).branch(B1xC1,rule="tensor") for f in C3.fundamental_weights()]
+        [B1xC1(2,1), B1xC1(2,2) + B1xC1(4,0), B1xC1(0,3) + B1xC1(4,1)]
 
     EXAMPLES: (Symmetric Power)
 
@@ -1288,6 +1409,61 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: [D2(fw).branch(A1xA1,rule="isomorphic") for fw in D2.fundamental_weights()]
         [A1xA1(1,0), A1xA1(0,1)]
 
+    EXAMPLES: (Branching rules from plethysms)
+
+    This is a general rule that includes any branching rule
+    from types A,B,C or D as a special case. Thus it could be
+    used in place of the above rules and would give the same
+    results.
+
+    We consider a homomorphism H --> G where G is one of
+    SL(r+1), SO(2r+1), Sp(2r) or SO(2r). The function
+    branching_rule_from_plethysm produces the corresponding
+    branching rule. The main ingredient is the character
+    chi of the representation of H that is the homomorphism
+    to GL(r+1), GL(2r+1) or GL(2r).
+
+    This rule is so powerful that it contains the other
+    rules implemented above as special cases. First let
+    us consider the symmetric fifth power representation
+    of SL(2).
+
+        sage: A1=WeylCharacterRing("A1",style="coroots")
+        sage: chi=A1([5])
+        sage: chi.degree()
+         6
+        sage: chi.frobenius_schur_indicator()
+        -1
+
+    This confirms that the character has degree 6 and
+    is symplectic, so it corresponds to a homomorphism
+    SL(2) --> Sp(6), and there is a corresponding
+    branching rule C3 => A1.
+
+        sage: C3 = WeylCharacterRing("C3",style="coroots")
+        sage: sym5rule = branching_rule_from_plethysm(chi,"C3")
+        sage: [C3(hwv).branch(A1,rule=sym5rule) for hwv in C3.fundamental_weights()]
+        [A1(5), A1(4) + A1(8), A1(3) + A1(9)]
+
+    This is identical to the results we would obtain using
+    rule="symmetric_power". The next example gives a branching
+    not available by other standard rules.
+
+        sage: G2 = WeylCharacterRing("G2",style="coroots")
+        sage: D7 = WeylCharacterRing("D7",style="coroots")
+        sage: ad=G2(0,1); ad.degree(); ad.frobenius_schur_indicator()
+         14
+         1
+        sage: spin = D7(0,0,0,0,0,1,0); spin.degree()
+         64
+        sage: spin.branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
+         G2(1,1)
+
+    We have confirmed that the adjoint representation of G2
+    gives a homomorphism into SO(14), and that the pullback
+    of the one of the two 64 dimensional spin representations
+    to SO(14) is an irreducible representation of G2.
+
     BRANCHING FROM A REDUCIBLE ROOT SYSTEM
 
     If you are branching from a reducible root system, the rule is
@@ -1309,10 +1485,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
          A1xA1xA1xA1(0,1,0,1) + A1xA1xA1xA1(1,0,1,0)]
 
     WRITING YOUR OWN RULES
-
-    The rules that are already coded in SAGE are extensive but
-    not exhaustive. If you need a rule that is not implemented,
-    you may write it yourself.
 
     Suppose you want to branch from a group G to a subgroup H.
     Arrange the embedding so that a Cartan subalgebra U of H is
@@ -1395,6 +1567,8 @@ def get_branching_rule(Rtype, Stype, rule):
     s = Stype.rank()
     rdim = Rtype.root_system().ambient_space().dimension()
     sdim = Stype.root_system().ambient_space().dimension()
+    if Stype.is_compound():
+        stypes = Stype.component_types()
     if rule == "default":
         return lambda x : x
     elif rule == "levi":
@@ -1402,7 +1576,7 @@ def get_branching_rule(Rtype, Stype, rule):
             raise ValueError, "Incompatible ranks"
         if Rtype[0] == 'A':
             if Stype.is_compound():
-                if all(ct[0]=='A' for ct in Stype.component_types()) \
+                if all(ct[0]=='A' for ct in stypes) \
                        and rdim == sdim:
                     return lambda x : x
                 else:
@@ -1417,7 +1591,7 @@ def get_branching_rule(Rtype, Stype, rule):
                     return  lambda x : x
                 elif Stype[0] == Rtype[0]:
                     return lambda x : list(x)[1:]
-            elif Stype.component_types()[-1][0] == Rtype[0] and all(t[0] == 'A' for t in Stype.component_types()[:-1]):
+            elif stypes[-1][0] == Rtype[0] and all(t[0] == 'A' for t in stypes[:-1]):
                 return lambda x : x
             else:
                 raise ValueError, "Rule not found"
@@ -1472,13 +1646,13 @@ def get_branching_rule(Rtype, Stype, rule):
             raise ValueError, "Rule not found"
     elif rule == "extended":
         if Stype.is_compound():
-            if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in Stype.component_types()):
+            if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in stypes):
                 if Rtype[0] == 'D':
                     rdeg = 2*r
                 else:
                     rdeg = 2*r+1
                 sdeg = 0
-                for t in Stype.component_types():
+                for t in stypes:
                     if t[0] == 'D':
                         sdeg += 2*t[1]
                     else:
@@ -1488,10 +1662,10 @@ def get_branching_rule(Rtype, Stype, rule):
                 else:
                     raise ValueError, "Rule not found"
             elif Rtype[0] == 'C'  and s == r:
-                if all(t[0] == Rtype[0] for t in Stype.component_types()):
+                if all(t[0] == Rtype[0] for t in stypes):
                     return lambda x : x
             elif Rtype[0] == 'G' and s == r:
-                if all(t[0] == 'A' and t[1] == 1 for t in Stype.component_types()):
+                if all(t[0] == 'A' and t[1] == 1 for t in stypes):
                     return lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2]
             else:
                 raise ValueError, "Rule not found"
@@ -1508,19 +1682,23 @@ def get_branching_rule(Rtype, Stype, rule):
     elif rule == "isomorphic":
         if r != s:
             raise ValueError, "Incompatible ranks"
-        if Rtype[0] == 'B' and r == 2 and Stype[0] == 'C':
+        if Rtype == Stype:
+            return lambda x : x
+        elif Rtype[0] == 'B' and r == 2 and Stype[0] == 'C':
             def rule(x) : [x1, x2] = x; return [x1+x2, x1-x2]
             return rule
-        if Rtype[0] == 'B' and r == 1 and Stype[0] == 'A':
+        elif Rtype[0] == 'B' and r == 1 and Stype[0] == 'A':
             return lambda x : [x[0],-x[0]]
         elif Rtype[0] == 'C' and r == 2 and Stype[0] == 'B':
             def rule(x) : [x1, x2] = x; return [(x1+x2)/2, (x1-x2)/2]
             return rule
+        elif Rtype[0] == 'C' and r == 1 and Stype[0] == 'A':
+            return lambda x : [x[0]/2,-x[0]/2]
         elif Rtype[0] == 'A' and r == 3 and Stype[0] == 'D':
             def rule(x): [x1, x2, x3, x4] = x; return [(x1+x2-x3-x4)/2, (x1-x2+x3-x4)/2, (x1-x2-x3+x4)/2]
             return rule
         elif Rtype[0] == 'D' and r == 2 and Stype.is_compound() and \
-                 all(t[0] == 'A' for t in Stype.component_types()):
+                 all(t[0] == 'A' for t in stypes):
             def rule(x): [t1, t2] = x; return [(t1-t2)/2, -(t1-t2)/2, (t1+t2)/2, -(t1+t2)/2]
             return rule
         elif Rtype[0] == 'D' and r == 3 and Stype[0] == 'A':
@@ -1528,25 +1706,85 @@ def get_branching_rule(Rtype, Stype, rule):
             return rule
         else:
             raise ValueError, "Rule not found"
-    elif rule == "tensor":
+    elif rule == "tensor" or rule == "tensor-debug":
         if not Stype.is_compound():
             raise ValueError, "Tensor product requires more than one factor"
-        if len(Stype.component_types()) is not 2:
+        if len(stypes) is not 2:
             raise ValueError, "Not implemented"
+        if Rtype[0] is 'A':
+            nr = Rtype[1]+1
+        elif Rtype[0] is 'B':
+            nr = 2*Rtype[1]+1
+        elif Rtype[0] in ['C', 'D']:
+            nr = 2*Rtype[1]
+        else:
+            raise ValueError, "Rule not found"
+        [s1, s2] = [stypes[i][1] for i in range(2)]
+        ns = [s1, s2]
+        for i in range(2):
+            if stypes[i][0] is 'A':
+                ns[i] = ns[i]+1
+            if stypes[i][0] is 'B':
+                ns[i] = 2*ns[i]+1
+            if stypes[i][0] in ['C','D']:
+                ns[i] = 2*ns[i]
+        if nr != ns[0]*ns[1]:
+            raise ValueError, "Ranks don't agree with tensor product"
         if Rtype[0] == 'A':
-            if all(t[0] == 'A' for t in Stype.component_types()):
-                [s1,s2] = [Stype.component_types()[i][1]+1 for i in range(2)]
-                if not s1*s2 == r+1:
-                    raise ValueError, "Ranks don't agree with tensor product"
+            if all(t[0] == 'A' for t in stypes):
                 def rule(x):
-                    ret = [sum(x[i*s2:(i+1)*s2]) for i in range(s1)]
-                    ret.extend([sum(x[s2*j+i] for j in range(s1)) for i in range(s2)])
+                    ret = [sum(x[i*ns[1]:(i+1)*ns[1]]) for i in range(ns[0])]
+                    ret.extend([sum(x[ns[1]*j+i] for j in range(ns[0])) for i in range(ns[1])])
                     return ret
                 return rule
             else:
                 raise ValueError, "Rule not found"
-        else:
-            raise ValueError, "Not implemented"
+        elif Rtype[0] == 'B':
+            if not all(t[0] == 'B' for t in stypes):
+                raise ValueError, "Rule not found"
+        elif Rtype[0] == 'C':
+            if stypes[0][0] in ['B','D'] and stypes[1][0] is 'C':
+                pass
+            elif stypes[1][0] in ['B','D'] and stypes[0][0] is 'C':
+                pass
+            else:
+                raise ValueError, "Rule not found"
+        elif Rtype[0] == 'D':
+            if stypes[0][0] in ['B','D'] and stypes[1][0] is 'D':
+                pass
+            elif stypes[1][0] is 'B' and stypes[0][0] is 'D':
+                pass
+            elif stypes[1][0] is 'C' and stypes[0][0] is 'C':
+                pass
+            else:
+                raise ValueError, "Rule not found"
+        rows = []
+        for i in range(s1):
+            for j in range(s2):
+                nextrow = (s1+s2)*[0]
+                nextrow[i] = 1
+                nextrow[s1+j] = 1
+                rows.append(nextrow)
+        if stypes[1][0] == 'B':
+            for i in range(s1):
+                nextrow = (s1+s2)*[0]
+                nextrow[i] = 1
+                rows.append(nextrow)
+        for i in range(s1):
+            for j in range(s2):
+                nextrow = (s1+s2)*[0]
+                nextrow[i] = 1
+                nextrow[s1+j] = -1
+                rows.append(nextrow)
+        if stypes[0][0] == 'B':
+            for j in range(s2):
+                nextrow = (s1+s2)*[0]
+                nextrow[s1+j] = 1
+                rows.append(nextrow)
+        mat = matrix(rows).transpose()
+        if rule == "tensor-debug":
+            print mat
+        return lambda x : tuple(mat*vector(x))
     elif rule == "symmetric_power":
         if Stype[0] == 'A' and s == 1:
             if Rtype[0] == 'B':
@@ -1568,6 +1806,85 @@ def get_branching_rule(Rtype, Stype, rule):
             return lambda x : [x[0]+x[1], -x[1]+x[2], -x[0]-x[2]]
         else:
             raise ValueError, "Rule not found"
+
+
+def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
+    """
+    INPUT:
+
+    - ``chi`` - the character of an irreducible representation pi of a group G
+    - ``cartan_type`` - a classical Cartan type (A,B,C or D).
+
+    It is assumed that the image of the irreducible representation pi
+    naturally has its image in the group G.
+
+    Returns a branching rule for this plethysm.
+
+    EXAMPLE:
+
+    The adjoint representation SL(3) --> GL(8) factors
+    through SO(8). The branching rule in question will
+    describe how representations of SO(8) composed with
+    this homomorphism decompose into irreducible characters
+    of SL(3).
+
+        sage: A2 = WeylCharacterRing("A2")
+        sage: A2 = WeylCharacterRing("A2", style="coroots")
+        sage: ad = A2(1,1)
+        sage: ad.degree()
+         8
+        sage: ad.frobenius_schur_indicator()
+         1
+
+    This confirms that ad has degree 8 and is orthogonal,
+    hence factors through SO(8)=D4.
+
+        sage: br = branching_rule_from_plethysm(ad,"D4")
+        sage: D4 = WeylCharacterRing("D4")
+        sage: [D4(f).branch(A2,rule = br) for f in D4.fundamental_weights()]
+         [A2(1,1), A2(1,1) + A2(0,3) + A2(3,0), A2(1,1), A2(1,1)]
+    """
+    ct = CartanType(cartan_type)
+    if ct[0] not in ["A","B","C","D"]:
+        raise ValueError, "not implemented for type %s"%ct[0]
+    if ct[0] is "A":
+        ret = []
+        for [v,n] in chi.mlist():
+            ret.extend(n*[v.to_vector()])
+        M = matrix(ret).transpose()
+        if len(M.columns()) != ct[1] + 1:
+            raise ValueError, "representation has wrong degree for type %s"%ct.__repr__()
+        return lambda x : tuple(M*vector(x))
+    if ct[0] in ["B","D"]:
+        if chi.frobenius_schur_indicator() != 1:
+            raise ValueError, "character is not orthogonal"
+    if ct[0] is "C":
+        if chi.frobenius_schur_indicator() != -1:
+            raise ValueError, "character is not symplectic"
+    if ct[0] is "B":
+        if is_even(chi.degree()):
+            raise ValueError, "degree is not odd"
+    if ct[0] is ["C","D"]:
+        if is_odd(chi.degree()):
+            raise ValueError, "degree is not even"
+    ret = []
+    for [v,n] in chi.mlist():
+        v = v.to_vector()
+        if all(x==0 for x in v):
+            if ct[0] is "B":
+                n = (n-1)/2
+            else:
+                n = n/2
+        elif [x for x in v if x !=0][0] < 0:
+            continue
+        ret.extend(n*[v])
+    M = matrix(ret).transpose()
+    if len(M.columns()) != ct.root_system().ambient_space().dimension():
+        raise ValueError, "representation has wrong degree for type %s"%ct.__repr__()
+    if return_matrix:
+        return M
+    else:
+        return lambda x : tuple(M*vector(x))
 
 
 class WeightRingElement(AlgebraElement):

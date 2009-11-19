@@ -18,6 +18,7 @@ Basic Structures
 
    sage/sets/family
    sage/sets/set
+   sage/sets/disjoint_union_enumerated_sets
    sage/sets/finite_enumerated_set
    sage/sets/non_negative_integers
    sage/sets/primes

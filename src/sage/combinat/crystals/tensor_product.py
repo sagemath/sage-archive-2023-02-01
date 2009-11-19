@@ -413,8 +413,11 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
             sage: T = TensorProductOfCrystals(C,C)
             sage: T(C(1),C(2)).weight()
             (1, 1, 0, 0)
+	    sage: T=CrystalOfTableaux(['D',4],shape=[])
+	    sage: T.list()[0].weight()
+	    (0, 0, 0, 0)
         """
-        return sum(self[j].weight() for j in range(len(self)))
+        return sum((self[j].weight() for j in range(len(self))), self.parent().weight_lattice_realization().zero())
 
     def f(self, i):
         """

@@ -25,8 +25,7 @@ of the type `T` weight lattice such that:
 
    -  `f_i(x)`.weight() = x.weight() - `\alpha_i`;
 
-   -  `e_i(x)`.weight() = x.weight() +
-      `\alpha_i`.
+   -  `e_i(x)`.weight() = x.weight() + `\alpha_i`.
 
 
 
@@ -74,6 +73,7 @@ documentations)::
     sage: Spin = CrystalOfSpins(['B', 3])
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
     sage: Fast = FastCrystal(['B', 2], shape = [3/2, 1/2])
+    sage: KR = KirillovReshetikhinCrystal(['A',2,1],1,1)
 
 One can get (currently) crude plotting via::
 
@@ -111,12 +111,6 @@ TODO:
 
 -  RestrictionOfCrystal / DirectSumOfCrystals
 
--  Crystal.crystal_morphism
-
--  Affine crystals
-
--  Kirillov-Reshetikhin crystals
-
 
 Most of the above features (except Littelmann/alcove paths) are in
 MuPAD-Combinat (see lib/COMBINAT/crystals.mu), which could provide
@@ -143,6 +137,7 @@ inspiration.
 #****************************************************************************
 
 from sage.misc.latex import latex
+from sage.misc.cachefunc import CachedFunction
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.combinat.combinat import CombinatorialClass
@@ -178,8 +173,15 @@ class Crystal(CombinatorialClass, Parent):
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.weight_lattice_realization()
             Ambient space of the Root system of type ['A', 5]
+	    sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+	    sage: K.weight_lattice_realization()
+	    Weight lattice of the Root system of type ['A', 2, 1]
         """
-        return self.cartan_type().root_system().ambient_space()
+	F = self.cartan_type().root_system()
+	if F.ambient_space() is None:
+	    return F.weight_lattice()
+	else:
+	    return F.ambient_space()
 
     def cartan_type(self):
         """
@@ -262,7 +264,8 @@ class Crystal(CombinatorialClass, Parent):
             sage: l.sort(); l
             [1, 2, 3, 4, 5, 6]
         """
-        # To be generalized to some transitiveIdeal
+        # Should use transitiveIdeal
+	# should be transformed to __iter__ instead of list
         # To be moved in a super category CombinatorialModule
         result = set(self.module_generators)
         todo = result.copy()
@@ -275,6 +278,86 @@ class Crystal(CombinatorialClass, Parent):
                 todo.add(y)
                 result.add(y)
         return list(result)
+
+    def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
+			 similarity_factor = None, similarity_factor_domain = None, cached = False):
+	"""
+	Constructs a morphism from the crystal self to another crystal.
+	The input g can either be a function of a (sub)set of elements of self to
+	element in another crystal or a dictionary between certain elements.
+	Usually one would map highest weight elements or crystal generators to each
+	other using g.
+	Specifying index_set gives the opportunity to define the morphism as `I`-crystals
+	where `I =` index_set. If index_set is not specified, the index set of self is used.
+	It is also possible to define twisted-morphisms by specifying an automorphism on the
+	nodes in te Dynkin diagram (or the index_set).
+	The option direction and direction_image indicate whether to use `f_i` or `e_i` in
+	self or the image crystal to construct the morphism, depending on whether the direction
+	is set to 'down' or 'up'.
+	Finally, it is possible to set a similarity_factor. This should be a dictionary between
+	the elements in the index set and positive integers. The crystal operator `f_i` then gets
+	mapped to `f_i^{m_i}` where `m_i =` similarity_factor[i].
+	Setting similarity_factor_domain to a dictionary between the index set and positive integers
+	has the effect that `f_i^{m_i}` gets mapped to `f_i` where `m_i =` similarity_factor_domain[i].
+
+	EXAMPLES::
+
+	    sage: C2 = CrystalOfLetters(['A',2])
+	    sage: C3 = CrystalOfLetters(['A',3])
+	    sage: g = {C2.module_generators[0] : C3.module_generators[0]}
+	    sage: g_full = C2.crystal_morphism(g)
+	    sage: g_full(C2(1))
+	    1
+	    sage: g_full(C2(2))
+	    2
+	    sage: g = {C2(1) : C2(3)}
+	    sage: g_full = C2.crystal_morphism(g, automorphism = lambda i : 3-i, direction_image = 'up')
+	    sage: [g_full(b) for b in C2]
+	    [3, 2, 1]
+	    sage: T = CrystalOfTableaux(['A',2], shape = [2])
+	    sage: g = {C2(1) : T(rows=[[1,1]])}
+	    sage: g_full = C2.crystal_morphism(g, similarity_factor = {1:2, 2:2})
+	    sage: [g_full(b) for b in C2]
+	    [[[1, 1]], [[2, 2]], [[3, 3]]]
+	    sage: g = {T(rows=[[1,1]]) : C2(1)}
+	    sage: g_full = T.crystal_morphism(g, similarity_factor_domain = {1:2, 2:2})
+	    sage: g_full(T(rows=[[2,2]]))
+	    2
+        """
+	if index_set is None:
+	    index_set = self.index_set()
+	if similarity_factor is None:
+	    similarity_factor = dict( (i,1) for i in index_set )
+	if similarity_factor_domain is None:
+	    similarity_factor_domain = dict( (i,1) for i in index_set )
+	if direction == 'down':
+	    e_string = 'e_string'
+	else:
+	    e_string = 'f_string'
+	if direction_image == 'down':
+	    f_string = 'f_string'
+	else:
+	    f_string = 'e_string'
+	if type(g) == dict:
+	    g = g.__getitem__
+
+	def morphism(b):
+	    for i in index_set:
+		c = getattr(b, e_string)([i for k in range(similarity_factor_domain[i])])
+		if c is not None:
+		    d = getattr(morphism(c),f_string)([automorphism(i) for k in range(similarity_factor[i])])
+		    if d is not None:
+			return d
+		    else:
+			raise ValueError, "This is not a morphism!"
+	    #now we know that b is hw
+	    return g(b)
+
+	if cached:
+	    return morphism
+	else:
+	    return CachedFunction(morphism)
+
 
     def digraph(self):
         """
@@ -737,6 +820,20 @@ class CrystalElement(Element):
             phi = phi+1
         return phi
 
+    def phi_minus_epsilon(self, i):
+	"""
+	Returns `\phi_i - \epsilon_i` of self. There are sometimes
+	better implementations using the weight for this. It is used
+	for reflections along a string.
+
+	EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).phi_minus_epsilon(1)
+            1
+        """
+	return self.phi(i) - self.epsilon(i)
+
     def Epsilon(self):
         """
         EXAMPLES::
@@ -767,6 +864,46 @@ class CrystalElement(Element):
         Lambda = self.parent().Lambda()
         return sum(self.phi(i) * Lambda[i] for i in self.index_set())
 
+    def f_string(self, list):
+	r"""
+	Applies `f_{i_r} ... f_{i_1}` to self for `list = [i_1, ..., i_r]`
+
+	EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['A',3])
+	    sage: b = C(1)
+	    sage: b.f_string([1,2])
+	    3
+	    sage: b.f_string([2,1])
+
+	"""
+	b = self
+	for i in list:
+	    b = b.f(i)
+	    if b is None:
+		return None
+	return b
+
+    def e_string(self, list):
+	r"""
+	Applies `e_{i_r} ... e_{i_1}` to self for `list = [i_1, ..., i_r]`
+
+	EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['A',3])
+	    sage: b = C(3)
+	    sage: b.e_string([2,1])
+	    1
+	    sage: b.e_string([1,2])
+
+	"""
+	b = self
+	for i in list:
+	    b = b.e(i)
+	    if b is None:
+		return None
+	return b
+
     def s(self, i):
         r"""
         Returns the reflection of self along its `i`-string
@@ -785,7 +922,7 @@ class CrystalElement(Element):
             sage: t.s(1)
             [[1, 1, 1, 2]]
         """
-        d = self.phi(i)-self.epsilon(i)
+        d = self.phi_minus_epsilon(i)
         b = self
         if d > 0:
             for j in range(d):
@@ -795,9 +932,11 @@ class CrystalElement(Element):
                 b = b.e(i)
         return b
 
-    def is_highest_weight(self):
+    def is_highest_weight(self, index_set = None):
         r"""
         Returns True if self is a highest weight.
+	Specifying the option index_set to be a subset `I` of the index set
+	of the underlying crystal, finds all highest weight vectors for arrows in `I`.
 
         EXAMPLES::
 
@@ -806,8 +945,12 @@ class CrystalElement(Element):
             True
             sage: C(2).is_highest_weight()
             False
+	    sage: C(2).is_highest_weight(index_set = [2,3,4,5])
+	    True
         """
-        return all(self.e(i) == None for i in self.index_set())
+	if index_set is None:
+	    index_set = self.index_set()
+        return all(self.e(i) == None for i in index_set)
 
     def to_highest_weight(self, list = [], index_set = None):
 	r"""

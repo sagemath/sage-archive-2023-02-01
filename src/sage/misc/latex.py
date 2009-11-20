@@ -270,16 +270,16 @@ def float_function(x):
 
         sage: from sage.misc.latex import float_function
         sage: float_function(float(3.14))
-        3.14000000000000
+        3.14
         sage: float_function(float(1e-10))
-        1.00000000000000 \times 10^{-10}
+        1 \times 10^{-10}
         sage: float_function(float(2e10))
-        2.00000000000000 \times 10^{10}
+        20000000000.0
         sage: latex(float(2e-13))
         2.00000000000000 \times 10^{-13}
     """
-    from sage.all import RR
-    return latex(RR(x))
+    from sage.all import RDF
+    return latex(RDF(x))
 
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
                str: str_function, int:str, long:str, float:float_function, dict: dict_function}

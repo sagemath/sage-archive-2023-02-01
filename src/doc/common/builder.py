@@ -434,7 +434,31 @@ class ReferenceBuilder(DocBuilder):
             # load) Sphinx's pickle, so we do it right here.
             env_pickle = os.path.join(self._doctrees_dir(),
                                       'environment.pickle')
-            env.topickle(env_pickle)
+
+            # When cloning a new branch (see
+            # SAGE_LOCAL/bin/sage-clone), we hard link the doc output.
+            # To avoid making unlinked, potentially inconsistent
+            # copies of the environment, we *don't* use
+            # env.topickle(env_pickle), which first writes a temporary
+            # file.  We adapt sphinx.environment's
+            # BuildEnvironment.topickle:
+            import cPickle, types
+
+            # remove unpicklable attributes
+            env.set_warnfunc(None)
+            del env.config.values
+            picklefile = open(env_pickle, 'wb')
+            # remove potentially pickling-problematic values from config
+            for key, val in vars(env.config).items():
+                if key.startswith('_') or isinstance(val, (types.ModuleType,
+                                                           types.FunctionType,
+                                                           types.ClassType)):
+                    del env.config[key]
+            try:
+                cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
+            finally:
+                picklefile.close()
+
             logger.debug("Saved Sphinx environment: %s", env_pickle)
 
     def get_modified_modules(self):

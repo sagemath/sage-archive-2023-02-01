@@ -362,6 +362,8 @@ def sage_getargspec(obj):
         return _sage_getargspec_cython(source)
     if not callable(obj):
         raise TypeError, "obj is not a code object"
+    if hasattr(obj, '_sage_argspec_'):
+        return obj._sage_argspec_()
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):

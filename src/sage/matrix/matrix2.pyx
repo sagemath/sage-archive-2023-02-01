@@ -5124,6 +5124,93 @@ cdef class Matrix(matrix1.Matrix):
                         return False
         return True
 
+    def is_bistochastic(self, normalized = True):
+        r"""
+        Returns ``True`` if this matrix is bistochastic.
+
+        A matrix is said to be bistochastic if both the sums of the
+        entries of each row and the sum of the entries of each column
+        are equal to 1.
+
+        INPUT:
+
+        - ``normalized`` -- if set to ``True`` (default), checks that
+          the sums are equal to 1. When set to ``False``, checks that
+          the row sums and column sums are all equal to some constant
+          possibly different from 1.
+
+        EXAMPLES:
+
+        The identity matrix is clearly bistochastic::
+
+            sage: Matrix(5,5,1).is_bistochastic()
+            True
+
+        The same matrix, multiplied by 2, is not bistochastic anymore,
+        though is verifies the constraints of ``normalized == False``::
+
+            sage: (2 * Matrix(5,5,1)).is_bistochastic()
+            False
+            sage: (2 * Matrix(5,5,1)).is_bistochastic(normalized = False)
+            True
+        """
+
+        row_sums = map(sum, self.rows())
+        col_sums = map(sum, self.columns())
+
+        return self.is_square() and\
+                col_sums[0] == row_sums[0] and\
+                row_sums == col_sums and\
+                row_sums == len(row_sums) * [col_sums[0]] and\
+                ((not normalized) or col_sums[0] == self.base_ring()(1))
+
+    def as_sum_of_permutations(self):
+        r"""
+        Returns the current matrix as a sum of permutation matrices
+
+        According to the Birkhoff-von Neumann Theorem, any bistochastic matrix
+        can be written as a positive sum of permutation matrices, which also
+        means that the polytope of bistochastic matrices is integer.
+
+        As a non-bistochastic matrix can obviously not be written as a sum of
+        permutations, this theorem is an equivalence.
+
+        This function, given a bistochastic matrix, returns the corresponding
+        decomposition.
+
+        .. SEEALSO:
+
+        - :meth:`bistochastic_as_sum_of_permutations <sage.combinat.permutation.bistochastic_as_sum_of_permutations>`
+          -- for more information on this method.
+
+        EXAMPLE:
+
+        We create a bistochastic matrix from a convex sum of permutations, then
+        try to deduce the decomposition from the matrix ::
+
+            sage: L = []
+            sage: L.append((9,Permutation([4, 1, 3, 5, 2])))
+            sage: L.append((6,Permutation([5, 3, 4, 1, 2])))
+            sage: L.append((3,Permutation([3, 1, 4, 2, 5])))
+            sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
+            sage: M = sum([c * p.to_matrix() for (c,p) in L])
+            sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M)
+            sage: print decomp
+            2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
+
+        An exception is raised when the matrix is not bistochastic::
+
+            sage: M = Matrix([[2,3],[2,2]])
+            sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M)
+            Traceback (most recent call last):
+            ...
+            ValueError: The matrix is not bistochastic
+        """
+
+        from sage.combinat.permutation import bistochastic_as_sum_of_permutations
+        return bistochastic_as_sum_of_permutations(self)
+
+
     def visualize_structure(self, filename=None, maxsize=512):
         """
         Write a PNG image to 'filename' which visualizes self by putting

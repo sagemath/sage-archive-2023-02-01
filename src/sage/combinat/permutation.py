@@ -3471,6 +3471,7 @@ def from_reduced_word(rw):
 
     return Permutation(p)
 
+
 def robinson_schensted_inverse(p, q):
     r"""
     Returns the permutation corresponding to the pair of tableaux `(p,q)`
@@ -3556,6 +3557,122 @@ def robinson_schensted_inverse(p, q):
             x, row[y] = row[y], x
         permutation.append(x)
     return Permutation(reversed(permutation))
+
+def bistochastic_as_sum_of_permutations(M, check = True):
+    r"""
+    Returns the positive sum of permutations corresponding to
+    the bistochastic matrix.
+
+    A stochastic matrix is a matrix such that the sum of the elements
+    of any row is equal to 1. A bistochastic matrix is a stochastic matrix
+    whose transpose matrix is also stochastic ( there are conditions
+    both on the rows and on the columns ).
+
+    According to the Birkhoff-von Neumann Theorem, any bistochastic matrix
+    can be written as a positive sum of permutation matrices, which also
+    means that the polytope of bistochastic matrices is integer.
+
+    As a non-bistochastic matrix can obviously not be written as a sum of
+    permutations, this theorem is an equivalence.
+
+    This function, given a bistochastic matrix, returns the corresponding
+    decomposition.
+
+    INPUT:
+
+    - ``M`` -- A bistochastic matrix
+
+    - ``check`` (boolean) -- set to ``True`` (default) to checl
+      that the matrix is indeed bistochastic
+
+    OUTPUT:
+
+    - An element of ``CombinatorialFreeModule``, which is a free `F`-module
+      ( where `F` is the ground ring of the given matrix ) whose basis is
+      indexed by the permutations.
+
+    .. NOTE::
+
+        - In this function, we just assume 1 to be any constant : for us a matrix M
+          is bistochastic if there exists `c>0` such that `M/c` is bistochastic.
+
+        - You can obtain a sequence of pairs ``(permutation,coeff)``, where
+          ``permutation` is a Sage ``Permutation`` instance, and ``coeff``
+          its corresponding coefficient from the result of this function
+          by applying the ``list`` function.
+
+        - If you are interested in the matrix corresponding to a ``Permutation``
+          you will be glad to learn about the ``Permutation.to_matrix()`` method.
+
+        - The base ring of the matrix can be anything that can be coerced to ``RR``.
+
+    .. SEEALSO:
+
+    - :meth:`as_sum_of_permutations <sage.matrix.matrix2.as_sum_of_permutations>`
+      -- to use this method through the ``Matrix`` class.
+
+    EXAMPLE:
+
+    We create a bistochastic matrix from a convex sum of permutations, then
+    try to deduce the decomposition from the matrix ::
+
+
+        sage: from sage.combinat.permutation import bistochastic_as_sum_of_permutations
+        sage: L = []
+        sage: L.append((9,Permutation([4, 1, 3, 5, 2])))
+        sage: L.append((6,Permutation([5, 3, 4, 1, 2])))
+        sage: L.append((3,Permutation([3, 1, 4, 2, 5])))
+        sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
+        sage: M = sum([c * p.to_matrix() for (c,p) in L])
+        sage: decomp = bistochastic_as_sum_of_permutations(M)
+        sage: print decomp
+        2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
+
+    An exception is raised when the matrix is not bistochastic::
+
+        sage: M = Matrix([[2,3],[2,2]])
+        sage: decomp = bistochastic_as_sum_of_permutations(M)
+        Traceback (most recent call last):
+        ...
+        ValueError: The matrix is not bistochastic
+    """
+
+    from sage.graphs.bipartite_graph import BipartiteGraph
+    from sage.combinat.free_module import CombinatorialFreeModule
+    from sage.rings.real_mpfr import RR
+
+    n=M.nrows()
+
+    if n != M.ncols():
+        raise ValueError("The matrix is expected to be square")
+
+    if check and not M.is_bistochastic(normalized = False):
+        raise ValueError("The matrix is not bistochastic")
+
+    if not RR.has_coerce_map_from(M.base_ring()):
+        raise ValueError("The base ring of the matrix must have a coercion map to RR")
+
+    CFM=CombinatorialFreeModule(M.base_ring(),Permutations(n))
+    value=0
+
+    G = BipartiteGraph(M,weighted=True)
+
+    while G.size() > 0:
+        matching = G.matching(use_edge_labels=True)
+
+        # This minimum is strictly larger than 0
+        minimum = min([x[2] for x in matching])
+
+        for (u,v,l) in matching:
+            if minimum == l:
+                G.delete_edge((u,v,l))
+            else:
+                G.set_edge_label(u,v,l-minimum)
+
+        matching.sort(key=lambda x: x[0])
+        value+=minimum*CFM(Permutation([x[1]-n+1 for x in matching]))
+
+    return value
 
 class StandardPermutations_descents(CombinatorialClass):
     def __init__(self, d, n):

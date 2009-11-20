@@ -1093,8 +1093,6 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         if self.degree() == -1:
             return 1
-        #R was defined for univariate polynomials. Is it useless?
-        #R = self.base_ring()
         x = self.coefficients()
         try:
             d = x[0].denominator()
@@ -1102,7 +1100,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 d = d.lcm(y.denominator())
             return d
         except(AttributeError):
-            return self.parent().one_element()
+            return self.parent().base_ring().one_element()
 
     def numerator(self):
         """

@@ -255,6 +255,11 @@ TESTS: We test dumping and loading a plot.
     sage: p = plot(sin(x), (x, 0,2*pi))
     sage: Q = loads(dumps(p))
 
+Verify that a clean sage startup does *not* import matplotlib::
+
+    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"")
+    0
+
 AUTHORS:
 
 - Alex Clemesha and William Stein (2006-04-10): initial version
@@ -1965,10 +1970,10 @@ class Graphics(SageObject):
             figure.savefig(filename,dpi=dpi,bbox_inches='tight',**options)
 
 
+_SelectiveFormatterClass = None
 
-from matplotlib.ticker import Formatter
+def SelectiveFormatter(formatter, skip_values):
 
-class SelectiveFormatter(Formatter):
     """
     This matplotlib formatter selectively omits some tick values and
     passes the rest on to a specified formatter.
@@ -1991,60 +1996,68 @@ class SelectiveFormatter(Formatter):
         sage: ax.xaxis.set_major_formatter(formatter)
         sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
     """
-    def __init__(self, formatter,skip_values):
-        """
-        Initialize a SelectiveFormatter object.
+    global _SelectiveFormatterClass
+    if _SelectiveFormatterClass is None:
 
-        INPUT:
+        from matplotlib.ticker import Formatter
 
-          - formatter -- the formatter object to which we should pass labels
+        class _SelectiveFormatterClass(Formatter):
+            def __init__(self, formatter,skip_values):
+                """
+                Initialize a SelectiveFormatter object.
 
-          - skip_values -- a list of values that we should skip when
-            formatting the tick labels
+                INPUT:
 
-        EXAMPLES::
+                  - formatter -- the formatter object to which we should pass labels
 
-            sage: from sage.plot.plot import SelectiveFormatter
-            sage: import matplotlib.pyplot as plt
-            sage: import numpy
-            sage: fig=plt.figure()
-            sage: ax=fig.add_subplot(111)
-            sage: t = numpy.arange(0.0, 2.0, 0.01)
-            sage: s = numpy.sin(2*numpy.pi*t)
-            sage: line=ax.plot(t, s)
-            sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
-            sage: ax.xaxis.set_major_formatter(formatter)
-            sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
-        """
-        self.formatter=formatter
-        self.skip_values=skip_values
-    def set_locs(self, locs):
-        """
-        Set the locations for the ticks that are not skipped.
+                  - skip_values -- a list of values that we should skip when
+                    formatting the tick labels
 
-        EXAMPLES::
-            sage: from sage.plot.plot import SelectiveFormatter
-            sage: import matplotlib.ticker
-            sage: formatter=SelectiveFormatter(matplotlib.ticker.Formatter(),skip_values=[0,200])
-            sage: formatter.set_locs([i*100 for i in range(10)])
-        """
-        self.formatter.set_locs([l for l in locs if l not in self.skip_values])
-    def __call__(self, x, *args, **kwds):
-        """
-        Return the format for tick val *x* at position *pos*
+                EXAMPLES::
 
-        EXAMPLES::
+                    sage: from sage.plot.plot import SelectiveFormatter
+                    sage: import matplotlib.pyplot as plt
+                    sage: import numpy
+                    sage: fig=plt.figure()
+                    sage: ax=fig.add_subplot(111)
+                    sage: t = numpy.arange(0.0, 2.0, 0.01)
+                    sage: s = numpy.sin(2*numpy.pi*t)
+                    sage: line=ax.plot(t, s)
+                    sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
+                    sage: ax.xaxis.set_major_formatter(formatter)
+                    sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+                """
+                self.formatter=formatter
+                self.skip_values=skip_values
+            def set_locs(self, locs):
+                """
+                Set the locations for the ticks that are not skipped.
 
-            sage: from sage.plot.plot import SelectiveFormatter
-            sage: import matplotlib.ticker
-            sage: formatter=SelectiveFormatter(matplotlib.ticker.FixedFormatter(['a','b']),skip_values=[0,2])
-            sage: [formatter(i,1) for i in range(10)]
-            ['', 'b', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
-        """
-        if x in self.skip_values:
-            return ''
-        else:
-            return self.formatter(x, *args, **kwds)
+                EXAMPLES::
+                    sage: from sage.plot.plot import SelectiveFormatter
+                    sage: import matplotlib.ticker
+                    sage: formatter=SelectiveFormatter(matplotlib.ticker.Formatter(),skip_values=[0,200])
+                    sage: formatter.set_locs([i*100 for i in range(10)])
+                """
+                self.formatter.set_locs([l for l in locs if l not in self.skip_values])
+            def __call__(self, x, *args, **kwds):
+                """
+                Return the format for tick val *x* at position *pos*
+
+                EXAMPLES::
+
+                    sage: from sage.plot.plot import SelectiveFormatter
+                    sage: import matplotlib.ticker
+                    sage: formatter=SelectiveFormatter(matplotlib.ticker.FixedFormatter(['a','b']),skip_values=[0,2])
+                    sage: [formatter(i,1) for i in range(10)]
+                    ['', 'b', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
+                """
+                if x in self.skip_values:
+                    return ''
+                else:
+                    return self.formatter(x, *args, **kwds)
+
+    return _SelectiveFormatterClass(formatter, skip_values)
 
 
 def xydata_from_point_list(points):

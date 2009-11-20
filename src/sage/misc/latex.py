@@ -275,8 +275,13 @@ def float_function(x):
         1 \times 10^{-10}
         sage: float_function(float(2e10))
         20000000000.0
+
+    TESTS::
+
+    trac #7356 fixed::
+
         sage: latex(float(2e-13))
-        2.00000000000000 \times 10^{-13}
+        2 \times 10^{-13}
     """
     from sage.all import RDF
     return latex(RDF(x))

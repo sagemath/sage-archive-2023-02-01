@@ -18,11 +18,11 @@ $MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS $INCLUDES -L$SAGE_LOCAL/lib -pedantic -g"
+CFLAGS="$CFLAGS $INCLUDES -L$SAGE_LOCAL/lib -g"
 
 
 if [ "x$COMPILER"  = "xGNU" ] ; then
-   CFLAGS="$CFLAGS -fPIC -Wall "
+   CFLAGS="$CFLAGS -fPIC -Wall -pedantic "
 elif [ "x$COMPILER" = "xSun_on_Solaris" ] ; then
    CLFAGS="$CLFAGS -Kpic "
 elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
@@ -31,7 +31,7 @@ fi
 
 CPPFLAGS="$INCLUDES"
 
-if [ "$SAGE_DEBUG" = "1" ]; then
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
    CFLAGS="$CFLAGS -O0"
    ENABLE_DEBUG="--enable-debug"
 else
@@ -61,7 +61,7 @@ fi
 
 $MAKE check
 if [ $? -ne 0 ]; then
-    echo "libm4ri testsuite failed, please report upstream!"
+    echo "libm4ri testsuite failed, please report upstream at M.R.Albrecht AT rhul.ac.uk!"
     exit 1
 fi
 

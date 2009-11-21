@@ -1257,6 +1257,14 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: t.is_polynomial(sin(x))
             True
+
+        TESTS:
+
+        Check if we can handle derivatives. #6523::
+
+            sage: f(x) = function('f',x)
+            sage: f(x).diff(x).is_zero()
+            False
         """
         cdef Expression symbol0 = self.coerce_in(var)
         return self._gobj.is_polynomial(symbol0._gobj)

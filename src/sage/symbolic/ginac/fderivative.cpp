@@ -264,12 +264,17 @@ bool fderivative::match_same_type(const basic & other) const
 unsigned fderivative::calchash() const
 {
 	unsigned res = inherited::calchash();
-	unsigned t = 1;
+	unsigned prev=0;
+
+	// FNV hash with custom prime and initial value
+	unsigned h = 2166136285;
 	for (paramset::const_iterator i = parameter_set.begin(), 
 			end = parameter_set.end(); i != end; ++i) {
-		res += t* (*i+1);
-		t <<=  1;
+		h = ( h * 2097287 ) ^ (*i-prev);
+		prev = *i;
 	}
+
+	res=h^res;
 	if (flags & status_flags::evaluated) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = res;

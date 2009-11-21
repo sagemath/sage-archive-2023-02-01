@@ -48,6 +48,18 @@ class FiniteEnumeratedSets(Category):
 
     class ParentMethods:
 
+        def is_finite(self):
+            """
+            Returns ``True`` since self is finite.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.is_finite()
+                True
+            """
+            return True
+
         def _cardinality_from_iterator(self):
             """
             The cardinality of ``self``.

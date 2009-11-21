@@ -53,6 +53,19 @@ class InfiniteEnumeratedSets(Category):
         return [EnumeratedSets()]
 
     class ParentMethods:
+
+        def is_finite(self):
+            """
+            Returns ``False`` since self is not finite.
+
+            EXAMPLES::
+
+                sage: C = InfiniteEnumeratedSets().example()
+                sage: C.is_finite()
+                False
+            """
+            return False
+
         def cardinality(self):
             """
             Counts the elements of the enumerated set.

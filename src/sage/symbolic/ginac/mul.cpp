@@ -576,6 +576,7 @@ ex mul::eval(int level) const
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
 	} else if ((seq_size==1) && 
 			is_ex_the_function((*seq.begin()).rest, exp) &&
+			ex_to<numeric>((*seq.begin()).coeff).is_integer() &&
 			!(*seq.begin()).coeff.is_equal(_ex1) ) {
 		// even though exp defines a power simplification rule,
 		// it is possible to end up with i->coeff != 1, e.g.,
@@ -611,8 +612,8 @@ ex mul::eval(int level) const
 		ex pval = _ex1;
 		ex nval = _ex1;
 		while (i!=last) {
-			if ((i->rest).info(info_flags::infinity)) {
-				if (is_a<numeric>(i->coeff) && 
+			if (unlikely((i->rest).info(info_flags::infinity))) {
+				if (is_a<numeric>(i->coeff) &&
 					ex_to<numeric>(i->coeff).is_real()) {
 					if (ex_to<numeric>(i->coeff).csgn() ==
 							-1){
@@ -642,15 +643,8 @@ ex mul::eval(int level) const
 				else
 					pval = NegInfinity;
 			}
-			if (likely(! ((is_a<add>(i->rest) && 
-					i->coeff.is_equal(_ex1)) ||
-					is_ex_the_function(i->rest, exp)) 
-					 )) {
-				// power::eval has such a rule, no need to handle powers here
-				++i;
-				continue;
-			}
-			if (is_ex_the_function(i->rest, exp)) {
+			if (unlikely(is_ex_the_function(i->rest, exp) &&
+					ex_to<numeric>(i->coeff).is_integer())) {
 				// if the power of first exp is != 1 we still
 				// have to modify the arguments list
 				// incrementing exp_count one more will
@@ -682,11 +676,12 @@ ex mul::eval(int level) const
 					++j;
 					continue;
 				}
-				
+
 				// first encounter of an exp, just continue
 				++i;
 				continue;
-			} else {
+			} else if (unlikely(is_a<add>(i->rest) &&
+						i->coeff.is_equal(_ex1))){
 
 
 			// XXX: What is the best way to check if the polynomial is a primitive? 
@@ -729,12 +724,14 @@ ex mul::eval(int level) const
 			for (epvector::iterator ai = primitive->seq.begin();
 					ai != primitive->seq.end(); ++ai)
 				ai->coeff = ex_to<numeric>(ai->coeff).div_dyn(c);
-			
+
 			s->push_back(expair(*primitive, _ex1));
 
 			++i;
 			++j;
+			continue;
 			}
+			++i;
 		}
 		if (!pval.is_equal(_ex1)) {
 			if (!ex_to<numeric>(overall_coeff).is_real()) {
@@ -759,7 +756,9 @@ ex mul::eval(int level) const
 				prev_exp = s->begin();
 				while( prev_exp != s->end() ) {
 					if (is_ex_the_function(prev_exp->rest,
-								exp))
+						exp) && ex_to<numeric>\
+							(prev_exp->coeff)\
+							.is_integer())
 						break;
 					++prev_exp;
 				}

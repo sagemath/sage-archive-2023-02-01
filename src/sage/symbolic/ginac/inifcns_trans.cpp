@@ -133,6 +133,8 @@ static ex exp_imag_part(const ex & x)
 
 static ex exp_power(const ex & arg, const ex & p)
 {
+	// If you change this function make sure to adjust
+	// the simplification code in mul::eval accordingly
 	if (is_exactly_a<numeric>(p) && ex_to<numeric>(p).is_integer())
 		return exp(p*arg);
 	else

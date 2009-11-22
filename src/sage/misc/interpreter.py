@@ -106,15 +106,9 @@ import remote_file
 from IPython.iplib import InteractiveShell
 
 import preparser_ipython
-from preparser import preparse_file
+from preparser import preparse_file, load_wrap, modified_attached_files, attached_files
 
 import cython
-
-#import signal
-#def sig(x,n):
-#    raise KeyboardInterrupt
-#def unsetsig():
-#    signal.signal(signal.SIGINT, sig)
 
 # IPython has a prefilter() function that analyzes each input line. We redefine
 # it here to first pre-process certain forms of input
@@ -126,17 +120,6 @@ import cython
 #   user input or the second or higher of a multi-line statement.
 
 
-
-attached = { }
-
-def attached_files():
-    """
-    Return a list of all files attached to the current session.
-    """
-    global attached
-    X = attached.keys()
-    X.sort()
-    return X
 
 def load_startup_file(file):
     if os.path.exists(file):
@@ -152,14 +135,13 @@ def do_prefilter_paste(line, continuation):
     Alternate prefilter for input.
 
     INPUT:
-        line -- a single line; must *not* have any newlines in it
-        continuation -- whether the input line is really part
-                     of the previous line, because of open parens or backslash.
+
+        - ``line`` -- a single line; must *not* have any newlines in it
+        - ``continuation`` -- whether the input line is really part
+          of the previous line, because of open parens or backslash.
     """
     if '\n' in line:
         raise RuntimeError, "bug in function that calls do_prefilter_paste -- there can be no newlines in the input"
-
-    global attached
 
     # This is so it's OK to have lots of blank space at the
     # beginning of any non-continuation line.
@@ -174,29 +156,13 @@ def do_prefilter_paste(line, continuation):
 
     line = line.rstrip()
 
-    if not line.startswith('attach ') and not line.startswith('load ') and not line.startswith('%run '):
-        for F in attached.keys():
-            tm = attached[F]
-            if os.path.exists(F) and os.path.getmtime(F) > tm:
-                # Reload F.
-                try:
-                    if F.endswith('.py'):
-                        _ip.runlines('%%run -i "%s"'%F)
-                    elif F.endswith('.sage'):
-                        _ip.runlines('%%run -i "%s"'%preparse_file_named(F))
-                    elif F.endswith('.spyx') or F.endswith('.pyx'):
-                        X = load_cython(F)
-                        __IPYTHON__.push(X)
-                    else:
-                        line = 'load("%s")'%F
-                    t = os.path.getmtime(F)
-                    attached[F] = t
-                except IOError:
-                    del attached[F]
+    # Process attached files.
+    for F in modified_attached_files():
+        _ip.runlines(load_wrap(F))
 
-
-    # Get rid of leading sage: so that pasting of examples from the documentation
-    # works.  This is like MAGMA's SetLinePrompt(false).
+    # Get rid of leading sage: prompts so that pasting of examples
+    # from the documentation works.  This is like MAGMA's
+    # SetLinePrompt(false).
     for prompt in ['sage:', '>>>']:
         if not continuation:
             while True:
@@ -216,9 +182,7 @@ def do_prefilter_paste(line, continuation):
     if line.lower() in ['quit', 'exit', 'quit;', 'exit;']:
         line = '%quit'
 
-    #################################################################
     # An interactive load command, like iload in MAGMA.
-    #################################################################
     if line[:6] == 'iload ':
         try:
             name = str(eval(line[6:]))
@@ -252,84 +216,18 @@ def do_prefilter_paste(line, continuation):
 
 
     #################################################################
-    # A "load" command, like \r file in PARI or load "file" in MAGMA
+    # load and attach commands
     #################################################################
-    if line[:5] == 'load ':
-        # The -i so the file is run with the same environment,
-        # e.g., including the "from sage import *"
-        try:
-            name = str(eval(line[5:])).strip()
-        except:
-            name = str(line[5:].strip())
-        if name.lower().startswith('http://'):
-            name = remote_file.get_remote_file(name)
-        if isinstance(name, str):
-            if not os.path.exists(name):
-                raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .pyx extension)"%name
-            elif name.endswith('.py'):
-                try:
-                    line = '%run -i "' + name + '"'
-                except IOError, s:
-                    print s
-                    raise ImportError, "Error loading '%s'"%name
-            elif name.endswith('.sage'):
-                try:
-                    line = '%run -i "' + preparse_file_named(name) + '"'
-                except IOError, s:
-                    print s
-                    raise ImportError, "Error loading '%s'"%name
-                    line = ""
-            elif name.endswith('.spyx') or name.endswith('.pyx'):
-                line = load_cython(name)
-            else:
-                line = 'load("%s")'%name
-                #raise ImportError, "Loading of '%s' not implemented (load .py, .pyx, and .sage files)"%name
-                #line = ''
-
-    # This is an attach command like in MAGMA.  The file to attach is
-    # any file that could be loaded.  At attach time it is loaded as
-    # above.  It is put in a list that is a variable with scope this
-    # interpreter.py file.  Each time prefilter_paste is called and
-    # continuation is False, check all attached file names and if any
-    # have changed, compile the file, then use %run to load them again
-    # as above.  This is like the MAGMA attach, but in some ways
-    # better.  It is very nice for interactive code development.
-
-    if line.startswith('attach '):
-        # The -i so the file is run with the same environment,
-        # e.g., including the "from sage import *"
-        try:
-            name = str(eval(line[7:]))
-        except:
-            name = str(line[7:].strip())
-        name = os.path.abspath(name)
-        if not os.path.exists(name):
-            raise ImportError, "File '%s' not found  (be sure to give .sage, .py, or .pyx extension)."%name
-        elif name.endswith('.py'):
-            try:
-                line = '%run -i "' + name + '"'
-                attached[name] = os.path.getmtime(name)
-            except IOError, OSError:
-                raise ImportError, "File '%s' not found."%name
-        elif name.endswith('.sage'):
-            try:
-                line = '%run -i "' + preparse_file_named(name) + '"'
-                attached[name] = os.path.getmtime(name)
-            except IOError, OSError:
-                raise ImportError, "File '%s' not found."%name
-        elif name.endswith('.pyx') or name.endswith('.spyx'):
-            try:
-                line = load_cython(name)
-                attached[name] = os.path.getmtime(name)
-            except IOError, OSError:
-                raise ImportError, "File '%s' not found."%name
-                line = ''
-        else:
-            #line = 'load("%s")'%name
-            raise ImportError, "Attaching of '%s' not implemented (load .py, .pyx, and .sage files)"%name
+    for cmd in ['load', 'attach']:
+        if line.lstrip().startswith(cmd+' '):
+            j = line.find(cmd+' ')
+            s = line[j+len(cmd)+1:].strip()
+            if not s.startswith('('):
+                line = ' '*j + load_wrap(s, cmd=='attach')
 
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line, not continuation)
+
     return line
 
 def load_cython(name):
@@ -434,7 +332,7 @@ def preparse_file_named_to_stream(name, out):
     os.chdir(dir)
     contents = open(name).read()
     contents = handle_encoding_declaration(contents, out)
-    parsed = preparse_file(contents, attached, do_time=True)
+    parsed = preparse_file(contents)
     os.chdir(cur)
     out.write("# -*- encoding: utf-8 -*-\n")
     out.write('#'*70+'\n')
@@ -567,4 +465,11 @@ def sage_prompt():
 
 __builtin__.sage_prompt = sage_prompt
 
+
+
+#######################################
+#
+def load_a_file(argstr, globals):
+    s = open(argstr).read()
+    return preparse_file(s, globals=globals)
 

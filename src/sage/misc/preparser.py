@@ -1,26 +1,50 @@
 """
-Sage pre-parser.
+The Sage Preparser
 
-AUTHOR:
-    -- William Stein (2006-02-19): fixed bug when loading .py files.
-    -- William Stein (2006-03-09): * fixed crash in parsing exponentials
-                                   * precision of real literals now determined
-                                     by digits of input (like Mathematica).
-    -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
-    -- Bobby Moretti (2007-01-25): * added preliminary function assignment
-                                     notation
-    -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
-                                       utility functions. Arrr!
-                                     * Add [1,2,..,n] notation.
-    -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
-    -- Robert Bradshaw (2008-09-23): * Factor out constants.
-    -- Robert Bradshaw (2000-01):    * Simplify preparser by making it modular
-                                       and using regular expressions. Also bug
-                                       fixes, complex numbers, and binary input.
+AUTHORS:
+
+    - William Stein (2006-02-19)
+
+      - Fixed bug when loading .py files.
+
+    - William Stein (2006-03-09)
+
+      - Fixed crash in parsing exponentials.
+      - Precision of real literals now determined by digits of input
+        (like Mathematica).
+
+    - Joe Wetherell (2006-04-14)
+
+      - Added MAGMA-style constructor preparsing.
+
+    - Bobby Moretti (2007-01-25)
+
+      - Added preliminary function assignment notation.
+
+    - Robert Bradshaw (2007-09-19)
+
+      - Added strip_string_literals, containing_block utility
+        functions. Arrr!
+      - Added [1,2,..,n] notation.
+
+    - Robert Bradshaw (2008-01-04)
+
+      - Implicit multiplication (off by default).
+
+    - Robert Bradshaw (2008-09-23)
+
+      - Factor out constants.
+
+    - Robert Bradshaw (2000-01)
+
+      - Simplify preparser by making it modular and using regular
+        expressions.
+      - Bug fixes, complex numbers, and binary input.
 
 EXAMPLES:
 
-PREPARSE:
+Preparsing::
+
     sage: preparse('2/3')
     'Integer(2)/Integer(3)'
     sage: preparse('2.5')
@@ -42,14 +66,15 @@ PREPARSE:
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 A string with escaped quotes in it (the point here is that the
-preparser doesn't get confused by the internal quotes):
+preparser doesn't get confused by the internal quotes)::
+
     sage: "\"Yes,\" he said."
     '"Yes," he said.'
     sage: s = "\\"; s
     '\\'
 
+A hex literal::
 
-A hex literal:
     sage: preparse('0x2e3')
     'Integer(0x2e3)'
     sage: 0xA
@@ -57,7 +82,8 @@ A hex literal:
     sage: 0xe
     14
 
-Raw and hex works correctly:
+Raw and hex work correctly::
+
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
@@ -65,9 +91,9 @@ Raw and hex works correctly:
     sage: type(0Xa1R)
     <type 'int'>
 
-
 In Sage, methods can also be called on integer and real literals (note
-that in pure Python this would be a syntax error).
+that in pure Python this would be a syntax error)::
+
     sage: 16.sqrt()
     4
     sage: 87.factor()
@@ -79,16 +105,17 @@ that in pure Python this would be a syntax error).
     sage: preparse('15.10.sqrt()')
     "RealNumber('15.10').sqrt()"
 
-Note that calling methods on int literals in pure Python is a
-syntax error, but Sage allows this for Sage integers and reals,
-because users frequently request it.
+Note that calling methods on int literals in pure Python is a syntax
+error, but Sage allows this for Sage integers and reals, because users
+frequently request it::
 
     sage: eval('4.__add__(3)')
     Traceback (most recent call last):
     ...
     SyntaxError: invalid syntax
 
-SYMBOLIC FUNCTIONAL NOTATION:
+Symbolic functional notation::
+
     sage: a=10; f(theta, beta) = theta + beta; b = x^2 + theta
     sage: f
     (theta, beta) |--> beta + theta
@@ -103,7 +130,9 @@ SYMBOLIC FUNCTIONAL NOTATION:
     sage: f
     (x, y) |--> sqrt(5)*x*y
 
-This involves an =-, but should still be turned into a symbolic expression:
+This involves an =-, but should still be turned into a symbolic
+expression::
+
     sage: preparse('a(x) =- 5')
     '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
@@ -112,32 +141,36 @@ This involves an =-, but should still be turned into a symbolic expression:
 
 This involves -=, which should not be turned into a symbolic
 expression (of course a(x) isn't an identifier, so this will never be
-valid):
+valid)::
+
     sage: preparse('a(x) -= 5')
     'a(x) -= Integer(5)'
 
-RAW LITERALS:
+Raw literals:
 
 Raw literals are not preparsed, which can be useful from an efficiency
 point of view.  Just like Python ints are denoted by an L, in Sage raw
 integer and floating literals are followed by an"r" (or "R") for raw,
 meaning not preparsed.
 
-We create a raw integer.
+We create a raw integer::
+
     sage: a = 393939r
     sage: a
     393939
     sage: type(a)
     <type 'int'>
 
-We create a raw float:
+We create a raw float::
+
     sage: z = 1.5949r
     sage: z
     1.5949
     sage: type(z)
     <type 'float'>
 
-You can also use an upper case letter:
+You can also use an upper case letter::
+
     sage: z = 3.1415R
     sage: z
     3.1415000000000002
@@ -145,31 +178,34 @@ You can also use an upper case letter:
     <type 'float'>
 
 This next example illustrates how raw literals can be very useful in
-certain cases.  We make a list of even integers up to 10000.
+certain cases.  We make a list of even integers up to 10000::
+
     sage: v = [ 2*i for i in range(10000)]
 
-This takes a noticeable fraction of a second (e.g., 0.25 seconds).
-After preparsing, what Python is really executing is the following:
+This takes a noticeable fraction of a second (e.g., 0.25
+seconds). After preparsing, what Python is really executing is the
+following::
 
     sage: preparse('v = [ 2*i for i in range(10000)]')
     'v = [ Integer(2)*i for i in range(Integer(10000))]'
 
-If instead we use a raw 2 we get execution that is ``instant'' (0.00 seconds):
+If instead we use a raw 2 we get execution that is *instant* (0.00
+seconds)::
+
     sage: v = [ 2r * i for i in range(10000r)]
 
-Behind the scenes what happens is the following:
+Behind the scenes what happens is the following::
+
     sage: preparse('v = [ 2r * i for i in range(10000r)]')
     'v = [ 2 * i for i in range(10000)]'
 
-WARNING: The result of the above two expressions is different.  The
-first one computes a list of Sage integers, whereas the second creates
-a list of Python integers.  Python integers are typically much more
-efficient than Sage integers when they are very small; large Sage
-integers are much more efficient than Python integers, since they are
-implemented using the GMP C library.
+.. warning: The result of the above two expressions is different.  The
+   first one computes a list of Sage integers, whereas the second
+   creates a list of Python integers.  Python integers are typically
+   much more efficient than Sage integers when they are very small;
+   large Sage integers are much more efficient than Python integers,
+   since they are implemented using the GMP C library.
 """
-
-
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -185,10 +221,17 @@ numeric_literal_prefix = '_sage_const_'
 
 def implicit_multiplication(level=None):
     """
-    Turn implicit multiplication on or off, optionally setting a specific level.
-    Returns the current value if no argument is given.
+    Turns implicit multiplication on or off, optionally setting a
+    specific ``level``.  Returns the current ``level`` if no argument
+    is given.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``level`` - an integer (default: None); see :func:`implicit_mul`
+      for a list
+
+    EXAMPLES::
+
       sage: implicit_multiplication(True)
       sage: implicit_multiplication()
       5
@@ -229,9 +272,22 @@ def in_quote():
 
 def strip_string_literals(code, state=None):
     r"""
-    Returns a string with all literal quotes replaced with
-    labels and a dict of labels for re-substitution. This makes
-    parsing much easier.
+    Returns a string with all literal quotes replaced with labels and
+    a dictionary of labels for re-substitution.  This makes parsing
+    easier.
+
+    INPUT:
+
+    - ``code`` - a string; the input
+
+    - ``state`` - a 2-tuple (default: None); state with which to
+      continue processing, e.g., across multiple calls to this
+      function
+
+    OUTPUT:
+
+    - a 3-tuple of the processed code, the dictionary of labels, and
+      any accumulated state
 
     EXAMPLES::
 
@@ -344,9 +400,27 @@ def strip_string_literals(code, state=None):
 def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     """
     Returns the smallest range (start,end) such that code[start,end]
-    is delimited by balanced parentheses/brackets/braces.
+    is delimited by balanced delimiters (e.g., parentheses, brackets,
+    and braces).
 
-    EXAMPLES:
+    INPUT:
+
+    - ``code`` - a string
+
+    - ``ix`` - an integer; a starting position
+
+    - ``delimiters`` - a list of strings (default: ['()', '[]',
+      '{}']); the delimiters to balance
+
+    - ``require_delim`` - a boolean (default: True); whether to raise
+      a SyntaxError if delimiters are unbalanced
+
+    OUTPUT:
+
+    - a 2-tuple of integers
+
+    EXAMPLES::
+
         sage: from sage.misc.preparser import containing_block
         sage: s = "factor(next_prime(L[5]+1))"
         sage: s[22]
@@ -403,15 +477,25 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
 
 def parse_ellipsis(code, preparse_step=True):
     """
-    Preparse [0,2,..,n] notation.
+    Preparses [0,2,..,n] notation.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``code`` - a string
+
+    - ``preparse_step`` - a boolean (default: True)
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
         sage: from sage.misc.preparser import parse_ellipsis
         sage: parse_ellipsis("[1,2,..,n]")
         '(ellipsis_range(1,2,Ellipsis,n))'
         sage: parse_ellipsis("for i in (f(x) .. L[10]):")
         'for i in (ellipsis_iter(f(x) ,Ellipsis, L[10])):'
-
         sage: [1.0..2.0]
         [1.00000000000000, 2.00000000000000]
     """
@@ -441,15 +525,22 @@ def parse_ellipsis(code, preparse_step=True):
 
 def extract_numeric_literals(code):
     """
-    To eliminate the re-parsing and creation of numeric literals (e.g. during
-    every iteration of a loop) we wish to pull them out and assign them to
-    global variables.
+    Pulls out numeric literals and assigns them to global variables.
+    This eliminates the need to re-parse and create the literals,
+    e.g., during every iteration of a loop.
 
-    This function takes a block of code and returns a new block of code
-    with literals replaced by variable names, as well as a dictionary of what
-    variables need to be created.
+    INPUT:
 
-    EXAMPLES:
+    - ``code`` - a string; a block of code
+
+    OUTPUT:
+
+    - a (string, string:string dictionary) 2-tuple; the block with
+      literals replaced by variable names and a mapping from names to
+      the new variables
+
+    EXAMPLES::
+
         sage: from sage.misc.preparser import extract_numeric_literals
         sage: code, nums = extract_numeric_literals("1.2 + 5")
         sage: print code
@@ -469,13 +560,25 @@ all_num_regex = None
 
 def preparse_numeric_literals(code, extract=False):
     """
-    This preparses numerical literals into their sage counterparts,
+    This preparses numerical literals into their Sage counterparts,
     e.g. Integer, RealNumber, and ComplexNumber.
-    If extract is true, then it will create names for the literals
-    and return a dict of name-construction pairs along with the
-    processed code.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``code`` - a string; a code block to preparse
+
+    - ``extract`` - a boolean (default: False); whether to create
+      names for the literals and return a dictionary of
+      name-construction pairs
+
+    OUTPUT:
+
+    - a string or (string, string:string dictionary) 2-tuple; the
+      preparsed block and, if ``extract`` is True, the
+      name-construction mapping
+
+    EXAMPLES::
+
         sage: from sage.misc.preparser import preparse_numeric_literals
         sage: preparse_numeric_literals("5")
         'Integer(5)'
@@ -614,16 +717,27 @@ def preparse_numeric_literals(code, extract=False):
 
 
 def strip_prompts(line):
-    r"""Get rid of leading sage: and >>> prompts so that pasting of examples from
-    the documentation works.
+    r"""
+    Removes leading sage: and >>> prompts so that pasting of examples
+    from the documentation works.
 
-    sage: from sage.misc.preparser import strip_prompts
-    sage: strip_prompts("sage: 2 + 2")
-    '2 + 2'
-    sage: strip_prompts(">>>   3 + 2")
-    '3 + 2'
-    sage: strip_prompts("  2 + 4")
-    '  2 + 4'
+    INPUT:
+
+    - ``line`` - a string to process
+
+    OUTPUT:
+
+    - a string stripped of leading prompts
+
+    EXAMPLES::
+
+        sage: from sage.misc.preparser import strip_prompts
+        sage: strip_prompts("sage: 2 + 2")
+        '2 + 2'
+        sage: strip_prompts(">>>   3 + 2")
+        '3 + 2'
+        sage: strip_prompts("  2 + 4")
+        '  2 + 4'
     """
     for prompt in ['sage:', '>>>']:
         if line.startswith(prompt):
@@ -634,17 +748,31 @@ def strip_prompts(line):
 
 def preparse_calculus(code):
     """
-    Support for calculus-like function assignment, the line
-    "f(x,y,z) = sin(x^3 - 4*y) + y^x"
-    gets turnd into
-    '__tmp__=var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
+    Supports calculus-like function assignment, e.g., transforms::
+
+       f(x,y,z) = sin(x^3 - 4*y) + y^x
+
+    into::
+
+       __tmp__=var("x,y,z")
+       f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)
 
     AUTHORS:
-        -- Bobby Moretti: initial version - 02/2007
-        -- William Stein: make variables become defined if they aren't already defined.
-        -- Robert Bradshaw: rewrite using regular expressions (01/2009)
 
-    EXAMPLES:
+    - Bobby Moretti
+
+      - Initial version - 02/2007
+
+    - William Stein
+
+      - Make variables become defined if they aren't already defined.
+
+    - Robert Bradshaw
+
+      - Rewrite using regular expressions (01/2009)
+
+    EXAMPLES::
+
         sage: preparse("f(x) = x^3-x")
         '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
         sage: preparse("f(u,v) = u - v")
@@ -656,7 +784,9 @@ def preparse_calculus(code):
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
         '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
 
-    For simplicity, this function assumes all statements begin and end with a semicolon.
+    For simplicity, this function assumes all statements begin and end
+    with a semicolon::
+
         sage: from sage.misc.preparser import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
@@ -681,68 +811,98 @@ def preparse_calculus(code):
 
 
 def preparse_generators(code):
-    r"""Parse R.<a, b> in line[start_index:].
+    r"""
+    Parses generator syntax, converting::
 
-    Returns preparsed code.
+        obj.<gen0,gen1,...,genN> = objConstructor(...)
 
-    Support for generator construction syntax:
-    "obj.<gen0,gen1,...,genN> = objConstructor(...)"
-    is converted into
-    "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
-     (gen0, gen1, ..., genN,) = obj.gens()"
+    into::
 
-    Also, obj.<gen0,gen1,...,genN> = R[interior] is converted into
-    "obj = R[interior]; (gen0, gen1, ..., genN,) = obj.gens()"
+        obj = objConstructor(..., names=("gen0", "gen1", ..., "genN"))
+        (gen0, gen1, ..., genN,) = obj.gens()
+
+    and::
+
+        obj.<gen0,gen1,...,genN> = R[interior]
+
+    into::
+
+        obj = R[interior]; (gen0, gen1, ..., genN,) = obj.gens()
+
+    INPUT:
+
+    - ``code`` - a string
+
+    OUTPUT:
+
+    - a string
 
     LIMITATIONS:
+
        - The entire constructor *must* be on one line.
 
     AUTHORS:
-        -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
-        -- 2006-04-17: William Stein - improvements to allow multiple statements.
-        -- 2006-05-01: William -- fix bug that Joe found
-        -- 2006-10-31: William -- fix so obj doesn't have to be mutated
-        -- 2009-01-27: Robert Bradshaw -- rewrite using regular expressions
 
-    TESTS:
+    - 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+
+      - Initial version.
+
+    - 2006-04-17: William Stein
+
+      - Improvements to allow multiple statements.
+
+    - 2006-05-01: William
+
+      - Fix bug that Joe found.
+
+    - 2006-10-31: William
+
+      - Fix so obj doesn't have to be mutated.
+
+    - 2009-01-27: Robert Bradshaw
+
+      - Rewrite using regular expressions
+
+    TESTS::
+
         sage: from sage.misc.preparser import preparse, preparse_generators
 
-        Vanilla:
+    Vanilla::
 
         sage: preparse("R.<x> = ZZ['x']")
         "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ['x,y']")
         "R = ZZ['x,y']; (x, y,) = R._first_ngens(2)"
 
-        No square brackets:
+    No square brackets::
 
         sage: preparse("R.<x> = PolynomialRing(ZZ, 'x')")
         "R = PolynomialRing(ZZ, 'x', names=('x',)); (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = PolynomialRing(ZZ, 'x,y')")
         "R = PolynomialRing(ZZ, 'x,y', names=('x', 'y',)); (x, y,) = R._first_ngens(2)"
 
-        Names filled in:
+    Names filled in::
 
         sage: preparse("R.<x> = ZZ[]")
         "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ[]")
         "R = ZZ['x, y']; (x, y,) = R._first_ngens(2)"
 
-        Names given not the same as generator names:
+    Names given not the same as generator names::
 
         sage: preparse("R.<x> = ZZ['y']")
         "R = ZZ['y']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ['u,v']")
         "R = ZZ['u,v']; (x, y,) = R._first_ngens(2)"
 
-        Number fields:
+    Number fields::
 
         sage: preparse("K.<a> = QQ[2^(1/3)]")
         'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(1)'
         sage: preparse("K.<a, b> = QQ[2^(1/3), 2^(1/2)]")
         'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(2)'
 
-        Just the .<> notation:
+    Just the .<> notation::
 
         sage: preparse("R.<x> = ZZx")
         'R = ZZx; (x,) = R._first_ngens(1)'
@@ -751,7 +911,7 @@ def preparse_generators(code):
         sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
         "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
-        Ensure we don't eat too much:
+    Ensure we don't eat too much::
 
         sage: preparse("R.<x, y> = ZZ;2")
         'R = ZZ; (x, y,) = R._first_ngens(2);Integer(2)'
@@ -760,8 +920,11 @@ def preparse_generators(code):
         sage: preparse("F.<b>, f, g = S.field_extension()")
         "F, f, g  = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)"
 
-    For simplicity, this function assumes all statements begin and end with a semicolon.
-        preparse_generators(";  R.<x>=ZZ[];")
+    For simplicity, this function assumes all statements begin and end
+    with a semicolon::
+
+        sage: preparse_generators(";  R.<x>=ZZ[];")
+        ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
     """
     new_code = []
     last_end = 0
@@ -799,9 +962,29 @@ def preparse_generators(code):
 
 quote_state = None
 
-def preparse(line, reset=True, do_time=False, ignore_prompts=False, numeric_literals=True):
+def preparse(line, reset=True, do_time=False, ignore_prompts=False,
+             numeric_literals=True):
     r"""
-    EXAMPLES:
+    Preparses a line of input.
+
+    INPUT:
+
+    - ``line`` - a string
+
+    - ``reset`` - a boolean (default: True)
+
+    - ``do_time`` - a boolean (default: False)
+
+    - ``ignore_prompts`` - a boolean (default: False)
+
+    - ``numeric_literals`` - a boolean (default: True)
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
         sage: preparse("ZZ.<x> = ZZ['x']")
         "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x> = ZZ['y']")
@@ -921,31 +1104,53 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False, numeric_lite
 ## Apply the preparser to an entire file
 ######################################################
 
-_attached={}
-def preparse_file(contents, attached=_attached, magic=True,
-                  do_time=False, ignore_prompts=False,
-                  numeric_literals=True, reload_attached=False):
+attached = {}
+def preparse_file(contents, globals=None, numeric_literals=True):
     """
-    NOTE: Temporarily, if @parallel is in the input, then numeric_literals
-    is always set to False.
+    Preparses input, attending to numeric literals and load/attach
+    file directives.
 
-    TESTS:
+    .. note:: Temporarily, if @parallel is in the input, then
+       numeric_literals is always set to False.
+
+    INPUT:
+
+    - ``contents`` - a string
+
+    - ``globals`` - dict or None (default: None); if given, then
+      arguments to load/attach are evaluated in the namespace of this
+      dict.
+
+    - ``numeric_literals`` - bool (default: True), whether to factor
+      out wrapping of integers and floats, so they don't get created
+      repeatedly inside loops
+
+    OUTPUT:
+
+    - a string
+
+    TESTS::
+
         sage: from sage.misc.preparser import preparse_file
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
         sage: _ = preparse_file(lots_of_numbers)
-        sage: preparse_file("type(100r), type(100)")
-        '_sage_const_100 = Integer(100)\ntype(100 ), type(_sage_const_100 )'
+        sage: print preparse_file("type(100r), type(100)")
+        _sage_const_100 = Integer(100)
+        type(100 ), type(_sage_const_100 )
     """
+    if globals is None: globals = {}
+
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
 
     assert isinstance(contents, str)
 
-    if reload_attached:
-        # add lines to load each attached file that has changed
-        for F, tm in attached.iteritems():
-            if os.path.exists(F) and os.path.getmtime(F) > tm:
-                contents = 'load "%s"\n'%F + contents
+    # Reload attached files that have changed
+    for F, tm in attached.iteritems():
+        new_tm = os.path.getmtime(F)
+        if os.path.exists(F) and new_tm > tm:
+            contents = 'load "%s"\n'%F + contents
+        attached[F] = new_tm
 
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
@@ -963,91 +1168,67 @@ def preparse_file(contents, attached=_attached, magic=True,
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
         if nums:
-            # Stick the assignments at the top, trying not to shift the lines down.
+            # Stick the assignments at the top, trying not to shift
+            # the lines down.
             ix = contents.find('\n')
             if ix == -1: ix = len(contents)
             if not re.match(r"^ *(#.*)?$", contents[:ix]):
                 contents = "\n"+contents
             assignments = ["%s = %s" % x for x in nums.items()]
-            # the preparser recurses on semicolons, so we only attempt to preserve line numbers if there are a few
+            # the preparser recurses on semicolons, so we only attempt
+            # to preserve line numbers if there are a few
             if len(assignments) < 500:
                 contents = "; ".join(assignments) + contents
             else:
                 contents = "\n".join(assignments) + "\n\n" + contents
 
+    # The list F contains the preparsed lines so far.
     F = []
+    # A is the input, as a list of lines.
     A = contents.splitlines()
+    # We are currently parsing the i-th input line.
     i = 0
     while i < len(A):
-        L = A[i].rstrip()
-        if magic and L[:7] == "attach ":
-            name = os.path.abspath(_strip_quotes(L[7:]))
-            try:
-                if not attached.has_key(name):
-                    t = os.path.getmtime(name)
-                    attached[name] = t
-            except IOError, OSError:
-                pass
-            L = 'load ' + L[7:]
-
-        if magic and L[:5] == "load ":
-            try:
-                name_load = _strip_quotes(L[5:])
-            except:
-                name_load = L[5:].strip()
-            if name_load in loaded_files:
-                i += 1
-                continue
-            loaded_files.append(name_load)
-            if name_load[-3:] == '.py':
-                import IPython.ipapi
-                # This is a dangerous hack, actually, since it means
-                # that if the input file is:
-                #     load a.sage
-                #     load b.py
-                # Then b.py will be loaded while the file is being *parsed*,
-                # and *before* a.sage is loaded.  That would be very confusing.
-                # This is now Trac ticket #4474.
-                IPython.ipapi.get().magic('run -i "%s"'%name_load)
-                L = ''
-            elif name_load[-5:] == '.sage':
-                try:
-                    G = open(name_load)
-                except IOError:
-                    print "File '%s' not found, so skipping load of %s"%(name_load, name_load)
-                    i += 1
+        L = A[i]
+        do_preparse = True
+        for cmd in ['load', 'attach']:
+            if L.lstrip().startswith(cmd+' '):
+                j = L.find(cmd+' ')
+                s = L[j+len(cmd)+1:].strip()
+                if not s.startswith('('):
+                    F.append(' '*j + load_wrap(s, cmd=='attach'))
+                    do_preparse = False
                     continue
-                else:
-                    A = A[:i] + G.readlines() + A[i+1:]
-                    continue
-            elif name_load[-5:] == '.spyx':
-                import interpreter
-                L = interpreter.load_cython(name_load)
-            else:
-                #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
-                L = 'load("%s")'%name_load
-
-        M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts, numeric_literals=not numeric_literals)
-        F.append(M)
+        if do_preparse:
+            F.append(preparse(L, reset=(i==0), do_time=True, ignore_prompts=False,
+                              numeric_literals=not numeric_literals))
         i += 1
-    # end while
 
     return '\n'.join(F)
 
 def implicit_mul(code, level=5):
     """
-    Insert explicit *'s for implicit multiplication.
+    Inserts \*'s to make implicit multiplication explicit.
 
     INPUT:
-        code  -- the code with missing *'s
-        level -- how aggressive to be in placing *'s
-                   0) Do nothing
-                   1) numeric followed by alphanumeric
-                   2) closing parentheses followed by alphanumeric
-                   3) Spaces between alphanumeric
-                  10) Adjacent parentheses (may mangle call statements)
 
-    EXAMPLES:
+    - ``code``  -- a string; the code with missing \*'s
+
+    - ``level`` -- an integer (default: 5); how aggressive to be in
+      placing \*'s
+
+      -  0 - Do nothing
+      -  1 - Numeric followed by alphanumeric
+      -  2 - Closing parentheses followed by alphanumeric
+      -  3 - Spaces between alphanumeric
+      - 10 - Adjacent parentheses (may mangle call statements)
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
         sage: from sage.misc.preparser import implicit_mul
         sage: implicit_mul('(2x^2-4x+3)a0')
         '(2*x^2-4*x+3)*a0'
@@ -1094,21 +1275,26 @@ def _strip_quotes(s):
     Strips one set of outer quotes.
 
     INPUT:
-        a string s
+
+    - ``s`` - a string
 
     OUTPUT:
-        a string with the single and double quotes on either side of s
-        removed, if there are any
+
+    - a string with any single and double quotes on either side of
+      ``s`` removed
 
     EXAMPLES:
-    Both types of quotes work.
+
+    Both types of quotes work::
+
         sage: import sage.misc.preparser
         sage: sage.misc.preparser._strip_quotes('"foo.sage"')
         'foo.sage'
         sage: sage.misc.preparser._strip_quotes("'foo.sage'")
         'foo.sage'
 
-    The only thing that is stripped is at most one set of outer quotes:
+    The only thing that is stripped is at most one set of outer quotes::
+
         sage: sage.misc.preparser._strip_quotes('""foo".sage""')
         '"foo".sage"'
     """
@@ -1123,9 +1309,12 @@ def _strip_quotes(s):
 
 class BackslashOperator:
     """
-    This implements Matlab-style backslash operator for system solving via A \ b.
+    Implements Matlab-style backslash operator for solving systems::
 
-    EXAMPLES:
+        A / b
+
+    EXAMPLES::
+
         sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
         "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
         sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
@@ -1141,7 +1330,8 @@ class BackslashOperator:
     """
     def __rmul__(self, left):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(ZZ, 4)
             sage: B = random_matrix(ZZ, 4)
             sage: temp = A * BackslashOperator()
@@ -1156,7 +1346,8 @@ class BackslashOperator:
 
     def __mul__(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(RDF, 5, 5, 2)
             sage: b = vector(RDF, 5, range(5))
             sage: A \ b
@@ -1167,3 +1358,273 @@ class BackslashOperator:
             (0.0, 0.5, 1.0, 1.5, 2.0)
         """
         return self.left._backslash_(right)
+
+
+def is_loadable_filename(filename):
+    """
+    Returns whether a file can be loaded into Sage.  This checks only
+    whether its name ends in one of the supported extensions .py,
+    .pyx, .sage, and .spyx.
+
+    INPUT:
+
+    - ``filename`` - a string
+
+    OUTPUT:
+
+    - a boolean
+
+    EXAMPLES::
+
+        sage: sage.misc.preparser.is_loadable_filename('foo.bar')
+        False
+        sage: sage.misc.preparser.is_loadable_filename('foo.c')
+        False
+        sage: sage.misc.preparser.is_loadable_filename('foo.sage')
+        True
+    """
+    # Loop over list of supported code file extensions for the load function.
+    for ext in ['.py', '.pyx', '.sage', '.spyx']:
+        if filename.endswith(ext):
+            return True
+    return False
+
+def load(filename, globals, attach=False):
+    """
+    Executes a file in the scope given by ``globals``.  The
+    ``filename`` itself is also evaluated in the scope.  If the name
+    starts with http://, it is treated as a URL and downloaded.
+
+    .. note:: For Cython files, the situation is more complicated --
+       the module is first compiled to a temporary module t and
+       executed via::
+
+           from t import *
+
+    INPUT:
+
+    - ``filename`` -- a string; a .py, .sage, .pyx, etc., filename,
+      URL, or expression that evaluates to one
+
+    - ``globals`` -- a string:object dictionary; the context in which
+      to evaluate the ``filename`` and exec its contents
+
+    - ``attach`` -- a boolean (default: False); whether to add the
+      file to the list of attached files
+
+    EXAMPLES:
+
+    Note that .py files are *not* preparsed::
+
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hi',2/3; z=-2/9")
+        sage: sage.misc.preparser.load(t,globals())
+        hi 0
+        sage: z
+        -1
+
+    A .sage file *is* preparsed::
+
+        sage: t=tmp_filename()+'.sage'; open(t,'w').write("print 'hi',2/3; s=-2/7")
+        sage: sage.misc.preparser.load(t,globals())
+        hi 2/3
+        sage: s
+        -2/7
+
+    Cython files are *not* preparsed::
+
+        sage: t=tmp_filename()+'.pyx'; open(t,'w').write("print 'hi',2/3; z=-2/9")
+        sage: z=0; sage.misc.preparser.load(t,globals())
+        Compiling ....pyx...
+        hi 0
+        sage: z
+        -1
+
+    If the file isn't a Cython, Python, or a Sage file, a ValueError
+    is raised::
+
+        sage: sage.misc.preparser.load('a.foo',globals())
+        Traceback (most recent call last):
+        ...
+        ValueError: argument (='a.foo') to load or attach must have extension py, sage, or pyx
+
+    A filename given as an expression get evaluated.  This ensures
+    that ``load DATA+'foo.sage'`` works in the Notebook, say::
+
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: sage.misc.preparser.load(t, globals())
+        hello world
+
+    We load a file given at a remote URL::
+
+        sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
+        hi from the net
+
+    We attach a file::
+
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: sage.misc.preparser.load(t, globals(), attach=True)
+        hello world
+        sage: t in sage.misc.preparser.attached
+        True
+
+    You can't attach remote URLs (yet)::
+
+        sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals(), attach=True)  # optional - internet
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: you can't attach a URL
+    """
+    try:
+        filename = eval(filename, globals)
+    except Exception:
+        # handle multiple input files separated by spaces, which was
+        # maybe a bad idea, but which we have to handle for backwards
+        # compatibility.
+        v = filename.split()
+        if len(v) > 1:
+            for file in v:
+                load(file, globals, attach=attach)
+            return
+
+    filename = filename.strip()
+
+    if filename.lower().startswith('http://'):
+        if attach:
+            # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
+            # we will do this.
+            # http://www.diveintopython.org/http_web_services/etags.html
+            raise NotImplementedError, "you can't attach a URL"
+        from remote_file import get_remote_file
+        filename = get_remote_file(filename, verbose=False)
+
+    if filename.endswith('.py'):
+        execfile(filename, globals)
+    elif filename.endswith('.sage'):
+        exec(preparse_file(open(filename).read()), globals)
+    elif filename.endswith('.spyx') or filename.endswith('.pyx'):
+        import interpreter
+        exec(interpreter.load_cython(filename), globals)
+    elif filename.endswith('.m'):
+        # Assume magma for now, though maybe .m is used by maple and
+        # mathematica too, and we should really analyze the file
+        # further.
+        s = globals['magma'].load(filename)
+        i = s.find('\n'); s = s[i+1:]
+        print s
+    else:
+        raise ValueError, "argument (='%s') to load or attach must have extension py, sage, or pyx"%filename
+
+    if attach and os.path.exists(filename):
+        attached[filename] = os.path.getmtime(filename)
+
+
+import base64
+def load_wrap(filename, attach=False):
+    """
+    Encodes a load or attach command as valid Python code.
+
+    INPUT:
+
+    - ``filename`` - a string; the argument to the load or attach
+      command
+
+    - ``attach`` - a boolean (default: False); whether to attach
+      ``filename``, instead of loading it
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
+        sage: sage.misc.preparser.load_wrap('foo.py', True)
+        'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("Zm9vLnB5"),globals(),True)'
+        sage: sage.misc.preparser.load_wrap('foo.sage')
+        'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U="),globals(),False)'
+        sage: sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U=")
+        'foo.sage'
+    """
+    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("%s"),globals(),%s)'%(
+        base64.b64encode(filename), attach)
+
+
+def modified_attached_files():
+    """
+    Returns an iterator over the names of the attached files that have
+    changed since last time this function was called.
+
+    OUTPUT:
+
+    - an iterator over strings
+
+    EXAMPLES::
+
+        sage: sage.misc.reset.reset_attached()
+        sage: t=tmp_filename()+'.py';
+        sage: a = 0
+        sage: f = open(t,'w'); f.write("a = 5"); f.close()
+        sage: attach(t)
+        sage: a
+        5
+        sage: len(list(sage.misc.preparser.modified_attached_files()))
+        0
+        sage: import time; time.sleep(2)
+        sage: f = open(t,'w'); f.write("a = 10"); f.close()
+        sage: len(list(sage.misc.preparser.modified_attached_files()))
+        1
+        sage: len(list(sage.misc.preparser.modified_attached_files()))
+        0
+    """
+    # A generator is the perfect data structure here, since something
+    # could go wrong loading one file, and we end up only marking the
+    # ones that we returned as loaded.
+    for F in attached.keys():
+        tm = attached[F]
+        new_tm = os.path.getmtime(F)
+        if os.path.exists(F) and new_tm > tm:
+            # F is newer than last time we loaded it.
+            attached[F] = os.path.getmtime(F)
+            yield F
+
+def attached_files():
+    """
+    Returns a list of all files attached to the current session.
+
+    OUTPUT:
+
+    - a sorted list of strings; the filenames
+
+    EXAMPLES::
+
+        sage: sage.misc.reset.reset_attached()
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: attach(t)
+        hello world
+        sage: attached_files() == [t]
+        True
+
+    """
+    return list(sorted(attached.keys()))
+
+def detach(filename):
+    """
+    Detaches a file, if it was attached with the attach command.
+
+    INPUT:
+
+    - ``filename`` - a string
+
+    EXAMPLES::
+
+        sage: sage.misc.reset.reset_attached()
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: attach(t)
+        hello world
+        sage: attached_files() == [t]
+        True
+        sage: detach(t)
+        sage: attached_files()
+        []
+    """
+    if attached.has_key(filename):
+        del attached[filename]

@@ -10,6 +10,5 @@ Sage tutorial and the documentation for IPython.
 .. toctree::
    :maxdepth: 2
 
-   sage/misc/attach
    sage/misc/trace
    options

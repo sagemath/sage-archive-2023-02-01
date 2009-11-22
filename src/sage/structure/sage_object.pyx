@@ -615,10 +615,14 @@ def have_same_parent(self, other):
 
 ##################################################################
 
-def load(filename, compress=True, verbose=True):
+def load(*filename, compress=True, verbose=True):
     """
-    Load Sage object from the file with name filename, which will
-    have an .sobj extension added if it doesn't have one.
+    Load Sage object from the file with name filename, which will have
+    an .sobj extension added if it doesn't have one.  Or, if the input
+    is a filename ending in .py, .pyx, or .sage, load that file into
+    the current running session.  Loaded files are not loaded into
+    their own namespace, i.e., this is much more like Python's
+    ``execfile`` than Python's ``import``.
 
     .. note::
 
@@ -633,8 +637,13 @@ def load(filename, compress=True, verbose=True):
        documentation for load is almost identical to that for attach.
        Type attach? for help on attach.
 
-    This also loads a ".sobj" file over a network by specifying the full URL.
-    (Setting "verbose = False" suppresses the loading progress indicator.)
+    This function also loads a ``.sobj`` file over a network by
+    specifying the full URL.  (Setting ``verbose = False`` suppresses
+    the loading progress indicator.)
+
+    Finally, if you give multiple positional input arguments, then all
+    of those files are loaded, or all of the objects are loaded and a
+    list of the corresponding loaded objects is returned.
 
     EXAMPLE::
 
@@ -644,7 +653,35 @@ def load(filename, compress=True, verbose=True):
         Loading: [.]
         sage: s                                                            # optional - internet
         'hello SAGE'
+
+    We test loading a file or multiple files or even mixing loading files and objects::
+
+        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: load(t)
+        hello world
+        sage: load(t,t)
+        hello world
+        hello world
+        sage: t2=tmp_filename(); save(2/3,t2)
+        sage: load(t,t,t2)
+        hello world
+        hello world
+        [None, None, 2/3]
     """
+    import sage.misc.preparser
+    if len(filename) != 1:
+        v = [load(file, compress=True, verbose=True) for file in filename]
+        ret = False
+        for file in filename:
+            if not sage.misc.preparser.is_loadable_filename(file):
+                ret = True
+        return v if ret else None
+    else:
+        filename = filename[0]
+
+    if sage.misc.preparser.is_loadable_filename(filename):
+        sage.misc.preparser.load(filename, globals())
+        return
 
     ## Check if filename starts with "http://" or "https://"
     lower = filename.lower()
@@ -761,13 +798,13 @@ def register_unpickle_override(module, name, callable, call_name=None):
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
 
-    Now we horribly break the pickling system:
+    Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.rational.Rational'>
 
-    And we reach into the internals and put it back:
+    And we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
@@ -790,13 +827,13 @@ def unpickle_global(module, name):
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
 
-    Now we horribly break the pickling system:
+    Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.rational.Rational'>
 
-    And we reach into the internals and put it back:
+    And we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')

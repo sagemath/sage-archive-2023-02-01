@@ -16,6 +16,7 @@ Miscellaneous
    sage/misc/mrange
    sage/misc/dist
    sage/misc/hg
+   sage/misc/preparser
    sage/misc/functional
    sage/misc/latex
    sage/misc/latex_macros

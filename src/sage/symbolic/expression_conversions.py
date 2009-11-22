@@ -465,56 +465,9 @@ class InterfaceInit(Converter):
             D[0](f)(x)
             sage: print m.derivative(a, a.operator())
             diff('f(x), x, 1)
-
-        ::
-
             sage: b = function('f', x).diff(x).diff(x)
             sage: print m.derivative(b, b.operator())
             diff('f(x), x, 2)
-
-
-        TESTS::
-
-        Trac #7401 fixed::
-
-            sage: t=var('t'); f=function('f', t)
-            sage: a = 2**e^t*f.subs(t=e^t)*diff(f,t).subs(t=e^t) + 2*t
-            sage: solve ( a == 0, diff(f,t).subs(t=e^t))
-            [D[0](f)(e^t) == -t*2^(-e^t + 1)/f(e^t)]
-
-        More tests of the patch for trac #7401. We convert to Maxima and back::
-
-            sage: a = function('f', x).diff(x).subs(x=exp(x)); b=maxima(a); b
-            ?%at('diff('f(dummy_var_der),dummy_var_der,1),dummy_var_der=e^x)
-            sage: b.sage()
-            D[0](f)(e^x)
-
-        ::
-
-            sage: a = function('f', x).diff(x).subs(x=4); b=maxima(a); b
-            ?%at('diff('f(dummy_var_der),dummy_var_der,1),dummy_var_der=4)
-            sage: b.sage()
-            D[0](f)(4)
-
-        Functions in two variables are not supported::
-
-            sage: x,y,=var('x y')
-            sage: a = function('f', x, y).diff(x).subs(x=4).subs(y=8)
-            sage: b=maxima(a); b
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot convert expression to Maxima
-
-        The error occurs also if only one variable is substituted::
-
-            sage: x,y,=var('x y')
-            sage: a = function('f', x, y).diff(x).subs(x=4)
-            sage: b=maxima(a); b
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot convert expression to Maxima
-
-
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -522,23 +475,17 @@ class InterfaceInit(Converter):
         if self.name_init != "_maxima_init_":
             raise NotImplementedError
         args = ex.args()
-        opnds = ex.operands()
         if (not all(is_SymbolicVariable(v) for v in args) or
             len(args) != len(set(args))):
             raise NotImplementedError, "arguments must be distinct variables"
+
         f = operator.function()
         params = operator.parameter_set()
-        if (set(args)==set(opnds)):
-            params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
-            return "diff('%s(%s), %s)"%(f.name(),
+        params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
+
+        return "diff('%s(%s), %s)"%(f.name(),
                                     ", ".join(map(repr, args)),
                                     ", ".join(params))
-        elif len(args) < 2 and len(opnds)<2 and len(set(params)) == 1:
-            return "at(diff('%s(dummy_var_der), dummy_var_der,%s),dummy_var_der=%s)"%(f.name(),
-                                                                          params.count(0),
-                                                                          opnds[0])
-        else:
-            raise NotImplementedError, "cannot convert expression to Maxima"
 
     def arithmetic(self, ex, operator):
         """

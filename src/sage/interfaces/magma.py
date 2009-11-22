@@ -2478,11 +2478,27 @@ class MagmaElement(ExpectElement):
             True
             sage: bool(V)                                         # optional - magma
             True
+
+        Test use in bool conversions of bools::
+
+            sage: bool(magma(False))                             # optional - magma
+            False
+            sage: bool(magma(True))                              # optional - magma
+            True
+            sage: bool(magma(1))                                 # optional - magma
+            True
+            sage: bool(magma(0))                                 # optional - magma
+            False
         """
         try:
             return not self.parent()("%s eq 0"%self.name()).bool()
         except TypeError:
-            return True
+            # comparing with 0 didn't work; try comparing with
+            try:
+                return not self.parent()("%s eq false"%self.name()).bool()
+            except TypeError:
+                pass
+        return True
 
     def sub(self, gens):
         """

@@ -231,9 +231,10 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		bool latex_tags) const
 {
 	if (precedence() <= level){
-                if (latex_tags) 
-                     c.s << '{';
-		c.s << '(';
+		if (latex_tags) 
+			c.s << "{\\left(";
+		else
+			c.s << '(';
 	}
 
 	const char *sep;
@@ -294,8 +295,10 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		print_exvector(others, c, sep);
 	}
 	if (precedence() <= level){
-		c.s << ')';
-                if (latex_tags) c.s << '}';
+		if (latex_tags)
+			c.s << "\\right)}";
+		else
+			c.s << ')';
 	}
 
 }

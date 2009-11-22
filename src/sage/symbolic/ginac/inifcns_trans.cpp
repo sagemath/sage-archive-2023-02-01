@@ -162,16 +162,20 @@ static void exp_print(const ex & arg, const print_context & c,
 				(argstr.find('/') != std::string::npos) ||
 				(argstr.find('*') != std::string::npos) ||
 				(argstr.find('^') != std::string::npos));
-		if (latex)
-			c.s << "{";
-		else if (parenthesis)
-			c.s << "(";
+		if (latex) {
+			c.s << '{';
+			if (parenthesis)
+				c.s << "\\left(";
+		} else if (parenthesis)
+			c.s << '(';
 
 		c.s << argstr;
-		if (latex)
-			c.s << "}";
-		else if (parenthesis)
-			c.s << ")";
+		if (latex) {
+			if (parenthesis)
+				c.s << "\\right)";
+			c.s << '}';
+		} else if (parenthesis)
+			c.s << ')';
 	}
 }
 

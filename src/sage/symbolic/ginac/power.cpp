@@ -188,8 +188,36 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 		basis.print(c);
 		c.s << '}';
 
-	} else
-		print_power(c, "^", "{", "}", level);
+	} else {
+		// exp function prints as e^a. Printing powers of this can be
+		// confusing, so we add parenthesis if the basis is exp
+		bool base_parenthesis = is_ex_the_function(basis, exp) &&
+			basis.op(0) != _ex1;
+
+		if (precedence() <= level)
+			c.s << "{\\left(";
+		if (base_parenthesis)
+			c.s << "\\left(";
+
+		basis.print(c, precedence());
+
+		if (base_parenthesis)
+			c.s << "\\right)";
+
+		if (!exponent.is_equal(_ex_1)) {
+    		        c.s << "^{";
+			bool exp_parenthesis = is_a<power>(exponent);
+			if (exp_parenthesis)
+				c.s << "\\left(";
+			exponent.print(c, level);
+			if (exp_parenthesis)
+				c.s << "\\right)";
+			c.s << '}';
+		}
+
+		if (precedence() <= level)
+			c.s << "\\right)"<<'}';
+	}
 }
 
 static void print_sym_pow(const print_context & c, const symbol &x, int exp)

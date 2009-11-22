@@ -117,8 +117,9 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 {
 	if (precedence() <= level){
 		if (latex)
-			c.s<<"{";
-		c.s << '(';
+			c.s << "{\\left(";
+		else
+			c.s << '(';
 	}
 
 	numeric coeff;
@@ -174,9 +175,10 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 	}
 
 	if (precedence() <= level) {
-		c.s << ')';
 		if (latex)
-			c.s << '}';
+			c.s << "\\right)}";
+		else
+			c.s << ')';
 	}
 }
 

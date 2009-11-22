@@ -1000,6 +1000,22 @@ cdef class Expression(CommutativeRingElement):
             sage: d = dict( (f(x).derivative(x, i), i) for i in range(1,6) )
             sage: len(d.keys())
             5
+
+        We create a function with 10 arguments and test if there are hash
+        collisions between any of its derivatives of order at most 7. #7508::
+
+            sage: num_vars = 10; max_order=7
+            sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
+            sage: f = function('f',*X)
+            sage: hashes=set()
+            sage: for length in range(1,max_order+1):
+            ...       for s in UnorderedTuples(X, length):
+            ...           deriv = f.diff(*s)
+            ...           h = hash(deriv)
+            ...           if h in hashes:
+            ...               print "deriv: %s, hash:%s"%(deriv,h)
+            ...           else:
+            ...               hashes.add(n)
         """
         return self._gobj.gethash()
 

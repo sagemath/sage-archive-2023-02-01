@@ -509,19 +509,21 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(y + 3*(x^(-1)))
             y + 3 \, \frac{1}{x}
             sage: latex(x^(y+z^(1/y)))
-            x^{z^{\frac{1}{y}} + y}
+            x^{z^{\left(\frac{1}{y}\right)} + y}
             sage: latex(1/sqrt(x+y))
             \frac{1}{\sqrt{x + y}}
             sage: latex(sin(x*(z+y)^x))
-            \sin\left({(y + z)}^{x} x\right)
+            \sin\left({\left(y + z\right)}^{x} x\right)
             sage: latex(3/2*(x+y)/z/y)
-            \frac{3}{2} \, \frac{{(x + y)}}{y z}
+            \frac{3}{2} \, \frac{{\left(x + y\right)}}{y z}
             sage: latex((2^(x^y)))
-            2^{x^{y}}
+            2^{\left(x^{y}\right)}
             sage: latex(abs(x))
             {\left| x \right|}
             sage: latex((x*y).conjugate())
             \overline{x} \overline{y}
+            sage: latex(x*(1/(x^2)+sqrt(x^7)))
+            {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)} x
 
         Check spacing of coefficients of mul expressions (#3202)::
 
@@ -532,11 +534,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: _ = var('A,B,n')
             sage: latex((n+A/B)^(n+1))
-            {(n + \frac{A}{B})}^{n + 1}
+            {\left(n + \frac{A}{B}\right)}^{n + 1}
             sage: latex((A*B)^n)
-            {(A B)}^{n}
+            {\left(A B\right)}^{n}
             sage: latex((A*B)^(n-1))
-            {(A B)}^{n - 1}
+            {\left(A B\right)}^{n - 1}
 
         Powers where the base or exponent is a Python object::
 
@@ -547,10 +549,22 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((2/3)^(2/3))
             \left(\frac{2}{3}\right)^{\frac{2}{3}}
             sage: latex((-x)^(1/4))
-            {(-x)}^{\frac{1}{4}}
+            {\left(-x\right)}^{\frac{1}{4}}
             sage: k.<a> = GF(9)
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}
+
+        More powers, #7406::
+
+            sage: latex((x^pi)^e)
+            {\left(x^{\pi}\right)}^{e}
+            sage: latex((x^(pi+1))^e)
+            {\left(x^{{\left(\pi + 1\right)}}\right)}^{e}
+            sage: a,b,c = var('a b c')
+            sage: latex(a^(b^c))
+            a^{\left(b^{c}\right)}
+            sage: latex((a^b)^c)
+            {\left(a^{b}\right)}^{c}
         """
         return self._parent._latex_element_(self)
 

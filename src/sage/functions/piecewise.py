@@ -213,7 +213,7 @@ class PiecewisePolynomial:
             sage: latex(P)
             \begin{cases}
             x \ {\mapsto}\ \sin\left(\frac{1}{2} \, \pi x\right) &\text{on $(0, 1)$}\cr
-            x \ {\mapsto}\ -{(x - 1)}^{2} + 1 &\text{on $(1, 3)$}\cr
+            x \ {\mapsto}\ -{\left(x - 1\right)}^{2} + 1 &\text{on $(1, 3)$}\cr
             x \ {\mapsto}\ -x &\text{on $(3, 5)$}\cr
             \end{cases}
         """

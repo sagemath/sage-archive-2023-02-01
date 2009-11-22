@@ -44,10 +44,16 @@ class Function_exp(GinacFunction):
 
         TEST::
 
+            sage: latex(exp(x))
+            e^{x}
             sage: latex(exp(sqrt(x)))
             e^{\sqrt{x}}
             sage: latex(exp)
             \exp
+            sage: latex(exp(sqrt(x))^x)
+            \left(e^{\sqrt{x}}\right)^{x}
+            sage: latex(exp(sqrt(x)^x))
+            e^{\left(\sqrt{x}^{x}\right)}
 
         Test simplifications when taking powers of exp, #7264::
 

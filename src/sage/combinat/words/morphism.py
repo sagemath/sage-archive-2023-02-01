@@ -10,6 +10,8 @@ AUTHORS:
 - Sebastien Labbe (2008-07-01): merged into sage-words
 - Sebastien Labbe (2008-12-17): merged into sage
 - Sebastien Labbe (2009-02-03): words next generation
+- Sebastien Labbe (2009-11-20): allowing the choice of the
+  datatype of the image. Doc improvements.
 
 EXAMPLES:
 
@@ -93,6 +95,55 @@ from sage.sets.set import Set
 
 class WordMorphism(SageObject):
     r"""
+    WordMorphism class
+
+    EXAMPLES::
+
+        sage: n = WordMorphism({0:[0,2,2,1],1:[0,2],2:[2,2,1]})
+        sage: m = WordMorphism('x->xyxsxss,s->xyss,y->ys')
+
+    Power of a morphism::
+
+        sage: print n^2
+        WordMorphism: 0->022122122102, 1->0221221, 2->22122102
+
+    Image under a morphism::
+
+        sage: m('y')
+        word: ys
+        sage: m('xxxsy')
+        word: xyxsxssxyxsxssxyxsxssxyssys
+
+    Iterated image under a morphism::
+
+        sage: m('y', 3)
+        word: ysxyssxyxsxssysxyssxyss
+
+    See more examples in the documentation of the call method
+    (``m.__call__?``).
+
+    Infinite fixed point of morphism::
+
+        sage: fix = m.fixed_point('x')
+        sage: fix
+        word: xyxsxssysxyxsxssxyssxyxsxssxyssxyssysxys...
+        sage: fix.length()
+        +Infinity
+
+    Incidence matrix::
+
+        sage: matrix(m)
+        [2 3 1]
+        [1 3 0]
+        [1 1 1]
+
+    Many other functionalities...::
+
+        sage: m.is_identity()
+        False
+        sage: m.is_endomorphism()
+        True
+
     TESTS::
 
         sage: wm = WordMorphism('a->ab,b->ba')
@@ -340,7 +391,7 @@ class WordMorphism(SageObject):
 
         return "WordMorphism: %s" % ', '.join(sorted(l))
 
-    def __call__(self, w, order=1):
+    def __call__(self, w, order=1, datatype='iter'):
         r"""
         Returns the image of ``w`` under ``self`` to the given ``order``.
 
@@ -349,6 +400,9 @@ class WordMorphism(SageObject):
         -  ``w`` - finite word in the domain of ``self``, must be
            of length one if order is ``Infinity``
         -  ``order`` - integer or plus ``Infinity`` (default: 1)
+        - ``datatype`` - (default: 'iter') "list", "str", "tuple",
+          "iter". The datatype of the output (note that only list, str
+          and tuple allows the word to be pickled and saved).
 
         OUTPUT:
 
@@ -406,6 +460,57 @@ class WordMorphism(SageObject):
             sage: m(w)
             word: 0110101011010110101011010101101011010101...
 
+        The default datatype of the output is an iterable which is good
+        because it is obtained in constant time but which is bad because it
+        is actually not pickable and hence can't be saved::
+
+            sage: m = WordMorphism('a->ab,b->ba')
+            sage: w = m('aabb')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+            sage: dumps(w)
+            Traceback (most recent call last):
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            sage: save(w,'test')
+            Traceback (most recent call last):
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+
+        A solution is to impose the datatype of the resulting word::
+
+            sage: w = m('aaab',datatype='list')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: w = m('aaab',datatype='str')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: w = m('aaab',datatype='tuple')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+
+        This allows the pickle system to work and hence to use the command
+        ``save`` on it::
+
+            sage: w = m('aabb', datatype='list')
+            sage: loads(dumps(w)) == w
+            True
+
+        To use str datatype for the output word, the domain and codomain
+        alphabet must consist of str objects::
+
+            sage: m = WordMorphism({0:[0,1],1:[1,0]})
+            sage: w = m([0],4); type(w)
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+            sage: w = m([0],4,datatype='list'); type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: w = m([0],4,datatype='str')
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in alphabet!
+            sage: w = m([0],4,datatype='tuple'); type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+
         The word must be in the domain of ``self``::
 
             sage: tm('0021')
@@ -457,7 +562,7 @@ class WordMorphism(SageObject):
             sage: m('')
             word:
         """
-        if self._morph.has_key(w):
+        if w in self.domain().alphabet():
             w = self._domain([w])
         else:
             w = self._domain(w)
@@ -473,15 +578,12 @@ class WordMorphism(SageObject):
             return w
         elif order == 1:
             if isinstance(w, FiniteWord_class):
-                if w.length() == 1:
-                    return self._morph[w[0]]
-                else:
-                    length = sum(self._morph[a].length() * b for (a,b) in w.evaluation_dict().iteritems())
-                    return self.codomain()((x for y in w for x in self._morph[y]), length=length)
+                length = sum(self._morph[a].length() * b for (a,b) in w.evaluation_dict().iteritems())
+                return self.codomain()((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
             else:
-                return self.codomain()((x for y in w for x in self._morph[y]), length=Infinity)
+                return self.codomain()((x for y in w for x in self._morph[y]), length=Infinity, datatype='iter')
         elif order > 1:
-            return self(self(w, order-1))
+            return self(self(w, order-1),datatype=datatype)
 
     def __mul__(self, other):
         r"""

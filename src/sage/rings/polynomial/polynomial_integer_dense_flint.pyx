@@ -605,11 +605,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def xgcd(self, right):
         """
-        Return ``g, u, v`` such that ``g = u*self + v*right``.
+        This function can't in general return ``(g,s,t)`` as above,
+        since they need not exist.  Instead, over the integers, we
+        first multiply `g` by a divisor of the resultant of `a/g` and
+        `b/g`, up to sign, and return ``g, u, v`` such that
+        ``g = s*self + s*right``.  But note that this `g` may be a
+        multiple of the gcd.
 
         If ``self`` and ``right`` are coprime as polynomials over the
-        rationals, then ``g`` is guaranteed to be the resultant of self and
-        right, as a constant polynomial.
+        rationals, then ``g`` is guaranteed to be the resultant of
+        self and right, as a constant polynomial.
 
         EXAMPLES::
 

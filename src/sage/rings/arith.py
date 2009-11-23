@@ -1420,7 +1420,16 @@ def xlcm(m,n):
 
 def xgcd(a, b):
     """
-    Returns triple ``(g,s,t)`` such that `g = s\*a+t\*b = \mathop{\mathrm{gcd}}(a,b)`.
+    Return a triple ``(g,s,t)`` such that
+         `g = s\*a+t\*b = \mathop{\mathrm{gcd}}(a,b)`.
+
+    .. note::
+
+    One exception is if `a` and `b` are not in a PID, e.g., they are
+    both polynomials over the integers, then this function can't in
+    general return ``(g,s,t)`` as above, since they need not exist.
+    Instead, over the integers, we first multiply `g` by a divisor of
+    the resultant of `a/g` and `b/g`, up to sign.
 
     INPUT:
 
@@ -1438,7 +1447,8 @@ def xgcd(a, b):
     .. note::
 
        There is no guarantee that the returned cofactors (s and t) are
-       minimal. In the integer case, see :meth:`sage.rings.integer.Integer._xgcd()` for minimal
+       minimal. In the integer case, see
+       :meth:`sage.rings.integer.Integer._xgcd()` for minimal
        cofactors.
 
     EXAMPLES::
@@ -1461,6 +1471,17 @@ def xgcd(a, b):
         (b^2/a^2, 1, ((-1)/a)*y + b/a^2)
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
         ((b^3 + (g)*b^2)/(a^2 + (2*g)*a + 3), 1, ((-b + (-g))/(a + (g)))*y + (b^2 + (g)*b)/(a^2 + (2*g)*a + 3))
+
+    We compute an xgcd over the integers, where the linear combination
+    is not the gcd but the resultant:
+
+        sage: R.<x> = ZZ[]
+        sage: gcd(2*x*(x-1), x^2)
+        x
+        sage: xgcd(2*x*(x-1), x^2)
+        (-2*x, 1, -2)
+        sage: (2*(x-1)).resultant(x)
+        2
     """
     try:
         return a.xgcd(b)

@@ -73,8 +73,15 @@ sys.path.append(os.environ['SAGE_DOC'])
 from common.builder import LANGUAGES
 for lang in LANGUAGES:
     try:
-        shutil.copytree(os.path.join('sage/doc', lang, 'reference/sage'),
-                        os.path.join(branch, 'doc', lang, 'reference/sage'))
+        for directory in ['sage', 'sagenb']:
+            fr = os.path.join('sage', 'doc', lang, 'reference', directory)
+            if os.path.exists(fr):
+                to = os.path.join(branch, 'doc', lang, 'reference', directory)
+                cmd = 'cp -pR %s %s' % (fr, to)
+#                print cmd
+                subprocess.call([cmd], shell=True)
+#        shutil.copytree(os.path.join('sage/doc', lang, 'reference/sage'),
+#                        os.path.join(branch, 'doc', lang, 'reference/sage'))
     except:
         pass
 
@@ -115,7 +122,7 @@ try:
     print ""
     print "After cloning, if you change any Sage library files and want to rebuild"
     print "the html version of the reference manual, use the command"
-    print "    sage -docbuild%s reference html"%jsmath
+    print "    sage -docbuild%s reference html" % jsmath
     print "(after running 'sage -b')."
     print ""
     print "Note: if *before* cloning, you have changed any Sage library files"
@@ -124,9 +131,9 @@ try:
     print "to be incorporated into the reference manual."
     print ""
     print "Updating modification times for the documentation..."
-    cmd = 'sage -docbuild%s --update-mtimes reference html'%jsmath
+    cmd = 'sage -docbuild%s --update-mtimes reference html' % jsmath
     print cmd
-    proc = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen([cmd], shell=True)
     if proc.wait():
         print ""
         print "Warning: Error updating modification times. (The clone will"

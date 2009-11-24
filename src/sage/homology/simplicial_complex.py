@@ -1179,11 +1179,11 @@ class SimplicialComplex(SageObject):
 
             sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
             sage: circle.chain_complex()
-            Chain complex with at most 2 nonzero terms over Integer Ring.
+            Chain complex with at most 2 nonzero terms over Integer Ring
             sage: circle.chain_complex()._latex_()
             '\\Bold{Z}^{3} \\xrightarrow{d_{1}} \\Bold{Z}^{3}'
             sage: circle.chain_complex(base_ring=QQ, augmented=True)
-            Chain complex with at most 3 nonzero terms over Rational Field.
+            Chain complex with at most 3 nonzero terms over Rational Field
         """
         # initialize subcomplex
         if subcomplex is None:
@@ -1715,6 +1715,60 @@ class SimplicialComplex(SageObject):
             if s.is_face(f):
                 faces.append(Simplex(list(f.set().difference(s.set()))))
         return SimplicialComplex(self.vertices(), faces)
+
+    def effective_vertices(self):
+        """
+        The set of vertices belonging to some face. Returns a Simplex.
+
+        EXAMPLES::
+
+            sage: S = SimplicialComplex(15)
+            sage: S
+            Simplicial complex with 16 vertices and facets {()}
+            sage: S.effective_vertices()
+            ()
+
+            sage: S = SimplicialComplex(15,[[0,1,2,3],[6,7]])
+            sage: S
+            Simplicial complex with 16 vertices and facets {(6, 7), (0, 1, 2, 3)}
+            sage: S.effective_vertices()
+            (0, 1, 2, 3, 6, 7)
+
+            sage: type(S.effective_vertices())
+            <class 'sage.homology.simplicial_complex.Simplex'>
+
+        """
+        try:
+            v = self.faces()[0]
+        except KeyError:
+            return Simplex(-1)
+        f = []
+        for i in v:
+            f.append(i[0])
+        return Simplex(set(f))
+
+    def generated_subcomplex(self,sub_vertex_set):
+        """
+        Returns the largest sub-simplicial complex of self containing
+        exactly ``sub_vertex_set`` as vertices.
+
+        EXAMPLES::
+
+            sage: S = simplicial_complexes.Sphere(2)
+            sage: S
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            sage: S.generated_subcomplex([0,1,2])
+            Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+
+        """
+        if not self.vertices().set().issuperset(sub_vertex_set):
+            raise TypeError, "input must be a subset of the vertex set."
+        faces = []
+        for i in range(self.dimension()+1):
+            for j in self.faces()[i]:
+                if j.set().issubset(sub_vertex_set):
+                    faces.append(j)
+        return SimplicialComplex(sub_vertex_set,faces,maximality_check=True)
 
     def _complement(self, simplex):
         """
@@ -2251,6 +2305,27 @@ class SimplicialComplex(SageObject):
         """
         import sage.categories.all
         return sage.categories.all.SimplicialComplexes()
+
+    def _Hom_(self, other, category=None):
+        """
+        Return the set of simplicial maps between simplicial complexes
+        ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: S = simplicial_complexes.Sphere(1)
+            sage: T = simplicial_complexes.Sphere(2)
+            sage: H = Hom(S,T)  # indirect doctest
+            sage: H
+            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)} in Category of simplicial complexes
+            sage: f = {0:0,1:1,2:3}
+            sage: x = H(f)
+            sage: x
+            Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+        """
+        from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
+        return SimplicialComplexHomset(self, other)
+
 
     def _repr_(self):
         """

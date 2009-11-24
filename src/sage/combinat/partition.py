@@ -210,6 +210,7 @@ from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 from sage.functions.other import ceil
 from sage.misc.misc import deprecation, deprecated_function_alias
+from sage.misc.prandom import random, randrange
 
 def Partition(mu=None, **keyword):
     """
@@ -3049,6 +3050,128 @@ class Partitions_n(CombinatorialClass):
         """
         return number_of_partitions(self.n, algorithm=algorithm)
 
+
+    def random_element(self, measure = 'uniform'):
+        """
+        Returns a random partitions of `n` for the specified measure.
+
+        INPUT:
+
+         - ``measure`` -
+
+            - ``uniform`` - (default) pick a element for the uniform mesure.
+                            see :meth:`random_element_uniform`
+
+            - ``Plancherel`` - use plancherel measure.
+                            see :meth:`random_element_plancherel`
+
+        EXAMPLES::
+
+            sage: Partitions(5).random_element() # random
+            [2, 1, 1, 1]
+            sage: Partitions(5).random_element(measure='Plancherel') # random
+            [2, 1, 1, 1]
+        """
+        if measure == 'uniform':
+            return self.random_element_uniform()
+        elif measure == 'Plancherel':
+            return self.random_element_plancherel()
+        else:
+            raise ValueError("Unkown measure: %s"%(measure))
+
+    def random_element_uniform(self):
+        """
+        Returns a random partitions of `n` with uniform probability.
+
+        EXAMPLES::
+
+            sage: Partitions(5).random_element_uniform()  # random
+            [2, 1, 1, 1]
+            sage: Partitions(20).random_element_uniform() # random
+            [9, 3, 3, 2, 2, 1]
+
+        TESTS::
+
+            sage: all(Part.random_element_uniform() in Part
+            ...       for Part in map(Partitions, range(10)))
+            True
+
+        ALGORITHM:
+
+         - It is a python Implementation of RANDPAR, see [nw] below.  The
+           complexity is unkown, there may be better algorithms.  TODO: Check
+           in Knuth AOCP4.
+
+         - There is also certainly a lot of room for optimizations, see
+           comments in the code.
+
+        REFERENCES:
+
+         - [nw] Nijenhuis, Wilf, Combinatorial Algorithms, Academic Press (1978).
+
+        AUTHOR:
+
+         - Florent Hivert (2009-11-23)
+        """
+        n = self.n
+        res = [] # A dictionary of multiplicities could be faster.
+        while n > 0:
+            # Choose a pair d,j = 1,2..., with d*j <= n with probability
+            #        d*numpart(n-d*j) / n / numpart(n)
+            # and add d^j to the result partition. The resulting partitions is
+            # equiprobable.
+
+            # The following could be made faster by a clever use of floats
+            rand = randrange(0, n*_numpart(n))  # cached number_of_partition
+
+            # It is better to start by the j = 1 pairs because they are the
+            # most probable. Maybe there is an even more clever order.
+            for j in range(1, n+1):
+                d = 1
+                r = n-j        # n - d*j
+                while  r >= 0:
+                    rand -= d * _numpart(r)
+                    if rand < 0: break
+                    d +=1
+                    r -= j
+                else:
+                    continue
+                break
+            res.extend([d]*j)
+            n = r
+        res.sort(reverse=True)
+        return Partition(res)
+
+    def random_element_plancherel(self):
+        """
+        Returns a random partitions of `n`.
+
+        EXAMPLES::
+
+            sage: Partitions(5).random_element_plancherel()   # random
+            [2, 1, 1, 1]
+            sage: Partitions(20).random_element_plancherel()  # random
+            [9, 3, 3, 2, 2, 1]
+
+        TESTS::
+
+            sage: all(Part.random_element_plancherel() in Part
+            ...       for Part in map(Partitions, range(10)))
+            True
+
+        ALGORITHM:
+
+         - insert by robinson-schensted a uniform random permutations of n and
+           returns the shape of the resulting tableau. The complexity is
+           `O(n\ln(n))` which is likely optimal. However, the implementation
+           could be optimized.
+
+        AUTHOR:
+
+         - Florent Hivert (2009-11-23)
+        """
+        return permutation.Permutations(self.n).random_element().left_tableau().shape()
+
     def first(self):
         """
         Returns the lexicographically first partition of a positive integer
@@ -3690,6 +3813,7 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
+
 def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
@@ -3865,6 +3989,12 @@ def number_of_partitions(n,k=None, algorithm='default'):
         return ZZ(pari(ZZ(n)).numbpart())
 
     raise ValueError, "unknown algorithm '%s'"%algorithm
+
+
+# Some function e.g.: Partitions(n).random() heavily use number_of_partitions
+# so I'm caching the result
+from sage.misc.all import cached_function
+_numpart = cached_function(number_of_partitions)
 
 def partitions(n):
     r"""

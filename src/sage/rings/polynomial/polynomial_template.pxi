@@ -388,14 +388,20 @@ cdef class Polynomial_template(Polynomial):
             sage: (x + 1)//x
             1
         """
-        cdef Polynomial_template _right = <Polynomial_template>(<Polynomial_template>self)._parent._coerce_(right)
-        if celement_is_zero(&_right.x, get_cparent((<Polynomial_template>self)._parent)):
+        cdef Polynomial_template _right
+        parent = (<Polynomial_template>self)._parent
+        if parent != (<Polynomial_template>right)._parent:
+            _right = parent._coerce_(right)
+        else:
+            _right = right
+
+        if celement_is_zero(&_right.x, get_cparent(parent)):
             raise ZeroDivisionError
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&r.x, get_cparent((<Polynomial_template>self)._parent))
-        r._parent = (<Polynomial_template>self)._parent
+        celement_construct(&r.x, get_cparent(parent))
+        r._parent = parent
         #assert(r._parent(pari(self) // pari(right)) == r)
-        celement_floordiv(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, get_cparent((<Polynomial_template>self)._parent))
+        celement_floordiv(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, get_cparent(parent))
         return r
 
     def __mod__(self, other):
@@ -406,14 +412,19 @@ cdef class Polynomial_template(Polynomial):
             sage: (x^2 + 1) % x^2
             1
         """
-        cdef Polynomial_template _other = <Polynomial_template>(<Polynomial_template>self)._parent._coerce_(other)
-        if celement_is_zero(&_other.x, get_cparent((<Polynomial_template>self)._parent)):
+        cdef Polynomial_template _other
+        parent = (<Polynomial_template>self)._parent
+        if parent != (<Polynomial_template>other)._parent:
+            _other = parent._coerce_(other)
+        else:
+            _other = other
+        if celement_is_zero(&_other.x, get_cparent(parent)):
             raise ZeroDivisionError
 
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, get_cparent((<Polynomial_template>self)._parent))
-        r._parent = (<Polynomial_template>self)._parent
-        celement_mod(&r.x, &(<Polynomial_template>self).x, &_other.x, get_cparent((<Polynomial_template>self)._parent))
+        r._parent = parent
+        celement_mod(&r.x, &(<Polynomial_template>self).x, &_other.x, get_cparent(parent))
         #assert(r._parent(pari(self) % pari(other)) == r)
         return r
 
@@ -426,20 +437,25 @@ cdef class Polynomial_template(Polynomial):
             sage: f.quo_rem(x + 1)
             (x, 1)
         """
-        cdef Polynomial_template _right = <Polynomial_template>(<Polynomial_template>self)._parent._coerce_(right)
+        cdef Polynomial_template _right
+        parent = (<Polynomial_template>self)._parent
+        if parent != (<Polynomial_template>right)._parent:
+            _right = parent._coerce_(right)
+        else:
+            _right = right
 
-        if celement_is_zero(&_right.x, get_cparent((<Polynomial_template>self)._parent)):
+        if celement_is_zero(&_right.x, get_cparent(parent)):
             raise ZeroDivisionError
 
         cdef Polynomial_template q = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&q.x, get_cparent((<Polynomial_template>self)._parent))
-        q._parent = (<Polynomial_template>self)._parent
+        celement_construct(&q.x, get_cparent(parent))
+        q._parent = parent
 
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&r.x, get_cparent((<Polynomial_template>self)._parent))
-        r._parent = (<Polynomial_template>self)._parent
+        celement_construct(&r.x, get_cparent(parent))
+        r._parent = parent
 
-        celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &_right.x, get_cparent((<Polynomial_template>self)._parent))
+        celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &_right.x, get_cparent(parent))
         return q,r
 
     def __long__(self):
@@ -566,14 +582,17 @@ cdef class Polynomial_template(Polynomial):
             if e == 0:
                 raise ArithmeticError, "0^0 is undefined."
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
-        celement_construct(&r.x, get_cparent((<Polynomial_template>self)._parent))
-        r._parent = (<Polynomial_template>self)._parent
+        parent = (<Polynomial_template>self)._parent
+
+        celement_construct(&r.x, get_cparent(parent))
+        r._parent = parent
 
         if modulus is None:
-            celement_pow(&r.x, &(<Polynomial_template>self).x, e, NULL, get_cparent((<Polynomial_template>self)._parent))
+            celement_pow(&r.x, &(<Polynomial_template>self).x, e, NULL, get_cparent(parent))
         else:
-            modulus = (<Polynomial_template>self)._parent._coerce_(modulus)
-            celement_pow(&r.x, &(<Polynomial_template>self).x, e, &(<Polynomial_template>modulus).x, get_cparent((<Polynomial_template>self)._parent))
+            if parent != (<Polynomial_template>modulus)._parent:
+                modulus = parent._coerce_(modulus)
+            celement_pow(&r.x, &(<Polynomial_template>self).x, e, &(<Polynomial_template>modulus).x, get_cparent(parent))
 
         #assert(r._parent(pari(self)**ee) == r)
         if recip:

@@ -479,11 +479,34 @@ It is important to try to make ``from sage.all import *`` as
 fast as possible, since this is what dominates the Sage startup
 time, and controlling the top-level imports helps to do this.
 
+Editing Existing Files
+======================
+
+There are several copies of Sage library files, and it can be
+confusing for beginners to know which one to modify.  In the directory
+``SAGE_ROOT/devel/sage``, there is a subdirectory ``build`` which
+contains copies of Python files and their byte-compiled versions,
+along with compiled version of Cython files.  These are the files
+which Sage actually uses, but *you* *never* *need* *to* *touch*
+*these*.  Instead, always work with files in the directory
+``SAGE_ROOT/devel/sage/sage``.  For example, if you want
+to add a new method for simplicial complexes, then edit the file
+``SAGE_ROOT/devel/sage/sage/homology/simplicial_complex.py``.  Save
+your changes, and then type ``sage -b`` to incorporate those changes:
+this automatically copies the appropriate files into the appropriate
+places in ``SAGE_ROOT/devel/sage/build``.
+
+You should also read :ref:`chapter-mercurial` for information about
+how to create a copy of the Sage library and make your changes there,
+so that first, it is easy to undo your changes, and second, it is easy
+to produce a "patch" file so you can share your changes with other
+people.
+
 Creating a New Directory
 ========================
 
 If you want to create a new directory in the Sage library
-``SAGE_ROOT/devel/sage`` (say, ``measure_theory``), that directory
+``SAGE_ROOT/devel/sage/sage`` (say, ``measure_theory``), that directory
 should contain an empty file ``__init__.py`` in addition to whatever
 files you want to add (say, ``borel_measure.py`` and
 ``banach_tarski.py``), and also a file ``all.py`` listing imports from
@@ -510,6 +533,10 @@ between ::
 and ::
 
     'sage.media',
+
+As noted above, you should also read :ref:`chapter-mercurial` for
+information about how to do this in a copy of the Sage library and how
+to disseminate your changes.
 
 
 Using Optional Packages

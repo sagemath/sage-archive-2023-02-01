@@ -6,9 +6,22 @@ cdef int REAL = -1
 cdef int INTEGER = 0
 
 
-def solve_glpk(self, log=False,objective_only=False):
+def solve_glpk(self, log=0,objective_only=False):
     r"""
-    Solves the MIP using GLPK. Use solve() instead.
+    Solves the ``MixedIntegerLinearProgram`` using GLPK.
+    Use ``solve()`` instead.
+
+    INPUT:
+
+    - ``log`` (integer) -- level of verbosity during the
+      solving process. Set ``log=3`` for maximal verbosity and
+      ``log=0`` for no verbosity at all.
+
+    - ``objective_only`` (boolean) -- Indicates whether the
+      values corresponding to an optimal assignment of the
+      variables should be computed. Setting ``objective_only``
+      to ``True`` saves some time on the computation when
+      this information is not needed.
     """
 
     # Raises an exception if no objective has been defined
@@ -63,7 +76,18 @@ def solve_glpk(self, log=False,objective_only=False):
 
 def write_mps(self, filename,modern=True):
     r"""
-    Writes the MPS file corresponding to the LP
+    Write the linear program as a MPS file.
+
+    INPUT:
+
+    - ``filename`` -- The file in which you want the problem
+    to be written.
+    - ``modern`` -- Lets you choose between Fixed MPS and Free MPS
+        - ``True`` -- Outputs the problem in Free MPS
+        - ``False`` -- Outputs the problem in Fixed MPS
+
+    For information about the MPS file format :
+    http://en.wikipedia.org/wiki/MPS_%28format%29
     """
 
     # Raises an exception if no objective has been defined
@@ -86,6 +110,17 @@ def write_mps(self, filename,modern=True):
         glp_write_mps(lp,GLP_MPS_DECK,NULL,filename)
 
 def write_lp(self, filename):
+    r"""
+    Write the linear program as a MPS file.
+
+    INPUT:
+
+    - ``filename`` -- The file in which you want the problem
+      to be written.
+
+    For more information about the LP file format :
+    http://lpsolve.sourceforge.net/5.5/lp-format.htm
+    """
 
     # Raises an exception if no objective has been defined
     if self._objective_i == None:

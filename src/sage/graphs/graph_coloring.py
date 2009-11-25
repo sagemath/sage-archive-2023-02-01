@@ -22,47 +22,48 @@ from chrompoly import chromatic_polynomial
 from graph_generators import GraphGenerators
 
 def all_graph_colorings(G,n,count_only=False):
-    """
-    Computes all n-colorings of the graph G by casting the graph
+    r"""
+    Computes all `n`-colorings of the graph `G` by casting the graph
     coloring problem into an exact cover problem, and passing this
     into an implementation of the Dancing Links algorithm described
     by Knuth (who attributes the idea to Hitotumatu and Noshita).
 
     The construction works as follows:
      (columns)
-      * The first |V| columns correspond to a vertex -- a 1 in this
+      * The first `|V|` columns correspond to a vertex -- a `1` in this
            column indicates that that vertex has a color.
-      * After those |V| columns, we add n*|E| columns -- a 1 in
+      * After those `|V|` columns, we add `n*|E|` columns -- a `1` in
            these columns indicate that a particular edge is
            incident to a vertex with a certain color.
 
      (rows)
-      * For each vertex, add n rows; one for each color c.  Place
-           a 1 in the column corresponding to the vertex, and a 1
+      * For each vertex, add `n` rows; one for each color `c`.  Place
+           a `1` in the column corresponding to the vertex, and a `1`
            in the appropriate column for each edge incident to the
            vertex, indicating that that edge is incident to the
-           color c.
-      * If n > 2, the above construction cannot be exactly covered
+           color `c`.
+      * If `n > 2`, the above construction cannot be exactly covered
            since each edge will be incident to only two vertices
-           (and hence two colors) - so we add n*|E| rows, each one
-           containing a 1 for each of the n*|E| columns.  These
+           (and hence two colors) - so we add `n*|E|` rows, each one
+           containing a `1` for each of the `n*|E|` columns.  These
            get added to the cover solutions "for free" during the
            backtracking.
 
-    Note that this construction results in n*|V| + 2*n*|E| + n*|E|
+    Note that this construction results in `n*|V| + 2*n*|E| + n*|E|`
     entries in the matrix.  The Dancing Links algorithm uses a
-    sparse representation, so if the graph is simple, |E| <= |V|^2
-    and n <= |V|, this construction runs in O(|V|^3) time.
+    sparse representation, so if the graph is simple, `|E| \leq |V|^2`
+    and `n <= |V|`, this construction runs in `O(|V|^3)` time.
     Back-conversion to a coloring solution is a simple scan of the
-    solutions, which will contain |V| + (n-2)*|E| entries,  so
-    runs in O(|V|^3) time also.  For most graphs, the conversion
+    solutions, which will contain `|V| + (n-2)*|E|` entries,  so
+    runs in `O(|V|^3)` time also.  For most graphs, the conversion
     will be much faster -- for example, a planar graph will be
-    transformed for 4-coloring in linear time since |E| = O(|V|).
+    transformed for `4`-coloring in linear time since `|E| = O(|V|)`.
 
     REFERENCES:
         http://www-cs-staff.stanford.edu/~uno/papers/dancing-color.ps.gz
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.graph_coloring import all_graph_colorings
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
@@ -78,7 +79,8 @@ def all_graph_colorings(G,n,count_only=False):
         sage: print "G has %s 3-colorings."%n
         G has 12 3-colorings.
 
-    TESTS:
+    TESTS::
+
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: for C in all_graph_colorings(G,0): print C
         sage: for C in all_graph_colorings(G,-1): print C
@@ -172,11 +174,12 @@ def first_coloring(G, n=0, hex_colors=False):
                 return C.values()
 
 def number_of_n_colorings(G,n):
-    """
-    Given a graph G and a natural number n, returns the number of
-    n-colorings of the graph.
+    r"""
+    Given a graph `G` and a natural number `n`, returns the number of
+    `n`-colorings of the graph.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.graph_coloring import number_of_n_colorings
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: number_of_n_colorings(G,3)
@@ -198,11 +201,12 @@ def number_of_n_colorings(G,n):
     return m
 
 def numbers_of_colorings(G):
-    """
-    Returns the number of n-colorings of the graph G for n from
-    0 to |V|.
+    r"""
+    Returns the number of `n`-colorings of the graph `G` for `n` from
+    `0` to `|V|`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.graph_coloring import numbers_of_colorings
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: numbers_of_colorings(G)
@@ -212,11 +216,12 @@ def numbers_of_colorings(G):
     return [number_of_n_colorings(G,i) for i in range(0,o+1)]
 
 def chromatic_number(G):
-    """
+    r"""
     Returns the minimal number of colors needed to color the
-    vertices of the graph G.
+    vertices of the graph `G`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.graph_coloring import chromatic_number
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: chromatic_number(G)
@@ -645,36 +650,38 @@ def round_robin(n):
         return g
 
 class Test:
-    """
+    r"""
     This class performs randomized testing for all_graph_colorings.
     Since everything else in this file is derived from
     all_graph_colorings, this is a pretty good randomized tester for
-    the entire file.  Note that for a graph G, G.chromatic_polynomial()
+    the entire file.  Note that for a graph `G`, ``G.chromatic_polynomial()``
     uses an entirely different algorithm, so we provide a good,
     independent test.
     """
 
     def random(self,tests = 1000):
-        """
-        Calls self.random_all_graph_colorings().  In the future, if
+        r"""
+        Calls ``self.random_all_graph_colorings()``.  In the future, if
         other methods are added, it should call them, too.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random(1)
         """
         self.random_all_graph_colorings(tests)
 
     def random_all_graph_colorings(self,tests = 1000):
-        """
+        r"""
         Verifies the results of all_graph_colorings in three ways:
             1) all colorings are unique
-            2) number of m-colorings is P(m) (where P is the chromatic
+            2) number of m-colorings is `P(m)` (where `P` is the chromatic
                polynomial of the graph being tested)
             3) colorings are valid -- that is, that no two vertices of
                the same color share an edge.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random_all_graph_colorings(1)
         """

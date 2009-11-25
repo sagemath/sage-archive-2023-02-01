@@ -6,6 +6,7 @@ Graph Theory
 
    sage/graphs/cliquer
    sage/graphs/graph
+   sage/graphs/graph_coloring
    sage/graphs/graph_generators
    sage/graphs/graph_database
    sage/graphs/graph_list

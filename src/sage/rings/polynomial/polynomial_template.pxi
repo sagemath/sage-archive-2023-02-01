@@ -390,7 +390,7 @@ cdef class Polynomial_template(Polynomial):
         """
         cdef Polynomial_template _right
         parent = (<Polynomial_template>self)._parent
-        if parent != (<Polynomial_template>right)._parent:
+        if parent is not (<Polynomial_template>right)._parent and parent != (<Polynomial_template>right)._parent:
             _right = parent._coerce_(right)
         else:
             _right = right
@@ -414,7 +414,7 @@ cdef class Polynomial_template(Polynomial):
         """
         cdef Polynomial_template _other
         parent = (<Polynomial_template>self)._parent
-        if parent != (<Polynomial_template>other)._parent:
+        if parent is not (<Polynomial_template>other)._parent and parent != (<Polynomial_template>other)._parent:
             _other = parent._coerce_(other)
         else:
             _other = other
@@ -439,7 +439,7 @@ cdef class Polynomial_template(Polynomial):
         """
         cdef Polynomial_template _right
         parent = (<Polynomial_template>self)._parent
-        if parent != (<Polynomial_template>right)._parent:
+        if parent is not (<Polynomial_template>right)._parent and parent != (<Polynomial_template>right)._parent:
             _right = parent._coerce_(right)
         else:
             _right = right
@@ -590,7 +590,7 @@ cdef class Polynomial_template(Polynomial):
         if modulus is None:
             celement_pow(&r.x, &(<Polynomial_template>self).x, e, NULL, get_cparent(parent))
         else:
-            if parent != (<Polynomial_template>modulus)._parent:
+            if parent is not (<Polynomial_template>modulus)._parent and parent != (<Polynomial_template>modulus)._parent:
                 modulus = parent._coerce_(modulus)
             celement_pow(&r.x, &(<Polynomial_template>self).x, e, &(<Polynomial_template>modulus).x, get_cparent(parent))
 

@@ -22,6 +22,11 @@ def solve_glpk(self, log=0,objective_only=False):
       variables should be computed. Setting ``objective_only``
       to ``True`` saves some time on the computation when
       this information is not needed.
+
+    OUTPUT:
+
+    This function returns the optimal value of the objective
+    function biven by GLPK.
     """
 
     # Raises an exception if no objective has been defined
@@ -83,8 +88,12 @@ def write_mps(self, filename,modern=True):
     - ``filename`` -- The file in which you want the problem
     to be written.
     - ``modern`` -- Lets you choose between Fixed MPS and Free MPS
-        - ``True`` -- Outputs the problem in Free MPS
-        - ``False`` -- Outputs the problem in Fixed MPS
+        - ``True`` -- Writes the problem in Free MPS
+        - ``False`` -- Writes the problem in Fixed MPS
+
+    OUTPUT:
+
+    This function has no output.
 
     For information about the MPS file format :
     http://en.wikipedia.org/wiki/MPS_%28format%29
@@ -117,6 +126,10 @@ def write_lp(self, filename):
 
     - ``filename`` -- The file in which you want the problem
       to be written.
+
+    OUTPUT:
+
+    This function has no output.
 
     For more information about the LP file format :
     http://lpsolve.sourceforge.net/5.5/lp-format.htm

@@ -36,8 +36,8 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 def QuotientRing(R, I, names=None):
     r"""
     Creates a quotient ring of the ring `R` by the ideal `I`. Variables are
-    labeled by ``names``. (If the quotient ring is a quotient of a
-    polynomial ring.). If ``names`` isn't given, 'bar' will be appended to
+    labeled by ``names`` (if the quotient ring is a quotient of a
+    polynomial ring).  If ``names`` isn't given, 'bar' will be appended to
     the variable names in `R`.
 
     INPUTS:

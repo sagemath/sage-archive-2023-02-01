@@ -143,7 +143,7 @@ cdef extern from "m4ri/m4ri.h":
     # matrix inversion using Gray codes
     cdef mzd_t *mzd_invert_m4ri(mzd_t *m, mzd_t *identity, int k)
 
-    # assymptotically fast PLUQ factorization
+    # asymptotically fast PLUQ factorization
     cdef long mzd_pluq(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
 
     # PLUQ factorization using Gray codes
@@ -151,6 +151,15 @@ cdef extern from "m4ri/m4ri.h":
 
     # cubic PLUQ factorization
     cdef long _mzd_pluq_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
+
+    # asymptotically fast LQUP factorization
+    cdef long mzd_lqup(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
+
+    # LQUP factorization using Gray codes
+    cdef long _mzd_lqup_mmpf(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
+
+    # cubic LQUP factorization
+    cdef long _mzd_lqup_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
 
     # reduced row echelon form using PLUQ factorization
     cdef long mzd_echelonize_pluq(mzd_t *A, int full)

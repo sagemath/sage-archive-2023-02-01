@@ -1773,3 +1773,65 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
     mzp_free(p)
     mzp_free(q)
     return B,P,Q
+
+def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
+    """
+    Return LQUP factorization of A.
+
+    INPUT:
+        A -- matrix
+        algorithm -- 'standard' asymptotically fast (default)
+                     'mmpf' M4RI inspired
+                     'naive' naive cubic
+        param -- either k for 'mmpf' is chosen or matrix multiplication
+                 cutoff for 'standard' (default: 0)
+
+    EXAMPLE:
+        sage: from sage.matrix.matrix_mod2_dense import lqup
+        sage: A = random_matrix(GF(2),4,4); A
+        [0 1 0 1]
+        [0 1 1 1]
+        [0 0 0 1]
+        [0 1 1 0]
+
+        sage: LU, P, Q = lqup(A)
+        sage: LU
+        [1 0 0 1]
+        [1 1 0 0]
+        [0 0 1 0]
+        [1 1 1 0]
+
+        sage: P
+        [0, 1, 2, 3]
+
+        sage: Q
+        [1, 2, 3, 3]
+
+        sage: A = random_matrix(GF(2),1000,1000)
+        sage: lqup(A) == lqup(A,'mmpf') == lqup(A,'naive')
+        True
+    """
+    cdef Matrix_mod2_dense B = A.__copy__()
+    cdef mzp_t *p = mzp_init(A._entries.nrows)
+    cdef mzp_t *q = mzp_init(A._entries.ncols)
+
+    if algorithm == 'standard':
+        _sig_on
+        mzd_lqup(B._entries, p, q, param)
+        _sig_off
+    elif algorithm == "mmpf":
+        _sig_on
+        _mzd_lqup_mmpf(B._entries, p, q, param)
+        _sig_off
+    elif algorithm == "naive":
+        _sig_on
+        _mzd_lqup_naive(B._entries, p, q)
+        _sig_off
+    else:
+        raise ValueError("Algorithm '%s' unknown."%algorithm)
+
+    P = [p.values[i] for i in range(A.nrows())]
+    Q = [q.values[i] for i in range(A.ncols())]
+    mzp_free(p)
+    mzp_free(q)
+    return B,P,Q

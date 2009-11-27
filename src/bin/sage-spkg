@@ -193,7 +193,21 @@ if [ ! -f "$PKG_SRC" ]; then
         fi
     fi
 
-    sage-download_package "$PKG_NAME"
+    # sage-download_package "$PKG_NAME"
+    # See trac ticket #7544. One should be able to install a package using
+    # sage -i <package-name> where <package-name> can be any of the
+    # following values:
+    #
+    # 1. <package>-x.y.z, i.e. the name of the package plus the package's
+    #    version numbers.
+    # 2. the full name <package>-x.y.z.spkg, i.e. the name of the package in
+    #    addition to the version numbers and the ".spkg" extension.
+    # 3. <URL>/<package>-x.y.z.spkg, i.e. the full URL where the package is
+    #    hosted. This can be a URL on the Sage website or somewhere else.
+    # 4. /path/to/<package>-x.y.z.spkg, i.e. the package is found somewhere
+    #    in your file system and you're giving an absolute or relative path
+    #    to the package.
+    sage-download_package "$1"
     if [ ! -f "$PKG_NAME.spkg" ]; then
 	    echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
 	    exit 1

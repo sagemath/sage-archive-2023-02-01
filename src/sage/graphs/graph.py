@@ -5602,6 +5602,171 @@ class GenericGraph(SageObject):
             return 0
         return max(e)
 
+    def distance_graph(self, dist):
+        r"""
+        Returns the graph on the same vertex set as
+        the original graph but vertices are adjacent
+        in the returned graph if and only if they are
+        at specified distances in the original graph.
+
+        INPUT:
+
+        - ``dist`` is a nonnegative integer or
+          a list of nonnegative integers.
+          ``Infinity`` may be used here to describe
+          vertex pairs in separate components.
+
+        OUTPUT:
+
+        The returned value is an undirected graph.  The
+        vertex set is identical to the calling graph, but edges
+        of the returned graph join vertices whose distance in
+        the calling graph are present in the input ``dist``.
+        Loops will only be present if distance 0 is included.  If
+        the original graph has a position dictionary specifying
+        locations of vertices for plotting, then this information
+        is copied over to the distance graph.  In some instances
+        this layout may not be the best, and might even be confusing
+        when edges run on top of each other due to symmetries
+        chosen for the layout.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(3)
+            sage: H = G.cartesian_product(graphs.CompleteGraph(2))
+            sage: K = H.distance_graph(2)
+            sage: K.am()
+            [0 0 0 1 0 1]
+            [0 0 1 0 1 0]
+            [0 1 0 0 0 1]
+            [1 0 0 0 1 0]
+            [0 1 0 1 0 0]
+            [1 0 1 0 0 0]
+
+        To obtain the graph where vertices are adjacent if their
+        distance apart is ``d`` or less use a ``range()`` command
+        to create the input, using ``d+1`` as the input to ``range``.
+        Notice that this will include distance 0 and hence place a loop
+        at each vertex.  To avoid this, use ``range(1,d+1)``. ::
+
+            sage: G = graphs.OddGraph(4)
+            sage: d = G.diameter()
+            sage: n = G.num_verts()
+            sage: H = G.distance_graph(range(d+1))
+            sage: H.is_isomorphic(graphs.CompleteGraph(n))
+            False
+            sage: H = G.distance_graph(range(1,d+1))
+            sage: H.is_isomorphic(graphs.CompleteGraph(n))
+            True
+
+        A complete collection of distance graphs will have
+        adjacency matrices that sum to the matrix of all ones. ::
+
+            sage: P = graphs.PathGraph(20)
+            sage: all_ones = sum([P.distance_graph(i).am() for i in range(20)])
+            sage: all_ones == matrix(ZZ, 20, 20, [1]*400)
+            True
+
+        Four-bit strings differing in one bit is the same as
+        four-bit strings differing in three bits.  ::
+
+            sage: G = graphs.CubeGraph(4)
+            sage: H = G.distance_graph(3)
+            sage: G.is_isomorphic(H)
+            True
+
+        The graph of eight-bit strings, adjacent if different
+        in an odd number of bits.  ::
+
+            sage: G = graphs.CubeGraph(8)
+            sage: H = G.distance_graph([1,3,5,7])
+            sage: degrees = [0]*sum([binomial(8,j) for j in [1,3,5,7]])
+            sage: degrees.append(2^8)
+            sage: degrees == H.degree_histogram()
+            True
+
+        An example of using ``Infinity`` as the distance in
+        a graph that is not connected. ::
+
+            sage: G = graphs.CompleteGraph(3)
+            sage: H = G.disjoint_union(graphs.CompleteGraph(2))
+            sage: L = H.distance_graph(Infinity)
+            sage: L.am()
+            [0 0 0 1 1]
+            [0 0 0 1 1]
+            [0 0 0 1 1]
+            [1 1 1 0 0]
+            [1 1 1 0 0]
+
+        TESTS:
+
+        Empty input, or unachievable distances silently yield empty graphs. ::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.distance_graph([]).num_edges()
+            0
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.distance_graph(23).num_edges()
+            0
+
+        It is an error to provide a distance that is not an integer type. ::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.distance_graph('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=junk) to an integer
+
+        It is an error to provide a negative distance. ::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.distance_graph(-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Distance graph for a negative distance (d=-3) is not defined
+
+        AUTHOR:
+
+        Rob Beezer, 2009-11-25
+        """
+        from sage.rings.infinity import Infinity
+        from copy import copy
+        # If input is not a list, make a list with this single object
+        if not isinstance(dist, list):
+            dist = [dist]
+        # Create a list of positive integer (or infinite) distances
+        distances = []
+        for d in dist:
+            if d == Infinity:
+                distances.append(d)
+            else:
+                dint = Integer(d)
+                if dint < 0:
+                    raise ValueError('Distance graph for a negative distance (d=%d) is not defined' % dint)
+                distances.append(dint)
+        # Build a graph on the same vertex set, with loops for distance 0
+        vertices = {}
+        for v in self.vertex_iterator():
+            vertices[v] = {}
+        positions = copy(self.get_pos())
+        if Integer(0) in distances:
+            looped = True
+        else:
+            looped = False
+        D = Graph(vertices, pos=positions, multiedges=False, loops=looped)
+        if len(distances) == 1:
+            dstring = "distance " + str(distances[0])
+        else:
+            dstring = "distances " + str(sorted(distances))
+        D.name("Distance graph for %s in " % dstring + self.name())
+        # Create the appropriate edges
+        # Using shortest_path_all_pairs() here is much slower, see Trac 7533
+        for u in self.vertex_iterator():
+            for v in self.vertex_iterator():
+                if self.distance(u,v) in distances:
+                    D.add_edge(u,v)
+        return D
+
     def girth(self):
         """
         Computes the girth of the graph. For directed graphs, computes the

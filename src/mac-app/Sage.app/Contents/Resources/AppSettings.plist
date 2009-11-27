@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AppPathAsFirstArg</key>
+	<false/>
+	<key>Creator</key>
+	<string>Platypus-4.2</string>
+	<key>InterpreterParams</key>
+	<array/>
+	<key>IsDroppable</key>
+	<false/>
+	<key>OutputType</key>
+	<string>Text Window</string>
+	<key>RemainRunningAfterCompletion</key>
+	<true/>
+	<key>RequiresAdminPrivileges</key>
+	<false/>
+	<key>ScriptInterpreter</key>
+	<string>/bin/sh</string>
+	<key>Secure</key>
+	<false/>
+	<key>TextBackground</key>
+	<string>#ffffff</string>
+	<key>TextEncoding</key>
+	<integer>1</integer>
+	<key>TextFont</key>
+	<string>Monaco</string>
+	<key>TextForeground</key>
+	<string>#000000</string>
+	<key>TextSize</key>
+	<real>10</real>
+</dict>
+</plist>

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+SAGE_ROOT=`readlink -n "$0" 2> /dev/null` || \
+SAGE_ROOT=`realpath    "$0" 2> /dev/null` || \
+SAGE_ROOT="$0"
+
+# Adjust for being one level deeper in the app bundle
+SAGE_ROOT="${SAGE_ROOT%/*}/sage/"
+export SAGE_ROOT
+
+# TODO:
+# handle dropped items
+# optionally open a console session (based on environment variable?)
+
+"$SAGE_ROOT/sage" -notebook

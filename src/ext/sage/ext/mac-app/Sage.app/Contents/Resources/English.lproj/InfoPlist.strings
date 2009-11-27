@@ -1,0 +1,4 @@
+CFBundleName = "Sage";
+CFBundleShortVersionString = "SAGE_VERSION";
+CFBundleGetInfoString = "Sage version SAGE_VERSION Copyright 2009 Sage Developers";
+NSHumanReadableCopyright = "Copyright 2009 Sage Developers.";

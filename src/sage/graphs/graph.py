@@ -1585,22 +1585,31 @@ class GenericGraph(SageObject):
             sage: G.multiple_edges(to_undirected=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
-        if self.allows_multiple_edges() or to_undirected:
-            if self._directed and not to_undirected:
-                for v in self:
-                    for u in self.predecessor_iterator(v):
-                        edges = self.edge_boundary([u], [v])
-                        if len(edges) > 1:
+        if self.allows_multiple_edges() or (self._directed and to_undirected):
+            if self._directed:
+                for u in self:
+                    s = set()
+                    for a,b,c in self.outgoing_edge_iterator(u):
+                        if b in s:
                             return True
+                        s.add(b)
+                    if to_undirected:
+                        for a,b,c in self.incoming_edge_iterator(u):
+                            if a in s:
+                                return True
+                            s.add(a)
             else:
-                to_undirected *= self._directed
-                for v in self:
-                    for u in self.neighbor_iterator(v):
-                        edges = self.edge_boundary([v], [u])
-                        if to_undirected:
-                            edges += self.edge_boundary([u],[v])
-                        if len(edges) > 1:
-                            return True
+                for u in self:
+                    s = set()
+                    for a,b,c in self.edge_iterator(u):
+                        if a is u:
+                            if b in s:
+                                return True
+                            s.add(b)
+                        if b is u:
+                            if a in s:
+                                return True
+                            s.add(a)
         return False
 
     def allows_multiple_edges(self):

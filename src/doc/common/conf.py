@@ -13,7 +13,9 @@ sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_autodoc']
+extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
+              'sphinx.ext.inheritance_diagram']
+#, 'sphinx.ext.intersphinx', 'sphinx.ext.extlinks']
 
 if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
@@ -81,6 +83,14 @@ default_role = 'math'
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
 
+# GraphViz includes dot, neato, twopi, circo, fdp.
+graphviz_dot = 'dot'
+inheritance_graph_attrs = { 'rankdir' : 'BT' }
+inheritance_node_attrs = { 'height' : 0.5, 'fontsize' : 12, 'shape' : 'oval' }
+inheritance_edge_attrs = {}
+
+# Sage trac ticket shortcuts. For example, :ticket:`7549` .
+#extlinks = {'ticket': ('http://trac.sagemath.org/sage_trac/ticket/', 'Ticket ')}
 
 # Options for HTML output
 # -----------------------
@@ -175,6 +185,9 @@ html_split_index = True
 
 # Output file base name for HTML help builder.
 #htmlhelp_basename = ''
+
+# Cross-links to other project's online documentation.
+#intersphinx_mapping = {'http://docs.python.org/dev': None}
 
 
 # Options for LaTeX output
@@ -329,6 +342,9 @@ def skip_member(app, what, name, obj, skip, options):
 
     - Optionally, check whether pickling is broken for nested classes.
 
+    - Optionally, include objects whose name begins with an underscore
+      ('_'), i.e., "private" or "hidden" attributes, methods, etc.
+
     Otherwise, we abide by Sphinx's decision.  Note: The object
     ``obj`` is excluded (included) if this handler returns True
     (False).
@@ -345,6 +361,10 @@ def skip_member(app, what, name, obj, skip, options):
 
     if name.find("userchild_download_worksheets.zip") != -1:
         return True
+
+    if 'SAGE_DOC_UNDERSCORE' in os.environ:
+        if name.split('.')[-1].startswith('_'):
+            return False
 
     return skip
 
@@ -373,6 +393,29 @@ def process_mathtt(app, what, name, obj, options, docstringlines):
         for i in range(len(lines)):
             docstringlines[i] = lines[i]
 
+def process_inherited(app, what, name, obj, options, docstringlines):
+    """
+    If we're including inherited members, omit their docstrings.
+    """
+    if not options.get('inherited-members'):
+        return
+
+    if what in ['class', 'data', 'exception', 'function', 'module']:
+        return
+
+    name = name.split('.')[-1]
+
+    if what == 'method' and hasattr(obj, 'im_class'):
+        if name in obj.im_class.__dict__.keys():
+            return
+
+    if what == 'attribute' and hasattr(obj, '__objclass__'):
+        if name in obj.__objclass__.__dict__.keys():
+            return
+
+    for i in xrange(len(docstringlines)):
+        docstringlines.pop()
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -382,4 +425,5 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
     app.connect('autodoc-process-docstring', process_mathtt)
+    app.connect('autodoc-process-docstring', process_inherited)
     app.connect('autodoc-skip-member', skip_member)

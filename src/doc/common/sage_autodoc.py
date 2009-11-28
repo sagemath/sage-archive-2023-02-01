@@ -886,10 +886,12 @@ class ClassDocumenter(ModuleLevelDocumenter):
         #
         # References: Sage #5986, file sage/misc/nested_class.py
         if ret:
-            if hasattr(self.object, '__name__'):
-                name = self.object.__name__
+            name = getattr(self.object, '__name__', False)
+            module = getattr(self.object, '__module__', False)
+            if name and module:
                 self.doc_as_attr = (self.objpath != name.split('.') and
-                                    self.check_module())
+                                    self.object is getattr(sys.modules[module],
+                                                           name, None))
             else:
                 self.doc_as_attr = True
         return ret

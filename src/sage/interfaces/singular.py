@@ -1764,7 +1764,7 @@ The Singular documentation for '%s' is given below.
 
 class SingularFunctionElement(FunctionElement):
     def _sage_doc_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')

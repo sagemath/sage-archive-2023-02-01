@@ -1065,23 +1065,23 @@ cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees, in
     return max_location
 
 
-def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, density_range=(.1,.9)):
+def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, density_range=(.1,.9)):
     """
     Tests to make sure that C(gamma(B)) == C(B) for random permutations gamma
     and random codes B, and that is_isomorphic returns an isomorphism.
 
     INPUT:
-    t -- run tests for approximately this many seconds
+    num -- run tests for this many codes
     n_max -- test codes with at most this many columns
     k_max -- test codes with at most this for dimension
     perms_per_code -- test each code with this many random permutations
 
     DISCUSSION:
 
-    Until t seconds have elapsed, this code generates a random linear code B on
-    at most n_max columns with dimension at most k_max, and a random nonlinear
-    code B2 on at most n_max columns with number of words at most nwords_max.
-    The density of entries in the basis is chosen randomly between 0 and 1.
+    This code generates num random linear codes B on at most n_max columns with
+    dimension at most k_max, and a random nonlinear code B2 on at most n_max
+    columns with number of words at most nwords_max. The density of entries in
+    the basis is chosen randomly between 0 and 1.
 
     For each code B (B2) generated, we uniformly generate perms_per_code random
     permutations and verify that the canonical labels of B and the image of B
@@ -1090,9 +1090,11 @@ def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_binary
+        sage: x = walltime()
+        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_binary.random_tests()
         All passed: ... random tests on ... codes.
-        sage: sage.groups.perm_gps.partn_ref.refinement_binary.random_tests(180.0, 200, 10) # long time
+        sage: sage.groups.perm_gps.partn_ref.refinement_binary.random_tests(50, 200, 10) # long time
         All passed: ... random tests on ... codes.
 
     """
@@ -1104,8 +1106,7 @@ def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
     cdef int h, i, j, n, k, num_tests = 0, num_codes = 0
     cdef LinearBinaryCodeStruct B, C
     cdef NonlinearBinaryCodeStruct B_n, C_n
-    t_0 = walltime()
-    while walltime(t_0) < t:
+    for mmm in range(num):
         p = random()*(density_range[1]-density_range[0]) + density_range[0]
         n = randint(2, n_max)
         k = randint(1, min(n-1,k_max) )

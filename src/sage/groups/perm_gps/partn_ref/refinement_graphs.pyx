@@ -779,21 +779,20 @@ def all_labeled_graphs(n):
     return Glist
 
 
-def random_tests(t=10.0, n_max=60, perms_per_graph=10):
+def random_tests(num=20, n_max=60, perms_per_graph=10):
     """
     Tests to make sure that C(gamma(G)) == C(G) for random permutations gamma
     and random graphs G, and that isomorphic returns an isomorphism.
 
     INPUT:
-    t -- run tests for approximately this many seconds
+    num -- run tests for this many graphs
     n_max -- test graphs with at most this many vertices
     perms_per_graph -- test each graph with this many random permutations
 
     DISCUSSION:
 
-    Until t seconds have elapsed, this code generates a random graph G on at
-    most n_max vertices.  The density of edges is chosen randomly between 0
-    and 1.
+    This code generates num random graphs G on at most n_max vertices.  The
+    density of edges is chosen randomly between 0 and 1.
 
     For each graph G generated, we uniformly generate perms_per_graph random
     permutations and verify that the canonical labels of G and the image of G
@@ -802,9 +801,11 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
 
     TESTS:
         sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: x = walltime()
+        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()
         All passed: ... random tests on ... graphs.
-        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests(180.0, 200, 30) # long time
+        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests(15, 200, 30) # long time
         All passed: ... random tests on ... graphs.
 
     """
@@ -815,8 +816,7 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
     cdef int i, j, num_tests = 0, num_graphs = 0
     GG = GraphGenerators()
     DGG = DiGraphGenerators()
-    t_0 = walltime()
-    while walltime(t_0) < t:
+    for mmm in range(num):
         p = random()
         n = randint(1, n_max)
         S = Permutations(n)

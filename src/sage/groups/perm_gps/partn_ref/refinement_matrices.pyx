@@ -307,14 +307,14 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, object S1, object S2):
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, object S):
     return 0
 
-def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_matrix=10, density_range=(.1,.9)):
+def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_matrix=10, density_range=(.1,.9)):
     """
     Tests to make sure that C(gamma(M)) == C(M) for random permutations gamma
     and random matrices M, and that M.is_isomorphic(gamma(M)) returns an
     isomorphism.
 
     INPUT:
-    t -- run tests for approximately this many seconds
+    n -- run tests on this many matrices
     nrows_max -- test matrices with at most this many rows
     ncols_max -- test matrices with at most this many columns
     perms_per_matrix -- test each matrix with this many random permutations
@@ -322,9 +322,9 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
 
     DISCUSSION:
 
-    Until t seconds have elapsed, this code generates a random matrix M on
-    at most ncols_max columns and at most nrows_max rows. The density of entries
-    in the basis is chosen randomly between 0 and 1.
+    This code generates n random matrices M on at most ncols_max columns and at
+    most nrows_max rows. The density of entries in the basis is chosen randomly
+    between 0 and 1.
 
     For each matrix M generated, we uniformly generate perms_per_matrix random
     permutations and verify that the canonical labels of M and the image of M
@@ -333,9 +333,11 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
+        sage: x = walltime()
+        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests()
         All passed: ... random tests on ... matrices.
-        sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests(180.0, 100, 200, 40) # long time
+        sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests(5, 100, 200, 40) # long time
         All passed: ... random tests on ... matrices.
 
     """
@@ -347,8 +349,7 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
     from sage.rings.arith import next_prime
     cdef int h, i, j, nrows, k, num_tests = 0, num_matrices = 0
     cdef MatrixStruct M, N
-    t_0 = walltime()
-    while walltime(t_0) < t:
+    for m in range(n):
         p = random()*(density_range[1]-density_range[0]) + density_range[0]
         nrows = randint(1, nrows_max)
         ncols = randint(1, ncols_max)

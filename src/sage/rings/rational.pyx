@@ -2672,9 +2672,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
-    def round(Rational self, mode = "toward"):
+    def round(Rational self, mode = "away"):
         """
-        Returns the nearest integer to self.
+        Returns the nearest integer to self, rounding away from 0 by
+        default, for consistency with the builtin Python round.
 
         INPUT:
 
@@ -2683,8 +2684,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         -  ``mode`` - a rounding mode for half integers:
 
-           - 'toward' (default) rounds toward zero
-           - 'away' rounds away from zero
+           - 'toward' rounds toward zero
+           - 'away' (default) rounds away from zero
            - 'up' rounds up
            - 'down' rounds down
            - 'even' rounds toward the even integer
@@ -2695,12 +2696,14 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
+            sage: (9/2).round()
+            5
             sage: n = 4/3; n.round()
             1
             sage: n = -17/4; n.round()
             -4
             sage: n = -5/2; n.round()
-            -2
+            -3
             sage: n.round("away")
             -3
             sage: n.round("up")

@@ -5522,6 +5522,86 @@ class GenericGraph(SageObject):
                 vertices.append(v)
         return self.subgraph(vertices=vertices, inplace=inplace)
 
+    def is_chordal(self):
+        r"""
+        Tests whether the given graph is chordal.
+
+        A Graph `G` is said to be chordal if it contains no induced
+        hole. Being chordal is equivalent to having an elimination
+        order on the vertices such that the neighborhood of each
+        vertex, before being removed from the graph, is a complete
+        graph [Fulkerson65]_.
+
+        Such an ordering is called a Perfect Elimination Order.
+
+        ALGORITHM:
+
+        This algorithm works through computing a Lex BFS on the
+        graph, then checking whether the order is a Perfect
+        Elimination Order by computing for each vertex `v` the
+        subgraph induces by its non-deleted neighbors, then
+        testing whether this graph is complete.
+
+        This problem can be solved in `O(m)` [Rose75]_ ( where `m`
+        is the number of edges in the graph ) but this
+        implementation is not linear because of the complexity of
+        Lex BFS. Improving Lex BFS to linear complexity would make
+        this algorithm linear.
+
+        The complexity of this algorithm is equal to the
+        complexity of the implementation of Lex BFS.
+
+        EXAMPLES:
+
+        The lexicographic product of a Path and a Complete Graph
+        is chordal ::
+
+            sage: g = graphs.PathGraph(5).lexicographic_product(graphs.CompleteGraph(3))
+            sage: g.is_chordal()
+            True
+
+        The same goes with the product of a random lobster
+        ( which is a tree ) and a Complete Graph ::
+
+            sage: g = graphs.RandomLobster(10,.5,.5).lexicographic_product(graphs.CompleteGraph(3))
+            sage: g.is_chordal()
+            True
+
+        Of course, the Petersen Graph is not chordal as it has girth 5 ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.girth()
+            5
+            sage: g.is_chordal()
+            False
+
+        REFERENCES:
+
+        .. [Rose75] Rose, D.J. and Tarjan, R.E.,
+          Algorithmic aspects of vertex elimination,
+          Proceedings of seventh annual ACM symposium on Theory of computing
+          Page 254, ACM 1975
+
+        .. [Fulkerson65] Fulkerson, D.R. and Gross, OA
+          Incidence matrices and interval graphs
+          Pacific J. Math 1965
+          Vol. 15, number 3, pages 835--855
+        """
+
+        peo,t_peo = self.lex_BFS(tree=True)
+
+        g = self.copy()
+
+        from sage.combinat.subset import Subsets
+        neighbors_subsets = dict([(v,Subsets(self.neighbors(v)+[v])) for v in self.vertex_iterator()])
+
+        while peo:
+            v = peo.pop()
+            if t_peo.out_degree(v)>0 and g.neighbors(v) not in neighbors_subsets[t_peo.neighbor_out_iterator(v).next()]:
+                return False
+            g.delete_vertex(v)
+        return True
+
     def is_clique(self, vertices=None, directed_clique=False):
         """
         Returns True if the set ``vertices`` is a clique, False
@@ -7102,6 +7182,82 @@ class GenericGraph(SageObject):
                     for w in neighbors(v):
                         if w not in seen:
                             queue.append((w, d+1))
+
+    def lex_BFS(self,reverse=False,tree=False):
+        r"""
+        Performs a Lex BFS on the graph.
+
+        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth
+        First Search used for the recognition of Chordal Graphs.
+
+        More information on this page :
+        http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search
+
+        INPUT:
+
+        - ``reverse`` ( boolean ) -- whether to return the vertices
+          in discovery order, or the reverse.
+
+        ALGORITHM:
+
+        This algorithm maintains for each vertex left in the graph
+        a code corresponding to the vertices already removed. The
+        vertex of maximal code ( according to the lexicographic
+        order ) is then removed, and the codes are updated.
+
+        This algorithm runs in time `O(n^2)` ( where `n` is the
+        number of vertices in the graph ), which is not optimal.
+        An optimal algorithm would run in time `O(m)` ( where `m`
+        is the number of edges in the graph ), and require the use
+        of a doubly-linked list which are not available in python
+        and can not really be written efficiently. This could be
+        done in Cython, though.
+
+        EXAMPLE:
+
+        A Lex BFS is obviously an ordering of the vertices::
+
+            sage: g = graphs.PetersenGraph()
+            sage: len(g.lex_BFS()) == g.order()
+            True
+
+        For a Chordal Graph, a reversed Lex BFS is a Perfect
+        Elimination Order ::
+
+            sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
+            sage: g.lex_BFS(reverse=True)
+            [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
+        """
+        id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
+        code = [[] for i in range(self.order())]
+        m = self.am()
+
+        l = lambda x : code[x]
+        vertices = set(range(self.order()))
+
+        value = []
+        pred = [-1]*self.order()
+
+        add_element = (lambda y:value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0,id_inv[y]))
+
+        while vertices:
+            v = max(vertices,key=l)
+            vertices.remove(v)
+            vector = m.column(v)
+            for i in vertices:
+                code[i].append(vector[i])
+                if vector[i]:
+                    pred[i] = v
+            add_element(v)
+
+        if tree:
+            g = DiGraph(sparse=True)
+            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i]!=-1]
+            g.add_edges(edges)
+            return value, g
+
+        else:
+            return value
 
     ### Constructors
 

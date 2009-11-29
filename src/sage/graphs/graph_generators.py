@@ -59,6 +59,7 @@ organized as follows::
         - LollipopGraph
         - PathGraph
         - StarGraph
+        - ToroidalGrid2dGraph
         - WheelGraph
     Platonic Solids:
         - TetrahedralGraph
@@ -197,6 +198,7 @@ class GraphGenerators():
                     - LollipopGraph
                     - PathGraph
                     - StarGraph
+                    - ToroidalGrid2dGraph
                     - WheelGraph
                 Platonic Solids:
                     - TetrahedralGraph
@@ -771,25 +773,58 @@ class GraphGenerators():
         """
         return graph.Graph(sparse=True)
 
-    def Grid2dGraph(self, n1, n2):
-        """
-        Returns a 2-dimensional grid graph with n1\*n2 nodes (n1 rows and
-        n2 columns).
+    def ToroidalGrid2dGraph(self,n1,n2):
+        r"""
+        Returns a toroidal 2-dimensional grid graph with `n_1n_2` nodes
+        (`n_1` rows and `n_2` columns).
 
-        A 2d grid graph resembles a 2 dimensional grid. All inner nodes are
-        connected to their 4 neighbors. Outer (non-corner) nodes are
-        connected to their 3 neighbors. Corner nodes are connected to their
+        The toroidal 2-dimensional grid with parameters `n_1,n_2` is
+        the 2-dimensional grid graph with identital parameters
+        to which are added the edges `((i,0),(i,n_2-1))` and
+        `((0,i),(n_1-1,i))`.
+
+        EXAMPLE:
+
+        The toroidal 2-dimensional grid is a regular graph, while
+        the usual 2-dimensional grid is not ::
+
+            sage: tgrid = graphs.ToroidalGrid2dGraph(8,9)
+            sage: print tgrid
+            Toroidal 2D Grid Graph with parameters 8,9
+            sage: grid = graphs.Grid2dGraph(8,9)
+            sage: grid.is_regular()
+            False
+            sage: tgrid.is_regular()
+            True
+        """
+
+        g = self.Grid2dGraph(n1,n2)
+
+        g.add_edges([((i,0),(i,n2-1)) for i in range(n1)] + [((0,i),(n1-1,i)) for i in range(n2)])
+
+        g.name("Toroidal 2D Grid Graph with parameters "+str(n1)+","+str(n2))
+
+        return g
+
+    def Grid2dGraph(self, n1, n2):
+        r"""
+        Returns a `2`-dimensional grid graph with `n_1n_2` nodes (`n_1` rows and
+        `n_2` columns).
+
+        A 2d grid graph resembles a `2` dimensional grid. All inner nodes are
+        connected to their `4` neighbors. Outer (non-corner) nodes are
+        connected to their `3` neighbors. Corner nodes are connected to their
         2 neighbors.
 
         This constructor depends on NetworkX numeric labels.
 
         PLOTTING: Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, nodes are
-        labelled in (row, column) pairs with (0, 0) in the top left corner.
+        labelled in (row, column) pairs with `(0, 0)` in the top left corner.
         Edges will always be horizontal and vertical - another advantage of
         filling the position dictionary.
 
-        EXAMPLES: Construct and show a grid 2d graph Rows = 5, Columns = 7
+        EXAMPLES: Construct and show a grid 2d graph Rows = `5`, Columns = `7`
 
         ::
 

@@ -2505,16 +2505,25 @@ class GraphGenerators():
         return bipartite_graph.BipartiteGraph(G, pos=pos_dict, name="Complete bipartite graph")
 
     def CubeGraph(self, n):
-        """
-        AUTHORS:
+        r"""
+        Returns the hypercube in `n` dimensions.
 
-        - Robert Miller
+        The hypercube in `n` dimension is build upon the binary
+        strings on `n` bits, two of them being adjacent if
+        they differ in exactly one bit. Hence, the distance
+        between two vertices in the hypercube is the Hamming
+        distance.
 
-        PLOTTING: See commented source code.
+        EXAMPLES:
 
-        EXAMPLES: Plot several n-cubes in a Sage Graphics Array
+        The distance between `0100110` and `1011010` is
+        `5`, as expected ::
 
-        ::
+            sage: g = graphs.CubeGraph(7)
+            sage: g.distance('0100110','1011010')
+            5
+
+        Plot several `n`-cubes in a Sage Graphics Array ::
 
             sage: g = []
             sage: j = []
@@ -2531,12 +2540,16 @@ class GraphGenerators():
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.show(figsize=[6,4]) # long time
 
-        Use the plot options to display larger n-cubes
+        Use the plot options to display larger `n`-cubes
 
         ::
 
             sage: g = graphs.CubeGraph(9)
             sage: g.show(figsize=[12,12],vertex_labels=False, vertex_size=20) # long time
+
+        AUTHORS:
+
+        - Robert Miller
         """
         from sage.rings.integer import Integer
         # generate vertex labels:

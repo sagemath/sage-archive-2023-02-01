@@ -1022,7 +1022,7 @@ class FinitePoset(ParentWithBase):
             sage: type(Q.upper_covers_iterator(0))
             <type 'generator'>
         """
-        for x in self._hasse_diagram.successor_iterator(self._element_to_vertex(y)):
+        for x in self._hasse_diagram.neighbor_out_iterator(self._element_to_vertex(y)):
             yield self._vertex_to_element(x)
 
     def upper_covers(self,y):
@@ -1049,7 +1049,7 @@ class FinitePoset(ParentWithBase):
             sage: type(Q.lower_covers_iterator(0))
             <type 'generator'>
         """
-        for x in self._hasse_diagram.predecessor_iterator(self._element_to_vertex(y)):
+        for x in self._hasse_diagram.neighbor_in_iterator(self._element_to_vertex(y)):
             yield self._vertex_to_element(x)
 
     def lower_covers(self,y):

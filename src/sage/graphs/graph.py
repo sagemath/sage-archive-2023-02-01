@@ -11984,7 +11984,7 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
-    predecessor_iterator = deprecated_function_alias(neighbor_in_iterator, 'Sage Version 4.2, Release Date: 2009-10-24')
+    predecessor_iterator = deprecated_function_alias(neighbor_in_iterator, 'Sage Version 4.3')
 
     def neighbors_in(self, vertex):
         """
@@ -12000,7 +12000,7 @@ class DiGraph(GenericGraph):
         """
         return list(self.neighbor_in_iterator(vertex))
 
-    predecessors = deprecated_function_alias(neighbors_in, 'Sage Version 4.2, Release Date: 2009-10-24')
+    predecessors = deprecated_function_alias(neighbors_in, 'Sage Version 4.3')
 
     def neighbor_out_iterator(self, vertex):
         """
@@ -12019,7 +12019,7 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
-    successor_iterator = deprecated_function_alias(neighbor_out_iterator, 'Sage Version 4.2, Release Date: 2009-10-24')
+    successor_iterator = deprecated_function_alias(neighbor_out_iterator, 'Sage Version 4.3')
 
     def neighbors_out(self, vertex):
         """
@@ -12035,7 +12035,7 @@ class DiGraph(GenericGraph):
         """
         return list(self.neighbor_out_iterator(vertex))
 
-    successors = deprecated_function_alias(neighbors_out, 'Sage Version 4.2, Release Date: 2009-10-24')
+    successors = deprecated_function_alias(neighbors_out, 'Sage Version 4.3')
 
     ### Degree functions
 

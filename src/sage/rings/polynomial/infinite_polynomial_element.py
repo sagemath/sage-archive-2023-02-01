@@ -335,15 +335,41 @@ class InfinitePolynomial_sparse(RingElement):
             res = self.parent()(res)
         return res
 
+    def _getAttributeNames(self):
+        """
+        This method implements tab completion, see ticket #6854.
+
+        EXAMPLES::
+
+            sage: X.<x> = InfinitePolynomialRing(QQ)
+            sage: 'constant_coefficient' in x[3]._getAttributeNames()
+            True
+
+        """
+        return dir(self._p)
+
     def __getattr__(self, s):
         """
+        Many attributes of elements of Infinite Polynomial Rings
+        are not genuine, but are inherited from the underlying
+        'finite' polynomial, so, for example, the ``_latex_`` or
+        ``constant_coefficient`` methods.
+
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: latex(x[3]*x[2]^2) # indirect doctest
             x_{3} x_{2}^{2}
 
+        Related with ticket #6854, the attribute ``__members__``
+        is specially treated, which allows for introspection::
+
+            sage: 'constant_coefficient' in dir(x[3]*x[2]^2) # indirect doctest
+            True
+
         """
+        if s=='__members__':
+            return dir(self._p)
         try:
             return getattr(self._p,s)
         except AttributeError:

@@ -1940,24 +1940,161 @@ def embedded():
 #################################################################
 from warnings import warn
 
-def deprecation(message):
+def deprecation(message, version=None):
     r"""
     Issue a deprecation warning.
 
-    EXAMPLE::
+    INPUT:
+
+     - ``message`` - an explanation why things are deprecated and by what it
+                  should be replaced.
+
+     - ``version`` - (optional) on which version and when the deprecation
+                  occured. Please put there the version of sageq at the time of deprecation.
+
+    EXAMPLES::
 
         sage: def foo():
         ...    sage.misc.misc.deprecation("The function foo is replaced by bar.")
-        ...
-        sage: def my_function():
-        ...    foo()
-        ...
-        sage: my_function() # random: I don't know how to test the output.
-        doctest:1: DeprecationWarning: The function foo is replaced by bar.
+        sage: foo()
+        doctest:...: DeprecationWarning: The function foo is replaced by bar.
+
+        sage: def bar():
+        ...    sage.misc.misc.deprecation("The function bar is removed.",
+        ...         'Sage Version 4.2')
+        sage: bar()
+        doctest:...: DeprecationWarning: (Since Sage Version 4.2) The function bar is removed.
     """
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
+    if version is not None:
+        message = "(Since " + version + ") " + message
     warn(message, DeprecationWarning, stacklevel=3)
+
+
+
+from sage.misc.lazy_attribute import lazy_attribute
+class DeprecatedFunctionAlias(object):
+    """
+    A wrapper around methods or functions wich automatically print the correct
+    deprecation message. See :func:`deprecated_function_alias`.
+
+    AUTHORS:
+
+     - Florent Hivert (2009-11-23), with the help of Mike Hansen.
+    """
+    def __init__(self, func, version):
+        """
+        TESTS::
+
+            sage: from sage.misc.misc import deprecated_function_alias
+            sage: g = deprecated_function_alias(number_of_partitions,
+            ...     'Sage Version 42.132')
+            sage: g.__doc__ is number_of_partitions.__doc__
+            True
+        """
+        self.__doc__ = func.__doc__
+        self.__dict__.update(func.__dict__)
+        self.func = func
+        self.version  = version
+        self.instance = None # for use with methods
+
+    @lazy_attribute
+    def __name__(self):
+        """
+        TESTS::
+
+            sage: from sage.misc.misc import deprecated_function_alias
+            sage: g = deprecated_function_alias(number_of_partitions,
+            ...     'Sage Version 42.132')
+            sage: g.__name__
+            'g'
+        """
+        name = None
+        import gc
+        for referrer in gc.get_referrers(self):
+            if isinstance(referrer, dict):
+                for k, v in referrer.iteritems():
+                    if v is self:
+                        name = k
+        return name
+
+    def __call__(self, *args, **kwds):
+        """
+        TESTS::
+
+            sage: from sage.misc.misc import deprecated_function_alias
+            sage: def bla(): return 42
+            sage: blo = deprecated_function_alias(bla,
+            ...     'Sage Version 42.132')
+            sage: blo()
+            doctest:1: DeprecationWarning: (Since Sage Version 42.132) blo is deprecated. Please use bla instead.
+            42
+        """
+        deprecation("%s is deprecated. Please use %s instead."%(self.__name__,
+                                                               self.func.__name__),
+                    self.version)
+        if self.instance is None:
+            return self.func(*args, **kwds)
+        else:
+            return self.func(self.instance, *args, **kwds)
+
+    def __get__(self, inst, cls = None):
+        """
+        TESTS::
+
+            sage: from sage.misc.misc import deprecated_function_alias
+            sage: class cls(object):
+            ...      def new_meth(self): return 42
+            ...      old_meth = deprecated_function_alias(new_meth,
+            ...            'Sage Version 42.132')
+            sage: obj = cls()
+            sage: obj.old_meth.instance is obj
+            True
+        """
+        self.instance = inst
+        return self
+
+
+def deprecated_function_alias(func, version):
+    """
+    Create an aliased version of a function or a method which raise a
+    deprecation warning message.
+
+    If f is a function or a method, write
+    ``g = deprecated_function_alias(f, "Sage version")``
+    to make a deprecated aliased version of f.
+
+    INPUT:
+
+     - ``func`` - the function or method to be aliased
+
+     - ``version`` - the version of sage when the function is deprecated
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import deprecated_function_alias
+        sage: g = deprecated_function_alias(number_of_partitions,
+        ...     'Sage Version 42.132')
+        sage: g(5)
+        doctest:...: DeprecationWarning: (Since Sage Version 42.132) g is deprecated. Please use number_of_partitions instead.
+        7
+
+    This also works for methods::
+
+        sage: class cls(object):
+        ...      def new_meth(self): return 42
+        ...      old_meth = deprecated_function_alias(new_meth,
+        ...            'Sage Version 42.132')
+        sage: cls().old_meth()
+        doctest:...: DeprecationWarning: (Since Sage Version 42.132) old_meth is deprecated. Please use new_meth instead.
+        42
+
+    AUTHORS:
+
+     - Florent Hivert (2009-11-23), with the help of Mike Hansen.
+    """
+    return DeprecatedFunctionAlias(func, version)
 
 
 #############################################

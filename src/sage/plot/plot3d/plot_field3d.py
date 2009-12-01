@@ -17,8 +17,6 @@ Plotting 3D fields
 #*****************************************************************************
 
 from sage.misc.misc import srange
-from matplotlib.cm import get_cmap
-from matplotlib.colors import LinearSegmentedColormap
 from sage.plot.misc import setup_for_eval_on_grid
 from sage.modules.free_module_element import vector
 from sage.plot.plot import plot
@@ -66,11 +64,13 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
     vectors = [vector((ff(*point), gg(*point), hh(*point))) for point in points]
 
     try:
-        cm=get_cmap(colors)
+        from matplotlib.cm import get_cmap
+        cm = get_cmap(colors)
         assert(cm is not None)
     except (TypeError, AssertionError):
         if isinstance(colors, (list, tuple)):
-            cm=LinearSegmentedColormap.from_list('mymap',colors)
+            from matplotlib.colors import LinearSegmentedColormap
+            cm = LinearSegmentedColormap.from_list('mymap',colors)
         else:
             cm = lambda x: colors
 

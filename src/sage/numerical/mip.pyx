@@ -3,6 +3,7 @@ Mixed integer linear programming
 """
 
 include "../ext/stdsage.pxi"
+include "../ext/interrupt.pxi"
 
 class MixedIntegerLinearProgram:
     r"""
@@ -900,7 +901,8 @@ class MixedIntegerLinearProgram:
             sage: p.get_values(x)     # optional random - requires Glpk or COIN-OR/CBC
             {0: 0.0, 1: 1.3333333333333333}
 
-            sage: ### Computation of a maximum stable set in Petersen's graph
+         Computation of a maximum stable set in Petersen's graph::
+
             sage: g = graphs.PetersenGraph()
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: b = p.new_variable()
@@ -910,6 +912,18 @@ class MixedIntegerLinearProgram:
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)     # optional - requires Glpk or COIN-OR/CBC
             4.0
+
+        TESTS::
+
+            sage: g = graphs.PetersenGraph()
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: b = p.new_variable()
+            sage: p.set_objective(sum([b[v] for v in g]))
+            sage: p.set_binary(b)
+            sage: p.solve(solver='GLPK', objective_only=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
         """
         if self._objective_i == None:
             raise ValueError("No objective function has been defined.")
@@ -924,13 +938,19 @@ class MixedIntegerLinearProgram:
                 from sage.numerical.mipCoin import solveCoin
             except:
                 raise NotImplementedError("Coin/CBC is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('cbc')")
-            return solveCoin(self, log=log, objective_only=objective_only)
+            _sig_on
+            r = solveCoin(self, log=log, objective_only=objective_only)
+            _sig_off
+            return r
         elif solver == "GLPK":
             try:
                 from sage.numerical.mipGlpk import solve_glpk
             except:
                 raise NotImplementedError("GLPK is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('glpk')")
-            return solve_glpk(self, log=log, objective_only=objective_only)
+            _sig_on
+            r = solve_glpk(self, log=log, objective_only=objective_only)
+            _sig_off
+            return r
         elif solver == "CPLEX":
             raise NotImplementedError("The support for CPLEX is not implemented yet.")
         else:

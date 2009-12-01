@@ -10326,40 +10326,40 @@ class Graph(GenericGraph):
         return chromatic_polynomial(self)
 
     def chromatic_number(self, algorithm="DLX"):
-        """
+        r"""
         Returns the minimal number of colors needed to color the vertices
         of the graph `G`.
 
         INPUT:
 
-        - ``algorithm`` -- Selects an algorithm
+        - ``algorithm`` -- Select an algorithm from the following supported
+          algorithms:
 
-            - If ``algorithm = "DLX"`` ( default ), the chromatic number is computed
-              through the dancing link algorithm.
+          - If ``algorithm="DLX"`` (default), the chromatic number is
+            computed using the dancing link algorithm. It is
+            inefficient speedwise to compute the chromatic number through
+            the dancing link algorithm because this algorithm computes
+            *all* the possible colorings to check that one exists.
 
-              Computing the chromatic number through the Dancing Link Algorithm is a
-              very slow method, as it computes ALL the possible colorings to check
-              that one exists.
+          - If ``algorithm="CP"``, the chromatic number is computed
+            using the coefficients of the chromatic polynomial. Again, this
+            method is inefficient in terms of speed and it only useful for
+            small graphs.
 
-            - If ``algorithm = "CP"``, the chromatic number is computed
-              through the coefficients of the Chromatic Polynomial.
+          - If ``algorithm="MILP"``, the chromatic number is computed
+            using a mixed integer linear program. This method requires
+            you to install an optional Sage package like GLPK or
+            COIN-OR's CBC. Of the methods "DLX", "CP", and "MILP", the last
+            method is the fastest method of the three.
 
-              Computing the chromatic number through the chromatic polynomial is a
-              very slow method, which will only be useful for small graphs.
+        .. SEEALSO::
 
-            - If ``algorithm = "MILP"``, the chromatic number
-              is computed through a Mixed Integer Linear Program.
-
-              Computing the chromatic number through a Mixed Integer Linear
-              Program may require to install an optional Sage package like GLPK
-              or Coin-OR's CBC.
-
-        For more functions related to graph coloring, see
-        the ``sage.graphs.graph_coloring`` module.
+            For more functions related to graph coloring, see the
+            module :mod:`sage.graphs.graph_coloring`.
 
         EXAMPLES::
 
-            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: G = Graph({0: [1, 2, 3], 1: [2]})
             sage: G.chromatic_number(algorithm="DLX")
             3
             sage: G.chromatic_number(algorithm="MILP") # optional - requires GLPK or CBC
@@ -10369,20 +10369,22 @@ class Graph(GenericGraph):
 
         TESTS::
 
-            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: G = Graph({0: [1, 2, 3], 1: [2]})
             sage: G.chromatic_number(algorithm="foo")
             Traceback (most recent call last):
             ...
-            ValueError: The `algorithm` variable must be set to either `DLX`, `MILP` or `CP`.
+            ValueError: The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.
         """
+        # default built-in algorithm; bad performance
         if algorithm == "DLX":
             from sage.graphs.graph_coloring import chromatic_number
             return chromatic_number(self)
-
+        # Algorithm with good performance, but requires an optional
+        # package: choose any of GLPK or CBC.
         elif algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
             return vertex_coloring(self, value_only=True)
-
+        # another algorithm with bad performance; only good for small graphs
         elif algorithm == "CP":
             f = self.chromatic_polynomial()
             i = 0
@@ -10390,49 +10392,49 @@ class Graph(GenericGraph):
                 i += 1
             return i
         else:
-            raise ValueError("The `algorithm` variable must be set to either `DLX`, `MILP` or `CP`.")
+            raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
     def coloring(self, algorithm="DLX", hex_colors=False):
-        """
+        r"""
         Returns the first (optimal) proper vertex-coloring found.
 
         INPUT:
 
-        - If ``algorithm = "DLX"`` (default), the chromatic number is computed
-          through the dancing link algorithm.
+        - ``algorithm`` -- Select an algorithm from the following supported
+          algorithms:
 
-        - If ``algorithm = "MILP"``, the chromatic number
-          is computed through a Mixed Integer Linear Program.
+          - If ``algorithm="DLX"`` (default), the chromatic number is computed
+            using the dancing link algorithm.
 
-          Computing the chromatic number through a Mixed Integer Linear
-          Program may require to install an optional Sage package like GLPK
-          or Coin-OR's CBC.
+          - If ``algorithm="MILP"``, the chromatic number is computed using
+            a mixed integer linear program. This algorithm requires you to
+            install an optional Sage package like GLPK or COIN-OR's CBC.
 
-        - ``hex_colors`` -- if ``True``, return a dict which can
-           easily be used for plotting
+        - ``hex_colors`` -- (default: ``False``) if ``True``, return a
+          dictionary which can easily be used for plotting.
 
-        For more functions related to graph coloring, see
-        the ``sage.graphs.graph_coloring`` module.
+        .. SEEALSO::
+
+            For more functions related to graph coloring, see the
+            module :mod:`sage.graphs.graph_coloring`.
 
         EXAMPLES::
 
             sage: G = Graph("Fooba")
-
             sage: P = G.coloring(algorithm="MILP"); P  # optional - requires GLPK or CBC
             [[2, 1, 3], [0, 6, 5], [4]]
             sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
-
-            sage: H = G.coloring(hex_colors=True,algorithm="MILP") # optional - requires GLPK or CBC
-            sage: for c in sorted(H.keys()):                       # optional - requires GLPK or CBC
-            ...    print c, H[c]                                   # optional - requires GLPK or CBC
+            sage: H = G.coloring(hex_colors=True, algorithm="MILP") # optional - requires GLPK or CBC
+            sage: for c in sorted(H.keys()):                        # optional - requires GLPK or CBC
+            ...       print c, H[c]                                 # optional - requires GLPK or CBC
             #0000ff [4]
             #00ff00 [0, 6, 5]
             #ff0000 [2, 1, 3]
             sage: H = G.coloring(hex_colors=True, algorithm="DLX")
             sage: for c in sorted(H.keys()):
-            ...    print c, H[c]
+            ...       print c, H[c]
             #0000ff [4]
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
@@ -10443,16 +10445,16 @@ class Graph(GenericGraph):
             sage: G.coloring(algorithm="foo")
             Traceback (most recent call last):
             ...
-            ValueError: The `algorithm` variable must be set to either `DLX` or `MILP`.
+            ValueError: The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.
         """
         if algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self,hex_colors=hex_colors)
+            return vertex_coloring(self, hex_colors=hex_colors)
         elif algorithm == "DLX":
             from sage.graphs.graph_coloring import first_coloring
             return first_coloring(self, hex_colors=hex_colors)
         else:
-            raise ValueError("The `algorithm` variable must be set to either `DLX` or `MILP`.")
+            raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
     ### Centrality
 
@@ -11142,7 +11144,7 @@ class Graph(GenericGraph):
 
         """
         if self.is_directed() or self.has_loops() or self.has_multiple_edges():
-            raise ValueError("Self must be an undirected simple graph to have a clique_complex.")
+            raise ValueError("Self must be an undirected simple graph to have a clique complex.")
         import sage.homology.simplicial_complex
         C = sage.homology.simplicial_complex.SimplicialComplex(self.vertices(),self.cliques_maximal(),maximality_check=True)
         C._graph = self

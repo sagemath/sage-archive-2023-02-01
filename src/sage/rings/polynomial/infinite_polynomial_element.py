@@ -1157,6 +1157,9 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             x2 + x1
 
         """
+        P = self.parent()
+        self._p = P._P(self._p)
+        x._p = P._P(x._p)
         return InfinitePolynomial_dense(self.parent(),self._p + x._p, is_good_poly=True)
 
     def _mul_(self, x):
@@ -1168,6 +1171,9 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             x2*x1
 
         """
+        P = self.parent()
+        self._p = P._P(self._p)
+        x._p = P._P(x._p)
         return InfinitePolynomial_dense(self.parent(),self._p * x._p, is_good_poly=True)
 
 
@@ -1203,6 +1209,9 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             x2 - x1
 
         """
+        P = self.parent()
+        self._p = P._P(self._p)
+        x._p = P._P(x._p)
         return InfinitePolynomial_dense(self.parent(), self._p - x._p, is_good_poly=True)
 
     def __pow__(self, n):

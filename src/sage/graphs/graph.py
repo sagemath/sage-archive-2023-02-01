@@ -2950,13 +2950,12 @@ class GenericGraph(SageObject):
             sage: D.connected_components()
             [[0, 1, 2, 3], [4, 5, 6]]
         """
-        seen = []
+        seen = set()
         components = []
         for v in self:
             if v not in seen:
-                c = list(self.breadth_first_search(v, ignore_direction=True))
-                c.sort()
-                seen.extend(c)
+                c = self.connected_component_containing_vertex(v)
+                seen.update(c)
                 components.append(c)
         components.sort(lambda comp1, comp2: cmp(len(comp2), len(comp1)))
         return components
@@ -3044,6 +3043,17 @@ class GenericGraph(SageObject):
             sage: graphs.StarGraph(3).blocks_and_cut_vertices()
             ([[1, 0], [2, 0], [3, 0]], [0])
 
+        TESTS::
+
+            sage: Graph(0).blocks_and_cut_vertices()
+            ([], [])
+            sage: Graph(1).blocks_and_cut_vertices()
+            ([0], [0])
+            sage: Graph(2).blocks_and_cut_vertices()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+
         ALGORITHM: 8.3.8 in [1]. Notice that the termination condition on
         line (23) of the algorithm uses "p[v] == 0" which in the book
         means that the parent is undefined; in this case, v must be the
@@ -3056,33 +3066,38 @@ class GenericGraph(SageObject):
         - [1] D. Jungnickel, Graphs, Networks and Algorithms,
           Springer, 2005.
         """
-        G = self.to_undirected()
-        map_to_ints = G.relabel(return_map=True)
-        s = G.vertex_iterator().next()
-        nr = [0]*G.num_verts()
-        p = [None]*G.num_verts()  # no vertex has a parent until visited
-        L = [0]*G.num_verts()
-        edges = {}
-        for u,v in G.edges(labels=False):
-            edges[(u,v)] = False
-            edges[(v,u)] = False
+        if not self: # empty graph
+            return [],[]
+
+        s = self.vertex_iterator().next() # source
+
+        if len(self) == 1: # only one vertex
+            return [s],[s]
+
+        if not self.is_connected():
+            raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
+
+        nr = {} # enumerate
+        p = {} # predecessors
+        L = {}
+        visited_edges = set()
         i = 1
-        v = s
+        v = s # visited
         nr[s] = 1
         L[s] = 1
-        C = []
-        B = []
-        S = [s]
+        C = [] # cuts
+        B = [] # blocks
+        S = [s] #stack
+        its = {}
         while True:
             while True:
-                u = -1
-                for u in G.neighbor_iterator(v):
-                    if not edges[(v,u)]: break
-                if u == -1: break
-                if edges[(v,u)]: break
-                edges[(v,u)] = True
-                edges[(u,v)] = True
-                if nr[u] == 0:
+                for u in self.neighbor_iterator(v):
+                    if not (v,u) in visited_edges: break
+                else:
+                    break
+                visited_edges.add((v,u))
+                visited_edges.add((u,v))
+                if u not in nr:
                     p[u] = v
                     i += 1
                     nr[u] = i
@@ -3090,33 +3105,31 @@ class GenericGraph(SageObject):
                     S.append(u)
                     v = u
                 else:
-                    L[v] = min([ L[v], nr[u] ])
-            if p[v] != s:
-                if L[v] < nr[p[v]]:
-                    L[p[v]] = min([ L[p[v]], L[v] ])
-                else:
-                    if p[v] not in C:
-                        C.append(p[v])
-                    B_k = []
-                    while True:
-                        u = S.pop(-1)
-                        B_k.append(u)
-                        if u == v: break
-                    B_k.append(p[v])
-                    B.append(B_k)
-            else:
-                if any([ not edges[(s,u)] for u in G.neighbors(s)]) and p[v] not in C:
-                    C.append(s)
-                B_k = []
-                while True:
-                    u = S.pop(-1)
-                    B_k.append(u)
-                    if u == v: break
-                B_k.append(s)
-                B.append(B_k)
-            v = p[v]
-            if v == s and all([edges[(v,u)] for u in G.neighbors(v)]):
+                    L[v] = min( L[v], nr[u] )
+
+            if v is s:
                 break
+
+            pv = p[v]
+            if L[v] < nr[pv]:
+                L[pv] = min( L[pv], L[v] )
+                v = pv
+                continue
+
+            if pv not in C:
+                if pv is not s or\
+                        not all([(s,u) in visited_edges for u in self.neighbor_iterator(s)]):
+                    C.append(pv)
+
+            B_k = []
+            while True:
+                u = S.pop()
+                B_k.append(u)
+                if u == v: break
+            B_k.append(pv)
+            B.append(B_k)
+
+            v = pv
         return B, C
 
     ### Vertex handlers
@@ -5826,22 +5839,19 @@ class GenericGraph(SageObject):
             sage: graphs.trees(9).next().girth()
             +Infinity
         """
-        G = self.to_undirected()
-        G.relabel() # vertices are now {0, ..., n-1}
-        n = G.num_verts()
+        n = self.num_verts()
         best = n+1
-        for i in range(n-2):
-            span = [0]*n
-            span[i] = 1
+        for i in self.vertex_iterator():
+            span = set([i])
             depth = 1
-            thisList = [i]
+            thisList = set([i])
             while 2*depth <= best and 3 < best:
-                nextList = []
+                nextList = set()
                 for v in thisList:
-                    for u in G.neighbors(v):
-                        if not span[u]:
-                            span[u] = 1
-                            nextList.append(u)
+                    for u in self.neighbors(v):
+                        if not u in span:
+                            span.add(u)
+                            nextList.add(u)
                         else:
                             if u in thisList:
                                 best = depth*2-1

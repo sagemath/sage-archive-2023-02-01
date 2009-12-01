@@ -53,7 +53,7 @@ usage_advanced() {
     echo "  -gp <..>      -- run Sage's GP (Pari) with given arguments"
     echo "  -combinat <...> -- run sage-combinat patch management script"
     echo "  -f [packages] -- force build of the given Sage package (even if already installed)"
-    echo "  -fixdoctest <file.py> -- create <file.py>.out that would pass the doctests, and output a patch"
+    echo "  -fixdoctests <file.py> -- create <file.py>.out that would pass the doctests, and output a patch"
     echo "  -grep <string>-- grep through all the Sage library code for string"
     echo "  -grepdoc <string>-- grep through all the Sage documentation for string"
     echo "  -h, -?        -- print help message"

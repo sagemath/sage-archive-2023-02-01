@@ -4583,6 +4583,34 @@ class GenericGraph(SageObject):
         for v in vertices:
             yield filter(v, self)
 
+    def degree_sequence(self):
+        r"""
+        Return the degree sequence of this (di)graph.
+
+        EXAMPLES:
+
+        The degree sequence of an undirected graph::
+
+            sage: g = Graph({1: [2, 5], 2: [1, 5, 3, 4], 3: [2, 5], 4: [3], 5: [2, 3]})
+            sage: g.degree_sequence()
+            [4, 3, 3, 2, 2]
+
+        The degree sequence of a digraph::
+
+            sage: g = DiGraph({1: [2, 5, 6], 2: [3, 6], 3: [4, 6], 4: [6], 5: [4, 6]})
+            sage: g.degree_sequence()
+            [5, 3, 3, 3, 3, 3]
+
+        Degree sequences of some common graphs::
+
+            sage: graphs.PetersenGraph().degree_sequence()
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            sage: graphs.HouseGraph().degree_sequence()
+            [3, 3, 2, 2, 2]
+            sage: graphs.FlowerSnark().degree_sequence()
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        """
+        return sorted(self.degree_iterator(), reverse=True)
 
     def is_regular(self, k = None):
         """
@@ -12114,6 +12142,28 @@ class DiGraph(GenericGraph):
                     d += 1
                 yield d
 
+    def in_degree_sequence(self):
+        r"""
+        Return the indegree sequence of this digraph.
+
+        EXAMPLES:
+
+        The indegree sequences of two digraphs::
+
+            sage: g = DiGraph({1: [2, 5, 6], 2: [3, 6], 3: [4, 6], 4: [6], 5: [4, 6]})
+            sage: g.in_degree_sequence()
+            [5, 2, 1, 1, 1, 0]
+
+        ::
+
+            sage: V = [2, 3, 5, 7, 8, 9, 10, 11]
+            sage: E = [[], [8, 10], [11], [8, 11], [9], [], [], [2, 9, 10]]
+            sage: g = DiGraph(dict(zip(V, E)))
+            sage: g.in_degree_sequence()
+            [2, 2, 2, 2, 1, 0, 0, 0]
+        """
+        return sorted(self.in_degree_iterator(), reverse=True)
+
     def out_degree(self, vertices=None, labels=False):
         """
         Same as degree, but for out degree.
@@ -12185,6 +12235,28 @@ class DiGraph(GenericGraph):
                 for e in self.outgoing_edge_iterator(v):
                     d += 1
                 yield d
+
+    def out_degree_sequence(self):
+        r"""
+        Return the outdegree sequence of this digraph.
+
+        EXAMPLES:
+
+        The outdegree sequences of two digraphs::
+
+            sage: g = DiGraph({1: [2, 5, 6], 2: [3, 6], 3: [4, 6], 4: [6], 5: [4, 6]})
+            sage: g.out_degree_sequence()
+            [3, 2, 2, 2, 1, 0]
+
+        ::
+
+            sage: V = [2, 3, 5, 7, 8, 9, 10, 11]
+            sage: E = [[], [8, 10], [11], [8, 11], [9], [], [], [2, 9, 10]]
+            sage: g = DiGraph(dict(zip(V, E)))
+            sage: g.out_degree_sequence()
+            [3, 2, 2, 1, 1, 0, 0, 0]
+        """
+        return sorted(self.out_degree_iterator(), reverse=True)
 
     ### Construction
 

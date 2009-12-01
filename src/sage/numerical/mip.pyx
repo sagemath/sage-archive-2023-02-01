@@ -70,16 +70,11 @@ class MixedIntegerLinearProgram:
             except:
                 self._default_solver = None
 
-        from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
-        from sage.rings.real_double import RealDoubleField as RR
-        P = InfinitePolynomialRing(RR(), names=('x',))
-        (self._x,) = P._first_ngens(1)
-
         # List of all the MIPVariables linked to this instance of
         # MixedIntegerLinearProgram
         self._mipvariables = []
 
-        # Associates an index to the variables from self._x
+        # Associates an index to the variables
         self._variables = {}
 
         # contains the variables' values when
@@ -246,7 +241,7 @@ class MixedIntegerLinearProgram:
             sage: p=MixedIntegerLinearProgram()
             sage: v=p.new_variable(name="Test")
             sage: v[5]+v[99]
-            x1 + x0
+            x0 + x1
             sage: p._update_variables_name()
         """
 
@@ -313,15 +308,19 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + 5*x[2])
-            sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
-            sage: p.add_constraint(1.5*x[1]+3*x[2], max=4)
+            sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
+            sage: p.add_constraint(15/10*x[1]+3*x[2], max=4)
             sage: p.constraints()
-            [(3.0*x1 + 1.5*x0, None, 4.0), (0.2*x1 + x0, None, 4.0)]
+            [(3/2*x0 + 3*x1, None, 4), (x0 + 1/5*x1, None, 4)]
         """
+
+        d = [0]*len(self._variables)
+        for (v,id) in self._variables.iteritems():
+            d[id]=v
 
         constraints=[0]*len(self._constraints_bounds_min)
         for (i,j,value) in zip(self._constraints_matrix_i,self._constraints_matrix_j,self._constraints_matrix_values):
-            constraints[i-1]+=value*self._x[j]
+            constraints[i]+=value*d[j]
         return zip(constraints,self._constraints_bounds_min,self._constraints_bounds_max)
 
 
@@ -338,13 +337,19 @@ class MixedIntegerLinearProgram:
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
             sage: p.show()
             Maximization:
-              +1.0 x_0 +1.0 x_1
+              x0 + x1
             Constraints:
-              2.0*x1 - 3.0*x0 <= 2.0
+              -3*x0 + 2*x1 <= 2
             Variables:
               x1 is a real variable (min=0.0, max=+oo)
               x0 is a real variable (min=0.0, max=+oo)
         """
+
+        inv_variables = [0]*len(self._variables)
+        for (v,id) in self._variables.iteritems():
+            inv_variables[id]=v
+
+
         value = ( "Maximization:\n"
                   if self._maximization
                   else "Minimization:\n" )
@@ -352,8 +357,7 @@ class MixedIntegerLinearProgram:
         if self._objective_i==None:
             value+="Undefined"
         else:
-            for (i,c) in zip(self._objective_i, self._objective_values):
-                value+=("+"+str(c) if c>0 else str(c))+" x_"+str(i)+" "
+            value+=str(sum([inv_variables[i]*c for (i,c) in zip(self._objective_i, self._objective_values)]))
 
         value += "\nConstraints:"
         for (c,min,max) in self.constraints():
@@ -473,8 +477,8 @@ class MixedIntegerLinearProgram:
             sage: p.solve() # optional - requires Glpk or COIN-OR/CBC
             2.0
             sage: #
-            sage: # Returns the optimal value of x[3]
-            sage: p.get_values(x[3]) # optional - requires Glpk or COIN-OR/CBC
+            sage: # Returns the optimal value of y[2][9]
+            sage: p.get_values(y[2][9]) # optional - requires Glpk or COIN-OR/CBC
             2.0
             sage: #
             sage: # Returns a dictionary identical to x
@@ -548,7 +552,7 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + 5*x[2])
-            sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
+            sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
             sage: p.add_constraint(1.5*x[1]+3*x[2], max=4)
             sage: p.solve()     # optional - requires Glpk or COIN-OR/CBC
             6.6666666666666661
@@ -561,18 +565,20 @@ class MixedIntegerLinearProgram:
         self._objective_i = []
         self._objective_values = []
 
-
         # If the objective is None, or a constant, we want to remember
         # that the objective function has been defined ( the user did not
         # forget it ). In some LP problems, you just want a feasible solution
         # and do not care about any function being optimal.
+
         try:
-            obj.constant_coefficient()
+            f = self._NormalForm(obj)
         except:
             return None
 
-        for (id, coeff) in [(id, coeff) for (id, coeff) in self._NormalForm(obj).items() if id != -1]:
-            self._objective_i.append(id)
+        f.pop(0,0)
+
+        for (v,coeff) in f.iteritems():
+            self._objective_i.append(self._variables[v])
             self._objective_values.append(coeff)
 
     def add_constraint(self, linear_function, max=None, min=None, name=None):
@@ -617,32 +623,35 @@ class MixedIntegerLinearProgram:
         """
 
 
-        # In case a null constraint is given ( see tests )
-        try:
-            linear_function.constant_coefficient()
-        except:
+        if linear_function==0:
             return None
 
-        if linear_function==0:
+        # In case a null constraint is given ( see tests )
+        try:
+            f = self._NormalForm(linear_function)
+        except:
             return None
 
         self._constraints_name.append(name)
 
-        # We do not want to ignore the constant coefficient
-        max = float(max-linear_function.constant_coefficient()) if max != None else None
-        min = float(min-linear_function.constant_coefficient()) if min != None else None
+        constant_coefficient = f.pop(0,0)
 
-        linear_function-=linear_function.constant_coefficient()
+        # We do not want to ignore the constant coefficient
+        max = (max-constant_coefficient) if max != None else None
+        min = (min-constant_coefficient) if min != None else None
+
+
         c=len(self._constraints_bounds_min)
+
+        for (v,coeff) in f.iteritems():
+            self._constraints_matrix_i.append(c)
+            self._constraints_matrix_j.append(self._variables[v])
+            self._constraints_matrix_values.append(coeff)
 
         self._constraints_bounds_max.append(max)
         self._constraints_bounds_min.append(min)
 
 
-        for (id,value) in zip([self._variables[var] for var in linear_function.variables()], linear_function.coefficients()):
-            self._constraints_matrix_i.append(c)
-            self._constraints_matrix_j.append(id)
-            self._constraints_matrix_values.append(value)
 
     def set_binary(self, e):
         r"""
@@ -966,21 +975,26 @@ class MixedIntegerLinearProgram:
 
         OUTPUT:
 
-        A dictionary whose keys are the IDs of the variables and whose
+        A dictionary whose keys are the variables and whose
         values are their coefficients. The value corresponding to key
-        `-1` is the constant coefficient.
+        `0` is the constant coefficient.
 
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram()
             sage: v = p.new_variable()
             sage: p._NormalForm(v[0] + v[1])
-            {0: 1.0, 1: 1.0, -1: 0.0}
+            {0: 0, x1: 1, x0: 1}
         """
-        d = dict( zip([self._variables[v] for v in exp.variables()],
-                      exp.coefficients()) )
-        d[-1] = exp.constant_coefficient()
-        return d
+
+        d2={}
+
+        for v in exp.variables():
+            d2[v]=exp.coefficient(v)
+
+        d2[0] = exp-sum([c*v for (v,c) in d2.iteritems()])
+
+        return d2
 
     def _add_element_to_ring(self, vtype):
         r"""
@@ -1007,8 +1021,10 @@ class MixedIntegerLinearProgram:
             1
         """
 
-        v = self._x[len(self._variables_type)]
-        self._variables[v] = len(self._variables_type)
+        from sage.calculus.calculus import var
+        v = var('x'+str(len(self._variables)))
+
+        self._variables[v] = len(self._variables)
         self._variables_type.append(vtype)
         self._variables_bounds_min.append(0)
         self._variables_bounds_max.append(None)
@@ -1250,7 +1266,7 @@ class MIPVariable:
             sage: p=MixedIntegerLinearProgram()
             sage: v=p.new_variable(name="Test")
             sage: v[5]+v[99]
-            x1 + x0
+            x0 + x1
             sage: p._variables_name=['']*2
             sage: v._update_variables_name()
         """
@@ -1260,7 +1276,7 @@ class MIPVariable:
 
         if self._dim==1:
             for (k,v) in self._dict.iteritems():
-                self._p._variables_name[int(str(v)[1:])]=prefix+"["+str(k)+"]"
+                self._p._variables_name[self._p._variables[v]]=prefix+"["+str(k)+"]"
         else:
             for v in self._dict.itervalues():
                 v._update_variables_name(prefix=prefix+"["+str(k)+"]")

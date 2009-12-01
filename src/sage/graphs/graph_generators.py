@@ -3376,7 +3376,7 @@ class GraphGenerators():
         As for any interval graph, the chromatic number is equal to
         the clique number ::
 
-            sage: g = graphs.RandomInterval(15)
+            sage: g = graphs.RandomInterval(8)
             sage: g.clique_number() == g.chromatic_number()
             True
 
@@ -3391,9 +3391,8 @@ class GraphGenerators():
 
         from sage.misc.prandom import random
 
-        s = lambda x,y : (x,y) if x<=y else (y,x)
-        intervals = [s(random(), random()) for i in range(n)]
-        intervals.sort(key=lambda x:x[0])
+        intervals = [tuple(sorted((random(), random()))) for i in range(n)]
+        intervals.sort()
         edges = []
         while intervals:
             x = intervals.pop()
@@ -3402,7 +3401,7 @@ class GraphGenerators():
                     edges.append((x,y))
                 else:
                     break
-        g=graph.Graph(vertices=intervals)
+        g = graph.Graph(vertices=intervals)
         g.add_edges(edges)
         return g
 

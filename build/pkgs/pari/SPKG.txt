@@ -66,6 +66,18 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.3.p5 (David Kirkby, October 14th, 2009) ===
+ * Removed the use of $CP, since it has been agreed there is no
+   need for 'cp' to be specified as an environment variable
+   and to just use the normal CP command. Likewise for 'rm'
+ * Copied over a paripriv.h specific to Solaris, just as was done
+   on OS X. This is trac #6579 which allows 'modified sage library code'
+   to build on Solaris (SPARC) with no changes as long as the
+   Sun compiler suite can not be found in the path. If that can
+   be found, then the 'modified sage library code' will fail
+   for a different reason (see #6595)
+=== pari-2.3.3.p4 (???????????????????????????????????) ===
+=== pari-2.3.3.p3 (???????????????????????????????????) ===
 === pari-2.3.3.p2 (Minh Van Nguyen, October 02nd, 2009) ===
  * Change optimization flag of src/config/get_cc from "-O3" to
    "-O1". This fixes a build issue on 32-bit Fedora 11. See ticket #7092.
@@ -80,7 +92,7 @@ exactly where it says native, but I would expect a grep to find it.
    but someone on comp.unxi.solaris reckons it should be on
    Solaris x86 too.
 
-   Hopefully this issue can be resolved by the PAPI developers and
+   Hopefully this issue can be resolved by the PARI developers and
    so the hack removed later. I'll report it to the PAPI developers.
 
    Thanks are due to Marc Glisse marc.glisse@gmail.com

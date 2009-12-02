@@ -6,7 +6,9 @@
 TOP=`pwd`
 
 # As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it
-# needs to be.
+# needs to be if using gcc. I assume the equivalent will be needed on
+# other compilers.
+
 if [ `uname` = "SunOS" ]; then
     sed 's/-fomit-frame-pointer/-fomit-frame-pointer -fPIC/g' src/config/get_cc > src/config/get_cc.$$
     mv src/config/get_cc.$$ src/config/get_cc
@@ -89,16 +91,16 @@ build()
         exit 1
     fi
 
-    $CP -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
+    cp -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
 
     # Install documentation source (compressed), for use by gphelp.
     $MKDIR -p "$SAGE_LOCAL/share/pari/doc/"
-    $CP -f doc/usersch*.tex "$SAGE_LOCAL/share/pari/doc/"
+    cp -f doc/usersch*.tex "$SAGE_LOCAL/share/pari/doc/"
     bzip2 -9 -f "$SAGE_LOCAL/share/pari/doc/"usersch*.tex
-    $CP -f doc/translations "$SAGE_LOCAL/share/pari/doc/"
+    cp -f doc/translations "$SAGE_LOCAL/share/pari/doc/"
 
     # And install gphelp.
-    $CP -f doc/gphelp "$SAGE_LOCAL/bin/"
+    cp -f doc/gphelp "$SAGE_LOCAL/bin/"
 
     $MAKE install-lib-sta
 
@@ -118,7 +120,7 @@ build()
         exit 1
     fi
 
-    $CP -f libpari* $SAGE_LOCAL/lib/
+    cp -f libpari* $SAGE_LOCAL/lib/
     cd "$CUR"
 
     # On CYGWIN, need the dll for PARI to be in the same
@@ -127,7 +129,7 @@ build()
     if [ $UNAME = "CYGWIN" ]; then
         CUR="`pwd`"
         cd "$SAGE_LOCAL"/bin/
-        $CP -f "$SAGE_LOCAL"/lib/*pari*.dll .
+        cp -f "$SAGE_LOCAL"/lib/*pari*.dll .
         cd "$CUR"
     fi
 
@@ -135,7 +137,7 @@ build()
     # on OS X.
     if [ $UNAME = "Darwin" ]; then
 	echo "MAC OS X hack -- delete and reinstall libpari.a"
-	$RM -f Odarwin-ppc/*lib*
+	rm -f Odarwin-ppc/*lib*
 	$MAKE install-lib-sta
 
         if [ $? -ne 0 ]; then
@@ -144,15 +146,24 @@ build()
         fi
 
         cd `config/objdir`
-        $CP -f libpari* $SAGE_LOCAL/lib
+        cp -f libpari* $SAGE_LOCAL/lib
         cd "$CUR"
 
         # Also another patch since paripriv.h won't compile right on OS X
         # when used by client Sage code.  So we replace it by a slightly
         # modified version.
-	$CP -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
+	cp -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
     fi
-
+    # Like on OS X (see above), the Sage library would not build
+    # without some changes. Though on Solaris the changes are much simpler than
+    # on OS X.
+    if [ `uname` = "SunOS" ]; then
+       set -e
+       echo "Patching include/pari/paripriv.h so it works on Solaris"
+       echo "The changes are much smaller than needed on OS X"
+       cp  "$TOP"/patches/paripriv-Solaris.h $SAGE_LOCAL/include/pari/paripriv.h
+       set +e
+    fi
     echo "Installing extra Galois groups data."
     make install-data
     if [ $? -ne 0 ]; then
@@ -180,3 +191,4 @@ if [ $? -ne 0 ]; then
     echo "Error building PARI."
     exit 1
 fi
+

@@ -312,6 +312,9 @@ def _quit_sage_(self):
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
+import sage.misc.displayhook
+sage.misc.displayhook.install()
+
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
 # Set a new random number seed as the very last thing
@@ -320,7 +323,6 @@ from sage.ext.interactive_constructors_c import inject_on, inject_off
 # Sage startup).
 
 set_random_seed()
-
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Objects', Objects)

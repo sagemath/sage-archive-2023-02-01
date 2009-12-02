@@ -3871,8 +3871,10 @@ cdef class BinaryCodeClassifier:
             sage: BC = BinaryCodeClassifier()
             sage: B = BinaryCode(Matrix(GF(2), [[1,1,1,1]]))
             sage: BC.generate_children(B, 6, 4)
-            [[1 1 1 1 0 0]
-            [0 1 0 1 1 1]]
+            [
+            [1 1 1 1 0 0]
+            [0 1 0 1 1 1]
+            ]
 
         NOTE:
         The function self_orthogonal_binary_codes makes heavy use of this

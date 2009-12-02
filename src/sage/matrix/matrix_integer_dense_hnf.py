@@ -440,9 +440,11 @@ def add_row(A, b, pivots, include_zero_rows):
         sage: A = matrix(ZZ, 2, 3, [-21, -7, 5, 1,20,-7])
         sage: b = matrix(ZZ, 1,3, [-1,1,-1])
         sage: hnf.add_row(A, b, A.pivots(), True)
-        ([ 1  6 29]
+        (
+        [ 1  6 29]
         [ 0  7 28]
-        [ 0  0 46], [0, 1, 2])
+        [ 0  0 46], [0, 1, 2]
+        )
         sage: A.stack(b).echelon_form()
         [ 1  6 29]
         [ 0  7 28]
@@ -711,7 +713,10 @@ def extract_ones_data(H, pivots):
         sage: H = matrix(ZZ, 3, 4, [1, 0, 0, 7, 0, 1, 5, 2, 0, 0, 6, 6])
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: matrix_integer_dense_hnf.extract_ones_data(H, [0,1,2])
-        ([0]...[5], [6], [1/6], [0, 1], [0, 1], [2], [2])
+        (
+        [0]
+        [5], [6], [1/6], [0, 1], [0, 1], [2], [2]
+        )
 
     Here we get None's since the (2,2) position submatrix is not invertible.
         sage: H = matrix(ZZ, 3, 5, [1, 0, 0, 45, -36, 0, 1, 0, 131, -107, 0, 0, 0, 178, -145]); H
@@ -802,18 +807,24 @@ def probable_hnf(A, include_zero_rows, proof):
         sage: a = matrix(ZZ,4,3,[-1, -1, -1, -20, 4, 1, -1, 1, 2,1,2,3])
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: matrix_integer_dense_hnf.probable_hnf(a, True, True)
-        ([1 0 0]
+        (
+        [1 0 0]
         [0 1 0]
         [0 0 1]
-        [0 0 0], [0, 1, 2])
+        [0 0 0], [0, 1, 2]
+        )
         sage: matrix_integer_dense_hnf.probable_hnf(a, False, True)
-        ([1 0 0]
+        (
+        [1 0 0]
         [0 1 0]
-        [0 0 1], [0, 1, 2])
+        [0 0 1], [0, 1, 2]
+        )
         sage: matrix_integer_dense_hnf.probable_hnf(a, False, False)
-        ([1 0 0]
+        (
+        [1 0 0]
         [0 1 0]
-        [0 0 1], [0, 1, 2])
+        [0 0 1], [0, 1, 2]
+        )
     """
     # Find left-most full rank submatrix by working modulo a prime
     rows = probable_pivot_rows(A)
@@ -952,20 +963,25 @@ def hnf(A, include_zero_rows=True, proof=True):
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: a = matrix(ZZ,3,5,[-2, -6, -3, -17, -1, 2, -1, -1, -2, -1, -2, -2, -6, 9, 2])
         sage: matrix_integer_dense_hnf.hnf(a)
-        ([   2    0   26  -75  -10]
+        (
+        [   2    0   26  -75  -10]
         [   0    1   27  -73   -9]
-        [   0    0   37 -106  -13],
-         [0, 1, 2])
+        [   0    0   37 -106  -13], [0, 1, 2]
+        )
         sage: matrix_integer_dense_hnf.hnf(a.transpose())
-        ([1 0 0]
+        (
+        [1 0 0]
         [0 1 0]
         [0 0 1]
         [0 0 0]
-        [0 0 0], [0, 1, 2])
+        [0 0 0], [0, 1, 2]
+        )
         sage: matrix_integer_dense_hnf.hnf(a.transpose(), include_zero_rows=False)
-        ([1 0 0]
+        (
+        [1 0 0]
         [0 1 0]
-        [0 0 1], [0, 1, 2])
+        [0 0 1], [0, 1, 2]
+        )
     """
     if A.nrows() <= 1:
         np = A.nonzero_positions()

@@ -760,13 +760,11 @@ class FGP_Module_class(Module):
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
             sage: Q._smith_form()
-            ([ 1  0  0]
-            [ 0  4  0]
-            [ 0  0 12], [1 0 0]
-            [0 0 1]
-            [0 1 0], [ 1  0 -8]
-            [ 0  0  1]
-            [ 0  1  0])
+            (
+            [ 1  0  0]  [1 0 0]  [ 1  0 -8]
+            [ 0  4  0]  [0 0 1]  [ 0  0  1]
+            [ 0  0 12], [0 1 0], [ 0  1  0]
+            )
         """
         return self._relative_matrix().smith_form()
 

@@ -37,14 +37,12 @@ isomorphic to ZZ.
     (Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(37) x J0(37),
      Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(37) x J0(37))
     sage: [ x.matrix() for x in A.endomorphism_ring().gens() ]
-    [[1 0 0 0]
-    [0 1 0 0]
-    [0 0 0 0]
-    [0 0 0 0],
-     [0 0 0 0]
-    [0 0 0 0]
-    [0 0 1 0]
-    [0 0 0 1]]
+    [
+    [1 0 0 0]  [0 0 0 0]
+    [0 1 0 0]  [0 0 0 0]
+    [0 0 0 0]  [0 0 1 0]
+    [0 0 0 0], [0 0 0 1]
+    ]
 
 However, these two newforms have a congruence between them modulo
 2, which gives rise to interesting endomorphisms of J0(37).
@@ -56,14 +54,12 @@ However, these two newforms have a congruence between them modulo
     (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
      Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
     sage: [ x.matrix() for x in E.gens() ]
-    [[1 0 0 0]
-    [0 1 0 0]
-    [0 0 1 0]
-    [0 0 0 1],
-     [ 0  1  1 -1]
-    [ 1  0  1  0]
-    [ 0  0 -1  1]
-    [ 0  0  0  1]]
+    [
+    [1 0 0 0]  [ 0  1  1 -1]
+    [0 1 0 0]  [ 1  0  1  0]
+    [0 0 1 0]  [ 0  0 -1  1]
+    [0 0 0 1], [ 0  0  0  1]
+    ]
     sage: (-1*E.gens()[0] + E.gens()[1]).matrix()
     [-1  1  1 -1]
     [ 1 -1  1  0]
@@ -84,14 +80,12 @@ this case::
     (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
      Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
     sage: [ x.matrix() for x in T.gens() ]
-    [[1 0 0 0]
-    [0 1 0 0]
-    [0 0 1 0]
-    [0 0 0 1],
-     [ 0  1  1 -1]
-    [ 1  0  1  0]
-    [ 0  0 -1  1]
-    [ 0  0  0  1]]
+    [
+    [1 0 0 0]  [ 0  1  1 -1]
+    [0 1 0 0]  [ 1  0  1  0]
+    [0 0 1 0]  [ 0  0 -1  1]
+    [0 0 0 1], [ 0  0  0  1]
+    ]
     sage: T.index_in(E)
     1
 
@@ -530,23 +524,19 @@ class Homspace(HomsetWithBase):
             (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
              Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
             sage: [ x.matrix() for x in E.gens() ]
-            [[1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1],
-             [ 0  1  1 -1]
-            [ 1  0  1  0]
-            [ 0  0 -1  1]
-            [ 0  0  0  1]]
+            [
+            [1 0 0 0]  [ 0  1  1 -1]
+            [0 1 0 0]  [ 1  0  1  0]
+            [0 0 1 0]  [ 0  0 -1  1]
+            [0 0 0 1], [ 0  0  0  1]
+            ]
             sage: E._calculate_product_gens()
-            [[1 0 0 0]
-            [0 1 0 0]
-            [0 0 0 0]
-            [0 0 0 0],
-             [0 0 0 0]
-            [0 0 0 0]
-            [0 0 1 0]
-            [0 0 0 1]]
+            [
+            [1 0 0 0]  [0 0 0 0]
+            [0 1 0 0]  [0 0 0 0]
+            [0 0 0 0]  [0 0 1 0]
+            [0 0 0 0], [0 0 0 1]
+            ]
         """
 
         Afactors = self.domain().decomposition(simple=False)
@@ -606,8 +596,10 @@ class Homspace(HomsetWithBase):
 
             sage: H = Hom(J0(11), J0(22)[0])
             sage: H._calculate_simple_gens()
-            [[1 0]
-            [1 1]]
+            [
+            [1 0]
+            [1 1]
+            ]
             sage: J = J0(11) * J0(33) ; J.decomposition()
             [
             Simple abelian subvariety 11a(1,11) of dimension 1 of J0(11) x J0(33),
@@ -616,17 +608,25 @@ class Homspace(HomsetWithBase):
             Simple abelian subvariety 33a(1,33) of dimension 1 of J0(11) x J0(33)
             ]
             sage: J[0].Hom(J[1])._calculate_simple_gens()
-            [[ 0 -1]
-            [ 1 -1]]
+            [
+            [ 0 -1]
+            [ 1 -1]
+            ]
             sage: J[0].Hom(J[2])._calculate_simple_gens()
-            [[-1  0]
-            [-1 -1]]
+            [
+            [-1  0]
+            [-1 -1]
+            ]
             sage: J[0].Hom(J[0])._calculate_simple_gens()
-            [[1 0]
-            [0 1]]
+            [
+            [1 0]
+            [0 1]
+            ]
             sage: J[1].Hom(J[2])._calculate_simple_gens()
-            [[ 0 -4]
-            [ 4  0]]
+            [
+            [ 0 -4]
+            [ 4  0]
+            ]
 
         ::
 
@@ -635,14 +635,12 @@ class Homspace(HomsetWithBase):
             Simple abelian variety J0(23) of dimension 2
             ]
             sage: J[0].Hom(J[0])._calculate_simple_gens()
-            [[1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1],
-             [ 0  1 -1  0]
-            [ 0  1 -1  1]
-            [-1  2 -2  1]
-            [-1  1  0 -1]]
+            [
+            [1 0 0 0]  [ 0  1 -1  0]
+            [0 1 0 0]  [ 0  1 -1  1]
+            [0 0 1 0]  [-1  2 -2  1]
+            [0 0 0 1], [-1  1  0 -1]
+            ]
             sage: J.hecke_operator(2).matrix()
             [ 0  1 -1  0]
             [ 0  1 -1  1]
@@ -653,8 +651,10 @@ class Homspace(HomsetWithBase):
 
             sage: H = Hom(J0(11), J0(22)[0])
             sage: H._calculate_simple_gens()
-            [[1 0]
-            [1 1]]
+            [
+            [1 0]
+            [1 1]
+            ]
         """
         A = self.domain()
         B = self.codomain()
@@ -848,24 +848,14 @@ class EndomorphismSubring(Homspace, Ring):
              Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
              Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
             sage: [ x.matrix() for x in E.image_of_hecke_algebra().gens() ]
-            [[1 0 0 0 0 0]
-            [0 1 0 0 0 0]
-            [0 0 1 0 0 0]
-            [0 0 0 1 0 0]
-            [0 0 0 0 1 0]
-            [0 0 0 0 0 1],
-             [ 0  2  0 -1  1 -1]
-            [-1 -2  2 -1  2 -1]
-            [ 0  0  1 -1  3 -1]
-            [-2  2  0  1  1 -1]
-            [-1  1  0  2  0 -3]
-            [-1  1 -1  1  1 -2],
-             [ 0  0  1 -1  1 -1]
-            [ 0 -1  1  0  1 -1]
-            [ 0  0  1  0  2 -2]
-            [-2  0  1  1  1 -1]
-            [-1  0  1  1  0 -1]
-            [-1  0  0  1  0 -1]]
+            [
+            [1 0 0 0 0 0]  [ 0  2  0 -1  1 -1]  [ 0  0  1 -1  1 -1]
+            [0 1 0 0 0 0]  [-1 -2  2 -1  2 -1]  [ 0 -1  1  0  1 -1]
+            [0 0 1 0 0 0]  [ 0  0  1 -1  3 -1]  [ 0  0  1  0  2 -2]
+            [0 0 0 1 0 0]  [-2  2  0  1  1 -1]  [-2  0  1  1  1 -1]
+            [0 0 0 0 1 0]  [-1  1  0  2  0 -3]  [-1  0  1  1  0 -1]
+            [0 0 0 0 0 1], [-1  1 -1  1  1 -2], [-1  0  0  1  0 -1]
+            ]
             sage: J0(33).hecke_operator(2).matrix()
             [-1  0  1 -1  1 -1]
             [ 0 -2  1  0  1 -1]

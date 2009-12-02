@@ -56,8 +56,10 @@ def integral_matrix_and_denom_from_rational_quaternions(v):
     EXAMPLES::
         sage: A.<i,j,k>=QuaternionAlgebra(-4,-5)
         sage: sage.algebras.quatalg.quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions([i/2,1/3+j+k])
-        ([0 3 0 0]
-        [2 0 6 6], 6)
+        (
+        [0 3 0 0]
+        [2 0 6 6], 6
+        )
     """
     # This function is an optimized version of
     #   MatrixSpace(QQ,len(v),4)([x.coefficient_tuple() for x in v], coerce=False)._clear_denom

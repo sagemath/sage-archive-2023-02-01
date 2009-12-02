@@ -1545,9 +1545,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [  z + 1     2/3 9*z + 7]
             [4*z - 3       z    -7*z]
             sage: A._echelon_form_one_prime(7)
-            ([1 0 4 0 1 2]
-            [0 0 3 0 0 4],
-            [0, 1])
+            (
+            [1 0 4 0 1 2]
+            [0 0 3 0 0 4], [0, 1]
+            )
             sage: Matrix(W,2,3,[2*z+3,0,1,0,1,0])._echelon_form_one_prime(7)
             Traceback (most recent call last):
             ...

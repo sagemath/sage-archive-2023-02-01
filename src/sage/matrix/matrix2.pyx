@@ -4039,9 +4039,10 @@ cdef class Matrix(matrix1.Matrix):
             [    1    -2]
             [    0 w - 2]
             sage: m.echelon_form(transformation=True)
-            ([    1    -2]
-            [    0 w - 2], [-3*w - 2    w + 1]
-            [      -3        1])
+            (
+            [    1    -2]  [-3*w - 2    w + 1]
+            [    0 w - 2], [      -3        1]
+            )
         """
         self.check_mutability()
         cdef Matrix d, a
@@ -6256,10 +6257,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: m = Matrix([ [1, w],[w,7]])
             sage: d, u, v = m.smith_form()
             sage: (d, u, v)
-            ([     1      0]
-            [     0 -w + 9], [ 1  0]
-            [-w  1], [ 1 -w]
-            [ 0  1])
+            (
+            [     1      0]  [ 1  0]  [ 1 -w]
+            [     0 -w + 9], [-w  1], [ 0  1]
+            )
             sage: u * m * v == d
             True
             sage: u.base_ring() == v.base_ring() == d.base_ring() == OE
@@ -6270,10 +6271,10 @@ cdef class Matrix(matrix1.Matrix):
         An example over the polynomial ring QQ[x]::
 
             sage: R.<x> = QQ[]; m=x*matrix(R,2,2,1) - matrix(R, 2,2,[3,-4,1,-1]); m.smith_form()
-            ([            1             0]
-            [            0 x^2 - 2*x + 1], [    0    -1]
-            [    1 x - 3], [    1 x + 1]
-            [    0     1])
+            (
+            [            1             0]  [    0    -1]  [    1 x + 1]
+            [            0 x^2 - 2*x + 1], [    1 x - 3], [    0     1]
+            )
 
         An example over a field::
 
@@ -6290,12 +6291,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: R = EquationOrder(x^2 + 5, 's') # class number 2
             sage: s = R.ring_generators()[0]
             sage: matrix(R, 2, 2, [s-1,-s,-s,2*s+1]).smith_form()
-            ([     1      0]
-            [     0 -s - 6],
-            [   -1    -1]
-            [    s s - 1],
-            [    1 s + 1]
-            [    0     1])
+            (
+            [     1      0]  [   -1    -1]  [    1 s + 1]
+            [     0 -s - 6], [    s s - 1], [    0     1]
+            )
 
         Others don't, but they fail quite constructively::
 
@@ -6383,11 +6382,10 @@ cdef class Matrix(matrix1.Matrix):
         A 2x2 matrix::
 
             sage: m = matrix(OL, 2, 2, [1,0, a, 2]); r,s,p = m._echelon_form_PID(); (r,s,p)
-            ([ 1  0]
-            [-a  1],
-            [1 0]
-            [0 2],
-            [0, 1])
+            (
+            [ 1  0]  [1 0]
+            [-a  1], [0 2], [0, 1]
+            )
             sage: r * m == s and r.det() == 1
             True
 
@@ -6471,10 +6469,10 @@ def _smith_diag(d):
         sage: from sage.matrix.matrix2 import _smith_diag
         sage: OE = EquationOrder(x^2 - x + 2, 'w')
         sage: _smith_diag(matrix(OE, 2, [2,0,0,3]))
-        ([1 0]
-        [0 6], [-1  1]
-        [-3  2], [ 1 -3]
-        [ 1 -2])
+        (
+        [1 0]  [-1  1]  [ 1 -3]
+        [0 6], [-3  2], [ 1 -2]
+        )
         sage: m = matrix(GF(7),2, [3,0,0,6]); d,u,v = _smith_diag(m); d
         [1 0]
         [0 1]

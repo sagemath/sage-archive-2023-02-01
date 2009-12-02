@@ -145,14 +145,8 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         sage: B = MS.basis()
         sage: B
         [
-        [1 0]
-        [0 0],
-        [0 1]
-        [0 0],
-        [0 0]
-        [1 0],
-        [0 0]
-        [0 1]
+        [1 0]  [0 1]  [0 0]  [0 0]
+        [0 0], [0 0], [1 0], [0 1]
         ]
         sage: B[0]
         [1 0]
@@ -882,14 +876,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
             sage: Mat(ZZ,2,2).basis()
             [
-            [1 0]
-            [0 0],
-            [0 1]
-            [0 0],
-            [0 0]
-            [1 0],
-            [0 0]
-            [0 1]
+            [1 0]  [0 1]  [0 0]  [0 0]
+            [0 0], [0 0], [1 0], [0 1]
             ]
         """
         v = [self.zero_matrix() for _ in range(self.dimension())]

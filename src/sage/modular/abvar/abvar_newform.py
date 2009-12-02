@@ -210,14 +210,12 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             sage: B = A.endomorphism_ring(); B   # indirect doctest
             Endomorphism ring of Newform abelian subvariety 43b of dimension 2 of J0(43)
             sage: [b.matrix() for b in B.gens()]
-            [[1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1],
-            [ 0  1  0  0]
-            [ 1 -2  0  0]
-            [ 1  0 -2 -1]
-            [ 0  1 -1  0]]
+            [
+            [1 0 0 0]  [ 0  1  0  0]
+            [0 1 0 0]  [ 1 -2  0  0]
+            [0 0 1 0]  [ 1  0 -2 -1]
+            [0 0 0 1], [ 0  1 -1  0]
+            ]
         """
         M = self.modular_symbols()
         bound = M.sturm_bound()

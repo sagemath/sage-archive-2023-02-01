@@ -873,8 +873,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [-1/6   -7]
             [   3  5/4]
             sage: a._clear_denom()
-            ([ -2 -84]
-            [ 36  15], 12)
+            (
+            [ -2 -84]
+            [ 36  15], 12
+            )
         """
         X = self.fetch('clear_denom')
         if not X is None: return X

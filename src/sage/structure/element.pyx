@@ -2787,9 +2787,10 @@ cpdef canonical_coercion(x, y):
 
         sage: A = Matrix([[0,1],[1,0]])
         sage: canonical_coercion(A,1)
-        ([0 1]
-        [1 0], [1 0]
-        [0 1])
+        (
+        [0 1]  [1 0]
+        [1 0], [0 1]
+        )
     """
     global coercion_model
     return coercion_model.canonical_coercion(x,y)

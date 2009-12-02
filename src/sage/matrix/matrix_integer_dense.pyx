@@ -966,8 +966,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: a = matrix(ZZ,2,[1,2,3,4])
             sage: a._clear_denom()
-            ([1 2]
-            [3 4], 1)
+            (
+            [1 2]
+            [3 4], 1
+            )
         """
         return self, ZZ(1)
 
@@ -2132,12 +2134,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.frobenius(1, var='y')
             [y^3 - 12*y^2 - 18*y]
             sage: A.frobenius(2)
-            ([ 0  0  0]
-            [ 1  0 18]
-            [ 0  1 12],
-            [    -1      2     -1]
-            [     0  23/15 -14/15]
-            [     0  -2/15   1/15])
+            (
+            [ 0  0  0]  [    -1      2     -1]
+            [ 1  0 18]  [     0  23/15 -14/15]
+            [ 0  1 12], [     0  -2/15   1/15]
+            )
             sage: a=matrix([])
             sage: a.frobenius(2)
             ([], [])
@@ -3480,9 +3481,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: a = matrix(ZZ,3,[1,2,5, 3,7,8, 2,2,1])
             sage: b, d = a._invert_iml(); b,d
-            ([  9  -8  19]
+            (
+            [  9  -8  19]
             [-13   9  -7]
-            [  8  -2  -1], 23)
+            [  8  -2  -1], 23
+            )
             sage: a*b
             [23  0  0]
             [ 0 23  0]
@@ -4038,18 +4041,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   3 112]
             [  0   0 221]
             sage: a._add_row_and_maintain_echelon_form(vector(ZZ,[1,2,3]),[0,1,2])
-            ([1 0 0]
+            (
+            [1 0 0]
             [0 1 0]
-            [0 0 1], [0, 1, 2])
+            [0 0 1], [0, 1, 2]
+            )
             sage: a._add_row_and_maintain_echelon_form(vector(ZZ,[0,0,0]),[0,1,2])
-            ([  1   0 110]
+            (
+            [  1   0 110]
             [  0   3 112]
-            [  0   0 221], [0, 1, 2])
+            [  0   0 221], [0, 1, 2]
+            )
             sage: a = matrix(ZZ, 2, [1, 0, 110, 0, 3, 112])
             sage: a._add_row_and_maintain_echelon_form(vector(ZZ,[1,2,3]),[0,1])
-            ([  1   0 110]
+            (
+            [  1   0 110]
             [  0   1 219]
-            [  0   0 545], [0, 1, 2])
+            [  0   0 545], [0, 1, 2]
+            )
         """
         from sage.all import get_memory_usage
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
@@ -4427,8 +4436,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 1  0  3]
             [-1  0  5]
             sage: a._delete_zero_columns()
-            ([ 1  3]
-             [-1  5], [1])
+            (
+            [ 1  3]
+            [-1  5], [1]
+            )
         """
         C = self.columns()
         zero_cols = [i for i,v in enumerate(self.columns()) if v.is_zero()]

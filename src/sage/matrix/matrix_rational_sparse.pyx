@@ -432,9 +432,11 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             sage: a.denominator()
             140
             sage: a._clear_denom()
-            ([ -40  -35 -280]
+            (
+            [ -40  -35 -280]
             [   0   20  140]
-            [   0   70   28], 140)
+            [   0   70   28], 140
+            )
         """
         cdef Integer D
         cdef Py_ssize_t i, j

@@ -124,13 +124,15 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
 
 def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     """
-    Numerically find the minimum of the expression ``self`` on the
+    Numerically find the minimum of the expression ``f`` on the
     interval `[a,b]` (or `[b,a]`) and the point at which it attains that
-    minimum.  Note that ``self`` must be a function of (at most) one
+    minimum.  Note that ``f`` must be a function of (at most) one
     variable.
 
 
     INPUT:
+
+    - ``f`` -- a function of at most one variable.
 
     - ``a``, ``b`` -- endpoints of interval on which to minimize self.
 

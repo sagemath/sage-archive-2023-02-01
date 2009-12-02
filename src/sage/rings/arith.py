@@ -2603,6 +2603,13 @@ def binomial(x,m):
         1
         sage: binomial(3/2,SR(1/1))
         3/2
+
+    Some floating point cases -- see trac 7562::
+
+        sage: binomial(1.,3)
+        0.000000000000000
+        sage: binomial(-2.,3)
+        -4.00000000000000
     """
     if isinstance(m,sage.symbolic.expression.Expression):
         try:
@@ -2634,7 +2641,14 @@ def binomial(x,m):
         if m < 0:
             return P(0)
         from sage.functions.all import gamma
-        return gamma(x+1)/gamma(P(m+1))/gamma(x-m+1)
+        if x > -1/2:
+            a = gamma(x-m+1)
+            if a:
+                return gamma(x+1)/gamma(P(m+1))/a
+            else:
+                return P(0)
+        else:
+            return (-1)**m*gamma(m-x)/gamma(P(m+1))/gamma(-x)
     if isinstance(x,sage.symbolic.expression.Expression):
         try:
             x=x.pyobject()

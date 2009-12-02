@@ -938,6 +938,11 @@ cdef extern from "libsingular.h":
 
     idhdl *enterid(char * a, int lev, int t, idhdl** root, bint init)
 
+cdef extern from "prCopy.h":
+    poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)
+    poly *prCopyR(poly *p, ring *r, ring *dest_r)
+
+
 
     cdef int LANG_TOP
 

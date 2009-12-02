@@ -156,6 +156,7 @@ from sage.libs.singular.decl cimport delete, idLift, IDELEMS, On, Off, SW_USE_CH
 from sage.libs.singular.decl cimport p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp
 from sage.libs.singular.decl cimport pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq
 from sage.libs.singular.decl cimport pDiff, singclap_resultant, p_Normalize
+from sage.libs.singular.decl cimport prCopyR, prCopyR_NoSort
 
 # singular conversion routines
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
@@ -399,6 +400,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             elif element.parent() == self:
                 # is this safe?
                 _p = p_Copy((<MPolynomial_libsingular>element)._poly, _ring)
+            elif base_ring is element.base_ring() and \
+                    self.ngens() >= (<MPolynomial_libsingular>element)._parent.ngens() and \
+                    self.variable_names()[:(<MPolynomial_libsingular>element)._parent.ngens()] == (<MPolynomial_libsingular>element)._parent.variable_names():
+                if self.term_order() == (<MPolynomial_libsingular>element)._parent.term_order():
+                    _p = prCopyR_NoSort((<MPolynomial_libsingular>element)._poly, (<MPolynomialRing_libsingular>(<MPolynomial_libsingular>element)._parent)._ring, _ring)
+                else:
+                    _p = prCopyR((<MPolynomial_libsingular>element)._poly, (<MPolynomialRing_libsingular>(<MPolynomial_libsingular>element)._parent)._ring, _ring)
             elif base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
             else:

@@ -2510,10 +2510,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         p_Delete(&m,r)
         return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
-    def exponents(self):
+    def exponents(self, as_ETuples=True):
         """
         Return the exponents of the monomials appearing in this
         polynomial.
+
+        INPUT:
+
+        - ``as_ETuples`` - (default: ``True``) if true returns the result as an list of ETuples
+                          otherwise returns a list of tuples
+
 
         EXAMPLES::
 
@@ -2521,20 +2527,27 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = a^3 + b + 2*b^2
             sage: f.exponents()
             [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
+            sage: f.exponents(as_ETuples=False)
+            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
         """
         cdef poly *p
         cdef ring *r
         cdef int v
-        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef list pl, ml
 
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
         p = self._poly
 
         pl = list()
+        ml = range(r.N)
         while p:
-            ml = list()
             for v from 1 <= v <= r.N:
-                ml.append(p_GetExp(p,v,r))
-            pl.append(ETuple(ml))
+                ml[v-1] = p_GetExp(p,v,r)
+
+            if as_ETuples:
+                pl.append(ETuple(ml))
+            else:
+                pl.append(tuple(ml))
 
             p = pNext(p)
         return pl

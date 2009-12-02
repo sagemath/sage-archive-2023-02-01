@@ -1,0 +1,94 @@
+--- ../src/share/contrib/solve_rat_ineq.mac	2008-06-07 04:17:03.000000000 +0700
++++ solve_rat_ineq.mac	2009-11-11 19:37:37.000000000 +0700
+@@ -3,7 +3,9 @@
+ 
+    returns intervals of solutions as a list of simple inequalities
+    
+-   uses algsys as equality solver
++   uses algsys as equality solver: 
++      solutions that contain floating point approximations 
++      should be treated with caution
+                       
+    example:
+    (%i3) solve_rat_ineq( (x-1)^2*(x+1) > 1+x );
+@@ -11,7 +13,7 @@
+    
+    more examples see below
+ 
+-   Copyright(C) June 2008  Volker van Nek
++   Copyright(C) 2008 - 2009  Volker van Nek
+ 
+       This is free software; you can redistribute it and/or
+       modify it under the terms of the GNU General Public License,
+@@ -27,7 +29,7 @@
+      lden, rden, lnum, rnum, lsing, rsing, 
+      sol, pts, pt0, pt1, nr, dist,
+      range:[], ex:[], flat_range, 
+-     realonly:true, listconstvars:false, ratprint:false, algexact:false ],
++     realonly:true, listconstvars:false, algexact:false ],
+    
+ /* operator:*/   
+    if atom(ineq) or not member(op:op(ineq), ["<","<=",">",">="]) then 
+@@ -82,14 +84,12 @@
+       for n thru nr+1 do (
+          pt0: if n=1 then 'minf else pts[n-1],
+          pt1: if n=nr+1 then 'inf else pts[n],
+-         dist: if n=1 then 2*abs(pt1) else pt1-pt0,
+-         if n<=nr and 
+-            is(apply(op, [subst(pt1-dist/2,var,left),
+-                          subst(pt1-dist/2,var,right)] )) then
++         dist: if n=1 then 2*max(1,abs(pt1))
++            else if n=nr+1 then 2*max(1,abs(pt0))
++            else pt1-pt0,
++         if n<=nr and check_point(pt1-dist/2,var,op,left,right) then
+             range: cons([pt0,pt1],range)
+-         else if n=nr+1 and 
+-            is(apply(op, [subst(pt0+abs(pt0),var,left),
+-                          subst(pt0+abs(pt0),var,right)] )) then
++         else if n=nr+1 and check_point(pt0+dist/2,var,op,left,right) then
+             range: cons([pt0,pt1],range)
+          else if member(pt1,sol) and (op="<=" or op=">=") then 
+             range: cons([pt1,pt1],range) ),
+@@ -105,6 +105,10 @@
+    /* return a list of simple inequalities: */
+    ineq_return(range,ex,var) )$
+ 
++/* check if pt satisfies the inequality: */
++check_point(pt,var,op,left,right):= block([fpprec:32],
++   pt: bfloat(pt), /* avoid fp-overflow and enable higher prec */
++   is(apply(op, [subst(pt,var,left), subst(pt,var,right)] )) )$
+ 
+ ineq_return(range,ex,var):= 
+    if emptyp(range) then []
+@@ -131,6 +135,8 @@
+       else range:cons([f[1],first(r)[2]],rest(r)) ),
+    reverse(res) )$
+ 
++
++
+ /*
+ (%i4) solve_rat_ineq(x/2+2/x<=20);
+ (%o4)       [[x < 0], [x >= 20 - 6 sqrt(11), x <= 6 sqrt(11) + 20]]
+@@ -159,7 +165,21 @@
+ (%i16) solve_rat_ineq( x^2 > 1b0 );
+ (%o16)                        [[x < - 1], [x > 1]]
+ (%i17) solve_rat_ineq( x^7+x^3 > 1/x );
+-(%o17)      [[x > - 0.88665175242356, x < 0], [x > 0.88665175242356]]
++(%o17)    [[x > - .8866517524235645, x < 0], [x > .8866517524235645]]
++(%i18) solve_rat_ineq((x^2+5.5)>(-3*x^2+5.5)/(2*x+1.3));
++rat: replaced 5.5 by 11/2 = 5.5
++
++rat: replaced 1.3 by 13/10 = 1.3
++
++rat: replaced 5.5 by 11/2 = 5.5
++                            13
++(%o18)              [[x < - --], [x > - .1591705900030051]]
++                            20
++(%i19) ratprint:false$
++(%i20) solve_rat_ineq((x^2+5.5)>(-3*x^2+5.5)/(2*x+1.3));
++                            13
++(%o20)              [[x < - --], [x > - .1591705900030051]]
++                            20
+ */
+ 
+ 'done$

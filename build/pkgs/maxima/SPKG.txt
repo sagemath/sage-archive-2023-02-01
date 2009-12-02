@@ -35,7 +35,15 @@ The following files are patched:
  * topoly.lisp: several instances of "parg" are replaced by "carg" to
    work around a bug in Maxima's to_poly_solver
 
+ * solve_rat_ineq.mac: Fixed bug 2636628 and 2882408 reported on SF to
+   Maxima. Old solve_rat_ineq.mac is updated to CVS version 1.8 from Mon Nov 2
+   19:28:17 2009
+
 == Changelog ==
+
+=== maxima-5.19.1.p1 (Robert Marik, November 11th, 2009) ===
+ * Added new CVS version for solve_rat_ineq.mac to close work on ticket #7325
+   (Sage cannot solve inequalities)
 
 === maxima-5.19.1.p0 (Alex Ghitza, August 24th, 2009) ===
  * Added patch that works around bug in topoly.lisp by changing appropriate instances of parg to carg

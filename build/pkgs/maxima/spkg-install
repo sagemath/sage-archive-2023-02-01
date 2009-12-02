@@ -12,6 +12,9 @@ patch()
 {
     # workaround patch for parg bug
     cp patches/topoly.lisp src/share/contrib/
+    # fix for SF bug 2882408 in solve_rat_ineq.mac  - the new file is from CVS
+    # version from Mon Nov 2 19:28:17 2009
+    cp patches/solve_rat_ineq.mac src/share/contrib/
 }
 
 patch

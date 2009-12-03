@@ -1,4 +1,4 @@
-import calculus
+from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import var as new_var
 
 def var(s, **kwds):
@@ -14,7 +14,7 @@ def var(s, **kwds):
 
        The new variable is both returned and automatically injected
        into the global namespace.  If you use var in library code, it
-       is better to use sage.calculus.calculus.var, since it won't
+       is better to use sage.symbolic.ring.var, since it won't
        touch the global namespace.
 
     EXAMPLES:
@@ -117,7 +117,7 @@ def function(s, *args, **kwds):
 
        The new function is both returned and automatically injected
        into the global namespace.  If you use this function in library
-       code, it is better to use sage.calculus.calculus.function,
+       code, it is better to use sage.symbolic.function_factory.function,
        since it won't touch the global namespace.
 
     EXAMPLES::
@@ -156,7 +156,7 @@ def function(s, *args, **kwds):
         latex expression::
 
         sage: mu,nu = var('mu,nu')
-        sage: def my_latex_print(*args): return "\\psi_{%s}"%(', '.join(map(latex, args)))
+        sage: def my_latex_print(self, *args): return "\\psi_{%s}"%(', '.join(map(latex, args)))
         sage: psi(mu,nu) = function('psi', mu, nu, print_latex_func=my_latex_print)
         sage: latex(psi(mu,nu))
         \psi_{\mu, \nu}
@@ -171,7 +171,7 @@ def function(s, *args, **kwds):
         return function(s, **kwds)(*args)
 
     G = globals()  # this is the reason the code must be in Cython.
-    v = calculus.function(s, **kwds)
+    v = new_function(s, **kwds)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

@@ -1,21 +1,72 @@
 """
 Hyperbolic Functions
 """
-from sage.symbolic.function import SFunction, PrimitiveFunction
-from sage.libs.pari.gen import pari
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 import math
 
-class HyperbolicFunction(PrimitiveFunction):
-    def _evalf_(self, x, prec=0):
+class HyperbolicFunction(BuiltinFunction):
+    """
+    Abstract base class for the functions defined in this file.
+
+    EXAMPLES::
+
+        sage: from sage.functions.hyperbolic import HyperbolicFunction
+        sage: f = HyperbolicFunction('foo', latex_name='\\foo', conversions={'mathematica':'Foo'},evalf_float=lambda x: 2*x)
+        sage: f(x)
+        foo(x)
+        sage: f(0.5r)
+        1.0
+        sage: latex(f(x))
+        \foo\left(x\right)
+        sage: f(x)._mathematica_init_()
+        'Foo[x]'
+    """
+    def __init__(self, name, latex_name=None, conversions=None,
+            evalf_float=None):
+        """
+        Note that subclasses of HyperbolicFunction should be instantiated only
+        once, since they inherit from BuiltinFunction which only uses the
+        name and class to check if a function was already registered.
+
+        EXAMPLES::
+
+            sage: from sage.functions.hyperbolic import HyperbolicFunction
+            sage: class Barh(HyperbolicFunction):
+            ...  def __init__(self):
+            ...     HyperbolicFunction.__init__(self, 'barh')
+            sage: barh = Barh()
+            sage: barh(x)
+            barh(x)
+        """
+        self._evalf_float = evalf_float
+        BuiltinFunction.__init__(self, name, latex_name=latex_name,
+                conversions=conversions)
+
+    def _evalf_(self, x, parent):
         """
         EXAMPLES::
 
-            sage: arccosh._evalf_(2, 53)
-            1.31695789692482
+            sage: from sage.functions.hyperbolic import HyperbolicFunction
+            sage: class Fooh(HyperbolicFunction):
+            ...  def __init__(self):
+            ...     HyperbolicFunction.__init__(self, 'fooh',evalf_float=lambda x: 2*x)
+            sage: fooh = Fooh()
+            sage: fooh(float(5))
+            10.0
+            sage: fooh(0.5r)
+            1.0
+            sage: fooh(x).subs(x=.5r)
+            1.0
+            sage: fooh(x).n()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'fooh'
         """
-        return getattr(x.n(prec), self.name())()
+        if parent is float:
+            return self._evalf_float(x)
+        return getattr(x, self.name())()
 
-class Function_sinh(HyperbolicFunction):
+class Function_sinh(GinacFunction):
     def __init__(self):
         """
         The hyperbolic sine function.
@@ -30,13 +81,15 @@ class Function_sinh(HyperbolicFunction):
             11.54873935725774...
             sage: RR(sinh(pi))
             11.5487393572577
+
+            sage: latex(sinh(x))
+            \sinh\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "sinh", latex=r"\sinh",
-                                   approx=math.sinh)
+        GinacFunction.__init__(self, "sinh", latex_name=r"\sinh")
 
 sinh = Function_sinh()
 
-class Function_cosh(HyperbolicFunction):
+class Function_cosh(GinacFunction):
     def __init__(self):
         """
         The hyperbolic cosine function.
@@ -51,14 +104,16 @@ class Function_cosh(HyperbolicFunction):
             11.591953275521519
             sage: RR(cosh(1/2))
             1.12762596520638
+
+            sage: latex(cosh(x))
+            \cosh\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "cosh", latex=r"\cosh",
-                                   approx=math.cosh)
+        GinacFunction.__init__(self, "cosh", latex_name=r"\cosh")
 
 cosh = Function_cosh()
 
 
-class Function_tanh(HyperbolicFunction):
+class Function_tanh(GinacFunction):
     def __init__(self):
         """
         The hyperbolic tangent function.
@@ -86,9 +141,13 @@ class Function_tanh(HyperbolicFunction):
             0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
             sage: CDF(tanh(pi + I*e))
             0.997524731976 - 0.002790687681*I
+
+        TESTS::
+
+            sage: latex(tanh(x))
+            \tanh\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "tanh", latex=r"\tanh",
-                                   approx=math.tanh)
+        GinacFunction.__init__(self, "tanh", latex_name=r"\tanh")
 
 tanh = Function_tanh()
 
@@ -107,9 +166,12 @@ class Function_coth(HyperbolicFunction):
             1.0037418731973213
             sage: RR(coth(pi))
             1.00374187319732
+
+            sage: latex(coth(x))
+            \coth\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "coth", latex=r"\coth",
-                                   approx=lambda x: 1/math.tanh(x))
+        HyperbolicFunction.__init__(self, "coth", latex_name=r"\coth",
+                                   evalf_float=lambda x: 1/math.tanh(x))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -137,12 +199,15 @@ class Function_sech(HyperbolicFunction):
             sage: sech(3.1415)
             0.0862747018248192
             sage: float(sech(pi))
-            0.086266738334054419
+            0.0862667383340544...
             sage: RR(sech(pi))
             0.0862667383340544
+
+            sage: latex(sech(x))
+            {\rm sech}\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "sech", latex=r"\sech",
-                                   approx=lambda x: 1/math.cosh(x))
+        HyperbolicFunction.__init__(self, "sech", latex_name=r"{\rm sech}",
+                                   evalf_float=lambda x: 1/math.cosh(x))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -174,9 +239,12 @@ class Function_csch(HyperbolicFunction):
             0.0865895375300469...
             sage: RR(csch(pi))
             0.0865895375300470
+
+            sage: latex(csch(x))
+            {\rm csch}\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "csch", latex=r"\text{csch}",
-                                   approx=lambda x: 1/math.sinh(x))
+        HyperbolicFunction.__init__(self, "csch", latex_name=r"{\rm csch}",
+                                   evalf_float=lambda x: 1/math.sinh(x))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -197,7 +265,7 @@ csch = Function_csch()
 # Inverse trig functions #
 ##########################
 
-class Function_arcsinh(HyperbolicFunction):
+class Function_arcsinh(GinacFunction):
     def __init__(self):
         """
         The inverse of the hyperbolic sine function.
@@ -212,22 +280,20 @@ class Function_arcsinh(HyperbolicFunction):
             arcsinh(1/2)
             sage: arcsinh(1 + I*1.0)
             1.06127506190504 + 0.666239432492515*I
-            sage: arcsinh._approx_(0.5)
-            0.48121182505960347
 
         TESTS::
 
             sage: arcsinh(x).operator()
             arcsinh
-
+            sage: latex(arcsinh(x))
+            {\rm arcsinh}\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "arcsinh", latex=r"\sinh^{-1}",
-                               approx=lambda x: float(pari(float(x)).asinh()),
-                               conversions=dict(maxima='asinh', ginac='asinh'))
+        GinacFunction.__init__(self, "arcsinh", latex_name=r"{\rm arcsinh}",
+                conversions=dict(maxima='asinh'))
 
 arcsinh = asinh = Function_arcsinh()
 
-class Function_arccosh(HyperbolicFunction):
+class Function_arccosh(GinacFunction):
     def __init__(self):
         """
         The inverse of the hyperbolic cosine function.
@@ -258,15 +324,15 @@ class Function_arccosh(HyperbolicFunction):
 
             sage: arccosh(x).operator()
             arccosh
-
+            sage: latex(arccosh(x))
+            {\rm arccosh}\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "arccosh", latex=r"\cosh^{-1}",
-                           approx=lambda x: float(pari(float(x)).acosh()),
-                           conversions=dict(maxima='acosh', ginac="acosh"))
+        GinacFunction.__init__(self, "arccosh", latex_name=r"{\rm arccosh}",
+                conversions=dict(maxima='acosh'))
 
 arccosh = acosh = Function_arccosh()
 
-class Function_arctanh(HyperbolicFunction):
+class Function_arctanh(GinacFunction):
     def __init__(self):
         """
         The inverse of the hyperbolic tangent function.
@@ -284,11 +350,11 @@ class Function_arctanh(HyperbolicFunction):
 
             sage: arctanh(x).operator()
             arctanh
-
+            sage: latex(arctanh(x))
+            {\rm arctanh}\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "arctanh", latex=r"\tanh^{-1}",
-                           approx=lambda x: float(pari(float(x)).atanh()),
-                           conversions=dict(maxima='atanh', ginac='atanh'))
+        GinacFunction.__init__(self, "arctanh", latex_name=r"{\rm arctanh}",
+                conversions=dict(maxima='atanh'))
 
 arctanh = atanh = Function_arctanh()
 
@@ -305,19 +371,17 @@ class Function_arccoth(HyperbolicFunction):
             arccoth(2)
             sage: arccoth(1 + I*1.0)
             0.402359478108525 - 0.553574358897045*I
-        """
-        PrimitiveFunction.__init__(self, "arccoth", latex=r"\coth^{-1}",
-                                   approx=lambda x: float(pari(float(1/x)).atanh()),
-                                   conversions=dict(maxima='acoth'))
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
+            sage: float(arccoth(2))
+            0.54930614433405489
+
+            sage: latex(arccoth(x))
+            {\rm arccoth}\left(x\right)
         """
-        return arctanh(1/x).n(prec)
+        HyperbolicFunction.__init__(self, "arccoth",
+                latex_name=r"{\rm arccoth}", conversions=dict(maxima='acoth'),
+                evalf_float=lambda x: atanh(float(1/x)))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -345,19 +409,18 @@ class Function_arcsech(HyperbolicFunction):
             arcsech(1/2)
             sage: arcsech(1 + I*1.0)
             -0.530637530952518 + 1.11851787964371*I
-        """
-        PrimitiveFunction.__init__(self, "arcsech", latex=r"\text{sech}^{-1}",
-                                   approx=lambda x: float(pari(float(1/x)).acosh()),
-                                   conversions=dict(maxima='asech'))
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
             sage: arcsech(1/2).n(200)
             1.3169578969248167086250463473079684440269819714675164797685
+            sage: float(arcsech(1/2))
+            1.3169578969248168
+
+            sage: latex(arcsech(x))
+            {\rm arcsech}\left(x\right)
         """
-        return arccosh(1/x).n(prec)
+        HyperbolicFunction.__init__(self, "arcsech",
+                latex_name=r"{\rm arcsech}",
+                evalf_float=lambda x: acosh(float(1/x)),
+                conversions=dict(maxima='asech'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -384,19 +447,18 @@ class Function_arccsch(HyperbolicFunction):
             arccsch(2)
             sage: arccsch(1 + I*1.0)
             0.530637530952518 - 0.452278447151191*I
-        """
-        PrimitiveFunction.__init__(self, "arccsch", latex=r"\text{csch}^{-1}",
-                                   approx=lambda x: float(pari(float(1/x)).arcsinh()),
-                                   conversions=dict(maxima='acsch'))
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
             sage: arccsch(1).n(200)
             0.88137358701954302523260932497979230902816032826163541075330
+            sage: float(arccsch(1))
+            0.88137358701954305
+
+            sage: latex(arccsch(x))
+            {\rm arccsch}\left(x\right)
         """
-        return arcsinh(1/x).n(prec)
+        HyperbolicFunction.__init__(self, "arccsch",
+                latex_name=r"{\rm arccsch}",
+                evalf_float=lambda x: arcsinh(float(1/x)),
+                conversions=dict(maxima='acsch'))
 
     def _derivative_(self, *args, **kwds):
         """

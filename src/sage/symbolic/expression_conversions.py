@@ -17,7 +17,7 @@ overridden by subclasses.
 
 import operator as _operator
 from sage.symbolic.ring import SR
-from sage.symbolic.constants import I, I_constant
+from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -1547,7 +1547,7 @@ class SubstituteFunction(Converter):
             sage: s.composition(f, f.operator())
             bar(sin(x))
         """
-        if operator is self.original:
+        if operator == self.original:
             return self.new(*map(self, ex.operands()))
         else:
             return operator(*map(self, ex.operands()))
@@ -1563,7 +1563,7 @@ class SubstituteFunction(Converter):
             sage: s.derivative(f, f.operator())
             D[0](bar)(x)
         """
-        if operator.function() is self.original:
+        if operator.function() == self.original:
             return operator.change_function(self.new)(*ex.operands())
         else:
             return ex

@@ -1738,12 +1738,31 @@ class MaximaElement(ExpectElement):
         #return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
         return symbolic_expression_from_maxima_string(repr(self))
 
+    def _symbolic_(self, R):
+        """
+        Return a symbolic expression equivalent to this maxima object.
+
+        EXAMPLES::
+
+            sage: t = sqrt(2)._maxima_()
+            sage: u = t._symbolic_(SR); u
+            sqrt(2)
+            sage: u.parent()
+            Symbolic Ring
+
+        This is used when converting maxima objects to the Symbolic Ring::
+
+            sage: SR(t)
+            sqrt(2)
+        """
+        return R(self._sage_())
+
     def __complex__(self):
         """
         EXAMPLES::
 
             sage: complex(maxima('sqrt(-2)+1'))
-            (1+1.4142135623730951j)
+            (1+1.4142135623730947j)
         """
         return complex(self._sage_())
 

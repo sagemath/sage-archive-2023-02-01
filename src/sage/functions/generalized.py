@@ -51,10 +51,10 @@ Kronecker delta function::
 #
 ##############################################################################
 
-from sage.symbolic.function import SFunction, PrimitiveFunction
+from sage.symbolic.function import BuiltinFunction
 from sage.rings.complex_interval_field import ComplexIntervalField
 
-class FunctionDiracDelta(PrimitiveFunction):
+class FunctionDiracDelta(BuiltinFunction):
     r"""
     The Dirac delta (generalized) function, `\delta(x)` (``dirac_delta(x)``).
 
@@ -104,12 +104,15 @@ class FunctionDiracDelta(PrimitiveFunction):
             dirac_delta(0)
             sage: dirac_delta(x)
             dirac_delta(x)
+            sage: latex(dirac_delta(x))
+            \delta\left(x\right)
+
+            sage: loads(dumps(dirac_delta(x)))
+            dirac_delta(x)
         """
-        PrimitiveFunction.__init__(self, "dirac_delta", latex=r"\delta",
+        BuiltinFunction.__init__(self, "dirac_delta", latex_name=r"\delta",
                                    conversions=dict(maxima='delta',
                                     mathematica='DiracDelta'))
-
-    __call__ = SFunction.__call__
 
     def _eval_(self, x):
         """
@@ -146,7 +149,7 @@ class FunctionDiracDelta(PrimitiveFunction):
 
 dirac_delta = FunctionDiracDelta()
 
-class FunctionHeaviside(PrimitiveFunction):
+class FunctionHeaviside(BuiltinFunction):
     r"""
     The Heaviside step function, `H(x)` (``heaviside(x)``).
 
@@ -194,11 +197,11 @@ class FunctionHeaviside(PrimitiveFunction):
             heaviside(0)
             sage: heaviside(x)
             heaviside(x)
+            sage: latex(heaviside(x))
+            H\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "heaviside", latex="H",
+        BuiltinFunction.__init__(self, "heaviside", latex_name="H",
                                    conversions=dict(mathematica='HeavisideTheta'))
-
-    __call__ = SFunction.__call__
 
     def _eval_(self, x):
         """
@@ -225,6 +228,16 @@ class FunctionHeaviside(PrimitiveFunction):
             1
             sage: heaviside(x).subs(x=-1)
             0
+
+        ::
+
+            sage: ex = heaviside(x)+1
+            sage: t = loads(dumps(ex)); t
+            heaviside(x) + 1
+            sage: bool(t == ex)
+            True
+            sage: t.subs(x=1)
+            2
         """
         try:
             approx_x = ComplexIntervalField()(x)
@@ -240,7 +253,7 @@ class FunctionHeaviside(PrimitiveFunction):
             pass
         return None
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         Derivative of Heaviside step function
 
@@ -249,14 +262,11 @@ class FunctionHeaviside(PrimitiveFunction):
             sage: heaviside(x).diff(x)
             dirac_delta(x)
         """
-        diff_param = kwds['diff_param']
-        assert diff_param == 0
-        x = args[diff_param]
         return dirac_delta(x)
 
 heaviside = FunctionHeaviside()
 
-class FunctionUnitStep(PrimitiveFunction):
+class FunctionUnitStep(BuiltinFunction):
     r"""
     The unit step function, `\mathrm{u}(x)` (``unit_step(x)``).
 
@@ -299,11 +309,18 @@ class FunctionUnitStep(PrimitiveFunction):
             1
             sage: unit_step(x)
             unit_step(x)
-        """
-        PrimitiveFunction.__init__(self, "unit_step", latex=r"\mathrm{u}",
-                                   conversions=dict(mathematica='UnitStep'))
+            sage: latex(unit_step(x))
+            \mathrm{u}\left(x\right)
 
-    __call__ = SFunction.__call__
+        TESTS::
+
+            sage: t = loads(dumps(unit_step(x)+1)); t
+            unit_step(x) + 1
+            sage: t.subs(x=0)
+            2
+        """
+        BuiltinFunction.__init__(self, "unit_step", latex_name=r"\mathrm{u}",
+                                   conversions=dict(mathematica='UnitStep'))
 
     def _eval_(self, x):
         """
@@ -345,7 +362,7 @@ class FunctionUnitStep(PrimitiveFunction):
             pass
         return None
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         Derivative of unit step function
 
@@ -354,14 +371,11 @@ class FunctionUnitStep(PrimitiveFunction):
             sage: unit_step(x).diff(x)
             dirac_delta(x)
         """
-        diff_param = kwds['diff_param']
-        assert diff_param == 0
-        x = args[diff_param]
         return dirac_delta(x)
 
 unit_step = FunctionUnitStep()
 
-class FunctionSignum(PrimitiveFunction):
+class FunctionSignum(BuiltinFunction):
     r"""
     The signum or sgn function `\mathrm{sgn}(x)` (``sgn(x)``).
 
@@ -408,12 +422,10 @@ class FunctionSignum(PrimitiveFunction):
             sage: sgn(x)
             sgn(x)
         """
-        PrimitiveFunction.__init__(self, "sgn", latex=r"\mathrm{sgn}",
-                                   conversions=dict(maxima='signum',mathematica='Sign'))
+        BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
+                conversions=dict(maxima='signum',mathematica='Sign'))
 
-    __call__  = SFunction.__call__
-
-    def _eval_(self, x, **kwds):
+    def _eval_(self, x):
         """
 
         EXAMPLES::
@@ -452,7 +464,7 @@ class FunctionSignum(PrimitiveFunction):
             pass
         return None
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         Derivative of sgn function
 
@@ -461,14 +473,12 @@ class FunctionSignum(PrimitiveFunction):
             sage: sgn(x).diff(x)
             2*dirac_delta(x)
         """
-        diff_param = kwds['diff_param']
         assert diff_param == 0
-        x = args[diff_param]
         return 2*dirac_delta(x)
 
 sgn = FunctionSignum()
 
-class FunctionKroneckerDelta(PrimitiveFunction):
+class FunctionKroneckerDelta(BuiltinFunction):
     r"""
     The Kronecker delta function `\delta_{m,n}` (``kronecker_delta(m, n)``).
 
@@ -510,29 +520,11 @@ class FunctionKroneckerDelta(PrimitiveFunction):
             sage: kronecker_delta(1,1)
             1
         """
-        PrimitiveFunction.__init__(self, "kronecker_delta", nargs=2,
+        BuiltinFunction.__init__(self, "kronecker_delta", nargs=2,
                                         conversions=dict(maxima='kron_delta',
                                         mathematica='KroneckerDelta'))
 
-    def __call__(self, m, n, **kwds):
-        """
-        The Kronecker delta function.
-
-        EXAMPLES::
-
-            sage: x,y=var('x,y')
-            sage: kronecker_delta(x, y)
-            kronecker_delta(x, y)
-            sage: kronecker_delta(y, x)
-            kronecker_delta(x, y)
-        """
-        # It is a symmetric function. So lets keep arguments sorted. This
-        # ensures symbolic (k_d(m, n) - k_d(n, m) cancels automatically.
-        if bool(repr(m) > repr(n)):
-            return SFunction.__call__(self, n, m)
-        return SFunction.__call__(self, m, n)
-
-    def _eval_(self, m, n, **kwds):
+    def _eval_(self, m, n):
         """
         The Kronecker delta function.
 
@@ -542,6 +534,15 @@ class FunctionKroneckerDelta(PrimitiveFunction):
             0
             sage: kronecker_delta(1,1)
             1
+
+        Kronecker delta is a symmetric function. We keep arguments sorted to
+        ensure that (k_d(m, n) - k_d(n, m) cancels automatically::
+
+            sage: x,y=var('x,y')
+            sage: kronecker_delta(x, y)
+            kronecker_delta(x, y)
+            sage: kronecker_delta(y, x)
+            kronecker_delta(x, y)
             sage: kronecker_delta(x,2*x)
             kronecker_delta(2*x, x)
 
@@ -550,6 +551,9 @@ class FunctionKroneckerDelta(PrimitiveFunction):
             sage: kronecker_delta(1,x).subs(x=1)
             1
         """
+        if bool(repr(m) > repr(n)):
+            return kronecker_delta(n, m)
+
         x = m - n
         try:
             approx_x = ComplexIntervalField()(x)

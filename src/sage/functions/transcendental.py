@@ -30,7 +30,7 @@ from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
 
-from sage.symbolic.function import PrimitiveFunction, SR
+from sage.symbolic.function import BuiltinFunction, SR
 
 import sage.plot.all
 
@@ -356,7 +356,7 @@ def _one_over_log(t):
 
 from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
 
-class DickmanRhoComputer(PrimitiveFunction):
+class DickmanRho(BuiltinFunction):
     r"""
     Dickman's function is the continuous function satisfying the
     differential equation
@@ -409,10 +409,10 @@ class DickmanRhoComputer(PrimitiveFunction):
       Mathematics of Computation, Vol. 53, No. 187 (1989).
     """
     def __init__(self):
-      PrimitiveFunction.__init__(self, "dickman_rho", approx=self.approximate)
       self._cur_prec = 0
+      BuiltinFunction.__init__(self, "dickman_rho", 1)
 
-    def __call__(self, x):
+    def _eval_(self, x):
         """
         EXAMPLES::
 
@@ -425,7 +425,7 @@ class DickmanRhoComputer(PrimitiveFunction):
             try:
                 x = RR(x)
             except (TypeError, ValueError):
-                return PrimitiveFunction.__call__(self, SR(x))
+                return None #PrimitiveFunction.__call__(self, SR(x))
         if x < 0:
             return x.parent()(0)
         elif x <= 1:
@@ -523,7 +523,7 @@ class DickmanRhoComputer(PrimitiveFunction):
                 self._f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
             return ff.change_ring(RealField(rel_prec))
 
-    def approximate(self, x):
+    def approximate(self, x, parent=None):
         r"""
         Approximate using de Bruijn's formula
 
@@ -559,4 +559,4 @@ class DickmanRhoComputer(PrimitiveFunction):
             y = (exp(xi)-1.0)/xi - x
         return (-x*xi + RR(xi).eint()).exp() / (sqrt(2*pi*x)*xi)
 
-dickman_rho = DickmanRhoComputer()
+dickman_rho = DickmanRho()

@@ -8,7 +8,8 @@ from sage.rings.all import RealField
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.symbolic.constants import pi, I
+from sage.symbolic.constants import pi
+from sage.symbolic.pynac import I
 from sage.rings.real_mpfr import is_RealField
 from sage.misc.functional import denominator, numerator
 from sage.rings.infinity import infinity
@@ -223,10 +224,10 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
         sage: for i in range(5):
         ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
         L(1, (-4/.)):  0.000049999999500000024999996962707
-        L(3, (-4/.)):  4.9999997000000374953360932931e-13
-        L(5, (-4/.)):  4.9999992362712983899678889809e-21
-        L(7, (-4/.)):  2.9187853493177436800233956915e-29
-        L(9, (-4/.)):  0.00000000000000000000000000000
+        L(3, (-4/.)):  4.99999970000003...e-13
+        L(5, (-4/.)):  4.99999922759382...e-21
+        L(7, (-4/.)):  ...e-29
+        L(9, (-4/.)):  ...e-29
 
         sage: ## Testing the accuracy of the negative special values
         sage: ## ---- THIS FAILS SINCE THE DIRICHLET SERIES DOESN'T CONVERGE HERE! ----

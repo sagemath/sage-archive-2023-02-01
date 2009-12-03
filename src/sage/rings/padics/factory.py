@@ -894,7 +894,7 @@ def Qq(q, prec = twenty, type = 'capped-rel', modulus = None, names=None,
             halt = Integer(halt)
         if isinstance(names, (list, tuple)):
             names = names[0]
-        from sage.symbolic.all import is_Expression
+        from sage.symbolic.expression import is_Expression
         if not (modulus is None or is_Polynomial(modulus) or is_Expression(modulus)):
             raise TypeError, "modulus must be a polynomial"
         if names is not None and not isinstance(names, str):
@@ -1921,7 +1921,7 @@ def Zq(q, prec = twenty, type = 'capped-abs', modulus = None, names=None,
             halt = Integer(halt)
         if isinstance(names, (list, tuple)):
             names = names[0]
-        from sage.symbolic.all import is_Expression
+        from sage.symbolic.expression import is_Expression
         if not (modulus is None or is_Polynomial(modulus) or is_Expression(modulus)):
             raise TypeError, "modulus must be a polynomial"
         if names is not None and not isinstance(names, str):
@@ -2136,7 +2136,7 @@ class pAdicExtension_class(UniqueFactory):
             print_max_unram_terms = base._printer._max_unram_terms()
         if print_max_terse_terms is None:
             print_max_terse_terms = base._printer._max_terse_terms()
-        from sage.symbolic.all import is_Expression
+        from sage.symbolic.expression import is_Expression
         if check:
             if is_Expression(premodulus):
                 if len(premodulus.variables()) != 1:

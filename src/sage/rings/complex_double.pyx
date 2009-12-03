@@ -2040,11 +2040,11 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
             0.5 + 0.866025403784*I
             sage: p = z.algdep(5); p
-            x^5 + x^2
+            x^3 + 1
             sage: p.factor()
-            (x + 1) * x^2 * (x^2 - x + 1)
+            (x + 1) * (x^2 - x + 1)
             sage: z^2 - z + 1
-            2.22044604925e-16...
+            -4.4408920985e-16
 
         ::
 

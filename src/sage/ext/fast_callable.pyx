@@ -215,7 +215,7 @@ Here we take sin of the first argument and add it to f:
     sage: f = etb.call(sqrt, x^7 + 1)
     sage: g = etb.call(sin, x)
     sage: fast_callable(f+g).op_list()
-    [('load_arg', 0), ('ipow', 7), ('load_const', 1), 'add', ('py_call', sqrt, 1), ('load_arg', 0), ('py_call', sin, 1), 'add', 'return']
+    [('load_arg', 0), ('ipow', 7), ('load_const', 1), 'add', ('py_call', <function sqrt at ...>, 1), ('load_arg', 0), ('py_call', sin, 1), 'add', 'return']
 
 
 AUTHOR:
@@ -390,7 +390,10 @@ def fast_callable(x, domain=None, vars=None,
         vars = et._etb._vars
     else:
         if vars is None or len(vars) == 0:
-            from sage.symbolic.all import SR, PrimitiveFunction, is_CallableSymbolicExpressionRing, is_Expression
+            from sage.symbolic.ring import SR
+            from sage.symbolic.callable import is_CallableSymbolicExpressionRing
+            from sage.symbolic.expression import is_Expression
+
             # XXX This is pretty gross... there should be a "callable_variables"
             # method that does all this.
             vars = x.variables()
@@ -1604,7 +1607,7 @@ cpdef generate_code(Expression expr, stream):
         sage: fc(1)
         sin(1) + 1
         sage: fc.op_list()
-        [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', sqrt, 1), 'add', 'return']
+        [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', <function sqrt at ...>, 1), 'add', 'return']
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
         sage: fc(3)
         0.14112000806
@@ -1649,7 +1652,7 @@ cpdef generate_code(Expression expr, stream):
         [('load_arg', 0), ('load_arg', 1), ('py_call', <function my_norm at 0x...>, 2), 'return']
         sage: fc = fast_callable(expr)
         sage: fc(3.0r)
-        4.00000000000000*pi + 12.0000000000000
+        4.0*pi + 12.0
         sage: fc = fast_callable(x+3, domain=ZZ)
         sage: fc(4)
         7

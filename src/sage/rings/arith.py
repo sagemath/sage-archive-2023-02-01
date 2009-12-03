@@ -78,11 +78,11 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
-        x^5 + x^2
+        x^3 + 1
         sage: p.factor()
-        (x + 1) * x^2 * (x^2 - x + 1)
+        (x + 1) * (x^2 - x + 1)
         sage: z^2 - z + 1
-        1.11022302462516e-16
+        0
 
     This example involves a `p`-adic number.
 
@@ -2584,7 +2584,7 @@ def binomial(x,m):
 
         sage: k, i = var('k,i')
         sage: binomial(k,i)
-        binomial(k,i)
+        binomial(k, i)
 
     TESTS:
 

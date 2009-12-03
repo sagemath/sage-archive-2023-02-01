@@ -618,17 +618,8 @@ cdef class Expression(CommutativeRingElement):
             sage: int(log(8)/log(2))
             3
         """
-        try:
-            return int(self.pyobject())
-        except (ValueError, TypeError):
-            #FIXME:  This should be fixed so that it does something
-            #smarter to handle the log(8)/log(2) case
-            from sage.functions.all import floor, ceil
-            f = float(self)
-            if f > 0:
-                return int(floor(self))
-            else:
-                return int(ceil(self))
+        #FIXME: can we do better?
+        return int(self.n(prec=100))
 
     def __long__(self):
         """
@@ -671,7 +662,7 @@ cdef class Expression(CommutativeRingElement):
 
     cpdef _eval_self(self, R):
         """
-        Evaluate this expression numerically, and try to coerce it to R.
+        Evaluate this expression numerically.
 
         EXAMPLES::
 
@@ -685,19 +676,18 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot evaluate symbolic expression to a numeric value.
-        """
-        cdef GEx res = self._gobj.evalf(0, R.prec())
+       """
+        cdef GEx res = self._gobj.evalf(0, R)
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:
             raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
 
-    def _convert(self, typ):
+    cpdef _convert(self, R):
         """
-        Convert self to the given type by converting each of the operands
-        to that type and doing the arithmetic.
-
-        FIXME: Make sure these docs are correct with the new symbolics.
+        Convert all the numeric coefficients and constants in this expression
+        to the given ring `R`. This results in an expression which contains
+        only variables, and functions whose arguments contain a variable.
 
         EXAMPLES::
 
@@ -706,38 +696,38 @@ cdef class Expression(CommutativeRingElement):
             sage: f._convert(RDF)
             -1.40006081534
             sage: f._convert(float)
-            -1.4000608153399503
+            -1.40006081533995
 
-        Converting to an int can have surprising consequences, since Python
-        int is "floor" and one individual factor can floor to 0 but the
-        product doesn't::
+        There is nothing to convert for variables::
 
-            sage: int(f)
-            -1
+            sage: x._convert(CC)
+            x
+
+        Note that the output is not meant to be in the in the given ring `R`.
+        Since the results of some functions will still be  floating point
+        approximations::
+
+            sage: t = log(10); t
+            log(10)
+            sage: t._convert(QQ)
+            2.30258509299405
+
+        ::
+
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(QQ)
+            0.331368631904900/log(287/50/x^0.900000000000000)^2
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(CC)
+            0.331368631904900/log(5.74000000000000/x^0.900000000000000)^2
+
+        When converting to an exact domain, powers remain unevaluated::
+
+            sage: f = sqrt(2) * cos(3); f
+            sqrt(2)*cos(3)
             sage: f._convert(int)
-            0
-            sage: int(sqrt(2))
-            1
-            sage: int(cos(3))
-            0
-
-        TESTS: This illustrates how the conversion works even when a type
-        exception is raised, since here one operand is still x (in the
-        unsimplified form)::
-
-            sage: f = sin(SR(0))*x
-            sage: f._convert(CDF)
-            0
+            -0.989992496600445*sqrt(2)
         """
-        operator = self.operator()
-        if operator is None:
-            return typ(self.pyobject())
-        else:
-            args = [typ(op) for op in self.operands()]
-            if len(args) == 1:
-                return operator(*args)
-            else:
-                return reduce(operator, args)
+        cdef GEx res = self._gobj.evalf(0, R)
+        return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):
         """
@@ -768,8 +758,10 @@ cdef class Expression(CommutativeRingElement):
             sage: RIF(sqrt(2))
             1.414213562373095?
         """
-        from sage.symbolic.expression_conversions import RingConverter
-        return RingConverter(R)(self)
+        try:
+            return self._eval_self(R)
+        except TypeError:
+            raise TypeError, "unable to simplify to a real interval approximation"
 
     def _complex_mpfi_(self, R):
         """
@@ -780,8 +772,10 @@ cdef class Expression(CommutativeRingElement):
             sage: CIF(pi)
             3.141592653589794?
         """
-        from sage.symbolic.expression_conversions import RingConverter
-        return RingConverter(R)(self)
+        try:
+            return self._eval_self(R)
+        except TypeError:
+            raise TypeError, "unable to simplify to a complex interval approximation"
 
     def _real_double_(self, R):
         """
@@ -812,7 +806,7 @@ cdef class Expression(CommutativeRingElement):
             1.5707963267949*I
 
             sage: CC(sqrt(2))
-            1.41421356237310
+            1.41421356237309
             sage: a = sqrt(-2); a
             sqrt(-2)
             sage: CC(a).imag()
@@ -866,31 +860,30 @@ cdef class Expression(CommutativeRingElement):
             sage: float(x^2 + 1)
             Traceback (most recent call last):
             ...
-            TypeError: float() argument must be a string or a number
+            TypeError: unable to simplify to float approximation
             sage: float(SR(RIF(2)))
             Traceback (most recent call last):
             ...
-            TypeError: a float is required
+            TypeError: unable to simplify to float approximation
         """
-        cdef bint success
-        cdef double ans = GEx_to_double(self._gobj, &success)
-        if not success:
-            raise TypeError, "float() argument must be a string or a number"
-        return ans
+        try:
+            return float(self._eval_self(float))
+        except TypeError:
+            raise TypeError, "unable to simplify to float approximation"
 
     def __complex__(self):
         """
         EXAMPLES::
 
             sage: complex(I)
-            1j
+            0.99999999999999967j
             sage: complex(erf(3*I))
             Traceback (most recent call last):
             ...
             TypeError: unable to simplify to complex approximation
         """
         try:
-            return complex(self.n(53))
+            return self._eval_self(complex)
         except TypeError:
             raise TypeError, "unable to simplify to complex approximation"
 
@@ -2088,9 +2081,9 @@ cdef class Expression(CommutativeRingElement):
             sage: int(2)^x
             2^x
             sage: float(2.3)^(x^3 - x^2 + 1/3)
-            2.30000000000000^(x^3 - x^2 + 1/3)
+            2.2999999999999998^(x^3 - x^2 + 1/3)
             sage: complex(1,3)^(sqrt(2))
-            (1.00000000000000 + 3.00000000000000*I)^sqrt(2)
+            (1+3j)^sqrt(2)
         """
         cdef Expression base, nexp
 
@@ -2215,8 +2208,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b._derivative(x, 2)
             20*(x + y)^3
 
-            sage: from sage.symbolic.function import function as myfunc
-            sage: foo = myfunc('foo',2)
+            sage: foo = function('foo',nargs=2)
             sage: foo(x^2,x^2)._derivative(x)
             2*x*D[0](foo)(x^2, x^2) + 2*x*D[1](foo)(x^2, x^2)
 
@@ -3011,7 +3003,6 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: clear_functions()
             sage: foo = function('foo'); bar = function('bar')
             sage: f = foo(x) + 1/foo(pi*y)
             sage: f.substitute_function(foo, bar)
@@ -3197,8 +3188,7 @@ cdef class Expression(CommutativeRingElement):
             sage: r = gamma(x).operator(); type(r)
             <class 'sage.functions.other.Function_gamma'>
 
-            sage: from sage.symbolic.function import function
-            sage: psi = function('psi', 1)
+            sage: psi = function('psi', nargs=1)
             sage: psi(x).operator()
             psi
 
@@ -3206,7 +3196,7 @@ cdef class Expression(CommutativeRingElement):
             sage: r == psi
             True
 
-            sage: f = function('f', 1, conjugate_func=lambda x: 2*x)
+            sage: f = function('f', nargs=1, conjugate_func=lambda self, x: 2*x)
             sage: nf = f(x).operator()
             sage: nf(x).conjugate()
             2*x
@@ -3258,8 +3248,6 @@ cdef class Expression(CommutativeRingElement):
         elif is_a_function(self._gobj):
             # get function id
             serial = ex_to_function(self._gobj).get_serial()
-
-            from sage.symbolic.pynac import get_ginac_serial
 
             # if operator is a special function defined by us
             # find the python equivalent and return it
@@ -3413,15 +3401,53 @@ cdef class Expression(CommutativeRingElement):
                 prec = 53
             else:
                 prec = int((digits+1) * 3.32192) + 1
-        x = new_Expression_from_GEx(self._parent, self._gobj.evalf(0, prec)).pyobject()
+        from sage.rings.real_mpfr import RealField
+        R = RealField(prec)
+        cdef Expression x
+        try:
+            x = self._convert(R)
+        except TypeError: # numerical approximation for real number failed
+            pass          # try again with complex
+            R = R.complex_field()
+            x = self._convert(R)
+
+        # we have to consider constants as well, since infinity is a constant
+        # in pynac
+        if is_a_numeric(x._gobj):
+            res = py_object_from_numeric(x._gobj)
+        elif  is_a_constant(x._gobj):
+            res = x.pyobject()
+        else:
+            raise TypeError, "cannot evaluate symbolic expresssion numerically"
+
         # Important -- the  we get might not be a valid output for numerical_approx in
         # the case when one gets infinity.
-        if isinstance(x, AnInfinity):
-            return x.n(prec=prec,digits=digits)
-        return x
-
+        if isinstance(res, AnInfinity):
+            return res.n(prec=prec,digits=digits)
+        return res
 
     numerical_approx = n
+
+    def round(self):
+        """
+        Round this expression to the nearest integer.
+
+        This method evaluates an expression in ``RR`` first and rounds the
+        result. This may lead to misleading results.
+
+        EXAMPLES::
+
+            sage: t = sqrt(Integer('1'*1000)).round(); t
+            33333333333333330562872877837571095953933917311168389275365130348599729268937180234955282892214983624063325870179809380946753270304893256291223685906477377407805362767048122713900447143840625646189582982153140391592656164907437770144711391823061825859553426442610175266854303816282031207413258045024789468633297982051760989540057817134748449866609872506236671598268343900233203388804404405970909678015833968186200327087593697947284709714538428657648875107834928345435181446453242319048564666814955520
+
+        This is off by a huge margin::
+
+            sage: (Integer('1'*1000) - t^2).ndigits()
+            984
+        """
+        #FIXME: can we do better?
+        from sage.rings.real_mpfr import RR
+        return RR(self).round()
 
     def function(self, *args):
         """
@@ -4129,7 +4155,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(RDF(1.5)).conjugate()
             1.5
             sage: SR(float(1.5)).conjugate()
-            1.50000000000000
+            1.5
             sage: SR(I).conjugate()
             -I
             sage: ( 1+I  + (2-3*I)*x).conjugate()
@@ -4875,7 +4901,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.binomial(SR(3))
             1/6*x^3 - 1/2*x^2 + 1/3*x
             sage: x.binomial(y)
-            binomial(x,y)
+            binomial(x, y)
         """
         cdef Expression nexp = self.coerce_in(k)
         _sig_on
@@ -4910,7 +4936,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(10).gamma()
             362880
             sage: SR(10.0r).gamma()
-            362880.000000000
+            362880.0
             sage: SR(CDF(1,1)).gamma()
             0.498015668118 - 0.154949828302*I
 
@@ -5257,8 +5283,8 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: f = binomial(n,k)*factorial(k)*factorial(n-k); f
-            factorial(-k + n)*factorial(k)*binomial(n,k)
+            sage: f = binomial(n, k)*factorial(k)*factorial(n-k); f
+            factorial(-k + n)*factorial(k)*binomial(n, k)
             sage: f.simplify_factorial()
             factorial(n)
 

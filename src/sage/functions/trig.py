@@ -1,11 +1,11 @@
 """
 Trigonometric Functions
 """
-from sage.symbolic.function import SFunction, PrimitiveFunction
+from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import is_Expression
 import math
 
-class Function_sin(PrimitiveFunction):
+class Function_sin(GinacFunction):
     def __init__(self):
         """
         The sine function.
@@ -21,12 +21,12 @@ class Function_sin(PrimitiveFunction):
              sage: loads(dumps(sin))
              sin
         """
-        PrimitiveFunction.__init__(self, "sin", latex=r"\sin",
-                                   conversions=dict(maxima='sin',mathematica='Sin'),
-                                   approx=math.sin)
+        GinacFunction.__init__(self, "sin", latex_name=r"\sin",
+                conversions=dict(maxima='sin',mathematica='Sin'))
+
 sin = Function_sin()
 
-class Function_cos(PrimitiveFunction):
+class Function_cos(GinacFunction):
     def __init__(self):
         """
         The cosine function.
@@ -42,13 +42,12 @@ class Function_cos(PrimitiveFunction):
             sage: loads(dumps(cos))
             cos
         """
-        PrimitiveFunction.__init__(self, "cos", latex=r"\cos",
-                                   conversions=dict(maxima='cos',mathematica='Cos'),
-                                   approx=math.cos,)
+        GinacFunction.__init__(self, "cos", latex_name=r"\cos",
+                conversions=dict(maxima='cos',mathematica='Cos'))
 
 cos = Function_cos()
 
-class Function_tan(PrimitiveFunction):
+class Function_tan(GinacFunction):
     def __init__(self):
         """
         The tangent function
@@ -68,11 +67,11 @@ class Function_tan(PrimitiveFunction):
             sage: RR(tan(1/2))
             0.546302489843790
         """
-        PrimitiveFunction.__init__(self, "tan", latex=r"\tan",
-                                   approx=math.tan)
+        GinacFunction.__init__(self, "tan", latex_name=r"\tan")
+
 tan = Function_tan()
 
-class Function_sec(PrimitiveFunction):
+class Function_sec(BuiltinFunction):
     def __init__(self):
         """
         The secant function
@@ -93,17 +92,20 @@ class Function_sec(PrimitiveFunction):
             sage: latex(sec(x))
             \sec\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "sec", latex=r"\sec",
-                                   approx=lambda x: 1/math.cos(x))
+        BuiltinFunction.__init__(self, "sec", latex_name=r"\sec")
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: n(sec(pi/4),100)
             1.4142135623730950488016887242
+            sage: float(sec(pi/4))
+            1.4142135623730951
         """
-        return (1 / x.cos()).n(prec)
+        if parent is float:
+            return 1/math.cos(x)
+        return (1 / x.cos())
 
     def _eval_(self, x):
         """
@@ -124,7 +126,7 @@ class Function_sec(PrimitiveFunction):
         else:
             return 1/cos_x
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
 
@@ -133,12 +135,11 @@ class Function_sec(PrimitiveFunction):
             sage: diff(sec(x), x)
             tan(x)*sec(x)
         """
-        x = args[0]
         return sec(x)*tan(x)
 
 sec = Function_sec()
 
-class Function_csc(PrimitiveFunction):
+class Function_csc(BuiltinFunction):
     def __init__(self):
         """
         The cosecant function.
@@ -159,17 +160,20 @@ class Function_csc(PrimitiveFunction):
             sage: latex(csc(x))
             \csc\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "csc", latex=r"\csc",
-                                   approx=lambda x: 1/math.sin(x))
+        BuiltinFunction.__init__(self, "csc", latex_name=r"\csc")
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: n(csc(pi/4),100)
             1.4142135623730950488016887242
+            sage: float(csc(pi/4))
+            1.4142135623730951
         """
-        return (1 / x.sin()).n(prec)
+        if parent is float:
+            return 1/math.sin(x)
+        return (1 / x.sin())
 
     def _eval_(self, x):
         """
@@ -190,7 +194,7 @@ class Function_csc(PrimitiveFunction):
         else:
             return 1/sin_x
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
 
@@ -199,12 +203,11 @@ class Function_csc(PrimitiveFunction):
             sage: diff(csc(x), x)
             -csc(x)*cot(x)
         """
-        x = args[0]
         return -csc(x)*cot(x)
 
 csc = Function_csc()
 
-class Function_cot(PrimitiveFunction):
+class Function_cot(BuiltinFunction):
     def __init__(self):
         """
         The cotangent function.
@@ -223,8 +226,7 @@ class Function_cot(PrimitiveFunction):
             sage: latex(cot(x))
             \cot\left(x\right)
         """
-        PrimitiveFunction.__init__(self, "cot", latex=r"\cot",
-                                   approx=lambda x: 1/math.tan(x))
+        BuiltinFunction.__init__(self, "cot", latex_name=r"\cot")
 
     def _eval_(self, x):
         """
@@ -245,16 +247,20 @@ class Function_cot(PrimitiveFunction):
         else:
             return 1/tan_x
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: n(cot(pi/4),100)
             1.0000000000000000000000000000
+            sage: float(cot(1))
+            0.64209261593433065
         """
-        return x.n(prec).cot()
+        if parent is float:
+            return 1/math.tan(x)
+        return x.cot()
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
 
@@ -263,7 +269,6 @@ class Function_cot(PrimitiveFunction):
             sage: diff(cot(x), x)
             -csc(x)^2
         """
-        x = args[0]
         return -csc(x)**2
 
 cot = Function_cot()
@@ -273,7 +278,7 @@ cot = Function_cot()
 # Inverse Trigonometric Functions #
 ###################################
 
-class Function_arcsin(PrimitiveFunction):
+class Function_arcsin(GinacFunction):
     def __init__(self):
         """
         The arcsine function.
@@ -292,12 +297,12 @@ class Function_arcsin(PrimitiveFunction):
             sage: arcsin(x).operator()
             arcsin
         """
-        PrimitiveFunction.__init__(self, 'arcsin', latex=r"\sin^{-1}",
-                approx=math.asin,
-                conversions=dict(maxima='asin', ginac='asin'))
+        GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
+                conversions=dict(maxima='asin'))
+
 arcsin = asin = Function_arcsin()
 
-class Function_arccos(PrimitiveFunction):
+class Function_arccos(GinacFunction):
     def __init__(self):
         """
         The arccosine function
@@ -310,28 +315,20 @@ class Function_arccos(PrimitiveFunction):
             1/3*pi
             sage: arccos(1 + 1.0*I)
             0.904556894302381 - 1.06127506190504*I
+            sage: arccos(3/4).n(100)
+            0.72273424781341561117837735264
 
         TESTS::
 
             sage: arccos(x).operator()
             arccos
         """
-        PrimitiveFunction.__init__(self, 'arccos', latex=r"\cos^{-1}",
-                approx=math.acos,
-                conversions=dict(maxima='acos', ginac='acos'))
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
-            sage: arccos(3/4).n(100)
-            0.72273424781341561117837735264
-        """
-        return x.n(prec).arccos()
+        GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
+                conversions=dict(maxima='acos'))
 
 arccos = acos = Function_arccos()
 
-class Function_arctan(PrimitiveFunction):
+class Function_arctan(GinacFunction):
     def __init__(self):
         """
         The arctangent function.
@@ -344,29 +341,20 @@ class Function_arctan(PrimitiveFunction):
             0.463647609001
             sage: arctan(1 + I)
             arctan(I + 1)
+            sage: arctan(1/2).n(100)
+            0.46364760900080611621425623146
 
         TESTS::
 
             sage: arctan(x).operator()
             arctan
         """
-        PrimitiveFunction.__init__(self, "arctan", latex=r'\tan^{-1}',
-                                   approx=math.atan,
-                                   conversions=dict(maxima='atan',
-                                                    ginac='atan'))
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
-            sage: arctan(1/2).n(100)
-            0.46364760900080611621425623146
-        """
-        return x.n(prec).arctan()
+        GinacFunction.__init__(self, "arctan", latex_name=r'\arctan',
+                conversions=dict(maxima='atan'))
 
 arctan = atan = Function_arctan()
 
-class Function_arccot(PrimitiveFunction):
+class Function_arccot(BuiltinFunction):
     def __init__(self):
         """
         The arccotangent function.
@@ -380,19 +368,22 @@ class Function_arccot(PrimitiveFunction):
             sage: arccot(1 + I)
             arccot(I + 1)
         """
-        PrimitiveFunction.__init__(self, "arccot", latex=r'\cot^{-1}',
-                                   approx=lambda x: math.pi/2 - math.atan(x),
+        BuiltinFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
                                    conversions=dict(maxima='acot'))
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: arccot(1/2).n(100)
             1.1071487177940905030170654602
+            sage: float(arccot(1/2))
+            1.1071487177940904
         """
+        if parent is float:
+            return math.pi/2 - math.atan(x)
         from sage.symbolic.constants import pi
-        return (pi/2 - x.arctan()).n(prec)
+        return parent(pi/2 - x.arctan())
 
     def _derivative_(self, *args, **kwds):
         """
@@ -408,7 +399,7 @@ class Function_arccot(PrimitiveFunction):
 
 arccot = acot = Function_arccot()
 
-class Function_arccsc(PrimitiveFunction):
+class Function_arccsc(BuiltinFunction):
     def __init__(self):
         """
         The arccosecant function.
@@ -422,32 +413,34 @@ class Function_arccsc(PrimitiveFunction):
             sage: arccsc(1 + I)
             arccsc(I + 1)
         """
-        PrimitiveFunction.__init__(self, "arccsc", latex=r'\csc^{-1}',
-                                   approx=lambda x: math.asin(1/x),
+        BuiltinFunction.__init__(self, "arccsc", latex_name=r'{\rm arccsc}',
                                    conversions=dict(maxima='acsc'))
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: arccsc(2).n(100)
             0.52359877559829887307710723055
+            sage: float(arccsc(2))
+            0.52359877559829893
         """
-        return (1/x).arcsin().n(prec)
+        if parent is float:
+            return math.asin(1/x)
+        return (1/x).arcsin()
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
 
             sage: diff(acsc(x), x)
             -1/(sqrt(-1/x^2 + 1)*x^2)
         """
-        x = args[0]
         return -1/(x**2 * (1 - x**(-2)).sqrt())
 
 arccsc = acsc = Function_arccsc()
 
-class Function_arcsec(PrimitiveFunction):
+class Function_arcsec(BuiltinFunction):
     def __init__(self):
         """
         The arcsecant function.
@@ -461,32 +454,32 @@ class Function_arcsec(PrimitiveFunction):
             sage: arcsec(1 + I)
             arcsec(I + 1)
         """
-        PrimitiveFunction.__init__(self, "arcsec", latex=r'\sec^{-1}',
-                                   approx=lambda x: math.acos(1/x),
+        BuiltinFunction.__init__(self, "arcsec", latex_name=r'{\rm arcsec}',
                                    conversions=dict(maxima='asec'))
 
-    def _evalf_(self, x, prec=0):
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
         """
-        return (1/x).arccos().n(prec)
+        if parent is float:
+            return math.acos(1/x)
+        return (1/x).arccos()
 
-    def _derivative_(self, *args, **kwds):
+    def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
 
             sage: diff(asec(x), x)
             1/(sqrt(-1/x^2 + 1)*x^2)
         """
-        x = args[0]
         return 1/(x**2 * (1 - x**(-2)).sqrt())
 
 arcsec = asec = Function_arcsec()
 
-class Function_arctan2(PrimitiveFunction):
+class Function_arctan2(GinacFunction):
     def __init__(self):
         """
         The modified arctangent function.
@@ -537,10 +530,7 @@ class Function_arctan2(PrimitiveFunction):
             sage: arctan2(y,x).operator()
             arctan2
         """
-        PrimitiveFunction.__init__(self, "arctan2", nargs=2, latex=r'\arctan',
-                                   conversions=dict(maxima='atan2',
-                                                    ginac='atan2'))
-
-    __call__ = SFunction.__call__
+        GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
+                conversions=dict(maxima='atan2'))
 
 arctan2 = atan2 = Function_arctan2()

@@ -2132,8 +2132,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         from sage.symbolic.all import SR
         from sage.functions.log import function_log
         if m is None:
-            return function_log(self, hold=True)
-        return function_log(self, hold=True)/function_log(m, hold=True)
+            return function_log(self)
+        return function_log(self)/function_log(m)
 
     def exp(self, prec=None):
         r"""
@@ -2169,7 +2169,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             +infinity
         """
         from sage.functions.all import exp
-        return exp(self, prec)
+        res = exp(self)
+        if prec:
+            return res.n(prec=prec)
+        return res
 
     def prime_to_m_part(self, m):
         """
@@ -4366,8 +4369,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) < 0:
             if not extend:
                 raise ValueError, "square root of negative number not an integer"
-            from sage.functions.all import sqrt
-            return sqrt._do_sqrt(self, prec=prec, all=all)
+            from sage.functions.other import _do_sqrt
+            return _do_sqrt(self, prec=prec, all=all)
 
         cdef int non_square
         cdef Integer z = PY_NEW(Integer)
@@ -4382,12 +4385,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if non_square:
             if not extend:
                 raise ValueError, "square root of %s not an integer"%self
-            from sage.functions.all import sqrt
-            return sqrt._do_sqrt(self, prec=prec, all=all)
+            from sage.functions.other import _do_sqrt
+            return _do_sqrt(self, prec=prec, all=all)
 
         if prec:
-            from sage.functions.all import sqrt
-            return sqrt._do_sqrt(self, prec=prec, all=all)
+            from sage.functions.other import _do_sqrt
+            return _do_sqrt(self, prec=prec, all=all)
 
         if all:
            return [z, -z]

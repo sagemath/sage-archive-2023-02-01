@@ -1,6 +1,6 @@
 from calculus import maxima as maxima_calculus
 from calculus import (laplace, inverse_laplace,
-                      limit, lim, clear_functions)
+                      limit, lim)
 
 from functional import (diff, derivative,
                         expand,

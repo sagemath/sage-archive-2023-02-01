@@ -312,6 +312,8 @@ cdef class RealDoubleField_class(Field):
         """
         return 53
 
+    precision = prec
+
     def to_prec(self, prec):
         """
         Returns the real field to the specified precision. As doubles have

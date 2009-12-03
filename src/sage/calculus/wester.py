@@ -308,8 +308,8 @@ explicit calls to Maxima or other systems.
     sage: f = log(tan(x/2 + pi/4)) - arcsinh(tan(x))
     sage: bool(f == 0)
     False
-    sage: [float(f(x=i/10)) for i in range(1,5)]
-    [5.5511151231257827e-17, -5.5511151231257827e-17, -5.5511151231257827e-17, -1.6653345369377348e-16]
+    sage: [abs(float(f(x=i/10))) < 1e-15 for i in range(1,5)]
+    [True, True, True, True]
     sage: # Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
     sage: g = f.derivative()
     sage: abs(float(f(x=0))) < 1e-10

@@ -323,8 +323,8 @@ import sage.ext.fast_eval as fast_float
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
-from sage.symbolic.function import SFunction, PrimitiveFunction
-from sage.symbolic.pynac import symbol_table
+from sage.symbolic.function import Function
+from sage.symbolic.function_factory import function_factory, function
 
 arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
 
@@ -739,11 +739,11 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
-        1.46383232641
+        1.46383232641443
         sage: nres = numerical_integral(f.subs(y=.5), 0.0001414, 1.); nres
         (-0.66951170887280698, 7.7686781108547113e-15)
         sage: res.subs(y=.5).n()
-        -0.669511708873
+        -0.669511708872807
 
     Check if #6816 is fixed::
 
@@ -805,7 +805,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
     if v is None:
         v = expression.default_variable()
-        if isinstance(expression, SFunction):
+        if isinstance(expression, Function):
             # a bare function like sin
             expression = expression(v)
 
@@ -1491,7 +1491,7 @@ def laplace(ex, t, s):
         laplace(1/s, s, t)
 
     """
-    if not isinstance(ex, (Expression, SFunction)):
+    if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
     return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
 
@@ -1587,7 +1587,7 @@ def at(ex, **kwds):
         sage: f.diff(t,2).laplace(t,s)
         s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
     """
-    if not isinstance(ex, (Expression, SFunction)):
+    if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
     return ex.subs(**kwds)
 
@@ -1615,83 +1615,6 @@ def var_cmp(x,y):
         1
     """
     return cmp(repr(x), repr(y))
-
-def function(s, *args, **kwds):
-    """
-    Create a formal symbolic function with the name *s*.
-
-    EXAMPLES::
-
-        sage: var('a, b')
-        (a, b)
-        sage: f = function('cr', a)
-        sage: g = f.diff(a).integral(b)
-        sage: g
-        b*D[0](cr)(a)
-
-    In Sage 4.0, you need to use :meth:`substitute_function` to
-    replace all occurrences of a function with another::
-
-        sage: g.substitute_function(cr, cos)
-        -b*sin(a)
-
-        sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
-        -(sin(a) - cos(a))*b
-
-    In Sage 4.0, basic arithmetic with unevaluated functions is no
-    longer supported::
-
-        sage: x = var('x')
-        sage: f = function('f')
-        sage: 2*f
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<type 'sage.symbolic.function.SFunction'>'
-
-    You now need to evaluate the function in order to do the arithmetic::
-
-        sage: 2*f(x)
-        2*f(x)
-    """
-    if isinstance(s, SFunction):
-        return s
-
-    if len(args) > 0:
-        return function(s, **kwds)(*args)
-
-    s = str(s)
-    if ',' in s:
-        return tuple([function(x.strip(), **kwds) for x in s.split(',')])
-    elif ' ' in s:
-        return tuple([function(x.strip(), **kwds) for x in s.split()])
-    try:
-        return symbol_table['functions'][s]
-    except KeyError:
-        pass
-    f = SFunction(s, **kwds)
-    symbol_table['functions'][s] = f
-    return f
-
-def clear_functions():
-    """
-    Clear all user-defined functions from the symbol tables.
-
-    EXAMPLES::
-
-        sage: f = function('foo')
-        sage: id_f1 = id(f)
-        sage: id_f1 == id(function('foo'))
-        True
-        sage: clear_functions()
-        sage: id_f1 == id(function('foo'))
-        False
-    """
-    functions = symbol_table['functions']
-    for name, f in functions.items():
-        if name in ['limit']:
-            continue
-        if not isinstance(f, PrimitiveFunction):
-            del functions[name]
 
 def dummy_limit(*args):
     """
@@ -1879,10 +1802,11 @@ def _inverse_laplace_latex_(*args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
 # Return un-evaluated expression as instances of SFunction class
-_limit = SFunction('limit', print_latex_func=_limit_latex_)
-_integrate = SFunction('integrate', print_latex_func=_integrate_latex_)
-_laplace = SFunction('laplace', print_latex_func=_laplace_latex_)
-_inverse_laplace = SFunction('ilt', print_latex_func=_inverse_laplace_latex_)
+_limit = function_factory('limit', print_latex_func=_limit_latex_)
+_integrate = function_factory('integrate', print_latex_func=_integrate_latex_)
+_laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
+_inverse_laplace = function_factory('ilt',
+        print_latex_func=_inverse_laplace_latex_)
 
 ######################################i################
 
@@ -1956,7 +1880,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
         for X in formal_functions:
-            syms[X[1:]] = function(X[1:])
+            syms[X[1:]] = function_factory(X[1:])
         # You might think there is a potential very subtle bug if 'foo
         # is in a string literal -- but string literals should *never*
         # ever be part of a symbolic expression.
@@ -1968,7 +1892,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
             if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
             else:
-                syms[X[2:]] = SFunction(X[2:])
+                syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%","")
 
     s = multiple_replace(symtable, s)
@@ -2102,9 +2026,14 @@ def _find_func(name):
         sage: f(x)=sin(x)
         sage: sage.calculus.calculus._find_func('f')
         f
+        sage: s = sage.calculus.calculus._find_func('sin')
+        sage: s(0)
+        0
     """
     try:
-        func = (_augmented_syms or _syms)[name]
+        func = _syms.get(name)
+        if func is None:
+            func = _augmented_syms[name]
         if not isinstance(func, Expression):
             return func
     except KeyError:
@@ -2114,7 +2043,7 @@ def _find_func(name):
         if not isinstance(func, Expression):
             return func
     except (KeyError, TypeError):
-        return function(name)
+        return function_factory(name)
 
 SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                    make_float    = lambda x: SR(RealDoubleElement(x)),

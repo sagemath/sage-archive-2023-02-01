@@ -565,112 +565,71 @@ class Pi(Constant):
 
 pi = Pi().expression()
 
-class I_class(Constant):
-    def __init__(self, name="I"):
-        """
-        The formal square root of -1.
+"""
+The formal square root of -1.
 
-        .. warning::
+EXAMPLES::
 
-           Note that calling :meth:`pyobject` on ``I`` from within
-           Sage does not return an instance of this class.  Instead,
-           it returns a wrapper around a number field element.
+    sage: I
+    I
+    sage: I^2
+    -1
 
-        EXAMPLES::
+Note that conversions to real fields will give TypeErrors::
 
-            sage: I
-            I
-            sage: I^2
-            -1
+    sage: float(I)
+    Traceback (most recent call last):
+    ...
+    TypeError: unable to simplify to float approximation
+    sage: gp(I)
+    I
+    sage: RR(I)
+    Traceback (most recent call last):
+    ...
+    TypeError: cannot convert I to real number
 
-        Note that conversions to real fields will give TypeErrors::
+We can convert to complex fields::
 
-            sage: float(I)
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to float; use abs(z)
-            sage: gp(I)
-            I
-            sage: RR(I)
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    sage: C = ComplexField(200); C
+    Complex Field with 200 bits of precision
+    sage: C(I)
+    1.0000000000000000000000000000000000000000000000000000000000*I
+    sage: I._complex_mpfr_field_(ComplexField(53))
+    1.00000000000000*I
 
-        We can convert to complex fields::
+    sage: I._complex_double_(CDF)
+    1.0*I
+    sage: CDF(I)
+    1.0*I
 
-            sage: C = ComplexField(200); C
-            Complex Field with 200 bits of precision
-            sage: C(I)
-            1.0000000000000000000000000000000000000000000000000000000000*I
-            sage: I._complex_mpfr_field_(ComplexField(53))
-            1.00000000000000*I
+    sage: z = I + I; z
+    2*I
+    sage: C(z)
+    2.0000000000000000000000000000000000000000000000000000000000*I
+    sage: 1e8*I
+    1.00000000000000e8*I
 
-            sage: I._complex_double_(CDF)
-            1.0*I
-            sage: CDF(I)
-            1.0*I
+    sage: complex(I)
+    0.99999999999999967j
 
-            sage: z = I + I; z
-            2*I
-            sage: C(z)
-            2.0000000000000000000000000000000000000000000000000000000000*I
-            sage: 1e8*I
-            1.00000000000000e8*I
+    sage: QQbar(I)
+    1*I
 
-            sage: complex(I)
-            1j
+    sage: abs(I)
+    1
 
-            sage: QQbar(I)
-            1*I
+    sage: I.minpoly()
+    x^2 + 1
+    sage: maxima(2*I)
+    2*%i
 
-            sage: abs(I)
-            1
+TESTS::
 
-            sage: I.minpoly()
-            x^2 + 1
-            sage: maxima(2*I)
-            2*%i
-
-        TESTS::
-
-            sage: repr(I)
-            'I'
-            sage: latex(I)
-            I
-        """
-        conversions = dict(axiom='%i', maxima='%i', gp='I',
-                           mathematica='I', matlab='i',maple='I',
-                           octave='i', pari='I')
-        Constant.__init__(self, name, conversions=conversions,
-                          latex='i', mathml="<mi>&i;</mi>")
-
-
-    def expression(self, constant=False):
-        """
-        Returns an Expression for I.  If *constant* is True, then it
-        returns a wrapper around a Pynac constant.  If *constant* is
-        False, then it returns a wrapper around a NumberFieldElement.
-
-        EXAMPLES::
-
-            sage: from sage.symbolic.constants import I_class
-            sage: a = I_class()
-            sage: I_constant = a.expression(constant=True)
-            sage: type(I_constant.pyobject())
-            <class 'sage.symbolic.constants.I_class'>
-            sage: I_nf = a.expression()
-            sage: type(I_nf.pyobject())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
-        """
-        if constant:
-            return Constant.expression(self)
-        else:
-            from sage.symbolic.pynac import I
-            return I
-
-a = I_class()
-I_constant = a.expression(constant=True)
-i = I = a.expression(constant=False)
+    sage: repr(I)
+    'I'
+    sage: latex(I)
+    I
+"""
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
 # represented by exp(1). A dummy class to make this work with arithmetic and
@@ -691,6 +650,15 @@ class NotANumber(Constant):
         """
         conversions=dict(matlab='NaN')
         Constant.__init__(self, name, conversions=conversions)
+
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(NaN)
+            nan
+        """
+        return float('nan')
 
     def _mpfr_(self,R):
         """
@@ -948,6 +916,15 @@ class EulerGamma(Constant):
         """
         return R.euler_constant()
 
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(euler_gamma)
+            0.57721566490153287
+        """
+        return 0.57721566490153286060651209008
+
     def _real_double_(self, R):
         """
         EXAMPLES::
@@ -1084,6 +1061,15 @@ class Khinchin(Constant):
         import sage.libs.mpmath.all as a
         return a.eval_constant('khinchin', R)
 
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(khinchin)
+            2.6854520010653062
+        """
+        return 2.6854520010653064453097148355
+
 khinchin = Khinchin().expression()
 
 class TwinPrime(Constant):
@@ -1122,6 +1108,14 @@ class TwinPrime(Constant):
         import sage.libs.mpmath.all as a
         return a.eval_constant('twinprime', R)
 
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(twinprime)
+            0.66016181584686962
+        """
+        return 0.66016181584686957392781211001
 
 twinprime = TwinPrime().expression()
 
@@ -1161,6 +1155,15 @@ class Mertens(Constant):
         """
         import sage.libs.mpmath.all as a
         return a.eval_constant('mertens', R)
+
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(mertens)
+            0.26149721284764277
+        """
+        return 0.26149721284764278375542683861
 
 merten = mertens = Mertens().expression()
 
@@ -1205,6 +1208,16 @@ class Glaisher(Constant):
         """
         import sage.libs.mpmath.all as a
         return a.eval_constant('glaisher', R)
+
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: float(glaisher)
+            1.2824271291006226
+        """
+        return 1.2824271291006226368753425689
+
 
 glaisher = Glaisher().expression()
 
@@ -1263,7 +1276,9 @@ class LimitedPrecisionConstant(Constant):
             sage: RDF(a)
             1.23456789101
         """
-        return R(self._value)
+        if R.precision() <= self._bits:
+            return R(self._value)
+        raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
 
     def __float__(self):
         """
@@ -1275,6 +1290,8 @@ class LimitedPrecisionConstant(Constant):
             1.2345678910111213
 
         """
+        if self._bits < 53:
+            raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
         return float(self._value)
 
 class Brun(LimitedPrecisionConstant):

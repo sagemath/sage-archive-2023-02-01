@@ -902,7 +902,7 @@ cdef class LazyUnop(LazyFieldElement):
             sage: a._arg
             3
             sage: a._op
-            sqrt
+            <function sqrt at ...>
             sage: Reals(100)(a)
             1.7320508075688772935274463415
             sage: Reals(100)(a)^2

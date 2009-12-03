@@ -71,6 +71,7 @@ from sage.gsl.fft import FastFourierTransform
 from sage.gsl.dwt import WaveletTransform
 
 from sage.structure.sage_object import SageObject
+from sage.structure.sequence import Sequence
 
 class IndexedSequence(SageObject):
     def __init__(self, L, index_object):
@@ -104,13 +105,13 @@ class IndexedSequence(SageObject):
             sage: s.base_ring()
             Rational Field
         """
-        self._base_ring = L[0].parent()
         try:
             ind = index_object.list()
         except AttributeError:
             ind = list(index_object)
         self._index_object = index_object
-        self._list = L
+        self._list = Sequence(L)
+        self._base_ring = self._list.universe()
         dict = {}
         for i in range(len(ind)):
             dict[ind[i]] = L[i]

@@ -1,13 +1,13 @@
 """
 Logarithmic functions
 """
-from sage.symbolic.function import SFunction, PrimitiveFunction
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.libs.pari.gen import pari, PariError
 from sage.rings.all import CDF, Integer, Rational, RealField, ComplexField
 from sage.symbolic.all import SR
 import math
 
-class Function_exp(PrimitiveFunction):
+class Function_exp(GinacFunction):
     def __init__(self):
         r"""
         The exponential function, `\exp(x) = e^x`.
@@ -18,7 +18,7 @@ class Function_exp(PrimitiveFunction):
             e^(-1)
             sage: exp(2)
             e^2
-            sage: exp(2,prec=100)
+            sage: exp(2).n(100)
             7.3890560989306502272304274606
             sage: exp(x^2 + log(x))
             e^(x^2 + log(x))
@@ -31,28 +31,7 @@ class Function_exp(PrimitiveFunction):
             sage: exp(RDF('2.5'))
             12.1824939607
 
-        TEST::
-
-            sage: latex(exp(sqrt(x)))
-            e^{\sqrt{x}}
-            sage: latex(exp)
-            \exp
-        """
-        PrimitiveFunction.__init__(self, "exp", latex=r"\exp",
-                                   conversions=dict(maxima='exp'),
-                                   approx=math.exp)
-
-    def __call__(self, x, prec=None):
-        """
-        INPUT:
-
-        -  ``x`` - a number
-
-        -  ``prec`` - integer (default: None): if None, returns
-           an exact exponential; otherwise returns a numerical exponential if
-           necessary, to the given bits of precision.
-
-        EXAMPLES::
+        ::
 
             sage: exp(pi*I/2)
             I
@@ -62,21 +41,45 @@ class Function_exp(PrimitiveFunction):
             1
             sage: exp(7*pi*I/2)
             -I
+
+        TEST::
+
+            sage: latex(exp(sqrt(x)))
+            e^{\sqrt{x}}
+            sage: latex(exp)
+            \exp
         """
-        if isinstance(x, float):
-            return self._approx_(x)
-        if not isinstance(x, (Integer, Rational)):
-            try:
-                return x.exp()
-            except AttributeError:
-                pass
-        if prec:
-            return RealField(prec)(x).exp()
-        return SFunction.__call__(self, SR(x))
+        GinacFunction.__init__(self, "exp", latex_name=r"\exp",
+                                   conversions=dict(maxima='exp'))
+
+    def __call__(self, x, coerce=True, hold=False, prec=None):
+        """
+        Note that the ``prec`` argument is deprecated. The precision for
+        the result is deduced from the precision of the input. Convert
+        the input to a higher precision explicitly if a result with higher
+        precision is desired.::
+
+            sage: t = exp(RealField(100)(2)); t
+            7.3890560989306502272304274606
+            sage: t.prec()
+            100
+
+        TESTS::
+
+            sage: exp(2,prec=100)
+            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
+            7.3890560989306502272304274606
+        """
+        if prec is not None:
+            from sage.misc.misc import deprecation
+            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
+            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
+            return x.n(prec)
+        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
 
 exp = Function_exp()
 
-class Function_log(PrimitiveFunction):
+class Function_log(GinacFunction):
     def __init__(self):
         """
         The log function.
@@ -104,9 +107,8 @@ class Function_log(PrimitiveFunction):
             sage: latex(x.log())
             \log\left(x\right)
         """
-        PrimitiveFunction.__init__(self, 'log', latex=r'\log',
-                                   conversions=dict(maxima='log'),
-                                   approx=math.log)
+        GinacFunction.__init__(self, 'log', latex_name=r'\log',
+                                   conversions=dict(maxima='log'))
 
 function_log = Function_log()
 
@@ -235,7 +237,7 @@ def log(x, base=None):
             return log(x) / log(base)
 
 
-class Function_polylog(PrimitiveFunction):
+class Function_polylog(GinacFunction):
     def __init__(self):
         r"""
         The polylog function
@@ -243,11 +245,8 @@ class Function_polylog(PrimitiveFunction):
 
         INPUT:
 
-
         -  ``n`` - object
-
         -  ``z`` - object
-
 
         EXAMPLES::
 
@@ -256,9 +255,9 @@ class Function_polylog(PrimitiveFunction):
             sage: polylog(2,1)
             1/6*pi^2
             sage: polylog(2,x^2+1)
-            polylog(2,x^2 + 1)
+            polylog(2, x^2 + 1)
             sage: polylog(4,0.5)
-            polylog(4,0.500000000000000)
+            polylog(4, 0.500000000000000)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4
@@ -280,11 +279,9 @@ class Function_polylog(PrimitiveFunction):
             polylog
 
             sage: latex(polylog(5, x))
-            \mbox{Li}_{5}(x)
+            {\rm Li}_{5}(x)
         """
-        PrimitiveFunction.__init__(self, "polylog", nargs=2)
-
-    __call__ = SFunction.__call__
+        GinacFunction.__init__(self, "polylog", nargs=2)
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -292,10 +289,10 @@ class Function_polylog(PrimitiveFunction):
 
         These are indirect doctests for this function.
 
-            sage: polylog(2, x)._maxima_init_()
-            'li[2](x)'
-            sage: polylog(4, x)._maxima_init_()
-            'polylog(4, x)'
+            sage: polylog(2, x)._maxima_()
+            li[2](x)
+            sage: polylog(4, x)._maxima_()
+            polylog(4,x)
         """
         n, x = args
         if int(n) in [1,2,3]:
@@ -306,7 +303,7 @@ class Function_polylog(PrimitiveFunction):
 
 polylog = Function_polylog()
 
-class Function_dilog(PrimitiveFunction):
+class Function_dilog(GinacFunction):
     def __init__(self):
         r"""
         The dilogarithm function
@@ -330,9 +327,12 @@ class Function_dilog(PrimitiveFunction):
             log(-z + 1)/z^2 - 1/((z - 1)*z)
             sage: dilog(z).series(z==1/2, 3)
             (1/12*pi^2 - 1/2*log(2)^2) + (-2*log(1/2))*(z - 1/2) + (2*log(1/2) + 2)*(z - 1/2)^2 + Order(1/8*(2*z - 1)^3)
+
+            sage: latex(dilog(z))
+            {\rm Li}_2\left(z\right)
         """
-        PrimitiveFunction.__init__(self, 'dilog',
-                                   conversions=dict(ginac='dilog', maxima='li[2]'))
+        GinacFunction.__init__(self, 'dilog',
+                conversions=dict(maxima='li[2]'))
 
 dilog = Function_dilog()
 

@@ -1,7 +1,7 @@
 """
 Other functions
 """
-from sage.symbolic.function import SFunction, PrimitiveFunction
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
@@ -9,9 +9,9 @@ from sage.rings.all import Integer, Rational, RealField, CC, RR
 from sage.misc.latex import latex
 import math
 
-one_half = SR(1)/2
+one_half = ~SR(2)
 
-class Function_erf(PrimitiveFunction):
+class Function_erf(BuiltinFunction):
     def __init__(self):
         r"""
         The error function, defined as
@@ -28,11 +28,18 @@ class Function_erf(PrimitiveFunction):
             0.995322265018953
             sage: loads(dumps(erf))
             erf
-        """
-        PrimitiveFunction.__init__(self, "erf", latex=r"\text{erf}",
-                                   approx=lambda x: float(1 - pari(float(x)).erfc()))
 
-    def _evalf_(self, x, prec=0):
+        The following fails because we haven't implemented
+        erf yet for complex values::
+
+            sage: complex(erf(3*I))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to simplify to complex approximation
+        """
+        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
+
+    def _evalf_(self, x, parent=None):
         """
         EXAMPLES::
 
@@ -43,14 +50,17 @@ class Function_erf(PrimitiveFunction):
             ...
             NotImplementedError: erf not implemented for precision higher than 53
         """
+        try:
+            prec = parent.prec()
+        except AttributeError: # not a Sage parent
+            prec = 0
         if prec > 53:
             raise NotImplementedError, "erf not implemented for precision higher than 53"
-        else:
-            return RealField(prec)(1 - pari(float(x)).erfc())
+        return parent(1 - pari(float(x)).erfc())
 
 erf = Function_erf()
 
-class Function_abs(PrimitiveFunction):
+class Function_abs(GinacFunction):
     def __init__(self):
         """
         The absolute value function.
@@ -69,6 +79,8 @@ class Function_abs(PrimitiveFunction):
             sqrt(x^2)
             sage: abs(sqrt(x))
             abs(sqrt(x))
+            sage: complex(abs(3*I))
+            (3+0j)
 
             sage: f = sage.functions.other.Function_abs()
             sage: latex(f)
@@ -76,25 +88,11 @@ class Function_abs(PrimitiveFunction):
             sage: latex(abs(x))
             {\left| x \right|}
         """
-        PrimitiveFunction.__init__(self, "abs", latex=r"\mathrm{abs}",
-                                   approx=lambda x: float(x.__abs__()))
-
-    def _complex_approx_(self, x):
-        """
-        EXAMPLES::
-
-            sage: complex(abs(3*I))
-            (3+0j)
-            sage: abs_symbolic._complex_approx_(complex(3*I))
-            (3+0j)
-        """
-        return complex(x.__abs__())
-
-    __call__ = SFunction.__call__
+        GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}")
 
 abs = abs_symbolic = Function_abs()
 
-class Function_ceil(PrimitiveFunction):
+class Function_ceil(BuiltinFunction):
     def __init__(self):
         r"""
         The ceiling function.
@@ -163,16 +161,19 @@ class Function_ceil(PrimitiveFunction):
             sage: latex(ceil(x))
             \left \lceil x \right \rceil
         """
-        PrimitiveFunction.__init__(self, "ceil",
-                                   approx=math.ceil,
+        BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling'))
 
     def _print_latex_(self, x):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: latex(ceil(x)) # indirect doctest
+            \left \lceil x \right \rceil
         """
         return r"\left \lceil %s \right \rceil"%latex(x)
 
+    #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
         try:
             return x.ceil()
@@ -214,7 +215,7 @@ class Function_ceil(PrimitiveFunction):
         except TypeError:
             # If x cannot be coerced into a RealField, then
             # it should be left as a symbolic expression.
-            return SFunction.__call__(self, SR(x_original))
+            return BuiltinFunction.__call__(self, SR(x_original))
 
     def _eval_(self, x):
         """
@@ -225,11 +226,6 @@ class Function_ceil(PrimitiveFunction):
             sage: ceil(x)
             ceil(x)
         """
-        try:
-            x = x.pyobject()
-        except TypeError:
-            return None
-
         try:
             return x.ceil()
         except AttributeError:
@@ -242,7 +238,7 @@ class Function_ceil(PrimitiveFunction):
 ceil = Function_ceil()
 
 
-class Function_floor(PrimitiveFunction):
+class Function_floor(BuiltinFunction):
     def __init__(self):
         r"""
         The floor function.
@@ -297,17 +293,18 @@ class Function_floor(PrimitiveFunction):
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
         """
-        PrimitiveFunction.__init__(self, "floor",
-                                   approx=math.floor)
+        BuiltinFunction.__init__(self, "floor")
 
     def _print_latex_(self, x):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: latex(floor(x))
             \left \lfloor x \right \rfloor
         """
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
+    #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
         try:
             return x.floor()
@@ -350,7 +347,7 @@ class Function_floor(PrimitiveFunction):
         except TypeError:
             # If x cannot be coerced into a RealField, then
             # it should be left as a symbolic expression.
-            return SFunction.__call__(self, SR(x_original))
+            return BuiltinFunction.__call__(self, SR(x_original))
 
     def _eval_(self, x):
         """
@@ -362,11 +359,6 @@ class Function_floor(PrimitiveFunction):
             floor(x)
         """
         try:
-            x = x.pyobject()
-        except TypeError:
-            return None
-
-        try:
             return x.floor()
         except AttributeError:
             if isinstance(x, (int, long)):
@@ -377,7 +369,7 @@ class Function_floor(PrimitiveFunction):
 
 floor = Function_floor()
 
-class Function_gamma(PrimitiveFunction):
+class Function_gamma(GinacFunction):
     def __init__(self):
         r"""
         The Gamma function.  This is defined by
@@ -410,7 +402,47 @@ class Function_gamma(PrimitiveFunction):
             gamma(I)
             sage: gamma(x/2)(x=5)
             3/4*sqrt(pi)
+
+            sage: gamma(float(6))
+            120.0
+            sage: gamma(x)
+            gamma(x)
+
+        ::
+
+            sage: gamma(pi)
+            gamma(pi)
+            sage: gamma(i)
+            gamma(I)
+            sage: gamma(i).n()
+            -0.154949828301811 - 0.498015668118356*I
+            sage: gamma(int(5))
+            24
+
+
             sage: plot(gamma(x),(x,1,5))
+
+        The gamma function only works with input that can be coerced to the
+        Symbolic Ring::
+
+            sage: Q.<i> = NumberField(x^2+1)
+            sage: gamma(i)
+            doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
+            -0.154949828301811 - 0.498015668118356*I
+
+        We make an exception for elements of AA or QQbar, which cannot be
+        coerced into symbolic expressions to allow this usage::
+
+            sage: t = QQbar(sqrt(2)) + sqrt(3); t
+            3.146264369941973?
+            sage: t.parent()
+            Algebraic Field
+
+        Symbolic functions convert the arguments to symbolic expressions if they
+        are in QQbar or AA::
+
+            sage: gamma(QQbar(I))
+            -0.154949828301811 - 0.498015668118356*I
 
         TESTS:
 
@@ -420,54 +452,14 @@ class Function_gamma(PrimitiveFunction):
             sage: z = var('z')
             sage: maxima(gamma(z)).sage()
             gamma(z)
-        """
-        PrimitiveFunction.__init__(self, "gamma", latex=r'\Gamma',
-                conversions=dict(ginac='tgamma'))
-
-    def __call__(self, x, prec=None):
-        """
-        INPUT:
-
-        -  ``x`` - a number
-
-        -  ``prec`` - integer (default: None): if None, returns
-           an exact value for exact input, and uses the standard
-           53 bits of precision otherwise; if prec is given,
-           returns the value of gamma to the given bits of precision.
-
-        EXAMPLES::
-
-            sage: gamma(6)
-            120
-            sage: gamma(6, prec=53)
-            120.000000000000
-            sage: gamma(float(6))
-            120.000000000000
-            sage: gamma(x)
-            gamma(x)
-
-        ::
-
-            sage: gamma(pi)
-            gamma(pi)
-            sage: gamma(pi,prec=100)
-            2.2880377953400324179595889091
-            sage: gamma(QQbar(I))
-            -0.154949828301811 - 0.498015668118356*I
-            sage: Q.<i> = NumberField(x^2+1)
-            sage: gamma(i)
-            -0.154949828301811 - 0.498015668118356*I
-            sage: gamma(int(5))
-            24
-
-        TESTS:
+            sage: latex(gamma(z))
+            \Gamma\left(z\right)
 
         Test that Trac ticket 5556 is fixed::
 
             sage: gamma(3/4)
             gamma(3/4)
-            sage: gamma(3/4,prec=100)
-            1.2254167024651776451290983034
+
             sage: gamma(3/4).n(100)
             1.2254167024651776451290983034
 
@@ -484,34 +476,69 @@ class Function_gamma(PrimitiveFunction):
             sage: CDF(-1).gamma()
             Infinity
         """
-        from sage.structure.element import is_Element
+        GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
+                ginac_name='tgamma')
+
+    def __call__(self, x, coerce=True, hold=False, prec=None):
+        """
+        Note that the ``prec`` argument is deprecated. The precision for
+        the result is deduced from the precision of the input. Convert
+        the input to a higher precision explicitly if a result with higher
+        precision is desired.::
+
+            sage: t = gamma(RealField(100)(2.5)); t
+            1.3293403881791370204736256125
+            sage: t.prec()
+            100
+
+
+            sage: gamma(6, prec=53)
+            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.
+            120.000000000000
+
+        TESTS::
+
+            sage: gamma(pi,prec=100)
+            2.2880377953400324179595889091
+
+            sage: gamma(3/4,prec=100)
+            1.2254167024651776451290983034
+        """
+        if prec is not None:
+            from sage.misc.misc import deprecation
+            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
+
+        # this is a kludge to keep
+        #     sage: Q.<i> = NumberField(x^2+1)
+        #     sage: gamma(i)
+        # working, since number field elements cannot be coerced into SR
+        # without specifying an explicit embedding into CC any more
         try:
-            return x.gamma(prec)
-        except TypeError:
+            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
+        except TypeError, err:
+            # the __call__() method returns a TypeError for fast float arguments
+            # as well, we only proceed if the error message says that
+            # the arguments cannot be coerced to SR
+            if not str(err).startswith("cannot coerce"):
+                raise
+
+            from sage.misc.misc import deprecation
+            deprecation("Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.")
+            parent = RR if prec is None else RealField(prec)
             try:
-                if prec:
-                    return x.gamma().n(prec)
-                return x.gamma()
-            except AttributeError:
-                pass
-        except AttributeError:
-            pass
-        if isinstance(x, (int, long)):
-            if prec:
-                return RealField(prec)(x).gamma()
-            return Integer(x).gamma()
-        if is_Element(x) and x.parent() is SR: # for symbolic input, prec is ignored
-            return SFunction.__call__(self, x)
-        if isinstance(x, float): # for floats, prec is meaningless so we ignore it
-            return RR(x).gamma()
-        from sage.rings.all import ComplexField
-        if prec:
-            return ComplexField(prec)(x).gamma()
-        return CC(x).gamma()
+                x = parent(x)
+            except (ValueError, TypeError):
+                x = parent.complex_field()(x)
+            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
+
+        if prec is not None:
+            return res.n(prec)
+
+        return res
 
 gamma = Function_gamma()
 
-class Function_factorial(PrimitiveFunction):
+class Function_factorial(GinacFunction):
     def __init__(self):
         r"""
         Returns the factorial of `n`.
@@ -557,10 +584,10 @@ class Function_factorial(PrimitiveFunction):
             ...
             ValueError: factorial -- must be nonnegative
 
-        TESTS: We verify that we can convert this function to Maxima and
-        bring it back into Sage.
+        TESTS:
 
-        ::
+        We verify that we can convert this function to Maxima and
+        bring it back into Sage.::
 
             sage: z = var('z')
             sage: factorial._maxima_init_()
@@ -573,8 +600,10 @@ class Function_factorial(PrimitiveFunction):
             sage: factorial(k)
             factorial(k)
 
-            sage: factorial._approx_(3.14)
+            sage: factorial(3.14)
             7.173269190187...
+
+        Test latex typesetting::
 
             sage: latex(factorial(x))
             x!
@@ -590,42 +619,14 @@ class Function_factorial(PrimitiveFunction):
             \left(x^{\frac{2}{3}}\right)!
 
             sage: latex(factorial)
-            \mbox{factorial}
+            {\rm factorial}
         """
-        PrimitiveFunction.__init__(self, "factorial", latex='\mbox{factorial}',
-                                   conversions=dict(maxima='factorial', mathematica='Factorial'),
-                                   approx=lambda x: gamma(x+1))
-
-
-    def __call__(self, n, **kwds):
-        """
-        This first tries to call the factorial function in
-        sage.rings.arith, and if that fails, it returns a
-        symbolic ``Expression`` object.
-
-        EXAMPLES::
-
-            sage: factorial(4)
-            24
-            sage: factorial(x)
-            factorial(x)
-        """
-        from sage.rings.arith import factorial
-        try:
-            return factorial(n, **kwds)
-        except (TypeError, ValueError), err:
-            if 'nonnegative' in str(err):
-                raise
-            try:
-                return n.factorial()
-            except AttributeError:
-                pass
-
-        return SFunction.__call__(self, SR(n))
+        GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
+                conversions=dict(maxima='factorial', mathematica='Factorial'))
 
 factorial = Function_factorial()
 
-class Function_binomial(PrimitiveFunction):
+class Function_binomial(GinacFunction):
     def __init__(self):
         r"""
         Return the binomial coefficient
@@ -680,7 +681,7 @@ class Function_binomial(PrimitiveFunction):
         ::
             sage: k, i = var('k,i')
             sage: binomial(k,i)
-            binomial(k,i)
+            binomial(k, i)
 
         TESTS: We verify that we can convert this function to Maxima and
         bring it back into Sage.
@@ -691,50 +692,16 @@ class Function_binomial(PrimitiveFunction):
             sage: maxima(binomial(n,k))
             binomial(n,k)
             sage: _.sage()
-            binomial(n,k)
+            binomial(n, k)
             sage: sage.functions.other.binomial._maxima_init_() # temporary workaround until we can get symbolic binomial to import in global namespace, if that's desired
             'binomial'
         """
-        PrimitiveFunction.__init__(self, "binomial", nargs=2, latex=r'\binomial',
-                                   conversions=dict(maxima='binomial', mathematica='Binomial'))
-
-    __call__ = SFunction.__call__
+        GinacFunction.__init__(self, "binomial", nargs=2,
+                conversions=dict(maxima='binomial', mathematica='Binomial'))
 
 binomial = Function_binomial()
 
-class Function_sqrt(PrimitiveFunction):
-    def __init__(self):
-        """
-        The square root function. This is a symbolic square root.
-
-        EXAMPLES::
-
-            sage: sqrt(-1)
-            I
-            sage: sqrt(2)
-            sqrt(2)
-            sage: sqrt(2)^2
-            2
-            sage: sqrt(4)
-            2
-            sage: sqrt(4,all=True)
-            [2, -2]
-            sage: sqrt(x^2)
-            sqrt(x^2)
-        """
-        PrimitiveFunction.__init__(self, "sqrt", latex=r"\sqrt",
-                                   approx=math.sqrt)
-
-    def _evalf_(self, x, prec=0):
-        """
-        EXAMPLES::
-
-            sage: sqrt(2).n()
-            1.41421356237310
-        """
-        return x.n(prec=prec).sqrt()
-
-    def _do_sqrt(self, x, prec=None, extend=True, all=False):
+def _do_sqrt(x, prec=None, extend=True, all=False):
         """
         Used internally to compute the square root of x.
 
@@ -760,18 +727,19 @@ class Function_sqrt(PrimitiveFunction):
 
         EXAMPLES::
 
-            sage: sqrt._do_sqrt(3)
+            sage: from sage.functions.other import _do_sqrt
+            sage: _do_sqrt(3)
             sqrt(3)
-            sage: sqrt._do_sqrt(3,prec=10)
+            sage: _do_sqrt(3,prec=10)
             1.7
-            sage: sqrt._do_sqrt(3,prec=100)
+            sage: _do_sqrt(3,prec=100)
             1.7320508075688772935274463415
-            sage: sqrt._do_sqrt(3,all=True)
+            sage: _do_sqrt(3,all=True)
             [sqrt(3), -sqrt(3)]
 
         Note that the extend parameter is ignored in the symbolic ring::
 
-            sage: sqrt._do_sqrt(3,extend=False)
+            sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
         from sage.rings.all import RealField, ComplexField
@@ -781,7 +749,7 @@ class Function_sqrt(PrimitiveFunction):
             else:
                  return ComplexField(prec)(x).sqrt(all=all)
         if x == -1:
-            from sage.symbolic.constants import I
+            from sage.symbolic.pynac import I
             z = I
         else:
             z = SR(x) ** one_half
@@ -793,7 +761,7 @@ class Function_sqrt(PrimitiveFunction):
                 return [z]
         return z
 
-    def __call__(self, x, *args, **kwds):
+def sqrt(x, *args, **kwds):
         """
         INPUT:
 
@@ -823,6 +791,20 @@ class Function_sqrt(PrimitiveFunction):
             1.0488088481701515469914535137
             sage: sqrt(4.00, prec=250)
             2.0000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: sqrt(-1)
+            I
+            sage: sqrt(2)
+            sqrt(2)
+            sage: sqrt(2)^2
+            2
+            sage: sqrt(4)
+            2
+            sage: sqrt(4,all=True)
+            [2, -2]
+            sage: sqrt(x^2)
+            sqrt(x^2)
+            sage: sqrt(2).n()
+            1.41421356237310
         """
         if isinstance(x, float):
             return math.sqrt(x)
@@ -833,38 +815,22 @@ class Function_sqrt(PrimitiveFunction):
         # method for x doesn't accept such a keyword.
         except (AttributeError, TypeError):
             pass
-        return self._do_sqrt(x, *args, **kwds)
+        return _do_sqrt(x, *args, **kwds)
 
-sqrt = Function_sqrt()
+# register sqrt in pynac symbol_table for conversion back from maxima
+from sage.symbolic.pynac import register_symbol#, symbol_table
+register_symbol(sqrt, dict(maxima='sqrt', mathematica='Sqrt', maple='sqrt'))
+
+Function_sqrt = type('deprecated_sqrt', (),
+        {'__call__': staticmethod(sqrt),
+            '__setstate__': lambda x, y: None})
 
 ############################
 # Real and Imaginary Parts #
 ############################
-class Function_real_part(PrimitiveFunction):
+class Function_real_part(GinacFunction):
     def __init__(self):
         """
-        TESTS::
-
-            sage: loads(dumps(real_part))
-            real_part
-
-        Check if #6401 is fixed::
-
-            sage: latex(x.real())
-            \Re \left( x \right)
-
-            sage: f(x) = function('f',x)
-            sage: latex( f(x).real())
-            \Re \left( f\left(x\right) \right)
-        """
-        PrimitiveFunction.__init__(self, "real_part",
-                                   conversions=dict(maxima='realpart'))
-
-
-    def __call__(self, x):
-        """
-        Return the real part of x.
-
         EXAMPLES::
 
             sage: z = 1+2*I
@@ -879,36 +845,27 @@ class Function_real_part(PrimitiveFunction):
             <type 'sage.rings.real_mpfr.RealLiteral'>
             sage: real(1.0r)
             1.0
+
+        TESTS::
+
+            sage: loads(dumps(real_part))
+            real_part
+
+        Check if #6401 is fixed::
+
+            sage: latex(x.real())
+            \Re \left( x \right)
+
+            sage: f(x) = function('f',x)
+            sage: latex( f(x).real())
+            \Re \left( f\left(x\right) \right)
         """
-        #We have to do this first since float.real is an _attribute_,
-        #not a method.
-        if isinstance(x, float):
-            return x
-
-        #Try to all the .real() method
-        try:
-            return x.real()
-        except AttributeError:
-            pass
-
-        try:
-            return x.real_part()
-        except AttributeError:
-            pass
-
-        #Try to coerce x into RR.  If that
-        #succeeds, then we can just return x
-        try:
-            rdf_x = RR(x)
-            return x
-        except TypeError:
-            pass
-
-        return SFunction.__call__(self, x)
+        GinacFunction.__init__(self, "real_part",
+                                   conversions=dict(maxima='realpart'))
 
 real = real_part = Function_real_part()
 
-class Function_imag_part(PrimitiveFunction):
+class Function_imag_part(GinacFunction):
     def __init__(self):
         """
         TESTS::
@@ -930,7 +887,7 @@ class Function_imag_part(PrimitiveFunction):
             sage: latex( f(x).imag())
             \Im \left( f\left(x\right) \right)
         """
-        PrimitiveFunction.__init__(self, "imag_part",
+        GinacFunction.__init__(self, "imag_part",
                                    conversions=dict(maxima='imagpart'))
 
 imag = imag_part = imaginary = Function_imag_part()
@@ -939,7 +896,7 @@ imag = imag_part = imaginary = Function_imag_part()
 ############################
 # Complex Conjugate        #
 ############################
-class Function_conjugate(PrimitiveFunction):
+class Function_conjugate(GinacFunction):
     def __init__(self):
         r"""
         TESTS::
@@ -963,6 +920,6 @@ class Function_conjugate(PrimitiveFunction):
             True
 
         """
-        PrimitiveFunction.__init__(self, "conjugate")
+        GinacFunction.__init__(self, "conjugate")
 
 conjugate = Function_conjugate()

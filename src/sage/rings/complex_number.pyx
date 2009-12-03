@@ -215,21 +215,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: for v1 in [-2, 0, 2]:
             ...       for v2 in [-2, -1, 0, 1, 2]:
             ...           print str(sage_input(x + CC(v1, v2))).splitlines()[1]
-            x + CC(-2 - 2*I)
-            x + CC(-2 - I)
+            x + CC(-2 - RR(2)*I)
+            x + CC(-2 - RR(1)*I)
             x - 2
-            x + CC(-2 + I)
-            x + CC(-2 + 2*I)
-            x - CC(2*I)
-            x - CC(I)
+            x + CC(-2 + RR(1)*I)
+            x + CC(-2 + RR(2)*I)
+            x - CC(RR(2)*I)
+            x - CC(RR(1)*I)
             x
-            x + CC(I)
-            x + CC(2*I)
-            x + CC(2 - 2*I)
-            x + CC(2 - I)
+            x + CC(RR(1)*I)
+            x + CC(RR(2)*I)
+            x + CC(2 - RR(2)*I)
+            x + CC(2 - RR(1)*I)
             x + 2
-            x + CC(2 + I)
-            x + CC(2 + 2*I)
+            x + CC(2 + RR(1)*I)
+            x + CC(2 + RR(2)*I)
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib_np = SageInputBuilder(preparse=False)
@@ -244,17 +244,17 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(12345)._sage_input_(sib, True)
             {atomic:12345}
             sage: CC(-12345)._sage_input_(sib, False)
-            {unop:- {call: {atomic:CC}({atomic:12345})}}
+            {call: {atomic:CC}({binop:+ {unop:- {atomic:12345}} {binop:* {call: {atomic:RR}({atomic:0})} {atomic:I}}})}
             sage: CC(0, 12345)._sage_input_(sib, True)
-            {call: {atomic:CC}({binop:* {atomic:12345} {atomic:I}})}
+            {call: {atomic:CC}({binop:* {call: {atomic:RR}({atomic:12345})} {atomic:I}})}
             sage: CC(0, -12345)._sage_input_(sib, False)
-            {unop:- {call: {atomic:CC}({binop:* {atomic:12345} {atomic:I}})}}
+            {unop:- {call: {atomic:CC}({binop:* {call: {atomic:RR}({atomic:12345})} {atomic:I}})}}
             sage: CC(1.579)._sage_input_(sib, True)
             {atomic:1.579}
             sage: CC(1.579)._sage_input_(sib_np, True)
             {atomic:1.579}
             sage: ComplexField(150).zeta(37)._sage_input_(sib, True)
-            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {atomic:0.98561591034770846226477029397621845736859851519} {binop:* {atomic:0.16900082032184907409303555538443060626072476297} {atomic:I}}})}
+            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {atomic:0.98561591034770846226477029397621845736859851519} {binop:* {call: {call: {atomic:RealField}({atomic:150})}({atomic:0.16900082032184907409303555538443060626072476297})} {atomic:I}}})}
             sage: ComplexField(150).zeta(37)._sage_input_(sib_np, True)
             {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.98561591034770846226477029397621845736859851519'})} {binop:* {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.16900082032184907409303555538443060626072476297'})} {atomic:I}}})}
         """
@@ -270,7 +270,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         # The following uses of .sum() and .prod() will simplify
         # 3+0*I to 3, 0+1*I to I, etc.
         real_part = sib(self.real(), 2)
-        imag_part = sib.prod([sib(self.imag(), 2), sib.name('I')],
+        imag_part = sib.prod([sib(self.imag()), sib.name('I')],
                              simplify=True)
         sum = sib.sum([real_part, imag_part], simplify=True)
         if sum._sie_is_negation():

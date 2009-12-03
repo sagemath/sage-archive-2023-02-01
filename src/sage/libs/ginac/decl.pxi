@@ -75,7 +75,7 @@ cdef extern from "ginac_wrap.h":
         int nops()                    except +
         GEx op(int i)                 except +
         GEx eval(int level)           except +
-        GEx evalf(int level, int prec) except +
+        GEx evalf(int level, object parent) except +
         GEx conjugate()               except +
         GEx real_part()               except +
         GEx imag_part()               except +
@@ -203,7 +203,7 @@ cdef extern from "ginac_wrap.h":
     int ginac_error()
     GEx gadd "ADD_WRAP" (GEx left, GEx right) except +
     GEx gsub "SUB_WRAP" (GEx left, GEx right) except +
-    GEx gmul "MUL_WRAP" (GEx left, GEx right) except +
+    GEx gmul "MUL_WRAP" (GEx left, GEx right) except +ArithmeticError
     GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
@@ -283,31 +283,11 @@ cdef extern from "ginac_wrap.h":
     GFunction ex_to_function "ex_to<function>" (GEx ex)
     GFDerivative ex_to_fderivative "ex_to<fderivative>" (GEx ex)
 
-    GEx g_function_evalv(unsigned int serial, GExVector) except +
-    GEx g_function_eval0(unsigned int serial) except +
-    GEx g_function_eval1(unsigned int serial, GEx) except +
-    GEx g_function_eval2(unsigned int serial, GEx, GEx) except +
-    GEx g_function_eval3(unsigned int serial, GEx, GEx, GEx) except +
-    GEx g_function_eval4(unsigned int serial, GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval5(unsigned int serial, GEx, GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval6(unsigned int serial, GEx, GEx, GEx, GEx, GEx, \
-            GEx) except +
-    GEx g_function_eval7(unsigned int serial, GEx, GEx, GEx, GEx, GEx, \
-            GEx, GEx) except +
-    GEx g_function_eval8(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx) except +
-    GEx g_function_eval9(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx) except +
-    GEx g_function_eval10(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval11(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval12(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval13(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx, GEx) except +
-    GEx g_function_eval14(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx, GEx, GEx) except +
+    GEx g_function_evalv(unsigned int serial, GExVector, bint) except +
+    GEx g_function_eval0(unsigned int serial, bint) except +
+    GEx g_function_eval1(unsigned int serial, GEx, bint) except +
+    GEx g_function_eval2(unsigned int serial, GEx, GEx, bint) except +
+    GEx g_function_eval3(unsigned int serial, GEx, GEx, GEx, bint) except +
 
     ctypedef struct GFunctionOpt "function_options":
         unsigned get_nparams()

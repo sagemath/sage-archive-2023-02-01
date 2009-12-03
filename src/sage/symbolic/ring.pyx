@@ -96,8 +96,6 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: SR.coerce(int(2))
             2
-            sage: SR.coerce(pari(2/5))
-            2/5
             sage: SR.coerce(-infinity)
             -Infinity
             sage: SR.has_coerce_map_from(ZZ['t'])
@@ -148,6 +146,12 @@ cdef class SymbolicRing(CommutativeRing):
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Anything with a coercion into any precision of CC
+
+                # In order to have coercion from SR to AA or QQbar,
+                # we disable coercion in the reverse direction.
+                # This makes the following work:
+                # sage: QQbar(sqrt(2)) + sqrt(3)
+                # 3.146264369941973?
                 return R not in (RLF, CLF, AA, QQbar)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
@@ -157,7 +161,7 @@ cdef class SymbolicRing(CommutativeRing):
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):
-                return True
+                return False
 
     def _element_constructor_(self, x):
         """
@@ -180,7 +184,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: x.subs(x=y0/y1)
             y0/y1
             sage: x + long(1)
-            x + 1
+            x + 1L
 
         If `a` is already in the symbolic expression ring, coercing returns
         `a` itself (not a copy)::
@@ -193,7 +197,7 @@ cdef class SymbolicRing(CommutativeRing):
         A Python complex number::
 
             sage: SR(complex(2,-3))
-            2.00000000000000 - 3.00000000000000*I
+            (2-3j)
 
         TESTS::
 
@@ -202,7 +206,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._coerce_(5)
             5
             sage: SR._coerce_(float(5))
-            5.00000000000000
+            5.0
             sage: SR._coerce_(5.0)
             5.00000000000000
 
@@ -242,26 +246,13 @@ cdef class SymbolicRing(CommutativeRing):
                 msg, s, pos = err.args
                 raise TypeError, "%s: %s !!! %s" % (msg, s[:pos], s[pos:])
 
-        from sage.interfaces.maxima import MaximaElement
-        if isinstance(x, MaximaElement):
-            from sage.calculus.calculus import symbolic_expression_from_maxima_element
-            return self(symbolic_expression_from_maxima_element(x))
-
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
 
-        if isinstance(x, (Integer, RealNumber)):
+        if isinstance(x, (Integer, RealNumber, float, long, complex)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)
-        elif isinstance(x, float):
-            from sage.rings.all import RR
-            GEx_construct_pyobject(exp, RR(x))
-        elif isinstance(x, long):
-            GEx_construct_pyobject(exp, Integer(x))
-        elif isinstance(x, complex):
-            from sage.rings.all import CC
-            GEx_construct_pyobject(exp, CC(x))
         elif x is infinity:
             return new_Expression_from_GEx(self, g_Infinity)
         elif x is minus_infinity:
@@ -368,7 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return Integer(0)
 
-    def _an_element_(self):
+    cpdef _an_element_(self):
         """
         Return an element of the symbolic ring, which is used by the
         coercion model.
@@ -378,7 +369,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._an_element_()
             some_variable
         """
-        return self('some_variable')
+        return self.var('some_variable')
 
     def is_field(self, proof = True):
         """
@@ -392,7 +383,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return True
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         """
         Return False, because there are approximate elements in the
         symbolic ring.
@@ -703,5 +694,10 @@ def is_SymbolicVariable(x):
         True
         sage: is_SymbolicVariable(x+2)
         False
+
+    TESTS::
+
+        sage: ZZ[x]
+        Univariate Polynomial Ring in x over Integer Ring
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)

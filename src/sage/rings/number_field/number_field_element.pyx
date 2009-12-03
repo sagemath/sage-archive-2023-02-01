@@ -823,6 +823,28 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.number_field().complex_embeddings(prec)[i](self)
 
+    def _mpfr_(self, R):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: RR(a^2)
+            -1.00000000000000
+            sage: RR(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert a to real number
+
+            sage: (a^2)._mpfr_(RR)
+            -1.00000000000000
+        """
+        C = R.complex_field()
+        tres = C(self)
+        try:
+            return R(tres)
+        except TypeError:
+            raise TypeError, "cannot convert %s to real number"%(self)
+
     def _complex_double_(self, CDF):
         """
         EXAMPLES::
@@ -832,6 +854,18 @@ cdef class NumberFieldElement(FieldElement):
 	    1.0
         """
         return CDF(self.complex_embedding())
+
+    def __complex__(self):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: complex(a)
+            0.99999999999999967j
+            sage: a.__complex__()
+            0.99999999999999967j
+        """
+        return complex(self.complex_embedding())
 
     def is_totally_positive(self):
         """

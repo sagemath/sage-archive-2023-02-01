@@ -7,6 +7,7 @@ cdef class Expression(CommutativeRingElement):
     cdef GEx _gobj
     cdef Expression coerce_in(self, z)
     cpdef object _eval_self(self, R)
+    cpdef object _convert(self, R)
     cpdef bint is_polynomial(self, var)
     cpdef bint is_relational(self)
     cpdef object pyobject(self)

@@ -1051,6 +1051,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: z = (1 + O(t)) + t*s^2
             sage: z*z
             t^2*s^4 + (2*t + O(t^2))*s^2 + 1 + O(t)
+
+            ## More examples from trac 2943, added by Kiran S. Kedlaya 2 Dec 09
+            sage: C.<t> = PowerSeriesRing(Integers())
+            sage: D.<s> = PolynomialRing(C)
+            sage: z = 1 + (t + O(t^2))*s + (t^2 + O(t^3))*s^2
+            sage: z*z
+            (t^4 + O(t^5))*s^4 + (2*t^3 + O(t^4))*s^3 + (3*t^2 + O(t^3))*s^2 + (2*t + O(t^2))*s + 1
         """
         if right == 0 or self == 0:
             return self._parent(0)

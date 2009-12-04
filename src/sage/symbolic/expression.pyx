@@ -1163,6 +1163,75 @@ cdef class Expression(CommutativeRingElement):
             m = '(%s)%s(%s)' % (l, maxima._relation_symbols()[op], r)
         return m
 
+    def _is_symbol(self):
+        """
+        Return True if this symbolic expression consists of only a symbol, i.e.,
+        a symbolic variable.
+
+        EXAMPLES::
+
+            sage: x._is_symbol()
+            True
+            sage: var('y')
+            y
+            sage: y._is_symbol()
+            True
+            sage: (x*y)._is_symbol()
+            False
+            sage: pi._is_symbol()
+            False
+
+        ::
+
+            sage: ((x*y)/y)._is_symbol()
+            True
+            sage: (x^y)._is_symbol()
+            False
+        """
+        return is_a_symbol(self._gobj)
+
+    def _is_constant(self):
+        """
+        Return True if this symbolic expression is a constant.
+
+        This function is intended to provide an interface to query the internal
+        representation of the expression. In this sense, the word `constant`
+        doesn't reflect the mathematical properties of the expression.
+        Expressions which have no variables may return `False`.
+
+        EXAMPLES:
+
+            sage: pi._is_constant()
+            True
+            sage: x._is_constant()
+            False
+            sage: SR(1)._is_constant()
+            False
+
+        Note that the complex I is not a constant::
+
+            sage: I._is_constant()
+            False
+            sage: I._is_numeric()
+            True
+        """
+        return is_a_constant(self._gobj)
+
+    def _is_numeric(self):
+        """
+        Return True if this expression only consists of a numeric object.
+
+        EXAMPLES::
+
+            sage: SR(1)._is_numeric()
+            True
+            sage: x._is_numeric()
+            False
+            sage: pi._is_numeric()
+            False
+        """
+        return is_a_numeric(self._gobj)
+
     cpdef bint is_polynomial(self, var):
         """
         Return True if self is a polynomial in the given variable.

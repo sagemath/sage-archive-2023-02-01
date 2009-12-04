@@ -114,6 +114,7 @@ organized as follows::
         - RandomDirectedGNR
     Graphs with a given degree sequence:
         - DegreeSequence
+        - DegreeSequenceBipartite
         - DegreeSequenceConfigurationModel
         - DegreeSequenceTree
         - DegreeSequenceExpected
@@ -245,6 +246,7 @@ class GraphGenerators():
                     - RandomShell
                 Graphs with a given degree sequence:
                     - DegreeSequence
+                    - DegreeSequenceBipartite
                     - DegreeSequenceConfigurationModel
                     - DegreeSequenceTree
                     - DegreeSequenceExpected
@@ -4364,6 +4366,61 @@ class GraphGenerators():
         """
         import networkx
         return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
+
+    def DegreeSequenceBipartite(self, s1 ,s2 ):
+        r"""
+        Returns a bipartite graph whose two sets have the given
+        degree sequences.
+
+        Given two different sequences of degrees `s_1` and `s_2`,
+        this functions returns ( if possible ) a bipartite graph
+        on sets `A` and `B` such that the vertices in `A` have
+        `s_1` as their degree sequence, while `s_2` is the degree
+        sequence of the vertices in `B`.
+
+        INPUT:
+
+        - ``s_1`` -- list of integers corresponding to the degree
+          sequence of the first set.
+        - ``s_2`` -- list of integers corresponding to the degree
+          sequence of the seccond set.
+
+        ALGORITHM:
+
+        This function works through the computation of the matrix
+        given by the Gale-Ryser theorem, which is in this case
+        the adjacency matrix of the bipartite graph.
+
+        EXAMPLES:
+
+        If we are given as sequences ``[2,2,2,2,2]`` and ``[5,5]``
+        we are given as expected the complete bipartite
+        graph `K_{2,5}` ::
+
+            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,2],[5,5]) # optional - requires GLPK or CBC
+            sage: g.is_isomorphic(graphs.CompleteBipartiteGraph(5,2))   # optional - requires GLPK or CBC
+            True
+
+        Some sequences being uncompatible if, for example, their sums
+        are different, the functions raises a ``ValueError`` when no
+        graph corresponding to the degree sequences exists. ::
+
+            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,1],[5,5]) # optional - requires GLPK or CBC
+            Traceback (most recent call last):
+            ...
+            ValueError: The two partitions must sum to the same value.
+        """
+
+        from sage.combinat.partition import Partition
+        from sage.graphs.bipartite_graph import BipartiteGraph
+
+        s1.sort(reverse=True)
+        s2.sort(reverse=True)
+
+        p1 = Partition(s1)
+        p2 = Partition(s2)
+
+        return BipartiteGraph(p1.gale_ryser_theorem(p2))
 
     def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
         """

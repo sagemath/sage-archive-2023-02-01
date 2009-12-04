@@ -6,7 +6,10 @@ sub_arch = uname[-1]
 print uname, main_arch, sub_arch
 if main_arch == "Darwin":
     if sub_arch == "i386":
-	ARCH = "mac_intel64"
+        if uname[2][0]=='8':
+            ARCH = "mac_ppc" # Intel binary doesn't work on tiger.
+        else:
+            ARCH = "mac_intel64"
     elif sub_arch == "Power Macintosh":
 	ARCH = "mac_ppc"
     else:
@@ -16,8 +19,8 @@ if main_arch == "Linux":
         ARCH = "lin_x86_64"
     else:
         ARCH = "lin_32"
-if main_arch == "AIX":
-    ARCH = "aix"
+#if main_arch == "AIX": #Not currently supported by Sage, although phcpack binaries exist
+#    ARCH = "aix"
 if main_arch == "SunOS":
     ARCH = "sun"
 sage_local = os.environ['SAGE_LOCAL']

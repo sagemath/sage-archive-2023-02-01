@@ -603,6 +603,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             True
             sage: P(x)
             x
+
+        Test coercion between 'degrevlex' and 'lex'::
+
+            sage: B.<a,b,c> = BooleanPolynomialRing(order='lex')
+            sage: P.<a,b,c> = BooleanPolynomialRing(order='degrevlex')
+            sage: B(P('a'))
+            a
+            sage: P(B('a'))
+            a
         """
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
@@ -644,7 +653,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     for monom in other:
                         new_monom = self._monom_monoid._one_element
                         for i in monom.iterindex():
-                            new_monom *= var_mapping[i]
+                            new_monom *= var_mapping[(<BooleanPolynomialRing>(<BooleanPolynomial>other)._parent).pbind[i]]
                         p += new_monom
                     return p
         elif (PY_TYPE_CHECK(other, MPolynomial) or \
@@ -759,7 +768,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     for monom in other:
                         new_monom = self._monom_monoid._one_element
                         for i in monom.iterindex():
-                            new_monom *= var_mapping[i]
+                            new_monom *= var_mapping[(<BooleanPolynomialRing>(<BooleanPolynomial>other)._parent).pbind[i]]
                         p += new_monom
                     return p
         elif (PY_TYPE_CHECK(other, MPolynomial) or \

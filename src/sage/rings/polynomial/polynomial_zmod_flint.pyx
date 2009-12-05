@@ -35,7 +35,7 @@ AUTHORS:
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
 from sage.structure.factorization import Factorization
-from sage.structure.element import coerce_binop
+from sage.structure.element import coerce_binop, parent
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -178,7 +178,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         EXAMPLE::
 
             sage: P.<x> = PolynomialRing(GF(7))
-            sage: f= x^2 + 1
+            sage: f = x^2 + 1
             sage: f(0)
             1
             sage: f(2)
@@ -188,23 +188,36 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: f(x+1)
             x^2 + 2*x + 2
+
+        Test some simple (but important) optimizations::
+
+            sage: f(2) == f(P(2))
+            True
+            sage: f(x) is f
+            True
+            sage: f(1/x)
+            (x^2 + 1)/x^2
         """
-        cdef Polynomial_zmod_flint t
+        cdef Polynomial_zmod_flint t, y
+        cdef long c
         K = self._parent.base_ring()
-        if len(kwds) == 0 and len(x) == 1:
-            try:
-                x = K._coerce_(x[0])
-                return K(zmod_poly_evaluate(&self.x, int(x)))
-            except TypeError:
-                pass
-            try:
-                x = self.parent().coerce(x[0])
+        if not kwds and len(x) == 1:
+            P = parent(x[0])
+            if K.has_coerce_map_from(P):
+                x = K(x[0])
+                return K(zmod_poly_evaluate(&self.x, x))
+            elif self._parent.has_coerce_map_from(P):
+                y = <Polynomial_zmod_flint>self._parent(x[0])
                 t = self._new()
-                zmod_poly_compose_horner(&t.x, &self.x,
-                        &(<Polynomial_zmod_flint>x).x)
+                if zmod_poly_degree(&y.x) == 0:
+                    c = zmod_poly_evaluate(&self.x, zmod_poly_get_coeff_ui(&y.x, 0))
+                    zmod_poly_set_coeff_ui(&t.x, 0, c)
+                elif zmod_poly_degree(&y.x) == 1 and zmod_poly_get_coeff_ui(&y.x, 0) == 0:
+                    c = zmod_poly_get_coeff_ui(&y.x, 1)
+                    if c == 1:
+                        return self
+                zmod_poly_compose_horner(&t.x, &self.x, &y.x)
                 return t
-            except TypeError:
-                pass
         return Polynomial.__call__(self, *x, **kwds)
 
     @coerce_binop
@@ -600,6 +613,35 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             x^6 + 2*x^5 + 3*x^4 + 4*x^3
             sage: p.reverse(degree=2)
             x^2 + 2*x + 3
+
+            sage: R.<x> = GF(101)[]
+            sage: f = x^3 - x + 2; f
+            x^3 + 100*x + 2
+            sage: f.reverse()
+            2*x^3 + 100*x^2 + 1
+            sage: f.reverse() == f(1/x) * x^f.degree()
+            True
+
+        Note that if `f` has zero constant coefficient, its reverse will
+        have lower degree.
+
+        ::
+
+            sage: f = x^3 + 2*x
+            sage: f.reverse()
+            2*x^2 + 1
+
+        In this case, reverse is not an involution unless we explicitly
+        specify a degree.
+
+        ::
+
+            sage: f
+            x^3 + 2*x
+            sage: f.reverse().reverse()
+            x^2 + 2
+            sage: f.reverse(5).reverse(5)
+            x^3 + 2*x
 
         TESTS::
 

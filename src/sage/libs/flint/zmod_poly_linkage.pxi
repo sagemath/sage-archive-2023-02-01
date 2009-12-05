@@ -456,10 +456,10 @@ cdef inline int celement_pow(zmod_poly_t res, zmod_poly_t x, long e, zmod_poly_t
         24998*x^2 + 29761*x + 2252
 
         sage: f^-1
-        1/(24998*x^2 + 29761*x + 2252)
+        18649/(x^2 + 16863*x + 9612)
 
         sage: f^-5
-        1/(20269*x^10 + 20535*x^9 + 7313*x^8 + 7311*x^7 + 16853*x^6 + 142*x^5 + 23853*x^4 + 12065*x^3 + 516*x^2 + 8473*x + 17945)
+        24620/(x^10 + 20309*x^9 + 29185*x^8 + 11948*x^7 + 1965*x^6 + 7713*x^5 + 5810*x^4 + 20457*x^3 + 30732*x^2 + 9706*x + 4485)
 
      Testing the modulus:
 
@@ -471,9 +471,9 @@ cdef inline int celement_pow(zmod_poly_t res, zmod_poly_t x, long e, zmod_poly_t
         15328*x + 6968
 
         sage: pow(f, -2, g)
-        1/(15328*x + 6968)
+        16346/(x + 251)
         sage: (f^2 % g)^-1
-        1/(15328*x + 6968)
+        16346/(x + 251)
 
         sage: pow(f, 5, g)
         7231*x + 17274

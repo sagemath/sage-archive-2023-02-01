@@ -26,6 +26,10 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
+cdef is_FractionField, is_RealField, is_ComplexField
+cdef coerce_binop, generic_power, parent
+cdef ZZ, QQ, RR, CC, RDF, CDF
+
 import operator, copy, re
 
 import sage.rings.rational
@@ -48,7 +52,7 @@ from sage.structure.element import coerce_binop
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
-from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField, RR
+from sage.rings.real_mpfr import RealField, is_RealField, RR
 
 from sage.rings.complex_field import is_ComplexField, ComplexField
 CC = ComplexField()
@@ -57,11 +61,12 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import RingElement, generic_power
+from sage.structure.element import RingElement, generic_power, parent
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
+from sage.rings.fraction_field import is_FractionField
 
 from sage.rings.integral_domain import is_IntegralDomain
 from sage.structure.parent_gens cimport ParentWithGens
@@ -460,6 +465,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(2, 1/2)
             15/8
 
+        Some special cases are optimized.
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^3-2*x
+            sage: f(x) is f
+            True
+            sage: f(1/x)
+            (-2*x^2 + 1)/x^3
+
+            sage: f = x^100 + 3
+            sage: f(0)
+            3
+            sage: parent(f(0))
+            Rational Field
+            sage: parent(f(Qp(5)(0)))
+            5-adic Field with capped relative precision 20
+
         TESTS:
 
         The following shows that \#2360 is indeed fixed.
@@ -486,6 +510,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = ZZ['x'](1000000 * [1])
             sage: f(1)
             1000000
+
+        The following test came up in 9051::
+
+            sage: Cif = ComplexIntervalField(64)
+            sage: R.<x> = Cif[]
+            sage: f = 2*x-1
+            sage: jj = Cif(RIF(0,2))
+            sage: f(jj).center(), f(jj).diameter()
+            (1.00000000000000000, 4.00000000000000000)
 
         AUTHORS:
 
@@ -564,11 +597,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except AttributeError:
                 return result
 
+        if parent(a) is self._parent and a.is_gen():
+            return self
+        elif is_FractionField(parent(a)):
+            try:
+                a_inverse = ~a
+                if a_inverse.denominator() == 1:
+                    a_inverse = a_inverse.numerator()
+                    return self.reverse()(a_inverse) / a_inverse**self.degree()
+            except AttributeError:
+                pass
+
         i = d - 1
         if len(x) > 1:
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
+        elif not a and PY_TYPE_CHECK(a, Element) and a.parent().is_exact(): #without the exactness test we can run into trouble with interval fields.
+            c = self[0]
+            return c + c*a
         elif (d < 4 or d > 50000) and self._compiled is None:
             while i >= 0:
                 result = result * a + self[i]

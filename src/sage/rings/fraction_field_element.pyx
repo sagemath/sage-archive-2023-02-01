@@ -38,6 +38,7 @@ import operator
 
 from sage.structure.element cimport FieldElement, ModuleElement, RingElement, \
         Element
+from sage.structure.element import parent
 
 import integer_ring
 from integer_ring import ZZ
@@ -1045,7 +1046,7 @@ cdef class FractionFieldElement(FieldElement):
                 (<FractionFieldElement>other).__denominator,
                 self.__denominator*(<FractionFieldElement>other).__numerator)
 
-    def valuation(self):
+    def valuation(self, v=None):
         """
         Return the valuation of self, assuming that the numerator and
         denominator have valuation functions defined on them.
@@ -1053,13 +1054,15 @@ cdef class FractionFieldElement(FieldElement):
         EXAMPLES::
 
             sage: x = PolynomialRing(RationalField(),'x').gen()
-            sage: f = (x**3 + x)/(x**2 - 2*x**3)
+            sage: f = (x^3 + x)/(x^2 - 2*x^3)
             sage: f
             (x^2 + 1)/(-2*x^2 + x)
             sage: f.valuation()
             -1
+            sage: f.valuation(x^2+1)
+            1
         """
-        return self.__numerator.valuation() - self.__denominator.valuation()
+        return self.__numerator.valuation(v) - self.__denominator.valuation(v)
 
     def __nonzero__(self):
         """
@@ -1128,6 +1131,43 @@ cdef class FractionFieldElement(FieldElement):
         """
         return (make_element,
                 (self._parent, self.__numerator, self.__denominator))
+
+
+class FractionFieldElement_1poly_field(FractionFieldElement):
+    """
+    A fraction field element where the parent is the fraction field of a univariate polynomial ring.
+
+    Many of the functions here are included for coherence with number fields.
+    """
+    def is_integral(self):
+        """
+        Returns whether this element is actually a polynomial.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field
+        """
+        if self.__denominator != 1:
+            self.reduce()
+        return self.__denominator == 1
+
+    def support(self):
+        """
+        Returns a sorted list of primes dividing either the numerator or denominator of this element.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: h = (t^14 + 2*t^12 - 4*t^11 - 8*t^9 + 6*t^8 + 12*t^6 - 4*t^5 - 8*t^3 + t^2 + 2)/(t^6 + 6*t^5 + 9*t^4 - 2*t^2 - 12*t - 18)
+            sage: h.support()
+            [t - 1, t + 3, t^2 + 2, t^2 + t + 1, t^4 - 2]
+        """
+        L = [fac[0] for fac in self.numerator().factor()] + [fac[0] for fac in self.denominator().factor()]
+        L.sort()
+        return L
+
+
 
 def make_element(parent, numerator, denominator):
     """

@@ -43,6 +43,7 @@ from sage.matrix.constructor import matrix
 from sage.rings.arith import lcm
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
+from sage.structure.element import Element
 
 def is_HeckeAlgebra(x):
     r"""
@@ -295,6 +296,8 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             [ 0  1]
         """
         try:
+            if not isinstance(x, Element):
+                x = self.base_ring()(x)
             if x.parent() is self:
                 return x
             elif hecke_operator.is_HeckeOperator(x):

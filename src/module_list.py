@@ -1107,6 +1107,13 @@ ext_modules = [
     Extension('sage.rings.fraction_field_element',
               sources = ['sage/rings/fraction_field_element.pyx']),
 
+    Extension('sage.rings.fraction_field_FpT',
+              sources = ['sage/rings/fraction_field_FpT.pyx'],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "ntl", "zn_poly"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
+              include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.rings.laurent_series_ring_element',
               sources = ['sage/rings/laurent_series_ring_element.pyx']),
 

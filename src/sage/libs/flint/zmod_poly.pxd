@@ -259,7 +259,7 @@ cdef extern from "FLINT/zmod_poly.h":
 
     # Factorization
 
-    cdef int zmod_poly_isirreducible(zmod_poly_t p)
+    cdef bint zmod_poly_isirreducible(zmod_poly_t p)
 
     ctypedef struct zmod_poly_factors_struct:
         unsigned long num_factors
@@ -270,8 +270,14 @@ cdef extern from "FLINT/zmod_poly.h":
 
     cdef void zmod_poly_factor_init(zmod_poly_factor_t)
     cdef void zmod_poly_factor_clear(zmod_poly_factor_t)
+    cdef unsigned long zmod_poly_factor(zmod_poly_factor_t, zmod_poly_t)
     cdef void zmod_poly_factor_square_free(zmod_poly_factor_t, zmod_poly_t)
-    cdef void zmod_poly_factor(zmod_poly_factor_t, zmod_poly_t)
+    cdef void zmod_poly_factor_berlekamp(zmod_poly_factor_t factors, zmod_poly_t f)
+
+    cdef void zmod_poly_factor_add(zmod_poly_factor_t fac, zmod_poly_t poly)
+    cdef void zmod_poly_factor_concat(zmod_poly_factor_t res, zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_print(zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_pow(zmod_poly_factor_t fac, unsigned long exp)
 
     #
     # Differentiation
@@ -285,19 +291,3 @@ cdef extern from "FLINT/zmod_poly.h":
 
     cdef void zmod_poly_mulmod(zmod_poly_t res, zmod_poly_t poly1, zmod_poly_t poly2, zmod_poly_t f)
     cdef void zmod_poly_powmod(zmod_poly_t res,zmod_poly_t pol, long exp, zmod_poly_t f)
-
-    #
-    # Polynomial factorization
-    #
-
-    cdef void zmod_poly_factor_init(zmod_poly_factor_t fac)
-    cdef void zmod_poly_factor_clear(zmod_poly_factor_t fac)
-    cdef void zmod_poly_factor_add(zmod_poly_factor_t fac, zmod_poly_t poly)
-    cdef void zmod_poly_factor_concat(zmod_poly_factor_t res, zmod_poly_factor_t fac)
-    cdef void zmod_poly_factor_print(zmod_poly_factor_t fac)
-    cdef void zmod_poly_factor_pow(zmod_poly_factor_t fac, unsigned long exp)
-    cdef void zmod_poly_factor_square_free(zmod_poly_factor_t res, zmod_poly_t f)
-    cdef void zmod_poly_factor_berlekamp(zmod_poly_factor_t factors, zmod_poly_t f)
-    cdef unsigned long zmod_poly_factor(zmod_poly_factor_t result, zmod_poly_t input)
-    cdef int zmod_poly_isirreducible(zmod_poly_t f)
-

@@ -49,3 +49,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef IntegerMod_int64 _new_c(self, int_fast64_t value)
     cdef shift(IntegerMod_int64 self, int k)
 
+cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2
+cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0
+cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t n)

@@ -423,7 +423,6 @@ class ContinuedFraction(FieldElement):
             sage: c.pn(13), c.qn(13)
             (245850922, 78256779)
         """
-        n = ZZ(n)
         if n < -2:
             raise ValueError, "n must be at least -2"
         if n > len(self._x):
@@ -448,18 +447,22 @@ class ContinuedFraction(FieldElement):
         EXAMPLES:
             sage: c = continued_fraction(pi); c
             [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
-            sage: c.pn(0), c.qn(0)
-            (3, 1)
+            sage: c.qn(0), c.pn(0)
+            (1, 3)
             sage: len(c)
             14
             sage: c.pn(13), c.qn(13)
             (245850922, 78256779)
         """
-        n = ZZ(n)
         if n < -2:
-            raise ValueError, "n must be >= -2"
-        if len(self.__qn) < n+3:
-            self.pn(n)
+            raise ValueError, "n must be at least -2"
+        if n > len(self._x):
+            raise ValueError, "n must be at most %s"%len(self._x)
+        try:
+            return self.__qn[n+2]
+        except (AttributeError, IndexError):
+            pass
+        self.pn(n)
         return self.__qn[n+2]
 
     def _rational_(self):

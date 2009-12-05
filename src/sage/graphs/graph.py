@@ -2332,6 +2332,107 @@ class GenericGraph(SageObject):
             M[index,index]+=1
             return abs(M.determinant())
 
+    def minimum_outdegree_orientation(self, use_edge_labels=False):
+        r"""
+        Returns a DiGraph which is an orientation with the smallest
+        possible maximum outdegree of the current graph.
+
+        Given a Graph `G`, is is polynomial to compute an orientation
+        `D` of the edges of `G` such that the maximum out-degree in `D`
+	 is minimized. This problem, though, is NP-complete in the
+        weighted case [AMOZ06]_.
+
+        INPUT:
+
+        - ``use_edge_labels`` (boolean)
+
+            - When set to ``True``, uses edge labels as weights to
+              compute the orientation and assumes a weight of `1`
+              when there is no value available for a given edge.
+
+            - When set to ``False`` (default), gives a weight of 1
+              to all the edges.
+
+        EXAMPLE:
+
+        Given a complete bipartite graph `K_{n,m}`, the maximum out-degree
+        of an optimal orientation is
+        `\left\lceil \frac {nm} {n+m}\right\rceil`::
+
+            sage: g = graphs.CompleteBipartiteGraph(3,4)
+            sage: o = g.minimum_outdegree_orientation() # optional - requires GLPK or CBC
+            sage: max(o.out_degree()) == ceil((4*3)/(3+4)) # optional - requires GLPK or CBC
+            True
+
+
+
+        REFERENCES:
+
+        .. [AMOZ06] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.
+          Graph orientation algorithms to minimize the maximum outdegree
+          Proceedings of the 12th Computing: The Australasian Theroy Symposium
+          Volume 51, page 20
+          Australian Computer Society, Inc. 2006
+
+        """
+
+        if self.is_directed():
+            raise ValueError("Cannot compute an orientation of a DiGraph. "+\
+                                 "Please convert it to a Graph if you really mean it.")
+
+        if use_edge_labels:
+            weight = lambda u,v : self.edge_label(u,v) if self.edge_label(u,v)!=None else 1
+        else:
+            weight = lambda u,v : 1
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=False)
+
+        # The orientation of an edge is boolean
+        # and indicates whether the edge uv
+        # with u<v goes from u to v ( equal to 0 )
+        # or from v to u ( equal to 1)
+        orientation = p.new_variable(dim=2)
+
+        degree = p.new_variable()
+
+        # Whether an edge adjacent to a vertex u counts
+        # positively or negatively
+        outgoing = lambda u,v,variable : (1-variable) if u>v else variable
+
+        for u in self:
+            p.add_constraint(sum([weight(u,v)*outgoing(u,v,orientation[min(u,v)][max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
+
+        p.set_objective(degree['max'])
+
+        p.set_binary(orientation)
+
+        p.solve()
+
+        orientation = p.get_values(orientation)
+
+        # All the edges from self are doubled in O
+        # ( one in each direction )
+        O = DiGraph(self)
+
+        # Builds the list of edges that should be removed
+        edges=[]
+
+        for u,v in self.edge_iterator(labels=None):
+            # assumes u<v
+            if u>v:
+                u,v=v,u
+
+            if orientation[min(u,v)][max(u,v)] == 1:
+                edges.append((max(u,v),min(u,v)))
+            else:
+                edges.append((min(u,v),max(u,v)))
+
+        O.delete_edges(edges)
+
+        return O
+
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

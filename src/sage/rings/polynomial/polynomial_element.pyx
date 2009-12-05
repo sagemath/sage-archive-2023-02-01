@@ -2029,9 +2029,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. warning::
 
-        This is not the numerator of the rational function
-        defined by self, which would always be self since self is a
-        polynomial.
+          This is not the numerator of the rational function
+          defined by self, which would always be self since self is a
+          polynomial.
 
         EXAMPLES:
 

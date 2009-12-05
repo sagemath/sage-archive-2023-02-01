@@ -107,10 +107,6 @@ Categories
    sage/categories/vector_spaces
    sage/categories/weyl_groups
 
-.. autoclass:: sage.categories.sets_cat::Sets.ParentMethods
-   :members:
-
-
 Examples of parents using categories
 =====================================
 
@@ -131,5 +127,4 @@ Examples of parents using categories
    sage/categories/examples/semigroups
    sage/categories/examples/sets_cat
    sage/categories/examples/semigroups_cython
-
-.. sage/categories/examples/coxeter_groups
+   sage/categories/examples/coxeter_groups

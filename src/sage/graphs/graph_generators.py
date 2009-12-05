@@ -3382,11 +3382,11 @@ class GraphGenerators():
 
         REFERENCE:
 
-        - [boucheron2001] Boucheron, S. and FERNANDEZ de la VEGA, W.,
-          On the Independence Number of Random Interval Graphs,
-          Combinatorics, Probability and Computing v10, issue 05,
-          Pages 385--396,
-          Cambridge Univ Press, 2001
+        .. [boucheron2001] Boucheron, S. and FERNANDEZ de la VEGA, W.,
+           On the Independence Number of Random Interval Graphs,
+           Combinatorics, Probability and Computing v10, issue 05,
+           Pages 385--396,
+           Cambridge Univ Press, 2001
         """
 
         from sage.misc.prandom import random
@@ -3581,7 +3581,7 @@ class GraphGenerators():
         in the graph if they have a common boundary.
 
         This graph has been built from the data available
-        in The CIA World Factbook [1] (2009-08-21).
+        in The CIA World Factbook [CIA]_ (2009-08-21).
 
         The returned graph ``G`` has a member ``G.gps_coordinates``
         equal to a dictionary containing the GPS coordinates
@@ -3595,7 +3595,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [1] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
+        .. [CIA] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
         """
 
         from sage.structure.sage_object import load

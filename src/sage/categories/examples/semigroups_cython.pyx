@@ -198,7 +198,9 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
     This is purely a proof of concept. The code obviously needs refactorisation!
 
     Comments:
+
     - nested classes seem not to be currently supported by cython
+
     - one cannot play ugly use class surgery tricks (as with _mul_parent)
       available operations should really be declared to the coercion model!
 
@@ -208,12 +210,12 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
         sage: S = LeftZeroSemigroup(); S
         An example of a semigroup: the left zero semigroup
 
-    This is the semigroup which contains all sort of objects:
+    This is the semigroup which contains all sort of objects::
 
         sage: S.some_elements()
         [3, 42, 'a', 3.3999999999999999, 'raton laveur']
 
-    with product rule is given by $a \times b = a$ for all $a,b$.
+    with product rule is given by $a \times b = a$ for all $a,b$. ::
 
         sage: S('hello') * S('world')
         'hello'
@@ -232,7 +234,8 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
 
-        # That's really the only method which is obtained from the category ...
+    That's really the only method which is obtained from the category ... ::
+
         sage: S(42).is_idempotent
         <bound method LeftZeroSemigroupElement.is_idempotent of 42>
         sage: S(42).is_idempotent()

@@ -276,7 +276,7 @@ def float_function(x):
         sage: float_function(float(2e10))
         20000000000.0
 
-    TESTS::
+    TESTS:
 
     trac #7356 fixed::
 

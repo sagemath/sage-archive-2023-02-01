@@ -724,10 +724,11 @@ class LatticePolytopeClass(SageObject):
         Returns the output of ``command`` as a string.
 
         .. note::
-        PALP cannot be called for polytopes that do not span the ambient space.
-        If you specify ``reduce_dimension=True`` argument, PALP will be
-        called for vertices of this polytope in some basis of the affine space
-        it spans.
+
+          PALP cannot be called for polytopes that do not span the ambient space.
+          If you specify ``reduce_dimension=True`` argument, PALP will be
+          called for vertices of this polytope in some basis of the affine space
+          it spans.
 
         TESTS::
 
@@ -1105,13 +1106,13 @@ class LatticePolytopeClass(SageObject):
 
         .. note::
 
-        #. While ``a`` and ``b`` may be rational, the final result must be a
-        lattice polytope, i.e. all vertices must be integral.
+          #. While ``a`` and ``b`` may be rational, the final result must be a
+          lattice polytope, i.e. all vertices must be integral.
 
-        #. If the transform (restricted to this polytope) is bijective, facial
-        structure will be preserved, e.g. the first facet of the image will be
-        spanned by the images of vertices which span the first facet of the
-        original polytope.
+          #. If the transform (restricted to this polytope) is bijective, facial
+          structure will be preserved, e.g. the first facet of the image will be
+          spanned by the images of vertices which span the first facet of the
+          original polytope.
 
         INPUT:
 
@@ -2998,10 +2999,11 @@ def _palp(command, polytopes, reduce_dimension=False):
     ``command``. You should delete it after using.
 
     .. note::
-    PALP cannot be called for polytopes that do not span the ambient space.
-    If you specify ``reduce_dimension=True`` argument, PALP will be
-    called for vertices of this polytope in some basis of the affine space
-    it spans.
+
+      PALP cannot be called for polytopes that do not span the ambient space.
+      If you specify ``reduce_dimension=True`` argument, PALP will be
+      called for vertices of this polytope in some basis of the affine space
+      it spans.
 
     TESTS::
 

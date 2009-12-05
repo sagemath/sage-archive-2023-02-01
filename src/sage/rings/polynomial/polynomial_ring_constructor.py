@@ -248,7 +248,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         False
 
        Note that a univariate polynomial ring is returned, if the list
- 	   of names is of length one. If it is of length zero, a multivariate
+       of names is of length one. If it is of length zero, a multivariate
        polynomial ring with no variables is returned.
 
        ::

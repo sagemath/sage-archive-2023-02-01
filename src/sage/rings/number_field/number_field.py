@@ -139,7 +139,7 @@ def is_NumberFieldHomsetCodomain(codomain):
 
     EXAMPLES:
 
-    This currently accepts any parent (CC, RR, ...) in :class:`Fields`()::
+    This currently accepts any parent (CC, RR, ...) in :class:`Fields`::
 
         sage: from sage.rings.number_field.number_field import is_NumberFieldHomsetCodomain
         sage: is_NumberFieldHomsetCodomain(QQ)
@@ -157,7 +157,7 @@ def is_NumberFieldHomsetCodomain(codomain):
 
     Question: should, for example, QQ-algebras be accepted as well?
 
-    Caveat: Gap objects are not (yet) in ``Fields()``, and therefore
+    Caveat: Gap objects are not (yet) in :class:`Fields`, and therefore
     not accepted as number field homset codomains::
 
         sage: is_NumberFieldHomsetCodomain(gap.Rationals)

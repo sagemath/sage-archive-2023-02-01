@@ -494,7 +494,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     inside of the region.
 
      - ``bordercol`` -- a color (default: ``None``), the color of the border
-      (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but not ``bordercol``)
+       (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but not ``bordercol``)
 
     - ``borderstyle``  -- string (default: 'solid'), one of 'solid', 'dashed', 'dotted', 'dashdot'
 

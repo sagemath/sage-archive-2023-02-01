@@ -484,19 +484,19 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False, style="lattice
 
     INPUT:
 
-     - ``ct`` -- The Cartan Type
+    - ``ct`` -- The Cartan Type
 
     OPTIONAL ARGUMENTS:
 
-     - ``base_ring`` --  (default: `\ZZ`)
+    - ``base_ring`` --  (default: `\ZZ`)
 
-     - ``prefix`` -- (default: an automatically generated prefix based on Cartan type)
+    - ``prefix`` -- (default: an automatically generated prefix based on Cartan type)
 
-     - ``cache`` --  (default False) setting cache = True is a substantial
-       speedup at the expense of some memory.
+    - ``cache`` --  (default False) setting cache = True is a substantial
+      speedup at the expense of some memory.
 
-     - ``style`` -- (default "lattice") can be set style = "coroots"
-       to obtain an alternative representation of the elements.
+    - ``style`` -- (default "lattice") can be set style = "coroots"
+      to obtain an alternative representation of the elements.
 
     If no prefix specified, one is generated based on the Cartan type.
     It is good to name the ring after the prefix, since then it can
@@ -1464,6 +1464,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     EXAMPLES: (Tensor type)
 
     ::
+
         sage: A5=WeylCharacterRing("A5", style="coroots")
         sage: A2xA1=WeylCharacterRing("A2xA1", style="coroots")
         sage: [A5(hwv).branch(A2xA1, rule="tensor") for hwv in A5.fundamental_weights()]
@@ -1673,8 +1674,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
         rule = lambda x : [x[0]-x[3],x[1]-x[2]]
 
     EXAMPLES::
-
-    ::
 
         sage: A3 = WeylCharacterRing(['A',3])
         sage: C2 = WeylCharacterRing(['C',2])

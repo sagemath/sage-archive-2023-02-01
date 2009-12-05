@@ -88,12 +88,14 @@ gsl-config
 gsl-histogram
 gsl-randist
 hg
+hmac256
 hgmerge
 idle
 im
 indep
 ipython
 irunner
+jmol
 kash3
 lcalc
 lcdd
@@ -125,6 +127,11 @@ p_Procs_FieldQ.sog
 p_Procs_FieldZp.so
 p_Procs_FieldZp.sog
 parsezeolog.py
+pilconvert.py
+pildriver.py
+pilfile.py
+pilfont.py
+pilprint.py
 pngtogd
 pngtogd2
 projection
@@ -155,6 +162,7 @@ singular
 smtpd.py
 solve_IP
 space.py
+sphinx-autogen
 sqlite3
 static.cgi
 stats.py

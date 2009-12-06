@@ -254,7 +254,7 @@ class Function_cot(BuiltinFunction):
             sage: n(cot(pi/4),100)
             1.0000000000000000000000000000
             sage: float(cot(1))
-            0.64209261593433065
+            0.64209261593433...
         """
         if parent is float:
             return 1/math.tan(x)

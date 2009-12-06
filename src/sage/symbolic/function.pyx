@@ -683,7 +683,7 @@ cdef class CustomizableFunction(Function):
             sage: cot(0.5) #indirect doctest
             1.83048772171245
             sage: cot(complex(1,2))
-            (0.032797755533752602-0.98432922645819099j)
+            (0.032797755533752602-0.98432922645819...j)
         """
         if isinstance(x, (int, long)):
             return None

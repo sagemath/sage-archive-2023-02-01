@@ -33,6 +33,10 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
    since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
+== readline-6.0p2 (Tim Dumol, December 6th, 2009) ==
+ * Add workaround for Arch Linux readline issues ("undefined symbol:
+   PC") by copying over the system version.
+
 === readline-6.0.p0 (David Kirkby, November 29th, 2009) ===
  * Set the name of the dynamic library that gets copied to
    $SAGE_LOCAL/lib/libreadline.sl.6 on the HP-UX platform.

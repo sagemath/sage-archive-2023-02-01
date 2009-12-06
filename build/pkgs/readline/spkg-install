@@ -153,8 +153,8 @@ export ABI
 
 
 echo "Deleting old readline headers and libs"
-rm -rf $SAGE_LOCAL/include/readline/
-rm -rf $SAGE_LOCAL/lib/libreadline.*
+rm -rf "$SAGE_LOCAL"/include/readline/
+rm -rf "$SAGE_LOCAL"/lib/libreadline.*
 
 # OVERWRITE_READLINE=false; export OVERWRITE_READLINE
 
@@ -168,11 +168,11 @@ if [ -f /etc/SuSE-release ]; then
         if [ -d /usr/include/readline/ ]; then
             echo "The development version of libreadline is installed -> copying"
             if [ `uname -p` = "x86_64" ]; then
-                cp /lib64/libreadline.so.* $SAGE_LOCAL/lib
+                cp /lib64/libreadline.so.* "$SAGE_LOCAL"/lib
             else
-                cp /lib/libreadline.so.* $SAGE_LOCAL/lib
+                cp /lib/libreadline.so.* "$SAGE_LOCAL"/lib
             fi
-            cp -r /usr/include/readline  $SAGE_LOCAL/include
+            cp -r /usr/include/readline  "$SAGE_LOCAL"/include
             exit 0
         else
             echo "No headers found, building library."
@@ -182,12 +182,26 @@ if [ -f /etc/SuSE-release ]; then
     fi
 fi
 
+# We also check for Arch Linux, since it crashes with "undefined symbol: PC".
+# If anyone knows a better way to fix this, please do.
+
+if [ $UNAME = "Linux" -a -n "`uname -r | grep ARCH`" ]; then
+    if [ -f "/usr/lib/libreadline.so" ]; then
+        echo "Copying over system's libreadline."
+        cp /lib/libreadline.so.* "$SAGE_LOCAL"/lib
+        exit 0
+    else
+        echo "Could not find a system copy of libreadline. Exiting."
+        exit 1
+    fi
+fi
+
 
 cd src/
 
 build()
 {
-    ./configure --prefix=$SAGE_LOCAL
+    ./configure --prefix="$SAGE_LOCAL" $CONF_FLAGS
     make install
 }
 
@@ -200,18 +214,18 @@ fi
 set -e
 
 if [ $UNAME = "Darwin" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dylib
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.dylib
 elif [ $UNAME = "CYGWIN" ]; then
   # It is of course very lame that readline names the file .dll.a, but that's what it does.
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dll.a
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.dll.a
 elif [ "$UNAME" = "OpenBSD" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6.0
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so.6.0
 elif [ "$UNAME" = "FreeBSD" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so.6
 elif [ "$UNAME" = "HP-UX" ]; then
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.sl.6
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.sl.6
 else
-  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so
 fi
 
 # # We only enter this block on openSUSE 11.1.
@@ -227,13 +241,13 @@ fi
 
 # Make sure that the install worked, despite whatever the error
 # code of build was.
-if [ -f $DYLIB_NAME -a -f $SAGE_LOCAL/lib/libreadline.a ]; then
+if [ -f "$DYLIB_NAME" -a -f "$SAGE_LOCAL"/lib/libreadline.a ]; then
   # Fix permissions.
-  chmod 755 $SAGE_LOCAL/lib/libreadline.*
-  chmod 755 $SAGE_LOCAL/lib/libhistory.*
+  chmod 755 "$SAGE_LOCAL"/lib/libreadline.*
+  chmod 755 "$SAGE_LOCAL"/lib/libhistory.*
   if [ "$UNAME" = "FreeBSD" ]; then
-    ln -s libreadline.so.6 $SAGE_LOCAL/lib/libreadline.so
-    ln -s libhistory.so.6 $SAGE_LOCAL/lib/libhistory.so
+    ln -s libreadline.so.6 $"SAGE_LOCAL"/lib/libreadline.so
+    ln -s libhistory.so.6 "$SAGE_LOCAL"/lib/libhistory.so
   fi
   exit 0
 else

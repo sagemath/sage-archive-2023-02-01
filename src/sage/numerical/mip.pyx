@@ -305,13 +305,14 @@ class MixedIntegerLinearProgram:
         bound.
 
         EXAMPLE::
+
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
             sage: p.add_constraint(15/10*x[1]+3*x[2], max=4)
             sage: p.constraints()
-            [(3/2*x0 + 3*x1, None, 4), (x0 + 1/5*x1, None, 4)]
+            [(x0 + 1/5*x1, None, 4), (3/2*x0 + 3*x1, None, 4)]
         """
 
         d = [0]*len(self._variables)

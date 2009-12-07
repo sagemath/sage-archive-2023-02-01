@@ -92,19 +92,31 @@ if [ "$UNAME" = "Darwin" ]; then
     cp sage/local/bin/sage-README-osx.txt README.txt
 
     if [ "$SAGE_APP_BUNDLE" = "yes" ]; then
-       echo 'Unpacking Sage.app'
-       tar -xzvf "$SAGE_ROOT/data/extcode/sage/ext/mac-app/Sage.app.tgz"
-       sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
-           ./Sage.app/Contents/Info.plist \
-           ./Sage.app/Contents/Resources/English.lproj/InfoPlist.strings
+        echo 'Copying Sage.app'
+        cp -L$OPT "$SAGE_ROOT/data/extcode/sage/ext/mac-app/Sage.app" ./Sage.app
+        sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
+            ./Sage.app/Contents/Info.plist \
+            ./Sage.app/Contents/Resources/English.lproj/InfoPlist.strings
 
-       mv sage ./Sage.app/Contents/Resources/
+        mv sage ./Sage.app/Contents/Resources/
+
+        # Rename it with the version number
+        mv Sage.app "Sage-$SAGE_VERSION.app"
+    else
+        echo 'If you wish to create a Mac Application please set'
+        echo 'SAGE_APP_BUNDLE=yes'
     fi
 
+    # Go back to the right directory for later copying
     cd "$CUR"/tmp/
-    echo "Creating dmg"
-    DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH; export DYLD_LIBRARY_PATH
-    hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
+    if [ "$SAGE_APP_DMG" = "yes" ]; then
+        echo "Creating dmg"
+        DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH; export DYLD_LIBRARY_PATH
+        hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
+    else
+        echo 'If you wish to create a disk image please set'
+        echo 'SAGE_APP_DMG=yes'
+    fi
 else
     echo "Creating tar.gz"
     tar zcvf "$TARGET".tar.gz "$TARGET"

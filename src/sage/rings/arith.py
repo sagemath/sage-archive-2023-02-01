@@ -1470,9 +1470,9 @@ def xgcd(a, b):
         sage: R.<a,b> = K[]
         sage: S.<y> = R.fraction_field()[]
         sage: xgcd(y^2, a*y+b)
-        (b^2/a^2, 1, ((-1)/a)*y + b/a^2)
+        (1, a^2/b^2, ((-a)/b^2)*y + 1/b)
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
-        ((b^3 + (g)*b^2)/(a^2 + (2*g)*a + 3), 1, ((-b + (-g))/(a + (g)))*y + (b^2 + (g)*b)/(a^2 + (2*g)*a + 3))
+        (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
     We compute an xgcd over the integers, where the linear combination
     is not the gcd but the resultant:
@@ -1481,7 +1481,7 @@ def xgcd(a, b):
         sage: gcd(2*x*(x-1), x^2)
         x
         sage: xgcd(2*x*(x-1), x^2)
-        (-2*x, 1, -2)
+        (2*x, -1, 2)
         sage: (2*(x-1)).resultant(x)
         2
     """
@@ -2435,9 +2435,9 @@ class Euler_Phi:
 
 euler_phi = Euler_Phi()
 
-def crt(a,b,m,n):
+def crt(a,b,m=None,n=None):
     r"""
-    Use the Chinese Remainder Theorem to find some integer `x` such that
+    Use the Chinese Remainder Theorem to find some `x` such that
     `x=a \bmod m` and `x=b \bmod n`. Note that `x` is only well-defined
     modulo `m\*n`.
 
@@ -2456,6 +2456,39 @@ def crt(a,b,m,n):
         True
         sage: c % 5 == 3
         True
+
+    Note that this also works for polynomial rings::
+
+        sage: K.<a> = NumberField(x^3 - 7)
+        sage: R.<y> = K[]
+        sage: f = y^2 + 3
+        sage: g = y^3 - 5
+        sage: CRT(1,3,f,g)
+        -3/26*y^4 + 5/26*y^3 + 15/26*y + 53/26
+        sage: CRT(1,a,f,g)
+        (-3/52*a + 3/52)*y^4 + (5/52*a - 5/52)*y^3 + (15/52*a - 15/52)*y + 27/52*a + 25/52
+
+    You can also do this for any number of moduli::
+
+        sage: K.<a> = NumberField(x^3 - 7)
+        sage: R.<x> = K[]
+        sage: CRT([], [])
+        0
+        sage: CRT([a], [x])
+        a
+        sage: f = x^2 + 3
+        sage: g = x^3 - 5
+        sage: h = x^5 + x^2 - 9
+        sage: k = CRT([1, a, 3], [f, g, h]); k
+        (127/26988*a - 5807/386828)*x^9 + (45/8996*a - 33677/1160484)*x^8 + (2/173*a - 6/173)*x^7 + (133/6747*a - 5373/96707)*x^6 + (-6/2249*a + 18584/290121)*x^5 + (-277/8996*a + 38847/386828)*x^4 + (-135/4498*a + 42673/193414)*x^3 + (-1005/8996*a + 470245/1160484)*x^2 + (-1215/8996*a + 141165/386828)*x + 621/8996*a + 836445/386828
+        sage: k.mod(f)
+        1
+        sage: k.mod(g)
+        a
+        sage: k.mod(h)
+        3
+
+
     """
     if isinstance(a,list):
         return CRT_list(a,b)
@@ -2468,17 +2501,25 @@ CRT = crt
 
 def CRT_list(v, moduli):
     """
-    Given a list v of integers and a list of corresponding moduli, find
-    a single integer that reduces to each element of v modulo the
+    Given a list v of elements and a list of corresponding moduli, find
+    a single element that reduces to each element of v modulo the
     corresponding moduli.
 
     EXAMPLES::
 
         sage: CRT_list([2,3,2], [3,5,7])
         23
+        sage: x = polygen(QQ)
+        sage: c = CRT_list([3], [x]); c
+        3
+        sage: c.parent()
+        Univariate Polynomial Ring in x over Rational Field
+
     """
     if len(v) == 0:
         return 0
+    if len(v) == 1:
+        return moduli[0].parent()(v[0])
     x = v[0]
     m = moduli[0]
     for i in range(1,len(v)):

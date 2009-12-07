@@ -486,11 +486,18 @@ class Function_arctan2(GinacFunction):
 
         Returns the arc tangent (measured in radians) of `y/x`, where
         unlike ``arctan(y/x)``, the signs of both ``x`` and ``y`` are
-        considered.
+        considered.  In particular, this function measures the angle
+        of a ray through the origin and `(x,y)`, with the positive
+        `x`-axis the zero mark, and with output angle `\theta`
+        being between `-\pi<\theta<=\pi`.
+
+        Hence, ``arctan2(y,x) = arctan(y/x)`` only for `x>0`.  One
+        may consider the usual arctan to measure angles of lines
+        through the origin, while the modified function measures
+        rays through the origin.
 
         Note that the `y`-coordinate is by convention the first input.
 
-        ``arctan2(y,x) = arctan(y/x)``
 
         EXAMPLES:
 

@@ -4691,9 +4691,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
-            (27*x^2 + 54, 1, -x^2 - 3*x - 9)
+            (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
             sage: u*F + v*G
-            27*x^2 + 54
+            x^2 + 2
 
         ::
 
@@ -4725,7 +4725,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             V1 = T
             V3 = R
         V = (G-A*U)//B
-        return G, U, V
+        lc = G.leading_coefficient()
+        return G/lc, U/lc, V/lc
 
     def is_irreducible(self):
         """

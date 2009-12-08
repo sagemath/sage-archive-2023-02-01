@@ -11,7 +11,6 @@ GPL V2+
 == SPKG Maintainers ==
 
  * Burcin Erocal - burcin <AT> spam.erocal.org
- * Michael Abshoff
 
 == Upstream Contact ==
 
@@ -32,6 +31,19 @@ If build fails trying to run autoheader, run
 in the src directory.
 
 == Changelog ==
+
+=== pynac-0.1.10 (Burcin Erocal, November 22, 2009) ===
+ * Minor changes to auto* files to make them work with libtool-2.
+ * Fix hash collisions for fderivatives yet again.
+ * Fix segfault when mul tries to simplify powers of exp.
+ * Latex typesetting of nested powers print valid latex code.
+ * Latex typesetting of add and mul uses \left( and \right).
+
+=== pynac-0.1.10.a0 (Burcin Erocal, November 19, 2009) ===
+ * Pass parent instead of precision to custom evalf methods
+ * Pass function instance to custom methods of functions
+ * Change typesetting to match Sage conventions
+ * Handle exceptions while autoevaluating exp
 
 === pynac-0.1.9.p0 (Burcin Erocal, September 24, 2009) ===
  * Put parenthesis around exp when printing powers.

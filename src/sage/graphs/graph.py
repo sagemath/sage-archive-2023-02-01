@@ -65,6 +65,10 @@ AUTHORS:
 
 -  Anders Jonsson (2009-10-10): Counting of spanning trees and out-trees added.
 
+-  Nathann Cohen (2009-09) : Cliquer, Connectivity, Flows
+                             and everything that uses Linear Programming
+                             and class numerical.MIP
+
 
 Graph Format
 ------------

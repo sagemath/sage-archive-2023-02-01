@@ -344,11 +344,11 @@ if [ $? -eq 0 ]; then
             echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
             echo "If you want to try to fix the problem yourself, *don't* just cd to"
             echo "`pwd` and type 'make check' or whatever is appropriate."
-            echo "Instead type \"$SAGE_ROOT/sage -sh\""
-            echo "in order to set all environment variables correctly, then cd to"
-            echo "`pwd`"
-            echo "(When you are done debugging, you can type \"exit\" to leave the"
-            echo "subshell.)"
+            echo "Instead, the following commands setup all environment variables"
+            echo "correctly and load a subshell for you to debug the error:"
+            echo "(cd '`pwd`' && '$SAGE_ROOT/sage' -sh)"
+            echo "When you are done debugging, you can type \"exit\" to leave the"
+            echo "subshell."
             exit 1
         else
             echo "TEST SUITE: passed" >> "$PKG_NAME"
@@ -369,18 +369,17 @@ if [ $? -eq 0 ]; then
     fi
 
 else
-
     echo "sage: An error occurred while installing $PKG_NAME"
     echo "Please email sage-devel http://groups.google.com/group/sage-devel"
     echo "explaining the problem and send the relevant part of"
     echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
     echo "If you want to try to fix the problem yourself, *don't* just cd to"
-    echo "`pwd` and type 'make'."
-    echo "Instead type \"$SAGE_ROOT/sage -sh\""
-    echo "in order to set all environment variables correctly, then cd to"
-    echo "`pwd`"
-    echo "(When you are done debugging, you can type \"exit\" to leave the"
-    echo "subshell.)"
+    echo "`pwd` and type 'make check' or whatever is appropriate."
+    echo "Instead, the following commands setup all environment variables"
+    echo "correctly and load a subshell for you to debug the error:"
+    echo "(cd '`pwd`' && '$SAGE_ROOT/sage' -sh)"
+    echo "When you are done debugging, you can type \"exit\" to leave the"
+    echo "subshell."
     exit 1
 fi
 

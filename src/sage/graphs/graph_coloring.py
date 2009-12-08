@@ -1,5 +1,5 @@
 """
-Graph Coloring Functions
+Graph Coloring
 
 AUTHORS:
 
@@ -28,26 +28,29 @@ def all_graph_colorings(G,n,count_only=False):
     into an implementation of the Dancing Links algorithm described
     by Knuth (who attributes the idea to Hitotumatu and Noshita).
 
-    The construction works as follows:
-     (columns)
-      * The first `|V|` columns correspond to a vertex -- a `1` in this
-           column indicates that that vertex has a color.
-      * After those `|V|` columns, we add `n*|E|` columns -- a `1` in
-           these columns indicate that a particular edge is
-           incident to a vertex with a certain color.
+    The construction works as follows. Columns:
 
-     (rows)
-      * For each vertex, add `n` rows; one for each color `c`.  Place
-           a `1` in the column corresponding to the vertex, and a `1`
-           in the appropriate column for each edge incident to the
-           vertex, indicating that that edge is incident to the
-           color `c`.
-      * If `n > 2`, the above construction cannot be exactly covered
-           since each edge will be incident to only two vertices
-           (and hence two colors) - so we add `n*|E|` rows, each one
-           containing a `1` for each of the `n*|E|` columns.  These
-           get added to the cover solutions "for free" during the
-           backtracking.
+    * The first `|V|` columns correspond to a vertex -- a `1` in this
+      column indicates that that vertex has a color.
+
+    * After those `|V|` columns, we add `n*|E|` columns -- a `1` in
+      these columns indicate that a particular edge is
+      incident to a vertex with a certain color.
+
+    Rows:
+
+    * For each vertex, add `n` rows; one for each color `c`.  Place
+      a `1` in the column corresponding to the vertex, and a `1`
+      in the appropriate column for each edge incident to the
+      vertex, indicating that that edge is incident to the
+      color `c`.
+
+    * If `n > 2`, the above construction cannot be exactly covered
+      since each edge will be incident to only two vertices
+      (and hence two colors) - so we add `n*|E|` rows, each one
+      containing a `1` for each of the `n*|E|` columns.  These
+      get added to the cover solutions "for free" during the
+      backtracking.
 
     Note that this construction results in `n*|V| + 2*n*|E| + n*|E|`
     entries in the matrix.  The Dancing Links algorithm uses a
@@ -60,7 +63,8 @@ def all_graph_colorings(G,n,count_only=False):
     transformed for `4`-coloring in linear time since `|E| = O(|V|)`.
 
     REFERENCES:
-        http://www-cs-staff.stanford.edu/~uno/papers/dancing-color.ps.gz
+
+    http://www-cs-staff.stanford.edu/~uno/papers/dancing-color.ps.gz
 
     EXAMPLES::
 
@@ -230,7 +234,6 @@ def chromatic_number(G):
         sage: G = graphs.PetersenGraph()
         sage: G.chromatic_number()
         3
-
     """
     o = G.order()
     if o == 0:
@@ -673,12 +676,15 @@ class Test:
 
     def random_all_graph_colorings(self,tests = 1000):
         r"""
-        Verifies the results of all_graph_colorings in three ways:
-            1) all colorings are unique
-            2) number of m-colorings is `P(m)` (where `P` is the chromatic
-               polynomial of the graph being tested)
-            3) colorings are valid -- that is, that no two vertices of
-               the same color share an edge.
+        Verifies the results of ``all_graph_colorings()`` in three ways:
+
+        #. all colorings are unique
+
+        #. number of m-colorings is `P(m)` (where `P` is the chromatic
+           polynomial of the graph being tested)
+
+        #. colorings are valid -- that is, that no two vertices of
+           the same color share an edge.
 
         TESTS::
 

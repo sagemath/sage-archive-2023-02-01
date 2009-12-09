@@ -208,6 +208,8 @@ elif [ "$UNAME" = "OpenBSD" ]; then
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6.0
 elif [ "$UNAME" = "FreeBSD" ]; then
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.6
+elif [ "$UNAME" = "HP-UX" ]; then
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.sl.6
 else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
 fi

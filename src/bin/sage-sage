@@ -8,8 +8,10 @@ usage() {
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -h            -- print this help message"
     echo "  -v, -version  -- print the Sage version"
-    echo "  -notebook [options] -- start the Sage notebook (options are"
+    echo "  -notebook [options] or -n [options] -- start the Sage notebook (options are"
     echo "                   the same as to the notebook command in Sage)"
+    echo "  -build-and-notebook [options] or -bn [options] -- build the Sage library then start"
+    echo "                   the Sage notebook"
     echo "  -inotebook [options] -- start the *insecure* Sage notebook "
     echo "  -i [packages] -- install the given Sage packages"
     echo "  -min ...      -- do not populate global namespace (must be first option)"
@@ -511,12 +513,33 @@ fi
 # Run Sage's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
-if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
+build_sage() {
+    if [ "$SAGE_PBUILD" == "yes" ]; then
+        echo 'Pbuild is currently broken -- defaulting to serial build.'
+        # if [ "$@" ]; then
+        #     ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
+        # fi
+        # time python "$SAGE_ROOT"/devel/sage/build.py -b
+        sage-build "$@"
+    else
+        sage-build "$@"
+    fi
+}
+
+if [ $1 = "-notebook"  -o $1 = '--notebook' -o $1 = '-n' ]; then
    cd "$CUR"
    shift
    sage-cleaner &
    sage-notebook "$@"
    exit $?
+fi
+
+if [ $1 = "-bn" -o $1 = "--build-and-notebook" ]; then
+    cd "$CUR"
+    shift
+    sage-cleaner &
+    build_sage && sage-notebook "$@"
+    exit $?
 fi
 
 if [ $1 = "-inotebook"  -o $1 = '--inotebook' ]; then
@@ -563,31 +586,13 @@ fi
 
 if [ $1 = '-b' ]; then
     shift
-    if [ "$SAGE_PBUILD" == "yes" ]; then
-        echo 'Pbuild is currently broken -- defaulting to serial build.'
-        # if [ "$@" ]; then
-        #     ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
-        # fi
-        # time python "$SAGE_ROOT"/devel/sage/build.py -b
-        time sage-build "$@"
-    else
-        time sage-build "$@"
-    fi
+    time build_sage "$@"
     exit $?
 fi
 
 if [ $1 = '-br' -o $1 = "--br" ]; then
     shift
-    if [ "$SAGE_PBUILD" == "yes" ]; then
-        echo 'Pbuild is currently broken -- defaulting to serial build.'
-        # if [ "$@" ]; then
-        #     ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
-        # fi
-        # python "$SAGE_ROOT"/devel/sage/build.py -b && sage
-        sage-build "$@" && sage
-    else
-        sage-build "$@" && sage
-    fi
+    build_sage "$@" && sage
     exit $?
 fi
 
@@ -621,33 +626,13 @@ if [ $1 = '-ba' ]; then
    if [ $CHOICE = 'n' ]; then
 	   exit 0
    fi
-   if [ "$SAGE_PBUILD" == "yes" ]; then
-        echo 'Pbuild is currently broken -- defaulting to serial build.'
-        # if [ "$@" ]; then
-        #     echo 'foo'
-        #     ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
-        # fi
-        # python "$SAGE_ROOT"/devel/sage/build.py --all
-        sage-build -b "$@"
-   else
-      sage-build -b "$@"
-   fi
+   build_sage -b "$@"
    exit $?
 fi
 
 if [ $1 = '-ba-force' ]; then
    shift
-   if [ "$SAGE_PBUILD" == "yes" ]; then
-        echo 'Pbuild is currently broken -- defaulting to serial build.'
-        # if [ "$@" ]; then
-        #     echo 'foo'
-        #     ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
-        # fi
-        # python "$SAGE_ROOT"/devel/sage/build.py --all
-        sage-build -b "$@"
-   else
-      sage-build -b "$@"
-   fi
+   build_sage -b "$@"
    exit $?
 fi
 

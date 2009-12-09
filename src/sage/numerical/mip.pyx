@@ -194,6 +194,31 @@ class MixedIntegerLinearProgram:
             self._constraints_bounds_max == p._constraints_bounds_max
             )
 
+    def __getitem__(self, v):
+        r"""
+        Returns the symbolic variable corresponding to the key
+        from a default dictionary.
+
+        It returns the element asked, and otherwise creates it.
+        If necessary, it also creates the default dictionary.
+
+        This method lets the user define LinearProgram without having to
+        define independent dictionaries when it is not necessary for him.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.set_objective(p['x'] + p['z'])
+            sage: p['x']
+            x0
+        """
+
+        try:
+            return self._default_mipvariable[v]
+        except AttributeError:
+            self._default_mipvariable = self.new_variable()
+            return self._default_mipvariable[v]
+
     def set_problem_name(self,name):
         r"""
         Sets the name of the ``MixedIntegerLinearProgram``.
@@ -930,7 +955,7 @@ class MixedIntegerLinearProgram:
             sage: b = p.new_variable()
             sage: p.set_objective(sum([b[v] for v in g]))
             sage: p.set_binary(b)
-            sage: p.solve(solver='GLPK', objective_only=True)
+            sage: p.solve(solver='GLPK', objective_only=True) # optional - requires GLPK
             Traceback (most recent call last):
             ...
             NotImplementedError: ...

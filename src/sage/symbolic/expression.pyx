@@ -6273,7 +6273,7 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     param = A[0]
 
-                f = self._fast_float_(param)
+                f = self._plot_fast_callable(param)
             else:
                 A = self.variables()
                 if len(A) == 0:
@@ -6281,19 +6281,50 @@ cdef class Expression(CommutativeRingElement):
                     #like 2*sin, which has takes arguments which
                     #aren't explicitly given
                     n = self.number_of_arguments()
-                    f = self._fast_float_()
+                    f = self._plot_fast_callable()
                 else:
                     param = A[0]
                     try:
-                        f = self._fast_float_(param)
+                        f = self._plot_fast_callable(param)
                     except NotImplementedError:
                         return self.function(param)
         else:
             try:
-                f = self._fast_float_(param)
+                f = self._plot_fast_callable(param)
             except NotImplementedError:
                 return self.function(param)
         return plot(f, *args, **kwds)
+
+    def _plot_fast_callable(self, *vars):
+        """
+        Internal function used for creating a fast callable version of this
+        symbolic expression for plotting.
+
+        EXAMPLES::
+
+            sage: s = abs((1+I*x)^4); s
+            abs((I*x + 1)^4)
+            sage: s._plot_fast_callable(x)
+            <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
+            sage: s._plot_fast_callable(x)(10)
+            10201
+            sage: abs((I*10+1)^4)
+            10201
+            sage: plot(s)
+        """
+        try:
+            # First we try fast float.  However, this doesn't work on some
+            # input where fast_callable works fine.
+            return self._fast_float_(*vars)
+        except (TypeError, NotImplementedError):
+            # Now we try fast_callable as a fallback, since it works in some
+            # cases when fast_float doesn't, e.g., when I is anywhere in the
+            # expression fast_float doesn't work but fast_callable does in some
+            # cases when the resulting expression is real.
+            from sage.ext.fast_callable import fast_callable
+            # I tried calling self._fast_callable_ but that's too complicated
+            # of an interface so we just use the fast_callable function.
+            return fast_callable(self, vars=vars)
 
     ############
     # Calculus #

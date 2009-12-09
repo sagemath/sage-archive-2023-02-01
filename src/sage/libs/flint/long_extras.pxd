@@ -93,3 +93,12 @@ cdef extern from "FLINT/long_extras.h":
     cdef unsigned long z_primitive_root(unsigned long p)
 
     cdef unsigned long z_primitive_root_precomp(unsigned long p, double p_inv)
+
+    ctypedef struct factor_t:
+        int num
+        unsigned long p[15]
+        unsigned long exp[15]
+
+    cdef unsigned long z_factor(factor_t *, unsigned long, int)
+
+

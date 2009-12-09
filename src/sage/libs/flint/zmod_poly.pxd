@@ -15,6 +15,14 @@ cdef extern from "FLINT/zmod_poly.h":
 
     ctypedef zmod_poly_struct* zmod_poly_t
 
+    ctypedef struct zmod_poly_factor_struct:
+        zmod_poly_t *factors
+        unsigned long *exponents
+        unsigned long alloc
+        unsigned long num_factors
+
+    ctypedef zmod_poly_factor_struct* zmod_poly_factor_t
+
     cdef void zmod_poly_init(zmod_poly_t poly, unsigned long p)
     cdef void zmod_poly_init_precomp(zmod_poly_t poly, unsigned long p, double p_inv)
     cdef void zmod_poly_init2(zmod_poly_t poly, unsigned long p, unsigned long alloc)
@@ -242,6 +250,8 @@ cdef extern from "FLINT/zmod_poly.h":
     cdef int zmod_poly_gcd_invert(zmod_poly_t res, zmod_poly_t poly1, zmod_poly_t poly2)
     cdef void zmod_poly_xgcd(zmod_poly_t res, zmod_poly_t s, zmod_poly_t t, zmod_poly_t poly1, zmod_poly_t poly2)
 
+
+
     # Composition / evaluation
 
     cdef unsigned long zmod_poly_evaluate(zmod_poly_t, unsigned long)
@@ -263,5 +273,31 @@ cdef extern from "FLINT/zmod_poly.h":
     cdef void zmod_poly_factor_square_free(zmod_poly_factor_t, zmod_poly_t)
     cdef void zmod_poly_factor(zmod_poly_factor_t, zmod_poly_t)
 
-    # FLINT 1.1 will have:
-    # cdef void zmod_poly_powmod(zmod_poly_t res, zmod_poly_t pol, long exp, zmod_poly_t f)
+    #
+    # Differentiation
+    #
+
+    cdef void zmod_poly_derivative(zmod_poly_t res, zmod_poly_t poly)
+
+    #
+    # Arithmetic modulo a polynomial
+    #
+
+    cdef void zmod_poly_mulmod(zmod_poly_t res, zmod_poly_t poly1, zmod_poly_t poly2, zmod_poly_t f)
+    cdef void zmod_poly_powmod(zmod_poly_t res,zmod_poly_t pol, long exp, zmod_poly_t f)
+
+    #
+    # Polynomial factorization
+    #
+
+    cdef void zmod_poly_factor_init(zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_clear(zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_add(zmod_poly_factor_t fac, zmod_poly_t poly)
+    cdef void zmod_poly_factor_concat(zmod_poly_factor_t res, zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_print(zmod_poly_factor_t fac)
+    cdef void zmod_poly_factor_pow(zmod_poly_factor_t fac, unsigned long exp)
+    cdef void zmod_poly_factor_square_free(zmod_poly_factor_t res, zmod_poly_t f)
+    cdef void zmod_poly_factor_berlekamp(zmod_poly_factor_t factors, zmod_poly_t f)
+    cdef unsigned long zmod_poly_factor(zmod_poly_factor_t result, zmod_poly_t input)
+    cdef int zmod_poly_isirreducible(zmod_poly_t f)
+

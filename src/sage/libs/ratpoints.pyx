@@ -3,72 +3,6 @@ Hyperelliptic Curve Point Finding, via ratpoints.
 
 """
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-from sage.rings.integer cimport Integer
-cdef extern from "ratpoints.h":
-    long RATPOINTS_MAX_DEGREE
-    long RATPOINTS_ARRAY_SIZE
-    long RATPOINTS_DEFAULT_SP1
-    long RATPOINTS_DEFAULT_SP2
-    long RATPOINTS_DEFAULT_NUM_PRIMES
-    long RATPOINTS_DEFAULT_MAX_FORBIDDEN
-    long RATPOINTS_DEFAULT_STURM
-    long RATPOINTS_NON_SQUAREFREE
-    long RATPOINTS_BAD_ARGS
-
-    # for args flags:
-    long RATPOINTS_NO_CHECK # when set, do not check whether the surviving
-                            # x-coordinates give rise to rational points
-    long RATPOINTS_NO_Y # when set, only list x coordinates instead of actual points
-    long RATPOINTS_NO_REVERSE # when set, do not modify the mpz_t array
-    long RATPOINTS_NO_JACOBI # when set, prevent use of Jacobi symbol test
-    long RATPOINTS_VERBOSE # when set, print some output on what ratpoints is doing
-    # define RATPOINTS_FLAGS_INPUT_MASK \
-    # (RATPOINTS_NO_CHECK | RATPOINTS_NO_Y | RATPOINTS_NO_REVERSE | \
-    #  RATPOINTS_NO_JACOBI | RATPOINTS_VERBOSE)
-
-
-    ctypedef struct ratpoints_interval:
-        double low
-        double up
-    ctypedef struct ratpoints_args:
-        mpz_t *cof
-        long degree
-        long height
-        ratpoints_interval *domain
-        long num_inter
-        long b_low
-        long b_high
-        long sp1
-        long sp2
-        long array_size
-        long sturm
-        long num_primes
-        long max_forbidden
-        unsigned int flags
-        # from here: private data
-        # mpz_t *work
-        # void *se_buffer
-        # void *se_next
-        # void *ba_buffer
-        # void *ba_next
-        # int *int_buffer
-        # int *int_next
-        # void *sieve_list
-    long find_points(ratpoints_args*, int proc(long, long, mpz_t, void*, int*), void*)
-    void find_points_init(ratpoints_args*)
-    long find_points_work(ratpoints_args*, int proc(long, long, mpz_t, void*, int*), void*)
-    void find_points_clear(ratpoints_args*)
-
-ctypedef struct point_list:
-    long *xes
-    mpz_t *ys
-    long *zs
-    long array_size
-    long num_points
-    long max_num_points
-
 cdef int process(long x, long z, mpz_t y, void *info0, int *quit):
     # ratpoints calls this function when it finds a point [x : y : z]
     # info0 is the pointer passed to ratpoints originally
@@ -224,5 +158,49 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0):
     sage_free(plist)
 
     return L
+
+cdef int process_exists_only(long x, long z, mpz_t y, void *info0, int *quit):
+    cdef info_struct_exists_only *info_s = <info_struct_exists_only *>info0
+    cdef Integer YY
+    if info_s.verbose:
+        YY = Integer(0); mpz_set(YY.value, y)
+        print 'Found point [ %d : %d : %d ], quitting'%(x,YY,z)
+    quit[0] = -1
+    return 1
+
+cdef bint ratpoints_mpz_exists_only(mpz_t *coeffs, long H, int degree, bint verbose):
+    """
+    Direct call to ratpoints to search for existence only.
+
+    WARNING - The coefficient array will be modified by ratpoints.
+    """
+    cdef ratpoints_args args
+    cdef info_struct_exists_only info_s
+    cdef long total, verby = ~0 if verbose else 0
+    info_s.verbose = verbose
+    assert degree <= RATPOINTS_MAX_DEGREE
+    args.degree = degree
+    args.cof = coeffs
+    args.domain = <ratpoints_interval *> sage_malloc(2*args.degree * sizeof(ratpoints_interval))
+    args.height = H
+    args.num_inter = 0
+    args.b_low = 1
+    args.b_high = H
+    args.sp1 = RATPOINTS_DEFAULT_SP1
+    args.sp2 = RATPOINTS_DEFAULT_SP2
+    args.array_size = RATPOINTS_ARRAY_SIZE
+    args.sturm = RATPOINTS_DEFAULT_STURM
+    args.num_primes = RATPOINTS_DEFAULT_NUM_PRIMES
+    args.max_forbidden = RATPOINTS_DEFAULT_MAX_FORBIDDEN
+    args.flags = (RATPOINTS_VERBOSE & verby)
+    total = find_points(&args, process_exists_only, <void *>(&info_s))
+    sage_free(args.domain)
+    if total == RATPOINTS_NON_SQUAREFREE:
+        raise RuntimeError('Polynomial must be square-free')
+    if total == RATPOINTS_BAD_ARGS:
+        raise RuntimeError('Bad arguments to ratpoints')
+    return (total > 0)
+
+
 
 

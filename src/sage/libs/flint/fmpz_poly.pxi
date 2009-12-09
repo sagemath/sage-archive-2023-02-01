@@ -25,6 +25,7 @@ cdef extern from "FLINT/fmpz_poly.h":
     void fmpz_poly_truncate(fmpz_poly_t poly, unsigned long length)
 
     void fmpz_poly_set(fmpz_poly_t result, fmpz_poly_t poly)
+    void fmpz_poly_zero(fmpz_poly_t poly)
     void fmpz_poly_set_coeff_si(fmpz_poly_t poly, unsigned long n, long x)
     void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, unsigned long n, \
             unsigned long x)
@@ -103,5 +104,11 @@ cdef extern from "FLINT/fmpz_poly.h":
 
     unsigned long fmpz_poly_resultant_bound(fmpz_poly_t a, fmpz_poly_t b)
     void fmpz_poly_resultant(fmpz_t r, fmpz_poly_t a, fmpz_poly_t b)
+
+    void fmpz_poly_invmod(fmpz_t d, fmpz_poly_t H, fmpz_poly_t poly1, fmpz_poly_t poly2)
+    void fmpz_poly_derivative(fmpz_poly_t der, fmpz_poly_t poly)
+    void fmpz_poly_evaluate(fmpz_t output, fmpz_poly_t poly, fmpz_t val)
+    void fmpz_poly_compose(fmpz_poly_t output, fmpz_poly_t f, fmpz_poly_t g)
+    void fmpz_poly_scalar_div_ui(fmpz_poly_t output, fmpz_poly_t poly, unsigned long x)
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)

@@ -446,7 +446,7 @@ ext_modules = [
 
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
-              #depends = [SAGE_ROOT + 'local/include/ratpoints.h'],
+              depends = [SAGE_ROOT + '/local/include/ratpoints.h'],
               libraries = ["ratpoints", "gmp"]),
 
     Extension('sage.libs.singular.singular',
@@ -1281,6 +1281,15 @@ ext_modules = [
     ## sage.schemes
     ##
     ################################
+
+    Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
+              sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
+              extra_compile_args=["-std=c99"],
+              depends = [SAGE_ROOT + '/local/include/ratpoints.h',
+                         SAGE_ROOT + '/local/include/gmp.h',
+                         SAGE_ROOT + '/local/include/FLINT/flint.h'],
+              include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
+              libraries = ['flint', 'gmp', 'ratpoints']),
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',

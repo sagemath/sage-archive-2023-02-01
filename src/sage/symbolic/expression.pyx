@@ -1904,6 +1904,13 @@ cdef class Expression(CommutativeRingElement):
             sage: u = -t*A; u
             1
 
+        Products of non integer powers of exp are not simplified::
+
+            sage: exp(x)^I*exp(z)^(2.5)
+            (e^x)^I*(e^z)^2.50000000000000
+
+        ::
+
             sage: x*oo
             +Infinity
             sage: -x*oo

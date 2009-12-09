@@ -48,6 +48,31 @@ class Function_exp(GinacFunction):
             e^{\sqrt{x}}
             sage: latex(exp)
             \exp
+
+        Test simplifications when taking powers of exp, #7264::
+
+            sage: var('a,b,c,I')
+            (a, b, c, I)
+            sage: model_exp = exp(I)**a*(b)
+            sage: sol1_l={b: 5.0, a: 1.1}
+            sage: model_exp.subs(sol1_l)
+            5.00000000000000*(e^I)^1.10000000000000
+
+        ::
+
+            sage: exp(3)^I*exp(x)
+            (e^3)^I*e^x
+            sage: exp(x)*exp(x)
+            e^(2*x)
+            sage: exp(x)*exp(a)
+            e^(a + x)
+            sage: exp(x)*exp(a)^2
+            e^(2*a + x)
+
+        Another instance of the same problem, #7394::
+
+            sage: 2*sqrt(e)
+            2*sqrt(e)
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))

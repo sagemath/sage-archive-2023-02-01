@@ -34,6 +34,7 @@ interface http://www.sagenb.org/ on the web.
    linear_algebra
    linear_codes
    graph_theory
+   linear_programming
    rep_theory
    rings
    polynomials
@@ -44,6 +45,7 @@ interface http://www.sagenb.org/ on the web.
    algebraic_geometry
    interface_issues
    contributions
+
 
 Indices and tables
 ==================

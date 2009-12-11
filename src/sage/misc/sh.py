@@ -6,11 +6,10 @@ class Sh:
     r"""
     Evaluates a shell script and returns the output.
 
-    To use this from the notebook type \code{\%sh}
-    at the beginning of the input cell.
-
-    The working directory is the temporary directory where
-    the Sage worksheet process is executing.
+    To use this from the notebook type \code{\%sh} at the beginning of
+    the input cell.  The working directory is then the (usually
+    temporary) directory where the Sage worksheet process is
+    executing.
     """
     def eval(self, code, globals=None, locals=None):
         """

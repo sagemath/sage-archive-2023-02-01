@@ -298,7 +298,7 @@ command works on most Sage objects.
 ::
 
     sage: latex(a)
-    -\frac{1}{2} \, {(I \, \sqrt{3} + 1)} ...
+    -\frac{1}{2} \, {\left(I \, \sqrt{3} + 1\right)} ...
 
 
 Adjoining a root of the cubic

@@ -6227,9 +6227,12 @@ class GenericGraph(SageObject):
         if by_weight:
             if bidirectional:
                 try:
-                    L = networkx.bidirectional_dijkstra(self.networkx_graph(copy=False), u, v)[1]
-                except:
-                    L = False
+                    L = self._backend.bidirectional_dijkstra(u,v)
+                except AttributeError:
+                    try:
+                        L = networkx.bidirectional_dijkstra(self.networkx_graph(copy=False), u, v)[1]
+                    except:
+                        L = False
             else:
                 L = networkx.dijkstra_path(self.networkx_graph(copy=False), u, v)
         else:

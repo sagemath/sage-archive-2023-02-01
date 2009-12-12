@@ -1227,3 +1227,140 @@ class CGraphBackend(GenericGraphBackend):
             out = -out
 
         return []
+
+    def bidirectional_dijkstra(self,x,y):
+        r"""
+        Returns the shortest path between x and y using
+        a bidirectional version of Dijkstra
+
+        EXAMPLE::
+
+            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+            sage: for (u,v) in G.edges(labels=None):
+            ...      G.set_edge_label(u,v,1)
+            sage: G.shortest_path(0,1,by_weight=True)
+            [0, 1]
+
+        TEST:
+
+        Bugfix from #7673 ::
+
+            sage: G = Graph(implementation="networkx")
+            sage: G.add_edges([(0,1,9),(0,2,8),(1,2,7)])
+            sage: Gc = G.copy(implementation='c_graph')
+            sage: sp = G.shortest_path_length(0,1,by_weight=True)
+            sage: spc = Gc.shortest_path_length(0,1,by_weight=True)
+            sage: sp == spc
+            True
+        """
+
+        if x==y:
+            return 0
+
+        # ****************** WARNING **********************
+        # Use Python to maintain a heap...
+        # Rewrite this in Cython as soon as possible !
+        # *************************************************
+        from heapq import heappush, heappop
+
+
+        # As for shortest_path, the roles of x and y are symmetric, hence we define
+        # dictionaries like pred_current and pred_other, which represent alternatively
+        # pred_x or pred_y according to the side studied
+        cdef int x_int = get_vertex(x, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef int y_int = get_vertex(y, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef int u = 0
+        cdef int v = 0
+        cdef int w = 0
+        cdef int pred
+        cdef float distance
+        cdef float edge_label
+        cdef int side
+        cdef float f_tmp
+
+        # Each vertex knows its predecessors in the search, for each side
+        cdef dict pred_x = {}
+        cdef dict pred_y = {}
+        cdef dict pred_current
+        cdef dict pred_other
+
+        # Stores the distances from x and y
+        cdef dict dist_x = {}
+        cdef dict dist_y = {}
+        cdef dict dist_current
+        cdef dict dist_other
+
+        # Lists of vertices who are left to be explored
+        # they are represented as 4-uples : (distance, side, predecessor ,name)
+        # 1 indicates x's side, -1 indicates y's, the distance being
+        # defined relatively
+        cdef list queue = [(0,1,x_int,x_int),(0,-1,y_int,y_int)]
+
+        cdef list shortest_path = []
+
+        # meeting_vertex is a vertex discovered through x and through y
+        # which defines ther shortest path found
+        # ( of length shortest_path_length )
+        cdef int meeting_vertex = -1
+        cdef float shortest_path_length
+
+        # As long as the current side (x or y) is not totally explored ...
+        while queue:
+
+            (distance, side, pred, v) = heappop(queue)
+            if meeting_vertex != -1 and distance > shortest_path_length:
+                break
+
+            if side == 1:
+                dist_current, dist_other = dist_x, dist_y
+                pred_current, pred_other = pred_x, pred_y
+            else:
+                dist_current, dist_other = dist_y, dist_x
+                pred_current, pred_other = pred_y, pred_x
+
+            if not dist_current.has_key(v):
+                pred_current[v] = pred
+                dist_current[v] = distance
+
+                if dist_other.has_key(v):
+                    f_tmp = distance + dist_other[v]
+                    if meeting_vertex == -1 or f_tmp<shortest_path_length:
+                        meeting_vertex = v
+                        shortest_path_length = f_tmp
+
+                for w in (self._cg.out_neighbors(v) if side == 1 else self._cg.in_neighbors(v)):
+                    # If the neihgbor is new, adds its non-found neighbors to the queue
+                    if not dist_current.has_key(w):
+                        edge_label = self.get_edge_label(v,w) if side == 1 else self.get_edge_label(w,v)
+                        heappush(queue,(distance + edge_label,side,v,w))
+
+
+        # No meeting point has been found
+        if meeting_vertex == -1:
+            return []
+        else:
+            # build the shortest path and returns it.
+            w = meeting_vertex
+
+            while w != x_int:
+                shortest_path.append(vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg))
+                w = pred_x[w]
+
+            shortest_path.append(x)
+            shortest_path.reverse()
+
+            if meeting_vertex == y_int:
+                return shortest_path
+
+            w=pred_y[meeting_vertex]
+            while w != y_int:
+                shortest_path.append(vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg))
+                w = pred_y[w]
+            shortest_path.append(y)
+
+            return shortest_path
+
+
+
+
+

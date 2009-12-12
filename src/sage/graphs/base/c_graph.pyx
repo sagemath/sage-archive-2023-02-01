@@ -1117,5 +1117,113 @@ class CGraphBackend(GenericGraphBackend):
         self.vertex_labels = new_vx_labels
 
 
+    def shortest_path(self,x,y):
+        r"""
+        Returns the shortest path between x and y
 
+        EXAMPLE::
 
+            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+            sage: G.shortest_path(0,1)
+            [0, 1]
+        """
+
+        if x==y:
+            return 0
+
+        # The function being mostly symmetric in x and y
+        # their roles are reversed at the end of each loop
+        # For this reason is defined, for example,
+        # two dictionaries dist_y and dist_x containing the
+        # distances to x and y, and a dictionary
+        # dist_current and dist_other, pointing toward the
+        # previous two, alternatively.
+        #
+        # Besides, there is another difference in the fact
+        # that for directed graphs we are interested in paths
+        # leaving x toward y, so we are considering the out_neighbors
+        # on x's side, and in_neighbors on y's side
+
+        cdef int x_int = get_vertex(x, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef int y_int = get_vertex(y, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef int u = 0
+        cdef int v = 0
+        cdef int w = 0
+
+        # Each vertex knows its predecessors in the search, for each side
+        cdef dict pred_x = {}
+        cdef dict pred_y = {}
+        cdef dict pred_current = pred_x
+        cdef dict pred_other = pred_y
+
+        # Stores the distances from x and y
+        cdef dict dist_x = {}
+        cdef dict dist_y = {}
+        cdef dict dist_current = dist_x
+        cdef dict dist_other = dist_y
+        dist_x[x_int] = 0
+        dist_y[y_int] = 0
+
+        # Lists of vertices whose neighbors have not been explored yet
+        cdef list next_x = [x_int]
+        cdef list next_y = [y_int]
+        cdef list next_current = next_x
+        cdef list next_other = next_y
+        cdef list next_temporary = []
+
+        cdef list shortest_path = []
+
+        # We are interested in edges leaving x and entering y, so we
+        # are dealing with two different "neighbors" functions
+        cdef int out = 1
+
+        # As long as the current side (x or y) is not totally explored ...
+        while next_current:
+            next_temporary = []
+
+            # Take the next vertex in the list, and study all of its neighbors
+            # When a new neighbor is found, it is added into a temporary list
+            # When all the vertices in the list are tested
+            # and next_current is replaced by the temporary list
+            #
+            # After this, current and other are reversed, and the loop restarts
+            for u in next_current:
+                for v in (self._cg.out_neighbors(u) if out == 1 else self._cg.in_neighbors(u)):
+                    # If the neihgbor is new, updates the distances and adds to the list
+                    if not dist_current.has_key(v):
+                        dist_current[v] = dist_current[u] + 1
+                        pred_current[v] = u
+                        next_current.append(v)
+
+                        # If the new neighbor is already known by the other side ...
+
+                        if dist_other.has_key(v):
+                            # build the shortest path and returns in.
+
+                            w = v
+
+                            while w != x_int:
+                                shortest_path.append(vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg))
+                                w = pred_x[w]
+
+                            shortest_path.append(x)
+                            shortest_path.reverse()
+
+                            if v == y_int:
+                                return shortest_path
+
+                            w=pred_y[v]
+                            while w != y_int:
+                                shortest_path.append(vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg))
+                                w = pred_y[w]
+                            shortest_path.append(y)
+
+                            return shortest_path
+
+            next_current = next_temporary
+            pred_current, pred_other = pred_other, pred_current
+            dist_current, dist_other = dist_other, dist_current
+            next_current, next_other = next_other, next_current
+            out = -out
+
+        return []

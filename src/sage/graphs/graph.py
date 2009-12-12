@@ -6234,7 +6234,11 @@ class GenericGraph(SageObject):
                 L = networkx.dijkstra_path(self.networkx_graph(copy=False), u, v)
         else:
             if bidirectional:
-                L = networkx.shortest_path(self.networkx_graph(copy=False), u, v)
+                # If the graph is a C_graph, use shortest_path from its backend !
+                try:
+                    L = self._backend.shortest_path(u,v)
+                except AttributeError:
+                    L = networkx.shortest_path(self.networkx_graph(copy=False), u, v)
             else:
                 try:
                     L = networkx.single_source_shortest_path(self.networkx_graph(copy=False), u)[v]

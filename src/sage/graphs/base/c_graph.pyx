@@ -570,13 +570,20 @@ cdef class CGraph:
         """
         Return the number of edges coming into v.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._in_degree(3)
             0
 
+        TEST::
+
+            sage: g = Graph({1: [2, 5], 2: [1, 5, 3, 4], 3: [2, 5], 4: [3], 5: [2, 3]}, implementation='c_graph')
+            sage: g._backend.degree(5, False)
+            3
+
         """
-        if v < 0 or v >= self.num_verts:
+        if not self.has_vertex(v):
             raise RuntimeError("Vertex (%d) is not a vertex of the graph."%v)
         return self.in_degrees[v]
 
@@ -590,7 +597,7 @@ cdef class CGraph:
             0
 
         """
-        if v < 0 or v >= self.num_verts:
+        if not self.has_vertex(v):
             raise RuntimeError("Vertex (%d) is not a vertex of the graph."%v)
         return self.out_degrees[v]
 

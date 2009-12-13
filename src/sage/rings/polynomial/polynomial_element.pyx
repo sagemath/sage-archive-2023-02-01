@@ -2504,6 +2504,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
             sage: F = f^2 * g^3 * 7; F.factor()
             7 * (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
+
+        This example cam up in ticket #7097:
+
+            sage: x = polygen(QQ)
+            sage: f = 8*x^9 + 42*x^6 + 6*x^3 - 1
+            sage: g = x^24 - 12*x^23 + 72*x^22 - 286*x^21 + 849*x^20 - 2022*x^19 + 4034*x^18 - 6894*x^17 + 10182*x^16 - 13048*x^15 + 14532*x^14 - 13974*x^13 + 11365*x^12 - 7578*x^11 + 4038*x^10 - 1766*x^9 + 762*x^8 - 408*x^7 + 236*x^6 - 126*x^5 + 69*x^4 - 38*x^3 + 18*x^2 - 6*x + 1
+            sage: assert g.is_irreducible()
+            sage: K.<a> = NumberField(g)
+            sage: len(f.roots(K))
+            9
+            sage: f.factor()
+            (8) * (x^3 + 1/4) * (x^6 + 5*x^3 - 1/2)
+            sage: f.change_ring(K).factor()
+            (8) * (x - 3260097/3158212*a^22 + 35861067/3158212*a^21 - 197810817/3158212*a^20 + 722970825/3158212*a^19 - 1980508347/3158212*a^18 + 4374189477/3158212*a^17 - 4059860553/1579106*a^16 + 6442403031/1579106*a^15 - 17542341771/3158212*a^14 + 20537782665/3158212*a^13 - 20658463789/3158212*a^12 + 17502836649/3158212*a^11 - 11908953451/3158212*a^10 + 6086953981/3158212*a^9 - 559822335/789553*a^8 + 194545353/789553*a^7 - 505969453/3158212*a^6 + 338959407/3158212*a^5 - 155204647/3158212*a^4 + 79628015/3158212*a^3 - 57339525/3158212*a^2 + 26692783/3158212*a - 1636338/789553) * ...
+
         """
 
         # PERFORMANCE NOTE:
@@ -2594,8 +2609,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     v = [ x._pari_("a") for x in self.list() ]
                 else:
                     unit = self.leading_coefficient()
-                    temp_f = self * 1/unit
-                    v = [ x._pari_("a") for x in temp_f.list() ]
+                    x = self.parent().gen()
+                    f1 = self(x/unit)*(unit**(self.degree()-1))
+                    ff1 = f1.factor()
+                    ff1 = Factorization([(f(unit*x).monic(),e) for f,e in ff1], unit=unit)
+                    return ff1
+#                    temp_f = self * 1/unit
+#                    v = [ x._pari_("a") for x in temp_f.list() ]
                 f = pari(v).Polrev()
                 Rpari = R.pari_nf()
                 if (Rpari.variable() != "a"):

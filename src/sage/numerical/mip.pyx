@@ -1009,8 +1009,9 @@ class MixedIntegerLinearProgram:
 
             sage: p = MixedIntegerLinearProgram()
             sage: v = p.new_variable()
-            sage: p._NormalForm(v[0] + v[1])
-            {0: 0, x1: 1, x0: 1}
+            sage: nf = p._NormalForm(v[0] + v[1])
+            sage: nf[0], nf[v[0]], nf[v[1]]
+            (0, 1, 1)
         """
 
         d2={}

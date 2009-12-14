@@ -2043,8 +2043,8 @@ cdef class ComplexDoubleElement(FieldElement):
             x^3 + 1
             sage: p.factor()
             (x + 1) * (x^2 - x + 1)
-            sage: z^2 - z + 1
-            -4.4408920985e-16
+            sage: abs(z^2 - z + 1) < 1e-14
+            True
 
         ::
 

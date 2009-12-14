@@ -80,8 +80,9 @@ is ongoing, but help is always welcome.
 Microsoft Windows
 -----------------
 
-The best way to install Sage on Windows is to get the free VMware
-player and use the VMware Sage appliance, which is available at
-http://www.sagemath.org/download-windows.html . Be sure to read the
-file README.txt at
-http://www.sagemath.org/bin/microsoft_windows/README.txt .
+The best way to install Sage on Windows is to install
+`VirtualBox for Windows <http://www.virtualbox.org/wiki/Downloads>`_
+and then download and install the VirtualBox distribution of Sage. See
+`this URL <http://www.sagemath.org/download-windows.html>`_ for
+further instructions on installing Sage on Windows. Be sure to read the
+file `README.txt <http://www.sagemath.org/mirror/win/README.txt>`_.

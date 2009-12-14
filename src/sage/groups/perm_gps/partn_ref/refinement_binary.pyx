@@ -1090,11 +1090,7 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_binary
-        sage: x = walltime()
-        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_binary.random_tests()
-        All passed: ... random tests on ... codes.
-        sage: sage.groups.perm_gps.partn_ref.refinement_binary.random_tests(50, 200, 10) # long time
         All passed: ... random tests on ... codes.
 
     """

@@ -333,11 +333,7 @@ def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_ma
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
-        sage: x = walltime()
-        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests()
-        All passed: ... random tests on ... matrices.
-        sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests(5, 100, 200, 40) # long time
         All passed: ... random tests on ... matrices.
 
     """

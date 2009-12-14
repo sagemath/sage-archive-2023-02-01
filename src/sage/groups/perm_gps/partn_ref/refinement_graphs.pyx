@@ -801,11 +801,7 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
 
     TESTS:
         sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
-        sage: x = walltime()
-        sage: set_random_seed(int(str(x-int(x))[2:]))
         sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()
-        All passed: ... random tests on ... graphs.
-        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests(15, 200, 30) # long time
         All passed: ... random tests on ... graphs.
 
     """

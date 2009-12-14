@@ -23,7 +23,7 @@ fi
 # (We do this all in a single run of "sage -t" so we get a single summary.)
 # We test three subdirectories of doc/, rather than testing the
 # entirety of doc/, so that we can skip doc/output.
-"$SAGE_ROOT"/sage -t "$@" "$SAGE_ROOT"/devel/sage/doc/common "$SAGE_ROOT"/devel/sage/doc/en "$SAGE_ROOT"/devel/sage/doc/fr  "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
+"$SAGE_ROOT"/sage -t -sagenb "$@" "$SAGE_ROOT"/devel/sage/doc/common "$SAGE_ROOT"/devel/sage/doc/en "$SAGE_ROOT"/devel/sage/doc/fr  "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Print the small summary report for dsage unit tests, if necessary.
 # TODO -- skip this for now.

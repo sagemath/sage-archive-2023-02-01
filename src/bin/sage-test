@@ -41,10 +41,13 @@ def strip_automount_prefix(filename):
     return filename
 
 
-SAGE_ROOT=os.environ['SAGE_ROOT']
+SAGE_ROOT = os.environ['SAGE_ROOT']
+SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
+                                          'lib', 'python', 'site-packages'))
+
 if 'SAGE_TESTDIR' not in os.environ:
-    os.environ['SAGE_TESTDIR'] = SAGE_ROOT + "/tmp"
-TMP=os.environ['SAGE_TESTDIR'] + "/tmp"
+    os.environ['SAGE_TESTDIR'] = os.path.join(SAGE_ROOT, "tmp")
+TMP = os.path.join(os.environ['SAGE_TESTDIR'], "tmp")
 if not os.path.exists(TMP):
     os.makedirs(TMP)
 
@@ -56,14 +59,14 @@ def sage_test_command(f):
 
 def skip(F):
     G = abspath(F)
-    i = G.rfind('/')
-    if os.path.exists('%s/nodoctest.py'%G[:i]):
+    i = G.rfind(os.sep)
+    if os.path.exists(os.path.join(G[:i], 'nodoctest.py')):
         print "%s (skipping) -- nodoctest.py file in directory"%sage_test_command(F)
         return True
 
     if 'nodoctest' in open(G).read()[:50]:
         return True
-    if G.find('doc/output') != -1:
+    if G.find(os.path.join('doc', 'output')) != -1:
         return True
 
     sys.stdout.write("%-60s"%sage_test_command(F)+"\n")
@@ -77,7 +80,8 @@ def test(F, cmd):
     if skip(F):
         return 0
     try:
-        s = '%s/local/bin/sage-%s "%s"'%(SAGE_ROOT, cmd, F)
+        s = os.path.join(SAGE_ROOT, 'local', 'bin',
+                         'sage-%s' % cmd) + ' "%s"' % F
         err = os.system(s)   # need to catch control c by writing to a file and looking at it??
     except KeyboardInterrupt:
         print "Keyboard Interrupt"
@@ -92,26 +96,44 @@ def test(F, cmd):
 
 def test_file(F):
     if not os.path.exists(F):
-        if os.path.exists(os.environ["SAGE_ROOT"] + "/" + F):
-            F = os.environ["SAGE_ROOT"] + "/" + F
+        if os.path.exists(os.path.join(SAGE_ROOT, F)):
+            F = os.path.join(SAGE_ROOT, F)
     if not os.path.exists(F):
         if F[:6] != "__test" and not F.endswith('.png'):
-            print "ERROR: File %s/%s is missing"%(os.curdir,F)
-            failed.append('%s/%s'%(os.curdir,F))
+            print "ERROR: File %s is missing" % os.path.join(os.curdir, F)
+            failed.append(os.path.join(os.curdir, F))
         return 1
+
+    extra_opts = ''
+    if SAGE_SITE in os.path.realpath(F) and not '-force_lib' in opts:
+        extra_opts = ' -force_lib'
 
     base, ext = os.path.splitext(F)
     if ext in ['.py', '.spyx', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
-        return test(F, 'doctest '+opts)
+        return test(F, 'doctest ' + opts + extra_opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
-            and not '#' in F and not '/notes' in F:
+            and not '#' in F and not os.sep + 'notes' in F:
         ld = os.listdir(F)
         if not ('__nodoctest__' in ld):
             for L in ld:
-                k = test_file('%s/%s'%(F,L))
+                k = test_file(os.path.join(F, L))
     return 0
 
 files = argv[1:]
+
+if '-sagenb' in opts:
+    opts = opts.replace('--sagenb', '').replace('-sagenb', '')
+
+    # Find SageNB's home.
+    from pkg_resources import Requirement, working_set
+    sagenb_loc = working_set.find(Requirement.parse('sagenb')).location
+
+    # In case we're using setuptools' "develop" mode.
+    if not SAGE_SITE in sagenb_loc:
+        opts += ' -force_lib'
+
+    files.append(os.path.join(sagenb_loc, 'sagenb'))
+
 if len(files) == 0:
     print "Usage: sage -t [-verbose] [-long] [-optional] [-only-optional=list,of,tags] <files or directories>"
     print "Test the docstrings in each listed Python or Cython file, and "
@@ -119,14 +141,17 @@ if len(files) == 0:
     print "all subdirectories of that directory."
     print ""
     print "OPTIONS:"
+    print "     -force_lib     -- assume all files are Sage library files,"
+    print "                       regardless of location"
     print "     -long          -- include lines with the phrase 'long time'"
-    print "     -verbose       -- print debuging output during the test"
+    print "     -verbose       -- print debugging output during the test"
     print "     -optional      -- also test all #optional examples"
     print "     -only-optional=list,of,tags -- only run doctests with "
     print "                       #optional <nonempty subset of tags>"
     print "      if the list of tags is omitted, run all optional doctests"
     print "     -randorder     -- if given, randomize *order* of tests"
     print "     -randorder=seed-- use seed to get same random order"
+    print "     -sagenb        -- test all sagenb files"
 
     sys.exit(1)
 
@@ -148,6 +173,3 @@ else:
     print "\n\t" + "\n\t".join(failed)
 
 print "Total time for all tests: %.1f seconds"%(time.time() - t0)
-
-
-

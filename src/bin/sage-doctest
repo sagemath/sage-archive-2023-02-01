@@ -57,7 +57,7 @@ def is_64bit():
 ######################################################
 DOT_SAGE = os.environ['DOT_SAGE']
 if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
-    SAGE_TESTDIR = DOT_SAGE + "/tmp"
+    SAGE_TESTDIR = os.path.join(DOT_SAGE, "tmp")
 else:
     SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
 
@@ -75,40 +75,44 @@ def delete_tmpfiles():
 ######################################################
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 LD = os.environ["LD_LIBRARY_PATH"]
-os.environ["LD_LIBRARY_PATH"] = SAGE_ROOT + "/local/lib:" + LD
-os.environ["PYTHONPATH"]=SAGE_ROOT + "/local/lib/python/site-packages"
+os.environ["LD_LIBRARY_PATH"] = os.path.join(SAGE_ROOT, 'local',
+                                             'lib') + ":" + LD
+os.environ["PYTHONPATH"] = os.path.join(SAGE_ROOT, 'local', 'lib', 'python',
+                                        'site-packages')
 if os.environ.has_key('SAGE_PATH'):
-    os.environ["PYTHONPATH"]= os.environ["PYTHONPATH"]+ ':'+os.environ['SAGE_PATH']
+    os.environ["PYTHONPATH"] = os.environ["PYTHONPATH"] + ':' + os.environ['SAGE_PATH']
 
 
 ######################################################
 # Custom flags for the valgrind modes
 ######################################################
+logfile = ' --log-file=' + os.path.join('$HOME', '.sage', 'valgrind', 'sage-%s') + ' '
 try:
-    SAGE_MEMCHECK_FLAGS=os.environ['SAGE_MEMCHECK_FLAGS']
+    SAGE_MEMCHECK_FLAGS = os.environ['SAGE_MEMCHECK_FLAGS']
     print SAGE_MEMCHECK_FLAGS
 except:
-    SAGE_MEMCHECK_FLAGS=" --leak-resolution=high --log-file=$HOME/.sage/valgrind/sage-memcheck.%p --leak-check=full --num-callers=25 --suppressions=$SAGE_LOCAL/lib/valgrind/sage.supp "
+    suppfile = os.path.join('$SAGE_LOCAL', 'lib', 'valgrind', 'sage.supp')
+    SAGE_MEMCHECK_FLAGS = " --leak-resolution=high %s --leak-check=full --num-callers=25 --suppressions=%s " % (logfile % 'memcheck.%p', suppfile)
 
 try:
-    SAGE_MASSIF_FLAGS=os.environ['SAGE_MASSIF_FLAGS']
+    SAGE_MASSIF_FLAGS = os.environ['SAGE_MASSIF_FLAGS']
 except:
-    SAGE_MASSIF_FLAGS=" --depth=6 --log-file=$HOME/.sage/valgrind/sage-massif.%p "
+    SAGE_MASSIF_FLAGS = " --depth=6 " + (logfile % 'massif.%p')
 
 try:
-    SAGE_CALLGRIND_FLAGS=os.environ['SAGE_CALLGRIND_FLAGS']
+    SAGE_CALLGRIND_FLAGS = os.environ['SAGE_CALLGRIND_FLAGS']
 except:
-    SAGE_CALLGRIND_FLAGS = " --log-file=$HOME/.sage/valgrind/sage-callgrind.%p "
+    SAGE_CALLGRIND_FLAGS = logfile % 'callgrind.%p'
 
 try:
-    SAGE_CACHEGRIND_FLAGS=os.environ['SAGE_CACHEGRIND_FLAGS']
+    SAGE_CACHEGRIND_FLAGS = os.environ['SAGE_CACHEGRIND_FLAGS']
 except:
-    SAGE_CACHEGRIND_FLAGS=" --log-file=$HOME/.sage/valgrind/sage-cachegrind.%p "
+    SAGE_CALLGRIND_FLAGS = logfile % 'cachegrind.%p'
 
 try:
-    SAGE_OMEGA_FLAGS=os.environ['SAGE_OMEGA_FLAGS']
+    SAGE_OMEGA_FLAGS = os.environ['SAGE_OMEGA_FLAGS']
 except:
-   SAGE_OMEGA_FLAGS = " --log-file=$HOME/.sage/valgrind/sage-omega.%p "
+    SAGE_OMEGA_FLAGS = logfile % 'omega.%p'
 
 ######################################################
 # The Python binary
@@ -148,7 +152,7 @@ def new_index(n):
         return n
 
 def test_code(filename):
-    dict = { 'DIR'             : repr('%s/local/bin' % SAGE_ROOT),
+    dict = { 'DIR'             : repr(os.path.join(SAGE_ROOT, 'local', 'bin')),
              'FILENAME'        : repr(filename),
              'OUTPUT_FILENAME' : repr(filename + '.timeit.sobj'),
              'TIMEIT'          : do_timeit, # global
@@ -404,7 +408,7 @@ def change_warning_output(file):
     if not library_code:
         if ext in ['.py', '.pyx','.spyx']:
             os.system('cp -f %s %s' % (file_name, SAGE_TESTDIR))
-            tmpfiles.append('%s/%s%s' % (SAGE_TESTDIR, name, ext))
+            tmpfiles.append(os.path.join(SAGE_TESTDIR, '%s%s' % (name, ext)))
             if ext == '.py':
                 s += "from %s import *\n\n" % name
             else:
@@ -412,10 +416,10 @@ def change_warning_output(file):
         elif ext == '.sage':
             os.system('sage -preparse %s' % file_name)
             os.system('mv -f %s.py %s' % (base, SAGE_TESTDIR))
-            tmpfiles.append('%s/%s.py' % (SAGE_TESTDIR, name))
+            tmpfiles.append(os.path.join(SAGE_TESTDIR, name + '.py'))
             s += "from %s import *\n\n" % (name)
         if ext in ['.py', '.sage']:
-            tmpfiles.append('%s/%s.pyc' % (SAGE_TESTDIR, name))
+            tmpfiles.append(os.path.join(SAGE_TESTDIR, name + '.pyc'))
 
     n = 0
     while True:
@@ -589,7 +593,7 @@ def test_file(file, library_code):
         if len(s) == 0:
             sys.exit(0)
 
-        f = "%s/.doctest_%s.py"%(SAGE_TESTDIR,name)
+        f = os.path.join(SAGE_TESTDIR, ".doctest_%s.py" % name)
 
         open(f,"w").write(s)
         tmpfiles.append(f)
@@ -610,7 +614,7 @@ def test_file(file, library_code):
         if omega:
             cmd = "valgrind --tool=exp-omega " + SAGE_OMEGA_FLAGS + cmd
 
-        VALGRIND = '%s/valgrind/'%DOT_SAGE
+        VALGRIND = os.path.join(DOT_SAGE, 'valgrind')
         if not os.path.exists(VALGRIND):
           os.makedirs(VALGRIND)
 
@@ -742,6 +746,7 @@ if __name__ ==  '__main__':
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
         omega      = has_opt('omega')
+        force_lib  = has_opt('force_lib')
         random_order = parse_rand()
         only_optional, only_optional_tags = parse_only_opt()
         if long_time:
@@ -751,10 +756,14 @@ if __name__ ==  '__main__':
         if argv[1][0] == '-':
             usage()
 
-        library_code = True
         ext = os.path.splitext(argv[1])[1]
-        if ext in ['.spyx', '.sage'] or \
-                not (os.path.realpath(os.path.join(SAGE_ROOT, 'devel')) in os.path.realpath(argv[1])):
+
+        library_code = True
+        dev_path = os.path.realpath(os.path.join(SAGE_ROOT, 'devel'))
+        our_path = os.path.realpath(argv[1])
+
+        if not force_lib and (ext in ['.spyx', '.sage'] or
+                              not dev_path in our_path):
             library_code = False
 
         try:

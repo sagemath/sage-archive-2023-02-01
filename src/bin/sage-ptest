@@ -17,7 +17,9 @@ except:
     numglobaliteration = 1
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
-BUILD_DIR = os.path.realpath(SAGE_ROOT + "/devel/sage/build")
+SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
+                                          'lib', 'python', 'site-packages'))
+BUILD_DIR = os.path.realpath(os.path.join(SAGE_ROOT, 'devel', 'sage', 'build'))
 
 print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
@@ -100,17 +102,17 @@ def skip(F):
     if not os.path.exists(F):
         return True
     G = abspath(F)
-    i = G.rfind('/')
-    if os.path.exists('%s/nodoctest.py'%G[:i]):
+    i = G.rfind(os.path.sep)
+    if os.path.exists(os.path.join(G[:i], 'nodoctest.py')):
         printmutex.acquire()
         print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
         printmutex.release()
         return True
     filenm = os.path.split(F)[1]
-    if filenm[0] == '.' or '/.' in G.lstrip('/.') or \
-          'nodoctest' in open(G).read()[:50]:
+    if (filenm[0] == '.' or (os.path.sep + '.' in G.lstrip(os.path.sep + '.'))
+        or 'nodoctest' in open(G).read()[:50]):
         return True
-    if G.find('doc/output') != -1:
+    if G.find(os.path.join('doc', 'output')) != -1:
         return True
     if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']):
         return True
@@ -122,14 +124,19 @@ def test_file(F):
     """
     outfile = tempfile.NamedTemporaryFile()
     base, ext = os.path.splitext(F)
+
     if use_sage_only or ext == '.sage':
         cmd =  'doctest_tex ' + opts
     elif ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']:
-        cmd = 'doctest '+opts
+        cmd = 'doctest ' + opts
+    if SAGE_SITE in os.path.realpath(F) and not '-force_lib' in cmd:
+        cmd += ' -force_lib'
+
     filestr = os.path.split(F)[1]
     for i in range(0,numiteration):
         os.chdir(os.path.dirname(F))
-        s = 'bash -c "%s/local/bin/sage-%s %s > %s" ' %(SAGE_ROOT, cmd, filestr, outfile.name)
+        command = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-%s' % cmd)
+        s = 'bash -c "%s %s > %s" ' % (command, filestr, outfile.name)
         try:
             t = time.time()
             ret = os.system(s)
@@ -204,7 +211,7 @@ def populatefilelist(filelist):
                 continue
             if not os.path.isabs(FF):
                 cwd = os.getcwd()
-                files.append(cwd + '/' +  FF)
+                files.append(os.path.join(cwd, FF))
             else:
                 files.append(FF)
             continue
@@ -228,18 +235,10 @@ def populatefilelist(filelist):
                     continue
                 files.append(appendstr)
             for D in dirs:
-                if '#' in D or '/notes' in D:
+                if '#' in D or (os.path.sep + 'notes' in D):
                     dirs.remove(D)
     filemutex.release()
     return 0
-
-
-
-
-
-
-
-
 
 
 for gr in range(0,numglobaliteration):
@@ -260,6 +259,19 @@ for gr in range(0,numglobaliteration):
     except ValueError: # can't convert first arg to an integer: arg was probably omitted
         numthreads = 1
         infiles = argv[1:]
+
+    if '-sagenb' in opts:
+        opts = opts.replace('--sagenb', '').replace('-sagenb', '')
+
+        # Find SageNB's home.
+        from pkg_resources import Requirement, working_set
+        sagenb_loc = working_set.find(Requirement.parse('sagenb')).location
+
+        # In case we're using setuptools' "develop" mode.
+        if not SAGE_SITE in sagenb_loc:
+            opts += ' -force_lib'
+
+        infiles.append(os.path.join(sagenb_loc, 'sagenb'))
 
     if numthreads == 0:
         # Set numthreads to be the number of processors, with a default
@@ -298,11 +310,12 @@ for gr in range(0,numglobaliteration):
     filemutex = thread.allocate_lock()
     printmutex = thread.allocate_lock()
     #Pick a filename for the timing files -- long vs normal
-    time_file_name = os.environ["SAGE_TESTDIR"]+"/"
     if opts.count("-long"):
-        time_file_name+=".ptest_timing_long"
+        time_file_name = os.path.join(os.environ["SAGE_TESTDIR"],
+                                      '.ptest_timing_long')
     else:
-        time_file_name+=".ptest_timing"
+        time_file_name = os.path.join(os.environ["SAGE_TESTDIR"],
+                                      '.ptest_timing')
     time_dict = { }
     try:
         with open(time_file_name) as time_file:
@@ -324,7 +337,7 @@ for gr in range(0,numglobaliteration):
     failed = []
 
     SAGE_ROOT=os.environ['SAGE_ROOT']
-    TMP=os.environ['SAGE_TESTDIR'] + "/tmp/test/"
+    TMP = os.path.join(os.environ['SAGE_TESTDIR'], 'tmp', 'test')
     if not os.path.exists(TMP):
         os.makedirs(TMP)
 
@@ -380,5 +393,3 @@ for gr in range(0,numglobaliteration):
         print "-"*int(70)
 
     print "Total time for all tests: %.1f seconds"%(time.time() - t0)
-
-

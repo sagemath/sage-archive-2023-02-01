@@ -1722,7 +1722,7 @@ def init_pynac_I():
     """
     global pynac_I, I
     from sage.rings.number_field.number_field import QuadraticField
-    K = QuadraticField(-1, 'I')
+    K = QuadraticField(-1, 'I', embedding=CC.gen())
     pynac_I = K.gen()
     ginac_pyinit_I(pynac_I)
     I = new_Expression_from_GEx(ring.SR, g_I)
@@ -1773,7 +1773,7 @@ We can convert to complex fields::
     1.00000000000000e8*I
 
     sage: complex(I)
-    0.99999999999999967j
+    1j
 
     sage: QQbar(I)
     1*I

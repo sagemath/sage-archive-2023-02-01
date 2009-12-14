@@ -4189,7 +4189,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-3.5074662110434039?e451, 1)]
             sage: p = bigc*x + 1
             sage: p.roots(ring=RR)
-            [(-0.000000000000000, 1)]
+            [(0.000000000000000, 1)]
             sage: p.roots(ring=AA)
             [(-2.8510609648967059?e-452, 1)]
             sage: p.roots(ring=QQbar)
@@ -4214,14 +4214,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         same as K.)
 
         If K and L are floating-point (RDF, CDF, RR, or CC), then a
-        floating-point root-finder is used. If L has precision 53 bits or
-        less (RDF and CDF both have precision exactly 53 bits, as do the
-        default RR=RealField() and CC=ComplexField()) then we default to
-        using NumPy's roots(); otherwise, we use Pari's polroots(). This
-        choice can be overridden with algorithm='pari' or
-        algorithm='numpy'. If the algorithm is unspecified and NumPy's
-        roots() algorithm fails, then we fall back to pari (numpy will fail
-        if some coefficient is infinite, for instance).
+        floating-point root-finder is used. If L is RDF or CDF then we
+        default to using NumPy's roots(); otherwise, we use Pari's
+        polroots(). This choice can be overridden with
+        algorithm='pari' or algorithm='numpy'. If the algorithm is
+        unspecified and NumPy's roots() algorithm fails, then we fall
+        back to pari (numpy will fail if some coefficient is infinite,
+        for instance).
 
         If L is AA or RIF, and K is ZZ, QQ, or AA, then the root isolation
         algorithm sage.rings.polynomial.real_roots.real_roots() is used.
@@ -4308,7 +4307,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                           and list(K.polynomial()) == [1, 0, 1])
 
         if input_fp and output_fp:
-            low_prec = L.prec() <= 53
+            # allow for possibly using a fast but less reliable
+            # floating point algorithm from numpy
+            low_prec = is_RealDoubleField(K) or is_ComplexDoubleField(K)
             if algorithm is None:
                 if low_prec:
                     algorithm = 'either'

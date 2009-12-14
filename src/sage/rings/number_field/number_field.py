@@ -1422,10 +1422,9 @@ class NumberField_generic(number_field_base.NumberField):
         Return all homomorphisms of this number field into the approximate
         complex field with precision prec.
 
-        If prec is 53 (the default), then the complex double field is used;
-        otherwise the arbitrary precision (but slow) complex field is used.
-        If you want 53-bit arbitrary precision then do
-        ``self.embeddings(ComplexField(53))``.
+        This always embeds into an MPFR based complex field.  If you
+        want embeddings into the 53-bit double precision, which is
+        faster, use ``self.embeddings(CDF)``.
 
         EXAMPLES::
 
@@ -1454,10 +1453,7 @@ class NumberField_generic(number_field_base.NumberField):
               Defn: a |--> 0.629960524947 + 1.09112363597*I
             ]
         """
-        if prec == 53:
-            CC = sage.rings.complex_double.CDF
-        else:
-            CC = sage.rings.complex_field.ComplexField(prec)
+        CC = sage.rings.complex_field.ComplexField(prec)
         return self.embeddings(CC)
 
     def real_embeddings(self, prec=53):
@@ -1465,8 +1461,10 @@ class NumberField_generic(number_field_base.NumberField):
         Return all homomorphisms of this number field into the approximate
         real field with precision prec.
 
-        If prec is 53 (the default), then the real double field is used;
-        otherwise the arbitrary precision (but slow) real field is used.
+        If prec is 53 (the default), then the real double field is
+        used; otherwise the arbitrary precision (but slow) real field
+        is used.  If you want embeddings into the 53-bit double
+        precision, which is faster, use ``self.embeddings(RDF)``.
 
         EXAMPLES::
 
@@ -1475,16 +1473,16 @@ class NumberField_generic(number_field_base.NumberField):
             [
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Double Field
-              Defn: a |--> -1.25992104989
+              To:   Real Field with 53 bits of precision
+              Defn: a |--> -1.25992104989487
             ]
-             sage: K.real_embeddings(16)
-             [
-             Ring morphism:
-               From: Number Field in a with defining polynomial x^3 + 2
-               To:   Real Field with 16 bits of precision
-               Defn: a |--> -1.260
-             ]
+            sage: K.real_embeddings(16)
+            [
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Real Field with 16 bits of precision
+              Defn: a |--> -1.260
+            ]
             sage: K.real_embeddings(100)
             [
             Ring morphism:
@@ -1493,10 +1491,7 @@ class NumberField_generic(number_field_base.NumberField):
               Defn: a |--> -1.2599210498948731647672106073
             ]
         """
-        if prec == 53:
-            K = sage.rings.real_double.RDF
-        else:
-            K = sage.rings.real_mpfr.RealField(prec)
+        K = sage.rings.real_mpfr.RealField(prec)
         return self.embeddings(K)
 
     def specified_complex_embedding(self):
@@ -6464,17 +6459,14 @@ class NumberField_cyclotomic(NumberField_absolute):
         `\zeta` of self to exp(2\*pi\*i/n), where `n` is
         the multiplicative order of `\zeta`.
 
-        If prec is 53 (the default), then the complex double field is used;
-        otherwise the arbitrary precision (but slow) complex field is used.
-
         EXAMPLES::
 
             sage: C = CyclotomicField(4)
             sage: C.complex_embedding()
             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
-              To:   Complex Double Field
-              Defn: zeta4 |--> 6.12323399574e-17 + 1.0*I
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I
 
         Note in the example above that the way zeta is computed (using sin
         and cosine in MPFR) means that only the prec bits of the number
@@ -6493,10 +6485,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: phi(K.0^3 + 7)
             8.0
         """
-        if prec == 53:
-            CC = sage.rings.complex_double.CDF
-        else:
-            CC = sage.rings.complex_field.ComplexField(prec)
+        CC = sage.rings.complex_field.ComplexField(prec)
         return self.hom([CC.zeta(self._n())], check=False)
 
     def complex_embeddings(self, prec=53):
@@ -6504,10 +6493,8 @@ class NumberField_cyclotomic(NumberField_absolute):
         Return all embeddings of this cyclotomic field into the approximate
         complex field with precision prec.
 
-        If prec is 53 (the default), then the complex double field is used;
-        otherwise the arbitrary precision (but slow) complex field is used.
-        If you want 53-bit arbitrary precision then do
-        ``self.embeddings(ComplexField(53))``.
+        If you want 53-bit double precision, which is faster but less
+        reliable, then do ``self.embeddings(CDF)``.
 
         EXAMPLES::
 
@@ -6515,26 +6502,23 @@ class NumberField_cyclotomic(NumberField_absolute):
             [
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
-              To:   Complex Double Field
-              Defn: zeta5 |--> 0.309016994375 + 0.951056516295*I,
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta5 |--> 0.309016994374947 + 0.951056516295154*I,
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
-              To:   Complex Double Field
-              Defn: zeta5 |--> -0.809016994375 + 0.587785252292*I,
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta5 |--> -0.809016994374947 + 0.587785252292473*I,
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
-              To:   Complex Double Field
-              Defn: zeta5 |--> -0.809016994375 - 0.587785252292*I,
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta5 |--> -0.809016994374947 - 0.587785252292473*I,
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
-              To:   Complex Double Field
-              Defn: zeta5 |--> 0.309016994375 - 0.951056516295*I
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta5 |--> 0.309016994374947 - 0.951056516295154*I
             ]
         """
-        if prec == 53:
-            CC = sage.rings.complex_double.CDF
-        else:
-            CC = sage.rings.complex_field.ComplexField(prec)
+        CC = sage.rings.complex_field.ComplexField(prec)
         try:
             return self.__embeddings[CC]
         except AttributeError:
@@ -6554,9 +6538,6 @@ class NumberField_cyclotomic(NumberField_absolute):
         Return all embeddings of this cyclotomic field into the approximate
         real field with precision prec.
 
-        If prec is 53 (the default), then the real double field is used;
-        otherwise the arbitrary precision (but slow) real field is used.
-
         Mostly, of course, there are no such embeddings.
 
         EXAMPLES::
@@ -6567,14 +6548,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             [
             Ring morphism:
               From: Cyclotomic Field of order 2 and degree 1
-              To:   Real Double Field
-              Defn: -1 |--> -1.0
+              To:   Real Field with 53 bits of precision
+              Defn: -1 |--> -1.00000000000000
             ]
         """
-        if prec == 53:
-            K = sage.rings.real_double.RDF
-        else:
-            K = sage.rings.real_mpfr.RealField(prec)
+        K = sage.rings.real_mpfr.RealField(prec)
         n = self._n()
         if n > 2:
             return Sequence([], cr=False, immutable=True,

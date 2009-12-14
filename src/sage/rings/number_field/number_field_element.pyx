@@ -74,6 +74,9 @@ QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
+from sage.rings.complex_field import ComplexField
+CC = ComplexField(53)
+
 # this is a threshold for the charpoly() methods in this file
 # for degrees <= this threshold, pari is used
 # for degrees > this threshold, sage matrices are used
@@ -614,9 +617,9 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^3 - 2)
             sage: abs(a)
-            1.25992104989
+            1.25992104989487
             sage: abs(a)^3
-            2.0
+	    2.00000000000000
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
         """
@@ -644,12 +647,12 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: z = CyclotomicField(7).gen()
             sage: abs(z)
-            1.0
+            1.00000000000000
             sage: abs(z^2 + 17*z - 3)
-            16.06044268
+	    16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
-            2.57128159066
+	    2.57128159065824
             sage: a.abs(prec=100)
             2.5712815906582353554531872087
             sage: a.abs(prec=100,i=1)
@@ -664,9 +667,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(x^2-2)
             sage: a = 1 + b
             sage: a.abs(i=0)
-            0.414213562373
+            0.414213562373095
             sage: a.abs(i=1)
-            2.41421356237
+            2.41421356237309
         """
         P = self.number_field().complex_embeddings(prec)[i]
         return abs(P(self))
@@ -793,7 +796,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embeddings()
-            [-0.629960524947 - 1.09112363597*I, -0.629960524947 + 1.09112363597*I, 1.25992104989]
+ 	    [-0.629960524947437 - 1.09112363597172*I, -0.629960524947437 + 1.09112363597172*I, 1.25992104989487]
             sage: a.complex_embeddings(10)
             [-0.63 - 1.1*I, -0.63 + 1.1*I, 1.3]
             sage: a.complex_embeddings(100)
@@ -811,7 +814,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embedding()
-            -0.629960524947 - 1.09112363597*I
+	    -0.629960524947437 - 1.09112363597172*I
             sage: a.complex_embedding(10)
             -0.63 - 1.1*I
             sage: a.complex_embedding(100)
@@ -853,7 +856,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: abs(CDF(a))
 	    1.0
         """
-        return CDF(self.complex_embedding())
+        return CDF(CC(self))
 
     def __complex__(self):
         """
@@ -861,11 +864,11 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^2 + 1)
             sage: complex(a)
-            0.99999999999999967j
+	    1j
             sage: a.__complex__()
-            0.99999999999999967j
+            1j
         """
-        return complex(self.complex_embedding())
+        return complex(CC(self))
 
     def is_totally_positive(self):
         """

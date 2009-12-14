@@ -610,7 +610,7 @@ We can convert to complex fields::
     1.00000000000000e8*I
 
     sage: complex(I)
-    0.99999999999999967j
+    1j
 
     sage: QQbar(I)
     1*I

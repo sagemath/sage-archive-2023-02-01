@@ -802,6 +802,7 @@ code = setup(name = 'sage',
                      'sage.crypto',
                      'sage.crypto.block_cipher',
                      'sage.crypto.mq',
+                     'sage.crypto.public_key',
 
                      'sage.databases',
 

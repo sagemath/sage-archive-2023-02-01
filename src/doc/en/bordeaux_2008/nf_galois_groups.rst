@@ -110,16 +110,16 @@ You can also enumerate all complex embeddings of a number field:
     [
     Ring morphism:
       From: Number Field in a with defining polynomial x^3 - 2
-      To:   Complex Double Field
-      Defn: a |--> -0.629960524947 - 1.09112363597*I,
+      To:   Complex Field with 53 bits of precision
+      Defn: a |--> -0.629960524947437 - 1.09112363597172*I,
     Ring morphism:
       From: Number Field in a with defining polynomial x^3 - 2
-      To:   Complex Double Field
-      Defn: a |--> -0.629960524947 + 1.09112363597*I,
+      To:   Complex Field with 53 bits of precision
+      Defn: a |--> -0.629960524947437 + 1.09112363597172*I,
     Ring morphism:
       From: Number Field in a with defining polynomial x^3 - 2
-      To:   Complex Double Field
-      Defn: a |--> 1.25992104989
+      To:   Complex Field with 53 bits of precision
+      Defn: a |--> 1.25992104989487
     ]
 
 

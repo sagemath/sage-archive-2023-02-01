@@ -1051,7 +1051,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         for c in range(1,m):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
-                z = zeta ** (a*e + b*(e**(-1)))
+                z = zeta ** int(a*e + b*(e**(-1)))
                 g += self.__call__(c)*z
         return g
 
@@ -1079,12 +1079,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: v.real() < 1.0e15
             True
             sage: v.imag()
-            1.73205080757
+            1.73205080756888
             sage: G = DirichletGroup(20)
             sage: e = G.1
             sage: e.kloosterman_sum_numerical(53,3,11)
-            3.80422606518 - 3.80422606518*I
-
+            3.80422606518061 - 3.80422606518061*I
         """
         G = self.parent()
         K = G.base_ring()
@@ -1099,7 +1098,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         for c in range(1,m):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
-                z = zeta ** (a*e + b*(e**(-1)))
+                z = zeta ** int(a*e + b*(e**(-1)))
                 g += phi(self.__call__(c))*z
         return g
 

@@ -38,6 +38,9 @@ from sage.rings.finite_rings.element_base import FiniteFieldElement
 import sage.rings.field_element as field_element
 import sage.rings.finite_rings.integer_mod as integer_mod
 from element_base import is_FiniteFieldElement
+from sage.modules.free_module_element import FreeModuleElement
+from sage.structure.dynamic_class import dynamic_class
+from sage.categories.finite_fields import FiniteFields
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """
@@ -88,8 +91,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             2
             sage: a.parent()
             Finite Field in a of size 3^2
+            sage: V = k.vector_space(); v = V((1,2))
+            sage: k(v)
+            2*a + 1
         """
         field_element.FieldElement.__init__(self, parent)
+        self.__class__ = dynamic_FiniteField_ext_pariElement
         if isinstance(value, str):
             raise TypeError, "value must not be a string"
         if not check:
@@ -119,17 +126,29 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
                         self.__value = value.Mod(parent._pari_modulus())*parent._pari_one()
                 except RuntimeError:
                     raise TypeError, "no possible coercion implemented"
-                return
             elif isinstance(value, FiniteField_ext_pariElement):
                 if parent != value.parent():
                     raise TypeError, "no coercion implemented"
                 else:
                     self.__value = value.__value
-                    return
-            try:
-                self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
-            except RuntimeError:
-                raise TypeError, "no coercion implemented"
+            elif isinstance(value, FreeModuleElement):
+                if parent.vector_space() != value.parent():
+                    raise TypeError, "e.parent must match self.vector_space"
+                self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
+                for i in range(len(value)):
+                    self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
+            elif isinstance(value, list):
+                if len(value) > parent.degree():
+                    # could do something here...
+                    raise ValueError, "list too long"
+                self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
+                for i in range(len(value)):
+                    self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
+            else:
+                try:
+                    self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
+                except RuntimeError:
+                    raise TypeError, "no coercion implemented"
 
         except (AttributeError, TypeError):
             raise TypeError, "unable to coerce"
@@ -669,6 +688,11 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         b = self.parent()(base)
         # TODO: This function is TERRIBLE!
         return discrete_log(self, b)
+
+dynamic_FiniteField_ext_pariElement = None
+def _late_import():
+    global dynamic_FiniteField_ext_pariElement
+    dynamic_FiniteField_ext_pariElement = dynamic_class("%s_with_category"%FiniteField_ext_pariElement.__name__, (FiniteField_ext_pariElement, FiniteFields().element_class), doccls=FiniteField_ext_pariElement)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_element', 'FiniteField_ext_pariElement', FiniteField_ext_pariElement)

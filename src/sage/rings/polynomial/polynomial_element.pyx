@@ -4878,13 +4878,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     return ZZ(k)
         if isinstance(p, Polynomial):
             p = self.parent().coerce(p)
-        elif is_Ideal(p) and p.ring() is self.parent():
+        elif is_Ideal(p) and p.ring() is self.parent(): # eventually need to handle fractional ideals in the fraction field
             if self.parent().base_ring().is_field(): # common case
                 p = p.gen()
             else:
                 raise NotImplementedError
         else:
-            raise TypeError, "The polynomial, p, must have the same parent as self."
+            from sage.rings.fraction_field import is_FractionField
+            if is_FractionField(p.parent()) and self.parent().has_coerce_map_from(p.parent().ring()):
+                p = self.parent().coerce(p.parent().ring()(p)) # here we require that p be integral.
+            else:
+                raise TypeError, "The polynomial, p, must have the same parent as self."
 
         if p.degree() == 0:
             raise ArithmeticError, "The polynomial, p, must have positive degree."

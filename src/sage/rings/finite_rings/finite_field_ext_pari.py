@@ -173,6 +173,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: GF(19^2, 'a')
             Finite Field in a of size 19^2
         """
+        if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
         from constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
@@ -193,7 +194,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise ValueError, "The size of the finite field must not be prime."
             #base_ring = self
 
-        ParentWithGens.__init__(self, base_ring, name, normalize=True)
+        FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
         self.__char = F[0][0]
@@ -241,15 +242,15 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = element_ext_pari.FiniteField_ext_pariElement(self, pari.pari('a'))
 
-        self._zero_element = self(0)
-        self._one_element = self(1)
+        self._zero_element = self._element_constructor_(0)
+        self._one_element = self._element_constructor_(1)
 
     def __reduce__(self):
         """
         EXAMPLES::
 
             sage: k.<b> = GF(5^20); type(k)
-            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
             sage: k is loads(dumps(k))
             True
         """
@@ -266,6 +267,22 @@ class FiniteField_ext_pari(FiniteField_generic):
         if not isinstance(other, FiniteField_ext_pari):
             return cmp(type(self), type(other))
         return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
+
+    def __richcmp__(left, right, op):
+        r"""
+        Compare \code{self} with \code{right}.
+
+        EXAMPLE::
+
+            sage: k.<a> = GF(next_prime(2^17))
+            sage: j.<b> = GF(next_prime(2^18))
+            sage: k == j
+            False
+
+            sage: GF(next_prime(2^17),'a') == copy(GF(next_prime(2^17),'a'))
+            True
+        """
+        return left._richcmp_helper(right, op)
 
     def _pari_one(self):
         r"""
@@ -380,7 +397,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__degree
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         r"""
         Coerce x into the finite field.
 
@@ -499,7 +516,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 raise TypeError, "no coercion defined"
 
         if isinstance(x, (int, long, integer.Integer, rational.Rational,
-                          pari.pari_gen)):
+                          pari.pari_gen, list)):
 
             return element_ext_pari.FiniteField_ext_pariElement(self, x)
 
@@ -538,7 +555,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         except TypeError, msg:
             raise TypeError, "%s\nno coercion defined"%msg
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, R):
         r"""
         Canonical coercion to \code{self}.
 
@@ -554,37 +571,37 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: FiniteField_ext_pari(4,'a')._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion defined
+            TypeError: no canonical coercion from Rational Field to Finite Field in a of size 2^2
             sage: FiniteField_ext_pari(8,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion defined
+            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^3
             sage: FiniteField_ext_pari(16,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion defined
+            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^4
             sage: k = FiniteField_ext_pari(8,'a')
             sage: k._coerce_(FiniteField(7,'a')(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion defined
+            TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
         """
-        if isinstance(x, (int, long, integer.Integer)):
-            return self(x)
-
-        if isinstance(x, element_ext_pari.FiniteField_ext_pariElement) or integer_mod.is_IntegerMod(x):
-            K = x.parent()
-            if K is self:
-                return x
-            if isinstance(K, integer_mod_ring.IntegerModRing_generic) and K.characteristic() % self.characteristic() == 0:
-                return self(int(x))
-            if K.characteristic() == self.characteristic():
-                if K.degree() == 1:
-                    return self(int(x))
-                elif self.degree() % K.degree() == 0:
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if R is int or R is long or R is ZZ:
+            return True
+        if isinstance(R, FiniteField_ext_pari):
+            if R is self:
+                return True
+            if R.characteristic() == self.characteristic():
+                if R.degree() == 1:
+                    return True
+                elif self.degree() % R.degree() == 0:
                     # TODO: This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise TypeError, 'no canonical coercion defined'
-        raise TypeError, 'no canonical coercion defined'
+                    return False
+        from sage.rings.residue_field import ResidueField_generic
+        if isinstance(R, IntegerModRing_generic) and R.characteristic() == self.characteristic() and not isinstance(R, ResidueField_generic):
+            return True
 
     def __len__(self):
         """

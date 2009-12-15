@@ -57,14 +57,13 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         p = integer.Integer(p)
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        from sage.categories.fields import Fields
-        integer_mod_ring.IntegerModRing_generic.__init__(self, p, category = Fields())
+        from sage.categories.finite_fields import FiniteFields
+        self.__char = p
         import sage.structure.factorization as factorization
         self._IntegerModRing_generic__factored_order = factorization.Factorization([(p,1)], integer.Integer(1))
         self._kwargs = {}
-        self.__char = p
-        self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
-        ParentWithGens.__init__(self, self, ('x',), normalize=False)
+        integer_mod_ring.IntegerModRing_generic.__init__(self, p, category = FiniteFields())
+        FiniteField_generic.__init__(self, self, ('x',), normalize=False)
 
     def __reduce__(self):
         """
@@ -93,6 +92,22 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 #            return -cmp(other, self)
         return cmp(self.__char, other.__char)
 
+    def __richcmp__(left, right, op):
+        r"""
+        Compare \code{self} with \code{right}.
+
+        EXAMPLE::
+
+            sage: k = GF(2)
+            sage: j = GF(3)
+            sage: k == j
+            False
+
+            sage: GF(2) == copy(GF(2))
+            True
+        """
+        return left._richcmp_helper(right, op)
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         This is called implicitly by the hom constructor.
@@ -110,7 +125,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         except TypeError:
             return False
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, S):
         """
         This is called implicitly by arithmetic methods.
 
@@ -122,12 +137,22 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: 12 % 7
             5
         """
-        if isinstance(x, (int, long, integer.Integer)):
-            return self(x)
-        if isinstance(x, integer_mod.IntegerMod_abstract) and \
-               x.parent().characteristic() == self.characteristic():
-            return self(x)
-        raise TypeError, "no canonical coercion of x"
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if S is int:
+            return integer_mod.Int_to_IntegerMod(self)
+        elif S is ZZ:
+            return integer_mod.Integer_to_IntegerMod(self)
+        elif isinstance(S, IntegerModRing_generic):
+            from sage.rings.residue_field import ResidueField_generic
+            if S.characteristic() == self.characteristic() and not isinstance(S, ResidueField_generic):
+                try:
+                    return integer_mod.IntegerMod_to_IntegerMod(S, self)
+                except TypeError:
+                    pass
+        to_ZZ = ZZ.coerce_map_from(S)
+        if to_ZZ is not None:
+            return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
     def characteristic(self):
         r"""
@@ -225,7 +250,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         if n != 0:
             raise IndexError, "only one generator"
-        return self.__gen
+        return self(1)
 
     def __iter__(self):
         """

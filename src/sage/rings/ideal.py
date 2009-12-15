@@ -1155,7 +1155,9 @@ class Ideal_pid(Ideal_principal):
             sage: F = P.residue_field(); F
             Residue field of Integers modulo 61
             sage: pi = F.reduction_map(); pi
-            Partially defined reduction map from Rational Field to Residue field of Integers modulo 61
+            Partially defined reduction map:
+              From: Rational Field
+              To:   Residue field of Integers modulo 61
             sage: pi(123/234)
             6
             sage: pi(1/61)
@@ -1163,7 +1165,9 @@ class Ideal_pid(Ideal_principal):
             ...
             ZeroDivisionError: Cannot reduce rational 1/61 modulo 61: it has negative valuation
             sage: lift = F.lift_map(); lift
-            Lifting map from Residue field of Integers modulo 61 to Rational Field
+            Lifting map:
+              From: Residue field of Integers modulo 61
+              To:   Integer Ring
             sage: lift(F(12345/67890))
             33
             sage: (12345/67890) % 61
@@ -1184,7 +1188,8 @@ class Ideal_pid(Ideal_principal):
             True
             sage: I.residue_field()
             Traceback (most recent call last):
-            NotImplementedError: residue_field() is only implemented for ZZ and rings of integers of number fields.
+            ...
+            TypeError: residue fields only supported for polynomial rings over finite fields.
         """
         if not self.is_prime():
             raise ValueError, "The ideal (%s) is not prime"%self

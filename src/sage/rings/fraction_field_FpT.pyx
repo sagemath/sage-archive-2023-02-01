@@ -1505,7 +1505,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                       From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
                       To:   Finite Field of size 5
                     then
-                      Conversion via _integer_ method map:
+                      Lifting map:
                       From: Finite Field of size 5
                       To:   Integer Ring
             sage: t = K.gen()

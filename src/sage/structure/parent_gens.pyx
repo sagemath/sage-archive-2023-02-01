@@ -254,8 +254,9 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         self._assign_names(names=names, normalize=normalize)
 
         # Why does not this call ParentWithBase.__init__ ?
-        if category is not None:
-            self._init_category_(category)
+        parent_base.ParentWithBase.__init__(self, base, category=category)
+        #if category is not None:
+        #    self._init_category_(category)
 
 ##     def x__reduce__(self):
 ##         if self._base is self:

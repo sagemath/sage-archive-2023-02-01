@@ -58,22 +58,23 @@ cdef class FiniteFieldIterator:
         return self
 
 cdef class FiniteField(Field):
-#    def __init__(self):
-#        """
-#        EXAMPLES::
-#
-#            sage: K = GF(7); K
-#            Finite Field of size 7
-#            sage: loads(K.dumps()) == K
-#            True
-#            sage: GF(7^10, 'a')
-#            Finite Field in a of size 7^10
-#            sage: K = GF(7^10, 'a'); K
-#            Finite Field in a of size 7^10
-#            sage: loads(K.dumps()) == K
-#            True
-#        """
-#        raise NotImplementedError
+    def __init__(self, base, names, normalize):
+        """
+        EXAMPLES::
+
+            sage: K = GF(7); K
+            Finite Field of size 7
+            sage: loads(K.dumps()) == K
+            True
+            sage: GF(7^10, 'a')
+            Finite Field in a of size 7^10
+            sage: K = GF(7^10, 'a'); K
+            Finite Field in a of size 7^10
+            sage: loads(K.dumps()) == K
+            True
+        """
+        from sage.categories.finite_fields import FiniteFields
+        Field.__init__(self, base, names, normalize, category=FiniteFields())
 
     def __repr__(self):
         """
@@ -216,7 +217,7 @@ cdef class FiniteField(Field):
         sib.cache(self, v, name)
         return v
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    def _cmp_(left, Parent right):
         """
         Compares this finite field with other.
 
@@ -593,6 +594,18 @@ cdef class FiniteField(Field):
             return self(randrange(self.order()))
         v = self.vector_space().random_element()
         return self(v)
+
+    def some_elements(self):
+        """
+        Returns a collection of elements of this finite field for use in unit testing.
+
+        EXAMPLES::
+
+            sage: k = GF(2^8,'a')
+            sage: k.some_elements() # random output
+            [a^4 + a^3 + 1, a^6 + a^4 + a^3, a^5 + a^4 + a, a^2 + a]
+        """
+        return [self.random_element() for i in range(4)]
 
     def polynomial(self):
         """

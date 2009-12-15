@@ -207,7 +207,7 @@ cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
         sage: f.lc()
         a^12 + a^11 + a^9 + a^8 + a^7 + 2*a^6 + a^5
         sage: type(f.lc())
-        <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
+        <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement_with_category'>
     """
     cdef napoly *z
     cdef int c, e

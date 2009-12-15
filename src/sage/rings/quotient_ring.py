@@ -226,6 +226,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         self.__R = R
         self.__I = I
         sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
+        # self._populate_coercion_lists_([R]) # we don't want to do this, since subclasses will often implement improved coercion maps.
 
     def construction(self):
         """
@@ -556,7 +557,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
-    def __call__(self, x, coerce=True):
+    def _element_constructor_(self, x, coerce=True):
         """
         EXAMPLES::
 
@@ -566,6 +567,28 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             xbar
             sage: S(x^2 + y^2)
             0
+
+        The rings that coerce into the quotient ring canonically, are:
+
+        - this ring
+
+        - anything that coerces into the ring of which this is the
+          quotient
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: S.coerce(0)
+            0
+            sage: S.coerce(2/3)
+            2/3
+            sage: S.coerce(a^2 - b)
+            -b^2 - b
+            sage: S.coerce(GF(7)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Finite Field of size 7 to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         """
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:
@@ -580,33 +603,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x = R(x)
         return quotient_ring_element.QuotientRingElement(self, x)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, R):
         """
-        Return the coercion of `x` into this quotient ring.
-
-        The rings that coerce into the quotient ring canonically, are:
-
-        - this ring
-
-        - anything that coerces into the ring of which this is the
-          quotient
-
-        EXAMPLES::
-
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: S.<a,b> = R.quotient(x^2 + y^2)
-            sage: S._coerce_(0)
-            0
-            sage: S._coerce_(2/3)
-            2/3
-            sage: S._coerce_(a^2 - b)
-            -b^2 - b
-            sage: S._coerce_(GF(7)(3))
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion of element into self
+        Returns True if there is a coercion map from R to self.
         """
-        return self._coerce_try(x, [self.cover_ring()])
+        return self.cover_ring().has_coerce_map_from(R)
 
     def __cmp__(self, other):
         r"""

@@ -92,6 +92,7 @@ import sage.structure.element
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
+from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
 
@@ -3405,7 +3406,8 @@ cdef class IntegerMod_hom(Morphism):
     cdef NativeIntStruct modulus
     def __init__(self, parent):
         Morphism.__init__(self, parent)
-        self.zero = self._codomain(0)
+        # we need to use element constructor so that we can register both coercions and conversions using these morphisms.
+        self.zero = self._codomain._element_constructor_(0)
         self.modulus = self._codomain._pyx_order
     cpdef Element _call_(self, x):
         return IntegerMod(self.codomain(), x)
@@ -3488,6 +3490,28 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
 
     def _repr_type(self):
         return "Natural"
+
+    def section(self):
+        return IntegerMod_to_Integer(self._codomain)
+
+cdef class IntegerMod_to_Integer(Map):
+    def __init__(self, R):
+        import sage.categories.homset
+        from sage.categories.all import Sets
+        Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))
+
+    cpdef Element _call_(self, x):
+        cdef Integer ans = PY_NEW(Integer)
+        if PY_TYPE_CHECK(x, IntegerMod_gmp):
+            mpz_set(ans.value, (<IntegerMod_gmp>x).value)
+        elif PY_TYPE_CHECK(x, IntegerMod_int):
+            mpz_set_si(ans.value, (<IntegerMod_int>x).ivalue)
+        elif PY_TYPE_CHECK(x, IntegerMod_int64):
+            mpz_set_si(ans.value, (<IntegerMod_int64>x).ivalue)
+        return ans
+
+    def _repr_type(self):
+        return "Lifting"
 
 cdef class Int_to_IntegerMod(IntegerMod_hom):
     """

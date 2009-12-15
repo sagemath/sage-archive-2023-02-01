@@ -16,11 +16,11 @@ EXAMPLES:
     sage: k = GF(5); type(k)
     <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
     sage: k = GF(5^2,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro'>
+    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
     sage: k = GF(2^16,'c'); type(k)
     <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
+    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
 
     sage: n = previous_prime_power(2^16 - 1)
     sage: while is_prime(n):
@@ -28,7 +28,7 @@ EXAMPLES:
     sage: factor(n)
     251^2
     sage: k = GF(n,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro'>
+    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
 
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
@@ -1531,11 +1531,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: b.charpoly('x')
             x^2 + 4*x + 2
             sage: P = S._finite_field_ext_pari_(); type(P)
-            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
             sage: c = b._finite_field_ext_pari_element(P); c
             b
             sage: type(c)
-            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
+            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement_with_category'>
             sage: c.charpoly('x')
             x^2 + 4*x + 2
 
@@ -1543,7 +1543,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: d = b._finite_field_ext_pari_element(); d
             b
             sage: type(d)
-            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
+            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement_with_category'>
         """
         if k is None:
             k = self.parent()._finite_field_ext_pari_()

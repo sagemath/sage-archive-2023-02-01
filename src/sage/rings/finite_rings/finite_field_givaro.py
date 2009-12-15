@@ -99,7 +99,7 @@ class FiniteField_givaro(FiniteField):
             raise ValueError, "q must be < 2^16"
 
         import constructor
-        ParentWithGens.__init__(self, constructor.FiniteField(p), name, normalize=False)
+        FiniteField.__init__(self, constructor.FiniteField(p), name, normalize=False)
 
         self._kwargs['repr'] = repr
         self._kwargs['cache'] = cache
@@ -198,7 +198,7 @@ class FiniteField_givaro(FiniteField):
         """
         return self._cache.random_element()
 
-    def __call__(self, e):
+    def _element_constructor_(self, e):
         """
         Coerces several data types to self.
 
@@ -321,7 +321,7 @@ class FiniteField_givaro(FiniteField):
             sage: F81(F9.gen())
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce from a finite field other than the prime subfield
+            NotImplementedError
         """
         return self._cache.element_from_data(e)
 

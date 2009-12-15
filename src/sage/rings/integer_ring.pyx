@@ -753,7 +753,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: F = ZZ.residue_field(61); F
             Residue field of Integers modulo 61
             sage: pi = F.reduction_map(); pi
-            Partially defined reduction map from Rational Field to Residue field of Integers modulo 61
+            Partially defined reduction map:
+              From: Rational Field
+              To:   Residue field of Integers modulo 61
             sage: pi(123/234)
             6
             sage: pi(1/61)
@@ -761,7 +763,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             ZeroDivisionError: Cannot reduce rational 1/61 modulo 61: it has negative valuation
             sage: lift = F.lift_map(); lift
-            Lifting map from Residue field of Integers modulo 61 to Rational Field
+            Lifting map:
+              From: Residue field of Integers modulo 61
+              To:   Integer Ring
             sage: lift(F(12345/67890))
             33
             sage: (12345/67890) % 61

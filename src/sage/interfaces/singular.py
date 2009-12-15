@@ -659,6 +659,20 @@ class Singular(Expect):
 
         return SingularElement(self, type, x, False)
 
+    def has_coerce_map_from_impl(self, S):
+        # we want to implement this without coercing, since singular has state.
+        if hasattr(S, 'an_element'):
+            if hasattr(S.an_element(), '_singular_'):
+                return True
+            try:
+                self._coerce_(S.an_element())
+            except TypeError:
+                return False
+            return True
+        elif S is int or S is long:
+            return True
+        raise NotImplementedError
+
 
     def cputime(self, t=None):
         r"""

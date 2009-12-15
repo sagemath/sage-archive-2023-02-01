@@ -213,6 +213,21 @@ class Order(IntegralDomain):
             raise ValueError, "ideal must be integral; use fractional_ideal to create a non-integral ideal."
         return I
 
+    def _coerce_map_from_(self, R):
+        """
+        Orders currently only have coerce maps from the integers.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5077)
+            sage: Ok = k.maximal_order()
+            sage: Ok.has_coerce_map_from(k) #indirect doctest
+            False
+            sage: Ok.has_coerce_map_from(ZZ)
+            True
+        """
+        return R is ZZ or R is int or R is long
+
     def __mul__(self, right):
         """
         Create an ideal in this order using the notation ``Ok*gens``
@@ -1013,7 +1028,7 @@ class AbsoluteOrder(Order):
             if module_rep.rank() != self._K.degree():
                 raise ValueError, "the module must have full rank."
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         r"""
         Coerce ``x`` into this order.
 
@@ -1361,7 +1376,7 @@ class RelativeOrder(Order):
         self._absolute_order = absolute_order
         self._module_rep = absolute_order._module_rep
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         Coerce an element into this relative order.
 

@@ -13,8 +13,8 @@ Finite Fields
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
-from sage.categories.all import Fields
 from sage.rings.field import is_Field
+from sage.misc.lazy_attribute import lazy_attribute
 
 class FiniteFields(Category):
     """
@@ -45,9 +45,10 @@ class FiniteFields(Category):
         EXAMPLES::
 
             sage: FiniteFields().super_categories()
-            [Category of fields]
+            [Category of fields, Category of finite enumerated sets]
         """
-        return [Fields()]
+        from sage.categories.all import Fields, FiniteEnumeratedSets
+        return [Fields(), FiniteEnumeratedSets()]
 
     def __contains__(self, x):
         """
@@ -77,6 +78,20 @@ class FiniteFields(Category):
         raise TypeError, "unable to canonically associate a finite field to %s"%x
         # TODO: local dvr ring?
 
+    #@lazy_attribute
+    #def element_class(self):
+    #    """
+    #    A common super class for all elements of finite fields
+    #
+    #    EXAMPLES::
+    #
+    #        sage: C = FiniteFields().element_class; C
+    #        <type 'sage.rings.finite_rings.element_base.FiniteFieldElement'>
+    #        sage: type(C)
+    #        <type 'type'>
+    #    """
+    #    from sage.rings.finite_rings.element_base import FiniteFieldElement
+    #    return FiniteFieldElement
 
     class ParentMethods:
         pass

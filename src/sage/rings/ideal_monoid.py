@@ -88,6 +88,7 @@ class IdealMonoid_c(Parent):
             sage: M([a-4, 13])
             Fractional ideal (13, 1/2*a + 9/2)
         """
+        #print x, type(x)
         if isinstance(x, ideal.Ideal_generic):
             x = x.gens()
         y = self.__R.ideal(x)

@@ -158,14 +158,14 @@ class CoxeterGroups(Category):
                 [0 1 0 0]
                 [0 0 1 0]
                 [0 0 0 1],
-                 [0 1 0 0]
+                 [0 0 0 1]
                 [1 0 0 0]
-                [0 0 1 0]
-                [0 0 0 1]]
+                [0 1 0 0]
+                [0 0 1 0]]
                 sage: W.order()
                 24
             """
-            return list(self.simple_reflections()) + [ self.one(), self.an_element() ]
+            return list(self.simple_reflections()) + [ self.one(), self.an_element_force() ]
 
         def from_reduced_word(self, word):
             r"""

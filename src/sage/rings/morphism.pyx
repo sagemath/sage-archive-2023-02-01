@@ -902,7 +902,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: type(f(2))          # indirect doctest
             <type 'sage.rings.rational.Rational'>
         """
-        return self.codomain()._coerce_(x)
+        return self.codomain().coerce(x)
 
 import sage.structure.all
 

@@ -270,13 +270,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
-        from sage.categories.commutative_rings import CommutativeRings
-        #from sage.categories.fields import Fields
-        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         if category is None:
-            #category = Fields()  if order.is_prime() else CommutativeRings()
-            category = CommutativeRings()
-        category = category.join([category, FiniteEnumeratedSets()])
+            from sage.categories.commutative_rings import CommutativeRings
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            from sage.categories.category import Category
+            category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
         ParentWithGens.__init__(self, self, category = category)
         if cache is None:
             cache = order < 500
@@ -750,7 +748,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             self.__pari_order = pari(self.order())
             return self.__pari_order
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         TESTS::
 
@@ -821,47 +819,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             yield self(i)
             i = i + 1
 
-    def _coerce_impl(self, x):
-        r"""
-        Canonical coercion.
-
-        EXAMPLES::
-
-            sage: R = IntegerModRing(17)
-            sage: a = R(3)
-            sage: b = R._coerce_(3)
-            sage: b
-            3
-            sage: a==b
-            True
-
-        This is allowed::
-
-            sage: R(2/3)
-            12
-
-        But this is not, since there is no (canonical or not!) ring
-        homomorphism from `\QQ` to `\GF{17}`.
-
-        ::
-
-            sage: R._coerce_(2/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion of x
-
-        We do not allow the coercion GF(p) - Z/pZ, because in case of a
-        canonical isomorphism, there is a coercion map in only one
-        direction, i.e., to the object in the smaller category.
-        """
-        if isinstance(x, (int, long, integer.Integer)):
-            return integer_mod.IntegerMod(self, x)
-        if integer_mod.is_IntegerMod(x) and not element_ext_pari.is_FiniteFieldElement(x):
-            if x.parent().order() % self.characteristic() == 0:
-                return integer_mod.IntegerMod(self, x)
-        raise TypeError, "no canonical coercion of x"
-
-    def coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
         """
         EXAMPLES::
 
@@ -888,6 +846,33 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             None
             sage: f = R.coerce_map_from(QQ); print f
             None
+
+            sage: R = IntegerModRing(17)
+            sage: a = R(3)
+            sage: b = R._coerce_(3)
+            sage: b
+            3
+            sage: a==b
+            True
+
+        This is allowed::
+
+            sage: R(2/3)
+            12
+
+        But this is not, since there is no (canonical or not!) ring
+        homomorphism from `\QQ` to `\GF{17}`.
+
+        ::
+
+            sage: R._coerce_(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Rational Field to Ring of integers modulo 17
+
+        We do not allow the coercion GF(p) - Z/pZ, because in case of a
+        canonical isomorphism, there is a coercion map in only one
+        direction, i.e., to the object in the smaller category.
         """
         if S is int:
             return integer_mod.Int_to_IntegerMod(self)
@@ -900,7 +885,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
                 pass
-        return quotient_ring.QuotientRing_generic.coerce_map_from_impl(self, S)
+        to_ZZ = integer_ring.ZZ.coerce_map_from(S)
+        if to_ZZ is not None:
+            return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
     def __cmp__(self, other):
         """

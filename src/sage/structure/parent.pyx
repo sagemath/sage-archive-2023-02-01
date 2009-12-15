@@ -440,16 +440,17 @@ cdef class Parent(category_object.CategoryObject):
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
         # TODO: many classes don't call this at all, but __new__ crashes Sage
         if bad_parent_warnings:
-            if element_constructor is None:
-                element_constructor = self._element_constructor_
-            elif not callable(element_constructor):
+            if element_constructor is not None and not callable(element_constructor):
                 print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
         if gens is not None:
             self._populate_generators_(gens, names, normalize)
         elif names is not None:
             self._assign_names(names, normalize)
-        self._element_constructor = element_constructor
-        self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
+        if element_constructor is None:
+            self._set_element_constructor()
+        else:
+            self._element_constructor = element_constructor
+            self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
         self.init_coerce(False)
 
         for cls in self.__class__.mro():
@@ -517,6 +518,24 @@ cdef class Parent(category_object.CategoryObject):
             return dynamic_class(name, (cls, self.category().element_class))
         else:
             return cls
+
+    def _set_element_constructor(self):
+        """
+        This function is used in translating from the old to the new coercion model.
+
+        It is called from sage.structure.parent_old.Parent.__init__ when an old style parent provides a _element_constructor_ method.
+
+        It just asserts that this _element_constructor_ is callable and also sets self._element_init_pass_parent
+
+        EXAMPLES::
+
+            sage: k = GF(5); k._element_constructor # indirect doctest
+            <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
+        """
+        if hasattr(self, '_element_constructor_'):
+            assert callable(self._element_constructor_)
+            self._element_constructor = self._element_constructor_
+            self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
 
     def category(self):
         """

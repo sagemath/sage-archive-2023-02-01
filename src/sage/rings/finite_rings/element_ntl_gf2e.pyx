@@ -197,7 +197,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         self._one_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._one_element).x,1)
 
-    def __cinit__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
+    # dummies are included so that residue fields can have more inputs
+    def __cinit__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly", dummy0 = None, dummy1=None, dummy2=None, dummy3=None):
         cdef GF2X_c ntl_m
         cdef GF2_c c
         cdef GF2X_c ntl_tmp
@@ -218,7 +219,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         if p != 2:
             raise ValueError("q must be a 2-power")
 
-        ParentWithGens.__init__(self, GF(p), names, normalize=True)
+        FiniteField.__init__(self, GF(p), names, normalize=True)
 
         self._kwargs = {'repr':repr}
         self._is_conway = False
@@ -380,7 +381,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         """
         return False
 
-    def __call__(FiniteField_ntl_gf2e self, e):
+    def _element_constructor_(FiniteField_ntl_gf2e self, e):
         """
         Coerces several data types to self.
 
@@ -451,6 +452,15 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
+        elif isinstance(e, list):
+            if len(e) > self.degree():
+                # could reduce here...
+                raise ValueError, "list is too long"
+            ret = self._zero_element
+            for i in range(len(e)):
+                ret = ret + self(int(e[i]))*self.gen()**i
+            return ret
+
         elif PY_TYPE_CHECK(e, MPolynomial):
             if e.is_constant():
                 return self(e.constant_coefficient())
@@ -501,35 +511,28 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
         raise ValueError, "Cannot coerce element %s to self."%(e)
 
-    cdef _coerce_c_impl(self, e):
+    cpdef _coerce_map_from_(self, R):
         """
         Coercion accepts elements of self.parent(), ints, and prime subfield elements.
         """
-        cdef FiniteField_ntl_gf2eElement res = self._new()
-
-        if PY_TYPE_CHECK(e, int) \
-               or PY_TYPE_CHECK(e, long) or PY_TYPE_CHECK(e, Integer):
-            GF2E_conv_long(res.x,int(e))
-            return res
-
-        if PY_TYPE_CHECK(e, FiniteFieldElement) or \
-               PY_TYPE_CHECK(e, FiniteField_ntl_gf2eElement) or is_IntegerMod(e):
-            K = e.parent()
-            if K is <object>self:
-                return e
-            if PY_TYPE_CHECK(K, IntegerModRing_generic) \
-                   and K.characteristic() % self.characteristic() == 0:
-                GF2E_conv_long(res.x,int(e))
-                return res
-            if K.characteristic() == self.characteristic():
-                if K.degree() == 1:
-                    GF2E_conv_long(res.x,int(e))
-                    return res
-                elif self.degree() % K.degree() == 0:
+        from sage.rings.integer_ring import ZZ
+        if R is int or R is long or R is ZZ:
+            return True
+        from sage.rings.finite_rings.finite_field_base import is_FiniteField
+        if is_FiniteField(R):
+            if R is <object>self:
+                return True
+            from sage.rings.residue_field import ResidueField_generic
+            if isinstance(R, ResidueField_generic):
+                return False
+            if PY_TYPE_CHECK(R, IntegerModRing_generic) and R.characteristic() % 2 == 0:
+                return True
+            if R.characteristic() == 2:
+                if R.degree() == 1:
+                    return True
+                elif self.degree() % R.degree() == 0:
                     # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise TypeError, 'no canonical coercion defined'
-
-        raise TypeError, 'no canonical coercion defined'
+                    raise NotImplementedError
 
     def gen(FiniteField_ntl_gf2e self, ignored=None):
         r"""
@@ -666,7 +669,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: kP
             Finite Field in a of size 2^20
             sage: type(kP)
-            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
         """
         f = self.polynomial()
         return FiniteField_ext_pari(self.order(), self.variable_name(), f)
@@ -690,6 +693,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
     def __richcmp__(left, right, int op):
         """
+        EXAMPLES::
+
             sage: k1.<a> = GF(2^16)
             sage: k2.<a> = GF(2^17)
             sage: k1 == k2
@@ -698,7 +703,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k1 == k3
             True
         """
-        return (<Parent>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp_helper(right, op)
 
     def __hash__(FiniteField_ntl_gf2e self):
         """

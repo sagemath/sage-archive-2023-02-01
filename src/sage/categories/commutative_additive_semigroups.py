@@ -26,7 +26,7 @@ class CommutativeAdditiveSemigroups(Category):
         sage: CommutativeAdditiveSemigroups().super_categories()
         [Category of sets]
         sage: CommutativeAdditiveSemigroups().all_super_categories()
-        [Category of commutative additive semigroups, Category of sets, Category of objects]
+        [Category of commutative additive semigroups, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 

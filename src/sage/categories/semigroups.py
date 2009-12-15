@@ -35,7 +35,7 @@ class Semigroups(Category):
         sage: Semigroups().super_categories()
         [Category of sets]
         sage: Semigroups().all_super_categories()
-        [Category of semigroups, Category of sets, Category of objects]
+        [Category of semigroups, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 

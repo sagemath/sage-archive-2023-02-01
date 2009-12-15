@@ -27,10 +27,10 @@ class SetsWithPartialMaps(Category):
     EXAMPLES::
 
         sage: SetsWithPartialMaps()
-        Category with objects Sets and morphisms partially defined maps
+        Category of sets with partial maps
 
         sage: SetsWithPartialMaps().super_categories()
-        [Category of sets]
+        [Category of objects]
 
     TESTS::
 
@@ -45,11 +45,9 @@ class SetsWithPartialMaps(Category):
         EXAMPLES::
 
             sage: SetsWithPartialMaps()
-            Category with objects Sets and morphisms partially defined maps
-
-        FIXME: is this the desired result?
+            Category of sets with partial maps
         """
-        return "Category with objects Sets and morphisms partially defined maps"
+        return "Category of sets with partial maps"
 
     @cached_method
     def super_categories(self):
@@ -57,7 +55,7 @@ class SetsWithPartialMaps(Category):
         EXAMPLES::
 
             sage: SetsWithPartialMaps().super_categories()
-            [Category of sets]
+            [Category of objects]
         """
-        from sets_cat import Sets
-        return [Sets()]
+        from objects import Objects
+        return [Objects()]

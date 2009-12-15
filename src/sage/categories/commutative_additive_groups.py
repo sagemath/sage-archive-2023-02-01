@@ -24,7 +24,7 @@ class CommutativeAdditiveGroups(AbelianCategory):
         sage: CommutativeAdditiveGroups().super_categories()
         [Category of commutative additive monoids]
         sage: CommutativeAdditiveGroups().all_super_categories()
-        [Category of commutative additive groups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of sets, Category of objects]
+        [Category of commutative additive groups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 

@@ -34,6 +34,7 @@ class Coalgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCate
          Category of commutative additive monoids,
          Category of commutative additive semigroups,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
     TESTS::

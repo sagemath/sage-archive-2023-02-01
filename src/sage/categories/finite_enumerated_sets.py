@@ -28,6 +28,7 @@ class FiniteEnumeratedSets(Category):
         [Category of finite enumerated sets,
          Category of enumerated sets,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
     TESTS::

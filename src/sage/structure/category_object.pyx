@@ -180,6 +180,7 @@ cdef class CategoryObject(sage_object.SageObject):
              Category of monoids,
              Category of semigroups,
              Category of sets,
+             Category of sets with partial maps,
              Category of objects]
         """
         return self.category().all_super_categories()

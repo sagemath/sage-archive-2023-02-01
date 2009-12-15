@@ -17,7 +17,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category import Category, HomCategory
 # Do not use sage.categories.all here to avoid initialization loop
-from sage.categories.objects import Objects
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 
 class Sets(Category):
     """
@@ -32,9 +32,9 @@ class Sets(Category):
         sage: Sets()
         Category of sets
         sage: Sets().super_categories()
-        [Category of objects]
+        [Category of sets with partial maps]
         sage: Sets().all_super_categories()
-        [Category of sets, Category of objects]
+        [Category of sets, Category of sets with partial maps, Category of objects]
 
     Let us consider an example of set::
 
@@ -61,6 +61,7 @@ class Sets(Category):
         <type 'sage.structure.category_object.CategoryObject'>
         <type 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.parent_class'>
+        <class 'sage.categories.category.SetsWithPartialMaps.parent_class'>
         <class 'sage.categories.objects.Objects.parent_class'>
         <type 'object'>
 
@@ -109,6 +110,7 @@ class Sets(Category):
         <type 'sage.structure.element.Element'>
         <type 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.element_class'>
+        <class 'sage.categories.category.SetsWithPartialMaps.element_class'>
         <class 'sage.categories.objects.Objects.element_class'>
         <type 'object'>
 
@@ -124,12 +126,17 @@ class Sets(Category):
     @cached_method
     def super_categories(self):
         """
+        We include SetsWithPartialMaps between Sets and Objects so that we
+        can define morphisms between sets that are only partially defined
+        (and have the Homset constructor not complain that SetsWithPartialMaps
+        is not a supercategory of Fields, for example.
+
         EXAMPLES::
 
             sage: Sets().super_categories()
-            [Category of objects]
+            [Category of sets with partial maps]
         """
-        return [Objects()]
+        return [SetsWithPartialMaps()]
 
     def __call__(self, X):
         """

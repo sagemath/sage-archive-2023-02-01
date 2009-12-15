@@ -42,6 +42,7 @@ class Modules(Category_module):
          Category of commutative additive monoids,
          Category of commutative additive semigroups,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
         sage: Modules(ZZ).super_categories()

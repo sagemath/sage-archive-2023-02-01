@@ -127,6 +127,7 @@ Example of mathematical information::
          Category of monoids,
          Category of semigroups,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
         sage: EuclideanDomains().category_graph().plot(talk = True)
@@ -297,6 +298,7 @@ categories translates into *inheritance* between classes::
      Category of finite enumerated sets,
      Category of enumerated sets,
      Category of sets,
+     Category of sets with partial maps,
      Category of objects]
     sage: S.__class__.mro()
     [<class 'sage.categories.examples.finite_semigroups.LeftRegularBand_with_category'>,
@@ -310,6 +312,7 @@ categories translates into *inheritance* between classes::
      <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets.parent_class'>,
      <class 'sage.categories.enumerated_sets.EnumeratedSets.parent_class'>,
      <class 'sage.categories.sets_cat.Sets.parent_class'>,
+     <class 'sage.categories.category.SetsWithPartialMaps.parent_class'>,
      <class 'sage.categories.objects.Objects.parent_class'>,
      <type 'object'>]
     sage: x.__class__.mro()
@@ -323,6 +326,7 @@ categories translates into *inheritance* between classes::
      <class 'sage.categories.category.FiniteEnumeratedSets.element_class'>,
      <class 'sage.categories.enumerated_sets.EnumeratedSets.element_class'>,
      <class 'sage.categories.sets_cat.Sets.element_class'>,
+     <class 'sage.categories.category.SetsWithPartialMaps.element_class'>,
      <class 'sage.categories.objects.Objects.element_class'>,
      <type 'object'>]
 
@@ -502,6 +506,7 @@ This gives the following order::
      Category of commutative additive monoids,
      Category of commutative additive semigroups,
      Category of sets,
+     Category of sets with partial maps,
      Category of objects]
 
 Todo: any better convention? Maybe we should further specify that subcategories of Modules() go first?

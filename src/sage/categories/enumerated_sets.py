@@ -75,7 +75,7 @@ class EnumeratedSets(Category):
         sage: EnumeratedSets().super_categories()
         [Category of sets]
         sage: EnumeratedSets().all_super_categories()
-        [Category of enumerated sets, Category of sets, Category of objects]
+        [Category of enumerated sets, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 

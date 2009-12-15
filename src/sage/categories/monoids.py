@@ -32,6 +32,7 @@ class Monoids(Category):
         [Category of monoids,
          Category of semigroups,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
     TESTS::

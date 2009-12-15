@@ -778,6 +778,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of commutative additive monoids,
              Category of commutative additive semigroups,
              Category of sets,
+             Category of sets with partial maps,
              Category of objects]
 
         This is an associative operation::
@@ -1009,7 +1010,8 @@ def category_graph(categories = None):
         'rings',
         'rngs',
         'semigroups',
-        'sets']
+        'sets',
+        'sets with partial maps']
         sage: G.plot()
 
         sage: sage.categories.category.category_graph().plot()
@@ -1197,7 +1199,7 @@ class JoinCategory(Category):
         sage: J.super_categories()
         [Category of groups, Category of commutative additive monoids]
         sage: J.all_super_categories(proper = True)
-        [Category of groups, Category of monoids, Category of semigroups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of sets, Category of objects]
+        [Category of groups, Category of monoids, Category of semigroups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of sets, Category of sets with partial maps, Category of objects]
 
     """
 

@@ -35,6 +35,7 @@ class InfiniteEnumeratedSets(Category):
         [Category of infinite enumerated sets,
          Category of enumerated sets,
          Category of sets,
+         Category of sets with partial maps,
          Category of objects]
 
     TESTS::

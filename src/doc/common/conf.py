@@ -345,6 +345,9 @@ def process_dollars(app, what, name, obj, options, docstringlines):
     for i in range(len(lines)):
         docstringlines[i] = lines[i]
 
+from sage.misc.sageinspect import sage_getargspec
+autodoc_builtin_argspec = sage_getargspec
+
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
     app.connect('autodoc-process-docstring', process_directives)

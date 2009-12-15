@@ -32,6 +32,11 @@ A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
 
+=== 0.6.3.p3 (Mike Hansen, 2009-12-15) ===
+
+ * Add an option to Sphinx to provide an function to get the argspecs
+   of builtin functions.
+
 === 0.6.3.p2 (Tim Dumol, 2009-10-25) ===
 
  * Modify spkg-install to delete `doc/output` folders, to fix #7286.

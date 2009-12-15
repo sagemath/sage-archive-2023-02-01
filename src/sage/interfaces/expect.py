@@ -149,7 +149,7 @@ class Expect(ParentWithBase):
     def __init__(self, name, prompt, command=None, server=None, server_tmpdir=None,
                  ulimit = None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
-                 verbose_start=False, init_code=[], max_startup_time=30,
+                 verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner = True, remote_cleaner = False, path=None):
 
@@ -459,6 +459,7 @@ If this all works, you can then make calls like:
 
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
+
         #self._expect.setmaxread(self.__maxread)
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0

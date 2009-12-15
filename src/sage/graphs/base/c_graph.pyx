@@ -659,7 +659,7 @@ cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
         return None
 
 cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels,
-                      CGraph G) except ? -1:
+                      CGraph G, CGraph G_rev, bint reverse) except ? -1:
     """
     Returns an int representing the arbitrary hashable vertex u, and updates, if
     necessary, the translation dict and list. Adds a vertex if the label is new.
@@ -669,14 +669,21 @@ cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels,
         if not bitset_in(G.active_vertices, u_int):
             bitset_add(G.active_vertices, u_int)
             G.num_verts += 1
+            if reverse:
+                bitset_add(G_rev.active_vertices, u_int)
+                G_rev.num_verts += 1
         return u_int
     u_int = bitset_first_in_complement(G.active_vertices)
     if u_int == -1:
         G.realloc(2*G.active_vertices.size)
-        return check_vertex(u, vertex_ints, vertex_labels, G)
+        if reverse:
+            G_rev.realloc(2*G_rev.active_vertices.size)
+        return check_vertex(u, vertex_ints, vertex_labels, G, G_rev, reverse)
     vertex_labels[u_int] = u
     vertex_ints[u] = u_int
     G.add_vertex(u_int)
+    if reverse:
+        G_rev.add_vertex(u_int)
     return u_int
 
 class CGraphBackend(GenericGraphBackend):
@@ -709,6 +716,8 @@ class CGraphBackend(GenericGraphBackend):
     """
 
     _cg = None
+    _cg_rev = None
+    _directed = None
 
     def has_vertex(self, v):
         """
@@ -789,7 +798,7 @@ class CGraphBackend(GenericGraphBackend):
             while name in self.vertex_ints or (
             name not in self.vertex_labels and bitset_in((<CGraph>self._cg).active_vertices, name)):
                 name += 1
-        check_vertex(name, self.vertex_ints, self.vertex_labels, self._cg) # this will add the vertex
+        check_vertex(name, self.vertex_ints, self.vertex_labels, self._cg, self._cg_rev, (self._directed and self._cg_rev is not None)) # this will add the vertex
 
     def add_vertices(self, object vertices):
         """
@@ -854,6 +863,8 @@ class CGraphBackend(GenericGraphBackend):
 
         # delete each arc incident with v, and v
         self._cg.del_vertex(v_int)
+        if self._cg_rev is not None:
+            self._cg_rev.del_vertex(v_int)
 
         # add v to unused vertices
         if v_int in self.vertex_labels:
@@ -926,7 +937,11 @@ class CGraphBackend(GenericGraphBackend):
         """
         cdef int u_int
         cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
-        return iter([vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+        if self._cg_rev is not None: # Sparse
+            return iter([vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                     for u_int in self._cg_rev.out_neighbors(v_int)])
+        else: # Dense
+            return iter([vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                      for u_int in self._cg.in_neighbors(v_int)])
 
     def iterator_out_nbrs(self, v):
@@ -1170,6 +1185,7 @@ class CGraphBackend(GenericGraphBackend):
         cdef list next_current = next_x
         cdef list next_other = next_y
         cdef list next_temporary = []
+        cdef list neighbors
 
         cdef list shortest_path = []
 
@@ -1188,7 +1204,13 @@ class CGraphBackend(GenericGraphBackend):
             #
             # After this, current and other are reversed, and the loop restarts
             for u in next_current:
-                for v in (self._cg.out_neighbors(u) if out == 1 else self._cg.in_neighbors(u)):
+                if out == 1:
+                    neighbors = self._cg.out_neighbors(u)
+                elif self._cg_rev is not None: # Sparse
+                    neighbors = self._cg_rev.out_neighbors(u)
+                else: # Dense
+                    neighbors = self._cg.in_neighbors(u)
+                for v in neighbors:
                     # If the neihgbor is new, updates the distances and adds to the list
                     if not dist_current.has_key(v):
                         dist_current[v] = dist_current[u] + 1
@@ -1295,6 +1317,7 @@ class CGraphBackend(GenericGraphBackend):
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively
         cdef list queue = [(0,1,x_int,x_int),(0,-1,y_int,y_int)]
+        cdef list neighbors
 
         cdef list shortest_path = []
 
@@ -1328,7 +1351,13 @@ class CGraphBackend(GenericGraphBackend):
                         meeting_vertex = v
                         shortest_path_length = f_tmp
 
-                for w in (self._cg.out_neighbors(v) if side == 1 else self._cg.in_neighbors(v)):
+                if side == 1:
+                    neighbors = self._cg.out_neighbors(v)
+                elif self._cg_rev is not None: # Sparse
+                    neighbors = self._cg_rev.out_neighbors(v)
+                else: # Dense
+                    neighbors = self._cg.in_neighbors(v)
+                for w in neighbors:
                     # If the neihgbor is new, adds its non-found neighbors to the queue
                     if not dist_current.has_key(w):
                         edge_label = self.get_edge_label(v,w) if side == 1 else self.get_edge_label(w,v)

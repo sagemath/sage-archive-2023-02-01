@@ -623,7 +623,7 @@ def random_stress():
             raise RuntimeError( "NO" )
 
 ###########################################
-# Sparse Graph Backend
+# Dense Graph Backend
 ###########################################
 
 from c_graph import CGraphBackend
@@ -666,7 +666,7 @@ class DenseGraphBackend(CGraphBackend):
 
     """
 
-    def __init__(self, n):
+    def __init__(self, n, directed=True):
         """
         Initialize a dense graph with n vertices.
 
@@ -679,6 +679,8 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         self._cg = DenseGraph(n)
+        self._cg_rev = None
+        self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
 
@@ -704,11 +706,11 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, None, 0)
         if not self._cg.has_vertex(u_int):
             self._cg.add_vertex(u_int)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, None, 0)
         if not self._cg.has_vertex(v_int):
             self._cg.add_vertex(v_int)
         if directed or u_int == v_int:
@@ -778,9 +780,9 @@ class DenseGraphBackend(CGraphBackend):
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, None, 0)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, None, 0)
         if v is None:
             u, v = u[:2]
         if directed:

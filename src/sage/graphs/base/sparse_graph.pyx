@@ -1359,7 +1359,7 @@ class SparseGraphBackend(CGraphBackend):
 
     """
 
-    def __init__(self, int n):
+    def __init__(self, int n, directed=True):
         """
         Initialize a sparse graph with n vertices.
 
@@ -1372,6 +1372,8 @@ class SparseGraphBackend(CGraphBackend):
 
         """
         self._cg = SparseGraph(n)
+        self._cg_rev = SparseGraph(n) if directed else self._cg
+        self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
         self.edge_labels = {0:None}
@@ -1395,11 +1397,11 @@ class SparseGraphBackend(CGraphBackend):
 
         """
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, self._cg_rev, self._directed)
         if not self._cg.has_vertex(u_int):
             self._cg.add_vertex(u_int)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, self._cg_rev, self._directed)
         if not self._cg.has_vertex(v_int):
             self._cg.add_vertex(v_int)
 
@@ -1409,7 +1411,10 @@ class SparseGraphBackend(CGraphBackend):
 
         if (self.multiple_edges(None) or not self._cg.has_arc_label(u_int, v_int, l_int)) and \
             (self.loops(None) or u_int != v_int):
-            if directed or u_int == v_int:
+            if directed:
+                self._cg.add_arc_label(u_int, v_int, l_int)
+                self._cg_rev.add_arc_label(v_int, u_int, l_int)
+            elif u_int == v_int:
                 self._cg.add_arc_label(u_int, v_int, l_int)
             else:
                 self._cg.add_arc_label(u_int, v_int, l_int)
@@ -1478,14 +1483,15 @@ class SparseGraphBackend(CGraphBackend):
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, self._cg_rev, self._directed)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+                      self._cg, self._cg_rev, self._directed)
         cdef int l_int = check_edge_label(l, self.edge_labels)
         if l_int not in self.edge_labels:
             return
         if directed:
             self._cg.del_arc_label(u_int, v_int, l_int)
+            self._cg_rev.del_arc_label(v_int, u_int, l_int)
         else:
             self._cg.del_arc_label(u_int, v_int, l_int)
             self._cg.del_arc_label(v_int, u_int, l_int)
@@ -1632,14 +1638,14 @@ class SparseGraphBackend(CGraphBackend):
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
                  self.edge_labels[l_int])
                     for v_int in vertices
-                        for u_int in self._cg.in_neighbors(v_int)
+                        for u_int in self._cg_rev.out_neighbors(v_int)
                             for l_int in self._cg.all_arcs(u_int, v_int)])
             else:
                 return iter([
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg))
                     for v_int in vertices
-                        for u_int in self._cg.in_neighbors(v_int)
+                        for u_int in self._cg_rev.out_neighbors(v_int)
                             for l_int in self._cg.all_arcs(u_int, v_int)])
         else:
             if labels:
@@ -1648,13 +1654,13 @@ class SparseGraphBackend(CGraphBackend):
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
                  self.edge_labels[self._cg.arc_label(u_int, v_int)])
                     for v_int in vertices
-                        for u_int in self._cg.in_neighbors(v_int)])
+                        for u_int in self._cg_rev.out_neighbors(v_int)])
             else:
                 return iter([
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg))
                     for v_int in vertices
-                        for u_int in self._cg.in_neighbors(v_int)])
+                        for u_int in self._cg_rev.out_neighbors(v_int)])
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -1776,12 +1782,16 @@ class SparseGraphBackend(CGraphBackend):
                       self._cg)
         cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg)
-        if directed or u_int == v_int:
-            ll_int = (<SparseGraph>self._cg).arc_label_unsafe(u_int, v_int)
+        ll_int = (<SparseGraph>self._cg).arc_label_unsafe(u_int, v_int)
+        if directed:
+            self._cg.del_arc_label(u_int, v_int, ll_int)
+            self._cg_rev.del_arc_label(v_int, u_int, ll_int)
+            self._cg.add_arc_label(u_int, v_int, l_int)
+            self._cg_rev.add_arc_label(v_int, u_int, l_int)
+        elif u_int == v_int:
             self._cg.del_arc_label(u_int, v_int, ll_int)
             self._cg.add_arc_label(u_int, v_int, l_int)
         else:
-            ll_int = (<SparseGraph>self._cg).arc_label_unsafe(u_int, v_int)
             self._cg.del_arc_label(u_int, v_int, ll_int)
             self._cg.del_arc_label(v_int, u_int, ll_int)
             self._cg.add_arc_label(u_int, v_int, l_int)

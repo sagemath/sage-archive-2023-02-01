@@ -490,8 +490,14 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         Create an ideal in this polynomial ring.
         """
         do_coerce = False
-        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
-            gens = gens[0]
+        if len(gens) == 1:
+            from sage.rings.ideal import is_Ideal
+            if is_Ideal(gens[0]):
+                if gens[0].ring() is self:
+                    return gens[0]
+                gens = gens[0].gens()
+            elif isinstance(gens[0], (list, tuple)):
+                gens = gens[0]
         if not self._has_singular:
             # pass through
             MPolynomialRing_generic.ideal(self,gens,**kwds)

@@ -1272,7 +1272,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # but in order.
         return self.gens()[-n:]
 
-    def _ideal_class_(self):
+    def _ideal_class_(self, n=0):
         """
         Return :class:`SymmetricIdeals` (see there for further details).
 

@@ -78,6 +78,7 @@ from sage.rings.arith import sort_complex_numbers_for_display
 import polynomial_fateman
 
 from sage.rings.integer cimport Integer
+from sage.rings.ideal import is_Ideal
 
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
@@ -4875,8 +4876,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             for k from 0 <= k <= self.degree():
                 if self[k]:
                     return ZZ(k)
-
-        if not isinstance(p, Polynomial) or not p.parent() is self.parent():
+        if isinstance(p, Polynomial):
+            p = self.parent().coerce(p)
+        elif is_Ideal(p) and p.ring() is self.parent():
+            if self.parent().base_ring().is_field(): # common case
+                p = p.gen()
+            else:
+                raise NotImplementedError
+        else:
             raise TypeError, "The polynomial, p, must have the same parent as self."
 
         if p.degree() == 0:

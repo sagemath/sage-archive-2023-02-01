@@ -594,7 +594,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         vars = ', '.join([a + '^{\pm 1}' for a in self.latex_variable_names()])
         return "%s[%s]"%(latex(self.base_ring()), vars)
 
-    def _ideal_class_(self):
+    def _ideal_class_(self, n=0):
         """
         EXAMPLES::
 

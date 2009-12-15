@@ -1244,6 +1244,19 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
 
+    def _ideal_class_(self, n=0):
+        """
+        Returns the class representing ideals in univariate polynomial rings over fields.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: R._ideal_class_()
+            <class 'sage.rings.polynomial.ideal.Ideal_1poly_field'>
+        """
+        from sage.rings.polynomial.ideal import Ideal_1poly_field
+        return Ideal_1poly_field
+
     def divided_difference(self, points, full_table=False):
         """
         Return the Newton divided-difference coefficients of the `n`-th

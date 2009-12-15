@@ -407,13 +407,17 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Returns ``True`` if the quotient ring is a field. Checks to see if the
         defining ideal is maximal.
 
-        TESTS:
-
-        Requires the ``is_maximal`` function to be
-        implemented::
+        TESTS::
 
             sage: Q = QuotientRing(ZZ,7*ZZ)
             sage: Q.is_field()
+            True
+
+        Requires the ``is_maximal`` method of the defining ideal to be
+        implemented::
+
+            sage: R.<x, y> = ZZ[]
+            sage: R.quotient_ring(R.ideal([2, 4 +x])).is_field()
             Traceback (most recent call last):
             ...
             NotImplementedError

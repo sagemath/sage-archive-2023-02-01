@@ -1916,7 +1916,7 @@ class NumberField_generic(number_field_base.NumberField):
             return cmp(self.coerce_embedding()(self.gen()),
                        other.coerce_embedding()(other.gen()))
 
-    def _ideal_class_(self):
+    def _ideal_class_(self, n=0):
         """
         Return the Python class used in defining the zero ideal of the ring
         of integers of this number field.

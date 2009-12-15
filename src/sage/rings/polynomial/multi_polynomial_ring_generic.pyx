@@ -262,7 +262,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         vars = ', '.join(self.latex_variable_names())
         return "%s[%s]"%(sage.misc.latex.latex(self.base_ring()), vars)
 
-    def _ideal_class_(self):
+    def _ideal_class_(self, n=0):
         return multi_polynomial_ideal.MPolynomialIdeal
 
     def _is_valid_homomorphism_(self, codomain, im_gens):

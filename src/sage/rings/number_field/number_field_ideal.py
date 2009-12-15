@@ -88,6 +88,68 @@ def convert_from_zk_basis(field, hnf):
     """
     return field.pari_nf().getattr('zk') * hnf
 
+def convert_from_idealprimedec_form(field, ideal):
+    """
+    Used internally in the number field ideal implementation for
+    converting from the form output by the pari function ``idealprimedec``
+    to a Sage ideal.
+
+    INPUT:
+
+    -  ``field`` - a number field
+
+    -  ``ideal`` - a pari ideal, as output by the idealprimedec function
+
+    EXAMPLE::
+
+        sage: from sage.rings.number_field.number_field_ideal import convert_from_idealprimedec_form
+        sage: K.<a> = NumberField(x^2 + 3)
+        sage: K_bnf = gp(K.pari_bnf())
+        sage: ideal = K_bnf.idealprimedec(3)[1]
+        sage: convert_from_idealprimedec_form(K, ideal)
+        Fractional ideal (1/2*a - 3/2)
+        sage: K.factor(3)
+        (Fractional ideal (1/2*a - 3/2))^2
+
+    """
+    p = ZZ(ideal[1])
+    alpha = field( field.pari_nf().getattr('zk') * ideal[2] )
+    return field.ideal(p, alpha)
+
+def convert_to_idealprimedec_form(field, ideal):
+    """
+    Used internally in the number field ideal implementation for
+    converting to the form output by the pari function ``idealprimedec``
+    from a Sage ideal.
+
+    INPUT:
+
+    -  ``field`` - a number field
+
+    -  ``ideal`` - a prime ideal
+
+    NOTE:
+
+    The algorithm implemented right now is not optimal, but works. It should
+    eventually be replaced with something better.
+
+    EXAMPLE::
+
+        sage: from sage.rings.number_field.number_field_ideal import convert_to_idealprimedec_form
+        sage: K.<a> = NumberField(x^2 + 3)
+        sage: P = K.ideal(a/2-3/2)
+        sage: convert_to_idealprimedec_form(K, P)
+        [3, [1, 2]~, 2, 1, [1, -1]~]
+
+    """
+    p = ideal.residue_field().characteristic()
+    from sage.interfaces.gp import gp
+    K_bnf = gp(field.pari_bnf())
+    for primedecform in K_bnf.idealprimedec(p):
+        if convert_from_idealprimedec_form(field, primedecform) == ideal:
+            return primedecform
+    raise RuntimeError
+
 class NumberFieldIdeal(Ideal_generic):
     """
     An ideal of a number field.

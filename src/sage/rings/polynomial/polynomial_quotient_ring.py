@@ -31,6 +31,7 @@ import sage.rings.commutative_ring
 import sage.rings.field as field
 import sage.rings.integral_domain
 
+from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
@@ -571,6 +572,549 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         """
         return self(self.polynomial_ring().random_element(degree=self.degree()-1))
 
+
+    def S_class_group(self, S, proof=True):
+        """
+        If this quotient ring is over a number field K, by a polynomial with
+        nonzero discriminant, and S is a set of primes of K, this function
+        returns a list of representatives which generate the S-class group.
+
+        NOTE:
+
+        Since the ``ideal`` function behaves differently over number fields than
+        over polynomial quotient rings (i.e. the quotient does not even know its
+        ring of integers), we return a set of generators of each ideal. The
+        format for each generator is (gen, order, pr), where order is the
+        multiplicative order of gen, i.e. gen^order is a principal ideal, gen is
+        a tuple of generators of the representative ideal, and pr is a generator
+        of the principal ideal gen^order.
+
+        INPUT:
+
+        - ``S`` - a set of primes of the coefficient ring
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of tuples ``(gen, order, pr)``, where ``gen`` is a tuple of
+        elements which generate a fractional ideal representative of the class
+        group generator of order ``order``, and ``pr`` is a principal generator
+        of `gen^{order}`.
+
+        EXAMPLES:
+
+        A trivial algebra over `\QQ(\sqrt{-5})` has the same class group as its
+        base::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient(x)
+            sage: S.S_class_group([])
+            [((2, -a + 1), 2, 2)]
+
+        When we include the prime `(2, -a+1)`, the S-class group becomes
+        trivial::
+
+            sage: S.S_class_group([K.ideal(2, -a+1)])
+            []
+
+        Here is an example where the base and the extension both contribute to
+        the class group::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: K.class_group()
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient(x^2 + 23)
+            sage: S.S_class_group([])
+            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
+              6,
+              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+            sage: S.S_class_group([K.ideal(3, a-1)])
+            []
+            sage: S.S_class_group([K.ideal(2, a+1)])
+            []
+            sage: S.S_class_group([K.ideal(a)])
+            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
+              6,
+              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+
+        Now we take an example over a nontrivial base with two factors, each
+        contributing to the class group::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
+            sage: S.S_class_group([])
+            [((3/8*xbar^2 + 93/8,
+               -3/8*a*xbar^2 - 93/8*a, 3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
+               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
+              6,
+              (1/16*a - 101/16)*xbar^3 + (187/16*a + 65/16)*xbar^2 + (31/16*a - 3131/16)*xbar + 5797/16*a + 2031/16),
+             ((-1/4*xbar^2 - 23/4,
+               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
+               -1/16*xbar^3 ...xbar^2 - 23/16*xbar ...,
+               1/16*a*xbar^3 ...xbar^2 + 23/16*a*xbar ...),
+              6,
+              1/16*xbar^3 + 1/16*xbar^2 + 23/16*xbar + 39/16),
+             ((-5/4*xbar^2 - 115/4,
+               5/4*a*xbar^2 + 115/4*a,
+               -5/16*xbar^3 - 5/16*xbar^2 - 115/16*xbar - 115/16,
+               1/16*a*xbar^3 + 13/16*a*xbar^2 + 23/16*a*xbar + 299/16*a),
+              2,
+              5/16*xbar^3 - 33/16*xbar^2 + 115/16*xbar - 743/16)]
+
+        By using the ideal `(a)`, we cut the part of the class group coming from
+        `x^2 + 31` from 12 to 2, i.e. we lose a generator of order 6::
+
+            sage: S.S_class_group([K.ideal(a)])
+            [((3/8*xbar^2 + 93/8,
+               -3/8*a*xbar^2 - 93/8*a,
+               3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
+               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
+              6,
+              (...1/16*a ... 101/16)*xbar^3 + (...187/16*a ...)*xbar^2 + (...31/16*a ... 3131/16)*xbar ... 5797/16*a ...),
+             ((-1/4*xbar^2 - 23/4,
+               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
+               -1/16*xbar^3 ...,
+               1/16*a*xbar^3 ...),
+              2,
+              -1/8*xbar^2 - 15/8)]
+
+        Note that all the returned values live where we expect them to::
+
+            sage: CG = S.S_class_group([])
+            sage: type(CG[0][0][1])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            sage: type(CG[0][1])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(CG[0][2])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+
+        """
+        return self._S_class_group_and_units(tuple(S), proof=proof)[1]
+
+    def class_group(self, proof=True):
+        """
+        If this quotient ring is over a number field K, by a polynomial of
+        nonzero discriminant, returns a list of representatives which generate
+        the class group.
+
+        NOTE:
+
+        Since the ``ideal`` function behaves differently over number fields than
+        over polynomial quotient rings (i.e. the quotient does not even know its
+        ring of integers), we return a set of generators of each ideal. The
+        format for each generator is (gen, order, pr), where order is the
+        multiplicative order of gen, i.e. gen^order is a principal ideal, gen is
+        a tuple of generators of the representative ideal, and pr is a generator
+        of the principal ideal gen^order.
+
+        INPUT::
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of tuples ``(gen, order, pr)``, where ``gen`` is a tuple of
+        elements which generate a fractional ideal representative of the class
+        group generator of order ``order``, and ``pr`` is a principal generator
+        of `gen^{order}`.
+
+        EXAMPLES::
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.class_group()
+            Class group of order 1 with structure  of Number Field in a with defining polynomial x^2 + 3
+            sage: K.<a> = QQ['x'].quotient(x^2 + 3)
+            sage: K.class_group()
+            []
+
+        A trivial algebra over `\QQ(\sqrt{-5})` has the same class group as its
+        base::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient(x)
+            sage: S.class_group()
+            [((2, -a + 1), 2, 2)]
+
+        Here is an example where the base and the extension both contribute to
+        the class group::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: K.class_group()
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient(x^2 + 23)
+            sage: S.class_group()
+            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
+              6,
+              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+
+        Here is an example of a product of number fields, both of which
+        contribute to the class group::
+
+            sage: R.<x> = QQ[]
+            sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 47))
+            sage: S.class_group()
+            [((1/12*xbar^2 + 47/12,
+               1/48*xbar^3 - 1/48*xbar^2 + 47/48*xbar - 47/48),
+              3,
+              -1/48*xbar^3 - 5/48*xbar^2 - 47/48*xbar - 187/48),
+             ((-1/12*xbar^2 - 23/12,
+               -1/48*xbar^3 - ...xbar^2 - 23/48*xbar - ...),
+              5,
+              -1/48*xbar^3 ...xbar^2 - 23/48*xbar ...)]
+
+        Now we take an example over a nontrivial base with two factors, each
+        contributing to the class group::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
+            sage: S.class_group()
+            [((3/8*xbar^2 + 93/8,
+               -3/8*a*xbar^2 - 93/8*a, 3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
+               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
+              6,
+              (1/16*a - 101/16)*xbar^3 + (187/16*a + 65/16)*xbar^2 + (31/16*a - 3131/16)*xbar + 5797/16*a + 2031/16),
+             ((-1/4*xbar^2 - 23/4,
+               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
+               -1/16*xbar^3 ...,
+               1/16*a*xbar^3 ...),
+              6,
+              1/16*xbar^3 + 1/16*xbar^2 + 23/16*xbar + 39/16),
+             ((-5/4*xbar^2 - 115/4,
+               5/4*a*xbar^2 + 115/4*a,
+               -5/16*xbar^3 - 5/16*xbar^2 - 115/16*xbar - 115/16,
+               1/16*a*xbar^3 + 13/16*a*xbar^2 + 23/16*a*xbar + 299/16*a),
+              2,
+              5/16*xbar^3 - 33/16*xbar^2 + 115/16*xbar - 743/16)]
+
+        Note that all the returned values live where we expect them to::
+
+            sage: CG = S.class_group()
+            sage: type(CG[0][0][1])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            sage: type(CG[0][1])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(CG[0][2])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+
+        """
+        return self._S_class_group_and_units((), proof=proof)[1]
+
+    def S_units(self, S, proof=True):
+        """
+        If this quotient ring is over a number field K, by a polynomial with
+        nonzero discriminant, and S is a set of primes of K, this function
+        returns a list of generators of the S-units.
+
+        INPUT::
+
+        - ``S`` - a set of primes of the coefficient ring
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of generators of the unit group, in the form ``(gen, order)``,
+        where ``gen`` is a unit of order ``order``.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.unit_group()
+            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
+            sage: K.<a> = QQ['x'].quotient(x^2 + 3)
+            sage: u,o = K.S_units([])[0]; u, o
+            (-1/2*a + 1/2, 6)
+            sage: u^6
+            1
+            sage: u^3
+            -1
+            sage: u^2
+            -1/2*a - 1/2
+
+        ::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: y = polygen(K)
+            sage: L.<b> = K['y'].quotient(y^3 + 5); L
+            Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
+            sage: L.S_units([])
+            [(-1/2*a + 1/2, 6),
+             ((...1/3*a - 1)*b^2 + ...*b + ...*a + ..., +Infinity),
+             ((...1/3*a + 1)*b^2 ...*b ...*a ..., +Infinity)]
+            sage: L.S_units([K.ideal(1/2*a - 3/2)])
+            [((...1/6*a - 1/2)*b^2 + (...1/3*a + 1)*b ... 2/3*a - 2, +Infinity),
+             (-1/2*a + 1/2, 6),
+             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity),
+             ((...1/3*a ... 1)*b^2 + (...2/3*a - 2)*b + ...*a + ..., +Infinity)]
+            sage: L.S_units([K.ideal(2)])
+            [((...*a ... 1/2)*b^2 + (...a ... 1)*b + ...*a ... 3/2, +Infinity),
+             ((1/6*a + 1/2)*b^2 + (-1/3*a - 1)*b + 1/6*a + 3/2, +Infinity),
+             ((...*a + 1/2)*b^2 + (...a - 1)*b ...*a + ..., +Infinity),
+             (-1/2*a + 1/2, 6),
+             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity),
+             ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity)]
+
+        Note that all the returned values live where we expect them to::
+
+            sage: U = L.S_units([])
+            sage: type(U[0][0])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            sage: type(U[0][1])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(U[1][1])
+            <class 'sage.rings.infinity.PlusInfinity'>
+
+        """
+        return self._S_class_group_and_units(tuple(S), proof=proof)[0]
+
+    def units(self, proof=True):
+        """
+        If this quotient ring is over a number field K, by a polynomial of
+        nonzero discriminant, returns a list of generators of the units.
+
+        INPUT::
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of generators of the unit group, in the form ``(gen, order)``,
+        where ``gen`` is a unit of order ``order``.
+
+        EXAMPLES::
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.unit_group()
+            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
+            sage: K.<a> = QQ['x'].quotient(x^2 + 3)
+            sage: u = K.units()[0][0]; u
+            -1/2*a + 1/2
+            sage: u^6
+            1
+            sage: u^3
+            -1
+            sage: u^2
+            -1/2*a - 1/2
+
+        ::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: y = polygen(K)
+            sage: L.<b> = K['y'].quotient(y^3 + 5); L
+            Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
+            sage: L.units()
+            [(-1/2*a + 1/2, 6),
+             ((...1/3*a - 1)*b^2 + ...*b + ...*a + ..., +Infinity),
+             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
+            sage: L.<b> = K.extension(y^3 + 5)
+            sage: L.unit_group()
+            Unit group with structure C6 x Z x Z of Number Field in b with defining polynomial x^3 + 5 over its base field
+            sage: L.unit_group().gens()
+            [-1/2*a + 1/2,
+             (...1/3*a - 1)*b^2 + ...*b + ...*a + ...,
+             (-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2]
+
+        Note that all the returned values live where we expect them to::
+
+            sage: L.<b> = K['y'].quotient(y^3 + 5)
+            sage: U = L.units()
+            sage: type(U[0][0])
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            sage: type(U[0][1])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(U[1][1])
+            <class 'sage.rings.infinity.PlusInfinity'>
+
+        """
+        return self._S_class_group_and_units((), proof=proof)[0]
+
+    @cached_method
+    def _S_class_group_and_units(self, S, proof=True):
+        """
+        Compute S class group and units.
+
+        INPUT:
+
+        - ``S`` - a tuple of primes of the coefficient ring
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        - ``units, clgp_gens``, where:
+
+        - ``units`` - A list of generators of the unit group, in the form
+        ``(gen, order)``, where ``gen`` is a unit of order ``order``.
+
+        - ``clgp_gens`` - A list of tuples ``(gen, order, pr)``, where ``gen``
+        is a tuple of elements which generate a fractional ideal representative
+        of the class group generator of order ``order``, and ``pr`` is a
+        principal generator of `gen^{order}`.
+
+        EXAMPLE::
+
+            sage: K.<a> = QQ['x'].quotient(x^2+5)
+            sage: K._S_class_group_and_units(())
+            ([(-1, 2)], [((2, a + 1), 2, 2)])
+
+        """
+        from sage.rings.number_field.all import is_NumberField
+        K = self.base_ring()
+        if not is_NumberField(K) or not self.__polynomial.is_squarefree():
+            raise NotImplementedError
+
+        from sage.rings.ideal import is_Ideal
+        for p in S:
+            try:
+                assert is_Ideal(p)
+                assert p.ring() is K or p.ring() is K.ring_of_integers() # second check due to inconsistency over QQ - see # 7596
+                assert p.is_prime()
+            except AssertionError:
+                raise TypeError("S must be a list of prime ideals of the base field.")
+
+        from sage.rings.number_field.number_field import NumberField
+        from sage.rings.number_field.number_field_ideal import \
+            convert_to_idealprimedec_form, convert_from_idealprimedec_form
+        from sage.interfaces.gp import gp
+
+        F = self.__polynomial.factor()
+        rel_fields = []
+        abs_fields = []
+        isos = []
+        iso_classes = []
+        i = 0
+        for f, _ in F:
+            D = K.extension(f, 'x'+str(i))
+            rel_fields.append(D)
+            D_abs = D.absolute_field('y'+str(i))
+            abs_fields.append(D_abs)
+            i += 1
+
+            seen_before = False
+            j = 0
+            for D_iso,_ in iso_classes:
+                if D_abs.is_isomorphic(D_iso):
+                    seen_before = True; break
+                j += 1
+            if seen_before:
+                isos.append((D_iso.embeddings(D_abs)[0], j))
+            else:
+                S_abs = []
+                for p in S:
+                    abs_gens = []
+                    for g in D.ideal(p.gens()).gens(): # this line looks a bit silly, due to inconsistency over QQ - see # 7596
+                        abs_gens.append(D_abs.structure()[1](g))
+                    S_abs += [pp for pp,_ in D_abs.ideal(abs_gens).factor()]
+                iso_classes.append((D_abs,S_abs))
+                isos.append((D_abs.embeddings(D_abs)[0], j))
+
+        from sage.rings.all import QQ, ZZ
+        component_S_units = []
+        component_S_class_groups = []
+        for D_iso, S_iso in iso_classes:
+            # compute S-class group and units for each distinct component
+            units, clgp_gens = D_iso._S_class_group_and_units(tuple(S_iso), proof=proof)
+            component_S_units.append(units)
+            component_S_class_groups.append(clgp_gens)
+
+        from sage.rings.arith import crt
+        units = []
+        clgp_gens = []
+        clgp_gens_orders = []
+        moduli = [D.relative_polynomial() for D in rel_fields]
+        for i in xrange(len(rel_fields)):
+            phi = isos[i][0]
+            back_to_rel = phi.codomain().structure()[0]
+            for unit in component_S_units[isos[i][1]]:
+                mul_order = unit.multiplicative_order()
+                rel_unit = back_to_rel(phi(unit))
+                prod_unit = [1]*i
+                prod_unit.append(rel_unit.lift())
+                prod_unit.extend( [1]*(len(rel_fields) - i - 1) )
+                poly_unit = self(crt(prod_unit, moduli, None, None))
+
+                units.append((self(poly_unit), mul_order))
+            for clgp_gen, gen_order, prin_gen in component_S_class_groups[isos[i][1]]:
+
+                self_ideal_gens = []
+                for ideal_gen in clgp_gen.gens():
+                    rel_ideal_gen = back_to_rel(phi(ideal_gen))
+                    prod_ideal_gen = [0]*i
+                    prod_ideal_gen.append(rel_ideal_gen.lift())
+                    prod_ideal_gen.extend([0]*(len(rel_fields) - i - 1))
+                    self_ideal_gen = self(crt(prod_ideal_gen, moduli, None, None))
+                    self_ideal_gens.append(self_ideal_gen)
+
+                rel_prin_gen = back_to_rel(phi(prin_gen))
+                prod_prin_gen = [1]*i
+                prod_prin_gen.append(rel_prin_gen.lift())
+                prod_prin_gen.extend( [1]*(len(rel_fields) - i - 1) )
+                self_prin_gen = self(crt(prod_prin_gen, moduli, None, None))
+
+                clgp_gens.append((tuple(self_ideal_gens), gen_order, self_prin_gen))
+
+        return units, clgp_gens
+
+    def selmer_group(self, S, m, proof=True):
+        """
+        If `D` is an etale algebra over a number field (i.e. the coefficient
+        ring is a number field and the modulus is squarefree), then compute the
+        Selmer group `D(S,m)`, which is defined to be the subgroup of
+        `D^\cross/(D^\cross)^m` consisting of elements `a` such that
+        `D(\sqrt[m]{a})/D` is unramified at all primes of `D` lying above a
+        place outside of `S`.
+
+        INPUT:
+
+        - ``S`` - A set of primes of the coefficient ring (which is a number field).
+
+        - ``m`` - a positive integer
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of generators of `D(S,m)`.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: D.<T> = R.quotient(x)
+            sage: D.selmer_group((), 2)
+            [-1, 2]
+            sage: D.selmer_group([K.ideal(2, -a+1)], 2)
+            [2, -1]
+            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
+            [2, -a - 1, -1]
+            sage: D.selmer_group((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
+            [2, -a - 1, -1]
+            sage: D.selmer_group([K.ideal(2, -a+1)], 3)
+            [2]
+            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
+            [2, -a - 1]
+            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            [2, -a - 1, -a]
+
+        """
+        units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
+        gens = []
+        from sage.rings.infinity import Infinity
+        for unit, order in units:
+            if order == Infinity or order.gcd(m) != 1:
+                gens.append(unit)
+        for gen, order, pr in clgp_gens:
+                # gen^(order/gcd) is the generator in Cl_S(D)[m], of
+                # order gcd, and we take a principal generator of
+                # gen^order to get the corresponding generator in D(S,m)
+            if order.gcd(m) != 1:
+                gens.append(pr)
+        return gens
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.integral_domain.IntegralDomain):
     """

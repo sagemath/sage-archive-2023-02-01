@@ -2547,6 +2547,147 @@ class NumberField_generic(number_field_base.NumberField):
         proof = proof_flag(proof)
         return self.class_group(proof).order()
 
+    def S_class_group(self, S, proof=True):
+        """
+        Returns a list of representatives which generate the S-class group of
+        this number field over its base field.
+
+        INPUT:
+
+        - ``S`` - a set of primes of the base field
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of fractional ideal representatives of the class group generators.
+
+        EXAMPLE:
+
+        A well known example::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: K.S_class_group([])
+            [Fractional ideal (2, a + 1)]
+
+        When we include the prime `(2, a+1)`, the S-class group becomes
+        trivial::
+
+            sage: K.S_class_group([K.ideal(2,a+1)])
+            []
+
+        """
+        return [self.ideal(gen) for gen, order, pr in self._S_class_group_and_units(tuple(S), proof=proof)[1]]
+
+    def S_units(self, S, proof=True):
+        """
+        Returns a list of generators of the S-units.
+
+        INPUT::
+
+        - ``S`` - a set of primes of the base field
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        A list of generators of the unit group.
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.unit_group()
+            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
+            sage: K.S_units([])
+            [-1/2*a + 1/2]
+            sage: K.S_units([])[0].multiplicative_order()
+            6
+
+        """
+        return self._S_class_group_and_units(tuple(S), proof=proof)[0]
+
+    @cached_method
+    def _S_class_group_and_units(self, S, proof=True):
+        """
+        Compute S class group and units.
+
+        INPUT:
+
+        - ``S`` - a tuple of primes of the base field
+
+        - ``proof`` - if False, assume Pari's GRH++ in computing the class group
+
+        OUTPUT:
+
+        - ``units, clgp_gens``, where:
+
+        - ``units`` - A list of generators of the unit group.
+
+        - ``clgp_gens`` - A list of tuples ``(gen, order, pr)``, where ``gen``
+        is a tuple of elements which generate a fractional ideal representative
+        of the class group generator of order ``order``, and ``pr`` is a
+        principal generator of `gen^{order}`.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2+5)
+            sage: K._S_class_group_and_units(())
+            ([-1], [(Fractional ideal (2, a + 1), 2, 2)])
+
+        """
+        from sage.interfaces.gp import gp
+        from sage.rings.number_field.number_field_ideal import \
+            convert_to_idealprimedec_form, convert_from_idealprimedec_form
+        deg = self.degree()
+        ###############################################################
+        # The following line computes S-class gp and S-units in Pari, #
+        # assuming the Generalized Riemann Hypothesis + other         #
+        # "heuristic" assumptions (GRH++).                            #
+        ###############################################################
+        D_gp = gp(self.pari_bnf())
+        if proof:
+            ################################################
+            # The following line attempts to remove GRH++. #
+            # If the result is not provable, may output an #
+            # error message, or loop indefinitely.         #
+            ################################################
+            assert D_gp.bnfcertify() == 1
+
+        S_gp = [convert_to_idealprimedec_form(self, p) for p in S]
+        units = []
+
+        result = D_gp.bnfsunit(S_gp)
+        x = self.gen()
+        for unit in result[1]:
+            sage_unit = 0
+            for i in xrange(unit.poldegree()+1):
+                sage_unit += QQ(unit.polcoeff(i))*x**i
+            units.append(sage_unit)
+        units += self.unit_group().gens()
+
+        IB = []
+        for f_gp in D_gp[7][7]:
+            f = 0
+            for i in xrange(f_gp.length()):
+                f += QQ(f_gp.polcoeff(i))*x**i
+            IB.append(f)
+        clgp_gens = []
+        k = 1
+        for M in result[5][3]:
+            if result[5][2][k] > 1: # since some generators are given "of order 1"
+                ideal_gens = []
+                for i in xrange(1, deg+1):
+                    col = []
+                    for j in xrange(1, deg+1):
+                        col.append(ZZ(M[j,i]))
+                    ideal_gens.append(sum([IB[j]*col[j] for j in xrange(deg)]))
+                I = self.ideal(ideal_gens)
+                order = ZZ(result[5][2][k])
+                clgp_gens.append(   (I, order, self((I**order).gens_reduced()[0]))   )
+            k += 1
+
+        return units, clgp_gens
+
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
         List of all possible composite number fields formed from self and

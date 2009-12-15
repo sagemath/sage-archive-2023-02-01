@@ -2937,6 +2937,20 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))
 
+    def lift(self, var='x'):
+        """
+        Return an element of QQ[x], where this number field element
+        lives in QQ[x]/(f(x)).
+
+        EXAMPLES::
+            sage: K.<a> = QuadraticField(-3)
+            sage: a.lift()
+            x
+
+        """
+        R = self.number_field().base_field()[var]
+        return R(self.list())
+
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
     r"""
@@ -3003,6 +3017,25 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             [-1, 2*b, 1]
         """
         return self.vector().list()
+
+    def lift(self, var='x'):
+        """
+        Return an element of K[x], where this number field element
+        lives in the relative number field K[x]/(f(x)).
+
+        EXAMPLES::
+            sage: K.<a> = QuadraticField(-3)
+            sage: x = polygen(K)
+            sage: L.<b> = K.extension(x^7 + 5)
+            sage: u = L(1/2*a + 1/2 + b + (a-9)*b^5)
+            sage: u.lift()
+            (a - 9)*x^5 + x + 1/2*a + 1/2
+
+        """
+        K = self.number_field()
+        # Compute representation of self in terms of relative vector space.
+        R = K.base_field()[var]
+        return R(self.list())
 
     def _pari_(self, var='x'):
         """

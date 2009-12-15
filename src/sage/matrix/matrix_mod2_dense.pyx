@@ -107,6 +107,8 @@ from sage.misc.functional import log
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
+from sage.modules.free_module import VectorSpace
+
 cdef extern from "gd.h":
     ctypedef struct gdImagePtr "gdImagePtr":
         pass
@@ -1529,9 +1531,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             return matrix_dense.Matrix_dense.density(self)
 
-    def rank(self):
+    def rank(self, algorithm='lqup'):
         """
         Return the rank of this matrix.
+
+        On average 'lqup' should be faster than 'm4ri' and hence it is
+        the default choice. However, for small - i.e. quite few
+        thousand rows & columns - and sparse matrices 'm4ri' might be
+        a better choice.
+
+        INPUT:
+
+        - ``algorithm`` - either "lqup" or "m4ri"
 
         EXAMPLE:
             sage: A = random_matrix(GF(2), 1000, 1000)
@@ -1548,12 +1559,116 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             return 0
         cdef mzd_t *A = mzd_copy(NULL, self._entries)
-        # for now we always call m4ri but in the future we will call a
-        # yet to be written mzd_rank(0) function.
-        r = mzd_echelonize_m4ri(A, 0, 0)
+        cdef mzp_t *P, *Q
+
+        if algorithm == 'lqup':
+            P = mzp_init(self._entries.nrows)
+            Q = mzp_init(self._entries.ncols)
+            r = mzd_lqup(A, P, Q, 0)
+            mzp_free(P)
+            mzp_free(Q)
+        elif algorithm == 'm4ri':
+            r = mzd_echelonize_m4ri(A, 0, 0)
+        else:
+            raise ValueError("Algorithm '%s' unknown."%algorithm)
         mzd_free(A)
         self.cache('rank', r)
         return r
+
+    def right_kernel(self, algorithm='pluq'):
+        """
+        Return the right kernel of this matrix, as a vector
+        space. This is the space of vectors x such that ``self*x=0``.
+        A left kernel can be found with :meth:`left_kernel()` or just
+        :meth:`kernel`.
+
+        INPUT:
+
+        - ``algorithm`` - either "pluq" or "generic"
+
+        By convention if self has 0 columns, the kernel is of dimension 0,
+        whereas the kernel is whole domain if self has 0 rows.
+
+        .. note::
+
+           Preference is given to left kernels in that the generic method
+           name :meth:`kernel` returns a left kernel.  However most computations
+           of kernels are implemented as right kernels.
+
+        EXAMPLES:
+
+        A trivial right kernel::
+
+            sage: A = MatrixSpace(GF(2), 2)([1,0,0,1])
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 0 over Finite Field of size 2
+            Basis matrix:
+            []
+
+        Right kernel of a zero matrix::
+
+            sage: A = MatrixSpace(GF(2), 2)(0)
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 2 over Finite Field of size 2
+            Basis matrix:
+            [1 0]
+            [0 1]
+
+        Right kernel of a non-square matrix::
+
+            sage: A = MatrixSpace(GF(2),2,3)(range(6))
+            sage: A.right_kernel()
+            Vector space of degree 3 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 0 1]
+
+        A non-trivial kernel computation::
+
+            sage: A = random_matrix(GF(2),1000,1010)
+            sage: A.right_kernel()
+            Vector space of degree 1010 and dimension 10 over Finite Field of size 2
+            Basis matrix:
+            10 x 1010 dense matrix over Finite Field of size 2
+        """
+        if algorithm == 'generic':
+            return matrix_dense.Matrix_dense.right_kernel(self)
+        if algorithm != 'pluq':
+            raise ValueError("Algorithm '%s' is unknown."%algorithm)
+
+        cdef Matrix_mod2_dense M
+        K = self.fetch('right_kernel')
+        if not K is None:
+            return K
+
+        R = self._base_ring
+        if self._ncols == 0:    # from a degree-0 space
+            V = VectorSpace(R, self._ncols)
+            Z = V.zero_subspace()
+            self.cache('right_kernel', Z)
+            return Z
+        elif self._nrows == 0:  # to a degree-0 space
+            Z = VectorSpace(R, self._ncols)
+            self.cache('right_kernel', Z)
+            return Z
+
+        cdef mzd_t *A = mzd_copy(NULL, self._entries)
+        cdef mzd_t *k = mzd_kernel_left_pluq(A, 0) # well, we don't
+                                                   # agree on the name
+                                                   # of this thing
+        mzd_free(A)
+        if k != NULL:
+            M = self.new_matrix(nrows = k.ncols, ncols = k.nrows)
+            mzd_transpose(M._entries, k)
+            mzd_free(k)
+            M = M.echelon_form()
+            basis = M.rows()
+        else:
+            basis = []
+
+        V = R**self._ncols
+        W = V.submodule(basis, check=False, already_echelonized=True)
+        self.cache('right_kernel', W)
+        return W
 
 # Used for hashing
 cdef int i, k

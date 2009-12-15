@@ -164,6 +164,9 @@ cdef extern from "m4ri/m4ri.h":
     # reduced row echelon form using PLUQ factorization
     cdef long mzd_echelonize_pluq(mzd_t *A, int full)
 
+    # reduced row echelon form using PLUQ factorization
+    cdef mzd_t *mzd_kernel_left_pluq(mzd_t *A, int cutoff)
+
     ##################################
     # Internal Functions for Debugging
     ##################################

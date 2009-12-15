@@ -10525,9 +10525,9 @@ class Graph(GenericGraph):
         Is there a perfect matching in an even cycle ?
 
             sage: g = graphs.CycleGraph(6)
-            sage: bounds = lambda x : [1,1]
-            sage: m=g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC
-            sage: m.size()
+            sage: bounds = lambda x: [1,1]
+            sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC
+            sage: m.size() #optional
             3
         """
 
@@ -10538,16 +10538,16 @@ class Graph(GenericGraph):
 
         reorder = lambda x: (min(x[0],x[1]),max(x[0],x[1]),x[2])
 
-        if bounds == None:
+        if bounds is None:
             raise ValueError,"The `bounds` keyword can not be equal to None"
         elif isinstance(bounds,dict):
-            f_bounds = lambda x : bounds[x]
+            f_bounds = lambda x: bounds[x]
         else:
             f_bounds = bounds
 
 
         if self.weighted():
-            weight = lambda x: x[2] if x[2] != None else 1
+            weight = lambda x: x[2] if x[2] is not None else 1
         else:
             weight = lambda x: 1
 

@@ -1015,10 +1015,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: d = random_matrix(GF(next_prime(10^20)),50).det()
             sage: d = random_matrix(Integers(10^50),50).det()
 
+        We verify that trac 7704 is resolved::
+            sage: matrix(ZZ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
+            24
+            sage: matrix(QQ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
+            24
+
         AUTHORS:
 
-        - Unknown: No author specified in the file from 2009-06-25
-        - Sebastian Pancratz (2009-06-25): Use the division-free algorithm for charpoly
+          - Unknown: No author specified in the file from 2009-06-25
+          - Sebastian Pancratz (2009-06-25): Use the division-free algorithm for charpoly
         """
 
         from sage.rings.integer_mod_ring import is_IntegerModRing
@@ -1074,12 +1080,16 @@ cdef class Matrix(matrix1.Matrix):
         #
         # If R is an exact integral domain, we could get the det by computing
         # charpoly.  The generic fraction field implementation is so slow that
-        # the naive algorithm is is much faster in practice despite
+        # the naive algorithm is much faster in practice despite
         # asymptotics.
         # TODO: Find a reasonable cutoff point.  (This is field specific, but
         # seems to be quite large for Q[x].)
         if (R.is_field() and R.is_exact() and algorithm is None) or (algorithm == "hessenberg"):
-            c = self.charpoly('x', "hessenberg")[0]
+            try:
+                c = self.charpoly('x', algorithm="hessenberg")[0]
+            except ValueError:
+                # Hessenberg algorithm not supported, so we use whatever the default algorithm is.
+                c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
             d = self._coerce_element(c)
@@ -1096,7 +1106,11 @@ cdef class Matrix(matrix1.Matrix):
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
         var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
-        c = self.charpoly(var, "df")[0]
+        try:
+            c = self.charpoly(var, algorithm="df")[0]
+        except ValueError:
+            # Division free algorithm not supported, so we use whatever the default algorithm is.
+            c = self.charpoly(var)[0]
 
         if self._nrows % 2:
             c = -c

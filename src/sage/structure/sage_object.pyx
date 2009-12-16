@@ -946,9 +946,9 @@ def unpickle_all(dir, debug=False):
     ::
 
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
-        sage: sage.structure.sage_object.unpickle_all(std)
-        doctest...
-        Successfully unpickled 571 objects.
+        sage: print "x"; sage.structure.sage_object.unpickle_all(std)
+        x...
+        Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
     """
     i = 0

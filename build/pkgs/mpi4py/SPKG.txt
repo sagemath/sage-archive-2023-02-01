@@ -1,0 +1,30 @@
+= MPI4PY =
+
+== Description ==
+
+MPI for Python (mpi4py) provides bindings of the Message Passing
+Interface (MPI) standard for the Python programming language, allowing
+any Python program to exploit multiple processors.
+
+== License ==
+
+
+== SPKG Maintainers ==
+
+  * William Stein
+  * Soroosh Yazdani
+
+== Upstream Contact ==
+
+  Home Page: http://code.google.com/p/mpi4py/
+
+== Dependencies ==
+
+  * openmpi
+  * Cython
+
+== Changelog ==
+
+=== 1.1.0 (William Stein, 2009-12-15) ===
+ * Initial version
+

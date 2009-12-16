@@ -6066,6 +6066,8 @@ def element_class(R, is_sparse):
         sage: sage.modules.free_module.element_class(FF, is_sparse=True)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(FF, is_sparse=False)
+        <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+        sage: sage.modules.free_module.element_class(GF(7), is_sparse=False)
         <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
         sage: sage.modules.free_module.element_class(P, is_sparse=True)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
@@ -6083,6 +6085,9 @@ def element_class(R, is_sparse):
         return Vector_rational_dense
     elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
         from vector_modn_dense import Vector_modn_dense, MAX_MODULUS
+        from vector_mod2_dense import Vector_mod2_dense
+        if R.order() == 2:
+            return Vector_mod2_dense
         if R.order() < MAX_MODULUS:
             return Vector_modn_dense
         else:

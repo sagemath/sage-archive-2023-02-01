@@ -886,6 +886,11 @@ ext_modules = [
     Extension('sage.modules.vector_modn_dense',
               sources = ['sage/modules/vector_modn_dense.pyx']),
 
+    Extension('sage.modules.vector_mod2_dense',
+              sources = ['sage/modules/vector_mod2_dense.pyx'],
+              libraries = ['gmp','m4ri', 'png12', 'gd'],
+              depends = [SAGE_ROOT + "/local/include/png.h"]),
+
     Extension('sage.modules.vector_rational_dense',
               sources = ['sage/modules/vector_rational_dense.pyx'],
               libraries = ['gmp']),

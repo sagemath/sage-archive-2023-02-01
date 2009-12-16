@@ -22,7 +22,8 @@ include "polynomial_template.pxi"
 
 from sage.libs.all import pari
 
-from sage.matrix.matrix_mod2_dense cimport mzd_write_bit, mzd_read_bit, Matrix_mod2_dense, word
+from sage.libs.m4ri cimport mzd_write_bit, mzd_read_bit
+from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
 
 cdef class Polynomial_GF2X(Polynomial_template):
     """

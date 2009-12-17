@@ -3629,6 +3629,10 @@ class GraphGenerators():
             sage: g=graphs.WorldMap()
             sage: g.has_edge("France","Italy")
             True
+            sage: g.gps_coordinates["Bolivia"]
+            [[17, 'S'], [65, 'W']]
+            sage: sorted(g.connected_component_containing_vertex('Ireland'))
+            ['Ireland', 'United Kingdom']
 
         REFERENCE:
 

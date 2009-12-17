@@ -290,7 +290,7 @@ def ReflexivePolytope(dim, n):
     ::
 
         sage: ReflexivePolytope(2,3)
-        Reflexive polygon  3: 2-dimensional, 4 vertices.
+        Reflexive polytope    3: 2-dimensional, 4 vertices.
         sage: lattice_polytope.ReflexivePolytope(2,3).vertices()
         [ 1  0  0 -1]
         [ 0  1 -1  0]
@@ -321,13 +321,11 @@ def ReflexivePolytope(dim, n):
         raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
 
 # Sequences of reflexive polytopes
-_rp2d = None
-_rp3d = None
+_rp = [None]*4
 
 def ReflexivePolytopes(dim):
     r"""
-    Return the sequence of all 2- or 3-dimensional reflexive
-    polytopes.
+    Return the sequence of all 2- or 3-dimensional reflexive polytopes.
 
     .. note::
 
@@ -335,8 +333,9 @@ def ReflexivePolytopes(dim):
        future use, so repetitive calls will return the same object in
        memory.
 
-    TODO: load a database with precomputed faces. Requires better
-    pickling, otherwise takes forever!
+    :param dim: dimension of required reflexive polytopes
+    :type dim: 2 or 3
+    :rtype: list of lattice polytopes
 
     EXAMPLES: There are 16 reflexive polygons::
 
@@ -350,17 +349,26 @@ def ReflexivePolytopes(dim):
         ...
         NotImplementedError: only 2- and 3-dimensional reflexive polytopes are available!
     """
-    global _rp2d, _rp3d
-    if dim == 2:
-        if _rp2d == None:
-            _rp2d = load(data_location+"reflexive_polytopes_2d")
-        return _rp2d
-    elif dim == 3:
-        if _rp3d == None:
-            _rp3d = load(data_location+"reflexive_polytopes_3d")
-        return _rp3d
-    else:
+    global _rp
+    if dim not in [2, 3]:
         raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
+    if _rp[dim] == None:
+        rp = read_all_polytopes(
+            data_location+"reflexive_polytopes_%dd" % dim,
+            desc="Reflexive polytope %4d")
+        for n, p in enumerate(rp):
+            # Data files have normal form of reflexive polytopes
+            p._normal_form = p._vertices
+            # Prevents dimension computation later
+            p._dim = dim
+        # Compute "fast" data in one call to PALP
+        all_polars(rp)
+        all_points(rp + [p._polar for p in rp])
+        # TODO: improve faces representation so that we can uncomment
+        # all_faces(rp)
+        # It adds ~10s for dim=3, which is a bit annoying to wait for.
+        _rp[dim] = rp
+    return _rp[dim]
 
 
 class LatticePolytopeClass(SageObject):
@@ -884,36 +892,38 @@ class LatticePolytopeClass(SageObject):
             self._read_equations(f)
             f.close()
             return
-        try:
-            self._is_reflexive
-            # If the above line didn't cause an exception, there is no need to
-            # read equations of this polytope. Moreover, doing so can corrupt
-            # data if this polytope was constructed as polar. Just skip data:
+        if hasattr(self, "_is_reflexive"):
+            # If it is already known that this polytope is reflexive, its
+            # polar (whose vertices are equations of facets of this one)
+            # is already computed and there is no need to read equations
+            # of facets of this polytope. Moreover, doing so can corrupt
+            # data if this polytope was constructed as polar. Skip input.
             skip_palp_matrix(data)
-        except AttributeError:
-            pos = data.tell()
-            line = data.readline()
-            self._is_reflexive = line.find("Vertices of P-dual") != -1
-            if self._is_reflexive:
-                data.seek(pos)
-                self._polar = LatticePolytope(read_palp_matrix(data),
-                                "A polytope polar to " + str(self._desc),
-                                copy_vertices=False)
-                self._polar._is_reflexive = True
-                self._polar._constructed_as_polar = True
-                self._polar._polar = self
-            else:
-                normals = []
-                constants = []
-                d = self.dim()
-                for i in range(int(line.split()[0])):
-                    line = data.readline()
-                    numbers = [int(number) for number in line.split()]
-                    constants.append(numbers.pop())
-                    normals.append(numbers)
-                self._facet_normals = matrix(ZZ, normals)
-                self._facet_constants = vector(ZZ, constants)
-                self._facet_normals.set_immutable()
+            return
+        pos = data.tell()
+        line = data.readline()
+        self._is_reflexive = line.find("Vertices of P-dual") != -1
+        if self._is_reflexive:
+            data.seek(pos)
+            self._polar = LatticePolytope(read_palp_matrix(data),
+                            "A polytope polar to " + str(self._desc),
+                            copy_vertices=False, compute_vertices=False)
+            self._polar._dim = self._dim
+            self._polar._is_reflexive = True
+            self._polar._constructed_as_polar = True
+            self._polar._polar = self
+        else:
+            normals = []
+            constants = []
+            d = self.dim()
+            for i in range(int(line.split()[0])):
+                line = data.readline()
+                numbers = [int(number) for number in line.split()]
+                constants.append(numbers.pop())
+                normals.append(numbers)
+            self._facet_normals = matrix(ZZ, normals)
+            self._facet_constants = vector(ZZ, constants)
+            self._facet_normals.set_immutable()
 
     def _read_faces(self, data):
         r"""
@@ -1387,8 +1397,7 @@ class LatticePolytopeClass(SageObject):
         return self.faces(codim=1)
 
     # Dictionaries of normal forms
-    _rp2d_dict = None
-    _rp3d_dict = None
+    _rp_dict = [None]*4
 
     def index(self):
         r"""
@@ -1399,8 +1408,10 @@ class LatticePolytopeClass(SageObject):
         .. note::
 
            The first call to this function for each dimension can take
-           a second or so while the dictionary of all polytopes is
-           loaded, but after that it is cached and fast.
+           a few seconds while the dictionary of all polytopes is
+           constructed, but after that it is cached and fast.
+
+        :rtype: integer
 
         EXAMPLES: We check what is the index of the "diamond" in the
         database::
@@ -1429,28 +1440,19 @@ class LatticePolytopeClass(SageObject):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
         """
-        try:
-            return self._index
-        except AttributeError:
+        if not hasattr(self, "_index"):
             if not self.is_reflexive():
                 raise NotImplementedError, "only reflexive polytopes can be indexed!"
-            if self.dim() == 2:
-                if LatticePolytopeClass._rp2d_dict == None:
-                    LatticePolytopeClass._rp2d_dict = load(data_location+"reflexive_polytopes_2d_dict")
-#                     f = open(data_location+"reflexive_polytopes_2d_dict", "rb")
-#                     LatticePolytopeClass._rp2d_dict = loads(f.read())
-#                     f.close()
-                self._index = LatticePolytopeClass._rp2d_dict[str(self.normal_form())]
-            elif self.dim() == 3:
-                if LatticePolytopeClass._rp3d_dict == None:
-                    LatticePolytopeClass._rp3d_dict = load(data_location+"reflexive_polytopes_3d_dict")
-#                     f = open(data_location+"reflexive_polytopes_3d_dict", "rb")
-#                     LatticePolytopeClass._rp3d_dict = loads(f.read())
-#                     f.close()
-                self._index = LatticePolytopeClass._rp3d_dict[str(self.normal_form())]
-            else:
+            dim = self.dim()
+            if dim not in [2, 3]:
                 raise NotImplementedError, "only 2- and 3-dimensional polytopes can be indexed!"
-            return self._index
+            if LatticePolytopeClass._rp_dict[dim] == None:
+                rp_dict = dict()
+                for n, p in enumerate(ReflexivePolytopes(dim)):
+                    rp_dict[str(p.normal_form())] = n
+                LatticePolytopeClass._rp_dict[dim] = rp_dict
+            self._index = LatticePolytopeClass._rp_dict[dim][str(self.normal_form())]
+        return self._index
 
     def is_reflexive(self):
         r"""
@@ -3913,12 +3915,12 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
         format = "%" + str(n) + "d"
     s = "%d %d %s\n" % (m.nrows(),m.ncols(),comment)
     if ofile is None:
-        print s
+        print s,
     else:
         ofile.write(s)
     for i in range(m.nrows()):
         s = " ".join(format % m[i,j] for j in range(m.ncols()))+"\n"
         if ofile is None:
-            print s
+            print s,
         else:
             ofile.write(s)

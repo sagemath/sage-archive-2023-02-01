@@ -159,9 +159,25 @@ def detect_element_action(Parent X, Parent Y, bint X_on_left):
         (None,)
         sage: detect_element_action(ZZ, QQ, True),
         (None,)
+
+    TESTS:
+
+    This test checks that the issue in Trac #7718 has been fixed::
+
+        sage: class MyParent(Parent):
+        ...    def an_element(self):
+        ...        pass
+        ...
+        sage: A = MyParent()
+        sage: detect_element_action(A, ZZ, True)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: an_element() returned None
     """
     cdef Element x = X.an_element()
     cdef Element y = Y.an_element()
+    if x is None or y is None:
+        raise RuntimeError, "an_element() returned None"
     if isinstance(x, ModuleElement) and isinstance(y, RingElement):
         # Elements defining _lmul_ and _rmul_
         try:

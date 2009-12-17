@@ -48,6 +48,7 @@ organized as follows::
         - CircularLadderGraph
         - ClawGraph
         - CycleGraph
+        - Circuit
         - DiamondGraph
         - EmptyGraph
         - Grid2dGraph
@@ -187,6 +188,7 @@ class GraphGenerators():
                     - CircularLadderGraph
                     - ClawGraph
                     - CycleGraph
+                    - Circuit
                     - DiamondGraph
                     - EmptyGraph
                     - Grid2dGraph
@@ -4191,6 +4193,38 @@ class DiGraphGenerators():
         else:
             raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
         return graph.DiGraph(butterfly)
+
+    def Circuit(self,n):
+        r"""
+        Returns the circuit on `n` vertices
+
+        The circuit is an oriented ``CycleGraph``
+
+        EXAMPLE:
+
+        A circuit is the smallest strongly connected digraph::
+
+            sage: circuit = digraphs.Circuit(15)
+            sage: len(circuit.strongly_connected_components()) == 1
+            True
+        """
+        if n<0:
+            raise ValueError("The number of vertices must be a positive integer.")
+
+        from sage.graphs.graph import DiGraph
+        g = DiGraph()
+        g.name("Circuit on "+str(n)+" vertices")
+
+        if n==0:
+            return g
+        elif n == 1:
+            g.allow_loops(True)
+            g.add_edge(0,0)
+            return g
+        else:
+            g.add_edges([(i,i+1) for i in xrange(n-1)])
+            g.add_edge(n-1,0)
+            return g
 
     def DeBruijn(self,n,k):
         r"""

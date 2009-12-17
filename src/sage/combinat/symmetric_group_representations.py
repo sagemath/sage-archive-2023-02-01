@@ -580,11 +580,12 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             [-1/2  3/2]
             [ 1/2  1/2]
         """
+        from copy import copy
         if not(1 <= i < sum(self._partition)):
             raise TypeError
         Y = self._yang_baxter_graph
         index_lookup = dict((b,a) for (a,b) in enumerate(list(Y)))
-        digraph = Y._digraph.copy()
+        digraph = copy(Y._digraph)
         digraph.delete_edges((u,v) for (u,v,(j,beta))
                 in digraph.edges() if j != i)
         M = matrix(self._ring, digraph.num_verts())

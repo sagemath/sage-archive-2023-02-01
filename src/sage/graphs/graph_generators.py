@@ -5310,7 +5310,8 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
             else:
                 cut_edge = tuple(sorted(cut_edge))
 
-            m_z = z.copy()
+            from copy import copy
+            m_z = copy(z)
             m_z.delete_edge(cut_edge)
             if m_z == g:
                 for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig, loops=loops, implementation=implementation, sparse=sparse):

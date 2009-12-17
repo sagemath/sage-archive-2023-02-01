@@ -186,8 +186,8 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         # Maybe we want to move this up as a relabel method for dynkin diagram
         # We will have to be careful setting the cartan type of the result though
-        import copy
-        result = copy.copy(self._type.dynkin_diagram())
+        from copy import copy
+        result = copy(self._type.dynkin_diagram())
         # relabelling in place allows to keep the extra dynkin diagram structure
         super(result.__class__, result).relabel(self._relabelling, inplace = True)
         result._cartan_type = self

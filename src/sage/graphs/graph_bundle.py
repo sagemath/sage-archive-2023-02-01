@@ -207,12 +207,13 @@ class GraphBundle(Graph):
                 pos[('t',v)] = [total_pos[v][0], total_pos[v][1] + y_diff]
             for v in self.base:
                 pos[('b',v)] = base_pos[v]
-            G = self.copy()
+            from copy import copy
+            G = copy(self)
             rd = {}
             for v in G:
                 rd[v] = ('t',v)
             G.relabel(rd)
-            B = self.base.copy()
+            B = copy(self.base)
             rd = {}
             for v in B:
                 rd[v] = ('b',v)

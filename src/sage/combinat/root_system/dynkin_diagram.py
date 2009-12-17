@@ -114,6 +114,18 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if t is not None:
             self.add_vertices(t.index_set())
 
+    def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: d = DynkinDiagram(["A", 3])
+            sage: type(copy(d))
+            <class 'sage.combinat.root_system.dynkin_diagram.DynkinDiagram_class'>
+        """
+        import copy
+        # we have to go back to the generic copy method because the DiGraph one returns a DiGraph, not a DynkinDiagram
+        return copy._reconstruct(self,self.__reduce_ex__(2),0)
+
     def _repr_(self):
         """
         EXAMPLES::

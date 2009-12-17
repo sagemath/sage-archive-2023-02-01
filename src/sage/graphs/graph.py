@@ -485,7 +485,7 @@ class GenericGraph(SageObject):
             False
             sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1)
-            sage: H = G.copy()
+            sage: H = copy(G)
             sage: H.add_edge(0,1)
             sage: G == H
             False
@@ -575,12 +575,15 @@ class GenericGraph(SageObject):
             Cycle graph disjoint_union Cycle graph disjoint_union Cycle graph: Graph on 9 vertices
             sage: H.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            sage: H = G*1; H
+            Cycle graph: Graph on 3 vertices
         """
         if isinstance(n, (int, long, Integer)):
             if n < 1:
                 raise TypeError('Multiplication of a graph and a nonpositive integer is not defined.')
             if n == 1:
-                return self.copy()
+                from copy import copy
+                return copy(self)
             return sum([self]*(n-1), self)
         else:
             raise TypeError('Multiplication of a graph and something other than an integer is not defined.')
@@ -592,7 +595,7 @@ class GenericGraph(SageObject):
         EXAMPLES::
 
             sage: g = Graph()
-            sage: g2 = g.copy()
+            sage: g2 = copy(g)
             sage: g == g
             True
             sage: g != g
@@ -794,13 +797,32 @@ class GenericGraph(SageObject):
         """
         Creates a copy of the graph.
 
+        INPUT:
+
+         - ``implementation`` - string (default: 'networkx') the
+           implementation goes here.  Current options are only
+           'networkx' or 'c_graph'.
+
+         - ``sparse`` - boolean (default: None) whether the
+           graph given is sparse or not.
+
+        OUTPUT:
+
+        A Graph object.
+
+        .. warning::
+
+           Please use this method only if you need to copy but change the
+           underlying implementation.  Otherwise simply do ``copy(g)``
+           instead of idoing ``g.copy()``.
+
         EXAMPLES::
 
             sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True,sparse=True)
-            sage: g==g.copy()
+            sage: g==copy(g)
             True
             sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True,sparse=True)
-            sage: g==g.copy()
+            sage: g==copy(g)
             True
 
         Note that vertex associations are also kept::
@@ -808,7 +830,7 @@ class GenericGraph(SageObject):
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: T = graphs.TetrahedralGraph()
             sage: T.set_vertices(d)
-            sage: T2 = T.copy()
+            sage: T2 = copy(T)
             sage: T2.get_vertex(0)
             Dodecahedron: Graph on 20 vertices
 
@@ -817,12 +839,28 @@ class GenericGraph(SageObject):
             sage: T2.get_vertex(0) is T.get_vertex(0)
             False
 
+        Examples of the keywords in use::
+
+            sage: G = graphs.CompleteGraph(19)
+            sage: H = G.copy(implementation='c_graph')
+            sage: H == G; H is G
+            True
+            False
+            sage: G1 = G.copy(sparse=True)
+            sage: G1==G
+            True
+            sage: G1 is G
+            False
+            sage: G2 = copy(G)
+            sage: G2 is G
+            False
+
         TESTS: We make copies of the _pos and _boundary attributes.
 
         ::
 
             sage: g = graphs.PathGraph(3)
-            sage: h = g.copy()
+            sage: h = copy(g)
             sage: h._pos is g._pos
             False
             sage: h._boundary is g._boundary
@@ -847,6 +885,7 @@ class GenericGraph(SageObject):
                         try:
                             copy_attr[v] = value.copy()
                         except AttributeError:
+                            from copy import copy
                             copy_attr[v] = copy(value)
                     setattr(G, attr, copy_attr)
                 else:
@@ -854,6 +893,8 @@ class GenericGraph(SageObject):
 
         G._weighted = self._weighted
         return G
+
+    __copy__ = copy
 
     def networkx_graph(self, copy=True):
         """
@@ -891,6 +932,7 @@ class GenericGraph(SageObject):
         """
         try:
             if copy:
+                from copy import copy
                 return self._backend._nxg.copy()
             else:
                 return self._backend._nxg
@@ -2010,8 +2052,8 @@ class GenericGraph(SageObject):
                 return False
             else:
                 return True
-
-        g = self.copy()
+        from copy import copy
+        g = copy(self)
         g.allow_multiple_edges(False)
         g.allow_loops(False)
         g = g.transitive_closure()
@@ -2212,8 +2254,8 @@ class GenericGraph(SageObject):
             sage: o.out_degree()
             [1, 1, 1, 1, 2, 1, 2, 2, 2, 2]
         """
-
-        g=self.copy()
+        from copy import copy
+        g=copy(self)
         d=DiGraph()
         d.add_vertices(g.vertex_iterator())
 
@@ -6497,7 +6539,7 @@ class GenericGraph(SageObject):
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: sorted(eg1.all_paths(0,6))
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = eg1.copy()
+            sage: eg2 = copy(eg1)
             sage: eg2.set_boundary([0,1,3])
             sage: sorted(eg2.interior_paths(0,6))
             [[0, 2, 4, 5, 6]]
@@ -6550,7 +6592,8 @@ class GenericGraph(SageObject):
             sage: sorted(ug.interior_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
-        H = self.copy()
+        from copy import copy
+        H = copy(self)
         for vertex in self.get_boundary():
             if (vertex != start and vertex != end):
                 H.delete_edges(H.edges_incident(vertex))
@@ -7469,7 +7512,8 @@ class GenericGraph(SageObject):
         """
         if self.has_multiple_edges():
             raise TypeError('Complement not well defined for (di)graphs with multiple edges.')
-        G = self.copy()
+        from copy import copy
+        G = copy(self)
         G.delete_edges(G.edges())
         G.name('complement(%s)'%self.name())
         for u in self:
@@ -7935,7 +7979,8 @@ class GenericGraph(SageObject):
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
         """
-        G = self.copy()
+        from copy import copy
+        G = copy(self)
         G.name('Transitive closure of ' + self.name())
         for v in G:
             # todo optimization opportunity: we are adding edges that
@@ -7971,8 +8016,9 @@ class GenericGraph(SageObject):
             sage: g.transitive_reduction().size()
             5
         """
+        from copy import copy
         from sage.rings.infinity import Infinity
-        G = self.copy()
+        G = copy(self)
         for e in self.edge_iterator():
             # Try deleting the edge, see if we still have a path
             # between the vertices.
@@ -8004,8 +8050,9 @@ class GenericGraph(SageObject):
             sage: d.is_transitively_reduced()
             False
         """
+        from copy import copy
         from sage.rings.infinity import Infinity
-        G = self.copy()
+        G = copy(self)
         for e in self.edge_iterator():
             G.delete_edge(e)
             if G.distance(e[0],e[1]) == Infinity:
@@ -9178,7 +9225,8 @@ class GenericGraph(SageObject):
                 perm[v] = i
                 i += 1
         if not inplace:
-            G = self.copy()
+            from copy import copy
+            G = copy(self)
             G.relabel(perm)
             if return_map:
                 return G, perm
@@ -9407,7 +9455,8 @@ class GenericGraph(SageObject):
             raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
         if self.has_multiple_edges():
             raise TypeError("Refinement function does not support multiple edges.")
-        G = self.copy()
+        from copy import copy
+        G = copy(self)
         perm_to = G.relabel(return_map=True)
         partition = [[perm_to[b] for b in cell] for cell in partition]
         perm_from = {}
@@ -9769,7 +9818,7 @@ class GenericGraph(SageObject):
 
             sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: D = graphs.DodecahedralGraph()
-            sage: E = D.copy()
+            sage: E = copy(D)
             sage: gamma = SymmetricGroup(20).random_element()
             sage: E.relabel(gamma)
             sage: D.is_isomorphic(E)
@@ -9780,7 +9829,7 @@ class GenericGraph(SageObject):
             sage: D = graphs.DodecahedralGraph()
             sage: S = SymmetricGroup(20)
             sage: gamma = S.random_element()
-            sage: E = D.copy()
+            sage: E = copy(D)
             sage: E.relabel(gamma)
             sage: a,b = D.is_isomorphic(E, certify=True); a
             True
@@ -9966,6 +10015,7 @@ class GenericGraph(SageObject):
         """
         import sage.groups.perm_gps.partn_ref.refinement_graphs
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        from copy import copy
 
         dig = (self.has_loops() or self._directed)
         if partition is None:
@@ -9986,7 +10036,7 @@ class GenericGraph(SageObject):
             partition = [[G_to[v] for v in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-            H = self.copy()
+            H = copy(self)
             b_new = {}
             for v in self.vertices():
                 b_new[v] = c[G_to[('o',v)]]
@@ -10011,7 +10061,7 @@ class GenericGraph(SageObject):
             partition = [[G_to[v] for v in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-            H = self.copy()
+            H = copy(self)
             c_new = {}
             for v in self.vertices():
                 c_new[v] = c[G_to[('o',v)]]
@@ -10033,7 +10083,7 @@ class GenericGraph(SageObject):
         GC = HB._cg
         partition = [[G_to[v] for v in cell] for cell in partition]
         a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
-        H = self.copy()
+        H = copy(self)
         c_new = {}
         for v in G_to:
             c_new[v] = c[G_to[v]]
@@ -10965,7 +11015,8 @@ class Graph(GenericGraph):
 
         edge_list = []
         vertex_list = []
-        g = self.copy()
+        from copy import copy
+        g = copy(self)
 
         # Get first vertex
         v = g.vertex_iterator().next()
@@ -11569,7 +11620,8 @@ class Graph(GenericGraph):
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)
         if hasattr(self, '_embedding'):
-            D._embedding = self._embedding.copy()
+            from copy import copy
+            D._embedding = copy(self._embedding)
         D._weighted = self._weighted
         return D
 
@@ -11583,7 +11635,8 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
         """
-        return self.copy()
+        from copy import copy
+        return copy(self)
 
     ### Visualization
 
@@ -13012,7 +13065,8 @@ class DiGraph(GenericGraph):
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
         """
-        return self.copy()
+        from copy import copy
+        return copy(self)
 
     def to_undirected(self, implementation='networkx', sparse=None):
         """
@@ -13038,7 +13092,8 @@ class DiGraph(GenericGraph):
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
-            G._embedding = self._embedding.copy()
+            from copy import copy
+            G._embedding = copy(self._embedding)
         G._weighted = self._weighted
         return G
 

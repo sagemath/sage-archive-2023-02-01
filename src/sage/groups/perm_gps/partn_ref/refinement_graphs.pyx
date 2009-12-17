@@ -58,6 +58,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     cdef int i, j, n = -1
 
     from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    from copy import copy
     which_G = 1
     for G_in in [G1, G2]:
         if which_G == 1:
@@ -71,7 +72,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 n = G_in.num_verts()
             elif n != G_in.num_verts():
                 return False
-            G_in = G_in.copy()
+            G_in = copy(G_in)
             if G_in.vertices() != range(n):
                 to = G_in.relabel(return_map=True)
                 frm = {}
@@ -361,9 +362,10 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     cdef aut_gp_and_can_lab_return *output
     cdef int **part
     from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    from copy import copy
     if isinstance(G_in, GenericGraph):
         n = G_in.num_verts()
-        G_in = G_in.copy()
+        G_in = copy(G_in)
         if G_in.vertices() != range(n):
             to = G_in.relabel(return_map=True)
             frm = {}
@@ -433,7 +435,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         return_tuple.append(ddd)
     if lab:
         if isinstance(G_in, GenericGraph):
-            G_C = G_in.copy()
+            G_C = copy(G_in)
             G_C.relabel([output.relabeling[i] for i from 0 <= i < n])
         else:
             if isinstance(G, SparseGraph):
@@ -809,6 +811,7 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
     from sage.misc.prandom import random, randint
     from sage.graphs.graph_generators import GraphGenerators, DiGraphGenerators
     from sage.combinat.permutation import Permutations
+    from copy import copy
     cdef int i, j, num_tests = 0, num_graphs = 0
     GG = GraphGenerators()
     DGG = DiGraphGenerators()
@@ -818,9 +821,9 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
         S = Permutations(n)
 
         G = GG.RandomGNP(n, p)
-        H = G.copy()
+        H = copy(G)
         for i from 0 <= i < perms_per_graph:
-            G = H.copy()
+            G = copy(H)
             G1 = search_tree(G, [G.vertices()])[1]
             perm = list(S.random_element())
             perm = [perm[j]-1 for j from 0 <= j < n]
@@ -843,9 +846,9 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
         for i from 0 <= i < n:
             if random() < p:
                 D.add_edge(i,i)
-        E = D.copy()
+        E = copy(D)
         for i from 0 <= i < perms_per_graph:
-            D = E.copy()
+            D = copy(E)
             D1 = search_tree(D, [D.vertices()], dig=True)[1]
             perm = list(S.random_element())
             perm = [perm[j]-1 for j from 0 <= j < n]

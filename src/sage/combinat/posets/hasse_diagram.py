@@ -126,7 +126,8 @@ class HasseDiagram(DiGraph):
             sage: [len(x) for x in H.level_sets()]
             [1, 2, 1, 1]
         """
-        G = self.copy()
+        from copy import copy
+        G = copy(self)
         Levels = []
         while G.vertices() != []:
             indegs = G.in_degree(labels=True)
@@ -836,7 +837,8 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
-        H = self.copy().reverse()
+        from copy import copy
+        H = copy(self).reverse()
         oi = []
         for i in elements:
             for j in H.breadth_first_search(i):

@@ -12294,6 +12294,13 @@ class Graph(GenericGraph):
             True
             sage: Set(set(classes[0]) | set(classes[1]) | set(classes[2])).cardinality() == g.size() # optional - requires GLPK or CBC
             True
+
+        ::
+
+            sage: g = graphs.CirculantGraph(24, [7, 11])
+            sage: cl = g.two_factor_petersen()                     # optional - GLPK or CBC
+            sage: g.plot(edge_colors={'black':cl[0], 'red':cl[1]}) # optional - GLPK or CBC
+
         """
 
         d = self.eulerian_orientation()

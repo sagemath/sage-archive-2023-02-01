@@ -1,7 +1,35 @@
 = zlib =
 
-FIXME!
+== Description ==
 
+Massively Spiffy Yet Delicately Unobtrusive Compression Library (Also
+Free, Not to Mention Unencumbered by Patents)
+
+== License ==
+
+ * Modified BSD.
+
+== SPKG Maintainers ==
+
+ * William Stein <wstein@gmail.com>
+
+== Upstream Contact ==
+
+ * http://www.zlib.net/
+
+== Dependencies ==
+
+ * None
+
+== Special Update/Build Instructions ==
+
+ * Delete all Microsoft Assembler binary files from src/contrib/masm*.
+   See trac 7696: http://trac.sagemath.org/sage_trac/ticket/7696
+
+      rm -v src/contrib/*/*.obj
+
+=== zlib-1.2.3.p5 (William Stein, December 17, 2009) ===
+ * Remove some binary crap
 
 === zlib-1.2.3.p4 (Michael Abshoff, August 18th, 2008) ===
  * handle 64 bit OSX build case

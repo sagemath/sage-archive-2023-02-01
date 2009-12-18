@@ -12259,6 +12259,68 @@ class Graph(GenericGraph):
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
 
+    def two_factor_petersen(self):
+        r"""
+        Returns a decomposition of the graph into 2-factors.
+
+        Petersen's 2-factor decomposition theorem asserts that any
+        `2r`-regular graph `G` can be decomposed into 2-factors.
+        Equivalently, it means that the edges of any `2r`-regular
+        graphs can be partitionned in `r` sets `C_1,\dots,C_r` such
+        that for all `i`, the set `C_i` is a disjoint union of cycles
+        ( a 2-regular graph ).
+
+        As any graph of maximal degree `\Delta` can be completed into
+        a regular graph of degree `2\lceil\frac\Delta 2\rceil`, this
+        result also means that the edges of any graph of degree `\Delta`
+        can be partitionned in `r=2\lceil\frac\Delta 2\rceil` sets
+        `C_1,\dots,C_r` such that for all `i`, the set `C_i` is a
+        graph of maximal degree `2` ( a disjoint union of paths
+        and cycles ).
+
+        EXAMPLE:
+
+        The Complete Graph on `7` vertices is a `6`-regular graph, so it can
+        be edge-partitionned into `2`-regular graphs::
+
+            sage: g = graphs.CompleteGraph(7)
+            sage: classes = g.two_factor_petersen()  # optional - requires GLPK or CBC
+            sage: for c in classes:                  # optional - requires GLPK or CBC
+            ...     gg = Graph()                     # optional - requires GLPK or CBC
+            ...     gg.add_edges(c)                  # optional - requires GLPK or CBC
+            ...     print max(gg.degree())<=2        # optional - requires GLPK or CBC
+            True
+            True
+            True
+            sage: Set(set(classes[0]) | set(classes[1]) | set(classes[2])).cardinality() == g.size() # optional - requires GLPK or CBC
+            True
+        """
+
+        d = self.eulerian_orientation()
+
+        # This new graph is bipartite, and built the following way :
+        #
+        # To each vertex v of the digraph are associated two vertices,
+        # a sink (-1,v) and a source (1,v)
+        # Any edge (u,v) in the digraph is then added as ((-1,u),(1,v))
+
+        from sage.graphs.graph import Graph
+        g = Graph()
+        g.add_edges([((-1,u),(1,v)) for (u,v) in d.edge_iterator(labels=None)])
+
+        # This new bipartite graph is now edge_colored
+        from sage.graphs.graph_coloring import edge_coloring
+        classes = edge_coloring(g,log=1)
+
+        # The edges in the classes are of the form ((-1,u),(1,v))
+        # and have to be translated back to (u,v)
+        classes_b = []
+        for c in classes:
+            classes_b.append([(u,v) for ((uu,u),(vv,v),t) in c])
+
+        return classes_b
+
+
 
 class DiGraph(GenericGraph):
     """

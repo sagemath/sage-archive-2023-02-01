@@ -1522,6 +1522,14 @@ class MPolynomialIdeal_singular_repr:
             sage: I.interreduced_basis()
             [z + x*y, x*y - y^3, x^2*y - y^3]
 
+        A fixed error with nonstandard base fields::
+
+            sage: R.<t>=QQ['t']
+            sage: K.<x,y>=R.fraction_field()['x,y']
+            sage: I=t*x*K
+            sage: I.interreduced_basis()
+            [x]
+
         ALGORITHM: Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
         if conversion to Singular fails.
@@ -1541,7 +1549,7 @@ class MPolynomialIdeal_singular_repr:
                 ret = []
                 for f in self._singular_().interred():
                     f = R(f)
-                    ret.append(f.lc()^(-1)*f) # lead coeffs are not reduced by interred
+                    ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
                 s.option("set",o)
             except TypeError:
                 ret = toy_buchberger.inter_reduction(self.gens())

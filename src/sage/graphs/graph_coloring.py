@@ -314,7 +314,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
             if value_only:
                 return 1
             elif hex_colors:
-                return dict(zip(rainbow(1), g.vertices()))
+                return {rainbow(1)[0]: g.vertices()}
             else:
                 return g.vertices()
         # - Bipartite set
@@ -534,7 +534,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
         for (u, v, c) in r.edge_iterator():
             classes[c].append((vertices[u], vertices[v]))
         if hex_colors:
-            return zip(rainbow(len(classes)), classes)
+            return dict(zip(rainbow(len(classes)), classes))
         else:
             return classes
 

@@ -521,6 +521,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
+    from sage.numerical.mip import MIPSolverException
 
     if g.is_clique():
         if value_only:

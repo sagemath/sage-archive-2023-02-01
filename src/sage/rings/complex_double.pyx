@@ -67,6 +67,10 @@ cdef extern from "math.h":
     double modf (double value, double *integer_part)
     double M_PI_4
 
+cdef extern from "complex.h":
+    double complex csqrt(double complex)
+    double cabs(double complex)
+
 cdef extern from "stdsage.h":
     void set_gel(GEN x, long n, GEN z)
 
@@ -622,8 +626,7 @@ cdef class ComplexDoubleElement(FieldElement):
         C-level code for creating a ComplexDoubleElement from a
         gsl_complex.
         """
-        cdef ComplexDoubleElement z
-        z = PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex = x
         return z
 
@@ -1921,21 +1924,102 @@ cdef class ComplexDoubleElement(FieldElement):
 
         return self._new_c(w)
 
-    def agm(self, right):
+    def agm(self, right, algorithm="optimal"):
         """
-        Return the arithmetic geometry mean of self and right.
+        Return the Arithmetic-Geometric Mean (AGM) of self and right.
 
-        The principal square root is always chosen.
+        INPUT:
+
+        - right (complex) -- another complex number
+
+        - algorithm (string, default "optimal") -- the algorithm to use
+              (see below).
+
+        OUTPUT:
+
+        (complex) A value of the AGM of self and right.  Note that
+        this is a multi-valued function, and the algorithm used
+        affects the value returned, as follows:
+
+        - "pari": Call the agm function from the pari library.
+
+        - "optimal": Use the AGM sequence such that at each stage
+              `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+              where the sign is chosen so that `|a_1-b_1|\le|a_1+b_1|`, or
+              equivalently `\Re(b_1/a_1)\ge0`.  The resulting limit is
+              maximal among all possible values.
+
+        - "principal": Use the AGM sequence such that at each stage
+              `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+              where the sign is chosen so that `\Re(b_1/a_1)\ge0` (the
+              so-called principal branch of the square root).
 
         EXAMPLES::
 
             sage: i = CDF(I)
             sage: (1+i).agm(2-i)
             1.62780548487 + 0.136827548397*I
+
+        An example to show that the returned value depends on the algorithm parameter::
+
+            sage: a = CDF(-0.95,-0.65)
+            sage: b = CDF(0.683,0.747)
+            sage: a.agm(b, algorithm='optimal')
+            -0.371591652352 + 0.319894660207*I
+            sage: a.agm(b, algorithm='principal')
+            0.338175462986 - 0.0135326969565*I
+            sage: a.agm(b, algorithm='pari')
+            0.080689185076 + 0.239036532686*I
+
+        Some degenerate cases::
+
+            sage: CDF(0).agm(a)
+            0
+            sage: a.agm(0)
+            0
+            sage: a.agm(-a)
+            0
         """
+        cdef double complex a, b, a1, b1, r
+        cdef double d, e, eps = 2.0**-51
+
         cdef pari_sp sp
-        sp = avma
-        return self._new_from_gen_c(  agm(self._gen(), complex_gen(right), PREC),   sp)
+
+        if algorithm=="pari":
+            sp = avma
+            return self._new_from_gen_c( agm(self._gen(), complex_gen(right), PREC), sp)
+
+        if not isinstance(right, ComplexDoubleElement):
+            right = CDF(right)
+
+        a = extract_double_complex(self)
+        b = extract_double_complex(<ComplexDoubleElement>right)
+
+        if a == 0 or b == 0 or a == -b:
+            return ComplexDoubleElement(0, 0)
+
+        if algorithm=="optimal":
+            while True:
+                a1 = (a+b)/2
+                b1 = csqrt(a*b)
+                r = b1/a1
+                d  = cabs(r-1)
+                e  = cabs(r+1)
+                if e < d:
+                    b1=-b1
+                    d = e
+                if d < eps: return ComplexDoubleElement_from_doubles(a1.real, a1.imag)
+                a, b = a1, b1
+
+        elif algorithm=="principal":
+            while True:
+                a1 = (a+b)/2
+                b1 = csqrt(a*b)
+                if cabs((b1/a1)-1) < eps: return ComplexDoubleElement_from_doubles(a1.real, a1.imag)
+                a, b = a1, b1
+
+        else:
+            raise ValueError, "agm algorithm must be one of 'pari', 'optimal', 'principal'"
 
     def dilog(self):
         r"""
@@ -2177,5 +2261,23 @@ cdef double_to_str(double x):
         return '-infinity'
     elif isinf(x) != 0 and x > 0:
         return '+infinity'
+
+cdef inline double complex extract_double_complex(ComplexDoubleElement x):
+    """
+    Return the value of x as a c99 complex double.
+    """
+    cdef double complex z
+    z.real = x._complex.dat[0]
+    z.imag = x._complex.dat[1]
+    return z
+
+cdef ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im):
+    """
+    Create a new ComplexDoubleElement with the specified real and imaginary parts.
+    """
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    z._complex.dat[0] = re
+    z._complex.dat[1] = im
+    return z
 
 #####

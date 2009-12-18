@@ -301,7 +301,7 @@ cdef class RealField(sage.rings.ring.Field):
         Return a new real number with parent self.
         """
         cdef RealNumber x
-        x = PY_NEW(RealNumber)
+        x = <RealNumber>PY_NEW(RealNumber)
         x._parent = self
         mpfr_init2(x.value, self.__prec)
         x.init = 1
@@ -875,7 +875,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return a new real number with same parent as self.
         """
         cdef RealNumber x
-        x = PY_NEW(RealNumber)
+        x = <RealNumber>PY_NEW(RealNumber)
         x._parent = self._parent
         mpfr_init2(x.value, (<RealField>self._parent).__prec)
         x.init = 1
@@ -3694,16 +3694,67 @@ cdef class RealNumber(sage.structure.element.RingElement):
         of `u_n` and `v_n`, and `v_{n+1}` is the
         geometric mean of u_n and v_n. If any operand is negative, the
         return value is ``NaN``.
+
+        INPUT:
+
+            - right -- another real number
+
+        OUTPUT:
+
+            - the AGM of self and other
+
+        EXAMPLES::
+
+            sage: a = 1.5
+            sage: b = 2.5
+            sage: a.agm(b)
+            1.96811775182478
+            sage: RealField(200)(a).agm(b)
+            1.9681177518247777389894630877503739489139488203685819712291
+            sage: a.agm(100)
+            28.1189391225320
+
+        The AGM always lies beween the geometric and arithmatic mean::
+
+            sage: sqrt(a*b) < a.agm(b) < (a+b)/2
+            True
+
+        It is, of course, symmetric::
+
+            sage: b.agm(a)
+            1.96811775182478
+
+        and satisfies the relation `AGM(ra, rb) = r AGM(a, b)`::
+
+            sage: (2*a).agm(2*b) / 2
+            1.96811775182478
+            sage: (3*a).agm(3*b) / 3
+            1.96811775182478
+
+        It is also related to the elliptic integral `\int_0^{\pi/2} \frac{d\theta}{\sqrt{1-m\sin^2\theta}}`.
+
+        ::
+
+            sage: m = (a-b)^2/(a+b)^2
+            sage: E = numerical_integral(1/sqrt(1-m*sin(x)^2), 0, RR.pi()/2)[0]
+            sage: RR.pi()/4 * (a+b)/E
+            1.96811775182478
+
+        TESTS::
+
+            sage: 1.5.agm(0)
+            0.000000000000000
         """
         cdef RealNumber x, _other
-        if not isinstance(other, RealNumber) or other.parent() != self._parent:
-            _other = self._parent(other)
+        if isinstance(other, RealNumber) and ((<Element>other)._parent is self._parent):
+            _other = <RealNumber>other
         else:
-            _other = other
+            _other = self._parent(other)
+
         x = self._new()
-        _sig_on
+        if (<RealField>self._parent).__prec > 10000: _sig_on
         mpfr_agm(x.value, self.value, _other.value, (<RealField>self._parent).rnd)
-        _sig_off
+        if (<RealField>self._parent).__prec > 10000: _sig_off
         return x
 
     def erf(self):

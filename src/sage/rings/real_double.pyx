@@ -2108,7 +2108,16 @@ cdef class RealDoubleElement(FieldElement):
             sage: sqrt(a*b) < a.agm(b) < (a+b)/2
             True
         """
-        return RealDoubleElement(sage.rings.all.RR(self).agm(sage.rings.all.RR(other)))
+        cdef double a = self._value
+        cdef double b = other
+        cdef double eps = 2.0**-51
+        if a < 0 or b < 0:
+            return self._parent.nan()
+        while True:
+            a1 = (a+b)/2
+            b1 = sqrt(a*b)
+            if abs((b1/a1)-1) < eps: return self._new_c(a1)
+            a, b = a1, b1
 
     def erf(self):
         """

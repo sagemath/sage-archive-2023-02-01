@@ -39,8 +39,15 @@ Website: http://ecls.sourceforge.net/
 
 == Special Update/Build Instructions ==
  * delete the msvc directory
+ * Delete the src/contrib/encodings directory.  So, do not build with
+   --enable-unicode: See
+   http://trac.sagemath.org/sage_trac/ticket/7732
 
 == Changelog ==
+
+=== ecl-9.10.2-20091105cvs.p1 (William Stein, December 17, 2009) ===
+  * Remove the encodings directory, since it contains potentially
+    dangerous binary files.
 
 === ecl-9.10.2-20091105cvs.p0 (Mike Hansen, November 5, 2009) ===
   * Updated to the latest version of ECL.  This has a number of fixes

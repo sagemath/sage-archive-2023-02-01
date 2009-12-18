@@ -442,7 +442,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             raise ValueError, "generator not defined"
         return self(self._R.gen(i))
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof = True):
         """
         Returns True if self is an integral domain.
 
@@ -450,8 +450,14 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
             sage: LaurentPolynomialRing(QQ,2,'x').is_integral_domain()
             True
+
+        The following used to fail; see #7530::
+
+            sage: L = LaurentPolynomialRing(ZZ, 'X')
+            sage: L['Y']
+            Univariate Polynomial Ring in Y over Univariate Laurent Polynomial Ring in X over Integer Ring
         """
-        return self.base_ring().is_integral_domain()
+        return self.base_ring().is_integral_domain(proof)
 
     def is_noetherian(self):
         """

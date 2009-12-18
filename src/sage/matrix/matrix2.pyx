@@ -1036,8 +1036,6 @@ cdef class Matrix(matrix1.Matrix):
         if not d is None:
             return d
 
-        cdef Py_ssize_t i, n
-
         # If charpoly known, then det is easy.
         D = self.fetch('charpoly')
         if not D is None:
@@ -1048,6 +1046,7 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
+        cdef Py_ssize_t n
         n = self._ncols
         R = self._base_ring
 

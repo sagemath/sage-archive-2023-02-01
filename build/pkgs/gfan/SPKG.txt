@@ -28,6 +28,9 @@ Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfa
 
 == Changelog ==
 
+=== gfan-0.3.p5 (William Stein, December 17, 2009) ===
+ * remove an accidental .DS_Store OS X file.
+
 === gfan-0.3.p4 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support
 

@@ -128,7 +128,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import bz2, os, re, urllib
+import bz2, gzip, os, re, urllib
 
 from sage.misc.all import verbose
 import sage.rings.integer_ring
@@ -144,8 +144,8 @@ class SloaneEncyclopediaClass:
         """
         Initialize the database but do not load any of the data.
         """
-        self.__file__ = "%s/data/sloane/sloane-oeis.bz2"%os.environ["SAGE_ROOT"]
-        self.__arraysize__ = 114751 # maximum sequence number + 1
+        self.__path__ = "%s/data/sloane/"%os.environ["SAGE_ROOT"]
+        self.__file__ = "%ssloane-oeis.bz2"%self.__path__
         self.__loaded__ = False
 
     def __repr__(self):
@@ -159,9 +159,8 @@ class SloaneEncyclopediaClass:
         Returns an iterator through the encyclopedia. Elements are of the
         form [number, sequence].
         """
-        for i in range(1, self.__arraysize__):
-            if self[i] != []:
-                yield [i, self[i]]
+        for i in self.__data__:
+            yield [i, self[i]]
 
     def __getitem__(self, N):
         """
@@ -177,7 +176,7 @@ class SloaneEncyclopediaClass:
         OUTPUT: list
         """
         self.load()
-        if self.__data__[N] == None: # sequence N does not exist
+        if not N in self.__data__: # sequence N does not exist
             return []
         if self.__data__[N][1] is None: # list N has not been created yet
             list = self.__data__[N][2].strip(',').split(',')
@@ -213,15 +212,75 @@ class SloaneEncyclopediaClass:
 
         answer, nanswer = [], 0
         pattern = re.sub(r'[\[\]]', ',', str(seq).replace(' ',''))
-        for i in range(1, self.__arraysize__):
-            if self.__data__[i] != None:
-                if self.__data__[i][2].find(pattern) != -1:
-                    answer.append((i, self[i]))
-                    nanswer = nanswer + 1
-                    if nanswer == maxresults:
-                        return answer
+        for i in self.__data__:
+            if self.__data__[i][2].find(pattern) != -1:
+                answer.append((i, self[i]))
+                nanswer = nanswer + 1
+                if nanswer == maxresults:
+                    return answer
 
         return answer
+
+    def install(self, oeis_url="http://www.research.att.com/~njas/sequences/stripped.gz", overwrite=False):
+        """
+        Download and install the online encyclopedia, raising an IOError if
+        either step fails.
+
+        INPUT:
+
+        - ``oeis_url`` - string (default: "http://www.research.att.com...")
+          The URL of the stripped.gz encyclopedia file.
+
+        - ``overwrite`` - boolean (default: False) If the encyclopedia is
+          already installed and overwrite=True, download and install the latest
+          version over the installed one.
+        """
+        ### See if the encyclopedia already exists
+        if not overwrite and os.path.exists(self.__file__):
+            raise IOError, "Sloane encyclopedia is already installed"
+
+        try:
+            tm = verbose("Downloading stripped version of Sloane encyclopedia")
+            fname, _ = urllib.urlretrieve(oeis_url);
+            verbose("Finished downloading", tm)
+        except IOError, msg:
+            raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url)
+
+        self.install_from_gz(fname, overwrite)
+        os.remove(fname) # delete the temporary downloaded file
+
+    def install_from_gz(self, filename, overwrite=False):
+        """
+        Install the online encyclopedia from a local stripped.gz file.
+
+        INPUT:
+
+        - ``filename`` - string. The name of the stripped.gz encyclopedia file.
+
+        - ``overwrite`` - boolean (default: False) If the encyclopedia is
+          already installed and overwrite=True, install 'filename' over the
+          old encyclopedia.
+        """
+        if not overwrite and os.path.exists(self.__file__):
+            raise IOError, "Sloane encyclopedia is already installed"
+
+        # Decompress stripped.gz
+        try:
+            gz_input = gzip.open(filename, 'r')
+            db_text = gz_input.read()
+            gz_input.close()
+        except IOError, msg:
+            raise IOError, "Error reading gzipped input file:\n%s"%msg
+
+        # Write to the database file
+        try:
+            if not os.path.exists(self.__path__):
+                os.mkdir(self.__path__)
+            bz2_output = bz2.BZ2File(self.__file__, 'w')
+            bz2_output.write(db_text)
+            bz2_output.close()
+        except IOError, msg:
+            raise IOError, "Error writing database file:\n%s"%msg
 
     def load(self):
         """
@@ -233,10 +292,10 @@ class SloaneEncyclopediaClass:
         try:
             file = bz2.BZ2File(self.__file__, 'r')
         except IOError:
-            raise IOError, "The Sloane Encyclopedia optional Sage package must be installed.  Usage e.g., 'sage -i database_sloane_oeis-2005-12' to download and install it."
+            raise IOError, "The Sloane Encyclopedia database must be installed.  Use e.g. 'SloaneEncyclopedia.install()' to download and install it."
 
         entry = re.compile(r'A(?P<num>\d{6}) ,(?P<body>.*),$');
-        self.__data__ = [None] * self.__arraysize__
+        self.__data__ = {}
         tm = verbose("Loading Sloane encyclopedia from disk")
         for L in file:
             if len(L) == 0:

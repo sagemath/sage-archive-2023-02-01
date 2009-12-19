@@ -297,6 +297,44 @@ cdef class Element(sage_object.SageObject):
         self._set_parent(state[0])
         self.__dict__ = state[1]
 
+    def __copy__(self):
+        """
+        Returns a copy of ``self``.
+
+        OUTPUT:
+
+          - a new object which is a copy of ``self``.
+
+        This implementation ensures that ``self.__dict__`` is properly copied
+        when it exists (typically for instances of classes deriving from
+        :class:`Element`).
+
+        TESTS::
+
+            sage: from sage.structure.element import Element
+            sage: el = Element(parent = ZZ)
+            sage: el1 = copy(el)
+            sage: el1 is el
+            False
+
+            sage: class Demo(Element): pass
+            sage: el = Demo(parent = ZZ)
+            sage: el.x = [1,2,3]
+            sage: el1 = copy(el)
+            sage: el1 is el
+            False
+            sage: el1.__dict__ is el.__dict__
+            False
+        """
+        cls = self.__class__
+        res = cls.__new__(cls)
+        res._set_parent(self._parent)
+        try:
+            res.__dict__ = self.__dict__.copy()
+        except AttributeError:
+            pass
+        return res
+
     def __hash__(self):
         return hash(str(self))
 

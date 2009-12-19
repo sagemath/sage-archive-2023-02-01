@@ -3,6 +3,7 @@ A class for wrapping Sage or Python objects as Sage elements
 """
 
 from sage.structure.element import Element
+from copy import copy
 
 class ElementWrapper(Element):
     r"""
@@ -77,7 +78,7 @@ class ElementWrapper(Element):
         Element.__init__(self, parent = parent)
         self.value = value
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -154,3 +155,91 @@ class ElementWrapper(Element):
         if self.parent() != other.parent():
             return cmp(self.parent(), other.parent())
         return cmp(self.value, other.value)
+
+    def __copy__(self):
+        """
+        Copy self and in particular its ``value`` attribute.
+
+        EXAMPLES::
+
+            sage: o1 = ElementWrapper([1], parent=ZZ); o1
+            [1]
+            sage: o2 = copy(o1); o2
+            [1]
+            sage: o1 is o2, o1.__dict__ is o2.__dict__
+            (False, False)
+            sage: o2.value[0] = 3; o2
+            [3]
+            sage: o1
+            [1]
+            sage: class bla(ElementWrapper): pass
+            sage: o3 = bla([1], parent=ZZ)
+            sage: o4 = copy(o3)
+            sage: o3.value[0] = 3; o4
+            [1]
+            sage: o3.__class__
+            <class '__main__.bla'>
+            sage: o4.__class__
+            <class '__main__.bla'>
+        """
+        # Note : copy(super(ElementWrapper, self)) does not work.
+        res = super(ElementWrapper, self).__copy__()
+        res.value = copy(self.value)
+        return res
+
+from sage.rings.integer_ring import ZZ
+class ElementWrapperTester(ElementWrapper):
+    """
+    Test class for the default :meth:`.__copy` method of subclasses of
+    :class:`ElementWrapper`.
+
+    TESTS::
+
+        sage: from sage.structure.element_wrapper import ElementWrapperTester
+        sage: x = ElementWrapperTester()
+        sage: x.append(2); y = copy(x); y.append(42)
+        sage: type(y)
+        <class 'sage.structure.element_wrapper.ElementWrapperTester'>
+        sage: x, y
+        ([n=1, value=[2]], [n=2, value=[2, 42]])
+        sage: x.append(21); x.append(7)
+        sage: x, y
+        ([n=3, value=[2, 21, 7]], [n=2, value=[2, 42]])
+        sage: x.__dict__, y.__dict__
+        ({'value': [2, 21, 7], 'n': 3}, {'value': [2, 42], 'n': 2})
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.structure.element_wrapper import ElementWrapperTester
+            sage: x = ElementWrapperTester(); x
+            [n=0, value=[]]
+        """
+        super(ElementWrapperTester, self).__init__([], parent = ZZ)
+        self.n = 0
+
+    def append(self, x):
+        """
+        TESTS::
+
+            sage: from sage.structure.element_wrapper import ElementWrapperTester
+            sage: x = ElementWrapperTester()
+            sage: x.append(2); x
+            [n=1, value=[2]]
+        """
+        self.n +=1
+        self.value.append(x)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.structure.element_wrapper import ElementWrapperTester
+            sage: x = ElementWrapperTester
+            sage: x = ElementWrapperTester(); x
+            [n=0, value=[]]
+            sage: x.value = [2,32]; x
+            [n=0, value=[2, 32]]
+        """
+        return "[n=%s, value=%s]"%(self.n, self.value)

@@ -491,6 +491,169 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     raise ValueError, "Log of %s to the base %s does not exist in %s."%(b,a,bounds)
 
+def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
+    """
+    Pollard Rho algorithm for computing discrete logarithm in cyclic
+    group of prime order.
+    If the group order is very small it falls back to the baby step giant step
+    algorithm.
+
+    INPUT:
+
+    - a - a group element
+    - base - a group element
+    - ord - the order of base or None, in this case we try to compute it
+    - operation - a string  (default: '*')  wether we are in an
+       additive group or a multiplicative one
+    - hash_function - having an efficient hash function is critical
+       for this algorithm (see examples)
+
+    OUTPUT: return an integer $n$ such that `a=base^n` (or `a=n*base`)
+
+    ALGORITHM: Pollard rho for discrete logarithm, adapted from the article of Edlyn Teske,
+    'A space efficient algorithm for group structure computation'
+
+    EXAMPLES::
+
+        sage: F.<a> = GF(2^13)
+        sage: g = F.gen()
+        sage: discrete_log_rho(g^1234, g)
+        1234
+
+        sage: F.<a> = GF(37^5, 'a')
+        sage: E = EllipticCurve(F, [1,1])
+        sage: G = 3*31*2^4*E.lift_x(a)
+        sage: discrete_log_rho(12345*G, G, ord=46591, operation='+')
+        12345
+
+    It also works with matrices::
+
+        sage: A = matrix(GF(50021),[[10577,23999,28893],[14601,41019,30188],[3081,736,27092]])
+        sage: discrete_log_rho(A^1234567, A)
+        1234567
+
+    Beware, the order must be prime::
+
+        sage: I = IntegerModRing(171980)
+        sage: discrete_log_rho(I(2), I(3))
+        Traceback (most recent call last):
+        ...
+        ValueError: for Pollard rho algorithm the order of the group must be prime
+
+    If it fails to find a suitable logarithm, it raises a ``ValueError``::
+
+        sage: I = IntegerModRing(171980)
+        sage: discrete_log_rho(I(31002),I(15501))
+        Traceback (most recent call last):
+        ...
+        ValueError: Pollard rho algorithm failed to find a logarithm
+
+    The main limitation on the hash function is that we don't want to have
+    `hash(x*y) = hash(x)+hash(y)`::
+
+        sage: I = IntegerModRing(next_prime(2^23))
+        sage: def test():
+        ...       try:
+        ...            discrete_log_rho(I(123456),I(1),operation='+')
+        ...       except:
+        ...            print "FAILURE"
+        sage: test() # random failure
+        FAILURE
+
+    If this happens, we can provide a better hash function::
+
+        sage: discrete_log_rho(I(123456),I(1),operation='+', hash_function=lambda x: hash(x*x))
+        123456
+
+    AUTHOR:
+
+    - Yann Laigle-Chapuy (2009-09-05)
+
+    """
+    from sage.rings.integer import Integer
+    from sage.rings.integer_mod_ring import IntegerModRing
+    from operator import mul, add, pow
+
+    # should be reasonable choices
+    partition_size=20
+    memory_size=4
+
+    if operation in addition_names:
+        mult=add
+        power=mul
+        if ord==None:
+            ord=base.additive_order()
+    elif operation in multiplication_names:
+        mult=mul
+        power=pow
+        if ord==None:
+            ord=base.multiplicative_order()
+    else:
+        raise(ValueError, "unknown operation")
+
+    ord = Integer(ord)
+
+    if not ord.is_prime():
+        raise ValueError,"for Pollard rho algorithm the order of the group must be prime"
+
+    # check if we need to set immutable before hashing
+    mut = hasattr(base,'set_immutable')
+
+    isqrtord=ord.isqrt()
+
+    if isqrtord < partition_size: #setup to costly, use bsgs
+        return bsgs(base,a, bounds=(0,ord), operation=operation)
+
+    reset_bound = 8*isqrtord # we take some margin
+
+    I=IntegerModRing(ord)
+
+    for s in xrange(10): # to avoid infinite loops
+        # random walk function setup
+        m=[I.random_element() for i in xrange(partition_size)]
+        n=[I.random_element() for i in xrange(partition_size)]
+        M=[mult(power(base,Integer(m[i])),power(a,Integer(n[i]))) for i in xrange(partition_size)]
+
+        ax = I.random_element()
+        x = power(base,Integer(ax))
+        if mut:
+            x.set_immutable()
+
+        bx = I(0)
+
+        sigma=[(0,None)]*memory_size
+        H={} # memory
+        i0=0
+        nextsigma = 0
+        for i in xrange(reset_bound):
+	            #random walk, we need an efficient hash
+            s=hash_function(x) % partition_size
+            (x,ax,bx) = (mult(M[s],x), ax+m[s], bx+n[s])
+            if mut:
+                x.set_immutable()
+            # look for collisions
+            if x in H:
+                ay,by=H[x]
+                if bx == by:
+                    break
+                else:
+                    res = sage.rings.integer.Integer((ay-ax)/(bx-by))
+                    if power(base,res) == a:
+                        return res
+                    else:
+                        break
+            # should we remember this value?
+            elif i >= nextsigma:
+                if sigma[i0][1] is not None:
+                    H.pop(sigma[i0][1])
+                sigma[i0]=(i,x)
+                i0 = (i0+1) % memory_size
+                nextsigma = 3*sigma[i0][0] #3 seems a good choice
+                H[x]=(ax,bx)
+
+    raise ValueError, "Pollard rho algorithm failed to find a logarithm"
+
+
 def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     r"""
     Totally generic discrete log function.

@@ -487,7 +487,6 @@ class NumberFieldIdeal(Ideal_generic):
             Free module of degree 20 and rank 20 over Integer Ring
             User basis matrix:
             20 x 20 dense matrix over Rational Field
-
         """
         try:
             return self.__free_module

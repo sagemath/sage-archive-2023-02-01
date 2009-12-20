@@ -781,7 +781,7 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
 
         sage: A = random_matrix(ZZ,50,x=2^16)    # entries are up to 2^16 i size
         sage: A
-        50 x 50 dense matrix over Integer Ring
+        50 x 50 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
     """
     if ncols is None:
         ncols = nrows

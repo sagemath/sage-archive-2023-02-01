@@ -1439,16 +1439,207 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return z
 
     # Other special functions
-    def agm(self, right):
+    def agm(self, right, algorithm="optimal"):
         """
+        Return the Arithmetic-Geometric Mean (AGM) of self and right.
+
+        INPUT:
+
+            - right (complex)-- another complex number
+
+            - algorithm (string, default "optimal")-- the algorithm to use
+                  (see below).
+
+        OUTPUT:
+
+            (complex) A value of the AGM of self and right.  Note that
+            this is a multi-valued function, and the algorithm used
+            affects the value returned, as follows:
+
+            - "pari": Call the sgm function from the pari library.
+
+            - "optimal": Use the AGM sequence such that at each stage
+                  `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+                  where the sign is chosen so that `|a_1-b_1|\le|a_1+b_1|`, or
+                  equivalently `\Re(b_1/a_1)\ge 0`.  The resulting limit is
+                  maximal among all possible values.
+
+            - "principal": Use the AGM sequence such that at each stage
+                  `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+                  where the sign is chosen so that `\Re(b_1)\ge 0` (the
+                  so-called principal branch of the square root).
+
+            The values `AGM(a,0)`, `AGM(0,a)`, and `AGM(a,-a)` are all taken to be 0.
+
         EXAMPLES::
 
-            sage: (1+CC(I)).agm(2-I)
+            sage: a = CC(1,1)
+            sage: b = CC(2,-1)
+            sage: a.agm(b)
             1.62780548487271 + 0.136827548397369*I
-        """
-        t = self._parent(right)._pari_()
-        return self._parent(self._pari_().agm(t))
+            sage: a.agm(b, algorithm="optimal")
+            1.62780548487271 + 0.136827548397369*I
+            sage: a.agm(b, algorithm="principal")
+            1.62780548487271 + 0.136827548397369*I
+            sage: a.agm(b, algorithm="pari")
+            1.62780548487271 + 0.136827548397369*I
 
+        An example to show that the returned value depends on the algorithm parameter::
+
+            sage: a = CC(-0.95,-0.65)
+            sage: b = CC(0.683,0.747)
+            sage: a.agm(b, algorithm="optimal")
+            -0.371591652351761 + 0.319894660206830*I
+            sage: a.agm(b, algorithm="principal")
+            0.338175462986180 - 0.0135326969565405*I
+            sage: a.agm(b, algorithm="pari")
+            0.0806891850759812 + 0.239036532685557*I
+            sage: a.agm(b, algorithm="optimal").abs()
+            0.490319232466314
+            sage: a.agm(b, algorithm="principal").abs()
+            0.338446122230459
+            sage: a.agm(b, algorithm="pari").abs()
+            0.252287947683910
+
+        TESTS:
+
+        An example which came up in testing::
+
+            sage: I = CC(I)
+            sage: a =  0.501648970493109 + 1.11877240294744*I
+            sage: b =  1.05946309435930 + 1.05946309435930*I
+            sage: a.agm(b)
+            0.774901870587681 + 1.10254945079875*I
+
+            sage: a = CC(-0.32599972608379413, 0.60395514542928641)
+            sage: b = CC( 0.6062314525690593,  0.1425693337776659)
+            sage: a.agm(b)
+            0.199246281325876 + 0.478401702759654*I
+            sage: a.agm(-a)
+            0
+            sage: a.agm(0)
+            0
+            sage: CC(0).agm(a)
+            0
+
+        Consistency::
+
+            sage: a = 1 + 0.5*I
+            sage: b = 2 - 0.25*I
+            sage: a.agm(b) - ComplexField(100)(a).agm(b)
+            0
+            sage: ComplexField(200)(a).agm(b) - ComplexField(500)(a).agm(b)
+            0
+            sage: ComplexField(500)(a).agm(b) - ComplexField(1000)(a).agm(b)
+            0
+        """
+        if algorithm=="pari":
+            t = self._parent(right)._pari_()
+            return self._parent(self._pari_().agm(t))
+
+        cdef ComplexNumber a, b, a1, b1, d, e, res
+        cdef mp_exp_t rel_prec
+        cdef bint optimal = algorithm == "optimal"
+
+        if optimal or algorithm == "principal":
+
+            if not isinstance(right, ComplexNumber) or (<ComplexNumber>right)._parent is not self._parent:
+                right = self._parent(right)
+
+            res = self._new()
+
+            if mpfr_zero_p(self.__re) and mpfr_zero_p(self.__im):
+                return self
+            elif mpfr_zero_p((<ComplexNumber>right).__re) and mpfr_zero_p((<ComplexNumber>right).__im):
+                return right
+            elif (mpfr_cmpabs(self.__re, (<ComplexNumber>right).__re) == 0 and
+                  mpfr_cmpabs(self.__im, (<ComplexNumber>right).__im) == 0 and
+                  mpfr_cmp(self.__re, (<ComplexNumber>right).__re) != 0 and
+                  mpfr_cmp(self.__im, (<ComplexNumber>right).__im) != 0):
+                # self = -right
+                mpfr_set_ui(res.__re, 0, rnd)
+                mpfr_set_ui(res.__im, 0, rnd)
+                return res
+
+            # Do the computations to a bit higher precicion so rounding error
+            # won't obscure the termination condition.
+            a = ComplexNumber(self._parent.to_prec(self._prec+5), None)
+            b = a._new()
+            a1 = a._new()
+            b1 = a._new()
+
+            d = a._new()
+            if optimal:
+                e = a._new()
+
+            # Make copies so we don't mutate self or right.
+            mpfr_set(a.__re, self.__re, rnd)
+            mpfr_set(a.__im, self.__im, rnd)
+            mpfr_set(b.__re, (<ComplexNumber>right).__re, rnd)
+            mpfr_set(b.__im, (<ComplexNumber>right).__im, rnd)
+
+            if optimal:
+                mpfr_add(e.__re, a.__re, b.__re, rnd)
+                mpfr_add(e.__im, a.__im, b.__im, rnd)
+
+            while True:
+
+                # a1 = (a+b)/2
+                if optimal:
+                    mpfr_swap(a1.__re, e.__re)
+                    mpfr_swap(a1.__im, e.__im)
+                else:
+                    mpfr_add(a1.__re, a.__re, b.__re, rnd)
+                    mpfr_add(a1.__im, a.__im, b.__im, rnd)
+                mpfr_mul_2si(a1.__re, a1.__re, -1, rnd)
+                mpfr_mul_2si(a1.__im, a1.__im, -1, rnd)
+
+                # b1 = sqrt(a*b)
+                mpfr_mul(d.__re, a.__re, b.__re, rnd)
+                mpfr_mul(d.__im, a.__im, b.__im, rnd)
+                mpfr_sub(b1.__re, d.__re, d.__im, rnd)
+                mpfr_mul(d.__re, a.__re, b.__im, rnd)
+                mpfr_mul(d.__im, a.__im, b.__re, rnd)
+                mpfr_add(b1.__im, d.__re, d.__im, rnd)
+                b1 = b1.sqrt() # this would be a *lot* of code duplication
+
+                # d = a1 - b1
+                mpfr_sub(d.__re, a1.__re, b1.__re, rnd)
+                mpfr_sub(d.__im, a1.__im, b1.__im, rnd)
+                if mpfr_zero_p(d.__re) and mpfr_zero_p(d.__im):
+                    mpfr_set(res.__re, a1.__re, rnd)
+                    mpfr_set(res.__im, a1.__im, rnd)
+                    return res
+
+                if optimal:
+                    # e = a1+b1
+                    mpfr_add(e.__re, a1.__re, b1.__re, rnd)
+                    mpfr_add(e.__im, a1.__im, b1.__im, rnd)
+                    if mpfr_zero_p(e.__re) and mpfr_zero_p(e.__im):
+                        mpfr_set(res.__re, a1.__re, rnd)
+                        mpfr_set(res.__im, a1.__im, rnd)
+                        return res
+
+                    # |e| < |d|
+                    if cmp_abs(e, d) < 0:
+                        mpfr_swap(d.__re, e.__re)
+                        mpfr_swap(d.__im, e.__im)
+                        mpfr_neg(b1.__re, b1.__re, rnd)
+                        mpfr_neg(b1.__im, b1.__im, rnd)
+
+                rel_prec = min_exp_t(max_exp(a1), max_exp(b1)) - max_exp(d)
+                if rel_prec > self._prec:
+                    mpfr_set(res.__re, a1.__re, rnd)
+                    mpfr_set(res.__im, a1.__im, rnd)
+                    return res
+
+                # a, b = a1, b1
+                mpfr_swap(a.__re, a1.__re)
+                mpfr_swap(a.__im, a1.__im)
+                mpfr_swap(b.__re, b1.__re)
+                mpfr_swap(b.__im, b1.__im)
+
+        raise ValueError, "agm algorithm must be one of 'pari', 'optimal', 'principal'"
 
     def argument(self):
         r"""
@@ -2038,3 +2229,93 @@ cdef class CCtoCDF(Map):
         return z
 
 
+cdef inline mp_exp_t min_exp_t(mp_exp_t a, mp_exp_t b):
+    return a if a < b else b
+
+cdef inline mp_exp_t max_exp_t(mp_exp_t a, mp_exp_t b):
+    return a if a > b else b
+
+cdef inline mp_exp_t max_exp(ComplexNumber z):
+    """
+    Quickly return the maximum exponent of the real and complex parts of z,
+    which is useful for estimating its magnitude.
+    """
+    if mpfr_zero_p(z.__im):
+        return mpfr_get_exp(z.__re)
+    elif mpfr_zero_p(z.__re):
+        return mpfr_get_exp(z.__im)
+    return max_exp_t(mpfr_get_exp(z.__re), mpfr_get_exp(z.__im))
+
+cpdef int cmp_abs(ComplexNumber a, ComplexNumber b):
+    """
+    Returns -1, 0, or 1 according to whether `|a|` is less than, equal to, or greater than `|b|`.
+
+    Optimized for non-close numbers, where the ordering can be determined by examining exponents.
+
+    EXAMPLES::
+
+        sage: from sage.rings.complex_number import cmp_abs
+        sage: cmp_abs(CC(5), CC(1))
+        1
+        sage: cmp_abs(CC(5), CC(4))
+        1
+        sage: cmp_abs(CC(5), CC(5))
+        0
+        sage: cmp_abs(CC(5), CC(6))
+        -1
+        sage: cmp_abs(CC(5), CC(100))
+        -1
+        sage: cmp_abs(CC(-100), CC(1))
+        1
+        sage: cmp_abs(CC(-100), CC(100))
+        0
+        sage: cmp_abs(CC(-100), CC(1000))
+        -1
+        sage: cmp_abs(CC(1,1), CC(1))
+        1
+        sage: cmp_abs(CC(1,1), CC(2))
+        -1
+        sage: cmp_abs(CC(1,1), CC(1,0.99999))
+        1
+        sage: cmp_abs(CC(1,1), CC(1,-1))
+        0
+        sage: cmp_abs(CC(0), CC(1))
+        -1
+        sage: cmp_abs(CC(1), CC(0))
+        1
+        sage: cmp_abs(CC(0), CC(0))
+        0
+        sage: cmp_abs(CC(2,1), CC(1,2))
+        0
+    """
+    if mpfr_zero_p(b.__re) and mpfr_zero_p(b.__im):
+        return not ((mpfr_zero_p(a.__re) and mpfr_zero_p(a.__im)))
+    elif (mpfr_zero_p(a.__re) and mpfr_zero_p(a.__im)):
+        return -1
+    cdef mp_exp_t exp_diff = max_exp(a) - max_exp(b)
+    if exp_diff <= -2:
+        return -1
+    elif exp_diff >= 2:
+        return 1
+
+    cdef int res
+    cdef mpfr_t abs_a, abs_b, tmp
+    mpfr_init2(abs_a, mpfr_get_prec(a.__re))
+    mpfr_init2(abs_b, mpfr_get_prec(b.__re))
+    mpfr_init2(tmp, mpfr_get_prec(a.__re))
+
+    mpfr_sqr(abs_a, a.__re, rnd)
+    mpfr_sqr(tmp, a.__im, rnd)
+    mpfr_add(abs_a, abs_a, tmp, rnd)
+
+    mpfr_sqr(abs_b, b.__re, rnd)
+    mpfr_sqr(tmp, b.__im, rnd)
+    mpfr_add(abs_b, abs_b, tmp, rnd)
+
+    res = mpfr_cmpabs(abs_a, abs_b)
+
+    mpfr_clear(abs_a)
+    mpfr_clear(abs_b)
+    mpfr_clear(tmp)
+
+    return res

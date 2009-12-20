@@ -3,5 +3,3 @@ MAINTAINER:
 
 
 This database was created by Emily Kirkman based on work of Jason Grout.
-
-This also includes graph_world.sobj by Nathann Cohen from #6813.

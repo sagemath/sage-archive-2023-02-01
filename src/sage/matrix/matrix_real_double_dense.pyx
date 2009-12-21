@@ -137,6 +137,9 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         The input matrix must be symmetric and positive definite or
         ``ValueError`` exception will be raised.
 
+        The computed decomposition is cached and returned on subsequent
+        calls.
+
         EXAMPLES:
             sage: M = MatrixSpace(RDF,5)
             sage: r = matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
@@ -150,22 +153,25 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
             [ 1.0   121.0  1555.0  7381.0 22621.0]
             [ 1.0   341.0  4681.0 22621.0 69905.0]
         """
+        cdef Matrix_real_double_dense M
+
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self._nrows == 0:   # special case
             return self.__copy__()
 
-        # cdef matrix_double_dense
-
-        cdef Matrix_real_double_dense M = self._new()
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        from numpy.linalg import LinAlgError
-        try:
-            M._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
-        except LinAlgError:
-            raise ValueError, "The input matrix was not symmetric and positive definite"
-
+        M = self.fetch('cholesky')
+        if M is None:
+            M = self._new()
+            global scipy
+            if scipy is None:
+                import scipy
+            import scipy.linalg
+            from numpy.linalg import LinAlgError
+            try:
+                M._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
+            except LinAlgError:
+                raise ValueError, "The input matrix was not symmetric and positive definite"
+            M.set_immutable()
+            self.cache('cholesky', M)
         return M

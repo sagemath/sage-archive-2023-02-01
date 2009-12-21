@@ -151,13 +151,13 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         already been computed.
 
         EXAMPLES:
-            sage: A= random_matrix(RDF,3) ; A.LU_valid()
+            sage: A = random_matrix(RDF,3) ; A.LU_valid()
             False
-            sage: L,U,P = A.LU()
+            sage: P, L, U = A.LU()
             sage: A.LU_valid()
             True
         """
-        return self.fetch('LU_valid') == True
+        return self.fetch('PLU_factors') is not None
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -531,40 +531,24 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     #    * Other functions (list them here):
     #
     #    compute_LU(self)
-    #    get_LU  #add
     #
     ########################################################################
-    cdef _c_compute_LU(self):
-        """
-        Compute the LU factorization and store it in self._L_M, self._P_M,
-        and self._U_M.
-        """
-        if not hasattr(self, '_L_M'):
-            # It's an awful waste to store a huge matrix for P, which
-            # is just a simple permutation, really.
-            global scipy
-            if scipy is None:
-                import scipy
-            import scipy.linalg
-            self._P_M, self._L_M, self._U_M = scipy.linalg.lu(self._matrix_numpy)
-            # Numpy has a different convention than we had with GSL
-            # So we invert (transpose) the P to match our prior behavior
-            self._P_M = self._P_M.T
-            self.cache('LU_valid',True)
 
     def LU(self):
         """
         Computes the LU decomposition of a matrix.
 
-        For and square matrix A we can find matrices P,L, and U. s.t.
-           P*A = L*U
-        where P is a permutation matrix, L is lower triangular and U
-        is upper triangular.
+        For and square matrix A we can find matrices P, L, and U such
+        that ``P*A = L*U``, where P is a permutation matrix, L is lower
+        triangular and U is upper triangular.
+
+        The computed decomposition is cached and returned on subsequent calls.
 
         OUTPUT:
-            P, L, U -- as a tuple
+            P, L, U -- as a tuple of immutable matrices
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(RDF,4,range(16))
             sage: P,L,U = m.LU()
             sage: P*m
@@ -577,7 +561,24 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
+
+        The result is immutable...::
+
+            sage: L[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            sage: P[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            sage: U[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
+        global scipy, numpy
+        cdef Matrix_double_dense P, L, U
 
         if self._ncols!=self._nrows:
             raise TypeError,"LU decomposition only works for square matrix"
@@ -585,17 +586,28 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if self._ncols == 0:
             return self.__copy__(), self.__copy__(), self.__copy__()
 
-        if self.fetch('LU_valid')!=True:
-            self._c_compute_LU()
-        cdef Py_ssize_t i,j,k,l,copy_result
-        cdef Matrix_double_dense P, L,U
-        P = self._new()
-        L = self._new()
-        U = self._new()
-        P._matrix_numpy = self._P_M.copy()
-        L._matrix_numpy = self._L_M.copy()
-        U._matrix_numpy = self._U_M.copy()
-        return P, L, U
+        PLU = self.fetch('PLU_factors')
+        if PLU is None:
+            if scipy is None:
+                import scipy
+            import scipy.linalg
+            if numpy is None:
+                import numpy
+            P = self._new()
+            L = self._new()
+            U = self._new()
+            PM, LM, UM = scipy.linalg.lu(self._matrix_numpy)
+            # Numpy has a different convention than we had with GSL
+            # So we invert (transpose) the P to match our prior behavior
+            # TODO: It's an awful waste to store a huge matrix for P, which
+            # is just a simple permutation, really.
+            P._matrix_numpy = PM.T.copy()
+            L._matrix_numpy = numpy.ascontiguousarray(LM)
+            U._matrix_numpy = numpy.ascontiguousarray(UM)
+            PLU = (P, L, U)
+            for M in PLU: M.set_immutable()
+            self.cache('PLU_factors', PLU)
+        return PLU
 
     def eigenspaces_left(self, var='a', algebraic_multiplicity=False):
         r"""
@@ -910,19 +922,20 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             0.0
 
         """
+        global numpy
+        cdef Matrix_double_dense U
+
         if self._nrows == 0 or self._ncols == 0:
             return sage.rings.real_double.RDF(0)
 
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
 
-        if(self.fetch('LU_valid') !=True):
-            self._c_compute_LU()
-        global numpy
+        P, L, U = self.LU()
         if numpy is None:
             import numpy
 
-        return sage.rings.real_double.RDF(sum(numpy.log(abs(numpy.diag(self._U_M)))))
+        return sage.rings.real_double.RDF(sum(numpy.log(abs(numpy.diag(U._matrix_numpy)))))
 
     def transpose(self):
         """
@@ -961,71 +974,81 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         r"""
         Return the singular value decomposition of this matrix.
 
+        The U and V matrices are not unique and may be returned with different
+        values in the future or on different systems. The S matrix is unique
+        and contains the singular values in descending order.
+
+        The computed decomposition is cached and returned on subsequent calls.
+
         INPUT:
             A -- a matrix
+
         OUTPUT:
-            U, S, V -- matrices such that $A = U*S*V.conj().transpose()$, where
-                       U and V are orthogonal and S is zero off of the diagonal.
+            U, S, V -- immutable matrices such that $A = U*S*V.conj().transpose()$
+                       where U and V are orthogonal and S is zero off of the diagonal.
 
         Note that if self is m-by-n, then the dimensions of the
         matrices that this returns are (m,m), (m,n), and (n, n).
 
-        EXAMPLES:
-            sage: m = matrix(RDF,4,range(16))
-            sage: U,S,V = m.SVD()
-            sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
-            [3.45569519412e-16               1.0               2.0               3.0]
-            [4.0               5.0               6.0               7.0]
-            [8.0               9.0              10.0              11.0]
-            [12.0              13.0              14.0              15.0]
+        EXAMPLES::
 
-        A non-square example:
-            sage: m = matrix(RDF, 2, range(6)); m
-            [0.0 1.0 2.0]
-            [3.0 4.0 5.0]
+            sage: m = matrix(RDF,4,range(1,17))
+            sage: U,S,V = m.SVD()
+            sage: U*S*V.transpose()
+            [ 1.0  2.0  3.0  4.0]
+            [ 5.0  6.0  7.0  8.0]
+            [ 9.0 10.0 11.0 12.0]
+            [13.0 14.0 15.0 16.0]
+
+        A non-square example::
+
+            sage: m = matrix(RDF, 2, range(1,7)); m
+            [1.0 2.0 3.0]
+            [4.0 5.0 6.0]
             sage: U, S, V = m.SVD()
-            sage: U*S*V.transpose()           # random low bits
-            [7.62194127257e-17               1.0               2.0]
-            [              3.0               4.0               5.0]
-            sage: U
+            sage: U*S*V.transpose()
+            [1.0 2.0 3.0]
+            [4.0 5.0 6.0]
+
+        S contains the singular values::
+
+            sage: S.round(4)
+            [ 9.508    0.0    0.0]
+            [   0.0 0.7729    0.0]
+            sage: [round(sqrt(abs(x)),4) for x in (S*S.transpose()).eigenvalues()]
+            [9.508, 0.7729]
+
+        U and V are orthogonal matrices::
+
+            sage: U # random, SVD is not unique
+            [-0.386317703119 -0.922365780077]
+            [-0.922365780077  0.386317703119]
             [-0.274721127897 -0.961523947641]
             [-0.961523947641  0.274721127897]
-            sage: S
-            [7.34846922835           0.0           0.0]
-            [          0.0           1.0           0.0]
-            sage: V
-            [-0.392540507864  0.824163383692  0.408248290464]
-            [-0.560772154092  0.137360563949 -0.816496580928]
-            [ -0.72900380032 -0.549442255795  0.408248290464]
-            sage: U*U.transpose()            # random low bits
-            [              1.0 2.13506512817e-16]
-            [2.13506512817e-16               1.0]
-            sage: max((U*U.transpose()-identity_matrix(2)).list())<1e-15
-            True
-            sage: V*V.transpose()            # random low bits
-            [               1.0  2.02230810223e-16 -2.11947972194e-16]
-            [ 2.02230810223e-16                1.0  7.09339271349e-17]
-            [-2.11947972194e-16  7.09339271349e-17                1.0]
-            sage: max((V*V.transpose()-identity_matrix(3)).list())<1e-15
-            True
-            sage: max((U*S*V.transpose()-m).list())<1e-15 # check
-            True
-            sage: m = matrix(RDF,3,2,range(6)); m
+            sage: (U*U.transpose()).zero_at(1e-15)
+            [1.0 0.0]
             [0.0 1.0]
-            [2.0 3.0]
-            [4.0 5.0]
+            sage: V # random, SVD is not unique
+            [-0.428667133549  0.805963908589  0.408248290464]
+            [-0.566306918848  0.112382414097 -0.816496580928]
+            [-0.703946704147 -0.581199080396  0.408248290464]
+            sage: (V*V.transpose()).zero_at(1e-15)
+            [1.0 0.0 0.0]
+            [0.0 1.0 0.0]
+            [0.0 0.0 1.0]
+
+        TESTS::
+
+            sage: m = matrix(RDF,3,2,range(1, 7)); m
+            [1.0 2.0]
+            [3.0 4.0]
+            [5.0 6.0]
             sage: U,S,V = m.SVD()
-            sage: U*S*V.transpose()   # random low order bits
-            [-8.13151629364e-19                1.0]
-            [               2.0                3.0]
-            [               4.0                5.0]
+            sage: U*S*V.transpose()
+            [1.0 2.0]
+            [3.0 4.0]
+            [5.0 6.0]
 
-        Due to numerical noise issues on Intel Macs, the following fails if 1e-14
-        is changed to 1e-15:
-            sage: max((U*S*V.transpose()-m).list())<1e-14 # check
-            True
-
-        TESTS:
             sage: m = matrix(RDF, 3, 0, []); m
             []
             sage: m.SVD()
@@ -1038,7 +1061,15 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m = matrix(RDF, 2, 3, range(6))
             sage: map(shape, m.SVD())
             [(2, 2), (2, 3), (3, 3)]
+            sage: for x in m.SVD(): x.is_immutable()
+            True
+            True
+            True
         """
+        global scipy, numpy
+        cdef Py_ssize_t i
+        cdef Matrix_double_dense U, S, V
+
         if len(args)>0 or len(kwds)>0:
             from sage.misc.misc import deprecation
             deprecation("Arguments passed to SVD, but SVD no longer supports different methods (it only uses numpy now).")
@@ -1049,34 +1080,49 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             V_t = self.new_matrix(self._ncols, self._nrows)
             return U_t, S_t, V_t
 
+        USV = self.fetch('SVD_factors')
+        if USV is None:
+            # TODO: More efficient representation of non-square diagonal matrix S
+            if scipy is None:
+                import scipy
+            import scipy.linalg
+            if numpy is None:
+                import numpy
+            U_mat, S_diagonal, V_mat = scipy.linalg.svd(self._matrix_numpy)
 
-        cdef int i, s_dim
-        cdef Matrix_double_dense S = self.new_matrix()
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        U,_S,V = scipy.linalg.svd(self._matrix_numpy)
+            U = self._new(self._nrows, self._nrows)
+            S = self._new(self._nrows, self._ncols)
+            V = self._new(self._ncols, self._ncols)
 
-        s_dim = len(_S)
-        for i from 0 <= i < s_dim:
-            S[(i,i)] = _S[i]
+            S_mat = numpy.zeros((self._nrows, self._ncols), dtype=self._numpy_dtype)
+            for i in range(S_diagonal.shape[0]):
+                S_mat[i,i] = S_diagonal[i]
 
-        return (matrix(U),S,matrix(V.conj().T))
+            U._matrix_numpy = numpy.ascontiguousarray(U_mat)
+            S._matrix_numpy = S_mat
+            V._matrix_numpy = numpy.ascontiguousarray(V_mat.conj().T)
+            USV = U, S, V
+            for M in USV: M.set_immutable()
+            self.cache('SVD_factors', USV)
+
+        return USV
 
     def QR(self):
         """
         Return the Q,R factorization of a real matrix A.
 
+        The computed decomposition is cached and returned on subsequent calls.
+
         INPUT:
            self -- a real matrix A
 
         OUTPUT:
-           Q, R -- matrices such that A = Q*R such that the columns of Q are
+           Q, R -- immutable matrices such that A = Q*R such that the columns of Q are
                    orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
 
-        EXAMPLES:
-            sage: m = matrix(RDF,3,range(12)); m
+        EXAMPLES::
+
+            sage: m = matrix(RDF,3,range(0, 12)); m
             [ 0.0  1.0  2.0  3.0]
             [ 4.0  5.0  6.0  7.0]
             [ 8.0  9.0 10.0 11.0]
@@ -1086,25 +1132,42 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 4.0  5.0  6.0  7.0]
             [ 8.0  9.0 10.0 11.0]
 
-        Note that the columns of Q will be an orthogonal
+        Note that Q is an orthogonal matrix::
 
-            sage: Q*Q.transpose()           # slightly random output.
-            [1.0                   5.55111512313e-17 -1.11022302463e-16]
-            [ 5.55111512313e-17    1.0               -5.55111512313e-17]
-            [-1.11022302463e-16    -5.55111512313e-17               1.0]
+            sage: (Q*Q.transpose()).zero_at(1e-10)
+            [1.0 0.0 0.0]
+            [0.0 1.0 0.0]
+            [0.0 0.0 1.0]
+
+        The result is immutable::
+
+            sage: Q[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            sage: R.is_immutable()
+            True
+
         """
+        global scipy
+        cdef Matrix_double_dense Q,R
+
         if self._nrows == 0 or self._ncols == 0:
             return self.new_matrix(self._nrows, self._nrows), self.new_matrix()
 
-        cdef Matrix_double_dense Q,R
-        Q = self._new(self._nrows, self._nrows)
-        R = self._new(self._nrows, self._ncols)
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        Q._matrix_numpy, R._matrix_numpy = scipy.linalg.qr(self._matrix_numpy)
-        return Q,R
+        QR = self.fetch('QR_factors')
+        if QR is None:
+            Q = self._new(self._nrows, self._nrows)
+            R = self._new(self._nrows, self._ncols)
+            if scipy is None:
+                import scipy
+            import scipy.linalg
+            Q._matrix_numpy, R._matrix_numpy = scipy.linalg.qr(self._matrix_numpy)
+            Q.set_immutable()
+            R.set_immutable()
+            QR = (Q, R)
+            self.cache('QR_factors', QR)
+        return QR
 
     def is_symmetric(self, tol = 1e-12):
         """
@@ -1368,4 +1431,85 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             else:
                 M._matrix_numpy = scipy.linalg.expm3(self._matrix_numpy, q=order)
 
+        return M
+
+    def zero_at(self, eps):
+        """
+        Returns a copy of the matrix where elements smaller than or
+        equal to ``eps`` are replaced with zeroes. For complex matrices,
+        the real and imaginary parts are considered individually.
+
+        This is useful for modifying output from algorithms which have large
+        relative errors when producing zero elements, e.g. to create reliable
+        doctests.
+
+        INPUT:
+
+          - ``eps`` - Cutoff value
+
+        OUTPUT:
+
+        A modified copy of the matrix.
+
+        EXAMPLES::
+
+            sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
+            sage: a
+            [           1.0         0.0001 1.0 + 1e-100*I]
+            [ 1e-08 + 3.0*I              0          1e-58]
+            sage: a.zero_at(1e-50)
+            [          1.0        0.0001           1.0]
+            [1e-08 + 3.0*I             0             0]
+            sage: a.zero_at(1e-4)
+            [  1.0     0   1.0]
+            [3.0*I     0     0]
+
+
+
+        """
+        global numpy
+        cdef Matrix_double_dense M
+        if numpy is None:
+            import numpy
+        eps = float(eps)
+        out = self._matrix_numpy.copy()
+        if self._sage_dtype is sage.rings.complex_double.CDF:
+            out.real[numpy.abs(out.real) <= eps] = 0
+            out.imag[numpy.abs(out.imag) <= eps] = 0
+        else:
+            out[numpy.abs(out) <= eps] = 0
+        M = self._new()
+        M._matrix_numpy = out
+        return M
+
+    def round(self, ndigits=0):
+        """
+        Returns a copy of the matrix where all entries have been rounded
+        to a given precision in decimal digits (default 0 digits).
+
+        INPUT:
+
+         - ``ndigits`` - The precision in number of decimal digits
+
+        OUTPUT:
+
+        A modified copy of the matrix
+
+        EXAMPLES:
+
+            sage: M=matrix(CDF, [[10.234r + 34.2343jr, 34e10r]])
+            sage: M
+            [10.234 + 34.2343*I     340000000000.0]
+            sage: M.round(2)
+            [10.23 + 34.23*I  340000000000.0]
+            sage: M.round()
+            [ 10.0 + 34.0*I 340000000000.0]
+        """
+        global numpy
+        cdef Matrix_double_dense M
+        if numpy is None:
+            import numpy
+        ndigits = int(ndigits)
+        M = self._new()
+        M._matrix_numpy = numpy.round(self._matrix_numpy, ndigits)
         return M

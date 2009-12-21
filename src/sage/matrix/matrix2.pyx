@@ -5566,19 +5566,24 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return the Cholesky decomposition of ``self``.
 
+        The computed decomposition is cached and returned on
+        subsequent calls. Methods such as :meth:`solve_left` may also
+        take advantage of the cached decomposition depending on the
+        exact implementation.
+
         INPUT:
 
         The input matrix must be:
 
         - real, symmetric, and positive definite; or
 
-        - imaginary, Hermitian, and positive definite.
+        - complex, Hermitian, and positive definite.
 
         If not, a ``ValueError`` exception will be raised.
 
         OUTPUT:
 
-        A lower triangular matrix `L` such that `L L^t` equals ``self``.
+        An immutable lower triangular matrix `L` such that `L L^t` equals ``self``.
 
         ALGORITHM:
 
@@ -5625,6 +5630,13 @@ cdef class Matrix(matrix1.Matrix):
             [ 1.0   341.0  4681.0 22621.0 69905.0]
             sage: ( L*L.transpose() - m ).norm(1) < 2^-30
             True
+
+        The result is immutable::
+
+            sage: L[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         Here is an example over a higher precision real field::
 
@@ -5699,6 +5711,11 @@ cdef class Matrix(matrix1.Matrix):
             True
             sage: L.parent()
             Full MatrixSpace of 6 by 6 dense matrices over Complex Field with 100 bits of precision
+            sage: L[0,0] = 0
+            Traceback (most recent call last):
+                ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+
 
         Here is an example that returns an incorrect answer, because the input is *not* positive definite::
 
@@ -5727,20 +5744,24 @@ cdef class Matrix(matrix1.Matrix):
 
         This generic implementation uses a standard recursion.
         """
-        A = self.__copy__()
-        L = A.parent()(0)
-        n = self.nrows()
-        for k in range(0, n-1 + 1):
-            try:
-                L[k, k] = A[k, k].sqrt()
-            except TypeError:
-                raise ValueError, "The input matrix was not symmetric and positive definite"
+        L = self.fetch('cholesky')
+        if L is None:
+            A = self.__copy__()
+            L = A.parent()(0)
+            n = self.nrows()
+            for k in range(0, n-1 + 1):
+                try:
+                    L[k, k] = A[k, k].sqrt()
+                except TypeError:
+                    raise ValueError, "The input matrix was not symmetric and positive definite"
 
-            for s in range(k+1, n):
-                L[s, k] = A[s, k] / L[k, k]
-            for j in range(k+1, n):
-                for i in range(j, n):
-                    A[i, j] -= L[i, k]*L[j, k].conjugate()
+                for s in range(k+1, n):
+                    L[s, k] = A[s, k] / L[k, k]
+                for j in range(k+1, n):
+                    for i in range(j, n):
+                        A[i, j] -= L[i, k]*L[j, k].conjugate()
+            L.set_immutable()
+            self.cache('cholesky', L)
         return L
 
     def hadamard_bound(self):

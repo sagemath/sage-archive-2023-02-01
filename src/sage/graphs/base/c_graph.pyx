@@ -1389,6 +1389,160 @@ class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
+    def depth_first_search(self, v, reverse=False, ignore_direction=False):
+        r"""
+        Returns a depth-first search from vertex v.
+
+        INPUT:
+
+        - ``reverse`` -- considers the reversed graph (
+          the out_neighbors become in_neighbors ).
+
+          The default value is ``False``.
+
+        - ``ignore_direction`` -- consider the undirected graph.
+
+          The default value is ``False``.
+
+        EXAMPLE::
+
+            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+            sage: list(G.depth_first_search(0))
+            [0, 5, 8, 6, 9, 7, 2, 3, 4, 1]
+        """
+        return Search_iterator(self, v, direction=-1, reverse=reverse, ignore_direction=ignore_direction)
+
+    def breadth_first_search(self, v, reverse=False, ignore_direction=False):
+        r"""
+        Returns a breadth-first search from vertex v.
+
+        INPUT:
+
+        - ``reverse`` -- considers the reversed graph (
+          the out_neighbors become in_neighbors ).
+
+          The default value is ``False``.
+
+        - ``ignore_direction`` -- consider the undirected graph.
+
+          The default value is ``False``.
+
+
+        EXAMPLE::
+
+            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+            sage: list(G.breadth_first_search(0))
+            [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+        """
+        return Search_iterator(self, v, direction=0, reverse=reverse, ignore_direction=ignore_direction)
+
+    def is_connected(self):
+        r"""
+        Returns whether the graph is connected.
+
+        EXAMPLE:
+
+        Petersen's graph is connected ::
+
+           sage: DiGraph(graphs.PetersenGraph(),implementation="c_graph").is_connected()
+           True
+
+        While the disjoint union of two of them is not::
+
+           sage: DiGraph(2*graphs.PetersenGraph(),implementation="c_graph").is_connected()
+           False
+        """
+
+        cdef int v_int = 0
+        v_int = bitset_first((<CGraph>self._cg).active_vertices)
+
+        if v_int == -1:
+            return True
+
+        return len(list(self.depth_first_search(get_vertex(v_int, self.vertex_ints, self.vertex_labels, self._cg),\
+                        ignore_direction=True))\
+                       ) == (<CGraph>self._cg).num_verts
+
+    def is_strongly_connected(self):
+        r"""
+        Returns whether the graph is strongly connected.
+
+        EXAMPLE:
+
+        The circuit on 3 vertices is obviously strongly connected ::
+
+            sage: g = DiGraph({ 0 : [1], 1 : [2], 2 : [0]},implementation="c_graph")
+            sage: g.is_strongly_connected()
+            True
+
+        But a transitive triangle is not::
+
+            sage: g = DiGraph({ 0 : [1,2], 1 : [2]},implementation="c_graph")
+            sage: g.is_strongly_connected()
+            False
+        """
+        cdef int v_int = 0
+
+        # Pick one vertex
+        v_int = bitset_first((<CGraph>self._cg).active_vertices)
+
+        if v_int == -1:
+            return True
+
+        v = get_vertex(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+
+        return (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v))) and \
+            (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v, reverse=True)))
+
+
+cdef class Search_iterator:
+    cdef graph
+    cdef int direction
+    cdef list stack
+    cdef bitset_t seen
+    cdef bool test_out
+    cdef bool test_in
+
+    def __init__(self, graph, v, direction=0, reverse=False, ignore_direction=False):
+        self.graph = graph
+        self.direction = direction
+
+        bitset_init(self.seen,(<CGraph>self.graph._cg).active_vertices.size)
+        bitset_set_first_n(self.seen,0)
+
+        self.stack = [get_vertex(v, self.graph.vertex_ints, self.graph.vertex_labels, self.graph._cg)]
+
+        if not self.graph.directed:
+            ignore_direction = False
+
+        self.test_out = (not reverse) or ignore_direction
+        self.test_in = reverse or ignore_direction
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        cdef int v_int
+        cdef int w_int
+
+        while self.stack:
+            v_int = self.stack.pop(self.direction)
+
+            if bitset_not_in(self.seen,v_int):
+                value = vertex_label(v_int, self.graph.vertex_ints, self.graph.vertex_labels, self.graph._cg)
+                bitset_add(self.seen,v_int)
+
+                if self.test_out:
+                    self.stack.extend(self.graph._cg.out_neighbors(v_int))
+                if self.test_in:
+                    self.stack.extend(self.graph._cg.in_neighbors(v_int))
+
+                break
+        else:
+            bitset_free(self.seen)
+            raise StopIteration
+
+        return value
 
 
 

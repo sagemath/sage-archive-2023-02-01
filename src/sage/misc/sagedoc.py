@@ -363,22 +363,88 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
     """
+    ROOT = os.environ['SAGE_ROOT']
     if what == 'src':
         if module.find('sage') == 0:
             module = module[4:].lstrip(".")  # remove 'sage' or 'sage.' from module
-            base_path = 'devel/sage/sage'
+            base_path = os.path.join('devel', 'sage', 'sage')
         else:
-            base_path = 'devel/sage'
-        module = module.replace(".", "/")
+            base_path = os.path.join('devel', 'sage')
+        module = module.replace(".", os.sep)
         exts = ['py', 'pyx', 'pxd']
         title = 'Source Code'
     else:
         module = ''
-        base_path = 'devel/sage/doc/output/'
         exts = ['html']
         title = 'Documentation'
+        base_path = os.path.join('devel', 'sage', 'doc', 'output')
 
-    base_path = os.path.join(os.environ['SAGE_ROOT'], base_path)
+        # read the start of SAGE_ROOT/devel/sage/doc/common/builder.py
+        # to find list of languages, documents, and documents to omit
+        doc_path = os.path.join(ROOT, 'devel', 'sage', 'doc')
+        builder = open(os.path.join(doc_path, 'common', 'builder.py'))
+        s = builder.read()[:1000]
+        builder.close()
+        # list of languages
+        lang = []
+        idx = s.find("LANGUAGES")
+        if idx != -1:
+            start = s[idx:].find('[')
+            end =  s[idx:].find(']')
+            if start != -1 and end != -1:
+                lang = s[idx+start+1:idx+end].translate(None, "'\" ").split(",")
+        # documents in SAGE_ROOT/devel/sage/doc/LANG/ to omit
+        omit = []
+        idx = s.find("OMIT")
+        if idx != -1:
+            start = s[idx:].find('[')
+            end =  s[idx:].find(']')
+            if start != -1 and end != -1:
+                omit = s[idx+start+1:idx+end].translate(None, "'\" ").split(",")
+        # list of documents, minus the omitted ones
+        documents = []
+        for L in lang:
+            documents += [os.path.join(L, dir) for dir
+                          in os.listdir(os.path.join(doc_path, L))
+                          if dir not in omit]
+        # now check to see if any documents are missing.  this just
+        # checks to see if the appropriate output directory exists,
+        # not that it contains a complete build of the docs.
+        missing = [os.path.join(ROOT, base_path, 'html', doc)
+                   for doc in documents if not
+                   os.path.exists(os.path.join(ROOT, base_path, 'html', doc))]
+        num_missing = len(missing)
+        if num_missing > 0:
+            print """Warning, the following Sage documentation hasn't been built,
+so documentation search results may be incomplete:
+"""
+            for s in missing:
+                print s
+            if num_missing > 1:
+                print """
+You can build these with 'sage -docbuild DOCUMENT html',
+where DOCUMENT is one of""",
+                for s in missing:
+                    if s.find('en') != -1:
+                        print "'%s'," % os.path.split(s)[-1],
+                    else:
+                        print "'%s'," % os.path.join(
+                            os.path.split(os.path.split(s)[0])[-1],
+                            os.path.split(s)[-1]),
+                print """
+or you can use 'sage -docbuild all html' to build all of the missing documentation."""
+            else:
+                s = missing[0]
+                if s.find('en') != -1:
+                    s = os.path.split(s)[-1]
+                else:
+                    s = os.path.join(
+                        os.path.split(os.path.split(s)[0])[-1],
+                        os.path.split(s)[-1])
+                print """
+You can build this with 'sage -docbuild %s html'.""" % s
+
+    base_path = os.path.join(ROOT, base_path)
     strip = len(base_path)
     results = ''
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):

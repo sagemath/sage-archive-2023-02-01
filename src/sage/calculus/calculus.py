@@ -790,6 +790,11 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         -6.26376265908397e-17
         sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()
         0
+
+    This was broken before Maxima 5.20::
+
+        sage: exp(-x*i).integral(x,0,1)
+        I*e^(-I) - I
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:
         if len(v)==1: # bare variable in a tuple

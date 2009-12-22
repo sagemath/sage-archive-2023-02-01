@@ -30,16 +30,12 @@ COPYING.
 
 == Special Update/Build Instructions ==
 
-The following files are patched:
-
- * topoly.lisp: several instances of "parg" are replaced by "carg" to
-   work around a bug in Maxima's to_poly_solver
-
- * solve_rat_ineq.mac: Fixed bug 2636628 and 2882408 reported on SF to
-   Maxima. Old solve_rat_ineq.mac is updated to CVS version 1.8 from Mon Nov 2
-   19:28:17 2009
-
 == Changelog ==
+
+=== maxima-5.20.1 (Karl-Dieter Crisman, 21st December 2009) ===
+ * Upgrade to the latest upstream release
+ * Removed patches - the solver is now in Maxima, and topoly.lisp is no longer used
+ * Changed instructions below to not automatically assume spkg-dist, because this calls automake and sometimes this causes build failures due to version numbers (see Trac #7287)
 
 === maxima-5.19.1.p2 (Mike Hansen, Nils Bruin,  December 2nd, 2009) ===
  * Added building Maxima as an ecl library to spkg-install
@@ -90,29 +86,23 @@ How to make a new version of the Maxima spkg.
 
   2. Extract the tarball to replace the src/ subdirectory of this package.
 
-  3. Type
-
-       ./spkg-dist
-
-     then create an spkg from this directory, with
+  3. Create an spkg from this directory, with
         sage -pkg maxima-x.y.z
 
   4. Test the resulting maxima-??.spkg.
-
-  5. Evidently, it's necessary to also make a new clisp
-     package (identical to before), but with a bigger number,
-     so no matter what maxima gets built against the correct
-     version of clisp (this can be an issue for directories
-     that have been moved).   This has nothing to do with
-     maxima-??.spkg -- it's about making a new clisp-??.spkg.
 
 =============================================================
 
 Here's what spkg-dist does:
 
-* Removed the foreign language versions of the info files,
+* Removes the foreign language versions of the info files,
   since they add several MEGS (and they weren't in previous
-  versions of Maxima).  This meant making empty directories
-  and changing the Makefile.in's
+  versions of Maxima).  This means making empty directories
+  and changing the Makefile.in's.
 
+* In the past, before doing step 3 above, one would also type
 
+       ./spkg-dist
+
+  However, this caused problems with calling automake because
+  of the changed .in files.

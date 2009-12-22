@@ -1358,6 +1358,15 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         0
         sage: limit(floor(x),x=0)
         und
+
+    Maxima gives the right answer here, too, showing
+    that Trac 4142 is fixed::
+
+        sage: f = sqrt(1-x^2)
+        sage: g = diff(f, x); g
+        -x/sqrt(-x^2 + 1)
+        sage: limit(g, x=1, dir='below')
+        -Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)

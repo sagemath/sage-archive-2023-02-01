@@ -213,30 +213,83 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         NumberFieldIsomorphism.__init__(self, Hom(K, V))
 
     def _call_(self, alpha):
+        """
+        TESTS::
+
+            sage: K.<a> = NumberField(x^5+2)
+            sage: R.<y> = K[]
+            sage: D.<x0> = K.extension(y + a + 1)
+            sage: D(a)
+            a
+            sage: V, from_V, to_V = D.relative_vector_space()
+            sage: to_V(a)
+            (a)
+            sage: to_V(a^3)
+            (a^3)
+            sage: to_V(x0)
+            (-a - 1)
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: L.<b> = K.extension(x-5)
+            sage: L(a)
+            a
+            sage: a*b
+            5*a
+            sage: b
+            5
+            sage: V, from_V, to_V = L.relative_vector_space()
+            sage: to_V(a)
+            (a)
+        """
         # An element of a relative number field is represented
         # internally by an absolute polynomial over QQ.
         alpha = self.__K(alpha)
-        f = alpha.polynomial('x')
-        # f is the absolute polynomial that defines this number field element
+
+        # Pari doesn't return a valid relative polynomial from an
+        # absolute one in the case of relative degree one, so we work
+        # around it. (Bug submitted to Pari, fixed in svn unstable as
+        # of 1/22/08 according to Karim Belabas. Trac #1891 is a
+        # reminder to remove this workaround once we update Pari in
+        # Sage.)
         if self.__K.relative_degree() == 1:
-            # Pari doesn't return a valid relative polynomial from an
-            # absolute one in the case of relative degree one. (Bug
-            # submitted to Pari, fixed in svn unstable as of 1/22/08
-            # according to Karim Belabas. Trac #1891 is a reminder to
-            # remove this workaround once we update Pari in Sage.)
-            # However, in this case, the polynomial we want for g is
-            # just the polynomial we have for f, but as a polynomial
-            # in the generator of the base field of this relative
-            # extension. That generator is just -self.__rnf[0][0], so
-            # we can plug it in and it works.
-            g = f(-1*self.__rnf[0][0])
-        else:
-            g = self.__rnf.rnfeltabstorel(pari(f))
+            # Let K/F be our relative extension, let z be the absolute
+            # polynomial for K (which *need not* be the absolute
+            # polynomial for F!), and let pol be the relative
+            # polynomial for K/F. Then self.__rnf[10] returns a triple
+            # z, a, k, where z is as above, a is a polynomial
+            # representing the absolute generator gamma of F as a
+            # polynomial in a root of z, and k is an integer
+            # satisfying
+            #     theta = beta + k*gamma
+            # where theta is a root of z, and beta is a root of pol.
+            #
+            # Now f is a polynomial representing our element alpha as
+            # a polynomial in theta. However, we need a polynomial g
+            # representing alpha in terms of gamma, so we simply use
+            # the relation above to write theta as a polynomial in
+            # gamma, and then we can simply evaluate f at that
+            # polynomial, and this is our g. The code below does
+            # exactly this -- all the business with subst and
+            # self.__x, self.__y is there to deal with Pari's
+            # frustrating representation of relative number fields and
+            # "variable priority."
+            #
+            f = alpha._pari_().lift()
+            z, a, k = self.__rnf[10]
+            beta = -self.__rnf[0][0] / self.__rnf[0][1]
+            theta = beta + k*self.__y
+            f_in_base = f.subst(self.__x, theta).lift().subst(self.__y, self.__x)
+            return self.__V([self.__K.base_field()(f_in_base)])
+
+        # f is the absolute polynomial that defines this number field
+        # element
+        f = alpha.polynomial('x')
+        g = self.__rnf.rnfeltabstorel(pari(f))
         # Now g is a relative polynomial that defines this element.
         # This g is a polynomial in a pari variable x with
-        # coefficients polynomials in a variable y.
-        # These coefficients define the coordinates of the
-        # vector we are constructing.
+        # coefficients polynomials in a variable y.  These
+        # coefficients define the coordinates of the vector we are
+        # constructing.
 
         # The list v below has the coefficients that are the
         # components of the vector we are constructing, but each is

@@ -1081,6 +1081,13 @@ class NumberField_generic(number_field_base.NumberField):
              Isomorphism given by variable name change map:
               From: Number Field in z with defining polynomial x^2 + 3
               To:   Number Field in a with defining polynomial x^2 + 3)
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: R.<y> = K[]
+            sage: D.<x0> = K.extension(y)
+            sage: D_abs.<y0> = D.absolute_field()
+            sage: D_abs.structure()[0](y0)
+            -a
         """
         try:
             if self.__to_self is not None:

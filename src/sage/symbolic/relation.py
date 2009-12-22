@@ -539,16 +539,17 @@ def solve(f, *args, **kwds):
         x: -2, y: 4
 
     If there is a parameter in the answer, that will show up as
-    a new variable.  In the following example, `r1` is a free variable::
+    a new variable.  In the following example, ``r1`` is a real free
+    variable (because of the ``r``)::
 
         sage: solve([x+y == 3, 2*x+2*y == 6],x,y)
         [[x == -r1 + 3, y == r1]]
 
-    However, in certain circumstances, especially with trigonometric
-    functions, the dummy variable may be implicitly an integer::
+    Especially with trigonometric functions, the dummy variable may
+    be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z34, y == -1/4*pi - pi*z34]]
+        [[x == 1/4*pi + pi*z38, y == -1/4*pi - pi*z38]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -590,9 +591,7 @@ def solve(f, *args, **kwds):
     TESTS::
 
         sage: solve([sin(x)==x,y^2==x],x,y)
-        Traceback (most recent call last):
-        ...
-        ValueError: Sage is unable to determine whether the system [sin(x) == x, y^2 == x] can be solved for (x, y)
+        [sin(x) == x, y^2 == x]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression

@@ -749,14 +749,12 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
         sage: var('t,theta')
         (t, theta)
-        sage: integrate(t*cos(-theta*t),t,-oo,oo)
-        0
-        sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        0
-        sage: integrate(t*cos(-theta*t),(t))
-        (t*theta*sin(t*theta) + cos(t*theta))/theta^2
-        sage: integrate(t*cos(-theta*t),(-oo,oo)) # probably shouldn't be allowed to work, but for now we let it
-        0
+        sage: integrate(t*cos(-theta*t),t,0,pi)
+        (pi*theta*sin(pi*theta) + cos(pi*theta))/theta^2 - 1/theta^2
+        sage: integrate(t*cos(-theta*t),(t,0,pi))
+        (pi*theta*sin(pi*theta) + cos(pi*theta))/theta^2 - 1/theta^2
+        sage: integrate(t*cos(-theta*t),(0,pi)) # probably shouldn't be allowed to work, but for now we let it
+        (pi*theta*sin(pi*theta) + cos(pi*theta))/theta^2 - 1/theta^2
         sage: integrate(x^2,(x)) # this worked before
         1/3*x^3
         sage: integrate(x^2,(x,)) # this didn't
@@ -771,6 +769,13 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
         Traceback (most recent call last):
         ...
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
+
+    Note that this used to be the test, but it is
+    actually divergent (though Maxima as yet does
+    not say so)::
+
+        sage: integrate(t*cos(-theta*t),(t,-oo,oo))
+        integrate(t*cos(t*theta), t, -Infinity, +Infinity)
 
     Check if #6189 is fixed (which, by the way, also
     demonstrates it's not always good to expand)::
@@ -1908,6 +1913,11 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s[5:]
         s = s[s.find("(")+1:s.rfind(")")]
         s = "[" + s + "]" # turn it into a string that looks like a list
+
+    #replace %solve from to_poly_solve with the expressions
+    if s[0:5]=='solve':
+        s = s[5:]
+        s = s[s.find("(")+1:s.find("]")+1]
 
     #replace all instances of Maxima's scientific notation
     #with regular notation

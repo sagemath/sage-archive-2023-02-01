@@ -5838,31 +5838,54 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(abs(1-abs(1-x)) == 10, x)
             []
             sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
-            [x == -10, x == 12]
-
-            sage: solve(sin(x)==cos(x),x, to_poly_solve=True)
-            [x == -3/4*pi + 2*pi*z37, x == 1/4*pi + 2*pi*z39]
+            [x == 12, x == -10]
 
             sage: var('Q')
             Q
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
             [Q == 1/sqrt(Q^2 + 2)]
-            sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True) # not tested - bug in next release of Maxima fixes spurious solutions in answer [Q == -1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(-sqrt(2) + 1), Q == -1/sqrt(sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+            sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)
 			[Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
 
-        In some cases (usually involving trigonometric functions),
-        there may be infinitely many solutions indexed by a dummy
-        variable which is implicitly assumed to be an integer::
+        In some cases there may be infinitely many solutions indexed
+        by a dummy variable.  If it begins with ``z``, it is implicitly
+        assumed to be an integer, a real if with ``r``, and so on::
 
-            sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
+            sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
             [x == 1/4*pi + pi*z45]
 
-        TEST::
+        In some cases it may be worthwhile to directly use to_poly_solve,
+        if one suspects some answers are being missed::
+
+            sage: solve(cos(x)==0,x)
+            [x == 1/2*pi]
+            sage: solve(cos(x)==0,x,to_poly_solve=True)
+            [x == 1/2*pi]
+            sage: from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
+            sage: sol = maxima(cos(x)==0).to_poly_solve(x)
+            sage: symbolic_expression_from_maxima_element(sol)
+            [[x == -1/2*pi + 2*pi*z57], [x == 1/2*pi + 2*pi*z59]]
+
+        If a returned unsolved expression has a denominator, but the
+        original one did not, this may also be true::
+
+            sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
+            [sin(x) == 1/2/cos(x)]
+            sage: from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
+            sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
+            sage: symbolic_expression_from_maxima_element(sol)
+            [[x == 1/4*pi + pi*z73]]
+
+        TESTS::
 
             sage: (x^2>0).solve(x)
             Traceback (most recent call last):
             ...
             NotImplementedError: solving only implemented for equalities
+            sage: solve(acot(x),x)
+            []
+            sage: solve(acot(x),x,to_poly_solve=True)
+            []
 
         Trac #7491 fixed::
 
@@ -5901,7 +5924,13 @@ cdef class Expression(CommutativeRingElement):
         P = m.parent()
         if explicit_solutions:
             P.eval('solveexplicit: true') # switches Maxima to looking for only explicit solutions
-        s = m.solve(x).str()
+        try:
+            s = m.solve(x).str()
+        except TypeError, mess: # if Maxima's solve has an error, we catch it
+            if "Error executing code in Maxima" in str(mess):
+                s = str([])
+            else:
+                raise
         if explicit_solutions:
             P.eval('solveexplicit: false') # switches Maxima back to default
 
@@ -5945,14 +5974,14 @@ cdef class Expression(CommutativeRingElement):
                     X = []
 
             for eq in X:
-                if repr(x) in map(repr, eq.rhs().variables()): # If the RHS of one solution also has the variable, try another way to get solutions
+                if repr(x) in map(repr, eq.rhs().variables()) or repr(x) in repr(eq.lhs()): # If the RHS of one solution also has the variable, or if the LHS is not the variable, try another way to get solutions
                     from sage.calculus.calculus import symbolic_expression_from_maxima_element
                     try:
                         Y = symbolic_expression_from_maxima_element((eq._maxima_()).to_poly_solve(x)) # try to solve it using to_poly_solve
                         X.remove(eq)
                         X.extend([y[0] for y in Y]) # replace with the new solutions
                     except TypeError, mess:
-                        if "Error executing code in Maxima" in str(mess):
+                        if "Error executing code in Maxima" in str(mess) or "unable to make sense of Maxima expression" in str(mess):
                             if explicit_solutions:
                                 X.remove(eq) # this removes an implicit solution
                             else:
@@ -6047,9 +6076,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a.solve(t)
             []
-            sage: a.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z55 + 1/900*log(-15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494), t == 1/450*I*pi*z57 + 1/900*log(15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494)]
-            sage: n(1/900*log(-15/576460752303423494*sqrt(34061467391988470384552345480462345) + 3602879701896396851/576460752303423494))
+            sage: b = a.simplify_radical(); b
+            (-576000.0*e^(900*t) + 46080.0*e^(1800*t) + 737280.0)*e^(-2400*t)
+            sage: b.solve(t)
+            []
+            sage: b.solve(t, to_poly_solve=True)
+            [t == 1/450*I*pi*z86 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z84 + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 
         We illustrate that root finding is only implemented in one

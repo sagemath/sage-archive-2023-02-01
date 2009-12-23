@@ -41,7 +41,14 @@ import os
 # autotools.  However, for this build we know that we are in a
 # SAGE local filesystem.  Once we have SAGE_LOCAL imported, we
 # know where everything is.
-env = Environment(ENV = os.environ)
+
+if os.environ['CC'].endswith('gcc'):
+   # This tools= is critically necessary on Solaris.
+   # See this email: http://markmail.org/message/4atmrof2gc2dgavj?q=scons+cxx
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+else:
+   # untested -- this will likely require special new code on Solaris.
+   env = Environment(ENV = os.environ)
 
 # By default, SCons hashes the source file contents to determine
 # if rebuilds are necessary. If you like the old way better,

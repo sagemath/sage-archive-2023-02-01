@@ -3665,6 +3665,952 @@ class GenericGraph(SageObject):
         else:
             raise ValueError("Only two algorithms are available : Cliquer and MILP.")
 
+    def feedback_edge_set(self,value_only=False):
+        r"""
+        Computes the minimum feedback edge set of a digraph
+        ( also called feedback arc set ).
+
+        The minimum feedback edge set of a digraph is a set of edges
+        that intersect all the circuits of the digraph.
+        Equivalently, a minimum feedback arc set of a DiGraph is a set
+        `S` of arcs such that the digraph `G-S` is acyclic.
+
+        For more informations, see
+        ( http://en.wikipedia.org/wiki/Feedback_arc_set )
+
+        INPUT :
+
+        - ``value_only`` (boolean) --
+            - When set to ``True``, only the minimum
+              cardinal of a minimum edge set is
+              returned.
+
+            - When set to ``False``, the ``Set`` of edges
+              of a minimal edge set is returned.
+
+        This problem is solved using Linear Programming, which certainly
+        is not the best way and will have to be updated. The program solved
+        is the following :
+
+        .. MATH:
+            \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
+            \mbox{Such that : }&\\
+            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
+            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
+            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
+            &\forall (u,v)\in G, d_u-d_v+nb_{(u,v)}\geq 0\\
+
+        An explanation :
+
+        An acyclic digraph can be seen as a poset, and every poset has
+        a linear extension. This means that in any acyclic digraph
+        the vertices can be ordered with a total order `<` in such a way
+        that if `(u,v)\in G`, then `u<v`.
+
+        Thus, this linear program is built in order to assign to each vertex
+        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        an edge `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is
+        removed (`\Rightarrow x_{(u,v)}=1`).
+
+        The number of edges removed is then minimized, which is
+        the objective.
+
+        EXAMPLE :
+
+        If the digraph is created from a graph, and hence is symmetric
+        ( if `uv` is an edge, then `vu` is an edge too ), then
+        obviously the cardinality of its feedback arc set is the number
+        of edges in the first graph ::
+
+            sage: cycle=graphs.CycleGraph(5)
+            sage: dcycle=DiGraph(cycle)
+            sage: cycle.size()
+            5
+            sage: dcycle.feedback_edge_set(value_only=True)    # optional - requires GLPK or CBC
+            5.0
+
+        And in this situation, for any edge `uv` of the first graph, `uv` of `vu`
+        is in the returned feedback arc set::
+
+           sage: g = graphs.RandomGNP(5,.3)
+           sage: dg = DiGraph(g)
+           sage: feedback = dg.feedback_edge_set()             # optional - requires GLPK or CBC
+           sage: (u,v,l) = g.edge_iterator().next()
+           sage: (u,v) in feedback or (v,u) in feedback        # optional - requires GLPK or CBC
+           True
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p=MixedIntegerLinearProgram(maximization=False)
+
+        b=p.new_variable()
+        x=p.new_variable(dim=2)
+        d=p.new_variable()
+        n=self.order()
+        N=range(n)
+
+        # First and second constraints
+        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
+        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+
+        # Definition of d_v
+        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+
+        # The removed vertices cover all the back arcs ( third condition )
+        [p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=0) for (u,v) in self.edges(labels=None)]
+
+        p.set_binary(b)
+        p.set_binary(x)
+
+        p.set_objective(sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            p.solve()
+
+            b_sol=p.get_values(b)
+
+            from sage.sets.set import Set
+            return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
+
+    def feedback_vertex_set(self,value_only=False):
+        r"""
+        Computes the minimum feedback vertex set of a digraph.
+
+        The minimum feedback vertex set of a digraph is a set of vertices
+        that intersect all the circuits of the digraph.
+        Equivalently, a minimum feedback vertex set of a DiGraph is a set
+        `S` of vertices such that the digraph `G-S` is acyclic.
+
+        For more informations, see
+        ( http://en.wikipedia.org/wiki/Feedback_vertex_set )
+
+        INPUT :
+
+        - ``value_only`` (boolean) --
+            - When set to ``True``, only the minimum
+              cardinal of a minimum vertex set is
+              returned.
+
+            - When set to ``False``, the ``Set`` of vertices
+              of a minimal feedback vertex set is returned.
+
+        This problem is solved using Linear Programming, which certainly
+        is not the best way and will have to be replaced by a better algorithm.
+        The program solved is the following :
+
+        .. MATH:
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\\
+            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
+            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
+            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
+            &\forall (u,v)\in G, d_u-d_v+nb_u+nb_v\geq 0\\
+
+        A brief explanation :
+
+        An acyclic digraph can be seen as a poset, and every poset has
+        a linear extension. This means that in any acyclic digraph
+        the vertices can be ordered with a total order `<` in such a way
+        that if `(u,v)\in G`, then `u<v`.
+        Thus, this linear program is built in order to assign to each vertex
+        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        an edge `(u,v)\in G` such that `d_v<d_u`, then either `u` is removed
+        (`\Rightarrow b_u=1`) or `v` is removed (`\Rightarrow b_v=1`).
+        The number of vertices removed is then minimized, which is
+        the objective.
+
+        EXAMPLE:
+
+        In a digraph built from a graph, any edge is replaced by arcs going
+        in the two opposite directions, thus creating a cycle of length two.
+        Hence, to remove all the cycles from the graph, each edge must see
+        one of its neighbors removed : a feedback vertex set is in this
+        situation a vertex cover ::
+
+            sage: cycle=graphs.CycleGraph(5)
+            sage: dcycle=DiGraph(cycle)
+            sage: cycle.vertex_cover(value_only=True)         # optional - requires GLPK or CBC
+            3
+            sage: feedback = dcycle.feedback_vertex_set()     # optional - requires GLPK or CBC
+            sage: feedback.cardinality()                      # optional - requires GLPK or CBC
+            3
+            sage: (u,v,l) = cycle.edge_iterator().next()
+            sage: u in feedback or v in feedback              # optional - requires GLPK or CBC
+
+        For a circuit, the minimum feedback arc set is clearly `1` ::
+
+            sage: circuit = digraphs.Circuit(5)
+            sage: circuit.feedback_vertex_set(value_only=True) == 1    # optional - requires GLPK or CBC
+            True
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p=MixedIntegerLinearProgram(maximization=False)
+
+        b=p.new_variable()
+        x=p.new_variable(dim=2)
+        d=p.new_variable()
+        n=self.order()
+        N=range(n)
+
+        # First and second constraints
+        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
+        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+
+        # Definition of d_v
+        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+
+        # The removed vertices cover all the back arcs ( third condition )
+        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=0) for (u,v) in self.edges(labels=None)]
+
+        p.set_binary(b)
+        p.set_binary(x)
+
+        p.set_objective(sum([b[v] for v in self]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            p.solve()
+            b_sol=p.get_values(b)
+
+            from sage.sets.set import Set
+            return Set([v for v in self if b_sol[v]==1])
+
+
+    def max_cut(self,value_only=True,use_edge_labels=True, vertices=False):
+        r"""
+        Returns a maximum edge cut of the graph
+        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+
+        INPUT:
+
+
+        - ``value_only`` (boolean) --
+            - When set to ``True`` ( default ), only the value is returned.
+            - When set to ``False``, both the value and a maximum edge cut
+              are returned.
+
+        - ``use_edge_labels`` (boolean) --
+
+            - When set to ``True``, computes a maximum weighted cut
+              where each edge has a weight defined by its label. ( if
+              an edge has no label, `1` is assumed )
+
+            - when set to ``False``, each edge has weight `1`.
+
+        - ``vertices`` (boolean)
+
+            - When set to ``True``, also returns the two sets of
+              vertices that are disconnected by the cut. This implies
+              ``value_only=False``.
+
+            The default value of this parameter is ``False``.
+
+        EXAMPLE:
+
+        Quite obviously, the max cut of a bipartite graph
+        is the number of edges, and the two sets of vertices
+        are the the two sides ::
+
+            sage: g = graphs.CompleteBipartiteGraph(5,6)
+            sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)                  # optional - requires Glpk or COIN-OR/CBC
+            sage: value == 5*6                                                                # optional - requires Glpk or COIN-OR/CBC
+            True
+            sage: bsetA, bsetB  = g.bipartite_sets()
+            sage: (bsetA == setA and bsetB == setB ) or ((bsetA == setB and bsetB == setA ))  # optional - requires Glpk or COIN-OR/CBC
+            True
+
+        The max cut of a Petersen graph::
+
+           sage: g=graphs.PetersenGraph()
+           sage: g.max_cut()                                                                  # optional - requires Glpk or COIN-OR/CBC
+           12.0
+
+        """
+        g=self
+
+        if vertices:
+            value_only=False
+
+        if use_edge_labels:
+            weight=lambda x: 1 if x==None else x
+        else:
+            weight=lambda x: 1
+
+        if g.is_directed():
+            reorder_edge = lambda x,y : (x,y)
+        else:
+            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=True)
+
+        in_set = p.new_variable(dim=2)
+        in_cut = p.new_variable(dim=1)
+
+
+        # A vertex has to be in some set
+        for v in g:
+            p.add_constraint(in_set[0][v]+in_set[1][v],max=1,min=1)
+
+        # There is no empty set
+        p.add_constraint(sum([in_set[1][v] for v in g]),min=1)
+        p.add_constraint(sum([in_set[0][v] for v in g]),min=1)
+
+        if g.is_directed():
+            # There is no edge from set 0 to set 1 which
+            # is not in the cut
+            # Besides, an edge can only be in the cut if its vertices
+            # belong to different sets
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u] + in_set[1][v] - in_cut[(u,v)], max = 1)
+                p.add_constraint(in_set[0][u] + in_set[0][v] + in_cut[(u,v)], max = 2)
+                p.add_constraint(in_set[1][u] + in_set[1][v] + in_cut[(u,v)], max = 2)
+        else:
+
+            # Two adjacent vertices are in different sets if and only if
+            # the edge between them is in the cut
+
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u]+in_set[1][v]-in_cut[reorder_edge(u,v)],max=1)
+                p.add_constraint(in_set[1][u]+in_set[0][v]-in_cut[reorder_edge(u,v)],max=1)
+                p.add_constraint(in_set[0][u] + in_set[0][v] + in_cut[reorder_edge(u,v)], max = 2)
+                p.add_constraint(in_set[1][u] + in_set[1][v] + in_cut[reorder_edge(u,v)], max = 2)
+
+
+        p.set_binary(in_set)
+        p.set_binary(in_cut)
+
+        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            val = [p.solve()]
+
+            in_cut = p.get_values(in_cut)
+            in_set = p.get_values(in_set)
+
+            edges = []
+            for (u,v,l) in g.edge_iterator():
+                if in_cut[reorder_edge(u,v)] == 1:
+                    edges.append((u,v,l))
+
+            val.append(edges)
+
+            if vertices:
+                a = []
+                b = []
+                for v in g:
+                    if in_set[0][v] == 1:
+                        a.append(v)
+                    else:
+                        b.append(v)
+                val.append([a,b])
+
+            return val
+
+    def flow(self,x,y,value_only=True,integer=False, use_edge_labels=True,vertex_bound=False):
+        r"""
+        Returns a maximum flow in the graph from ``x`` to ``y``
+        ( cf. http://en.wikipedia.org/wiki/Max_flow_problem )
+        represented by an optimal valuation of the edges.
+
+        As an optimization problem, is can be expressed this way :
+
+        .. MATH::
+            \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
+            \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+
+        INPUT:
+
+        - ``x`` -- Source vertex
+
+        - ``y`` -- Sink vertex
+
+        - ``value_only`` (boolean)
+            - When set to ``True``, only the value of a maximal
+              flow is returned.
+            - When set to ``False``, is returned a pair whose first element
+              is the value of the maximum flow, and whose second value is
+              a flow graph ( a copy of the current graph, such that each edge
+              has the flow using it as a label, the edges without flow being
+              omitted ).
+
+        - ``integer`` (boolean)
+            - When set to ``True``, computes an optimal solution under the
+              constraint that the flow going through an edge has to be an
+              integer
+
+        - ``use_edge_labels`` (boolean)
+
+            - When set to ``True``, computes a maximun flow
+              where each edge has a capacity defined by its label. ( if
+              an edge has no label, `1` is assumed )
+
+            - When set to ``False``, each edge has capacity `1`
+
+        - ``vertex_bound`` (boolean)
+
+            - When set to ``True``, sets the maximum flow leaving
+              a vertex different from `x` to `1` ( useful for vertex
+              connectivity parameters )
+
+              This parameter is set to ``False`` by default.
+
+        EXAMPLES:
+
+        Two basic applications of the flow method for the ``PappusGraph`` and the
+        ``ButterflyGraph`` with parameter `2` ::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.flow(1,2) # optional - requires Glpk or COIN-OR/CBC
+           3.0
+
+        ::
+
+           sage: b=digraphs.ButterflyGraph(2)
+           sage: b.flow(('00',1),('00',2)) # optional - requires Glpk or COIN-OR/CBC
+           1.0
+
+        The flow method can be used to compute a matching in a bipartite graph
+        by linking a source `s` to all the vertices of the first set and linking
+        a sink `t` to all the vertices of the second set, then computing
+        a maximum `s-t` flow ::
+
+            sage: g = graphs.CompleteBipartiteGraph(4,4)
+            sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(4+i,'t') for i in range(4)])
+            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - requries GLPK or CBC
+            sage: flow_graph.delete_vertices(['s','t'])                                  # optional - requries GLPK or CBC
+            sage: flow_graph.edges(labels=None)                                          # optional - requries GLPK or CBC
+            [(0, 5), (1, 4), (2, 7), (3, 6)]
+
+
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+        p=MixedIntegerLinearProgram(maximization=True)
+        flow=p.new_variable(dim=2)
+
+        if use_edge_labels:
+            capacity=lambda x: x if x!=None else 1
+        else:
+            capacity=lambda x: 1
+
+        # maximizes z, which is the flow leaving from x
+
+        if g.is_directed():
+            # This function return the balance of flow at X
+            flow_sum=lambda X: sum([flow[X][v] for (u,v) in g.outgoing_edges([X],labels=None)])-sum([flow[u][X] for (u,v) in g.incoming_edges([X],labels=None)])
+
+            # Maximizes the flow leaving x
+            p.set_objective(flow_sum(x))
+
+            # Elsewhere, the flow is equal to 0-
+            [p.add_constraint(flow_sum(v),min=0,max=0) for v in g if v!=x and v!=y]
+
+            # Capacity constraints
+            [p.add_constraint(flow[u][v],max=capacity(w)) for (u,v,w) in g.edges()]
+
+            if vertex_bound:
+                [p.add_constraint(sum([flow[uu][vv] for (uu,vv) in g.outgoing_edges([v],labels=None)]),max=1) for v in g.vertices() if v!=x and v!=y]
+
+        else:
+            # This function return the balance of flow at X
+            flow_sum=lambda X:sum([flow[X][v]-flow[v][X] for v in g[X]])
+
+            # Maximizes the flow leaving x
+            p.set_objective(flow_sum(x))
+
+            # Elsewhere, the flow is equal to 0
+            [p.add_constraint(flow_sum(v),min=0,max=0) for v in g if v!=x and v!=y]
+
+            # Capacity constraints
+            [p.add_constraint(flow[u][v]+flow[v][u],max=capacity(w)) for (u,v,w) in g.edges()]
+
+            if vertex_bound:
+                [p.add_constraint([flow[X][v] for X in g[v]],max=1) for v in g if v!=x and v!=y]
+
+
+        if integer:
+            p.set_integer(flow)
+
+
+        if value_only:
+            return p.solve(objective_only=True)
+
+        obj=p.solve()
+        flow=p.get_values(flow)
+
+        flow_graph = g.copy()
+
+        if g.is_directed():
+            for (u,v) in g.edges(labels=None):
+                # We do not want to see both edges (u,v) and (v,u)
+                # with a positive flow
+                if g.has_edge(v,u):
+                    m=min(flow[u][v],flow[v][u])
+                    flow[u][v]-=m
+                    flow[v][u]-=m
+
+            for (u,v) in g.edge_iterator(labels=None):
+                if flow[u][v]>0:
+                    flow_graph.set_edge_label(u,v,flow[u][v])
+                else:
+                    flow_graph.delete_edge(u,v)
+
+        else:
+            for (u,v) in g.edges(labels=None):
+                m=min(flow[u][v],flow[v][u])
+                flow[u][v]-=m
+                flow[v][u]-=m
+
+            # We do not want to see both edges (u,v) and (v,u)
+            # with a positive flow
+            for (u,v) in g.edges(labels=None):
+                if flow[u][v]>0:
+                    flow_graph.set_edge_label(u,v,flow[u][v])
+                elif flow[v][u]>0:
+                    flow_graph.set_edge_label(v,u,flow[v][u])
+                else:
+                    flow_graph.delete_edge(v,u)
+
+        return [obj,flow_graph]
+
+    def matching(self,value_only=False, use_edge_labels=True):
+        r"""
+        Returns a maximum weighted matching of the graph
+        ( cf. http://en.wikipedia.org/wiki/Matching )
+        represented by the list of its edges.
+
+        Given a graph `G` such that each edge `e` has a weight `w_e`,
+        a maximum matching is a subset `S` of the edges of `G` of
+        maximum weight such that no two edges of `S` are incident
+        with each other.
+
+        As an optimization problem, it can be expressed as :
+
+        .. math::
+            \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
+            \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``value_only`` (boolean)
+
+            - When set to ``True``, only the cardinal
+              ( or the weight ) of the the matching
+              is returned
+
+        - ``use_edge_labels`` (boolean)
+
+            - When set to ``True``, computes a weighted matching
+              where each edge is weighted by its label. ( if
+              an edge has no label, `1` is assumed )
+              when set to ``False``, each edge has weight `1`
+
+        EXAMPLE::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.matching(value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           9.0
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+
+        # returns the weight of an edge considering it may not be
+        # weighted ...
+        weight=lambda x: 1 if x==None else x
+
+        p=MixedIntegerLinearProgram(maximization=True)
+
+        b=p.new_variable(dim=2)
+        [p.set_objective(sum([weight(w)*b[min(u,v)][max(u,v)] for (u,v,w) in g.edges()]))]
+
+
+        # for any vertex v, there is at most one edge incident to v in the maximum matching
+        [p.add_constraint(sum([b[min(u,v)][max(u,v)] for u in g.neighbors(v)]),max=1) for v in g.vertices()]
+
+        p.set_binary(b)
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            p.solve()
+            b=p.get_values(b)
+            return [(u,v,w) for (u,v,w) in g.edges() if b[min(u,v)][max(u,v)] == 1]
+
+    def dominating_set(self, independent=False, value_only=False,log=0):
+        r"""
+        Returns a minimum dominating set of the graph
+        ( cf. http://en.wikipedia.org/wiki/Dominating_set )
+        represented by the list of its vertices.
+
+        A minimum dominating set `S` of a graph `G` is
+        a set of its vertices of minimal cardinality such
+        that any vertex of `G` is in `S` or has one of its neighbors
+        in `S`.
+
+        As an optimization problem, it can be expressed as :
+
+        .. MATH::
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\forall v \in G, b_v+\sum_{(u,v)\in G.edges()} b_u\geq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``value_only`` (boolean)
+
+           - If ``True``, only the cardinality of a minimum
+              dominating set is returned.
+           - If ``False`` ( default ), a minimum dominating set
+             is returned as the list of its vertices.
+
+        - ``independent`` (boolean)
+            - If ``True``, computes a minimum independent
+              dominating set.
+
+        - ``log`` (integer)
+          As minimum dominating set is a `NP`-complete problem, its
+          solving may take some time depending on the graph. Use
+          ``log`` to define the level of verbosity you want from the linear program solver.
+
+          By default ``log=0``, meaning that there will be no message printed by the solver.
+
+        EXAMPLE:
+
+        A basic illustration on a ``PappusGraph`` ::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.dominating_set(value_only=True)    # optional - requires Glpk or COIN-OR/CBC
+           5.0
+
+        If we build a graph from two disjoint stars, then link their centers
+        we will find a difference between the cardinality of an independent set
+        and a stable independent set ::
+
+           sage: g = 2 * graphs.StarGraph(5)
+           sage: g.add_edge(0,6)
+           sage: len(g.dominating_set())                       # optional - requires Glpk or COIN-OR/CBC
+           2
+           sage: len(g.dominating_set(independent=True))       # optional - requires Glpk or COIN-OR/CBC
+           6
+
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+        p=MixedIntegerLinearProgram(maximization=False)
+        b=p.new_variable()
+
+        # For any vertex v, one of its neighbors or v itself is in
+        # the minimum dominating set
+        [p.add_constraint(b[v]+sum([b[u] for u in g.neighbors(v)]),min=1) for v in g.vertices()]
+
+
+        if independent:
+            # no two adjacent vertices are in the set
+            [p.add_constraint(b[u]+b[v],max=1) for (u,v) in g.edges(labels=None)]
+
+        # Minimizes the number of vertices used
+        p.set_objective(sum([b[v] for v in g.vertices()]))
+
+        p.set_integer(b)
+
+        if value_only:
+            return p.solve(objective_only=True,log=log)
+        else:
+            obj=p.solve(log=log)
+            b=p.get_values(b)
+            return [v for v in g.vertices() if b[v]==1]
+
+    def edge_connectivity(self,value_only=True,use_edge_labels=True, vertices=False):
+        r"""
+        Returns the edge connectivity of the graph
+        ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
+
+        INPUT:
+
+
+        - ``value_only`` (boolean) --
+            - When set to ``True`` ( default ), only the value is returned.
+            - When set to ``False`` , both the value and a minimum edge cut
+              are returned.
+
+        - ``use_edge_labels`` (boolean)
+
+            - When set to ``True``, computes a weighted minimum cut
+              where each edge has a weight defined by its label. ( if
+              an edge has no label, `1` is assumed )
+
+            - when set to ``False``, each edge has weight `1`.
+
+        - ``vertices`` (boolean)
+
+            - When set to ``True``, also returns the two sets of
+              vertices that are disconnected by the cut. Implies
+              ``value_only=False``.
+
+            The default value of this parameter is ``False``.
+
+        EXAMPLE:
+
+        A basic application on the PappusGraph()
+
+           sage: g = graphs.PappusGraph()
+           sage: g.edge_connectivity() # optional - requires Glpk or COIN-OR/CBC
+           3.0
+
+        The edge connectivity of a complete graph ( and of a random graph )
+        is its minimum degree, and one of the two parts of the bipartition
+        is reduced to only one vertex. The cutedges isomorphic to a
+        Star graph ::
+
+           sage: g = graphs.CompleteGraph(5)
+           sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: print value                                                          # optional - requires Glpk or COIN-OR/CBC
+           4.0
+           sage: len(setA) == 1 or len(setB) == 1                                     # optional - requires Glpk or COIN-OR/CBC
+           True
+           sage: cut = Graph()
+           sage: cut.add_edges(edges)                                                 # optional - requires Glpk or COIN-OR/CBC
+           sage: cut.is_isomorphic(graphs.StarGraph(4))                               # optional - requires Glpk or COIN-OR/CBC
+           True
+
+        Even if obviously in any graph we know that the edge connectivity
+        is less than the minimum degree of the graph::
+
+           sage: g = graphs.RandomGNP(10,.3)
+           sage: min(g.degree()) >= g.edge_connectivity()                             # optional - requires Glpk or COIN-OR/CBC
+           True
+
+        If we build a tree then assign to its edges a random value, the
+        minimum cut will be the edge with minimum value::
+
+           sage: g = graphs.RandomGNP(15,.5)
+           sage: tree = Graph()
+           sage: tree.add_edges(g.min_spanning_tree())
+           sage: for u,v in tree.edge_iterator(labels=None):
+           ...        tree.set_edge_label(u,v,random())
+           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                 # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False)        # optional - requires Glpk or COIN-OR/CBC
+           sage: l == minimum                                                         # optional - requires Glpk or COIN-OR/CBC
+           True
+        """
+        g=self
+
+        if vertices:
+            value_only=False
+
+        if use_edge_labels:
+            weight=lambda x: 1 if x==None else x
+        else:
+            weight=lambda x: 1
+
+        if g.is_directed():
+            reorder_edge = lambda x,y : (x,y)
+        else:
+            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=False)
+
+        in_set = p.new_variable(dim=2)
+        in_cut = p.new_variable(dim=1)
+
+
+        # A vertex has to be in some set
+        for v in g:
+            p.add_constraint(in_set[0][v]+in_set[1][v],max=1,min=1)
+
+        # There is no empty set
+        p.add_constraint(sum([in_set[1][v] for v in g]),min=1)
+        p.add_constraint(sum([in_set[0][v] for v in g]),min=1)
+
+        if g.is_directed():
+            # There is no edge from set 0 to set 1 which
+            # is not in the cut
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u] + in_set[1][v] - in_cut[(u,v)], max = 1)
+        else:
+
+            # Two adjacent vertices are in different sets if and only if
+            # the edge between them is in the cut
+
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u]+in_set[1][v]-in_cut[reorder_edge(u,v)],max=1)
+                p.add_constraint(in_set[1][u]+in_set[0][v]-in_cut[reorder_edge(u,v)],max=1)
+
+
+        p.set_binary(in_set)
+        p.set_binary(in_cut)
+
+        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            val = [p.solve()]
+
+            in_cut = p.get_values(in_cut)
+            in_set = p.get_values(in_set)
+
+            edges = []
+            for (u,v,l) in g.edge_iterator():
+                if in_cut[reorder_edge(u,v)] == 1:
+                    edges.append((u,v,l))
+
+            val.append(edges)
+
+            if vertices:
+                a = []
+                b = []
+                for v in g:
+                    if in_set[0][v] == 1:
+                        a.append(v)
+                    else:
+                        b.append(v)
+                val.append([a,b])
+
+            return val
+
+    def vertex_connectivity(self,value_only=True, sets=False):
+        r"""
+        Returns the vertex connectivity of the graph
+        ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
+
+
+        INPUT:
+
+
+        - ``value_only`` (boolean) --
+            - When set to ``True`` ( default ), only the value is returned.
+            - When set to ``False`` , both the value and a minimum edge cut
+              are returned.
+
+        - ``sets`` (boolean)
+
+            - When set to ``True``, also returns the two sets of
+              vertices that are disconnected by the cut.
+              Implies ``value_only=False``
+
+            The default value of this parameter is ``False``.
+
+        EXAMPLE:
+
+        A basic application on a ``PappusGraph`` ::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.vertex_connectivity() # optional - requires Glpk or COIN-OR/CBC
+           3.0
+
+        In a grid, the vertex connectivity is equal to the
+        minimum degree, in which case one of the two sets it
+        of cardinality `1` ::
+
+           sage: g = graphs.GridGraph([ 3,3 ])
+           sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: len(setA) == 1 or len(setB) == 1                                # optional - requires Glpk or COIN-OR/CBC
+           True
+
+        A vertex cut in a tree is any internal vertex ::
+
+           sage: g = graphs.RandomGNP(15,.5)
+           sage: tree = Graph()
+           sage: tree.add_edges(g.min_spanning_tree())
+           sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False) # optional - requires Glpk or COIN-OR/CBC
+           sage: tree.degree(cut_vertex) > 1                                      # optional - requires Glpk or COIN-OR/CBC
+           True
+        """
+        g=self
+
+        if g.is_clique():
+            raise ValueError("There can be no vertex cut in a complete graph.")
+
+        if sets:
+            value_only=False
+
+        if g.is_directed():
+            reorder_edge = lambda x,y : (x,y)
+        else:
+            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=False)
+
+        # Sets 0 and 2 are "real" sets while set 1 represents the cut
+        in_set = p.new_variable(dim=2)
+
+
+        # A vertex has to be in some set
+        for v in g:
+            p.add_constraint(in_set[0][v]+in_set[1][v]+in_set[2][v],max=1,min=1)
+
+        # There is no empty set
+        p.add_constraint(sum([in_set[0][v] for v in g]),min=1)
+        p.add_constraint(sum([in_set[2][v] for v in g]),min=1)
+
+        if g.is_directed():
+            # There is no edge from set 0 to set 1 which
+            # is not in the cut
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u] + in_set[2][v], max = 1)
+        else:
+
+            # Two adjacent vertices are in different sets if and only if
+            # the edge between them is in the cut
+
+            for (u,v) in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0][u]+in_set[2][v],max=1)
+                p.add_constraint(in_set[2][u]+in_set[0][v],max=1)
+
+
+        p.set_binary(in_set)
+
+        p.set_objective(sum([in_set[1][v] for v in g]))
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            val = [int(p.solve())]
+
+            in_set = p.get_values(in_set)
+
+
+            cut = []
+            a = []
+            b = []
+
+            for v in g:
+                if in_set[0][v] == 1:
+                    a.append(v)
+                elif in_set[1][v]==1:
+                    cut.append(v)
+                else:
+                    b.append(v)
+
+
+            val.append(cut)
+
+            if sets:
+                val.append([a,b])
+
+            return val
+
+
     ### Vertex handlers
 
     def add_vertex(self, name=None):

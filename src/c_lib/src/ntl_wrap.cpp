@@ -279,7 +279,7 @@ struct ZZX* ZZX_square(struct ZZX* x)
 
 int ZZX_is_monic(struct ZZX* x)
 {
-  IsOne(LeadCoeff(*x));
+  return IsOne(LeadCoeff(*x));
 }
 
 
@@ -1077,6 +1077,7 @@ long ZZ_pX_get_val_coeff(const struct ZZ_pX &f, const struct ZZ &p, long i)
     ZZ *u = new ZZ();
     long ans = ZZ_remove(*u, rep(coeff(f, i)), p);
     delete u;
+    return ans;
 }
 
 void ZZ_pX_left_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c)

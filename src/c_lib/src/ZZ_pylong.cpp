@@ -44,4 +44,5 @@ int ZZ_set_pylong(ZZ &z, PyObject * ll)
     mpz_set_pylong( temp, ll );
     mpz_to_ZZ( &z, &temp );
     mpz_clear( temp );
+    return 0;
 }

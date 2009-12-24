@@ -367,8 +367,8 @@ class MixedIntegerLinearProgram:
             Constraints:
               -3*x0 + 2*x1 <= 2
             Variables:
-              x1 is a real variable (min=0.0, max=+oo)
               x0 is a real variable (min=0.0, max=+oo)
+              x1 is a real variable (min=0.0, max=+oo)
         """
 
         inv_variables = [0]*len(self._variables)
@@ -389,7 +389,7 @@ class MixedIntegerLinearProgram:
         for (c,min,max) in self.constraints():
             value += "\n  " + (str(min)+" <= " if min!=None else "")+str(c)+(" <= "+str(max) if max!=None else "")
         value += "\nVariables:"
-        for v in self._variables.keys():
+        for v in sorted(self._variables.keys()):
             value += "\n  " + str(v) + " is"
             if self.is_integer(v):
                 value += " an integer variable"

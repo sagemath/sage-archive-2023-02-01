@@ -389,7 +389,8 @@ class MixedIntegerLinearProgram:
         for (c,min,max) in self.constraints():
             value += "\n  " + (str(min)+" <= " if min!=None else "")+str(c)+(" <= "+str(max) if max!=None else "")
         value += "\nVariables:"
-        for v in sorted(self._variables.keys()):
+        for _,v in sorted([(str(x),x) for x in self._variables.keys()]):
+
             value += "\n  " + str(v) + " is"
             if self.is_integer(v):
                 value += " an integer variable"

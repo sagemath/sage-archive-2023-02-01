@@ -319,11 +319,17 @@ class MixedIntegerLinearProgram:
         r"""
         Returns the list of constraints.
 
-        This functions returns the constraints as a list
+        This function returns the constraints as a list
         of tuples ``(linear_function,min_bound,max_bound)``, representing
-        the constraint :
+        the constraint:
 
-        `\mbox{min_bound} \leq \mbox{linear_function} \leq \mbox{max_bound}`
+        .. MATH::
+
+            \text{min\_bound}
+            \leq
+            \text{linear\_function}
+            \leq
+            \text{max\_bound}
 
         Variables ``min_bound`` (respectively ``max_bound``) is set
         to ``None`` when the function has no lower ( respectively upper )

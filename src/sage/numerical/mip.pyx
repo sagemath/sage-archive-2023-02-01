@@ -4,6 +4,7 @@ Mixed integer linear programming
 
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
+from copy import copy
 
 class MixedIntegerLinearProgram:
     r"""
@@ -210,7 +211,7 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram()
             sage: p.set_objective(p['x'] + p['z'])
             sage: p['x']
-            x0
+            x_0
         """
 
         try:
@@ -266,7 +267,7 @@ class MixedIntegerLinearProgram:
             sage: p=MixedIntegerLinearProgram()
             sage: v=p.new_variable(name="Test")
             sage: v[5]+v[99]
-            x0 + x1
+            x_0 +x_1
             sage: p._update_variables_name()
         """
 
@@ -343,7 +344,7 @@ class MixedIntegerLinearProgram:
             sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
             sage: p.add_constraint(15/10*x[1]+3*x[2], max=4)
             sage: p.constraints()
-            [(x0 + 1/5*x1, None, 4), (3/2*x0 + 3*x1, None, 4)]
+            [(x_0 +1/5 x_1, None, 4), (3/2 x_0 +3 x_1, None, 4)]
         """
 
         d = [0]*len(self._variables)
@@ -369,12 +370,12 @@ class MixedIntegerLinearProgram:
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
             sage: p.show()
             Maximization:
-              x0 + x1
+              x_0 +x_1
             Constraints:
-              -3*x0 + 2*x1 <= 2
+              -3 x_0 +2 x_1 <= 2
             Variables:
-              x0 is a real variable (min=0.0, max=+oo)
-              x1 is a real variable (min=0.0, max=+oo)
+              x_0 is a real variable (min=0.0, max=+oo)
+              x_1 is a real variable (min=0.0, max=+oo)
         """
 
         inv_variables = [0]*len(self._variables)
@@ -603,15 +604,15 @@ class MixedIntegerLinearProgram:
         # forget it ). In some LP problems, you just want a feasible solution
         # and do not care about any function being optimal.
 
-        try:
-            f = self._NormalForm(obj)
-        except:
+        if obj != None:
+            f = obj.f
+        else:
             return None
 
-        f.pop(0,0)
+        f.pop(-1,0)
 
         for (v,coeff) in f.iteritems():
-            self._objective_i.append(self._variables[v])
+            self._objective_i.append(v)
             self._objective_values.append(coeff)
 
     def add_constraint(self, linear_function, max=None, min=None, name=None):
@@ -659,15 +660,11 @@ class MixedIntegerLinearProgram:
         if linear_function==0:
             return None
 
-        # In case a null constraint is given ( see tests )
-        try:
-            f = self._NormalForm(linear_function)
-        except:
-            return None
+        f = linear_function.f
 
         self._constraints_name.append(name)
 
-        constant_coefficient = f.pop(0,0)
+        constant_coefficient = f.pop(-1,0)
 
         # We do not want to ignore the constant coefficient
         max = (max-constant_coefficient) if max != None else None
@@ -678,7 +675,7 @@ class MixedIntegerLinearProgram:
 
         for (v,coeff) in f.iteritems():
             self._constraints_matrix_i.append(c)
-            self._constraints_matrix_j.append(self._variables[v])
+            self._constraints_matrix_j.append(v)
             self._constraints_matrix_values.append(coeff)
 
         self._constraints_bounds_max.append(max)
@@ -965,7 +962,7 @@ class MixedIntegerLinearProgram:
             sage: p.solve(solver='GLPK', objective_only=True) # optional - requires GLPK
             Traceback (most recent call last):
             ...
-            NotImplementedError: ...
+            RuntimeError
         """
         if self._objective_i == None:
             raise ValueError("No objective function has been defined.")
@@ -998,41 +995,9 @@ class MixedIntegerLinearProgram:
         else:
             raise NotImplementedError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
 
-    def _NormalForm(self, exp):
-        r"""
-        Returns a dictionary built from the linear function.
-
-        INPUT:
-
-        - ``exp`` -- The expression representing a linear function.
-
-        OUTPUT:
-
-        A dictionary whose keys are the variables and whose
-        values are their coefficients. The value corresponding to key
-        `0` is the constant coefficient.
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable()
-            sage: nf = p._NormalForm(v[0] + v[1])
-            sage: nf[0], nf[v[0]], nf[v[1]]
-            (0, 1, 1)
-        """
-
-        d2={}
-
-        for v in exp.variables():
-            d2[v]=exp.coefficient(v)
-
-        d2[0] = exp-sum([c*v for (v,c) in d2.iteritems()])
-
-        return d2
-
     def _add_element_to_ring(self, vtype):
         r"""
-        Creates a new variable from the main ``InfinitePolynomialRing``.
+        Creates a new variable in the Linear Program.
 
         INPUT:
 
@@ -1050,13 +1015,12 @@ class MixedIntegerLinearProgram:
             sage: len(p._variables_type)
             0
             sage: p._add_element_to_ring(p.__REAL)
-            x0
+            x_0
             sage: len(p._variables_type)
             1
         """
 
-        from sage.calculus.calculus import var
-        v = var('x'+str(len(self._variables)))
+        v = LinearFunction({len(self._variables) : 1})
 
         self._variables[v] = len(self._variables)
         self._variables_type.append(vtype)
@@ -1278,7 +1242,7 @@ class MIPVariable:
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
             sage: v[0]
-            x0
+            x_0
         """
         if self._dict.has_key(i):
             return self._dict[i]
@@ -1300,7 +1264,7 @@ class MIPVariable:
             sage: p=MixedIntegerLinearProgram()
             sage: v=p.new_variable(name="Test")
             sage: v[5]+v[99]
-            x0 + x1
+            x_0 +x_1
             sage: p._variables_name=['']*2
             sage: v._update_variables_name()
         """
@@ -1328,7 +1292,7 @@ class MIPVariable:
             sage: v
             MIPVariable of dimension 3.
             sage: v[2][5][9]
-            x0
+            x_0
             sage: v
             MIPVariable of dimension 3.
         """
@@ -1358,7 +1322,7 @@ class MIPVariable:
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
             sage: v.items()
-            [(0, x0), (1, x1)]
+            [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
 
@@ -1386,6 +1350,167 @@ class MIPVariable:
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
             sage: v.values()
-            [x0, x1]
+            [x_0, x_1]
         """
         return self._dict.values()
+
+
+class LinearFunction:
+    r"""
+    An elementary algebra to represent symbolic linear functions.
+    """
+
+    def __init__(self,f):
+        r"""
+        Constructor taking a dictionary as its argument.
+
+        A linear function is represented as a dictionary. The
+        value are the coefficient of the variable represented
+        by the keys ( which are integers ).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({0 : 1, 3 : -8})
+            x_0 -8 x_3
+        """
+        self.f = f
+
+    def __add__(self,b):
+        r"""
+        Defining the + operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({0 : 1, 3 : -8}) + LinearFunction({2 : 5, 3 : 2}) - 16
+            -16 +x_0 +5 x_2 -6 x_3
+        """
+        if isinstance(b,LinearFunction):
+            e = copy(self.f)
+            for (id,coeff) in b.f.iteritems():
+                e[id] = self.f.get(id,0) + coeff
+            return LinearFunction(e)
+        else:
+            el = copy(self)
+            el.f[-1] = el.f.get(-1,0) + b
+            return el
+
+    def __neg__(self):
+        r"""
+        Defining the - operator (opposite).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: -LinearFunction({0 : 1, 3 : -8})
+            -1 x_0 +8 x_3
+        """
+        return LinearFunction(dict([(id,-coeff) for (id, coeff) in self.f.iteritems()]))
+
+    def __sub__(self,b):
+        r"""
+        Defining the - operator (substraction).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) - 3
+            -3 +5 x_2 +2 x_3
+            sage: LinearFunction({0 : 1, 3 : -8}) - LinearFunction({2 : 5, 3 : 2}) - 16
+            -16 +x_0 -5 x_2 -10 x_3
+        """
+        if isinstance(b,LinearFunction):
+            e = copy(self.f)
+            for (id,coeff) in b.f.iteritems():
+                e[id] = self.f.get(id,0) - coeff
+            return LinearFunction(e)
+        else:
+            el = copy(self)
+            el.f[-1] = self.f.get(-1,0) - b
+            return el
+
+    def __radd__(self,b):
+        r"""
+        Defining the + operator (right side).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: 3 + LinearFunction({2 : 5, 3 : 2})
+            3 +5 x_2 +2 x_3
+        """
+        if isinstance(self,LinearFunction):
+            return self.__add__(b)
+        else:
+            return b.__add__(self)
+
+    def __rsub__(self,b):
+        r"""
+        Defining the - operator (right side).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: 3 - LinearFunction({2 : 5, 3 : 2})
+            3 -5 x_2 -2 x_3
+        """
+        if isinstance(self,LinearFunction):
+            return (-self).__add__(b)
+        else:
+            return b.__sub__(self)
+
+    def __mul__(self,b):
+        r"""
+        Defining the * operator.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) * 3
+            15 x_2 +6 x_3
+        """
+        return LinearFunction(dict([(id,b*coeff) for (id, coeff) in self.f.iteritems()]))
+
+    def __rmul__(self,b):
+        r"""
+        Defining the * operator (right side).
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: 3 * LinearFunction({2 : 5, 3 : 2})
+            15 x_2 +6 x_3
+        """
+
+        return self.__mul__(b)
+
+    def __repr__(self):
+        r"""
+        Returns a string version of the linear function.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2})
+            5 x_2 +2 x_3
+        """
+
+        cdef dict d = copy(self.f)
+        cdef bool first = True
+        t = ""
+
+        if d.has_key(-1):
+            coeff = d.pop(-1)
+            if coeff!=0:
+                t = str(coeff)
+                first = False
+
+        cdef list l = sorted(d.items())
+        for id,coeff in l:
+            if coeff!=0:
+                if not first:
+                    t+=" "
+                t += ("+" if (not first and coeff>=0) else "")+(str(coeff)+" " if coeff!=1 else "")+"x_"+str(id)
+                first = False
+        return t

@@ -4,7 +4,8 @@ Basic Algebra and Calculus
 Sage can perform various computations related to basic algebra and
 calculus: for example, finding solutions to equations,
 differentiation, integration, and Laplace transforms. See the
-"Sage Constructions" documentation for more examples.
+`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+documentation for more examples.
 
 Solving Equations
 -----------------
@@ -182,6 +183,7 @@ Here is a more involved example. The displacement from equilibrium
 is modeled by the system of 2nd order differential equations
 
 .. math::
+
     m_1 x_1'' + (k_1+k_2) x_1 - k_2 x_2 = 0
 
     m_2 x_2''+ k_2 (x_2-x_1) = 0,
@@ -273,10 +275,9 @@ The individual components can be plotted using
     sage: p2 = plot(4*cos(t) - cos(2*t), (t,0, 2*pi), rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
-(For more on plotting, see :ref:`section-plot`.)
+For more on plotting, see :ref:`section-plot`. See section 5.5 of
+[NagleEtAl2004]_ for further information on differential equations.
 
-REFERENCES: Nagle, Saff, Snider, Fundamentals of Differential
-Equations, 6th ed, Addison-Wesley, 2004. (see § 5.5).
 
 Euler's Method for Systems of Differential Equations
 ----------------------------------------------------
@@ -286,9 +287,8 @@ and second order ODEs. We first recall the basic idea for first
 order equations. Given an initial value problem of the form
 
 .. math::
-    y'=f(x,y)
-    y(a)=c
 
+    y'=f(x,y), \quad y(a)=c,
 
 we want to find the approximate value of the solution at
 :math:`x=b` with :math:`b>a`.
@@ -412,7 +412,3 @@ the following example:
     'bessel_y(v,w)'
     sage: maxima.eval("diff(f,w)")
     '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
-
-.. [GAP] The GAP Group, ``GAP - Groups, Algorithms, and Programming``, http://www.gap-system.org
-
-.. [Max] Maxima, http://maxima.sf.net/

@@ -1,6 +1,6 @@
-.. _section-plot:
+.. _section-functions-issues:
 
-Some common issues with functions
+Some Common Issues with Functions
 =================================
 
 Some aspects of defining functions (e.g., for differentiation or

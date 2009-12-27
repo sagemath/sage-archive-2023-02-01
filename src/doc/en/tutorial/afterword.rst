@@ -147,8 +147,9 @@ adding to the Sage documentation to reporting bugs.
 
 Browse the Sage web page for information for developers; among
 other things, you can find a long list of Sage-related projects
-ordered by priority and category. The "Sage Programming Guide" has
-helpful information, as well, and you can also check out the
+ordered by priority and category. The
+`Sage Developer's Guide <http://www.sagemath.org/doc/developer/>`_
+has helpful information, as well, and you can also check out the
 ``sage-devel`` Google group.
 
 How do I reference Sage?
@@ -159,9 +160,10 @@ with Sage by including
 
 ::
 
-    [SAGE], SAGE Mathematical Software, Version 2.6, http://www.sagemath.org
+    [Sage] William A. Stein et al., Sage Mathematics Software (Version 4.3).
+           The Sage Development Team, 2009, http://www.sagemath.org.
 
-in your bibliography (replacing 2.6 by the version of Sage you
+in your bibliography (replacing 4.3 with the version of Sage you
 used). Moreover, please attempt to track down what components of Sage
 are used for your computation, e.g., PARI?, GAP?, Singular? Maxima?
 and also cite those systems. If you are in doubt about what
@@ -175,8 +177,4 @@ If you happen to have just read straight through this tutorial, and
 have some sense of how long it took you, please let us know on the
 ``sage-devel`` Google group.
 
-Have fun with Sage !
-
-.. [Py] The Python language http://www.python.org/ , Reference Manual http://docs.python.org/ref/ref.html
-
-.. [PyDev] Guido, Some Guys, and a Mailing List: How Python is Developed, http://www.python.org/dev/dev_intro.html.
+Have fun with Sage!

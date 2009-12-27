@@ -85,7 +85,7 @@ several orders of magnitude faster than in Python if they are
 implemented using static types in a compiled language. Some aspects
 of Sage would have been too slow if it had been written entirely in
 Python. To deal with this, Sage supports a compiled "version" of Python
-called Cython ([Cython]_ and [Pyrex]_). Cython is simultaneously
+called Cython ([Cyt]_ and [Pyr]_). Cython is simultaneously
 similar to both Python and C. Most Python constructions, including
 list comprehensions, conditional expressions, code like ``+=`` are
 allowed; you can also import code that you have written in other
@@ -844,10 +844,3 @@ On a system shell, type
 The output file ``cachegrind.out.42`` can now be examined with
 ``kcachegrind``. Please note that the naming convention
 ``cachegrind.out.XX`` needs to be obeyed.
-
-
-.. [Cython] Cython, http://www.cython.org
-
-.. [Pyrex] Pyrex, http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
-
-.. [PyT] The Python Tutorial, http://www.python.org/

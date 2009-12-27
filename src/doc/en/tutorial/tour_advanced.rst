@@ -1,4 +1,4 @@
-Some more advanced mathematics
+Some More Advanced Mathematics
 ==============================
 
 Algebraic Geometry

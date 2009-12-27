@@ -351,5 +351,3 @@ The next plot is the famous Klein bottle (do not type the ``...``):
     sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]",\
     ...   "[y, -%pi, %pi]", "['grid, 40, 40]",\
     ...   '[plot_format, openmath]') # not tested
-
-.. [GAPkg] GAP Packages, http://www.gap-system.org/Packages/packages.html

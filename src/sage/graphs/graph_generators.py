@@ -875,6 +875,256 @@ class GraphGenerators():
         G = networkx.grid_graph(dim)
         return graph.Graph(G, name="Grid Graph for %s"%dim)
 
+    def HanoiTowerGraph(self, pegs, disks, labels=True, positions=True):
+        r"""
+        Returns the graph whose vertices are the states of the
+        Tower of Hanoi puzzle, with edges representing legal moves between states.
+
+        INPUT:
+
+        - ``pegs`` - the number of pegs in the puzzle, 2 or greater
+        - ``disks`` - the number of disks in the puzzle, 1 or greater
+        - ``labels`` - default: ``True``, if ``True`` the graph contains
+          more meaningful labels, see explanation below.  For large instances,
+          turn off labels for much faster creation of the graph.
+        - ``positions`` - default: ``True``, if ``True`` the graph contains
+          layout information.  This creates a planar layout for the case
+          of three pegs.  For large instances, turn off layout information
+          for much faster creation of the graph.
+
+        OUTPUT:
+
+        The Tower of Hanoi puzzle has a certain number of identical pegs
+        and a certain number of disks, each of a different radius.
+        Initially the disks are all on a single peg, arranged
+        in order of their radii, with the largest on the bottom.
+
+        The goal of the puzzle is to move the disks to any other peg,
+        arranged in the same order.  The one constraint is that the
+        disks resident on any one peg must always be arranged with larger
+        radii lower down.
+
+        The vertices of this graph represent all the possible states
+        of this puzzle.  Each state of the puzzle is a tuple with length
+        equal to the number of disks, ordered by largest disk first.
+        The entry of the tuple is the peg where that disk resides.
+        Since disks on a given peg must go down in size as we go
+        up the peg, this totally describes the state of the puzzle.
+
+        For example ``(2,0,0)`` means the large disk is on peg 2, the
+        medium disk is on peg 0, and the small disk is on peg 0
+        (and we know the small disk must be above the medium disk).
+        We encode these tuples as integers with a base equal to
+        the number of pegs, and low-order digits to the right.
+
+        Two vertices are adjacent if we can change the puzzle from
+        one state to the other by moving a single disk.  For example,
+        ``(2,0,0)`` is adjacent to ``(2,0,1)`` since we can move
+        the small disk off peg 0 and onto (the empty) peg 1.
+        So the solution to a 3-disk puzzle (with at least
+        two pegs) can be expressed by the shortest path between
+        ``(0,0,0)`` and ``(1,1,1)``.
+
+        For greatest speed we create graphs with integer vertices,
+        where we encode the tuples as integers with a base equal
+        to the number of pegs, and low-order digits to the right.
+        So for example, in a 3-peg puzzle with 5 disks, the
+        state ``(1,2,0,1,1)`` is encoded as
+        `1\ast 3^4 + 2\ast 3^3 + 0\ast 3^2 + 1\ast 3^1 + 1\ast 3^0 = 139`.
+
+        For smaller graphs, the labels that are the tuples are informative,
+        but slow down creation of the graph.  Likewise computing layout
+        information also incurs a significant speed penalty. For maximum
+        speed, turn off labels and layout and decode the
+        vertices explicily as needed.  The
+        :meth:`sage.rings.integer.Integer.digits`
+        with the ``padsto`` option is a quick way to do this, though you
+        may want to reverse the list that is output.
+
+        PLOTTING:
+
+        The layout computed when ``positions = True`` will
+        look especially good for the three-peg case, when the graph is known
+        to be planar.  Except for two small cases on 4 pegs, the graph is
+        otherwise not planar, and likely there is a better way to layout
+        the vertices.
+
+        EXAMPLES:
+
+        A classic puzzle uses 3 pegs.  We solve the 5 disk puzzle using
+        integer labels and report the minimum number of moves required.
+        Note that `3^5-1` is the state where all 5 disks
+        are on peg 2. ::
+
+            sage: H = graphs.HanoiTowerGraph(3, 5, labels=False, positions=False)
+            sage: H.distance(0, 3^5-1)
+            31
+
+        A slightly larger instance. ::
+
+            sage: H = graphs.HanoiTowerGraph(4, 6, labels=False, positions=False)
+            sage: H.num_verts()
+            4096
+            sage: H.distance(0, 4^6-1)
+            17
+
+        For a small graph, labels and layout information can be useful.
+        Here we explicitly list a solution as a list of states. ::
+
+            sage: H = graphs.HanoiTowerGraph(3, 3, labels=True, positions=True)
+            sage: H.shortest_path((0,0,0), (1,1,1))
+            [(0, 0, 0), (0, 0, 1), (0, 2, 1), (0, 2, 2), (1, 2, 2), (1, 2, 0), (1, 1, 0), (1, 1, 1)]
+
+        Some facts about this graph with `p` pegs and `d` disks:
+
+        - only automorphisms are the "obvious" ones - renumber the pegs.
+        - chromatic number is less than or equal to `p`
+        - independence number is `p^{d-1}`
+
+        ::
+
+            sage: H = graphs.HanoiTowerGraph(3,4,labels=False,positions=False)
+            sage: H.automorphism_group().is_isomorphic(SymmetricGroup(3))
+            True
+            sage: H.chromatic_number()
+            3
+            sage: len(H.independent_set()) == 3^(4-1)
+            True
+
+        TESTS:
+
+        It is an error to have just one peg (or less). ::
+
+            sage: graphs.HanoiTowerGraph(1, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Pegs for Tower of Hanoi graph should be two or greater (not 1)
+
+        It is an error to have zero disks (or less). ::
+
+            sage: graphs.HanoiTowerGraph(2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Disks for Tower of Hanoi graph should be one or greater (not 0)
+
+        .. rubric:: Citations
+
+        .. [ARETT-DOREE] Danielle Arett and Su Doree, Coloring and counting on the tower of Hanoi graphs,
+           Mathematics Magazine, to appear.
+
+
+        AUTHOR:
+
+        - Rob Beezer, (2009-12-26), with assistance from Su Doree
+
+        """
+
+        # sanitize input
+        from sage.rings.all import Integer
+        pegs = Integer(pegs)
+        if pegs < 2:
+            raise ValueError("Pegs for Tower of Hanoi graph should be two or greater (not %d)" % pegs)
+        disks = Integer(disks)
+        if disks < 1:
+            raise ValueError("Disks for Tower of Hanoi graph should be one or greater (not %d)" % disks)
+
+        # Each state of the puzzle is a tuple with length
+        # equal to the number of disks, ordered by largest disk first
+        # The entry of the tuple is the peg where that disk resides
+        # Since disks on a given peg must go down in size as we go
+        # up the peg, this totally describes the puzzle
+        # We encode these tuples as integers with a base equal to
+        # the number of pegs, and low-order digits to the right
+
+        # complete graph on number of pegs when just a single disk
+        edges = [[i,j] for i in range(pegs) for j in range(i+1,pegs)]
+
+        nverts = 1
+        for d in range(2, disks+1):
+            prevedges = edges      # remember subgraph to build from
+            nverts = pegs*nverts   # pegs^(d-1)
+            edges = []
+
+            # Take an edge, change its two states in the same way by adding
+            # a large disk to the bottom of the same peg in each state
+            # This is accomplished by adding a multiple of pegs^(d-1)
+            for p in range(pegs):
+                largedisk = p*nverts
+                for anedge in prevedges:
+                    edges.append([anedge[0]+largedisk, anedge[1]+largedisk])
+
+            # Two new states may only differ in the large disk
+            # being the only disk on two different pegs, thus
+            # otherwise being a common state with one less disk
+            # We construct all such pairs of new states and add as edges
+            from sage.combinat.subset import Subsets
+            for state in range(nverts):
+                emptypegs = range(pegs)
+                reduced_state = state
+                for i in range(d-1):
+                    apeg = reduced_state % pegs
+                    if apeg in emptypegs:
+                        emptypegs.remove(apeg)
+                    reduced_state = reduced_state//pegs
+                for freea, freeb in Subsets(emptypegs, 2):
+                    edges.append([freea*nverts+state,freeb*nverts+state])
+
+        H = graph.Graph({}, loops=False, multiedge=False)
+        H.add_edges(edges)
+
+
+        # Making labels and/or computing positions can take a long time,
+        # relative to just constructing the edges on integer vertices.
+        # We try to minimize coercion overhead, but need Sage
+        # Integers in order to use digits() for labels.
+        # Getting the digits with custom code was no faster.
+        # Layouts are circular (symmetric on the number of pegs)
+        # radiating outward to the number of disks (radius)
+        # Algorithm uses some combination of alternate
+        # clockwise/counterclockwise placements, which
+        # works well for three pegs (planar layout)
+        #
+        from sage.functions.trig import sin, cos, csc
+        if labels or positions:
+            mapping = {}
+            pos = {}
+            a = Integer(-1)
+            one = Integer(1)
+            if positions:
+                radius_multiplier = 1 + csc(pi/pegs)
+                sine = []; cosine = []
+                for i in range(pegs):
+                    angle = 2*i*pi/float(pegs)
+                    sine.append(sin(angle))
+                    cosine.append(cos(angle))
+            for i in range(pegs**disks):
+                a += one
+                state = a.digits(base=pegs, padto=disks)
+                if labels:
+                    state.reverse()
+                    mapping[i] = tuple(state)
+                    state.reverse()
+                if positions:
+                    locx = 0.0; locy = 0.0
+                    radius = 1.0
+                    parity = -1.0
+                    for index in range(disks):
+                        p = state[index]
+                        radius *= radius_multiplier
+                        parity *= -1.0
+                        locx_temp = cosine[p]*locx - parity*sine[p]*locy + radius*cosine[p]
+                        locy_temp = parity*sine[p]*locx + cosine[p]*locy - radius*parity*sine[p]
+                        locx = locx_temp
+                        locy = locy_temp
+                    pos[i] = (locx,locy)
+            # set positions, then relabel (not vice versa)
+            if positions:
+                H.set_pos(pos)
+            if labels:
+                H.relabel(mapping)
+
+        return H
+
     def HouseGraph(self):
         """
         Returns a house graph with 5 nodes.

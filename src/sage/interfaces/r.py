@@ -518,7 +518,7 @@ class R(Expect):
 
         EXAMPLES:
             sage: r.version()
-            ((2, 9, 2), 'R version 2.9.2 (2009-08-24)')
+            ((2, 10, 1), 'R version 2.10.1 (2009-12-14)')
         """
         major_re = re.compile('^major\s*(\d.*?)$', re.M)
         minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
@@ -666,8 +666,9 @@ class R(Expect):
             sage: r.help('print.anova')
             anova                 package:stats                 R Documentation
             ...
-                 'coefficients', 'effects', 'fitted.values', 'residuals',
-                 'summary', 'drop1', 'add1'.
+                 Chambers, J. M. and Hastie, T. J. (1992) _Statistical Models in
+                 S_, Wadsworth & Brooks/Cole.
+            ...
 
         NOTE:
             This is similar to typing r.command?.
@@ -1860,7 +1861,7 @@ def r_version():
     """
     EXAMPLES:
         sage: r.version()
-        ((2, 9, 2), 'R version 2.9.2 (2009-08-24)')
+        ((2, 10, 1), 'R version 2.10.1 (2009-12-14)')
     """
     return r.version()
 

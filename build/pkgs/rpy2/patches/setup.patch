@@ -1,0 +1,31 @@
+--- setup.py~	2009-09-21 00:11:31.000000000 -0400
++++ setup.py	2009-09-21 00:27:04.000000000 -0400
+@@ -83,8 +83,10 @@
+             return ()
+         else:
+             raise Exception(cmd + '\nreturned\n' + rconfig)
+-    else:
+-        return rconfig_m.groups()
++        
++    # program around some parsing oddities on some systems:
++    v = rconfig_m.groups()
++    return tuple([x for x in v if ':' not in x])
+ 
+ rnewest = [0, 0, 0]
+ rversions = []
+@@ -136,9 +138,14 @@
+             extra_link_args = get_rconfig(RHOME, '--ldflags') +\
+                               get_rconfig(RHOME, 'LAPACK_LIBS',
+                                           allow_empty = True) +\
+-                              get_rconfig(RHOME, 'BLAS_LIBS'),
++                              get_rconfig(RHOME, 'BLAS_LIBS', allow_empty=True)
+             )
+ 
++    print get_rconfig(RHOME, '--ldflags') +\
++                              get_rconfig(RHOME, 'LAPACK_LIBS',
++                                          allow_empty = True) +\
++                              get_rconfig(RHOME, 'BLAS_LIBS', allow_empty=True)
++
+     return rinterface_ext
+ 
+ 

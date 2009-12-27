@@ -1,8 +1,30 @@
-= rpy =
+= rpy2 =
 
-FIXME
+== Description ==
+ * website: http://rpy.sourceforge.net/rpy2.html
+ * From "About" from the above website: rpy2 is a redesign and rewrite of rpy. It is providing a low-level interface to R, a proposed high-level interface, including wrappers to graphical libraries, as well as R-like structures and functions.
 
-== Releases ==
+== License ==
+ * GPL 2+
+ * Note that we have deleted references to Mozilla PL as an option, which we are allowed to do by the full rpy2 license in order to remain GPL-compatible
+
+== SPKG Maintainers ==
+
+== Upstream Contact ==
+ * http://rpy.sourceforge.net/maillist.html
+
+== Dependencies ==
+
+== Special Update/Build Instructions ==
+ * setup.py change takes care of a few parsing issues and location issues
+ * does this need to be reported upstream, or is it Sage-specific?
+
+== Changelog ==
+
+=== rpy2-2.0.8 (Karl-Dieter Crisman, December 23, 2009) ===
+ * upgrade
+ * improve SPKG.txt
+ * clarify license situation
 
 === rpy2-2.0.6 (William Stein and Jason Grout, Sept 20, 2009) ===
  * upgrade to rpy2

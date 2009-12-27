@@ -968,7 +968,7 @@ class MixedIntegerLinearProgram:
             solver = self._default_solver
 
         if solver == None:
-            raise ValueError("There does not seem to be any solver installed. Please visit http://www.sagemath.org/doc/tutorial/tour_LP.html for more informations.")
+            raise ValueError("There does not seem to be any Linear Program solver installed. Please visit http://www.sagemath.org/packages/optional/ to install CBC or GLPK.")
         elif solver == "Coin":
             try:
                 from sage.numerical.mipCoin import solveCoin

@@ -23,11 +23,6 @@ CUR=`pwd`
 # set CPPFLAGS so that Sage's readline is picked up
 CPPFLAGS=-I"$SAGE_LOCAL"/include; export CPPFLAGS
 
-# copy an R file that has corrected R includes, i.e. <foo.h> vs. "foo.h"
-cp patches/sys-std.c src/src/unix/sys-std.c
-# to avoid rebuilding the depencies touch the matching .d file
-sleep 1; touch src/src/unix/sys-std.d
-
 # Hack to get around dumb hardcoding.
 cp patches/R.sh.in src/src/scripts/
 
@@ -77,19 +72,17 @@ F77=sage_fortran; export F77
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ "$CFLAGS; export CFLAGS
 LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
 
-# do not build recommended packages for now, for speed.
-
 if [ `uname` = "Darwin" ]; then
      echo "Configuring R for OSX"
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
+    ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
 else
      echo "Configuring R with ATLAS"
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
+    ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
 fi
 
 if [ $? -ne 0 ]; then
      echo "Configuring R with fallback options"
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
+    ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
 fi
 
 if [ $? -ne 0 ]; then
@@ -126,7 +119,7 @@ echo "Now install rpy"
 
 cd "$CUR"
 
-RPY_VER=rpy2-2.0.6
+RPY_VER=rpy2-2.0.8
 
 sage -f "$RPY_VER".spkg
 if [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then

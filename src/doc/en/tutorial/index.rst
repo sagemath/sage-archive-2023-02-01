@@ -32,6 +32,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    interactive_shell
    interfaces
    programming
+   sagetex
    afterword
    appendix
    bibliography
@@ -42,4 +43,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

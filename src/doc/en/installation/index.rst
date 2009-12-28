@@ -23,6 +23,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    quick-guide
    binary
    source
+   sagetex
    icon
    documentation
 

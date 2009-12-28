@@ -6,47 +6,67 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-top_level=`pwd`
-export top_level
+# Commented out, since it's not used below.
+#TOP_LEVEL=`pwd`
+#export TOP_LEVEL
 
-if [ ! -d "$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb" ]; then
-    # user is using an old version of sage before the new notebook.
-    install_dir="$SAGE_ROOT/local/notebook/javascript/jsmath"
-else
-    if [ ! -d "$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/jsmath" ]; then
-	# pre-#7196 new notebook
-	install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
-    else
-	install_dir="$SAGE_ROOT/local/lib/python2.6/site-packages/sagenb/data/jsmath"
+SAGENB_JSMATH_DIR=$(/usr/bin/env python <<EOF
+import os
+from pkg_resources import Requirement, working_set
+try:
+    # post-#7467 notebook
+    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
+except AttributeError:
+    # post-#7196 notebook
+    sagenb_path = os.path.join('$SAGE_LOCAL', 'lib', 'python2.6', 'site-packages')
+print os.path.join(sagenb_path, 'sagenb', 'data', 'jsmath')
+EOF
+)
+
+CANDIDATES=(
+# post-#7196 notebook
+    "$SAGENB_JSMATH_DIR"
+# pre-#7196 notebook
+    "$SAGE_LOCAL/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
+# "old" notebook
+    "$SAGE_LOCAL/notebook/javascript/jsmath"
+)
+
+JSMATH_DIR=""
+for DIR in ${CANDIDATES[@]}; do
+    if [ -d $DIR ]; then
+	JSMATH_DIR="$DIR"
     fi
+done
+
+if [ "x$JSMATH_DIR" = "x" ]; then
+    echo "Unable to find base jsMath install directory.  Candidates tried:"
+    echo "${CANDIDATES[*]}"
+    exit 1
 fi
 
-export install_dir
+export JSMATH_DIR
 
-mkdir -p $install_dir
+# Commented out, since we check for an existing directory above.
+#mkdir -p $JSMATH_DIR
+#if [ $? -ne 0 ]; then
+#   echo "Error making installation directory:"
+#   echo $JSMATH_DIR
+#   exit 1
+#fi
 
-if [ $? -ne 0 ]; then
-   echo "Error making installation directory:"
-   echo $install_dir
-   exit 1
-fi
-
-echo "deleting old jsMath fonts"
-rm -rf $install_dir/jsmath/fonts
+echo "Deleting old jsMath fonts..."
+rm -rf "$JSMATH_DIR/jsmath/fonts"
 if [ $? -ne 0 ]; then
    echo "Error deleting old jsMath fonts."
    exit 1
 fi
 
-
-echo "Installing jsMath Image Fonts to:"
-echo $install_dir
-
-cp -r src/* $install_dir
-
+echo "Copying jsMath image fonts to $JSMATH_DIR/fonts ..."
+cp -r src/* "$JSMATH_DIR"
 if [ $? -ne 0 ]; then
-   echo "Error extracting jsMath Image Fonts."
+   echo "Error copying jsMath image fonts."
    exit 1
 fi
 
-echo "Finished installing jsMath Image Fonts."
+echo "Finished installing jsMath image fonts."

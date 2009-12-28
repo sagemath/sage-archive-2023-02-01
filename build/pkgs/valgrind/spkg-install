@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VALGRIND_VERSION="3.3.1"
+VALGRIND_VERSION="3.5.0"
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -8,20 +8,37 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ `uname` = "Linux" ]; then
-    echo "Good - valgrind works on Linux"
-    if [ `uname -p` = "ia64" ]; then
+if [ "`uname`" = "Linux" ]; then
+    echo "Good - Valgrind works on Linux"
+    if [ "`uname -p`" = "ia64" ]; then
         echo "But it does not work on Itanium :("
         exit 1
     fi
 else
-    echo "Valgring does not work on non-Linux yet"
+    if [ "$UNAME" = "Darwin" ] && [ -z "`uname -p | grep PPC`" ] && [ -n "`uname -r | grep '^9.'`" ]; then
+        echo "Good - Valgrind works on x86/Darwin 9.x"
+    else
+        echo "Sorry, Valgrind only works on X86/Linux, AMD64/Linux,"
+        echo "PPC32/Linux, PPC64/Linux and X86/Darwin 9.x
+(Mac OS X 10.5.x)"
+        exit 1
+    fi
+fi
+
+echo "Applying patches"
+
+cp patches/configure.in src/configure.in
+
+if [ $? -ne 0 ]; then
+    echo "Error applying configure.in patch"
     exit 1
 fi
 
 cd src/
 
-./configure --prefix=$SAGE_LOCAL
+autoreconf
+
+/usr/bin/env bash configure --prefix=$SAGE_LOCAL
 
 if [ $? -ne 0 ]; then
     echo "error configuring valgrind $VALGRIND_VERSION"

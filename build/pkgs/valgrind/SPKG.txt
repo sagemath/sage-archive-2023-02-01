@@ -16,7 +16,7 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
+ * Tim Dumol
 
 == Upstream Contact ==
 
@@ -27,6 +27,9 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
  * None
 
 == Changelog ==
+
+=== valgrind-3.5.0.p0 (Tim Dumol, December 23rd, 2009) ===
+ * Update to 3.5.0 release
 
 === valgrind_3.3.1 (Michael Abshoff, September 15th, 2008)  ===
  * update to 3.3.1 release

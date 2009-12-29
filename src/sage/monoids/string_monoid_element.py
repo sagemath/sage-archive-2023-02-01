@@ -213,9 +213,38 @@ class StringMonoidElement(FreeMonoidElement):
         """
         return len(self._element_list)
 
+    def __iter__(self):
+        """
+        Return an iterator over this element as a string.
+
+        EXAMPLES::
+
+            sage: t = AlphabeticStrings()('SHRUBBERY')
+            sage: t.__iter__().next()
+            S
+            sage: list(t)
+            [S, H, R, U, B, B, E, R, Y]
+        """
+        l = len(self._element_list)
+        i=0
+        while i < l:
+            yield self[i]
+            i+=1
+        raise StopIteration
+
     def __getitem__(self, n):
         """
         Return the n-th string character.
+
+        EXAMPLES::
+
+            sage: t = AlphabeticStrings()('SHRUBBERY')
+            sage: t[0]
+            S
+            sage: t[3]
+            U
+            sage: t[-1]
+            Y
         """
         try:
             c = self._element_list[n]

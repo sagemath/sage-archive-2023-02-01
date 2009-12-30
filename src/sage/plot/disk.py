@@ -147,8 +147,9 @@ class Disk(GraphicPrimitive):
         options = self.options()
         deg1 = self.rad1*(360.0/(2.0*pi)) #convert radians to degrees
         deg2 = self.rad2*(360.0/(2.0*pi))
+        z = int(options.pop('zorder', 0))
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(deg1),
-                            float(deg2))
+                            float(deg2), zorder=z)
         p.set_linewidth(float(options['thickness']))
         p.set_fill(options['fill'])
         p.set_alpha(options['alpha'])

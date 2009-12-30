@@ -149,6 +149,8 @@ class Circle(GraphicPrimitive):
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
         p.set_linestyle(options['linestyle'])
+        z = int(options.pop('zorder', 0))
+        p.set_zorder(z)
         subplot.add_patch(p)
 
     def plot3d(self, z=0, **kwds):

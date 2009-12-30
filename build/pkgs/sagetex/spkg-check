@@ -10,8 +10,9 @@ typeset()
     pdflatex -interaction=nonstopmode $1
     if [ $? -ne 0 ]
     then
-        echo "Error typesetting $1! You likely need to install TikZ"
-        echo "(version 2.00 or newer) to fully test SageTeX."
+        echo "Error typesetting $1! To fully test SageTeX, make sure"
+        echo "LaTeX can find sagetex.sty, and that TikZ (version 2.00"
+        echo "or newer), tkz-berge.sty and tkz-graph.sty is installed."
         exit 1
     fi
 }

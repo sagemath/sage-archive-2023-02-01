@@ -32,9 +32,17 @@ A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
 
+=== 0.6.3.p4 (Minh Van Nguyen, 2009-12-31) ===
+
+ * Patch src/sphinx/environment.py to prevent Sphinx from rebuilding
+   a document again. Once a document is built and we make changes to
+   it, Sphinx should not rebuild the full document, but only
+   portion(s) of the document that have changed. The patch for
+   src/sphinx/environment.py was suggested by Mitesh Patel.
+
 === 0.6.3.p3 (Mike Hansen, 2009-12-15) ===
 
- * Add an option to Sphinx to provide an function to get the argspecs
+ * Add an option to Sphinx to provide a function to get the argspecs
    of builtin functions.
 
 === 0.6.3.p2 (Tim Dumol, 2009-10-25) ===

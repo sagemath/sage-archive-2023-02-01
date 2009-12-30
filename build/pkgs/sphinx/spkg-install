@@ -34,6 +34,7 @@ success 'Error deleting old documentation output'
 #Copy the patched file over
 cp patches/highlighting.py src/sphinx/
 cp patches/autodoc.py src/sphinx/ext/
+cp patches/environment.py src/sphinx/
 
 #Install new version
 cd src

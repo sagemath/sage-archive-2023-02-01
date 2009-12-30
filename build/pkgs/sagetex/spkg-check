@@ -1,8 +1,22 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # this runs Sage on the generated .sage files to see if they work ok
 
-function checkdotsage
+# typesetting the example file requires TikZ version 2.00, as well as
+# tkz-berge.sty and tkz-graph.sty.
+
+typeset()
+{
+    pdflatex -interaction=nonstopmode $1
+    if [ $? -ne 0 ]
+    then
+        echo "Error typesetting $1! You likely need to install TikZ"
+        echo "(version 2.00 or newer) to fully test SageTeX."
+        exit 1
+    fi
+}
+
+checkdotsage()
 {
     sage $1.sage
     if [ $? -ne 0 ]
@@ -18,13 +32,13 @@ if [ "$(which latex)" != "" ]
 then
     cd src
 
-    latex example.tex > /dev/null
+    typeset example.tex
     checkdotsage example
 
-    latex sagetexpackage.dtx > /dev/null
+    typeset sagetexpackage.dtx
     checkdotsage sagetexpackage
 else
-    echo "LaTeX isn't installed (or isn't in \$PATH); skipping test."
+    echo "LaTeX isn't installed (or isn't in \$PATH); skipping test of SageTeX spkg."
 fi
 
 # if we get here, we assume the .sage files are good, and exit successfully

@@ -44,20 +44,10 @@ distribution.
 
 == Notes ==
 
-To use SageTeX, both Sage and LaTeX need to know about it. If you have
-installed this spkg, then Sage knows about SageTeX; now you need to make
-LaTeX aware of it. The easiest thing to do is to copy a directory to a
-{{{texmf}}} directory in your home directory. For Linux/Unix users, do
-{{{
-  cp -r $SAGE_ROOT/local/share/texmf/ $HOME/texmf/
-}}}
-For OS X users with MacTeX:
-{{{
-  cp -r $SAGE_ROOT/local/share/texmf/ $HOME/Library/texmf/
-}}}
-After you've copied over the necessary files, you'll need to update
-TeX's database so that it can find them. Run "{{{texhash $HOME/texmf}}}"
-(replace the texmf directory as appropriate) to do this.
+To use SageTeX, both Sage and LaTeX need to know about it. SageTeX comes
+standard with Sage, so you only need to make sure LaTeX can find what it
+needs. Full details are in the Sage installation guide at
+http://sagemath.org/doc/installation/ .
 
 The directory {{{$SAGE_ROOT/local/share/texmf/tex/generic/sagetex}}}
 contains documentation and an example file. If you have problems or
@@ -73,6 +63,11 @@ SageTeX [[http://tug.ctan.org/pkg/sagetex|from CTAN]] instead of
 downloading this spkg.
 
 == Changelog ==
+
+=== sagetex-2.2.3 (Dan Drake, 30 Dec 2009) ===
+
+ * New spkg, with instructions that reflect SageTeX's inclusion as a
+   standard spkg.
 
 === sagetex-2.2.1 (Dan Drake, 20 June 2009) ===
 

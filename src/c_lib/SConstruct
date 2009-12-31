@@ -41,7 +41,48 @@ import os
 # autotools.  However, for this build we know that we are in a
 # SAGE local filesystem.  Once we have SAGE_LOCAL imported, we
 # know where everything is.
-env = Environment(ENV = os.environ)
+
+# Native tools are supposedly used by default on SCons,
+# Though this was only happening with the C++ compiler, not the
+# C compiler on Solaris. But we MUST ensure
+# that gcc and g++ are used if environment variables CC and CXX
+# are set to GNU tools.
+
+# This was a particular issue on Solaris
+# http://trac.sagemath.org/sage_trac/ticket/6595
+# but will no doubt affect other proprietary Unix systems
+# This forces the GNU tools on AIX, HP-UX, Tru64 and IRIX.
+# The Sun tools on Solaris or Linux if the variable CXX points
+# to a Sun compiler 'CC'
+
+# See this email: http://markmail.org/message/4atmrof2gc2dgavj?q=scons+cxx
+# Tested on Solaris, AIX and HP-UX. Untested on Tru64 and IRIX.
+# Linux with Sun Studio is also untested.
+
+CXX = os.environ.get('CXX', 'g++')
+if os.uname()[0] == 'AIX' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+elif os.uname()[0] == 'HP-UX' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+elif os.uname()[0] == 'IRIX' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+elif os.uname()[0] == 'IRIX64' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+elif os.uname()[0] == 'SunOS' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+elif os.uname()[0] == 'Tru64' and os.environ['CXX'].endswith('g++'):
+   env = Environment(tools=['gcc','g++','gnulink'], ENV = os.environ)
+# Non-GNU compilers follow. Linux with Sun Studio has not been tested.
+# It is not likely to work unless Sun Studio was installed by root
+# (There are two ways to install Sun Studio - either as a tar file,
+# or as package. SCons uses information from the package database
+# to know where to find Sun Studio.
+elif os.uname()[0] == 'SunOS' and os.environ['CXX'].endswith('CC'):
+   env = Environment(tools=['suncc','sunc++','sunlink'], ENV = os.environ)
+elif os.uname()[0] == 'Linux' and os.environ['CXX'].endswith('CC'):
+   env = Environment(tools=['suncc','sunc++','sunlink'], ENV = os.environ)
+else:
+   env = Environment(ENV = os.environ)
 
 # By default, SCons hashes the source file contents to determine
 # if rebuilds are necessary. If you like the old way better,

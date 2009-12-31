@@ -4,6 +4,8 @@ Installing shortcut scripts
 
 import os
 
+from subprocess import Popen, PIPE
+
 def install_scripts(bin_directory=None):
     r"""
     Run this command as
@@ -14,19 +16,15 @@ def install_scripts(bin_directory=None):
 
     This command:
 
-
     -  verbosely tell you which scripts it adds, and
 
     -  will *not* overwrite any scripts you already have in the given
        bin directory.
 
-
     INPUT:
-
 
     -  ``bin_directory`` - string; the directory into
        which to put the scripts
-
 
     OUTPUT: Verbosely prints what it is doing and creates files in
     bin_directory that are world executable and readable.
@@ -42,6 +40,12 @@ def install_scripts(bin_directory=None):
     - William Stein: code / design
 
     - Arthur Gaer: design
+
+    EXAMPLES::
+
+        sage: install_scripts(SAGE_TMP)
+        Checking that Sage has the command 'gap' installed
+        Created script ...
     """
     if bin_directory is None:
         # We do this since the intended user of install_scripts
@@ -57,19 +61,31 @@ def install_scripts(bin_directory=None):
 
     for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash', \
               'mwrank', 'ipython', 'hg', 'R']:
-        print "\nChecking that Sage has the command '%s' installed"%c
-        if os.system('which %s > /dev/null'%c):
+        print "Checking that Sage has the command '%s' installed"%c
+        p = Popen(['which', c], stdout=PIPE, stderr=PIPE)
+        path = p.communicate()[0].rstrip("\n")
+        error = p.wait()
+        if error:
+            # the 'which' command came up empty:
             print "The command '%s' is not available; not adding shortcut"%c
+        elif not path.startswith(os.environ['SAGE_ROOT']):
+            # 'which' returned a path outside of the Sage directory:
+            # then the command is already installed, and we shouldn't
+            # install the Sage version:
+            print "The command '%s' is installed outside of Sage; not adding shortcut"%c
         else:
-            target = '%s/%s'%(bin_directory, c)
+            # 'which' returned SAGE_ROOT/local/bin/...: create the
+            # shortcut if it doesn't exist already:
+            target = os.path.join(bin_directory, c)
             if os.path.exists(target):
-                print "** Not creating script for '%s' since the file '%s' already exists"%(c, target)
+                print "The file '%s' already exists; not adding shortcut"%(target)
             else:
                 o = open(target,'w')
                 o.write('#!/bin/sh\n')
                 o.write('sage -%s $*\n'%c)
                 print "Created script '%s'"%target
                 os.system('chmod a+rx %s'%target)
+        print
 
     print "Finished creating scripts."
     print "You need not do this again even if you upgrade or move Sage."

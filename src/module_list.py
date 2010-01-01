@@ -631,8 +631,6 @@ ext_modules = [
               libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
               language='c++'),
 
-
-
     ################################
     ##
     ## sage.matrix
@@ -1412,10 +1410,31 @@ ext_modules = [
               depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
-
-
-
     ]
+
+# Optional extensions :
+# These extensions are to be compiled only if the
+# corresponding packages have been installed
+
+from sage.misc.package import is_package_installed
+
+if is_package_installed('glpk'):
+    ext_modules.append(
+        Extension("sage.numerical.mip_glpk",
+                  ["sage/numerical/mip_glpk.pyx"],
+                  include_dirs = [SAGE_ROOT+"/local/include/", "sage/c_lib/include/"],
+                  language = 'c++',
+                  libraries=["csage", "stdc++", "glpk"])
+        )
+
+if is_package_installed('cbc'):
+    ext_modules.append(
+        Extension("sage.numerical.mip_coin",
+                  ["sage/numerical/mip_coin.pyx"],
+                  include_dirs = [SAGE_ROOT+"/local/include/","sage/c_lib/include/"],
+                  language = 'c++',
+                  libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "OsiVol", "Vol"])
+        )
 
 
 # Only include darwin_utilities on OS_X >= 10.5

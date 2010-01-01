@@ -62,11 +62,11 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram(maximization=True)
         """
         try:
-            from sage.numerical.mipCoin import solveCoin
+            from sage.numerical.mip_coin import solve_coin
             self._default_solver = "Coin"
         except:
             try:
-                from sage.numerical.mipGlpk import solve_glpk
+                from sage.numerical.mip_glpk import solve_glpk
                 self._default_solver = "GLPK"
             except:
                 self._default_solver = None
@@ -445,7 +445,7 @@ class MixedIntegerLinearProgram:
         """
 
         try:
-            from sage.numerical.mipGlpk import write_mps
+            from sage.numerical.mip_glpk import write_mps
         except:
             raise NotImplementedError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
 
@@ -476,7 +476,7 @@ class MixedIntegerLinearProgram:
         http://lpsolve.sourceforge.net/5.5/lp-format.htm
         """
         try:
-            from sage.numerical.mipGlpk import write_lp
+            from sage.numerical.mip_glpk import write_lp
         except:
             raise NotImplementedError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
 
@@ -974,16 +974,16 @@ class MixedIntegerLinearProgram:
             raise ValueError("There does not seem to be any Linear Program solver installed. Please visit http://www.sagemath.org/packages/optional/ to install CBC or GLPK.")
         elif solver == "Coin":
             try:
-                from sage.numerical.mipCoin import solveCoin
+                from sage.numerical.mip_coin import solve_coin
             except:
                 raise NotImplementedError("Coin/CBC is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('cbc')")
             _sig_on
-            r = solveCoin(self, log=log, objective_only=objective_only)
+            r = solve_coin(self, log=log, objective_only=objective_only)
             _sig_off
             return r
         elif solver == "GLPK":
             try:
-                from sage.numerical.mipGlpk import solve_glpk
+                from sage.numerical.mip_glpk import solve_glpk
             except:
                 raise NotImplementedError("GLPK is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('glpk')")
             _sig_on

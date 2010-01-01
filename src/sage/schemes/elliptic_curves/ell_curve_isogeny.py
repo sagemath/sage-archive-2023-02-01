@@ -910,7 +910,6 @@ class EllipticCurveIsogeny(Morphism):
         """
         E1 = self.__E1
         E_P = P.curve()
-
         change_output_ring = False
 
         # check that the parent curve of the input point is this curve
@@ -959,6 +958,7 @@ class EllipticCurveIsogeny(Morphism):
         else:
             output_base_ring = self.__E2.base_ring()
             outE2 = self.__E2
+            outP = self.__E2.point(outP,check=False)
 
         R = output_base_ring
 

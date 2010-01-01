@@ -216,7 +216,7 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 # imports
 from sage.misc.all     import prod, verbose
 from sage.rings.all    import (Integer, ZZ, QQ, is_CommutativeRing, prime_divisors,
-                            kronecker, PolynomialRing, GF, next_prime, LCM)
+                            kronecker, PolynomialRing, GF, next_prime, lcm, gcd)
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
@@ -226,6 +226,8 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.rings.rational_field import is_RationalField
 from sage.misc.mrange import cartesian_product_iterator
+
+from sage.misc.cachefunc import cached_method
 
 cache = {}
 
@@ -647,7 +649,8 @@ class BrandtModule_class(AmbientHeckeModule):
         self.__order_of_level_N = R
         return R
 
-    def cyclic_supermodules(self, I, p):
+    #@cached_method
+    def cyclic_submodules(self, I, p):
         """
         Return a list of rescaled versions of the fractional right
         ideals `J` such that `J` contains `I` and the quotient has
@@ -667,16 +670,16 @@ class BrandtModule_class(AmbientHeckeModule):
 
             sage: B = BrandtModule(11)
             sage: I = B.order_of_level_N().unit_ideal()
-            sage: B.cyclic_supermodules(I, 2)
+            sage: B.cyclic_submodules(I, 2)
             [Fractional ideal (1/2 + 3/2*j + k, 1/2*i + j + 1/2*k, 2*j, 2*k),
              Fractional ideal (1/2 + 1/2*i + 1/2*j + 1/2*k, i + k, j + k, 2*k),
              Fractional ideal (1/2 + 1/2*j + k, 1/2*i + j + 3/2*k, 2*j, 2*k)]
-            sage: B.cyclic_supermodules(I, 3)
+            sage: B.cyclic_submodules(I, 3)
             [Fractional ideal (1/2 + 1/2*j, 1/2*i + 5/2*k, 3*j, 3*k),
              Fractional ideal (1/2 + 3/2*j + 2*k, 1/2*i + 2*j + 3/2*k, 3*j, 3*k),
              Fractional ideal (1/2 + 3/2*j + k, 1/2*i + j + 3/2*k, 3*j, 3*k),
              Fractional ideal (1/2 + 5/2*j, 1/2*i + 1/2*k, 3*j, 3*k)]
-            sage: B.cyclic_supermodules(I, 11)
+            sage: B.cyclic_submodules(I, 11)
             Traceback (most recent call last):
             ...
             ValueError: p must be coprime to the level
@@ -694,10 +697,10 @@ class BrandtModule_class(AmbientHeckeModule):
         # step 1: Compute alpha, beta, and the matrix of their action on I/pI.
         # NOTE: Move this code to orders once we have it all working...
         try:
-            alpha, beta = self.__cyclic_supermodules[p]
+            alpha, beta = self.__cyclic_submodules[p]
             compute = False
         except AttributeError:
-            self.__cyclic_supermodules = {}
+            self.__cyclic_submodules = {}
             compute = True
         except KeyError:
             compute = True
@@ -730,7 +733,7 @@ class BrandtModule_class(AmbientHeckeModule):
                         S = A.quaternion_order(v)
                         break
                 if S is not None: break
-            self.__cyclic_supermodules[p] = (alpha, beta)
+            self.__cyclic_submodules[p] = (alpha, beta)
 
         # right multiplication by X changes something to be written
         # in terms of the basis for I.
@@ -786,39 +789,120 @@ class BrandtModule_class(AmbientHeckeModule):
                 if len(answer) == p+1: break
         return answer
 
-    def _compute_hecke_matrix(self, n, sparse=False):
+    def hecke_matrix(self, n, algorithm='default', sparse=False, B=None):
         """
-        Return matrix of the n-th Hecke operator on self.  The matrix
-        is always computed using the Brandt theta series algorithm.
+        Return the matrix of the n-th Hecke operator.
 
         INPUT:
-            - n -- integer
-            - sparse -- bool (default: False); whether matrix should be sparse
+
+            - `n` -- integer
+
+            - ``algorithm`` -- string (default: 'default')
+
+                   - 'default' -- let Sage guess which algorithm is best
+
+                   - 'direct' -- use cyclic subideals (generally much
+                     better when you want few Hecke operators and the
+                     dimension is very large); uses 'theta' if n divides
+                     the level.
+
+                   - 'brandt' -- use Brandt matrices (generally much
+                     better when you want many Hecke operators and the
+                     dimension is very small; bad when the dimension
+                     is large)
+
+            - ``sparse`` -- bool (default: False)
+
+            - `B` -- integer or None (default: None); in direct algorithm,
+              use theta series to this precision as an initial check for
+              equality of ideal classes.
+
+        EXAMPLES::
+
+            sage: B = BrandtModule(3,7); B.hecke_matrix(2)
+            [0 3]
+            [1 2]
+            sage: B.hecke_matrix(5, algorithm='brandt')
+            [0 6]
+            [2 4]
+            sage: t = B.hecke_matrix(11, algorithm='brandt', sparse=True); t
+            [ 6  6]
+            [ 2 10]
+            sage: type(t)
+            <type 'sage.matrix.matrix_rational_sparse.Matrix_rational_sparse'>
+            sage: B.hecke_matrix(19, algorithm='direct', B=2)
+            [ 8 12]
+            [ 4 16]
+        """
+        n = ZZ(n)
+        if n <= 0:
+            raise IndexError, "n must be positive."
+        if not self._hecke_matrices.has_key(n):
+            if algorithm == 'default':
+                try: pr = len(self.__brandt_series_vectors[0][0])
+                except (AttributeError, IndexError): pr = 0
+                if n <= pr:
+                    # already trivially know the hecke operator in this case
+                    algorithm = 'brandt'
+                if algorithm == 'default':  # still don't know
+                    algorithm = 'direct'
+
+            if self.level().gcd(n) != 1:
+                algorithm = 'brandt'
+
+            if algorithm == 'direct':
+                T = self._compute_hecke_matrix(n, sparse=sparse, B=B)
+            elif algorithm == 'brandt':
+                T = self._compute_hecke_matrix_brandt(n, sparse=sparse)
+            else:
+                raise ValueError, "unknown algorithm '%s'"%algorithm
+            T.set_immutable()
+            self._hecke_matrices[n] = T
+        return self._hecke_matrices[n]
+
+
+    def _compute_hecke_matrix_prime(self, p, sparse=False, B=None):
+        """
+        Return matrix of the `p`-th Hecke operator on self.  The matrix
+        is always computed using the direct algorithm.
+
+        INPUT:
+
+            - `p` -- prime number
+
+            - `B` -- integer or None (default: None); in direct algorithm,
+              use theta series to this precision as an initial check for
+              equality of ideal classes.
+
+            - ``sparse`` -- bool (default: False); whether matrix should be sparse
 
         EXAMPLES::
 
             sage: B = BrandtModule(37)
-            sage: t = B._compute_hecke_matrix(2); t
+            sage: t = B._compute_hecke_matrix_prime(2); t
             [1 1 1]
             [1 0 2]
             [1 2 0]
             sage: type(t)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
-            sage: type(B._compute_hecke_matrix(2,sparse=True))
+            sage: type(B._compute_hecke_matrix_prime(2,sparse=True))
             <type 'sage.matrix.matrix_rational_sparse.Matrix_rational_sparse'>
         """
-        return self._compute_hecke_matrix_brandt(n, sparse=sparse)
+        return self._compute_hecke_matrix_directly(n=p,B=B,sparse=sparse)
+
 
     def _compute_hecke_matrix_directly(self, n, B=None, sparse=False):
         """
-        Given an integer n coprime to the level, return the matrix of
+        Given an integer `n` coprime to the level, return the matrix of
         the n-th Hecke operator on self, computed on our fixed basis
         by directly using the definition of the Hecke action in terms
         of fractional ideals.
 
         INPUT:
-            - n -- integer, coprime to level
-            - sparse -- bool (default: False); whether matrix should be sparse
+
+            - `n` -- integer, coprime to level
+
+            - ``sparse`` -- bool (default: False); whether matrix should be sparse
 
         EXAMPLES::
             sage: B = BrandtModule(37)
@@ -840,7 +924,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         The generic function (which uses theta series) does work, though::
 
-            sage: B._compute_hecke_matrix(37)
+            sage: B.hecke_matrix(37)
             [1 0 0]
             [0 0 1]
             [0 1 0]
@@ -873,6 +957,79 @@ class BrandtModule_class(AmbientHeckeModule):
 
         T = matrix(self.base_ring(), self.dimension(), sparse=sparse)
         C = self.right_ideals()
+        theta_dict = self._theta_dict(B)
+        # I think the runtime of this algorithm is now dominated by
+        # computing theta series of ideals.  The computation of
+        # cyclic submodules is a lower order term.
+        q = self._smallest_good_prime()
+        d = lcm([a.denominator() for a in self.order_of_level_N().basis()])
+
+        # TODO: temporary!! -- it's not sufficiently *optimized* to be
+        # sure this is best in these cases.
+        #if gcd(2*d*q,n) == 1:
+        #    use_fast_alg = True
+        #else:
+        #    use_fast_alg = False
+
+        use_fast_alg = False
+
+        last_percent = 0
+        for r in range(len(C)):
+            percent_done = 100*r//len(C)
+            if percent_done != last_percent:
+                if percent_done%5 == 0:
+                    verbose("percent done: %s"%percent_done)
+                last_percent = percent_done
+            if use_fast_alg:
+                v = C[r].cyclic_right_subideals(n)
+            else:
+                v = self.cyclic_submodules(C[r], n)
+            for J in v:
+                J_theta = tuple(J.theta_series_vector(B))
+                v = theta_dict[J_theta]
+                if len(v) == 1:
+                    T[r,v[0]] += 1
+                else:
+                    for i in v:
+                        if C[i].is_equivalent(J, 0):
+                            T[r,i] += 1
+                            break
+        return T
+
+    @cached_method
+    def _theta_dict(self, B):
+        """
+        Return a dictionary from theta series vectors of degree `B` to
+        list of integers `i`, where the key is the vector of
+        coefficients of the normalized theta series of the `i`th right
+        ideal, as indexed by ``self.right_ideals()``.
+
+        INPUT:
+
+           - `B` -- positive integer, precision of theta series vectors
+
+        OUTPUT:
+
+           - dictionary
+
+        EXAMPLES::
+
+        In this example the theta series determine the ideal classes::
+
+            sage: B = BrandtModule(5,11); B
+            Brandt module of dimension 4 of level 5*11 of weight 2 over Rational Field
+            sage: sorted(list(B._theta_dict(5).iteritems()))
+            [((1, 0, 0, 4, 0), [3]),
+             ((1, 0, 0, 4, 2), [2]),
+             ((1, 0, 2, 0, 6), [1]),
+             ((1, 2, 4, 0, 6), [0])]
+
+        In this example, the theta series does not determine the ideal class::
+
+             sage: sorted(list(BrandtModule(37)._theta_dict(6).iteritems()))
+             [((1, 0, 2, 2, 6, 4), [1, 2]), ((1, 2, 2, 4, 2, 4), [0])]
+        """
+        C = self.right_ideals()
         theta_dict = {}
         for i in range(len(C)):
            I_theta = tuple(C[i].theta_series_vector(B))
@@ -880,14 +1037,7 @@ class BrandtModule_class(AmbientHeckeModule):
                theta_dict[I_theta].append(i)
            else:
                theta_dict[I_theta] = [i]
-        for r in range(len(C)):
-            for J in self.cyclic_supermodules(C[r], n):
-                J_theta = tuple(J.theta_series_vector(B))
-                for i in theta_dict[J_theta]:
-                    if C[i].is_equivalent(J, 0):
-                        T[r,i] += 1
-                        break
-        return T
+        return theta_dict
 
     def _compute_hecke_matrix_brandt(self, n, sparse=False):
         """
@@ -935,6 +1085,22 @@ class BrandtModule_class(AmbientHeckeModule):
                 Bmat[i,j] = K(B[j][i][n])
         return Bmat
 
+    @cached_method
+    def _smallest_good_prime(self):
+        """
+        Return the smallest prime number that does not divide the level.
+
+        EXAMPLES::
+
+            sage: BrandtModule(17,6)._smallest_good_prime()
+            5
+        """
+        level = self.level()
+        p = ZZ(2)
+        while level % p == 0:
+            p = next_prime(p)
+        return p
+
     def right_ideals(self, B=None):
         """
         Return sorted tuple of representatives for the equivalence
@@ -961,11 +1127,8 @@ class BrandtModule_class(AmbientHeckeModule):
         """
         try: return self.__right_ideals
         except AttributeError: pass
-        level = self.level()
-        p = 2
-        while level % p == 0:
-            p = next_prime(p)
 
+        p = self._smallest_good_prime()
         R = self.order_of_level_N()
         I = R.unit_ideal()
         I = R.right_ideal([4*x for x in I.basis()])
@@ -984,7 +1147,7 @@ class BrandtModule_class(AmbientHeckeModule):
             got_something_new = False
             newly_computed_ideals = []
             for I in new_ideals:
-                L = self.cyclic_supermodules(I, p)
+                L = self.cyclic_submodules(I, p)
                 for J in L:
                     is_new = True
                     J_theta = tuple(J.theta_series_vector(B))
@@ -1010,6 +1173,7 @@ class BrandtModule_class(AmbientHeckeModule):
         ideals = tuple(sorted(ideals))
         self.__right_ideals = ideals
         return ideals
+
 
     def _ideal_products(self):
         """
@@ -1220,7 +1384,7 @@ class BrandtModule_class(AmbientHeckeModule):
         # Normalize e by making all entries integral so that the common gcd is 1.
         e = e * e.denominator()
         # then divide by the LCM.
-        e = e / LCM(list(e))
+        e = e / lcm(list(e))
         # Then the denominators are the monodromy weights.
         w = tuple([z.denominator() for z in e])
         self.__monodromy_weights = w
@@ -1314,7 +1478,35 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: parent(x)
             Brandt module of dimension 3 of level 37 of weight 2 over Rational Field
         """
+        if isinstance(x, BrandtModuleElement):
+            x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
+
+    def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: B = BrandtModule(13,5)
+            sage: B.0
+            (1, 0, 0, 0, 0, 0)
+            sage: B.0 == B.1
+            False
+            sage: B.0 == 0
+            False
+            sage: B(0) == 0
+            True
+            sage: B.0 + 2*B.1 == 2*B.1 + B.0
+            True
+            sage: loads(dumps(B.0)) == B.0
+            True
+        """
+        if not isinstance(other, BrandtModuleElement):
+            other = self.parent()(other)
+        else:
+            c = cmp(self.parent(), other.parent())
+            if c: return c
+        return cmp(self.element(), other.element())
+
 
     def monodromy_pairing(self, x):
         """

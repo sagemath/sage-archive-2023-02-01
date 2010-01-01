@@ -1,4 +1,4 @@
-"""
+r"""
 Elements of the ring `\ZZ` of integers
 
 AUTHORS:

@@ -124,7 +124,7 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     h = len(rqf) # class number
     c1 = 3.05682737291380 # log(2*10.63)
-    c2 = sum([1/RR(qf.a) for qf in rqf], RR(0))
+    c2 = sum([1/RR(qf[0]) for qf in rqf], RR(0))
     prec =  c2*RR(3.142)*RR(D).abs().sqrt() + h*c1  # bound on log
     prec = prec * 1.45   # bound on log_2 (1/log(2) = 1.44..)
     prec = 10 + prec.ceil()  # allow for rounding error

@@ -320,7 +320,7 @@ class PeriodLattice_ell(PeriodLattice):
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
             sage: L.elliptic_exponential(L(Q))
-            (3.00000000000000 : 5.00000000000000 : 1.00000000000000)
+            (2.99999999999999 : 4.99999999999998 : 1.00000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1079,22 +1079,23 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-        - ``z`` (complex) -- A complex number (viewed modulo this periodlattice).
+        - ``z`` (complex) -- A complex number (viewed modulo this period lattice).
 
         - ``to_curve`` (bool, default True):  see below.
 
         OUTPUT:
 
         (Either an elliptic curve points, or a 2-tuple of real or
-        complex numbers) The elliptic exponential of `z` modulo this
+        complex numbers). The elliptic exponential of `z` modulo this
         period lattice.  If ``to_curve`` is False this is the pair
         `(x,y) = (\wp(z),\wp'(z))` where $\wp$ denotes the Weierstrass
         function with respect to this lattice.  If ``to_curve`` is
-        True it is the the point with coordinates
+        True it is the point with coordinates
         `(x-b_2/12,y-(a_1(x-b_2/12)-a_3)/2)` as a point in `E(\CC)`.
 
         If the lattice is real and `z` is also real then the output is
-        a pair of real numbers (respectively, a point in `E(\RR)`.
+        a pair of real numbers (if ``to_curve`` is True), or a point in
+        `E(\RR)` if ``to_curve`` is False.
 
         .. note::
 
@@ -1108,7 +1109,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: z = L(P); z
             2.65289807021917
             sage: L.elliptic_exponential(z)
-            (1.83186799063151e-15 : 2.00000000000000 : 1.00000000000000)
+            (1.06844510091205e-15 : 2.00000000000000 : 1.00000000000000)
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,False)
@@ -1116,7 +1117,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: z = L(P,prec=200); z
             2.6528980702191653584337189314791830484705213985544997536510
             sage: L.elliptic_exponential(z)
-            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (-1.0773137765183430387827930528831385613292568270511670949401e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
         """
         C = z.parent()
         z_is_real = False
@@ -1137,32 +1138,42 @@ class PeriodLattice_ell(PeriodLattice):
         prec = C.precision()
 
         from sage.libs.all import pari
-        pxy = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
+
+        w = pari(z)
+        E = self.curve()
+
+        # Using ellztopoint works a lot better than using ellwp, e.g.,
+        # it takes care of the case when pxy = "point at infinity"
+        # cleanly.
+        pxy = E.pari_curve(prec).ellztopoint(w)
+        if len(pxy) == 1:
+            # It's the point at infinity
+            if to_curve:
+                return E.change_ring(C)(0)
+            return (C('+infinity'),C('+infinity'))
 
         # NB converting the pari values to Sage values might land up
         # in real/complex fields of spuriously higher precision than
         # the input, since pari's precision is in word-size chunks.
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
-
         x,y = [C(t.real().python(),t.imag().python()) for t in pxy]
-
-        if to_curve:
-            a1 = self.embedding(self.E.a1())
-            a3 = self.embedding(self.E.a3())
-            b2 = self.embedding(self.E.b2())
-            x -= b2/12
-            y -= (a1*x+a3)/2
-            if self.real_flag and z_is_real:
-                x = x.real()
-                y = y.real()
-            K = x.parent()
-            return self.E.change_ring(K).point((x,y,K(1)), check=False)
 
         if self.real_flag and z_is_real:
             x = x.real()
             y = y.real()
-        return (x,y)
+
+        K = x.parent()
+
+        if to_curve:
+            return E.change_ring(K).point((x,y,K(1)), check=False)
+        else:
+            a1 = self.embedding(self.E.a1())
+            a3 = self.embedding(self.E.a3())
+            b2 = self.embedding(self.E.b2())
+            xnew = x + b2/12
+            ynew = y + (a1*x+a3)/2
+            return (xnew,ynew)
 
 def reduce_tau(tau):
     r"""

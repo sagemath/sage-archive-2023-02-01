@@ -683,7 +683,7 @@ class HeckeOperator(HeckeAlgebraElement):
         """
         return self.__n
 
-    def matrix(self):
+    def matrix(self, *args, **kwds):
         """
         Return the matrix underlying this Hecke operator.
 
@@ -698,7 +698,7 @@ class HeckeOperator(HeckeAlgebraElement):
         try:
             return self.__matrix
         except AttributeError:
-            self.__matrix = self.parent().hecke_matrix(self.__n)
+            self.__matrix = self.parent().hecke_matrix(self.__n, *args, **kwds)
             return self.__matrix
 
     def matrix_form(self):

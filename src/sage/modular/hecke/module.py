@@ -112,7 +112,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         raise NotImplementedError, "Derived class %s should implement __cmp__" % type(self)
 
-    def _compute_hecke_matrix_prime_power(self, p, r):
+    def _compute_hecke_matrix_prime_power(self, p, r, **kwds):
         r"""
         Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that
         `T_p` is known. This is carried out by recursion.
@@ -148,7 +148,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         Tpr2 = self._hecke_matrices[pow/p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
 
-    def _compute_hecke_matrix_general_product(self, F):
+    def _compute_hecke_matrix_general_product(self, F, **kwds):
         r"""
         Compute the matrix of a general Hecke operator acting on this space, by
         factorising n into prime powers and multiplying together the Hecke
@@ -185,7 +185,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         return self.hecke_matrix(n).transpose()
 
-    def _compute_hecke_matrix(self, n):
+    def _compute_hecke_matrix(self, n, **kwds):
         r"""
         Compute the matrix of the Hecke operator `T_n` acting on self.
 
@@ -204,16 +204,16 @@ class HeckeModule_generic(sage.modules.module.Module):
             return Mat(1)
 
         if arith.is_prime(n):
-            return self._compute_hecke_matrix_prime(n)
+            return self._compute_hecke_matrix_prime(n, **kwds)
 
         F = arith.factor(n)
         if len(F) == 1:  # nontrivial prime power case
-            return self._compute_hecke_matrix_prime_power(F[0][0],F[0][1])
+            return self._compute_hecke_matrix_prime_power(F[0][0],F[0][1], **kwds)
 
         else:
-            return self._compute_hecke_matrix_general_product(F)
+            return self._compute_hecke_matrix_general_product(F, **kwds)
 
-    def _compute_hecke_matrix_prime(self, p):
+    def _compute_hecke_matrix_prime(self, p, **kwds):
         """
         Compute and return the matrix of the p-th Hecke operator for p prime.
         Derived classes should overload this function, and they will inherit
@@ -1296,7 +1296,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def hecke_operator(self, n):
         """
-        Returns the `n^{th}` Hecke operator `T_n`.
+        Returns the `n`-th Hecke operator `T_n`.
 
         INPUT:
 

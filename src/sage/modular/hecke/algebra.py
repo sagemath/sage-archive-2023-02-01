@@ -574,7 +574,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         self.__hecke_operator[n] = T
         return T
 
-    def hecke_matrix(self, n):
+    def hecke_matrix(self, n, *args, **kwds):
         """
         Return the matrix of the n-th Hecke operator `T_n`.
 
@@ -586,7 +586,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             [   0  -24    0]
             [4860    0 2049]
         """
-        return self.__M.hecke_matrix(n)
+        return self.__M.hecke_matrix(n, *args, **kwds)
 
 
 class HeckeAlgebra_full(HeckeAlgebra_base):

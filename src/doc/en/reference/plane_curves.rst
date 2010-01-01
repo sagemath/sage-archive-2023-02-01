@@ -15,6 +15,7 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/ell_generic
    sage/schemes/elliptic_curves/ell_field
    sage/schemes/elliptic_curves/ell_rational_field
+   sage/schemes/elliptic_curves/heegner
    sage/schemes/elliptic_curves/ec_database
    sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/ell_finite_field

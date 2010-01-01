@@ -38,3 +38,5 @@ from ec_database import elliptic_curves
 from kodaira_symbol import KodairaSymbol
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
+
+from heegner import heegner_points, heegner_point

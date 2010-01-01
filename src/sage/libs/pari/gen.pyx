@@ -6032,9 +6032,13 @@ cdef class gen(sage.structure.element.RingElement):
             [0]
         """
         t0GEN(z)
+        try:
+            dprec = prec_words_to_dec(z.precision())
+        except AttributeError:
+            dprec = prec
         _sig_on
         # the prec argument has no effect
-        return self.new_gen(pointell(self.g, t0, prec))
+        return self.new_gen(pointell(self.g, t0, dprec))
 
     def omega(self):
         """

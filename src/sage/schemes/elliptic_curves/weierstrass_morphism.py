@@ -534,7 +534,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         if P[2] == 0:
             return self._codomain_curve(0)
         else:
-            return self._codomain_curve(baseWI.__call__(self,P.xy()))
+            return self._codomain_curve.point(baseWI.__call__(self,tuple(P._coords)), check=False)
 
     def __invert__(self):
         r"""

@@ -26,7 +26,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+##############################################################################
 #       Copyright (C) 2005,2006,2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -39,7 +39,7 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+##############################################################################
 
 import ell_point
 import formal_group
@@ -50,7 +50,6 @@ from ell_number_field import EllipticCurve_number_field
 import sage.groups.all
 import sage.rings.arith as arith
 import sage.rings.all as rings
-import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
 from sage.misc.all import verbose
 import sage.modular.modform.constructor
@@ -77,6 +76,8 @@ import padic_lseries
 import padics
 from sage.rings.padics.precision_error import PrecisionError
 
+import heegner
+
 from lseries_ell import Lseries_ell
 
 import mod5family
@@ -87,7 +88,6 @@ from sage.rings.all import (
     infinity as oo,
     ZZ, QQ,
     Integer,
-    Integers,
     IntegerRing, RealField,
     ComplexField, RationalField)
 
@@ -101,13 +101,14 @@ import ell_tate_curve
 factor = arith.factor
 mul = misc.mul
 next_prime = arith.next_prime
-kronecker_symbol = arith.kronecker_symbol
 
 Q = RationalField()
 C = ComplexField()
 R = RealField()
 Z = IntegerRing()
 IR = rings.RealIntervalField(20)
+
+from sage.misc.cachefunc import cached_method
 
 _MAX_HEIGHT=21
 
@@ -2336,7 +2337,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
 
-    def point_search(self, height_limit, verbose=True):
+    def point_search(self, height_limit, verbose=False):
         """
         Search for points on a curve up to an input bound on the naive
         logarithmic height.
@@ -2349,7 +2350,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``or mwrank overflows`` - see below)
 
-        -  ``verbose (bool)`` - (default: True)
+        -  ``verbose (bool)`` - (default: False)
 
            If True, report on each point as found together with linear
            relations between the points found and the saturation process.
@@ -2899,22 +2900,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P = E([0,2])
             sage: z = P.elliptic_logarithm() # default precision is 100 here
             sage: E.elliptic_exponential(z)
-            (-1.6171648557030742010940435588e-29 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            (-7.4445166218537606141680653627e-30 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
             sage: z = E([0,2]).elliptic_logarithm(precision=200)
             sage: E.elliptic_exponential(z)
-            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (-1.0773137765183430387827930528831385613292568270511670949401e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
 
         ::
 
             sage: E = EllipticCurve('389a')
-            sage: Q=E([3,5])
+            sage: Q = E([3,5])
             sage: E.elliptic_exponential(Q.elliptic_logarithm())
             (3.0000000000000000000000000000 : 5.0000000000000000000000000000 : 1.0000000000000000000000000000)
             sage: P = E([-1,1])
             sage: P.elliptic_logarithm()
             0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
             sage: E.elliptic_exponential(P.elliptic_logarithm())
-            (-1.0000000000000000000000000000 : 1.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            (-1.0000000000000000000000000000 + 4.3761255281366123414673626379e-31*I : 1.0000000000000000000000000000 - 1.4587084969798853407242847702e-31*I : 1.0000000000000000000000000000)
+
 
         Some torsion examples::
 
@@ -2922,7 +2924,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.two_division_polynomial().roots(CC,multiplicities=False)
             [-2.0403022002854..., 0.13540924022175..., 0.90489296006371...]
             sage: [E.elliptic_exponential((a*w1+b*w2)/2)[0] for a,b in [(0,1),(1,1),(1,0)]]
-            [-2.04030220028546, 0.135409240221753, 0.904892960063711]
+            [-2.0403022002854..., 0.13540924022175..., 0.90489296006371...]
 
             sage: E.division_polynomial(3).roots(CC,multiplicities=False)
             [-2.88288879135...,
@@ -2930,10 +2932,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.078313731444316... - 0.492840991709...*I,
             0.078313731444316... + 0.492840991709...*I]
             sage: [E.elliptic_exponential((a*w1+b*w2)/3)[0] for a,b in [(0,1),(1,0),(1,1),(2,1)]]
-            [-2.88288879135335,
-            1.39292799513138,
-            0.0783137314443165 - 0.492840991709879*I,
-            0.0783137314443168 + 0.492840991709879*I]
+            [-2.8828887913533..., 1.39292799513138,
+            0.0783137314443... - 0.492840991709...*I,
+            0.0783137314443... + 0.492840991709...*I]
 
         Observe that this is a group homomorphism (modulo rounding error)::
 
@@ -3241,7 +3242,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [-7 -1]
             [15  2]
             sage: phi((-7*z-1)/(15*z+2))
-            (8.20822465478524 - 13.1562816054681*I : -8.79855099049339 + 69.4006129342195*I : 1.00000000000000)
+            (8.20822465478524 - 13.1562816054681*I : -8.79855099049... + 69.4006129342...*I : 1.00000000000000)
 
         We can also get a series expansion of this modular parameterization::
 
@@ -3588,12 +3589,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 ##         """
 ##         raise NotImplementedError
 
-    def root_number(self):
+    @cached_method
+    def root_number(self, p=None):
         """
         Returns the root number of this elliptic curve.
 
         This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
+
+        INPUT::
+
+             - `p` -- optional, default (None); if given, return the local
+                      root number at `p`
 
         EXAMPLES::
 
@@ -3603,12 +3610,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             -1
             sage: EllipticCurve('389a1').root_number()
             1
+            sage: type(EllipticCurve('389a1').root_number())
+            <type 'sage.rings.integer.Integer'>
+
+            sage: E = EllipticCurve('100a1')
+            sage: E.root_number(2)
+            -1
+            sage: E.root_number(5)
+            1
+            sage: E.root_number(7)
+            1
+
+        The root number is cached::
+
+            sage: E.root_number(2) is E.root_number(2)
+            True
+            sage: E.root_number()
+            1
         """
-        try:
-            return self.__root_number
-        except AttributeError:
-            self.__root_number = int(self.pari_mincurve().ellrootno())
-        return self.__root_number
+        e = self.pari_mincurve()
+        if p is None:
+            return Integer(e.ellrootno())
+        else:
+            return Integer(e.ellrootno(p))
 
     def has_cm(self):
         """
@@ -5012,8 +5036,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     ########################################################################
-    # Functions related to bounding the order of Sha (provably correctly!)
-    # Heegner points and Kolyvagin's theorem
+    # The Shafarevich-Tate group
     ########################################################################
 
     def sha(self):
@@ -5041,813 +5064,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__sha = Sha(self)
             return self.__sha
 
-    def satisfies_heegner_hypothesis(self, D):
-        """
-        Returns True precisely when D is a fundamental discriminant that
-        satisfies the Heegner hypothesis for this elliptic curve.
+    #################################################################################
+    # Functions related to Heegner points#################################################################################
+    heegner_point = heegner.ell_heegner_point
+    kolyvagin_point = heegner.kolyvagin_point
 
-        EXAMPLES::
+    heegner_discriminants = heegner.ell_heegner_discriminants
+    heegner_discriminants_list = heegner.ell_heegner_discriminants_list
+    satisfies_heegner_hypothesis = heegner.satisfies_heegner_hypothesis
 
-            sage: E = EllipticCurve('11a1')
-            sage: E.satisfies_heegner_hypothesis(-7)
-            True
-            sage: E.satisfies_heegner_hypothesis(-11)
-            False
-        """
-        if not number_field.is_fundamental_discriminant(D):
-            return False
-        if arith.GCD(D, self.conductor()) != 1:
-            return False
-        for p, _ in factor(self.conductor()):
-            if kronecker_symbol(D,p) != 1:
-                return False
-        return True
+    heegner_point_height = heegner.heegner_point_height
 
-    def heegner_discriminants(self, bound):
-        """
-        Return the list of self's Heegner discriminants between -1 and
-        -bound.
+    heegner_index = heegner.heegner_index
+    _adjust_heegner_index = heegner._adjust_heegner_index
+    heegner_index_bound = heegner.heegner_index_bound
+    _heegner_index_in_EK = heegner._heegner_index_in_EK
 
-        INPUT:
+    heegner_sha_an = heegner.heegner_sha_an
 
-
-        -  ``bound (int)`` - upper bound for -discriminant
-
-
-        OUTPUT: The list of Heegner discriminants between -1 and -bound for
-        the given elliptic curve.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve('11a')
-            sage: E.heegner_discriminants(30)
-            [-7, -8, -19, -24]
-        """
-        return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
-
-    def heegner_discriminants_list(self, n):
-        """
-        Return the list of self's first n Heegner discriminants smaller
-        than -5.
-
-        INPUT:
-
-
-        -  ``n (int)`` - the number of discriminants to
-           compute
-
-
-        OUTPUT: The list of the first n Heegner discriminants smaller than
-        -5 for the given elliptic curve.
-
-        EXAMPLE::
-
-            sage: E=EllipticCurve('11a')
-            sage: E.heegner_discriminants_list(4)
-            [-7, -8, -19, -24]
-        """
-        v = []
-        D = -5
-        while len(v) < n:
-            while not self.satisfies_heegner_hypothesis(D):
-                D -= 1
-            v.append(D)
-            D -= 1
-        return v
-
-    def heegner_point_height(self, D, prec=2):
-        """
-        Use the Gross-Zagier formula to compute the Neron-Tate canonical
-        height over K of the Heegner point corresponding to D, as an
-        Interval (since it's computed to some precision using
-        L-functions).
-
-        INPUT:
-
-
-        -  ``D (int)`` - fundamental discriminant (=/= -3, -4)
-
-        -  ``prec (int)`` - (default: 2), use prec\*sqrt(N) +
-           20 terms of L-series in computations, where N is the conductor.
-
-
-        OUTPUT: Interval that contains the height of the Heegner point.
-
-        EXAMPLE::
-
-            sage: E = EllipticCurve('11a')
-            sage: E.heegner_point_height(-7)
-            0.22227?
-        """
-
-        if not self.satisfies_heegner_hypothesis(D):
-            raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
-        if D == -3 or D == -4:
-            raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
-        eps = self.root_number()
-        L1_vanishes = self.lseries().L1_vanishes()
-        if eps == 1 and L1_vanishes:
-            return IR(0) # rank even hence >= 2, so Heegner point is torsion.
-        alpha = R(sqrt(abs(D)))/(2*self.period_lattice().complex_area())
-        F = self.quadratic_twist(D)
-        E = self
-        k_E = prec*sqrt(E.conductor()) + 20
-        k_F = prec*sqrt(F.conductor()) + 20
-
-        MIN_ERR = R('1e-6')  # we assume that regulator and
-                             # discriminant, etc., computed to this accuracy (which is easily the case).
-                             # this should be made more intelligent / rigorous relative
-                             # to the rest of the system.
-        if eps == 1:   # E has even rank
-            LF1, err_F = F.lseries().deriv_at1(k_F)
-            LE1, err_E = E.lseries().at1(k_E)
-            err_F = max(err_F, MIN_ERR)
-            err_E = max(err_E, MIN_ERR)
-            return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
-
-        else:          # E has odd rank
-            LE1, err_E = E.lseries().deriv_at1(k_E)
-            LF1, err_F = F.lseries().at1(k_F)
-            err_F = max(err_F, MIN_ERR)
-            err_E = max(err_E, MIN_ERR)
-            return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
-
-
-    def heegner_index(self, D,  min_p=2, prec=5, verbose=False):
-        r"""
-        Return an interval that contains the index of the Heegner
-        point `y_K` in the group of K-rational points modulo torsion
-        on this elliptic curve, computed using the Gross-Zagier
-        formula and/or a point search, or the index divided by `2`.
-
-        .. note::
-
-           If ``min_p`` is bigger than 2 then the index can be off by
-           any prime less than ``min_p``. This function returns the
-           index divided by `2` exactly when
-           `E(\QQ)_{/tor}` has index `2` in
-           `E(K)_{/tor}`.
-
-        INPUT:
-
-
-        -  ``D (int)`` - Heegner discriminant
-
-        -  ``min_p (int)`` - (default: 2) only rule out primes
-           = min_p dividing the index.
-
-        -  ``verbose (bool)`` - (default: False); print lots of
-           mwrank search status information when computing regulator
-
-        -  ``prec (int)`` - (default: 5), use prec\*sqrt(N) +
-           20 terms of L-series in computations, where N is the conductor.
-
-
-        OUTPUT: an interval that contains the index
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a')
-            sage: E.heegner_discriminants(50)
-            [-7, -8, -19, -24, -35, -39, -40, -43]
-            sage: E.heegner_index(-7)
-            1.00000?
-
-        ::
-
-            sage: E = EllipticCurve('37b')
-            sage: E.heegner_discriminants(100)
-            [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
-            sage: E.heegner_index(-95)          # long time (1 second)
-            2.00000?
-
-        This tests doing direct computation of the Mordell-Weil group.
-
-        ::
-
-            sage: EllipticCurve('675b').heegner_index(-11)
-            3.0000?
-
-        Currently discriminants -3 and -4 are not supported::
-
-            sage: E.heegner_index(-3)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Discriminant (=-3) must not be -3 or -4.
-
-        The curve 681b returns an interval that contains `3/2`.
-        This is because `E(\QQ)` is not saturated in
-        `E(K)`. The true index is `3`::
-
-            sage: E = EllipticCurve('681b')
-            sage: I = E.heegner_index(-8); I
-            1.50000?
-            sage: 2*I
-            3.0000?
-
-        In fact, whenever the returned index has a denominator of
-        `2`, the true index is got by multiplying the returned
-        index by `2`. Unfortunately, this is not an if and only if
-        condition, i.e., sometimes the index must be multiplied by
-        `2` even though the denominator is not `2`.
-        """
-        # First compute upper bound on height of Heegner point.
-        tm = misc.verbose("computing heegner point height...")
-        h0 = self.heegner_point_height(D, prec=prec)
-
-        # We divide by 2 to get the height **over Q** of the
-        # Heegner point on the twist.
-
-        ht = h0/2
-        misc.verbose('Height of heegner point = %s'%ht, tm)
-
-        if self.root_number() == 1:
-            F = self.quadratic_twist(D)
-        else:
-            F = self
-        h  = ht.upper()
-        misc.verbose("Heegner height bound = %s"%h)
-        B = F.CPS_height_bound()
-        misc.verbose("CPS bound = %s"%B)
-        c = h/(min_p**2) + B
-        misc.verbose("Search would have to be up to height = %s"%c)
-
-        if c > _MAX_HEIGHT or F is self:
-            misc.verbose("Doing direct computation of MW group.")
-            reg = F.regulator()
-            return self.__adjust_heegner_index(ht/IR(reg))
-
-        # Do naive search to eliminate possibility that Heegner point
-        # is divisible by p<min_p, without finding Heegner point.
-        misc.verbose("doing point search")
-        P = F.point_search(c, verbose=verbose)
-        misc.verbose("done with point search")
-        P = [x for x in P if x.order() == oo]
-        if len(P) == 0:
-            return IR(1)
-
-        misc.verbose("saturating")
-        S, I, reg = F.saturation(P, verbose=verbose)
-        misc.verbose("done saturating")
-        return self.__adjust_heegner_index(ht/IR(reg))
-
-    def __adjust_heegner_index(self, a):
-        r"""
-        Take the square root of the interval that contains the Heegner
-        index.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: a = RIF(sqrt(2))-1.4142135623730951
-            sage: E._EllipticCurve_rational_field__adjust_heegner_index(a)
-            1.?e-8
-        """
-        if a.lower() < 0:
-            a = IR((0, a.upper()))
-        return a.sqrt()
-
-
-    def heegner_index_bound(self, D=0,  prec=5, verbose=True, max_height=_MAX_HEIGHT):
-        """
-        Assume self has rank 0.
-
-        Return a list v of primes such that if an odd prime p divides
-        the index of the Heegner point in the group of rational points
-        *modulo torsion*, then p is in v.
-
-        If 0 is in the interval of the height of the Heegner point
-        computed to the given prec, then this function returns v =
-        0. This does not mean that the Heegner point is torsion, just
-        that it is very likely torsion.
-
-        If we obtain no information from a search up to max_height,
-        e.g., if the Siksek et al. bound is bigger than max_height,
-        then we return v = -1.
-
-        INPUT:
-
-
-        -  ``D (int)`` - (default: 0) Heegner discriminant; if
-           0, use the first discriminant -4 that satisfies the Heegner
-           hypothesis
-
-        -  ``verbose (bool)`` - (default: True)
-
-        -  ``prec (int)`` - (default: 5), use prec\*sqrt(N) +
-           20 terms of L-series in computations, where N is the conductor.
-
-        -  ``max_height (float)`` - should be = 21; bound on
-           logarithmic naive height used in point searches. Make smaller to
-           make this function faster, at the expense of possibly obtaining a
-           worse answer. A good range is between 13 and 21.
-
-
-        OUTPUT:
-
-
-        -  ``v`` - list or int (bad primes or 0 or -1)
-
-        -  ``D`` - the discriminant that was used (this is
-           useful if D was automatically selected).
-
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: E.heegner_index_bound(verbose=False)
-            ([2], -7)
-        """
-        max_height = min(float(max_height), _MAX_HEIGHT)
-        if self.root_number() != 1:
-            raise RuntimeError, "The rank must be 0."
-
-        if D == 0:
-            D = -5
-            while not self.satisfies_heegner_hypothesis(D):
-                D -= 1
-
-        # First compute upper bound on Height of Heegner point.
-        ht = self.heegner_point_height(D, prec=prec)
-        if 0 in ht:
-            return 0, D
-        F = self.quadratic_twist(D)
-        h  = ht.upper()
-        misc.verbose("Heegner height bound = %s"%h)
-        B = F.CPS_height_bound()
-        misc.verbose("CPS bound = %s"%B)
-        H = h
-        p = 3
-        while True:
-            c = h/(2*p**2) + B
-            if c < max_height:
-                break
-            if p > 100:
-                break
-            p = next_prime(p)
-        misc.verbose("Using p = %s"%p)
-
-        if c > max_height:
-            misc.verbose("No information by searching only up to max_height (=%s)."%c)
-            return -1, D
-
-        misc.verbose("Searching up to height = %s"%c)
-        eps = 10e-5
-
-        def _bound(P):
-            """
-            We will use this function below in two places. It bounds the index
-            using a nontrivial point.
-            """
-            assert len(P) == 1
-
-            S, I, reg = F.saturation(P, verbose=verbose)
-            h = IR(reg-eps,reg+eps)
-            ind2 = ht/(h/2)
-            misc.verbose("index squared = %s"%ind2)
-            ind = ind2.sqrt()
-            misc.verbose("index = %s"%ind)
-            # Compute upper bound on square root of index.
-            if ind.absolute_diameter() < 1:
-                t, i = ind.is_int()
-                if t:   # unique integer in interval, so we've found exact index squared.
-                    return arith.prime_divisors(i), D
-            raise RuntimeError, "Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self,D)
-
-        # First try a quick search, in case we get lucky and find
-        # a generator.
-        P = F.point_search(13, verbose=verbose)
-        P = [x for x in P if x.order() == oo]
-        if len(P) > 0:
-            return _bound(P)
-
-        # Do search to eliminate possibility that Heegner point is
-        # divisible by primes up to p, without finding Heegner point.
-        P = F.point_search(c, verbose=verbose)
-        P = [x for x in P if x.order() == oo]
-        if len(P) == 0:
-            # We've eliminated the possibility of a divisor up to p.
-            return rings.prime_range(3,p), D
-        else:
-            return _bound(P)
-
+    _heegner_forms_list = heegner._heegner_forms_list
+    _heegner_best_tau = heegner._heegner_best_tau
 
     #################################################################################
-    def _heegner_index_in_EK(self, D):
-        """
-        Return the index of the sum of E(QQ)/tor + E^D(QQ)/tor in E(K)/tor.
-
-        INPUT:
-            D -- negative integer; the Heegner discriminant
-
-        OUTPUT:
-            a power of 2 -- the given index
-
-        EXAMPLES:
-        We compute the index for a rank 2 curve and found that it is 2::
-
-            sage: E = EllipticCurve('389a')
-            sage: E._heegner_index_in_EK(-7)
-            2
-
-        We explicitly verify in the above example that indeed that
-        index is divisible by 2 by writing down a generator of
-        E(QQ)/tor + E^D(QQ)/tor that is divisible by 2 in E(K)::
-
-            sage: F = E.quadratic_twist(-7)
-            sage: K = QuadraticField(-7,'a')
-            sage: G = E.change_ring(K)
-            sage: phi = F.change_ring(K).isomorphism_to(G)
-            sage: P = G(E(-1,1)) + G((0,-1)) + G(phi(F(14,25))); P
-            (-867/3872*a - 3615/3872 : -18003/170368*a - 374575/170368 : 1)
-            sage: P.division_points(2)
-            [(1/8*a + 5/8 : -5/16*a - 9/16 : 1)]
-
-        """
-        # check conditions, then use cache if possible.
-        if not self.satisfies_heegner_hypothesis(D):
-            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
-        try:
-            return self.__heegner_index_in_EK[D]
-        except AttributeError:
-            self.__heegner_index_in_EK = {}
-        except KeyError:
-            pass
-
-        #####################################################################
-        # THE ALGORITHM:
-        #
-        # For an element P of an abelian group A, let [P] denote the
-        # equivalence class of P in the quotient A/A_tor of A by
-        # its torsion subgroup.   Then for P in E(Q) + E^D(QQ), we
-        # have that [P] is divisible by 2 in E(K)/tor if and only
-        # there is R in E(K) such that 2*[R] = [P], and this is
-        # only if there is R in E(K) and t in E(K)_tor such that
-        #          2*R = P + t.
-        #
-        # Using complex conjugation, one sees that the quotient
-        # group E(K)/tor / ( E(Q)/tor + E^D(Q)/tor ) is killed by 2.
-        # So to compute the order of this group we run through
-        # representatives P for A/(2A) where A = E(Q)/tor + E^D(Q)/tor,
-        # and for each we see whether there is a torsion point t in E(K)
-        # such that P + t is divisible by 2.   Also, we have
-        #    2 | P+t  <==> 2 | P+n*t for any odd integer n,
-        # so we may assume t is of 2-power order.
-        #####################################################################
-
-        E     = self  # nice shortcut
-        F     = E.quadratic_twist(D).minimal_model()
-        K     = rings.QuadraticField(D,'a')
-
-        # Define a map phi that we'll use to put the points of E^D(QQ)
-        # into E(K):
-        G     = E.change_ring(K)
-        G2    = F.change_ring(K)
-        phi   = G2.isomorphism_to(G)
-
-        # Basis for E(Q)/tor oplus E^D(QQ)/tor in E(K):
-        basis = [G(z) for z in E.gens()] + [G(phi(z)) for z in F.gens()]
-        # Make a list of the 2-power order torsion points in E(K), including 0.
-        T     = [G(z) for z in G.torsion_subgroup().list() if z.order() == 1 or
-                ((z.order() % 2 == 0 and len(z.order().factor()) == 1))]
-
-        r     = len(basis)   # rank
-        V     = rings.QQ**r
-        B     = []
-
-        # Iterate through reps for A/(2*A) creating vectors in (1/2)*ZZ^r
-        for v in rings.GF(2)**r:
-            if not v: continue
-            P = sum([basis[i] for i in range(r) if v[i]])
-            for t in T:
-                if (P+t).is_divisible_by(2):
-                    B.append(V(v)/2)
-
-        A = rings.ZZ**r
-        # Take span of our vectors in (1/2)*ZZ^r, along with ZZ^r.  This is E(K)/tor.
-        W     = V.span(B,rings.ZZ) + A
-
-        # Compute the index in E(K)/tor of A = E(Q)/tor + E^D(Q)/tor, cache, and return.
-        index = A.index_in(W)
-        self.__heegner_index_in_EK[D] = index
-        return index
-
-    def heegner_sha_an(self, D, prec=53):
-        """
-        Return the conjectural (analytic) order of Sha
-
-        INPUT:
-
-        - D -- negative integer; the Heegner discriminant
-
-        - prec -- integer (default: 53); bits of precision to
-          compute analytic order of Sha
-
-        OUTPUT:
-
-        (floating point number) an approximation to the conjectural order of Sha.
-
-        .. note::
-
-           Often you'll want to do ``proof.elliptic_curve(False)`` when
-           using this function, since often the twisted elliptic
-           curves that come up have enormous conductor, and Sha is
-           nontrivial, which makes provably finding the Mordell-Weil
-           group using 2-descent difficult.
-
-
-        EXAMPLES:
-
-        An example where E has conductor 11::
-
-            sage: E = EllipticCurve('11a')
-            sage: E.heegner_sha_an(-7)                                  # long
-            1.00000000000000
-
-        The cache works::
-
-            sage: E.heegner_sha_an(-7) is E.heegner_sha_an(-7)          # long
-            True
-
-        Lower precision::
-
-            sage: E.heegner_sha_an(-7,10)                               # long
-            1.0
-
-        Checking that the cache works for any precision::
-
-            sage: E.heegner_sha_an(-7,10) is E.heegner_sha_an(-7,10)    # long
-            True
-
-        A rank 1 curve with nontrivial Sha over the quadratic
-        imaginary field K; however, there is no Sha for E over QQ or
-        for the quadratic twist of E::
-
-            sage: E = EllipticCurve('37a')
-            sage: E.heegner_sha_an(-40)                                 # long
-            4.00000000000000
-            sage: E.quadratic_twist(-40).sha().an()                     # long
-            1
-            sage: E.sha().an()                                          # long
-            1
-
-        A rank 2 curve::
-
-            sage: E = EllipticCurve('389a')                             # long
-            sage: E.heegner_sha_an(-7)                                  # long
-            1.00000000000000
-
-        If we remove the hypothesis that E(K) has rank 1 in Conjecture
-        2.3 in [Gross-Zagier, 1986, page 311], then that conjecture is
-        false, as the following example shows::
-
-            sage: E = EllipticCurve('65a')                              # long
-            sage: E.heegner_sha_an(-56)                                 # long
-            1.00000000000000
-            sage: E.torsion_order()                                     # long
-            2
-            sage: E.tamagawa_product()                                  # long
-            1
-            sage: E.quadratic_twist(-56).rank()                         # long
-            2
-        """
-        # check conditions, then return from cache if possible.
-        if not self.satisfies_heegner_hypothesis(D):
-            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
-        try:
-            return self.__heegner_sha_an[(D,prec)]
-        except AttributeError:
-            self.__heegner_sha_an = {}
-        except KeyError:
-            pass
-
-        # Use the BSD conjecture over the quadratic imaginary K --
-        # see page 311 of [Gross-Zagier, 1986] for the formula.
-        E   = self  # notational convenience
-        F   = E.quadratic_twist(D).minimal_model()
-        K   = rings.QuadraticField(D,'a')
-
-        # Compute each of the quantities in BSD
-        #  - The torsion subgroup over K.
-        T   = E.change_ring(K).torsion_order()
-
-        #  - The product of the Tamagawa numbers, which because D is
-        #    coprime to N is just the square of the product of the
-        #    Tamagawa numbers over QQ for E.  (we square below in the
-        #    BSD formula)
-        cqprod = E.tamagawa_product()
-
-        #  - The leading term of the L-series, as a product of two
-        #  other L-series.
-        rE  = E.rank()
-        rF = F.rank()
-        L_E = E.lseries().dokchitser(prec).derivative(1, rE)
-        L_F = F.lseries().dokchitser(prec).derivative(1, rF)
-        #    NOTE: The binomial coefficient in the following formula
-        #    for the leading term in terms of the other two leading
-        #    terms comes from the product rule for the derivative.
-        #    You can think this through or just type something like
-        #      f = function('f',x); g = function('g',x); diff(f*g,6)
-        #    into Sage to be convinced.
-        L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
-
-        #  - ||omega||^2 -- the period.  It's twice the volume of the
-        #    period lattice.  See the following paper for a derivation:
-        #    "Verification of the Birch and Swinnerton-Dyer Conjecture
-        #     for Specific Elliptic Curves", G. Grigorov, A. Jorza, S. Patrikis,
-        #     C. Patrascu, W. Stein
-        omega = 2 * abs(E.period_lattice().basis_matrix().det(algorithm="hessenberg"))
-
-        #  - The regulator.
-        #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
-        #    of E(K).   The factor of 2 in the regulator
-        #    accounts for the fact that the height over K is twice the
-        #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =
-        #    2*h_Q(P,P).  See, e.g., equation (6.4) on page 230 of
-        #    [Gross-Zagier, 1986].
-        Reg_prod = 2**(rE + rF) * E.regulator(precision=prec) * F.regulator(precision=prec)
-        #    Next we call off to the _heegner_index_in_EK function, which
-        #    saturates the group E(QQ) + E^D(QQ) in E(K), given us the index,
-        #    which must be a power of 2, since E(QQ) is the +1 eigenspace for
-        #    complex conjugation, and E^D(QQ) is the -1 eigenspace.
-        ind = self._heegner_index_in_EK(D)
-        #    Finally, we know the regulator of E(K).
-        Reg = Reg_prod / ind**2
-
-        #  - Square root of the absolute value of the discriminant.  This is
-        #    easy; we just make sure the D passed in is an integer, so we
-        #    can call sqrt with the chosen precision.
-        sqrtD = Integer(abs(D)).sqrt(prec=prec)
-
-        #  - Done: Finally, we plug everything into the BSD formula to get the
-        #    analytic order of Sha.
-        sha_an = (L * T**2 * sqrtD) / (omega * Reg * cqprod**2)
-
-        #  - We cache and return the answer.
-        self.__heegner_sha_an[(D,prec)] = sha_an
-        return sha_an
-
-    def _heegner_forms_list(self, D, beta=None, expected_count=None):
-        """
-        Returns a list of quadratic forms corresponding to Heegner points
-        with discriminant `D` and a choice of `\beta` a square root of
-        `D` mod `4N`. Specifically, given a quadratic form
-        `f = Ax^2 + Bxy + Cy^2` we let `\tau_f` be a root of `Ax^2 + Bx + C`
-        and the discriminant `\Delta(\tau_f) = \Delta(f) = D` must be
-        invariant under multiplication by `N`, the conductor of self.
-
-            `\Delta(N\tau_f) = \Delta(\tau_f) = \Delta(f) = D`
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a')
-            sage: E._heegner_forms_list(-7)
-            [37*x^2 + 17*x*y + 2*y^2]
-            sage: E._heegner_forms_list(-195)
-            [37*x^2 + 29*x*y + 7*y^2, 259*x^2 + 29*x*y + y^2, 111*x^2 + 177*x*y + 71*y^2, 2627*x^2 + 177*x*y + 3*y^2]
-            sage: E._heegner_forms_list(-195)[-1].discriminant()
-            -195
-            sage: len(E._heegner_forms_list(-195))
-            4
-            sage: QQ[sqrt(-195)].class_number()
-            4
-
-            sage: E = EllipticCurve('389a')
-            sage: E._heegner_forms_list(-7)
-            [389*x^2 + 185*x*y + 22*y^2]
-            sage: E._heegner_forms_list(-59)
-            [389*x^2 + 313*x*y + 63*y^2, 1167*x^2 + 313*x*y + 21*y^2, 3501*x^2 + 313*x*y + 7*y^2]
-        """
-        if expected_count is None:
-            expected_count = number_field.QuadraticField(D, 'a').class_number()
-        N = self.conductor()
-        if beta is None:
-            beta = Integers(4*N)(D).sqrt(extend=False)
-        else:
-            assert beta**2 == Integers(4*N)(D)
-        from sage.quadratic_forms.all import BinaryQF
-        b = ZZ(beta) % (2*N)
-        all = []
-        seen = []
-        # TODO: This may give a sub-optimal list of forms.
-        while True:
-            R = (b**2-D)//(4*N)
-            for d in R.divisors():
-                f = BinaryQF([d*N, b, R//d])
-                fr = f.reduced_form()
-                if fr not in seen:
-                    seen.append(fr)
-                    all.append(f)
-                    if len(all) == expected_count:
-                        return all
-            b += 2*N
-
-    def _heegner_best_tau(self, D, prec=None):
-        """
-        Given a discriminant `D`, find the Heegner point `\tau` in the
-        upper half plane with largest imaginary part (which is optimal
-        for evaluating the modular parametrization). If the optional
-        parameter ``prec`` is given, return `\tau` to ``prec`` bits of
-        precision, otherwise return it exactly as a symbolic object.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a')
-            sage: E._heegner_best_tau(-7)
-            1/74*sqrt(-7) - 17/74
-            sage: EllipticCurve('389a')._heegner_best_tau(-11)
-            1/778*sqrt(-11) - 355/778
-            sage: EllipticCurve('389a')._heegner_best_tau(-11, prec=100)
-            -0.45629820051413881748071979434 + 0.0042630138693514136878083968338*I
-        """
-        # We know that N|A, so A = N is optimal.
-        N = self.conductor()
-        b = ZZ(Integers(4*N)(D).sqrt(extend=False) % (2*N))
-        return (-b + ZZ(D).sqrt(prec=prec)) / (2*N)
-
-    def heegner_point(self, D, prec=None, max_prec=2000):
-        """
-        Returns the heegner point of this curve and the quadratic imaginary
-        field `K=\QQ(\sqrt{D})`. If the optional parameter ``prec`` is given,
-        it is computed with ``prec`` bits of working precision, otherwise it
-        attempts to recognize it exactly over the Hilbert class field of `K`.
-        In this  latter case, the answer is *not* provably correct but a
-        strong consistency check is made.
-
-        INPUT::
-
-            D        -- a Heegner discriminant
-
-            prec     -- (default: None) the working precision
-
-            max_prec -- (default: 2000) the maximum precision to use when
-                        when attempting to compute the Heegner point exactly.
-
-        OUTPUT::
-
-            The heegner point `P` over a number field (if ``prec`` is None) or the complex
-            field to ``prec`` digits of precision.
-
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a')
-            sage: E.heegner_discriminants_list(10)
-            [-7, -11, -40, -47, -67, -71, -83, -84, -95, -104]
-            sage: E.heegner_point(-7)
-            (0 : 0 : 1)
-            sage: P = E.heegner_point(-40); P
-            (a : -a + 1 : 1)
-            sage: P = E.heegner_point(-47); P
-            (a : -a^4 - a : 1)
-            sage: P[0].parent()
-            Number Field in a with defining polynomial x^5 - x^4 + x^3 + x^2 - 2*x + 1
-
-        Working out the details manually::
-
-            sage: P = E.heegner_point(-47, prec=200)
-            sage: f = algdep(P[0], 5); f
-            x^5 - x^4 + x^3 + x^2 - 2*x + 1
-            sage: f.discriminant().factor()
-            47^2
-        """
-        D = ZZ(D)
-        if not self.satisfies_heegner_hypothesis(D):
-            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis" % D
-        if prec is None:
-            prec = 53
-            K = number_field.QuadraticField(D, 'a')
-            relative_degree = K.class_number()
-            while True:
-                for ext in [1,2]:
-                    degree = ext*relative_degree
-                    P = self.heegner_point(D, prec)
-                    f = arith.algdep(P[0], degree)
-                    if not f.is_irreducible():
-                        continue
-                    f /= f.leading_coefficient()
-                    if f.degree() == 1:
-                        # It is actually over K
-                        pts = self.change_ring(K).lift_x(-f[0], all=True)
-                        pts.sort(cmp=lambda R, S: cmp(abs(R[1]-P[1]), abs(S[1]-P[1])))
-                        return pts[0]
-                    H = number_field.NumberField(f, 'a', embedding=P[0])
-                    disc = H.discriminant()
-                    # H must be unramified outside of D
-                    res = disc
-                    for p, e in arith.factor(D):
-                        v, res = res.val_unit(p)
-                    if res in [1, -1]:
-                        pts = self.change_ring(H).lift_x(H.gen(), all=True)
-                        pts.sort(cmp=lambda R, S: cmp(abs(R[1]-P[1]), abs(S[1]-P[1]))) # choose the correct lift
-                        return pts[0]
-                if prec >= max_prec:
-                    raise ValueError, "Not enough precision (%s) to get heegner point exactly, try passing a larger max_prec." % (prec)
-                prec = max(2*prec, max_prec)
-        else:
-            tau = self._heegner_best_tau(D, prec)
-            return self.modular_parametrization()(tau)
-
+    # p-adic functions
     #################################################################################
 
     padic_regulator = padics.padic_regulator
@@ -6090,10 +5329,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        (point, or None) The rational point which is the image of `z`
-        under the Weierstrass parametrization, if it exists and can be
-        determined from `z` and the given value of max_denominator (if
-        any); else None.
+            - point on the curve: the rational point which is the
+             image of `z` under the Weierstrass parametrization, if it
+             exists and can be determined from `z` and the given value
+             of max_denominator (if any); otherwise a ValueError exception
+             is raised.
 
         EXAMPLES::
 
@@ -6104,7 +5344,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (-1 : 1 : 1)
             sage: Q = E(0,-1)
             sage: z = Q.elliptic_logarithm()
-            sage: E.antilogarithm(z) # no output
+            sage: E.antilogarithm(z)
+            Traceback (most recent call last):
+            ...
+            ValueError: approximated point not on the curve
             sage: E.antilogarithm(z, max_denominator=10)
             (0 : -1 : 1)
 
@@ -6121,13 +5364,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             xy = [t.simplest_rational() for t in xy]
         else:
             xy = [t.nearby_rational(max_denominator=max_denominator) for t in xy]
-        if any([abs(t.imag()) > 2*abs(t.real()-s) for s,t in zip(xy, expZ)]):
-            # non-trivial imaginary part
-            return None
         try:
             return self(xy)
         except TypeError:
-            return None
+            raise ValueError, "approximated point not on the curve"
 
     def integral_x_coords_in_interval(self,xmin,xmax):
         r"""
@@ -7742,7 +6982,7 @@ class ModularParameterization:
         """
         self._E = E
 
-    def E(self):
+    def curve(self):
         """
         Returns the curve associated to this modular parametrization.
 
@@ -7750,7 +6990,7 @@ class ModularParameterization:
 
             sage: E = EllipticCurve('15a')
             sage: phi = E.modular_parametrization()
-            sage: phi.E() is E
+            sage: phi.curve() is E
             True
         """
         return self._E
@@ -7770,7 +7010,7 @@ class ModularParameterization:
 
     def __call__(self, z, prec=None):
         r"""
-        Evaluate self at a point `z \in `X_0(N) where `z` is given by a
+        Evaluate self at a point `z \in X_0(N)` where `z` is given by a
         representative in the upper half plane. All computations done with ``prec``
         bits of precision. If ``prec`` is not given, use the precision of `z`.
 
@@ -7792,7 +7032,20 @@ class ModularParameterization:
             sage: phi(tau+1)
             (-3.92181329652810 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
             sage: phi((6*tau+1) / (11*tau+2))
-            (-3.92181329652856 - 12.2578555525369*I : 44.9649874434898 + 14.3257120944670*I : 1.00000000000000)
+            (-3.92181329652853 - 12.2578555525369*I : 44.9649874434897 + 14.3257120944671*I : 1.00000000000000)
+
+        We can also apply the odular parametrization to a Heegner point on `X_0(N)`::
+
+            sage: H = heegner_points(389,-7,5); H
+            All Heegner points of conductor 5 on X_0(389) associated to QQ[sqrt(-7)]
+            sage: x = H[0]; x
+            Heegner point 5/778*sqrt(-7) - 147/778 of discriminant -7 and conductor 5 on X_0(389)
+            sage: E = EllipticCurve('389a'); phi = E.modular_parametrization()
+            sage: phi(x)
+            Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
+            sage: phi(x).quadratic_form()
+            389*x^2 + 147*x*y + 14*y^2
+
 
         ALGORITHM:
 
@@ -7800,6 +7053,36 @@ class ModularParameterization:
             `z` to `\infty` to get a point on the lattice representation of
             `E`, then use the Weierstrass `\wp` function to map it to the
             curve itself.
+        """
+        if isinstance(z, heegner.HeegnerPointOnX0N):
+            return z.map_to_curve(self.curve())
+        # Map to the CC of CC/PeriodLattice.
+        tm = verbose("Evaluating modular parameterization to precision %s bits"%prec)
+        w = self.map_to_complex_numbers(z, prec=prec)
+        # Map to E via Weierstrass P
+        z = self._E.elliptic_exponential(w)
+        verbose("Finished evaluating modular parameterization", tm)
+        return z
+
+    def map_to_complex_numbers(self, z, prec=None):
+        """
+        Evaluate self at a point `z \in X_0(N)` where `z` is given by
+        a representative in the upper half plane, returning a point in
+        the complex numbers.  All computations done with ``prec`` bits
+        of precision.  If ``prec`` is not given, use the precision of `z`.
+        Use self(z) to compute the image of z on the Weierstrass equation
+        of the curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a'); phi = E.modular_parametrization()
+            sage: tau = (sqrt(7)*I - 17)/74
+            sage: z = phi.map_to_complex_numbers(tau); z
+            0.929592715285395 - 1.22569469099340*I
+            sage: E.elliptic_exponential(z)
+            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
+            sage: phi(tau)
+            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
         """
         if prec is None:
             try:
@@ -7815,6 +7098,7 @@ class ModularParameterization:
         # TODO: for very small imaginary part, maybe try to transform under
         # \Gamma_0(N) to a better representative?
         q = (2*CC.gen()*CC.pi()*z).exp()
+        # TODO: where does nterms come from???
         nterms = (-prec/q.abs().log2()).ceil()
         # Use Horner's rule to sum the integral of the form
         enumerated_an = list(enumerate(self._E.anlist(nterms)))[1:]
@@ -7822,8 +7106,7 @@ class ModularParameterization:
         for n, an in reversed(enumerated_an):
             lattice_point += an/n
             lattice_point *= q
-        # Map to E via Weierstrass P
-        return self._E.elliptic_exponential(lattice_point)
+        return lattice_point
 
     def power_series(self):
         r"""
@@ -7842,7 +7125,7 @@ class ModularParameterization:
 
             \frac{\mathrm{d}X}{2Y + a_1 X + a_3} = \frac{f(q)\, \mathrm{d}q}{q}
 
-        where `f` is ``self.E().q_expansion()``.
+        where `f` is ``self.curve().q_expansion()``.
 
         EXAMPLES::
 

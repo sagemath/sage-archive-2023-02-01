@@ -41,6 +41,7 @@ from sage.rings.arith import (GCD, fundamental_discriminant, hilbert_symbol,
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
+from sage.rings.finite_field import GF
 
 from sage.rings.ring import Algebra, is_Field
 from sage.rings.ideal import Ideal_fractional
@@ -56,6 +57,10 @@ from sage.modules.free_module_element import vector
 
 import quaternion_algebra_element
 import quaternion_algebra_cython
+
+from sage.modular.modsym.p1list import P1List
+
+from sage.misc.cachefunc import cached_method
 
 ########################################################
 # Constructor
@@ -825,6 +830,143 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         else:
             raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
 
+    @cached_method
+    def modp_splitting_data(self, p):
+        r"""
+        Return mod `p` splitting data for this quaternion algebra at
+        the unramified prime `p`.  This is `2\times 2`
+        matrices `I`, `J`, ``K`` over the finite field `\GF{p}` such that if
+        the quaternion algebra has generators `i, j, k`, then `I^2 =
+        i^2`, `J^2 = j^2`, `IJ=K` and `IJ=-JI`.
+
+        NOTE: Currently only implemented when `p` is odd and the base
+        ring is `\QQ`.
+
+        INPUT:
+
+            - `p` -- unramified odd prime
+
+        OUTPUT:
+
+            - 2-tuple of matrices over finite field
+
+        EXAMPLES::
+
+            sage: Q = QuaternionAlgebra(-15, -19)
+            sage: Q.modp_splitting_data(7)
+            (
+            [0 6]  [6 1]  [6 6]
+            [1 0], [1 1], [6 1]
+            )
+            sage: Q.modp_splitting_data(next_prime(10^5))
+            (
+            [    0 99988]  [97311     4]  [99999 59623]
+            [    1     0], [13334  2692], [97311     4]
+            )
+            sage: I,J,K = Q.modp_splitting_data(23)
+            sage: I
+            [0 8]
+            [1 0]
+            sage: I^2
+            [8 0]
+            [0 8]
+            sage: J
+            [19  2]
+            [17  4]
+            sage: J^2
+            [4 0]
+            [0 4]
+            sage: I*J == -J*I
+            True
+            sage: I*J == K
+            True
+
+        The following is a good test because of the asserts in the code::
+
+            sage: v = [Q.modp_splitting_data(p) for p in primes(20,1000)]
+
+
+        Proper error handling::
+
+            sage: Q.modp_splitting_data(5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)
+
+            sage: Q.modp_splitting_data(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: p must be odd
+        """
+        if self.base_ring() != QQ:
+            raise NotImplementedError, "must be rational quaternion algebra"
+        p = ZZ(p)
+        if not p.is_prime():
+            raise ValueError, "p (=%s) must be prime"%p
+        if p == 2:
+            raise NotImplementedError, "p must be odd"
+        if self.discriminant() % p == 0:
+            raise ValueError, "p (=%s) must be an unramified prime"%p
+
+        i, j, k = self.gens()
+        F = GF(p)
+        i2 = F(i*i)
+        j2 = F(j*j)
+
+        M = MatrixSpace(F, 2)
+        I = M([0,i2,1,0])
+        if i2 == 0:
+            raise NotImplementedError, "algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)"
+        i2inv = 1/i2
+        a = None
+        for b in list(F):
+            if not b: continue
+            c = j2 + i2inv * b*b
+            if c.is_square():
+                a = -c.sqrt()
+                break
+
+        if a is None:
+            # do a fallback search, maybe needed in char 3 sometimes.
+            for J in M:
+                K = I*J
+                if J*J == j2 and K == -J*I:
+                    return I, J, K
+
+        J = M([a,b,(j2-a*a)/b, -a])
+        K = I*J
+        assert K == -J*I, "bug in that I,J don't skew commute"
+        return I, J, K
+
+    def modp_splitting_map(self, p):
+        r"""
+        Return Python map from the (`p`-integral) quaternion algebra to
+        the set of `2\times 2` matrices over `\GF{p}`.
+
+        INPUT:
+
+            - `p` -- prime number
+
+        EXAMPLES::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1, -7)
+            sage: f = Q.modp_splitting_map(13)
+            sage: a = 2+i-j+3*k; b = 7+2*i-4*j+k
+            sage: f(a*b)
+            [12  3]
+            [10  5]
+            sage: f(a)*f(b)
+            [12  3]
+            [10  5]
+        """
+        I, J, K = self.modp_splitting_data(p)
+        F = I.base_ring()
+        def phi(q):
+            v = [F(a) for a in q.coefficient_tuple()]
+            return v[0] + I*v[1] + J*v[2] + K*v[3]
+        return phi
+
+
 ############################################################
 # Unpickling
 ############################################################
@@ -1194,18 +1336,26 @@ class QuaternionOrder(Algebra):
         """
         return self.unit_ideal().quadratic_form()
 
-    def ternary_quadratic_form(self):
+    def ternary_quadratic_form(self, include_basis=False):
         """
         Return the ternary quadratic form associated to this order.
 
+        INPUT:
+
+            - ``include_basis`` -- bool (default: False), if True also
+              return a basis for the dimension 3 subspace `G`
+
         OUTPUT:
 
-        - QuadraticForm
+           - QuadraticForm
+
+           - optional basis for dimension 3 subspace
+
 
         This function computes the positive definition quadratic form
         obtained by letting G be the trace zero subspace of ZZ +
         2*self, which has rank 3, and restricting the pairing
-        (x,y) = (x.conjugate()*y).reduced_trace()
+           (x,y) = (x.conjugate()*y).reduced_trace()
         to G.
 
         APPLICATIONS: Ternary quadratic forms associated to an order
@@ -1248,8 +1398,11 @@ class QuaternionOrder(Algebra):
         B = [Q(a) for a in G.basis()]
         m = matrix(QQ,[[x.pair(y) for x in B] for y in B])
         from sage.quadratic_forms.quadratic_form import QuadraticForm
-        return QuadraticForm(m)
-
+        Q = QuadraticForm(m)
+        if include_basis:
+            return Q, B
+        else:
+            return Q
 
 class QuaternionFractionalIdeal(Ideal_fractional):
     pass
@@ -1300,6 +1453,48 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                            (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
         self.__basis = basis
 
+    def scale(self, alpha, left=False):
+        r"""
+        Scale the fractional ideal self by multiplying the basis by alpha.
+
+        INPUT:
+
+            - `\alpha` -- element of quaternion algebra
+
+            - ``left`` -- bool (default: False); if true multiply
+              `\alpha` on the left, otherwise multiply `\alpha` on the
+              right.
+
+        OUTPUT:
+
+            - a new fractional ideal
+
+
+        EXAMPLES::
+
+            sage: B = BrandtModule(5,37); I = B.right_ideals()[0]; i,j,k = B.quaternion_algebra().gens(); I
+            Fractional ideal (2 + 2*j + 106*k, i + 2*j + 105*k, 4*j + 64*k, 148*k)
+            sage: I.scale(i)
+            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            sage: I.scale(i, left=True)
+            Fractional ideal [2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j]
+            sage: I.scale(i, left=False)
+            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            sage: i * I.gens()[0]
+            2*i - 212*j + 2*k
+            sage: I.gens()[0] * i
+            2*i + 212*j - 2*k
+        """
+
+        Q = self.quaternion_algebra()
+        alpha = Q(alpha)
+        if left:
+            gens = [alpha*b for b in self.basis()]
+        else:
+            gens = [b*alpha for b in self.basis()]
+        return Q.ideal(gens, left_order = self.__left_order,
+                       right_order = self.__right_order, check=False)
+
     def quaternion_algebra(self):
         """
         Return the ambient quaternion algebra that contains this fractional ideal.
@@ -1347,7 +1542,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.right_order() == Or
             True
 
-        ALGORITHM: Let `b_1, b_2, b_3, b_4` be a basis for this
+        ALGORITHM: Let `b_1, b_2, b_3, b_3` be a basis for this
         fractional ideal `I`, and assume we want to compute the left
         order of `I` in the quaternion algebra `Q`.  Then
         multiplication by `b_i` on the right defines a map `B_i:Q \to
@@ -1370,7 +1565,6 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         # Now intersect the row spans of each matrix in invs
         ISB = [Q(v) for v in intersection_of_row_modules_over_ZZ(invs).row_module(ZZ).basis()]
         return Q.quaternion_order(ISB)
-
 
     def left_order(self):
         """
@@ -1529,8 +1723,6 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         if not isinstance(right, QuaternionFractionalIdeal_rational):
             raise TypeError
-        c = cmp(self.quaternion_order(), right.quaternion_order())
-        if c: return c
         return cmp(self.__basis, right.__basis)
 
     def basis_matrix(self):
@@ -1728,6 +1920,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         B = [z.conjugate() for z in self.__basis]
         two = QQ(2)
         m = [two*(a*b).reduced_trace() for b in B for a in A]
+        M44 = MatrixSpace(QQ, 4)
         G = M44(m,coerce=False)
         self.__gram_matrix = G
         return G
@@ -1787,7 +1980,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             Fractional ideal (16 + 16*j + 224*k, 8*i + 16*j + 136*k, 32*j + 128*k, 320*k)
         """
         if not isinstance(right, QuaternionFractionalIdeal_rational):
-            raise TypeError, "right must be a quaternion ideal"
+            return self._scale(right, left=False)
         gens = [a*b for a in self.basis() for b in right.basis()]
         #if self.__right_order == right.__left_order:
         #    left_order = self.__left_order
@@ -1795,6 +1988,63 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         basis = tuple(basis_for_quaternion_lattice(gens))
         A = self.quaternion_algebra()
         return A.ideal(basis, check=False)
+
+    @cached_method
+    def free_module(self):
+        r"""
+        Return the underlying free `\ZZ`-module corresponding to this ideal.
+
+        EXAMPLES::
+
+            sage: X = BrandtModule(3,5).right_ideals()
+            sage: X[0]
+            Fractional ideal (2 + 2*j + 8*k, 2*i + 18*k, 4*j + 16*k, 20*k)
+            sage: X[0].free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [ 2  0  2  8]
+            [ 0  2  0 18]
+            [ 0  0  4 16]
+            [ 0  0  0 20]
+            sage: X[0].scale(1/7).free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [ 2/7    0  2/7  8/7]
+            [   0  2/7    0 18/7]
+            [   0    0  4/7 16/7]
+            [   0    0    0 20/7]
+
+        The free module method is also useful since it allows for checking if one ideal
+        is contained in another, computing quotients I/J, etc.
+
+            sage: X = BrandtModule(3,17).right_ideals()
+            sage: I = X[0].intersection(X[2]); I
+            Fractional ideal (2 + 2*j + 164*k, 2*i + 4*j + 46*k, 16*j + 224*k, 272*k)
+            sage: I.free_module().is_submodule(X[3].free_module())
+            False
+            sage: I.free_module().is_submodule(X[1].free_module())
+            True
+            sage: X[0].free_module() / I.free_module()
+            Finitely generated module V/W over Integer Ring with invariants (4, 4)
+        """
+        return self.basis_matrix().row_module(ZZ)
+
+    def intersection(self, J):
+        """
+        Return the intersection of the ideals self and `J`.
+
+        EXAMPLES::
+
+            sage: X = BrandtModule(3,5).right_ideals()
+            sage: I = X[0].intersection(X[1]); I
+            Fractional ideal (2 + 6*j + 4*k, 2*i + 4*j + 34*k, 8*j + 32*k, 40*k)
+
+        """
+        V = self.free_module().intersection(J.free_module())
+        H,d = V.basis_matrix()._clear_denom()
+        A = self.quaternion_algebra()
+        gens = quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(A, H, d)
+        return A.ideal(gens)
 
     def multiply_by_conjugate(self, J):
         """
@@ -1893,12 +2143,130 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         except (ValueError, TypeError):
             return False
 
+    @cached_method
+    def cyclic_right_subideals(self, p, alpha=None):
+        r"""
+        Let `I` = ``self``. This function returns the right subideals
+        `J` of `I` such that `I/J` is an `\GF{p}`-vector space of
+        dimension 2.
+
+        INPUT:
+
+            - `p` -- prime number (see below)
+
+            - `alpha` -- (default: None) element of quaternion algebra,
+              which can be used to parameterize the order of the
+              ideals `J`.  More precisely the `J`'s are the right annihilators
+              of `(1,0) \alpha^i` for `i=0,1,2,...,p`
+
+        OUTPUT:
+
+            - list of right ideals
+
+        NOTE: Currently, `p` must satisfy a bunch of conditions, or a
+        NotImplementedError is raised.  In particular, `p` must be odd
+        and unramified in the quaternion algebra, must be coprime to
+        the index of the right order in the maximal order, and also
+        coprime to the normal of self.  (The Brandt modules code has a
+        more general algorithm in some cases.)
+
+        EXAMPLES::
+
+            sage: B = BrandtModule(2,37); I = B.right_ideals()[0]
+            sage: I.cyclic_right_subideals(3)
+            [Fractional ideal (2 + 2*i + 10*j + 90*k, 4*i + 4*j + 152*k, 12*j + 132*k, 444*k), Fractional ideal (2 + 2*i + 2*j + 150*k, 4*i + 8*j + 196*k, 12*j + 132*k, 444*k), Fractional ideal (2 + 2*i + 6*j + 194*k, 4*i + 8*j + 344*k, 12*j + 132*k, 444*k), Fractional ideal (2 + 2*i + 6*j + 46*k, 4*i + 4*j + 4*k, 12*j + 132*k, 444*k)]
+
+            sage: B = BrandtModule(5,389); I = B.right_ideals()[0]
+            sage: C = I.cyclic_right_subideals(3); C
+            [Fractional ideal (2 + 10*j + 546*k, i + 6*j + 133*k, 12*j + 3456*k, 4668*k), Fractional ideal (2 + 2*j + 2910*k, i + 6*j + 3245*k, 12*j + 3456*k, 4668*k), Fractional ideal (2 + i + 2295*k, 3*i + 2*j + 3571*k, 4*j + 2708*k, 4668*k), Fractional ideal (2 + 2*i + 2*j + 4388*k, 3*i + 2*j + 2015*k, 4*j + 4264*k, 4668*k)]
+            sage: [(I.free_module()/J.free_module()).invariants() for J in C]
+            [(3, 3), (3, 3), (3, 3), (3, 3)]
+            sage: I.scale(3).cyclic_right_subideals(3)
+            [Fractional ideal (6 + 30*j + 1638*k, 3*i + 18*j + 399*k, 36*j + 10368*k, 14004*k), Fractional ideal (6 + 6*j + 8730*k, 3*i + 18*j + 9735*k, 36*j + 10368*k, 14004*k), Fractional ideal (6 + 3*i + 6885*k, 9*i + 6*j + 10713*k, 12*j + 8124*k, 14004*k), Fractional ideal (6 + 6*i + 6*j + 13164*k, 9*i + 6*j + 6045*k, 12*j + 12792*k, 14004*k)]
+            sage: C = I.scale(1/9).cyclic_right_subideals(3); C
+            [Fractional ideal (2/9 + 10/9*j + 182/3*k, 1/9*i + 2/3*j + 133/9*k, 4/3*j + 384*k, 1556/3*k), Fractional ideal (2/9 + 2/9*j + 970/3*k, 1/9*i + 2/3*j + 3245/9*k, 4/3*j + 384*k, 1556/3*k), Fractional ideal (2/9 + 1/9*i + 255*k, 1/3*i + 2/9*j + 3571/9*k, 4/9*j + 2708/9*k, 1556/3*k), Fractional ideal (2/9 + 2/9*i + 2/9*j + 4388/9*k, 1/3*i + 2/9*j + 2015/9*k, 4/9*j + 4264/9*k, 1556/3*k)]
+            sage: [(I.scale(1/9).free_module()/J.free_module()).invariants() for J in C]
+            [(3, 3), (3, 3), (3, 3), (3, 3)]
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-2,-5)
+            sage: I = Q.ideal([Q(1),i,j,k])
+            sage: I.cyclic_right_subideals(3)
+            [Fractional ideal (1 + 2*j, i + k, 3*j, 3*k), Fractional ideal (1 + j, i + 2*k, 3*j, 3*k), Fractional ideal (1 + 2*i, 3*i, j + 2*k, 3*k), Fractional ideal (1 + i, 3*i, j + k, 3*k)]
+
+        The general algorithm is not yet implemented here::
+
+            sage: I.cyclic_right_subideals(3)[0].cyclic_right_subideals(3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: general algorithm not implemented (The given basis vectors must be linearly independent.)
+        """
+        R = self.right_order()
+        Q = self.quaternion_algebra()
+        f = Q.modp_splitting_map(p)
+        if alpha is not None:
+            alpha = f(alpha)
+        W = GF(p)**4
+        try:
+            A = W.span_of_basis([W(f(a).list()) for a in self.basis()])
+            scale = 1
+            IB = self.basis_matrix()
+        except (ValueError, ZeroDivisionError):
+            # try rescaling the ideal.
+            B, d = self.basis_matrix()._clear_denom()
+            g = gcd(B.list())
+            IB = B/g
+            scale = g/d
+            try:
+                A = W.span_of_basis([W(f(Q(a.list())).list()) for a in IB.rows()])
+            except (ValueError, ZeroDivisionError), msg:
+                # Here we could replace the ideal by an *equivalent*
+                # ideal that works.  This is always possible.
+                # However, I haven't implemented that algorithm yet.
+                raise NotImplementedError, "general algorithm not implemented (%s)"%msg
+
+        Ai = A.basis_matrix()**(-1)
+        AiB = Ai.change_ring(QQ) * IB
+
+        # Do not care about the denominator since we're really working in I/p*I.
+        AiB, _ = AiB._clear_denom()
+
+        pB = p*IB
+        pB, d = pB._clear_denom()
+
+        ans = []
+        Z = matrix(ZZ,2,4)
+
+        P1 = P1List(p)
+        if alpha is None:
+            lines = P1
+        else:
+            x = alpha
+            lines = []
+            for i in range(p+1):
+                lines.append(P1.normalize(x[0,0], x[0,1]))
+                x *= alpha
+
+        for u,v in lines:
+            # The following does:
+            #    z = matrix(QQ,2,4,[0,-v,0,u, -v,0,u,0],check=False) * AiB
+            Z[0,1]=-v; Z[0,3]=u; Z[1,0]=-v; Z[1,2]=u
+            z = Z * AiB
+            # Now construct submodule of the ideal I spanned by the
+            # linear combinations given by z of the basis for J along
+            # with p*I.
+            G = (d*z).stack(pB)  # have to multiply by d since we divide by it below in the "gens = " line.
+            H = G._hnf_pari(0, include_zero_rows=False)
+            gens = tuple(quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(Q, H, d))
+            if scale != 1:
+                gens = tuple([scale*g for g in gens])
+            J = R.right_ideal(gens, check=False)
+            ans.append(J)
+        return ans
+
 #######################################################################
 # Some utility functions that are needed here and are too
 # specialized to go elsewhere.
 #######################################################################
-
-M44 = MatrixSpace(QQ, 4)
 
 def basis_for_quaternion_lattice(gens):
     """
@@ -1962,3 +2330,4 @@ def intersection_of_row_modules_over_ZZ(v):
         # induct
         w = intersection_of_row_modules_over_ZZ(v[:2])
         return intersection_of_row_modules_over_ZZ([w] + v[2:])
+

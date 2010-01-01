@@ -109,6 +109,19 @@ class Scheme(ParentWithBase):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        TESTS:
+
+        This shows that issue at trac ticket 7389 is solved::
+
+            sage: S = Spec(ZZ)
+            sage: f = S.identity_morphism()
+            sage: from sage.schemes.generic.glue import GluedScheme
+            sage: T = GluedScheme(f,f)
+            sage: S.hom([1],T)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 

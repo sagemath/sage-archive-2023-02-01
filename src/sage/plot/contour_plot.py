@@ -530,7 +530,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y>0, x>0, x^2+y^2<1], (-1.1, 1.1), (-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
 
     Here is another plot, with a huge border::
 
@@ -551,9 +551,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     if not isinstance(f, (list, tuple)):
         f = [f]
 
-    variables = reduce(lambda g1, g2: g1.union(g2), [set(g.variables()) for g in f], set([]))
-
-    f = [equify(g, variables) for g in f]
+    f = [equify(g) for g in f]
 
     g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
     xrange,yrange=[r[:2] for r in ranges]
@@ -593,7 +591,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     return g
 
-def equify(f, variables = None):
+def equify(f):
     """
     Returns the equation rewritten as a symbolic function to give
     negative values when True, positive when False.
@@ -604,26 +602,21 @@ def equify(f, variables = None):
         sage: var('x, y')
         (x, y)
         sage: equify(x^2 < 2)
-        x |--> x^2 - 2
+        x^2 - 2
         sage: equify(x^2 > 2)
-        x |--> -x^2 + 2
+        -x^2 + 2
         sage: equify(x*y > 1)
-        (x, y) |--> -x*y + 1
-        sage: equify(y > 0, (x,y))
-        (x, y) |--> -y
+        -x*y + 1
+        sage: equify(y > 0)
+        -y
     """
     import operator
     from sage.calculus.all import symbolic_expression
     op = f.operator()
-    if variables == None:
-        variables = f.variables()
-
     if op is operator.gt or op is operator.ge:
-        s = symbolic_expression(f.rhs() - f.lhs()).function(*variables)
-        return s
+        return symbolic_expression(f.rhs() - f.lhs())
     else:
-        s = symbolic_expression(f.lhs() - f.rhs()).function(*variables)
-        return s
+        return symbolic_expression(f.lhs() - f.rhs())
 
 def mangle_neg(vals):
     """

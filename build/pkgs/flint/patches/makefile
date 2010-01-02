@@ -152,8 +152,12 @@ libflint.dylib64: $(FLINTOBJ)
 libflint.dll: $(FLINTOBJ)
 	$(CPP) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
 
+# Since this code uses the C++ compiler as a linker to produce
+# a library, the -m64 (or equivalent) option must be provided, as it
+# it is in the line above where the target is libflint.dylib64
+
 libflint.so: $(FLINTOBJ)
-	$(CPP) -fPIC -shared -o libflint.so $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CXXFLAG64) -fPIC -shared -o libflint.so $(FLINTOBJ) $(LIBS)
 
 ##### zn_poly object files
 

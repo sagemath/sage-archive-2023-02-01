@@ -44,9 +44,11 @@ else
    FLINT_TUNE=" -fPIC -funroll-loops  "
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "$SAGE64" = "yes" ]; then
    FLINT_TUNE=" -fPIC -m64 -funroll-loops"
+   export CFLAGS
+   export CFLAG64
+   export CXXFLAG64
 fi
 
 export FLINT_TUNE

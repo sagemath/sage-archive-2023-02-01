@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.5.0.p3 (David Kirkby, January  2nd, 2010) ===
+ * #7815 Changed makes and spkg-install so that the flag -m64 got
+   added with a 64-bit build.
 === flint-1.5.0.p1 (William Stein, September 25th, 2009) ===
  * Included a cygwin fix that involves naming the library .dll instead of .so.
 

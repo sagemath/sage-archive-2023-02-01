@@ -3,6 +3,13 @@ MAINTAINER:
 
 == Releases ==
 
+=== freetype-2.3.5.p2 (David Kirkby, January 2nd 2010) ===
+ * #7138 Ensure -m64 gets added on all platforms, not just OS X
+   A better fix will be to remove all the hard-coded -m64 junk
+   and replace by an environment variable CFLAG64, but until
+   sage-env is updated, that will not work, so I've just left it
+   as it has always been, but now working on all platforms if the
+   compiler is gcc.
 === freetype-2.3.5.p1 (Mike Hansen, June 19th, 2009) ===
  * Applied Peter Jeremy's fix from #5866.
 

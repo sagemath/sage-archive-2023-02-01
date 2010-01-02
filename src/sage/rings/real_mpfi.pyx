@@ -3437,9 +3437,17 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = RIF(0.1, 1.9)
             sage: a.is_int()
             (True, 1)
+            sage: RIF(+infinity,+infinity).is_int()
+            (False, None)
         """
-        a = (self.lower()).ceil()
-        b = (self.upper()).floor()
+        a = self.lower()
+        if a.is_NaN() or a.is_infinity():
+            return False, None
+        a = a.ceil()
+        b = self.upper()
+        if b.is_NaN() or b.is_infinity():
+            return False, None
+        b = b.floor()
         if a == b:
             return True, a
         else:

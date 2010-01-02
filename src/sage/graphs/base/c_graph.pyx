@@ -1451,6 +1451,11 @@ class CGraphBackend(GenericGraphBackend):
 
            sage: DiGraph(2*graphs.PetersenGraph(),implementation="c_graph").is_connected()
            False
+
+        A graph with non-integer vertex labels::
+            sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
+            True
+
         """
 
         cdef int v_int = 0
@@ -1458,10 +1463,8 @@ class CGraphBackend(GenericGraphBackend):
 
         if v_int == -1:
             return True
-
-        return len(list(self.depth_first_search(get_vertex(v_int, self.vertex_ints, self.vertex_labels, self._cg),\
-                        ignore_direction=True))\
-                       ) == (<CGraph>self._cg).num_verts
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+        return len(list(self.depth_first_search(v, ignore_direction=True)) ) == (<CGraph>self._cg).num_verts
 
     def is_strongly_connected(self):
         r"""
@@ -1489,7 +1492,7 @@ class CGraphBackend(GenericGraphBackend):
         if v_int == -1:
             return True
 
-        v = get_vertex(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
 
         return (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v))) and \
             (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v, reverse=True)))

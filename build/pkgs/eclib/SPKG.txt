@@ -39,6 +39,8 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p8 (David Kirkby, 2nd January 2010) ===
+ * Allow SAGE64 to work on all platforms, not just OS X.
 === eclib-20080310.p7 (Michael Abshoff, October 12th, 2008) ===
  * Work around paralle make issue (#4228)
 

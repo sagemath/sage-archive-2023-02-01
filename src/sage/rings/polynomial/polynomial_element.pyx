@@ -4302,6 +4302,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = K[]
             sage: factor(x^3-1)
             (x - 1) * (x^2 + x + 1)
+
+        This shows that the issue from trac ticket #6237 is fixed::
+
+            sage: R.<u> = QQ[]
+            sage: g = -27*u^14 - 32*u^9
+            sage: g.roots(CDF, multiplicities=False)
+            [-1.03456371594, 0, -0.31969776999 - 0.983928563571*I, -0.31969776999 + 0.983928563571*I, 0.836979627962 - 0.608101294789*I, 0.836979627962 + 0.608101294789*I]
+            sage: g.roots(CDF)
+            [(-1.03456371594, 1), (0, 9), (-0.31969776999 - 0.983928563571*I, 1), (-0.31969776999 + 0.983928563571*I, 1), (0.836979627962 - 0.608101294789*I, 1), (0.836979627962 + 0.608101294789*I, 1)]
         """
         seq = []
 
@@ -4373,12 +4382,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if output_complex:
                 rts = sort_complex_numbers_for_display([L(root) for root in ext_rts])
             else:
-                rts = [L(root.real()) for root in ext_rts if root.imag() == 0]
+                rts = sorted([L(root.real()) for root in ext_rts if root.imag() == 0])
+
+            rts_mult = []
+            j = 0
+            while j < len(rts):
+                rt = rts[j]
+                mult = rts.count(rt)
+                rts_mult.append((rt, mult))
+                j += mult
 
             if multiplicities:
-                return [(rt, ZZ(1)) for rt in rts]
+                return rts_mult
             else:
-                return rts
+                return [rt for (rt, mult) in rts_mult]
 
         if L != K or is_AlgebraicField_common(L):
             # So far, the only "special" implementations are for real

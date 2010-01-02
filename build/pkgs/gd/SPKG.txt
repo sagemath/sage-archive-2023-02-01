@@ -4,6 +4,11 @@
 
 == Releases ==
 
+=== gd-2.0.35.p3 (David Kirkby, 2nd December 2009) ===
+ * #7162 Add configure option --without-xpm.
+=== gd-2.0.35.p0 (Mike Hansen, June 19th, 2009) ===
+ * Apply Peter Jeremy's build fix from #5867
+
 === gd-2.0.35.p0 (Michael Abshoff, August 27th, 2008) ===
  * Apply Ondrej Certik's build fix from #3792
 

@@ -2227,3 +2227,76 @@ def is_in_string(line, pos):
         i += 1
     return in_quote()
 
+
+def inject_variable(name, value):
+    """
+    inject a variable into the main global namespace
+
+    INPUT:
+     - name  - a string
+     - value - anything
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import inject_variable
+        sage: inject_variable("a", 314)
+        sage: a
+        314
+
+    A warning is issued if an existing value is overwritten::
+
+        sage: inject_variable("a", 271)
+        doctest:...: RuntimeWarning: redefining global value `a`
+        sage: a
+        271
+
+    Use with care!
+    """
+    # Using globals() does not work, even in Cython, because
+    # inject_variable is to be called not only from the interpreter,
+    # but also from functions in various modules
+    #
+    # This instead looks up the main global namespace by going up the
+    # frame stack until it finds the frame for the __main__ module.
+    #
+    # If for some reason this frame is not found (this should not
+    # occur in normal operation), an exception "ValueError: call stack
+    # is not deep enough" will be raised by _getframe.
+    import sys
+    depth = 0
+    while True:
+        G = sys._getframe(depth).f_globals
+        if G["__name__"] == "__main__" and G["__package__"] is None:
+            break
+        depth += 1
+    if name in G:
+        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+    G[name] = value
+
+
+def inject_variable_test(name, value, depth):
+    """
+    A function for testing deep calls to inject_variable
+
+    TESTS::
+
+        sage: from sage.misc.misc import inject_variable_test
+        sage: inject_variable_test("a0", 314, 0)
+        sage: a0
+        314
+        sage: inject_variable_test("a1", 314, 1)
+        sage: a1
+        314
+        sage: inject_variable_test("a2", 314, 2)
+        sage: a2
+        314
+        sage: inject_variable_test("a2", 271, 2)
+        doctest:...: RuntimeWarning: redefining global value `a2`
+        sage: a2
+        271
+
+    """
+    if depth == 0:
+        inject_variable(name, value)
+    else:
+        inject_variable_test(name, value, depth - 1)

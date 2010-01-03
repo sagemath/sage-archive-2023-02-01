@@ -249,7 +249,7 @@ def apply_patches(patch_ls, patch_directory, order=None, dry_run=True, behavior=
             raise ValueError, "error applying patch %s"%patch_filename
 
         msg, err = repo('qpush', interactive=False)
-        if 'abort' in err:
+        if 'abort' in err or 'rejects' in err:
             if behavior == 'pop' or behavior == 'finish':
                 print "Popping patches from queue ..."
                 clear_queue(applied_patches, repos_used)

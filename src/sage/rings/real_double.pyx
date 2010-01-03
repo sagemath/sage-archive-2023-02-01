@@ -1058,6 +1058,18 @@ cdef class RealDoubleElement(FieldElement):
         x._value = -self._value
         return x
 
+    def conjugate(self):
+        r"""
+        Returns the complex conjugate of this real number, which is
+        the real number itself.
+
+        EXAMPLES::
+
+            sage: RDF(4).conjugate()
+            4.0
+        """
+        return self
+
     def __abs__(self):
         """
         Returns the absolute value of self.

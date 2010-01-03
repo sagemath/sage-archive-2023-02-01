@@ -388,7 +388,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self._parent.base_ring()
 
-    def padded_list(self, n):
+    def padded_list(self, n=None):
         """
         Return a list of coefficients of self up to (but not including)
         `q^n`.
@@ -399,7 +399,10 @@ cdef class PowerSeries(AlgebraElement):
         INPUT:
 
 
-        -  ``n`` - an integer that is at least 0
+        -  ``n`` - (optional) an integer that is at least 0. If ``n`` is
+           not given, it will be taken to be the precision of self,
+           unless this is +Infinity, in which case we just return
+           ``self.list()``.
 
 
         EXAMPLES::
@@ -414,7 +417,21 @@ cdef class PowerSeries(AlgebraElement):
             [1, -17, 13, 0, 10, 0, 0, 0, 0, 0]
             sage: f.padded_list(3)
             [1, -17, 13]
+            sage: f.padded_list()
+            [1, -17, 13, 0, 10, 0, 0]
+            sage: g = 1 - 17*q + 13*q^2 + 10*q^4
+            sage: g.list()
+            [1, -17, 13, 0, 10]
+            sage: g.padded_list()
+            [1, -17, 13, 0, 10]
+            sage: g.padded_list(10)
+            [1, -17, 13, 0, 10, 0, 0, 0, 0, 0]
         """
+        if n is None:
+            if self._prec is infinity:
+                return self.list()
+            else:
+                n = self._prec
         if n < 0:
             raise ValueError, "n must be at least 0"
         v = self.list()

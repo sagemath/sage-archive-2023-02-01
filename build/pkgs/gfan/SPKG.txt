@@ -1,11 +1,22 @@
 = gfan =
 
 == Description ==
+From http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html:
 
-From http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html: Gfan is a software package for computing Groebner fans and tropical varieties. These are polyhedral fans associated to polynomial ideals. The maximal cones of a Groebner fan are in bijection with the marked reduced Groebner bases of its defining ideal. The software computes all marked reduced Groebner bases of an ideal. Their union is a universal Groebner basis. The tropical variety of a polynomial ideal is a certain subcomplex of the Groebner fan. Gfan contains algorithms for computing this complex for general ideals and specialized algorithms for tropical curves, tropical hypersurfaces and tropical varieties of prime ideals.
+Gfan is a software package for computing Groebner fans and tropical varieties.
+These are polyhedral fans associated to polynomial ideals. The maximal cones
+of a Groebner fan are in bijection with the marked reduced Groebner bases of
+its defining ideal. The software computes all marked reduced Groebner bases of
+an ideal. Their union is a universal Groebner basis. The tropical variety of a
+polynomial ideal is a certain subcomplex of the Groebner fan. Gfan contains
+algorithms for computing this complex for general ideals and specialized
+algorithms for tropical curves, tropical hypersurfaces and tropical varieties
+of prime ideals. In addition to the above core functions the package contains
+many tools which are useful in the study of Groebner bases, initial ideals and
+tropical geometry.
 
 == License ==
- * GPL
+ * GPL v2
 
 == SPKG Maintainers ==
  * Marshall Hampton
@@ -13,20 +24,26 @@ From http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html: Gfan is a sof
 
 == Upstream Contact ==
 
-Anders Nedergaard Jensen for contact info check out http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
+Anders Nedergaard Jensen for contact info check out
+http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 
 == Dependencies ==
  * GMP
  * CDDLIB
 
-== ToDo ==
- * clean up Makefile situation, i.e. keep a vanilla Makefile in src
-
 == Special Update/Build Instructions ==
 
-Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html then remove the doc, homepage, and examples subdirectories, which take up most of the space.
+Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
+then remove the doc, homepage, and examples subdirectories, which take up
+most of the space.
 
 == Changelog ==
+
+=== gfan-0.4plus (Alex Ghitza, January 3, 2010) ===
+ * upgrade to version 0.4plus
+ * clarify license (trac #3043)
+ * remove dist/ directory (part of trac #5903)
+ * restore src/ to vanilla upstream (trac #3338)
 
 === gfan-0.3.p5 (William Stein, December 17, 2009) ===
  * remove an accidental .DS_Store OS X file.

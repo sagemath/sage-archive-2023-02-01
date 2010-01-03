@@ -12,6 +12,9 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    GPROFFLAG="-m64"; export GPROFFLAG
 fi
 
+# patch the Makefile so it can build in Sage
+cp patches/Makefile src/
+
 cd src/
 
 rm -f "$SAGE_LOCAL/bin/gfan*"

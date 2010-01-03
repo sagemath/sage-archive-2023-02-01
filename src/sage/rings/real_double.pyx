@@ -926,6 +926,44 @@ cdef class RealDoubleElement(FieldElement):
         else:
             return Integer(int(self._value))
 
+    def sign_mantissa_exponent(self):
+        """
+        Return the sign, mantissa, and exponent of self.
+
+        In Sage (as in MPFR), floating-point numbers of precision `p`
+        are of the form `s m 2^{e-p}`, where `s \in \{-1, 1\}`,
+        `2^{p-1} \leq m < 2^p`, and `-2^{30} + 1 \leq e \leq 2^{30} -
+        1`; plus the special values ``+0``, ``-0``, ``+infinity``,
+        ``-infinity``, and ``NaN`` (which stands for Not-a-Number).
+
+        This function returns s, m, and e-p.  For the special values::
+
+         - ``+0`` returns (1, 0, 0)
+         - ``-0`` returns (-1, 0, 0)
+         - the return values for ``+infinity``, ``-infinity``, and
+           ``NaN`` are not specified.
+
+
+         EXAMPLES::
+
+             sage: a=RDF(exp(1.0)); a
+             2.71828182846
+             sage: sign,mantissa,exponent=RDF(exp(1.0)).sign_mantissa_exponent()
+             sage: sign,mantissa,exponent
+             (1, 6121026514868073, -51)
+             sage: sign*mantissa*(2**exponent)==a
+             True
+
+         TESTS::
+
+             sage: RDF('+0').sign_mantissa_exponent()
+             (1, 0, 0)
+             sage: RDF('-0').sign_mantissa_exponent()
+             (-1, 0, 0)
+        """
+        from sage.rings.all import RR
+        return RR(self._value).sign_mantissa_exponent()
+
 
     ########################
     #   Basic Arithmetic

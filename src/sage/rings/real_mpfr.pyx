@@ -1839,13 +1839,40 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
 
     def multiplicative_order(self):
+        """
+        Return the multiplicative order of self.
+
+        EXAMPLES::
+
+            sage: RR(1).multiplicative_order()
+            1
+            sage: RR(-1).multiplicative_order()
+            2
+            sage: RR(3).multiplicative_order()
+            +Infinity
+        """
+
         if self == 1:
             return 1
         elif self == -1:
-            return -1
+            return 2
         return sage.rings.infinity.infinity
 
     def sign(self):
+        """
+        Return +1 if self is positive, -1 if self is negative, and 0
+        if self is zero.
+
+        EXAMPLES::
+
+            sage: R=RealField(100)
+            sage: R(-2.4).sign()
+            -1
+            sage: R(2.1).sign()
+            1
+            sage: R(0).sign()
+            0
+        """
         return mpfr_sgn(self.value)
 
     def prec(self):
@@ -1856,7 +1883,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return the complex conjugate of this real number, which is the
         number itself.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = RealField(100)(1.238)
             sage: x.conjugate()
             1.2380000000000000000000000000
@@ -1870,7 +1898,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         two, it is gap between this number and the next closest distinct
         number that can be represented.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = 1.0
             sage: a + a.ulp() == a
             False
@@ -2333,6 +2362,73 @@ cdef class RealNumber(sage.structure.element.RingElement):
         from sage.libs.mpmath.all import make_mpf
         return make_mpf(mpfr_to_mpfval(self.value))
 
+
+    def sign_mantissa_exponent(self):
+        """
+        Return the sign, mantissa, and exponent of self.
+
+        In Sage (as in MPFR), floating-point numbers of precision `p`
+        are of the form `s m 2^{e-p}`, where `s \in \{-1, 1\}`,
+        `2^{p-1} \leq m < 2^p`, and `-2^{30} + 1 \leq e \leq 2^{30} -
+        1`; plus the special values ``+0``, ``-0``, ``+infinity``,
+        ``-infinity``, and ``NaN`` (which stands for Not-a-Number).
+
+        This function returns s, m, and e-p.  For the special values::
+
+         - ``+0`` returns (1, 0, 0) (analogous to IEEE-754; note that MPFR actually stores the exponent as ``smallest exponent possible``)
+         - ``-0`` returns (-1, 0, 0) (analogous to IEEE-754; note that MPFR actually stores the exponent as ``smallest exponent possible``)
+         - the return values for ``+infinity``, ``-infinity``, and
+           ``NaN`` are not specified.
+
+
+         EXAMPLES::
+
+             sage: R=RealField(53)
+             sage: a=R(exp(1.0)); a
+             2.71828182845905
+             sage: sign,mantissa,exponent=R(exp(1.0)).sign_mantissa_exponent()
+             sage: sign,mantissa,exponent
+             (1, 6121026514868073, -51)
+             sage: sign*mantissa*(2**exponent)==a
+             True
+
+         We can also calculate this also using p-adic valuations::
+
+             sage: a=R(exp(1.0))
+             sage: b=a.exact_rational()
+             sage: valuation, unit = b.val_unit(2)
+             sage: (b/abs(b), unit, valuation)
+             (1, 6121026514868073, -51)
+             sage: a.sign_mantissa_exponent()
+             (1, 6121026514868073, -51)
+
+         TESTS::
+
+             sage: R('+0').sign_mantissa_exponent()
+             (1, 0, 0)
+             sage: R('-0').sign_mantissa_exponent()
+             (-1, 0, 0)
+        """
+
+        cdef Integer mantissa
+        cdef Integer sign
+        cdef mp_exp_t exponent
+
+
+        if mpfr_signbit(self.value)==0:
+            sign=Integer(1)
+        else:
+            sign=Integer(-1)
+
+        if mpfr_zero_p(self.value):
+            mantissa=Integer(0)
+            exponent=Integer(0)
+        else:
+            mantissa = Integer()
+            exponent = mpfr_get_z_exp(mantissa.value, self.value)
+
+        return sign, mantissa, Integer(exponent)
+
     def exact_rational(self):
         """
         Returns the exact rational representation of this floating-point
@@ -2369,9 +2465,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef Integer mantissa = Integer()
         cdef mp_exp_t exponent
-
-        if not mpfr_number_p(self.value):
-            raise ValueError, 'Calling exact_rational() on infinity or NaN'
 
         if mpfr_sgn(self.value) == 0:
             return Rational(0)

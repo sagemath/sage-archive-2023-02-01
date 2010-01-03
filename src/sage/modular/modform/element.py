@@ -427,6 +427,60 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
+    def twist(self, chi):
+        r"""
+        Return the twist of the modular form self by the Dirichlet character
+        ``chi``.
+
+        If self has q-expansion
+        .. math:
+
+            f(q) = \sum_{n=0}^\infty a_n q^n,
+
+        then the twist by `\chi` has q-expansion
+        .. math:
+
+            f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
+
+        INPUT:
+
+        - ``chi`` - a Dirichlet character
+
+        OUTPUT:
+
+        the modular form `f_\chi`, the twist of ``f`` by ``chi``
+
+        EXAMPLES::
+
+            sage: f = CuspForms(11, 2).0
+            sage: f.q_expansion(6)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: eps = DirichletGroup(3).0
+            sage: f.twist(eps)
+            q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
+
+        REFERENCES:
+
+        - [Koblitz], Neal Koblitz, "Introduction to Elliptic Curves and
+          Modular Forms", Springer GTM 97, 1993, Proposition III.3.17.
+
+        AUTHORS:
+
+        - L. J. P. Kilford (2009-08-28)
+
+        """
+        from sage.modular.dirichlet import DirichletGroup
+        G = DirichletGroup(self.level() * chi.modulus()**2)
+        R = G.base_ring()
+        from sage.modular.modform.constructor import ModularForms
+        M = ModularForms(G(self.character()) * G(chi)**2, self.weight(), base_ring=R)
+        bound = M.sturm_bound() + 1
+        from sage.rings.all import PowerSeriesRing, O
+        S = PowerSeriesRing(R, 'q')
+        q = S.gen()
+        f_twist = S([self[i] * chi(i) for i in xrange(0, bound+2)]) + O(q**bound)
+        return M(f_twist)
+
     def __nonzero__(self):
         """
         Return True if self is nonzero, and False if not.

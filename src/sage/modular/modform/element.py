@@ -962,11 +962,22 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             1 - 180*q^2 - 480*q^3 + 8100*q^4 + 35712*q^5 + O(q^6)
             sage: (f*f).parent()
             Modular Forms space of dimension 4 for Congruence Subgroup Gamma1(3) of weight 10 over Rational Field
+
+        TESTS:
+
+        This shows that the issue at trac ticket #7548 is fixed::
+
+            sage: M = CuspForms(Gamma0(5*3^2), 2)
+            sage: f = M.basis()[0]
+            sage: 2*f
+            2*q - 2*q^4 + O(q^6)
+            sage: f*2
+            2*q - 2*q^4 + O(q^6)
         """
 
         # boring case: scalar multiplication
         if not isinstance(other, ModularFormElement):
-            return HeckeModuleElement.__mul__(self, other)
+            return element.HeckeModuleElement.__mul__(self, other)
 
         # first ensure the levels are equal
         if self.level() != other.level():

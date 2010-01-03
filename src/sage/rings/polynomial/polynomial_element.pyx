@@ -4311,6 +4311,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [-1.03456371594, 0, -0.31969776999 - 0.983928563571*I, -0.31969776999 + 0.983928563571*I, 0.836979627962 - 0.608101294789*I, 0.836979627962 + 0.608101294789*I]
             sage: g.roots(CDF)
             [(-1.03456371594, 1), (0, 9), (-0.31969776999 - 0.983928563571*I, 1), (-0.31969776999 + 0.983928563571*I, 1), (0.836979627962 - 0.608101294789*I, 1), (0.836979627962 + 0.608101294789*I, 1)]
+
+        This shows that the issue at trac ticket #2418 is fixed::
+
+            sage: x = polygen(QQ)
+            sage: p = (x^50/2^100 + x^10 + x + 1).change_ring(ComplexField(106))
+            sage: rts = (p/2^100).roots(multiplicities=False)
+            sage: eps = 2^(-50)   # we test the roots numerically
+            sage: [abs(p(rt)) < eps for rt in rts] == [True]*50
+            True
         """
         seq = []
 
@@ -4377,7 +4386,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if algorithm == 'pari':
                 if not input_arbprec:
                     self = self.change_ring(CC if input_complex else RR)
-                ext_rts = pari(self).polroots(precision = L.prec())
+                ext_rts = pari(self.monic()).polroots(precision = L.prec())
 
             if output_complex:
                 rts = sort_complex_numbers_for_display([L(root) for root in ext_rts])

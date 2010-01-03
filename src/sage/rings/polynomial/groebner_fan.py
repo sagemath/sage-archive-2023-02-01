@@ -136,7 +136,7 @@ def _cone_parse(fan_dict_cone):
         sage: tstr = tsg.tropical_intersection()
         sage: from sage.rings.polynomial.groebner_fan import _cone_parse
         sage: _cone_parse(tstr.fan_dict['CONES'])
-        {1: [[0], [1], [3], [2], [4]], 2: [[2, 4]]}
+        {1: [[0], [1], [2], [3], [4]], 2: [[2, 3]]}
     """
     cone_dict = {}
     cur_dim = 0
@@ -299,7 +299,7 @@ class PolyhedralFan(SageObject):
             sage: gf2 = i2.groebner_fan(verbose = False)
             sage: pf = gf2.polyhedralfan()
             sage: pf.rays()
-            [[1, 0, 0], [-2, -1, 0], [1, 1, 0], [0, -1, 0], [-1, 1, 0]]
+            [[-1, 0, 1], [-1, 1, 0], [1, -2, 1], [1, 1, -2], [2, -1, -1]]
         """
         fan_keys = ['AMBIENT_DIM','DIM','LINEALITY_DIM','RAYS','N_RAYS',
                     'LINEALITY_SPACE','ORTH_LINEALITY_SPACE','F_VECTOR',
@@ -352,7 +352,7 @@ class PolyhedralFan(SageObject):
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-2]).groebner_fan()
             sage: pf = gf.polyhedralfan()
             sage: pf._str_()
-            '_application PolyhedralFan\n_version 2.2\n_type PolyhedralFan\n\nAMBIENT_DIM\n3\n\nDIM\n3\n\nLINEALITY_DIM\n0\n\nRAYS\n1 0 0\t# 0\n0 1 0\t# 1\n0 0 1\t# 2\n\nN_RAYS\n3\n\nLINEALITY_SPACE\n\nORTH_LINEALITY_SPACE\n0 0 1\n0 1 0\n1 0 0\n\nF_VECTOR\n1 3 3 1\n\nCONES\n{}\t# Dimension 0\n{0}\t# Dimension 1\n{1}\n{2}\n{0 1}\t# Dimension 2\n{0 2}\n{1 2}\n{0 1 2}\t# Dimension 3\n\nMAXIMAL_CONES\n{0 1 2}\t# Dimension 3\n\nPURE\n1\n'
+            '_application PolyhedralFan\n_version 2.2\n_type PolyhedralFan\n\nAMBIENT_DIM\n3\n\nDIM\n3\n\nLINEALITY_DIM\n0\n\nRAYS\n0 0 1\t# 0\n0 1 0\t# 1\n1 0 0\t# 2\n\nN_RAYS\n3\n\nLINEALITY_SPACE\n\nORTH_LINEALITY_SPACE\n1 0 0\n0 1 0\n0 0 1\n\nF_VECTOR\n1 3 3 1\n\nMY_EULER\n0\n\nSIMPLICIAL\n1\n\nPURE\n1\n\nCONES\n{}\t# Dimension 0\n{0}\t# Dimension 1\n{1}\n{2}\n{0 1}\t# Dimension 2\n{0 2}\n{1 2}\n{0 1 2}\t# Dimension 3\n\nMAXIMAL_CONES\n{0 1 2}\t# Dimension 3\n'
         """
         return self._str
 
@@ -411,9 +411,9 @@ class PolyhedralFan(SageObject):
             sage: gf2 = i2.groebner_fan(verbose = False)
             sage: pf = gf2.polyhedralfan()
             sage: pf.rays()
-            [[1, 0, 0], [-2, -1, 0], [1, 1, 0], [0, -1, 0], [-1, 1, 0]]
+            [[-1, 0, 1], [-1, 1, 0], [1, -2, 1], [1, 1, -2], [2, -1, -1]]
         """
-        return self._rays
+        return sorted(self._rays)
 
 
 class GroebnerFan(SageObject):
@@ -822,7 +822,7 @@ class GroebnerFan(SageObject):
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-1]).groebner_fan()
             sage: pf = gf.polyhedralfan()
             sage: pf.rays()
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
         """
         try:
             return self.__polyhedralfan
@@ -1254,8 +1254,7 @@ class GroebnerFan(SageObject):
         cmd = 'tropicalbasis'
 
         I = self.ideal()
-        hom, _ = forall(I.gens(), lambda x : x.is_homogeneous())
-        if not hom:
+        if not I.is_homogeneous():
             cmd += ' -h'
         if check:
             if I.dimension() != 1 + self.dimension_of_homogeneity_space():
@@ -1296,7 +1295,7 @@ class GroebnerFan(SageObject):
             sage: gf = i1.groebner_fan()
             sage: pf = gf.tropical_intersection()
             sage: pf.rays()
-            [[-1, 0, 0]]
+            [[-2, 1, 1]]
         """
         try:
             return self.__tropical_intersection

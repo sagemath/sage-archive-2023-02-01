@@ -1414,15 +1414,19 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: ModularForms(Gamma1(15),2).sturm_bound()
             33
 
-        .. note::
+            sage: CuspForms(Gamma1(144), 3).sturm_bound()
+            3457
+            sage: CuspForms(DirichletGroup(144).1^2, 3).sturm_bound()
+            73
+            sage: CuspForms(Gamma0(144), 3).sturm_bound()
+            73
 
-           Reference for the Sturm bound that we use in the definition
-           of of this function:
+        REFERENCE:
 
-           J. Sturm, On the congruence of modular forms, Number theory (New
-           York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
+        - [Sturm] J. Sturm, On the congruence of modular forms, Number theory
+          (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
 
-        Useful Remark:
+        NOTE::
 
         Kevin Buzzard pointed out to me (William Stein) in Fall 2002 that
         the above bound is fine for Gamma1 with character, as one sees by
@@ -1431,7 +1435,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         `f^r = 0 \pmod{p}` for first `s r` coefficients.
         Since the weight of `f^r` is
         `r \text{weight}(f)`, it follows that if
-        `s \geq` the sturm bound for `\Gamma_0` at
+        `s \geq` the Sturm bound for `\Gamma_0` at
         weight(f), then `f^r` has valuation large enough to be
         forced to be `0` at `r\cdot` weight(f) by Sturm
         bound (which is valid if we choose `r` right). Thus
@@ -1450,8 +1454,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if M is not None:
             raise NotImplementedError
         if self.__sturm_bound is None:
+            G = self.group()
+            from sage.modular.arithgroup.all import is_Gamma1
+            if is_Gamma1(G) and self.character() is not None:
+                from sage.modular.arithgroup.all import Gamma0
+                G = Gamma0(self.level())
             # the +1 below is because O(q^prec) has precision prec.
-            self.__sturm_bound = self.group().sturm_bound(self.weight())+1
+            self.__sturm_bound = G.sturm_bound(self.weight())+1
         return self.__sturm_bound
 
     def character(self):

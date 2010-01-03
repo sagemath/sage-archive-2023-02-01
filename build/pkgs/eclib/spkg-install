@@ -37,7 +37,6 @@ else
     PICFLAG=-fPIC
 fi
 if [ "$SAGE64" = "yes" ]; then
-    echo "64 bit MacIntel build"
     DYN_FLAGS="-m64"; export DYN_FLAGS
     PICFLAG="-m64 -fPIC"
 fi

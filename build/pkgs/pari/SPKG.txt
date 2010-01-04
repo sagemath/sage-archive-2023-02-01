@@ -66,6 +66,9 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.3.p6 (Mike Hansen, January 4th, 2009) ===
+ * Fix on FreeBSD -- see #7825.
+
 === pari-2.3.3.p5 (David Kirkby, October 14th, 2009) ===
  * Removed the use of $CP, since it has been agreed there is no
    need for 'cp' to be specified as an environment variable

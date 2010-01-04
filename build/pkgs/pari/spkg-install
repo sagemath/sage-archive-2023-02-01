@@ -22,6 +22,9 @@ cp "$TOP"/patches/get_dlld config/
 # (but it is ok on any other machine)
 cp "$TOP"/patches/get_dlcflags config/
 
+# pjeremy: fix for FreeBSD: #7825
+cp "$TOP"/patches/get_kernel config/
+
 # cwitty: disable -rpath
 cp "$TOP"/patches/get_ld config/
 

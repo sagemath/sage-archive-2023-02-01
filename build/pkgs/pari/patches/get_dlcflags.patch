@@ -1,0 +1,13 @@
+--- ../src/config/get_dlcflags	2006-05-15 00:04:51.000000000 -0700
++++ get_dlcflags	2010-01-03 23:06:39.000000000 -0800
+@@ -3,8 +3,8 @@
+   # Some architectures need -fPIC for building dynamic lib
+   # *-i?86|*-sparc*|*-powerpc|*-s390|*-mips) DLCFLAGS=
+   case "$osname-$arch" in
+-    *-hppa|*-ia64|*-alpha|*-arm|*-m68k) DLCFLAGS=-fPIC ;;
+-    *-x86_64|*-sparc*) case "$sizeof_long" in 
++    *-hppa|*-ia64|*-alpha|*-arm|*-m68k|*linux-ppc) DLCFLAGS=-fPIC ;;
++    *-x86_64|*-sparc*|*-amd64) case "$sizeof_long" in 
+               8) DLCFLAGS=-fPIC;;
+               esac;;
+     darwin-*) DLCFLAGS=-fno-common;;

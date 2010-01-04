@@ -74,7 +74,7 @@ def graph_to_js(g):
     string = string.replace(' ', '')
     return string
 
-def graph_editor(graph=graphs.CompleteGraph(2), graph_name=None,
+def graph_editor(graph=None, graph_name=None,
                  replace_input=True):
     """
     Opens a graph editor in the Sage notebook.
@@ -102,6 +102,9 @@ def graph_editor(graph=graphs.CompleteGraph(2), graph_name=None,
         sage: h = graphs.StarGraph(6)
         sage: graph_editor(h, replace_input=False)  # not tested
     """
+    if graph is None:
+        graph = graphs.CompleteGraph(2)
+
     if not EMBEDDED_MODE:
         return "This graph editor only runs in the Sage notebook."
 

@@ -7,7 +7,7 @@ Coxeter Groups
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-# With contributions from Qiang Wang and Steve Pon
+# With contributions from Dan Bump, Steve Pon, Qiang Wang
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.abstract_method import abstract_method
@@ -203,7 +203,7 @@ class CoxeterGroups(Category):
                 [ 0  0  0  0  0  0  0  1]
 
             """
-            return self.one().apply_simple_reflections(word, side = "right")
+            return self.one().apply_simple_reflections(word, side = 'right')
 
         def _test_reduced_word(self, **options):
             """
@@ -289,7 +289,7 @@ class CoxeterGroups(Category):
             return self.simple_reflections()
 
 
-        def simple_projection(self, i, side = "right", toward_max = True):
+        def simple_projection(self, i, side = 'right', toward_max = True):
             r"""
             INPUT:
              - ``i`` - an element of the index set of self
@@ -331,11 +331,11 @@ class CoxeterGroups(Category):
             return lambda x: x.apply_simple_projection(i, side = side, toward_max = toward_max) # should use default_keyword
 
         @cached_method
-        def simple_projections(self, side = "right", toward_max = True):
+        def simple_projections(self, side = 'right', toward_max = True):
             r"""
             INPUT:
              - ``self`` - a Coxeter group `W`
-             - ``side`` - "left" or "right" (default: "right")
+             - ``side`` - 'left' or 'right' (default: 'right')
              - ``toward_max`` - a boolean (default: True) specifying the direction of the projection
 
             Returns the simple projections of `W`, as a family.
@@ -394,7 +394,7 @@ class CoxeterGroups(Category):
                 sage: W._test_simple_projections()
             """
             tester = self._tester(**options)
-            for side in ["left", "right"]:
+            for side in ['left', 'right']:
                 pi  = self.simple_projections(side = side)
                 opi = self.simple_projections(side = side, toward_max = False)
                 for i in self.index_set():
@@ -423,29 +423,29 @@ class CoxeterGroups(Category):
             s = self.simple_reflections()
             for i in self.index_set():
                 tester.assert_(not self.one().has_descent(i))
-                tester.assert_(not self.one().has_descent(i, side = "left"))
-                tester.assert_(not self.one().has_descent(i, side = "right"))
+                tester.assert_(not self.one().has_descent(i, side = 'left'))
+                tester.assert_(not self.one().has_descent(i, side = 'right'))
                 tester.assert_(self.one().has_descent(i, positive = True))
-                tester.assert_(self.one().has_descent(i, positive = True, side = "left"))
-                tester.assert_(self.one().has_descent(i, positive = True, side = "right"))
+                tester.assert_(self.one().has_descent(i, positive = True, side = 'left'))
+                tester.assert_(self.one().has_descent(i, positive = True, side = 'right'))
                 for j in self.index_set():
-                    tester.assertEquals(s[i].has_descent(j, side = "left" ), i==j)
-                    tester.assertEquals(s[i].has_descent(j, side = "right"), i==j)
+                    tester.assertEquals(s[i].has_descent(j, side = 'left' ), i==j)
+                    tester.assertEquals(s[i].has_descent(j, side = 'right'), i==j)
                     tester.assertEquals(s[i].has_descent(j                ), i==j)
-                    tester.assertEquals(s[i].has_descent(j, positive = True, side = "left" ), i!=j)
-                    tester.assertEquals(s[i].has_descent(j, positive = True, side = "right"), i!=j)
+                    tester.assertEquals(s[i].has_descent(j, positive = True, side = 'left' ), i!=j)
+                    tester.assertEquals(s[i].has_descent(j, positive = True, side = 'right'), i!=j)
                     tester.assertEquals(s[i].has_descent(j, positive = True,               ), i!=j)
                     if i == j:
                         continue
                     u = s[i] * s[j]
                     v = s[j] * s[i]
-                    tester.assert_((s[i]*s[j]).has_descent(i, side = "left" ))
-                    tester.assert_((s[i]*s[j]).has_descent(j, side = "right"))
-                    tester.assertEquals((s[i]*s[j]).has_descent(j, side = "left" ), u == v)
-                    tester.assertEquals((s[i]*s[j]).has_descent(i, side = "right"), u == v)
+                    tester.assert_((s[i]*s[j]).has_descent(i, side = 'left' ))
+                    tester.assert_((s[i]*s[j]).has_descent(j, side = 'right'))
+                    tester.assertEquals((s[i]*s[j]).has_descent(j, side = 'left' ), u == v)
+                    tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
     class ElementMethods:
-        def has_descent(self, i, side = "right", positive=False):
+        def has_descent(self, i, side = 'right', positive=False):
             """
             Returns whether i is a (left/right) descent of self.
 
@@ -460,7 +460,7 @@ class CoxeterGroups(Category):
                 True
                 sage: [ w.has_descent(i)                  for i in [0,1,2] ]
                 [False, False, True]
-                sage: [ w.has_descent(i, side = "left")   for i in [0,1,2] ]
+                sage: [ w.has_descent(i, side = 'left')   for i in [0,1,2] ]
                 [True, False, False]
                 sage: [ w.has_descent(i, positive = True) for i in [0,1,2] ]
                 [True, True, False]
@@ -469,10 +469,10 @@ class CoxeterGroups(Category):
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
             assert isinstance(positive, bool)
-            if side == "right":
+            if side == 'right':
                 return self.has_right_descent(i) != positive
             else:
-                assert side == "left"
+                assert side == 'left'
                 return self.has_left_descent(i)  != positive
 
         @abstract_method(optional = True)
@@ -494,7 +494,7 @@ class CoxeterGroups(Category):
             """
             return (~self).has_right_descent(i)
 
-        def first_descent(self, side = "right", index_set=None, positive=False):
+        def first_descent(self, side = 'right', index_set=None, positive=False):
             """
             Returns the first left (resp. right) descent of self, as
             ane element of ``index_set``, or ``None`` if there is none.
@@ -523,12 +523,12 @@ class CoxeterGroups(Category):
             return None
 
 
-        def descents(self, side = "right", index_set=None, positive=False):
+        def descents(self, side = 'right', index_set=None, positive=False):
             """
             INPUT:
              - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
                (default: all of them)
-             - ``side`` - "left" or "right" (default: "right")
+             - ``side`` - 'left' or 'right' (default: 'right')
              - ``positive`` - a boolean (default: ``False``)
 
             Returns the descents of self, as a list of elements of the
@@ -591,7 +591,7 @@ class CoxeterGroups(Category):
                 i = self.first_descent()
                 if i is None:
                     return
-                self = self.apply_simple_reflection(i, "right")
+                self = self.apply_simple_reflection(i, 'right')
                 yield i
 
         def reduced_word(self):
@@ -680,11 +680,11 @@ class CoxeterGroups(Category):
             """
             return len(self.reduced_word())
 
-        def coset_representative(self, index_set, side = "right"):
+        def coset_representative(self, index_set, side = 'right'):
             r"""
             INPUT:
              - ``index_set`` - a subset (or iterable) of the nodes of the dynkin diagram
-             - ``side`` - "left" or "right"
+             - ``side`` - 'left' or 'right'
 
             Returns the unique shortest element of the coxeter group
             $W$ which is in the same left (resp. right) coset as
@@ -706,17 +706,17 @@ class CoxeterGroups(Category):
                 [2, 1]
                 sage: w.coset_representative([1,2,3]               ).reduced_word()
                 []
-                sage: w.coset_representative([],      side = "left").reduced_word()
+                sage: w.coset_representative([],      side = 'left').reduced_word()
                 [2, 3, 1]
-                sage: w.coset_representative([1],     side = "left").reduced_word()
+                sage: w.coset_representative([1],     side = 'left').reduced_word()
                 [2, 3, 1]
-                sage: w.coset_representative([1,2],   side = "left").reduced_word()
+                sage: w.coset_representative([1,2],   side = 'left').reduced_word()
                 [3]
-                sage: w.coset_representative([1,3],   side = "left").reduced_word()
+                sage: w.coset_representative([1,3],   side = 'left').reduced_word()
                 [2, 3, 1]
-                sage: w.coset_representative([2,3],   side = "left").reduced_word()
+                sage: w.coset_representative([2,3],   side = 'left').reduced_word()
                 [1]
-                sage: w.coset_representative([1,2,3], side = "left").reduced_word()
+                sage: w.coset_representative([1,2,3], side = 'left').reduced_word()
                 []
 
             """
@@ -726,11 +726,11 @@ class CoxeterGroups(Category):
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = "right", toward_max = True):
+        def apply_simple_projection(self, i, side = 'right', toward_max = True):
             """
             INPUT:
              - ``i`` - an element of the index set of the Coxeter group
-             - ``side`` - "left" or "right" (default: "right")
+             - ``side`` - 'left' or 'right' (default: 'right')
              - ``toward_max`` - a boolean (default: True) specifying the direction of the projection
 
             Returns the result of the application of the simple
@@ -790,14 +790,14 @@ class CoxeterGroups(Category):
                 return FiniteCombinatorialClass([])
             s = W.simple_reflections()
             def succ((u,v)):
-                for i in v.descents(side = "left"):
+                for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
                         yield (u1, s[i]*v)
             return SearchForest(((W.one(), self),), succ)
 
         # TODO: standardize / cleanup
-        def apply_simple_reflections(self, word, side = "right"):
+        def apply_simple_reflections(self, word, side = 'right'):
             """
             INPUT:
              - "word": A sequence of indices of Coxeter generators
@@ -842,13 +842,13 @@ class CoxeterGroups(Category):
             s = self.parent().simple_reflections()
             return self * s[i]
 
-        def apply_simple_reflection(self, i, side = "right"):
+        def apply_simple_reflection(self, i, side = 'right'):
             """
 
             ... multiplies x by s[i] ...
 
             """
-            if side == "right":
+            if side == 'right':
                 return self.apply_simple_reflection_right(i)
             else:
                 return self.apply_simple_reflection_left(i)
@@ -906,11 +906,12 @@ class CoxeterGroups(Category):
         @cached_in_parent_method
         def bruhat_lower_covers(self):
             """
-            Returns all elements that self covers in Bruhat order.
-            If w = self has a descent at i, then the elements that
-            w covers are exactly {ws_i, u_1s_i, u_2s_i,..., u_js_i},
-            where the u_k are elements that ws_i covers that also
-            do not have a descent at i
+            Returns all elements that ``self`` covers in (strong) Bruhat order.
+
+            If ``w = self`` has a descent at `i`, then the elements that
+            `w` covers are exactly `\{ws_i, u_1s_i, u_2s_i,..., u_js_i\}`,
+            where the `u_k` are elements that `ws_i` covers that also
+            do not have a descent at `i`.
 
             EXAMPLES::
 
@@ -929,14 +930,19 @@ class CoxeterGroups(Category):
                 sage: print([v.reduced_word() for v in w.bruhat_lower_covers()])
                 [[2], [0]]
 
-            We now show how to construct the Bruhat order poset.
+            We now show how to construct the Bruhat poset::
 
-            EXAMPLES::
+                sage: W = WeylGroup(["A",3])
+                sage: covers = tuple([u, v] for v in W for u in v.bruhat_lower_covers() )
+                sage: P = Poset((W, covers), cover_relations = True)
+                sage: P.show()
 
-                sage: elms = [w for w in WeylGroup(["A",3])]
-                sage: fcn = lambda p,q : q in p.bruhat_lower_covers()
-                sage: P = Poset((elms, fcn), cover_relations = True) # todo: not implemented (depends on poset_improvements-fs.patch)
-                sage: P.show() # todo: not implemented (depends on poset_improvements-fs.patch)
+            Alternatively, one can just use::
+
+                sage: P = W.bruhat_poset()
+
+
+            The algorithm is taken from Stembridge's coxeter/weyl package for Maple.
             """
             desc = self.first_descent()
             if desc is not None:
@@ -945,37 +951,196 @@ class CoxeterGroups(Category):
             else:
                 return []
 
+        @cached_in_parent_method
+        def bruhat_le(self, other):
+            """
+            Bruhat comparison
+
+            INPUT:
+
+             - other - an element of the same Coxeter group
+
+            OUTPUT: a boolean
+
+            Returns whether ``self`` <= ``other`` in the Bruhat order.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A",3])
+                sage: u = W.from_reduced_word([1,2,1])
+                sage: v = W.from_reduced_word([1,2,3,2,1])
+                sage: u.bruhat_le(u)
+                True
+                sage: u.bruhat_le(v)
+                True
+                sage: v.bruhat_le(u)
+                False
+                sage: v.bruhat_le(v)
+                True
+                sage: s = W.simple_reflections()
+                sage: s[1].bruhat_le(W.one())
+                False
+
+            The implementation uses the equivalent condition that any
+            reduced word for ``other`` contains a reduced word for
+            ``self`` as subword. See Stembridge, A short derivation of
+            the Mobius function for the Bruhat order. J. Algebraic
+            Combin. 25 (2007), no. 2, 141--148, Proposition 1.1.
+
+            Complexity: `O(l * c)`, where `l` is the minimum of the
+            lengths of `u` and of `v`, and `c` is the cost of the low
+            level methods :meth:`first_descent`, :meth:`has_descent`,
+            :meth:`apply_simple_reflection`, etc. Those are typically
+            `O(n)`, where `n` is the rank of the Coxeter group.
+
+            TESTS:
+
+            We now run consistency tests with permutations and
+            :meth:`bruhat_lower_covers`::
+
+                sage: W = WeylGroup(["A",3])
+                sage: P4 = Permutations(4)
+                sage: def P4toW(w): return W.from_reduced_word(w.reduced_word())
+                sage: for u in P4:
+                ...       for v in P4:
+                ...           assert u.bruhat_lequal(v) == P4toW(u).bruhat_le(P4toW(v))
+
+                sage: W = WeylGroup(["B",3])
+                sage: P = W.bruhat_poset() # This is built from bruhat_lower_covers
+                sage: Q = Poset((W, attrcall("bruhat_le")))                         # long time (10s)
+                sage: all( u.bruhat_le(v) == (P(u) <= P(v)) for u in W for v in W ) # long time  (7s)
+                True
+                sage: all((P(u) <= P(v)) == (Q(u) <= Q(v)) for u in W for v in W)   # long time  (9s)
+                True
+
+            """
+            # could first compare the length, when that information is cheap
+            desc = other.first_descent()
+            if desc is not None:
+                return self.apply_simple_projection(desc, toward_max = False).bruhat_le(other.apply_simple_reflection(desc))
+            else:
+                return self == other
+
+        def weak_le(self, other, side = 'right'):
+            """
+            comparison in weak order
+
+            INPUT:
+
+             - other - an element of the same Coxeter group
+             - side - 'left' or 'right'  (default: 'right')
+
+            OUTPUT: a boolean
+
+            Returns whether ``self`` <= ``other`` in left
+            (resp. right) weak order, that is if 'v' can be obtained
+            from 'v' by length increasing multiplication by simple
+            reflections on the left (resp. right).
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A",3])
+                sage: u = W.from_reduced_word([1,2])
+                sage: v = W.from_reduced_word([1,2,3,2])
+                sage: u.weak_le(u)
+                True
+                sage: u.weak_le(v)
+                True
+                sage: v.weak_le(u)
+                False
+                sage: v.weak_le(v)
+                True
+
+            Comparison for left weak order is achieved with the option ``side``::
+
+                sage: u.weak_le(v, side = 'left')
+                False
+
+            The implementation uses the equivalent condition that any
+            reduced word for `u` is a right (resp. left) prefix of
+            some reduced word for `v`.
+
+            Complexity: `O(l * c)`, where `l` is the minimum of the
+            lengths of `u` and of `v`, and `c` is the cost of the low
+            level methods :meth:`first_descent`, :meth:`has_descent`,
+            :meth:`apply_simple_reflection`. Those are typically
+            `O(n)`, where `n` is the rank of the Coxeter group.
+
+            We now run consistency tests with permutations::
+
+                sage: W = WeylGroup(["A",3])
+                sage: P4 = Permutations(4)
+                sage: def P4toW(w): return W.from_reduced_word(w.reduced_word())
+                sage: for u in P4:
+                ...       for v in P4:
+                ...           assert u.permutohedron_lequal(v) == P4toW(u).weak_le(P4toW(v))
+                ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
+            """
+            # could first compare the length, when that information is cheap
+            prefix_side = 'left' if side == 'right' else 'right'
+
+            while True:
+                desc = self.first_descent(side = prefix_side)
+                if desc is None:
+                    return True
+                if not other.has_descent(desc, side = prefix_side):
+                    return False
+                self = self.apply_simple_reflection(desc, side = prefix_side)
+                other = other.apply_simple_reflection(desc, side = prefix_side)
+
         def weak_covers(self, side = 'right', index_set = None, positive = False):
             """
-            Returns all elements that self covers in weak order.
+            Returns all elements that ``self`` covers in weak order.
 
-            To obtain left weak order one can change the option side to 'left'.
+            INPUT:
 
-            To obtain elements that cover self, set ``positive = False``.
+             - side - 'left' or 'right'  (default: 'right')
+             - positive - a boolean (default: False)
+             - index_set - a list of indices or None
+
+            OUTPUT: a list
 
             EXAMPLES::
 
                 sage: W = WeylGroup(['A',3])
                 sage: w = W.from_reduced_word([3,2,1])
-                sage: [x.reduced_word() for x in w.lower_covers()]
+                sage: [x.reduced_word() for x in w.weak_covers()]
                 [[3, 2]]
-                sage: [x.reduced_word() for x in w.lower_covers(side='left')]
+
+            To obtain instead elements that cover self, set ``positive = True``::
+
+                sage: [x.reduced_word() for x in w.weak_covers(positive = True)]
+                [[3, 1, 2, 1], [2, 3, 2, 1]]
+
+            To obtain covers for left weak order, set the option side to 'left'::
+
+                sage: [x.reduced_word() for x in w.weak_covers(side='left')]
                 [[2, 1]]
                 sage: w = W.from_reduced_word([3,2,3,1])
-                sage: [x.reduced_word() for x in w.lower_covers()]
+                sage: [x.reduced_word() for x in w.weak_covers()]
                 [[2, 3, 2], [3, 2, 1]]
-                sage: [x.reduced_word() for x in w.lower_covers(index_set = [1,2])]
-                [[2, 3, 2]]
-                sage: [x.reduced_word() for x in w.lower_covers(side='left')]
+                sage: [x.reduced_word() for x in w.weak_covers(side='left')]
                 [[3, 2, 1], [2, 3, 1]]
+
+            Covers w.r.t. a parabolic subgroup are obtained with the option ``index_set``::
+
+                sage: [x.reduced_word() for x in w.weak_covers(index_set = [1,2])]
+                [[2, 3, 2]]
             """
-            return [ self.apply_simple_reflection(i,side=side) for i in self.descents(side=side, index_set = index_set, positive = positive) ]
+            return [ self.apply_simple_reflection(i, side=side)
+                     for i in self.descents(side=side, index_set = index_set, positive = positive) ]
 
 
         def lower_covers(self, side = 'right', index_set = None):
             """
-            Returns all elements that self covers in right weak order.
-            To obtain left weak order one can change the option side to 'left'.
+            Returns all elements that ``self`` covers in weak order.
+
+            INPUT:
+
+             - side - 'left' or 'right' (default: 'right')
+             - index_set - a list of indices or None
+
+            OUTPUT: a list
 
             EXAMPLES::
 
@@ -983,11 +1148,17 @@ class CoxeterGroups(Category):
                 sage: w = W.from_reduced_word([3,2,1])
                 sage: [x.reduced_word() for x in w.lower_covers()]
                 [[3, 2]]
+
+            To obtain covers for left weak order, set the option side to 'left'::
+
                 sage: [x.reduced_word() for x in w.lower_covers(side='left')]
                 [[2, 1]]
                 sage: w = W.from_reduced_word([3,2,3,1])
                 sage: [x.reduced_word() for x in w.lower_covers()]
                 [[2, 3, 2], [3, 2, 1]]
+
+            Covers w.r.t. a parabolic subgroup are obtained with the option ``index_set``::
+
                 sage: [x.reduced_word() for x in w.lower_covers(index_set = [1,2])]
                 [[2, 3, 2]]
                 sage: [x.reduced_word() for x in w.lower_covers(side='left')]
@@ -997,24 +1168,33 @@ class CoxeterGroups(Category):
 
         def upper_covers(self, side = 'right', index_set = None):
             """
-            Returns all elements that cover self in right weak order.
-            To obtain left weak order one can change the option side to 'left'.
+            Returns all elements that cover ``self`` in weak order.
+
+            INPUT:
+
+             - side - 'left' or 'right' (default: 'right')
+             - index_set - a list of indices or None
+
+            OUTPUT: a list
 
             EXAMPLES::
 
                 sage: W = WeylGroup(['A',3])
-                sage: w = W.from_reduced_word([3,2,1])
+                sage: w = W.from_reduced_word([2,3])
                 sage: [x.reduced_word() for x in w.upper_covers()]
-                [[3, 1, 2, 1], [2, 3, 2, 1]]
-                sage: [x.reduced_word() for x in w.upper_covers(index_set = [2])]
-                [[3, 1, 2, 1]]
-                sage: [x.reduced_word() for x in w.upper_covers(side='left')]
-                [[3, 1, 2, 1], [2, 3, 2, 1]]
-                sage: w = W.from_reduced_word([3,2,3,1])
-                sage: [x.reduced_word() for x in w.upper_covers()]
-                [[2, 3, 1, 2, 1]]
-                sage: [x.reduced_word() for x in w.upper_covers(side='left')]
-                [[1, 2, 3, 2, 1]]
+                [[2, 3, 1], [2, 3, 2]]
+
+            To obtain covers for left weak order, set the option ``side`` to 'left'::
+
+                sage: [x.reduced_word() for x in w.upper_covers(side = 'left')]
+                [[1, 2, 3], [2, 3, 2]]
+
+            Covers w.r.t. a parabolic subgroup are obtained with the option ``index_set``::
+
+                sage: [x.reduced_word() for x in w.upper_covers(index_set = [1])]
+                [[2, 3, 1]]
+                sage: [x.reduced_word() for x in w.upper_covers(side = 'left', index_set = [1])]
+                [[1, 2, 3]]
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
 
@@ -1022,6 +1202,4 @@ class CoxeterGroups(Category):
         # With strong doc stating that this is just a convenience for the user
         # and links to ~ / __invert__
 
-        # bruhat_order()
-        # weak_order(side = "left", "right")
         # parabolic_subgroup

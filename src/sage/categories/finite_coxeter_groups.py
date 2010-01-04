@@ -142,6 +142,113 @@ class FiniteCoxeterGroups(Category):
                 else:
                     w = w.apply_simple_reflection(i)
 
+        @cached_method
+        def bruhat_poset(self):
+            """
+            Returns the Bruhat poset of ``self``
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 2])
+                sage: P = W.bruhat_poset()
+                sage: P
+                Finite poset containing 6 elements
+                sage: P.show()
+
+            Here are some typical operations on this poset::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: P = W.bruhat_poset()
+                sage: u = W.from_reduced_word([3,1])
+                sage: v = W.from_reduced_word([3,2,1,2,3])
+                sage: P(u) <= P(v)
+                True
+                sage: len(P.interval(P(u), P(v)))
+                10
+                sage: P.is_join_semilattice()
+                False
+
+            See also :class:`Poset`.
+
+            TESTS::
+
+                sage: [len(WeylGroup(["A", n]).bruhat_poset().cover_relations()) for n in [1,2,3]]
+                [1, 8, 58]
+
+            TODO:
+
+             - Use the symmetric group in the examples (for nicer
+               output), and print the edges for a stronger test.
+             - The constructed poset should be lazy, in order to
+               handle large / infinite Coxeter groups.
+            """
+            from sage.combinat.posets.posets import Poset
+            covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
+            return Poset((self, covers), cover_relations = True)
+
+        @cached_method
+        def weak_poset(self, side = "right"):
+            """
+            INPUT:
+
+             - ``side`` -- "left" or "right" (default: "right")
+
+            Returns the left (resp. right) poset for weak order.  In
+            this poset, `u` is smaller than `v` if some reduced word
+            of `u` is a right (resp. left) factor of some reduced word
+            of `v`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 2])
+                sage: P = W.weak_poset()
+                sage: P
+                Finite poset containing 6 elements
+                sage: P.show()
+
+            This poset is in fact a lattice::
+
+                sage: W = WeylGroup(["B", 3])
+                sage: P = W.weak_poset(side = "left")
+                sage: P.is_join_semilattice(), P.is_meet_semilattice() # todo: implement is_lattice
+                (True, True)
+
+            As a bonus feature, one can create the left-right weak
+            poset::
+
+                sage: W = WeylGroup(["A",2])
+                sage: P = W.weak_poset(side = "twosided")
+                sage: P.show()
+                sage: len(P.hasse_diagram().edges())
+                8
+
+            This is the transitive closure of the union of left and
+            right order. In this poset, `u` is smaller than `v` if
+            some reduced word of `u` is a factor of some reduced word
+            of `v`.
+
+            TESTS::
+
+                sage: [len(WeylGroup(["A", n]).weak_poset(side = "right").cover_relations()) for n in [1,2,3]]
+                [1, 6, 36]
+                sage: [len(WeylGroup(["A", n]).weak_poset(side = "left" ).cover_relations()) for n in [1,2,3]]
+                [1, 6, 36]
+
+            TODO:
+
+             - Use the symmetric group in the examples (for nicer
+               output), and print the edges for a stronger test.
+             - The constructed poset should be lazy, in order to
+               handle large / infinite Coxeter groups.
+
+            """
+            from sage.combinat.posets.posets import Poset
+            if side == "twosided":
+                covers = tuple([u, v] for u in self for v in u.upper_covers(side="left")+u.upper_covers(side="right") )
+            else:
+                covers = tuple([u, v] for u in self for v in u.upper_covers(side=side) )
+            return Poset((self, covers), cover_relations = True)
+
     class ElementMethods:
 
         @cached_in_parent_method

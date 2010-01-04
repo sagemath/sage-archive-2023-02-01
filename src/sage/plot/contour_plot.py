@@ -526,7 +526,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     Since it doesn't look very good, let's increase plot_points::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1)
 
     The first quadrant of the unit circle::
 
@@ -543,6 +543,14 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     Here we have a cut circle::
 
         sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1)
+
+    The first variable range corresponds to the horizontal axis and
+    the second variable range corresponds to the vertical axis::
+
+        sage: s,t=var('s,t')
+        sage: region_plot(s>0,(t,-2,2),(s,-2,2))
+        sage: region_plot(s>0,(s,-2,2),(t,-2,2))
+
     """
 
     from sage.plot.plot import Graphics

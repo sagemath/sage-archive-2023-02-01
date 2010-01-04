@@ -2113,18 +2113,23 @@ class AttrCallObject(object):
         self.args = args
         self.kwds = kwds
 
-    def __call__(self, x):
+    def __call__(self, x, *args):
         """
-        Gets the self.name method from x, calls it with self.args and
-        self.kwds, and returns the result.
+        Gets the ``self.name`` method from ``x``, calls it with
+        ``self.args`` and ``args`` as positional parameters and
+        ``self.kwds`` as keyword parameters, and returns the result.
 
         EXAMPLES::
 
-            sage: f = attrcall('core', 3)
-            sage: f(Partition([4,2]))
+            sage: core = attrcall('core', 3)
+            sage: core(Partition([4,2]))
             [4, 2]
+
+            sage: series = attrcall('series', x)
+            sage: series(sin(x), 4)
+            1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*self.args, **self.kwds)
+        return getattr(x, self.name)(*(self.args+args), **self.kwds)
 
     def __repr__(self):
         """

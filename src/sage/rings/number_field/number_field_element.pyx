@@ -66,7 +66,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.all import pari_gen
+from sage.libs.all import pari_gen, pari
 from sage.libs.pari.gen import PariError
 from sage.structure.element cimport Element, generic_power_c
 
@@ -2715,16 +2715,9 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             self.__pari = {}
         if var is None:
             var = self.number_field().variable_name()
-        f = self.polynomial()._pari_()
-        gp = self.number_field().polynomial()
-        if gp.variable_name() != 'x':
-            gp = gp.change_variable_name('x')
-        g = gp._pari_()
-        gv = str(gp.parent().gen())
-        if var != 'x':
-            f = f.subst("x",var)
-        if var != gv:
-            g = g.subst(gv, var)
+
+        f = self.polynomial()._pari_().subst('x', var)
+        g = self.number_field().pari_polynomial().subst('x', var)
         h = f.Mod(g)
         self.__pari[var] = h
         return h
@@ -3074,11 +3067,9 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             pass
         except TypeError:
             self.__pari = {}
-        g = self.parent().pari_polynomial()
+        g = self.parent().pari_polynomial(var)
         f = self.polynomial()._pari_()
         f = f.subst('x', var)
-        g = g.subst('x', var)
-        h = f.Mod(g)
         h = f.Mod(g)
         self.__pari[var] = h
         return h

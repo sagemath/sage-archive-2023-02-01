@@ -1,3 +1,5 @@
+.. _chapter-cython:
+
 ==========================
 Coding in Other Languages
 ==========================

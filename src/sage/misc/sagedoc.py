@@ -27,8 +27,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re
+import os, re, sys
+import pydoc
 from subprocess import Popen, PIPE
+from sage.misc.viewer import browser
+from sage.misc.misc import SAGE_DOC, tmp_dir
+from sagenb.misc.sphinxify import sphinxify
+import sage.version
 
 # two kinds of substitutions: math, which should only be done on the
 # command line -- in the notebook, these should instead by taken care
@@ -835,3 +840,257 @@ def my_getsource(obj, is_binary):
     except Exception, msg:
         print 'Error getting source:', msg
         return None
+
+class _sage_doc:
+    """
+    Open Sage documentation in a web browser, from either the
+    command-line or the notebook.
+
+    - Type "browse_sage_doc.DOCUMENT()" to open the named document --
+      for example, "browse_sage_doc.tutorial()" opens the tutorial.
+      Available documents are
+
+      - tutorial: the Sage tutorial
+      - reference: the Sage reference manual
+      - constructions: "how do I construct ... in Sage?"
+      - developer: the Sage developer's guide.
+
+    - Type "browse_sage_doc(OBJECT, output=FORMAT, view=BOOL)" to view
+      the documentation for OBJECT, as in
+      "browse_sage_doc(identity_matrix, 'html').  ``output`` can be
+      either 'html' or 'rst': the form of the output.  ``view`` is
+      only relevant if ``output`` is ``html``; in this case, if
+      ``view`` is True (its default value), then open up the
+      documentation in a web browser.  Otherwise, just output the
+      documentation as a string.
+
+    EXAMPLES::
+
+        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest
+        'http://localhost:8000/doc/live/reference/index.html'
+        sage: browse_sage_doc(identity_matrix, 'rst')[-60:-5]
+        'MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
+    """
+    def __init__(self):
+        self._base_url = "http://localhost:8000/doc/live/"
+        self._base_path = os.path.join(SAGE_DOC, "output/html/en/")
+
+    def __call__(self, obj, output='html', view=True):
+        r"""
+        Return the documentation for ``obj``.
+
+        INPUT:
+
+        - ``obj`` - a Sage object
+        - ``output`` - either 'html' or 'rst': return documentation in this form
+        - ``view`` - only has an effect if output is 'html': in this
+          case, if ``view`` is ``True``, display the documentation in
+          a web browser.  Otherwise, return the documentation as a
+          string.
+
+        EXAMPLES::
+
+            sage: browse_sage_doc(identity_matrix, 'rst')[:9]
+            '**File:**'
+            sage: browse_sage_doc(identity_matrix, 'rst')[-60:]
+            'MatrixSpace of 3 by 3 sparse matrices over Integer Ring\n    '
+            sage: browse_sage_doc(identity_matrix, 'html', False)[:59]
+            '<div class="docstring">\n    \n  <p><strong>File:</strong> /v'
+
+        """
+        if output != 'html' and view:
+            view = False
+        # much of the following is taken from 'docstring' in server/support.py
+        s  = ''
+        newline = "\n\n"  # blank line to start new paragraph
+
+        try:
+            filename = sageinspect.sage_getfile(obj)
+            s += '**File:** %s' % filename
+            s += newline
+        except TypeError:
+            pass
+
+        obj_name = ''
+        locs = sys._getframe(1).f_locals
+        for var in locs:
+            if id(locs[var]) == id(obj):
+                obj_name = var
+
+        s += '**Type:** %s' % type(obj)
+        s += newline
+        s += '**Definition:** %s' % sageinspect.sage_getdef(obj, obj_name)
+        s += newline
+        s += '**Docstring:**'
+        s += newline
+        s += sageinspect.sage_getdoc(obj, obj_name, embedded_override=True)
+
+        # now s should be the reST version of the docstring
+        if output == 'html':
+            html = sphinxify(s)
+            if view:
+                path = os.path.join(tmp_dir(), "temp.html")
+                filed = open(path, 'w')
+
+                static_path = os.path.join(SAGE_DOC, 'output/html/en/_static')
+                if os.path.exists(static_path):
+                    title = obj_name + ' - Sage ' + sage.version.version + ' Documentation'
+                    template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>%(title)s</title>
+    <link rel="stylesheet" href="%(static_path)s/default.css" type="text/css" />
+    <link rel="stylesheet" href="%(static_path)s/pygments.css" type="text/css" />
+    <style type="text/css">
+      <!--
+        div.body {
+          margin: 1.0em;
+          padding: 1.0em;
+        }
+        div.bodywrapper {
+          margin: 0;
+        }
+      -->
+    </style>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '%(version)s',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  false
+      };
+    </script>
+    <script type="text/javascript" src="%(static_path)s/jquery.js"></script>
+    <script type="text/javascript" src="%(static_path)s/doctools.js"></script>
+    <script type="text/javascript" src="%(static_path)s/jsmath_sage.js"></script>
+    <link rel="shortcut icon" href="%(static_path)s/favicon.ico" />
+    <link rel="icon" href="%(static_path)s/sageicon.png" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            %(html)s
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>"""
+                    html = template % { 'html': html,
+                                        'static_path': static_path,
+                                        'title': title,
+                                        'version': sage.version.version }
+
+                filed.write(html)
+                filed.close()
+                os.system(browser() + " " + path)
+            else:
+                return html
+        elif output == 'rst':
+            return s
+        else:
+            raise ValueError, "output type %s not recognized" % output
+
+    def _open(self, name, testing=False):
+        """
+        Open the document ``name`` in a web browser.  This constructs
+        the appropriate URL and/or path name and passes it to the web
+        browser.
+
+        INPUT:
+
+        - ``name`` - string, name of the documentation
+
+        - ``testing`` - boolean (optional, default False): if True,
+          then just return the URL and path-name for this document;
+          don't open the web browser.
+
+        EXAMPLES::
+
+            sage: browse_sage_doc._open("reference", testing=True)[0]
+            'http://localhost:8000/doc/live/reference/index.html'
+            sage: browse_sage_doc._open("tutorial", testing=True)[1]
+            '...doc/output/html/en/tutorial/index.html'
+        """
+        url = self._base_url + os.path.join(name, "index.html")
+        path = os.path.join(self._base_path, name, "index.html")
+        if testing:
+            return (url, path)
+
+        if not os.path.exists(path):
+            raise OSError, """The document '%s' does not exist.  Please build it
+with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
+
+        from sage.server.support import EMBEDDED_MODE
+        if EMBEDDED_MODE:
+            os.system(browser() + " " + url)
+        else:
+            os.system(browser() + " " + path)
+
+    def tutorial(self):
+        """
+        The Sage tutorial.  To get started with Sage, start here.
+        """
+        self._open("tutorial")
+
+    def reference(self):
+        """
+        The Sage reference manual.
+        """
+        self._open("reference")
+
+    manual = reference
+
+    def developer(self):
+        """
+        The Sage developer's guide.  Learn to develop programs for Sage.
+        """
+        self._open("developer")
+
+    def constructions(self):
+        """
+        Sage constructions.  Attempts to answer the question "How do I
+        construct ... in Sage?"
+        """
+        self._open("constructions")
+
+browse_sage_doc = _sage_doc()
+tutorial = browse_sage_doc.tutorial
+reference = browse_sage_doc.reference
+manual = browse_sage_doc.reference
+developer = browse_sage_doc.developer
+constructions = browse_sage_doc.constructions
+
+python_help = pydoc.help
+
+def help(module=None):
+    """
+    If there is an argument ``module``, print the Python help message
+    for ``module``.  With no argument, print a help message about
+    getting help in Sage.
+
+    EXAMPLES::
+
+        sage: help()
+        Welcome to Sage ...
+    """
+    if module:
+        python_help(module)
+    else:
+        print """Welcome to Sage %s!  To view the Sage tutorial in your web browser,
+type 'tutorial()', and to view the (very detailed) Sage reference
+manual, type 'manual()'.  For help on any Sage function, for example
+'matrix_plot', type 'matrix_plot?' to see a help message, type
+'help(matrix_plot)' to see a very similar message, type
+'browse_sage_doc(matrix_plot)' to view a message in a web browser, and
+type 'matrix_plot??' to look at the function's source code.
+
+To enter Python's interactive online help utility, type 'python_help()'.
+To get help on a Python function, module or package, type 'help(MODULE)' or
+'python_help(MODULE)'.""" % sage.version.version

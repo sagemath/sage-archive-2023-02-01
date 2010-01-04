@@ -647,7 +647,11 @@ class WeylGroupElement(MatrixGroupElement):
         """
         MatrixGroupElement.__init__(self, g, parent)
         self.__matrix = self._MatrixGroupElement__mat
+        self.__matrix.set_immutable()
         self._parent = parent
+
+    def __hash__(self):
+        return hash(self.__matrix)
 
     def lattice(self):
         """
@@ -678,6 +682,26 @@ class WeylGroupElement(MatrixGroupElement):
             Full MatrixSpace of 3 by 3 dense matrices over Rational Field
         """
         return self.__matrix
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: s[1] == s[1]
+            True
+            sage: s[1] == s[2]
+            False
+
+        Note: this implementation of :meth:`__eq__` is not much faster
+        than :meth:`__cmp__`. But it turned out to be useful for
+        subclasses overriding __cmp__ with something slow for specific
+        purposes.
+        """
+        return self.__class__ == other.__class__ and \
+               self._parent   == other._parent   and \
+               self.__matrix  == other.__matrix
 
     def __cmp__(self, other):
         """
@@ -770,7 +794,7 @@ class WeylGroupElement(MatrixGroupElement):
             alpha[0] + alpha[1]
         """
         assert(v in self.lattice())
-        return self.lattice().from_vector((self.__matrix*v.to_vector().transpose()).transpose()[0])
+        return self.lattice().from_vector(self.__matrix*v.to_vector())
 
 
     ##########################################################################

@@ -3200,9 +3200,13 @@ class GenericGraph(SageObject):
         """
         if self.order() == 0:
             return True
-        v = self.vertex_iterator().next()
-        conn_verts = list(self.breadth_first_search(v, ignore_direction=True))
-        return len(conn_verts) == self.num_verts()
+
+        try:
+            return self._backend.is_connected()
+        except AttributeError:
+            v = self.vertex_iterator().next()
+            conn_verts = list(self.depth_first_search(v, ignore_direction=True))
+            return len(conn_verts) == self.num_verts()
 
     def connected_components(self):
         """
@@ -3276,7 +3280,11 @@ class GenericGraph(SageObject):
             sage: D.connected_component_containing_vertex(0)
             [0, 1, 2, 3]
         """
-        c = list(self.breadth_first_search(vertex, ignore_direction=True))
+        try:
+            c = list(self._backend.depth_first_search(vertex, ignore_direction=True))
+        except AttributeError:
+            c = list(self.depth_first_search(vertex, ignore_direction=True))
+
         c.sort()
         return c
 
@@ -8141,29 +8149,34 @@ class GenericGraph(SageObject):
             [0, 1, 2]
 
         """
-        if neighbors is None:
-            if not self._directed or ignore_direction:
-                neighbors=self.neighbor_iterator
-            else:
-                neighbors=self.neighbor_out_iterator
-        seen=set([])
-        if isinstance(start, list):
-            queue=[(v,0) for v in start]
+        # Preferably use the Cython implementation
+        if neighbors is None and not isinstance(start,list) and distance is None and hasattr(self._backend,"breadth_first_search"):
+            for v in self._backend.breadth_first_search(start, ignore_direction = ignore_direction):
+                yield v
         else:
-            queue=[(start,0)]
+            if neighbors is None:
+                if not self._directed or ignore_direction:
+                    neighbors=self.neighbor_iterator
+                else:
+                    neighbors=self.neighbor_out_iterator
+            seen=set([])
+            if isinstance(start, list):
+                queue=[(v,0) for v in start]
+            else:
+                queue=[(start,0)]
 
-        for v,d in queue:
-            yield v
-            seen.add(v)
+            for v,d in queue:
+                yield v
+                seen.add(v)
 
-        while len(queue)>0:
-            v,d = queue.pop(0)
-            if distance is None or d<distance:
-                for w in neighbors(v):
-                    if w not in seen:
-                        seen.add(w)
-                        queue.append((w, d+1))
-                        yield w
+            while len(queue)>0:
+                v,d = queue.pop(0)
+                if distance is None or d<distance:
+                    for w in neighbors(v):
+                        if w not in seen:
+                            seen.add(w)
+                            queue.append((w, d+1))
+                            yield w
 
     def depth_first_search(self, start, ignore_direction=False, distance=None, neighbors=None):
         """
@@ -8251,27 +8264,32 @@ class GenericGraph(SageObject):
             [0, 2, 1]
 
         """
-        if neighbors is None:
-            if not self._directed or ignore_direction:
-                neighbors=self.neighbor_iterator
-            else:
-                neighbors=self.neighbor_out_iterator
-        seen=set([])
-        if isinstance(start, list):
-            # Reverse the list so that the initial vertices come out in the same order
-            queue=[(v,0) for v in reversed(start)]
-        else:
-            queue=[(start,0)]
-
-        while len(queue)>0:
-            v,d = queue.pop()
-            if v not in seen:
+        # Preferably use the Cython implementation
+        if neighbors is None and not isinstance(start,list) and  distance is None and hasattr(self._backend,"depth_first_search"):
+            for v in self._backend.depth_first_search(start, ignore_direction = ignore_direction):
                 yield v
-                seen.add(v)
-                if distance is None or d<distance:
-                    for w in neighbors(v):
-                        if w not in seen:
-                            queue.append((w, d+1))
+        else:
+            if neighbors is None:
+                if not self._directed or ignore_direction:
+                    neighbors=self.neighbor_iterator
+                else:
+                    neighbors=self.neighbor_out_iterator
+            seen=set([])
+            if isinstance(start, list):
+                # Reverse the list so that the initial vertices come out in the same order
+                queue=[(v,0) for v in reversed(start)]
+            else:
+                queue=[(start,0)]
+
+            while len(queue)>0:
+                v,d = queue.pop()
+                if v not in seen:
+                    yield v
+                    seen.add(v)
+                    if distance is None or d<distance:
+                        for w in neighbors(v):
+                            if w not in seen:
+                                queue.append((w, d+1))
 
     def lex_BFS(self,reverse=False,tree=False):
         r"""
@@ -11724,6 +11742,7 @@ class Graph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
+            self._backend.directed = False
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -13994,6 +14013,7 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
+            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -14885,6 +14905,34 @@ class DiGraph(GenericGraph):
         """
         import networkx
         return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+
+    def is_strongly_connected(self):
+        r"""
+        Returns whether the current ``DiGraph`` is strongly connected.
+
+        EXAMPLE:
+
+        The circuit is obviously strongly connected ::
+
+            sage: g = digraphs.Circuit(5)
+            sage: g.is_strongly_connected()
+            True
+
+        But a transitive triangle is not::
+
+            sage: g = DiGraph({ 0 : [1,2], 1 : [2]})
+            sage: g.is_strongly_connected()
+            False
+        """
+        if self.order()==1:
+            return True
+
+        try:
+            return self._backend.is_strongly_connected()
+
+        except AttributeError:
+            return len(self.strongly_connected_components()) == 1
+
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

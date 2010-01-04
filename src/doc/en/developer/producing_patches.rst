@@ -72,6 +72,21 @@ positive), you should produce patch files. To do this:
    ``hg_sage.add([filenames])`` to add those new files to your
    repository.
 
+   .. warning::
+
+      As noted in :ref:`chapter-cython`, if you've added a Cython
+      file, you also need to edit
+      ``SAGE_ROOT/devel/sage/module_list.py``, and if you've added a
+      new directory, you need to edit
+      ``SAGE_ROOT/devel/sage/setup.py``.  If you've added something
+      other than Python or Cython files, then you might need to add
+      entries to the file ``SAGE_ROOT/devel/sage/MANIFEST.in``: this
+      records all of the files to include in distributions of the Sage
+      library.  Look at the file itself for examples, and see the
+      Python documentation
+      http://docs.python.org/distutils/sourcedist.html#specifying-the-files-to-distribute
+      for all of the details.
+
 -  Commit your changes by typing
    ``hg_sage.commit([optional filenames])`` to commit the
    changes in files to the repository -- if no filenames are given,

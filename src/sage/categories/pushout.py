@@ -47,8 +47,38 @@ class ConstructionFunctor(Functor):
 
 
 class CompositConstructionFunctor(ConstructionFunctor):
+    """
+    A Construction Functor composed by other Construction Functors
 
+    INPUT:
+
+    ``F1,F2,...``: A list of Construction Functors. The result is the
+    composition '``F1`` followd by ``F2`` followed by ...'
+
+    EXAMPLES::
+
+        sage: from sage.categories.pushout import CompositConstructionFunctor
+        sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+        sage: F
+        Poly[y](FractionField(Poly[x](FractionField(...))))
+        sage: F == CompositConstructionFunctor(*F.all)
+        True
+        sage: F(GF(2)['t'])
+        Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+
+    """
     def __init__(self, *args):
+        """
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F
+            Poly[y](FractionField(Poly[x](FractionField(...))))
+            sage: F == CompositConstructionFunctor(*F.all)
+            True
+
+        """
         self.all = []
         for c in args:
             if isinstance(c, list):
@@ -71,10 +101,22 @@ class CompositConstructionFunctor(ConstructionFunctor):
             return cmp(type(self), type(other))
 
     def __mul__(self, other):
+        """
+        Convention: ``(F1*F2)(X) == F1(F2(X))``
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F1 = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0])
+            sage: F2 = CompositConstructionFunctor(QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F1*F2
+            Poly[x](FractionField(Poly[y](FractionField(...))))
+
+        """
         if isinstance(self, CompositConstructionFunctor):
-            all = self.all + [other]
+            all = [other] + self.all
         else:
-            all = [self] + other.all
+            all = other.all + [self]
         return CompositConstructionFunctor(*all)
 
     def __str__(self):
@@ -84,7 +126,25 @@ class CompositConstructionFunctor(ConstructionFunctor):
         return s
 
     def expand(self):
-        return self.all
+        """
+        Return expansion of a CompositConstructionFunctor.
+
+        NOTE:
+
+        The product over the list of components, as returned by
+        the ``expand()`` method, is equal to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F
+            Poly[y](FractionField(Poly[x](FractionField(...))))
+            sage: prod(F.expand()) == F
+            True
+
+        """
+        return list(reversed(self.all))
 
 
 class IdentityConstructionFunctor(ConstructionFunctor):

@@ -503,17 +503,14 @@ def preparser(on=True):
     """
     Turn on or off the Sage preparser.
 
-    NOTE: This only works on the command line.  To turn off preparsing
-    in the notebook, switch to python mode.
-
     INPUT:
-        on -- bool (default: True) if True turn on preparsing; if False, turn it off.
+        - ``on`` -- bool (default: True) if True turn on preparsing; if False, turn it off.
 
     EXAMPLES:
         sage: 2/3
         2/3
         sage: preparser(False)
-        sage: 2/3  #not tested since doctests are always preparsed
+        sage: 2/3  # not tested since doctests are always preparsed
         0
         sage: preparser(True)
         sage: 2^3

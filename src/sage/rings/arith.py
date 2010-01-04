@@ -2500,10 +2500,9 @@ def crt(a,b,m=None,n=None):
 CRT = crt
 
 def CRT_list(v, moduli):
-    """
-    Given a list v of elements and a list of corresponding moduli, find
-    a single element that reduces to each element of v modulo the
-    corresponding moduli.
+    r""" Given a list ``v`` of elements and a list of corresponding
+    ``moduli``, find a single element that reduces to each element of
+    ``v`` modulo the corresponding moduli.
 
     EXAMPLES::
 
@@ -2515,9 +2514,38 @@ def CRT_list(v, moduli):
         sage: c.parent()
         Univariate Polynomial Ring in x over Rational Field
 
+    The arguments must be lists::
+
+        sage: CRT_list([1,2,3],"not a list")
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments to CRT_list should be lists
+        sage: CRT_list("not a list",[2,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments to CRT_list should be lists
+
+    The list of moduli must have the same length as the list of elements::
+
+        sage: CRT_list([1,2,3],[2,3,5])
+        23
+        sage: CRT_list([1,2,3],[2,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments to CRT_list should be lists of the same length
+        sage: CRT_list([1,2,3],[2,3,5,7])
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments to CRT_list should be lists of the same length
+
+
     """
+    if not isinstance(v,list) or not isinstance(moduli,list):
+        raise ValueError, "Arguments to CRT_list should be lists"
+    if len(v) != len(moduli):
+        raise ValueError, "Arguments to CRT_list should be lists of the same length"
     if len(v) == 0:
-        return 0
+        return ZZ(0)
     if len(v) == 1:
         return moduli[0].parent()(v[0])
     x = v[0]
@@ -2528,18 +2556,23 @@ def CRT_list(v, moduli):
     return x%m
 
 def CRT_basis(moduli):
-    """
-    Given a list of (pairwise coprime) moduli `m_0, \dots, m_{n-1}`, return a
-    list of integers `a_i` such that CRT of numbers `x_0,\dots,x_{n-1}` to
-    moduli `m_0, \dots, m_{n-1}` is `a_0 \* x_0 + \dots + a_{n-1} \* x_{n-1}`.
+    r"""
+    Returns a CRT basis for the given moduli.
 
     INPUT:
 
-    -  ``list`` - list of integers
+    - ``moduli`` - list of pairwise coprime moduli `m` which admit an
+       extended Euclidean algorithm
 
     OUTPUT:
 
-    - a list of integers
+    - a list of elements `a_i` of the same length as `m` such that
+      `a_i` is congruent to 1 modulo `m_i` and to 0 modulo `m_j` for
+      `j\not=i`.
+
+    .. note::
+
+       The pairwise coprimality of the input is not checked.
 
     EXAMPLES::
 
@@ -2548,17 +2581,22 @@ def CRT_basis(moduli):
         sage: c1,c2 = CRT_basis([5,13])
         sage: mod(a1*c1+a2*c2,5*13)
         42
+
+    A polynomial example::
+
+        sage: x=polygen(QQ)
+        sage: mods = [x,x^2+1,2*x-3]
+        sage: b = CRT_basis(mods)
+        sage: b
+        [-2/3*x^3 + x^2 - 2/3*x + 1, 6/13*x^3 - x^2 + 6/13*x, 8/39*x^3 + 8/39*x]
+        sage: [[bi % mj for mj in mods] for bi in b]
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     """
     n = len(moduli)
     if n == 0:
         return []
-    v = [0 for _ in range(n)]
-    a = list(v)  # copy
-    for i in range(n):
-        v[i] = 1
-        a[i] = CRT_list(v, moduli)
-        v[i] = 0
-    return a
+    M = prod(moduli)
+    return [((xgcd(m,M//m)[2])*(M//m))%M for m in moduli]
 
 def CRT_vectors(X, moduli):
     r"""

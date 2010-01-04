@@ -13,7 +13,7 @@ from sage.rings.power_series_ring import PowerSeriesRing
 
 from sage.libs.pari.all import pari
 from sage.misc.misc import prod
-from sage.rings.arith import factor, gcd, prime_to_m_part, CRT_list
+from sage.rings.arith import factor, gcd, prime_to_m_part, CRT_list, CRT_vectors
 from sage.rings.arith import hilbert_symbol, kronecker_symbol
 
 from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor as QuadraticForm
@@ -413,7 +413,7 @@ def basiclemmavec(self,M):
             mod.append(M1)
         M0 = M0/M1
         if M0 == 1:
-            return CRT_list(vec,mod)
+            return tuple(CRT_vectors(vec,mod))
 
     for i in range(self.dim()):
         for j in range(i):

@@ -21,9 +21,11 @@ from flatten import flatten
 
 from map_threaded import map_threaded
 
-from session import load_session, save_session, show_identifiers, attach
+from session import load_session, save_session, show_identifiers
 
 from remote_file import get_remote_file
+
+from attach import attach
 
 from profiler import Profiler
 
@@ -61,7 +63,7 @@ from mathml import mathml
 
 from defaults import set_default_variable_name
 
-from preparser import preparse, implicit_multiplication, BackslashOperator, attached_files, detach
+from preparser import preparse, implicit_multiplication, BackslashOperator
 
 from interpreter import preparser
 

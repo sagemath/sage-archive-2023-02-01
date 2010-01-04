@@ -921,41 +921,31 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False, numeric_lite
 ## Apply the preparser to an entire file
 ######################################################
 
-attached = {}
-def preparse_file(contents, globals=None, numeric_literals=True):
+_attached={}
+def preparse_file(contents, attached=_attached, magic=True,
+                  do_time=False, ignore_prompts=False,
+                  numeric_literals=True, reload_attached=False):
     """
     NOTE: Temporarily, if @parallel is in the input, then numeric_literals
     is always set to False.
 
-    INPUT:
-
-        - ``contents`` -- a string
-        - ``globals`` -- dict or None (default: None); if given, then arguments to load/attach
-          are evaluated in the namespace of this dict.
-        - ``numeric_literals`` -- bool (default: True), whether to factor out wrapping of
-          integers and floats, so they don't get created repeatedly inside loops
-
-    TESTS::
-
+    TESTS:
         sage: from sage.misc.preparser import preparse_file
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
         sage: _ = preparse_file(lots_of_numbers)
         sage: preparse_file("type(100r), type(100)")
         '_sage_const_100 = Integer(100)\ntype(100 ), type(_sage_const_100 )'
     """
-    if globals is None: globals = {}
-
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
 
     assert isinstance(contents, str)
 
-    # Reload attached files that have changed
-    for F, tm in attached.iteritems():
-        new_tm = os.path.getmtime(F)
-        if os.path.exists(F) and new_tm > tm:
-            contents = 'load "%s"\n'%F + contents
-        attached[F] = new_tm
+    if reload_attached:
+        # add lines to load each attached file that has changed
+        for F, tm in attached.iteritems():
+            if os.path.exists(F) and os.path.getmtime(F) > tm:
+                contents = 'load "%s"\n'%F + contents
 
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
@@ -985,27 +975,62 @@ def preparse_file(contents, globals=None, numeric_literals=True):
             else:
                 contents = "\n".join(assignments) + "\n\n" + contents
 
-    # The list F contains the preparsed lines so far.
     F = []
-    # A is the input, as a list of lines.
     A = contents.splitlines()
-    # We are currently parsing the i-th input line.
     i = 0
     while i < len(A):
-        L = A[i]
-        do_preparse = True
-        for cmd in ['load', 'attach']:
-            if L.lstrip().startswith(cmd+' '):
-                j = L.find(cmd+' ')
-                s = L[j+len(cmd)+1:].strip()
-                if not s.startswith('('):
-                    F.append(' '*j + load_wrap(s, cmd=='attach'))
-                    do_preparse = False
+        L = A[i].rstrip()
+        if magic and L[:7] == "attach ":
+            name = os.path.abspath(_strip_quotes(L[7:]))
+            try:
+                if not attached.has_key(name):
+                    t = os.path.getmtime(name)
+                    attached[name] = t
+            except IOError, OSError:
+                pass
+            L = 'load ' + L[7:]
+
+        if magic and L[:5] == "load ":
+            try:
+                name_load = _strip_quotes(L[5:])
+            except:
+                name_load = L[5:].strip()
+            if name_load in loaded_files:
+                i += 1
+                continue
+            loaded_files.append(name_load)
+            if name_load[-3:] == '.py':
+                import IPython.ipapi
+                # This is a dangerous hack, actually, since it means
+                # that if the input file is:
+                #     load a.sage
+                #     load b.py
+                # Then b.py will be loaded while the file is being *parsed*,
+                # and *before* a.sage is loaded.  That would be very confusing.
+                # This is now Trac ticket #4474.
+                IPython.ipapi.get().magic('run -i "%s"'%name_load)
+                L = ''
+            elif name_load[-5:] == '.sage':
+                try:
+                    G = open(name_load)
+                except IOError:
+                    print "File '%s' not found, so skipping load of %s"%(name_load, name_load)
+                    i += 1
                     continue
-        if do_preparse:
-            F.append(preparse(L, reset=(i==0), do_time=True, ignore_prompts=False,
-                              numeric_literals=not numeric_literals))
+                else:
+                    A = A[:i] + G.readlines() + A[i+1:]
+                    continue
+            elif name_load[-5:] == '.spyx':
+                import interpreter
+                L = interpreter.load_cython(name_load)
+            else:
+                #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
+                L = 'load("%s")'%name_load
+
+        M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts, numeric_literals=not numeric_literals)
+        F.append(M)
         i += 1
+    # end while
 
     return '\n'.join(F)
 
@@ -1142,252 +1167,3 @@ class BackslashOperator:
             (0.0, 0.5, 1.0, 1.5, 2.0)
         """
         return self.left._backslash_(right)
-
-
-def is_loadable_filename(filename):
-    """
-    Returns True if filename ends in one of the supported extensions for files that
-    can be loaded into Sage.
-
-    INPUT:
-
-        - ``filename`` -- a string
-
-    EXAMPLES::
-
-        sage: sage.misc.preparser.is_loadable_filename('foo.bar')
-        False
-        sage: sage.misc.preparser.is_loadable_filename('foo.c')
-        False
-        sage: sage.misc.preparser.is_loadable_filename('foo.sage')
-        True
-    """
-    # Loop over list of supported code file extensions for the load function.
-    for ext in ['.py', '.pyx', '.sage', '.spyx']:
-        if filename.endswith(ext):
-            return True
-    return False
-
-def load(filename, globals, attach=False):
-    """
-    Execute the file with the given name in the scope specified by
-    globals (except in case of Cython, where the situation is more
-    complicated -- the module is compiled to a temporary module t and
-    ``from t import *`` is executed.).  If the filename starts with
-    http:// then it is treated as a URL and downloaded first.
-    Finally, the filename is first evaluated as an expression that
-    evaluates in the globals scope to a filename.
-
-    INPUT:
-
-        - ``filename`` -- a .py, .sage, .pyx, etc., filename or expression
-          that evaluates to one....
-        - ``globals`` -- a dictionary
-        - ``attach`` -- bool (default: False); if True, the filename
-          is added to the attached files list
-
-    EXAMPLES::
-
-    Note that .py files are not preparsed::
-
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hi',2/3; z=-2/9")
-        sage: sage.misc.preparser.load(t,globals())
-        hi 0
-        sage: z
-        -1
-
-    Python files are preparsed::
-
-        sage: t=tmp_filename()+'.sage'; open(t,'w').write("print 'hi',2/3; s=-2/7")
-        sage: sage.misc.preparser.load(t,globals())
-        hi 2/3
-        sage: s
-        -2/7
-
-    A Cython file::
-
-        sage: t=tmp_filename()+'.pyx'; open(t,'w').write("print 'hi',2/3; z=-2/9")
-        sage: z=0; sage.misc.preparser.load(t,globals())
-        Compiling /Users/wstein/.sage//temp/flat.local/8881//tmp_4.pyx...
-        hi 0
-        sage: z
-        -1
-
-    If the file isn't a Cython, Python, or a Sage file, a ValueError is raised::
-
-        sage: sage.misc.preparser.load('a.foo',globals())
-        Traceback (most recent call last):
-        ...
-        ValueError: argument (='a.foo') to load or attach must have extension py, sage, or pyx
-
-    A filename that is given as an expression (that gets evaluated).
-    This is important in making it so that ``load DATA+'foo.sage'``
-    works, say::
-
-        sage: D = 'a.'
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: sage.misc.preparser.load("D + 'py'",globals())
-        hi 0
-
-    We load a file given at a remote URL::
-
-        sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
-        hi from the net
-
-    We attach a file::
-
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: sage.misc.preparser.load(t, globals(), attach=True)hello world
-        sage: t in sage.misc.preparser.attached
-        True
-
-    You can't attach remote URL's (yet)::
-
-        sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals(), attach=True)  # optional - internet
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: you can't attach a URL
-    """
-    try:
-        filename = eval(filename, globals)
-    except Exception:
-        # handle multiple input files separated by spaces, which was
-        # maybe a bad idea, but which we have to handle for backwards
-        # compatibility.
-        v = filename.split()
-        if len(v) > 1:
-            for file in v:
-                load(file, globals, attach=attach)
-            return
-
-    filename = filename.strip()
-
-    if filename.lower().startswith('http://'):
-        if attach:
-            # But see http://en.wikipedia.org/wiki/HTTP_ETag for how we will do this.
-            # http://www.diveintopython.org/http_web_services/etags.html
-            raise NotImplementedError, "you can't attach a URL"
-        from remote_file import get_remote_file
-        filename = get_remote_file(filename, verbose=False)
-
-    if attach and os.path.exists(filename):
-        attached[filename] = os.path.getmtime(filename)
-
-    if filename.endswith('.py'):
-        execfile(filename, globals)
-        return
-    if filename.endswith('.sage'):
-        exec(preparse_file(open(filename).read()), globals)
-        return
-    if filename.endswith('.spyx') or filename.endswith('.pyx'):
-        import interpreter
-        exec(interpreter.load_cython(filename), globals)
-        return
-    if filename.endswith('.m'):
-        # Assume magma for now, though maybe .m is used by maple and
-        # mathematica too, and we should really analyze the file
-        # further.
-        s = globals['magma'].load(filename)
-        i = s.find('\n'); s = s[i+1:]
-        print s
-        return
-    raise ValueError, "argument (='%s') to load or attach must have extension py, sage, or pyx"%filename
-
-import base64
-def load_wrap(filename, attach=False):
-    """
-    Internal function used to encode a load command as valid Python.
-    filename is the argument to the load or attach command, and attach
-    is True if the command is attach (rather than load).
-
-    INPUT:
-
-        - ``filename`` -- a string
-        - ``attach`` -- bool (default: False)
-
-    EXAMPLES::
-
-        sage: sage.misc.preparser.load_wrap('foo.py', True)
-        'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("Zm9vLnB5"),globals(),True)'
-        sage: sage.misc.preparser.load_wrap('foo.sage')
-        'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U="),globals(),False)'
-        sage: sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U=")
-        'foo.sage'
-    """
-    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("%s"),globals(),%s)'%(
-        base64.b64encode(filename), attach)
-
-
-def modified_attached_files():
-    """
-    Return iterator over the names of the attached files that have
-    changed since last time this function was called.
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: attach t
-        hello world
-        sage: open(t,'w').write("print 'hi'")
-        sage: len(list(sage.misc.preparser.modified_attached_files()))
-        1
-        sage: len(list(sage.misc.preparser.modified_attached_files()))
-        0
-    """
-    # A generator is the perfect data structure here, since something
-    # could go wrong loading one file, and we end up only marking the
-    # ones that we returned as loaded.
-    for F in attached.keys():
-        tm = attached[F]
-        new_tm = os.path.getmtime(F)
-        if os.path.exists(F) and new_tm > tm:
-            # F is newer than last time we loaded it.
-            attached[F] = os.path.getmtime(F)
-            yield F
-
-def attached_files():
-    """
-    Return a list of all files attached to the current session.
-
-    OUTPUT:
-
-        -- sorted list of filenames
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: attach t
-        hello world
-        sage: attached_files() == [t]
-        True
-
-    """
-    return list(sorted(attached.keys()))
-
-def detach(filename):
-    """
-    Detach that file with the given filename, if it was attached with
-    the attach command.
-
-    INPUT:
-
-       - ``filename`` -- string
-
-    EXAMPLES::
-
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: attach t
-        hello world
-        sage: attached_files() = [t]
-        True
-        sage: detach(t)
-        sage: attached_files()
-        []
-    """
-    if attached.has_key(filename):
-        del attached[filename]
-

@@ -547,6 +547,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     from sage.plot.plot import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
+    import numpy
 
     if not isinstance(f, (list, tuple)):
         f = [f]
@@ -556,10 +557,14 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
     xrange,yrange=[r[:2] for r in ranges]
 
-    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
-                                             for y in xsrange(*ranges[1], include_endpoint=True)], g)
-
-    xy_data_array = map(lambda *rows: map(lambda *vals: mangle_neg(vals), *rows), *xy_data_arrays)
+    xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                     for y in xsrange(*ranges[1], include_endpoint=True)]
+                                    for func in g],dtype=float)
+    xy_data_array=numpy.abs(xy_data_arrays.prod(axis=0))
+    # Now we need to set entries to negative iff all
+    # functions were negative at that point.
+    neg_indices = (xy_data_arrays<0).all(axis=0)
+    xy_data_array[neg_indices]=-xy_data_array[neg_indices]
 
     from matplotlib.colors import ListedColormap
     incol = rgbcolor(incol)
@@ -617,25 +622,3 @@ def equify(f):
         return symbolic_expression(f.rhs() - f.lhs())
     else:
         return symbolic_expression(f.lhs() - f.rhs())
-
-def mangle_neg(vals):
-    """
-    Returns the product of all values in vals, with the result
-    nonnegative if any of the values is nonnegative.
-
-    EXAMPLES::
-
-        sage: from sage.plot.contour_plot import mangle_neg
-        sage: mangle_neg([-1.2, -0.74, -2.56, -1.01])
-        -2.29601280000000
-        sage: mangle_neg([-1.2, 0.0, -2.56])
-        0.000000000000000
-        sage: mangle_neg([-1.2, -0.74, -2.56, 1.01])
-        2.29601280000000
-    """
-    from sage.misc.misc_c import prod
-    res = abs(prod(vals))
-    if any(map(lambda v: v>=0, vals)):
-        return res
-    else:
-        return -res

@@ -1,0 +1,61 @@
+2a3,16
+> # I made several changes to this file. 
+> # Removed the hard-coded 'gcc' and replaced by $(CC)
+> # Removed the hard-coded 'g++' and replaced by $(CXX)
+> # Changed occuraces of CCC to CXX, as for some reason
+> # the original author had used the non-standard variable 
+> # CXX to refer to the C++ compiler. 
+> # Removed CLINKER as it was set, but never used. 
+> # Removed CCLINKER as it was only used once after being set. 
+> # it seemed better to replace it by CXX, which was what it was
+> # ultimately set to. 
+> # Removed FFLAGS    = $(OPTFLAGS)
+> # as FFLAGS we never used after it was set. 
+> 
+> 
+6c20
+< PREFIX?=/usr/local
+---
+> PREFIX=$(SAGE_LOCAL)
+8c22
+< BINDIR=$(PREFIX)/bin
+---
+> BINDIR=$(SAGE_LOCAL)/bin
+13a28
+> CPPFLAGS="-I $SAGE_LOCAL/include -I $SAGE_LOCAL/include/gmp"
+66a82
+> # The following 'ARCH=Linux' is a bit worrying. But for now I'm leaving it. 
+68,72c84
+< CC          = gcc
+< CLINKER     = $(CC)
+< CCC         = g++
+< CCLINKER    = $(CCC)
+< #OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
+---
+> 
+75,77c87
+< CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
+< CCFLAGS	  = $(CFLAGS)
+< FFLAGS	  = $(OPTFLAGS)
+---
+> CFLAGS_LOCAL = $(CFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS)
+262c272
+< 	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
+---
+> 	$(CXX) $(CXXFLAG64) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
+356c366
+< 	$(CC) $(CFLAGS) -c $<
+---
+> 	$(CC) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
+358c368
+< 	$(CCC) -c $<
+---
+> 	$(CXX) -c $<
+360c370
+< 	$(CCC) $(CFLAGS) -c $<
+---
+> 	$(CXX) $(CFLAGS_LOCAL) -c $<
+362c372
+< 	$(CCC) -c $<
+---
+> 	$(CXX) -c $<

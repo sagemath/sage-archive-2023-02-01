@@ -890,13 +890,12 @@ class _sage_doc:
 
         EXAMPLES::
 
-            sage: browse_sage_doc(identity_matrix, 'rst')[:9]
-            '**File:**'
-            sage: browse_sage_doc(identity_matrix, 'rst')[-60:]
-            'MatrixSpace of 3 by 3 sparse matrices over Integer Ring\n    '
-            sage: browse_sage_doc(identity_matrix, 'html', False)[:59]
-            '<div class="docstring">\n    \n  <p><strong>File:</strong> /v'
-
+            sage: browse_sage_doc(identity_matrix, 'rst')
+            "...**File:**...**Type:**...**Definition:** identity_matrix..."
+            sage: identity_matrix.__doc__.replace('\\','\\\\') in browse_sage_doc(identity_matrix, 'rst')
+            True
+            sage: browse_sage_doc(identity_matrix, 'html', False)
+            '...div...File:...Type:...Definition:...identity_matrix...'
         """
         if output != 'html' and view:
             view = False

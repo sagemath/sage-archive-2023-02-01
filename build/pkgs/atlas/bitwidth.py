@@ -1,3 +1,13 @@
-#!/usr/bin/env
-import ctypes
-print str(8*ctypes.sizeof(ctypes.c_long))
+#!/usr/bin/env python
+# as suggested by 'javier' on sage-devel.
+
+import sys
+b = 1
+x = sys.maxint
+
+while x:
+    x = x >> 1
+    b = b+1
+
+print(b)
+

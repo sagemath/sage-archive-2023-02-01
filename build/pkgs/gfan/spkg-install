@@ -32,7 +32,9 @@ export CFLAGS
 export CFLAG64
 export CXXFLAGS
 export CXXFLAG64
-$MAKE
+
+$MAKE  cddpath=$SAGE_LOCAL
+
 
 if [ $? -ne 0 ]; then
    echo "Error building gfan"

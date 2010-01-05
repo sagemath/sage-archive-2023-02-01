@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#xxxxxxxxxxxxxxxxx
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -6,19 +7,31 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# gfan sets its own CFLAGS and so on internally in its makefile,
-# so let's abuse GPROFFLAG since it is unused :)
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   GPROFFLAG="-m64"; export GPROFFLAG
+if [ "x$SAGE64" = "xyes" ] ; then
+   CFLAGS="$CFLAGS -m64"
+   CFLAG64=-m64
+   CXXFLAG64=-m64
 fi
 
 # patch the Makefile so it can build in Sage
+echo "Copying a revised Makefile, to improve portability"
 cp patches/Makefile src/
+if [ $? -ne 0 ]; then
+   echo "Patch to improve portability did not copy correctly"
+   exit 1
+fi
+
 
 cd src/
 
 rm -f "$SAGE_LOCAL/bin/gfan*"
 
+export CC
+export CXX
+export CFLAGS
+export CFLAG64
+export CXXFLAGS
+export CXXFLAG64
 $MAKE
 
 if [ $? -ne 0 ]; then

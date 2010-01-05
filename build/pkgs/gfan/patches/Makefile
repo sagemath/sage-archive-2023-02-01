@@ -1,14 +1,31 @@
 ALL: default
 
+# I made several changes to this file.
+# Removed the hard-coded 'gcc' and replaced by $(CC)
+# Removed the hard-coded 'g++' and replaced by $(CXX)
+# Changed occuraces of CCC to CXX, as for some reason
+# the original author had used the non-standard variable
+# CXX to refer to the C++ compiler.
+# Removed CLINKER as it was set, but never used.
+# Removed CCLINKER as it was only used once after being set.
+# it seemed better to replace it by CXX, which was what it was
+# ultimately set to.
+# Removed FFLAGS    = $(OPTFLAGS)
+# as FFLAGS we never used after it was set.
+
+
 # GPROFFLAG = -pg
-# GPROFFLAG = -g
-#PREFIX?=/usr/local
-#BINDIR=$(PREFIX)/bin
+ GPROFFLAG = -g
+
+PREFIX=$(SAGE_LOCAL)
+
+BINDIR=$(SAGE_LOCAL)/bin
 
 RELEASEDIR = gfan0.4plus
 MAIN       = gfan
 
 GCATSPATH   = ./
+CPPFLAGS="-I $SAGE_LOCAL/include -I $SAGE_LOCAL/include/gmp"
 
 
 ifeq ($(gmppath),)
@@ -20,7 +37,7 @@ GMP_INCLUDEOPTIONS = -I $(gmppath)/include
 endif
 
 ifeq ($(cddpath),)
-CDD_LINKOPTIONS = -lcddgmp
+CDD_LINKOPTIONS = -L/usr/local -lcddgmp
 CDD_INCLUDEOPTIONS =
 else
 CDD_LINKOPTIONS = $(cddpath)/lib/libcddgmp.a
@@ -62,17 +79,12 @@ MKDIR=mkdir -p
 
 
 SHELL       = /bin/sh
+# The following 'ARCH=Linux' is a bit worrying. But for now I'm leaving it.
 ARCH        = LINUX
-CC          = gcc
-CLINKER     = $(CC)
-CCC         = g++
-CCLINKER    = $(CCC)
-#OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
+
 OPTFLAGS    = -O2 -DGMPRATIONAL
 
-CFLAGS	  = -I$(SAGE_LOCAL)/include $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
-CCFLAGS	  = $(CFLAGS)
-FFLAGS	  = $(OPTFLAGS)
+CFLAGS_LOCAL = $(CFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS)
 
 CATSOBJECTS =	$(GCATSPATH)lp_cdd.o \
 		$(SOPLEX_OBJECTS) \
@@ -257,7 +269,7 @@ $(PREFIX):
 default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
 
 $(MAIN): $(OBJECTS)
-	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
+	$(CXX) $(CXXFLAG64) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
 
 release:
 	rm -f -r $(RELEASEDIR)/*
@@ -351,13 +363,13 @@ install: $(BINDIR)
 #	./gfan installlinks --path $(BINDIR)/
 	cd $(BINDIR) && ./gfan installlinks
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
 .cc.o:
-	$(CCC) -c $<
+	$(CXX) -c $<
 .cpp.o:
-	$(CCC) $(CFLAGS) -c $<
+	$(CXX) $(CFLAGS_LOCAL) -c $<
 .C.o:
-	$(CCC) -c $<
+	$(CXX) -c $<
 # wget http://ftp.sunet.se/pub/gnu/gmp/gmp-4.2.2.tar.gz
 # tar -xzvf gmp-4.2.2.tar.gz
 # cd gmp-4.2.2

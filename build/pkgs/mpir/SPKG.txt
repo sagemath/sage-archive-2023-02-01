@@ -26,6 +26,13 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.2.p0 (David Kirkby, January 5th 2010) ===
+ * 7849. Included two header files so MPIR builds with Sun
+  studio if configured with  --enable-cxx and the newer
+  Sun C++ library is used (library=stlport4). This is between
+  #ifdefine __SUNPRO_CC and #endif, so will have no effect
+  except if Sun Studio is used.
+
 === mpir-1.2.2 (William Stein, Nov 18, 2009) ===
  * Upgraded to MPIR-1.2.2.
 

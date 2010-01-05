@@ -5,6 +5,17 @@ if [ "$SAGE_LOCAL" = "" ]; then
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
+# Add a patch which allow MPIR to build with Sun Studio
+# if
+
+if [ "x`uname`" = "xSunOS" ] ; then
+   echo "Copying a version of gmp-h.in which is patched for Sun Studio"
+   cp patches/gmp-h.in src/
+   if ! [ $? -eq 0 ]; then
+      echo "Failed to patch for Sun Studio"
+      exit 1
+   fi
+fi
 
 # The Yasm build uses PYTHON from env to find python, so unset it
 # since the version from newest_version confuses it

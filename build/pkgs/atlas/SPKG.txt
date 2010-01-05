@@ -33,6 +33,9 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p10 (David Kirkby, January 5th 2010) ===
+ * replace bitwidth.py which uses 'ctypes' at that is broken
+   on many platforms.
 === atlas-3.8.3.p7 (William Stein, Sept 21 2009) ===
  * Make this into a dummy package on Cygwin that requires lapack.
 

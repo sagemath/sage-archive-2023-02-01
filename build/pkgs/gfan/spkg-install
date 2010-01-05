@@ -9,6 +9,7 @@ fi
 
 if [ "x$SAGE64" = "xyes" ] ; then
    CFLAGS="$CFLAGS -m64"
+   CXXFLAGS="$CXXFLAGS -m64"
    CFLAG64=-m64
    CXXFLAG64=-m64
 fi

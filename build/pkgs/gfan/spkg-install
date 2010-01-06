@@ -22,6 +22,16 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+# patch polynomial.cpp to fix a bug, as suggested by Anders Jensen
+# this should not be necessary any more (and can be removed) in
+# the next release of gfan (following 0.4plus).
+echo "Copying a patched polynomial.cpp"
+cp patches/polynomial.cpp src/
+if [ $? -ne 0 ]; then
+   echo "Patch to fix polynomial.cpp did not copy correctly"
+   exit 1
+fi
+
 
 cd src/
 

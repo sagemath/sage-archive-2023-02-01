@@ -1,9 +1,10 @@
 ALL: default
 
+# David Kirkby writes:
 # I made several changes to this file.
 # Removed the hard-coded 'gcc' and replaced by $(CC)
 # Removed the hard-coded 'g++' and replaced by $(CXX)
-# Changed occuraces of CCC to CXX, as for some reason
+# Changed occurrences of CCC to CXX, as for some reason
 # the original author had used the non-standard variable
 # CXX to refer to the C++ compiler.
 # Removed CLINKER as it was set, but never used.

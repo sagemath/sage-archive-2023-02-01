@@ -39,17 +39,19 @@ most of the space.
 
 == Changelog ==
 
-=== gfan-0.4plus (Alex Ghitza, David Kirkby, January 3, 2010) ===
- * upgrade to version 0.4plus
- * clarify license (trac #3043)
- * remove dist/ directory (part of trac #5903)
- * restore src/ to vanilla upstream (trac #3338)
- * Numerous chances to a Makefile to allow gfran to work
+=== gfan-0.4plus (Alex Ghitza, David Kirkby, January 6, 2010) ===
+ * Upgrade to version 0.4plus
+ * Clarify license (trac #3043)
+ * Remove dist/ directory (part of trac #5903)
+ * Restore src/ to vanilla upstream (trac #3338)
+ * Numerous changes to Makefile to allow gfan to work
    with compilers specified by CC and CXX.
  * Changes to spkg-install so that certain variables
-  (CFLAGS, CXXFLAGS, CFLAG64, CXXFLAG64 etc) can be set
-  and will work with any compiler. Current spkg-install has
-  -m64 hard-coded in, but the Makefile does not
+   (CFLAGS, CXXFLAGS, CFLAG64, CXXFLAG64 etc) can be set
+   and will work with any compiler. Current spkg-install has
+   -m64 hard-coded in, but the Makefile does not.
+ * Patched polynomial.cpp to fix a bug in 0.4plus until the next
+   release of gfan
 
 === gfan-0.3.p5 (William Stein, December 17, 2009) ===
  * remove an accidental .DS_Store OS X file.

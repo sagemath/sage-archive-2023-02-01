@@ -2937,7 +2937,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(0).blocks_and_cut_vertices()
             ([], [])
             sage: Graph(1).blocks_and_cut_vertices()
-            ([0], [0])
+            ([0], [])
             sage: Graph(2).blocks_and_cut_vertices()
             Traceback (most recent call last):
             ...
@@ -2961,7 +2961,7 @@ class GenericGraph(GenericGraph_pyx):
         s = self.vertex_iterator().next() # source
 
         if len(self) == 1: # only one vertex
-            return [s],[s]
+            return [s],[]
 
         if not self.is_connected():
             raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")

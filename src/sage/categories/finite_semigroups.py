@@ -223,7 +223,7 @@ class FiniteSemigroups(Category):
             TODO: add an option to specify a subset of module generators and module operators, and a predicate to stop the iteration
 
             """
-            from sage.graphs.graph import DiGraph
+            from sage.graphs.digraph import DiGraph
             if simple:
                 result = DiGraph()
             else:

@@ -21,7 +21,7 @@ import __builtin__
 from copy import copy, deepcopy
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.integer import Integer
-from sage.graphs.graph import DiGraph
+from sage.graphs.all import DiGraph
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import *
 from random import random
@@ -1647,7 +1647,7 @@ class FinitePosets_n(CombinatorialClass):
             sage: list(P)
             [Finite poset containing 2 elements, Finite poset containing 2 elements]
         """
-        from sage.graphs.graph_generators import DiGraphGenerators
+        from sage.graphs.digraph_generators import DiGraphGenerators
         for dig in DiGraphGenerators()(self._n, is_poset):
             # We need to relabel the digraph since range(self._n) must be a linear
             # extension. Too bad we need to compute this again. TODO: Fix this.

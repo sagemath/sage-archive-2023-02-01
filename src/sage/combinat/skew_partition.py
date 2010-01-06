@@ -145,7 +145,7 @@ import sage.combinat.generator as generator
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import QQ, ZZ
 from sage.sets.set import Set
-from sage.graphs.graph import DiGraph
+from sage.graphs.all import DiGraph
 from UserList import UserList
 from combinat import CombinatorialClass, CombinatorialObject
 from sage.matrix.matrix_space import MatrixSpace

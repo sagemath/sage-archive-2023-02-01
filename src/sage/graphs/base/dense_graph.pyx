@@ -214,7 +214,7 @@ cdef class DenseGraph(CGraph):
         bitset_free(self.active_vertices)
 
     def __reduce__(self):
-        from sage.graphs.graph import DiGraph
+        from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=False)
         D._backend._cg = self
         cdef int i
@@ -600,7 +600,7 @@ def random_stress():
     cdef DenseGraph Gnew
     num_verts = 10
     from random import randint
-    from sage.graphs.graph import DiGraph
+    from sage.graphs.all import DiGraph
     from sage.misc.misc import uniq
     Gnew = DenseGraph(num_verts)
     Gold = DiGraph(num_verts, loops=True, implementation='networkx')

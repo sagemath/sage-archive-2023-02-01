@@ -15,7 +15,7 @@ Yang-Baxter Graphs
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.graphs.graph import DiGraph
+from sage.graphs.all import DiGraph
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.partition import Partition

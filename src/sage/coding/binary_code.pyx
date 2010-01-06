@@ -924,7 +924,7 @@ cdef class BinaryCode:
             10011001
             01101001
         """
-        from sage.graphs.graph_fast import binary
+        from sage.graphs.generic_graph_pyx import binary
         cdef int ui
         cdef int i
         s = ''

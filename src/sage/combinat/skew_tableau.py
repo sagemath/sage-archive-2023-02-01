@@ -28,7 +28,7 @@ import exceptions
 import random
 import copy
 from combinat import CombinatorialObject, CombinatorialClass, InfiniteAbstractCombinatorialClass
-from sage.graphs.graph import DiGraph
+from sage.graphs.all import DiGraph
 from integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 

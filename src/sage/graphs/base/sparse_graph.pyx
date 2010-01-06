@@ -355,7 +355,7 @@ cdef class SparseGraph(CGraph):
         bitset_free(self.active_vertices)
 
     def __reduce__(self):
-        from sage.graphs.graph import DiGraph
+        from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=True)
         D._backend._cg = self
         cdef int i
@@ -1205,7 +1205,7 @@ def random_stress():
     num_verts = 10
     Gnew = SparseGraph(num_verts)
     from random import randint
-    from sage.graphs.graph import DiGraph
+    from sage.graphs.all import DiGraph
     from sage.misc.misc import uniq
     Gold = DiGraph(multiedges=True, loops=True, implementation='networkx')
     Gold.add_vertices(xrange(num_verts))

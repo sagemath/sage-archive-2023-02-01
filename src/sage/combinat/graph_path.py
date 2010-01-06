@@ -17,6 +17,7 @@ Paths in Directed Acyclic Graphs
 #*****************************************************************************
 from combinat import CombinatorialClass
 import sage.graphs.graph as graph
+import sage.graphs.digraph as digraph
 
 
 def GraphPaths(g, source=None, target=None):
@@ -87,7 +88,7 @@ def GraphPaths(g, source=None, target=None):
         ...
         TypeError: g must be a directed acyclic graph
     """
-    if not isinstance(g, graph.DiGraph):
+    if not isinstance(g, digraph.DiGraph):
         raise TypeError, "g must be a DiGraph"
     elif not g.is_directed_acyclic():
         raise TypeError, "g must be a directed acyclic graph"

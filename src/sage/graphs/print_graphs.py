@@ -98,7 +98,7 @@ def print_graph_ps(vert_ls, edge_iter, pos_dict):
     EXAMPLE:
         sage: from sage.graphs.print_graphs import print_graph_ps
         sage: P = graphs.PetersenGraph()
-        sage: print print_graph_ps(P.vertices(), P.edges(), sage.graphs.graph_fast.spring_layout_fast(P))
+        sage: print print_graph_ps(P.vertices(), P.edges(), sage.graphs.generic_graph_pyx.spring_layout_fast(P))
         %% --- Auto-generated PostScript ---
         %% Generated on:
         %%...
@@ -151,7 +151,7 @@ def print_graph_eps(vert_ls, edge_iter, pos_dict):
     EXAMPLE:
         sage: from sage.graphs.print_graphs import print_graph_eps
         sage: P = graphs.PetersenGraph()
-        sage: print print_graph_eps(P.vertices(), P.edges(), sage.graphs.graph_fast.spring_layout_fast(P))
+        sage: print print_graph_eps(P.vertices(), P.edges(), sage.graphs.generic_graph_pyx.spring_layout_fast(P))
         %!PS-Adobe-3.0 EPSF-3.0
         %%BoundingBox: 0 0 100 100
         /point %% input: x y

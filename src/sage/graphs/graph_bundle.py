@@ -166,12 +166,12 @@ class GraphBundle(Graph):
         if 'pos' not in kwds.keys():
             kwds['pos'] = None
         if kwds['pos'] is None:
-            import sage.graphs.graph_fast as gf
+            import sage.graphs.generic_graph_pyx as generic_graph_pyx
             if 'iterations' not in kwds.keys():
                 kwds['iterations'] = 50
             iters = kwds['iterations']
-            total_pos = gf.spring_layout_fast(self, iterations=iters)
-            base_pos = gf.spring_layout_fast(self.base, iterations=iters)
+            total_pos = generic_graph_pyx.spring_layout_fast(self, iterations=iters)
+            base_pos = generic_graph_pyx.spring_layout_fast(self.base, iterations=iters)
             for v in base_pos.iterkeys():
                 for v_tilde in self.fiber[v]:
                     total_pos[v_tilde][0] = base_pos[v][0]

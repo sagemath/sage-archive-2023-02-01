@@ -1027,7 +1027,7 @@ def category_graph(categories = None):
     def name(cat):
         return repr(cat)[12:]
     categories = cats
-    g = graphs.graph.DiGraph()
+    g = graphs.digraph.DiGraph()
     for cat in categories:
         g.add_vertex(name(cat))
         for source in categories:

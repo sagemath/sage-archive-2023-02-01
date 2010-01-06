@@ -16,7 +16,7 @@
 #*****************************************************************************
 from sage.misc.randstate import current_randstate
 from sage.structure.sage_object import SageObject
-import sage.graphs.graph_fast as graph_fast
+import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.plot.misc import options
 from math import sqrt, cos, sin, atan, pi
@@ -133,7 +133,7 @@ class GraphPlot(SageObject):
         # Check layouts first to override pos
         if 'layout' in self._options and self._options['layout'] is not None:
             if self._options['layout'] == 'spring':
-                self._pos = graph_fast.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
+                self._pos = generic_graph_pyx.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
             elif self._options['layout'] == 'circular':
                 #from math import sin, cos, pi
                 n = len(self._nodelist)
@@ -183,7 +183,7 @@ class GraphPlot(SageObject):
                 self._pos = pos
 
         if not self._pos:
-            self._pos = graph_fast.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
+            self._pos = generic_graph_pyx.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
 
         # Collect max/min values to add positions if necessary
         if not self._pos:

@@ -200,7 +200,7 @@ cdef class FiniteGroup(Group):
             except AssertionError:
                 raise RuntimeError("Each element of the connecting set must be in the group!")
             connecting_set = [self(g) for g in connecting_set]
-        from sage.graphs.graph import DiGraph
+        from sage.graphs.all import DiGraph
         arrows = {}
         for x in self:
             arrows[x] = {}

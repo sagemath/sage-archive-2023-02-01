@@ -2264,7 +2264,7 @@ exponent %s: the length of the word (%s) times the exponent \
              (word: , word: , word: b),
              (word: , word: , word: c)]
         """
-        from sage.graphs.graph import DiGraph
+        from sage.graphs.digraph import DiGraph
         multiedges = True if n == 0 else False
         g = DiGraph(loops=True, multiedges=multiedges)
         if n == self.length():

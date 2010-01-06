@@ -112,8 +112,8 @@ def graph_editor(graph=None, graph_name=None,
         if graph.is_planar():
             graph.set_planar_positions()
         else:
-            import sage.graphs.graph_fast as gf
-            graph.set_pos(gf.spring_layout_fast_split(graph, iterations=1000))
+            import sage.graphs.generic_graph_pyx as ggp
+            graph.set_pos(ggp.spring_layout_fast_split(graph, iterations=1000))
 
     if graph_name is None:
         graph_name = ''

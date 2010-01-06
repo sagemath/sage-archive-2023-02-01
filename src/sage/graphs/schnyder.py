@@ -20,7 +20,7 @@ REFERENCE:
 #*****************************************************************************
 
 from sage.sets.set import Set
-from graph import DiGraph
+from all import DiGraph
 from planarity import is_planar
 
 def _triangulate(g, comb_emb):

@@ -57,7 +57,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     cdef GraphStruct GS
     cdef int i, j, n = -1
 
-    from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.generic_graph import GenericGraph
     from copy import copy
     which_G = 1
     for G_in in [G1, G2]:
@@ -342,7 +343,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: st(G, [range(G.num_verts())])[1] == st(H, [range(H.num_verts())])[1]
         True
 
-        sage: from sage.graphs.graph import graph_isom_equivalent_non_multi_graph
+        sage: from sage.graphs.generic_graph import graph_isom_equivalent_non_multi_graph
         sage: G = Graph(multiedges=True, sparse=True)
         sage: G.add_edge(('a', 'b'))
         sage: G.add_edge(('a', 'b'))
@@ -361,7 +362,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     cdef Integer I
     cdef aut_gp_and_can_lab_return *output
     cdef int **part
-    from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.generic_graph import GenericGraph
     from copy import copy
     if isinstance(G_in, GenericGraph):
         n = G_in.num_verts()
@@ -763,7 +765,7 @@ def all_labeled_graphs(n):
         5 34
 
     """
-    from sage.graphs.graph import Graph
+    from sage.graphs.all import Graph
     TE = []
     for i in range(n):
         for j in range(i):
@@ -809,7 +811,8 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
     """
     from sage.misc.misc import walltime
     from sage.misc.prandom import random, randint
-    from sage.graphs.graph_generators import GraphGenerators, DiGraphGenerators
+    from sage.graphs.graph_generators import GraphGenerators
+    from sage.graphs.digraph_generators import DiGraphGenerators
     from sage.combinat.permutation import Permutations
     from copy import copy
     cdef int i, j, num_tests = 0, num_graphs = 0

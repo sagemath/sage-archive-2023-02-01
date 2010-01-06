@@ -141,7 +141,7 @@ from sage.misc.cachefunc import CachedFunction
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.combinat.combinat import CombinatorialClass
-from sage.graphs.graph import DiGraph
+from sage.graphs.all import DiGraph
 from sage.combinat import ranker
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing, WeylCharacter

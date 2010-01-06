@@ -21,7 +21,7 @@ import __builtin__
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.rings.integer import Integer
-from sage.graphs.graph import Graph, DiGraph
+from sage.graphs.all import Graph, DiGraph
 from sage.misc.sage_eval import sage_eval
 from sage.matrix.constructor import matrix
 from sage.rings.finite_field import FiniteField

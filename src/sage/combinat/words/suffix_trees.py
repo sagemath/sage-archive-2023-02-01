@@ -11,8 +11,8 @@ Suffix Tries and Suffix Trees
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
-from sage.graphs.graph import Graph, DiGraph
-from sage.graphs.graph_fast import spring_layout_fast
+from sage.graphs.all import Graph, DiGraph
+from sage.graphs.generic_graph_pyx import spring_layout_fast
 from sage.misc.flatten import flatten
 from sage.sets.set import Set
 from sage.combinat.words.word import Word, Words, FiniteWord_class

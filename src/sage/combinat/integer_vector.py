@@ -1,5 +1,9 @@
 """
 Integer vectors
+
+AUTHORS:
+ *   Mike Hanson (2007) - original module
+ *   Nathann Cohen, David Joyner (2009-2010) - Gale-Ryser stuff
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -25,6 +29,349 @@ from sage.rings.infinity import PlusInfinity
 import integer_list
 import cartesian_product
 import functools
+
+
+def is_gale_ryser(r,s):
+    r"""
+    Tests whether the given sequences satisfy the condition
+    of the Gale-Ryser theorem.
+
+    Given a binary matrix `B` of dimension `n\times m`, the
+    vector of row sums is defined as the vector whose
+    `i^{\mbox{th}}` component is equal to the sum of the `i^{\mbox{th}}`
+    row in `A`. The vector of column sums is defined similarly.
+
+    If, given a binary matrix, these two vectors are easy to compute,
+    the Gale-Ryser theorem lets us decide whether, given two
+    non-negative vectors `r,s`, there exists a binary matrix
+    whose row/colum sums vectors are `r` and `s`.
+
+    This functions answers accordingly.
+
+    INPUT:
+
+    - ``r``, ``s`` -- lists of non-negative integers.
+
+    ALGORITHM:
+
+    Without loss of generality, we can assume that :
+
+    - The two given sequences do not contain any `0` ( which
+    would correspond to an empty column/row )
+
+    - The two given sequences are ordered in decreasing order
+    (reordering the sequence of row (resp. column) sums amounts
+    to reordering the rows (resp. columns) themselves in the
+    matrix, which does not alter the columns (resp. rows) sums.
+
+    We can then assume that `r` and `s` are partitions
+    (see the corresponding class ``Partition``)
+
+    If `r^*` denote the conjugate of `r`, the Gale-Ryser theorem
+    asserts that a binary Matrix satisfying the constraints exists
+    if and only if `s\preceq r^*`, where `\preceq` denotes
+    the domination order on partitions.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_vector import is_gale_ryser
+        sage: is_gale_ryser([4,2,2],[3,3,1,1])
+        True
+        sage: is_gale_ryser([4,2,1,1],[3,3,1,1])
+        True
+        sage: is_gale_ryser([3,2,1,1],[3,3,1,1])
+        False
+
+    REMARK: In the literature, what we are calling a
+    Gale-Ryser sequence sometimes goes by the (rather
+    generic-sounding) term ''realizable sequence''.
+    """
+
+    # The sequences only contan non-negative integers
+    if [x for x in r if x<0] or [x for x in s if x<0]:
+        return False
+
+    # builds the corresponding partitions, i.e.
+    # removes the 0 and sorts the sequences
+    from sage.combinat.partition import Partition
+    r2 = Partition(sorted([x for x in r if x>0], reverse=True))
+    s2 = Partition(sorted([x for x in s if x>0], reverse=True))
+    rstar = Partition(r2).conjugate()
+
+    #                                same number of 1s           domination
+    return len(rstar) <= len(s2) and  sum(r2) == sum(s2) and rstar.dominates(s)
+
+def _slider01(A, t, k):
+    r"""
+    Assumes `A` is a `(0,1)`-matrix. For each of the
+    `t` rows with highest row sums, this function
+    returns a matrix `B` which is the same as `A` except that it
+    has slid exactly one `1` in `A` over to the `k`-th
+    column.
+
+    This is a 'private' function for use in gale_ryser_theorem.
+
+    INPUT:
+
+    - ``A`` -- an `m\times n` (0,1) matrix
+    - ``t``, ``k`` -- integers satisfying `0 < t < m`, `0 < k < n`
+
+    OUTPUT:
+
+    An `m\times n` (0,1) matrix, which is the same as `A` except
+    that it has exactly one `1` in `A` slid over to the `k`-th
+    column.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_vector import _slider01
+        sage: A = matrix([[1,1,1,0],[1,1,1,0],[1,0,0,0],[1,0,0,0]])
+        sage: A
+        [1 1 1 0]
+        [1 1 1 0]
+        [1 0 0 0]
+        [1 0 0 0]
+        sage: _slider01(A, 1, 3)
+        [1 1 1 0]
+        [1 1 0 1]
+        [1 0 0 0]
+        [1 0 0 0]
+        sage: _slider01(A, 3, 3)
+        [1 1 1 0]
+        [1 1 1 0]
+        [1 0 0 0]
+        [0 0 0 1]
+
+    """
+    from sage.matrix.constructor import matrix
+    maxrows = []
+    m = len(A.rows())
+    n = len(A.columns())
+    B = matrix(m,n)
+    rowsums = [sum(A.row(i)) for i in range(m)]
+    maxrows = [rowsums[i] for i in range(t)] # t rows with max rowsums
+    maxRows = [] # want these to correspond to elts of maxrows
+    B = [list(A.row(i)) for i in range(m)]
+    for i in range(m):
+        if sum(A.row(i)) in maxrows:
+            maxRows.append(i)  # >= t rows numbers with max rowsums
+    for j in range(len(maxrows)):
+        i = maxRows[-1]
+        rw = A.row(i) # to make mutable
+        # now we want to move the rightmost left 1 to the k-th column
+        rwlist = list(rw)
+        if not(0 in rwlist):
+            N = n-1
+        else:
+            N = rwlist.index(0)
+        rwlist[int(N)-1] = 0
+        rwlist[k] = 1
+        B[i] = rwlist
+    return matrix(B)
+
+def gale_ryser_theorem(p1, p2, algorithm="ryser"):
+        r"""
+        Returns the binary matrix given by the Gale-Ryser theorem.
+
+        The Gale Ryser theorem asserts that if `p_1,p_2` are two
+        partitions of `n` of respective lengths `k_1,k_2`, then there is
+        a binary `k_1\times k_2` matrix `M` such that `p_1` is the vector
+        of row sums and `p_2` is the vector of column sums of `M`, if
+        and only if `p_2` dominates `p_1`.
+
+        INPUT:
+
+        - ``p1`` -- the first partition of `n` (trailing 0's allowed)
+        - ``p2`` -- the second partition of `n` (trailing 0's allowed)
+
+        - ``algorithm`` -- two possible string values :
+
+            - ``"ryser"`` (default) implements the construction due
+              to Ryser [Ryser63]_.
+
+            - ``"gale"`` implements the construction due to Gale [Gale57]_.
+
+
+        OUTPUT:
+
+        - A binary matrix if it exists, ``None`` otherwise.
+
+
+        Gale's Algorithm:
+
+        (Gale [Gale57]_): A matrix satisfying the constraints of its
+        sums can be defined as the solution of the following
+        Linear Program, which Sage knows how to solve (requires
+        packages GLPK or CBC).
+
+        .. MATH::
+            \forall i&\sum_{j=1}^{k_2} b_{i,j}=p_{1,j}\\
+            \forall i&\sum_{j=1}^{k_1} b_{j,i}=p_{2,j}\\
+            &b_{i,j}\mbox{ is a binary variable}
+
+
+        Ryser's Algorithm:
+
+        (Ryser [Ryser63]_): The construction of an `m\times n` matrix `A=A_{r,s}`,
+        due to Ryser, is described as follows. The
+        construction works if and only if have `s\preceq r^*`.
+
+        * Construct the `m\times n` matrix `B` from `r` by
+        defining the `i`-th row of `B` to be the
+        vector whose first `r_i` entries are `1`, and the
+        remainder are `0`'s, `1\leq i\leq m`.
+        This maximal matrix `B` with row sum `r` and ones
+        left justified has column sum `r^{*}`.
+
+        * Shift the last `1` in certain rows of `B` to
+        column `n` in order to achieve the sum `s_n`.
+        Call this `B` again.
+
+          * The `1`'s in column n are to appear in those
+            rows in which `A` has the largest row sums, giving
+            preference to the bottom-most positions in case of ties.
+          * Note: When this step automatically "fixes" other columns,
+            one must skip ahead to the first column index
+            with a wrong sum in the step below.
+
+        * Proceed inductively to construct columns `n-1`, ..., `2`, `1`.
+
+        * Set `A = B`. Return `A`.
+
+        EXAMPLES:
+
+        Computing the matrix for `p_1=p_2=2+2+1` ::
+
+            sage: from sage.combinat.integer_vector import gale_ryser_theorem
+            sage: p1 = [2,2,1]
+            sage: p2 = [2,2,1]
+            sage: print gale_ryser_theorem(p1, p2, algorithm="gale") # Optional - requires GLPK or CBC
+            [0 1 1]
+            [1 1 0]
+            [1 0 0]
+
+        Or for a non-square matrix with `p_1=3+3+2+1` and `p_2=3+2+2+1+1` ::
+
+            sage: from sage.combinat.integer_vector import gale_ryser_theorem
+            sage: p1 = [3,3,1,1]
+            sage: p2 = [3,3,1,1]
+            sage: gale_ryser_theorem(p1, p2)
+            [1 1 1 0]
+            [1 1 0 1]
+            [1 0 0 0]
+            [0 1 0 0]
+            sage: p1 = [4,2,2]
+            sage: p2 = [3,3,1,1]
+            sage: gale_ryser_theorem(p1, p2)
+            [1 1 1 1]
+            [1 1 0 0]
+            [1 1 0 0]
+            sage: p1 = [4,2,2,0]
+            sage: p2 = [3,3,1,1,0,0]
+            sage: gale_ryser_theorem(p1, p2)
+            [1 1 1 1 0 0]
+            [1 1 0 0 0 0]
+            [1 1 0 0 0 0]
+            [0 0 0 0 0 0]
+            sage: p1 = [3,3,2,1]
+            sage: p2 = [3,2,2,1,1]
+            sage: print gale_ryser_theorem(p1, p2, algorithm="gale") # Optional - requires GLPK or CBC
+            [1 0 1 1 0]
+            [1 0 1 0 1]
+            [1 1 0 0 0]
+            [0 1 0 0 0]
+
+        With `0` in the sequences, and with unordered inputs ::
+
+            sage: from sage.combinat.integer_vector import gale_ryser_theorem
+            sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0])
+            [1 1 1 0 0]
+            [1 0 1 1 0]
+            [0 0 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 0 0]
+
+        REFERENCES:
+
+        ..  [Ryser63] H. J. Ryser, Combinatorial Mathematics,
+                Carus Monographs, MAA, 1963.
+        ..  [Gale57] D. Gale, A theorem on flows in networks, Pacific J. Math.
+                7(1957)1073-1082.
+        """
+        from sage.combinat.partition import Partition
+        from sage.matrix.constructor import matrix
+
+        if not(is_gale_ryser(p1,p2)):
+            return False
+
+
+        if algorithm=="ryser": # ryser's algorithm
+            from sage.combinat.permutation import Permutation
+
+            # Sorts the sequences if they are not, and remembers the permutation
+            # applied
+            tmp = sorted(enumerate(p1), reverse=True, key=lambda x:x[1])
+            r = [x[1] for x in tmp if x[1]>0]
+            r_permutation = [x-1 for x in Permutation([x[0]+1 for x in tmp]).inverse()]
+            m = len(r)
+
+            tmp = sorted(enumerate(p2), reverse=True, key=lambda x:x[1])
+            s = [x[1] for x in tmp if x[1]>0]
+            s_permutation = [x-1 for x in Permutation([x[0]+1 for x in tmp]).inverse()]
+            n = len(s)
+
+            rowsA0 = [[0]*n]*m
+            for j in range(m):
+                if j<m:
+                    rowsA0[j] = [1]*r[j]+[0]*(n-r[j])
+                else:
+                    rowsA0[j] = [0]*n
+            A0 = matrix(rowsA0)
+
+            for j in range(1,n-1):
+                # starts for loop, k = n-1, ..., 1
+                # which finds the 1st column with
+                # incorrect column sum. For that bad
+                # column index, apply slider again
+                for k in range(1,n):
+                    if sum(A0.column(n-k))<>s[n-k]:
+                         break
+                A0 = _slider01(A0,s[n-k],n-k)
+
+            # If we need to add empty rows/columns
+            if len(p1)!=m:
+                A0 = A0.stack(matrix([[0]*n]*(len(p1)-m)))
+
+            if len(p2)!=n:
+                A0 = A0.transpose().stack(matrix([[0]*len(p1)]*(len(p2)-n))).transpose()
+
+            # Applying the permutations to get a matrix satisfying the
+            # order given by the input
+            A0 = A0.matrix_from_rows_and_columns(r_permutation, s_permutation)
+            return A0
+
+        elif algorithm == "gale":
+          from sage.numerical.mip import MixedIntegerLinearProgram
+          k1, k2=len(p1), len(p2)
+          p = MixedIntegerLinearProgram()
+          b = p.new_variable(dim=2)
+          for (i,c) in enumerate(p1):
+              p.add_constraint(sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
+          for (i,c) in enumerate(p2):
+              p.add_constraint(sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
+          p.set_objective(None)
+          p.set_binary(b)
+          p.solve()
+          b = p.get_values(b)
+          M = [[0]*k2 for i in xrange(k1)]
+          for i in xrange(k1):
+              for j in xrange(k2):
+                  M[i][j] = int(b[i][j])
+          return matrix(M)
+
+        else:
+            raise ValueError("The only two algorithms available are \"gale\" and \"ryser\"")
 
 
 def _default_function(l, default, i):
@@ -213,6 +560,7 @@ class IntegerVectors_all(CombinatorialClass):
             +Infinity
         """
         return infinity
+
 
 class IntegerVectors_nk(CombinatorialClass):
     def __init__(self, n, k):

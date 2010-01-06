@@ -77,6 +77,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative
 from sage.symbolic.expression import Expression, is_Expression
+from sage.symbolic.assumptions import assume, forget
 
 from sage.calculus.calculus import SR, maxima
 from sage.calculus.all import var
@@ -661,12 +662,19 @@ class PiecewisePolynomial:
             sage: p = Piecewise([[(0,1),f1],[(1,4),f2]])
             sage: p.default_variable()
             x
+
+            sage: f1 = 3*var('y')
+            sage: p = Piecewise([[(0,1),4],[(1,4),f1]])
+            sage: p.default_variable()
+            y
+
         """
         try:
             return self.__default_variable
         except AttributeError:
             pass
         for _, fun in self._list:
+            fun = SR(fun)
             if fun.variables():
                 v = fun.variables()[0]
                 self.__default_variable = v
@@ -687,9 +695,8 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-            sage: f1(x) = 1
-            sage: f2(x) = 1-x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f1(x) = 1-x
+            sage: f = Piecewise([[(0,1),1],[(1,2),f1]])
             sage: f.integral(definite=True)
             1/2
 
@@ -751,6 +758,13 @@ class PiecewisePolynomial:
             2
             sage: f.integral()
             Piecewise defined function with 1 parts, [[(-Infinity, +Infinity), x |--> -integrate(e^(-abs(x)), x, x, +Infinity)]]
+
+        ::
+
+            sage: f = Piecewise([((0, 5), cos(x))])
+            sage: f.integral()
+            Piecewise defined function with 1 parts, [[(0, 5), x |--> sin(x)]]
+
         """
         if a != None and b != None:
             F = self.integral(x)
@@ -783,10 +797,16 @@ class PiecewisePolynomial:
         # after the first piece.
 
         for (start, end), fun in integrand_pieces:
+            fun = SR(fun)
             if start == -infinity and not definite:
                 fun_integrated = fun.integral(x, end, x)
             else:
+                try:
+                    assume(start < x)
+                except ValueError: # Assumption is redundant
+                    pass
                 fun_integrated = fun.integral(x, start, x) + area
+                forget(start < x)
                 if definite or end != infinity:
                     area += fun.integral(x, start, end)
             new_pieces.append([(start, end), fun_integrated.function(x)])

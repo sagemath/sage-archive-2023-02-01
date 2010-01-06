@@ -1,0 +1,71 @@
+Sage.app was created with the help of Platypus which is available from
+http://www.sveinbjorn.org/platypus under the GPLv2 license.  In
+particular the binary file Sage.app/Contents/MacOS/Sage is created by
+platypus, and handles all the UI.  Basically it runs the script at
+Contents/Resources/script (which starts up the sage notebook) and
+displays the output in a text window.
+
+This file (as well as many others) can be recreated using the
+following steps (assuming that the command line tools have been
+installed--available in the Preferences).
+
+cd /path/to/this/readme
+
+/usr/local/bin/platypus -R -a 'Sage' -o 'Text Window' \
+    -u 'The Sage Development Team' -p '/bin/sh' \
+    -V 'SAGE_VERSION' -I 'org.sagemath.sage' \
+    -g '#000000'  -b '#ffffff'  \
+    -c './Sage.app/Contents/Resources/script' \
+    -i './Sage.app/Contents/Resources/appIcon.icns' \
+    'Sage-new.app'
+
+This creates a new application bundle with everything updated.  The
+only problem is that the copyright will need to be changed, since
+platypus uses the current year.  I do not know of any way to change
+this short of editing Contents/Resources/AppSettings.plist.  Copying
+over the old Contents/Resources/AppSettings.plist should do the trick,
+though of course this will also cause any changed settings to not take
+effect.  It is simply an xml plist and can be edited it any text
+editor or with Apple's Property List Editor which comes with the
+Developer's tools.
+
+If you wish to create an application which runs in background
+(i.e. has no UI), then you can add a -B option to the above command,
+or replace Sage.app/Contents/MacOS/Sage with a script like
+
+#!/bin/bash
+
+"$0/../../Resources/script" &
+
+
+If you choose to do this, however, there will be no way to stop the
+notebook server short of issuing a kill statement manually.
+
+To have it run the notebook server in Terminal (or another terminal
+emulator) instead of a separate application, you can replace the file
+Sage.app/Contents/MacOS/Sage with a script such as:
+
+#!/bin/bash
+
+osascript \
+    -e 'tell application "Terminal"' \
+    -e     "activate" \
+    -e     "do script \"'$0/../../Resources/script'\"" \
+    -e "end tell"
+
+
+Other files in Sage.app/Contents:
+
+Info.plist -- a plist telling OS X with basic information about the application
+
+Resources/script -- The script which actually starts the notebook server
+                    (specified in AppSettings.plist)
+
+Resources/AppSettings.plist -- A plist containing platypus options
+                               (e.g. what script to run, what kind of GUI, colors, etc.)
+
+Resources/appIcon.icns -- The icon for the application
+
+Resources/English.lproj/ -- Information about the GUI (nib files etc.)
+
+Resources/sage/ -- A full sage tree -- this is only present in the finished application

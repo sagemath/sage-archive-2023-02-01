@@ -314,6 +314,55 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         morphism.codomain().register_coercion(morphism)
 
+    _shorthands = set(['e', 'h', 'm', 'p', 's'])
+
+    def inject_shorthands(self, shorthands = _shorthands):
+        """
+        Imports standard shorthands into the global namespace
+
+        INPUT:
+
+         - shorthands - a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
+
+        EXAMPLES::
+
+            sage: S = SymmetricFunctions(ZZ)
+            sage: S.inject_shorthands()
+            doctest:...: RuntimeWarning: redefining global value `e`
+            doctest:...: RuntimeWarning: redefining global value `m`
+            sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
+            s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
+            sage: e
+            Symmetric Function Algebra over Integer Ring, Elementary symmetric functions as basis
+            sage: p
+            Symmetric Function Algebra over Integer Ring, Power symmetric functions as basis
+            sage: s
+            Symmetric Function Algebra over Integer Ring, Schur symmetric functions as basis
+
+            sage: e == S.e(), h == S.h(), m == S.m(), p == S.p(), s == S.s()
+            (True, True, True, True, True)
+
+        One can also just import a subset of the shorthands::
+
+            sage: S = SymmetricFunctions(QQ)
+            sage: S.inject_shorthands(['p', 's'])
+            doctest:...: RuntimeWarning: redefining global value `p`
+            doctest:...: RuntimeWarning: redefining global value `s`
+            sage: p
+            Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+            sage: s
+            Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+
+        Note that ``e`` is left unchanged::
+
+            sage: e
+            Symmetric Function Algebra over Integer Ring, Elementary symmetric functions as basis
+        """
+        from sage.misc.misc import inject_variable
+        for shorthand in shorthands:
+            assert shorthand in self._shorthands
+            inject_variable(shorthand, getattr(self, shorthand)())
+
     def __init_extra__(self):
         """
         Sets up the coercions between the different bases

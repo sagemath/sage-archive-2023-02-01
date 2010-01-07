@@ -39,6 +39,13 @@ Against common policy the patches in the patches directory have been applied to 
 
 == Changelog ==
 
+=== symmetrica-2.0.p5 (David Kirkby, 6th January 2009) ===
+ * Allow SAGE64 to work on any platform, not just OS X.
+ * Update the makefile to use '$(CC)' rather than use 'gcc'
+
+=== symmetrica-2.0.p4 () ===
+ * ???????????????????????
+
 === symmetrica-2.0.p3 (Michael Abshoff, May 15th, 2009) ===
  * Work around Solaris linker problem
  * Apply patches to src directly against policy - see above

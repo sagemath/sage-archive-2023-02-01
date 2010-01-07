@@ -6,8 +6,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-    CFLAGS="-01 -m64 -fPIC -g -DFAST -DALLTRUE" && export CFLAGS
+if [ "$SAGE64" = "yes" ]; then
+    CFLAGS="-O1 -m64 -fPIC -g -DFAST -DALLTRUE" && export CFLAGS
 else
     CFLAGS="-O1 -fPIC -g -DFAST -DALLTRUE"; export CFLAGS
 fi

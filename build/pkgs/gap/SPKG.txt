@@ -23,6 +23,10 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.10.p13 (David Kirkby, January 8th, 2010) ===
+ * #7873 Remove references to $LN, $MKIDR and $RM and replace
+   with ln, mkdir and rm, as agreed at
+   http://groups.google.com/group/sage-devel/browse_thread/thread/bd7ae07a1157bead/970aa0dc8fa56ab7?lnk=raot
 === gap-4.4.10.p12 (William Stein, June 2, 2009) ===
  * Turn optimization back off for itanium, using exactly the same code as from before to do this.
 

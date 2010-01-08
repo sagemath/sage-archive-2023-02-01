@@ -14,6 +14,9 @@ echo "*WARNING*: Unsetting CC since that tends to break GAP building"
 unset CC
 echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
 unset CXX
+echo "IMPORTANT: We should work out why this breaks GAP, as it is will"
+echo "IMPORTANT: prevent a build with some other compiler. We should"
+echo "IMPORTANT: be able to specify the compiler"
 
 TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 
@@ -59,11 +62,11 @@ build()
     # but no file named "gap".  This breaks the build, since it
     # then tries to strip gap, but can't since the file is missing!
     if [ $UNAME = "CYGWIN" ]; then
-        $MKDIR bin
-        $MKDIR bin/i686-pc-cygwin-gcc
+        mkdir bin
+        mkdir bin/i686-pc-cygwin-gcc
         cd bin/i686-pc-cygwin-gcc
-        $TOUCH gap.exe
-        $LN -s gap.exe gap
+        touch gap.exe
+        ln -s gap.exe gap
         cd ../..
     fi
 
@@ -74,8 +77,8 @@ build()
         exit 1
     fi
 
-    $MKDIR $INSTALL_DIR
-    $CP -r * $INSTALL_DIR
+    mkdir $INSTALL_DIR
+    cp -r * $INSTALL_DIR
 
     # building CJ's + Leon's code
     cd pkg/guava3.4
@@ -93,18 +96,18 @@ build()
     cp -r ./bin/* $INSTALL_DIR/pkg/guava3.4/bin
 
     cd "$SAGE_LOCAL/bin"
-    $RM -f gap
+    rm -f gap
     if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then
        echo "Error building GAP."
        exit 1
     fi
-    $LN -sf "../lib/$TARGET/bin/gap.sh" gap
+    ln -sf "../lib/$TARGET/bin/gap.sh" gap
 
     cd $CUR
     if [ $UNAME = "CYGWIN" ]; then
-        $CP patches/gap_cygwin "$SAGE_LOCAL"/bin/gap
+        cp patches/gap_cygwin "$SAGE_LOCAL"/bin/gap
     else
-        $CP patches/gap "$SAGE_LOCAL"/bin/gap
+        cp patches/gap "$SAGE_LOCAL"/bin/gap
     fi
 
     if [ $? -ne 0 ]; then

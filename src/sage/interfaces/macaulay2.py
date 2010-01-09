@@ -166,19 +166,33 @@ class Macaulay2(Expect):
 
     def _read_in_file_command(self, filename):
         """
-        EXAMPLES:
+        Load and *execute* the content of ``filename`` in Macaulay2.
+
+        :param filename: the name of the file to be loaded and executed.
+        :type filename: string
+        :returns: Macaulay2 command loading and executing commands in
+            ``filename``, that is, ``'load "filename"'``.
+        :rtype: string
+
+        TESTS::
+
             sage: from sage.misc.misc import tmp_filename
             sage: filename = tmp_filename()
             sage: f = open(filename, "w")
-            sage: f.write("Hello")
+            sage: f.write("sage_test = 7;")
             sage: f.close()
             sage: command = macaulay2._read_in_file_command(filename)
             sage: macaulay2.eval(command)  #optional
-            Hello
+            sage: macaulay2.eval("sage_test")  #optional
+            7
             sage: import os
             sage: os.unlink(filename)
+            sage: macaulay2._read_in_file_command("test")
+            'load "test"'
+            sage: macaulay2(10^10000) == 10^10000  #optional
+            True
         """
-        return 'get "%s"'%filename
+        return 'load "%s"' % filename
 
     def __getattr__(self, attrname):
         """

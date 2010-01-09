@@ -389,7 +389,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: (1/a)*a == 1
             True
             sage: (1/a)*a
-            1024/1024
+            1
         """
         cdef int i
         for i in range(4):
@@ -502,8 +502,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: theta = x + 2*x*i + 3*j + (x-2)*k
             sage: type(theta)
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: theta._div_(theta)   # funny reduced form of Frac(QQ['x'])...
-            64/64
+            sage: theta._div_(theta)
+            1
             sage: theta._div_(theta) == 1
             True
         """

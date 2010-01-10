@@ -114,9 +114,9 @@ def do_preparse(f, files_before=[]):
     else:
         coding = ''
 
-    #Preparse it
+    # Preparse it
     from sage.misc.preparser  import preparse_file
-    G = preparse_file(F, magic=False, do_time=True, ignore_prompts=False)
+    G = preparse_file(F)
 
     # Check for load/attach commands.
     G = do_load_and_attach(G, f, files_before)

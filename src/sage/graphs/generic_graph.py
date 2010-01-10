@@ -2069,6 +2069,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # All the edges from self are doubled in O
         # ( one in each direction )
+        from sage.graphs.digraph import DiGraph
         O = DiGraph(self)
 
         # Builds the list of edges that should be removed
@@ -3459,6 +3460,7 @@ class GenericGraph(GenericGraph_pyx):
             3
             sage: (u,v,l) = cycle.edge_iterator().next()
             sage: u in feedback or v in feedback              # optional - requires GLPK or CBC
+            True
 
         For a circuit, the minimum feedback arc set is clearly `1` ::
 
@@ -3805,6 +3807,87 @@ class GenericGraph(GenericGraph_pyx):
                     flow_graph.delete_edge(v,u)
 
         return [obj,flow_graph]
+
+    def edge_disjoint_paths(self, s, t):
+        r"""
+        Returns a list of edge-disjoint paths between two
+        vertices as given by Menger's theorem.
+
+        The edge version of Menger's theorem asserts that the size
+        of the minimum edge cut between two vertices `s` and`t`
+        (the minimum number of edges whose removal disconnects `s`
+        and `t`) is equal to the maximum number of pairwise
+        edge-independent paths from `s` to `t`.
+
+        This function returns a list of such paths.
+
+        NOTE:
+
+        This function is topological : it does not take the eventual
+        weights of the edges into account.
+
+        EXAMPLE:
+
+        In a complete bipartite graph ::
+
+            sage: g = graphs.CompleteBipartiteGraph(2,3)
+            sage: g.edge_disjoint_paths(0,1) # optional - requires GLPK or CBC
+            [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
+        """
+
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False)
+
+        paths = []
+
+        while True:
+            path = flow_graph.shortest_path(s,t)
+            if not path:
+                break
+            v = s
+            edges = []
+            for w in path:
+                edges.append((v,w))
+                v=w
+            flow_graph.delete_edges(edges)
+            paths.append(path)
+
+        return paths
+
+    def vertex_disjoint_paths(self, s, t):
+        r"""
+        Returns a list of vertex-disjoint paths between two
+        vertices as given by Menger's theorem.
+
+        The vertex version of Menger's theorem asserts that the size
+        of the minimum vertex cut between two vertices `s` and`t`
+        (the minimum number of vertices whose removal disconnects `s`
+        and `t`) is equal to the maximum number of pairwise
+        vertex-independent paths from `s` to `t`.
+
+        This function returns a list of such paths.
+
+        EXAMPLE:
+
+        In a complete bipartite graph ::
+
+            sage: g = graphs.CompleteBipartiteGraph(2,3)
+            sage: g.vertex_disjoint_paths(0,1) # optional - requires GLPK or CBC
+            [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
+        """
+
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, vertex_bound=True)
+
+        paths = []
+
+        while True:
+            path = flow_graph.shortest_path(s,t)
+            if not path:
+                break
+            flow_graph.delete_vertices(path[1:-1])
+            paths.append(path)
+
+        return paths
+
 
     def matching(self,value_only=False, use_edge_labels=True):
         r"""

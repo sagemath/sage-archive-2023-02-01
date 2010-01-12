@@ -97,7 +97,7 @@ build()
     cp -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
 
     # Install documentation source (compressed), for use by gphelp.
-    $MKDIR -p "$SAGE_LOCAL/share/pari/doc/"
+    mkdir -p "$SAGE_LOCAL/share/pari/doc/"
     cp -f doc/usersch*.tex "$SAGE_LOCAL/share/pari/doc/"
     bzip2 -9 -f "$SAGE_LOCAL/share/pari/doc/"usersch*.tex
     cp -f doc/translations "$SAGE_LOCAL/share/pari/doc/"

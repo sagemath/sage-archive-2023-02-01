@@ -135,6 +135,11 @@ def EllipticCurve(x=None, y=None, j=None):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
         2
 
+    See trac #6657::
+
+        sage: EllipticCurve(GF(144169),j=1728)
+        Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 144169
+
 
     TESTS::
 
@@ -162,11 +167,32 @@ def EllipticCurve(x=None, y=None, j=None):
         Elliptic Curve defined by y^2 = x^3 + 5*x + 6 over Algebraic Field
         Algebraic Field
 
+    See trac #6657::
+
+        sage: EllipticCurve(3,j=1728)
+        Traceback (most recent call last):
+        ...
+        ValueError: First parameter (if present) must be a ring when j is specified
+
+        sage: EllipticCurve(GF(5),j=3/5)
+        Traceback (most recent call last):
+        ...
+        ValueError: First parameter must be a ring containing 3/5
+
     """
     import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
     if j is not None:
+        if not x is None:
+            if rings.is_Ring(x):
+                try:
+                    j = x(j)
+                except (ZeroDivisionError, ValueError, TypeError):
+                    raise ValueError, "First parameter must be a ring containing %s"%j
+            else:
+                raise ValueError, "First parameter (if present) must be a ring when j is specified"
         return EllipticCurve_from_j(j)
+
     assert x is not None
 
     if is_SymbolicEquation(x):

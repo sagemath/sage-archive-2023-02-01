@@ -8086,6 +8086,59 @@ class GenericGraph(GenericGraph_pyx):
         return dict([(v, (beg[v], end[v])) for v in self])
 
 
+    def is_gallai_tree(self):
+        r"""
+        Returns whether the current graph is a Gallai tree.
+
+        A graph is a Gallai tree if and only if it is
+        connected and its `2`-connected components are all
+        isomorphic to complete graphs or odd cycles.
+
+        A connected graph is not degree-choosable if and
+        only if it is a Gallai tree [erdos1978choos]_.
+
+        REFERENCES:
+
+        .. [erdos1978choos] Erdos, P. and Rubin, A.L. and Taylor, H.
+          Proc. West Coast Conf. on Combinatorics
+          Graph Theory and Computing, Congressus Numerantium
+          vol 26, pages 125--157, 1979
+
+        EXAMPLES:
+
+        A complete graph is, or course, a Gallai Tree::
+
+            sage: g = graphs.CompleteGraph(15)
+            sage: g.is_gallai_tree()
+            True
+
+        The Petersen Graph is not::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_gallai_tree()
+            False
+
+        A Graph built from vertex-disjoint complete graphs
+        linked by one edge to a special vertex `-1` is a
+        ''star-shaped'' Gallai tree ::
+
+            sage: g = 8 * graphs.CompleteGraph(6)
+            sage: g.add_edges([(-1,c[0]) for c in g.connected_components()])
+            sage: g.is_gallai_tree()
+            True
+        """
+
+        if not self.is_connected():
+            return False
+
+        for c in self.blocks_and_cut_vertices()[0]:
+            gg = self.subgraph(c)
+            #                    is it an odd cycle ?              a complete graph ?
+            if not ( (len(c)%2 == 1 and gg.size() == len(c)+1) or gg.is_clique() ):
+                return False
+
+        return True
+
     def is_clique(self, vertices=None, directed_clique=False):
         """
         Returns True if the set ``vertices`` is a clique, False
@@ -8133,7 +8186,14 @@ class GenericGraph(GenericGraph_pyx):
             n=subgraph.order()
             return subgraph.size()==n*(n-1)
         else:
-            subgraph=self.subgraph(vertices).to_simple()
+            if vertices is None:
+                subgraph = self
+            else:
+                subgraph=self.subgraph(vertices)
+
+            if self._directed:
+                subgraph = subgraph.to_simple()
+
             n=subgraph.order()
             return subgraph.size()==n*(n-1)/2
 

@@ -28,6 +28,10 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p10 (David Kirkby, January 12th 2010) ===
+ * Change variables of comman commands like 'ln' from
+   '$LN' to 'ln'. There is no point having these as variables
+
 === ntl-5.4.2.p9 (David Kirkby, July 9 2009) ===
  * Removed  "-Wl,-soname,lib`cat DIRNAME`.so" from a
    makefile when a shared library is made. The code is

@@ -96,31 +96,31 @@ build()
             echo "Failed to build NTL dylib."
             exit 1
         fi
-        $CP libntl.dylib "$SAGE_LOCAL/lib/"
+        cp libntl.dylib "$SAGE_LOCAL/lib/"
     elif [ $UNAME = "CYGWIN" ]; then
         # Cygwin
         if [ "$CYGPKG" = "yes" ]; then
             if [ -f /lib/libgmp.dll.a ]; then
-                $LN -s /lib/libgmp.dll.a libgmp.a
+                ln -s /lib/libgmp.dll.a libgmp.a
             else
                 # Added by William Stein on 2006-02-06 so that
                 # can build even if gmp is not built locally
                 # i.e., even if using a system-wide gmp.
                 # (though it has to be in /usr/lib, which is
                 # where it is for cygwin).
-                $LN -s /usr/lib/*gmp* .
-                $LN -s libgmp.dll.a libgmp.a
+                ln  -s /usr/lib/*gmp* .
+                ln  -s libgmp.dll.a libgmp.a
             fi
         else
-   	    $LN -s "$SAGE_LOCAL/lib/libgmp.a" .
+   	    ln -s "$SAGE_LOCAL/lib/libgmp.a" .
         fi
 	$MAKE libntl.dll
         if [ ! -f libntl.dll ]; then
             echo "Error creating ntl shared library."
             exit 1
         fi
-	$CP libntl.dll "$SAGE_LOCAL/lib/"
-	$CP libntl.dll "$SAGE_LOCAL/bin/"
+	cp libntl.dll "$SAGE_LOCAL/lib/"
+	cp libntl.dll "$SAGE_LOCAL/bin/"
         if [ ! -f "$SAGE_LOCAL/bin/libntl.dll" ]; then
             exit 1   # CRUCIAL that we have the dynamic link library
         fi
@@ -131,10 +131,10 @@ build()
             echo "Error creating ntl shared library."
             exit 1
         fi
-        $CP libntl-5.4.2.so "$SAGE_LOCAL/lib/"
-        $RM "$SAGE_LOCAL/lib/libntl.so"
+        cp libntl-5.4.2.so "$SAGE_LOCAL/lib/"
+        rm "$SAGE_LOCAL/lib/libntl.so"
 	CUR2=`pwd`
-        cd $SAGE_LOCAL/lib; $LN -s libntl-5.4.2.so libntl.so
+        cd $SAGE_LOCAL/lib; ln -s libntl-5.4.2.so libntl.so
         cd $CUR2
     fi
 

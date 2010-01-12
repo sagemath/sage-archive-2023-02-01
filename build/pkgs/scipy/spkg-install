@@ -1,9 +1,16 @@
 #!/bin/sh
 
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
 
-
-
-./copy_patches.pl
+./copy_patches.sh
+if [ $? -ne 0 ]; then
+    echo "Error patching scipy"
+    exit 1
+fi
 
 # These flags confuse numpy's distutils.   In particular,
 # if they are set empty bad things happen.
@@ -35,11 +42,6 @@ UMFPACK="None"; export UMFPACK
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
 
 cd src/
-
-if [ $? -ne 0 ]; then
-    echo "Error patching setup.py"
-    exit 1
-fi
 
 # Build
 python setup.py build

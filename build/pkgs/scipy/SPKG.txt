@@ -7,6 +7,9 @@
 
 == Changelog ==
 
+=== scipy-0.7.0.p4 (Gonzalo Tornaria; 12 Jan 2010) ===
+ * Fixed #7902 by replacing copy_patches.pl by copy_patches.sh
+
 === scipy-0.7.0.p3 (Mike Hansen; 12 Nov 2009) ===
  * Fixed #6825 by adding a patch to scipy/stats/mstats_basic.py
 

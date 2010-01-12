@@ -2425,10 +2425,17 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: AA(2).is_square()
             True
+            sage: AA(-2).is_square()
+            False
+            sage: QQbar(-2).is_square()
+            True
             sage: QQbar(I).is_square()
             True
         """
-        return True
+        if self.parent() is AA:
+            return bool(self >= 0)
+        else:
+            return True
 
     def sqrt(self):
         """
@@ -3391,7 +3398,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # Without this special case, we do not know the multiplicity
         # of the desired root
         if self.sign() == 0:
-            return AlgebriacNumber(0)
+            return AlgebraicNumber(0)
         if d % 2 == 0:
             if self.sign() < 0:
                 return QQbar(self).__pow__(e)

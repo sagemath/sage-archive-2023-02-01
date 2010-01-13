@@ -779,6 +779,25 @@ class Words_over_Alphabet(Words_all):
         """
         return self.alphabet().cardinality()
 
+    def identity_morphism(self):
+        r"""
+        Returns the identity morphism from self to itself.
+
+        EXAMPLES::
+
+            sage: W = Words('ab')
+            sage: print W.identity_morphism()
+            WordMorphism: a->a, b->b
+
+        ::
+
+            sage: W = Words(range(3))
+            sage: print W.identity_morphism()
+            WordMorphism: 0->0, 1->1, 2->2
+        """
+        from sage.combinat.words.morphism import WordMorphism
+        return WordMorphism(dict((a,a) for a in self.alphabet()))
+
 class Words_n(Words_all):
     def __init__(self, n):
         """

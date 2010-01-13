@@ -8,6 +8,7 @@ AUTHORS:
     - Sebastien Labbe (2008-12-17): merged into sage
     - Arnaud Bergeron (2008-12-17): merged into sage
     - Amy Glen (2008-12-17): merged into sage
+    - Sebastien Labbe (2009-12-19): Added S-adic words (ticket #7543)
 
 USE:
 
@@ -1046,5 +1047,371 @@ class WordGenerator(object):
         l = list(w.partial_sums(start=3,mod=4))
         return P(l)[:-1]
 
+    def _s_adic_iterator(self, sequence, letters):
+        r"""
+        Returns the iterator over the s-adic infinite word obtained from a
+        sequence of morphisms applied on letters where the hypothesis of
+        nested prefixes is used.
+
+        DEFINITION (from [1]):
+
+        Let $w$ be a infinite word over an alphabet $A=A_0$. A
+        standard representation of $w$ is obtained from a sequence of
+        substitutions $\sigma_k:A_{k+1}\to A_k$ and a sequence of letters
+        $a_k\in A_k$ such that:
+        $\lim_{k\to\infty}\sigma_0\circ\sigma_1\circ\cdots\sigma_k(a_k)$.
+        Given a set of substitutions $S$, we say that the representation is
+        $S$-adic standard if the subtitutions are chosen in $S$.
+
+        INPUT:
+
+        - ``sequence`` - An iterable sequence of morphisms. It may be finite
+          or infinite.
+        - ``letters`` - An iterable  sequence of letters. The image of the
+          (i+1)-th letter under the (i+1)-th morphism must start with the i-th
+          letter.
+
+        OUTPUT:
+
+        iterator of letters
+
+        EXAMPLES:
+
+        Let's define three morphisms and compute the first nested succesive
+        prefixes of the s-adic word::
+
+            sage: m1 = WordMorphism('e->gh,f->hg')
+            sage: m2 = WordMorphism('c->ef,d->e')
+            sage: m3 = WordMorphism('a->cd,b->dc')
+            sage: Word(words._s_adic_iterator([m1],'e'))
+            word: gh
+            sage: Word(words._s_adic_iterator([m1,m2],'ec'))
+            word: ghhg
+            sage: Word(words._s_adic_iterator([m1,m2,m3],'eca'))
+            word: ghhggh
+
+        If the letters don't satisfy the hypothesis of the algorithm, an
+        error is raised::
+
+            sage: Word(words._s_adic_iterator([m1,m2,m3],'ecb'))
+            Traceback (most recent call last):
+            ...
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=WordMorphism: a->cd, b->dc) should start with the 2-th letter (=c).
+
+        Two examples of infinite s-adic words::
+
+            sage: tm = WordMorphism('a->ab,b->ba')
+            sage: fib = WordMorphism('a->ab,b->a')
+            sage: from itertools import repeat
+            sage: Word(words._s_adic_iterator(repeat(tm),repeat('a')))
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
+            sage: Word(words._s_adic_iterator(repeat(fib),repeat('a')))
+            word: abaababaabaababaababaabaababaabaababaaba...
+
+        A less trivial infinite s-adic word::
+
+            sage: m = WordMorphism({4:tm,5:fib})
+            sage: tmword = words.ThueMorseWord([4,5])
+            sage: w = m(tmword)
+            sage: Word(words._s_adic_iterator(w, repeat('a')))
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        The morphism `\sigma: a\mapsto ba,b\mapsto b` can't satify the
+        hypothesis of the algorithm (nested prefixes)::
+
+            sage: sigma = WordMorphism('a->ba,b->b')
+            sage: Word(words._s_adic_iterator(repeat(sigma),repeat('a')))
+            Traceback (most recent call last):
+            ...
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=WordMorphism: a->ba, b->b) should start with the 1-th letter (=a).
+
+        AUTHORS:
+
+            - Sebastien Labbe (2009-12-18): initial version
+
+        REFERENCES:
+
+        - [1] Pytheas Fogg,
+          https://www.lirmm.fr/arith/wiki/PytheasFogg/S-adiques.
+
+        """
+        from itertools import tee,izip
+        sequence_it,sequence = tee(sequence)
+        m = sequence_it.next()
+        codomain = m.codomain()
+        p = codomain.identity_morphism()
+        letters_it,letters = tee(letters)
+        precedent_letter = m(letters_it.next())[0]
+
+        yield precedent_letter
+        for (i,(m,a)) in enumerate(izip(sequence, letters)):
+            if not precedent_letter == m(a)[0]:
+                raise ValueError, "The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter)
+            w = p(m(a)[1:])
+            for b in w:
+                yield b
+            p = p * m
+            precedent_letter = a
+
+    def s_adic(self, sequence, letters, morphisms=None):
+        r"""
+        Returns the s-adic infinite word obtained from a sequence of
+        morphisms applied on a letter.
+
+        DEFINITION (from [1]):
+
+        Let $w$ be a infinite word over an alphabet $A=A_0$. A
+        standard representation of $w$ is obtained from a sequence of
+        substitutions $\sigma_k:A_{k+1}\to A_k$ and a sequence of letters
+        $a_k\in A_k$ such that:
+        $\lim_{k\to\infty}\sigma_0\circ\sigma_1\circ\cdots\sigma_k(a_k)$.
+        Given a set of substitutions $S$, we say that the representation is
+        $S$-adic standard if the subtitutions are chosen in $S$.
+
+        INPUT:
+
+        - ``sequence`` - An iterable sequence of indices or of morphisms. It
+          may be finite or infinite. If ``sequence`` is infinite, the image
+          of the (i+1)-th letter under the (i+1)-th morphism must start
+          with the i-th letter.
+
+        - ``letters`` - A letter or a sequence of letters.
+
+        - ``morphisms`` - dict, list, callable or None (optional, default
+          None) an object that maps indices to morphisms. If None, then
+          ``sequence`` must consist of morphisms.
+
+        OUTPUT:
+
+        A word.
+
+        EXAMPLES:
+
+        Let's define three morphisms and compute the first nested succesive
+        prefixes of the s-adic word::
+
+            sage: m1 = WordMorphism('e->gh,f->hg')
+            sage: m2 = WordMorphism('c->ef,d->e')
+            sage: m3 = WordMorphism('a->cd,b->dc')
+            sage: words.s_adic([m1],'e')
+            word: gh
+            sage: words.s_adic([m1,m2],'ec')
+            word: ghhg
+            sage: words.s_adic([m1,m2,m3],'eca')
+            word: ghhggh
+
+        When the given sequence of morphism is finite, one may simply give
+        the last letter, i.e. ``'a'``, instead of giving all of them,
+        i.e. ``'eca'``::
+
+            sage: words.s_adic([m1,m2,m3],'a')
+            word: ghhggh
+            sage: words.s_adic([m1,m2,m3],'b')
+            word: ghghhg
+
+        If the letters don't satisfy the hypothesis of the algorithm
+        (nested prefixes), an error is raised::
+
+            sage: words.s_adic([m1,m2,m3],'ecb')
+            Traceback (most recent call last):
+            ...
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=WordMorphism: a->cd, b->dc) should start with the 2-th letter (=c).
+
+        Let's define the Thue-Morse morphism and the Fibonacci morphism
+        which will be used below to illustrate more examples and let's import
+        the ``repeat`` tool from the ``itertools``::
+
+            sage: tm = WordMorphism('a->ab,b->ba')
+            sage: fib = WordMorphism('a->ab,b->a')
+            sage: from itertools import repeat
+
+        Two trivial examples of infinite s-adic words::
+
+            sage: words.s_adic(repeat(tm),repeat('a'))
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
+
+        ::
+
+            sage: words.s_adic(repeat(fib),repeat('a'))
+            word: abaababaabaababaababaabaababaabaababaaba...
+
+        A less trivial infinite s-adic word::
+
+            sage: t = words.ThueMorseWord([tm,fib])
+            sage: words.s_adic(t, repeat('a'))
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        The same thing using a sequence of indices::
+
+            sage: tmword = words.ThueMorseWord([0,1])
+            sage: words.s_adic(tmword, repeat('a'), [tm,fib])
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        The correspondance of the indices may be given as a dict::
+
+            sage: words.s_adic(tmword, repeat('a'), {0:tm,1:fib})
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        because dict are more versatile for indices::
+
+            sage: tmwordTF = words.ThueMorseWord('TF')
+            sage: words.s_adic(tmwordTF, repeat('a'), {'T':tm,'F':fib})
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        or by a callable::
+
+            sage: f = lambda n: tm if n == 0 else fib
+            sage: words.s_adic(words.ThueMorseWord(), repeat('a'), f)
+            word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+        Random infinite s-adic words::
+
+            sage: from sage.misc.prandom import randint
+            sage: def it():
+            ...     while True: yield randint(0,1)
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            word: abbaabababbaababbaabbaababbaabababbaabba...
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            word: abbaababbaabbaababbaababbaabbaababbaabba...
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            word: abaaababaabaabaaababaabaaababaaababaabaa...
+
+        An example where the sequences cycle on two morphisms and two
+        letters::
+
+            sage: G = WordMorphism('a->cd,b->dc')
+            sage: H = WordMorphism('c->ab,d->ba')
+            sage: from itertools import cycle
+            sage: words.s_adic([G,H],'ac')
+            word: cddc
+            sage: words.s_adic(cycle([G,H]),cycle('ac'))
+            word: cddcdccddccdcddcdccdcddccddcdccddccdcddc...
+
+        The morphism `\sigma: a\mapsto ba,b\mapsto b` can't satisfy the
+        hypothesis of the nested prefixes, but one may compute arbitrarily
+        long finite words having the limit `\sigma^\omega(a)`::
+
+            sage: sigma = WordMorphism('a->ba,b->b')
+            sage: words.s_adic(repeat(sigma),repeat('a'))
+            Traceback (most recent call last):
+            ...
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=WordMorphism: a->ba, b->b) should start with the 1-th letter (=a).
+            sage: words.s_adic([sigma],'a')
+            word: ba
+            sage: words.s_adic([sigma,sigma],'a')
+            word: bba
+            sage: words.s_adic([sigma]*3,'a')
+            word: bbba
+            sage: words.s_adic([sigma]*4,'a')
+            word: bbbba
+            sage: words.s_adic([sigma]*5,'a')
+            word: bbbbba
+            sage: words.s_adic([sigma]*6,'a')
+            word: bbbbbba
+            sage: words.s_adic([sigma]*7,'a')
+            word: bbbbbbba
+
+        The following examples illustrates an `S`-adic word defined over an
+        infinite set `S` of morphisms `x_h`::
+
+            sage: x = lambda h:WordMorphism({1:[2],2:[3]+[1]*(h+1),3:[3]+[1]*h})
+            sage: for h in [0,1,2,3]: print h, x(h)
+            0 WordMorphism: 1->2, 2->31, 3->3
+            1 WordMorphism: 1->2, 2->311, 3->31
+            2 WordMorphism: 1->2, 2->3111, 3->311
+            3 WordMorphism: 1->2, 2->31111, 3->3111
+            sage: w = Word(lambda n : valuation(n+1, 2) ); w
+            word: 0102010301020104010201030102010501020103...
+            sage: s = words.s_adic(w, repeat(3), x); s
+            word: 3232232232322322322323223223232232232232...
+            sage: prefixe = s[:10000]
+            sage: map(prefixe.number_of_factors, range(15))
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            sage: [_[i+1] - _[i] for i in range(len(_)-1)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        TESTS::
+
+            sage: tm = WordMorphism('a->ab,b->ba')
+            sage: fib = WordMorphism('a->ab,b->a')
+            sage: w = words.s_adic([fib,tm,tm,fib,tm,fib]*3,'a')
+            sage: w
+            word: abaaabaababaabaaababaaababaaabaababaabaa...
+            sage: w.length()
+            32400
+            sage: w.parent()
+            Words over Ordered Alphabet ['a', 'b']
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+
+        ::
+
+            sage: words.s_adic([fib,tm,tm,fib,tm,fib],'aaaaaaa')
+            word: abaaabaababaabaaababaaababaaabaababa
+
+        ::
+
+            sage: words.s_adic([0,1,0,1,0,1,0,1],'a',[tm,fib])
+            word: abbaabababbaabbaababbaababbaabababbaabba...
+
+        ::
+
+            sage: words.s_adic([fib,fib],'bb')
+            Traceback (most recent call last):
+            ...
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=b) under the 2-th morphism (=WordMorphism: a->ab, b->a) should start with the 1-th letter (=b).
+
+        Test on different letters::
+
+            sage: tm = WordMorphism({0:[0,1], 1:[1,0]})
+            sage: fib = WordMorphism({0:[0,1], 1:[0]})
+            sage: f = lambda n: tm if n == 0 else fib
+            sage: words.s_adic(words.ThueMorseWord(), repeat(0), f)
+            word: 0110010110011001100101100101100110010110...
+
+        Testing the message error for the third argument::
+
+            sage: words.s_adic(words.ThueMorseWord(), repeat(0), 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: morphisms (=5) must be None, callable or provide a __getitem__ method.
+
+        AUTHORS:
+
+            - Sebastien Labbe (2009-12-18): initial version
+
+        REFERENCES:
+
+        - [1] Pytheas Fogg,
+          https://www.lirmm.fr/arith/wiki/PytheasFogg/S-adiques.
+
+        """
+        if morphisms is None:
+            seq = sequence
+        elif hasattr(morphisms, '__getitem__'):
+            seq = (morphisms[i] for i in sequence)
+        elif hasattr(morphisms, '__call__'):
+            seq = (morphisms(i) for i in sequence)
+        else:
+            raise TypeError, "morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms
+
+        from sage.combinat.words.word import FiniteWord_class
+        if isinstance(sequence,(tuple,list,str,FiniteWord_class)) \
+        and hasattr(letters, "__len__") and len(letters) == 1:
+            from sage.misc.all import prod
+            return prod(seq)(letters)
+
+        from itertools import tee
+        seq_it,seq= tee(seq)
+        m = seq_it.next()
+        W = m.codomain()
+
+        kwds = {}
+        kwds['data'] = self._s_adic_iterator(seq,letters)
+        kwds['length'] = None
+        kwds['datatype'] = 'iter'
+        kwds['caching'] = True
+        #kwds['check'] = False
+        return W(**kwds)
 
 words = WordGenerator()

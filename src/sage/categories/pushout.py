@@ -370,6 +370,7 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
         if self.multi_variate and is_LaurentPolynomialRing(R):
             return LaurentPolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
         else:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(R, self.var)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))

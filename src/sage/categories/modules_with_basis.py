@@ -239,7 +239,35 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 
     # TODO: find something better to get this inheritance from CategoryWithTensorProduct.Element
     class ElementMethods(CategoryWithTensorProduct.ElementMethods, CategoryWithCartesianProduct.ElementMethods):
-        pass
+
+        def support_of_monomial(self):
+            """
+            INPUT:
+
+             - ``self`` - a monomial
+
+            Returns the support of ``self``.
+
+            EXAMPLES::
+
+                sage: X = CombinatorialFreeModule(QQ, [1,2,3,4]); X.rename("X")
+                sage: X.term(2).support_of_monomial()
+                2
+                sage: X.monomial(3, 2).support_of_monomial()
+                3
+
+            An exception is raised if ``self`` has more than one term:
+
+                sage: (X.term(2) + X.term(3)).support_of_monomial()
+                Traceback (most recent call last):
+                ...
+                ValueError: B[2] + B[3] is not a monomial
+
+            """
+            if len(self) == 1:
+                return self.support()[0]
+            else:
+                raise ValueError, "%s is not a monomial"%(self)
 
 #         def _neg_(self):
 #             """

@@ -1,5 +1,3 @@
-from sage.misc.cachefunc import cached_function
-
 class bar:
     pass
 
@@ -49,9 +47,14 @@ class Metaclass(type):
         reducing a class
         sage: c2 = cPickle.loads(s)
         constructing class
-        sage: c = c2 = 1
-
+        sage: c == c2
+        calling __eq__ defined in Metaclass
+        True
     """
+    def __eq__(self, other):
+        print "calling __eq__ defined in Metaclass"
+        return (type(self) == type(other)) and (self.reduce_args == other.reduce_args)
+
     def __reduce__(self):
         """
         Implements the pickle protocol for classes in this metaclass

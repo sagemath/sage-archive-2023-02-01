@@ -139,8 +139,9 @@ def remove_output_labels(s):
         n = min(m.end() - m.start() for m in matches)
         return "\n".join(l[n:] for l in lines)
 
-COMMANDS_CACHE = '%s/macaulay2_commandlist_cache.sobj'%DOT_SAGE
+
 PROMPT = "_EGAS_ : "
+
 
 class Macaulay2(Expect):
     """
@@ -477,41 +478,6 @@ class Macaulay2(Expect):
             varstr = ", ".join(["symbol " + v for v in varstr.split(", ")])
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
 
-    def _commands(self):
-        """
-        Return list of all commands defined in Macaulay2.  This is done by looking at all
-        of the keys of the dictionaries in dictionaryPath.
-
-        EXAMPLES:
-            sage: cmds = macaulay2._commands() #optional
-            sage: 'ring' in cmds               #optional
-            True
-            sage: len(cmds) > 50               #optional
-            True
-        """
-        dicts = self("dictionaryPath")
-        cmds = []
-        for d in dicts:
-            #Ignore the OutputDctionary since it contains
-            #lots of variables that we don't want to tab complete
-            if str(d) in ['OutputDictionary']:
-                continue
-
-            for cmd in d.keys():
-                cmd = str(cmd)
-
-                #Ignore anything before the $
-                if "$" in cmd:
-                    cmd = cmd[cmd.find("$"):]
-
-                #Ignore not alphanumeric cmds
-                if not cmd.isalnum():
-                    continue
-
-                cmds.append(cmd)
-        cmds.sort()
-        return cmds
-
     def help(self, s):
         """
         EXAMPLES:
@@ -528,41 +494,38 @@ class Macaulay2(Expect):
             r = r[:end]
         return AsciiArtString(r)
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def trait_names(self):
         """
-        EXAMPLES:
-            sage: names = macaulay2.trait_names(verbose=False) #optional
-            sage: 'ring' in names                              #optional
+        Return a list of tab completions for Macaulay2.
+
+        :returns: dynamically built sorted list of commands obtained using
+            Macaulay2 "apropos" command.
+
+        :rtype: list of strings
+
+        TESTS:
+            sage: names = macaulay2.trait_names() # optional
+            sage: 'ring' in names                 # optional
             True
-            sage: macaulay2.eval("abcabc = 4")                 #optional
+            sage: macaulay2.eval("abcabc = 4")    # optional
             4
-            sage: names = macaulay2.trait_names(verbose=False) #optional
-            sage: "abcabc" in names                            #optional
+            sage: names = macaulay2.trait_names() # optional
+            sage: "abcabc" in names               # optional
             True
         """
-        try:
-            #Get the current variables
-            current = [str(s) for s in self('User#"private dictionary"').keys()]
-            trait_names = [s for s in current if (s.isalnum() and s[:4] != "sage")] + self.__commands
-            return trait_names
-        except AttributeError:
-            import sage.misc.persist
-            if use_disk_cache:
-                try:
-                    self.__commands = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.trait_names()
-                except IOError:
-                    pass
-            if verbose:
-                print "\nBuilding Macaulay2 command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
-            v = self._commands()
-            self.__commands = v
-            if len(v) > 200:
-                # M2 is actually installed.
-                sage.misc.persist.save(v, COMMANDS_CACHE)
-            return self.trait_names()
+        # Get all the names from Macaulay2 except numbered outputs like
+        # o1, o2, etc. and automatic Sage variable names sage0, sage1, etc.
+        # It is faster to get it back as a string.
+        r = macaulay2.eval(r"""
+            toString select(
+                apply(apropos "^[[:alnum:]]+$", toString),
+                s -> not match("^(o|sage)[0-9]+$", s))
+            """)
+        # Now split this string into separate names
+        r = r[1:-1].split(", ")
+        # Macaulay2 sorts things like A, a, B, b, ...
+        r.sort()
+        return r
 
     def use(self, R):
         """
@@ -855,16 +818,42 @@ class Macaulay2Element(ExpectElement):
 
     def trait_names(self):
         """
-        Returns a list of tab completions for self.  Note that not all of these
-        are valid.
+        Return a list of tab completions for `self``.
 
-        EXAMPLES:
-            sage: a = macaulay2("QQ[x,y]")   #optional
-            sage: traits = a.trait_names()   #optional
-            sage: "gens" in traits           #optional
+        :returns: dynamically built sorted list of commands obtained using
+            Macaulay2 "methods" command. All returned functions can take
+            ``self`` as their first argument
+
+        :rtype: list of strings
+
+        TEST:
+            sage: a = macaulay2("QQ[x,y]")   # optional
+            sage: traits = a.trait_names()   # optional
+            sage: "generators" in traits     # optional
             True
         """
-        return self.parent().trait_names()
+        # It is possible, that these are not all possible methods, but
+        # there are still plenty and at least there are no definitely
+        # wrong ones...
+        r = self.parent().eval(
+            """currentClass = class %s;
+            total = {};
+            while true do (
+                -- Select methods with first argument of the given class
+                r = select(methods currentClass, s -> s_1 === currentClass);
+                -- Get their names as strings
+                r = apply(r, s -> toString s_0);
+                -- Keep only alpha-numeric ones
+                r = select(r, s -> match("^[[:alnum:]]+$", s));
+                -- Add to existing ones
+                total = total | select(r, s -> not any(total, e -> e == s));
+                if parent currentClass === currentClass then break;
+                currentClass = parent currentClass;
+                )
+            toString total""" % self.name())
+        r = r[1:-1].split(", ")
+        r.sort()
+        return r
 
     def cls(self):
         """

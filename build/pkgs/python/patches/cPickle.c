@@ -663,6 +663,12 @@ read_other(Unpicklerobject *self, char **s, Py_ssize_t  n)
 	self->last_string = str;
 
 	if (! (*s = PyString_AsString(str))) return -1;
+
+	if (PyString_GET_SIZE(str) != n) {
+		PyErr_SetNone(PyExc_EOFError);
+		return -1;
+	}
+
 	return n;
 }
 
@@ -4016,25 +4022,24 @@ load_binpersid(Unpicklerobject *self)
 static int
 load_pop(Unpicklerobject *self)
 {
-	int len;
-
-	if (!( (len=self->stack->length) > 0 ))  return stackUnderflow();
+	int len = self->stack->length;
 
 	/* Note that we split the (pickle.py) stack into two stacks,
 	   an object stack and a mark stack. We have to be clever and
 	   pop the right one. We do this by looking at the top of the
-	   mark stack.
+	   mark stack first, and only signalling a stack underflow if
+	   the object stack is empty and the mark stack doesn't match
+	   our expectations.
 	*/
-
-	if ((self->num_marks > 0) &&
-	    (self->marks[self->num_marks - 1] == len))
+	if (self->num_marks > 0 && self->marks[self->num_marks - 1] == len) {
 		self->num_marks--;
-	else {
+	} else if (len >= 0) {
 		len--;
 		Py_DECREF(self->stack->data[len]);
-		self->stack->length=len;
+		self->stack->length = len;
+	} else {
+		return stackUnderflow();
 	}
-
 	return 0;
 }
 

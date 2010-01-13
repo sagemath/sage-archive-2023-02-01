@@ -11,27 +11,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# This tells Bash to exit the script if any statement returns a non-true
-# value.
-set -e
-
 # PATCH
 
-cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
-if [ $? -ne 0 ]; then
-    echo "Error copying patched ctypes"
-    exit 1
-fi
-
-cp patches/locale.py src/Lib/
+cp patches/locale.py src/Lib/locale.py
 if [ $? -ne 0 ]; then
     echo "Error copying patched locale.py"
-    exit 1
-fi
-
-cp patches/pkgutil.py src/Lib/pkgutil.py
-if [ $? -ne 0 ]; then
-    echo "Error copying patched pkgutil.py"
     exit 1
 fi
 

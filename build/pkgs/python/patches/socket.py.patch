@@ -1,0 +1,20 @@
+--- ../src/Lib/socket.py	2009-08-14 23:40:49.000000000 -0700
++++ socket.py	2010-01-11 12:36:29.000000000 -0800
+@@ -48,6 +48,9 @@
+ 
+ try:
+     import _ssl
++    from _ssl import SSLError as sslerror
++    # we try this second line since sometimes the first
++    # passes even though the module isn't there
+ except ImportError:
+     # no SSL support
+     pass
+@@ -61,7 +64,6 @@
+         return _realssl.sslwrap_simple(sock, keyfile, certfile)
+ 
+     # we need to import the same constants we used to...
+-    from _ssl import SSLError as sslerror
+     from _ssl import \
+          RAND_add, \
+          RAND_egd, \

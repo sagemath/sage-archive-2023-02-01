@@ -53,10 +53,16 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.6.4.p0 (John Palmieri Jan 11, 2010) ===
+* Upgrade to Python 2.6.4.  Remove the ctypes__init__.py patch, since
+  it only applies to OS X 10.3 or earlier, and we don't support that.
+  Remove the pkgutil.py patch, since it doesn't seem to be needed any
+  more.
+
 === python-2.6.2.p2 (Jason Grout Sep 22, 2009) ===
- * Patch for readline-6.0: http://bugs.python.org/issue5833 (we
-   applied the small patch
-   http://bugs.python.org/file14599/python-2.6-readline.patch)
+* Patch for readline-6.0: http://bugs.python.org/issue5833 (we
+  applied the small patch
+  http://bugs.python.org/file14599/python-2.6-readline.patch)
 
 === python-2.6.2.p0 (Robert Miller June 25th, 2009) ===
  * Fixed issue with "import _ssl"

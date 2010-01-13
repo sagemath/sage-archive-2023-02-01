@@ -549,9 +549,9 @@ else:
             if do_setlocale:
                 oldloc = setlocale(LC_CTYPE)
                 try:
-                 setlocale(LC_CTYPE, "")
-                except:
-                 return nl_langinfo(CODESET)
+                    setlocale(LC_CTYPE, "")
+                except Error:
+                    pass
                 result = nl_langinfo(CODESET)
                 setlocale(LC_CTYPE, oldloc)
                 return result

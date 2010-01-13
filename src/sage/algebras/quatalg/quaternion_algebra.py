@@ -1356,6 +1356,7 @@ class QuaternionOrder(Algebra):
         obtained by letting G be the trace zero subspace of ZZ +
         2*self, which has rank 3, and restricting the pairing
            (x,y) = (x.conjugate()*y).reduced_trace()
+
         to G.
 
         APPLICATIONS: Ternary quadratic forms associated to an order

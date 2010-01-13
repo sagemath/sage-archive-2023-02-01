@@ -727,7 +727,7 @@ class GaloisGroup(SageObject):
         Kolyvagin hypothesis, this function returns noncanonical
         choices of lifts of generators for each of the cyclic factors
         of `G` corresponding to the primes dividing `c`.  Thus the
-        i-th returned valued is an element of `G` that maps to the
+        `i`-th returned valued is an element of `G` that maps to the
         identity element of `\textrm{Gal}(K_p/K_1)` for all `p \neq p_i` and
         to a choice of generator of `\textrm{Gal}(K_{p_i}/K_1)`.
 
@@ -1621,7 +1621,7 @@ class HeegnerPoint(SageObject):
     r"""
     A Heegner point of level `N`, discriminant `D` and conductor `c`
     is any point on a modular curve or elliptic curve that is
-    concocted in some way from a quadratic imaginary tau in the upper
+    concocted in some way from a quadratic imaginary `\tau` in the upper
     half plane with `\Delta(\tau) = D c = \Delta(N \tau)`.
 
     EXAMPLES::
@@ -2316,7 +2316,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
         that each prime dividing the conductor `c` of self is inert in
         `K` and coprime to `ND`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The prime 5 is inert, but the prime 11 isn't::
 
@@ -2811,7 +2811,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         represented by the point `\tau = x + i y` in the upper half
         plane.
 
-        The **kwds get passed onto the point plotting command.
+        The ``kwds`` get passed onto the point plotting command.
 
         EXAMPLES::
 
@@ -2947,7 +2947,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         (well defined only modulo the period lattice) corresponding to
         this Heegner point.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We compute a nonzero Heegner point over a ring class field on
         a curve of rank 2::
@@ -3099,15 +3099,18 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.
 
-        WARNING: The answer is *not* provably correct to prec bits!  A
-        priori, due to rounding and other errors, it's possible that
-        not a single digit is correct.
+        .. warning::
+
+           The answer is *not* provably correct to prec bits!  A
+           priori, due to rounding and other errors, it's possible that
+           not a single digit is correct.
 
         INPUT:
 
             - prec     -- (default: None) the working precision
 
         EXAMPLES::
+
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 37
             sage: P.numerical_approx()
@@ -3179,10 +3182,11 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         ValueError is raised if the precision is clearly insignificant
         to define a point on the curve.
 
-        WARNING: It is in theory possible for this function to not
-        raise a ValueError, find a polynomial, but via some very
-        unlikely coincidence that point is not actually this Heegner
-        point.
+        .. warning::
+
+           It is in theory possible for this function to not raise a
+           ValueError, find a polynomial, but via some very unlikely
+           coincidence that point is not actually this Heegner point.
 
         INPUT:
 
@@ -3197,7 +3201,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
                    guess `f(X)`.
 
 
-        EXAMPLES::
+        EXAMPLES:
 
         We compute some `x`-coordinate polynomials of some conductor 1
         Heegner points::
@@ -3303,13 +3307,17 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         bits of precision.   A ValueError is raised if the precision
         is clearly insignificant to define a point on the curve.
 
-        WARNING: It is in theory possible for this function to not
-        raise a ValueError, find a point on the curve, but via some
-        very unlikely coincidence that point is not actually this
-        Heegner point.
+        .. warning::
 
-        WARNING: Currently we make an arbitrary choice of
-        `y`-coordinate for the lift of the `x`-coordinate.
+           It is in theory possible for this function to not raise a
+           ValueError, find a point on the curve, but via some very
+           unlikely coincidence that point is not actually this Heegner
+           point.
+
+        .. warning::
+
+           Currently we make an arbitrary choice of `y`-coordinate for
+           the lift of the `x`-coordinate.
 
         INPUT:
 
@@ -3797,7 +3805,7 @@ class KolyvaginPoint(HeegnerPoint):
     """
     A Kolyvagin point.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We create a few Kolyvagin points::
 
@@ -3817,7 +3825,7 @@ class KolyvaginPoint(HeegnerPoint):
         sage: y.kolyvagin_point()
         Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
 
-    TESTS:
+    TESTS::
 
         sage: y = EllipticCurve('37a1').heegner_point(-7)
         sage: type(y)
@@ -3833,7 +3841,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             - ``heegner_point`` -- a Heegner point on some elliptic curve
 
-        EXAMPLES::
+        EXAMPLES:
 
         We directly construct a Kolyvagin point from the KolyvaginPoint class::
 
@@ -3971,7 +3979,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             - ``prec`` -- precision in bits (default: 53)
 
-        EXAMPLES::
+        EXAMPLES:
 
         A rank 1 curve::
 
@@ -4118,7 +4126,7 @@ class KolyvaginPoint(HeegnerPoint):
         Even if the precision determines a point, there is no guarantee
         that it is correct.
 
-        EXAMPLES::
+        EXAMPLES:
 
         A Kolyvagin point on a rank 1 curve::
 
@@ -4179,7 +4187,7 @@ class KolyvaginPoint(HeegnerPoint):
         See Stein, "Toward a Generalization of the Gross-Zagier Conjecture",
         Proposition 5.4 for a proof of the above well-definedness assertion.
 
-        EXAMPLES::
+        EXAMPLES:
 
         A Kolyvagin point on a rank 1 curve::
 
@@ -4401,7 +4409,7 @@ class KolyvaginCohomologyClass(SageObject):
 class KolyvaginCohomologyClassEn(KolyvaginCohomologyClass):
     """
 
-    EXAMPLES::
+    EXAMPLES:
 
     """
     def _repr_(self):
@@ -5172,7 +5180,7 @@ class HeegnerQuatAlg(SageObject):
               precision of computation of theta series, which could
               impact performance, but does not impact correctness
 
-        EXAMPLES::
+        EXAMPLES:
 
         We first try to verify Kolyvagin's conjecture for a rank 2
         curve by working modulo 5, but we are unlucky with `c=17`::
@@ -5340,6 +5348,7 @@ class HeegnerQuatAlg(SageObject):
             - Brandt module element (or tuple of them)
 
         EXAMPLES::
+
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: k = H.rational_kolyvagin_divisor(D, c); k
@@ -5408,7 +5417,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
     Heegner point Euler system to do computations with this curve.
     See the precise description of the output below.
 
-    INPUT::
+    INPUT:
 
         - `E` -- elliptic curve over `\QQ` of rank 1 or 2
 
@@ -5419,7 +5428,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
            the first prime that one can work modulo to get data about
            the Euler system
 
-    OUTPUT in the rank 1 case or when the default flag ``first_only=True``::
+    OUTPUT in the rank 1 case or when the default flag ``first_only=True``:
 
         - `\ell` -- first good odd prime satisfying the Kolyvagin
            condition that `q` divides \gcd(a_{\ell},\ell+1)` and the
@@ -5436,7 +5445,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         -  the dimension of the Brandt module `B(\ell,N)`, where `N` is
            the conductor of `E`
 
-    OUTPUT in the rank 2 case::
+    OUTPUT in the rank 2 case:
 
         - `\ell_1` -- first prime (as above in the rank 1 case) where
           reduction map is surjective
@@ -5457,7 +5466,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         -  the dimension of the Brandt module `B(\ell_2,N)`
 
 
-    EXAMPLES::
+    EXAMPLES:
 
     Import this function::
 
@@ -6177,7 +6186,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
     Returns the Kolyvagin point on this curve associated to the
     quadratic imaginary field `K=\QQ(\sqrt{D})` and conductor `c`.
 
-    INPUT::
+    INPUT:
 
         - `D`        -- a Heegner discriminant
 
@@ -6186,7 +6195,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         - ``check``  -- bool (default: True)
 
 
-    OUTPUT::
+    OUTPUT:
 
         The Kolyvagin point `P` of conductor `c`.
 
@@ -6696,7 +6705,7 @@ def heegner_sha_an(self, D, prec=53):
 
     INPUT:
 
-    - `D -- negative integer; the Heegner discriminant
+    - `D` -- negative integer; the Heegner discriminant
 
     - prec -- integer (default: 53); bits of precision to
       compute analytic order of Sha

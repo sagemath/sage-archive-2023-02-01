@@ -46,5 +46,6 @@ Combinatorics
    species
    developer
    words
+   iet
 
    ../sage/combinat/misc

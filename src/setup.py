@@ -797,6 +797,8 @@ code = setup(name = 'sage',
 
                      'sage.combinat.words',
 
+                    'sage.combinat.iet',
+
                      'sage.crypto',
                      'sage.crypto.block_cipher',
                      'sage.crypto.mq',

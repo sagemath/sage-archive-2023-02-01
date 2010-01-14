@@ -8,9 +8,42 @@ cdef int INTEGER = 0
 
 def solve_coin(self,log=False,objective_only=False):
     r"""
-    Solves the MIP using COIN-OR CBC/CLP
-    """
+    Solves the ``MixedIntegerLinearProgram`` using COIN-OR CBC/CLP
+    *Use ``solve()`` instead*
 
+    INPUT:
+
+    - ``log`` (integer) -- level of verbosity during the
+      solving process. Set ``log=3`` for maximal verbosity and
+      ``log=0`` for no verbosity at all.
+
+    - ``objective_only`` (boolean) -- Indicates whether the
+      values corresponding to an optimal assignment of the
+      variables should be computed. Setting ``objective_only``
+      to ``True`` saves some time on the computation when
+      this information is not needed.
+
+    OUTPUT:
+
+    This function returns the optimal value of the objective
+    function given by Coin.
+
+    EXAMPLE:
+
+    Solving a simple Linear Program using Coin as a solver
+    (Computation of a maximum stable set in Petersen's graph)::
+
+        sage: from sage.numerical.mip_coin import solve_coin     # optional - requires Cbc
+        sage: g = graphs.PetersenGraph()
+        sage: p = MixedIntegerLinearProgram(maximization=True)
+        sage: b = p.new_variable()
+        sage: p.set_objective(sum([b[v] for v in g]))
+        sage: for (u,v) in g.edges(labels=None):
+        ...       p.add_constraint(b[u] + b[v], max=1)
+        sage: p.set_binary(b)
+        sage: solve_coin(p,objective_only=True)     # optional - requires Cbc
+        4.0
+    """
     from itertools import izip
 
     # Creates the solver interfaces

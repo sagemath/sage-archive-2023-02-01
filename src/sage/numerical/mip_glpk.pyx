@@ -14,7 +14,7 @@ cdef int INTEGER = 0
 def solve_glpk(self, log=0, objective_only=False):
     """
     Solves the ``MixedIntegerLinearProgram`` using GLPK.
-    Use ``solve()`` instead.
+    *Use ``solve()`` instead*
 
     INPUT:
 
@@ -32,6 +32,22 @@ def solve_glpk(self, log=0, objective_only=False):
 
     This function returns the optimal value of the objective
     function given by GLPK.
+
+    EXAMPLE:
+
+    Solving a simple Linear Program using Coin as a solver
+    ( Computation of a maximum stable set in Petersen's graph )::
+
+        sage: from sage.numerical.mip_glpk import solve_glpk    # optional - requires Glpk
+        sage: g = graphs.PetersenGraph()
+        sage: p = MixedIntegerLinearProgram(maximization=True)
+        sage: b = p.new_variable()
+        sage: p.set_objective(sum([b[v] for v in g]))
+        sage: for (u,v) in g.edges(labels=None):
+        ...       p.add_constraint(b[u] + b[v], max=1)
+        sage: p.set_binary(b)
+        sage: solve_glpk(p, objective_only=True)     # optional - requires Glpk
+        4.0
     """
 
     # Raises an exception if no objective has been defined
@@ -86,17 +102,26 @@ def write_mps(self, filename,modern=True):
     """
     Write the linear program as a MPS file.
 
+    This function export the problem as a MPS file.
+
     INPUT:
 
     - ``filename`` -- The file in which you want the problem
       to be written.
+
     - ``modern`` -- Lets you choose between Fixed MPS and Free MPS
-        - ``True`` -- Writes the problem in Free MPS
-        - ``False`` -- Writes the problem in Fixed MPS
 
-    OUTPUT:
+        - ``True`` -- Outputs the problem in Free MPS
+        - ``False`` -- Outputs the problem in Fixed MPS
 
-    This function has no output.
+    EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram()
+        sage: x = p.new_variable()
+        sage: p.set_objective(x[1] + x[2])
+        sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
+        sage: p.write_mps(SAGE_TMP+"/lp_problem.mps") # optional - requires GLPK
+
 
     For information about the MPS file format :
     http://en.wikipedia.org/wiki/MPS_%28format%29
@@ -121,16 +146,22 @@ def write_mps(self, filename,modern=True):
 
 def write_lp(self, filename):
     """
-    Write the linear program as a MPS file.
+    Write the linear program as a LP file.
+
+    This function export the problem as a LP file.
 
     INPUT:
 
     - ``filename`` -- The file in which you want the problem
       to be written.
 
-    OUTPUT:
+    EXAMPLE::
 
-    This function has no output.
+        sage: p = MixedIntegerLinearProgram()
+        sage: x = p.new_variable()
+        sage: p.set_objective(x[1] + x[2])
+        sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
+        sage: p.write_lp(SAGE_TMP+"/lp_problem.lp") # optional - requires GLPK
 
     For more information about the LP file format :
     http://lpsolve.sourceforge.net/5.5/lp-format.htm

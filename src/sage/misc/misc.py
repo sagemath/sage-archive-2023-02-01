@@ -2233,8 +2233,8 @@ def inject_variable(name, value):
     inject a variable into the main global namespace
 
     INPUT:
-     - name  - a string
-     - value - anything
+     - ``name``  - a string
+     - ``value`` - anything
 
     EXAMPLES::
 
@@ -2243,15 +2243,27 @@ def inject_variable(name, value):
         sage: a
         314
 
-    A warning is issued if an existing value is overwritten::
+    A warning is issued the first time an existing value is overwritten::
 
         sage: inject_variable("a", 271)
         doctest:...: RuntimeWarning: redefining global value `a`
         sage: a
         271
+        sage: inject_variable("a", 272)
+        sage: a
+        272
+
+    That's because warn seem to not reissue twice the same warning:
+
+        sage: from warnings import warn
+        sage: warn("blah")
+        doctest:1: UserWarning: blah
+        sage: warn("blah")
 
     Use with care!
     """
+    assert type(name) is str
+    import sys
     # Using globals() does not work, even in Cython, because
     # inject_variable is to be called not only from the interpreter,
     # but also from functions in various modules
@@ -2262,7 +2274,6 @@ def inject_variable(name, value):
     # If for some reason this frame is not found (this should not
     # occur in normal operation), an exception "ValueError: call stack
     # is not deep enough" will be raised by _getframe.
-    import sys
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals

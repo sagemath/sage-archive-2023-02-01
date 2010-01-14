@@ -146,7 +146,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 sage: A.one()
                 B[word: ]
             """
-            return self.term(self.one_basis())
+            return self.monomial(self.one_basis()) #.
 
         @lazy_attribute
         def one(self):
@@ -197,7 +197,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 3*B[word: ]
 
             """
-            return self.monomial(self.one_basis(), r)
+            return self.term(self.one_basis(), r) #.
 
         @abstract_method(optional = True)
         def product_on_basis(self, i, j):
@@ -392,7 +392,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                     sage: B.one()
                     B[(0, word: )] + B[(1, word: )] + B[(2, word: )]
                 """
-                return self.sum_of_terms( (i, self.modules[i].one_basis()) for i in range(len(self.modules)))
+                return self.sum_of_monomials( (i, self.modules[i].one_basis()) for i in range(len(self.modules))) #?
 
             @lazy_attribute
             def one(self):
@@ -494,7 +494,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
 
                 TODO: optimize this implementation!
                 """
-                return tensor( (module.term(x1)*module.term(x2) for (module, x1, x2) in zip(self.modules, t1, t2)) )
+                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.modules, t1, t2)) ) #.
 
         class ElementMethods:
             """

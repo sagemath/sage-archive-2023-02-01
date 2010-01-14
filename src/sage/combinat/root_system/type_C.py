@@ -38,7 +38,7 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             sage: e.root(0, 1, 1, 1)
             (-1, -1, 0)
         """
-        return (-1)**p1 * self.term(i) + (-1)**p2 * self.term(j)
+        return (-1)**p1 * self.monomial(i) + (-1)**p2 * self.monomial(j)
 
     def simple_root(self, i):
         """
@@ -102,7 +102,7 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             sage: RootSystem(['C',3]).ambient_space().fundamental_weights()
             Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1, 1, 1)}
         """
-        return self.sum(self.term(j) for j in range(i))
+        return self.sum(self.monomial(j) for j in range(i))
 
 from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic, CartanType_simply_laced
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):

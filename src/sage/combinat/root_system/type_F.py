@@ -68,12 +68,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
             [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
         if i == j or j == None:
-            return (-1)**p1*self.term(i)
+            return (-1)**p1*self.monomial(i)
         if k == None:
-            return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)
+            return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)
         if l == None:
-            return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)+(-1)**p3*self.term(k)
-        return (-1)**p1*self.term(i) + (-1)**p2*self.term(j)+(-1)**p3*self.term(k)+(-1)**p4*self.term(l)
+            return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)+(-1)**p3*self.monomial(k)
+        return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)+(-1)**p3*self.monomial(k)+(-1)**p4*self.monomial(l)
 
     def simple_root(self, i):
         """
@@ -161,7 +161,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         v = ZZ(1)/ZZ(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ([ self.term(i) for i in xrange(self.n) ] +
+            self.PosRoots = ([ self.monomial(i) for i in xrange(self.n) ] +
                             [ self.root(i,j,p2=0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
                             [ self.root(i,j,p2=1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
                             [ v*self.root(0,1,2,3,0,p2,p3,p4) for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] ])
@@ -176,10 +176,10 @@ class AmbientSpace(ambient_space.AmbientSpace):
             Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
         """
         v = ZZ(1)/ZZ(2)
-        return Family({ 1: self.term(0)+self.term(1),
-                        2: 2*self.term(0)+self.term(1)+self.term(2),
-                        3: v*(3*self.term(0)+self.term(1)+self.term(2)+self.term(3)),
-                        4: self.term(0)})
+        return Family({ 1: self.monomial(0)+self.monomial(1),
+                        2: 2*self.monomial(0)+self.monomial(1)+self.monomial(2),
+                        3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
+                        4: self.monomial(0)})
 
 
 

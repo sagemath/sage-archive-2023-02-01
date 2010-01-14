@@ -439,5 +439,5 @@ class SymmetricaConversionOnBasis:
         # TODO: use self._codomain.sum_of_monomials, when the later
         # will have an optional optimization for the case when there
         # is no repetition in the support
-        return self._codomain._from_dict(dict(self._t(self.fake_sym.term(partition))), coerce = True)
+        return self._codomain._from_dict(dict(self._t(self.fake_sym.monomial(partition))), coerce = True)
 

@@ -440,7 +440,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 c = C([c]+list(rest))
             else:
                 c = C(list(c))
-        return self.term(c)
+        return self.monomial(c)
 
     # Todo: move this in the Bases(Sym) category once parent won't impose its own implementation
     def an_element(self):
@@ -457,7 +457,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         #return 2 * self[2,1,3] + 3 * self[1,1,1] + 1/2 * self[[]]
         K = self.base_ring()
         C = self.basis().keys()
-        return self.sum_of_monomials( ((C([2,1,1]), K(2)), (C([1,1,1]), K(3)), (C([]), K(1)/K(2))) )
+        return self.sum_of_terms( ((C([2,1,1]), K(2)), (C([1,1,1]), K(3)), (C([]), K(1)/K(2))) )
 
 
     def _change_by_proportionality(self, x, function):

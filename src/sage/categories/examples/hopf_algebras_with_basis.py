@@ -91,7 +91,7 @@ class MyGroupAlgebra(CombinatorialFreeModule):
             sage: A.algebra_generators()
             Finite family {(1,2,3): B[(1,2,3)], (1,3): B[(1,3)]}
         """
-        return Family(self._group.gens(), self.term)
+        return Family(self._group.gens(), self.monomial)
 
     def coproduct_on_basis(self, g):
         r"""
@@ -106,7 +106,7 @@ class MyGroupAlgebra(CombinatorialFreeModule):
             sage: A.coproduct_on_basis(a)
             B[(1,2,3)] # B[(1,2,3)]
         """
-        g = self.term(g)
+        g = self.monomial(g)
         return tensor([g, g])
 
     def antipode_on_basis(self, g):
@@ -122,4 +122,4 @@ class MyGroupAlgebra(CombinatorialFreeModule):
             sage: A.antipode_on_basis(a)
             B[(1,3,2)]
         """
-        return self.term(~g)
+        return self.monomial(~g)

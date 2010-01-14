@@ -364,7 +364,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: hasattr(G, "element_class")
             False
             sage: g = G.an_element()
-            sage: (2*F.term(g)).coefficient(g)
+            sage: (2*F.monomial(g)).coefficient(g)
             2
         """
         # NT: coefficient_fast should be the default, just with appropriate assertions
@@ -634,7 +634,7 @@ class CombinatorialFreeModuleElement(Element):
         res._monomial_coefficients = z_elt
         return res
 
-    def map_monomial(self, f):
+    def map_term(self, f):
         """
         Returns a new element of self.parent() obtained by applying the
         function f to a monomial coefficient (m,c) pair. f returns a
@@ -645,7 +645,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: s = SFASchur(QQ)
             sage: f = lambda m,c: (m.conjugate(), 2*c)
             sage: a = s([2,1]) + s([1,1,1])
-            sage: a.map_monomial(f)
+            sage: a.map_term(f)
             2*s[2, 1] + 2*s[3]
         """
         z_elt = {}
@@ -654,7 +654,7 @@ class CombinatorialFreeModuleElement(Element):
             z_elt[new_m] = new_c
         return self.parent()._from_dict(z_elt)
 
-    map_mc = map_monomial
+    map_mc = map_term
 
     def _acted_upon_(self, scalar, self_on_left = False):
         """
@@ -824,7 +824,7 @@ class CombinatorialFreeModuleInterface(Parent):
             sage: list(QS3.basis())
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        return Family(self._basis_keys, self.term)
+        return Family(self._basis_keys, self.monomial) #.
 
     def _an_element_(self):
         """
@@ -848,13 +848,13 @@ class CombinatorialFreeModuleInterface(Parent):
         I = self.basis().keys()
         R = self.base_ring()
         try:
-            x = x + self.term(I.an_element())
+            x = x + self.monomial(I.an_element())
         except:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
-                x = x + self.monomial(g.next(), R(c))
+                x = x + self.term(g.next(), R(c))
         except:
             pass
         return x
@@ -871,9 +871,9 @@ class CombinatorialFreeModuleInterface(Parent):
 
             sage: F = CombinatorialFreeModule(QQ,["a", "b"])
             sage: G = CombinatorialFreeModule(ZZ,["a", "b"])
-            sage: F.term("a")in F
+            sage: F.monomial("a") in F
             True
-            sage: G.term("a")in F
+            sage: G.monomial("a") in F
             False
             sage: "a" in F
             False
@@ -889,7 +889,7 @@ class CombinatorialFreeModuleInterface(Parent):
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ,["a", "b"])
-            sage: F(F.term("a"))   # indirect doctest
+            sage: F(F.monomial("a"))   # indirect doctest
             B['a']
 
         Do not rely on the following feature which may be removed in the future::
@@ -901,7 +901,7 @@ class CombinatorialFreeModuleInterface(Parent):
         instead, use::
 
             sage: P = QS3.basis().keys()
-            sage: QS3.term(P([2,3,1]))   # indirect doctest
+            sage: QS3.monomial(P([2,3,1]))   # indirect doctest
             [2, 3, 1]
 
         or:
@@ -943,11 +943,11 @@ class CombinatorialFreeModuleInterface(Parent):
             sage: F = CombinatorialFreeModule(ZZ, ["a", "b"]);      F.rename("F")
             sage: G = CombinatorialFreeModule(QQ, ["a", "b"]);      G.rename("G")
             sage: H = CombinatorialFreeModule(ZZ, ["a", "b", "c"]); H.rename("H")
-            sage: G(F.term("a"))
+            sage: G(F.monomial("a"))
             Traceback (most recent call last):
             ...
             TypeError: do not know how to make x (= B['a']) an element of self (=G)
-            sage: H(F.term("a"))
+            sage: H(F.monomial("a"))
             Traceback (most recent call last):
             ...
             TypeError: do not know how to make x (= B['a']) an element of self (=H)
@@ -1013,9 +1013,9 @@ class CombinatorialFreeModuleInterface(Parent):
                isinstance(self._basis_keys.element_class, type) and
                isinstance(x, self._basis_keys.element_class))
               or (sage.structure.element.parent(x) == self._basis_keys)):
-            return self.term(x)
+            return self.monomial(x)
         elif x in self._basis_keys:
-            return self.term(self._basis_keys(x))
+            return self.monomial(self._basis_keys(x))
         else:
             if hasattr(self, '_coerce_end'):
                 try:
@@ -1293,37 +1293,42 @@ class CombinatorialFreeModuleInterface(Parent):
 
         return self._from_dict(z_elt)
 
-    def monomial(self, index, coeff):
+    def term(self, index, coeff=None):
         """
         INPUT:
          - index: the index of a basis element
          - coeff: an element of the coefficient ring
 
-        Returns the corresponding monomial
+        Returns the corresponding term.  The coefficient is assumed to be
+        one if it is not given.
 
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.monomial('a',3)
+            sage: F.term('a',3)
             3*B['a']
+            sage: F.term('a')
+            B['a']
 
         Design: should this do coercion on the coefficient ring?
         """
+        if coeff is None:
+            coeff = self.base_ring().one()
         return self._from_dict({index: coeff})
 
-    def _term(self, index):
+    def _monomial(self, index):
         """
         TESTS::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F._term('a')
+            sage: F._monomial('a')
             B['a']
         """
-        return self.monomial(index, self.base_ring().one())
+        return self.term(index, self.base_ring().one())
 
     # This is generic, and should be lifted into modules_with_basis
     @lazy_attribute
-    def term(self):
+    def monomial(self):
         """
         INPUT:
 
@@ -1334,30 +1339,30 @@ class CombinatorialFreeModuleInterface(Parent):
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.term('a')
+            sage: F.monomial('a')
             B['a']
 
-        F.term is in fact (almost) a map::
+        F.monomial is in fact (almost) a map::
 
-            sage: F.term
+            sage: F.monomial
             Term map from {'a', 'b', 'c'} to Free module generated by {'a', 'b', 'c'} over Rational Field
         """
         # Should use a real Map, as soon as combinatorial_classes are enumerated sets, and therefore parents
-        return PoorManMap(self._term, domain = self._basis_keys, codomain = self, name = "Term map")
+        return PoorManMap(self._monomial, domain = self._basis_keys, codomain = self, name = "Term map")
 
-    def _sum_of_term(self, indices):
+    def _sum_of_monomial(self, indices):
         """
         TESTS::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F._sum_of_term(['a', 'b'])
+            sage: F._sum_of_monomial(['a', 'b'])
             B['a'] + B['b']
         """
         #TODO: optimize
-        return self.sum(self.term(index) for index in indices)
+        return self.sum(self.monomial(index) for index in indices)
 
     @lazy_attribute
-    def sum_of_terms(self):
+    def sum_of_monomials(self):
         """
         INPUT:
 
@@ -1368,57 +1373,57 @@ class CombinatorialFreeModuleInterface(Parent):
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.sum_of_terms(['a', 'b'])
+            sage: F.sum_of_monomials(['a', 'b'])
             B['a'] + B['b']
 
-            sage: F.sum_of_terms(['a', 'b', 'a'])
+            sage: F.sum_of_monomials(['a', 'b', 'a'])
             2*B['a'] + B['b']
 
-        F.sum_of_term is in fact (almost) a map::
+        F.sum_of_monomials is in fact (almost) a map::
 
-            sage: F.sum_of_terms
+            sage: F.sum_of_monomials
             A map to Free module generated by {'a', 'b', 'c'} over Rational Field
         """
         # domain = sets of self.combinatorial_class(),
-        return PoorManMap(self._sum_of_term, codomain = self)
+        return PoorManMap(self._sum_of_monomial, codomain = self)
 
-    def sum_of_monomials(self, monomials):
+    def sum_of_terms(self, terms):
         """
         INPUT:
-         - monomials: an list (or iterable) of pairs (index, coeff)
+         - terms: an list (or iterable) of pairs (index, coeff)
 
-        Returns the sum of the monomials
+        Returns the sum of the terms
 
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.sum_of_monomials([('a',2), ('c',3)])
+            sage: F.sum_of_terms([('a',2), ('c',3)])
             2*B['a'] + 3*B['c']
 
         Extreme case::
 
-            sage: F.sum_of_monomials([])
+            sage: F.sum_of_terms([])
             0
 
         TODO: optimize, especially for the special case where all
         indices are distinct (should there be an option distinct=True
-        for this, or a separate function sum_of_distinct_monomials)?
+        for this, or a separate function sum_of_distinct_terms)?
         """
-        return self.sum(self.monomial(index, coeff) for (index, coeff) in monomials)
+        return self.sum(self.term(index, coeff) for (index, coeff) in terms)
 
-    def term_or_zero_if_none(self, i):
+    def monomial_or_zero_if_none(self, i):
 	"""
 	EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.term_or_zero_if_none('a')
+            sage: F.monomial_or_zero_if_none('a')
             B['a']
-	    sage: F.term_or_zero_if_none(None)
+	    sage: F.monomial_or_zero_if_none(None)
 	    0
         """
 	if i == None:
 	    return self.zero()
-	return self.term(i)
+	return self.monomial(i)
 
     @cached_method
     def zero(self):
@@ -1500,11 +1505,11 @@ class CombinatorialFreeModule(UniqueRepresentation, CombinatorialFreeModuleInter
     Some uses of :meth:`.summation` and :meth:`.sum`::
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
-        sage: F.summation(F.term(1), F.term(3))
+        sage: F.summation(F.monomial(1), F.monomial(3))
         B[1] + B[3]
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
-        sage: F.sum(F.term(i) for i in [1,2,3])
+        sage: F.sum(F.monomial(i) for i in [1,2,3])
         B[1] + B[2] + B[3]
 
     Note that the constructed free module depend on the order of the basis::
@@ -1621,9 +1626,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
         We now compute the tensor product of elements of free modules::
 
-            sage: f =   F.term(1) + 2 * F.term(2)
-            sage: g = 2*G.term(3) +     G.term(4)
-            sage: h =   H.term(5) +     H.term(6)
+            sage: f =   F.monomial(1) + 2 * F.monomial(2)
+            sage: g = 2*G.monomial(3) +     G.monomial(4)
+            sage: h =   H.monomial(5) +     H.monomial(6)
             sage: tensor([f, g])
             2*B[1] # B[3] + B[1] # B[4] + 4*B[2] # B[3] + 2*B[2] # B[4]
 
@@ -1699,8 +1704,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
                 sage: G = CombinatorialFreeModule(ZZ, [1,2,3,4])
-                sage: f =   F.term(1) + 2 * F.term(2)
-                sage: g = 2*G.term(3) +     G.term(4)
+                sage: f =   F.monomial(1) + 2 * F.monomial(2)
+                sage: g = 2*G.monomial(3) +     G.monomial(4)
                 sage: tensor([f, g]) # indirect doctest
                 2*B[1] # B[3] + B[1] # B[4] + 4*B[2] # B[3] + 2*B[2] # B[4]
             """
@@ -1726,9 +1731,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: G = CombinatorialFreeModule(ZZ, [3,4]); G.__custom_name = "G"
                 sage: H = CombinatorialFreeModule(ZZ, [5,6]); H.rename("H")
 
-                sage: f =   F.term(1) + 2 * F.term(2)
-                sage: g = 2*G.term(3) +     G.term(4)
-                sage: h =   H.term(5) +     H.term(6)
+                sage: f =   F.monomial(1) + 2 * F.monomial(2)
+                sage: g = 2*G.monomial(3) +     G.monomial(4)
+                sage: h =   H.monomial(5) +     H.monomial(6)
 
                 sage: FG  = tensor([F, G   ])
                 sage: phi_fg = FG.tensor_constructor((F, G))
@@ -1749,7 +1754,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             # a list l such that l[i] is True if modules[i] is readily a tensor product
             is_tensor = [isinstance(module, CombinatorialFreeModule_Tensor) for module in modules]
             # the tensor_constructor, on basis elements
-            result = self.term * CartesianProductWithFlattening(is_tensor)
+            result = self.monomial * CartesianProductWithFlattening(is_tensor) #.
             # TODO: make this into an element of Hom( A x B, C ) when those will exist
             for i in range(0, len(modules)):
                 result = modules[i]._module_morphism(result, position = i, codomain = self)
@@ -1766,9 +1771,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: G = CombinatorialFreeModule(ZZ, [3,4]); G.__custom_name = "G"
                 sage: H = CombinatorialFreeModule(ZZ, [5,6]); H.rename("H")
 
-                sage: f =   F.term(1) + 2 * F.term(2)
-                sage: g = 2*G.term(3) +     G.term(4)
-                sage: h =   H.term(5) +     H.term(6)
+                sage: f =   F.monomial(1) + 2 * F.monomial(2)
+                sage: g = 2*G.monomial(3) +     G.monomial(4)
+                sage: h =   H.monomial(5) +     H.monomial(6)
 
                 sage: GH  = tensor([G, H])
                 sage: gh = GH._tensor_of_elements([g, h]); gh
@@ -1849,9 +1854,9 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     We now compute the cartesian product of elements of free modules::
 
-        sage: f =   F.term(4) + 2 * F.term(5)
-        sage: g = 2*G.term(4) +     G.term(6)
-        sage: h =   H.term(4) +     H.term(7)
+        sage: f =   F.monomial(4) + 2 * F.monomial(5)
+        sage: g = 2*G.monomial(4) +     G.monomial(6)
+        sage: h =   H.monomial(4) +     H.monomial(7)
         sage: cartesian_product([f,g])
         B[(0, 4)] + 2*B[(0, 5)] + 2*B[(1, 4)] + B[(1, 6)]
         sage: cartesian_product([f,g,h])
@@ -1927,14 +1932,14 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
             sage: phi = S.summand_embedding(0)
-            sage: phi(F.term(4) + 2 * F.term(5))
+            sage: phi(F.monomial(4) + 2 * F.monomial(5))
             B[(0, 4)] + 2*B[(0, 5)]
-            sage: phi(F.term(4) + 2 * F.term(6)).parent() == S
+            sage: phi(F.monomial(4) + 2 * F.monomial(6)).parent() == S
             True
-            sage: phi(G.term(4)) # not implemented Should raise an error! problem: G(F.term(4)) does not complain!!!!
+            sage: phi(G.monomial(4)) # not implemented Should raise an error!  problem: G(F.monomial(4)) does not complain!!!!
         """
         assert i in self.modules_keys()
-        return self.modules[i]._module_morphism(lambda t: self.term((i,t)), codomain = self)
+        return self.modules[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
 
     @cached_method
     def summand_projection(self, i):
@@ -1948,7 +1953,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
-            sage: x = S.term((0,4)) + 2 * S.term((0,5)) + 3 * S.term((1,6))
+            sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6))
             sage: S.summand_projection(0)(x)
             B[4] + 2*B[5]
             sage: S.summand_projection(1)(x)
@@ -1960,7 +1965,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         assert i in self.modules_keys()
         module = self.modules[i]
-        return self._module_morphism(lambda (j,t): module.term(t) if i == j else module.zero(), codomain = module)
+        return self._module_morphism(lambda (j,t): module.monomial(t) if i == j else module.zero(), codomain = module)
 
     def _cartesian_product_of_elements(self, elements):
         """
@@ -1975,8 +1980,8 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
-            sage: f =   F.term(4) + 2 * F.term(5)
-            sage: g = 2*G.term(4) +     G.term(6)
+            sage: f =   F.monomial(4) + 2 * F.monomial(5)
+            sage: g = 2*G.monomial(4) +     G.monomial(6)
             sage: S._cartesian_product_of_elements([f, g])
             B[(0, 4)] + 2*B[(0, 5)] + 2*B[(1, 4)] + B[(1, 6)]
             sage: S._cartesian_product_of_elements([f, g]).parent() == S
@@ -1998,7 +2003,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
                 sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
                 sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
                 sage: S = cartesian_product([F, G])
-                sage: x = S.term((0,4)) + 2 * S.term((0,5)) + 3 * S.term((1,6))
+                sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6))
                 sage: x.summand_projection(0)
                 B[4] + 2*B[5]
                 sage: x.summand_projection(1)
@@ -2016,7 +2021,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
                 sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
                 sage: H = CombinatorialFreeModule(ZZ, [4,7]); H.__custom_name = "H"
                 sage: S = cartesian_product([F, G, H])
-                sage: x = S.term((0,4)) + 2 * S.term((0,5)) + 3 * S.term((1,6)) + 4 * S.term((2,4)) + 5 * S.term((2,7))
+                sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6)) + 4 * S.monomial((2,4)) + 5 * S.monomial((2,7))
                 sage: x.summand_split()
                 (B[4] + 2*B[5], 3*B[6], 4*B[4] + 5*B[7])
                 sage: [s.parent() for s in x.summand_split()]

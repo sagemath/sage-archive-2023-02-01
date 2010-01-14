@@ -640,8 +640,8 @@ class ZonalPolynomials(JackPolynomials_p):
         self._prefix = "Z"
         category = sage.categories.all.ModulesWithBasis(self.base_ring())
         self._P = JackPolynomialsP(self.base_ring(), t=R(2))
-        self   .register_coercion(SetMorphism(Hom(self._P, self, category), self.sum_of_monomials))
-        self._P.register_coercion(SetMorphism(Hom(self, self._P, category), self._P.sum_of_monomials))
+        self   .register_coercion(SetMorphism(Hom(self._P, self, category), self.sum_of_terms))
+        self._P.register_coercion(SetMorphism(Hom(self, self._P, category), self._P.sum_of_terms))
 
     class Element(JackPolynomials_p.Element):
         pass

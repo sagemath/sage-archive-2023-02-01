@@ -114,7 +114,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         q*T1*T2*T1*T0 + (q-1)*T1*T2*T0*T1*T0
         sage: T1*T2*T1*T0*T1*T2
         T1*T2*T0*T1*T0*T2
-        sage: (T1*T2*T0*T1*T0*T2).support_of_monomial() # get the underlying Weyl group element
+        sage: (T1*T2*T0*T1*T0*T2).support_of_term() # get the underlying Weyl group element
         [ 2  1 -2]
         [ 3  1 -3]
         [ 2  2 -3]
@@ -214,7 +214,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
         """
         assert w in self.basis().keys()
-        return self.term(w)
+        return self.monomial(w)
 
     @cached_method
     def one_basis(self):
@@ -310,7 +310,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             sage: T0
             T0
         """
-        return self.coxeter_group().simple_reflections().map(self.term)
+        return self.coxeter_group().simple_reflections().map(self.monomial)
 
     def algebra_generator(self, i):
         """
@@ -404,7 +404,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             [(q-1)*T1 + q, T1*T2]
 
         """
-        result = self.term(w1)
+        result = self.monomial(w1)
         for i in w2.reduced_word():
             result = self.product_by_generator(result, i)
         return result
@@ -429,10 +429,10 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         """
         wi = w.apply_simple_reflection(i, side = side)
         if w.has_descent(i, side = side):
-            return self.monomial(w ,  self._q1+self._q2) + \
-                   self.monomial(wi, -self._q1*self._q2)
+            return self.term(w ,  self._q1+self._q2) + \
+                   self.term(wi, -self._q1*self._q2)
         else:
-            return self.term(wi)
+            return self.monomial(wi)
 
     def product_by_generator(self, x, i, side = "right"):
         """
@@ -532,6 +532,6 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             if len(self) != 1:
                 raise NotImplementedError, "inverse only implemented for basis elements (monomials in the generators)"%self
             H = self.parent()
-            w = self.support_of_monomial()
+            w = self.support_of_term()
 
             return H.prod(H.inverse_generator(i) for i in reversed(w.reduced_word()))

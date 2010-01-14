@@ -33,7 +33,7 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             (1, -1, 0)
 
         """
-        return self.term(i) - self.term(j)
+        return self.monomial(i) - self.monomial(j)
 
     def simple_root(self, i):
         """
@@ -63,7 +63,7 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0), 4: (1/2, 1/2, 1/2, 1/2)}
         """
         assert(i in self.index_set())
-        return self.root(i-1,i) if i < self.n else self.term(self.n-1)
+        return self.root(i-1,i) if i < self.n else self.monomial(self.n-1)
 
     def negative_roots(self):
         """
@@ -103,10 +103,10 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         res = []
         for i in range(self.n-1):
             for j in range(i+1,self.n):
-                res.append(self.term(i) - self.term(j))
-                res.append(self.term(i) + self.term(j))
+                res.append(self.monomial(i) - self.monomial(j))
+                res.append(self.monomial(i) + self.monomial(j))
         for i in range(self.n):
-            res.append(self.term(i))
+            res.append(self.monomial(i))
         return res
 
     def fundamental_weight(self, i):
@@ -119,9 +119,9 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         assert(i in self.index_set())
         n = self.dimension()
         if i == n:
-            return self.sum( self.term(j) for j in range(n) ) / 2
+            return self.sum( self.monomial(j) for j in range(n) ) / 2
         else:
-            return self.sum(self.term(j) for j in range(i))
+            return self.sum(self.monomial(j) for j in range(i))
 
 from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic, CartanType_simply_laced
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):

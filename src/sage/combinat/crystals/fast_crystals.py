@@ -325,7 +325,7 @@ class FastCrystalElement(CrystalElement):
         if self.parent()._cartan_type[0] == 'A':
             delpat.append(0)
         [alpha1, alpha2] = self.parent().weight_lattice_realization().simple_roots()
-        hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization().term(i) for i in range(2))
+        hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization().monomial(i) for i in range(2))
         return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
 
     def __repr__(self):

@@ -73,7 +73,7 @@ class WeightSpace(CombinatorialFreeModule, WeightLatticeRealization):
         """
         return self._name_string_helper("weight", capitalize=capitalize, base_ring=base_ring, type=type)
 
-    fundamental_weight = CombinatorialFreeModule.term
+    fundamental_weight = CombinatorialFreeModule.monomial
 
     def simple_root(self, j):
         """

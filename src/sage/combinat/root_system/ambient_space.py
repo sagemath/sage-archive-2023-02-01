@@ -157,7 +157,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
             sage: e[1]
             (1, 0, 0)
         """
-        return self.term(i-1)
+        return self.monomial(i-1)
 
     def coroot_lattice(self):
         """

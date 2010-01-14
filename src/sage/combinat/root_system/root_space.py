@@ -81,7 +81,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule, RootLatticeRealizat
         """
         return self._name_string_helper("root", capitalize=capitalize, base_ring=base_ring, type=type)
 
-    simple_root = CombinatorialFreeModule.term
+    simple_root = CombinatorialFreeModule.monomial
 
 
 class RootSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationElement):

@@ -87,7 +87,7 @@ class FreeAlgebra(CombinatorialFreeModule):
             Family (B[word: a], B[word: b], B[word: c])
         """
         Words = self.basis().keys()
-        return Family( [self.term(Words(a)) for a in self._alphabet] )
+        return Family( [self.monomial(Words(a)) for a in self._alphabet] )
         # FIXME: use this once the keys argument of FiniteFamily will be honoured
         # for the specifying the order of the elements in the family
         #return Family(self._alphabet, lambda a: self.term(self.basis().keys()(a)))

@@ -377,7 +377,7 @@ class TestAlgebra(CombinatorialAlgebra):
         """
         from sage.combinat.sf.sfa import SFASchur
         S = SFASchur(self.base_ring())
-        return self.sum_of_monomials(S(part1) * S(part2))
+        return self.sum_of_terms(S(part1) * S(part2))
 
     def prefix(self):
         """

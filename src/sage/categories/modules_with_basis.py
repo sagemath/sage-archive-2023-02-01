@@ -55,7 +55,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 
     which we can apply to elements of X::
 
-        sage: x = X.term(1) + 3 * X.term(2)
+        sage: x = X.monomial(1) + 3 * X.monomial(2)
         sage: H.zero()(x)
         0
 
@@ -72,7 +72,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
     We now construct a more interesting morphism by extending a
     function by linearity::
 
-        sage: phi = H(on_basis = lambda i: Y.term(i+2)); phi
+        sage: phi = H(on_basis = lambda i: Y.monomial(i+2)); phi
         Generic morphism:
           From: X
           To:   Y
@@ -205,7 +205,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 
                 sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
                 sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
-                sage: phi = X.module_morphism(lambda i: Y.term(i) + 2*Y.term(i+1), codomain = Y)
+                sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y)
                 sage: phi
                 Generic morphism:
                 From: X
@@ -240,34 +240,34 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
     # TODO: find something better to get this inheritance from CategoryWithTensorProduct.Element
     class ElementMethods(CategoryWithTensorProduct.ElementMethods, CategoryWithCartesianProduct.ElementMethods):
 
-        def support_of_monomial(self):
+        def support_of_term(self):
             """
             INPUT:
 
-             - ``self`` - a monomial
+             - ``self`` - a monomial, possibly with coefficient
 
             Returns the support of ``self``.
 
             EXAMPLES::
 
                 sage: X = CombinatorialFreeModule(QQ, [1,2,3,4]); X.rename("X")
-                sage: X.term(2).support_of_monomial()
+                sage: X.monomial(2).support_of_term()
                 2
-                sage: X.monomial(3, 2).support_of_monomial()
+                sage: X.term(3, 2).support_of_term()
                 3
 
             An exception is raised if ``self`` has more than one term:
 
-                sage: (X.term(2) + X.term(3)).support_of_monomial()
+                sage: (X.monomial(2) + X.monomial(3)).support_of_term()
                 Traceback (most recent call last):
                 ...
-                ValueError: B[2] + B[3] is not a monomial
+                ValueError: B[2] + B[3] is not a single term
 
             """
             if len(self) == 1:
                 return self.support()[0]
             else:
-                raise ValueError, "%s is not a monomial"%(self)
+                raise ValueError, "%s is not a single term"%(self)
 
 #         def _neg_(self):
 #             """
@@ -316,7 +316,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                 be constructed by extending by linearity a function on
                 the basis::
 
-                    sage: phi = H(on_basis = lambda i: Y.term(i) + 2*Y.term(i+1))
+                    sage: phi = H(on_basis = lambda i: Y.monomial(i) + 2*Y.monomial(i+1))
                     sage: phi
                     Generic morphism:
                     From: X
@@ -400,7 +400,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                     sage: f(2)
                     0
 
-                    sage: f = lambda i: Y.term(i) + 2*Y.term(i+1)
+                    sage: f = lambda i: Y.monomial(i) + 2*Y.monomial(i+1)
                     sage: g = H(on_basis = f).on_basis()
                     sage: g(2)
                     B[2] + 2*B[3]
@@ -408,8 +408,8 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                     True
                 """
                 if not hasattr(self, "_on_basis"):
-                    term = self.domain().term
-                    self._on_basis = lambda t: self(term(t))
+                    monomial = self.domain().monomial
+                    self._on_basis = lambda t: self(monomial(t))
                 return self._on_basis
 
 
@@ -496,7 +496,7 @@ class ModuleMorphismByLinearity(Morphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.term * abs)
+            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
 
         TESTS::
 
@@ -524,11 +524,11 @@ class ModuleMorphismByLinearity(Morphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: f  = X.module_morphism(on_basis = Y.term * abs)
-            sage: g  = X.module_morphism(on_basis = Y.term * abs)
-            sage: h1 = X.module_morphism(on_basis = X.term * abs)
-            sage: h2 = X.module_morphism(on_basis = X.term * factorial)
-            sage: h3 = X.module_morphism(on_basis = Y.term * abs, category = Modules(ZZ))
+            sage: f  = X.module_morphism(on_basis = Y.monomial * abs)
+            sage: g  = X.module_morphism(on_basis = Y.monomial * abs)
+            sage: h1 = X.module_morphism(on_basis = X.monomial * abs)
+            sage: h2 = X.module_morphism(on_basis = X.monomial * factorial)
+            sage: h3 = X.module_morphism(on_basis = Y.monomial * abs, category = Modules(ZZ))
             sage: f == g, f == h1, f == h2, f == h3, f == 1, 1 == f
             (True, False, False, False, False, False)
         """
@@ -548,7 +548,7 @@ class ModuleMorphismByLinearity(Morphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: phi_on_basis = Y.term * abs
+            sage: phi_on_basis = Y.monomial * abs
             sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = phi_on_basis, codomain = Y)
             sage: x = X.basis()
             sage: phi.on_basis()(-2)
@@ -568,8 +568,8 @@ class ModuleMorphismByLinearity(Morphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: def phi_on_basis(i): return Y.term(abs(i))
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.term * abs, codomain = Y)
+            sage: def phi_on_basis(i): return Y.monomial(abs(i))
+            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs, codomain = Y)
             sage: x = X.basis()
             sage: phi(x[1]), phi(x[-2]), phi(x[1] + 3 * x[-2])
             (B[1], B[2], B[1] + 3*B[2])
@@ -652,7 +652,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             sage: phi._on_basis(3)
             6*B[3]
         """
-        return self.codomain().monomial(i, self._diagonal(i))
+        return self.codomain().term(i, self._diagonal(i))
 
     def __invert__(self):
         """

@@ -122,20 +122,20 @@ class AmbientSpace(ambient_space.AmbientSpace):
              (0, 0, 0, 0, 0, 0, 1, 1)]
         """
         if i1 == i2 or i2 == None:
-            return (-1)**p1*self.term(i1)
+            return (-1)**p1*self.monomial(i1)
         if i3 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)
         if i4 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)
         if i5 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)
         if i6 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)
         if i7 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)
         if i8 == None:
-            return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)+(-1)**p7*self.term(i7)
-        return (-1)**p1*self.term(i1) + (-1)**p2*self.term(i2)+(-1)**p3*self.term(i3)+(-1)**p4*self.term(i4)+(-1)**p5*self.term(i5)+(-1)**p6*self.term(i6)+(-1)**p7*self.term(i7)+(-1)**p8*self.term(i8)
+            return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)+(-1)**p7*self.monomial(i7)
+        return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)+(-1)**p7*self.monomial(i7)+(-1)**p8*self.monomial(i8)
 
     def simple_root(self, i):
         """

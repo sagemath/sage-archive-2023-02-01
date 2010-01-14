@@ -36,9 +36,9 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         """
         if i != j:
-            return (-1)**p1 * self.term(i) + (-1)**p2 * self.term(j)
+            return (-1)**p1 * self.monomial(i) + (-1)**p2 * self.monomial(j)
         else:
-            return (-1)**p1 * self.term(i)
+            return (-1)**p1 * self.monomial(i)
 
     def simple_root(self, i):
         """
@@ -112,11 +112,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         assert(i in self.index_set())
         n = self.dimension()
         if i == n:
-            return  self.sum(self.term(j) for j in range(n)) / 2
+            return  self.sum(self.monomial(j) for j in range(n)) / 2
         elif i == n-1:
-            return (self.sum(self.term(j) for j in range(n-1)) - self.term(n-1)) / 2
+            return (self.sum(self.monomial(j) for j in range(n-1)) - self.monomial(n-1)) / 2
         else:
-            return  self.sum(self.term(j) for j in range(i))
+            return  self.sum(self.monomial(j) for j in range(i))
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_A', 'ambient_space',  AmbientSpace)

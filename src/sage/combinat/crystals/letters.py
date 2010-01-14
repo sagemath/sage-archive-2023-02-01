@@ -424,7 +424,7 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
             sage: [v.weight() for v in CrystalOfLetters(['A',3])]
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
-        return self.parent().weight_lattice_realization().term(self.value-1)
+        return self.parent().weight_lattice_realization().monomial(self.value-1)
 
     def e(self, i):
         r"""
@@ -489,9 +489,9 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
              (-1, 0, 0)]
         """
         if self.value > 0:
-            return self.parent().weight_lattice_realization().term(self.value-1)
+            return self.parent().weight_lattice_realization().monomial(self.value-1)
         elif self.value < 0:
-            return -self.parent().weight_lattice_realization().term(-self.value-1)
+            return -self.parent().weight_lattice_realization().monomial(-self.value-1)
         else:
             return self.parent().weight_lattice_realization()(0)
 
@@ -589,9 +589,9 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0), (-1, 0, 0)]
         """
         if self.value > 0:
-            return self.parent().weight_lattice_realization().term(self.value-1)
+            return self.parent().weight_lattice_realization().monomial(self.value-1)
         elif self.value < 0:
-            return -self.parent().weight_lattice_realization().term(-self.value-1)
+            return -self.parent().weight_lattice_realization().monomial(-self.value-1)
         else:
             return self.parent().weight_lattice_realization()(0)
 
@@ -677,9 +677,9 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
              (-1, 0, 0, 0)]
         """
         if self.value > 0:
-            return self.parent().weight_lattice_realization().term(self.value-1)
+            return self.parent().weight_lattice_realization().monomial(self.value-1)
         elif self.value < 0:
-            return -self.parent().weight_lattice_realization().term(-self.value-1)
+            return -self.parent().weight_lattice_realization().monomial(-self.value-1)
         else:
             return self.parent().weight_lattice_realization()(0)
 

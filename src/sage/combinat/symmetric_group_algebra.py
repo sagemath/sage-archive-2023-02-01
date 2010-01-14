@@ -138,7 +138,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS3.product_on_basis(p1,p2)
             [2, 1, 3]
         """
-        return self.term(left * right)
+        return self.monomial(left * right)
 
     def canonical_embedding(self, other):
         """
@@ -169,9 +169,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         assert isinstance(other, SymmetricGroupAlgebra_n)
         assert self.n < other.n
-        return self.module_morphism(other.term_from_smaller_permutation, codomain = other) # category = self.category() (currently broken)
+        return self.module_morphism(other.monomial_from_smaller_permutation, codomain = other) # category = self.category() (currently broken)
 
-    def term_from_smaller_permutation(self, permutation):
+    def monomial_from_smaller_permutation(self, permutation):
         """
         Converts the input into a permutation, possibly extending it
         to the appropriate size, and returns the corresponding basis
@@ -180,19 +180,19 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: QS5 = SymmetricGroupAlgebra(QQ, 5)
-            sage: QS5.term_from_smaller_permutation([])
+            sage: QS5.monomial_from_smaller_permutation([])
             [1, 2, 3, 4, 5]
-            sage: QS5.term_from_smaller_permutation(Permutation([3,1,2]))
+            sage: QS5.monomial_from_smaller_permutation(Permutation([3,1,2]))
             [3, 1, 2, 4, 5]
-            sage: QS5.term_from_smaller_permutation([5,3,4,1,2])
+            sage: QS5.monomial_from_smaller_permutation([5,3,4,1,2])
             [5, 3, 4, 1, 2]
 
         TESTS::
 
-            sage: QS5.term_from_smaller_permutation([5,3,4,1,2]).parent()
+            sage: QS5.monomial_from_smaller_permutation([5,3,4,1,2]).parent()
             Symmetric group algebra of order 5 over Rational Field
         """
-        return self.term( self.basis().keys()(permutation) )
+        return self.monomial( self.basis().keys()(permutation) )
 
 
 #     def _coerce_start(self, x):
@@ -867,7 +867,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         if i not in range(1, self.n):
             raise ValueError, "i must be between 1 and n-1 (= %s)"%(self.n-1)
 
-        return self.term(self.basis().keys()(permutation.Permutation( (i, i+1) ) ))
+        return self.monomial(self.basis().keys()(permutation.Permutation( (i, i+1) ) ))
 
     def algebra_generators(self):
         """

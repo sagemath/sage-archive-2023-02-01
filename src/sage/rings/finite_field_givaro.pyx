@@ -1578,7 +1578,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
     def __pow__(FiniteField_givaroElement self, exp, other):
         """
-        EXAMPLE:
+        EXAMPLES::
+
             sage: K.<a> = GF(3^3, 'a')
             sage: a^3 == a*a*a
             True
@@ -1591,22 +1592,32 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: b^2 == 1
             True
 
+        TESTS:
+
+        The following checks that #7923 is resolved::
+
+            sage: K.<a> = GF(3^10)
+            sage: b = a^9 + a^7 + 2*a^6 + a^4 + a^3 + 2*a^2 + a + 2
+            sage: b^(71*7381) == (b^71)^7381
+            True
+
         ALGORITHM:
-            Givaro objects are stored as integers $i$ such that $self=a^i$, where
-            $a$ is a generator of $K$ (though not necessarily the one returned by K.gens()).
-            Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
-            mod the multiplicative order of $K$.
+
+        Givaro objects are stored as integers $i$ such that $self=a^i$, where
+        $a$ is a generator of $K$ (though not necessarily the one returned by K.gens()).
+        Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
+        mod the multiplicative order of $K$.
 
         AUTHOR:
-            Robert Bradshaw
-        """
-        _exp = int(exp)
-        if _exp != exp:
-            raise ValueError, "exponent must be an integer"
-        exp = _exp
 
-        cdef int r
-        cdef int order
+        - Robert Bradshaw
+        """
+        if not isinstance(exp, (int, Integer)):
+            _exp = Integer(exp)
+            if _exp != exp:
+                raise ValueError, "exponent must be an integer"
+            exp = _exp
+
         cdef FiniteField_givaro field
         field = <FiniteField_givaro>self._parent
 
@@ -1623,19 +1634,22 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
                 raise ZeroDivisionError
             return make_FiniteField_givaroElement(field, field.objectptr.zero)
 
-        order = (field.order_c()-1)
-        exp = exp % order
+        cdef int order = (field.order_c()-1)
+        cdef int r = exp % order
 
-        r = exp
         if r == 0:
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
-        r = (r * self.element) % order
+        cdef unsigned int r_unsigned
         if r < 0:
-            r = r + order
+            r_unsigned = <unsigned int> r + order
+        else:
+            r_unsigned = <unsigned int>r
+        cdef unsigned int elt_unsigned = <unsigned int>self.element
+        cdef unsigned int order_unsigned = <unsigned int>order
+        r = <int>(r_unsigned * elt_unsigned) % order_unsigned
         if r == 0:
             return make_FiniteField_givaroElement(field, field.objectptr.one)
-
         return make_FiniteField_givaroElement(field, r)
 
     def __richcmp__(left, right, int op):

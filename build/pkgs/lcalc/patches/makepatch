@@ -1,0 +1,18 @@
+diff -rupN ../lcalc-1.23.p2/src/src/Makefile src/src/Makefile
+--- ../lcalc-1.23.p2/src/src/Makefile	2010-01-14 08:46:45.000000000 -0800
++++ src/src/Makefile	2010-01-14 08:47:20.000000000 -0800
+@@ -68,12 +68,12 @@ CCFLAGS =  -Wa,-W -O3 $(OPENMP_FLAG) -Wn
+
+ ifeq ($(PARI_DEFINE),-DINCLUDE_PARI)
+     #location of pari.h.
+-    LOCATION_PARI_H = /usr/local/include/pari #usual location
++    LOCATION_PARI_H = $(SAGE_LOCAL)/include/pari #usual location
+
+     #location of libpari.a or of libpari.so
+     #depending on whether static or dynamic libraries are being used.
+     #On mac os x it's the former, on linux I think usually the latter.
+-    LOCATION_PARI_LIBRARY = /usr/local/lib #usual location
++    LOCATION_PARI_LIBRARY = $(SAGE_LOCAL)/lib #usual location
+ else
+     #supplied as a dummy so as to avoid more ifeq's below
+     LOCATION_PARI_H = .

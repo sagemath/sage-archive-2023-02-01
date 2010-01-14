@@ -152,6 +152,8 @@ export ABI
 # End of pretty general spkg-install file.
 # Now do the specific things needed for this package (lcalc)
 
+patch -p0 < patches/makepatch
+
 cd src/src
 
 if [ "$UNAME" = "SunOS" ]; then
@@ -179,7 +181,7 @@ success() {
 }
 
 export DEFINES=""
-cp ../../patches/Makefile.sage Makefile
+#cp ../../patches/Makefile.sage Makefile
 set +e
 make
 success 'plain'

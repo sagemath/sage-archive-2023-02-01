@@ -2268,11 +2268,11 @@ class PickleExplainer(object):
             ('a',)
             result: ('a',)
 
-        We prefer to produce tuple literals, as above; but if the tuple
-        is recursive, we need a more complicated construction.  Note
-        that the cPickle unpickler can't handle this case, so we're
-        not bug-for-bug identical to cPickle here (see
-        http://bugs.python.org/issue5794)::
+        We prefer to produce tuple literals, as above; but if the
+        tuple is recursive, we need a more complicated
+        construction. It used to be the case that the cPickle
+        unpickler couldn't handle this case, but that's no longer true
+        (see http://bugs.python.org/issue5794)::
 
             sage: v = ([],)
             sage: v[0].append(v)
@@ -2296,7 +2296,7 @@ class PickleExplainer(object):
             si2 = (si1,)
             list.append(si1, si2)
             si2
-            result: ([(...)],) (cPickle raised an exception!)
+            result: ([(...)],)
         """
         v = self.pop_to_mark()
         self.push(PickleObject(tuple(v), self.sib(tuple(v))))

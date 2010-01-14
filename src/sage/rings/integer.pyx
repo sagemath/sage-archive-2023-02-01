@@ -208,7 +208,7 @@ cdef _digits_naive(mpz_t v,l,int offset,Integer base,digits):
     This method fills in digit entries in the list, l, using the most
     basic digit algorithm -- repeat division by base.
 
-    INTPUT:
+    INPUT:
 
     - ``v`` - the value whose digits we want to put into the list
 
@@ -252,7 +252,7 @@ cdef _digits_naive(mpz_t v,l,int offset,Integer base,digits):
 
 cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
     """
-    INTPUT:
+    INPUT:
 
     - ``v`` - the value whose digits we want to put into the list
 

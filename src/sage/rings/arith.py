@@ -253,21 +253,23 @@ def bernoulli(n, algorithm='default', num_threads=1):
 def factorial(n, algorithm='gmp'):
     r"""
     Compute the factorial of `n`, which is the product
-    `1\cdot 2\cdot 3 \cdots (n-1) n`.
+    `1\cdot 2\cdot 3 \cdots (n-1)\cdot n`.
 
     INPUT:
 
     -  ``n`` - an integer
+
     -  ``algorithm`` - string (default: 'gmp')
 
-       -  ``'gmp'`` - use the GMP C-library factorial
-           function
-       -  ``'pari'`` - use PARI's factorial function
+    -  ``'gmp'`` - use the GMP C-library factorial function
+
+    -  ``'pari'`` - use PARI's factorial function
 
     OUTPUT: an integer
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import factorial
         sage: factorial(0)
         1
         sage: factorial(4)

@@ -423,7 +423,7 @@ class Function_arccsc(BuiltinFunction):
             sage: arccsc(2).n(100)
             0.52359877559829887307710723055
             sage: float(arccsc(2))
-            0.52359877559829893
+            0.52359877559829...
         """
         if parent is float:
             return math.asin(1/x)

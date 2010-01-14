@@ -43,8 +43,21 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
-cp patches/readline.c-spacebug src/Modules/readline.c
+# The following patch for fixing broken readline behavior on Itanium
+# Linux definitely does *not* work on anything else.
+if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
+    echo "Updating readline.c for Linux/Itanium"
+    cp patches/readline.c-Itanium-fix Modules/readline.c
+else
+    # Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
+    # Associated bug: http://bugs.python.org/issue5833
+    #
+    # Committed to Python as r75747 in the py26-maint branch, but not
+    # in time for 2.6.4 -- so we can remove this patch the next time
+    # we update Python in Sage.
+    cp patches/readline.c-spacebug src/Modules/readline.c
+fi
+
 if [ $? -ne 0 ]; then
     echo "Error copying patched readline.c"
     exit 1
@@ -70,23 +83,20 @@ fi
 #      in your environment variables, the build craps out.  No idea why this
 #       is.
 #       -- Yi Qiang
-
+#
+# This bug was fixed in Python, but not yet in Python 2.6.4. So this fix
+# can be removed the next time we upgrade our version of Python. See
+#
+#   http://bugs.python.org/issue6954
+#
+# for the fix.
+#
 unset DISTUTILS_DEBUG
 
 
 cd src
 
 touch Include/*
-
-patch()
-{
-    # The following patch for fixing broken readline behavior on
-    # Itanium Linux definitely does *not* work on anything else.
-    if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
-        echo "Updating readline.c for Linux/Itanium"
-	cp ../patches/readline.c-Itanium-fix Modules/readline.c
-    fi
-}
 
 build()
 {
@@ -95,14 +105,21 @@ build()
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
     if [ `uname` = "Darwin" ]; then
+        # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
+        # cause lots of random "Abort trap" issues on OSX. see trac
+        # #7095 for an example.
+	MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
+	MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
+	export MACOSX_DEPLOYMENT_TARGET
+
         if [ "$SAGE64" = "yes" ]; then
-            echo "64 bit OSX 10.5 build enabled"
+            echo "64 bit OSX build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
-            --with-gcc="gcc -m64" --disable-toolbox-glue
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+	    --enable-unicode=ucs4 --with-gcc="gcc -m64" --disable-toolbox-glue
         else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
-            --disable-toolbox-glue
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+	    --enable-unicode=ucs4 --disable-toolbox-glue
         fi
     else
         ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
@@ -122,15 +139,13 @@ build()
 
     # running 'make install' in parallel is a bad, bad idea
     MAKE=make; export MAKE
-    # the "-i" is crucial, esp., in the case of a major upgrade
+    # the "-i" is crucial, esp. in the case of a major upgrade
     make -i install
     if [ $? -ne 0 ]; then
         echo "Error installing Python."
         exit 1
     fi
 }
-
-patch
 
 # Do not exit script if there is an error, but instead print an
 # informative error message. This is helps in determining why the
@@ -146,6 +161,8 @@ set -e
 
 cd $SAGE_LOCAL/lib
 
+# move the python directory if we're upgrading from a version
+# of sage with python 2.5
 if [ -d python2.5/site-packages ]; then
    mv python2.5/site-packages python2.6/site-packages-old
 fi

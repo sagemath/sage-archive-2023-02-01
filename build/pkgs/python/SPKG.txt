@@ -25,6 +25,7 @@ For more details see http://www.python.org/psf/license/
 == SPKG Maintainers ==
  * William Stein
  * Mike Hansen
+ * Craig Citro
 
 == Upstream Contact ==
 
@@ -32,32 +33,50 @@ There are a large number of community resources. For more details see
 http://www.python.org/community/
 
 == Dependencies ==
+
  * None
 
 == Special Update/Build Instructions ==
 
- * Remove src/Lib/distutils/command/wininst-6.exe and
-   src/Lib/distutils/command/wininst-7.1.exe. Once we support Windows
-   we will likely need to add them back in.
+ * Remove src/Lib/distutils/command/wininst-*.exe when building a
+   new spkg. Once we support Windows we will likely need to add them
+   back in.
  * We used to block parallel MAKE, but extensive testing [make -j64]
    showed that there is no longer any problem. The problem was the a
-   parallel make install causes trouble
- * Patch ctypes__init__.patch: Disable pre-Python 2.5 problem
-   workaround on OSX.
- * Patch locale.py: Work around import failures for locals
- * Patch pkgutil.patch: Make Python's help command work in Sage, work
-   around failures for locals.
- * Patch readline-Itanium-fix.patch: Fix Itanium specific readline
+   parallel make install causes trouble.
+ * There are two fixes that can be removed once we update to a
+   Python newer than 2.6.4: the readline-spacebug.patch below, and
+   the 'unset DISTUTILS_DEBUG' in spkg-install.
+
+=== Patches ===
+
+ * cPickle.c.patch, pickle.py.patch: These add support for pickling
+   classes with a metaclass via copy_reg. These have been submitted
+   upstream: http://bugs.python.org/issue7689
+ * locale.py: Work around import failures for locales
+ * readline-spacebug.patch: Fix issue where a space is inserted
+   after tab completing at the command line. This is merged upstream
+   and can be removed as soon as a Python newer than 2.6.4 is used.
+ * readline-Itanium-fix.patch: Fix Itanium specific readline
    extension problem.
- * Patch sdist.py: Make sure that sdist copies over the .hg directory.
+ * sdist.py.patch: Make sure that sdist copies over the .hg directory.
+ * socket.py.patch: Work around an SSL issue.
 
 == Changelog ==
+
+=== python-2.6.4.p2 (Craig Citro Jan 14, 2010) ==
+* Fix OSX 10.6 "Abort trap" issue by setting an appropriate value for
+  MACOSX_DEPLOYMENT_TARGET. See trac #7095 for more details.
+
+* General cleanup of spkg-install, patches/ directory.
+
+=== python-2.6.4.p1 (John Palmieri Jan 11, 2010) ===
+* Remove the pkgutil.py patch, since it doesn't seem to be needed any
+  more.
 
 === python-2.6.4.p0 (John Palmieri Jan 11, 2010) ===
 * Upgrade to Python 2.6.4.  Remove the ctypes__init__.py patch, since
   it only applies to OS X 10.3 or earlier, and we don't support that.
-  Remove the pkgutil.py patch, since it doesn't seem to be needed any
-  more.
 
 === python-2.6.2.p2 (Jason Grout Sep 22, 2009) ===
 * Patch for readline-6.0: http://bugs.python.org/issue5833 (we

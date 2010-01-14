@@ -16,22 +16,20 @@ fi
 $CP patches/setupext.py src
 
 if [ `uname` = "SunOS" ]; then
-    echo "Copy patched version of pprdrv_tt2.cpp for Solaris 10 that builds with gcc 4.3.2"
+    echo "Copy patched version of pprdrv_tt2.cpp for Solaris 10 that"
+    echo "builds with gcc 4.3.2."
     $CP patches/pprdrv_tt2.cpp src/ttconv/pprdrv_tt2.cpp
 fi
 
-echo "Work around a problem building tkgui on some Linux/Solaris machines."
-echo "This is a 1-line fix that just turns off checking and building for that GUI frontend."
+echo "Work around a problem building tkgui on some Linux/Solaris"
+echo "machines. This is a 1-line fix that just turns off checking and"
+echo "building for that GUI frontend."
 $CP patches/setup.py src/setup.py
 
 cd src
 
 # Now build
 python setup.py build
-
-if [ "$UNAME" = "Darwin" ]; then
-    python ../patches/osx10.6hack
-fi
 
 if [ $? -ne 0 ]; then
    echo "Error building matplotlib package."

@@ -259,11 +259,11 @@ def factorial(n, algorithm='gmp'):
 
     -  ``n`` - an integer
 
-    -  ``algorithm`` - string (default: 'gmp')
+    -  ``algorithm`` - string (default: 'gmp'):
 
-    -  ``'gmp'`` - use the GMP C-library factorial function
+       -  ``'gmp'`` - use the GMP C-library factorial function
 
-    -  ``'pari'`` - use PARI's factorial function
+       -  ``'pari'`` - use PARI's factorial function
 
     OUTPUT: an integer
 
@@ -2441,7 +2441,7 @@ def crt(a,b,m=None,n=None):
     r"""
     Use the Chinese Remainder Theorem to find some `x` such that
     `x=a \bmod m` and `x=b \bmod n`. Note that `x` is only well-defined
-    modulo `m\*n`.
+    modulo `m*n`.
 
     EXAMPLES::
 

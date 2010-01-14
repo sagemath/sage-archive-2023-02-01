@@ -6,6 +6,11 @@ Michael Rubinstein's L-function calculator.
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
+=== lcalc-1.23.p1 (Rishikesh, 13th January 2010) ===
+ * For lcalc wrapper, changed so that the library is copied
+ * Replace the hard coded path to pari makefile to the $SAGE_LOCAL
+
+
 
 === lcalc-20080205.p3 (David kirkby, 15th September, 2009) ===
  * A general tidy-up/improvement in many ways, including:

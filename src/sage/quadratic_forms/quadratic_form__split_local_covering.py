@@ -146,14 +146,21 @@ def vectors_by_length(self, bound):
          [[-1, -1, 0, 0], [1, -1, 0, 0], [-2, 0, 0, 0]],
          [[0, 0, -1, 0]]]
 
+        sage: Q = QuadraticForm(ZZ, 4, [1,1,1,1, 1,0,0, 1,0, 1])
+        sage: map(len, Q.vectors_by_length(2))
+        [1, 12, 12]
     """
-    Theta_Precision = bound               ## Unsigned long
+    # pari uses eps = 1e-6 ; nothing bad should happen if eps is too big
+    # but if eps is too small, roundoff errors may knock off some
+    # vectors of norm = bound (see #7100)
+    eps = RDF(1e-6)
+    bound = ZZ(floor(bound))
+    Theta_Precision = bound + eps
     n = self.dim()
 
     ## Make the vector of vectors which have a given value
     ## (So theta_vec[i] will have all vectors v with Q(v) = i.)
-    empty_vec_list = [[] for i in range(Theta_Precision + 1)]
-    theta_vec = [[] for i in range(Theta_Precision + 1)]
+    theta_vec = [[] for i in range(bound + 1)]
 
     ## Initialize Q with zeros and Copy the Cholesky array into Q
     Q = self.cholesky_decomposition()
@@ -171,9 +178,9 @@ def vectors_by_length(self, bound):
     Z = RDF(0)
 
     ## 2. Compute bounds
-    Z = sqrt(T[i] / Q[i][i])
-    L[i] = ZZ(floor(Z - U[i]))
-    x[i] = ZZ(ceil(-Z - U[i]) - 0)
+    Z = (T[i] / Q[i][i]).sqrt(extend=False)
+    L[i] = ( Z - U[i]).floor()
+    x[i] = (-Z - U[i]).ceil()
 
     done_flag = False
     Q_val_double = RDF(0)
@@ -205,9 +212,9 @@ def vectors_by_length(self, bound):
 
             ## Now go back and compute the bounds...
             ## 2. Compute bounds
-            Z = sqrt(T[i] / Q[i][i])
-            L[i] = ZZ(floor(Z - U[i]))
-            x[i] = ZZ(ceil(-Z - U[i]) - 0)
+            Z = (T[i] / Q[i][i]).sqrt(extend=False)
+            L[i] = ( Z - U[i]).floor()
+            x[i] = (-Z - U[i]).ceil()
 
 
         ## 4. Solution found (This happens when i = 0)
@@ -215,7 +222,7 @@ def vectors_by_length(self, bound):
         #print " x = ", x
         #print " Q_val = Q(x) = ", Q_val
         Q_val_double = Theta_Precision - T[0] + Q[0][0] * (x[0] + U[0]) * (x[0] + U[0])
-        Q_val = ZZ(floor(round(Q_val_double)))
+        Q_val = Q_val_double.round()
 
         ## SANITY CHECK: Roundoff Error is < 0.001
         if abs(Q_val_double -  Q_val) > 0.001:
@@ -227,7 +234,7 @@ def vectors_by_length(self, bound):
         #print " The float value is ", Q_val_double
         #print " The associated long value is ", Q_val
 
-        if (Q_val <= Theta_Precision):
+        if (Q_val <= bound):
             #print " Have vector ",  x, " with value ", Q_val
             theta_vec[Q_val].append(deepcopy(x))
 

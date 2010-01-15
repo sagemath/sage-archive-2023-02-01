@@ -794,7 +794,19 @@ class Words_over_Alphabet(Words_all):
             sage: W = Words(range(3))
             sage: print W.identity_morphism()
             WordMorphism: 0->0, 1->1, 2->2
+
+        There is no support yet for infinite alphabet::
+
+            sage: W = Words(alphabet=Alphabet(name='NN'))
+            sage: W
+            Words over Ordered Alphabet of Natural Numbers
+            sage: W.identity_morphism()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: size of alphabet must be finite
         """
+        if self.size_of_alphabet() not in ZZ:
+            raise NotImplementedError, 'size of alphabet must be finite'
         from sage.combinat.words.morphism import WordMorphism
         return WordMorphism(dict((a,a) for a in self.alphabet()))
 

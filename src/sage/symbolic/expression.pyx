@@ -2490,17 +2490,20 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 
-    def taylor(self, v, a, n):
+    def taylor(self, *args):
         r"""
         Expands this symbolic expression in a truncated Taylor or
         Laurent series in the variable `v` around the point `a`,
-        containing terms through `(x - a)^n`.
+        containing terms through `(x - a)^n`. Functions in more
+        variables is also supported.
 
         INPUT:
 
-        -  ``v`` - variable
-        -  ``a`` - number
-        -  ``n`` - integer
+        -  ``*args`` - the following notation is supported
+
+           - ``x, a, n`` - variable, point, degree
+
+           - ``(x, a), (y, b), n`` - variables with points, degree of polynomial
 
         EXAMPLES::
 
@@ -2508,22 +2511,61 @@ cdef class Expression(CommutativeRingElement):
             (a, x, z)
             sage: taylor(a*log(z), z, 2, 3)
             1/24*(z - 2)^3*a - 1/8*(z - 2)^2*a + 1/2*(z - 2)*a + a*log(2)
+
+   	::
+
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
             1/48*(3*a^3 + 9*a^2 + 9*a - 1)*x^3 - 1/8*(a^2 + 2*a + 1)*x^2 + 1/2*(a + 1)*x + 1
+
+   	::
+
             sage: taylor (sqrt (x + 1), x, 0, 5)
             7/256*x^5 - 5/128*x^4 + 1/16*x^3 - 1/8*x^2 + 1/2*x + 1
+
+   	::
+
             sage: taylor (1/log (x + 1), x, 0, 3)
             -19/720*x^3 + 1/24*x^2 - 1/12*x + 1/x + 1/2
+
+   	::
+
             sage: taylor (cos(x) - sec(x), x, 0, 5)
             -1/6*x^4 - x^2
+
+   	::
+
             sage: taylor ((cos(x) - sec(x))^3, x, 0, 9)
             -1/2*x^8 - x^6
+
+   	::
+
             sage: taylor (1/(cos(x) - sec(x))^3, x, 0, 5)
             -15377/7983360*x^4 - 6767/604800*x^2 + 11/120/x^2 + 1/2/x^4 - 1/x^6 - 347/15120
+
+
+        Ticket #7472 fixed (Taylor polynomial in more variables) ::
+
+            sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,1),4)
+            (y - 1)^3*(x - 1) + (y - 1)^3 + 3*(y - 1)^2*(x - 1) + 3*(y - 1)^2 + 3*(y - 1)*(x - 1) + x + 3*y - 3
+            sage: expand(_)
+            x*y^3
+
         """
         from sage.all import SR, Integer
-        l = self._maxima_().taylor(v, SR(a), Integer(n))
+        A=args
+        try:
+            if isinstance(A[0],tuple):
+                B=[]
+                B.append([SR(A[i][0]) for i in range(len(A)-1)])
+                B.append([A[i][1] for i in range(len(A)-1)])
+            else:
+                B=[A[0],SR(A[1])]
+            B.append(Integer(A[len(A)-1]))
+        except:
+            raise NotImplementedError, "Wrong arguments passed to taylor. See taylor? for more details."
+        l = self._maxima_().taylor(B)
         return self.parent()(l)
+
 
 
     def truncate(self):

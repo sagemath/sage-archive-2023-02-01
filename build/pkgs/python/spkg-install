@@ -122,7 +122,7 @@ build()
 	    --enable-unicode=ucs4 --disable-toolbox-glue
         fi
     else
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
     fi
 
 
@@ -155,10 +155,6 @@ set +e
 
 build
 
-# This tells Bash to exit the script if any statement returns a non-true
-# value.
-set -e
-
 cd $SAGE_LOCAL/lib
 
 # move the python directory if we're upgrading from a version
@@ -169,6 +165,10 @@ fi
 
 rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
 ln -s python2.6 python
+if [ $? -ne 0 ]; then
+    echo "Error creating symbolic link"
+    exit 1
+fi
 
 # Sleeping for three seconds so that parallel 'make install' catches up
 # with the following test.

@@ -21,7 +21,7 @@ fi
 CUR=`pwd`
 
 # set CPPFLAGS so that Sage's readline is picked up
-CPPFLAGS=-I"$SAGE_LOCAL"/include; export CPPFLAGS
+CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"; export CPPFLAGS
 
 # Hack to get around dumb hardcoding.
 cp patches/R.sh.in src/src/scripts/
@@ -69,8 +69,17 @@ F77=sage_fortran; export F77
 
 # These flags are *critical* so that R will be built against Sage's
 # copy of readline and ATLAS.
-CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ "$CFLAGS; export CFLAGS
-LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
+CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ $CFLAGS"; export CFLAGS
+LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"; export LDFLAGS
+
+# FreeBSD needs the path to libiconv to be explicitly specified.  In theory,
+# --with-libiconv-prefix should work but configure script is broken and
+# ignores that path when looking for libiconv.  Hard-wire via xxFLAGS.
+if [ `uname` = "FreeBSD" ]; then
+    CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+    CFLAGS="$CFLAGS -I/usr/local/include"
+    LDFLAGS="$LDFLAGS -L/usr/local/lib"
+fi
 
 if [ `uname` = "Darwin" ]; then
      echo "Configuring R for OSX"

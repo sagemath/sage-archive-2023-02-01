@@ -1,10 +1,83 @@
 r"""
-Local data for elliptic curves over number fields (including `\QQ`) at primes.
+Local data for elliptic curves over number fields
+
+Let `E` be an elliptic curve over a number field `K` (including `\QQ`).
+There are several local invariants at a finite place `v` that
+can be computed via Tate's algorithm (see [Sil2] IV.9.4 or [Ta]).
+
+These include the type of reduction (good, additive, multiplicative),
+a minimal equation of `E` over `K_v`,
+the Tamagawa number `c_v`, defined to be the index `[E(K_v):E^0(K_v)]`
+of the points with good reduction among the local points, and the
+exponent of the conductor `f_v`.
+
+The functions in this file will typically be called by using ``local_data``.
+
+EXAMPLES::
+
+    sage: K.<i> = NumberField(x^2+1)
+    sage: E = EllipticCurve([(2+i)^2,(2+i)^7])
+    sage: pp = K.fractional_ideal(2+i)
+    sage: da = E.local_data(pp)
+    sage: da.has_bad_reduction()
+    True
+    sage: da.has_multiplicative_reduction()
+    False
+    sage: da.kodaira_symbol()
+    I0*
+    sage: da.tamagawa_number()
+    4
+    sage: da.minimal_model()
+    Elliptic Curve defined by y^2 = x^3 + (4*i+3)*x + (-29*i-278) over Number Field in i with defining polynomial x^2 + 1
+
+An example to show how the Neron model can change as one extends the field::
+
+    sage: E = EllipticCurve([0,-1])
+    sage: E.local_data(2)
+    Local data at Principal ideal (2) of Integer Ring:
+    Reduction type: bad additive
+    Local minimal model: Elliptic Curve defined by y^2 = x^3 - 1 over Rational Field
+    Minimal discriminant valuation: 4
+    Conductor exponent: 4
+    Kodaira Symbol: II
+    Tamagawa Number: 1
+
+    sage: EK = E.base_extend(K)
+    sage: EK.local_data(1+i)
+    Local data at Fractional ideal (i + 1):
+    Reduction type: bad additive
+    Local minimal model: Elliptic Curve defined by y^2 = x^3 + (-1) over Number Field in i with defining polynomial x^2 + 1
+    Minimal discriminant valuation: 8
+    Conductor exponent: 2
+    Kodaira Symbol: IV*
+    Tamagawa Number: 3
+
+Or how the minimal equation changes::
+
+    sage: E = EllipticCurve([0,8])
+    sage: E.is_minimal()
+    True
+    sage: EK = E.base_extend(K)
+    sage: da = EK.local_data(1+i)
+    sage: da.minimal_model()
+    Elliptic Curve defined by y^2 = x^3 + i over Number Field in i with defining polynomial x^2 + 1
+
+REFERENCES:
+
+- [Sil2] Silverman, Joseph H., Advanced topics in the arithmetic of elliptic curves.
+  Graduate Texts in Mathematics, 151. Springer-Verlag, New York, 1994.
+
+- [Ta] Tate, John, Algorithm for determining the type of a singular fiber in an elliptic pencil.
+  Modular functions of one variable, IV, pp. 33--52. Lecture Notes in Math., Vol. 476,
+  Springer, Berlin, 1975.
 
 AUTHORS:
 
 - John Cremona: First version 2008-09-21 (refactoring code from
   ``ell_number_field.py`` and ``ell_rational_field.py``)
+
+- Chris Wuthrich: more documentation 2010-01
+
 """
 
 #*****************************************************************************
@@ -38,6 +111,44 @@ class EllipticCurveLocalData(SageObject):
     Currently supported are elliptic curves defined over `\QQ`, and
     elliptic curves defined over a number field, at an arbitrary prime
     or prime ideal.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve defined over a number field, or `\QQ`.
+
+    - ``P`` -- a prime ideal of the field, or a prime integer if the field is `\QQ`.
+
+    - ``proof`` (bool)-- if True, only use provably correct
+      methods (default controlled by global proof module).  Note
+      that the proof module is number_field, not elliptic_curves,
+      since the functions that actually need the flag are in
+      number fields.
+
+    - ``algorithm`` (string, default: "pari") -- Ignored unless the
+      base field is `\QQ`.  If "pari", use the PARI C-library
+      ``ellglobalred`` implementation of Tate's algorithm over
+      `\QQ`. If "generic", use the general number field
+      implementation.
+
+    .. note::
+
+        This function is not normally called directly by users, who
+        may access the data via methods of the EllipticCurve
+        classes.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
+        sage: E = EllipticCurve('14a1')
+        sage: EllipticCurveLocalData(E,2)
+        Local data at Principal ideal (2) of Integer Ring:
+        Reduction type: bad non-split multiplicative
+        Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
+        Minimal discriminant valuation: 6
+        Conductor exponent: 1
+        Kodaira Symbol: I6
+        Tamagawa Number: 2
+
     """
 
     def __init__(self, E, P, proof=None, algorithm="pari"):
@@ -56,7 +167,7 @@ class EllipticCurveLocalData(SageObject):
           since the functions that actually need the flag are in
           number fields.
 
-        - algorithm (string, default: "pari") -- Ignored unless the
+        - ``algorithm`` (string, default: "pari") -- Ignored unless the
           base field is `\QQ`.  If "pari", use the PARI C-library
           ``ellglobalred`` implementation of Tate's algorithm over
           `\QQ`. If "generic", use the general number field

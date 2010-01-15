@@ -1,18 +1,76 @@
 r"""
 Elliptic curves over number fields.
 
-EXAMPLES::
+An elliptic curve `E` over a number field `K` can be given
+by a Weierstrass equation whose coefficients lie in `K` or by
+using ``base_extend`` on an elliptic curve defined over a subfield.
 
-    sage: k.<i> = NumberField(x^2+1)
-    sage: E = EllipticCurve([i,2])
-    sage: E.j_invariant()
-    -23328/365*i + 864/365
-    sage: E.simon_two_descent()
-    (1, 1, [(2*i : -2*i + 2 : 1)])
-    sage: P = E([2*i,-2*i+2])
+One major difference to elliptic curves over `\QQ` is that there
+might not exist a global minimal equation over `K`, when `K` does
+not have class number one.
+Another difference is the lack of understanding of modularity for
+general elliptic curves over general number fields.
+
+Currently sage can obtain local information about `E/K_v` for finite
+place `v`, it has an interface to Denis Simon's script for 2-descent,
+it can compute the torsion subgroup of the Mordell-Weil group `E(K)`,
+and it can work with isogenies defined over `K`.
+
+EXAMPLE::
+
+    sage: K.<i> = NumberField(x^2+1)
+    sage: E = EllipticCurve([0,4+i])
+    sage: E.discriminant()
+    -3456*i - 6480
+    sage: P= E([i,2])
     sage: P+P
-    (15/32*i + 3/4 : 139/256*i + 339/256 : 1)
+    (-2*i + 9/16 : -9/4*i - 101/64 : 1)
 
+::
+
+    sage: E.has_good_reduction(2+i)
+    True
+    sage: E.local_data(4+i)
+    Local data at Fractional ideal (i + 4):
+    Reduction type: bad additive
+    Local minimal model: Elliptic Curve defined by y^2 = x^3 + (i+4) over Number Field in i with defining polynomial x^2 + 1
+    Minimal discriminant valuation: 2
+    Conductor exponent: 2
+    Kodaira Symbol: II
+    Tamagawa Number: 1
+    sage: E.tamagawa_product()
+    1
+
+::
+
+    sage: E.simon_two_descent()
+    (1, 1, [(i : 2 : 1)])
+
+::
+
+    sage: E.torsion_order()
+    1
+
+::
+
+    sage: E.isogenies_prime_degree(3)
+    [Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + (i+4) over Number Field in i with defining polynomial x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-27*i-108) over Number Field in i with defining polynomial x^2 + 1]
+
+AUTHORS:
+
+- Robert Bradshaw 2007
+
+- John Cremona
+
+- Chris Wuthrich
+
+REFERENCE:
+
+- [Sil] Silverman, Joseph H. The arithmetic of elliptic curves. Second edition. Graduate Texts in
+  Mathematics, 106. Springer, 2009.
+
+- [Sil2] Silverman, Joseph H. Advanced topics in the arithmetic of elliptic curves. Graduate Texts in
+  Mathematics, 151. Springer, 1994.
 """
 
 #*****************************************************************************
@@ -49,9 +107,10 @@ from kodaira_symbol import KodairaSymbol
 from sage.rings.integer import Integer
 from sage.structure.element import RingElement
 from sage.rings.infinity import Infinity # just for verbose output
+from sage.rings.arith import valuation
 
 class EllipticCurve_number_field(EllipticCurve_field):
-    """
+    r"""
     Elliptic curve over a number field.
 
     EXAMPLES::
@@ -285,13 +344,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 
+        trac # 7935::
+
+            sage: K.<a> = NumberField(x^2-38)
+            sage: E = EllipticCurve([a,1/2])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 = x^3 + 1444*a*x + 27436 over Number Field in a with defining polynomial x^2 - 38
+
         """
         K = self.base_field()
         ai = self.a_invariants()
         for a in ai:
             if not a.is_integral():
                for P, _ in K.ideal(a.denominator()).factor():
-                   pi=K.uniformizer(P,'negative')
+                   pi = K.uniformizer(P,'positive')
                    e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                    ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
         for z in ai:
@@ -785,6 +851,65 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).tamagawa_exponent()
 
+    def tamagawa_product(self):
+        r"""
+        Given an elliptic curve `E` over a number field `K`, this function returns the
+        integer `C(E/K)` that appears in the Birch and Swinnerton-Dyer conjecture accounting
+        for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
+        simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
+        The definition is such that `C(E/K)` times the periods at the infinite places is invariant
+        under change of the Weierstrass model. See [Ta2] and [Do] for details.
+
+        .. note::
+
+            This definition is slightly different from the definition of ``tamagawa_product``
+            for curves defined over `\QQ`. Over the rational number it is always defined to be the product
+            of the Tamagawa numbers, so the two definitions only agree when the model is global minimal.
+
+        OUTPUT:
+
+        A rational number
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([0,2+i])
+            sage: E.tamagawa_product()
+            1
+
+            sage: E = EllipticCurve([(2*i+1)^2,i*(2*i+1)^7])
+            sage: E.tamagawa_product()
+            4
+
+        An example where the Neron model changes over K::
+
+            sage: K.<t> = NumberField(x^5-10*x^3+5*x^2+10*x+1)
+            sage: E = EllipticCurve(K,'75a1')
+            sage: E.tamagawa_product()
+            5
+            sage: da = E.local_data()
+            sage: [dav.tamagawa_number() for dav in da]
+            [1, 1]
+
+        REFERENCES:
+
+        - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
+
+        - [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
+
+        """
+        da = self.local_data()
+        pr = 1
+        for dav in da:
+            pp = dav.prime()
+            cv = dav.tamagawa_number()
+            # uu is the quotient of the Neron differential at pp divided by
+            # the differential associated to this particular equation E
+            uu = self.isomorphism_to(dav.minimal_model()).u
+            uu_abs_val = pp.smallest_integer()**(pp.residue_class_degree()*valuation(uu,pp))
+            pr *= cv * uu_abs_val
+        return pr
+
     def kodaira_symbol(self, P, proof = None):
         r"""
         Returns the Kodaira Symbol of this elliptic curve at the prime `P`.
@@ -800,7 +925,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        (string) The Kodaira Symbol of the curve at P.
+        The Kodaira Symbol of the curve at P, represented as a string.
 
         EXAMPLES::
 
@@ -896,8 +1021,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<a> = NumberField(x^2-38)
             sage: E = EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
-            sage: E.global_minimal_model()
-            Elliptic Curve defined by y^2 + a*x*y + (a+1)*y = x^3 + (a+1)*x^2 + (368258520200522046806318444*a-2270097978636731786720859345)*x + (8456608930173478039472018047583706316424*a-52130038506793883217874390501829588391299) over Number Field in a with defining polynomial x^2 - 38
+
+            sage: E2 = E.global_minimal_model()
+            sage: E2
+            Elliptic Curve defined by y^2 + a*x*y + (a+1)*y = x^3 + (a+1)*x^2 + (12289755603565800754*a-75759141535687466985)*x + (51556320144761417221790307379*a-317814501841918807353201512829) over Number Field in a with defining polynomial x^2 - 38
+
+            sage: E2.local_data()
+            []
         """
         if proof is None:
             import sage.structure.proof.proof

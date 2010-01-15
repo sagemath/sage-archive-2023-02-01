@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Sage</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Sage SAGE_VERSION Copyright 2005-2009 The Sage Development Team</string>
+	<string>Sage SAGE_VERSION Copyright 2005-2010 The Sage Development Team</string>
 	<key>CFBundleIconFile</key>
 	<string>appIcon.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -35,7 +35,7 @@
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Sage SAGE_VERSION Copyright 2005-2009 The Sage Development Team</string>
+	<string>Sage SAGE_VERSION Copyright 2005-2010 The Sage Development Team</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

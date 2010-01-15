@@ -6,7 +6,7 @@
 #  You must source this; see below!
 #
 #  AUTHORS:   William Stein                            2005-12
-#             David Kirkby <david.kirkby@onetel.net>   2009-12-29
+#             David Kirkby <david.kirkby@onetel.net>   2005-12-17
 #
 ###########################################################################
 
@@ -63,28 +63,28 @@ else
 fi
 
 
-if [ "x$SAGE_PRINT_ENVIRONMENT" = "xyes" ] ; then
-    echo "The following environment variables can be set by the user"
-    echo "but unfortunately, not all packages use them, so you can not"
-    echo "rely on them working as intended. "
+if [ 1 = 2 ]; then
+    echo "The following enviroment variables can be set by the user"
     echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
     echo "AS          The assembler (e.g. as, /usr/ccs/bin/as or /usr/bin/as)"
     echo "CC          The C compiler (e.g cc, /opt/SUNWspro/bin/cc or /usr/bin/gcc)"
-    echo "CFLAGS      Flag(s) for the C compiler"
+    echo "CFLAGS      Flag(s) for the C compiler (e.g.  -g -Wall -O2)"
+    echo "            (You are advised to a some optimisation flag(s), such as -O2 or -xO2 to CFLAGS)"
     echo "CXX         The C++ compiler (e.g g++, /opt/SUNWspro/bin/CC or /usr/local/bin/g++)"
-    echo "CXXFLAGS    Flag(s) for the C++ compiler"
+    echo "CXXFLAGS    Flag(s) for the C++ compiler (e.g. -fast -fsimple=1 -x04)"
     echo "LD          The linker (e.g. ld, /usr/ccs/bin/ld or /usr/bin/ld)"
     echo "LDFLAGS     Linker flag(s) (e.g. -D token)"
+    echo "LN          Used to make links (e.g. ln, /usr/xpg4/bin/ln or /usr/bin/ln)"
     echo "MAKE        The make program (e.g. make, /usr/bin/make or /usr/local/bin/gmake)"
     echo "MAKEFLAGS   Flag(s) to make (e.g. -j4)."
     echo "RANLIB      Archiver ranlib (e.g. ranlib, /usr/ccs/bin/ranlib etc)"
-    echo "SAGE64      Set to \"yes\" to build a 64-bit binary"
-    echo "SAGE_DEBUG  Set to \"no\" if you do not want debugging information"
+    echo "SAGE64      Set to \"yes\" to build a 64-bit binary (Solaris SPARC or Solaris x86 only)"
+    echo "SHAREDFLAGS Flag(s) necessary for building a shared library (e.g. -fPIC or -xcode=pic32)"
     echo "We attempt to set this to sensible values, but check below to"
     echo "ensure they are OK. If you wish to override any then please use:"
-    echo "setenv NAME_OF_ENVIROMENT_VARIABLE value_of_environment_variable"
+    echo "setenv NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
     echo "(if you use tcsh, csh or a similar shell) or"
-    echo "NAME_OF_ENVIROMENT_VARIABLE=value_of_environment_variable"
+    echo "NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
     echo "export NAME_OF_ENVIROMENT_VARIABLE"
     echo "if you use sh, bash or a similar shell"
 fi
@@ -99,9 +99,8 @@ PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
-# source is not portable - use a dot instead.
 if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
-  . $SAGE_LOCAL/toolchain/toolchain-env
+  source $SAGE_LOCAL/toolchain/toolchain-env
 fi
 
 # For a framework Python build on OS X, Python's bin directory is not local/bin
@@ -181,7 +180,7 @@ fi
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
 __sage__="" && export __sage__
-# Set the default compiler to gcc if the environment variable
+# Set the default compiler to gcc if the enviroment variable
 # CC is not set.
 if [ "$CC" = "" ]; then
      CC="gcc"         && export CC
@@ -212,7 +211,7 @@ if [ "$LDFLAGS" = "" ]; then
 fi
 
 if [ "$SAGE64" = "" ]; then
-    SAGE64="no" && export SAGE64
+    SAGE64="no"
 fi
 
 if [ "$SAGE64" != "yes" -a "$SAGE64" != "no" ]; then
@@ -223,224 +222,8 @@ fi
 # In case SAGE64 has been set to yes before re-inject it into the environment
 # This is only done on OSX and Solaris since those are the only real multi lib
 # arches we support. Eventually Linux PPC on the PS3 might need to be added here
-# Although not supported by Sage, both the HP-UX and AIX operating systems
-# can have both 32 and 64 bit code on the same system
-. $SAGE_LOCAL/bin/sage-check-64 2> /dev/null
+source $SAGE_LOCAL/bin/sage-check-64 2> /dev/null
 export SAGE64
-
-# Make use of the scripts on Trac #7505 to determine the correct
-# compiler options. One of the following will be output by the
-# the scripts testcc.sh and testcxx.sh
-#  * GCC
-#  * Sun_Studio
-#  * HP_on_Tru64
-#  * HP_on_Alpha_Linux
-#  * HP_on_HP-UX
-#  * IBM_on_AIX
-#  * Unknown
-
-# In each case, I've called the flag as similar as
-# possible to the GNU names, to make it easier to change code.
-# i.e. the flag for generating position independent code is called
-# FPIC_FLAG, as the option with gcc is -fPIC.
-# The option for generating shared libraries is called
-# SHARED_FLAG, as the option for gcc is -shared.
-# Likewise for SONAME_FLAG, WHOLE_ARCHIVE_FLAG and NO_WHOLE_ARCHIVE_FLAG
-
-# If all instances of -fPIC in Sage were replaced by $FPIC_FLAG
-# Sage would be a lot more portable than it currently is.
-# Likewise, for several other options which depend on the compiler.
-if  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xGCC" ] ; then
-    # These are the names of the environment variables, and their GCC
-    # name. They are not appended to CFLAGS, CXXFLAGS or FCFLAGS as they
-    # are not always needed.
-    FPIC_FLAG="-fPIC"
-    SHARED_FLAG="-shared"
-    SONAME_FLAG="-soname"
-    WHOLE_ARCHIVE_FLAG="--whole-archive"
-    NO_WHOLE_ARCHIVE_FLAG="--no-whole-archive"
-
-    # Enable warnings on gcc.
-    CFLAGS="$CFLAGS -Wall"
-    CXXFLAGS="$CXXFLAGS -Wall"
-    FCFLAGS="$FCFLAGS -Wall"
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xSun_Studio" ] ; then
-    # -xcode=pic32 is valid on 64-bit too, despite the name.
-    # It is equivalent to the obsolete -KPIC on SPARC and -kPIC on x86
-    # These flags for Solaris should work in most circumstances.
-    # Identical flags have been used to build a 32-bit version of Sage
-    # on SPARC.
-    FPIC_FLAG="-xcode=pic32"
-    SHARED_FLAG="-G"
-    SONAME_FLAG="-h"
-    WHOLE_ARCHIVE_FLAG="-z allextract"
-    NO_WHOLE_ARCHIVE_FLAG="-z defaultextract"
-
-    # The Sun C++ compiler is supplied with two standard libraries.
-    # http://developers.sun.com/solaris/articles/cmp_stlport_libCstd.html
-    # The default library is based on an old version of the C++ standard
-    # and is not compatible with the latest standard. This line forces the
-    # use of the new library with: -library=stlport4.
-    CXXFLAGS="$CXXFLAGS -library=stlport4"
-
-    # The Sun compiler is quite fussy by default (much
-    # more so than the GNU ones, so adding more warnings will
-    # be too much)
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_HP-UX" ] ; then
-    # HP's C++ compiler creates position independent code by default, but
-    # I assume the C compiler does not.
-    FPIC_FLAG="-b"       # HP's C++ compiler creates position independent code by default.
-    SHARED_FLAG="-b"     # I'm not 100% sure of this.
-    SONAME_FLAG=""
-    WHOLE_ARCHIVE_FLAG=""
-    NO_WHOLE_ARCHIVE_FLAG=""
-
-    # Like the Sun compiler, the HP compiler has an old and a new library
-    # and by default uses the old library. To use a newer library, which
-    # is closer to the current C++ standard, the option -AA must be given.
-    # Unlike most other compilers, by default it does no optimization at
-    # all, which is undesirable, so -O is added.
-    CFLAGS="$CFLAGS -O"
-    CXXFLAGS="$CXXFLAGS -AA -O"
-    FCFLAGS="$FCFLAGS -O"
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xIBM_on_AIX" ] ; then
-    echo "Warning: Some compiler options when using HP's compiler"
-    echo "on HP-UX are in the file sage-env. These might"
-    echo "not be correct and so will need adjusting."
-    echo "It is suggested that you try to build Sage with"
-    echo "GCC first, as that is more likely to work, as the"
-    echo "compiler flags used by GCC are the same, irrespective"
-    echo "of the operating system. "
-    FPIC_FLAG="-qpic"
-    SHARED_FLAG=""
-    SONAME_FLAG=""
-    WHOLE_ARCHIVE_FLAG=""
-    NO_WHOLE_ARCHIVE_FLAG=""
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_Tru64" ] ; then
-    echo "Warning: Some compiler options when using HP's compiler"
-    echo "on Tru64 are in the file sage-env. These might"
-    echo "not be correct and so will need adjusting."
-    echo "It is suggested that you try to build Sage with"
-    echo "GCC first, as that is more likely to work, as the"
-    echo "compiler flags used by GCC are the same, irrespective"
-    echo "of the operating system. "
-    FPIC_FLAG=""
-    SHARED_FLAG=""
-    SONAME_FLAG=""
-    WHOLE_ARCHIVE_FLAG=""
-    NO_WHOLE_ARCHIVE_FLAG=""
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_Alpha_Linux" ] ; then
-    echo "Warning: Some compiler options when using HP's compiler"
-    echo "on Alpha Linux are in the file sage-env. These might"
-    echo "not be correct and so will need adjusting."
-    echo "It is suggested that you try to build Sage with"
-    echo "GCC first, as that is more likely to work, as the"
-    echo "compiler flags used by GCC are the same, irrespective"
-    echo "of the operating system. "
-    FPIC_FLAG=""
-    SHARED_FLAG=""
-    SONAME_FLAG=""
-    WHOLE_ARCHIVE_FLAG=""
-    NO_WHOLE_ARCHIVE_FLAG=""
-elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xUnknown" ] ; then
-    echo "Your compiler type is unknown. So suitable compiler"
-    echo "options are unknown. The flags will be set to the names"
-    echo "used by GCC, but these are probably wrong"
-    echo "Please advise on the sage-support mailing list what"
-    echo "compiler you are using, and someone will help you"
-    FPIC_FLAG="-fPIC"
-    SHARED_FLAG="-shared"
-    SONAME_FLAG="-soname"
-    WHOLE_ARCHIVE_FLAG="--whole-archive"
-    NO_WHOLE_ARCHIVE_FLAG="--no-whole-archive"
-    CFLAGS = "$CFLAGS -Wall"
-    CXXFLAGS = "$CXXFLAGS -Wall"
-    FCFLAGS = "$FCFLAGS -Wall"
-fi
-
-# Add debugging option (-g) unless SAGE_DEBUG is set to "no".
-
-if [  "x$SAGE_DEBUG" != "xno"  ] ; then
-   CFLAGS="$CFLAGS -g"
-   CXXFLAGS="$CXXFLAGS -g"
-   FCFLAGS="$FCFLAGS -g"
-fi
-
-
-# Add the appropate options to CFLAGS, CXXFLAGS and FCFLAGS to
-# produce a 64-bit binary. Doing this once, and only once in
-# sage-env is preferable to setting it in virtually all
-# .spkg files. If its wrong, it can be changed here.
-
-# It is possible that -m64 or the appropiate option might be
-# needed for linking in some places, so it is also exported
-# as a variable itself, though I doubt it would be needed
-# often. Flint will need this, and so does ECL I believe.
-
-if [ "x$SAGE64" = "xyes" ] ; then
-   if  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xGCC" ] ; then
-      # Flags for a 64-bit build.
-      CFLAG64="-m64"
-      CXXFLAG64="-m64"
-      FCFLAG64="-m64"
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xSun_Studio" ] ; then
-      CFLAG64="-m64"
-      CXXFLAG64="-m64"
-      FCFLAG64="-m64"
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xIBM_on_AIX" ] ; then
-      # http://www-01.ibm.com/support/docview.wss?uid=swg27012860&aid=1
-      # The appropriate 64-bit option for IBM's C++ and Fortran
-      # compilers are assumed to be the same as the
-      # C compiler. This has not been checked
-      # Adding -q64 to generate 64-bit code
-      CFLAG64="-q64"
-      CXXFLAG64="-q64"
-      FCFLAG64="-q64"
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_HP-UX" ] ; then
-      # Two sort of processors are used on HP-UX machines - the older
-      # PA-RISC and the newer Itanium. The 'model' command is the preffered
-      # way to get this information, rather than 'uname', as HP might in future
-      # use model numbers which are incompatible with the 'uname' command.
-      # This is documented in the 'model' man page.
-      if [ `model | grep 9000` ] ; then
-         # Adding compiler flags for PA-RISC 2.0 architecture.
-         CFLAG64="+DA2.0W"
-         CXXFLAG64="+DA2.0W"
-         FCFLAG64="+DA2.0W"
-      elif [ `model | grep ia64` ]  ; then
-         # Itanium.
-         CFLAG64="+DD64"
-         CXXFLAG64="+DD64"
-         FCFLAG64="+DD64"
-      fi
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_Tru64" ] ; then
-      # 64-bit is the default on Tru64, so no options needed to build
-      # http://h30097.www3.hp.com/docs/porting/tru64-to-hpux/TITLE.HTM
-      CFLAG64=""
-      CXXFLAG64=""
-      FCFLAG64=""
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xHP_on_Alpha_Linux" ] ; then
-      # I've not carefully checked the Tru64 or Alpha Linux documentation
-      # but it can be found at http://h30097.www3.hp.com/cplus/
-      # I'll add the correct flags at a later date, but this is not urgent
-      # as there is nobody porting Sage to Tru64 yet.
-      CFLAG64="-HP_on_Alpha_Linux_option-to-build-64-bit-code"
-      CXXFLAG64="-HP_on_Alpha_Linux_option-to-build-64-bit-code"
-      FCFLAG64="-HP_on_Alpha_Linux_option-to-build-64-bit-code"
-   elif  [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = "xUnknown" ] ; then
-      echo "Warning: Since the compiler type is unknown, the"
-      echo "compiler option to generate 64-bit code is unknown. The -m64"
-      echo "option, which is used by GCC will be added, but this"
-      echo "is probably wrong. Without knowing the compiler, it's"
-      echo "impossible to know the right flags to use"
-      CFLAG64="-m64"
-      CXXFLAG64="-m64"
-      FCFLAG64="-m64"
-   fi
-   CFLAGS="$CFLAGS $CFLAG64"
-   CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-   FCFLAGS="$FCFLAGS $FCFLAG64"
-fi
 
 if [ "$CXXFLAGS" = "" ]; then
    CXXFLAGS="$CFLAGS"
@@ -489,66 +272,28 @@ fi
 # See trac 7186 -- this is needed if ecl is moved
 ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
 
-# Set a variable SHARED_LIBRARY_EXTENSION equal to the extension (without the dot)
-# used on shared libraries. Lots of bits of code in Sage have differenent excepts for
-# OS X and Cygwin, but a lot of this could be cleared up using
-if [ "x$UNAME" = "xAIX" ] ; then
-    SHARED_LIBRARY_EXTENSION="a"
-elif [ "x$UNAME" = "xCYGWIN" ] ; then
-    SHARED_LIBRARY_EXTENSION="dll"
-elif [ "x$UNAME" = "xDarwin" ] ; then
-    SHARED_LIBRARY_EXTENSION="dylib"
-elif [ "x$UNAME" = "xHP-UX" ] ; then
-    SHARED_LIBRARY_EXTENSION="sl"
-else
-    SHARED_LIBRARY_EXTENSION="so"
-fi
-
 # Export variable names.
-export CC
-export CFLAG64
-export CFLAGS
-export CXXFLAG64
-export CXXFLAGS
-export FCFLAG64
-export FCFLAGS
-export FPIC_FLAG
-export NO_WHOLE_ARCHIVE_FLAG
-export SAGE_DEBUG
-export SHARED_FLAG
-export SHARED_LIBRARY_EXTENSION
-export SONAME_FLAG
+export SHAREDFLAGS
 export UNAME
-export WHOLE_ARCHIVE_FLAG
+export CC
+export CFLAGS
 
-# Print environment variables if the variable SAGE_PRINT_ENVIRONMENT
-# is exported to 'yes'
-if [ "x$SAGE_PRINT_ENVIRONMENT" = "xyes" ] ; then
-   echo "The environment for Sage will be as follows. If any"
-   echo "variables are wrong, you may be able to change them"
-   echo "by setting a variable."
-   echo "AR=$AR"
-   echo "AS=$AS"
-   echo "CC=$CC"
-   echo "CFLAG64=$CFLAG64  - Used by C compiler to build 64-bit code (-m64 for gcc)"
-   echo "CFLAGS=$CFLAGS"
-   echo "CP=$CP"
-   echo "CXX=$CXX"
-   echo "CXXFLAG64=$CXXFLAG64  - Used by C++ compiler to build 64-bit code (-m64 for g++)"
-   echo "CXXFLAGS=$CXXFLAGS"
-   echo "ECLDIR=$ECLDIR"
-   echo "FCFLAG64=$FCFLAG64 flag used by Fortran compiler to build 64-bit code (-m64 for gfortran)"
-   echo "FCFLAGS=$FCFLAGS"
-   echo "FPIC_FLAG=$FPIC_FLAG  - Used to produce position independent code"
-   echo "LD=$LD"
-   echo "LDFLAGS=$LDFLAGS"
-   echo "MAKE=$MAKE"
-   echo "MAKEFLAGS=$MAKEFLAGS (MFLAGS will be exported the same too)"
-   echo "RANLIB=$RANLIB"
-   echo "SAGE64=$SAGE64"
-   echo "SHARED_FLAG=$SHARDED_FLAG  - used to build a shared library"
-   echo "SHARED_LIBRARY_EXTENSION=$SHARED_LIBRARY_EXTENSION  - sl, so, dll etc"
-   echo "SONAME_FLAG="$SONAME_FLAG"
-   echo "WHOLE_ARCHIVE_FLAG="$WHOLE_ARCHIVE_FLAG"
-   echo "NO_WHOLE_ARCHIVE_FLAG=$NO_WHOLE_ARCHIVE_FLAG"
+if [ 1 = 2 ]; then
+echo "AR=$AR"
+echo "AS=$AS"
+echo "CC=$CC"
+echo "CFLAGS=$CFLAGS"
+echo "CXX=$CXX"
+echo "CXXFLAGS=$CXXFLAGS"
+echo "ECLDIR=$ECLDIR"
+echo "LD=$LD"
+echo "LDFLAGS=$LDFLAGS"
+echo "LN=$LN"
+echo "MAKE=$MAKE"
+echo "MAKEFLAGS=$MAKEFLAGS (MFLAGS will be exported the same too)"
+echo "RANLIB=$RANLIB"
+echo "SAGE64=$SAGE64"
+echo "SHAREDFLAGS=$SHAREDFLAGS"
+echo "If any of the above are wrong, or are not optimal, override"
+echo "them by setting the appropiate enviroment variable."
 fi

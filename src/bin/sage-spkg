@@ -178,7 +178,7 @@ if [ ! -f "$PKG_SRC" ]; then
     CUR=`pwd`
     cd "$SAGE_PACKAGES"
     if [ ! -d optional ]; then
-        $MKDIR optional
+        mkdir optional
     fi
     cd optional
 

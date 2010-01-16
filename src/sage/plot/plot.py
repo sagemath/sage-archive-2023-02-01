@@ -418,6 +418,14 @@ class Graphics(SageObject):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,color=hue(c + p*(x/h)))
         sage: G.show(figsize=[5,5])
+
+    TESTS:
+
+    From trac #4604, ensure Graphics can handle 3d objects::
+
+        sage: g = Graphics()
+        sage: g += sphere((1, 1, 1), 2)
+        sage: g.show()
     """
 
     def __init__(self):

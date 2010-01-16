@@ -289,27 +289,42 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def local_coordinates_at_nonweierstrass(self, P, prec = 20, name = 't'):
         """
-        For a non-Weierstrass point P = (a,b) on the hyperelliptic                         curve y^2 = f(x), returns (x(t), y(t)) such that                                   (y(t))^2 = f(x(t)), where t = x - a is the local parameter.
+        For a non-Weierstrass point P = (a,b) on the hyperelliptic
+        curve y^2 = f(x), returns (x(t), y(t)) such that (y(t))^2 = f(x(t)),
+        where t = x - a is the local parameter.
 
-	INPUT:
+        INPUT:
 
-	    - P = (a,b) a non-Weierstrass point on self
-            - prec: desired precision of the local coordinates
-            - name: gen of the power series ring (default: 't')
+        - P = (a,b) a non-Weierstrass point on self
+        - prec: desired precision of the local coordinates
+        - name: gen of the power series ring (default: 't')
 
         OUTPUT:
-
         (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x - a
-	is the local parameter at P
+        is the local parameter at P
 
         EXAMPLES:
-            sage: R.<x> = QQ['x']                                                              sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)                               sage: P = H(1,6)                                                                   sage: x,y = H.local_coordinates_at_nonweierstrass(P,prec=5)                        sage: x                                                                            1 + t + O(t^5)                                                                     sage: y                                                                            6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5)                                     sage: Q = H(-2,12)                                                                 sage: x,y = H.local_coordinates_at_nonweierstrass(Q,prec=5)                        sage: x                                                                            -2 + t + O(t^5)                                                                    sage: y                                                                            12 - 19/2*t - 19/32*t^2 + 61/256*t^3 - 5965/24576*t^4 + O(t^5)
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+            sage: P = H(1,6)
+            sage: x,y = H.local_coordinates_at_nonweierstrass(P,prec=5)
+            sage: x
+            1 + t + O(t^5)
+            sage: y
+            6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5)
+            sage: Q = H(-2,12)
+            sage: x,y = H.local_coordinates_at_nonweierstrass(Q,prec=5)
+            sage: x
+            -2 + t + O(t^5)
+            sage: y
+            12 - 19/2*t - 19/32*t^2 + 61/256*t^3 - 5965/24576*t^4 + O(t^5)
 
         AUTHOR:
             - Jennifer Balakrishnan (2007-12)
         """
         d = P[1]
-        if d == 0:                                                                             raise TypeError, "P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P
+        if d == 0:
+            raise TypeError, "P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P
         pol = self.hyperelliptic_polynomials()[0]
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
@@ -325,10 +340,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def local_coordinates_at_weierstrass(self, P,  prec = 20, name = 't'):
         """
-        For a finite Weierstrass point on the hyperelliptic                                curve y^2 = f(x), returns (x(t), y(t)) such that                                   (y(t))^2 = f(x(t)), where t = y is the local parameter.
+        For a finite Weierstrass point on the hyperelliptic
+        curve y^2 = f(x), returns (x(t), y(t)) such that
+        (y(t))^2 = f(x(t)), where t = y is the local parameter.
 
-	INPUT:
-
+        INPUT:
             - P a finite Weierstrass point on self
             - prec: desired precision of the local coordinates
             - name: gen of the power series ring (default: 't')
@@ -339,8 +355,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         is the local parameter at P
 
         EXAMPLES:
-            sage: R.<x> = QQ['x']                                                              sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
-            sage: A = H(4,0)                                                                   sage: x,y = H.local_coordinates_at_weierstrass(A,prec =5)                          sage: x
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+            sage: A = H(4,0)
+            sage: x,y = H.local_coordinates_at_weierstrass(A,prec =5)
+            sage: x
             4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7)
             sage: y
             t + O(t^7)
@@ -354,7 +373,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         AUTHOR:
             - Jennifer Balakrishnan (2007-12)
         """
-        if P[1] != 0:                                                                          raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
+        if P[1] != 0:
+            raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
         pol = self.hyperelliptic_polynomials()[0]
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
@@ -377,12 +397,10 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         (y(t))^2 = f(x(t)), where t = x^g/y is the local parameter at infinity
 
         INPUT:
-
             - prec: desired precision of the local coordinates
             - name: gen of the power series ring (default: 't')
 
         OUTPUT:
-
         (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x^g/y
         is the local parameter at infinity
 
@@ -396,7 +414,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: y
             t^-5 + 10*t - 2*t^5 - 75*t^7 + 50*t^11 + O(t^12)
 
-	    sage: R.<x> = QQ['x']
+            sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^3-x+1)
             sage: x,y = H.local_coordinates_at_infinity(10)
             sage: x
@@ -427,17 +445,16 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def local_coord(self, P, prec = 20, name = 't'):
         """
-        If P is not infinity, calls the appropriate local_coordinates                      function.
+        If P is not infinity, calls the appropriate local_coordinates
+        function.
 
-	INPUT:
-
+        INPUT:
             - P a point on self
             - prec: desired precision of the local coordinates
             - name: gen of the power series ring (default: 't')
 
         OUTPUT:
-
-        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t
+        (x(t),y(t)) such that y(t)^2 = f(x(t)), where t
         is the local parameter at P
 
         AUTHOR:

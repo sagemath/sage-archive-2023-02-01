@@ -3686,7 +3686,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
     def agm(self, other):
-        """
+        r"""
         Return the arithmetic-geometric mean of self and other. The
         arithmetic-geometric mean is the common limit of the sequences
         `u_n` and `v_n`, where `u_0` is self,

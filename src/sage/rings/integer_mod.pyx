@@ -205,9 +205,9 @@ cdef class NativeIntStruct:
         self.int32 = -1
         self.table = None # NULL
         self.sageInteger = z
-        if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) < 0:
+        if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) <= 0:
             self.int64 = mpz_get_si(z.value)
-            if self.int64 < INTEGER_MOD_INT32_LIMIT:
+            if self.int64 <= INTEGER_MOD_INT32_LIMIT:
                 self.int32 = self.int64
 
     def __reduce__(NativeIntStruct self):
@@ -1235,22 +1235,53 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t* get_value(IntegerMod_gmp self):
         return &self.value
 
-    def __lshift__(IntegerMod_gmp self, int right):
+    def __lshift__(IntegerMod_gmp self, k):
+        return self.shift(long(k))
+
+    def __rshift__(IntegerMod_gmp self, k):
+        return self.shift(-long(k))
+
+    cdef shift(IntegerMod_gmp self, long k):
         r"""
-        Multiply self by `2^\text{right}` quickly via bit shifting
-        and modulus.
+        Performs a bit-shift specified by ``k`` on ``self``.
+
+        Suppose that ``self`` represents an integer `x` modulo `n`.  If `k` is
+        `k = 0`, returns `x`.  If `k > 0`, shifts `x` to the left, that is,
+        multiplies `x` by `2^k` and then returns the representative in the
+        range `[0,n)`.  If `k < 0`, shifts `x` to the right, that is, returns
+        the integral part of `x` divided by `2^k`.
+
+        Note that, in any case, ``self`` remains unchanged.
+
+        INPUT:
+
+        - ``k`` - Integer of type ``long``
+
+        OUTPUT
+
+        - Result of type ``IntegerMod_gmp``
 
         EXAMPLES::
 
             sage: e = Mod(19, 10^10)
             sage: e << 102
             9443608576
+            sage: e >> 1
+            9
+            sage: e >> 4
+            1
         """
         cdef IntegerMod_gmp x
-        x = self._new_c()
-        mpz_mul_2exp(x.value, self.value, right)
-        mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
-        return x
+        if k == 0:
+            return self
+        else:
+            x = self._new_c()
+            if k > 0:
+                mpz_mul_2exp(x.value, self.value, k)
+                mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
+            else:
+                mpz_fdiv_q_2exp(x.value, self.value, -k)
+            return x
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
@@ -1504,28 +1535,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             _sig_on
             mpz_powm(x.value, self.value, (<Integer>exp).value, self.__modulus.sageInteger.value)
             _sig_off
-        return x
-
-    def __rshift__(IntegerMod_gmp self, int right):
-        r"""
-        Return ``self`` shifted right by ``right``
-        bits. (In `\ZZ/n\ZZ`, this is nothing like
-        division.)
-
-        EXAMPLES::
-
-            sage: e = Mod(1000001, 2^32-1)
-            sage: e >> 5
-            31250
-            sage: a = Mod(3, 5)
-            sage: a >> 1
-            1
-            sage: a / 2
-            4
-        """
-        cdef IntegerMod_gmp x
-        x = self._new_c()
-        mpz_fdiv_q_2exp(x.value, self.value, right)
         return x
 
     def __invert__(IntegerMod_gmp self):
@@ -1913,35 +1922,56 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             raise ZeroDivisionError, "reduction modulo right not defined."
         return integer_mod_ring.IntegerModRing(right)(self)
 
-    def __lshift__(IntegerMod_int self, int right):
-        r"""
-        Multiply self by `2^\text{right}` very quickly via bit
-        shifting.
+    def __lshift__(IntegerMod_int self, k):
+        return self.shift(int(k))
+
+    def __rshift__(IntegerMod_int self, k):
+        return self.shift(-int(k))
+
+    cdef shift(IntegerMod_int self, int k):
+        """
+        Performs a bit-shift specified by ``k`` on ``self``.
+
+        Suppose that ``self`` represents an integer `x` modulo `n`.  If `k` is
+        `k = 0`, returns `x`.  If `k > 0`, shifts `x` to the left, that is,
+        multiplies `x` by `2^k` and then returns the representative in the
+        range `[0,n)`.  If `k < 0`, shifts `x` to the right, that is, returns
+        the integral part of `x` divided by `2^k`.
+
+        Note that, in any case, ``self`` remains unchanged.
+
+        INPUT:
+
+        - ``k`` - Integer of type ``int``
+
+        OUTPUT:
+
+        - Result of type ``IntegerMod_int``
+
+        WARNING:
+
+        For positive ``k``, if ``x << k`` overflows as a 32-bit integer, the
+        result is meaningless.
 
         EXAMPLES::
 
             sage: e = Mod(5, 2^10 - 1)
-            sage: e<<5
+            sage: e << 5
             160
-            sage: e*2^5
+            sage: e * 2^5
             160
-        """
-        return self._new_c((self.ivalue << right) % self.__modulus.int32)
-
-    def __rshift__(IntegerMod_int self, int right):
-        """
-        Divide self by `2^{\text{right}}` and take floor via bit
-        shifting.
-
-        EXAMPLES::
-
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
             1
             sage: int(e)/int(2^3)
             1
         """
-        return self._new_c(self.ivalue >> right)
+        if k == 0:
+            return self
+        elif k > 0:
+            return self._new_c((self.ivalue << k) % self.__modulus.int32)
+        else:
+            return self._new_c(self.ivalue >> (-k))
 
     def __pow__(IntegerMod_int self, right, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -2664,32 +2694,56 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             raise ZeroDivisionError, "reduction modulo right not defined."
         return integer_mod_ring.IntegerModRing(right)(self)
 
-    def __lshift__(IntegerMod_int64 self, int right):
-        r"""
+    def __lshift__(IntegerMod_int64 self, k):
+        return self.shift(int(k))
+
+    def __rshift__(IntegerMod_int64 self, k):
+        return self.shift(-int(k))
+
+    cdef shift(IntegerMod_int64 self, int k):
+        """
+        Performs a bit-shift specified by ``k`` on ``self``.
+
+        Suppose that ``self`` represents an integer `x` modulo `n`.  If `k` is
+        `k = 0`, returns `x`.  If `k > 0`, shifts `x` to the left, that is,
+        multiplies `x` by `2^k` and then returns the representative in the
+        range `[0,n)`.  If `k < 0`, shifts `x` to the right, that is, returns
+        the integral part of `x` divided by `2^k`.
+
+        Note that, in any case, ``self`` remains unchanged.
+
+        INPUT:
+
+        - ``k`` - Integer of type ``int``
+
+        OUTPUT:
+
+        - Result of type ``IntegerMod_int64``
+
+        WARNING:
+
+        For positive ``k``, if ``x << k`` overflows as a 64-bit integer, the
+        result is meaningless.
+
         EXAMPLES::
 
             sage: e = Mod(5, 2^31 - 1)
-            sage: e<<32
+            sage: e << 32
             10
-            sage: e*2^32
+            sage: e * 2^32
+            10
+            sage: e = Mod(5, 2^31 - 1)
+            sage: e << 32
+            10
+            sage: e * 2^32
             10
         """
-        return self._new_c((self.ivalue << right) % self.__modulus.int64)
-
-    def __rshift__(IntegerMod_int64 self, int right):
-        """
-        Divide self by `2^{\text{right}}` and take floor via bit
-        shifting.
-
-        EXAMPLES::
-
-            sage: e = Mod(8, 2^31 - 1)
-            sage: e >> 3
-            1
-            sage: int(e)/int(2^3)
-            1
-        """
-        return self._new_c(self.ivalue >> right)
+        if k == 0:
+            return self
+        elif k > 0:
+            return self._new_c((self.ivalue << k) % self.__modulus.int64)
+        else:
+            return self._new_c(self.ivalue >> (-k))
 
     def __pow__(IntegerMod_int64 self, right, m): # NOTE: m ignored, always use modulus of parent ring
         """

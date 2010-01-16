@@ -149,12 +149,16 @@ def vectors_by_length(self, bound):
         sage: Q = QuadraticForm(ZZ, 4, [1,1,1,1, 1,0,0, 1,0, 1])
         sage: map(len, Q.vectors_by_length(2))
         [1, 12, 12]
+
+        sage: Q = QuadraticForm(ZZ, 4, [1,-1,-1,-1, 1,0,0, 4,-3, 4])
+        sage: map(len, Q.vectors_by_length(3))
+        [1, 3, 0, 3]
     """
     # pari uses eps = 1e-6 ; nothing bad should happen if eps is too big
     # but if eps is too small, roundoff errors may knock off some
     # vectors of norm = bound (see #7100)
     eps = RDF(1e-6)
-    bound = ZZ(floor(bound))
+    bound = ZZ(floor(max(bound, 0)))
     Theta_Precision = bound + eps
     n = self.dim()
 
@@ -216,6 +220,12 @@ def vectors_by_length(self, bound):
             L[i] = ( Z - U[i]).floor()
             x[i] = (-Z - U[i]).ceil()
 
+            # carry if we go out of bounds -- when Z is so small that
+            # there aren't any integral vectors between the bounds
+            # Note: this ensures T[i-1] >= 0 in the next iteration
+            while (x[i] > L[i]):
+                i += 1
+                x[i] += 1
 
         ## 4. Solution found (This happens when i = 0)
         #print "-- Solution found! --"

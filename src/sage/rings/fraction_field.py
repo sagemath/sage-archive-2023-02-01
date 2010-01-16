@@ -189,18 +189,15 @@ class FractionField_generic(field.Field):
 
     def _coerce_map_from_(self, S):
         """
-        Returns True if elements of S can be coerced into this fraction
-        field.
+        Returns ``True`` if elements of ``S`` can be coerced into this
+        fraction field.
 
         This fraction field has coercions from:
 
         - itself
-
         - any fraction field where the base ring coerces to the base
           ring of this fraction field
-
-        - any ring that coerces to the base ring of this fraction
-          field
+        - any ring that coerces to the base ring of this fraction field
 
         EXAMPLES::
 
@@ -247,16 +244,77 @@ class FractionField_generic(field.Field):
             sage: L = ZZ['x'].fraction_field()
             sage: K.coerce(L.gen())
             x
+
+        We demonstrate that trac ticket #7958 is resolved in the case of
+        number fields::
+
+            sage: _.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
+            sage: R.<b> = K.ring_of_integers()
+            sage: S.<y> = R[]
+            sage: F = FractionField(S)
+            sage: F(1/a)
+            (a^4 - 3*a^3 + 2424*a^2 + 2)/232
         """
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        from sage.rings.number_field.number_field_base import NumberField
+
+        # The case ``S`` being `\QQ` requires special handling since `\QQ` is
+        # not implemented as a ``FractionField_generic``.
+        if S is QQ and self.__R.has_coerce_map_from(ZZ):
+            return CallableConvertMap(S, self, \
+                lambda x: self._element_class(self, x.numerator(),
+                x.denominator()), parent_as_first_arg=False)
+
+        # Number fields also need to be handled separately.
+        if isinstance(S, NumberField):
+            return CallableConvertMap(S, self, \
+                self._number_field_to_frac_of_ring_of_integers, \
+                parent_as_first_arg=False)
+
         if isinstance(S, FractionField_generic) and \
             self.__R.has_coerce_map_from(S.ring()):
-                return CallableConvertMap(S, self, \
-                        lambda x: self._element_class(self, x.numerator(),
-                            x.denominator()), parent_as_first_arg=False)
+            return CallableConvertMap(S, self, \
+                lambda x: self._element_class(self, x.numerator(),
+                x.denominator()), parent_as_first_arg=False)
+
         if self.__R.has_coerce_map_from(S):
             return CallableConvertMap(S, self, self._element_class,
-                    parent_as_first_arg=True)
+                parent_as_first_arg=True)
+
         return None
+
+    def _number_field_to_frac_of_ring_of_integers(self, x):
+        r"""
+        Returns the number field element ``x`` as an element of ``self``,
+        explicitly treating the numerator of ``x``  as an element of the ring
+        of integers and the denominator as an integer.
+
+        INPUT:
+
+        -  ``x`` - Number field element
+
+        OUTPUT:
+
+        -  Element of ``self``
+
+        TEST:
+
+        We demonstrate that trac ticket #7958 is resolved in the case of
+        number fields::
+
+            sage: _.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
+            sage: R.<b> = K.ring_of_integers()
+            sage: S.<y> = R[]
+            sage: F = FractionField(S)
+            sage: F(1/a)
+            (a^4 - 3*a^3 + 2424*a^2 + 2)/232
+        """
+        f = x.polynomial()   # Polynomial over QQ
+        d = f.denominator()  # Integer
+        return self._element_class(self, numerator=d*x, denominator=d)
 
     def is_field(self, proof = True):
         """

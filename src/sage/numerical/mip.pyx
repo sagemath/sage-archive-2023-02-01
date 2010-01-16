@@ -370,16 +370,18 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
-            sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
+            sage: p.add_constraint(-3*x[1] + 2*x[2], max=2, name="Constraint_1")
             sage: p.show()
             Maximization:
               x_0 +x_1
             Constraints:
-              -3 x_0 +2 x_1 <= 2
+              Constraint_1: -3 x_0 +2 x_1 <= 2
             Variables:
               x_0 is a real variable (min=0.0, max=+oo)
               x_1 is a real variable (min=0.0, max=+oo)
         """
+
+        self._update_variables_name()
 
         inv_variables = [0]*len(self._variables)
         for (v,id) in self._variables.iteritems():
@@ -396,8 +398,8 @@ class MixedIntegerLinearProgram:
             value+=str(sum([inv_variables[i]*c for (i,c) in zip(self._objective_i, self._objective_values)]))
 
         value += "\nConstraints:"
-        for (c,min,max) in self.constraints():
-            value += "\n  " + (str(min)+" <= " if min!=None else "")+str(c)+(" <= "+str(max) if max!=None else "")
+        for (c,min,max), name in zip(self.constraints(), self._constraints_name):
+            value += "\n  "+(name+":" if name is not None else "")+" " + (str(min)+" <= " if min!=None else "")+str(c)+(" <= "+str(max) if max!=None else "")
         value += "\nVariables:"
         for _,v in sorted([(str(x),x) for x in self._variables.keys()]):
 

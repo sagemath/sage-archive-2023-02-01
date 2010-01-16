@@ -397,6 +397,12 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.libs.ecl',
+              sources = ["sage/libs/ecl/ecl.pyx"],
+              libraries = ["ecl"],
+              include_dirs = [SAGE_ROOT+'/local/include/ecl/'],
+              depends = [SAGE_ROOT + '/local/include/ecl/ecl.h']),
+
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],

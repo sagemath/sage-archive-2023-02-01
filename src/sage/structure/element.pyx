@@ -613,8 +613,6 @@ cdef class Element(sage_object.SageObject):
          """
         return self.subs(in_dict,**kwds)
 
-
-
     cpdef _act_on_(self, x, bint self_on_left):
         """
         Use this method to implement self acting on x.

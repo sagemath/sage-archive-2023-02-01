@@ -170,25 +170,31 @@ class FreeMonoidElement(MonoidElement):
             sage: (x*y).subs({x:M1([1,2]),y:M2([3,4])})
             [11]
 
+            sage: M.<x,y> = FreeMonoid(2)
+            sage: (x*y).substitute(x=1)
+            y
+
+            sage: M.<a> = FreeMonoid(1)
+            sage: a.substitute(a=5)
+            5
+
         AUTHORS:
 
         - Joel B. Mohler (2007-10-27)
         """
-        if len(kwds)>0 and len(x)>0:
+        if kwds and x:
             raise ValueError, "must not specify both a keyword and positional argument"
 
-        if len(kwds)>0:
-            p = self.parent()
-            def extract_from(kwds,g):
-                for x in g:
-                    try:
-                        return kwds[x]
-                    except KeyError:
-                        pass
-                return None
+        P = self.parent()
 
-            x = [extract_from(kwds,(p.gen(i),p.variable_name(i))) for i in range(p.ngens())]
-        elif isinstance(x[0],tuple):
+        if kwds:
+            x = self.gens()
+            gens_dict = dict([(name, i) for i, name in enumerate(P.variable_names())])
+            for key, value in kwds.iteritems():
+                if key in gens_dict:
+                    x[gens_dict[key]] = value
+
+        if isinstance(x[0],tuple):
             x = x[0]
 
         if len(x) != self.parent().ngens():
@@ -196,17 +202,26 @@ class FreeMonoidElement(MonoidElement):
 
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
+        one = P.one_element()
         result = None
-        for m in self._element_list:
+        for var_index, exponent in self._element_list:
             # Take further pains to ensure that non-square matrices are not exponentiated.
-            c = x[m[0]]**m[1] if m[1] > 1 else x[m[0]] if m[1] == 1 else self.parent()(1)
+            replacement = x[var_index]
+            if exponent > 1:
+                c = replacement ** exponent
+            elif exponent == 1:
+                c = replacement
+            else:
+                c = one
+
             if result is None:
                 result = c
             else:
                 result *= c
 
         if result is None:
-            return self.parent()(0)
+            return one
+
         return result
 
     def __mul__(self, y):
@@ -311,3 +326,18 @@ class FreeMonoidElement(MonoidElement):
                     return 1
         return 0 # x = self and y are equal
 
+
+    def _acted_upon_(self, x, self_on_left):
+        """
+        Currently, returns the action of the integer 1 on this
+        element.
+
+        EXAMPLES::
+
+            sage: M.<x,y,z>=FreeMonoid(3)
+            sage: 1*x
+            x
+        """
+        if x == 1:
+            return self
+        return None

@@ -129,6 +129,9 @@ class NumberFieldHomset(RingHomset_generic):
 class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
     def __invert__(self):
         r"""
+
+        Return the inverse of an isomorphism of absolute number fields
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 5)
@@ -161,20 +164,29 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
               Defn: z |--> z^3,
              Ring endomorphism of Cyclotomic Field of order 5 and degree 4
               Defn: z |--> z^2)
+
+             sage: M.<w> = NumberField(x^4 - 5*x + 5)
+             sage: phi = M.hom([z - z^2]); phi
+             Ring morphism:
+               From: Number Field in w with defining polynomial x^4 - 5*x + 5
+               To:   Cyclotomic Field of order 5 and degree 4
+               Defn: w |--> -z^2 + z
+             sage: phi^-1
+             Ring morphism:
+               From: Cyclotomic Field of order 5 and degree 4
+               To:   Number Field in w with defining polynomial x^4 - 5*x + 5
+               Defn: z |--> 3/11*w^3 + 4/11*w^2 + 9/11*w - 14/11
+
         """
-        if not self.is_endomorphism():
-            raise TypeError, "Can only invert endomorphisms"
         K = self.domain()
-        V, V_into_K, K_into_V = K.relative_vector_space()
+        L = self.codomain()
+        if K.degree() != L.degree():
+            raise TypeError, "Can only invert isomorphisms"
+        V, V_into_K, _ = K.vector_space()
+        _, _, L_into_W = L.vector_space()
+        linear_inverse = ~V.hom(map(L_into_W*self*V_into_K, V.basis()))
+        return L.hom(map(V_into_K*linear_inverse*L_into_W, [L.gen()]))
 
-        from sage.all import matrix
-        M = matrix([ K_into_V(self(x)) for x in K.power_basis() ]).transpose()
-        inv_gen = V_into_K((~M) * K_into_V(K.gen()))
-        inv = K.hom([inv_gen])
-
-        assert inv(self(K.gen())) == K.gen()
-        assert self(inv(K.gen())) == K.gen()
-        return inv
 
 class RelativeNumberFieldHomset(NumberFieldHomset):
     """

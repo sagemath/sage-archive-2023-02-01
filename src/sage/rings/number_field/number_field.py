@@ -166,6 +166,8 @@ def is_NumberFieldHomsetCodomain(codomain):
     from sage.categories.fields import Fields
     return codomain in Fields()
 
+from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
+
 def proof_flag(t):
     """
     Used for easily determining the correct proof flag to use.
@@ -2797,15 +2799,15 @@ class NumberField_generic(number_field_base.NumberField):
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
         List of all possible composite number fields formed from self and
-        other, as well as possibly embeddings into the compositum.  See the
-        documentation for both_maps below.
+        other, together with (optionally) embeddings into the compositum;
+        see the documentation for both_maps below.
 
-        If preserve_embedding is ``True`` and if self and other *both* have
-        embeddings into the same ambient field, only compositums respecting
-        both embeddings are returned.  If one (or both) of self or other does
-        not have an embedding, or they do not have embeddings into the same
-        ambient field, or preserve_embedding is not ``True`` all possible
-        composite number fields are returned.
+        If preserve_embedding is True and if self and other both have
+        embeddings into the same ambient field, or into fields which are
+        contained in a common field, only the compositum respecting
+        both embeddings is returned.  If one (or both) of self or other
+        does not have an embedding or preserve_embedding is False,
+        all possible composite number fields are returned.
 
         INPUT:
 
@@ -2813,16 +2815,22 @@ class NumberField_generic(number_field_base.NumberField):
 
         - ``names`` - generator name for composite fields
 
-        - ``both_maps`` - (default: False)  if True, return quadruples (F,
-          self_into_F, other_into_F, k) such that self_into_F maps self into
-          F, other_into_F maps other into F, and k is an integer such that
-          other_into_F(other.gen()) + k*self_into_F(self.gen()) == F.gen()
+        - ``both_maps`` - (default: False)  if True, return quadruples
+          (F, self_into_F, other_into_F, k) such that self_into_F is an
+          embedding of self in F, other_into_F is an embedding of in F,
+          and k is an integer such that F.gen() equals
+          other_into_F(other.gen()) + k*self_into_F(self.gen())
+          or has the value Infinity in which case F.gen() equals
+          self_into_F(self.gen()), or is None (which happens when other is a
+          relative number field).
+          If both self and other have embeddings into an ambient field, then
+          F will have an embedding with respect to which both self_into_F
+          and other_into_F will be compatible with the ambient embeddings.
 
-        - ``preserve_embedding`` - (default: True)  return only compositums with
-          compatible ambient embeddings.
+        - ``preserve_embedding`` - (default: True) if self and other have
+          ambient embeddings, then return only the compatible compositum.
 
         OUTPUT:
-
 
         -  ``list`` - list of the composite fields, possibly with maps.
 
@@ -2831,49 +2839,52 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^4 - 2)
             sage: K.composite_fields(K)
-            [Number Field in a0 with defining polynomial x^4 - 162,
-             Number Field in a1 with defining polynomial x^4 - 2,
-             Number Field in a2 with defining polynomial x^8 + 28*x^4 + 2500]
-            sage: k.<a> = NumberField(x^3 + 2)
-            sage: m.<b> = NumberField(x^3 + 2)
-            sage: k.composite_fields(m, 'c')
-            [Number Field in c0 with defining polynomial x^3 - 2,
-             Number Field in c1 with defining polynomial x^6 - 40*x^3 + 1372]
+            [Number Field in a with defining polynomial x^4 - 2,
+             Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500]
 
-        Let's get the maps as well::
+        A particular compositum is selected, together with compatible maps
+        into the compositum, if the fields are endowed with a real or
+        complex embedding::
 
-            sage: Q1.<a> = NumberField(x^2 + 2, 'b').extension(x^2 + 3, 'c').absolute_field()
-            sage: Q2.<b> = NumberField(x^2 + 3, 'a').extension(x^2 + 5, 'c').absolute_field()
-            sage: Q1.composite_fields(Q2)
-            [Number Field in ab0 with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600,
-             Number Field in ab1 with defining polynomial x^8 + 160*x^6 + 6472*x^4 + 74880*x^2 + 1296]
+            sage: K1 = NumberField(x^4 - 2, 'a', embedding=RR(2^(1/4)))
+            sage: K2 = NumberField(x^4 - 2, 'a', embedding=RR(-2^(1/4)))
+            sage: K1.composite_fields(K2)
+            [Number Field in a with defining polynomial x^4 - 2]
+            sage: [F, f, g, k], = K1.composite_fields(K2, both_maps=True); F
+            Number Field in a with defining polynomial x^4 - 2
+            sage: f(K1.0), g(K2.0)
+            (a, -a)
 
-            sage: F, Q1_into_F, Q2_into_F, k = Q1.composite_fields(Q2, both_maps=True)[0]
-            sage: F
-            Number Field in ab0 with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
+        With preserve_embedding set to False, the embeddings are ignored::
+
+            sage: K1.composite_fields(K2, preserve_embedding=False)
+            [Number Field in a with defining polynomial x^4 - 2,
+             Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500]
+
+        Changing the embedding selects a different compositum::
+
+            sage: K3 = NumberField(x^4 - 2, 'a', embedding=CC(2^(1/4)*I))
+            sage: [F, f, g, k], = K1.composite_fields(K3, both_maps=True); F
+            Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500
+            sage: f(K1.0), g(K3.0)
+            (1/240*a0^5 - 41/120*a0, 1/120*a0^5 + 19/60*a0)
+
+        If no embeddings are specified, the maps into the composite are chosen arbitrarily::
+
+            sage: Q1.<a> = NumberField(x^4 + 10*x^2 + 1)
+            sage: Q2.<b> = NumberField(x^4 + 16*x^2 + 4)
+            sage: Q1.composite_fields(Q2, 'c')
+            [Number Field in c with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600]
+            sage: F, Q1_into_F, Q2_into_F, k = Q1.composite_fields(Q2, 'c', both_maps=True)[0]
             sage: Q1_into_F
             Ring morphism:
               From: Number Field in a with defining polynomial x^4 + 10*x^2 + 1
-              To:   Number Field in ab0 with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
-              Defn: a |--> 19/14400*ab0^7 + 137/1800*ab0^5 + 2599/3600*ab0^3 + 8/15*ab0
-            sage: Q2_into_F
-            Ring morphism:
-              From: Number Field in b with defining polynomial x^4 + 16*x^2 + 4
-              To:   Number Field in ab0 with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
-              Defn: b |--> 19/7200*ab0^7 + 137/900*ab0^5 + 2599/1800*ab0^3 + 31/15*ab0
+              To:   Number Field in c with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
+              Defn: a |--> 19/14400*c^7 + 137/1800*c^5 + 2599/3600*c^3 + 8/15*c
 
-            sage: Q1_into_F.domain() is Q1
-            True
-            sage: Q2_into_F(b) + k*Q1_into_F(a) == F.gen()
-            True
-
-        Let's check something about the "other" composite field::
-
-            sage: F, Q1_into_F, Q2_into_F, k = Q1.composite_fields(Q2, both_maps=True)[1]
-            sage: Q1_into_F.domain() is Q1
-            True
-            sage: Q2_into_F(b) + k*Q1_into_F(a) == F.gen()
-            True
+        This is just one of four embeddings of Q1 into F::
+            sage: Hom(Q1, F).order()
+            4
 
         TESTS:
 
@@ -2883,90 +2894,45 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K0.<b> = CyclotomicField(7, 'a').subfields(3)[0][0].change_names()
             sage: K1.<a1> = K0.extension(x^2 - 2*b^2, 'a1').absolute_field()
             sage: K2.<a2> = K0.extension(x^2 - 3*b^2, 'a2').absolute_field()
-            sage: K1
-            Number Field in a1 with defining polynomial x^6 - 10*x^4 + 24*x^2 - 8
-            sage: K2
-            Number Field in a2 with defining polynomial x^6 - 15*x^4 + 54*x^2 - 27
-            sage: K1.is_isomorphic(K2)
-            False
 
         We need embeddings, so we redefine::
 
             sage: L1.<a1> = NumberField(K1.polynomial(), 'a1', embedding=CC.0)
-            sage: CDF(a1)
-            -0.629384245426
             sage: L2.<a2> = NumberField(K2.polynomial(), 'a2', embedding=CC.0)
-            sage: CDF(a2)
-            -0.77083512672
+            sage: [CDF(a1), CDF(a2)]
+            [-0.629384245426, -0.77083512672]
+
+        and we get the same embeddings via the compositum::
 
             sage: F, L1_into_F, L2_into_F, k = L1.composite_fields(L2, both_maps=True)[0]
-            sage: CDF(F.gen())
-            -0.141450881294
-
-        Both subfield generators have correct embeddings::
-
-            sage: CDF(L1_into_F(L1.gen())), CDF(L1.gen())
-            (-0.629384245426, -0.629384245426)
-            sage: CDF(L2_into_F(L2.gen())), CDF(L2.gen())
-            (-0.77083512672, -0.77083512672)
-
-        On the other hand, without embeddings, there are more composite fields::
-
-            sage: M1.<a1> = NumberField(L1.polynomial(), 'a1')
-            sage: M2.<a2> = NumberField(L2.polynomial(), 'a2')
-            sage: M1.composite_fields(M2)
-            [Number Field in a1a20 with defining polynomial x^12 - 50*x^10 + 613*x^8 - 1270*x^6 + 526*x^4 - 60*x^2 + 1,
-             Number Field in a1a21 with defining polynomial x^12 - 50*x^10 + 865*x^8 - 6730*x^6 + 24970*x^4 - 43152*x^2 + 27889,
-             Number Field in a1a22 with defining polynomial x^12 - 50*x^10 + 865*x^8 - 6310*x^6 + 18670*x^4 - 14928*x^2 + 1849]
-
-        Here's another example::
-
-            sage: Q1.<a> = NumberField(x^4 + 10*x^2 + 1, embedding=CC.0); Q1, CDF(a)
-            (Number Field in a with defining polynomial x^4 + 10*x^2 + 1, 0.317837245196*I)
-            sage: Q2.<b> = NumberField(x^4 + 16*x^2 + 4, embedding=CC.0); Q2, CDF(b)
-            (Number Field in b with defining polynomial x^4 + 16*x^2 + 4, 0.504017169931*I)
-
-            sage: len(Q1.composite_fields(Q2))
-            1
-            sage: F, Q1_into_F, Q2_into_F, k2 = Q1.composite_fields(Q2, both_maps=True)[0]
-            sage: F, CDF(F.gen())
-            (Number Field in ab1 with defining polynomial x^8 + 160*x^6 + 6472*x^4 + 74880*x^2 + 1296,
-             -0.131657320461*I)
-
-            sage: t = Q2_into_F(Q2.gen()) + k2*Q1_into_F(Q1.gen()); t, CDF(t)
-            (ab1, -0.131657320461*I)
-            sage: abs(t.minpoly()(CDF(t))) < 1e-8
-            True
-
-        Let's check that the preserve_embedding flag is respected::
-
-            sage: len(Q1.composite_fields(Q2))
-            1
-            sage: len(Q1.composite_fields(Q2, preserve_embedding=False))
-            2
+            sage: [CDF(L1_into_F(L1.gen())), CDF(L2_into_F(L2.gen()))]
+            [-0.629384245426, -0.77083512672]
 
         Let's check that if only one field has an embedding, the resulting
-        fields do not have an embedding::
+        fields do not have embeddings::
 
-            sage: Q2.<b> = NumberField(x^4 + 16*x^2 + 4)
-            sage: Q2.coerce_embedding() is None
+            sage: L1.composite_fields(K2)[0].coerce_embedding() is None
+            True
+            sage: L2.composite_fields(K1)[0].coerce_embedding() is None
             True
 
-            sage: Q1.composite_fields(Q2)
-            [Number Field in ab0 with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600,
-             Number Field in ab1 with defining polynomial x^8 + 160*x^6 + 6472*x^4 + 74880*x^2 + 1296]
-            sage: Q1.composite_fields(Q2)[0].coerce_embedding() is None
-            True
+        We check that other can be a relative number field::
+
+            sage: L.<a, b> = NumberField([x^3 - 5, x^2 + 3])
+            sage: CyclotomicField(3, 'w').composite_fields(L, both_maps=True)
+            [(Number Field in a with defining polynomial x^3 - 5 over its base field, Ring morphism:
+              From: Cyclotomic Field of order 3 and degree 2
+              To:   Number Field in a with defining polynomial x^3 - 5 over its base field
+              Defn: w |--> -1/2*b - 1/2, Relative number field endomorphism of Number Field in a with defining polynomial x^3 - 5 over its base field
+              Defn: a |--> a
+                    b |--> b, None)]
         """
-        if names is None:
-            sv = self.variable_name(); ov = other.variable_name()
-            names = sv + (ov if ov != sv else "")
         if not isinstance(other, NumberField_generic):
             raise TypeError, "other must be a number field."
-        f = self.pari_polynomial()
-        g = other.pari_polynomial()
 
-        R = self.absolute_polynomial().parent()
+        sv = self.variable_name(); ov = other.variable_name()
+        if names is None:
+            names = sv + (ov if ov != sv else "")
         name = sage.structure.parent_gens.normalize_names(1, names)[0]
 
         # should we try to preserve embeddings?
@@ -2976,47 +2942,146 @@ class NumberField_generic(number_field_base.NumberField):
         if other.coerce_embedding() is None:
             subfields_have_embeddings = False
         if subfields_have_embeddings:
-            if self.coerce_embedding().codomain() is not other.coerce_embedding().codomain():
+            try:
+                from sage.categories.pushout import pushout
+                ambient_field = pushout(self.coerce_embedding().codomain(), other.coerce_embedding().codomain())
+            except CoercionException:
+                ambient_field = None
+            if ambient_field is None:
                 subfields_have_embeddings = False
+
+        f = self.pari_polynomial()
+        g = other.pari_polynomial()
+        R = self.absolute_polynomial().parent()
+
+        m = self.degree()
+        n = other.absolute_degree()
 
         if not both_maps and not subfields_have_embeddings:
             # short cut!
-            C = map(R, f.polcompositum(g))
-            return [ NumberField(C[i], name + str(i)) for i in range(len(C)) ]
+            # eliminate duplicates from the fields given by polcompositum
+            # and return the resulting number fields.  There is no need to
+            # check that the polynomials are irreducible.
+            C = []
+            for r in f.polcompositum(g):
+                if not any(r.nfisisom(s) for s in C):
+                    C.append(r)
+            C = map(R, C)
 
-        # If flag = 1, outputs a vector of 4-component vectors [R, a, b,
-        # k], where R ranges through the list of all possible compositums
+            q = sum(1 for r in C if r.degree() != max(m, n))
+            if q == 1 and name != sv and name != ov:
+                names =[name]
+            else:
+                names = [name + str(i) for i in range(q)]
+
+            i = 0
+            rets = []
+            for r in C:
+                if r.degree() == m:
+                    rets.append(self)
+                elif r.degree() == n:
+                    rets.append(other)
+                else:
+                    rets.append(NumberField(r, names[i], check=False))
+                    i += 1
+            return rets
+
+        # If flag = 1, polcompositum outputs a vector of 4-component vectors
+        # [R, a, b, k], where R ranges through the list of all possible compositums
         # as above, and a (resp. b) expresses the root of P (resp. Q) as
         # an element of Q(X )/(R). Finally, k is a small integer such that
         # b + ka = X modulo R.
-        C = f.polcompositum(g, 1)
-        rets = []
+        # In this case duplicates must only be eliminated if embeddings are going
+        # to be preserved.
+        C = []
+        for v in f.polcompositum(g, 1):
+            if subfields_have_embeddings or not any(v[0].nfisisom(u[0]) for u in C):
+                C.append(v)
 
-        embedding = None
         a = self.gen()
         b = other.gen()
-        for i in range(len(C)):
-            r, a_in_F, b_in_F, k = C[i]
-            r = R(r)
-            k = ZZ(k)
 
-            if subfields_have_embeddings:
+        # If both subfields are provided with embeddings, then we must select
+        # the compositum which corresponds to these embeddings.  We do this by
+        # evaluating the given polynomials at the corresponding embedded values.
+        # For the case we want, the result will be zero, but rounding errors are
+        # difficult to predict, so we just take the field which yields the
+        # mimumum value.
+        if subfields_have_embeddings:
+            poly_vals = []
+            for r, _, _, k in C:
+	        r = R(r)
+	        k = ZZ(k) # essential
                 embedding = other.coerce_embedding()(b) + k*self.coerce_embedding()(a)
-                if r(embedding) > 1e-30: # XXX how to do this more generally?
-                    continue
+                poly_vals.append(sage.rings.complex_double.CDF(r(embedding)).abs())
+            i = poly_vals.index(min(poly_vals))
+            C = [C[i]]
 
-            F = NumberField(r, name + str(i), embedding=embedding)
-            a_in_F = F(a_in_F)
-            b_in_F = F(b_in_F)
-            into_F1 = self.hom ([a_in_F], check=True)
-            into_F2 = other.hom([b_in_F], check=True)
-            assert into_F2(b) + k*into_F1(a) == F.gen()
-            rets.append( (F, into_F1, into_F2, k) )
-
-        if not both_maps:
-            return [ F for F, _, _, _ in rets ]
+        q = sum(1 for r, _, _, _ in C if R(r).degree() != max(m, n))
+        if q == 1 and name != sv and name != ov:
+            names =[name, '']
         else:
-            return rets
+            names = [name + str(i) for i in range(q + 1)]
+
+        if both_maps and not other.is_absolute():
+            other_abs = other.absolute_field('z')
+            from_other_abs, to_other_abs = other_abs.structure()
+
+        embedding = None
+        i = 0
+        rets = []
+        for r, a_in_F, b_in_F, k in C:
+            r = R(r)
+            if r.degree() == m and not both_maps:
+                rets.append(self)
+            elif r.degree() == n and not both_maps:
+                rets.append(other)
+            else:
+                k = ZZ(k) # essential
+
+                if subfields_have_embeddings:
+                    embedding = other.coerce_embedding()(b) + k*self.coerce_embedding()(a)
+                F = NumberField(r, names[i], check=False, embedding=embedding)
+                i += 1
+                if both_maps:
+                    if other.is_absolute():
+                        if r.degree() == m:
+                            self_to_F = self.hom([a])
+                            other_to_F = other.hom([(~self.hom([F(a_in_F)]))(F(b_in_F))])
+                            F = self
+                            k = sage.rings.infinity.Infinity
+                            i -= 1
+                        elif r.degree() == n:
+                            other_to_F = other.hom([b])
+                            self_to_F = self.hom([(~other.hom([F(b_in_F)]))(F(a_in_F))])
+                            F = other
+                            k = ZZ(0)
+                            i -= 1
+                        else:
+                            self_to_F = self.hom([F(a_in_F)])
+                            other_to_F = other.hom([F(b_in_F)])
+                    else:
+                        other_abs_to_F = other_abs.hom([F(b_in_F)])
+                        other_to_F = RelativeNumberFieldHomomorphism_from_abs(other.Hom(F), other_abs_to_F*to_other_abs)
+                        if r.degree() == m:
+                            self_to_F = self.hom([a])
+                            other_to_F = RelativeNumberFieldHomomorphism_from_abs(other.Hom(self), (~self.hom([F(a_in_F)]))*other_abs_to_F*to_other_abs)
+                            F = self
+                            k = None
+                            i -= 1
+                        elif r.degree() == n:
+                            other_to_F = RelativeNumberFieldHomomorphism_from_abs(other.Hom(other), from_other_abs)
+                            self_to_F = self.hom([from_other_abs((~other_abs_to_F)(F(a_in_F)))])
+                            F = other
+                            k = None
+                            i -= 1
+                        else:
+                            self_to_F = self.hom([F(a_in_F)])
+                            other_to_F = RelativeNumberFieldHomomorphism_from_abs(other.Hom(F), other_abs_to_F*to_other_abs)
+                    rets.append( (F, self_to_F, other_to_F, k) )
+                else:
+                    rets.append(F)
+        return rets
 
     def absolute_degree(self):
         """

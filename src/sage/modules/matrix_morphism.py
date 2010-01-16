@@ -155,6 +155,12 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             return C(v)
         return C(C.linear_combination_of_basis(v), check=False)
 
+    def _call_(self, x):
+        """
+        Alternative for compatibility with sage.categories.map.FormalCompositeMap._call_
+        """
+        return self.__call__(x)
+
     def __invert__(self):
         """
         Invert this matrix morphism.
@@ -264,8 +270,30 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
+
+        Composite maps can be formed with matrix morphisms::
+
+            sage: K.<a> = NumberField(x^2 + 23)
+            sage: V, VtoK, KtoV = K.vector_space()
+            sage: f = V.hom([V.0 - V.1, V.0 + V.1])*KtoV; f
+            Composite map:
+              From: Number Field in a with defining polynomial x^2 + 23
+              To:   Vector space of dimension 2 over Rational Field
+              Defn:   Isomorphism map:
+                      From: Number Field in a with defining polynomial x^2 + 23
+                      To:   Vector space of dimension 2 over Rational Field
+                    then
+                      Free module morphism defined by the matrix
+                    [ 1 -1]
+                    [ 1  1]
+                    Domain: Vector space of dimension 2 over Rational Field
+                    Codomain: Vector space of dimension 2 over Rational Field
+            sage: f(a)
+            (1, 1)
         """
         if not isinstance(right, MatrixMorphism):
+            if isinstance(right, (sage.categories.morphism.Morphism, sage.categories.map.Map)):
+                return sage.categories.map.Map.__mul__(self, right)
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
         if self.domain() != right.codomain():

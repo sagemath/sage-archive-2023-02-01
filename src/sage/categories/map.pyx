@@ -459,8 +459,33 @@ cdef class Map(Element):
                       Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring
                       Defn: x |--> x + 1
 
+            sage: S.<y> = QQ[]
+            sage: psi = R.hom([y^2])
+            sage: psi^1
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in y over Rational Field
+              Defn: x |--> y^2
+            sage: psi^2
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an endomorphism.
+
+            sage: K.<a> = NumberField(x^4 - 5*x + 5)
+            sage: C5.<z> = CyclotomicField(5)
+            sage: tau = K.hom([z - z^2]); tau
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^4 - 5*x + 5
+              To:   Cyclotomic Field of order 5 and degree 4
+              Defn: a |--> -z^2 + z
+            sage: tau^-1
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Number Field in a with defining polynomial x^4 - 5*x + 5
+              Defn: z |--> 3/11*a^3 + 4/11*a^2 + 9/11*a - 14/11
+
         """
-        if self._domain is not self._codomain:
+        if self._domain is not self._codomain and n != 1 and n != -1:
             raise TypeError, "self must be an endomorphism."
         if n == 0:
             from sage.categories.morphism import IdentityMorphism

@@ -513,9 +513,92 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
             Number Field in a with defining polynomial x^4 + 3 over its base field
             sage: K.galois_closure('c')
-            Number Field in c with defining polynomial x^16 + 144*x^14 + 8988*x^12 + 329616*x^10 + 7824006*x^8 + 113989680*x^6 + 1360354716*x^4 + 3470308272*x^2 + 9407642049
+            Number Field in c with defining polynomial x^16 + 16*x^14 + 28*x^12 + 784*x^10 + 19846*x^8 - 595280*x^6 + 2744476*x^4 + 3212848*x^2 + 29953729
         """
         return self.absolute_field('a').galois_closure(names=names)
+
+    def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
+        """
+        List of all possible composite number fields formed from self and
+        other, together with (optionally) embeddings into the compositum;
+        see the documentation for both_maps below.
+
+        Since relative fields do not have ambient embeddings,
+        preserve_embedding has no effect.  In every case all possible
+        composite number fields are returned.
+
+        INPUT:
+
+        - ``other`` - a number field
+
+        - ``names`` - generator name for composite fields
+
+        - ``both_maps`` - (default: False)  if True, return quadruples
+          (F, self_into_F, other_into_F, k) such that self_into_F maps self into
+          F, other_into_F maps other into F.  For relative number fields k is
+          always None.
+        - ``preserve_embedding`` - (default: True) has no effect, but is kept
+          for compatibility with the absolute version of this function.  In every
+          case the list of all possible compositums is returned.
+
+        OUTPUT:
+
+        -  ``list`` - list of the composite fields, possibly with maps.
+
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^2 + 5, x^2 - 2])
+            sage: L.<c, d> = NumberField([x^2 + 5, x^2 - 3])
+            sage: K.composite_fields(L, 'e')
+            [Number Field in e with defining polynomial x^8 - 24*x^6 + 464*x^4 + 3840*x^2 + 25600]
+            sage: K.composite_fields(L, 'e', both_maps=True)
+            [[Number Field in e with defining polynomial x^8 - 24*x^6 + 464*x^4 + 3840*x^2 + 25600,
+              Relative number field morphism:
+              From: Number Field in a with defining polynomial x^2 + 5 over its base field
+             To:   Number Field in e with defining polynomial x^8 - 24*x^6 + 464*x^4 + 3840*x^2 + 25600
+              Defn: a |--> -9/66560*e^7 + 11/4160*e^5 - 241/4160*e^3 - 101/104*e
+                    b |--> -21/166400*e^7 + 73/20800*e^5 - 779/10400*e^3 + 7/260*e,
+              Relative number field morphism:
+              From: Number Field in c with defining polynomial x^2 + 5 over its base field
+              To:   Number Field in e with defining polynomial x^8 - 24*x^6 + 464*x^4 + 3840*x^2 + 25600
+              Defn: c |--> -9/66560*e^7 + 11/4160*e^5 - 241/4160*e^3 - 101/104*e
+                    d |--> -3/25600*e^7 + 7/1600*e^5 - 147/1600*e^3 + 1/40*e,
+              None]]
+        """
+        if not isinstance(other, NumberField_generic):
+            raise TypeError, "other must be a number field."
+        if names is None:
+            sv = self.variable_name(); ov = other.variable_name()
+            names = sv + (ov if ov != sv else "")
+
+        self_abs = self.absolute_field('w')
+        abs_composites = self_abs.composite_fields(other, names=names, both_maps=both_maps)
+
+        m = self.absolute_degree()
+
+        if not both_maps:
+            rets = []
+            for F in abs_composites:
+                if F.absolute_degree() == m:
+                   F = self
+                rets.append(F)
+            return rets
+
+        from_self_abs, to_self_abs = self_abs.structure()
+
+        rets = []
+        for F, self_abs_to_F, other_to_F, k in abs_composites:
+            self_to_F = RelativeNumberFieldHomomorphism_from_abs(self.Hom(F), self_abs_to_F*to_self_abs)
+            if F.absolute_degree() == m:
+                if other.is_absolute():
+                    other_to_F = other.hom([(from_self_abs*(~self_abs_to_F)*other_to_F)(other.gen())])
+                else:
+                    other_to_F = RelativeNumberFieldHomomorphism_from_abs(self.Hom(self), from_self_abs*(~self_abs_to_F)*other_to_F)
+                self_to_F = RelativeNumberFieldHomomorphism_from_abs(self.Hom(self), from_self_abs)
+                F = self
+            rets.append([F, self_to_F, other_to_F, None])
+        return rets
 
     def absolute_degree(self):
         """

@@ -4038,7 +4038,7 @@ class GenericGraph(GenericGraph_pyx):
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
 
-    def edge_connectivity(self,value_only=True,use_edge_labels=True, vertices=False):
+    def edge_connectivity(self,value_only=True,use_edge_labels=False, vertices=False):
         r"""
         Returns the edge connectivity of the graph
         ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
@@ -4069,7 +4069,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLE:
 
-        A basic application on the PappusGraph()
+        A basic application on the PappusGraph::
 
            sage: g = graphs.PappusGraph()
            sage: g.edge_connectivity() # optional - requires Glpk or COIN-OR/CBC
@@ -4106,10 +4106,33 @@ class GenericGraph(GenericGraph_pyx):
            sage: tree.add_edges(g.min_spanning_tree())
            sage: for u,v in tree.edge_iterator(labels=None):
            ...        tree.set_edge_label(u,v,random())
-           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                 # optional - requires Glpk or COIN-OR/CBC
-           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False)        # optional - requires Glpk or COIN-OR/CBC
-           sage: l == minimum                                                         # optional - requires Glpk or COIN-OR/CBC
+           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                                       # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)        # optional - requires Glpk or COIN-OR/CBC
+           sage: l == minimum                                                                               # optional - requires Glpk or COIN-OR/CBC
            True
+
+        When ``value_only = True``, this function is optimized for small
+        connexity values and does not need to build a linear program.
+
+        It is the case for connected graphs which are not
+        connected ::
+
+           sage: g = 2 * graphs.PetersenGraph()
+           sage: g.edge_connectivity()
+           0.0
+
+        Or if they are just 1-connected ::
+
+           sage: g = graphs.PathGraph(10)
+           sage: g.edge_connectivity()
+           1.0
+
+        For directed graphs, the strong connexity is tested
+        through the dedicated function ::
+
+           sage: g = digraphs.ButterflyGraph(3)
+           sage: g.edge_connectivity()
+           0.0
         """
         g=self
 
@@ -4120,6 +4143,24 @@ class GenericGraph(GenericGraph_pyx):
             weight=lambda x: 1 if x==None else x
         else:
             weight=lambda x: 1
+
+
+        # Better methods for small connectivity tests,
+        # when one is not interested in cuts...
+        if value_only and not use_edge_labels:
+
+            if self.is_directed():
+                if not self.is_strongly_connected():
+                    return 0.0
+
+            else:
+                if not self.is_connected():
+                    return 0.0
+
+                h = self.strong_orientation()
+                if not h.is_strongly_connected():
+                    return 1.0
+
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -4160,7 +4201,7 @@ class GenericGraph(GenericGraph_pyx):
         p.set_binary(in_set)
         p.set_binary(in_cut)
 
-        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
+        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l) in g.edge_iterator()]))
 
         if value_only:
             return p.solve(objective_only=True)
@@ -4236,6 +4277,30 @@ class GenericGraph(GenericGraph_pyx):
            sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False) # optional - requires Glpk or COIN-OR/CBC
            sage: tree.degree(cut_vertex) > 1                                      # optional - requires Glpk or COIN-OR/CBC
            True
+
+        When ``value_only = True``, this function is optimized for small
+        connexity values and does not need to build a linear program.
+
+        It is the case for connected graphs which are not
+        connected ::
+
+           sage: g = 2 * graphs.PetersenGraph()
+           sage: g.vertex_connectivity()
+           0.0
+
+        Or if they are just 1-connected ::
+
+           sage: g = graphs.PathGraph(10)
+           sage: g.vertex_connectivity()
+           1.0
+
+        For directed graphs, the strong connexity is tested
+        through the dedicated function ::
+
+           sage: g = digraphs.ButterflyGraph(3)
+           sage: g.vertex_connectivity()
+           0.0
+
         """
         g=self
 
@@ -4244,6 +4309,19 @@ class GenericGraph(GenericGraph_pyx):
 
         if sets:
             value_only=False
+
+        if value_only:
+            if self.is_directed():
+                if not self.is_strongly_connected():
+                    return 0.0
+
+            else:
+                if not self.is_connected():
+                    return 0.0
+
+                if len(self.blocks_and_cut_vertices()[0]) > 1:
+                    return 1.0
+
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)

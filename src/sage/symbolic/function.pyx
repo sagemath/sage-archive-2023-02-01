@@ -24,13 +24,26 @@ from ring import SR
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
-from sage.structure.element import parent
+
+# In many applications, such as plotting, these functions are called many times
+# repeatedly. This method is slightly faster than sage.structure.coerce.parent
+# The only difference is the PyNumber_Check clause.
+include "../ext/python_number.pxi"
+cdef inline parent_c(x):
+    if PY_TYPE_CHECK(x, Element):
+        return (<Element>x)._parent
+    elif PyNumber_Check(x):
+        return <object>PY_TYPE(x)
+    elif hasattr(x, 'parent'):
+        return x.parent()
+    return <object>PY_TYPE(x)
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
 cdef dict sfunction_serial_dict = {}
 
 from sage.misc.fpickle import pickle_function, unpickle_function
+from sage.ext.fast_eval import FastDoubleFunc
 
 cdef class Function(SageObject):
     """
@@ -225,8 +238,7 @@ cdef class Function(SageObject):
 
         # support fast_float
         if self._nargs == 1:
-            import sage.ext.fast_eval
-            if isinstance(args[0], sage.ext.fast_eval.FastDoubleFunc):
+            if isinstance(args[0], FastDoubleFunc):
                 try:
                     return getattr(args[0], self._name)()
                 except AttributeError, err:
@@ -240,7 +252,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
-        if len(args) == 1 and parent(args[0]) is SR:
+        if len(args) == 1 and parent_c(args[0]) is SR:
             symbolic_input = True
         else:
             symbolic_input = False
@@ -285,7 +297,7 @@ cdef class Function(SageObject):
                 args = nargs
         else: # coerce == False
             for a in args:
-                if PY_TYPE_CHECK(a, Expression):
+                if not PY_TYPE_CHECK(a, Expression):
                     raise TypeError, "arguments must be symbolic expressions"
 
         cdef GEx res
@@ -542,7 +554,7 @@ cdef class GinacFunction(Function):
     def __call__(self, *args, coerce=True, hold=False):
         # we want to convert the result to the original parent if the input
         # is not exact, so we store the parent here
-        org_parent = parent(args[0])
+        org_parent = parent_c(args[0])
 
         res = super(GinacFunction, self).__call__(*args, coerce=coerce,
                 hold=hold)

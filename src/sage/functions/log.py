@@ -113,73 +113,54 @@ exp = Function_exp()
 class Function_log(GinacFunction):
     def __init__(self):
         """
-        The log function.
+        The natural logarithm of x.  See `log?` for
+        more information about its behavior.
 
         EXAMPLES::
 
-            sage: log(e^2)
+            sage: ln(e^2)
             2
-            sage: log(1024, 2)
-            10
-            sage: log(10, 4)
-            log(10)/log(4)
+            sage: ln(2)
+            log(2)
+            sage: ln(10)
+            log(10)
 
         ::
 
-            sage: RDF(log(10,2))
-            3.32192809489
-            sage: RDF(log(8, 2))
-            3.0
-            sage: log(RDF(10))
+            sage: ln(RDF(10))
             2.30258509299
-            sage: log(2.718)
+            sage: ln(2.718)
             0.999896315728952
+            sage: ln(2.0)
+            0.693147180559945
+            sage: ln(float(-1))
+            3.1415926535897931j
+            sage: ln(complex(-1))
+            3.1415926535897931j
+
+        TESTS::
 
             sage: latex(x.log())
             \log\left(x\right)
+            sage: loads(dumps(ln(x)+1))
+            log(x) + 1
+
+        Check if float arguments are handled properly.::
+
+            sage: from sage.functions.log import function_log as log
+            sage: log(float(5))
+            1.6094379124341003
+            sage: log(float(0))
+            -inf
+            sage: log(float(-1))
+            3.1415926535897931j
+            sage: log(x).subs(x=float(-1))
+            3.1415926535897931j
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                    conversions=dict(maxima='log'))
 
-function_log = Function_log()
-
-def ln(x):
-    """
-    The natural logarithm of x.  See `log?` for
-    more information about its behavior.
-
-    INPUT:
-
-    -  ``x`` - positive real number
-
-    OUTPUT:
-
-    -  ``ln(x)`` - real number
-
-    EXAMPLES::
-
-        sage: ln(e^2)
-        2
-        sage: ln(2)
-        log(2)
-        sage: ln(2.0)
-        0.693147180559945
-        sage: ln(float(-1))
-        3.14159265359*I
-        sage: ln(complex(-1))
-        3.14159265359*I
-    """
-    if type(x) is complex:
-        return CDF(x).log()
-    try:
-        return function_log(x)
-    except ValueError:
-        if type(x) is float:
-            from sage.rings.all import RDF
-            return RDF(x).log()
-        else:
-            raise
-
+ln = function_log = Function_log()
 
 def log(x, base=None):
     """

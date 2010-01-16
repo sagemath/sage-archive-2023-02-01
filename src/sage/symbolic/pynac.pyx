@@ -8,6 +8,7 @@
 ###############################################################################
 
 cdef extern from "math.h":
+    long double logl(long double)
     long double sqrtl(long double)
     long double tgammal(long double)
     long double lgammal(long double)
@@ -15,6 +16,9 @@ cdef extern from "math.h":
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../libs/ginac/decl.pxi"
+
+# for complex log
+include "../gsl/gsl_complex.pxi"
 
 from sage.structure.element import Element
 from sage.rings.integer_ring import ZZ
@@ -1317,13 +1321,42 @@ cdef public object py_log(object x):
         1.57079632679490*I
         sage: py_log(float(e))
         1.0
+        sage: py_log(float(0))
+        -inf
+        sage: py_log(float(-1))
+        3.1415926535897931j
+        sage: py_log(int(1))
+        0.0
+        sage: py_log(long(1))
+        0.0
+        sage: py_log(int(0))
+        -inf
+        sage: py_log(long(0))
+        -inf
+        sage: py_log(complex(0))
+        -inf
     """
+    cdef gsl_complex res
+    cdef double real, imag
+    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+        x = float(x)
     if PY_TYPE_CHECK_EXACT(x, float):
-        return math.log(x)
-    try:
+        if (<float>x) > 0:
+            return logl(x)
+        elif x < 0:
+            res = gsl_complex_log(gsl_complex_rect(PyFloat_AsDouble(x), 0))
+            return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+        else:
+            return float('-inf')
+    elif PY_TYPE_CHECK_EXACT(x, complex):
+        real = PyComplex_RealAsDouble(x)
+        imag = PyComplex_ImagAsDouble(x)
+        if real == 0 and imag == 0:
+            return float('-inf')
+        res = gsl_complex_log(gsl_complex_rect(real, imag))
+        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+    elif hasattr(x, 'log'):
         return x.log()
-    except AttributeError:
-        pass
     try:
         return RR(x).log()
     except (TypeError, ValueError):

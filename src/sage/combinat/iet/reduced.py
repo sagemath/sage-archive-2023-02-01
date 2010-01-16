@@ -398,7 +398,7 @@ def ReducedPermutationsIET_iterator(
     - ``irreducible`` - boolean
 
     - ``alphabet`` - something that should be converted to an alphabet of at
-    least nintervals letters
+      least nintervals letters
 
     TESTS::
 

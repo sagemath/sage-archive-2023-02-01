@@ -11,7 +11,7 @@ This code is partly based on Sage code by David Kohel from 2005.
 
 TESTS:
 
-We test pickles::
+Pickling test::
 
     sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-5,-2)
     sage: Q == loads(dumps(Q))
@@ -516,7 +516,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         - ``a, b`` - elements of ``base_ring``
         - ``names`` - string (optional, default 'i, j, k') names of the generators
 
-        TESTS::
+        TESTS:
 
         Test making quaternion elements (using the element constructor)::
 
@@ -744,7 +744,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(QQ, -1, -1).ramified_primes()
             [2]
         """
-            #TODO: more examples
+        #TODO: more examples
 
         return [f[0] for f in factor(self.discriminant())]
 
@@ -839,16 +839,18 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         the quaternion algebra has generators `i, j, k`, then `I^2 =
         i^2`, `J^2 = j^2`, `IJ=K` and `IJ=-JI`.
 
-        NOTE: Currently only implemented when `p` is odd and the base
-        ring is `\QQ`.
+        .. note::
+
+           Currently only implemented when `p` is odd and the base
+           ring is `\QQ`.
 
         INPUT:
 
-            - `p` -- unramified odd prime
+        - `p` -- unramified odd prime
 
         OUTPUT:
 
-            - 2-tuple of matrices over finite field
+        - 2-tuple of matrices over finite field
 
         EXAMPLES::
 
@@ -945,7 +947,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
         INPUT:
 
-            - `p` -- prime number
+        - `p` -- prime number
 
         EXAMPLES::
 
@@ -1007,7 +1009,9 @@ class QuaternionOrder(Algebra):
         - ``basis`` - list of 4 integral quaternions in ``A``
         - ``check`` - whether to do type and other consistency checks
 
-        ** TODO -- NOTE: We do *not* currently check that basis is
+        .. note::
+
+           ** TODO: We do *not* currently check that basis is
            closed under multiplication!! **
 
         EXAMPLES::
@@ -1342,22 +1346,22 @@ class QuaternionOrder(Algebra):
 
         INPUT:
 
-            - ``include_basis`` -- bool (default: False), if True also
-              return a basis for the dimension 3 subspace `G`
+        - ``include_basis`` -- bool (default: False), if True also
+          return a basis for the dimension 3 subspace `G`
 
         OUTPUT:
 
-           - QuadraticForm
+        - QuadraticForm
 
-           - optional basis for dimension 3 subspace
-
+        - optional basis for dimension 3 subspace
 
         This function computes the positive definition quadratic form
-        obtained by letting G be the trace zero subspace of ZZ +
-        2*self, which has rank 3, and restricting the pairing
+        obtained by letting G be the trace zero subspace of `\ZZ` +
+        2* ``self``, which has rank 3, and restricting the pairing
+
            (x,y) = (x.conjugate()*y).reduced_trace()
 
-        to G.
+        to `G`.
 
         APPLICATIONS: Ternary quadratic forms associated to an order
         in a rational quaternion algebra are useful in computing with
@@ -1967,7 +1971,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         Return the product of the fractional ideals ``self`` and ``right``.
 
-        NOTE: We do not keep track of left or right order structure.
+        .. note::
+
+           We do not keep track of left or right order structure.
 
         EXAMPLES::
 
@@ -2016,7 +2022,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [   0    0    0 20/7]
 
         The free module method is also useful since it allows for checking if one ideal
-        is contained in another, computing quotients I/J, etc.
+        is contained in another, computing quotients I/J, etc.::
 
             sage: X = BrandtModule(3,17).right_ideals()
             sage: I = X[0].intersection(X[2]); I
@@ -2164,12 +2170,14 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
             - list of right ideals
 
-        NOTE: Currently, `p` must satisfy a bunch of conditions, or a
-        NotImplementedError is raised.  In particular, `p` must be odd
-        and unramified in the quaternion algebra, must be coprime to
-        the index of the right order in the maximal order, and also
-        coprime to the normal of self.  (The Brandt modules code has a
-        more general algorithm in some cases.)
+        .. note::
+
+           Currently, `p` must satisfy a bunch of conditions, or a
+           NotImplementedError is raised.  In particular, `p` must be
+           odd and unramified in the quaternion algebra, must be
+           coprime to the index of the right order in the maximal
+           order, and also coprime to the normal of self.  (The Brandt
+           modules code has a more general algorithm in some cases.)
 
         EXAMPLES::
 
@@ -2293,9 +2301,9 @@ def basis_for_quaternion_lattice(gens):
 
 def intersection_of_row_modules_over_ZZ(v):
     """
-    Intersects the ZZ-modules with basis matrices the full rank 4x4
-    QQ-matrices in the list v.  The returned intersection is
-    represented by a 4x4 matrix over QQ.  This can also be done using
+    Intersects the `\ZZ`-modules with basis matrices the full rank 4x4
+    `\QQ`-matrices in the list v.  The returned intersection is
+    represented by a 4x4 matrix over `\QQ`.  This can also be done using
     modules and intersection, but that would take over twice as long
     because of overhead, hence this function.
 

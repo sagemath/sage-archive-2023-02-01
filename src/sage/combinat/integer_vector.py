@@ -2,8 +2,10 @@
 Integer vectors
 
 AUTHORS:
+
  *   Mike Hanson (2007) - original module
  *   Nathann Cohen, David Joyner (2009-2010) - Gale-Ryser stuff
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -54,15 +56,15 @@ def is_gale_ryser(r,s):
 
     ALGORITHM:
 
-    Without loss of generality, we can assume that :
+    Without loss of generality, we can assume that:
 
     - The two given sequences do not contain any `0` ( which
-    would correspond to an empty column/row )
+      would correspond to an empty column/row )
 
     - The two given sequences are ordered in decreasing order
-    (reordering the sequence of row (resp. column) sums amounts
-    to reordering the rows (resp. columns) themselves in the
-    matrix, which does not alter the columns (resp. rows) sums.
+      (reordering the sequence of row (resp. column) sums amounts
+      to reordering the rows (resp. columns) themselves in the
+      matrix, which does not alter the columns (resp. rows) sums.
 
     We can then assume that `r` and `s` are partitions
     (see the corresponding class ``Partition``)
@@ -205,6 +207,7 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
         packages GLPK or CBC).
 
         .. MATH::
+
             \forall i&\sum_{j=1}^{k_2} b_{i,j}=p_{1,j}\\
             \forall i&\sum_{j=1}^{k_1} b_{j,i}=p_{2,j}\\
             &b_{i,j}\mbox{ is a binary variable}
@@ -217,15 +220,15 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
         construction works if and only if have `s\preceq r^*`.
 
         * Construct the `m\times n` matrix `B` from `r` by
-        defining the `i`-th row of `B` to be the
-        vector whose first `r_i` entries are `1`, and the
-        remainder are `0`'s, `1\leq i\leq m`.
-        This maximal matrix `B` with row sum `r` and ones
-        left justified has column sum `r^{*}`.
+          defining the `i`-th row of `B` to be the
+          vector whose first `r_i` entries are `1`, and the
+          remainder are `0`'s, `1\leq i\leq m`.
+          This maximal matrix `B` with row sum `r` and ones
+          left justified has column sum `r^{*}`.
 
         * Shift the last `1` in certain rows of `B` to
-        column `n` in order to achieve the sum `s_n`.
-        Call this `B` again.
+          column `n` in order to achieve the sum `s_n`.
+          Call this `B` again.
 
           * The `1`'s in column n are to appear in those
             rows in which `A` has the largest row sums, giving

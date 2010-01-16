@@ -731,19 +731,17 @@ class Permutation(SageObject):
         - ``winner`` - 'top' or 'bottom' interval
 
         - ``side`` - 'right' or 'left' (defaut: 'right') corresponding to the
-        side  on which the Rauzy move must be performed.
+          side  on which the Rauzy move must be performed.
 
         - ``iteration`` - a non negative integer
 
 
         OUTPUT:
 
-        -- a permutation
+        - a permutation
 
 
-        TESTS:
-
-        ::
+        TESTS::
 
             sage: p = iet.Permutation('a b','b a')
             sage: p.rauzy_move(winner=0, side='right') == p
@@ -818,11 +816,11 @@ class PermutationIET(Permutation):
         Tests the irreducibility.
 
         An abelian permutation p = (p0,p1) is reducible if:
-         set(p0[:i]) = set(p1[:i]) for an i < len(p0)
+        set(p0[:i]) = set(p1[:i]) for an i < len(p0)
 
         OUTPUT:
 
-        -- a boolean
+        - a boolean
 
         EXAMPLES::
 
@@ -1641,22 +1639,26 @@ class PermutationLI(Permutation):
 
         A quadratic (or generalized) permutation is reducible if there exist a
         decomposition
+
             A1 u B1 | ... | B1 u A2
             A1 u B2 | ... | B2 u A2
+
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
         right or on the left.
 
         INPUT:
-            you can eventually set return_decomposition to True
+
+        -  you can eventually set return_decomposition to True
 
         OUTPUT:
-            an integer
-            or
-            an integer and a tuple
-            if return_decomposition is set as True it return a 2-uple
+
+        An integer, or an integer and a tuple.
+
+        if return_decomposition is True, returns a 2-uple
         (test,decomposition) where test is the preceding test and
-        decomposition is a 4-uple (A11,A12,A21,A22) where :
+        decomposition is a 4-uple (A11,A12,A21,A22) where:
+
         A11 = A1 u BA
         A12 = B1 u A2
         A21 = A1 u B2
@@ -1664,7 +1666,8 @@ class PermutationLI(Permutation):
 
 
         REFERENCES:
-            Boissy-Lanneau
+
+        Boissy-Lanneau
 
         EXAMPLES::
 
@@ -2487,7 +2490,7 @@ class RauzyDiagram(SageObject):
 
             - ``function`` - function must be of the form
 
-            - ``composition`` - the composition function (defaut *)
+            - ``composition`` - the composition function
 
             AUTHOR:
 

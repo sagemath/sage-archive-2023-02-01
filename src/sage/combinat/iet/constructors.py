@@ -731,7 +731,7 @@ def RauzyDiagram(*args, **kargs):
         sage: s.incidence_matrix() == m
         True
 
-    .. we can then create the corresponding interval exchange transformation and
+    We can then create the corresponding interval exchange transformation and
     comparing the orbit of `0` to the fixed point of the orbit substitution::
 
         sage: v = m.eigenvectors_right()[-1][1][0]
@@ -814,7 +814,7 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
 
     interval exchange transformation -- an map of an interval
 
-    EXAMPLES::
+    EXAMPLES:
 
     Two initialization methods, the first using a iet.Permutation::
 

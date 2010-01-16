@@ -1429,11 +1429,11 @@ def xgcd(a, b):
 
     .. note::
 
-    One exception is if `a` and `b` are not in a PID, e.g., they are
-    both polynomials over the integers, then this function can't in
-    general return ``(g,s,t)`` as above, since they need not exist.
-    Instead, over the integers, we first multiply `g` by a divisor of
-    the resultant of `a/g` and `b/g`, up to sign.
+       One exception is if `a` and `b` are not in a PID, e.g., they are
+       both polynomials over the integers, then this function can't in
+       general return ``(g,s,t)`` as above, since they need not exist.
+       Instead, over the integers, we first multiply `g` by a divisor of
+       the resultant of `a/g` and `b/g`, up to sign.
 
     INPUT:
 
@@ -1443,7 +1443,6 @@ def xgcd(a, b):
 
 
     OUTPUT:
-
 
     -  ``g, s, t`` - such that `g = s\*a + t\*b`
 
@@ -3407,8 +3406,8 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
 
     .. note::
 
-        This may be slow for real number input, since it's implemented in pure
-        Python. For rational number input the PARI C library is used.
+       This may be slow for real number input, since it's implemented in pure
+       Python. For rational number input the PARI C library is used.
 
     EXAMPLES::
 

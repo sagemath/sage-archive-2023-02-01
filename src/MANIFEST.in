@@ -36,3 +36,4 @@ include doc/fr/a_tour_of_sage/sin_plot.png
 recursive-include doc/en/reference/media *
 recursive-include doc/common/static *
 recursive-include doc/common/themes *
+include sage/ext/mac-app/README

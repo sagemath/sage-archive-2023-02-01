@@ -144,19 +144,16 @@ void mul::print_overall_coeff(const print_context & c,
 	coeff.print(*tcontext_p, 0);
 	std::string coeffstr = tstream.str();
 	delete tcontext_p;
-	if (coeffstr[0] == '-') {
-		c.s << '-';
-		coeffstr = coeffstr.erase(0, 1);
-	}
 
 	bool parenthesis = ((coeffstr.find(' ') != std::string::npos)||
 		(coeffstr.find('+') != std::string::npos) ||
-		(coeffstr.find('-') != std::string::npos));// ||
+		(coeffstr.find('-',1) != std::string::npos));// ||
 		//(coeffstr.find('/') != std::string::npos) ||
 		//(coeffstr.find('*') != std::string::npos) ||
 		//(coeffstr.find('^') != std::string::npos));
-	if (!coeff.is_equal(*_num1_p) &&
-		(!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
+	if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char())
+		c.s<<"-";
+	else if (!coeff.is_equal(*_num1_p)) {
 		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";

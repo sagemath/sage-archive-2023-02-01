@@ -1483,8 +1483,8 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             sage: H = heegner_points(389,-20,3); s = H.ring_class_field().galois_group(H.quadratic_field())[0]
             sage: s.__cmp__(s)
             0
-            sage: s.__cmp__(0)
-            -1
+            sage: s.__cmp__(0) != 0
+            True
         """
         if not isinstance(right, GaloisAutomorphismQuadraticForm):
             return cmp(type(self), type(right))

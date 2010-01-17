@@ -103,9 +103,17 @@ if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
   source $SAGE_LOCAL/toolchain/toolchain-env
 fi
 
-# For a framework Python build on OS X, Python's bin directory is not local/bin
+# Mac OS X-specific setup
 if [ `uname` = "Darwin" ]; then
+    # For a framework Python build on OS X, Python's bin directory is not local/bin
     PATH="$SAGE_LOCAL/Frameworks/Python.framework/Versions/2.5/bin:$PATH" && export PATH
+
+    # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
+    # cause lots of random "Abort trap" issues on OSX. see trac
+    # #7095 for an example.
+    MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
+    MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
+    export MACOSX_DEPLOYMENT_TARGET
 fi
 
 if [ "$LIBRARY_PATH" != "" ]; then

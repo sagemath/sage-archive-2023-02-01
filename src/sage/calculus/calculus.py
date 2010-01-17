@@ -1735,7 +1735,7 @@ def dummy_inverse_laplace(*args):
 #
 #######################################################
 
-def _limit_latex_(*args):
+def _limit_latex_(self, f, x, a):
     r"""
     Return latex expression for limit of a symbolic function.
 
@@ -1744,21 +1744,19 @@ def _limit_latex_(*args):
         sage: from sage.calculus.calculus import _limit_latex_
         sage: var('x,a')
         (x, a)
-        sage: f(x) = function('f',x)
-        sage: _limit_latex_(f(x), x, a)
+        sage: f = function('f',x)
+        sage: _limit_latex_(0, f, x, a)
         '\\lim_{x \\to a}\\, f\\left(x\\right)'
+        sage: latex(limit(f, x=oo))
+        \lim_{x \to +\infty}\, f\left(x\right)
 
     AUTHORS:
 
     - Golam Mortuza Hossain (2009-06-15)
     """
-    # Read f,x,a from arguments
-    f = args[0]
-    x = args[1]
-    a = args[2]
     return "\\lim_{%s \\to %s}\\, %s"%(latex(x), latex(a), latex(f))
 
-def _integrate_latex_(*args):
+def _integrate_latex_(self, f, x, *args):
     r"""
     Return LaTeX expression for integration of a symbolic function.
 
@@ -1767,27 +1765,26 @@ def _integrate_latex_(*args):
         sage: from sage.calculus.calculus import _integrate_latex_
         sage: var('x,a,b')
         (x, a, b)
-        sage: f(x) = function('f',x)
-        sage: _integrate_latex_(f(x),x)
+        sage: f = function('f',x)
+        sage: _integrate_latex_(0,f,x)
         '\\int f\\left(x\\right)\\,{d x}'
-        sage: _integrate_latex_(f(x),x,a,b)
+        sage: _integrate_latex_(0,f,x,a,b)
         '\\int_{a}^{b} f\\left(x\\right)\\,{d x}'
+        sage: latex(integrate(1/(1+sqrt(x)),x,0,1))
+        \int_{0}^{1} \frac{1}{\sqrt{x} + 1}\,{d x}
 
     AUTHORS:
 
     - Golam Mortuza Hossain (2009-06-22)
     """
-    f = args[0]
-    x = args[1]
     # Check whether its a definite integral
-    if len(args) == 4:
-        a = args[2]
-        b = args[3]
+    if len(args) == 2:
+        a, b = args
         return "\\int_{%s}^{%s} %s\\,{d %s}"%(latex(a), latex(b), latex(f), latex(x))
     # Typeset as indefinite integral
     return "\\int %s\\,{d %s}"%(latex(f), latex(x))
 
-def _laplace_latex_(*args):
+def _laplace_latex_(self, *args):
     r"""
     Return LaTeX expression for Laplace transform of a symbolic function.
 
@@ -1796,9 +1793,11 @@ def _laplace_latex_(*args):
         sage: from sage.calculus.calculus import _laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: f(t) = function('f',t)
-        sage: _laplace_latex_(f(t),t,s)
+        sage: f = function('f',t)
+        sage: _laplace_latex_(0,f,t,s)
         '\\mathcal{L}\\left(f\\left(t\\right), t, s\\right)'
+        sage: latex(laplace(f, t, s))
+        \mathcal{L}\left(f\left(t\right), t, s\right)
 
     AUTHORS:
 
@@ -1806,7 +1805,7 @@ def _laplace_latex_(*args):
     """
     return "\\mathcal{L}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
-def _inverse_laplace_latex_(*args):
+def _inverse_laplace_latex_(self, *args):
     r"""
     Return LaTeX expression for inverse Laplace transform of a symbolic function.
 
@@ -1815,9 +1814,11 @@ def _inverse_laplace_latex_(*args):
         sage: from sage.calculus.calculus import _inverse_laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: F(s) = function('F',s)
-        sage: _inverse_laplace_latex_(F(s),s,t)
+        sage: F = function('F',s)
+        sage: _inverse_laplace_latex_(0,F,s,t)
         '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
+        sage: latex(inverse_laplace(F,s,t))
+        \mathcal{L}^{-1}\left(F\left(s\right), s, t\right)
 
     AUTHORS:
 

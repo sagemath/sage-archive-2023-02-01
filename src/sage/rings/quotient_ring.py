@@ -527,13 +527,22 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             Ideal (0) of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
             sage: S.ideal(x+y+1)
             Ideal (xbar + ybar + 1) of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+
+        TESTS::
+
+        We create an ideal of a fairly generic integer ring (see trac 5666)::
+
+            sage: R = Integers(10)
+            sage: R.ideal(1)
+            Principal ideal (1) of Ring of integers modulo 10
         """
         if len(gens) == 1:
             gens = gens[0]
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-        if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
+        if not isinstance(self.__R, MPolynomialRing_libsingular) and \
+               (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,**kwds)
+            return commutative_ring.CommutativeRing.ideal(self, gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True

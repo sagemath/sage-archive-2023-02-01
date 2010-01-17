@@ -2281,8 +2281,10 @@ void Number_T::archive(archive_node &n) const {
    *  @exception pole_error("log(): logarithmic pole",0) */
   const numeric log(const numeric &x)
   {
+	  /*
     if (x.is_zero())
       throw pole_error("log(): logarithmic pole",0);
+      */
     return x.value.log();
   }
 

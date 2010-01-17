@@ -213,6 +213,10 @@ static ex log_evalf(const ex & x, PyObject* parent)
 static ex log_eval(const ex & x)
 {
 	if (x.info(info_flags::numeric)) {
+		// log(float) -> float
+		if (!x.info(info_flags::crational))
+			return log(ex_to<numeric>(x));
+
 		if (x.is_zero())         // log(0) -> infinity
 			//throw(pole_error("log_eval(): log(0)",0));
 			return NegInfinity;
@@ -225,9 +229,6 @@ static ex log_eval(const ex & x)
 		if (x.is_equal(-I))      // log(-I) -> -Pi*I/2
 			return (Pi*I*_ex_1_2);
 
-		// log(float) -> float
-		if (!x.info(info_flags::crational))
-			return log(ex_to<numeric>(x));
 	}
 
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):

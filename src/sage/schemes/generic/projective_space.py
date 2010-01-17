@@ -422,6 +422,16 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             v = self.gens()
         return '\\left(%s\\right)'%(" : ".join([str(latex(f)) for f in v]))
 
+    def is_projective(self):
+        """
+        Return that this ambient space is projective n-space.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(3,QQ).is_projective()
+            True
+        """
+        return True
 
     def subscheme(self, X):
         """

@@ -161,6 +161,19 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
     # End overloads
     #######################################################################
 
+    def is_projective(self):
+        """
+        Return whether this ambient space is projective n-space.
+
+        EXAMPLES::
+
+            sage: AffineSpace(3,QQ).is_projective()
+            False
+            sage: ProjectiveSpace(3,QQ).is_projective()
+            True
+        """
+        # overloaded in the projective space derived class
+        return False
 
     def base_extend(self, S, check=True):
         """

@@ -730,8 +730,8 @@ class Permutation(SageObject):
 
         - ``winner`` - 'top' or 'bottom' interval
 
-        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding to the
-          side  on which the Rauzy move must be performed.
+        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding
+          to the side on which the Rauzy move must be performed.
 
         - ``iteration`` - a non negative integer
 
@@ -888,16 +888,19 @@ class PermutationIET(Permutation):
         r"""
         Returns the intersection matrix.
 
-        This d*d antisymetric matrix is given by the rule :
+        This `d*d` antisymmetric matrix is given by the rule :
 
-        |    m_ij = 1  if i < j and pi(i) > pi(j)
-        |           -1 if i > j and pi(j) < pi(j)
-        |           0  else
-        |
+        .. math::
+
+            m_{ij} = \begin{cases}
+                1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
+                -1 & \text{$i > j$ and $\pi(i) < \pi(j)$} \\
+                0 & \text{else}
+                \end{cases}
 
         OUTPUT:
 
-        -- a matrix
+        - a matrix
 
         EXAMPLES::
 
@@ -1640,8 +1643,11 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is reducible if there exist a
         decomposition
 
-            A1 u B1 | ... | B1 u A2
-            A1 u B2 | ... | B2 u A2
+        .. math::
+
+           A1 u B1 | ... | B1 u A2
+
+           A1 u B2 | ... | B2 u A2
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the

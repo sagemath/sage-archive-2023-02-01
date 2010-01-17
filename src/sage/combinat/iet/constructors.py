@@ -821,7 +821,7 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
         sage: p = iet.Permutation('a b c','c b a')
         sage: t = iet.IntervalExchangeTransformation(p, {'a':1,'b':0.4523,'c':2.8})
 
-    .. the second is more direct::
+    The second is more direct::
 
         sage: t = iet.IntervalExchangeTransformation(('a b','b a'),{'a':1,'b':4})
 

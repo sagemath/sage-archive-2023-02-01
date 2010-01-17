@@ -1,5 +1,5 @@
 r"""
-Strata of differentials on Riemman surfaces
+Strata of differentials on Riemann surfaces
 
 The space of Abelian (or quadratic) differentials is stratified by the degrees
 of the zeroes (and simple poles for quadratic differentials). Each stratum has
@@ -631,8 +631,8 @@ class AbelianStratum(SageObject):
 
     INPUT:
 
-    - ``marked_separatrix`` - None (default) or 'in' (for incoming separatrix)
-      or 'out' (for outgoing separatrix).
+    - ``marked_separatrix`` - None (default) or 'in' (for incoming
+      separatrix) or 'out' (for outgoing separatrix).
 
     EXAMPLES:
 

@@ -355,9 +355,13 @@ def sage_getargspec(obj):
       Python Standard Library, which was taken from IPython for use in Sage.
     - Extensions by Nick Alexander
     """
+    from sage.misc.lazy_attribute import lazy_attribute
+    from sage.misc.abstract_method import AbstractMethod
+    if isinstance(obj, (lazy_attribute, AbstractMethod)):
+        source = sage_getsource(obj)
+        return _sage_getargspec_cython(source)
     if not callable(obj):
         raise TypeError, "obj is not a code object"
-
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):

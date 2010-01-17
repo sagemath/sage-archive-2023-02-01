@@ -637,72 +637,72 @@ cdef public object py_rational_power_parts(object base, object exp) except +:
 # We declare the functions defined below as extern here, to prevent Cython
 # from generating separate declarations for them which confuse g++.
 cdef extern from *:
-    object py_binomial_int(int n, unsigned int k)
-    object py_binomial(object n, object k)
-    object py_gcd(object n, object k)
-    object py_lcm(object n, object k)
-    object py_real(object x)
-    object py_imag(object x)
-    object py_conjugate(object x)
-    bint py_is_rational(object x)
-    bint py_is_crational(object x)
-    bint py_is_integer(object x)
-    bint py_is_equal(object x, object y)
-    bint py_is_even(object x)
-    bint py_is_cinteger(object x)
-    bint py_is_real(object x)
-    bint py_is_prime(object x)
-    object py_numer(object x)
-    object py_denom(object x)
+    object py_binomial_int(int n, unsigned int k) except +
+    object py_binomial(object n, object k) except +
+    object py_gcd(object n, object k) except +
+    object py_lcm(object n, object k) except +
+    object py_real(object x) except +
+    object py_imag(object x) except +
+    object py_conjugate(object x) except +
+    bint py_is_rational(object x) except +
+    bint py_is_crational(object x) except +
+    bint py_is_integer(object x) except +
+    bint py_is_equal(object x, object y) except +
+    bint py_is_even(object x) except +
+    bint py_is_cinteger(object x) except +
+    bint py_is_real(object x) except +
+    bint py_is_prime(object x) except +
+    object py_numer(object x) except +
+    object py_denom(object x) except +
     object py_float(object x, object parent) except +
-    object py_RDF_from_double(double x)
-    object py_factorial(object x)
-    object py_doublefactorial(object x)
-    object py_fibonacci(object x)
-    object py_step(object x)
-    object py_bernoulli(object x)
-    object py_sin(object x)
-    object py_cos(object x)
-    object py_zeta(object x)
-    object py_exp(object x)
-    object py_log(object x)
-    object py_tan(object x)
-    object py_asin(object x)
-    object py_acos(object x)
-    object py_atan(object x)
-    object py_atan2(object x, object y)
-    object py_sinh(object x)
-    object py_cosh(object x)
-    object py_tanh(object x)
-    object py_asinh(object x)
-    object py_acosh(object x)
-    object py_atanh(object x)
-    object py_tgamma(object x)
-    object py_lgamma(object x)
-    object py_isqrt(object x)
-    object py_sqrt(object x)
-    object py_abs(object x)
-    object py_mod(object x, object y)
-    object py_smod(object x, object y)
-    object py_irem(object x, object y)
-    object py_iquo(object x, object y)
-    object py_iquo2(object x, object y)
+    object py_RDF_from_double(double x) except +
+    object py_factorial(object x) except +
+    object py_doublefactorial(object x) except +
+    object py_fibonacci(object x) except +
+    object py_step(object x) except +
+    object py_bernoulli(object x) except +
+    object py_sin(object x) except +
+    object py_cos(object x) except +
+    object py_zeta(object x) except +
+    object py_exp(object x) except +
+    object py_log(object x) except +
+    object py_tan(object x) except +
+    object py_asin(object x) except +
+    object py_acos(object x) except +
+    object py_atan(object x) except +
+    object py_atan2(object x, object y) except +
+    object py_sinh(object x) except +
+    object py_cosh(object x) except +
+    object py_tanh(object x) except +
+    object py_asinh(object x) except +
+    object py_acosh(object x) except +
+    object py_atanh(object x) except +
+    object py_tgamma(object x) except +
+    object py_lgamma(object x) except +
+    object py_isqrt(object x) except +
+    object py_sqrt(object x) except +
+    object py_abs(object x) except +
+    object py_mod(object x, object y) except +
+    object py_smod(object x, object y) except +
+    object py_irem(object x, object y) except +
+    object py_iquo(object x, object y) except +
+    object py_iquo2(object x, object y) except +
     int py_int_length(object x) except -1
-    object py_li(object x, object n, object prec)
-    object py_li2(object x)
-    object py_psi(object x)
-    object py_psi2(object x, object y)
-    object py_eval_constant(unsigned serial, object parent)
-    object py_eval_unsigned_infinity()
-    object py_eval_infinity()
-    object py_eval_neg_infinity()
-    object py_integer_from_long(long int)
-    object py_integer_from_python_obj(object x)
+    object py_li(object x, object n, object prec) except +
+    object py_li2(object x) except +
+    object py_psi(object x) except +
+    object py_psi2(object x, object y) except +
+    object py_eval_constant(unsigned serial, object parent) except +
+    object py_eval_unsigned_infinity() except +
+    object py_eval_infinity() except +
+    object py_eval_neg_infinity() except +
+    object py_integer_from_long(long int) except +
+    object py_integer_from_python_obj(object x) except +
 
-    GConstant py_get_constant(char* name)
+    GConstant py_get_constant(char* name) except +
 
 
-cdef public object py_binomial_int(int n, unsigned int k):
+cdef public object py_binomial_int(int n, unsigned int k) except +:
     cdef bint sign
     if n < 0:
         n = -n + (k-1)
@@ -718,7 +718,7 @@ cdef public object py_binomial_int(int n, unsigned int k):
     else:
         return ans
 
-cdef public object py_binomial(object n, object k):
+cdef public object py_binomial(object n, object k) except +:
     # Keep track of the sign we should use.
     cdef bint sign
     if n < 0:
@@ -766,7 +766,7 @@ def test_binomial(n, k):
 # GCD
 #################################################################
 import sage.rings.arith
-cdef public object py_gcd(object n, object k):
+cdef public object py_gcd(object n, object k) except +:
     if PY_TYPE_CHECK(n, Integer) and PY_TYPE_CHECK(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
             return n
@@ -786,7 +786,7 @@ cdef public object py_gcd(object n, object k):
 #################################################################
 # LCM
 #################################################################
-cdef public object py_lcm(object n, object k):
+cdef public object py_lcm(object n, object k) except +:
     if PY_TYPE_CHECK(n, Integer) and PY_TYPE_CHECK(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
             return k
@@ -804,7 +804,7 @@ cdef public object py_lcm(object n, object k):
 #################################################################
 # Real Part
 #################################################################
-cdef public object py_real(object x):
+cdef public object py_real(object x) except +:
     """
     Returns the real part of x.
 
@@ -830,7 +830,8 @@ cdef public object py_real(object x):
         sage: py_real(complex(2,2))
         2.0
     """
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if PY_TYPE_CHECK_EXACT(x, float) or PY_TYPE_CHECK_EXACT(x, int) or \
+            PY_TYPE_CHECK_EXACT(x, long):
         return x
     elif PY_TYPE_CHECK_EXACT(x, complex):
         return x.real
@@ -861,7 +862,7 @@ def py_real_for_doctests(x):
 #################################################################
 # Imaginary Part
 #################################################################
-cdef public object py_imag(object x):
+cdef public object py_imag(object x) except +:
     """
     Return the imaginary part of x.
 
@@ -918,24 +919,24 @@ def py_imag_for_doctests(x):
 #################################################################
 # Conjugate
 #################################################################
-cdef public object py_conjugate(object x):
+cdef public object py_conjugate(object x) except +:
     try:
         return x.conjugate()
     except AttributeError:
         return x # assume is real since it doesn't have an imag attribute.
 
-cdef public bint py_is_rational(object x):
+cdef public bint py_is_rational(object x) except +:
     return PY_TYPE_CHECK_EXACT(x, Rational) or \
            PY_TYPE_CHECK_EXACT(x, Integer) or\
            IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
 
-cdef public bint py_is_equal(object x, object y):
+cdef public bint py_is_equal(object x, object y) except +:
     """
     Return True precisely if x and y are equal.
     """
     return bool(x==y)
 
-cdef public bint py_is_integer(object x):
+cdef public bint py_is_integer(object x) except +:
     r"""
     Returns True if pynac should treat this object as an integer.
 
@@ -981,7 +982,7 @@ def py_is_integer_for_doctests(x):
     """
     return py_is_integer(x)
 
-cdef public bint py_is_even(object x):
+cdef public bint py_is_even(object x) except +:
     try:
         return not(x%2)
     except:
@@ -992,7 +993,7 @@ cdef public bint py_is_even(object x):
     return 0
 
 
-cdef public bint py_is_crational(object x):
+cdef public bint py_is_crational(object x) except +:
     if py_is_rational(x):
         return True
     elif isinstance(x, Element) and (<Element>x)._parent is pynac_I._parent:
@@ -1020,14 +1021,14 @@ def py_is_crational_for_doctest(x):
     """
     return py_is_crational(x)
 
-cdef public bint py_is_real(object a):
+cdef public bint py_is_real(object a) except +:
     if PyInt_CheckExact(a) or PY_TYPE_CHECK(a, Integer) or\
             PyLong_CheckExact(a) or PY_TYPE_CHECK_EXACT(a, float):
         return True
     return py_imag(a) == 0
 
 import sage.rings.arith
-cdef public bint py_is_prime(object n):
+cdef public bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
     except:  # yes, I'm doing this on purpose.
@@ -1038,7 +1039,7 @@ cdef public bint py_is_prime(object n):
         pass
     return False
 
-cdef public object py_numer(object n):
+cdef public object py_numer(object n) except +:
     if isinstance(n, (int, long, Integer)):
         return n
     try:
@@ -1046,7 +1047,7 @@ cdef public object py_numer(object n):
     except AttributeError:
         return 1
 
-cdef public object py_denom(object n):
+cdef public object py_denom(object n) except +:
     if isinstance(n, (int, long, Integer)):
         return 1
     try:
@@ -1054,7 +1055,7 @@ cdef public object py_denom(object n):
     except AttributeError:
         return 1
 
-cdef public bint py_is_cinteger(object x):
+cdef public bint py_is_cinteger(object x) except +:
     return py_is_integer(x) or (py_is_crational(x) and py_denom(x) == 1)
 
 def py_is_cinteger_for_doctest(x):
@@ -1113,13 +1114,13 @@ def py_float_for_doctests(n, prec):
 
 # TODO: Optimize this
 from sage.rings.real_double import RDF
-cdef public object py_RDF_from_double(double x):
+cdef public object py_RDF_from_double(double x) except +:
     return RDF(x)
 
 #################################################################
 # SPECIAL FUNCTIONS
 #################################################################
-cdef public object py_tgamma(object x):
+cdef public object py_tgamma(object x) except +:
     if PY_TYPE_CHECK_EXACT(x, float):
         return tgammal(x)
     #FIXME: complex
@@ -1129,13 +1130,13 @@ cdef public object py_tgamma(object x):
         return CC(x).gamma()
 
 from sage.rings.arith import factorial
-cdef public object py_factorial(object x):
+cdef public object py_factorial(object x) except +:
     try:
         return factorial(x)
     except TypeError:
         return py_tgamma(x+1)
 
-cdef public object py_doublefactorial(object x):
+cdef public object py_doublefactorial(object x) except +:
     n = Integer(x)
     if n < -1:
         raise ValueError, "argument must be >= -1"
@@ -1170,10 +1171,10 @@ def doublefactorial(n):
 
 
 from sage.libs.pari.all import pari
-cdef public object py_fibonacci(object n):
+cdef public object py_fibonacci(object n) except +:
     return Integer(pari(n).fibonacci())
 
-cdef public object py_step(object n):
+cdef public object py_step(object n) except +:
     """
     Return step function of n.
     """
@@ -1185,10 +1186,10 @@ cdef public object py_step(object n):
     return ONE_HALF
 
 from sage.rings.arith import bernoulli
-cdef public object py_bernoulli(object x):
+cdef public object py_bernoulli(object x) except +:
     return bernoulli(x)
 
-cdef public object py_sin(object x):
+cdef public object py_sin(object x) except +:
     """
     TESTS::
 
@@ -1210,7 +1211,7 @@ cdef public object py_sin(object x):
     except (TypeError, ValueError):
         return CC(x).sin()
 
-cdef public object py_cos(object x):
+cdef public object py_cos(object x) except +:
     """
     TESTS::
         sage: cos(float(2)) #indirect doctest
@@ -1231,7 +1232,7 @@ cdef public object py_cos(object x):
     except (TypeError, ValueError):
         return CC(x).cos()
 
-cdef public object py_zeta(object x):
+cdef public object py_zeta(object x) except +:
     """
     Return the value of the zeta function at the given value.
 
@@ -1265,7 +1266,7 @@ def py_zeta_for_doctests(x):
     """
     return py_zeta(x)
 
-cdef public object py_exp(object x):
+cdef public object py_exp(object x) except +:
     """
     Return the value of the exp function at the given value.
 
@@ -1306,7 +1307,7 @@ def py_exp_for_doctests(x):
     """
     return py_exp(x)
 
-cdef public object py_log(object x):
+cdef public object py_log(object x) except +:
     """
     Return the value of the log function at the given value.
 
@@ -1374,7 +1375,7 @@ def py_log_for_doctests(x):
     """
     return py_log(x)
 
-cdef public object py_tan(object x):
+cdef public object py_tan(object x) except +:
     try:
         return x.tan()
     except AttributeError:
@@ -1384,25 +1385,25 @@ cdef public object py_tan(object x):
     except TypeError:
         return CC(x).tan()
 
-cdef public object py_asin(object x):
+cdef public object py_asin(object x) except +:
     try:
         return x.arcsin()
     except AttributeError:
         return RR(x).arcsin()
 
-cdef public object py_acos(object x):
+cdef public object py_acos(object x) except +:
     try:
         return x.arccos()
     except AttributeError:
         return RR(x).arccos()
 
-cdef public object py_atan(object x):
+cdef public object py_atan(object x) except +:
     try:
         return x.arctan()
     except AttributeError:
         return RR(x).arctan()
 
-cdef public object py_atan2(object x, object y):
+cdef public object py_atan2(object x, object y) except +:
     from sage.symbolic.constants import pi
     cdef int sgn_y = cmp(y, 0)
     cdef int sgn_x = cmp(x, 0)
@@ -1421,14 +1422,14 @@ cdef public object py_atan2(object x, object y):
         else:
             return pi
 
-cdef public object py_sinh(object x):
+cdef public object py_sinh(object x) except +:
     try:
         return x.sinh()
     except AttributeError:
         return RR(x).sinh()
 
 
-cdef public object py_cosh(object x):
+cdef public object py_cosh(object x) except +:
     if PY_TYPE_CHECK_EXACT(x, float):
         return math.cosh(x)
     try:
@@ -1436,20 +1437,20 @@ cdef public object py_cosh(object x):
     except AttributeError:
         return RR(x).cosh()
 
-cdef public object py_tanh(object x):
+cdef public object py_tanh(object x) except +:
     try:
         return x.tanh()
     except AttributeError:
         return RR(x).tanh()
 
 
-cdef public object py_asinh(object x):
+cdef public object py_asinh(object x) except +:
     try:
         return x.arcsinh()
     except AttributeError:
         return CC(x).arcsinh()
 
-cdef public object py_acosh(object x):
+cdef public object py_acosh(object x) except +:
     try:
         return x.arccosh()
     except AttributeError:
@@ -1460,14 +1461,14 @@ cdef public object py_acosh(object x):
         return CC(x).arccosh()
 
 
-cdef public object py_atanh(object x):
+cdef public object py_atanh(object x) except +:
     try:
         return x.arctanh()
     except AttributeError:
         return CC(x).arctanh()
 
 
-cdef public object py_lgamma(object x):
+cdef public object py_lgamma(object x) except +:
     if PY_TYPE_CHECK_EXACT(x, float):
         return lgammal(x)
     #FIXME: complex
@@ -1476,20 +1477,20 @@ cdef public object py_lgamma(object x):
     except AttributeError:
         return CC(x).log().gamma()
 
-cdef public object py_isqrt(object x):
+cdef public object py_isqrt(object x) except +:
     return Integer(x).isqrt()
 
-cdef public object py_sqrt(object x):
+cdef public object py_sqrt(object x) except +:
     try:
         # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
     except AttributeError, msg:
         return sqrtl(float(x))
 
-cdef public object py_abs(object x):
+cdef public object py_abs(object x) except +:
     return abs(x)
 
-cdef public object py_mod(object x, object n):
+cdef public object py_mod(object x, object n) except +:
     """
     Return x mod n. Both x and n are assumed to be integers.
 
@@ -1535,7 +1536,7 @@ def py_mod_for_doctests(x, n):
     """
     return py_mod(x, n)
 
-cdef public object py_smod(object a, object b):
+cdef public object py_smod(object a, object b) except +:
     # Modulus (in symmetric representation).
     # Equivalent to Maple's mods.
     # returns a mod b in the range [-iquo(abs(b)-1,2), iquo(abs(b),2)]
@@ -1546,13 +1547,13 @@ cdef public object py_smod(object a, object b):
         c -= b
     return c
 
-cdef public object py_irem(object x, object n):
+cdef public object py_irem(object x, object n) except +:
     return Integer(x) % Integer(n)
 
-cdef public object py_iquo(object x, object n):
+cdef public object py_iquo(object x, object n) except +:
     return Integer(x)//Integer(n)
 
-cdef public object py_iquo2(object x, object n):
+cdef public object py_iquo2(object x, object n) except +:
     x = Integer(x); n = Integer(n)
     try:
         q = x//n
@@ -1568,7 +1569,7 @@ cdef public int py_int_length(object x) except -1:
     return Integer(x).nbits()
 
 from sage.structure.parent import Parent
-cdef public object py_li(object x, object n, object parent):
+cdef public object py_li(object x, object n, object parent) except +:
     """
     Returns a numerical approximation of polylog(n, x) with precision given
     by the ``parent`` argument.
@@ -1603,7 +1604,7 @@ def py_li_for_doctests(x, n, parent):
     """
     return py_li(x, n, parent)
 
-cdef public object py_psi(object x):
+cdef public object py_psi(object x) except +:
     """
     EXAMPLES::
 
@@ -1637,7 +1638,7 @@ def py_psi_for_doctests(x):
     """
     return py_psi(x)
 
-cdef public object py_psi2(object n, object x):
+cdef public object py_psi2(object n, object x) except +:
     """
     EXAMPLES::
 
@@ -1668,14 +1669,14 @@ def py_psi2_for_doctests(n, x):
 ##################################################################
 # Not yet implemented
 ##################################################################
-cdef public object py_li2(object x):
+cdef public object py_li2(object x) except +:
     raise NotImplementedError
 
 ##################################################################
 # Constants
 ##################################################################
 
-cdef public GConstant py_get_constant(char* name):
+cdef public GConstant py_get_constant(char* name) except +:
     """
     Returns a constant given its name. This is called by
     constant::unarchive in constant.cpp in Pynac and is used for
@@ -1690,12 +1691,12 @@ cdef public GConstant py_get_constant(char* name):
         pc = c._pynac
         return pc.object
 
-cdef public object py_eval_constant(unsigned serial, object parent):
+cdef public object py_eval_constant(unsigned serial, object parent) except +:
     from sage.symbolic.constants import constants_table
     constant = constants_table[serial]
     return parent(constant)
 
-cdef public object py_eval_unsigned_infinity():
+cdef public object py_eval_unsigned_infinity() except +:
     """
     Returns unsigned_infinity.
     """
@@ -1713,7 +1714,7 @@ def py_eval_unsigned_infinity_for_doctests():
     """
     return py_eval_unsigned_infinity()
 
-cdef public object py_eval_infinity():
+cdef public object py_eval_infinity() except +:
     """
     Returns positive infinity, i.e., oo.
     """
@@ -1731,7 +1732,7 @@ def py_eval_infinity_for_doctests():
     """
     return py_eval_infinity()
 
-cdef public object py_eval_neg_infinity():
+cdef public object py_eval_neg_infinity() except +:
     """
     Returns minus_infinity.
     """
@@ -1753,12 +1754,12 @@ def py_eval_neg_infinity_for_doctests():
 # Constructors
 ##################################################################
 cdef Integer z = Integer(0)
-cdef public object py_integer_from_long(long x):
+cdef public object py_integer_from_long(long x) except +:
     cdef Integer z = PY_NEW(Integer)
     mpz_init_set_si(z.value, x)
     return z
 
-cdef public object py_integer_from_python_obj(object x):
+cdef public object py_integer_from_python_obj(object x) except +:
     return Integer(x)
 
 

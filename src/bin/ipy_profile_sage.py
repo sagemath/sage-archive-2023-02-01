@@ -24,3 +24,6 @@ if 'SAGE_CLEAN' not in os.environ:
     startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
     if os.path.exists(startup_file):
         _ip.options.autoexec.append('load %s'%startup_file)
+
+    from sage.misc.sage_timeit import sage_timeit
+    _ip.expose_magic('timeit', lambda self, s: sage_timeit(s, _ip.user_ns))

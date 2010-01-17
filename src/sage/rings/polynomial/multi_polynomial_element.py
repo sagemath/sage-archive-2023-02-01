@@ -1048,7 +1048,19 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
+
+        TESTS::
+
+            sage: P = PolynomialRing(QQ, 0, '')
+            sage: P(5).univariate_polynomial()
+            5
         """
+        if self.parent().ngens() == 0:
+            if R is None:
+                return self.base_ring()(self)
+            else:
+                return R(self)
+
         if not self.is_univariate():
             raise TypeError, "polynomial must involve at most one variable"
 
@@ -1416,10 +1428,42 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
             (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+
+        TESTS:
+
+        Check if we can handle polynomials with no variables, #7950::
+
+            sage: P = PolynomialRing(ZZ,0,'')
+            sage: res = P(10).factor(); res
+            2 * 5
+            sage: res[0][0].parent()
+            Multivariate Polynomial Ring in no variables over Integer Ring
+            sage: R = PolynomialRing(QQ,0,'')
+            sage: res = R(10).factor(); res
+            10
+            sage: res.unit().parent()
+            Rational Field
+            sage: P(0).factor()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Prime factorization of 0 not defined.
         """
         R = self.parent()
 
-        # try to use univariate factoring first
+        # raise error if trying to factor zero
+        if self == 0:
+            raise ArithmeticError, "Prime factorization of 0 not defined."
+
+        # if number of variables is zero ...
+        if R.ngens() == 0:
+            base_ring = self.base_ring()
+            if base_ring.is_field():
+                return Factorization([],unit=self.base_ring()(self))
+            else:
+                F = base_ring(self).factor()
+                return Factorization([(R(f),m) for f,m in F], unit=F.unit())
+
+        # try to use univariate factoring
         try:
             F = self.univariate_polynomial().factor()
             return Factorization([(R(f),m) for f,m in F], unit=F.unit())

@@ -130,10 +130,10 @@ DEFAULT_ARCHIVING(mul)
 // functions overriding virtual functions from base classes
 //////////
 
-void mul::print_overall_coeff(const print_context & c,
+void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
-	const numeric &coeff = ex_to<numeric>(overall_coeff);
+	const numeric &coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
 	print_context* tcontext_p;
 	if (latex)
@@ -167,11 +167,7 @@ void mul::print_overall_coeff(const print_context & c,
 			else
 				c.s << ')';
 		}
-		if (latex) {
-			c.s << " \\, ";
-		} else {
-			c.s << mul_sym;
-		}
+		c.s << mul_sym;
 	}
 }
 
@@ -257,18 +253,26 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 
 	if (!neg_powers.empty()) {
 		// Factors with negative exponent are printed as a fraction
-		print_overall_coeff(c, others.size() == 0 ? "" : sep,
-				latex_tags);
 		if (latex_tags) {
 			c.s << "\\frac{";
-			if (others.empty())
-				c.s<<"1";
+			ex numer = overall_coeff.numer();
+			print_overall_coeff(numer, c,
+					others.size() == 0 ? "" : " \\, ",
+					latex_tags);
+			if (others.empty() && ( numer.is_equal(_ex1) ||
+						numer.is_equal(_ex_1)))
+				c.s<<'1';
 			else
 				print_exvector(others, c, sep);
 			c.s << "}{";
+			print_overall_coeff(overall_coeff.denom(), c, " \\, ",
+				latex_tags);
 			print_exvector(neg_powers, c, sep);
 			c.s << "}";
 		} else {
+			print_overall_coeff(overall_coeff, c,
+					others.size() == 0 ? "" : sep,
+					latex_tags);
 			if (others.empty() && ( overall_coeff.is_equal(_ex1) ||
 						overall_coeff.is_equal(_ex_1)))
 				c.s<<"1";
@@ -287,7 +291,8 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 
 	} else {
 
-		print_overall_coeff(c, sep, latex_tags);
+		print_overall_coeff(overall_coeff, c,
+				latex_tags ? " \\, " : sep, latex_tags);
 
 		print_exvector(others, c, sep);
 	}

@@ -397,6 +397,13 @@ cdef class Expression(CommutativeRingElement):
             sage: k.<a> = GF(9)
             sage: SR(a+1)^x
             (a + 1)^x
+
+        Check if #7876 is fixed::
+
+            sage: (1/2-1/2*I )*sqrt(2)
+            (-1/2*I + 1/2)*sqrt(2)
+            sage: latex((1/2-1/2*I )*sqrt(2))
+            \left(-\frac{1}{2} I + \frac{1}{2}\right) \, \sqrt{2}
         """
         return self._parent._repr_element_(self)
 

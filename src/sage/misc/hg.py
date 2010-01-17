@@ -43,6 +43,7 @@ from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg, embedded
 from   remote_file import get_remote_file as get_remote_file0
 from   sage.server.misc import print_open_msg
+from   subprocess import Popen
 import re
 
 sage_trac_re = re.compile('http[s]?://(sagetrac\.org|trac\.sagemath\.org)/sage_trac/attachment/ticket/[0-9]+/.*\.(patch|hg)')
@@ -213,7 +214,7 @@ class HG:
 
         -  ``interactive`` - If True, runs using os.system, so
            user can interactively interact with hg, i.e., this is needed when
-           you record changes because the editor pops up. If False, popen3 is
+           you record changes because the editor pops up. If False, Popen is
            used to launch hg as a subprocess.
 
 
@@ -237,10 +238,12 @@ class HG:
             e = os.system(s)
             return e
         else:
-            x = os.popen3(s)
-            x[0].close()
-            out = x[1].read()
-            err = x[2].read()
+            from subprocess import PIPE
+            x = Popen(s, shell=True,
+                      stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+            x.stdin.close()
+            out = x.stdout.read()
+            err = x.stderr.read()
             return out, err
 
     def serve(self, port=8200, address='localhost',

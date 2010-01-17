@@ -34,12 +34,21 @@ import scheme
 import spec
 
 def is_SchemeMorphism(f):
+    """
+    Return True if f is a scheme morphism or a point on an elliptic curve.
+
+    EXAMPLES::
+
+        sage: R.<x,y> = QQ[]; A.<x,y> = AffineSpace(R); H = A.Hom(A)
+        sage: f = H([y,x^2+y])
+        sage: sage.schemes.generic.morphism.is_SchemeMorphism(f)
+        True
+    """
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
 
 class PyMorphism(Element):
-    # Double inheritance from both Morphism and AdditiveGroupElement seems to mess up the ModuleElement pyrex vtab, which is really bad!
     def __init__(self, parent):
         if not isinstance(parent, Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
@@ -175,9 +184,8 @@ class SchemeMorphism_structure_map(SchemeMorphism):
         """
         INPUT:
 
-
-        -  ``parent`` - homset with codomain equal to the base
-           scheme of the domain.
+           - ``parent`` - homset with codomain equal to the base
+            scheme of the domain.
         """
         SchemeMorphism.__init__(self, parent)
         if self.domain().base_scheme() != self.codomain():
@@ -279,8 +287,95 @@ class SchemeMorphism_on_points(SchemeMorphism):
         sage: f = H([x^2+y^2,x*y])
         sage: f([0,1])
         (1 : 0)
+
+    Some checks are performed to make sure the given polynomials
+    define a morphism::
+
+        sage: R.<x,y> = QQ[]
+        sage: P1 = ProjectiveSpace(R)
+        sage: H = P1.Hom(P1)
+        sage: f = H([x^2, x*y])
+        Traceback (most recent call last):
+        ...
+        ValueError: polys (=[x^2, x*y]) must not have common factors
+
+        sage: f = H([exp(x),exp(y)])
+        Traceback (most recent call last):
+        ...
+        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate Polynomial Ring in x, y over Rational Field
     """
+    def __init__(self, parent, polys, check=True):
+        if check:
+            if not isinstance(polys, (list, tuple)):
+                raise TypeError, "polys (=%s) must be a list or tuple"%polys
+            source_ring = parent.domain().coordinate_ring()
+            target = parent.codomain().ambient_space()
+            if len(polys) != target.ngens():
+                raise ValueError, "there must be %s polynomials"%target.ngens()
+            try:
+                polys = [source_ring(poly) for poly in polys]
+            except TypeError:
+                raise TypeError, "polys (=%s) must be elements of %s"%(polys,source_ring)
+            from sage.schemes.generic.projective_space import is_ProjectiveSpace
+            if is_ProjectiveSpace(target):
+                # if the codomain is a subscheme of projective space,
+                # then we need to make sure that polys have no common
+                # zeros
+                from sage.rings.quotient_ring import QuotientRing_generic
+                if isinstance(source_ring, QuotientRing_generic):
+                    # if the coordinate ring of the domain is a
+                    # quotient by an ideal, we need to check that the
+                    # gcd of polys and the generators of the ideal is 1
+                    lift_polys = [f.lift() for f in polys]
+                    lift_polys = lift_polys + list(source_ring.defining_ideal().gens())
+                else:
+                    # if the domain is affine space, we just need to
+                    # check the gcd of polys
+                    lift_polys = polys
+                from sage.rings.arith import gcd
+                if gcd(lift_polys) != 1:
+                    raise ValueError, "polys (=%s) must not have common factors"%polys
+            polys = Sequence(polys)
+            polys.set_immutable()
+            # Todo: check that map is well defined (how?)
+        self.__polys = polys
+        SchemeMorphism.__init__(self, parent)
+
+    def defining_polynomials(self):
+        """
+        Return the immutable sequence of polynomials that defines this
+        scheme morphism.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: A.<x,y> = AffineSpace(R)
+            sage: H = A.Hom(A)
+            sage: H([x^3+y, 1-x-y]).defining_polynomials()
+            [x^3 + y, -x - y + 1]
+        """
+        return self.__polys
+
     def __call__(self, x):
+        """
+        Apply this morphism to a point in the domain.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: A.<x,y> = AffineSpace(R)
+            sage: H = A.Hom(A)
+            sage: f = H([y,x^2+y])
+            sage: f([2,3])
+            (3, 7)
+
+        We illustrate type checking of the input::
+
+            sage: f(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: Argument v (=(0,)) must have 2 coordinates.
+        """
         dom = self.domain()
         x = dom(x)
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -288,6 +383,19 @@ class SchemeMorphism_on_points(SchemeMorphism):
 
 
     def _repr_defn(self):
+        """
+        This function is used internally for printing.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: A.<x,y> = AffineSpace(R)
+            sage: H = A.Hom(A)
+            sage: f = H([y,x^2+y])
+            sage: print f._repr_defn()
+            Defined on coordinates by sending (x, y) to
+            (y, x^2 + y)
+        """
         i = self.domain().ambient_space()._repr_generic_point()
         o = self.codomain().ambient_space()._repr_generic_point(self.defining_polynomials())
         return "Defined on coordinates by sending %s to\n%s"%(i,o)
@@ -297,43 +405,59 @@ class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient affine space.
+
+    EXAMPLES:
+        sage: RA.<x,y> = QQ[]
+        sage: A2 = AffineSpace(RA)
+        sage: RP.<u,v,w> = QQ[]
+        sage: P2 = ProjectiveSpace(RP)
+        sage: H = A2.Hom(P2)
+        sage: f = H([x, y, 1])
+        sage: f
+        Scheme morphism:
+          From: Affine Space of dimension 2 over Rational Field
+          To:   Projective Space of dimension 2 over Rational Field
+          Defn: Defined on coordinates by sending (x, y) to
+                (x : y : 1)
     """
-    def __init__(self, parent, polys, check=True):
-        if check:
-            if not isinstance(polys, (list, tuple)):
-                raise TypeError, "polys (=%s) must be a list or tuple"%polys
-            polys = Sequence(polys)
-            if len(polys) != parent.codomain().dimension():
-                raise ValueError, "there must be %s polynomials but instead received %s"%(
-                    parent.codomain().dimension(), polys)
-            polys.set_immutable()
-            # Todo: check that map is well defined (how?)
-        self.__polys = polys
-        SchemeMorphism_on_points.__init__(self, parent)
-
-    def defining_polynomials(self):
-        return self.__polys
-
 
 class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient projective space.
+
+    EXAMPLES::
+
+        sage: R.<x,y> = QQ[]
+        sage: P1 = ProjectiveSpace(R)
+        sage: H = P1.Hom(P1)
+        sage: H([y,2*x])
+        Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+          Defn: Defined on coordinates by sending (x : y) to
+                (y : 2*x)
+
+    We illustrate some error checking::
+
+        sage: f = H([x-y, x*y])
+        Traceback (most recent call last):
+        ...
+        ValueError: polys (=[x - y, x*y]) must be homogeneous of the same degree
+
+        sage: H([exp(x),exp(y)])
+        Traceback (most recent call last):
+        ...
+        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate Polynomial Ring in x, y over Rational Field
     """
 
     def __init__(self, parent, polys, check=True):
+        SchemeMorphism_on_points.__init__(self, parent, polys, check)
         if check:
-            if not isinstance(polys, (list, tuple)):
-                raise TypeError, "polys (=%s) must be a list or tuple"%polys
-            polys = Sequence(polys)
-            if len(polys) != parent.codomain().ambient_space().ngens():
-                raise ValueError, "there must be %s polynomials"%parent.codomain().ambient_space().ngens()
-            polys.set_immutable()
-        self.__polys = polys
-        SchemeMorphism_on_points.__init__(self, parent)
-
-    def defining_polynomials(self):
-        return self.__polys
+            # morphisms from projective space are always given by
+            # homogeneous polynomials of the same degree
+            deg = self.defining_polynomials()[0].degree()
+            for poly in self.defining_polynomials():
+                if (poly.degree() != deg) or not poly.is_homogeneous():
+                    raise ValueError, "polys (=%s) must be homogeneous of the same degree"%polys
 
 
 ############################################################################

@@ -899,7 +899,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               To:   Closed subscheme of Projective Space of dimension 3 over Integer Ring defined by:
               x0*x1 - x2*x3
               Defn: Defined on coordinates by sending (x, y, z) to
-                    (x : y : z : 1)
+                    (xbar : ybar : zbar : 1)
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1006,7 +1006,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               X^3*Y + Y^3*Z + X*Z^3
               Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 : x1)
+                    (1 : x0bar : x1bar)
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()

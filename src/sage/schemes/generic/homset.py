@@ -186,6 +186,15 @@ class SchemeHomset_generic(parent_old.Parent, HomsetWithBase):
 
     def __call__(self, x, check=True):
         """
+        INPUT:
+
+            - `x` -- a ring morphism, or a list or tuple of that
+              define a ring morphism.
+
+            - ``check`` -- (default: True) passed onto functions
+              called by this to be more careful about input argument
+              type checking
+
         EXAMPLES::
 
             sage: f = ZZ.hom(QQ); f
@@ -207,12 +216,29 @@ class SchemeHomset_generic(parent_old.Parent, HomsetWithBase):
               Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
+
+        TESTS::
+
+        We illustrate input type checking::
+
+            sage: R.<x,y> = QQ[]
+            sage: A.<x,y> = AffineSpace(R)
+            sage: C = A.subscheme(x*y-1)
+            sage: H = C.Hom(C); H
+            Set of points of Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              x*y - 1 defined over Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+            sage: H(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be a ring homomorphism, list or tuple
         """
         if isinstance(x, (list, tuple)):
-            return self.codomain()._point_morphism_class(self, x, check=check)
+            return self.domain()._point_morphism_class(self, x, check=check)
 
         if is_RingHomomorphism(x):
             return morphism.SchemeMorphism_spec(self, x, check=check)
+
+        raise TypeError, "x must be a ring homomorphism, list or tuple"
 
 class SchemeHomset_spec(SchemeHomset_generic):
     pass

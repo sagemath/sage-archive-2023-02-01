@@ -34,6 +34,7 @@ import ring
 from sage.rings.integer cimport Integer
 
 import math
+from sage.libs.mpmath import utils as mpmath_utils
 
 #################################################################
 # Symbolic function helpers
@@ -1533,39 +1534,109 @@ cdef public int py_int_length(object x) except -1:
     # 2^(n-1) <= x < 2^n.  This returns 0 if x is not an integer.
     return Integer(x).nbits()
 
-
 from sage.structure.parent import Parent
 cdef public object py_li(object x, object n, object parent):
     """
-    Returns a numerical approximation of polylog(n, x) with *prec*
-    bits of precision.
+    Returns a numerical approximation of polylog(n, x) with precision given
+    by the ``parent`` argument.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_li_for_doctests as py_li
+        sage: py_li(0,2,RR)
+        0.000000000000000
+        sage: py_li(-1,2,RR)
+        -0.822467033424113
+        sage: py_li(0, 1, float)
+        0.000000000000000
     """
-    #This is really awful and slow.  We should really improve our
-    #interface with mpmath! :-)
     import mpmath
-    prec = parent.prec() if isinstance(parent, Parent) else 53
-    old_prec, mpmath.mp.prec = mpmath.mp.prec, prec
-    n = int(n)
-    res = mpmath.polylog(n, str(x))
-    try:
-        res = RealField(prec)(str(res))
-    except TypeError:
-        res = ComplexField(prec)(str(res))
-    mpmath.mp.prec = old_prec
-    return res
+    if isinstance(parent, Parent) and hasattr(parent, 'prec'):
+        prec = parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.polylog, n, x, prec=prec)
+
+def py_li_for_doctests(x, n, parent):
+    """
+    This function is a python wrapper so py_li can be tested. The real tests
+    are in the docstring for py_li.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_li_for_doctests
+        sage: py_li_for_doctests(0,2,float)
+        0.000000000000000
+    """
+    return py_li(x, n, parent)
+
+cdef public object py_psi(object x):
+    """
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_psi_for_doctests as py_psi
+        sage: py_psi(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: polygamma pole
+        sage: py_psi(1)
+        -0.577215664901533
+        sage: euler_gamma.n()
+        0.577215664901533
+    """
+    import mpmath
+    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+        prec = (<Element>x)._parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.psi, 0, x, prec=prec)
+
+def py_psi_for_doctests(x):
+    """
+    This function is a python wrapper so py_psi can be tested. The real tests
+    are in the docstring for py_psi.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_psi_for_doctests
+        sage: py_psi_for_doctests(2)
+        0.422784335098467
+    """
+    return py_psi(x)
+
+cdef public object py_psi2(object n, object x):
+    """
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_psi2_for_doctests as py_psi2
+        sage: py_psi2(2, 1)
+        -2.40411380631919
+    """
+    import mpmath
+    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+        prec = (<Element>x)._parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.psi, n, x, prec=prec)
+
+def py_psi2_for_doctests(n, x):
+    """
+    This function is a python wrapper so py_psi2 can be tested. The real tests
+    are in the docstring for py_psi2.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_psi2_for_doctests
+        sage: py_psi2_for_doctests(1, 2)
+        0.644934066848226
+    """
+    return py_psi2(n, x)
 
 ##################################################################
 # Not yet implemented
 ##################################################################
 cdef public object py_li2(object x):
     raise NotImplementedError
-
-cdef public object py_psi(object x):
-    raise NotImplementedError
-
-cdef public object py_psi2(object x, object y):
-    raise NotImplementedError
-
 
 ##################################################################
 # Constants

@@ -538,6 +538,153 @@ class Function_gamma(GinacFunction):
 
 gamma = Function_gamma()
 
+class Function_psi1(GinacFunction):
+    def __init__(self):
+        r"""
+        The digamma function, `\psi(x)`, is the logarithmic derivative of the
+        gamma function.
+
+        `\psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}`
+
+        EXAMPLES::
+
+            sage: from sage.functions.other import psi1
+            sage: psi1(x)
+            psi(x)
+            sage: psi1(x).derivative(x)
+            psi(1, x)
+
+        ::
+
+            sage: psi1(3)
+            -euler_gamma + 3/2
+
+        ::
+
+            sage: psi(.5)
+            -1.96351002602142
+            sage: psi(RealField(100)(.5))
+            -1.9635100260214234794409763330
+
+        Tests::
+
+            sage: latex(psi1(x))
+            \psi\left(x\right)
+            sage: loads(dumps(psi1(x)+1))
+            psi(x) + 1
+        """
+        GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
+                conversions=dict(maxima='psi[0]', mathematica='PolyGamma'))
+
+class Function_psi2(GinacFunction):
+    def __init__(self):
+        r"""
+        Derivatives of the digamma function `\psi(x)`. T
+
+        EXAMPLES::
+
+            sage: from sage.functions.other import psi2
+            sage: psi2(2, x)
+            psi(2, x)
+            sage: psi2(2, x).derivative(x)
+            psi(3, x)
+            sage: n = var('n')
+            sage: psi2(n, x).derivative(x)
+            psi(n + 1, x)
+
+        ::
+
+            sage: psi2(0, x)
+            psi(x)
+            sage: psi2(-1, x)
+            log(gamma(x))
+            sage: psi2(3, 1)
+            1/15*pi^4
+
+        ::
+
+            sage: psi2(2, .5).n()
+            -16.8287966442343
+            sage: psi2(2, .5).n(100)
+            -16.828796644234319995596334261
+
+        Tests::
+
+            sage: psi2(n, x).derivative(n)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cannot diff psi(n,x) with respect to n
+
+            sage: latex(psi2(2,x))
+            \psi\left(2, x\right)
+            sage: loads(dumps(psi2(2,x)+1))
+            psi(2, x) + 1
+        """
+        GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
+                conversions=dict(mathematica='PolyGamma'))
+
+    def _maxima_init_evaled_(self, n, x):
+        """
+        EXAMPLES:
+
+        These are indirect doctests for this function.::
+
+            sage: from sage.functions.other import psi2
+            sage: psi2(2, x)._maxima_()
+            psi[2](x)
+            sage: psi2(4, x)._maxima_()
+            psi[4](x)
+        """
+        return "psi[%s](%s)"%(n, x)
+
+psi1 = Function_psi1()
+psi2 = Function_psi2()
+
+def psi(x, *args, **kwds):
+    r"""
+    The digamma function, `\psi(x)`, is the logarithmic derivative of the
+    gamma function.
+
+    `\psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}`
+
+    We represent the `n`-th derivative of the digamma function with
+    `\psi(n, x)` or ``psi(n, x).
+
+    EXAMPLES::
+
+        sage: psi(x)
+        psi(x)
+        sage: psi(.5)
+        -1.96351002602142
+        sage: psi(3)
+        -euler_gamma + 3/2
+        sage: psi(1, 5)
+        1/6*pi^2 - 205/144
+        sage: psi(1, x)
+        psi(1, x)
+        sage: psi(1, x).derivative(x)
+        psi(2, x)
+
+    ::
+
+        sage: psi(3, hold=True)
+        psi(3)
+        sage: psi(1, 5, hold=True)
+        psi(1, 5)
+
+    TESTS::
+        sage: psi(2, x, 3)
+        Traceback (most recent call last):
+        ...
+        TypeError: Symbolic function psi takes exactly 2 arguments (3 given)
+    """
+    if not args:
+        return psi1(x, **kwds)
+    if len(args) > 1:
+        raise TypeError, "Symbolic function psi takes exactly 2 arguments (%s given)"%(len(args)+1)
+    return psi2(x,args[0],**kwds)
+
+
 class Function_factorial(GinacFunction):
     def __init__(self):
         r"""

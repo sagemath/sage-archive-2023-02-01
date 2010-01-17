@@ -48,7 +48,7 @@ ex g_function_eval1(unsigned serial, const ex& arg1, bool hold)
 ex g_function_eval2(unsigned serial, const ex& arg1, const ex& arg2, bool hold)
 {
     if (hold)
-        function(serial, arg1, arg2).hold();
+        return function(serial, arg1, arg2).hold();
     return function(serial, arg1, arg2);
 }
 
@@ -56,7 +56,7 @@ ex g_function_eval3(unsigned serial, const ex& arg1, const ex& arg2,
         const ex& arg3, bool hold)
 {
     if (hold)
-        function(serial, arg1, arg2, arg3).hold();
+        return function(serial, arg1, arg2, arg3).hold();
     return function(serial, arg1, arg2, arg3);
 }
 

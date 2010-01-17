@@ -298,9 +298,9 @@ class Function_polylog(GinacFunction):
             sage: polylog(4, 2).n()
             2.42786280675470 - 0.174371300025453*I
             sage: complex(polylog(4,2))
-            (2.4278628067547001-0.17437130002545301j)
+            (2.4278628067547032-0.17437130002545306j)
             sage: float(polylog(4,0.5))
-            0.51747906167389901
+            0.51747906167389934
 
             sage: z = var('z')
             sage: polylog(2,z).series(z==0, 5)
@@ -318,7 +318,7 @@ class Function_polylog(GinacFunction):
         """
         EXAMPLES:
 
-        These are indirect doctests for this function.
+        These are indirect doctests for this function.::
 
             sage: polylog(2, x)._maxima_()
             li[2](x)

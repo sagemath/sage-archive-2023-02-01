@@ -189,7 +189,22 @@ class Matlab(Expect):
         return reduce_load_Matlab, tuple([])
 
     def _read_in_file_command(self, filename):
-        return 'source("%s");'%filename
+        """
+        Returns the command used to read in and execute a file in Matlab.
+
+        EXAMPLES::
+
+            sage: matlab._read_in_file_command('/tmp/matlab_file')
+            "eval(fileread('/tmp/matlab_file'));"
+
+        Here is an indirect doctest to check that it does indeed
+        work::
+
+            sage: m = identity_matrix(ZZ, 10)
+            sage: sm = matlab.sage2matlab_matrix_string(m)
+            sage: m = matlab(sm)  #optional - matlab
+        """
+        return "eval(fileread('%s'));"%filename
 
     def _quit_string(self):
         return 'quit;'
@@ -239,10 +254,29 @@ for hints on how to do that).
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES::
+
+            sage: s = matlab.eval('a = 2') #optional - requires matlab
+            sage: matlab.get('a')               #optional
+            '     2'
         """
         s = self.eval('%s'%var)
+        return self.strip_answer(s)
+
+    def strip_answer(self, s):
+        """
+        Returns the string s with Matlab's answer prompt removed.
+
+        EXAMPLES::
+
+            sage: s = '\nans =\n\n     2\n'
+            sage: matlab.strip_answer(s)
+            '     2'
+        """
         i = s.find('=')
         return s[i+1:].strip('\n')
+
 
     def console(self):
         matlab_console()
@@ -306,17 +340,20 @@ class MatlabElement(ExpectElement):
             sage: matrix(RR, A)                 # optional
             [1.00000000000000 2.00000000000000]
             [3.00000000000000 4.50000000000000]
+
+            sage: a = matlab('eye(50)')         #optional - requires matlab
+            sage: matrix(RR, a)                 #optional - requires matlab
+            50 x 50 dense matrix over Real Field with 53 bits of precision
+
         """
-        from sage.matrix.all import MatrixSpace
-        s = str(self).strip()
-        v = s.split('\n ')
-        nrows = len(v)
-        if nrows == 0:
-            return MatrixSpace(R,0,0)(0)
-        ncols = len(v[0].split())
-        M = MatrixSpace(R, nrows, ncols)
-        v = sum([[x for x in w.split()] for w in v], [])
-        return M(v)
+        from sage.matrix.all import matrix
+        matlab = self.parent()
+        entries = matlab.strip_answer(matlab.eval("mat2str(%s)"%self.name()))
+        entries = entries.strip()[1:-1].replace(';', ' ')
+        entries = map(R, entries.split(' '))
+        nrows, ncols = map(int, str(self.size()).strip().split())
+        m = matrix(R, nrows, ncols, entries)
+        return m
 
     def set(self, i, j, x):
         P = self._check_valid()

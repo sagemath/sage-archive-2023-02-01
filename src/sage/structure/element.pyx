@@ -185,8 +185,9 @@ import sage.misc.sageinspect as sageinspect
 cdef MethodType
 from types import MethodType
 
-from sage.categories.sets_cat   import Sets
+from sage.categories.category   import Category
 from sage.structure.parent      cimport Parent
+from sage.structure.parent      import is_extension_type
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -436,6 +437,44 @@ cdef class Element(sage_object.SageObject):
     def category(self):
         from sage.categories.all import Elements
         return Elements(self._parent)
+
+
+    def _test_category(self, **options):
+        """
+        Run generic tests on the method :meth:`.category`.
+
+        See also: :class:`TestSuite`.
+
+        EXAMPLES::
+
+            sage: 3._test_category()
+
+        Let us now write a broken :meth:`.category` method::
+
+            sage: from sage.categories.examples.sets_cat import PrimeNumbers
+            sage: class CCls(PrimeNumbers):
+            ...       def an_element(self):
+            ...           return 18
+            sage: CC = CCls()
+            sage: CC._test_an_element()
+            Traceback (most recent call last):
+            ...
+            AssertionError: self.an_element() is not in self
+        """
+        from sage.categories.objects    import Objects
+        tester = self._tester(**options)
+        sage_object.SageObject._test_category(self, tester = tester)
+        category = self.category()
+        # Tests that self inherits methods from the categories
+        if not is_extension_type(self.__class__):
+            # For usual Python classes, that should be done with
+            # standard inheritance
+            tester.assert_(isinstance(self, self.parent().category().element_class))
+        else:
+            # For extension types we just check that inheritance
+            # occurs on a dummy attribute of Sets().ElementMethods
+            tester.assert_(hasattr(self, "_dummy_attribute"))
+
 
     def parent(self, x=None):
         """

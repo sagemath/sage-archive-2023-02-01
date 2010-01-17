@@ -70,6 +70,7 @@ A simple example of registering coercions::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets
 from copy import copy
@@ -496,28 +497,49 @@ cdef class Parent(category_object.CategoryObject):
             self._category = Sets()
         return self._category
 
-    def categories(self):
+    def _test_category(self, **options):
         """
+        Run generic tests on the method :meth:`.category`.
+
+        See also: :class:`TestSuite`.
+
         EXAMPLES::
 
-            sage: ZZ.categories()
-            [Category of euclidean domains,
-             Category of principal ideal domains,
-             Category of gcd domains,
-             Category of integral domains,
-             Category of commutative rings,
-             Category of domains,
-             Category of rings,
-             Category of rngs,
-             Category of commutative additive groups,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of monoids,
-             Category of semigroups,
-             Category of sets,
-             Category of objects]
+            sage: C = Sets().example()
+            sage: C._test_category()
+
+        Let us now write a parent with broken categories:
+
+            sage: class MyParent(Parent):
+            ...       def __init__(self):
+            ...           pass
+            sage: P = MyParent()
+            sage: P._test_category()
+            Traceback (most recent call last):
+            ...
+            AssertionError: category of self improperly initialized
+
+        To fix this, :meth:`MyParent.__init__` should initialize the
+        category of ``self`` by calling :meth:`._init_category` or
+        ``Parent.__init__(self, category = ...)``.
         """
-        return self.category().all_super_categories()
+        tester = self._tester(**options)
+        SageObject._test_category(self, tester = tester)
+        category = self.category()
+        tester.assert_(category.is_subcategory(Sets()))
+        # Tests that self inherits methods from the categories
+        if not is_extension_type(self.__class__):
+            # For usual Python classes, that should be done with
+            # standard inheritance
+            tester.assert_(isinstance(self, category.parent_class),
+                           "category of self improperly initialized"%self)
+        else:
+            # For extension types we just check that inheritance
+            # occurs on one specific method.
+            # _test_an_element from Sets().ParentMethods is a good
+            # candidate because it's unlikely to be overriden in self.
+            tester.assert_(hasattr(self, "_test_an_element"),
+                           "category of self improperly initialized"%self)
 
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
@@ -553,7 +575,13 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_additive_associativity() . . . pass
             running ._test_an_element() . . . pass
             running ._test_associativity() . . . pass
-            running ._test_element_pickling() . . . pass
+            running ._test_category() . . . pass
+            running ._test_elements() . . .
+              Running the test suite of self.an_element()
+              running ._test_category() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+              pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -583,7 +611,8 @@ cdef class Parent(category_object.CategoryObject):
             ['_test_additive_associativity',
              '_test_an_element',
              '_test_associativity',
-             '_test_element_pickling',
+             '_test_category',
+             '_test_elements',
              '_test_not_implemented_methods',
              '_test_one',
              '_test_pickling',

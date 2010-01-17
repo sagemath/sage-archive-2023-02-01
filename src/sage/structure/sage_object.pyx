@@ -201,6 +201,36 @@ cdef class SageObject:
         from sage.categories.all import Objects
         return Objects()
 
+    def _test_category(self, **options):
+        """
+        Run generic tests on the method :meth:`.category`.
+
+        See also: :class:`TestSuite`.
+
+        EXAMPLES::
+
+            sage: O = SageObject()
+            sage: O._test_category()
+
+        Let us now write a broken :meth:`.category` method::
+
+            sage: class CCls(SageObject):
+            ...       def category(self):
+            ...           return 3
+            sage: CC = CCls()
+            sage: CC._test_category()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
+        from sage.categories.category import Category
+        from sage.categories.objects import Objects
+        tester = self._tester(**options)
+        category = self.category()
+        tester.assert_(isinstance(category, Category))
+        tester.assert_(category.is_subcategory(Objects()))
+        tester.assert_(self in category)
+
 ##     def category(self):
 ##         try:
 ##             return self.__category
@@ -215,6 +245,44 @@ cdef class SageObject:
     # Test framework
     #############################################################################
 
+    def _tester(self, **options):
+        """
+        Returns a gadget attached to ``self`` providing testing utilities.
+
+        This is used by :class:`sage.misc.sage_unittest.TestSuite` and the
+        ``_test_*`` methods.
+
+        EXAMPLES::
+
+            sage: tester = ZZ._tester()
+
+            sage: tester.assert_(1 == 1)
+            sage: tester.assert_(1 == 0)
+            Traceback (most recent call last):
+            ...
+            AssertionError
+            sage: tester.assert_(1 == 0, "this is expected to fail")
+            Traceback (most recent call last):
+            ...
+            AssertionError: this is expected to fail
+
+            sage: tester.assertEquals(1, 1)
+            sage: tester.assertEquals(1, 0)
+            Traceback (most recent call last):
+            ...
+            AssertionError: 1 != 0
+
+        The available assertion testing facilities are the same as in
+        :class:`unittest.TestCase`, which see (actually, by a slight
+        abuse, tester is currently an instance of this class).
+
+        TESTS::
+
+            sage: ZZ._tester(tester = tester) is tester
+            True
+        """
+        from sage.misc.sage_unittest import instance_tester
+        return instance_tester(self, **options)
 
     def _test_not_implemented_methods(self, **options):
         """
@@ -274,50 +342,6 @@ cdef class SageObject:
         tester = self._tester(**options)
         from sage.misc.all import loads, dumps
         tester.assertEqual(loads(dumps(self)), self)
-
-    def _tester(self, tester = None, **options):
-        """
-        Returns a gadget attached to ``self`` providing testing utilities.
-
-        This is used by :class:`sage.misc.sage_unittest.TestSuite` and the
-        ``_test_*`` methods.
-
-        EXAMPLES::
-
-            sage: tester = ZZ._tester()
-
-            sage: tester.assert_(1 == 1)
-            sage: tester.assert_(1 == 0)
-            Traceback (most recent call last):
-            ...
-            AssertionError
-            sage: tester.assert_(1 == 0, "this is expected to fail")
-            Traceback (most recent call last):
-            ...
-            AssertionError: this is expected to fail
-
-            sage: tester.assertEquals(1, 1)
-            sage: tester.assertEquals(1, 0)
-            Traceback (most recent call last):
-            ...
-            AssertionError: 1 != 0
-
-        The available assertion testing facilities are the same as in
-        :class:`unittest.TestCase`, which see (actually, by a slight
-        abuse, tester is currently an instance of this class).
-
-        TESTS::
-
-            sage: ZZ._tester(tester = tester) is tester
-            True
-        """
-        if tester is None:
-            from sage.misc.sage_unittest import InstanceTester
-            return InstanceTester(self, **options)
-        else:
-            assert len(options) == 0
-            assert tester._instance is self
-            return tester
 
     #############################################################################
     # Coercions to interface objects

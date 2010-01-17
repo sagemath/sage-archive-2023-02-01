@@ -130,26 +130,6 @@ cdef class LeftZeroSemigroupElement(Element):
         """
         return cmp(self._value, other._value)
 
-    def __getattr__(self, name):
-        """
-        EXAMPLES::
-
-            sage: from sage.categories.examples.semigroups_cython import LeftZeroSemigroup
-            sage: S = LeftZeroSemigroup()
-            sage: x = S(3)
-            sage: x.is_idempotent
-            <bound method LeftZeroSemigroupElement.is_idempotent of 3>
-            sage: x.is_idempotent()
-            True
-        """
-        result = getattr(self.parent().category().element_class, name)
-        if isinstance(result, instancemethod):
-            return instancemethod(result.im_func, self, self.__class__)
-        elif isinstance(result,  method_descriptor):
-            return result # should bind the method descriptor to appropriate object
-        else:
-            return result
-
     # Apparently, python looks for __mul__, __pow__, ... in the
     # class of self rather than in self itself. No big deal, since
     # those will usually be defined in a cython super class of
@@ -229,7 +209,13 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
-        running ._test_element_pickling() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -237,16 +223,16 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
     That's really the only method which is obtained from the category ... ::
 
         sage: S(42).is_idempotent
-        <bound method LeftZeroSemigroupElement.is_idempotent of 42>
+        <bound method IdempotentSemigroups.element_class.is_idempotent of 42>
         sage: S(42).is_idempotent()
         True
 
-        sage: S(42)._pow_                 # how to bind it?
+        sage: S(42)._pow_                 # todo: not implemented (how to bind it?)
         <method '_pow_' of 'sage.categories.examples.semigroups_cython.IdempotentSemigroupsElement' objects>
         sage: S(42)^10                    # todo: not implemented (see __getattr__)
         42
 
-        sage: S(42).is_idempotent_cpdef   # how to bind it?
+        sage: S(42).is_idempotent_cpdef   #  todo: not implemented (how to bind it?)
         <method 'is_idempotent_cpdef' of 'sage.categories.examples.semigroups_cython.IdempotentSemigroupsElement' objects>
         sage: S(42).is_idempotent_cpdef() # todo: not implemented (see __getattr__)
         True

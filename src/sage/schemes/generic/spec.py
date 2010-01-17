@@ -47,8 +47,8 @@ class Spec(scheme.AffineScheme):
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49,'a'), 3, 'x')); X
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
-        sage: loads(X.dumps()) == X
-        True
+        sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements", "_test_some_elements", "_test_category"]) # see # 7946
+
         sage: A = Spec(ZZ); B = Spec(ZZ)
         sage: A is B
         False

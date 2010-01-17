@@ -12,7 +12,7 @@ for categories), but deriving only from Parent::
     sage: P = TestParent1()
     sage: TestSuite(P).run()
     Failure ...
-    The following tests failed: _test_element_pickling, _test_pickling
+    The following tests failed: _test_elements, _test_pickling
 
 They actually need to be in the NestedClassMetaclass. However, due to
 a technical detail, this is currently not directly supported::

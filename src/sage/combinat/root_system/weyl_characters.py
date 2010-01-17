@@ -115,7 +115,7 @@ class WeylCharacter(AlgebraElement):
 
             sage: R = WeylCharacterRing("B3", prefix = "R")
             sage: r =  R(1,1,0)
-            sage: TestSuite(r).run()
+            sage: TestSuite(r).run(skip = "_test_category")
         """
         AlgebraElement.__init__(self, A)
         self._hdict = hdict
@@ -621,7 +621,7 @@ class WeylCharacterRing_class(Algebra):
         EXAMPLES::
 
             sage: R = WeylCharacterRing(['A',3])
-            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(skip = "_test_elements") # see #7922
         """
         sage.structure.parent_base.ParentWithBase.__init__(self, base_ring, category = Algebras(base_ring))
 
@@ -2215,7 +2215,7 @@ class WeightRingElement(AlgebraElement):
 
             sage: A2 = WeylCharacterRing(['A',2])
             sage: a2 = WeightRing(A2)
-            sage: TestSuite(a2).run(skip = ["_test_element_pickling"]) # see #7922
+            sage: TestSuite(a2).run(skip = ["_test_elements"]) # see #7922
         """
         AlgebraElement.__init__(self, A)
         self._mdict = mdict
@@ -2503,7 +2503,7 @@ class WeightRing(Algebra):
 
             sage: R = WeylCharacterRing(['G',2], prefix = "R", base_ring = QQ)
             sage: S = WeightRing(R, prefix = "S")
-            sage: TestSuite(S).run(skip = ["_test_element_pickling"]) # see #7922
+            sage: TestSuite(S).run(skip = ["_test_elements"]) # see #7922
         """
         self._parent = A
         self._cartan_type = self._parent._cartan_type

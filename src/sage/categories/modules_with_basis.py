@@ -500,7 +500,20 @@ class ModuleMorphismByLinearity(Morphism):
 
         TESTS::
 
-            sage: TestSuite(phi).run()
+            sage: TestSuite(phi).run() # known issue
+            Failure in _test_category:
+            ...
+            The following tests failed: _test_category
+
+        Analysis: ``phi`` does not inherit from the element class of
+        the category of its parent::
+
+            sage: isinstance(phi, phi.parent().category().element_class)
+            False
+
+        To be fixed in the general morphism overhaul (#....), possibly
+        by making sure to create ``phi`` through its parent.
+
         """
         if codomain is None and hasattr(on_basis, 'codomain'):
             codomain = on_basis.codomain()
@@ -630,7 +643,10 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
             sage: phi.__class__
             <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism'>
-            sage: TestSuite(phi).run()
+            sage: TestSuite(phi).run() # known issue; see ModuleMorphismByLinearity.__init__
+            Failure in _test_category:
+            ...
+            The following tests failed: _test_category
         """
         assert codomain is not None
         assert domain.basis().keys() == codomain.basis().keys()

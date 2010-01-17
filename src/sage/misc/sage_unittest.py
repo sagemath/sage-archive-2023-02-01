@@ -27,6 +27,7 @@ class TestSuite(object):
     object, in alphabetic order::
 
         sage: TestSuite(1).run(verbose = True)
+        running ._test_category() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
 
@@ -41,7 +42,13 @@ class TestSuite(object):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
-        running ._test_element_pickling() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
         running ._test_enumerated_set_contains() . . . pass
         running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
@@ -52,6 +59,13 @@ class TestSuite(object):
     The different test methods can be called independently::
 
         sage: S._test_associativity()
+
+    Debugging tip: in case of failure of some test, use `%pdb on` to
+    turn on automatic debugging on error. Run the failing test
+    independtly: the debugger will stop right where the first
+    assertion fails. Then, introspection can be used to analyse what
+    exactly the problem is. See also the ``catch = False`` option to
+    :meth:`.run`.
 
     When meaningful, one can further customize on which elements
     the tests are run. Here, we use it to *prove* that the
@@ -72,9 +86,15 @@ class TestSuite(object):
     run a :class:`TestSuite` on one of its instances in its doctest
     (replacing the current ``loads(dumps(x))`` tests).
 
+    Finally, running ``TestSuite`` on a standard Python object does
+    some basic sanity checks:
+
+        sage: TestSuite(int(1)).run(verbose = True)
+        running ._test_pickling() . . . pass
+
     TODO:
 
-     - allow for customized behavior in case of failing assertion
+     - Allow for customized behavior in case of failing assertion
        (warning, error, statistic accounting).
        This involves reimplementing the methods fail / failIf / ...
        of unittest.TestCase in InstanceTester
@@ -82,6 +102,7 @@ class TestSuite(object):
      - Don't catch the exceptions if ``TestSuite(..).run()`` is called
        under the debugger, or with ``%pdb`` on (how to detect this? see
        ``IPython.ipapi.get()``, ``IPython.Magic.shell.call_pdb``, ...)
+       In the mean time, see the ``catch=False`` option.
 
      - Run the tests according to the inheritance order, from most
        generic to most specific, rather than alphabetically. Then, the
@@ -89,6 +110,8 @@ class TestSuite(object):
        usually consequences.
 
      - Improve integration with doctests (statistics on failing/passing tests)
+
+     - Add proper support for nested testsuites.
 
      - Integration with unittest:
        Make TestSuite inherit from unittest.TestSuite?
@@ -112,6 +135,9 @@ class TestSuite(object):
             sage: TestSuite(ZZ)
             Test suite for Integer Ring
         """
+        from sage.structure.sage_object import SageObject
+        if not isinstance(instance, (SageObject,PythonObjectWithTests)):
+            instance = PythonObjectWithTests(instance)
         self._instance = instance
 
     def __repr__(self):
@@ -124,14 +150,16 @@ class TestSuite(object):
         return "Test suite for %s"%self._instance
 
 
-    def run(self, category = None, skip = [], **options):
+    def run(self, category = None, skip = [], catch = True, raise_on_failure = False, **options):
         """
         Run all the tests from this test suite:
 
         INPUT:
 
          - ``category`` - a category; reserved for future use
-         - ``skip` ` - a string or list (or iterable) of strings
+         - ``skip`` - a string or list (or iterable) of strings
+         - ``raise_on_failure`` - a boolean (default: False)
+         - ``catch` - a boolean (default: True)
 
         All other options are passed down to the individual tests.
 
@@ -142,14 +170,16 @@ class TestSuite(object):
         We now use the ``verbose`` option::
 
             sage: TestSuite(1).run(verbose = True)
+            running ._test_category() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
 
         Some tests may be skipped using the ``skip`` option::
 
             sage: TestSuite(1).run(verbose = True, skip ="_test_pickling")
+            running ._test_category() . . . pass
             running ._test_not_implemented_methods() . . . pass
-            sage: TestSuite(1).run(verbose = True, skip =["_test_pickling"])
+            sage: TestSuite(1).run(verbose = True, skip =["_test_pickling", "_test_category"])
             running ._test_not_implemented_methods() . . . pass
 
         We now show (and test) some standard error reports::
@@ -186,6 +216,7 @@ class TestSuite(object):
             AssertionError
             ------------------------------------------------------------
             running ._test_c() . . . pass
+            running ._test_category() . . . pass
             running ._test_d() . . . fail
             Traceback (most recent call last):
               ...
@@ -202,32 +233,104 @@ class TestSuite(object):
             File "/opt/sage/local/lib/python/site-packages/sage/misc/sage_unittest.py", line 183, in run
             test_method(tester = tester)
 
+        The ``catch=False`` option prevents ``TestSuite`` from
+        catching exceptions::
+
+            sage: TestSuite(Blah()).run(catch=False)
+            Traceback (most recent call last):
+              ...
+              File ..., in _test_b
+                def _test_b(self, tester): tester.fail()
+              ...
+            AssertionError
+
+        In conjonction with ``%pdb on``, this allows for the debbuger
+        to jump directly to the first failure location.
         """
         if type(skip) == str:
             skip = [skip]
         else:
             skip = tuple(skip)
-        tester = self._instance._tester(**options)
+
+        # The class of exceptions that will be catched and reported;
+        # other exceptions will get trough. None catches nothing.
+        catch_exception = Exception if catch else None
+
+        tester = instance_tester(self._instance, **options)
         failed = []
         for method_name in dir(self._instance):
             if method_name[0:6] == "_test_" and method_name not in skip:
                 # TODO: improve pretty printing
                 # could use the doc string of the test method?
-                tester.info("running .%s() . . . "%method_name, newline = False)
+                tester.info(tester._prefix+"running .%s() . . . "%method_name, newline = False)
                 test_method = getattr(self._instance, method_name)
                 try:
                     test_method(tester = tester)
                     tester.info("pass")
-                except:
-                    if tester._verbose:
-                        tester.info("fail")
-                    else:
-                        print "Failure in %s:"%method_name
-                    traceback.print_exc(file = sys.stdout)
-                    print "-" * 60
+                except catch_exception as e:
                     failed.append(method_name)
+                    if isinstance(e, TestSuiteFailure):
+                        # The failure occured in a nested testsuite
+                        # which has already reported the details of
+                        # that failure
+                        if not tester._verbose:
+                            print tester._prefix+"Failure in %s"%method_name
+                    else:
+                        if tester._verbose:
+                            tester.info("fail")
+                        else:
+                            print tester._prefix+"Failure in %s:"%method_name
+                        s = traceback.format_exc()
+                        print tester._prefix + s.strip().replace("\n", "\n"+tester._prefix)
+                        print tester._prefix + "-" * 60
         if len(failed) > 0:
-            print "The following tests failed: %s"%(", ".join(failed))
+            print tester._prefix+"The following tests failed: %s"%(", ".join(failed))
+            if raise_on_failure:
+                raise TestSuiteFailure
+
+class TestSuiteFailure(AssertionError):
+    pass
+
+def instance_tester(instance, tester = None, **options):
+    """
+    Returns a gadget attached to ``instance`` providing testing utilities.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sage_unittest import instance_tester
+        sage: tester = instance_tester(ZZ)
+
+        sage: tester.assert_(1 == 1)
+        sage: tester.assert_(1 == 0)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: tester.assert_(1 == 0, "this is expected to fail")
+        Traceback (most recent call last):
+        ...
+        AssertionError: this is expected to fail
+
+        sage: tester.assertEquals(1, 1)
+        sage: tester.assertEquals(1, 0)
+        Traceback (most recent call last):
+        ...
+        AssertionError: 1 != 0
+
+    The available assertion testing facilities are the same as in
+    :class:`unittest.TestCase`, which see (actually, by a slight
+    abuse, tester is currently an instance of this class).
+
+    TESTS::
+
+        sage: instance_tester(ZZ, tester = tester) is tester
+        True
+    """
+    if tester is None:
+        return InstanceTester(instance, **options)
+    else:
+        assert len(options) == 0
+        assert tester._instance is instance
+        return tester
 
 class InstanceTester(unittest.TestCase):
     """
@@ -245,7 +348,7 @@ class InstanceTester(unittest.TestCase):
         Testing utilities for Integer Ring
     """
 
-    def __init__(self, instance, elements = None, verbose = False, **options):
+    def __init__(self, instance, elements = None, verbose = False, prefix = "", **options):
         """
         A gadget attached to an instance providing it with testing utilities.
 
@@ -263,6 +366,7 @@ class InstanceTester(unittest.TestCase):
         self._instance = instance
         self._verbose = verbose
         self._elements = elements
+        self._prefix = prefix
 
     def runTest(self):
         """
@@ -341,3 +445,40 @@ class InstanceTester(unittest.TestCase):
             return self._instance.some_elements()
         else:
             return self._elements
+
+class PythonObjectWithTests(object):
+    """
+    Utility class for running basis tests on a plain Python object
+    (that is not in SageObject). More test methods can be added here.
+
+    EXAMPLES::
+
+            sage: TestSuite("bla").run()
+
+    """
+    def __init__(self, instance):
+        """
+        EXAMPLES::
+
+            sage: from sage.misc.sage_unittest import PythonObjectWithTests
+            sage: x = PythonObjectWithTests(int(1)); x
+            <sage.misc.sage_unittest.PythonObjectWithTests object at ...>
+            sage: TestSuite(x).run()
+        """
+
+        self._instance = instance
+
+    def _test_pickling(self, **options):
+        """
+        Checks that the instance in self can be pickled and unpickled properly.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_unittest import PythonObjectWithTests
+            sage: PythonObjectWithTests(int(1))._test_pickling()
+
+        SEE ALSO: :func:`dumps` :func:`loads`
+        """
+        tester = instance_tester(self, **options)
+        from sage.misc.all import loads, dumps
+        tester.assertEqual(loads(dumps(self._instance)), self._instance)

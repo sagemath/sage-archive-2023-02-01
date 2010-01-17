@@ -305,8 +305,8 @@ class ResidueField_generic(Field):
 
         TESTS::
 
-            sage: TestSuite(k).run(skip = ["_test_element_pickling", "_test_pickling"]) # see #7929
-            sage: TestSuite(F).run(skip = ["_test_element_pickling", "_test_pickling"]) # see #7929
+            sage: TestSuite(k).run(skip = ["_test_elements", "_test_pickling"]) # see #7929
+            sage: TestSuite(F).run(skip = ["_test_elements", "_test_pickling"]) # see #7929
         """
         self.p = p
         self.f = f

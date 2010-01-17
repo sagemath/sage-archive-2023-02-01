@@ -60,7 +60,7 @@ class Scheme(ParentWithBase):
             sage: I = (x^2 - y^2)*R
             sage: RmodI = R.quotient(I)
             sage: X = Spec(RmodI)
-            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_element_pickling", "_test_some_elements"])
+            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements", "_test_some_elements", "_test_category"]) # See #7946
 
         A scheme is in the category of all schemes over the base scheme of self::
 

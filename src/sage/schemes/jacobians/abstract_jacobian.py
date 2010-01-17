@@ -75,7 +75,7 @@ class Jacobian_generic(Scheme):
 
         Note: this is an abstract parent, so we skip element tests::
 
-            sage: TestSuite(J).run(skip =["_test_an_element", "_test_element_pickling", "_test_some_elements"])
+            sage: TestSuite(J).run(skip =["_test_an_element", "_test_elements", "_test_some_elements"])
 
         ::
 

@@ -40,12 +40,12 @@ class ClassGroup(AbelianGroup_class):
 
             sage: G.category()
             Category of groups
-            sage: TestSuite(G).run() # todo: improve that!
+            sage: TestSuite(G).run() # see #7945
             Failure in _test_an_element:
               ...
             AssertionError: self.an_element() is not in self
             ...
-            The following tests failed: _test_an_element, _test_element_pickling, _test_inverse, _test_some_elements
+            The following tests failed: _test_an_element, _test_elements, _test_inverse, _test_some_elements
         """
         self.__number_field = number_field
         self.__gens = Sequence([FractionalIdealClass(x, self) for x in gens], immutable=True,

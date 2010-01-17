@@ -50,7 +50,7 @@ cdef int bad_parent_warnings = 0
 
 import generators
 import sage_object
-from sage.categories.category import JoinCategory
+from sage.categories.category import Category, JoinCategory
 
 def guess_category(obj):
     # this should be obsolete if things declare their categories
@@ -157,10 +157,32 @@ cdef class CategoryObject(sage_object.SageObject):
     def category(self):
         if self._category is None:
             # COERCE TODO: we shouldn't need this
-            from sage.categories.all import Objects
+            from sage.categories.objects import Objects
             self._category = Objects()
         return self._category
 
+    def categories(self):
+        """
+        EXAMPLES::
+
+            sage: ZZ.categories()
+            [Category of euclidean domains,
+             Category of principal ideal domains,
+             Category of gcd domains,
+             Category of integral domains,
+             Category of commutative rings,
+             Category of domains,
+             Category of rings,
+             Category of rngs,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of monoids,
+             Category of semigroups,
+             Category of sets,
+             Category of objects]
+        """
+        return self.category().all_super_categories()
 
     ##############################################################################
     # Generators

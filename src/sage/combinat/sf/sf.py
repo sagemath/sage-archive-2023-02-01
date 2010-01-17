@@ -215,12 +215,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         TESTS:
 
-        There are a lot of missing features for this abstract parent. But some tests do pass:
+        There are a lot of missing features for this abstract parent. But some tests do pass::
 
             sage: TestSuite(Sym).run()
             Failure ...
-            The following tests failed: _test_additive_associativity, _test_an_element, _test_associativity, _test_element_pickling, _test_not_implemented_methods, _test_one, _test_prod, _test_some_elements, _test_zero
-
+            The following tests failed: _test_additive_associativity, _test_an_element, _test_associativity, _test_elements, _test_not_implemented_methods, _test_one, _test_prod, _test_some_elements, _test_zero
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring

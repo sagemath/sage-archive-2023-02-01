@@ -12,6 +12,7 @@ Sets
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.sage_unittest import TestSuite
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category import Category, HomCategory
@@ -67,7 +68,13 @@ class Sets(Category):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
-        running ._test_element_pickling() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -296,7 +303,57 @@ class Sets(Category):
                 AssertionError: self.an_element() is not in self
             """
             tester = self._tester(**options)
-            tester.assert_(self.an_element() in self, "self.an_element() is not in self")
+            an_element = self.an_element()
+            tester.assert_(an_element in self, "self.an_element() is not in self")
+
+        def _test_elements(self, tester = None, **options):
+            """
+            Run generic tests on element(s) of ``self``.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements(verbose = True)
+                <BLANKLINE>
+                  Running the test suite of self.an_element()
+                  running ._test_category() . . . pass
+                  running ._test_not_implemented_methods() . . . pass
+                  running ._test_pickling() . . . pass
+                <BLANKLINE>
+
+            Debugging tip: in case of failure of this test, run instead:
+
+                sage: TestSuite(C.an_element()).run()
+
+            Let us now implement a parent whose elements cannot be pickled::
+
+                sage: from sage.categories.examples.sets_cat import PrimeNumbers
+                sage: class Bla(SageObject): pass
+                sage: class CCls(PrimeNumbers):
+                ...       def an_element(self):
+                ...           return Bla()
+                sage: CC = CCls()
+                sage: CC._test_elements()
+                  Failure in _test_pickling:
+                  ...
+                  PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
+                  ...
+                  The following tests failed: _test_pickling
+            """
+            # TODO: add native support for nested test suites to TestSuite
+
+            # The intention is to raise an exception only if this is
+            # run as a sub-testsuite of a larger testsuite.
+            is_sub_testsuite = (tester is not None)
+            tester = self._tester(tester = tester, **options)
+            # Or do we want to run the test on some_elements?
+            an_element = self.an_element()
+            tester.info("\n  Running the test suite of self.an_element()")
+            TestSuite(an_element).run(verbose = tester._verbose, prefix = tester._prefix+"  ",
+                                      raise_on_failure = is_sub_testsuite)
+            tester.info(tester._prefix+"  ", newline = False)
 
         def some_elements(self):
             """
@@ -350,40 +407,12 @@ class Sets(Category):
             for x in elements:
                 tester.assert_(x in self, "the object %s in self.some_elements() is not in self"%(x,))
 
-        def _test_element_pickling(self, **options):
-            """
-            Run pickling/unpickling tests for elements of this parent.
-
-            EXAMPLES::
-
-                sage: C = Sets().example()
-                sage: C._test_element_pickling()
-
-            SEE ALSO: :class:`TestSuite`, :func:`dumps` :func:`loads`
-
-            Let us now write a class whose elements cannot be pickled::
-
-                sage: from sage.categories.examples.sets_cat import PrimeNumbers
-                sage: class Bla(SageObject): pass
-                sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return Bla()
-                sage: CC = CCls()
-                sage: CC._test_element_pickling()
-                Traceback (most recent call last):
-                ...
-                PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
-            """
-            tester = self._tester(**options)
-            from sage.misc.all import loads, dumps
-            # if x is a SageObject, we could call x._test_pickling() instead
-            x = self.an_element()
-            tester.assertEqual(loads(dumps(x)), x)
-
     class ElementMethods:
         ##def equal(x,y):
         ##def =(x,y):
-        pass
+
+        # Used by Element._test_category
+        _dummy_attribute = None
 
     class HomCategory(HomCategory):
         pass

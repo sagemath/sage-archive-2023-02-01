@@ -8671,7 +8671,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def primes_up_to_n(self, long n):
         """
-        Return the primes = n as a pari list.
+        Return the primes <= n as a pari list.
 
         EXAMPLES::
 

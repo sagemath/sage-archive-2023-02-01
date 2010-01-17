@@ -53,19 +53,27 @@ from sage.rings.integer cimport Integer
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ(mpz_t value, long *g)
 
-cpdef prime_range(start, stop=None):
+cpdef prime_range(start, stop=None, algorithm="pari_primes"):
     r"""
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
     argument.
 
-    Use this function when both start and stop are not too large,
+    This function is closely related to (and can use) the primes iterator.
+    Use algorithm "pari_primes" when both start and stop are not too large,
     since in all cases this function makes a table of primes up to
-    stop. If both are large, use the primes iterator function instead.
+    stop. If both are large, use algorithm "pari_isprime" instead.
+
+    Algorithm "pari_primes" is faster for most input, but crashes for larger input.
+    Algorithm "pari_isprime" is slower but will work for much larger input.
 
     INPUT:
         start -- lower bound
         stop -- upper bound
+        algorithm -- "pari_primes": Uses PARI's primes function.  Generates all primes up to stop.
+                         Depends on PARI's primepi function.
+                     "pari_isprime": Uses a mod 2 wheel and PARI's isprime function by calling
+                         the primes iterator.
 
     EXAMPLES:
         sage: prime_range(10)
@@ -80,7 +88,17 @@ cpdef prime_range(start, stop=None):
         [2]
         sage: prime_range(5,10)
         [5, 7]
+        sage: prime_range(-100,10,"pari_isprime")
+        [2, 3, 5, 7]
+        sage: sage: prime_range(2,2,algorithm="pari_isprime")
+        []
+        sage: prime_range(10**16,10**16+100,"pari_isprime")
+        [10000000000000061, 10000000000000069, 10000000000000079, 10000000000000099]
+        sage: prime_range(10**30,10**30+100,"pari_isprime")
+        [1000000000000000000000000000057, 1000000000000000000000000000099]
         sage: type(prime_range(8)[0])
+        <type 'sage.rings.integer.Integer'>
+        sage: type(prime_range(8,algorithm="pari_isprime")[0])
         <type 'sage.rings.integer.Integer'>
 
     TESTS:
@@ -90,30 +108,34 @@ cpdef prime_range(start, stop=None):
     AUTHORS:
       - William Stein (original version)
       - Craig Citro (rewrote for massive speedup)
+      - Kevin Stueve (added primes iterator option) 2010-10-16
     """
     cdef Integer tmp
     cdef Py_ssize_t ind, n, m
     cdef pari_gen v
+    if algorithm == "pari_primes":
+        if stop is None:
+            # In this case, "start" is really stop
+            v = <pari_gen>pari.primes_up_to_n(int(start-1))
+            m = 0
+        else:
+            if stop <= start:
+                return []
+            v = <pari_gen>pari.primes_up_to_n(int(stop-1))
+            m = int(ZZ(pari(start-1).primepi()))
+        n = lg(v.g) - 1
 
-    if stop is None:
-        # In this case, "start" is really stop
-        v = <pari_gen>pari.primes_up_to_n(int(start-1))
-        m = 0
+        res = [0] * (n-m)
+        for ind from m <= ind < n:
+            tmp = PY_NEW(Integer)
+            t_INT_to_ZZ(tmp.value, <GEN>(v.g[ind+1]))
+            res[ind-m] = tmp
+    elif algorithm == "pari_isprime":
+        from sage.rings.arith import primes
+        res = list(primes(start, stop))
     else:
-        if stop <= start:
-            return []
-        v = <pari_gen>pari.primes_up_to_n(int(stop-1))
-        m = int(ZZ(pari(start-1).primepi()))
-    n = lg(v.g) - 1
-
-    res = [0] * (n-m)
-    for ind from m <= ind < n:
-        tmp = PY_NEW(Integer)
-        t_INT_to_ZZ(tmp.value, <GEN>(v.g[ind+1]))
-        res[ind-m] = tmp
-
+        raise ValueError, "algorithm argument must be either ``pari_primes`` or ``pari_isprime``"
     return res
-
 cdef class arith_int:
     cdef public int abs_int(self, int x) except -1:
         if x < 0:

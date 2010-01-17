@@ -1009,7 +1009,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
     Returns the spherical Bessel function of the first kind for
-    integers n -1.
+    integers n >= 1.
 
     Reference: AS 10.1.8 page 437 and AS 10.1.15 page 439.
 
@@ -1017,14 +1017,14 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
 
         sage: spherical_bessel_J(2,x)
         ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)/x
+        sage: spherical_bessel_J(1, 5.2, algorithm='scipy')
+        -0.12277149950007...
+        sage: spherical_bessel_J(1, 3, algorithm='scipy')
+        0.345677499762355...
     """
     if algorithm=="scipy":
-        import scipy.special
-        ans = str(scipy.special.sph_jn(int(n),float(var)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        from scipy.special.specfun import sphj
+        return sphj(int(n), float(var))[1][-1]
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))

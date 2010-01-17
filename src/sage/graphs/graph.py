@@ -1398,9 +1398,9 @@ class Graph(GenericGraph):
         - If the graph's edges are weighted, these are taken into account.
         - This problem can be solved in polynomial time.
 
-        EXAMPLES ::
+        EXAMPLES:
 
-        Is there a perfect matching in an even cycle ?
+        Is there a perfect matching in an even cycle? ::
 
             sage: g = graphs.CycleGraph(6)
             sage: bounds = lambda x: [1,1]

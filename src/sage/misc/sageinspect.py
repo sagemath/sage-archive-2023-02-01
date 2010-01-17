@@ -265,19 +265,24 @@ def _sage_getargspec_cython(source):
         argnames = [] # argument names
         argdefs  = [] # default values
         for arg in args:
-            s = arg.split('=')
-            argname = s[0]
+            # only process arg if it has positive length
+            if len(arg) > 0:
+                s = arg.split('=')
+                argname = s[0]
 
-            # Cython often has type information; we split off the right most
-            # identifier to discard this information
-            argname = argname.split()[-1]
-            # Cython often has C pointer symbols before variable names
-            argname.lstrip('*')
-            argnames.append(argname)
-            if len(s) > 1:
-                defvalue = s[1]
-                # eval defvalue so we aren't just returning strings
-                argdefs.append(eval(defvalue))
+                # Cython often has type information; we split off the right most
+                # identifier to discard this information
+                argname = argname.split()[-1]
+                # Cython often has C pointer symbols before variable names
+                argname.lstrip('*')
+                argnames.append(argname)
+                if len(s) > 1:
+                    defvalue = s[1]
+                    # eval defvalue so we aren't just returning strings
+                    try:
+                        argdefs.append(eval(defvalue))
+                    except NameError:
+                        argdefs.append(defvalue)
 
         if len(argdefs) > 0:
             argdefs = tuple(argdefs)

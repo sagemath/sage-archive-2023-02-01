@@ -551,10 +551,30 @@ cdef class GinacFunction(Function):
             # we should never end up here
             raise ValueError, "cannot read pickle"
 
-    def __call__(self, *args, coerce=True, hold=False):
+    def __call__(self, *args, coerce=True, hold=False,
+            dont_call_method_on_arg=False):
+        """
+        Evaluate this function on the given arguments and return the result.
+
+        EXAMPLES::
+
+            sage: exp(5)
+            e^5
+            sage: gamma(15)
+            87178291200
+        """
         # we want to convert the result to the original parent if the input
         # is not exact, so we store the parent here
         org_parent = parent_c(args[0])
+
+        # if there is only one argument, and the argument has an attribute
+        # with the same name as this function, try to call it to get the result
+        # The argument dont_call_method_on_arg is used to prevent infinite loops
+        # when .exp(), .log(), etc. methods call this symbolic function on
+        # themselves
+        if len(args) == 1 and not hold and not dont_call_method_on_arg and \
+                hasattr(args[0], self._name):
+            return getattr(args[0], self._name)()
 
         res = super(GinacFunction, self).__call__(*args, coerce=coerce,
                 hold=hold)

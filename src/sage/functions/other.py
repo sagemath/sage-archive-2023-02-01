@@ -729,7 +729,7 @@ class Function_factorial(GinacFunction):
             sage: factorial(-32)
             Traceback (most recent call last):
             ...
-            ValueError: factorial -- must be nonnegative
+            ValueError: factorial -- self = (-32) must be nonnegative
 
         TESTS:
 

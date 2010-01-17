@@ -2248,8 +2248,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         from sage.symbolic.all import SR
         from sage.functions.log import function_log
         if m is None:
-            return function_log(self)
-        return function_log(self)/function_log(m)
+            return function_log(self,dont_call_method_on_arg=True)
+        return function_log(self,dont_call_method_on_arg=True)/\
+                function_log(m,dont_call_method_on_arg=True)
 
     def exp(self, prec=None):
         r"""
@@ -2285,7 +2286,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             +infinity
         """
         from sage.functions.all import exp
-        res = exp(self)
+        res = exp(self, dont_call_method_on_arg=True)
         if prec:
             return res.n(prec=prec)
         return res

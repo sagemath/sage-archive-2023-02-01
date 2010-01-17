@@ -83,7 +83,8 @@ class Function_exp(GinacFunction):
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
 
-    def __call__(self, x, coerce=True, hold=False, prec=None):
+    def __call__(self, x, coerce=True, hold=False, prec=None,
+            dont_call_method_on_arg=False):
         """
         Note that the ``prec`` argument is deprecated. The precision for
         the result is deduced from the precision of the input. Convert
@@ -104,9 +105,11 @@ class Function_exp(GinacFunction):
         if prec is not None:
             from sage.misc.misc import deprecation
             deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
-            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
+            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
+                    dont_call_method_on_arg=dont_call_method_on_arg)
             return x.n(prec)
-        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
+        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
+                dont_call_method_on_arg=dont_call_method_on_arg)
 
 exp = Function_exp()
 

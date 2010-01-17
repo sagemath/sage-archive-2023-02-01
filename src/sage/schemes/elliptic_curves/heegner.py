@@ -6303,19 +6303,26 @@ def ell_heegner_discriminants_list(self, n):
         D -= 1
     return v
 
-def heegner_point_height(self, D, prec=2):
+def heegner_point_height(self, D, prec=2, check_rank=True):
     r"""
     Use the Gross-Zagier formula to compute the Neron-Tate canonical
     height over `K` of the Heegner point corresponding to `D`, as an
     interval (it's computed to some precision using `L`-functions).
+
+    If the curve has rank at least 2, then the returned height is the
+    exact Sage integer 0.
 
     INPUT:
 
 
     -  ``D (int)`` - fundamental discriminant (=/= -3, -4)
 
-    -  ``prec (int)`` - (default: 2), use `prec \cdot \sqrt(N) + 20`
-       terms of `L`-series in computations, where `N` is the conductor.
+    - ``prec (int)`` - (default: 2), use `prec \cdot \sqrt(N) + 20`
+       terms of `L`-series in computations, where `N` is the
+       conductor.
+
+    - ``check_rank`` - whether to check if the rank is at least 2 by
+      computing the Mordell-Weil rank directly.
 
 
     OUTPUT: Interval that contains the height of the Heegner point.
@@ -6325,10 +6332,25 @@ def heegner_point_height(self, D, prec=2):
         sage: E = EllipticCurve('11a')
         sage: E.heegner_point_height(-7)
         0.22227?
+
+    Some higher rank examples::
+
+        sage: E = EllipticCurve('389a')
+        sage: E.heegner_point_height(-7)
+        0
+        sage: E = EllipticCurve('5077a')
+        sage: E.heegner_point_height(-7)
+        0
+        sage: E.heegner_point_height(-7,check_rank=False)
+        0.0000?
     """
 
     if not self.satisfies_heegner_hypothesis(D):
         raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+
+    if check_rank and self.rank() >= 2:
+        return ZZ(0)
+
     if D == -3 or D == -4:
         raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
     eps = self.root_number()
@@ -6368,13 +6390,15 @@ def heegner_point_height(self, D, prec=2):
         return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mwrank=False):
+def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mwrank=False, check_rank=True):
     r"""
     Return an interval that contains the index of the Heegner
     point `y_K` in the group of `K`-rational points modulo torsion
     on this elliptic curve, computed using the Gross-Zagier
     formula and/or a point search, or possibly half the index
     if the rank is greater than one.
+
+    If the curve has rank > 1, then the returned index is infinity.
 
     .. note::
 
@@ -6386,7 +6410,6 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
        undergoes a twist.
 
     INPUT:
-
 
     -  ``D (int)`` - Heegner discriminant
 
@@ -6401,6 +6424,10 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
 
     -  ``descent_second_limit`` - (default: 12)- used in 2-descent
        when computing regulator of the twist
+
+    - ``check_rank`` - whether to check if the rank is at least 2 by
+      computing the Mordell-Weil rank directly.
+
 
     OUTPUT: an interval that contains the index, or half the index
 
@@ -6461,10 +6488,31 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
         sage: E.heegner_index(-8, descent_second_limit=16)
         1.00000?
 
+
+    Two higher rank examples (of ranks 2 and 3)::
+
+        sage: E = EllipticCurve('389a')
+        sage: E.heegner_index(-7)
+        +Infinity
+        sage: E = EllipticCurve('5077a')
+        sage: E.heegner_index(-7)
+        +Infinity
+        sage: E.heegner_index(-7, check_rank=False)
+        0.001?
+        sage: E.heegner_index(-7, check_rank=False).lower() == 0
+        True
     """
+    if not self.satisfies_heegner_hypothesis(D):
+        raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+
+    if check_rank and self.rank() >= 2:
+        return rings.infinity
+
     # First compute upper bound on height of Heegner point.
     tm = verbose("computing heegner point height...")
-    h0 = self.heegner_point_height(D, prec=prec)
+    h0 = self.heegner_point_height(D, prec=prec, check_rank=check_rank)
+    if h0 == 0:
+        return rings.infinity
 
     # We divide by 2 to get the height **over Q** of the
     # Heegner point on the twist.

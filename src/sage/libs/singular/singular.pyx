@@ -447,30 +447,27 @@ cdef number *sa2si_NF(object elem, ring *_ring):
 
     elem = list(elem)
 
-    if len(elem) > 1:
-        n1 = naInit(0)
-        a = naPar(1)
-        apow1 = naInit(1)
+    n1 = naInit(0)
+    a = naPar(1)
+    apow1 = naInit(1)
 
-        for i from 0 <= i < len(elem):
-            nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value) )
-            naCoeff = naMap00(nlCoeff)
-            nlDelete(&nlCoeff, _ring)
+    for i from 0 <= i < len(elem):
+        nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value) )
+        naCoeff = naMap00(nlCoeff)
+        nlDelete(&nlCoeff, _ring)
 
-            # faster would be to assign the coefficient directly
-            n2 = naAdd( naMult(naCoeff, apow1),  n1)
-            naDelete(&n1, _ring);
-            naDelete(&naCoeff, _ring)
-            n1 = n2
+        # faster would be to assign the coefficient directly
+        n2 = naAdd( naMult(naCoeff, apow1),  n1)
+        naDelete(&n1, _ring);
+        naDelete(&naCoeff, _ring)
+        n1 = n2
 
-            apow2 = naMult(apow1, a)
-            naDelete(&apow1, _ring)
-            apow1 = apow2
-
+        apow2 = naMult(apow1, a)
         naDelete(&apow1, _ring)
-        naDelete(&a, _ring)
-    else:
-        n1 = sa2si_QQ(elem[0], _ring)
+        apow1 = apow2
+
+    naDelete(&apow1, _ring)
+    naDelete(&a, _ring)
 
     return n1
 

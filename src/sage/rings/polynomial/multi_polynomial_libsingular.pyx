@@ -137,6 +137,14 @@ TESTS::
     sage: R.<u,v> = PolynomialRing(QQ, 2)
     sage: p(u/v)
     (u + v)/v
+
+Check if #6160 is fixed::
+
+    sage: x=var('x')
+    sage: K.<j> = NumberField(x-1728)
+    sage: R.<b,c> = K[]
+    sage: b-j*c
+    b - 1728*c
 """
 
 include "sage/ext/stdsage.pxi"
@@ -381,6 +389,20 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             111111111111111111111111111111111111111111111111111111111
             sage: P("31367566080")
             31367566080
+
+        Check if #7582 is fixed::
+
+            sage: R.<x,y,z> = PolynomialRing(CyclotomicField(2),3)
+            sage: R.coerce(1)
+            1
+
+        Check if #6160 is fixed::
+
+            sage: x=var('x')
+            sage: K.<j> = NumberField(x-1728)
+            sage: R.<b,c> = K[]
+            sage: R.coerce(1)
+            1
         """
         cdef poly *_p
         cdef ring *_ring

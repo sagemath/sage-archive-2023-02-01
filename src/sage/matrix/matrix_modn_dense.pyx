@@ -155,6 +155,7 @@ cdef arith_int ai
 ai = arith_int()
 ################
 
+from sage.structure.proof.proof import get_flag as get_proof_flag
 
 
 cdef long num = 1
@@ -923,24 +924,53 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.cache('charpoly_%s_%s'%(algorithm, var), g)
         return g
 
-    def minpoly(self, var='x', algorithm='linbox'):
+    def minpoly(self, var='x', algorithm='linbox', proof=None):
         """
         Returns the minimal polynomial of self.
 
         INPUT:
 
+           - ``var`` - a variable name
 
-        -  ``var`` - a variable name
+           - ``algorithm`` - 'generic' 'linbox' (default)
 
-        -  ``algorithm`` - 'generic' 'linbox' (default)
+           - ``proof`` -- (default: True); whether to provably return
+             the true minimal polynomial; if False, we only guarantee
+             to return a divisor of the minimal polynomial.  There are
+             also certainly cases where the computed results is
+             frequently not exactly equal to the minimal polynomial
+             (but is instead merely a divisor of it).
+
+        WARNING: If proof=True, minpoly is insanely slow compared to
+        proof=False.
+
+        EXAMPLES::
+
+            sage: R.<x>=GF(3)[]
+            sage: A = matrix(GF(3),2,[0,0,1,2])
+            sage: A.minpoly()
+            x^2 + x
+
+        Minpoly with proof=False is *dramatically* ("millions" of times!)
+        faster than minpoly with proof=True.        This matters since
+        proof=True is the default, unless you first type
+        ''proof.linear_algebra(False)''.
+
+            sage: A.minpoly(proof=False) in [x, x+1, x^2+x]
+            True
         """
+
+        proof = get_proof_flag(proof, "linear_algebra")
+
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
-            algorithm='generic' #LinBox only supports fields
+            algorithm='generic' # LinBox only supports fields
 
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
+            if proof == True:
+                while g(self):  # insanely toy slow (!)
+                    g = self._minpoly_linbox(var)
         elif algorithm == 'generic':
-            #g = self._minpoly_generic(var)
             raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
         else:
             raise ValueError, "no algorithm '%s'"%algorithm

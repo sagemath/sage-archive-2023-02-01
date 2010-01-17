@@ -81,7 +81,7 @@ def Curve(F):
 
         sage: x,y,z,w = QQ['x,y,z,w'].gens()
         sage: C = Curve([x^3 + y^3 - z^3 - w^3, x^5 - y*z^4]); C
-        Projective Space Curve over Rational Field defined by x^3 + y^3 - z^3 - w^3
+        Projective Space Curve over Rational Field defined by x^3 + y^3 - z^3 - w^3, x^5 - y*z^4
         sage: C.genus()
         13
 
@@ -91,7 +91,7 @@ def Curve(F):
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve([y^2 + x^3 + x^10 + z^7,  x^2 + y^2]); C
-        Affine Space Curve over Rational Field defined by x^10 + z^7 + x^3 + y^2
+        Affine Space Curve over Rational Field defined by x^10 + z^7 + x^3 + y^2, x^2 + y^2
         sage: C.genus()
         47
 

@@ -11,8 +11,20 @@ from sage.schemes.generic.divisor import Divisor_curve
 
 class Curve_generic(AlgebraicScheme_subscheme):
     def _repr_(self):
+        """
+        EXAMPLES:
+       sage: A.<x,y,z> = AffineSpace(QQ,3)
+            sage: C = Curve([x-y,z-2])
+            sage: C
+            Affine Space Curve over Rational Field defined by x - y, z - 2
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: C = Curve(x-y)
+            sage: C
+            Projective Curve over Rational Field defined by x - y
+        """
         return "%s Curve over %s defined by %s"%(
-            self._repr_type(), self.base_ring(), self.defining_polynomial())
+            self._repr_type(), self.base_ring(), ', '.join([str(x) for x in self.defining_polynomials()]))
 
     def _repr_type(self):
         return "Generic"

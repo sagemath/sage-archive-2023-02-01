@@ -404,6 +404,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.<b,c> = K[]
             sage: R.coerce(1)
             1
+
+        Check if coercion from zero variable polynomial rings work (#7951)::
+
+            sage: P = PolynomialRing(QQ,0,'')
+            sage: R.<x,y> = QQ[]
+            sage: P(5)*x
+            5*x
+            sage: P = PolynomialRing(ZZ,0,'')
+            sage: R.<x,y> = GF(127)[]
+            sage: R.coerce(P(5))
+            5
         """
         cdef poly *_p
         cdef ring *_ring
@@ -436,7 +447,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 raise TypeError, "parents do not match"
 
         elif PY_TYPE_CHECK(element, MPolynomial_polydict):
-            if element.parent() == self:
+            if (<Element>element)._parent == self:
                 _p = p_ISet(0, _ring)
                 for (m,c) in element.element().dict().iteritems():
                     mon = p_Init(_ring)
@@ -446,6 +457,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            elif (<Element>element)._parent.ngens() == 0:
+                # zero variable polynomials
+                _p = p_NSet(sa2si(base_ring(element[tuple()]), _ring),
+                        _ring)
             elif base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
             else:

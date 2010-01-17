@@ -341,6 +341,16 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: T.<a,b> = QQ[]
             sage: S(a + b)
             u + v
+
+        TESTS:
+
+        Check if we still allow nonsense (#7951)::
+
+            sage: P = PolynomialRing(QQ, 0, '')
+            sage: P('pi')
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -434,7 +444,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         elif isinstance(x, str):
             try:
                 from sage.misc.sage_eval import sage_eval
-                return sage_eval(x, self.gens_dict())
+                return self(sage_eval(x, self.gens_dict()))
             except NameError, e:
                 raise TypeError, "unable to convert string"
 

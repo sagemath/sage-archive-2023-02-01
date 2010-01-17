@@ -9,7 +9,7 @@ from python_float cimport PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
 from polynomial_element cimport Polynomial
-from sage.rings.real_mpfr cimport RealField, RealNumber
+from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
@@ -23,7 +23,7 @@ cdef class PolynomialRealDense(Polynomial):
 
     cdef Py_ssize_t _degree
     cdef mpfr_t* _coeffs
-    cdef RealField _base_ring
+    cdef RealField_class _base_ring
 
     def __cinit__(self):
         """
@@ -629,7 +629,7 @@ cdef class PolynomialRealDense(Polynomial):
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef RealNumber x = <RealNumber>xx
         cdef RealNumber res
-        if (<RealField>x._parent).__prec < self._base_ring.__prec:
+        if (<RealField_class>x._parent).__prec < self._base_ring.__prec:
             res = RealNumber(x._parent)
         else:
             res = RealNumber(self._base_ring)
@@ -671,7 +671,7 @@ cdef class PolynomialRealDense(Polynomial):
         cdef Py_ssize_t i
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f
-        if isinstance(R, RealField):
+        if isinstance(R, RealField_class):
             f = PolynomialRealDense(R[self.variable_name()])
             f = f._new(self._degree)
             for i from 0 <= i <= self._degree:

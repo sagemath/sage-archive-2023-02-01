@@ -291,7 +291,7 @@ AUTHOR:
 
 import operator
 from copy import copy
-from sage.rings.real_mpfr cimport RealField, RealNumber
+from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
@@ -418,7 +418,7 @@ def fast_callable(x, domain=None, vars=None,
                 vars = x.parent().variable_names()
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
-    if isinstance(domain, RealField):
+    if isinstance(domain, RealField_class):
         import sage.ext.interpreters.wrapper_rr
         builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
 

@@ -234,7 +234,7 @@ class StorageType(object):
             sage: ty_double.local_declarations
             ''
             sage: ty_mpfr.class_member_declarations
-            'cdef RealField domain\n'
+            'cdef RealField_class domain\n'
             sage: ty_mpfr.class_member_initializations
             "self.domain = args['domain']\n"
             sage: ty_mpfr.local_declarations
@@ -783,7 +783,7 @@ class StorageTypeAutoReference(StorageType):
         EXAMPLES:
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.class_member_declarations
-            'cdef RealField domain\n'
+            'cdef RealField_class domain\n'
             sage: ty_mpfr.class_member_initializations
             "self.domain = args['domain']\n"
             sage: ty_mpfr.local_declarations
@@ -865,7 +865,7 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         EXAMPLES:
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.class_member_declarations
-            'cdef RealField domain\n'
+            'cdef RealField_class domain\n'
             sage: ty_mpfr.class_member_initializations
             "self.domain = args['domain']\n"
             sage: ty_mpfr.local_declarations
@@ -878,7 +878,7 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         TESTS:
             sage: ty_mpfr2 = StorageTypeMPFR(id='_the_second')
             sage: ty_mpfr2.class_member_declarations
-            'cdef RealField domain_the_second\n'
+            'cdef RealField_class domain_the_second\n'
             sage: ty_mpfr2.class_member_initializations
             "self.domain_the_second = args['domain_the_second']\n"
             sage: ty_mpfr2.local_declarations
@@ -886,7 +886,7 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         """
         StorageTypeAutoReference.__init__(self, 'mpfr_t', 'mpfr_ptr')
         self.id = id
-        self.class_member_declarations = "cdef RealField domain%s\n" % self.id
+        self.class_member_declarations = "cdef RealField_class domain%s\n" % self.id
         self.class_member_initializations = \
             "self.domain%s = args['domain%s']\n" % (self.id, self.id)
         self.local_declarations = "cdef RealNumber rn%s\n" % self.id

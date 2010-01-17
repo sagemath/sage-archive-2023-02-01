@@ -48,8 +48,7 @@ from sage.structure.element import coerce_binop
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
-from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField
-RR = RealField()
+from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField, RR
 
 from sage.rings.complex_field import is_ComplexField, ComplexField
 CC = ComplexField()
@@ -3864,7 +3863,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
         v.reverse()
         return self.parent()(v)
 
-    def roots(self, ring=None, multiplicities=True, algorithm=None):
+    def roots(self, ring=None, multiplicities=True, algorithm=None, debug=True):
+        rts = self._roots(ring, multiplicities, algorithm)
+        if ring is None or not debug:
+            return rts
+        if is_RealIntervalField(ring) or is_ComplexIntervalField(ring):
+            # The interval fields are clearly documented to allow for higher precision.
+            return rts
+        if multiplicities:
+            for rt, _ in rts:
+                assert rt.parent() is ring
+            return [ (ring(rt), mult) for rt, mult in rts ]
+        else:
+            for rt in rts:
+                assert rt.parent() is ring
+            return [ ring(rt) for rt in rts ]
+
+    def _roots(self, ring=None, multiplicities=True, algorithm=None):
         """
         Return the roots of this polynomial (by default, in the base ring
         of this polynomial).
@@ -4468,9 +4483,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     real_field = RealField(L.prec())
 
-                return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
+                return self.change_ring(real_field)._roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
             else:
-                return self.change_ring(L).roots(multiplicities=multiplicities, algorithm=algorithm)
+                return self.change_ring(L)._roots(multiplicities=multiplicities, algorithm=algorithm)
 
         try:
             if K.is_integral_domain():
@@ -4531,6 +4546,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(RDF)
             sage: (x^2 - x - 1).real_roots()[0].parent()
             Real Double Field
+
+            sage: x=polygen(ZZ,'x'); v=(x^2-x-1).real_roots()
+            sage: v[0].parent() is RR
+            True
         """
         K = self.base_ring()
         if is_RealField(K) or is_RealDoubleField(K):
@@ -4570,6 +4589,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(ComplexField(200))
             sage: (x^3 - 1).complex_roots()[0].parent()
             Complex Field with 200 bits of precision
+            sage: x=polygen(ZZ,'x'); v=(x^2-x-1).complex_roots()
+            sage: v[0].parent() is CC
+            True
         """
         K = self.base_ring()
         if is_RealField(K):

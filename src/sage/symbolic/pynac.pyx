@@ -20,7 +20,7 @@ from sage.structure.element import Element
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.real_mpfr import RR, RealField_constructor
+from sage.rings.real_mpfr import RR, RealField
 from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC
 
@@ -1548,7 +1548,7 @@ cdef public object py_li(object x, object n, object parent):
     n = int(n)
     res = mpmath.polylog(n, str(x))
     try:
-        res = RealField_constructor(prec)(str(res))
+        res = RealField(prec)(str(res))
     except TypeError:
         res = ComplexField(prec)(str(res))
     mpmath.mp.prec = old_prec

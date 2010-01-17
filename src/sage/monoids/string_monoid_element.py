@@ -447,7 +447,7 @@ class StringMonoidElement(FreeMonoidElement):
           default value ``prec=0`` means that we use 53 bits to represent
           the mantissa of a floating-point number. For more information on
           the precision of floating-point numbers, see the function
-          :func:`RealField_constructor() <sage.rings.real_mpfr.RealField_constructor>` or refer to the module
+          :func:`RealField() <sage.rings.real_mpfr.RealField>` or refer to the module
           :mod:`real_mpfr <sage.rings.real_mpfr>`.
 
         EXAMPLES:

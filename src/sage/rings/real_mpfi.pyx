@@ -197,8 +197,8 @@ from sage.structure.element cimport RingElement, Element, ModuleElement
 import  sage.structure.element
 
 cimport real_mpfr
-from real_mpfr cimport RealField, RealNumber
-from real_mpfr import RealField_constructor
+from real_mpfr cimport RealField_class, RealNumber
+from real_mpfr import RealField
 import real_mpfr
 
 import operator
@@ -440,9 +440,9 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
         self.__prec = prec
         self.sci_not = sci_not
-        self.__lower_field = RealField_constructor(prec, sci_not, "RNDD")
-        self.__middle_field = RealField_constructor(prec, sci_not, "RNDN")
-        self.__upper_field = RealField_constructor(prec, sci_not, "RNDU")
+        self.__lower_field = RealField(prec, sci_not, "RNDD")
+        self.__middle_field = RealField(prec, sci_not, "RNDN")
+        self.__upper_field = RealField(prec, sci_not, "RNDU")
         ParentWithGens.__init__(self, self, tuple([]), False)
 
     def _lower_field(self):
@@ -462,7 +462,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         elif rnd == "RNDU":
             return self._upper_field()
         else:
-            return RealField_constructor(self.__prec, self.sci_not, "RNDZ")
+            return RealField(self.__prec, self.sci_not, "RNDZ")
 
     cdef RealIntervalFieldElement _new(self):
         """
@@ -610,7 +610,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         if isinstance(x, real_mpfr.RealNumber):
             P = x.parent()
-            if (<RealField> P).__prec >= self.__prec:
+            if (<RealField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
@@ -1935,7 +1935,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if rnd is None:
             x = (<RealIntervalField_class>self._parent).__lower_field._new()
         else:
-            x = (<RealField>(self._parent._real_field(rnd)))._new()
+            x = (<RealField_class>(self._parent._real_field(rnd)))._new()
         mpfi_get_left(<mpfr_t> x.value, self.value)
         return x
 
@@ -1985,7 +1985,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if rnd is None:
             x = (<RealIntervalField_class>self._parent).__upper_field._new()
         else:
-            x = ((<RealField>self._parent._real_field(rnd)))._new()
+            x = ((<RealField_class>self._parent._real_field(rnd)))._new()
         mpfi_get_right(<mpfr_t> x.value, self.value)
         return x
 

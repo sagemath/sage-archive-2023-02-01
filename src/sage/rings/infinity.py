@@ -900,7 +900,7 @@ class InfinityRing_class(_uniq, Ring):
                              sage.rings.real_double.RealDoubleElement,
                              sage.rings.real_mpfr.RealNumber))
                 or isinstance(x, (int,long,float))
-                or sage.rings.real_mpfr.RealField_constructor(sage.rings.real_mpfr.mpfr_prec_min())(x)):
+                or sage.rings.real_mpfr.RealField(sage.rings.real_mpfr.mpfr_prec_min())(x)):
             if x < 0:
                 return FiniteNumber(self, -1)
             elif x > 0:
@@ -927,7 +927,7 @@ class InfinityRing_class(_uniq, Ring):
             sage: InfinityRing.has_coerce_map_from(CC)
             False
         """
-        return sage.rings.real_mpfr.RealField_constructor(sage.rings.real_mpfr.mpfr_prec_min()).has_coerce_map_from(R)
+        return sage.rings.real_mpfr.RealField(sage.rings.real_mpfr.mpfr_prec_min()).has_coerce_map_from(R)
 
 class FiniteNumber(RingElement):
     def __init__(self, parent, x):

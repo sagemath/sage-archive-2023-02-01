@@ -18,7 +18,7 @@ from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-from sage.rings.real_mpfr import RealField_constructor as RealField, mpfr_prec_min
+from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
 from sage.rings.real_lazy import RLF, CLF
 

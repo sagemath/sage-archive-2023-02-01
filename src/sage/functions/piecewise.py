@@ -72,7 +72,7 @@ import sage.plot.plot
 import sage.interfaces.all
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
-from sage.rings.real_mpfr import RealField_constructor as RealField
+from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative

@@ -14,7 +14,7 @@ from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *
 
 from sage.rings.complex_field import ComplexField
-from sage.rings.real_mpfr import RealField_constructor as RealField
+from sage.rings.real_mpfr import RealField
 
 cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     """

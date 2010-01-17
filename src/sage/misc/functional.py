@@ -1137,7 +1137,7 @@ def numerical_approx(x, prec=None, digits=None):
         from sage.rings.complex_number import is_ComplexNumber
         if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
             try:
-                return sage.rings.real_mpfr.RealField_constructor(prec)(x)
+                return sage.rings.real_mpfr.RealField(prec)(x)
             except TypeError:
                 pass
         return sage.rings.complex_field.ComplexField(prec)(x)

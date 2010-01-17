@@ -34,7 +34,7 @@ from sage.rings.integer import Integer
 
 cdef QQ, RR, CC, RealField, ComplexField
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RR, RealField_constructor as RealField
+from sage.rings.real_mpfr import RR, RealField
 from sage.rings.complex_field import ComplexField
 CC = ComplexField(53)
 

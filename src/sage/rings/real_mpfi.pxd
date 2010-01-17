@@ -33,9 +33,9 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     # gives the impression that the upper and lower bounds are not
     # equal, even though they really are).  Neither of these is very
     # satisfying, but I have chosen the latter for now.
-    cdef real_mpfr.RealField __lower_field
-    cdef real_mpfr.RealField __middle_field
-    cdef real_mpfr.RealField __upper_field
+    cdef real_mpfr.RealField_class __lower_field
+    cdef real_mpfr.RealField_class __middle_field
+    cdef real_mpfr.RealField_class __upper_field
     cdef RealIntervalFieldElement _new(self)
 
 

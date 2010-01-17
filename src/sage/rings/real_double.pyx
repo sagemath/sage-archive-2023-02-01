@@ -270,8 +270,8 @@ cdef class RealDoubleField_class(Field):
         from integer_ring import ZZ
         from rational_field import QQ
         from real_lazy import RLF
-        from real_mpfr import RR, RealField
-        if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField) and S.prec() >= 53:
+        from real_mpfr import RR, RealField_class
+        if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return ToRDF(S)
         connecting = RR.coerce_map_from(S)
         if connecting is not None:
@@ -330,8 +330,8 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField_constructor
-            return RealField_constructor(prec)
+            from real_mpfr import RealField
+            return RealField(prec)
 
 
     def gen(self, n=0):

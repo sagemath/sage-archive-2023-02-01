@@ -225,7 +225,7 @@ class ComplexField_class(field.Field):
         try:
             return self.__real_field
         except AttributeError:
-            self.__real_field = real_mpfr.RealField_constructor(self._prec)
+            self.__real_field = real_mpfr.RealField(self._prec)
             return self.__real_field
 
     def __cmp__(self, other):

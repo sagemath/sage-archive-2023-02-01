@@ -915,6 +915,46 @@ end_scene""" % (render_params.antialiasing,
 
         return X
 
+    def _process_viewing_options(self, kwds):
+        """
+        Process viewing options (the keywords passed to show()) and return a new
+        dictionary. Defaults will be filled in for missing options and taken from
+        self._extra_kwds as well. Options that have the value "automatic" will be
+        automatically determined. Finally, the provided dictionary is modified
+        to remove all of the keys that were used -- so that the unused keywords
+        can be used elsewhere.
+        """
+        opts = {}
+        opts.update(SHOW_DEFAULTS)
+        if self._extra_kwds is not None:
+            opts.update(self._extra_kwds)
+        opts.update(kwds)
+
+        # Remove all of the keys that are viewing options, since the remaining
+        # kwds might be passed on.
+        for key_to_remove in SHOW_DEFAULTS.keys():
+            kwds.pop(key_to_remove, None)
+
+        if opts['aspect_ratio'] == 1:
+            opts['aspect_ratio'] = (1, 1, 1)
+        if not isinstance(opts['aspect_ratio'], (str, list, tuple)):
+            raise TypeError, 'aspect ratio must be a string, list, tuple, or 1'
+
+        if opts['frame_aspect_ratio'] == 'automatic':
+            if opts['aspect_ratio'] != 'automatic':
+                # Set the aspect_ratio of the frame to be the same as that of
+                # the object we are rendering given the aspect_ratio we'll use
+                # for it.
+                opts['frame_aspect_ratio'] = \
+                    self._determine_frame_aspect_ratio(opts['aspect_ratio'])
+            else:
+                opts['frame_aspect_ratio'] = self.frame_aspect_ratio()
+
+        if not isinstance(opts['figsize'], (list,tuple)):
+            opts['figsize'] = [opts['figsize'], opts['figsize']]
+
+        return opts
+
     def show(self, **kwds):
         """
         INPUT:
@@ -1000,43 +1040,25 @@ end_scene""" % (render_params.antialiasing,
 
             sage: p.show(viewer='canvas3d')
         """
-        ek = self._extra_kwds
-        if ek is not None:
-            for key in ek.keys():
-                if not kwds.has_key(key):
-                    kwds[key] = ek[key]
 
-        for key in SHOW_DEFAULTS.keys():
-            if not kwds.has_key(key):
-                kwds[key] = SHOW_DEFAULTS[key]
+        opts = self._process_viewing_options(kwds)
 
-        # must have one line for every named argument:
-        if kwds.has_key('viewer'): viewer = kwds['viewer']; del kwds['viewer']
-        if kwds.has_key('filename'): filename = kwds['filename']; del kwds['filename']
-        if kwds.has_key('verbosity'): verbosity = kwds['verbosity']; del kwds['verbosity']
-        if kwds.has_key('figsize'): figsize = kwds['figsize']; del kwds['figsize']
-        if kwds.has_key('aspect_ratio'): aspect_ratio = kwds['aspect_ratio']; del kwds['aspect_ratio']
-        if kwds.has_key('frame_aspect_ratio'): frame_aspect_ratio = kwds['frame_aspect_ratio']; del kwds['frame_aspect_ratio']
-        if kwds.has_key('zoom'): zoom = kwds['zoom']; del kwds['zoom']
-        if kwds.has_key('frame'): frame = kwds['frame']; del kwds['frame']
-        if kwds.has_key('axes'): axes = kwds['axes']; del kwds['axes']
-
-        if aspect_ratio == 1:
-            aspect_ratio = (1, 1, 1)
-        if not isinstance(aspect_ratio, (str, list, tuple)):
-            raise TypeError, "aspect ratio must be a string, list, tuple, or 1"
-        if aspect_ratio != "automatic" and frame_aspect_ratio == "automatic":
-            # set the aspect_ratio of the frame to be the same as that of the
-            # object we are rendering given the aspect_ratio we'll use for it.
-            frame_aspect_ratio = self._determine_frame_aspect_ratio(aspect_ratio)
-        elif frame_aspect_ratio == "automatic":
-            frame_aspect_ratio = self.frame_aspect_ratio()
+        viewer = opts['viewer']
+        verbosity = opts['verbosity']
+        figsize = opts['figsize']
+        aspect_ratio = opts['aspect_ratio']
+        frame_aspect_ratio = opts['frame_aspect_ratio']
+        zoom = opts['zoom']
+        frame = opts['frame']
+        axes = opts['axes']
 
         import sage.misc.misc
-        if filename is None:
+        if 'filename' in kwds:
+            filename = kwds['filename']
+            del kwds['filename']
+        else:
             filename = sage.misc.misc.tmp_filename()
-        if not isinstance(figsize, (list,tuple)):
-            figsize = [figsize, figsize]
+
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
         ext = None
 
@@ -1109,6 +1131,71 @@ end_scene""" % (render_params.antialiasing,
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
+
+    def save(self, filename, **kwds):
+        """
+        Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
+        rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
+        later) depending on the file extension you give the filename.
+
+        INPUT:
+
+        - ``filename`` - Specify where to save the image or object.
+
+        - ``**kwds`` - When specifying an image file to be rendered by Tachyon,
+          any of the viewing options accepted by show() are valid as keyword
+          arguments to this function and they will behave in the same way.
+          Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
+          ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``, ``frame``, and
+          ``axes``. Default values are provided.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save(f)
+
+        We demonstrate using keyword arguments to control the appearance of the
+        output image::
+
+            sage: G.save(f, zoom=2, figsize=[5, 10])
+
+        But some extra parameters don't make since (like ``viewer``, since
+        rendering is done using Tachyon only). They will be ignored::
+
+            sage: G.save(f, viewer='jmol') # Looks the same
+
+        Since Tachyon only outputs PNG images, PIL will be used to convert to
+        alternate formats::
+
+            sage: cube().save(tmp_filename() + '.gif')
+        """
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '' or ext == '.sobj':
+            SageObject.save(self, filename)
+            return
+        elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
+            opts = self._process_viewing_options(kwds)
+            T = self._prepare_for_tachyon(
+                opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
+                opts['aspect_ratio'], opts['zoom']
+            )
+
+            if ext == 'png':
+                # No conversion is necessary
+                out_filename = filename
+            else:
+                # Save to a temporary file, and then convert using PIL
+                out_filename = sage.misc.misc.tmp_filename()
+            tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
+                '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
+            if ext != 'png':
+                import Image
+                Image.open(out_filename).save(filename)
+        else:
+            raise ValueError, 'filetype not supported by save()'
+
+
 
 # if you add any default parameters you must update some code below
 SHOW_DEFAULTS = {'viewer':'jmol',

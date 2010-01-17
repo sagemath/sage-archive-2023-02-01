@@ -105,13 +105,6 @@ build()
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
     if [ `uname` = "Darwin" ]; then
-        # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
-        # cause lots of random "Abort trap" issues on OSX. see trac
-        # #7095 for an example.
-	MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-	MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-	export MACOSX_DEPLOYMENT_TARGET
-
         if [ "$SAGE64" = "yes" ]; then
             echo "64 bit OSX build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT

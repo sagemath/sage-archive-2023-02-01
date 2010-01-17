@@ -64,14 +64,19 @@ http://www.python.org/community/
 
 == Changelog ==
 
-=== python-2.6.4.p3 (John Palmieri, David Kirkby Jan 14, 2010) ==
+=== python-2.6.4.p4 (Craig Citro, Jan 17, 2010) ===
+* Move MACOSX_DEPLOYMENT_TARGET fix to sage-env, so that it's
+  used for all python-related spkgs. (This was leading to a
+  build issue with numpy and scipy on 10.4.)
+
+=== python-2.6.4.p3 (John Palmieri, David Kirkby Jan 14, 2010) ===
 * Add "CC=$CC $CFLAGS" in order to get the code to honor CFLAGS.
   Otherwise, CFLAGS gets ignored. Changes to sage-env will ensure
   CFLAGS gets set to sensible values.
 * Do same for CXX and CXXFLAGS
 * Remove an undesirable 'set -e' which stopped errors being displayed.
 
-=== python-2.6.4.p2 (Craig Citro Jan 14, 2010) ==
+=== python-2.6.4.p2 (Craig Citro, Jan 14, 2010) ===
 * Fix OSX 10.6 "Abort trap" issue by setting an appropriate value for
   MACOSX_DEPLOYMENT_TARGET. See trac #7095 for more details.
 

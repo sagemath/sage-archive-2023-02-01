@@ -1389,6 +1389,94 @@ class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
+    def shortest_path_all_vertices(self, v, cutoff = None):
+        r"""
+        Returns for each vertex `u` a shortest  `v-u` path.
+
+        INPUT:
+
+        - ``v`` -- a vertex
+        - ``cutoff`` -- maximal distance. Longer paths will not be returned
+
+        OUTPUT:
+
+        A list which associates to each vertex `u` the shortest path between
+        `u` and `v` if there is one.
+
+        NOTE:
+
+        - The weight of edges is not taken into account.
+
+        ALGORITHM:
+
+        This is just a breadth-first search.
+
+        EXAMPLES:
+
+        On the Petersen Graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: paths = g._backend.shortest_path_all_vertices(0)
+            sage: all([ len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v) for v in g])
+            True
+
+        On a disconnected graph ::
+
+            sage: g = 2*graphs.RandomGNP(20,.3)
+            sage: paths = g._backend.shortest_path_all_vertices(0)
+            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            True
+        """
+        cdef list current_layer
+        cdef list next_layer
+        cdef bitset_t seen
+        cdef int v_int
+        cdef int u_int
+        cdef dict distances_int
+        cdef dict distance
+        cdef int d
+
+        distances = {}
+        d = 0
+
+        v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+
+        bitset_init(seen,(<CGraph>self._cg).active_vertices.size)
+        bitset_set_first_n(seen,0)
+        bitset_add(seen,v_int)
+
+
+        current_layer = [(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)]
+        next_layer = []
+        distances[v] = [v]
+
+        while current_layer:
+            if cutoff is not None and d >= cutoff:
+                break
+
+            while current_layer:
+                v_int, u_int = current_layer.pop()
+
+                if bitset_not_in(seen,v_int):
+                    bitset_add(seen,v_int)
+                    distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = distances[vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)] + [vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)]
+                    next_layer.extend([(u_int,v_int) for u_int in self._cg.out_neighbors(v_int)])
+
+            current_layer = next_layer
+            next_layer = []
+            d += 1
+
+        # If the graph is not connected, vertices which have not been
+        # seen should be associated to the empty path
+
+        #for 0 <= v_int < (<CGraph>self._cg).active_vertices.size:
+        #    if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
+        #        distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
+
+        bitset_free(seen)
+        return distances
+
+
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""
         Returns a depth-first search from vertex v.

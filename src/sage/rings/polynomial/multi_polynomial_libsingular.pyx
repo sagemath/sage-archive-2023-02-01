@@ -2933,10 +2933,25 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = P(0)
             sage: f.monomials()
             [0]
+
+        Check if #7152 is fixed::
+
+            sage: x=var('x')
+            sage: K.<rho> = NumberField(x**2 + 1)
+            sage: R.<x,y> = QQ[]
+            sage: p = rho*x
+            sage: q = x
+            sage: p.monomials()
+            [x]
+            sage: q.monomials()
+            [x]
+            sage: p.monomials()
+            [x]
         """
         l = list()
         cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
         cdef ring *_ring = parent._ring
+        if(_ring != currRing): rChangeCurrRing(_ring)
         cdef poly *p = p_Copy(self._poly, _ring)
         cdef poly *t
 

@@ -2201,8 +2201,6 @@ void Number_T::archive(archive_node &n) const {
   /** Real part of a number. */
   const numeric numeric::real() const
   {
-    if (is_real()) 
-      return *this;
     verbose("real_part(a)");
     PyObject *a = Number_T_to_pyobject(value);
     PyObject *ans = py_real(a);

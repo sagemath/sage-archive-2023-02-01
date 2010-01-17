@@ -5329,11 +5329,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-            - point on the curve: the rational point which is the
-             image of `z` under the Weierstrass parametrization, if it
-             exists and can be determined from `z` and the given value
-             of max_denominator (if any); otherwise a ValueError exception
-             is raised.
+        - point on the curve: the rational point which is the
+          image of `z` under the Weierstrass parametrization, if it
+          exists and can be determined from `z` and the given value
+          of max_denominator (if any); otherwise a ValueError exception
+          is raised.
 
         EXAMPLES::
 

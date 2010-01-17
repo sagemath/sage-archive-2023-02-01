@@ -773,8 +773,8 @@ class MPolynomialIdeal_singular_repr:
     @redSB
     def associated_primes(self, algorithm='sy'):
         r"""
-        Return a list of primary ideals (and their associated primes) such
-        that their intersection is `I` = ``self``.
+        Return a list of the associated primes of primary ideals of
+        which the intersection is `I` = ``self``.
 
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
@@ -789,7 +789,6 @@ class MPolynomialIdeal_singular_repr:
 
         If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
-
 
         -  their intersection is `I`
 
@@ -814,8 +813,7 @@ class MPolynomialIdeal_singular_repr:
 
         OUTPUT:
 
-        -  ``list`` - a list of primary ideals and their
-           associated primes [(primary ideal, associated prime), ...]
+        -  ``list`` - a list of associated primes
 
         EXAMPLES::
 

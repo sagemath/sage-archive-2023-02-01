@@ -708,6 +708,16 @@ class Maxima(Expect):
 
     def _eval_line(self, line, allow_use_file=False,
                    wait_for_prompt=True, reformat=True, error_check=True):
+        """
+        EXAMPLES:
+
+        We check that errors are correctly checked::
+
+            sage: maxima.eval('sage0: x == x;')
+            Traceback (most recent call last):
+            ...
+            TypeError: error evaluating "sage0: x == x;":...
+        """
         if len(line) == 0:
             return ''
         line = line.rstrip()
@@ -729,9 +739,12 @@ class Maxima(Expect):
             return
 
         self._expect_expr(self._display_prompt)
+        pre_out = self._before()
         self._expect_expr()
         out = self._before()
+
         if error_check:
+            self._error_check(line, pre_out)
             self._error_check(line, out)
 
         if not reformat:

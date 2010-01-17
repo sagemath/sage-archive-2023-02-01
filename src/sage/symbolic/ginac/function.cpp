@@ -1139,19 +1139,20 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		    throw(std::runtime_error("function::function archive error: caught exception in py_loads"));
 		}
 		// get the serial of the new SFunction
-		unsigned s = py_get_serial_from_sfunction(sfunc);
+		unsigned int ser = py_get_serial_from_sfunction(sfunc);
 		if (PyErr_Occurred()) {
 		    throw(std::runtime_error("function::function archive error: cannot get serial from SFunction"));
 		}
 		// set serial 
-		serial = s;
+		serial = ser;
 	} else { // otherwise
 	// Find serial number by function name
 	if (n.find_string("name", s)) {
 		unsigned int ser = 0;
+		unsigned int nargs = seq.size();
 		std::vector<function_options>::const_iterator i = registered_functions().begin(), iend = registered_functions().end();
 		while (i != iend) {
-			if (s == i->name) {
+			if (s == i->name && nargs == i->nparams) {
 				serial = ser;
 				return;
 			}

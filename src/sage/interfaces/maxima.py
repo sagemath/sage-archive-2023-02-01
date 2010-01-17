@@ -498,6 +498,17 @@ class Maxima(Expect):
         eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         STARTUP = '%s/local/bin/sage-maxima.lisp'%SAGE_ROOT
+
+        # We set maxima's configuration directory to $DOT_SAGE/maxima
+        # This avoids that sage's maxima inadvertently loads
+        # ~/.maxima/maxima-init.mac
+        # If you absolutely want maxima instances that are started by
+        # this interface to preload commands, put them in
+        # $DOT_SAGE/maxima/maxima-init.mac
+        # (we use the "--userdir" option in maxima for this)
+        import sage.misc.misc
+        SAGE_MAXIMA_DIR = os.path.join(sage.misc.misc.DOT_SAGE,"maxima")
+
         if not os.path.exists(STARTUP):
             raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
         if init_code is None:
@@ -513,10 +524,12 @@ class Maxima(Expect):
         # See trac # 6818.
         init_code.append('nolabels:true')
 
+
+
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = 'maxima-noreadline -p "%s"'%STARTUP,
+                        command = 'maxima-noreadline --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

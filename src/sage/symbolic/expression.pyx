@@ -514,7 +514,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x,y,z')
             (x, y, z)
             sage: latex(y + 3*(x^(-1)))
-            y + 3 \, \frac{1}{x}
+            y + \frac{3}{x}
             sage: latex(x^(y+z^(1/y)))
             x^{z^{\left(\frac{1}{y}\right)} + y}
             sage: latex(1/sqrt(x+y))
@@ -522,7 +522,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(sin(x*(z+y)^x))
             \sin\left({\left(y + z\right)}^{x} x\right)
             sage: latex(3/2*(x+y)/z/y)
-            \frac{3}{2} \, \frac{{\left(x + y\right)}}{y z}
+            \frac{3 \, {\left(x + y\right)}}{2 \, y z}
             sage: latex((2^(x^y)))
             2^{\left(x^{y}\right)}
             sage: latex(abs(x))
@@ -572,6 +572,13 @@ cdef class Expression(CommutativeRingElement):
             a^{\left(b^{c}\right)}
             sage: latex((a^b)^c)
             {\left(a^{b}\right)}^{c}
+
+        Separate coefficients to numerator and denominator, #7363::
+
+            sage: latex(2/(x+1))
+            \frac{2}{{\left(x + 1\right)}}
+            sage: latex(1/2/(x+1))
+            \frac{1}{2 \, {\left(x + 1\right)}}
         """
         return self._parent._latex_element_(self)
 

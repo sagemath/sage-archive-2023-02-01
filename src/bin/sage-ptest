@@ -324,12 +324,15 @@ for gr in range(0,numglobaliteration):
             print "Using long cached timings to run longest doctests first."
         else:
             print "Using cached timings to run longest doctests first."
+        from copy import copy
+        time_dict_old = copy(time_dict)
     except:
         time_dict = { }
         if opts.count("-long"):
-            print "No long cached timings exist; will create upon successful finish."
+            print "No long cached timings exist; will create for successful files."
         else:
-            print "No cached timings exist; will create upon successful finish."
+            print "No cached timings exist; will create for successful files."
+        time_dict_old = None
     done = False
 
     CUR = abspath(os.getcwd())
@@ -379,17 +382,34 @@ for gr in range(0,numglobaliteration):
             print "All tests passed!"
         else:
             print "Keyboard Interrupt: All tests that ran passed."
-        #Only update timings if we are doing something standard
-        if opts=="-long" or len(opts)==0:
-            with open(time_file_name,"w") as time_file:
-                pickle.dump(time_dict, time_file)
-                print "Timings have been updated."
     else:
         if interrupt:
             print "Keyboard Interrupt, not all tests ran"
+        elif opts=="-long" or len(opts)==0:
+            time_dict_ran = time_dict
+            time_dict = { }
+            failed_files = { }
+            if opts=="-long":
+                for F in failed:
+                    failed_files[F.split('#')[0].split()[3]] = None
+            else:
+                for F in failed:
+                    failed_files[F.split('#')[0].split()[2]] = None
+            for F in time_dict_ran:
+                if F not in failed_files:
+                    time_dict[F] = time_dict_ran[F]
+            if time_dict_old is not None:
+                for F in time_dict_old:
+                    if F not in time_dict:
+                        time_dict[F] = time_dict_old[F]
         print "\nThe following tests failed:\n"
         for i in range(len(failed)):
                print "\t", failed[i]
         print "-"*int(70)
+    #Only update timings if we are doing something standard
+    if (opts=="-long" or len(opts)==0) and not interrupt:
+        with open(time_file_name,"w") as time_file:
+            pickle.dump(time_dict, time_file)
+            print "Timings have been updated."
 
     print "Total time for all tests: %.1f seconds"%(time.time() - t0)

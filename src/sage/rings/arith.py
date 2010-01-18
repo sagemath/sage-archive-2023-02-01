@@ -4235,10 +4235,10 @@ def four_squares(n):
         x = int(sqrt(m))
         if mod(x,2) == 0:
             x = x - 1
-        p = (m-x**2)/2
+        p = (m-x**2) // 2
         while not is_prime(p):
             x = x - 2
-            p = (m-x**2)/2
+            p = (m-x**2) // 2
             if x < 0:
             # fall back to brute force
                 m = m + d

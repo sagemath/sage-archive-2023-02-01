@@ -454,7 +454,7 @@ def lucas_number1(n,P,Q):
 
     ::
 
-        sage: lucas = lambda n:(5/2)*lucas_number1(n,1,-1)+(1/2)*lucas_number2(n,1,-1)
+        sage: lucas = lambda n : Integers((5/2)*lucas_number1(n,1,-1)+(1/2)*lucas_number2(n,1,-1))
         sage: [[lucas(n),is_prime(lucas(n)),n+1,is_prime(n+1)] for n in range(15)]
         [[1, False, 1, False],
          [3, True, 2, True],

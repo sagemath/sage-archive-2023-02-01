@@ -1,4 +1,5 @@
 import sage.libs.pari.gen as gen
+from sage.misc.sage_eval import sage_eval
 
 from math import log
 from sage.rings.all import *
@@ -58,9 +59,16 @@ def pari(x):
     """
     return gen.pari(x)
 
-def python(z):
+def python(z, locals=None):
     """
     Return the closest python/Sage equivalent of the given pari object.
+
+    INPUT:
+
+        - `z` -- pari object
+
+        - `locals` -- optional dictionary used in fallback cases that
+          involve sage_eval
 
     The component parts of a t_COMPLEX may be t_INT, t_REAL, t_INTMOD,
     t_FRAC, t_PADIC.  The components need not have the same type
@@ -140,6 +148,17 @@ def python(z):
         sage: b.parent()
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
 
+    We use the locals dictionary::
+
+        sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
+        sage: x,y=var('x,y')
+        sage: import sage.libs.pari.gen_py
+        sage: sage.libs.pari.gen_py.python(f, {'x':x, 'y':y})
+        2/3*x^3 + x + y - 5/7
+        sage: sage.libs.pari.gen_py.python(f)
+        Traceback (most recent call last):
+        ...
+        NameError: name 'x' is not defined
     """
     t = z.type()
     if t == "t_REAL":
@@ -180,4 +199,4 @@ def python(z):
         from sage.matrix.constructor import matrix
         return matrix(z.nrows(),z.ncols(),[python(z[i,j]) for i in range(z.nrows()) for j in range(z.ncols())])
     else:
-        return eval(str(z))
+        return sage_eval(str(z), locals=locals)

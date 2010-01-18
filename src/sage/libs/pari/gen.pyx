@@ -1304,7 +1304,7 @@ cdef class gen(sage.structure.element.RingElement):
             V.append(self.__getitem__(n))
         return V
 
-    def python(self):
+    def python(self, locals=None):
         """
         Return Python eval of self.
 
@@ -1312,9 +1312,27 @@ cdef class gen(sage.structure.element.RingElement):
         RealField element of the equivalent precision; if self is a complex
         (type t_COMPLEX) the result will be a ComplexField element of
         precision the minimum precision of the real and imaginary parts.
+
+        EXAMPLES::
+
+            sage: pari('389/17').python()
+            389/17
+            sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
+            2/3*x^3 + x + (y - 5/7)
+            sage: var('x,y')
+            (x, y)
+            sage: f.python({'x':x, 'y':y})
+            2/3*x^3 + x + y - 5/7
+
+        You can also use .sage, which is a psynonym::
+
+            sage: f.sage({'x':x, 'y':y})
+            2/3*x^3 + x + y - 5/7
         """
         import sage.libs.pari.gen_py
-        return sage.libs.pari.gen_py.python(self)
+        return sage.libs.pari.gen_py.python(self, locals=locals)
+
+    sage = python
 
 #  This older version illustrates how irrelevant the real_precision
 #  global variable is in the pari library.  The output of this

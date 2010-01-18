@@ -109,14 +109,14 @@ The top of each Sage code file should follow this format:
 
 The following is the top of the file
 ``SAGE_ROOT/devel/sage/sage/rings/integer.pyx``, which
-contains the implementation for :math:`$\ZZ$`.
+contains the implementation for :math:`\ZZ`.
 
 
 
 ::
 
     """
-    Elements of the ring m`\ZZ` of integers
+    Elements of the ring `\ZZ` of integers
 
     AUTHORS:
 

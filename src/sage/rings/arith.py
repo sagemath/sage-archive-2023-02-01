@@ -3447,29 +3447,30 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: continued_fraction_list(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-        sage: print continued_fraction_list(RealField(200)(e))
+        sage: continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
     from sage.symbolic.expression import Expression
 
-    # if x is a SymbolicExpression, try coercing it to a real number
-    if not bits is None:
+    if bits is not None:
         try:
             x = sage.rings.real_mpfr.RealField(bits)(x)
         except  TypeError:
-            raise TypeError, "can only find the continued fraction of a number"
+            raise TypeError, "can only find the continued fraction of a real number"
     elif isinstance(x, float):
         from real_double import RDF
         x = RDF(x)
     elif isinstance(x, Expression):
+        # if x is a SymbolicExpression, try coercing it to a real number with 53 bits precision
         try:
-            x = sage.rings.real_mpfr.RealField(53)(x)
+            x = sage.rings.real_mpfr.RR(x)
         except TypeError:
-            raise TypeError, "can only find the continued fraction of a number"
+            raise TypeError, "can only find the continued fraction of a real number"
     elif not partial_convergents and \
            isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()
+
     x_in = x
     v = []
     w = [(0,1), (1,0)] # keep track of convergents

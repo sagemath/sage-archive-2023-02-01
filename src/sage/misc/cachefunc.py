@@ -4,6 +4,8 @@ Cached Functions
 AUTHOR:
     -- William Stein (inspired by conversation with Justin Walker).
     -- Mike Hansen (added doctests and made it work with class methods).
+    -- Willem Jan Palenstijn (add CachedMethodCaller for binding
+                              cached methods to instances)
 """
 ########################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -49,6 +51,12 @@ class CachedFunction(object):
             True
 
         """
+        self._common_init(f, ArgumentFixer(f,classmethod=classmethod))
+
+    def _common_init(self, f, argumentfixer):
+        """
+        Perform initialization common to CachedFunction and CachedMethodCaller.
+        """
         self.f = f
         self.cache = {}
         if hasattr(f, "func_doc"):
@@ -56,7 +64,7 @@ class CachedFunction(object):
         if hasattr(f, "func_name"):
             self.__name__ = f.func_name
         self.__module__ = f.__module__
-        self._argumentfixer = ArgumentFixer(f,classmethod=classmethod)
+        self._argumentfixer = argumentfixer
 
     def _sage_src_(self):
         """
@@ -158,16 +166,16 @@ class CachedFunction(object):
         and kwds are passed in as parameters.
 
         EXAMPLES:
-            sage: class Foo:
-            ...       def __init__(self, x):
-            ...           self._x = x
-            ...       @cached_method
-            ...       def f(self):
-            ...           return self._x^2
+            sage: @cached_function
+            ... def foo(x):
+            ...    return x^2
             ...
-            sage: a = Foo(2)
-            sage: a.f.get_key()
-            ((), ())
+            sage: foo(2)
+            4
+            sage: foo.get_key(2)
+            ((2,), ())
+            sage: foo.get_key(x=3)
+            ((3,), ())
         """
         return self._argumentfixer.fix_to_pos(*args, **kwds)
 
@@ -200,7 +208,44 @@ class CachedFunction(object):
 
 cached_function = CachedFunction
 
-class CachedMethod(CachedFunction):
+class CachedMethodCaller(CachedFunction):
+    def __init__(self, cachedmethod, inst):
+        """
+        Utility class that is used by CachedMethod to bind a
+        cached method to an instance.
+        """
+        # initialize CachedFunction, but re-use the ArgumentFixer
+        self._common_init(cachedmethod._cachedfunc.f, cachedmethod._cachedfunc._argumentfixer)
+        self._instance = inst
+        self._cachedmethod = cachedmethod
+    def __call__(self, *args, **kwds):
+        """
+        Call the cached method.
+        """
+        return self._cachedmethod._instance_call(self._instance, *args, **kwds)
+    def get_cache(self, *args, **kwds):
+        """
+        Retrieve the cache for the instance.
+        """
+        return self._cachedmethod._get_instance_cache(self._instance)
+    def get_key(self, *args, **kwds):
+        """
+        Convert arguments to the key for this instance's cache.
+        """
+        return self._cachedmethod._get_instance_key(self._instance, *args, **kwds)
+    def __get__(self, inst, cls=None):
+        """
+        Get a CachedMethodCaller bound to this specific instance of
+        the class of the cached method.
+
+        CachedMethodCaller has a separate __get__ since
+        the categories framework creates and caches the return
+        value of CachedMethod.__get__ with inst==None.
+        """
+        return CachedMethodCaller(self._cachedmethod, inst)
+
+
+class CachedMethod(object):
     def __init__(self, f):
         """
         EXAMPLES:
@@ -211,13 +256,16 @@ class CachedMethod(CachedFunction):
             ...       def f(self):
             ...           return self._x^2
             ...
-            sage: Foo.f._cache_name
-            '_cache__f'
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: hasattr(a, '_cache__f')
+            True
         """
         self._cache_name = '_cache__' + f.__name__
-        CachedFunction.__init__(self, f, classmethod=True)
+        self._cachedfunc = CachedFunction(f, classmethod=True)
 
-    def __call__(self, *args, **kwds):
+    def _instance_call(self, inst, *args, **kwds):
         """
         EXAMPLES:
             sage: class Foo(object):
@@ -243,15 +291,15 @@ class CachedMethod(CachedFunction):
             9
 
         """
-        cache = self.get_cache()
-        key = self.get_key(*args, **kwds)
+        cache = self._get_instance_cache(inst)
+        key = self._get_instance_key(inst, *args, **kwds)
         if cache.has_key(key):
             return cache[key]
         else:
-            cache[key] = self.f(self._instance, *args, **kwds)
+            cache[key] = self._cachedfunc.f(inst, *args, **kwds)
             return cache[key]
 
-    def get_cache(self):
+    def _get_instance_cache(self, inst):
         """
         Returns the cache dictionary.
 
@@ -270,15 +318,29 @@ class CachedMethod(CachedFunction):
             {((), ()): 4}
 
         """
-        return self._instance.__dict__.setdefault(self._cache_name, {})
+        return inst.__dict__.setdefault(self._cache_name, {})
+
+    def _get_instance_key(self, inst, *args, **kwds):
+        """
+        Returns the key in the cache to be used when args
+        and kwds are passed in as parameters with the given instance.
+        """
+        return self._cachedfunc.get_key(*args, **kwds)
 
     def __get__(self, inst, cls=None):
         """
-        This is needed to allow CachedFunction to decorate
-        methods.
+        Get a CachedMethodCaller bound to this specific instance of
+        the class of the cached method.
         """
-        self._instance = inst
-        return self
+        return CachedMethodCaller(self, inst)
+
+        # Note: a simpler approach to this would be
+        # def caller(*args, **kwds):
+        #     return self._instance_call(inst, *args, **kwds)
+        # return caller
+        # The disadvantage to this is that it does not provide
+        # is_in_cache(), set_cache(), clear_cache(), ... methods.
+
 
 cached_method = CachedMethod
 
@@ -290,23 +352,31 @@ class CachedInParentMethod(CachedMethod):
         See also ``cached_method`` and ``cached_function``.
 
         EXAMPLES::
-
+            sage: class MyParent(Parent):
+            ...       pass
             sage: class Foo:
             ...       def __init__(self, x):
             ...           self._x = x
+            ...       _parent = MyParent()
+            ...       def parent(self):
+            ...           return self._parent
             ...       @cached_in_parent_method
             ...       def f(self):
             ...           return self._x^2
             ...
-            sage: Foo.f._cache_name
-            '_cache__element_f'
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: hasattr(a.parent(), '_cache__element_f')
+            True
         """
         self._cache_name = '_cache__' + 'element_' + f.__name__
-        CachedFunction.__init__(self, f, classmethod=True)
+        self._cachedfunc = CachedFunction(f, classmethod=True)
 
-    def get_key(self, *args, **kwds):
+    def _get_instance_key(self, inst, *args, **kwds):
         """
         Returns the key used to lookup in the cache dictionary.
+        This key includes the specific element instance.
 
         EXAMPLES::
 
@@ -334,9 +404,9 @@ class CachedInParentMethod(CachedMethod):
             sage: a.f.get_key(1,3, bla=4)
             ((2, 1, 3), (('bla', 4),))
         """
-        return super(CachedInParentMethod, self).get_key(self._instance, *args, **kwds)
+        return self._cachedfunc.get_key(inst, *args, **kwds)
 
-    def get_cache(self):
+    def _get_instance_cache(self, inst):
         """
         Returns the cache dictionary, which is stored in the parent.
 
@@ -374,7 +444,7 @@ class CachedInParentMethod(CachedMethod):
             {((2,), ()): 4, ((3,), ()): 9}
 
         """
-        return self._instance.parent().__dict__.setdefault(self._cache_name, {})
+        return inst.parent().__dict__.setdefault(self._cache_name, {})
 
 
 cached_in_parent_method = CachedInParentMethod

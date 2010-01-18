@@ -88,6 +88,12 @@ cdef class PrimePi:
         sage: prime_pi(500509)
         41581
 
+    The following test is to verify that ticket #4670 has been essentially
+    resolved::
+
+        sage: prime_pi(10**10)
+        455052511
+
     The prime_pi function allows for use of additional memory::
 
         sage: prime_pi(500509, 8)

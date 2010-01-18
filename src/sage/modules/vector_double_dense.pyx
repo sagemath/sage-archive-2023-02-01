@@ -168,6 +168,14 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             (0, 1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
             sage: vector(RDF, 4, range(4))
             (0.0, 1.0, 2.0, 3.0)
+
+            sage: V = RDF^2
+            sage: V._element_class(V, 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: entries must be a list or 0
+            sage: V._element_class(V, 0)
+            (0.0, 0.0)
         """
         cdef Py_ssize_t i,j
         if isinstance(entries,(tuple, list)):
@@ -194,6 +202,9 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 except TypeError:
                     raise TypeError("cannot coerce entry to type %s"%self._python_dtype)
                 if z != 0:
+                    raise TypeError("entries must be a list or 0")
+                else:
+                    # Set all entries to z=0.
                     for i from 0<=i<self._degree:
                         self.set_unsafe(i,z)
 

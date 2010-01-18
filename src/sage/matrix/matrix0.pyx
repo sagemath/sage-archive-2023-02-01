@@ -206,7 +206,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def list(self):
         """
-        List of elements of self. It is safe to change the returned list.
+        List of the elements of self ordered by elements in each
+        row. It is safe to change the returned list.
+
+        .. warning::
+
+           This function returns a list of the entries in the matrix
+           self.  It does not return a list of the rows of self, so it
+           is different than the output of list(self), which returns
+           ``[self[0],self[1],...]``.
 
         EXAMPLES::
 
@@ -216,6 +224,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      y       x 2*x + y]
             sage: v = a.list(); v
             [x, y, x*y, y, x, 2*x + y]
+
+        Note that list(a) is different than a.list()::
+
+            sage: a.list()
+            [x, y, x*y, y, x, 2*x + y]
+            sage: list(a)
+            [(x, y, x*y), (y, x, 2*x + y)]
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -276,7 +291,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 x.append(self.get_unsafe(i, j))
-#        self.cache('list', x)
         return x
 
     def dict(self):

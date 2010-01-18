@@ -1783,15 +1783,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage_free(s)
         return data
 
-
-    def list(self):
+    def _list(self):
         """
-        Return list of elements of self.
+        Return list of elements of self.  This method is called by self.list().
 
         EXAMPLES::
 
             sage: w = matrix(GF(19), 2, 3, [1..6])
             sage: w.list()
+            [1, 2, 3, 4, 5, 6]
+            sage: w._list()
             [1, 2, 3, 4, 5, 6]
             sage: w.list()[0].parent()
             Finite Field of size 19

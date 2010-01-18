@@ -1026,7 +1026,9 @@ class GapElement(ExpectElement):
             (<function reduce_load at 0x...>, ())
             sage: f, args = _
             sage: f(*args)
-            (invalid object -- defined in terms of closed session)
+            Traceback (most recent call last):
+            ...
+            ValueError: The session in which this object was defined is no longer running.
         """
         return reduce_load, ()  # default is an invalid object
 
@@ -1298,9 +1300,13 @@ def reduce_load():
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        (invalid object -- defined in terms of closed session)
+        Traceback (most recent call last):
+        ...
+        ValueError: The session in which this object was defined is no longer running.
         sage: loads(dumps(gap(2)))
-        (invalid object -- defined in terms of closed session)
+        Traceback (most recent call last):
+        ...
+        ValueError: The session in which this object was defined is no longer running.
     """
     return GapElement(None, None)
 

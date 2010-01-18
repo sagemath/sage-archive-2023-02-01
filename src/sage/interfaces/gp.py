@@ -442,7 +442,9 @@ class Gp(Expect):
             10
             sage: gp.quit()
             sage: a
-            (invalid object -- defined in terms of closed session)
+            Traceback (most recent call last):
+            ...
+            ValueError: The pari session in which this object was defined is no longer running.
             sage: gp(pi)
             3.1415926535897932384626433832795028842    # 64-bit
             3.141592653589793238462643383              # 32-bit

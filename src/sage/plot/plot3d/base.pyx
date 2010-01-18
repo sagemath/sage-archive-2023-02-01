@@ -755,8 +755,10 @@ end_scene""" % (render_params.antialiasing,
             set([])
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
-            sage: G.texture_set()
-            set([Texture(texture..., red, ff0000), Texture(texture..., yellow, ffff00), Texture(texture..., red, ff0000)])
+            sage: [t for t in G.texture_set() if t.color == (1, 0, 0)] # we should have two red textures
+            [Texture(texture..., red, ff0000), Texture(texture..., red, ff0000)]
+            sage: [t for t in G.texture_set() if t.color == (1, 1, 0)] # ...and one yellow
+            [Texture(texture..., yellow, ffff00)]
         """
         return set()
 

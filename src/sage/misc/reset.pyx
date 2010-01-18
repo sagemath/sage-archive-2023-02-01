@@ -1,7 +1,8 @@
 import sys
 
 # Exclude these from the reset command.
-EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA'])
+# DATA, base64 -- needed by the notebook
+EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64'])
 
 def reset(vars=None):
     """

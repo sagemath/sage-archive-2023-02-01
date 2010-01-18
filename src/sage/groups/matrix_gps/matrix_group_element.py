@@ -247,6 +247,27 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         """
         return MatrixGroupElement(self.__mat * other.__mat, self.parent(), check=False)
 
+    def _act_on_(self, x, self_on_left):
+        """
+        EXAMPLES::
+
+            sage: G = GL(4,7)
+            sage: G.0 * vector([1,2,3,4])
+            (3, 2, 3, 4)
+            sage: v = vector(GF(7), [3,2,1,-1])
+            sage: g = G.1
+            sage: v * g == v * g.matrix()
+            True
+        """
+        if not is_MatrixGroupElement(x) and x not in self.parent().base_ring():
+            try:
+                if self_on_left:
+                    return self.matrix() * x
+                else:
+                    return x * self.matrix()
+            except TypeError:
+                return None
+
     def __invert__(self):
         return MatrixGroupElement(~self.__mat, self.parent(), check=False)
 

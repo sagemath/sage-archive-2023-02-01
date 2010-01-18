@@ -2742,7 +2742,7 @@ cdef class FiniteFieldElement(FieldElement):
         import sage.rings.arith
 
         if self.is_zero():
-            return ArithmeticError, "Multiplicative order of 0 not defined."
+            raise ArithmeticError, "Multiplicative order of 0 not defined."
         n = self._parent.order() - 1
         order = 1
         for p, e in sage.rings.arith.factor(n):

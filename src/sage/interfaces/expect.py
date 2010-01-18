@@ -1659,10 +1659,7 @@ class ExpectElement(RingElement):
         return self._sage_()
 
     def __repr__(self):
-        try:
-            self._check_valid()
-        except ValueError:
-            return '(invalid object -- defined in terms of closed session)'
+        self._check_valid()
         try:
             if self._get_using_file:
                 s = self.parent().get_using_file(self._name)

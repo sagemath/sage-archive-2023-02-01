@@ -117,14 +117,13 @@ def parallel(p_iter = 'fork', ncpus=None, **kwds):
     be computed in parallel.
 
     INPUT:
+
         - ``p_iter`` -- parallel iterator function or string:
-                  - `fork'            -- (default) use a new fork for each input
-                  - 'multiprocessing' -- use multiprocessing library
-                  - 'reference'       -- use a fake serial reference implementation
-                  - DSage instance    -- use dsage
-
+            - 'fork'            -- (default) use a new fork for each input
+            - 'multiprocessing' -- use multiprocessing library
+            - 'reference'       -- use a fake serial reference implementation
+            - DSage instance    -- use dsage
         - ``ncpus`` -- integer, number of cpus
-
         - ``timeout`` -- number of seconds until task is killed (only supported by 'fork')
 
 

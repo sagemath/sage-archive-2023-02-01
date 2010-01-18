@@ -22,15 +22,79 @@ in your home directory like this one:
 ::
 
     [ui]
-    username = Cardinal Fang <fang@spanish-inquisition.com>
+    username = Euclid of Alexandria <euclid@alexandria.edu>
 
 Quick Mercurial Tutorial for Sage
 =================================
 
-There are several ways to run Mercurial: from the command line, run
-``sage -hg`` (``Hg`` is the chemical symbol for
-mercury), or from within Sage, run ``hg_sage``. Most of the
-examples below use the second method.
+To submit your changes to the Sage development team for
+refereeing (and inclusion into Sage if the referee's report is
+positive), you should produce patch files using Mercurial.
+The simplest way is to run Mercurial from within Sage
+following the examples below (note: ``Hg`` is the chemical symbol for
+mercury)
+
+-  Type ``hg_sage.status()`` and ``hg_sage.diff()``
+   to see exactly what you've done.  ``q`` to quit the diff.
+
+-  If you've added new files, not just edited existing ones, type
+   ``hg_sage.add([filenames])`` to add those new files to your
+   repository.
+
+   .. warning::
+
+      As noted in :ref:`chapter-cython`, if you've added a Cython
+      file, you also need to edit
+      ``SAGE_ROOT/devel/sage/module_list.py``, and if you've added a
+      new directory, you need to edit
+      ``SAGE_ROOT/devel/sage/setup.py``.  If you've added something
+      other than Python or Cython files, then you might need to add
+      entries to the file ``SAGE_ROOT/devel/sage/MANIFEST.in``: this
+      records all of the files to include in distributions of the Sage
+      library.  Look at the file itself for examples, and see the
+      Python documentation
+      http://docs.python.org/distutils/sourcedist.html#specifying-the-files-to-distribute
+      for all of the details.
+
+-  Commit your changes by typing
+   ``hg_sage.commit()`` to commit the
+   changes in files to the repository.  If you want to commit only specific files, each file must be
+   listed individually with full pathnames, e.g. ``hg_sage.commit('sage/misc/misc.py  sage/all.py')``
+   If no filenames are given,
+   all changed files are committed. First the output of ``hg diff`` is
+   displayed: look at it or just enter ``q``. Then you are
+   dumped into an editor to type a brief comment on the changes. The
+   default editor is vi, so type ``i`` to insert, write a one line commit message of the form
+   ``trac xxxx: <your-commit-message-here>`` where xxxx is the Sage development tracking system
+   ticket number (see http://trac.sagemath.org)
+	hit ``Escape`` and type ``:wq``.
+   (In bash, to make emacs the default editor, type
+   ``export EDITOR=emacs``.)
+
+-  Now create a patch file using ``hg_sage.export(...)``.
+   This command needs a revision number (or list of revision numbers)
+   as an argument; use ``hg_sage.export('tip')`` to use the most recent revision number or
+	use ``hg_sage.log()`` to see all these numbers.
+   An optional second argument to ``hg_sage.export(...)`` is a
+   filename for the patch; the default is
+   ``(changeset_revision_number).patch`` which is written in what sage considers the current
+   directory (this can be found with the command ``os.path.abspath('.')``)
+
+-  Then post your patch on the Sage Trac server: see
+   :ref:`chapter-trac`.
+
+
+You can also run Mercurial directly from the command line, run
+``sage -hg``. Or you can start a very nice web server that allows you
+to navigate your repository with a web browser, or pull patches
+from it remotely, by typing ``hg_sage.serve()``. Then open
+your web browser and point it to http://localhost:8000 which is the
+default listening address for Mecurial.
+
+Finally, if you want to apply a patch file (perhaps you've
+downloaded a patch from the Trac server for review), use the
+command ``hg_sage.patch('filename')`` (or
+``hg_sage.apply('filename')`` for hg bundle files).
 
 Before you modify Sage library files, you might want to create a
 copy of the Sage library in which to work. Do this by typing
@@ -59,66 +123,6 @@ to ``SAGE_ROOT/devel/sage-myver``. You can also type
 ``sage -br myver`` to build the library and then to
 immediately run Sage.
 
-If you want to submit your changes to the Sage development team for
-refereeing (and inclusion into Sage if the referee's report is
-positive), you should produce patch files. To do this:
-
-
--  Type ``hg_sage.status()`` and ``hg_sage.diff()``
-   to see exactly what you've done (you can pass options to
-   ``diff`` to see information about certain files).
-
--  If you've added new files, not just edited existing ones, type
-   ``hg_sage.add([filenames])`` to add those new files to your
-   repository.
-
-   .. warning::
-
-      As noted in :ref:`chapter-cython`, if you've added a Cython
-      file, you also need to edit
-      ``SAGE_ROOT/devel/sage/module_list.py``, and if you've added a
-      new directory, you need to edit
-      ``SAGE_ROOT/devel/sage/setup.py``.  If you've added something
-      other than Python or Cython files, then you might need to add
-      entries to the file ``SAGE_ROOT/devel/sage/MANIFEST.in``: this
-      records all of the files to include in distributions of the Sage
-      library.  Look at the file itself for examples, and see the
-      Python documentation
-      http://docs.python.org/distutils/sourcedist.html#specifying-the-files-to-distribute
-      for all of the details.
-
--  Commit your changes by typing
-   ``hg_sage.commit([optional filenames])`` to commit the
-   changes in files to the repository -- if no filenames are given,
-   all files are committed. First the output of ``hg diff`` is
-   displayed: look at it or just enter ``q``. Then you are
-   dumped into an editor to type a brief comment on the changes. The
-   default editor is vi, so type ``i``, write some meaningful
-   one line description, hit ``Escape`` and type ``:wq``.
-   (In bash, to make emacs the default editor, type
-   ``export EDITOR=emacs``.)
-
--  Now create a patch file using ``hg_sage.export(...)``.
-   This command needs a revision number (or list of revision numbers)
-   as an argument; use ``hg_sage.log()`` to see these numbers.
-   An optional second argument to ``hg_sage.export(...)`` is a
-   filename for the patch; the default is
-   ``(changeset_revision_number).patch``.
-
--  Then post your patch on the Sage Trac server: see
-   :ref:`chapter-trac`.
-
-
-Note that you can also start a very nice web server that allows you
-to navigate your repository with a web browser, or pull patches
-from it remotely, by typing ``hg_sage.serve()``. Then open
-your web browser and point it to http://localhost:8000 which is the
-default listening address for Mecurial.
-
-Finally, if you want to apply a patch file (perhaps you've
-downloaded a patch from the Trac server for review), use the
-command ``hg_sage.patch('filename')`` (or
-``hg_sage.apply('filename')`` for hg bundle files).
 
 Using Mercurial with Other Sage Repositories
 ============================================

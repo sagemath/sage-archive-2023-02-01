@@ -361,16 +361,19 @@ def is_prime(n):
     ``n.is_prime()`` method is not available, it otherwise raises a
     ``TypeError``.
     """
-    if type(n) == int or type(n) == long:
+    if isinstance(n, sage.symbolic.expression.Expression):
+        try:
+            n = n.pyobject()
+        except TypeError:
+            pass
+    if isinstance(n, int) or isinstance(n, long):
         from sage.rings.integer import Integer
         return Integer(n).is_prime()
-    elif type(n) == sage.symbolic.expression.Expression:
-        return ZZ(n).is_prime()
-    else:
-        try:
-            return n.is_prime()
-        except AttributeError:
-            raise TypeError, "is_prime() is not written for this type"
+
+    try:
+        return n.is_prime()
+    except AttributeError:
+        raise TypeError, "is_prime() is not written for this type"
 
 def is_pseudoprime(n, flag=0):
     r"""

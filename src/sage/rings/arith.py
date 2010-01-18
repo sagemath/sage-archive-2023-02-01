@@ -331,15 +331,11 @@ def is_prime(n):
 
     INPUT:
 
-
     -  ``n`` - the object for which to determine primality
-
 
     OUTPUT:
 
-
     -  ``bool`` - ``True`` or ``False``
-
 
     EXAMPLES::
 
@@ -358,16 +354,18 @@ def is_prime(n):
         sage: is_prime(-2)
         False
 
-    ALGORITHM::
+    ALGORITHM:
 
     Calculation is delegated to the ``n.is_prime()`` method, or in special
     cases (e.g., Python ``int``s) to ``Integer(n).is_prime()``.  If an
     ``n.is_prime()`` method is not available, it otherwise raises a
     ``TypeError``.
     """
-    if type(n) == int or type(n)==long:
+    if type(n) == int or type(n) == long:
         from sage.rings.integer import Integer
         return Integer(n).is_prime()
+    elif type(n) == sage.symbolic.expression.Expression:
+        return ZZ(n).is_prime()
     else:
         try:
             return n.is_prime()
@@ -4223,9 +4221,9 @@ def four_squares(n):
         pass
     m = n
     v = 0
-    while mod(m,4)==0:
+    while mod(m,4) == 0:
         v = v +1
-        m = m/4
+        m = m // 4
     if mod(m,8) == 7:
         d = 1
         m = m - 1

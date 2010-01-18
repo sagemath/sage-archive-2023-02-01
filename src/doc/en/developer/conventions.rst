@@ -255,7 +255,9 @@ Docstring Content
 -----------------
 
 **Every** function must have a docstring that includes the
-following information:
+following information. Source files in the Sage library contain
+numerous examples on how to format your documentation, so you could
+use them as a guide.
 
 
 -  A one-sentence description of the function, followed by a blank
@@ -265,7 +267,33 @@ following information:
    below for format). The type names should be descriptive, but do not
    have to represent the exact Sage/Python types. For example, use
    "integer" for anything that behaves like an integer; you do not
-   have to put a precise type name such as ``int``.
+   have to put a precise type name such as ``int``. The INPUT block
+   describes the expected input to your function or method, while the
+   OUTPUT block describes the expected output of the
+   function/method. If appropriate, you need to describe any default
+   values for the input arguments. For example::
+
+       INPUT:
+
+       - ``p`` -- (default: 2) a positive prime integer.
+
+       OUTPUT:
+
+       A 5-tuple consisting of integers in this order:
+
+       1. the smallest primitive root modulo p
+       2. the smallest prime primitive root modulo p
+       3. the largest primitive root modulo p
+       4. the largest prime primitive root modulo p
+       5. total number of prime primitive roots modulo p
+
+   Some people prefer to format their OUTPUT section as a block by
+   using a dash. That is acceptable as well::
+
+       OUTPUT:
+
+       - The plaintext resulting from decrypting the ciphertext ``C``
+         using the Blum-Goldwasser decryption algorithm.
 
 -  Instead of INPUT and OUTPUT blocks, you can include descriptions of
    the arguments and output using Sphinx/ReST markup, as described in
@@ -279,10 +307,90 @@ following information:
 
 -  An ALGORITHM block (optional) which indicates what software
    and/or what algorithm is used. For example
-   ``ALGORITHM: Uses Pari``.
+   ``ALGORITHM: Uses Pari``. Here's a longer example that describes an
+   algorithm used. Note that it also cites the reference where this
+   algorithm can be found::
+
+       ALGORITHM:
+
+       The following algorithm is adapted from page 89 of [Nat2000]_.
+
+       Let `p` be an odd (positive) prime and let `g` be a generator
+       modulo `p`. Then `g^k` is a generator modulo `p` if and only if
+       `\gcd(k, p-1) = 1`. Since `p` is an odd prime and positive, then
+       `p - 1` is even so that any even integer between 1 and `p - 1`,
+       inclusive, is not relatively prime to `p - 1`. We have now
+       narrowed our search to all odd integers `k` between 1 and `p - 1`,
+       inclusive.
+
+       So now start with a generator `g` modulo an odd (positive) prime
+       `p`. For any odd integer `k` between 1 and `p - 1`, inclusive,
+       `g^k` is a generator modulo `p` if and only if `\gcd(k, p-1) = 1`.
+
+       REFERENCES:
+
+       .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
+         Springer, 2000.
+
+   You can also number the steps in your algorithm using the hash-dot
+   symbol. This way, the actual numbering of the steps are
+   automatically taken care of when you build the documentation::
+
+        ALGORITHM:
+
+        The Blum-Goldwasser decryption algorithm is described in Algorithm
+        8.56, page 309 of [MenezesEtAl1996]_. The algorithm works as follows:
+
+        #. Let `C` be the ciphertext `C = (c_1, c_2, \dots, c_t, x_{t+1})`.
+           Then `t` is the number of ciphertext sub-blocks and `h` is the
+           length of each binary string sub-block `c_i`.
+        #. Let `(p, q, a, b)` be the private key whose corresponding
+           public key is `n = pq`. Note that `\gcd(p, q) = ap + bq = 1`.
+        #. Compute `d_1 = ((p + 1) / 4)^{t+1} \bmod{(p - 1)}`.
+        #. Compute `d_2 = ((q + 1) / 4)^{t+1} \bmod{(q - 1)}`.
+        #. Let `u = x_{t+1}^{d_1} \bmod p`.
+        #. Let `v = x_{t+1}^{d_2} \bmod q`.
+        #. Compute `x_0 = vap + ubq \bmod n`.
+        #. For `i` from 1 to `t`, do:
+
+           #. Compute `x_i = x_{t-1}^2 \bmod n`.
+           #. Let `p_i` be the `h` least significant bits of `x_i`.
+           #. Compute `m_i = p_i \oplus c_i`.
+
+        #. The plaintext is `m = m_1 m_2 \cdots m_t`.
 
 -  A NOTES block for special notes (optional). Include information
-   such as purpose etc.
+   such as purpose etc. A NOTES block should start with
+   ``.. NOTE::``. You can also use the lower-case version
+   ``.. note::``, but do not mix lower-case with upper-case. However,
+   you are encouraged to use the upper-case version ``.. NOTE::``. If
+   you want to put anything within the NOTES block, you should
+   indent it at least 4 spaces (no tabs). Here's an example of a NOTES
+   block::
+
+       .. NOTE::
+
+           You should note that this sentence is indented at least 4
+           spaces. Avoid tab characters as much as possible when
+           writing code or editing the Sage documentation. You should
+           follow Python conventions by using spaces only.
+
+- A WARNING block for critical information about your code. For
+  example, the WARNING block might include information about when or
+  under which conditions your code might break, or information that
+  the user should be particularly aware of. A WARNING block should start
+  with ``.. WARNING::``. It can also be the lower-case form
+  ``.. warning::``. However, you are encouraged to use the upper-case
+  form ``.. WARNING::``. Here's an example of a WARNING block::
+
+      .. WARNING::
+
+          Whenever you edit the Sage documentation, make sure that
+          the edited version still builds. That is, you need to ensure
+          that you can still build the HTML and PDF versions of the
+          updated documentation. If the edited documentation fails to
+          build, it is very likely that you would be requested to
+          change your patch.
 
 - A REFERENCES block to list books or papers (optional). This block serves
   a similar purpose to a list of references in a research paper, or a
@@ -397,6 +505,15 @@ You are strongly encouraged to:
            r"""
            Returns `\sin(x)`.
            """
+
+   You can also use the MATH block to format complicated mathematical
+   expressions::
+
+       .. MATH::
+
+           \sum_{i=1}^{\infty} (a_1 a_2 \cdots a_i)^{1/i}
+           \leq
+           e \sum_{i=1}^{\infty} a_i
 
    .. note::
 

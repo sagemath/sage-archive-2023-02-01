@@ -479,7 +479,7 @@ class ContinuedFraction(FieldElement):
 
     def pn(self, n):
         """
-        Return the number of the `n`-th partial convergent, computed
+        Return the numerator of the `n`-th partial convergent, computed
         using the recurrence.
 
         EXAMPLES::
@@ -944,7 +944,7 @@ CFF = ContinuedFractionField_class()
 
 def ContinuedFractionField():
     """
-    Return the (unique) field of all contiued fractions.
+    Return the (unique) field of all continued fractions.
 
     EXAMPLES::
 

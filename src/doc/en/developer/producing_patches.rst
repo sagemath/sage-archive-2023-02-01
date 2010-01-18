@@ -32,7 +32,7 @@ refereeing (and inclusion into Sage if the referee's report is
 positive), you should produce patch files using Mercurial.
 The simplest way is to run Mercurial from within Sage
 following the examples below (note: ``Hg`` is the chemical symbol for
-mercury)
+mercury).
 
 -  Type ``hg_sage.status()`` and ``hg_sage.diff()``
    to see exactly what you've done.  ``q`` to quit the diff.
@@ -59,26 +59,26 @@ mercury)
 -  Commit your changes by typing
    ``hg_sage.commit()`` to commit the
    changes in files to the repository.  If you want to commit only specific files, each file must be
-   listed individually with full pathnames, e.g. ``hg_sage.commit('sage/misc/misc.py  sage/all.py')``
+   listed individually with full pathnames, e.g. ``hg_sage.commit('sage/misc/misc.py  sage/all.py')``.
    If no filenames are given,
    all changed files are committed. First the output of ``hg diff`` is
    displayed: look at it or just enter ``q``. Then you are
    dumped into an editor to type a brief comment on the changes. The
    default editor is vi, so type ``i`` to insert, write a one line commit message of the form
    ``trac xxxx: <your-commit-message-here>`` where xxxx is the Sage development tracking system
-   ticket number (see http://trac.sagemath.org)
-	hit ``Escape`` and type ``:wq``.
+   ticket number (see http://trac.sagemath.org). To quit the vi editor
+   and save your commit message, hit ``Escape`` and type ``:wq``.
    (In bash, to make emacs the default editor, type
    ``export EDITOR=emacs``.)
 
 -  Now create a patch file using ``hg_sage.export(...)``.
    This command needs a revision number (or list of revision numbers)
-   as an argument; use ``hg_sage.export('tip')`` to use the most recent revision number or
-	use ``hg_sage.log()`` to see all these numbers.
+   as an argument; use ``hg_sage.export('tip')`` to use the most
+   recent revision number or use ``hg_sage.log()`` to see all these numbers.
    An optional second argument to ``hg_sage.export(...)`` is a
    filename for the patch; the default is
-   ``(changeset_revision_number).patch`` which is written in what sage considers the current
-   directory (this can be found with the command ``os.path.abspath('.')``)
+   ``(changeset_revision_number).patch`` which is written in what Sage considers the current
+   directory (this can be found with the command ``os.path.abspath('.')``).
 
 -  Then post your patch on the Sage Trac server: see
    :ref:`chapter-trac`.

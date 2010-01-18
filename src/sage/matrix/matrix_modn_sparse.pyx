@@ -4,7 +4,7 @@ Sparse matrices over `\ZZ/n\ZZ` for `n` small.
 This is a compiled implementation of sparse matrices over
 `\ZZ/n\ZZ` for `n` small.
 
-TODO: - move vectors into a pyrex vector class - add _add_ and
+TODO: - move vectors into a Cython vector class - add _add_ and
 _mul_ methods.
 
 EXAMPLES::

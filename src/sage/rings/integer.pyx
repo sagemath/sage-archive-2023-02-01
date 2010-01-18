@@ -427,7 +427,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     numbers, and numbers and strings that begin with 0x as hexadecimal
     numbers.
 
-        The class ``Integer`` is implemented in Pyrex, as a
+        The class ``Integer`` is implemented in Cython, as a
         wrapper of the GMP ``mpz_t`` integer type.
 
 
@@ -593,7 +593,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     # TODO: figure out how to convert to pari integer in base 16 ?
 
                     # todo: having this "s" variable around here is causing
-                    # pyrex to play games with refcount for the None object, which
+                    # Cython to play games with refcount for the None object, which
                     # seems really stupid.
 
                     try:
@@ -619,12 +619,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PyObject_HasAttrString(x, "_integer_"):
                 # todo: Note that PyObject_GetAttrString returns NULL if
                 # the attribute was not found. If we could test for this,
-                # we could skip the double lookup. Unfortunately pyrex doesn't
+                # we could skip the double lookup. Unfortunately Cython doesn't
                 # seem to let us do this; it flags an error if the function
                 # returns NULL, because it can't construct an "object" object
                 # out of the NULL pointer. This really sucks. Perhaps we could
                 # make the function prototype have return type void*, but
-                # then how do we make Pyrex handle the reference counting?
+                # then how do we make Cython handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))(the_integer_ring))
 
             elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
@@ -667,7 +667,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         # This single line below took me HOURS to figure out.
-        # It is the *trick* needed to pickle pyrex extension types.
+        # It is the *trick* needed to pickle Cython extension types.
         # The trick is that you must put a pure Python function
         # as the first argument, and that function must return
         # the result of unpickling with the argument in the second
@@ -5178,7 +5178,7 @@ cdef int sizeof_Integer
 cdef Integer global_dummy_Integer
 global_dummy_Integer = Integer()
 
-# Accessing the .value attribute of an Integer object causes Pyrex to
+# Accessing the .value attribute of an Integer object causes Cython to
 # refcount it. This is problematic, because that causes overhead and
 # more importantly an infinite loop in the destructor. If you refcount
 # in the destructor and the refcount reaches zero (which is true

@@ -71,7 +71,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     This function primarily acts as a wrapper around run_spring,
     converting to and from raw c types.
 
-    This kind of speed cannot be achieved by naive pyrexification of the
+    This kind of speed cannot be achieved by naive Cythonification of the
     function alone, especially if we require a function call (let alone
     an object creation) every time we want to add a pair of doubles.
 

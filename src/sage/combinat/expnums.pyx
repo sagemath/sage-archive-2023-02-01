@@ -123,7 +123,7 @@ def expnums(int n, int aa):
 
 def expnums2(n, aa):
     r"""
-    A vanilla python (but compiled via pyrex) implementation of
+    A vanilla python (but compiled via Cython) implementation of
     expnums.
 
     We Compute the first `n` exponential numbers around

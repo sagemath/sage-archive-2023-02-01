@@ -103,7 +103,7 @@ cdef class dancing_linksWrapper:
         # A comment from sage/rings/integer.pyx:
 
         # This single line below took me HOURS to figure out.
-        # It is the *trick* needed to pickle pyrex extension types.
+        # It is the *trick* needed to pickle Cython extension types.
         # The trick is that you must put a pure Python function
         # as the first argument, and that function must return
         # the result of unpickling with the argument in the second

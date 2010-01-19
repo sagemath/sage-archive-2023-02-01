@@ -21,6 +21,7 @@ class HyperbolicFunction(BuiltinFunction):
         sage: f(x)._mathematica_init_()
         'Foo[x]'
     """
+    _eval_ = BuiltinFunction._eval_default
     def __init__(self, name, latex_name=None, conversions=None,
             evalf_float=None):
         """

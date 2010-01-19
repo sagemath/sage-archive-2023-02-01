@@ -92,11 +92,11 @@ cdef public GEx pyExpression_to_ex(object res) except *:
     functions back to C++ level.
     """
     if res is None:
-        raise TypeError, "eval function returned None, expected return value of type sage.symbolic.expression.Expression"
+        raise TypeError, "function returned None, expected return value of type sage.symbolic.expression.Expression"
     try:
-        t = ring.SR._coerce_c(res)
+        t = ring.SR.coerce(res)
     except TypeError, err:
-        raise TypeError, "eval function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
+        raise TypeError, "function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
     return (<Expression>t)._gobj
 
 cdef public object paramset_to_PyTuple(GParamSet s):

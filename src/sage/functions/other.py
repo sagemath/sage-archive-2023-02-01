@@ -12,6 +12,7 @@ import math
 one_half = ~SR(2)
 
 class Function_erf(BuiltinFunction):
+    _eval_ = BuiltinFunction._eval_default
     def __init__(self):
         r"""
         The error function, defined as

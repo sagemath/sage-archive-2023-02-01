@@ -11,10 +11,10 @@ from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
 
 def function_factory(name, nargs=0, latex_name=None, conversions=None,
-            eval_func=None, evalf_func=None,
+            evalf_params_first=True, eval_func=None, evalf_func=None,
             conjugate_func=None, real_part_func=None, imag_part_func=None,
-            derivative_func=None, power_func=None, series_func=None,
-            print_func=None, print_latex_func=None):
+            derivative_func=None, tderivative_func=None, power_func=None,
+            series_func=None, print_func=None, print_latex_func=None):
     """
     Create a formal symbolic function. For an explanation of the arguments see
     the documentation for the method :method:`function`.
@@ -48,7 +48,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 f(2, 4)
             """
             SymbolicFunction.__init__(self, name, nargs, latex_name,
-                    conversions)
+                    conversions, evalf_params_first)
 
         def _maxima_init_(self):
             """
@@ -71,9 +71,9 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 sage: nf(1, 2)
                 f(1, 2)
             """
-            pickled_functions = self.__getstate__()[5]
+            pickled_functions = self.__getstate__()[6]
             return (unpickle_function, (name, nargs, latex_name, conversions,
-                pickled_functions))
+                evalf_params_first, pickled_functions))
 
     l = locals()
     for func_name in sfunctions_funcs:
@@ -85,7 +85,8 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
 
     return NewSymbolicFunction()
 
-def unpickle_function(name, nargs, latex_name, conversions, pickled_funcs):
+def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
+        pickled_funcs):
     """
     This is returned by the ``__reduce__`` method of symbolic functions to be
     called during unpickling to recreate the given function.
@@ -95,7 +96,7 @@ def unpickle_function(name, nargs, latex_name, conversions, pickled_funcs):
     EXAMPLES::
 
         sage: from sage.symbolic.function_factory import unpickle_function
-        sage: nf = unpickle_function('f', 2, '\\foo', {'mathematica':'Foo'}, [])
+        sage: nf = unpickle_function('f', 2, '\\foo', {'mathematica':'Foo'}, True, [])
         sage: nf
         f
         sage: nf(1,2)
@@ -108,7 +109,7 @@ def unpickle_function(name, nargs, latex_name, conversions, pickled_funcs):
         sage: from sage.symbolic.function import pickle_wrapper
         sage: def evalf_f(self, x, parent=None): return 2r*x + 5r
         sage: def conjugate_f(self, x): return x/2r
-        sage: nf = unpickle_function('g', 1, None, None, [None, pickle_wrapper(evalf_f), pickle_wrapper(conjugate_f)] + [None]*7)
+        sage: nf = unpickle_function('g', 1, None, None, True, [None, pickle_wrapper(evalf_f), pickle_wrapper(conjugate_f)] + [None]*8)
         sage: nf
         g
         sage: nf(2)
@@ -119,7 +120,7 @@ def unpickle_function(name, nargs, latex_name, conversions, pickled_funcs):
         1
     """
     funcs = map(unpickle_wrapper, pickled_funcs)
-    args = [name, nargs, latex_name, conversions] + funcs
+    args = [name, nargs, latex_name, conversions, evalf_params_first] + funcs
     return function_factory(*args)
 
 def function(s, *args, **kwds):
@@ -137,12 +138,15 @@ def function(s, *args, **kwds):
       other systems, this is used by the interfaces internally during conversion
     - ``eval_func`` - method used for automatic evaluation
     - ``evalf_func`` - method used for numeric evaluation
+    - ``evalf_params_first`` - bool to indicate if parameters should be
+      evaluated numerically before calling the custom evalf function
     - ``conjugate_func`` - method used for complex conjugation
     - ``real_part_func`` - method used when taking real parts
     - ``imag_part_func`` - method used when taking imaginary parts
-    - ``derivative_func`` - method to be used for derivation
+    - ``derivative_func`` - method to be used for (partial) derivation
       This method should take a keyword argument deriv_param specifying
       the index of the argument to differentiate w.r.t
+    - ``tderivative_func`` - method to be used for derivatives
     - ``power_func`` - method used when taking powers
       This method should take a keyword argument power_param specifying
       the exponent
@@ -273,6 +277,22 @@ def function(s, *args, **kwds):
         sage: foo = function('t', nargs=2, latex_name='foo')
         sage: latex(foo(x,y^z))
         foo\left(x, y^{z}\right)
+
+    Chain rule::
+
+        sage: def print_args(self, *args, **kwds): print "args:",args; print "kwds:",kwds; return args[0]
+        sage: foo = function('t', nargs=2, tderivative_func=print_args)
+        sage: foo(x,x).derivative(x)
+        args: (x, x)
+        kwds: {'diff_param': x}
+        x
+        sage: foo = function('t', nargs=2, derivative_func=print_args)
+        sage: foo(x,x).derivative(x)
+        args: (x, x)
+        kwds: {'diff_param': 0}
+        args: (x, x)
+        kwds: {'diff_param': 1}
+        2*x
     """
     if not isinstance(s, (str, unicode)):
         raise TypeError, "expect string as first argument"

@@ -301,6 +301,8 @@ cdef extern from "ginac_wrap.h":
         GFunctionOpt power_func(object f)
         GFunctionOpt series_func(object f)
         GFunctionOpt latex_name(char* name)
+        GFunctionOpt do_not_apply_chain_rule()
+        GFunctionOpt do_not_evalf_params()
         void set_print_latex_func(object f)
         void set_print_dflt_func(object f)
         char* get_name()

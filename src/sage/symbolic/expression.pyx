@@ -5181,8 +5181,10 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
             sage: n = var('n')
-            sage: (17*n^3).Order()
+            sage: t = (17*n^3).Order(); t
             Order(n^3)
+            sage: t.derivative(n)
+            Order(n^2)
         """
         return new_Expression_from_GEx(self._parent, g_Order(self._gobj))
 

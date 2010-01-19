@@ -1,6 +1,6 @@
 ###############################################################################
 #   Sage: Open Source Mathematical Software
-#       Copyright (C) 2008 - 2009 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008 - 2010 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
@@ -45,15 +45,24 @@ cdef dict sfunction_serial_dict = {}
 from sage.misc.fpickle import pickle_function, unpickle_function
 from sage.ext.fast_eval import FastDoubleFunc
 
+# List of functions which ginac allows us to define custom behavior for.
+# Changing the order of this list could cause problems unpickling old pickles.
+sfunctions_funcs = ['eval', 'evalf', 'conjugate', 'real_part', 'imag_part',
+        'derivative', 'power', 'series', 'print', 'print_latex', 'tderivative']
+
 cdef class Function(SageObject):
     """
     Base class for symbolic functions defined through Pynac in Sage.
 
-    This is only an abstract base class, with generic code for the interfaces
+    This is an abstract base class, with generic code for the interfaces
     and a :method:`__call__` method. Subclasses should implement the
     :method:`_is_registered` and :method:`_register_function` methods.
+
+    This class is not intended for direct use, instead use one of the
+    subclasses :class:`BuiltinFunction` or :class:`SymbolicFunction`.
     """
-    def __init__(self, name, nargs, latex_name=None, conversions=None):
+    def __init__(self, name, nargs, latex_name=None, conversions=None,
+            evalf_params_first=True):
         """
         This is an abstract base class. It's not possible to test it directly.
 
@@ -64,11 +73,53 @@ cdef class Function(SageObject):
             f(2)
             sage: f(2).conjugate()
             4
+
+        TESTS::
+
+            # eval_func raises exception
+            sage: def ef(self, x): raise RuntimeError, "foo"
+            sage: bar = function("bar", nargs=1, eval_func=ef)
+            sage: bar(x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: foo
+
+            # eval_func returns non coercible
+            sage: def ef(self, x): return ZZ
+            sage: bar = function("bar", nargs=1, eval_func=ef)
+            sage: bar(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: function did not return a symbolic expression or an element that can be coerced into a symbolic expression
+
+            # eval_func is not callable
+            sage: bar = function("bar", nargs=1, eval_func=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: eval_func parameter must be callable
         """
         self._name = name
         self._nargs = nargs
         self._latex_name = latex_name
+        self._evalf_params_first = evalf_params_first
         self._conversions = {} if conversions is None else conversions
+
+        # handle custom printing
+        # if print_func is defined, it is used instead of name
+        # latex printing can be customised either by setting a string latex_name
+        # or giving a custom function argument print_latex_func
+        if latex_name and hasattr(self, '_print_latex_'):
+            raise ValueError, "only one of latex_name or _print_latex_ should be specified."
+
+        # only one of derivative and tderivative should be defined
+        if hasattr(self, '_derivative_') and hasattr(self, '_tderivative_'):
+            raise ValueError, "only one of _derivative_ or _tderivative_ should be defined."
+
+        for fname in sfunctions_funcs:
+            real_fname = '_%s_'%fname
+            if hasattr(self, real_fname) and not \
+                    callable(getattr(self, real_fname)):
+                raise ValueError,  real_fname + " parameter must be callable"
 
         if not self._is_registered():
             self._register_function()
@@ -89,11 +140,77 @@ cdef class Function(SageObject):
         raise NotImplementedError, "this is an abstract base class, it shouldn't be initialized directly"
 
     cdef _register_function(self):
+        cdef GFunctionOpt opt
+        opt = g_function_options_args(self._name, self._nargs)
+        opt.set_python_func()
+
+        if hasattr(self, '_eval_'):
+            opt.eval_func(self)
+
+        if not self._evalf_params_first:
+            opt.do_not_evalf_params()
+
+        if hasattr(self, '_evalf_'):
+            opt.evalf_func(self)
+
+        if hasattr(self, '_conjugate_'):
+            opt.conjugate_func(self)
+
+        if hasattr(self, '_real_part_'):
+            opt.real_part_func(self)
+
+        if hasattr(self, '_imag_part_'):
+            opt.imag_part_func(self)
+
+        if hasattr(self, '_derivative_'):
+            opt.derivative_func(self)
+
+        if hasattr(self, '_tderivative_'):
+            opt.do_not_apply_chain_rule()
+            opt.derivative_func(self)
+
+        if hasattr(self, '_power_'):
+            opt.power_func(self)
+
+        if hasattr(self, '_series_'):
+            opt.series_func(self)
+
+        # custom print functions are called from python
+        # so we don't register them with the ginac function_options object
+
+        if self._latex_name:
+            opt.latex_name(self._latex_name)
+
+        self._serial = g_register_new(opt)
+        g_foptions_assign(g_registered_functions().index(self._serial), opt)
+
+    def _eval_default(self, x):
         """
-        Add this function to the GiNaC function registry, and set
-        `self._serial` to the right value.
+        Default automatic evaluation function.
+
+        Calls numeric evaluation if the argument is not exact.
+
+        TESTS::
+
+            sage: cot(0.5) #indirect doctest
+            1.83048772171245
+            sage: cot(complex(1,2))
+            (0.032797755533752602-0.98432922645819...j)
         """
-        raise NotImplementedError, "this is an abstract base class, it shouldn't be initialized directly"
+        if isinstance(x, (int, long)):
+            return None
+
+        if isinstance(x, float):
+            return self._evalf_(x, float)
+        if isinstance(x, complex):
+            return self._evalf_(x, complex)
+        if isinstance(x, Element):
+            if x.parent().is_exact():
+                return None
+        try:
+            return getattr(x, self.name())()
+        except AttributeError:
+            pass
 
     def __hash__(self):
         """
@@ -477,15 +594,19 @@ cdef class Function(SageObject):
         args = [etb._var_number(n) for n in range(self.number_of_arguments())]
         return etb.call(self, *args)
 
-cdef class GinacFunction(Function):
+cdef class GinacFunction(BuiltinFunction):
     """
     This class provides a wrapper around symbolic functions already defined in
-    Pynac/GiNaC. Custom methods for these functions are defined at the C++ level
-    and we can't change them from Python. There is also no need to register
-    these functions.
+    Pynac/GiNaC.
+
+    GiNaC provides custom methods for these functions defined at the C++ level.
+    It is still possible to define new custom functionality or override those
+    already defined.
+
+    There is also no need to register these functions.
     """
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            ginac_name=None):
+            ginac_name=None, evalf_params_first=True):
         """
         TESTS::
 
@@ -499,7 +620,8 @@ cdef class GinacFunction(Function):
             1
         """
         self._ginac_name = ginac_name
-        Function.__init__(self, name, nargs, latex_name, conversions)
+        BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
+                evalf_params_first=evalf_params_first)
 
     cdef _is_registered(self):
         # Since this is function is defined in C++, it is already in
@@ -515,41 +637,49 @@ cdef class GinacFunction(Function):
         return sfunction_serial_dict.has_key(self._serial)
 
     cdef _register_function(self):
-        # Nothing to be done for registering
-        # Function.__init__ has the necessary code to register in the
-        # Sage function table
-        pass
+        # We don't need to add anything to GiNaC's function registry
+        # However, if any custom methods were provided in the python class,
+        # we should set the properties of the function_options object
+        # corresponding to this function
+        cdef GFunctionOpt opt = g_registered_functions().index(self._serial)
 
-    def __reduce__(self):
-        """
-        TESTS::
+        if hasattr(self, '_eval_'):
+            opt.eval_func(self)
 
-            sage: t = loads(dumps(sin)); t
-            sin
-            sage: t(pi)
-            0
-        """
-        return self.__class__, tuple()
+        if not self._evalf_params_first:
+            opt.do_not_evalf_params()
 
-    # this is required to read old pickles of ginac functions
-    # like sin, cos, etc.
-    def __setstate__(self, state):
-        """
-        TESTS::
+        if hasattr(self, '_evalf_'):
+            opt.evalf_func(self)
 
-            sage: sin.__setstate__([1,0])
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot read pickle
-            sage: sin.__setstate__([0]) #don't try this at home
-        """
+        if hasattr(self, '_conjugate_'):
+            opt.conjugate_func(self)
 
-        if state[0] == 0:
-            # old pickle data
-            self.__init__()
-        else:
-            # we should never end up here
-            raise ValueError, "cannot read pickle"
+        if hasattr(self, '_real_part_'):
+            opt.real_part_func(self)
+
+        if hasattr(self, '_imag_part_'):
+            opt.imag_part_func(self)
+
+        if hasattr(self, '_derivative_'):
+            opt.derivative_func(self)
+
+        if hasattr(self, '_tderivative_'):
+            opt.do_not_apply_chain_rule()
+            opt.derivative_func(self)
+
+        if hasattr(self, '_power_'):
+            opt.power_func(self)
+
+        if hasattr(self, '_series_'):
+            opt.series_func(self)
+
+        # overriding print functions is not supported
+
+        if self._latex_name:
+            opt.latex_name(self._latex_name)
+
+        g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
     def __call__(self, *args, coerce=True, hold=False,
             dont_call_method_on_arg=False):
@@ -608,132 +738,8 @@ cdef class GinacFunction(Function):
 
         return res
 
-# list of functions which ginac allows us to define custom behavior for
-# changing the order of this list could cause problems unpickling old pickles
-sfunctions_funcs = ['eval', 'evalf', 'conjugate', 'real_part', 'imag_part',
-        'derivative', 'power', 'series', 'print', 'print_latex']
 
-cdef class CustomizableFunction(Function):
-    """
-    This is the basis for symbolic functions with custom evaluation, derivative,
-    etc. methods defined in Sage from Python/Cython.
-
-    This class is not intended for direct use, instead use one of the
-    subclasses :class:`BuiltinFunction` or :class:`SymbolicFunction`.
-    """
-    def __init__(self, name, nargs=0, latex_name=None, conversions=None):
-        """
-        TESTS::
-
-            # eval_func raises exception
-            sage: def ef(self, x): raise RuntimeError, "foo"
-            sage: bar = function("bar", nargs=1, eval_func=ef)
-            sage: bar(x)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: foo
-
-            # eval_func returns non coercible
-            sage: def ef(self, x): return ZZ
-            sage: bar = function("bar", nargs=1, eval_func=ef)
-            sage: bar(x)
-            Traceback (most recent call last):
-            ...
-            TypeError: eval function did not return a symbolic expression or an element that can be coerced into a symbolic expression
-
-            # eval_func is not callable
-            sage: bar = function("bar", nargs=1, eval_func=5)
-            Traceback (most recent call last):
-            ...
-            ValueError: eval_func parameter must be callable
-
-        """
-        # handle custom printing
-        # if print_func is defined, it is used instead of name
-        # latex printing can be customised either by setting a string latex_name
-        # or giving a custom function argument print_latex_func
-        if latex_name and hasattr(self, '_print_latex_'):
-            raise ValueError, "only one of latex_name or _print_latex_ should be specified."
-
-        for fname in sfunctions_funcs:
-            real_fname = '_%s_'%fname
-            if hasattr(self, real_fname) and not \
-                    callable(getattr(self, real_fname)):
-                raise ValueError,  real_fname + " parameter must be callable"
-
-        Function.__init__(self, name, nargs, latex_name, conversions)
-
-    cdef _register_function(self):
-        cdef GFunctionOpt opt
-        opt = g_function_options_args(self._name, self._nargs)
-        opt.set_python_func()
-
-        if hasattr(self, '_eval_'):
-            opt.eval_func(self)
-
-        if hasattr(self, '_evalf_'):
-            opt.evalf_func(self)
-
-        if hasattr(self, '_conjugate_'):
-            opt.conjugate_func(self)
-
-        if hasattr(self, '_real_part_'):
-            opt.real_part_func(self)
-
-        if hasattr(self, '_imag_part_'):
-            opt.imag_part_func(self)
-
-        if hasattr(self, '_derivative_'):
-            opt.derivative_func(self)
-
-        if hasattr(self, '_power_'):
-            opt.power_func(self)
-
-        if hasattr(self, '_series_'):
-            opt.series_func(self)
-
-        # custom print functions are called from python
-        #if hasattr(self, '_print_latex_'):
-        #    opt.set_print_latex_func(self._print_latex_)
-        #if hasattr(self, '_print_'):
-        #    opt.set_print_dflt_func(self._print_)
-
-        if self._latex_name:
-            opt.latex_name(self._latex_name)
-
-        self._serial = g_register_new(opt)
-        g_foptions_assign(g_registered_functions().index(self._serial), opt)
-
-    def _eval_default(self, x):
-        """
-        Default automatic evaluation function.
-
-        Calls numeric evaluation if the argument is not exact.
-
-        TESTS::
-
-            sage: cot(0.5) #indirect doctest
-            1.83048772171245
-            sage: cot(complex(1,2))
-            (0.032797755533752602-0.98432922645819...j)
-        """
-        if isinstance(x, (int, long)):
-            return None
-
-        if isinstance(x, float):
-            return self._evalf_(x, float)
-        if isinstance(x, complex):
-            return self._evalf_(x, complex)
-        if isinstance(x, Element):
-            if x.parent().is_exact():
-                return None
-        try:
-            return getattr(x, self.name())()
-        except AttributeError:
-            pass
-
-
-cdef class BuiltinFunction(CustomizableFunction):
+cdef class BuiltinFunction(Function):
     """
     This is the base class for symbolic functions defined in Sage.
 
@@ -745,7 +751,8 @@ cdef class BuiltinFunction(CustomizableFunction):
     function. Make sure you use subclasses and not just call the initializer
     of this class.
     """
-    def __init__(self, name, nargs=1, latex_name=None, conversions=None):
+    def __init__(self, name, nargs=1, latex_name=None, conversions=None,
+            evalf_params_first=True):
         """
         TESTS::
 
@@ -754,10 +761,8 @@ cdef class BuiltinFunction(CustomizableFunction):
             sage: c(pi/2)
             0
         """
-        CustomizableFunction.__init__(self, name, nargs, latex_name,
-                conversions)
-
-    _eval_ = CustomizableFunction._eval_default
+        Function.__init__(self, name, nargs, latex_name, conversions,
+                evalf_params_first)
 
     cdef _is_registered(self):
         # check if already defined
@@ -819,12 +824,13 @@ cdef class BuiltinFunction(CustomizableFunction):
             raise ValueError, "cannot read pickle"
 
 
-cdef class SymbolicFunction(CustomizableFunction):
+cdef class SymbolicFunction(Function):
     """
     This is the basis for user defined symbolic functions. We try to pickle or
     hash the custom methods, so subclasses must be defined in Python not Cython.
     """
-    def __init__(self, name, nargs=0, latex_name=None, conversions=None):
+    def __init__(self, name, nargs=0, latex_name=None, conversions=None,
+            evalf_params_first=True):
         """
         EXAMPLES::
 
@@ -847,8 +853,9 @@ cdef class SymbolicFunction(CustomizableFunction):
             2
         """
         self.__hinit = False
-        CustomizableFunction.__init__(self, name, nargs, latex_name,
-                conversions)
+        Function.__init__(self, name, nargs, latex_name, conversions,
+                evalf_params_first)
+
 
     cdef _is_registered(SymbolicFunction self):
         # see if there is already an SFunction with the same state
@@ -869,7 +876,8 @@ cdef class SymbolicFunction(CustomizableFunction):
     cdef long _hash_(self) except -1:
         if not self.__hinit:
             # create a string representation of this SFunction
-            slist = [self._nargs, self._name, str(self._latex_name)]
+            slist = [self._nargs, self._name, str(self._latex_name),
+                    self._evalf_params_first]
             for fname in sfunctions_funcs:
                 real_fname = '_%s_'%fname
                 if hasattr(self, '%s'%real_fname):
@@ -932,7 +940,7 @@ cdef class SymbolicFunction(CustomizableFunction):
 
             sage: foo = function("foo", nargs=2)
             sage: foo.__getstate__()
-            (1, 'foo', 2, None, {}, [None, None, None, None, None, None, None, None, None, None])
+            (2, 'foo', 2, None, {}, True, [None, None, None, None, None, None, None, None, None, None, None])
             sage: t = loads(dumps(foo))
             sage: t == foo
             True
@@ -944,7 +952,7 @@ cdef class SymbolicFunction(CustomizableFunction):
             sage: def ev(self, x,y): return 2*x
             sage: foo = function("foo", nargs=2, eval_func = ev)
             sage: foo.__getstate__()
-            (1, 'foo', 2, None, {}, ["...", None, None, None, None, None, None, None, None, None])
+            (2, 'foo', 2, None, {}, True, ["...", None, None, None, None, None, None, None, None, None, None])
 
             sage: u = loads(dumps(foo))
             sage: u == foo
@@ -957,7 +965,7 @@ cdef class SymbolicFunction(CustomizableFunction):
             sage: def evalf_f(self, x, parent=None): return int(6)
             sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
             sage: foo.__getstate__()
-            (1, 'foo', 1, None, {}, [None, "...", None, None, None, None, None, None, None, None])
+            (2, 'foo', 1, None, {}, True, [None, "...", None, None, None, None, None, None, None, None, None])
 
             sage: v = loads(dumps(foo))
             sage: v == foo
@@ -978,7 +986,8 @@ cdef class SymbolicFunction(CustomizableFunction):
             sage: u.subs(y=0).n()
             43.0000000000000
         """
-        return (1, self._name, self._nargs, self._latex_name, self._conversions,
+        return (2, self._name, self._nargs, self._latex_name, self._conversions,
+                self._evalf_params_first,
                 map(pickle_wrapper, [getattr(self, '_%s_'%fname) \
                         if hasattr(self, '_%s_'%fname) else None \
                         for fname in sfunctions_funcs]))
@@ -1020,19 +1029,29 @@ cdef class SymbolicFunction(CustomizableFunction):
             foo(x, y)
         """
         # check input
-        if state[0] == 1 and len(state) == 6:
-            name = state[1]
-            nargs = state[2]
-            latex_name = state[3]
-            conversions = state[4]
-            for pickle, fname in zip(state[5], sfunctions_funcs):
-                if pickle:
-                    real_fname = '_%s_'%fname
-                    setattr(self, real_fname, unpickle_function(pickle))
-            SymbolicFunction.__init__(self, name, nargs, latex_name,
-                    conversions)
-        else:
+        if not ((state[0] == 1 and len(state) == 6) or \
+                (state[0] == 2 and len(state) == 7)):
             raise ValueError, "unknown state information"
+
+        name = state[1]
+        nargs = state[2]
+        latex_name = state[3]
+        conversions = state[4]
+
+        if state[0] == 1:
+            evalf_params_first = True
+            function_pickles = state[5]
+        elif state[0] == 2:
+            evalf_params_first = state[5]
+            function_pickles = state[6]
+
+        for pickle, fname in zip(function_pickles, sfunctions_funcs):
+            if pickle:
+                real_fname = '_%s_'%fname
+                setattr(self, real_fname, unpickle_function(pickle))
+
+        SymbolicFunction.__init__(self, name, nargs, latex_name,
+                conversions, evalf_params_first)
 
 
 cdef class DeprecatedSFunction(SymbolicFunction):
@@ -1096,7 +1115,7 @@ cdef class DeprecatedSFunction(SymbolicFunction):
             sage: from sage.symbolic.function import DeprecatedSFunction
             sage: foo = DeprecatedSFunction("foo", 2)
             sage: foo.__reduce__()
-            (<function unpickle_function at ...>, ('foo', 2, None, {}, [None, None, None, None, None, None, None, None, None, None]))
+            (<function unpickle_function at ...>, ('foo', 2, None, {}, True, [None, None, None, None, None, None, None, None, None, None, None]))
         """
         from sage.symbolic.function_factory import unpickle_function
         state = self.__getstate__()
@@ -1104,9 +1123,10 @@ cdef class DeprecatedSFunction(SymbolicFunction):
         nargs = state[2]
         latex_name = state[3]
         conversions = state[4]
-        pickled_functions = state[5]
+        evalf_params_first = state[5]
+        pickled_functions = state[6]
         return (unpickle_function, (name, nargs, latex_name, conversions,
-            pickled_functions))
+            evalf_params_first, pickled_functions))
 
     def __setstate__(self, state):
         """

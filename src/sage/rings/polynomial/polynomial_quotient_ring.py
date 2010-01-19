@@ -558,9 +558,19 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
     cover_ring = polynomial_ring
 
-    def random_element(self):
+    def random_element(self, *args, **kwds):
         """
         Return a random element of this quotient ring.
+
+        INPUT:
+
+        - ``*args``, ``**kwds`` - Arguments for randomization that are passed
+          on to the ``random_element`` method of the polynomial ring, and from
+          there to the base ring
+
+        OUTPUT:
+
+        - Element of this quotient ring
 
         EXAMPLES::
 
@@ -570,8 +580,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: F2.random_element()
             (a^6 + 1)*u + a^5 + a^4 + a^3 + 1
         """
-        return self(self.polynomial_ring().random_element(degree=self.degree()-1))
-
+        return self(self.polynomial_ring().random_element( \
+            degree=self.degree()-1, *args, **kwds))
 
     def S_class_group(self, S, proof=True):
         """

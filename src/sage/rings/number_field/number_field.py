@@ -1178,9 +1178,19 @@ class NumberField_generic(number_field_base.NumberField):
         self.__primitive_element = from_K(K.gen())
         return self.__primitive_element
 
-    def random_element(self):
+    def random_element(self, *args, **kwds):
         r"""
         Return a random element of this number field.
+
+        INPUT:
+
+        - ``*args``, ``**kwds`` - Arguments for randomization that are
+          (eventually) passed on to the ``random_element`` method of the
+          ground field
+
+        OUTPUT:
+
+        - Element of this number field
 
         EXAMPLES::
 
@@ -1192,7 +1202,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.random_element()
             ((-c + 1)*b - c + 2/3)*a - 5/2*b + 2/3*c - 1/4
         """
-        return self(self.polynomial_quotient_ring().random_element())
+        return self(self.polynomial_quotient_ring().random_element( \
+            *args, **kwds))
 
     def subfield(self, alpha, name=None, names=None):
         r"""

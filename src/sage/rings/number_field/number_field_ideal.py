@@ -1108,14 +1108,14 @@ class NumberFieldIdeal(Ideal_generic):
 
         INPUT:
 
-        - ``args``, ``kwds`` -- parameters passed to the random
-          integer function.  See the documentation for
-          ``ZZ.random_element()`` for details.
+        - ``*args``, ``*kwds`` - Parameters passed to the random integer
+          function.  See the documentation of ``ZZ.random_element()`` for
+          details.
 
         OUTPUT:
 
-        A random element of this fractional ideal, computed as a
-        random `\ZZ`-linear combination of the basis.
+        A random element of this fractional ideal, computed as a random
+        `\ZZ`-linear combination of the basis.
 
         EXAMPLES::
 

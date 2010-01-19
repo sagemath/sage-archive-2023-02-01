@@ -885,22 +885,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         INPUT:
 
+        -  ``degree`` - Integer (default: 2)
 
-        -  ``degree`` - an integer
-
-        -  ``*args, **kwds`` - passed on to the
-           ``random_element`` method for the base ring.
-
+        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
+           the base ring
 
         OUTPUT:
 
-
-        -  ``Polynomial`` - A polynomial such that the
-           coefficient of `x^i`, for `i` up to
-           ``degree``, are coercions to the base ring of random
-           integers between -``bound`` and
-           ``bound``.
-
+        -  Polynomial such that the coefficients of `x^i`, for `i` up to
+           ``degree``, are random elements from the base ring, randomized
+           subject to the arguments ``*args`` and ``**kwds``
 
         EXAMPLES::
 

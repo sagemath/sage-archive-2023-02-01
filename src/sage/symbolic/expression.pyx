@@ -7082,7 +7082,7 @@ cdef class Expression(CommutativeRingElement):
     def integral(self, *args, **kwds):
         """
         Compute the integral of self.  Please see
-        :obj:`sage.calculus.calculus.integral` for more details.
+        :obj:`sage.symbolic.integration.integral.integrate` for more details.
 
         EXAMPLES::
 
@@ -7091,7 +7091,10 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).integral(x)
             -cos(x)
         """
-        from sage.symbolic.integration.integration import integral
+        from sage.symbolic.integration.integral import integral
+        from sage.symbolic.callable import is_CallableSymbolicExpressionRing
+        if is_CallableSymbolicExpressionRing(self._parent):
+            return self._parent(integral(ring.SR(self), *args, **kwds))
         return integral(self, *args, **kwds)
 
     integrate = integral

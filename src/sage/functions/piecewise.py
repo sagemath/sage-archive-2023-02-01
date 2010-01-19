@@ -812,7 +812,7 @@ class PiecewisePolynomial:
             new_pieces.append([(start, end), fun_integrated.function(x)])
 
         if definite:
-            return area
+            return SR(area)
         else:
             return Piecewise(new_pieces)
 
@@ -1018,7 +1018,9 @@ class PiecewisePolynomial:
         x = var('x')
         result = sum([(f(x)*cos(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
-        return result.simplify_trig()
+        if is_Expression(result):
+            return result.simplify_trig()
+        return result
 
     def fourier_series_sine_coefficient(self,n,L):
         r"""
@@ -1049,7 +1051,9 @@ class PiecewisePolynomial:
         x = var('x')
         result = sum([(f(x)*sin(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
-        return result.simplify_trig()
+        if is_Expression(result):
+            return result.simplify_trig()
+        return result
 
     def _fourier_series_helper(self, N, L, scale_function):
         r"""
@@ -1415,7 +1419,9 @@ class PiecewisePolynomial:
         x = var('x')
         result = sum([(2*f(x)*cos(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
-        return result.simplify_trig()
+        if is_Expression(result):
+            return result.simplify_trig()
+        return result
 
 
     def sine_series_coefficient(self,n,L):
@@ -1454,7 +1460,9 @@ class PiecewisePolynomial:
         x = var('x')
         result = sum([(2*f(x)*sin(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
-        return result.simplify_trig()
+        if is_Expression(result):
+            return result.simplify_trig()
+        return result
 
     def laplace(self, x='x', s='t'):
         r"""

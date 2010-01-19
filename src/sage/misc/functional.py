@@ -696,16 +696,14 @@ def integral(x, *args, **kwds):
         sage: sin(x).integral(x, 0,pi/2)
         1
         sage: integral(exp(-x), (x, 1, oo))
-        e^(-1)
-
+        gamma_incomplete(1, 1)
 
     Numerical approximation::
 
         sage: h = integral(sin(x)/x^2, (x, 1, pi/2)); h
         integrate(sin(x)/x^2, x, 1, 1/2*pi)
         sage: h.n()
-        0.339447940978916
-
+        0.33944794097891573
 
     Specific algorithm can be used for integration::
 

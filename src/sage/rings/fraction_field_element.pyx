@@ -470,6 +470,8 @@ cdef class FractionFieldElement(FieldElement):
 
         TESTS::
 
+            sage: R = RR['x']     # Inexact, so no reduction.
+            sage: F = Frac(R)
             sage: from sage.rings.fraction_field_element import FractionFieldElement
             sage: z = FractionFieldElement(F, 0, R.gen(), coerce=False)
             sage: z.numerator() == 0

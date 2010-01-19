@@ -513,6 +513,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: parent(f.quo_rem(g)[0])
             Univariate Polynomial Ring in x over Rational Field
             sage: f.quo_rem(3)
+            (0, x + 1)
             sage: (5*x+7).quo_rem(3)
             (x + 2, 2*x + 1)
         """

@@ -32,6 +32,18 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.11 (Burcin Erocal, January 19, 2010) ===
+ * Fix unarchiving overloaded functions.
+ * Move numeric evaluation of log higher in eval.
+ * Fix serious bug in printing where coefficients were printed with -, but not
+   negated.
+ * Change typesetting of rational functions to separate the numerator and
+   denominator of the coefficient as well.
+ * Speed up real_part() by removing calls to is_real().
+ * Allow overriding builtin function custom methods from python.
+ * Allow setting domain and latex_name of symbols.
+ * Improve deduction capabilities of info() for arithmetic classes.
+
 === pynac-0.1.10 (Burcin Erocal, November 22, 2009) ===
  * Minor changes to auto* files to make them work with libtool-2.
  * Fix hash collisions for fderivatives yet again.

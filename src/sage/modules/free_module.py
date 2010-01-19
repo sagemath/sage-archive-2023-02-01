@@ -853,10 +853,14 @@ class FreeModule_generic(module.Module):
         """
         if not isinstance(other, FreeModule_generic):
             return False
-        if self.ambient_vector_space() != other.ambient_vector_space():
-            return False
-        if other == other.ambient_vector_space():
-            return True
+        try:
+            if self.ambient_vector_space() != other.ambient_vector_space():
+                return False
+            if other == other.ambient_vector_space():
+                return True
+        except AttributeError:
+            # Not all free modules have an ambient_vector_space.
+            pass
         if other.rank() < self.rank():
             return False
         if self.base_ring() != other.base_ring():
@@ -885,6 +889,15 @@ class FreeModule_generic(module.Module):
             True
             sage: W._has_coerce_map_from_space(V)
             False
+            sage: (Zmod(8)^3)._has_coerce_map_from_space(ZZ^3)
+            True
+
+        TESTS:
+
+        Make sure ticket #3638 is fixed::
+
+            sage: vector(ZZ,[1,2,11])==vector(Zmod(8),[1,2,3])
+            True
         """
         try:
             return self.__has_coerce_map_from_space[V]

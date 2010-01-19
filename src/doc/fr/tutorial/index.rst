@@ -39,7 +39,6 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    interactive_shell
    interfaces
    programming
-   distributed
    afterword
    appendix
    bibliography

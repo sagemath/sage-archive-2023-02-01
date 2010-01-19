@@ -472,9 +472,8 @@ In each case, testing is performed on the directory that is pointed to
 by the symbolic link ``devel/sage``.
 
 * ``make test`` and ``make check`` --- These two commands run the same
-  set of tests. First the dsage unit tests are run, followed by
-  doctesting the Sage standard documentation, i.e. the documentation
-  that resides in
+  set of tests. First the Sage standard documentation is tested,
+  i.e. the documentation that resides in
 
   * ``SAGE_ROOT/devel/sage/doc/common``
   * ``SAGE_ROOT/devel/sage/doc/en``
@@ -495,11 +494,10 @@ by the symbolic link ``devel/sage``.
   argument ``-long``. See the file ``SAGE_ROOT/makefile`` for further
   details.
 
-* ``make ptest`` --- Similar to the commands ``make test`` and
-  ``make check``. However, the dsage unit tests are skipped and
-  doctesting is run with the number of threads as specified by the
-  variable ``NUM_THREADS``. See the file ``SAGE_ROOT/makefile`` for
-  further details.
+* ``make ptest`` --- Similar to the commands ``make test`` and ``make
+  check``. However, doctesting is run with the number of threads as
+  specified by the variable ``NUM_THREADS``. See the file
+  ``SAGE_ROOT/makefile`` for further details.
 
 * ``make ptestlong`` --- Similar to the command ``make ptest``, but
   using the optional argument ``-long`` for doctesting.

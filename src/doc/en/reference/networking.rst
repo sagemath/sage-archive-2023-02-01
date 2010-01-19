@@ -1,10 +1,6 @@
 Networking and Grid Computing
 =============================
 
-Sage includes custom highly-integrated support for coarse grain
-distributed (or "grid") computing. See the chapter below on
-``dsage``.
-
 Sage includes the Moin Moin Wiki by default, which
 "is an advanced, easy to use and extensible WikiEngine with a large
 community of users. Said in a few words, it is about collaboration on
@@ -22,4 +18,3 @@ networking application included with Sage.
    :maxdepth: 2
 
    sage/server/wiki/moin
-   dsage

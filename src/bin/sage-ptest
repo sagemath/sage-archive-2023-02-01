@@ -26,30 +26,6 @@ print 'File iterations: ' + str(numiteration)
 
 abort = False
 
-def run(x):
-    global abort
-    try:
-        while True:
-            filemutex.acquire()
-            if len(files)!=0 and abort==False:
-                F = files.pop()
-                filemutex.release()
-                base, ext = os.path.splitext(F)
-                if use_sage_only or ext == '.sage':
-                    e = test(F, 'doctest_tex ' + opts)
-                elif ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']:
-                    e = test(F, 'doctest '+opts)
-                else:
-                    continue # prefer silence to: raise TypeError, "Unknown File %s" % F
-                if e==-2:
-                    raise KeyboardInterrupt
-            else:
-               filemutex.release()
-               return
-    except KeyboardInterrupt:
-        abort = True
-        return
-
 def abspath(x):
     """
     This function returns the absolute path (adjusted for NFS)
@@ -125,10 +101,7 @@ def test_file(F):
     outfile = tempfile.NamedTemporaryFile()
     base, ext = os.path.splitext(F)
 
-    if use_sage_only or ext == '.sage':
-        cmd =  'doctest_tex ' + opts
-    elif ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']:
-        cmd = 'doctest ' + opts
+    cmd = 'doctest ' + opts
     if SAGE_SITE in os.path.realpath(F) and not '-force_lib' in cmd:
         cmd += ' -force_lib'
 
@@ -222,9 +195,7 @@ def populatefilelist(filelist):
         for root, dirs, lfiles in os.walk(walkdir):
             for F in lfiles:
                 base, ext = os.path.splitext(F)
-                if use_sage_only and ext == '.sage':
-                    continue
-                elif not (ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']):
+                if not (ext in ['.sage', '.py', '.pyx', '.tex', '.pxi', '.rst']):
                     continue
                 elif '__nodoctest__' in files:
                     continue
@@ -242,13 +213,6 @@ def populatefilelist(filelist):
 
 
 for gr in range(0,numglobaliteration):
-
-    try:
-        i = argv.index('-sage')
-        del argv[i]
-        use_sage_only = True
-    except ValueError:
-        use_sage_only = False
 
     opts = ' '.join([X for X in argv if X[0] == '-'])
     argv = [X for X in argv if X[0] != '-']

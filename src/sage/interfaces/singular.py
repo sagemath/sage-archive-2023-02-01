@@ -1513,7 +1513,7 @@ class SingularElement(ExpectElement):
             sage: As = singular(A); As
             -8     2     1
             -1     2     1
-           -95    -1    -2
+            -95   -1    -2
             sage: As._sage_()
             [ -8   2   1]
             [ -1   2   1]

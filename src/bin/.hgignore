@@ -291,3 +291,5 @@ ncadoctest.pyc
 2to3
 ecl
 ecl-config
+testcc.sh
+testcxx.sh

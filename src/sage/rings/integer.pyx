@@ -3737,7 +3737,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
            Integer primes are by definition *positive*! This is
            different than Magma, but the same as in Pari. See also the
-           :meth:`.is_irreducible`` method.
+           :meth:`.is_irreducible` method.
 
         EXAMPLES::
 
@@ -3755,6 +3755,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             False
             sage: z.is_irreducible()
             True
+
+        IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
         return bool(self._pari_().isprime())
 

@@ -320,32 +320,26 @@ def factorial(n, algorithm='gmp'):
     else:
         raise ValueError, 'unknown algorithm'
 
-def is_prime(n, flag=0):
+def is_prime(n):
     r"""
-    Returns True if `x` is prime, and False otherwise. The
-    result is proven correct - *this is NOT a pseudo-primality test!*.
+    Returns ``True`` if `n` is prime, and ``False`` otherwise.
+
+    AUTHORS:
+
+    - Kevin Stueve kstueve@uw.edu (2010-01-17):
+      delegated calculation to ``n.is_prime()``
 
     INPUT:
 
 
-    -  ``flag`` - int
-
-       - ``0`` (default) - use a combination of algorithms.
-
-       - ``1`` - certify primality using the Pocklington-Lehmer Test.
-
-       - ``2`` - certify primality using the APRCL test.
+    -  ``n`` - the object for which to determine primality
 
 
     OUTPUT:
 
 
-    -  ``bool`` - True or False
+    -  ``bool`` - ``True`` or ``False``
 
-
-    .. note::
-
-       We do not consider negatives of prime numbers as prime.
 
     EXAMPLES::
 
@@ -364,10 +358,21 @@ def is_prime(n, flag=0):
         sage: is_prime(-2)
         False
 
-    IMPLEMENTATION: Calls the PARI isprime function.
+    ALGORITHM::
+
+    Calculation is delegated to the ``n.is_prime()`` method, or in special
+    cases (e.g., Python ``int``s) to ``Integer(n).is_prime()``.  If an
+    ``n.is_prime()`` method is not available, it otherwise raises a
+    ``TypeError``.
     """
-    n = ZZ(n)
-    return pari(n).isprime()
+    if type(n) == int or type(n)==long:
+        from sage.rings.integer import Integer
+        return Integer(n).is_prime()
+    else:
+        try:
+            return n.is_prime()
+        except AttributeError:
+            raise TypeError, "is_prime() is not written for this type"
 
 def is_pseudoprime(n, flag=0):
     r"""

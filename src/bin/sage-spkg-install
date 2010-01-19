@@ -18,7 +18,7 @@ if [ -d "$TARGET"/.hg ]; then
 else
 
     # Initial install.  Just copy all the files over.
-    cp -r sage-* dsage_* *doctest.py SbuildHack.pm .hg* ipy_profile_sage.py "$TARGET"
+    cp -r sage-*  *doctest.py SbuildHack.pm .hg* ipy_profile_sage.py "$TARGET"
 
 fi
 

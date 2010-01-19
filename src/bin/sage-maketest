@@ -5,14 +5,10 @@ if [ -z "$SAGE_TESTDIR" -a -n "$SAGE_ROOT" ]; then
 fi
 mkdir -p "$SAGE_TESTDIR"
 SAGE_TEST_LOG="$SAGE_TESTDIR/test.log"
-DSAGE_TEST_LOG="$SAGE_TESTDIR/test-dsage.log"
 cd "$SAGE_TESTDIR"
 
 cat "$SAGE_ROOT/local/bin/sage-banner" > "$SAGE_TEST_LOG"
 echo `date` >> "$SAGE_TEST_LOG"
-
-# Run DSAGE unit tests
-sage-dsage-trial 2>&1 | tee "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
 
 if [ -d $SAGE_ROOT/examples ]; then
 
@@ -24,10 +20,6 @@ fi
 # We test three subdirectories of doc/, rather than testing the
 # entirety of doc/, so that we can skip doc/output.
 "$SAGE_ROOT"/sage -t -sagenb "$@" "$SAGE_ROOT"/devel/sage/doc/common "$SAGE_ROOT"/devel/sage/doc/en "$SAGE_ROOT"/devel/sage/doc/fr  "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
-
-# Print the small summary report for dsage unit tests, if necessary.
-# TODO -- skip this for now.
-grep "ERROR occurred" "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
 
 cat "$SAGE_TEST_LOG" >> "$SAGE_ROOT"/test.log
 

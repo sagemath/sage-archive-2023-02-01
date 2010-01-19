@@ -476,27 +476,6 @@ if [ $1 = "-coverageall" -o $1 = "--coverageall" ]; then
    exit $?
 fi
 
-#####################################################################
-# Run Distributed Sage
-#####################################################################
-
-if [ $1 = "-server" -o $1 = "--server" ]; then
-   shift
-   sage-dsage-server "$@"
-   exit $?
-fi
-
-if [ $1 = "-worker" -o $1 = "--worker" ]; then
-   shift
-   sage-dsage-worker "$@"
-   exit $?
-fi
-
-if [ $1 = "-dsage" -o $1 = "--dsage" ]; then
-   shift
-   sage-dsage-server & sage-dsage-worker
-   exit $?
-fi
 
 #####################################################################
 # Crap

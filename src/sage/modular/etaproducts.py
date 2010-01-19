@@ -575,7 +575,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
             raise TypeError, "Argument (=%s) should be a CuspFamily" % cusp
         if cusp.level() != self.level():
             raise ValueError, "Cusp not on right curve!"
-        return 1/ZZ(24)/gcd(cusp.width(), self.level()/cusp.width()) * sum( [ell*self.r(ell)/cusp.width() * (gcd(cusp.width(), self.level()/ell))**2  for ell in self._keys] )
+        return 1/ZZ(24)/gcd(cusp.width(), self.level()//cusp.width()) * sum( [ell*self.r(ell)/cusp.width() * (gcd(cusp.width(), self.level()//ell))**2  for ell in self._keys] )
 
     def divisor(self):
         r"""
@@ -634,7 +634,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 #        else:
 #            s = ZZ(1)
 #            for ell in divisors(self.level()):
-#                s *= 1/ZZ(cusp.width())*gcd(cusp.width(), self.level() / ell)**(self.r(ell) / ZZ(2))
+#                s *= 1/ZZ(cusp.width())*gcd(cusp.width(), self.level() // ell)**(self.r(ell) / ZZ(2))
 #            return s
 
 def num_cusps_of_width(N, d):
@@ -666,7 +666,7 @@ def num_cusps_of_width(N, d):
     except AssertionError:
         raise AssertionError, "N and d must be positive integers with d|N"
 
-    return euler_phi(gcd(d, N/d))
+    return euler_phi(gcd(d, N//d))
 
 def AllCusps(N):
     r"""

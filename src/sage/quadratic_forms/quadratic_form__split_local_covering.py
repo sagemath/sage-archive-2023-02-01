@@ -333,13 +333,13 @@ def complementary_subform_to_vector(self, v):
         ## Check if the (i,0)-entry is divisible by d,
         ## and stretch its row/column if not.
         if Q1[i,0] % d != 0:
-            Q1 = Q1.multiply_variable(d / GCD(d, Q1[i, 0]/2), i)
+            Q1 = Q1.multiply_variable(d / GCD(d, Q1[i, 0]//2), i)
 
         #print "After scaling at i =", i
         #print Q1
 
         ## Now perform the (symmetric) elementary operations to cancel out the (i,0) entries/
-        Q1 = Q1.add_symmetric(-(Q1[i,0]/2) / (GCD(d, Q1[i,0]/2)), i, 0)
+        Q1 = Q1.add_symmetric(-(Q1[i,0]/2) / (GCD(d, Q1[i,0]//2)), i, 0)
 
         #print "After cancelling at i =", i
         #print Q1

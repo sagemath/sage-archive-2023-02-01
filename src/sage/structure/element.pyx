@@ -3018,7 +3018,8 @@ cdef class NamedBinopMethod:
 
             sage: from sage.structure.element import NamedBinopMethod
             sage: g = NamedBinopMethod(gcd)
-            sage: g._sage_doc_() == gcd.__doc__
+            sage: from sage.misc.sageinspect import sage_getdoc
+            sage: sage_getdoc(g) == sage_getdoc(gcd)
             True
         """
         return sageinspect.sage_getdoc(self._func)

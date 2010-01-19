@@ -1468,7 +1468,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         N = Integer(self.cipher_domain().ngens())
         while True:
             A = M([ randint(0, N-1) for i in range(m**2) ])
-            if N.gcd(A.det()) == 1:
+            if N.gcd(A.det().lift()) == 1:
                 break
         return A
 

@@ -485,7 +485,7 @@ class Gamma0_class(GammaH_class):
         s = []
 
         for d in arith.divisors(N):
-            w = arith.gcd(d, N/d)
+            w = arith.gcd(d, N//d)
             if w == 1:
                 if d == 1:
                     s.append(Cusp(1,0))
@@ -496,7 +496,7 @@ class Gamma0_class(GammaH_class):
             else:
                 for a in xrange(1, w):
                     if arith.gcd(a, w) == 1:
-                        while arith.gcd(a, d/w) != 1:
+                        while arith.gcd(a, d//w) != 1:
                             a += w
                         s.append(Cusp(a,d))
         return sorted(s)

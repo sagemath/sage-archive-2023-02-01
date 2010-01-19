@@ -4025,7 +4025,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.isogenies_prime_degree(29)
             []
             sage: E.isogenies_prime_degree(4)
-            (<type 'exceptions.ValueError'>, '4 is not prime.')
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is not prime.
 
         """
         from ell_curve_isogeny import isogenies_prime_degree_genus_0, isogenies_sporadic_Q

@@ -96,7 +96,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes"):
         [5, 7]
         sage: prime_range(-100,10,"pari_isprime")
         [2, 3, 5, 7]
-        sage: sage: prime_range(2,2,algorithm="pari_isprime")
+        sage: prime_range(2,2,algorithm="pari_isprime")
         []
         sage: prime_range(10**16,10**16+100,"pari_isprime")
         [10000000000000061, 10000000000000069, 10000000000000079, 10000000000000099]

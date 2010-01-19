@@ -997,6 +997,16 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         [ 0  0| 1  0]
         [ 0  0| 0  1]
 
+    A zero entry may represent any square or non-square zero matrix::
+
+        sage: B = matrix(QQ, 1, 1, [ 1 ] )
+        sage: C = matrix(QQ, 2, 2, [ 2, 3, 4, 5 ] )
+        sage: block_matrix([B, 0, 0, C])
+        [1|0 0]
+        [-+---]
+        [0|2 3]
+        [0|4 5]
+
     One can specify the number of rows or columns (optional for square
     number of matrices)::
 

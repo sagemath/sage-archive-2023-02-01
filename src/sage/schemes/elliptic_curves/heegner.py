@@ -6329,7 +6329,7 @@ def heegner_point_height(self, D, prec=2):
         return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-def heegner_index(self, D,  min_p=2, prec=5):
+def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=16, verbose_mwrank=False):
     r"""
     Return an interval that contains the index of the Heegner
     point `y_K` in the group of `K`-rational points modulo torsion
@@ -6352,12 +6352,14 @@ def heegner_index(self, D,  min_p=2, prec=5):
     -  ``min_p (int)`` - (default: 2) only rule out primes
        = min_p dividing the index.
 
-    -  ``verbose (bool)`` - (default: False); print lots of
+    -  ``verbose_mwrank (bool)`` - (default: False); print lots of
        mwrank search status information when computing regulator
 
     -  ``prec (int)`` - (default: 5), use prec\*sqrt(N) +
        20 terms of L-series in computations, where N is the conductor.
 
+    -  ``descent_second_limit`` - (default: 16)- used in 2-descent
+       when computing regulator of the twist
 
     OUTPUT: an interval that contains the index
 
@@ -6406,6 +6408,24 @@ def heegner_index(self, D,  min_p=2, prec=5):
     index by `2`. Unfortunately, this is not an if and only if
     condition, i.e., sometimes the index must be multiplied by
     `2` even though the denominator is not `2`.
+
+    This example demonstrates the `descent_second_limit` option,
+    which can be used to fine tune the 2-descent used to compute
+    the regulator of the twist. If we set the parameter lower than
+    its usual value, then the point search is not high enough to
+    find what it is looking for::
+
+        sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
+        sage: E.heegner_index(-8, descent_second_limit=10)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ...
+
+    However when we use the default values, we find the points we need::
+
+        sage: E.heegner_index(-8)
+        1.00000?
+
     """
     # First compute upper bound on height of Heegner point.
     tm = verbose("computing heegner point height...")
@@ -6434,7 +6454,7 @@ def heegner_index(self, D,  min_p=2, prec=5):
 
     if c > _MAX_HEIGHT or F is self:
         verbose("Doing direct computation of MW group.")
-        reg = F.regulator()
+        reg = F.regulator(descent_second_limit=descent_second_limit, verbose=verbose_mwrank)
         return self._adjust_heegner_index(ht/IR(reg))
 
     # Do naive search to eliminate possibility that Heegner point

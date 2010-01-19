@@ -79,6 +79,7 @@ import padics
 from sage.rings.padics.precision_error import PrecisionError
 
 import heegner
+import BSD
 
 from lseries_ell import Lseries_ell
 
@@ -897,18 +898,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        Nothing - nothing is returned (though much is printed unless
-        verbose=False)
+        Returns ``True`` if the descent succeeded, i.e. if the lower bound and
+        the upper bound for the rank are the same. In this case, generators and
+        the rank are cached. A return value of ``False`` indicates that either
+        rational points were not found, or that Sha[2] is nontrivial and mwrank
+        was unable to determine this for sure.
 
         EXAMPLES::
 
             sage: E=EllipticCurve('37a1')
-            sage: E.two_descent(verbose=False) # no output
-        """
-        self.mwrank_curve().two_descent(verbose, selmer_only,
-                                        first_limit, second_limit,
-                                        n_aux, second_descent)
+            sage: E.two_descent(verbose=False)
+            True
 
+        """
+        misc.verbose("Calling mwrank C++ library.")
+        C = self.mwrank_curve()
+        C.two_descent(verbose, selmer_only,
+                        first_limit, second_limit,
+                        n_aux, second_descent)
+        if C.certain():
+            self.__gens[True] = [self.point(x, check=True) for x in C.gens()]
+            self.__gens[True].sort()
+            self.__rank[True] = len(self.__gens[True])
+        return C.certain()
 
     ####################################################################
     #  Etc.
@@ -1437,9 +1449,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Given a curve with no 2-torsion, computes (probably) the rank of
-        the Mordell-Weil group, with certainty the rank of the 2-Selmer
-        group, and a list of independent points on the curve.
+        Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
+        the rank of the 2-Selmer group, and a list of independent points on
+        `E(Q)/2E(Q)`.
 
         INPUT:
 
@@ -1466,12 +1478,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         OUTPUT:
 
 
-        -  ``integer`` - "probably" the rank of self
+        -  ``integer`` - lower bound on the rank of self
 
         -  ``integer`` - the 2-rank of the Selmer group
 
         -  ``list`` - list of independent points on the
-           curve.
+           quotient `E(Q)/2E(Q)`.
 
 
         IMPLEMENTATION: Uses Denis Simon's GP/PARI scripts from
@@ -1541,10 +1553,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
-        prob_rank = rings.Integer(t[0])
+        rank_low_bd = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
-        prob_gens = [self(P) for P in t[2]]
-        return prob_rank, two_selmer_rank, prob_gens
+        gens_mod_two = [self(P) for P in t[2]]
+        if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
+            gens = [P for P in gens_mod_two if P.additive_order() != 2]
+            self.__gens[True] = gens
+            self.__gens[True].sort()
+            self.__rank[True] = len(self.__gens[True])
+        return rank_low_bd, two_selmer_rank, gens_mod_two
 
     two_descent_simon = simon_two_descent
 
@@ -1599,7 +1616,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def rank(self, use_database=False, verbose=False,
                    only_use_mwrank=True,
-                   algorithm='mwrank_shell',
+                   algorithm='mwrank_lib',
                    proof=None):
         """
         Return the rank of this elliptic curve, assuming no conjectures.
@@ -1707,12 +1724,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if algorithm == 'mwrank_lib':
             misc.verbose("using mwrank lib")
-            C = self.mwrank_curve()
+            if self.is_integral(): E = self
+            else: E = self.integral_model()
+            C = E.mwrank_curve()
             C.set_verbose(verbose)
             r = C.rank()
-            if not C.certain():
-                del self.__mwrank_curve
-                raise RuntimeError, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again.  You could also try rank with only_use_mwrank=False."
+            if C.certain():
+                proof = True
+            else:
+                if proof:
+                    print "Unable to compute the rank with certainty (lower bound=%s)."%C.rank()
+                    print "This could be because Sha(E/Q)[2] is nontrivial."
+                    print "Try calling something like two_descent(second_limit=13) on the"
+                    print "curve then trying this command again.  You could also try rank"
+                    print "with only_use_mwrank=False."
+                    del E.__mwrank_curve
+                    raise RuntimeError, 'Rank not provably correct.'
+                else:
+                    misc.verbose("Warning -- rank not proven correct", level=1)
             self.__rank[proof] = r
         elif algorithm == 'mwrank_shell':
             misc.verbose("using mwrank shell")
@@ -1745,20 +1774,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return self.__rank[proof]
 
     def gens(self, verbose=False, rank1_search=10,
-             algorithm='mwrank_shell',
+             algorithm='mwrank_lib',
              only_use_mwrank=True,
              proof = None,
-             use_database = True):
+             use_database = True,
+             descent_second_limit=12):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
-
-        HINT: If you would like to control the height bounds used in the
-        2-descent, first call the two_descent function with those height
-        bounds. However that function, while it displays a lot of output,
-        returns no values.
-
-        TODO: Allow passing of command-line parameters to mwrank.
 
         .. warning::
 
@@ -1793,6 +1816,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``use_database`` - bool (default True) if True,
            attempts to find curve and gens in the (optional) database
 
+        -  ``descent_second_limit`` - (default: 16)- used in 2-descent
 
         OUTPUT:
 
@@ -1885,16 +1909,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # end if (not_use_mwrank)
         if algorithm == "mwrank_lib":
             misc.verbose("Calling mwrank C++ library.")
-            C = self.mwrank_curve(verbose)
+            if not self.is_integral():
+                xterm = 1; yterm = 1
+                ai = self.a_invariants()
+                for a in ai:
+                    if not a.is_integral():
+                       for p, _ in a.denom().factor():
+                          e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+                          ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
+                          xterm *= p**(2*e)
+                          yterm *= p**(3*e)
+                E = constructor.EllipticCurve(list(ai))
+            else:
+                E = self; xterm = 1; yterm = 1
+            C = E.mwrank_curve(verbose)
             if not (verbose is None):
                 C.set_verbose(verbose)
+            C.two_descent(verbose=verbose, second_limit=descent_second_limit)
             G = C.gens()
             if proof is True and C.certain() is False:
                 del self.__mwrank_curve
                 raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s, generators found=%s).  This could be because Sha(E/Q)[2] is nontrivial."%(C.rank(),G) + \
-                      "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
+                      "\nTry increasing descent_second_limit then trying this command again."
             else:
                 proof = C.certain()
+            G = [[x*xterm,y*yterm,z] for x,y,z in G]
         else:
             # when gens() calls mwrank it passes the command-line
             # parameter "-p 100" which helps curves with large
@@ -1978,7 +2017,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return len(self.gens(proof = proof))
 
-    def regulator(self, use_database=True, proof=None, precision=None):
+    def regulator(self, use_database=True, proof=None, precision=None,
+                        descent_second_limit=12, verbose=False):
         """
         Returns the regulator of this curve, which must be defined over Q.
 
@@ -1995,6 +2035,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``precision`` - int or None (default: None): the
            precision in bits of the result (default real precision if None)
 
+        -  ``descent_second_limit`` - (default: 16)- used in 2-descent
+
+        -  ``verbose`` - whether to print mwrank's verbose output
 
         EXAMPLES::
 
@@ -2044,7 +2087,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # Next we find the gens, taking them from the database if they
         # are there and use_database is True, else computing them:
 
-        G = self.gens(proof=proof, use_database=use_database)
+        G = self.gens(proof=proof, use_database=use_database, descent_second_limit=descent_second_limit, verbose=verbose)
 
         # Finally compute the regulator of the generators found:
 
@@ -2348,9 +2391,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
         -  ``height_limit (float)`` - bound on naive height
-           (at most 21,
-
-        -  ``or mwrank overflows`` - see below)
 
         -  ``verbose (bool)`` - (default: False)
 
@@ -2362,31 +2402,27 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT: points (list) - list of independent points which generate
         the subgroup of the Mordell-Weil group generated by the points
-        found and then p-saturated for p20.
+        found and then p-saturated for `p \leq 20`.
 
         .. warning::
 
            height_limit is logarithmic, so increasing by 1 will cause
            the running time to increase by a factor of approximately
-           4.5 (=exp(1.5)). The limit of 21 is to prevent overflow,
-           but in any case using height_limit=20 takes rather a long
-           time!
+           4.5 (=exp(1.5)).
 
-        IMPLEMENTATION: Uses Cremona's mwrank package. At the heart of this
-        function is Cremona's port of Stoll's ratpoints program (version
-        1.4).
+        IMPLEMENTATION: Uses Michael Stoll's ratpoints library.
 
         EXAMPLES::
 
             sage: E=EllipticCurve('389a1')
             sage: E.point_search(5, verbose=False)
-            [(0 : -1 : 1), (-1 : 1 : 1)]
+            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
 
         Increasing the height_limit takes longer, but finds no more
         points::
 
             sage: E.point_search(10, verbose=False)
-            [(0 : -1 : 1), (-1 : 1 : 1)]
+            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
 
         In fact this curve has rank 2 so no more than 2 points will ever be
         output, but we are not using this fact.
@@ -2394,7 +2430,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E.saturation(_)
-            ([(0 : -1 : 1), (-1 : 1 : 1)], '1', 0.152460172772408)
+            ([(-1 : 1 : 1), (-3/4 : 7/8 : 1)], '1', 0.152460172772408)
 
         What this shows is that if the rank is 2 then the points listed do
         generate the Mordell-Weil group (mod torsion). Finally,
@@ -2404,14 +2440,27 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.rank()
             2
         """
-        height_limit = float(height_limit)
-        if height_limit > _MAX_HEIGHT:
-            raise OverflowError, "height_limit (=%s) must be at most %s."%(height_limit,_MAX_HEIGHT)
-        c = self.mwrank_curve()
-        mw = mwrank.mwrank_MordellWeil(c, verbose)
-        mw.search(height_limit, verbose=verbose)
-        v = mw.points()
-        return [self(P) for P in v]
+        from sage.libs.ratpoints import ratpoints
+        from sage.functions.all import exp
+        from sage.rings.arith import GCD
+        H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
+        coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
+        points = []
+        a1 = self.a1()
+        a3 = self.a3()
+        new_H = H*2 # since we change the x-coord by 2 below
+        for X,Y,Z in ratpoints(coeffs, new_H, verbose):
+            if Z == 0: continue
+            z = 2*Z
+            x = X/2
+            y = (Y/z - a1*x - a3*z)/2
+            d = GCD((x,y,z))
+            x = x/d
+            if max(x.numerator().abs(), x.denominator().abs()) <= H:
+                y = y/d
+                z = z/d
+                points.append(self((x,y,z)))
+        return self.saturation(points, verbose=verbose, max_prime=20)[0]
 
     def two_torsion_rank(self):
         r"""
@@ -5456,521 +5505,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x+=1
         return ans
 
-    def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
-        r"""
-        Attempts to prove the Birch and Swinnerton-Dyer conjectural
-        formula for `E`, returning a list of primes `p` for which this
-        function fails to prove BSD(E,p).  Here, BSD(E,p) is the
-        statement: "the Birch and Swinnerton-Dyer formula holds up to a
-        rational number coprime to `p`."
-
-        INPUT:
-
-            - ``verbosity`` - int, how much information about the proof to print.
-
-                - 0 - print nothing
-                - 1 - print sketch of proof
-                - 2 - print information about remaining primes
-
-            - ``simon`` - bool (default False), whether to use two_descent or
-              simon_two_descent at p=2.
-
-            - ``proof`` - bool or None (default: None, see
-              proof.elliptic_curve or sage.structure.proof). If False, this
-              function just immediately returns the empty list.
-
-            - ``secs_hi`` - maximum number of seconds to try to compute the
-              Heegner index before switching over to trying to compute the
-              Heegner index bound. (Rank 0 only!)
-
-        NOTE:
-
-        When printing verbose output, phrases such as "by Mazur" are referring
-        to the following list of papers:
-
-        REFERENCES:
-
-        .. [Cha] B. Cha. Vanishing of some cohomology goups and bounds for the
-           Shafarevich-Tate groups of elliptic curves. J. Number Theory, 111:154-
-           178, 2005.
-        .. [Jetchev] D. Jetchev. Global divisibility of Heegner points and
-           Tamagawa numbers. Compos. Math. 144 (2008), no. 4, 811--826.
-        .. [Kato] K. Kato. p-adic Hodge theory and values of zeta functions of
-           modular forms. Astérisque, (295):ix, 117-290, 2004.
-        .. [Kolyvagin] V. A. Kolyvagin. On the structure of Shafarevich-Tate
-           groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
-           Springer, Berlin, 1991.
-        .. [LumStein] A. Lum, W. Stein. Verification of the Birch and
-           Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
-           Multiplication (unpublished)
-        .. [Mazur] B. Mazur. Modular curves and the Eisenstein ideal. Inst.
-           Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
-        .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
-           imaginary quadratic fields. Invent. Math. 103 (1991), no. 1, 25--68.
-        .. [SteinWuthrich] W. Stein and C. Wuthrich. Computations about
-           Tate-Shafarevich groups using Iwasawa theory.
-           http://wstein.org/papers/shark, February 2008.
-        .. [SteinEtAl] G. Grigorov, A. Jorza, S. Patrikis, W. Stein,
-           C. Tarniţǎ. Computational verification of the Birch and
-           Swinnerton-Dyer conjecture for individual elliptic curves.
-           Math. Comp. 78 (2009), no. 268, 2397--2425.
-
-
-        EXAMPLES::
-
-            sage: EllipticCurve('11a').prove_BSD(verbosity=2)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2, 5} by Kolyvagin.
-            True for p=5 by Mazur
-            Remaining primes:
-            p = 2: irreducible, surjective, good, non-ordinary
-            [2]
-
-            sage: EllipticCurve('14a').prove_BSD(verbosity=2)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2, 3} by Kolyvagin.
-            Remaining primes:
-            p = 2: reducible, surjective, non-split multiplicative, divides a Tamagawa number
-            p = 3: reducible, surjective, good ordinary, divides a Tamagawa number
-            [2, 3]
-
-        A rank two curve::
-
-            sage: E = EllipticCurve('389a')
-
-        We know nothing with proof=True::
-
-            sage: E.prove_BSD()
-            Set of all prime numbers: 2, 3, 5, 7, ...
-
-        We (think we) know everything with proof=False::
-
-            sage: E.prove_BSD(proof=False)
-            []
-
-        A curve of rank 0 and prime conductor::
-
-            sage: E = EllipticCurve('19a')
-            sage: E.prove_BSD(verbosity=2)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2, 3} by Kolyvagin.
-            True for p=3 by Mazur
-            Remaining primes:
-            p = 2: irreducible, surjective, good, non-ordinary
-            [2]
-
-            sage: E = EllipticCurve('37a')
-            sage: E.rank()
-            1
-            sage: E._EllipticCurve_rational_field__rank
-            {True: 1}
-            sage: E._EllipticCurve_rational_field__rank = {True:0}
-            sage: E.prove_BSD()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: It seems that the rank conjecture does not hold for this curve (Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field)! This may be a counterexample to BSD, but is more likely a bug.
-
-        We check the error message indicating that this code doesn't
-        yet use Simon 2-descent in case of rational 2-torsion (though
-        it could with a little more work)::
-
-            sage: E = EllipticCurve('14a')
-            sage: E.prove_BSD(simon=True)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: Simon two-descent only valid for curves without two torsion.
-
-        We test the consistency check for the 2-part of Sha::
-
-            sage: E = EllipticCurve('37a')
-            sage: S = E.sha(); S
-            Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: S.an = lambda : 4
-            sage: E.prove_BSD()
-            [2]
-
-        An example with a Tamagawa number at 5::
-
-            sage: E = EllipticCurve('123a1')
-            sage: E.prove_BSD(verbosity=2)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2, 5} by Kolyvagin.
-            Remaining primes:
-            p = 2: irreducible, surjective, good, non-ordinary
-            p = 5: reducible, surjective, good ordinary, divides a Tamagawa number
-            [2, 5]
-
-        A curve for which 3 divides the order of the Shafarevich-Tate group::
-
-            sage: E = EllipticCurve('681b')
-            sage: E.prove_BSD(verbosity=2)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2, 3} by Kolyvagin.
-            ALERT: p = 3 left in Kolyvagin bound
-                0 <= ord_p(#Sha) <= 2
-                ord_p(#Sha_an) = 2
-            Remaining primes:
-            p = 2: reducible, surjective, good ordinary, divides a Tamagawa number
-            p = 3: irreducible, surjective, non-split multiplicative
-            [2, 3]
-
-        A curve for which we need to use ``heegner_index_bound``::
-
-            sage: E = EllipticCurve('198b')
-            sage: E.prove_BSD(verbosity=1, secs_hi=1)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            Timeout stopped Heegner index computation...
-            Proceeding to use heegner_index_bound instead.
-            True for p not in {2, 3} by Kolyvagin.
-            [2, 3]
-
-        TESTS::
-
-            sage: E = EllipticCurve('438e1')
-            sage: E.prove_BSD(verbosity=1)
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            True for p not in {2} by Kolyvagin.
-            [2]
-
-        ::
-
-            sage: E = EllipticCurve('960d1')
-            sage: E.prove_BSD(verbosity=1) # long time
-            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
-            Timeout stopped Heegner index computation...
-            Proceeding to use heegner_index_bound instead.
-            True for p not in {2} by Kolyvagin.
-            [2]
-
-        """
-        if proof is None:
-            from sage.structure.proof.proof import get_flag
-            proof = get_flag(proof, "elliptic_curve")
-        else:
-            proof = bool(proof)
-        if not proof:
-            return []
-        two_tor_rk = self.two_torsion_rank()
-        if simon:
-            if two_tor_rk > 0:
-                raise RuntimeError("Simon two-descent only valid for curves without two torsion.")
-            rank_lower_bd, two_sel_rk = self.simon_two_descent()[:2]
-            if rank_lower_bd == two_sel_rk:
-                rank = rank_lower_bd
-            else:
-                raise RuntimeError("Rank can't be computed precisely using Simon's program.")
-        else:
-            two_sel_rk_bd = self.rank_bound()
-            rank = self.rank()
-        if rank > 1:
-            # We do not know BSD(E,p) for even a single p, since it's
-            # an open problem to show that L^r(E,1)/(Reg*Omega) is
-            # rational for any curve with r >= 2.
-            from sage.sets.all import Primes
-            return Primes()
-        if rank != self.analytic_rank():
-            raise RuntimeError("It seems that the rank conjecture does not hold for this curve (%s)! This may be a counterexample to BSD, but is more likely a bug."%(self))
-
-        # We replace self by the optimal curve, which we can do since
-        # truth of BSD(E,p) is invariant under isogeny.
-        self = self.optimal_curve()
-
-        Sha = self.sha()
-        sha_an = Sha.an()
-        N = self.conductor()
-
-        # p = 2
-        if two_sel_rk_bd > rank:
-            if verbosity > 0:
-                print 'p = 2: mwrank did not achieve a tight bound on the Selmer rank.'
-            two_proven = False
-        elif two_sel_rk_bd < rank:
-            raise RuntimeError("MWrank seems to have computed an incorrect upper bound of %d on the rank."%two_sel_rk_bd)
-        else:
-            # until we can easily access the computed rank of Sha[2]:
-            two_proven = False
-            if verbosity > 0:
-                print 'p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank'
-
-        # reduce set of remaining primes to a finite set
-        import signal
-        remaining_primes = []
-        kolyvagin_primes = []
-        heegner_index = None
-        if self.rank() == 0:
-            try:
-                old_alarm = signal.alarm(secs_hi)
-                old_alarm_set = (old_alarm != 0)
-                for D in self.heegner_discriminants_list(10):
-                    I = self.heegner_index(D)
-                    J = I.is_int()
-                    if J[0] and J[1]>0:
-                        I = J[1]
-                    else:
-                        J = (2*I).is_int()
-                        if J[0] and J[1]>0:
-                            I = J[1]
-                        else:
-                            I = None
-                    if I is not None:
-                        if heegner_index is None:
-                            heegner_index = I
-                            break # no big long loops just yet...
-                old_alarm_sub = signal.alarm(0)
-                if old_alarm_set:
-                    old_alarm -= old_alarm_sub
-            except KeyboardInterrupt:
-                if signal.alarm(0)==0:
-                    print 'Timeout stopped Heegner index computation...'
-                    print 'Proceeding to use heegner_index_bound instead.'
-                else:
-                    raise KeyboardInterrupt
-            if old_alarm_set: # in case alarm was already set...
-                if old_alarm <= 0:
-                    raise KeyboardInterrupt
-                signal.alarm(old_alarm)
-            if heegner_index is None:
-                for D in self.heegner_discriminants_list(100):
-                    heegner_primes, _ = self.heegner_index_bound(D)
-                    if isinstance(heegner_primes, list):
-                        break
-                if not isinstance(heegner_primes, list):
-                    raise RuntimeError("Tried 100 Heegner discriminants, and heegner_index_bound failed each time.")
-                if 2 in heegner_primes:
-                    heegner_primes.remove(2)
-            else:
-                heegner_primes = [p for p in arith.prime_divisors(heegner_index) if p!=2]
-        else: # rank 1
-            for D in self.heegner_discriminants_list(10):
-                I = self.heegner_index(D)
-                J = I.is_int()
-                if J[0] and J[1]>0:
-                    I = J[1]
-                else:
-                    J = (2*I).is_int()
-                    if J[0] and J[1]>0:
-                        I = J[1]
-                    else:
-                        continue
-                heegner_index = I
-                break
-            heegner_primes = [p for p in arith.prime_divisors(heegner_index) if p!=2]
-
-        if self.has_cm():
-            # ensure that CM is by a maximal order
-            non_max_j_invs = [-12288000, 54000, 287496, 16581375]
-            if self.j_invariant() in non_max_j_invs:
-                for E in self.isogeny_class()[0]:
-                    if E.j_invariant() not in non_max_j_invs:
-                        Sha = E.sha()
-                        sha_an = Sha.an()
-                        if verbosity > 0:
-                            print 'CM by non maximal order: switching curves'
-                        break
-            else:
-                E = self
-            if E.analytic_rank() == 0:
-                if verbosity > 0:
-                    print 'p >= 5: true by Rubin'
-                remaining_primes.append(3)
-            else:
-                K = rings.QuadraticField(E.cm_discriminant(), 'a')
-                D_K = K.disc()
-                D_E = E.discriminant()
-                if len(K.factor(3)) == 1: # 3 does not split in K
-                    remaining_primes.append(3)
-                for p in arith.prime_divisors(D_K):
-                    if p >= 5:
-                        remaining_primes.append(p)
-                for p in arith.prime_divisors(D_E):
-                    if p >= 5 and D_K%p and len(K.factor(p)) == 1: # p is inert in K
-                        remaining_primes.append(p)
-                for p in heegner_primes:
-                    if p >= 5 and D_E%p != 0 and D_K%p != 0 and len(K.factor(p)) == 1: # p is good for E and inert in K
-                        kolyvagin_primes.append(p)
-                assert sha_an in ZZ and sha_an > 0
-                for p in arith.prime_divisors(sha_an):
-                    if p >= 5 and D_K%p != 0 and len(K.factor(p)) == 1:
-                        if E.is_good(p):
-                            if verbosity > 2 and p in heegner_primes and heegner_index is None:
-                                print 'ALERT: Prime p (%d) >= 5 dividing sha_an, good for E, inert in K, in heegner_primes, should not divide the actual Heegner index'
-                            # Note that the following check is not entirely
-                            # exhaustive, in case there is a p not dividing
-                            # the Heegner index in heegner_primes,
-                            # for which only an outer bound was computed
-                            if p not in heegner_primes:
-                                raise RuntimeError("p = %d divides sha_an, is of good reduction for E, inert in K, and does not divide the Heegner index. This may be a counterexample to BSD, but is more likely a bug. %s"%(p,self))
-                if verbosity > 0:
-                    print 'True for p not in {%s} by Kolyvagin (via Stein & Lum -- unpublished) and Rubin.'%str(list(set(remaining_primes).union(set(kolyvagin_primes))))[1:-1]
-        else: # no CM
-            E = self
-            # do some tricks to get to a finite set without calling bound_kolyvagin
-            remaining_primes = [p for p, reason in E.non_surjective()]
-            for p in heegner_primes:
-                if p not in remaining_primes:
-                    remaining_primes.append(p)
-            assert sha_an in ZZ and sha_an > 0
-            for p in arith.prime_divisors(sha_an):
-                if p not in remaining_primes:
-                    remaining_primes.append(p)
-            if 2 in remaining_primes: remaining_primes.remove(2)
-            if verbosity > 0:
-                print 'True for p not in {' + str([2]+list(remaining_primes))[1:-1] + '} by Kolyvagin.'
-            primes_to_remove = []
-            for p in remaining_primes:
-                if E.is_surjective(p)[0] and not E.has_additive_reduction(p):
-                    if E.has_nonsplit_multiplicative_reduction(p):
-                        if E.rank() > 0:
-                            continue
-                    if p==3:
-                        if (not (E.is_ordinary(p) and E.is_good(p))) and (not E.has_split_multiplicative_reduction(p)):
-                            continue
-                        if E.rank() > 0:
-                            continue
-                    p_bound = Sha.p_primary_bound(p)
-                    if sha_an.ord(p) == 0 and p_bound == 0:
-                        if verbosity > 0:
-                            print 'True for p=%d by Stein-Wuthrich.'%p
-                        primes_to_remove.append(p)
-                    else:
-                        print 'Analytic %d-rank is '%p + str(sha_an.ord(p)) + ', actual %d-rank is at most %d.'%(p, p_bound)
-                        print '    by Stein-Wuthrich.\n'
-            for p in primes_to_remove:
-                remaining_primes.remove(p)
-            kolyvagin_primes = []
-            for p in remaining_primes:
-                if E.is_surjective(p)[0]:
-                    kolyvagin_primes.append(p)
-            for p in kolyvagin_primes:
-                remaining_primes.remove(p)
-        # apply other hypotheses which imply Kolyvagin's bound holds
-        bounded_primes = []
-        D_K = rings.QuadraticField(D, 'a').disc()
-        assert 2 not in remaining_primes
-        # Cha's hypothesis
-        for p in remaining_primes:
-            if D_K%p != 0 and N%(p**2) != 0 and E.is_irreducible(p):
-                if verbosity > 0:
-                    print 'Kolyvagin\'s bound for p = %d applies by Cha.'%p
-                kolyvagin_primes.append(p)
-        # Stein et al.
-        if not E.has_cm():
-            L = arith.lcm([F.torsion_order() for F in E.isogeny_class()[0]])
-            for p in remaining_primes:
-                if p in kolyvagin_primes: continue
-                if L%p != 0:
-                    if len(arith.prime_divisors(D_K)) == 1:
-                        if D_K%p != 0:
-                            if verbosity > 0:
-                                print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
-                            kolyvagin_primes.append(p)
-                    else:
-                        if verbosity > 0:
-                            print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
-                        kolyvagin_primes.append(p)
-        for p in kolyvagin_primes:
-            if p in remaining_primes:
-                remaining_primes.remove(p)
-
-        prime_bounds = []
-        # apply Kolyvagin's bound
-        primes_to_remove = []
-        for p in kolyvagin_primes:
-            if sha_an.ord(p) == 0 and p not in heegner_primes:
-                    if verbosity > 0:
-                        print 'True for p = %d by Kolyvagin bound.'%p
-                    primes_to_remove.append(p)
-                    continue
-            if heegner_index is not None: # p must divide heegner_index
-                ord_p_bound = 2*heegner_index.ord(p)
-                # Here Jetchev's results apply.
-                m_max = max([E.tamagawa_number(q).ord(p) for q in N.prime_divisors()])
-                if m_max > 0 and verbosity > 0:
-                    print 'Jetchev\'s results apply with m_max =', m_max
-                ord_p_bound -= 2*m_max
-                if ord_p_bound == 0:
-                    if sha_an.ord(p) != 0:
-                        raise RuntimeError("p = %d: ord_p_bound == 0, but sha_an.ord(p) == %d. This appears to be a counterexample to BSD, but is more likely a bug."%(p,sha_an.ord(p)))
-                    if verbosity > 0:
-                        print 'True for p = %d by Kolyvagin bound.'%p
-                    primes_to_remove.append(p)
-                    continue
-            elif p not in heegner_primes:
-                ord_p_bound = 0
-            else:
-                from sage.rings.infinity import Infinity
-                ord_p_bound = Infinity
-                if verbosity > 0:
-                    print 'p = %d may divide the Heegner index, for which only a bound was computed.'%p
-            if verbosity > 0:
-                print 'ALERT: p = %d left in Kolyvagin bound'%p
-                print '    0 <= ord_p(#Sha) <=', ord_p_bound
-                print '    ord_p(#Sha_an) =', sha_an.ord(p)
-        for p in primes_to_remove:
-            kolyvagin_primes.remove(p)
-        remaining_primes = list( set(remaining_primes).union(set(kolyvagin_primes)) )
-
-        # Kato's bound
-        if rank == 0 and not E.has_cm():
-            L_over_Omega = E.lseries().L_ratio()
-            kato_primes = Sha.bound_kato()
-            primes_to_remove = []
-            for p in remaining_primes:
-                if p not in kato_primes:
-                    if verbosity > 0:
-                        print 'Kato further implies that #Sha[%d] is trivial.'%p
-                    primes_to_remove.append(p)
-                if p not in [2,3] and N%p != 0:
-                    if E.is_surjective(p)[0]:
-                        if verbosity > 1:
-                            print 'Kato might apply nontrivially for %d'%p
-                        # ordp(sha) <= ordp(L_over_omega)
-            for p in primes_to_remove:
-                remaining_primes.remove(p)
-
-        # Mazur
-        if N.is_prime():
-            for p in remaining_primes:
-                if E.is_reducible(p):
-                    remaining_primes.remove(p)
-                    if verbosity > 0:
-                        print 'True for p=%s by Mazur'%p
-
-        if two_proven is False:
-            remaining_primes.append(2)
-
-        # print some extra information
-        remaining_primes.sort()
-        if verbosity > 1:
-            if len(remaining_primes) > 0:
-                print 'Remaining primes:'
-            for p in remaining_primes:
-                s = 'p = ' + str(p) + ': '
-                if not E.is_reducible(p):
-                    s += 'ir'
-                s += 'reducible, '
-                if not E.is_surjective(p):
-                    s += 'not '
-                s += 'surjective, '
-                a_p = E.an(p)
-                if E.is_good(p):
-                    if a_p%p != 0:
-                        s += 'good ordinary'
-                    else:
-                        s += 'good, non-ordinary'
-                else:
-                    assert E.is_minimal()
-                    if a_p == 0:
-                        s += 'additive'
-                    elif a_p == 1:
-                        s += 'split multiplicative'
-                    elif a_p == -1:
-                        s += 'non-split multiplicative'
-                if E.tamagawa_product()%p==0:
-                    s += ', divides a Tamagawa number'
-                print s
-
-        return remaining_primes
+    prove_BSD = BSD.prove_BSD
 
     def integral_points(self, mw_base='auto', both_signs=False, verbose=False):
         """

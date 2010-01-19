@@ -161,15 +161,20 @@ class Sha(SageObject):
         self.__an_numerical = Sha
         return Sha
 
-    def an(self, use_database=False):
+    def an(self, use_database=False, descent_second_limit=12):
         r"""
         Returns the Birch and Swinnerton-Dyer conjectural order of Sha
         as a provably correct integer, unless the analytic rank is > 1,
         in which case this function returns a numerical value.
 
-        INPUT: ``use_database`` -- bool (default: False); if True, try to use any
-        databases installed to lookup the analytic order of Sha, if
-        possible.  The order of Sha is computed if it can't be looked up.
+        INPUT:
+
+            - ``use_database`` -- bool (default: False); if True, try to use any
+              databases installed to lookup the analytic order of Sha, if
+              possible.  The order of Sha is computed if it can't be looked up.
+
+            - ``descent_second_limit`` -- int (default: 12); limit to use on
+              point searching for the quartic twist in the hard case
 
         This result is proved correct if the order of vanishing is 0
         and the Manin constant is <= 2.
@@ -178,6 +183,23 @@ class Sha(SageObject):
         False), this function returns the analytic order of Sha as
         listed in Cremona's tables, if this curve appears in Cremona's
         tables.
+
+        NOTE:
+
+        If you come across the following error::
+
+            sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
+            sage: E.sha().an()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Unable to compute the rank, hence generators, with certainty (lower bound=0, generators found=[]).  This could be because Sha(E/Q)[2] is nontrivial.
+            Try increasing descent_second_limit then trying this command again.
+
+        You can increase the `descent_second_limit` (in the above example,
+        set to the default, 12) option to try again::
+
+            sage: E.sha().an(descent_second_limit=16)
+            1
 
         EXAMPLES::
 
@@ -275,7 +297,7 @@ class Sha(SageObject):
                 self.__an = s
                 return s
 
-            regulator = E.regulator(use_database=use_database)   # this could take a *long* time; and could fail...?
+            regulator = E.regulator(use_database=use_database, descent_second_limit=descent_second_limit)
             T = E.torsion_subgroup().order()
             omega = E.period_lattice().omega()
             Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))

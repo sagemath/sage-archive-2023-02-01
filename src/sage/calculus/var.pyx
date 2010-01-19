@@ -1,5 +1,5 @@
 from sage.symbolic.function_factory import function as new_function
-from sage.symbolic.ring import var as new_var
+from sage.symbolic.ring import SR
 
 def var(s, **kwds):
     r"""
@@ -17,7 +17,7 @@ def var(s, **kwds):
 
        The new variable is both returned and automatically injected
        into the global namespace. If you need symbolic variable in
-       library code, it is better to use either SR.var() or SR.new_var().
+       library code, it is better to use either SR.var() or SR.symbol().
 
     EXAMPLES:
 
@@ -104,7 +104,8 @@ def var(s, **kwds):
             deprecation("The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.")
         else:
             raise NotImplementedError, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer."
-    v = new_var(s, **kwds)
+        kwds.pop('ns')
+    v = SR.var(s, **kwds)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

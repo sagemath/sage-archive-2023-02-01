@@ -81,6 +81,7 @@ cdef extern from "ginac_wrap.h":
         GEx conjugate()               except +
         GEx real_part()               except +
         GEx imag_part()               except +
+        bint info(unsigned)           except +
 
     GExPair make_pair "std::make_pair" (GEx, GEx)
 
@@ -127,6 +128,19 @@ cdef extern from "ginac_wrap.h":
     unsigned domain_real "GiNaC::domain::real"
     unsigned domain_positive "GiNaC::domain::positive"
     unsigned domain_infinity "GiNaC::domain::infinity"
+
+    # info flags
+    unsigned info_real          "GiNaC::info_flags::real"
+    unsigned info_rational      "GiNaC::info_flags::rational"
+    unsigned info_integer       "GiNaC::info_flags::integer"
+    unsigned info_positive      "GiNaC::info_flags::positive"
+    unsigned info_negative      "GiNaC::info_flags::negative"
+    unsigned info_nonnegative   "GiNaC::info_flags::nonnegative"
+    unsigned info_posint        "GiNaC::info_flags::posint"
+    unsigned info_negint        "GiNaC::info_flags::negint"
+    unsigned info_nonnegint     "GiNaC::info_flags::nonnegint"
+    unsigned info_even          "GiNaC::info_flags::even"
+    unsigned info_odd           "GiNaC::info_flags::odd"
 
     # Constants
     GEx g_Pi "Pi"
@@ -209,7 +223,7 @@ cdef extern from "ginac_wrap.h":
     GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
-    GSymbol get_symbol(char* s)              except +
+    #GSymbol get_symbol(char* s)              except +
     GSymbol ginac_symbol "GiNaC::symbol" (char* s, char* t, unsigned d) except +
     GSymbol ginac_new_symbol "GiNaC::symbol" () except +
     GEx g_collect_common_factors "collect_common_factors" (GEx e) except +

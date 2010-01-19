@@ -303,7 +303,8 @@ cdef class Expression(CommutativeRingElement):
         # get variables
         cdef GExList sym_lst
         for name in state[1]:
-            sym_lst.append_sym(get_symbol(name))
+            sym_lst.append_sym(\
+                    ex_to_symbol((<Expression>ring.SR.symbol(name))._gobj))
 
         # initialize archive
         cdef GArchive ar
@@ -1206,6 +1207,87 @@ cdef class Expression(CommutativeRingElement):
         else:
             m = '(%s)%s(%s)' % (l, maxima._relation_symbols()[op], r)
         return m
+
+    def _is_real(self):
+        """
+        Returns True if this expression is known to be a real number.
+
+        EXAMPLES::
+
+            sage: t0 = SR.symbol("t0", domain='real')
+            sage: t0._is_real()
+            True
+            sage: t0._is_positive()
+            False
+            sage: t1 = SR.symbol("t1", domain='positive')
+            sage: (t0+t1)._is_real()
+            True
+            sage: (t0+x)._is_real()
+            False
+            sage: (t0*t1)._is_real()
+            True
+            sage: (t0*x)._is_real()
+            False
+
+        The following is real, but we can't deduce that.::
+
+            sage: (x*x.conjugate())._is_real()
+            False
+        """
+        return self._gobj.info(info_real)
+
+    def _is_positive(self):
+        """
+        Returns True if this expression is known to be positive.
+
+        EXAMPLES::
+
+            sage: t0 = SR.symbol("t0", domain='positive')
+            sage: t0._is_positive()
+            True
+            sage: t0._is_negative()
+            False
+            sage: t0._is_real()
+            True
+            sage: t1 = SR.symbol("t1", domain='positive')
+            sage: (t0*t1)._is_positive()
+            True
+            sage: (t0 + t1)._is_positive()
+            True
+            sage: (t0*x)._is_positive()
+            False
+        """
+        return self._gobj.info(info_positive)
+
+    def _is_negative(self):
+        """
+        Return True if this expression is known to be negative.
+
+        EXAMPLES::
+
+            sage: SR(-5)._is_negative()
+            True
+
+        We can't deduce much for _is_negative()::
+
+            sage: t0 = SR.symbol("t0", domain='positive')
+            sage: t0._is_negative()
+            False
+            sage: (-t0)._is_negative()
+            False
+        """
+        return self._gobj.info(info_negative)
+
+    def _is_integer(self):
+        """
+        Return True if this expression is known to be an integer.
+
+        EXAMPLES::
+
+            sage: SR(5)._is_integer()
+            True
+        """
+        return self._gobj.info(info_integer)
 
     def _is_symbol(self):
         """

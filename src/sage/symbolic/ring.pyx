@@ -27,12 +27,15 @@ from sage.rings.real_mpfr import RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject
 from sage.symbolic.expression import is_Expression
 
+from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
 
-pynac_symbol_registry = {}
+from sage.rings.all import RR, CC
+
+cdef dict pynac_symbol_registry = {}
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -418,67 +421,73 @@ cdef class SymbolicRing(CommutativeRing):
         """
         EXAMPLES::
 
-            sage: tmp0_var = SR.symbol("tmp0_var")
-            sage: tmp0_var.conjugate()
-            conjugate(tmp0_var)
+            sage: t0 = SR.symbol("t0")
+            sage: t0.conjugate()
+            conjugate(t0)
 
-            sage: tmp0_var = SR.symbol("tmp0_var", domain='real')
-            sage: tmp0_var.conjugate()
-            tmp0_var
+            sage: t1 = SR.symbol("t1", domain='real')
+            sage: t1.conjugate()
+            t1
 
-            sage: tmp0_var.abs()
-            abs(tmp0_var)
+            sage: t0.abs()
+            abs(t0)
 
-            sage: tmp0_var = SR.symbol("tmp0_var", domain='positive')
-            sage: tmp0_var.abs()
-            tmp0_var
+            sage: t0_2 = SR.symbol("t0", domain='positive')
+            sage: t0_2.abs()
+            t0
+            sage: bool(t0_2 == t0)
+            True
+            sage: t0.conjugate()
+            t0
 
-            sage: tmp0_var = SR.symbol(); tmp0_var  #random
-            symbol343
+            sage: SR.symbol() # temporary variable
+            symbol160
         """
-        # Decide the domain
-        from sage.rings.all import RR
-        if domain is 'real' or domain is RR:
-            domain = domain_real
-        elif domain is 'positive':
-            domain = domain_positive
-        else:
-            domain = domain_complex
         cdef GSymbol symb
         cdef Expression e
-        # Check if there is already a symbol of same name
-        try:
-            e = pynac_symbol_registry[name]
-            symb = ex_to_symbol((<Expression>e)._gobj)
-            if symb.get_domain() is domain and latex_name is None:
-                return e
-            else:
-                if not symb.get_domain() is domain:
-                    symb.set_domain(domain)
-                if latex_name is not None:
-                    symb.set_texname(latex_name)
-                GEx_construct_symbol(&e._gobj, symb)
-        except KeyError:
-            # Check if we need a distinct new symbol
-            if name is None:
-                symb = ginac_new_symbol()
-                if not domain is domain_complex:
-                    symb.set_domain(domain)
-            else:
-                # Get a ginac symbol with given name
-                name = str(name)
+
+        # check if there is already a symbol with same name
+        e = pynac_symbol_registry.get(name)
+
+        # fast path to get an already existing variable
+        if e is not None:
+            if domain is None:
                 if latex_name is None:
-                    from sage.misc.latex import latex_variable_name
-                    latex_name = latex_variable_name(name)
-                symb = ginac_symbol(name, latex_name, domain)
+                    return e
+
+            # get symbol
+            symb = ex_to_symbol(e._gobj)
+            if latex_name is not None:
+                symb.set_texname(latex_name)
+            if domain is not None:
+                symb.set_domain(sage_domain_to_ginac(domain))
+            GEx_construct_symbol(&e._gobj, symb)
+
+            return e
+
+        else: # initialize a new symbol
             # Construct expression
             e = <Expression>PY_NEW(Expression)
-            GEx_construct_symbol(&e._gobj, symb)
             e._parent = SR
-            pynac_symbol_registry[repr(e)] = e
+
+            if name is None: # Check if we need a temporary anonymous new symbol
+                symb = ginac_new_symbol()
+                if domain is not None:
+                    symb.set_domain(sage_domain_to_ginac(domain))
+            else:
+                if latex_name is None:
+                    latex_name = latex_variable_name(name)
+                if domain is not None:
+                    domain = sage_domain_to_ginac(domain)
+                else:
+                    domain = domain_complex
+                symb = ginac_symbol(name, latex_name, domain)
+                pynac_symbol_registry[name] = e
+
+            GEx_construct_symbol(&e._gobj, symb)
         return e
 
-    def var(self, name, **kwds):
+    cpdef var(self, name, latex_name=None, domain=None):
         """
         Return the symbolic variable defined by x as an element of the
         symbolic ring.
@@ -497,26 +506,15 @@ cdef class SymbolicRing(CommutativeRing):
         if not isinstance(name, str):
             name = repr(name)
         if ',' in name:
-            return tuple([self.symbol(s.strip(), **kwds) for s in name.split(',')])
+            if latex_name:
+                raise ValueError, "cannot specify latex_name for multiple symbol names"
+            return tuple([self.symbol(s.strip(), domain=domain) for s in name.split(',')])
         elif ' ' in name:
-            return tuple([self.symbol(s.strip(), **kwds) for s in name.split(' ')])
+            if latex_name:
+                raise ValueError, "cannot specify latex_name for multiple symbol names"
+            return tuple([self.symbol(s.strip(), domain=domain) for s in name.split(' ')])
         else:
-            return self.symbol(name, **kwds)
-
-    def new_var(self, domain=None):
-        """
-        Returns a unique symbolic variable as an element of the symbolic ring.
-        This is useful for situation where a temporary but distinct variable
-        (apart from those already in use) is needed.
-
-        EXAMPLES::
-
-            sage: tmpvar = SR.new_var(); tmpvar  #random
-            symbol343
-            sage: tmpvar = SR.new_var(domain='real'); tmpvar  #random
-            symbol347
-        """
-        return self.symbol(name=None, domain=domain)
+            return self.symbol(name, latex_name=latex_name, domain=domain)
 
     def _repr_element_(self, Expression x):
         """
@@ -626,6 +624,17 @@ cdef class SymbolicRing(CommutativeRing):
         return _the_element.subs(d, **kwds)
 
 SR = SymbolicRing()
+
+cdef unsigned sage_domain_to_ginac(object domain) except +:
+        # convert the domain argument to something easy to parse
+        if domain is RR or domain is 'real':
+            return domain_real
+        elif domain is 'positive':
+            return domain_positive
+        elif domain is CC or domain is 'complex':
+            return domain_complex
+        else:
+            raise ValueError, "domain must be one of 'complex', 'real' or 'positive'"
 
 cdef class NumpyToSRMorphism(Morphism):
     def __init__(self, numpy_type, R):

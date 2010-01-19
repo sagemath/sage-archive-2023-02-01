@@ -136,6 +136,8 @@ fi
 rm -rf $SCRIPTS
 mkdir $SCRIPTS
 chmod +x sage-*
+chmod -x sage-README-osx.txt sage-banner sage-gdb-commands
+chmod -x sage-maxima.lisp sage-verify-pyc
 rm sage-*~
 
 cp -pr sage-* .hg* ipy_profile_sage.py $SCRIPTS/

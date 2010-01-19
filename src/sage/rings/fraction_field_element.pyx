@@ -223,9 +223,18 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__denominator
 
-    def factor(self):
+    def factor(self, *args, **kwds):
         """
-        Return the factorization of self over the base ring.
+        Return the factorization of ``self`` over the base ring.
+
+        INPUT:
+
+        - ``*args`` - Arbitrary arguments suitable over the base ring
+        - ``**kwds`` - Arbitrary keyword arguments suitable over the base ring
+
+        OUTPUT:
+
+        - Factorization of ``self`` over the base ring
 
         EXAMPLES::
 
@@ -233,8 +242,20 @@ cdef class FractionFieldElement(FieldElement):
             sage: f = (x^3+x)/(x-3)
             sage: f.factor()
             (x - 3)^-1 * x * (x^2 + 1)
+
+        Here is an example to show that ticket #7868 has been resolved::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: f = x*y/(x+y)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
+            sage: f.factor(proof=False)
+            (x + y)^-1 * y * x
         """
-        return self.numerator().factor()/self.denominator().factor()
+        return self.numerator().factor(*args, **kwds) / \
+            self.denominator().factor(*args, **kwds)
 
     def __hash__(self):
         """

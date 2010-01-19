@@ -2,8 +2,8 @@ r"""
 ClasscallMetaclass
 """
 #*****************************************************************************
-#  Copyright (C) 2008    Nicolas M. Thiery <nthiery at users.sf.net>
-#  Copyright (C) 2009    Florent Hivert <Florent.Hivert at univ-rouen.fr>
+#  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2010    Florent Hivert <Florent.Hivert at univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -15,25 +15,32 @@ class ClasscallMetaclass(NestedClassMetaclass):
     """
     A (trivial) metaclass for customizing class calls via a static method
 
-    For a class ``cls`` in this metaclass, the call ``cls(<some arguments>)``
-    triggers in this priority order the following calls if the respective
-    methods exists:
+    Let ``cls`` be a class in this metaclass, and consider a call of the form:
+
+    	``cls(<some arguments>)``
+
+    If ``cls`` defines a method ``__classcall_private__``, then
+    this results in a call to::
 
      - ``cls.__classcall_private__(cls, <some arguments>)``
+
+    Otherwise, if ``cls`` has a method ``__classcall__``, then instead
+    the following is called:
+
      - ``cls.__classcall__(cls, <some arguments>)``
 
-    If neither of these two methods are implemented, then
-    ``type.__call__(cls, <some arguments>)`` is called as usual, which
-    in turns uses :meth:`__new__` and :meth:`__init__` as usual (see
-    Section "Basic Customization" in the Python Reference Manual).
+    If neither of these two methods are implemented, then the standard
+    ``type.__call__(cls, <some arguments>)`` is called, which in turn
+    uses :meth:`__new__` and :meth:`__init__` as usual (see Section
+    "Basic Customization" in the Python Reference Manual).
 
     See ``sage.misc.classcall_metaclass.ClasscallMetaclass.__call__?``
     for an example.
 
     Typical applications include the implementation of factories or of
-    unique representation (see :class:`UniqueRepresentation`). This is
-    usually done by either using a wrapper function, or fiddling with
-    :meth:`__new__`.
+    unique representation (see :class:`UniqueRepresentation`). Such
+    features are traditionaly implemented by either using a wrapper
+    function, or fiddling with :meth:`__new__`.
 
     The benefit, compared with fiddling directly with :meth:`__new__`
     is a clear separation of the three distinct roles:
@@ -54,11 +61,11 @@ class ClasscallMetaclass(NestedClassMetaclass):
         True
 
     Another difference is that :meth:`__classcall__` is inherited by
-    subclasses. If this is not desirable, one should define the method
-    :meth:`__classcall_private__` which will not be called by
-    subclass. Specifically, If a class ``cls`` define both methods
-    ``__classcall__`` and ``__classcall_private__`` then, for any subclass
-    ``sub`` of ``cls``
+    subclasses, which may be desirable, or not. If not, one should
+    instead define the method :meth:`__classcall_private__` which will
+    not be called for subclasses. Specifically, if a class ``cls``
+    defines both methods ``__classcall__`` and
+    ``__classcall_private__`` then, for any subclass ``sub`` of ``cls``:
 
      - ``cls(<args>)`` will call ``cls.__classcall_private__(cls, <args>)``
      - ``sub(<args>)`` will call ``cls.__classcall__(sub, <args>)``
@@ -141,6 +148,15 @@ class ClasscallMetaclass(NestedClassMetaclass):
             sage: Bar2()
             calling classcall with <class '__main__.Bar2'>
             <__main__.Bar2 object at ...>
+
+
+        TESTS:
+
+        We check that the idiom ``method_name in cls.__dict__`` works
+        for extension types::
+
+           sage: "_sage_" in SageObject.__dict__, "_sage_" in Parent.__dict__
+           (True, False)
         """
         if '__classcall_private__' in cls.__dict__:
             return cls.__classcall_private__(cls, *args, **options)

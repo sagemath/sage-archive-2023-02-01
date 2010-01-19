@@ -194,6 +194,17 @@ class mwrank_EllipticCurve(SageObject):
                            descent via 2-isogeny
         OUTPUT:
             Nothing -- nothing is returned
+
+        TESTS (see #7992)::
+
+            sage: EllipticCurve([0, prod(prime_range(10))]).mwrank_curve().two_descent()
+            sage: EllipticCurve([0, prod(prime_range(100))]).mwrank_curve().two_descent()
+            ...
+            Traceback (most recent call last):
+            ...
+            RuntimeError
+
+
         """
         from sage.libs.mwrank.mwrank import _two_descent # import here to save time
         first_limit = int(first_limit)
@@ -211,7 +222,7 @@ class mwrank_EllipticCurve(SageObject):
                                       n_aux,
                                       second_descent)
         if not self.__two_descent_data().ok():
-            raise RuntimeError, "A 2-descent didn't not complete successfully."
+            raise RuntimeError, "A 2-descent did not complete successfully."
 
     def __two_descent_data(self):
         try:

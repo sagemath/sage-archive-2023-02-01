@@ -1236,9 +1236,31 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return &self.value
 
     def __lshift__(IntegerMod_gmp self, k):
+        r"""
+        Performs a left shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(19, 10^10)
+            sage: e << 102
+            9443608576
+        """
         return self.shift(long(k))
 
     def __rshift__(IntegerMod_gmp self, k):
+        r"""
+        Performs a right shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(19, 10^10)
+            sage: e >> 1
+            9
+        """
         return self.shift(-long(k))
 
     cdef shift(IntegerMod_gmp self, long k):
@@ -1923,9 +1945,35 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return integer_mod_ring.IntegerModRing(right)(self)
 
     def __lshift__(IntegerMod_int self, k):
+        r"""
+        Performs a left shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(5, 2^10 - 1)
+            sage: e << 5
+            160
+            sage: e * 2^5
+            160
+        """
         return self.shift(int(k))
 
     def __rshift__(IntegerMod_int self, k):
+        r"""
+        Performs a right shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(5, 2^10 - 1)
+            sage: e << 5
+            160
+            sage: e * 2^5
+            160
+        """
         return self.shift(-int(k))
 
     cdef shift(IntegerMod_int self, int k):
@@ -2695,9 +2743,33 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return integer_mod_ring.IntegerModRing(right)(self)
 
     def __lshift__(IntegerMod_int64 self, k):
+        r"""
+        Performs a left shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(5, 2^31 - 1)
+            sage: e << 32
+            10
+            sage: e * 2^32
+            10
+        """
         return self.shift(int(k))
 
     def __rshift__(IntegerMod_int64 self, k):
+        r"""
+        Performs a right shift by ``k`` bits.
+
+        For details, see :meth:`shift`.
+
+        EXAMPLES::
+
+            sage: e = Mod(5, 2^31 - 1)
+            sage: e >> 1
+            2
+        """
         return self.shift(-int(k))
 
     cdef shift(IntegerMod_int64 self, int k):
@@ -2733,10 +2805,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: e * 2^32
             10
             sage: e = Mod(5, 2^31 - 1)
-            sage: e << 32
-            10
-            sage: e * 2^32
-            10
+            sage: e >> 1
+            2
         """
         if k == 0:
             return self

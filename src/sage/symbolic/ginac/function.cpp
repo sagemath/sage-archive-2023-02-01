@@ -107,7 +107,7 @@ void function_options::initialize()
 	series_use_exvector_args = false;
 	print_use_exvector_args = false;
 	use_remember = false;
-	python_func = false;
+	python_func = 0;
 	functions_with_same_name = 1;
 	symtree = 0;
 }
@@ -872,42 +872,50 @@ function_options& function_options::derivative_func(
 
 function_options& function_options::eval_func(PyObject* e)
 {
+	python_func |= eval_python_f;
 	eval_f = eval_funcp(e);
 	return *this;
 }
 function_options& function_options::evalf_func(PyObject* ef)
 {
+	python_func |= evalf_python_f;
 	evalf_f = evalf_funcp(ef);
 	return *this;
 }
 function_options& function_options::conjugate_func(PyObject* c)
 {
+	python_func |= conjugate_python_f;
 	conjugate_f = conjugate_funcp(c);
 	return *this;
 }
 function_options& function_options::real_part_func(PyObject* c)
 {
+	python_func |= real_part_python_f;
 	real_part_f = real_part_funcp(c);
 	return *this;
 }
 function_options& function_options::imag_part_func(PyObject* c)
 {
+	python_func |= imag_part_python_f;
 	imag_part_f = imag_part_funcp(c);
 	return *this;
 }
 
 function_options& function_options::derivative_func(PyObject* d)
 {
+	python_func |= derivative_python_f;
 	derivative_f = derivative_funcp(d);
 	return *this;
 }
 function_options& function_options::power_func(PyObject* d)
 {
+	python_func |= power_python_f;
 	power_f = power_funcp(d);
 	return *this;
 }
 function_options& function_options::series_func(PyObject* s)
 {
+	python_func |= series_python_f;
 	series_f = series_funcp(s);
 	return *this;
 }
@@ -1123,8 +1131,16 @@ function::function(unsigned ser, std::auto_ptr<exvector> vp)
 function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 {
 	// get python_func flag
-	bool python_func;
-	if (!n.find_bool("python", python_func))
+	// since python_func used to be a bool flag in the old days,
+	// in order to unarchive old format archives, we first check if the
+	// archive node contains a bool property
+	// if it doesn't we look for the unsigned property indicating which
+	// custom functions are defined in python
+	unsigned python_func;
+	bool old_python_func;
+	if (n.find_bool("python", old_python_func))
+		python_func = old_python_func ?  0xFFFF : 0;
+	else if(!n.find_unsigned("python", python_func))
 		throw std::runtime_error("function::function archive error: cannot read python_func flag");
 	std::string s;
 	if (python_func) {
@@ -1179,8 +1195,9 @@ void function::archive(archive_node &n) const
 	// runtime and those created from c++
 	// the python_func flag indicates if we should use the python
 	// unpickling mechanism, or the regular unarchiving for c++ functions
-	if (registered_functions()[serial].python_func) {
-		n.add_bool("python", true);
+	unsigned python_func = registered_functions()[serial].python_func;
+	if (python_func) {
+		n.add_unsigned("python", python_func);
 		// find the corresponding SFunction object
 		PyObject* sfunc = py_get_sfunction_from_serial(serial);
 		if (PyErr_Occurred()) {
@@ -1195,7 +1212,7 @@ void function::archive(archive_node &n) const
 		n.add_string("pickle", *pickled);
 		delete pickled;
 	} else {
-		n.add_bool("python", false);
+		n.add_unsigned("python", 0);
 		n.add_string("name", registered_functions()[serial].name);
 	}
 }
@@ -1377,7 +1394,7 @@ ex function::eval(int level) const
 	}
 	current_serial = serial;
 
-	if (opt.python_func) {
+	if (opt.python_func && function_options::eval_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
@@ -1480,7 +1497,7 @@ ex function::evalf(int level, PyObject* parent) const
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
-	if (opt.python_func) { 
+	if (opt.python_func && function_options::evalf_python_f) { 
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(eseq);
 		// create a dictionary {'prec':prec} for the precision argument
@@ -1577,7 +1594,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	ex res;
 	current_serial = serial;
-	if (opt.python_func) {
+	if (opt.python_func && function_options::series_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'order': order, 'options':options}
@@ -1727,7 +1744,7 @@ ex function::conjugate() const
 		return conjugate_function(*this).hold();
 	}
 
-	if (opt.python_func) {
+	if (opt.python_func && function_options::conjugate_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
@@ -1795,11 +1812,11 @@ ex function::real_part() const
 	if (opt.real_part_f==0)
 		return basic::real_part();
 
-	if (opt.python_func) {
+	if (opt.python_func && function_options::real_part_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.real_part_f,
 				"_real_part_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
@@ -1861,11 +1878,11 @@ ex function::imag_part() const
 	if (opt.imag_part_f==0)
 		return basic::imag_part();
 
-	if (opt.python_func ) {
+	if (opt.python_func && function_options::imag_part_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.imag_part_f,
 				"_imag_part_", "O", args);
 		Py_DECREF(args);
 		if (!pyresult) { 
@@ -1936,11 +1953,11 @@ ex function::derivative(const symbol & s) const
 	const function_options &opt = registered_functions()[serial];
 
 	// Check if we need to apply chain rule
-	if (!(opt.apply_chain_rule)) {
+	if (!opt.apply_chain_rule) {
 		if (opt.derivative_f == NULL)
 			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
 
-		if (opt.python_func) {
+		if (opt.python_func && function_options::derivative_python_f) {
 			// convert seq to a PyTuple of Expressions
 			PyObject* args = exvector_to_PyTuple(seq);
 			// create a dictionary {'diff_param': s}
@@ -1951,7 +1968,7 @@ ex function::derivative(const symbol & s) const
 			PyObject* pyresult = PyEval_CallObjectWithKeywords(
 				PyObject_GetAttrString(
 					(PyObject*)opt.derivative_f,
-					"_derivative_"), args, kwds);
+					"_tderivative_"), args, kwds);
 			Py_DECREF(symb);
 			Py_DECREF(args);
 			Py_DECREF(kwds);
@@ -2096,7 +2113,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
-	if (opt.python_func) {
+	if (opt.python_func && function_options::derivative_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'diff_param': diff_param}
@@ -2170,7 +2187,7 @@ ex function::power(const ex & power_param) const // power of function
 	                                               status_flags::evaluated);
 
 	current_serial = serial;
-	if (opt.python_func) {
+	if (opt.python_func && function_options::power_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 		// create a dictionary {'power_param': power_param}

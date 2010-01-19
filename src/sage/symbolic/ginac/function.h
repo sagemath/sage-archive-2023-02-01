@@ -574,6 +574,18 @@ public:
 
 	void set_print_latex_func(PyObject* f);
 	void set_print_dflt_func(PyObject* f);
+
+	enum {
+		eval_python_f 		= 0x0001,
+		evalf_python_f 		= 0x0002,
+		conjugate_python_f 	= 0x0004,
+		real_part_python_f	= 0x0008,
+		imag_part_python_f	= 0x0010,
+		derivative_python_f	= 0x0020,
+		power_python_f		= 0x0040,
+		series_python_f		= 0x0080,
+	};
+
 protected:
 	bool has_derivative() const { return derivative_f != NULL; }
 	bool has_power() const { return power_f != NULL; }
@@ -617,7 +629,7 @@ protected:
 	bool series_use_exvector_args;
 	bool print_use_exvector_args;
 
-	bool python_func;
+	unsigned python_func;
 
 	unsigned functions_with_same_name;
 

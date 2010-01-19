@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Elliptic curves over the rational numbers
 

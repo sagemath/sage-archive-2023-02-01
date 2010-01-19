@@ -35,6 +35,7 @@ AUTHORS:
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
 from sage.structure.factorization import Factorization
+from sage.structure.element import coerce_binop
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -206,6 +207,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
                 pass
         return Polynomial.__call__(self, *x, **kwds)
 
+    @coerce_binop
     def resultant(self, Polynomial_zmod_flint other):
         """
         Returns the resultant of self and other, which must lie in the same
@@ -226,7 +228,6 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: r.parent() is GF(19)
             True
         """
-        other = self.parent()._coerce_(other)
         res = zmod_poly_resultant(&(<Polynomial_template>self).x, &(<Polynomial_template>other).x)
         return self.parent().base_ring()(res)
 

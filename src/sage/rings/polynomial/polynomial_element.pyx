@@ -43,6 +43,7 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
+from sage.structure.element import coerce_binop
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
@@ -2790,6 +2791,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
+    @coerce_binop
     def lcm(self, other):
         """
         Let f and g be two polynomials. Then this function returns the
@@ -3690,6 +3692,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     ######################################################################
 
+    @coerce_binop
     def resultant(self, other):
         r"""
         Returns the resultant of self and other.
@@ -3749,7 +3752,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             PariError: (8)
         """
-        other = self.parent()._coerce_(other)
         variable = self.parent().gen()._pari_()
         # The 0 flag tells PARI to use exact arithmetic
         res = self._pari_().polresultant(other._pari_(), variable, 0)

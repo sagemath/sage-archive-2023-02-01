@@ -42,7 +42,7 @@ from sage.rings.infinity import infinity
 import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
-from sage.structure.element import generic_power, canonical_coercion, bin_op
+from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
 
 from sage.libs.ntl.ntl_ZZ_p_decl cimport *, ZZ_p_c
 from sage.libs.ntl.ntl_lzz_p_decl cimport *, zz_p_c
@@ -237,16 +237,12 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         except RuntimeError, msg: # should this really be a TypeError
             raise TypeError, msg
 
+    @coerce_binop
     def quo_rem(self, right):
         """
         Returns a tuple (quotient, remainder) where self = quotient*other +
         remainder.
         """
-        if not isinstance(right, Polynomial_dense_mod_n):
-            right = self.parent()(right)
-        elif self.parent() != right.parent():
-            raise TypeError
-##        self._ntl_set_modulus()
         v = self.__poly.quo_rem((<Polynomial_dense_mod_n>right).__poly)
         P = self.parent()
         return (P(v[0], construct=True), P(v[1], construct=True) )
@@ -839,6 +835,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         else:
             return r
 
+    @coerce_binop
     def quo_rem(self, right):
         """
         Returns `q` and `r`, with the degree of `r` less than the degree of `right`,
@@ -856,9 +853,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: q*g + r
             x^5 + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or self._parent is not (<Element>right)._parent:
-            self, right = canonical_coercion(self, right)
-            return self.quo_rem(right)
         cdef Polynomial_dense_modn_ntl_zz q = self._new()
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
@@ -1382,6 +1376,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         else:
             return r
 
+    @coerce_binop
     def quo_rem(self, right):
         """
         Returns `q` and `r`, with the degree of `r` less than the degree of `right`,
@@ -1399,9 +1394,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: q*g + r
             x^5 + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or self._parent is not (<Element>right)._parent:
-            self, right = canonical_coercion(self, right)
-            return self.quo_rem(right)
         cdef Polynomial_dense_modn_ntl_ZZ q = self._new()
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
@@ -1692,6 +1684,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
     A dense polynomial over the integers modulo p, where p is prime.
     """
 
+    @coerce_binop
     def gcd(self, right):
         return self._gcd(right)
 
@@ -1706,6 +1699,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
         g = self.ntl_ZZ_pX().gcd(right.ntl_ZZ_pX())
         return self.parent()(g, construct=True)
 
+    @coerce_binop
     def xgcd(self, right):
         r"""
         Return the extended gcd of self and other, i.e., elements `r, s, t` such that
@@ -1729,6 +1723,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
         return self.parent()(r, construct=True), self.parent()(s, construct=True), \
                self.parent()(t, construct=True)
 
+    @coerce_binop
     def resultant(self, other):
         """
         Returns the resultant of self and other, which must lie in the same

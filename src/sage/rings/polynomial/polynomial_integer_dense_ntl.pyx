@@ -51,6 +51,7 @@ from sage.rings.integer cimport Integer
 
 from sage.libs.all import pari, pari_gen
 from sage.structure.factorization import Factorization
+from sage.structure.element import coerce_binop
 
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
@@ -442,6 +443,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
+    @coerce_binop
     def quo_rem(self, right):
         r"""
         Attempts to divide self by right, and return a quotient and remainder.
@@ -492,11 +494,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             (0, 0)
 
         """
-        if not isinstance(right, Polynomial_integer_dense_ntl):
-            right = self.parent()(right)
-        elif self.parent() is not right.parent():
-            raise TypeError
-
         cdef Polynomial_integer_dense_ntl _right = <Polynomial_integer_dense_ntl> right
 
         if ZZX_IsZero(_right.__poly):
@@ -533,6 +530,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
 
 
+    @coerce_binop
     def gcd(self, right):
         r"""
         Return the GCD of self and right.  The leading
@@ -546,11 +544,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.gcd(g)
             6*x + 47
         """
-        if not isinstance(right, Polynomial_integer_dense_ntl):
-            right = self.parent()(right)
-        elif self.parent() is not right.parent():
-            raise TypeError
-
         # todo: we're doing an unnecessary copy here
         cdef Polynomial_integer_dense_ntl x = self._new()
         cdef ZZX_c* temp = ZZX_gcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly)
@@ -559,6 +552,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
+    @coerce_binop
     def lcm(self, right):
         """
         Return the LCM of self and right.
@@ -573,15 +567,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: h == (6*x + 47)*(7*x^2 - 2*x + 38)*(3*x^3 + 2*x + 1)
             True
         """
-        if not isinstance(right, Polynomial_integer_dense_ntl):
-            right = self.parent()(right)
-        elif self.parent() is not right.parent():
-            raise TypeError
-
         g = self.gcd(right)
         return (self * right).quo_rem(g)[0]
 
 
+    @coerce_binop
     def xgcd(self, right):
         """
         This function can't in general return ``(g,s,t)`` as above,
@@ -616,11 +606,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: u*F + v*G
             2985984
         """
-        if not isinstance(right, Polynomial_integer_dense_ntl):
-            right = self.parent()(right)
-        elif self.parent() is not right.parent():
-            raise TypeError
-
         cdef ZZX_c *s, *t
         cdef ZZ_c *r
 
@@ -1053,6 +1038,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return [self[i] for i in range(self.degree()+1)]
 
 
+    @coerce_binop
     def resultant(self, other, proof=True):
         """
         Returns the resultant of self and other, which must lie in the same

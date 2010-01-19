@@ -15,6 +15,8 @@ AUTHORS:
 - Gonzalo Tornaria (2007-06): recursive base extend for coercion --
   lots of tests
 
+- Robert Bradshaw (2007-2010): arithmetic operators and coercion
+
 
 The Abstract Element Class Hierarchy
 ------------------------------------
@@ -174,9 +176,11 @@ include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-import operator
+import operator, types
 import sys
 import traceback
+
+import sage.misc.sageinspect as sageinspect
 
 cdef MethodType
 from types import MethodType
@@ -2916,6 +2920,136 @@ def coercion_traceback(dump=True):
             print ''.join(traceback.format_exception(*exc_info))
     else:
         return coercion_model.exception_stack()
+
+
+cdef class NamedBinopMethod:
+    """
+    A decorator to be used on binary operation methods that should operate
+    on elements of the same parent. If the parents of the arguments differ,
+    coercion is performed, then the method is re-looked up by name on the
+    first argument.
+
+    In short, using the ``NamedBinopMethod`` (alias ``coerce_binop``) decorator
+    on a method gives it the exact same semantics of the basic arithmetic
+    operations like ``_add_``, ``_sub_``, etc. in that both operands are
+    guaranteed to have exactly the same parent.
+    """
+    cdef _self
+    cdef _func
+    cdef _name
+
+    def __init__(self, func, name=None, obj=None):
+        """
+        TESTS::
+
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: NamedBinopMethod(gcd)(12, 15)
+            3
+        """
+        self._func = func
+        if name is None:
+            if isinstance(func, types.FunctionType):
+                name = func.func_name
+            if isinstance(func, types.UnboundMethodType):
+                name = func.im_func.func_name
+            else:
+                name = func.__name__
+        self._name = name
+        self._self = obj
+
+    def __call__(self, x, y=None, **kwds):
+        """
+        TESTS::
+
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: test_func = NamedBinopMethod(lambda x, y, **kwds: (x, y, kwds), '_add_')
+
+        Calls func directly if the two arguments have the same parent::
+
+            sage: test_func(1, 2)
+            (1, 2, {})
+
+        Passes through coercion and does a method lookup if the
+        left operand is not the same::
+
+            sage: test_func(0.5, 1)
+            (0.500000000000000, 1.00000000000000, {})
+            sage: test_func(1, 2, algorithm='fast')
+            (1, 2, {'algorithm': 'fast'})
+            sage: test_func(1, 1/2)
+            3/2
+        """
+        if y is None:
+            if self._self is None:
+                self._func(x, **kwds)
+            else:
+                x, y = self._self, x
+        if not have_same_parent(x, y):
+            old_x = x
+            x,y = coercion_model.canonical_coercion(x, y)
+            if old_x is x:
+                return self._func(x,y, *kwds)
+            else:
+                return getattr(x, self._name)(y, **kwds)
+        else:
+            return self._func(x,y, **kwds)
+
+    def __get__(self, obj, objtype):
+        """
+        Used to transform from an unbound to a bound method.
+
+        TESTS::
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: R.<x> = ZZ[]
+            sage: isinstance(x.quo_rem, NamedBinopMethod)
+            True
+            sage: x.quo_rem(x)
+            (1, 0)
+            sage: type(x).quo_rem(x,x)
+            (1, 0)
+        """
+        return NamedBinopMethod(self._func, self._name, obj)
+
+    def _sage_doc_(self):
+        """
+        Return the docstring of the wrapped object for introspection.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: g = NamedBinopMethod(gcd)
+            sage: g._sage_doc_() == gcd.__doc__
+            True
+        """
+        return sageinspect.sage_getdoc(self._func)
+
+    def _sage_src_(self):
+        """
+        Returns the source of the wrapped object for introspection.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: g = NamedBinopMethod(gcd)
+            sage: 'def gcd(' in g._sage_src_()
+            True
+        """
+        return sageinspect.sage_getsource(self._func)
+
+    def _sage_argspec_(self):
+        """
+        Returns the argspec of the wrapped object for introspection.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import NamedBinopMethod
+            sage: g = NamedBinopMethod(gcd)
+            sage: g._sage_argspec_()
+            (['a', 'b'], None, 'kwargs', (None,))
+        """
+        return sageinspect.sage_getargspec(self._func)
+
+coerce_binop = NamedBinopMethod
 
 ###############################################################################
 

@@ -14,7 +14,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, gcd
+from sage.structure.element import parent, canonical_coercion, bin_op, gcd, coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
@@ -495,6 +495,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
+    @coerce_binop
     def quo_rem(self, PolynomialRealDense other):
         """
         EXAMPLES::
@@ -547,6 +548,7 @@ cdef class PolynomialRealDense(Polynomial):
         r._normalize()
         return q, r * leading
 
+    @coerce_binop
     def gcd(self, other):
         """
         Returns the gcd of self and other as a monic polynomial. Due to the
@@ -574,9 +576,6 @@ cdef class PolynomialRealDense(Polynomial):
             1.00000000000000
 
         """
-        # When #4301 gets in, use the generic gcd there.
-        if parent(self) != parent(other):
-            return bin_op(self, other, gcd)
         aval = self.valuation()
         a = self >> aval
         bval = other.valuation()

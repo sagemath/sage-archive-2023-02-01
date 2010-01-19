@@ -194,6 +194,7 @@ from sage.structure.element cimport ModuleElement
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
+from sage.structure.element import coerce_binop
 
 from sage.categories.action cimport Action
 
@@ -2360,6 +2361,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return self.set().navigation()
 
+    @coerce_binop
     def gcd(self, BooleanMonomial rhs):
         """
         Return the greatest common divisor of this boolean monomial

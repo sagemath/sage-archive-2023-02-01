@@ -159,6 +159,8 @@ from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 import sage.rings.infinity
 import sage.libs.pari.all
 
+from sage.structure.element import canonical_coercion
+
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
@@ -2532,6 +2534,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: q, r = a.quo_rem(b)
             sage: q*b + r == a
             True
+
+            sage: 3.quo_rem(ZZ['x'].0)
+            (0, 3)
         """
         cdef Integer q = PY_NEW(Integer)
         cdef Integer r = PY_NEW(Integer)
@@ -2550,9 +2555,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_sub_ui(q.value, q.value, 1)
                     mpz_sub_ui(r.value, r.value, -d)
 
-        else:
-            if not PY_TYPE_CHECK_EXACT(other, Integer):
-                other = Integer(other)
+        elif PY_TYPE_CHECK_EXACT(other, Integer):
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -2561,6 +2564,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 _sig_off
             else:
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
+
+        else:
+            left, right = canonical_coercion(self, other)
+            return left.quo_rem(right)
 
         return q, r
 
@@ -4876,6 +4883,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: gcd(21,2^6)
             1
         """
+        if not isinstance(n, Integer) and not isinstance(n, int):
+            left, right = canonical_coercion(self, n)
+            return left.gcd(right)
         cdef Integer m = as_Integer(n)
         cdef Integer g = <Integer>PY_NEW(Integer)
         _sig_on

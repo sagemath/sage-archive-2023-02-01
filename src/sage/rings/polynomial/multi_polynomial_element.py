@@ -56,7 +56,7 @@ We verify Lagrange's four squares identity::
 
 from sage.rings.arith import gcd
 
-from sage.structure.element import CommutativeRingElement, canonical_coercion
+from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 
 from sage.interfaces.all import macaulay2
 
@@ -1503,6 +1503,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     #    P._singular_().set_ring()
     #    return P(self._singular_().gcd(f._singular_()))
 
+    @coerce_binop
     def quo_rem(self, right):
         """
         Returns quotient and remainder of self and right.

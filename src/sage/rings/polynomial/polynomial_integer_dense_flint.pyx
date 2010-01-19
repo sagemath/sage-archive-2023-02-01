@@ -26,6 +26,7 @@ include "../../libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element import coerce_binop
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
@@ -460,8 +461,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         _sig_off
         return x
 
-
-    def quo_rem(self, right):
+    @coerce_binop
+    def quo_rem(self, Polynomial_integer_dense_flint right):
         r"""
         Attempts to divide self by right, and return a quotient and remainder.
 
@@ -499,16 +500,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: z.quo_rem(2*x)
             (0, 0)
 
+        Ticket #383, make sure things get coerced correctly::
+
+            sage: f = x+1; parent(f)
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: g = x/2; parent(g)
+            Univariate Polynomial Ring in x over Rational Field
+            sage: f.quo_rem(g)
+            (2, 1)
+            sage: g.quo_rem(f)
+            (1/2, -1/2)
+            sage: parent(f.quo_rem(g)[0])
+            Univariate Polynomial Ring in x over Rational Field
+            sage: f.quo_rem(3)
+            sage: (5*x+7).quo_rem(3)
+            (x + 2, 2*x + 1)
         """
-        if not isinstance(right, Polynomial_integer_dense_flint):
-            right = self._parent(right)
-        elif self._parent is not right.parent():
-            raise TypeError
-
-        cdef Polynomial_integer_dense_flint _right = \
-                <Polynomial_integer_dense_flint> right
-
-        if _right.is_zero():
+        if right.is_zero():
             raise ZeroDivisionError, "division by zero polynomial"
 
         if self.is_zero():
@@ -518,7 +526,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Polynomial_integer_dense_flint rr = self._new()
 
         _sig_on
-        fmpz_poly_divrem(qq.__poly, rr.__poly, self.__poly, _right.__poly)
+        fmpz_poly_divrem(qq.__poly, rr.__poly, self.__poly, right.__poly)
         _sig_off
         return qq, rr
 
@@ -554,6 +562,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return not (fmpz_poly_degree(self.__poly) == -1)
 
+    @coerce_binop
     def gcd(self, right):
         r"""
         Return the GCD of self and right.  The leading
@@ -567,11 +576,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.gcd(g)
             6*x + 47
         """
-        if not isinstance(right, Polynomial_integer_dense_flint):
-            right = self._parent(right)
-        elif self._parent is not right.parent():
-            raise TypeError
-
         cdef Polynomial_integer_dense_flint x = self._new()
         _sig_on
         fmpz_poly_gcd(x.__poly, self.__poly,
@@ -580,6 +584,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
+    @coerce_binop
     def lcm(self, right):
         """
         Return the LCM of self and right.
@@ -594,15 +599,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: h == (6*x + 47)*(7*x^2 - 2*x + 38)*(3*x^3 + 2*x + 1)
             True
         """
-        if not PY_TYPE_CHECK(right, Polynomial_integer_dense_flint):
-            right = self._parent(right)
-        elif self._parent is not right.parent():
-            raise TypeError
-
         g = self.gcd(right)
         return (self//g)*right
 
 
+    @coerce_binop
     def xgcd(self, right):
         """
         This function can't in general return ``(g,s,t)`` as above,
@@ -637,11 +638,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: u*F + v*G
             2985984
         """
-        if not isinstance(right, Polynomial_integer_dense_flint):
-            right = self._parent(right)
-        elif self._parent is not right.parent():
-            raise TypeError
-
         cdef Polynomial_integer_dense_flint ss = self._new()
         cdef Polynomial_integer_dense_flint tt = self._new()
         cdef unsigned long bound = fmpz_poly_resultant_bound(self.__poly,
@@ -1228,6 +1224,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return [self[i] for i in range(self.degree()+1)]
 
 
+    @coerce_binop
     def resultant(self, other, proof=True):
         """
         Returns the resultant of self and other, which must lie in the same

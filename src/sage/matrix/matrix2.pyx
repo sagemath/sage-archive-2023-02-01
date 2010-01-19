@@ -5323,27 +5323,36 @@ cdef class Matrix(matrix1.Matrix):
 
     def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
         r"""
-        Compute the Jordan canonical form of the matrix, if it exists.
+        Compute the Jordan normal form of this square matrix `A`, if it exists.
 
-        This computation is performed in a naive way using the ranks of
-        powers of A-xI, where x is an eigenvalue of the matrix A.
+        This computation is performed in a naive way using the ranks of powers
+        of `A-xI`, where `x` is an eigenvalue of the matrix `A`.  If desired,
+        a transformation matrix `P` can be returned, which is such that the
+        Jordan canonical form is given by `P^{-1} A P`.
 
         INPUT:
 
+        - ``base_ring`` - Ring in which to compute the Jordan form.
 
-        -  ``base_ring`` - ring in which to compute the Jordan
-           form.
+        - ``sparse`` - (default ``False``) If ``sparse=True``, return a sparse
+           matrix.
 
-        -  ``sparse`` - (default False) If sparse=True, return
-           a sparse matrix.
+        - ``subdivide`` - (default ``True``) If ``subdivide=True``, the
+          subdivisions for the Jordan blocks in the matrix are shown.
 
-        -  ``subdivide`` - (default True) If subdivide=True,
-           the subdivisions for the Jordan blocks in the matrix are shown.
+        - ``transformation`` - (default ``False``) If ``transformation=True``,
+          computes also the transformation matrix.
 
-        -  ``transformation`` - (default False) If
-           transformation=True, compute also the transformation matrix (see
-           example below).
+        NOTES:
 
+        Currently, the Jordan normal form is not computed over inexact rings
+        in any but the trivial cases when the matrix is either `0 \times 0`
+        or `1 \times 1`.
+
+        In the case of exact rings, this method does not compute any
+        generalized form of the Jordan normal form, but is only able to
+        compute the result if the characteristic polynomial of the matrix
+        splits over the specific base ring.
 
         EXAMPLES::
 
@@ -5374,14 +5383,12 @@ cdef class Matrix(matrix1.Matrix):
             ...
             RuntimeError: Some eigenvalue does not exist in Integer Ring.
             sage: b.jordan_form(RealField(15))
-            [-1.348|0.0000|0.0000]
-            [------+------+------]
-            [0.0000|0.0000|0.0000]
-            [------+------+------]
-            [0.0000|0.0000| 13.35]
+            Traceback (most recent call last):
+            ...
+            ValueError: Jordan normal form not implemented over inexact rings.
 
         If you need the transformation matrix as well as the Jordan form of
-        self, then pass the option transformation=True.
+        ``self``, then pass the option ``transformation=True``.
 
         ::
 
@@ -5404,9 +5411,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 4 1]
             [0 0 0 4]
 
-        Note that for matrices over inexact rings, there can be problems
-        computing the transformation matrix due to numerical stability
-        issues in computing a basis for a kernel.
+        Note that for matrices over inexact rings and associated numerical
+        stability problems, we do not attempt to compute the Jordan normal
+        form.
 
         ::
 
@@ -5414,7 +5421,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: jf, p = b.jordan_form(RealField(15), transformation=True)
             Traceback (most recent call last):
             ...
-            ValueError: cannot compute the transformation matrix due to lack of precision
+            ValueError: Jordan normal form not implemented over inexact rings.
 
         TESTS::
 
@@ -5442,98 +5449,189 @@ cdef class Matrix(matrix1.Matrix):
             sage: jf,P = m.jordan_form(transformation=True)
             sage: jf == ~P*m*P
             True
+
+        We verify that the bug from trac ticket #6942 is fixed::
+
+            sage: M = Matrix(GF(2),[[1,0,1,0,0,0,1],[1,0,0,1,1,1,0],[1,1,0,1,1,1,1],[1,1,1,0,1,1,1],[1,1,1,0,0,1,0],[1,1,1,0,1,0,0],[1,1,1,1,1,1,0]])
+            sage: J, T = M.jordan_form(transformation=True)
+            sage: J
+            [1 1|0 0|0 0|0]
+            [0 1|0 0|0 0|0]
+            [---+---+---+-]
+            [0 0|1 1|0 0|0]
+            [0 0|0 1|0 0|0]
+            [---+---+---+-]
+            [0 0|0 0|1 1|0]
+            [0 0|0 0|0 1|0]
+            [---+---+---+-]
+            [0 0|0 0|0 0|1]
+            sage: M * T == T * J
+            True
+            sage: T.rank()
+            7
+            sage: M.rank()
+            7
+
+        We verify that the bug from trac ticket #6932 is fixed::
+
+            sage: M=Matrix(1,1,[1])
+            sage: M.jordan_form(transformation=True)
+            ([1], [1])
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition
 
-        size = self.nrows()
+        if self.ncols() != self.nrows():
+            raise ValueError, "Jordan normal form not implemented for non-square matrices."
+
+        # Set ``n`` to the number of rows and handle trivial cases, regardless
+        # of the underlying ring.
+        n = self.nrows()
+        if n == 0:
+            if not transformation:
+                return self
+            else:
+                return self, self
+        elif n == 1:
+            if not transformation:
+                return self
+            else:
+                return self, self.parent().identity_matrix()
+
+        if (base_ring is None and not self.base_ring().is_exact()) or \
+            (not base_ring is None and not base_ring.is_exact()):
+            raise ValueError, "Jordan normal form not implemented over inexact rings."
 
         if base_ring is None:
-            mat = self
+            A = self
             base_ring = self.base_ring()
         else:
-            mat = self.change_ring(base_ring)
+            A = self.change_ring(base_ring)
 
+        # Compute the eigenvalues of the matrix, with multiplicities.  Here,
+        # ``evals`` is a list of pairs, each first entry a root and each
+        # second entry the corresponding multiplicity.
+        evals = A.charpoly().roots()
+        if sum([mult for (_,mult) in evals]) < n:
+            raise RuntimeError("Some eigenvalue does not exist in %s."  %(A.base_ring()))
 
-
-        evals = mat.charpoly().roots()
-        if sum([mult for (_,mult) in evals]) < size:
-            raise RuntimeError("Some eigenvalue does not exist in %s."%(mat.base_ring()))
+        # Compute the block information.  Here, ``blocks`` is a list of pairs,
+        # each first entry a root and each second entry the size of a block.
+        # Note that in general there is more than one block per eigenvalue!
         blocks = []
-
         for eval, mult in evals:
             if mult == 1:
                 blocks.append((eval,1))
             else:
-                b = mat - diagonal_matrix([eval]*size, sparse=sparse)
-                c = b
-                ranks = [size, c.rank()]
+                B = A - diagonal_matrix([eval]*n, sparse=sparse)
+                C = B
+                ranks = [n, C.rank()]
                 i = 0
-                while (ranks[i] - ranks[i+1] > 0) and ranks[i+1] > size-mult:
-                    c = b*c
-                    ranks.append(c.rank())
+                while ranks[i] > ranks[i+1] and ranks[i+1] > n-mult:
+                    C = B*C
+                    ranks.append(C.rank())
                     i = i+1
                 diagram = [ranks[i]-ranks[i+1] for i in xrange(len(ranks)-1)]
-                blocks.extend([(eval, i) for i in Partition(diagram).conjugate()])
+                blocks.extend([(eval, i) \
+                    for i in Partition(diagram).conjugate()])
 
-        jf = block_diagonal_matrix([jordan_block(eval, size, sparse=sparse) for (eval, size) in blocks], subdivide=subdivide)
+        # ``J`` is the matrix in Jordan canonical form.  Note that the blocks
+        # are ordered firstly by the eigenvalues, in the same order as obeyed
+        # by ``.roots()``, and secondly by size from greatest to smallest.
+        J = block_diagonal_matrix([jordan_block(eval, size, sparse=sparse) \
+            for (eval, size) in blocks], subdivide=subdivide)
 
         if transformation:
+            from itertools import groupby
+
+            # ``jordan_chains`` is a dictionary with keys the eigenvalues.
+            # For every eigenvalue, we consider all Jordan blocks and find
+            # a Jordan chain for each, adding the chain (a sequence of
+            # vectors) to the entry for the eigenvalue (which is a list).
             jordan_chains = {}
-
             for eval,_ in evals:
-                mat_eval = mat - eval
-                eval_block_sizes = [size for e,size in blocks if e == eval]
-                n = max(eval_block_sizes)
-                used_vectors = []
-                # chains is a dictionary with key=length of chain and
-                # value = list of chains
-                chains = {}
+                jordan_chains[eval] = []
 
-                for current_rank in xrange(n,0,-1):
-                    for chain_list in chains.values():
-                        for c in chain_list:
-                            v = mat_eval*c[-1]
-                            c.append(v)
-                            used_vectors.append(v)
+                # Let B be the matrix `A - eval Id`.
+                B = A - eval
 
-                    if current_rank in eval_block_sizes:
-                        se = mat_eval**(current_rank-1)
-                        basis = (se*mat_eval).right_kernel().basis()
-                        new_chains = 0
-                        num_chains = eval_block_sizes.count(current_rank)
-                        chains[current_rank] = []
-                        for v in basis:
-                            if v not in used_vectors and se*v!=0:
-                                chains[current_rank].append([v])
-                                new_chains += 1
-                                if new_chains == num_chains:
-                                    break
-                        if new_chains != num_chains:
-                            raise ValueError,"cannot compute the transformation matrix due to lack of precision"
+                block_sizes = [size for e,size in blocks if e == eval]
+                block_size_pairs = [(val,len(list(c))) \
+                    for val,c in groupby(block_sizes)]
 
-                for chain_list in chains.values():
-                    for c in chain_list:
-                        c.reverse()
+                # Y is a list of vectors, spanning everything that we have
+                # covered by the Jordan chains we developed so far.
+                Y = []
 
-                jordan_chains[eval] = chains
+                for l,count in block_size_pairs:
 
+                    # There are ``count`` Jordan blocks of size ``l``
+                    # associated to this eigenvalue.
 
-            # Now jordan_chains has all the columns of the transformation
+                    # We want to find elements in `\ker B^l - \ker B^{l-1}`.
+                    Vlarge = (B**l).right_kernel().basis()
+                    Vsmall = (B**(l-1)).right_kernel().basis()
+
+                    for i in range(count):
+                        # Let v be any vector in `\ker B^l` not in the kernel
+                        # of `\ker B^{l-1}` which is also not in the span(Y),
+                        # and start a chain from there.
+                        v = _jordan_form_vector_in_difference(Vlarge, Vsmall+Y)
+                        chain = [v]
+                        for i in range(l-1):
+                            chain.append(B*chain[-1])
+                        chain.reverse()
+                        Y.extend(chain)
+                        jordan_chains[eval].append(chain)
+                    """
+                    if l == max(block_sizes):
+                        # Let v be any vector in `\ker B^l` not in the kernel
+                        # of `\ker B^{l-1}`, and start a chain from there.
+                        v = _jordan_form_vector_in_difference(Vlarge, Vsmall)
+                        chain = [v]
+                        for i in range(l-1):
+                            chain.append(B*chain[-1])
+                        chain.reverse()
+                        Y.extend(chain)
+                        jordan_chains[eval].append(chain)
+
+                        for i in range(1,count):
+                            # Find v in `\ker B^l` but not in `\ker B^{l-1}`
+                            # and also not in span(Y).
+                            v = _jordan_form_vector_in_difference(Vlarge, Vsmall+Y)
+                            chain = [v]
+                            for i in range(l-1):
+                                chain.append(B*chain[-1])
+                            chain.reverse()
+                            Y.extend(chain)
+                            jordan_chains[eval].append(chain)
+                    else:
+                        for i in range(count):
+                            v = _jordan_form_vector_in_difference(Vlarge, Vsmall+Y)
+                            chain = [v]
+                            for i in range(l-1):
+                                chain.append(B*chain[-1])
+                            chain.reverse()
+                            Y.extend(chain)
+                            jordan_chains[eval].append(chain)
+                    """
+
+            # Now ``jordan_chains`` has all the columns of the transformation
             # matrix; we just need to put them in the right order.
-
             jordan_basis = []
             for eval,size in blocks:
-                jordan_basis += jordan_chains[eval][size].pop()
+                # Find a block with the right size
+                for index,chain in enumerate(jordan_chains[eval]):
+                    if len(chain)==size:
+                        jordan_basis += jordan_chains[eval].pop(index)
+                        break
 
-
-            transformation_matrix = (mat.parent()(jordan_basis)).transpose()
+            transformation_matrix = (A.parent()(jordan_basis)).transpose()
 
         if transformation:
-            return jf, transformation_matrix
+            return J, transformation_matrix
         else:
-            return jf
-
+            return J
 
     def symplectic_form(self):
         r"""
@@ -6895,4 +6993,33 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         result = (result*n)/i
         i, n, k = i+1, n-1, k-1
     return result
+
+def _jordan_form_vector_in_difference(V, W):
+    r"""
+    Given two lists of vectors ``V`` and ``W`` over the same base field,
+    returns a vector in the difference ``V - W``.  If the difference is
+    empty, returns ``None``.
+
+    NOTES:
+
+    This is meant to be a private helper method for the ``jordan_form`` method
+    in the above class.
+
+    TEST::
+
+        sage: v = vector(ZZ, [1,0,0,0])
+        sage: w = vector(ZZ, [0,1,0,0])
+        sage: u = vector(ZZ, [1,1,0,0])
+        sage: sage.matrix.matrix2._jordan_form_vector_in_difference([v,w], [u])
+        (1, 0, 0, 0)
+    """
+    if len(V) == 0:
+        return None
+    if len(W) == 0:
+        return V[0]
+    W_space = sage.all.span(W)
+    for v in V:
+        if v not in W_space:
+            return v
+    return None
 

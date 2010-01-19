@@ -72,17 +72,8 @@ class Parallel:
         elif isinstance(p_iter, str):
             raise ValueError, "unknown iterator '%s'" % p_iter
         else:
-            try:
-                from dsage.interface import dsage_interface
-                if isinstance(p_iter, dsage_interface.BlockingDSage):
-                    self.p_iter = p_iter.parallel_iter
-            except ImportError:
-                pass
-
             if self.p_iter is None:
                 self.p_iter = p_iter
-
-
 
     def __call__(self, f):
         """
@@ -122,7 +113,6 @@ def parallel(p_iter = 'fork', ncpus=None, **kwds):
             - 'fork'            -- (default) use a new fork for each input
             - 'multiprocessing' -- use multiprocessing library
             - 'reference'       -- use a fake serial reference implementation
-            - DSage instance    -- use dsage
         - ``ncpus`` -- integer, number of cpus
         - ``timeout`` -- number of seconds until task is killed (only supported by 'fork')
 

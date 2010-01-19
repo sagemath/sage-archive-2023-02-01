@@ -99,13 +99,6 @@ from sage.calculus.all   import *
 from sage.server.all     import *
 import sage.tests.all as tests
 
-try:
-    import dsage.dsage
-    from dsage.all      import *
-except ImportError:
-    pass
-
-
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
 
@@ -273,12 +266,6 @@ def quit_sage(verbose=True):
           reactor.callFromThread(reactor.stop)
     except ImportError:
        pass
-
-    # kill dsage server/worker which were started during the session
-    try:
-        dsage.kill_all()
-    except:
-        pass
 
     # Free globally allocated mpir integers.
     import sage.rings.integer

@@ -254,6 +254,16 @@ bool add::info(unsigned inf) const
 		case info_flags::integer_polynomial:
 		case info_flags::cinteger_polynomial:
 		case info_flags::rational_polynomial:
+		case info_flags::real:
+		case info_flags::rational:
+		case info_flags::integer:
+		case info_flags::crational:
+		case info_flags::cinteger:
+		case info_flags::positive:
+		case info_flags::nonnegative:
+		case info_flags::posint:
+		case info_flags::nonnegint:
+		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
 			epvector::const_iterator i = seq.begin(), end = seq.end();
@@ -262,6 +272,8 @@ bool add::info(unsigned inf) const
 					return false;
 				++i;
 			}
+			if (overall_coeff.is_zero() && (inf == info_flags::positive || inf == info_flags::posint))
+				return true;
 			return overall_coeff.info(inf);
 		}
 		case info_flags::algebraic: {

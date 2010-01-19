@@ -322,6 +322,8 @@ bool power::info(unsigned inf) const
 			       basis.info(inf);
 		case info_flags::expanded:
 			return (flags & status_flags::expanded);
+		case info_flags::positive:
+			return basis.info(info_flags::positive) && exponent.info(info_flags::real);
 		case info_flags::has_indices: {
 			if (flags & status_flags::has_indices)
 				return true;

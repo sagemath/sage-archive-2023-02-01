@@ -207,7 +207,7 @@ public:
 class info_flags {
 public:
 	enum {
-		// answered by class numeric and symbols/constants in particular domains
+		// answered by class numeric, add, mul and symbols/constants in particular domains
 		numeric,
 		real,
 		rational,

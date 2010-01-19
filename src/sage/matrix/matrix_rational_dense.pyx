@@ -2137,26 +2137,30 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         t = verbose("rr finished. integral entries: %s, lcm trick: %s, other: %s"%(is_integral, lcm_trick, nr*nc - is_integral - lcm_trick), t, level=2)
         return QA
 
-
-    def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
+    def randomize(self, density=1, num_bound=2, den_bound=2, \
+                  distribution=None, nonzero=False):
         """
-        Randomize density proportion of the entries of this matrix, leaving
+        Randomize ``density`` proportion of the entries of this matrix, leaving
         the rest unchanged.
 
-        If x and y are given, randomized entries of this matrix have
-        numerators and denominators bounded by x and y and have density 1.
+        If ``x`` and ``y`` are given, randomized entries of this matrix have
+        numerators and denominators bounded by ``x`` and ``y`` and have
+        density 1.
 
         INPUT:
 
-        - density -- number between 0 and 1 (default: 1)
+        -  ``density`` - number between 0 and 1 (default: 1)
+        -  ``num_bound`` - numerator bound (default: 2)
+        -  ``den_bound`` - denominator bound (default: 2)
+        -  ``distribution`` - ``None`` or '1/n' (default: ``None``); if '1/n'
+           then ``num_bound``, ``den_bound`` are ignored and numbers are chosen
+           using the GMP function ``mpq_randomize_entry_recip_uniform``
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries are
+           forced to be non-zero
 
-        - num_bound -- numerator bound (default: 2)
+        OUTPUT:
 
-        - den_bound -- denominator bound (default: 2)
-
-        - distribution -- None or '1/n' (default: None); if '1/n' then
-          num_bound, den_bound are ignored and numbers are chosen
-          using the GMP function mpq_randomize_entry_recip_uniform
+        -  None, the matrix is modified in-space
 
         EXAMPLES::
 
@@ -2175,8 +2179,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         """
         density = float(density)
-        if density == 0:
+        if density <= 0:
             return
+        if density > 1:
+            density = float(1)
+
         self.check_mutability()
         self.clear_cache()
 
@@ -2194,37 +2201,79 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef randstate rstate = current_randstate()
 
-        _sig_on
-        if density == 1:
-            if distribution == "1/n":
-                for i from 0 <= i < self._nrows*self._ncols:
-                    mpq_randomize_entry_recip_uniform(self._entries[i])
-            elif mpz_cmp_si(C.value, 2):   # denom is > 1
-                for i from 0 <= i < self._nrows*self._ncols:
-                    mpq_randomize_entry(self._entries[i], B.value, C.value)
+        if not nonzero:
+            # Original code, before adding the ``nonzero`` option.
+            _sig_on
+            if density == 1:
+                if distribution == "1/n":
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        mpq_randomize_entry_recip_uniform(self._entries[i])
+                elif mpz_cmp_si(C.value, 2):   # denom is > 1
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        mpq_randomize_entry(self._entries[i], B.value, C.value)
+                else:
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        mpq_randomize_entry_as_int(self._entries[i], B.value)
             else:
-                for i from 0 <= i < self._nrows*self._ncols:
-                    mpq_randomize_entry_as_int(self._entries[i], B.value)
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                if distribution == "1/n":
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            mpq_randomize_entry_recip_uniform(self._matrix[i][k])
+                elif mpz_cmp_si(C.value, 2):   # denom is > 1
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
+                else:
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
+            _sig_off
         else:
-            nc = self._ncols
-            num_per_row = int(density * nc)
-            if distribution == "1/n":
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < num_per_row:
-                        k = rstate.c_random()%nc
-                        mpq_randomize_entry_recip_uniform(self._matrix[i][k])
-            elif mpz_cmp_si(C.value, 2):   # denom is > 1
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < num_per_row:
-                        k = rstate.c_random()%nc
-                        mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
+            # New code, to implement the ``nonzero`` option.  Note that this
+            # code is almost the same as above, the only difference being that
+            # each entry is set until it's non-zero, that is, there are only
+            # six additional lines, all of the form "while mpq_sgn(...) == 0:".
+            _sig_on
+            if density == 1:
+                if distribution == "1/n":
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        while mpq_sgn(self._entries[i]) == 0:
+                            mpq_randomize_entry_recip_uniform(self._entries[i])
+                elif mpz_cmp_si(C.value, 2):   # denom is > 1
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        while mpq_sgn(self._entries[i]) == 0:
+                            mpq_randomize_entry(self._entries[i], B.value, C.value)
+                else:
+                    for i from 0 <= i < self._nrows*self._ncols:
+                        while mpq_sgn(self._entries[i]) == 0:
+                            mpq_randomize_entry_as_int(self._entries[i], B.value)
             else:
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < num_per_row:
-                        k = rstate.c_random()%nc
-                        mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
-        _sig_off
-
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                if distribution == "1/n":
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            while mpq_sgn(self._matrix[i][k]) == 0:
+                                mpq_randomize_entry_recip_uniform(self._matrix[i][k])
+                elif mpz_cmp_si(C.value, 2):   # denom is > 1
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            while mpq_sgn(self._matrix[i][k]) == 0:
+                                mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
+                else:
+                    for i from 0 <= i < self._nrows:
+                        for j from 0 <= j < num_per_row:
+                            k = rstate.c_random() % nc
+                            while mpq_sgn(self._matrix[i][k]) == 0:
+                                mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
+            _sig_off
 
     def rank(self):
         """

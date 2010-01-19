@@ -6696,9 +6696,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: b=DiGraph(20)
             sage: b.add_edges(a.nonzero_positions())
             sage: cores=b.cores(with_labels=True); cores
-            {0: 1, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 2, 11: 1, 12: 1, 13: 1, 14: 1, 15: 2, 16: 1, 17: 2, 18: 2, 19: 2}
+            {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}
             sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
-            [2, 3, 10, 15, 17, 18, 19]
+            [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
         # compute the degrees of each vertex
         degrees=self.degree(labels=True)

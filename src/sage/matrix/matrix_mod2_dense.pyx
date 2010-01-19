@@ -307,8 +307,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.set_immutable()
             sage: {B:0} # indirect doctest
             {[0 1 0]
-            [0 1 1]
-            [0 0 0]: 0}
+            [1 1 0]
+            [0 1 1]: 0}
             sage: M = random_matrix(GF(2), 123, 321)
             sage: M.set_immutable()
             sage: MZ = M.change_ring(ZZ)
@@ -439,16 +439,16 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B = random_matrix(GF(2),3,3)
             sage: B # indirect doctest
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: block_matrix([B, 1, 0, B])
             [0 1 0|1 0 0]
-            [0 1 1|0 1 0]
-            [0 0 0|0 0 1]
+            [1 1 0|0 1 0]
+            [0 1 1|0 0 1]
             [-----+-----]
             [0 0 0|0 1 0]
+            [0 0 0|1 1 0]
             [0 0 0|0 1 1]
-            [0 0 0|0 0 0]
         """
         if self._nrows ==0 or self._ncols == 0:
             return "[]"
@@ -505,24 +505,24 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLES::
 
             sage: A = random_matrix(GF(2),10,10); A
-            [0 1 0 1 1 0 0 0 1 1]
-            [0 1 1 1 0 1 1 0 0 1]
-            [0 0 0 1 0 1 0 0 1 0]
-            [0 1 1 0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1 0 1 1]
-            [0 0 1 1 1 1 0 0 0 0]
-            [1 1 1 1 0 1 0 1 1 0]
-            [0 0 0 1 1 0 0 0 1 1]
-            [1 0 0 0 1 1 1 0 1 1]
-            [1 0 0 1 1 0 1 0 0 0]
+            [0 1 0 1 1 1 0 1 0 0]
+            [1 1 0 1 1 1 1 0 0 1]
+            [0 1 1 1 0 0 0 1 1 1]
+            [0 0 1 1 0 1 0 1 1 1]
+            [0 1 1 0 1 1 1 1 0 0]
+            [1 1 1 1 1 0 1 0 1 0]
+            [1 1 0 1 1 0 0 1 1 1]
+            [0 1 1 1 0 1 0 0 0 1]
+            [0 1 1 0 0 1 1 1 1 1]
+            [1 0 1 0 1 1 1 1 1 1]
             sage: A.row(0)
-            (0, 1, 0, 1, 1, 0, 0, 0, 1, 1)
+            (0, 1, 0, 1, 1, 1, 0, 1, 0, 0)
 
             sage: A.row(-1)
-            (1, 0, 0, 1, 1, 0, 1, 0, 0, 0)
+            (1, 0, 1, 0, 1, 1, 1, 1, 1, 1)
 
             sage: A.row(2,from_list=True)
-            (0, 0, 0, 1, 0, 1, 0, 0, 1, 0)
+            (0, 1, 1, 1, 0, 0, 0, 1, 1, 1)
         """
         if self._nrows == 0:
             raise IndexError("matrix has no rows")
@@ -1147,10 +1147,21 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 break
         return pivots
 
-    def randomize(self, density=1):
+    def randomize(self, density=1, nonzero=False):
         """
-        Randomize density proportion of the entries of this matrix,
+        Randomize ``density`` proportion of the entries of this matrix,
         leaving the rest unchanged.
+
+        INPUT:
+
+        -  ``density`` - Integer; proportion (roughly) to be considered for
+           changes
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
+           are forced to be non-zero
+
+        OUTPUT:
+
+        -  None, the matrix is modified in-space
 
         EXAMPLES::
 
@@ -1169,15 +1180,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 1 1 0]
 
         TESTS:
+
         With the libc random number generator random(), we had problems
         where the ranks of all of these matrices would be the same
         (and they would all be far too low).  This verifies that the
-        problem is gone, with Mersenne Twister.
+        problem is gone, with Mersenne Twister::
+
             sage: MS2 = MatrixSpace(GF(2), 1000)
             sage: [MS2.random_element().rank() for i in range(5)]
             [999, 998, 1000, 999, 999]
 
-        Testing corner case.
+        Testing corner case::
+
             sage: A = random_matrix(GF(2),3,0)
             sage: A
             []
@@ -1186,8 +1200,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return
 
         density = float(density)
-        if density == 0:
+        if density <= 0:
             return
+        if density > 1:
+            density = float(1)
 
         self.check_mutability()
         self.clear_cache()
@@ -1199,26 +1215,38 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef unsigned int low, high
         cdef m4ri_word mask = 1
 
-        if density == 1:
-            assert(sizeof(m4ri_word) == 8)
-            mask = ~((mask<<(RADIX - self._entries.ncols%RADIX))-1)
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < self._entries.width:
-                    # for portability we get 32-bit twice rather than 64-bit once
-                    low = gmp_urandomb_ui(rstate.gmp_state, 32)
-                    high = gmp_urandomb_ui(rstate.gmp_state, 32)
-                    self._entries.rows[i][j] = ((<unsigned long long>high)<<32)| (<unsigned long long>low)
-                self._entries.rows[i][self._entries.width - 1] &= mask
+        # Original code, before adding the ``nonzero`` option.
+        if not nonzero:
+            if density == 1:
+                assert(sizeof(m4ri_word) == 8)
+                mask = ~((mask<<(RADIX - self._entries.ncols%RADIX))-1)
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._entries.width:
+                        # for portability we get 32-bit twice rather than 64-bit once
+                        low = gmp_urandomb_ui(rstate.gmp_state, 32)
+                        high = gmp_urandomb_ui(rstate.gmp_state, 32)
+                        self._entries.rows[i][j] = ((<unsigned long long>high)<<32) | (<unsigned long long>low)
+                    self._entries.rows[i][self._entries.width - 1] &= mask
+            else:
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                _sig_on
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = rstate.c_random()%nc
+                        mzd_write_bit(self._entries, i, k, rstate.c_random() % 2)
+                _sig_off
+
+        # New code for the case when ``nonzero`` is ``True``.
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
             _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = rstate.c_random()%nc
-                    mzd_write_bit(self._entries, i, k, rstate.c_random() % 2)
+                    k = rstate.c_random() % nc
+                    mzd_write_bit(self._entries, i, k, 1)
             _sig_off
-
 
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
         """
@@ -1226,12 +1254,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(GF(2),3,3); A
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: A.rescale_row(0,0,0); A
             [0 0 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
         """
         if (int(multiple)%2) == 0:
             mzd_row_clear_offset(self._entries, row, start_col);
@@ -1243,12 +1271,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(GF(2),3,3); A
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: A.add_multiple_of_row(0,1,1,0); A
-            [0 0 1]
+            [1 0 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
         """
         if (int(multiple)%2) != 0:
             mzd_row_add_offset(self._entries, row_to, row_from, start_col)
@@ -1260,12 +1288,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A = random_matrix(GF(2),3,3)
             sage: A
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: A.swap_rows(0,1); A
-            [0 1 1]
+            [1 1 0]
             [0 1 0]
-            [0 0 0]
+            [0 1 1]
         """
         mzd_row_swap(self._entries, row1, row2)
 
@@ -1276,12 +1304,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A = random_matrix(GF(2),3,3)
             sage: A
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: A.swap_columns(0,1); A
             [1 0 0]
+            [1 1 0]
             [1 0 1]
-            [0 0 0]
 
             sage: A = random_matrix(GF(2),3,65)
 
@@ -1421,10 +1449,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B = random_matrix(GF(2),2,0)
             sage: A.augment(B)
             [0 1 0]
-            [0 1 1]
+            [1 1 0]
             sage: B.augment(A)
             [0 1 0]
-            [0 1 1]
+            [1 1 0]
             sage: M = Matrix(GF(2), 0, 0, 0)
             sage: N = Matrix(GF(2), 0, 19, 0)
             sage: W = M.augment(N)
@@ -1476,12 +1504,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B = random_matrix(GF(2),3,3)
             sage: A.stack(B)
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: B.stack(A)
             [0 1 0]
+            [1 1 0]
             [0 1 1]
-            [0 0 0]
             sage: M = Matrix(GF(2), 0, 0, 0)
             sage: N = Matrix(GF(2), 19, 0, 0)
             sage: W = M.stack(N)
@@ -1644,13 +1672,13 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(GF(2),1000,1000)
             sage: d = A.density(); d
-            62483/125000
+            631849/1000000
             sage: float(d)
-            0.499863...
+            0.63184899999999999
             sage: A.density(approx=True)
-            0.499773...
+            0.631445000000000
             sage: float(len(A.nonzero_positions())/1000^2)
-            0.499863...
+            0.63184899999999999
         """
         if approx:
             from sage.rings.real_mpfr import create_RealNumber
@@ -1675,7 +1703,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(GF(2), 1000, 1000)
             sage: A.rank()
-            999
+            1000
 
             sage: A = matrix(GF(2),10, 0)
             sage: A.rank()
@@ -1979,23 +2007,23 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
 
         sage: from sage.matrix.matrix_mod2_dense import pluq
         sage: A = random_matrix(GF(2),4,4); A
+        [1 0 0 1]
+        [1 1 0 1]
         [0 1 0 1]
-        [0 1 1 1]
-        [0 0 0 1]
         [0 1 1 0]
 
         sage: LU, P, Q = pluq(A)
         sage: LU
-        [1 0 1 0]
+        [1 0 0 1]
         [1 1 0 0]
-        [0 0 1 0]
-        [1 1 1 0]
+        [0 1 1 0]
+        [0 1 0 1]
 
         sage: P
-        [0, 1, 2, 3]
+        [0, 1, 3, 3]
 
         sage: Q
-        [1, 2, 3, 3]
+        [0, 1, 2, 3]
     """
     cdef Matrix_mod2_dense B = A.__copy__()
     cdef mzp_t *p = mzp_init(A._entries.nrows)
@@ -2038,23 +2066,23 @@ def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
 
         sage: from sage.matrix.matrix_mod2_dense import lqup
         sage: A = random_matrix(GF(2),4,4); A
+        [1 0 0 1]
+        [1 1 0 1]
         [0 1 0 1]
-        [0 1 1 1]
-        [0 0 0 1]
         [0 1 1 0]
 
         sage: LU, P, Q = lqup(A)
         sage: LU
         [1 0 0 1]
         [1 1 0 0]
-        [0 0 1 0]
-        [1 1 1 0]
+        [0 1 1 0]
+        [0 1 0 1]
 
         sage: P
-        [0, 1, 2, 3]
+        [0, 1, 3, 3]
 
         sage: Q
-        [1, 2, 3, 3]
+        [0, 1, 2, 3]
 
         sage: A = random_matrix(GF(2),1000,1000)
         sage: lqup(A) == lqup(A,'mmpf') == lqup(A,'naive')

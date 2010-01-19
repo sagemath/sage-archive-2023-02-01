@@ -586,6 +586,6 @@ class FractionField_generic(field.Field):
             (-12*x^5 - 2*x^4 - x^3 - 95*x^2 + x + 2)/(-x^5 + x^4 - x^3 + x^2)
         """
         return self._element_class(self, self.__R.random_element(*args, **kwds),
-                self.__R.random_element(*args, **kwds),
-                coerce = False, reduce=True)
+            self.__R._random_nonzero_element(*args, **kwds),
+            coerce = False, reduce=True)
 

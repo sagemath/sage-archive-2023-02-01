@@ -754,28 +754,25 @@ def ncols_from_dict(d):
 Matrix = matrix
 
 
-def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
+def random_matrix(R, nrows, ncols=None, sparse=False, density=1, \
+                  *args, **kwds):
     """
-    Return a random matrix with entries in the ring R.
+    Return a random matrix with entries in the ring ``R``.
 
     INPUT:
 
+    -  ``R`` - Ring
 
-    -  ``R`` - a ring
+    -  ``nrows`` - Integer; number of rows
 
-    -  ``nrows`` - integer; number of rows
+    -  ``ncols`` - (default: ``None``); number of columns; if ``None``
+       defaults to ``nrows``
 
-    -  ``ncols`` - (default: None); number of columns; if
-       None defaults to nrows
+    -  ``sparse`` - (default: ``False``); whether or not matrix is sparse
 
-    -  ``sparse`` - (default; False); whether or not matrix
-       is sparse.
+    -  ``density`` - Integer (default: 1)
 
-    -  ``density`` - integer (default: 1)
-
-    -  ``*args, **kwds`` - passed on to randomize
-       function
-
+    -  ``*args, **kwds`` - passed on to randomize function
 
     EXAMPLES::
 
@@ -786,7 +783,10 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
     if ncols is None:
         ncols = nrows
     A = matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix()
-    A.randomize(density=density, *args, **kwds)
+    if density is None:
+        A.randomize(density=float(1), nonzero=False, *args, **kwds)
+    else:
+        A.randomize(density=density, nonzero=True, *args, **kwds)
     return A
 
 def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):

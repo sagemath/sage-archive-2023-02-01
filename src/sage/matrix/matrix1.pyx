@@ -373,7 +373,7 @@ cdef class Matrix(matrix0.Matrix):
             matrix(QQ, [[5/7, 6/7, 1], [8/7, 9/7, 10/7], [11/7, 12/7, 13/7]])
             sage: sage_input(MatrixSpace(GF(5), 50, 50, sparse=True).random_element(density=0.002), verify=True)
             # Verified
-            matrix(GF(5), 50, 50, {(7,43):4, (29,44):3, (35,4):4})
+            matrix(GF(5), 50, 50, {(4,44):2, (5,25):1, (26,9):3, (43,24):3, (44,38):4})
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: matrix(RDF, [[3, 1], [4, 1]])._sage_input_(SageInputBuilder(), False)
             {call: {atomic:matrix}({atomic:RDF}, {list: ({list: ({atomic:3}, {atomic:1})}, {list: ({atomic:4}, {atomic:1})})})}

@@ -3105,37 +3105,37 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import misc
         return misc.matrix_integer_dense_rational_reconstruction(self, N)
 
-    def randomize(self, density=1, x=None, y=None, distribution=None):
+    def randomize(self, density=1, x=None, y=None, distribution=None, \
+                  nonzero=False):
         """
-        Randomize density proportion of the entries of this matrix, leaving
-        the rest unchanged.
+        Randomize ``density`` proportion of the entries of this matrix,
+        leaving the rest unchanged.
 
-        The parameters are the same as the integer ring's random_element
-        function.
+        The parameters are the same as the ones for the integer ring's
+        ``random_element`` function.
 
-        If x and y are given, randomized entries of this matrix to be
-        between x and y and have density 1.
+        If ``x`` and ``y`` are given, randomized entries of this matrix have
+        to be between ``x`` and ``y`` and have density 1.
 
         INPUT:
-
 
         -  ``self`` - a mutable matrix over ZZ
 
         -  ``density`` - a float between 0 and 1
 
-        -  ``x, y`` - if not None are passed to
-           ZZ.random_element function as the upper and lower endpoints in the
-           uniform distribution
+        -  ``x, y`` - if not ``None``, these are passed to the
+           ``ZZ.random_element`` function as the upper and lower endpoints in
+           the  uniform distribution
 
-        -  ``distribution`` - would also be passed into
-           ZZ.random_element if given
+        -  ``distribution`` - would also be passed into ``ZZ.random_element``
+           if given
 
+        -  ``nonzero`` - bool (default: ``False``); whether the new entries
+           are guaranteed to be zero
 
         OUTPUT:
 
-
-        -  ``None`` - the matrix is modified in place
-
+        -  None, the matrix is modified in-place
 
         EXAMPLES::
 
@@ -3151,32 +3151,58 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  5 -19  24]
             [ 24  23  -9]
         """
+        density = float(density)
+        if density <= 0:
+            return
+        if density > 1:
+            density = float(1)
+
         self.check_mutability()
         self.clear_cache()
 
         cdef randstate rstate = current_randstate()
-
-        density = float(density)
 
         cdef Py_ssize_t i, j, k, nc, num_per_row
         global state, ZZ
 
         cdef IntegerRing_class the_integer_ring = ZZ
 
-        _sig_on
-        if density == 1:
-            for i from 0 <= i < self._nrows*self._ncols:
-                the_integer_ring._randomize_mpz(self._entries[i], x, y, distribution)
-
+        if not nonzero:
+            # Original code, before adding the ``nonzero`` option.
+            _sig_on
+            if density == 1:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    the_integer_ring._randomize_mpz(self._entries[i], x, y, \
+                                                    distribution)
+            else:
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = rstate.c_random()%nc
+                        the_integer_ring._randomize_mpz(self._matrix[i][k], \
+                                                        x, y, distribution)
+            _sig_off
         else:
-            nc = self._ncols
-            num_per_row = int(density * nc)
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < num_per_row:
-                    k = rstate.c_random()%nc
-                    the_integer_ring._randomize_mpz(self._matrix[i][k], x, y, distribution)
-
-        _sig_off
+            # New code, to implement the ``nonzero`` option.  Note that this
+            # code is almost the same as above, the only difference being that
+            # each entry is set until it's non-zero.
+            _sig_on
+            if density == 1:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    while mpz_sgn(self._entries[i]) == 0:
+                        the_integer_ring._randomize_mpz(self._entries[i], \
+                            x, y, distribution)
+            else:
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = rstate.c_random() % nc
+                        while mpz_sgn(self._matrix[i][k]) == 0:
+                            the_integer_ring._randomize_mpz(self._matrix[i][k],\
+                                                            x, y, distribution)
+            _sig_off
 
     #### Rank
 
@@ -4598,9 +4624,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(ZZ,3,3)
             sage: As = singular(A); As
-            -8     2     0
-            0     1    -1
-            2     1   -95
+            -8     2     1
+            -1     2     1
+           -95    -1    -2
             sage: As.type()
             'intmat'
         """

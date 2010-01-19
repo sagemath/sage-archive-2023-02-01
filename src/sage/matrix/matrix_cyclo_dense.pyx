@@ -32,10 +32,16 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ######################################################################
+
+include "../ext/interrupt.pxi"
+# include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+include "../ext/gmp.pxi"
+include "../ext/random.pxi"
 include "../libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.misc.randstate cimport randstate, current_randstate
 
 from constructor import matrix
 from matrix_space import MatrixSpace
@@ -898,15 +904,84 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         return ht
 
-    def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
+    cdef _randomize_rational_column_unsafe(Matrix_cyclo_dense self,
+        Py_ssize_t col, mpz_t nump1, mpz_t denp1, distribution=None):
+        """
+        Randomizes all entries in column ``col``.  This is a helper method
+        used in the implementation of dense matrices over cyclotomic fields.
+
+        INPUT:
+
+        -  ``col`` - Integer, indicating the column; must be coercable to
+           ``int``, and this must lie between 0 (inclusive) and
+           ``self._ncols`` (exclusive), since no bounds-checking is performed
+        -  ``nump1`` - Integer, numerator bound plus one
+        -  ``denp1`` - Integer, denominator bound plus one
+        -  ``distribution`` - ``None`` or '1/n' (default: ``None``); if '1/n'
+           then ``num_bound``, ``den_bound`` are ignored and numbers are chosen
+           using the GMP function ``mpq_randomize_entry_recip_uniform``
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
+           are forced to be non-zero
+
+        OUTPUT:
+
+        -  None, the matrix is modified in-space
+
+        WARNING:
+
+        This method is quite unsafe.  It's called from the method
+        ``randomize``, but probably shouldn't be called from another method
+        without first carefully reading the source code!
+
+        TESTS:
+
+        The following doctests are all indirect::
+
+            sage: MS = MatrixSpace(CyclotomicField(10), 4, 4)
+            sage: A = MS.random_element(); A
+            [    -2*zeta10^3 + 2*zeta10^2 - zeta10    zeta10^3 + 2*zeta10^2 - zeta10 + 1                                     0 -2*zeta10^3 + zeta10^2 - 2*zeta10 + 2]
+            [                                    0       -zeta10^3 + 2*zeta10^2 - zeta10                         -zeta10^3 + 1                     zeta10^3 + zeta10]
+            [                         1/2*zeta10^2                       -2*zeta10^2 + 2      -1/2*zeta10^3 + 1/2*zeta10^2 + 2             2*zeta10^3 - zeta10^2 - 2]
+            [                                    1                          zeta10^2 + 2                            2*zeta10^2                          2*zeta10 - 2]
+            sage: B = MS.random_element(density=0.5)
+            sage: B._rational_matrix()
+            [   0    0    0    0    1    0    0    2    0    2    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0   -1   -2    0    0    0    0    0    2]
+            [   0   -1    0    0   -1    0    0    0    0    0    0    0    0    0   -2   -1]
+            [   0    0    0    0    0    0    0    2 -1/2  1/2    0    0    0    0   -1    0]
+            sage: C = MS.random_element(density=0.5, num_bound=20, den_bound=20)
+            sage: C._rational_matrix()
+            [     0      0   8/11  -10/3  -11/7      8      1     -3      0      0      1      0      0      0      0      0]
+            [     0      0 -11/17  -3/13   -5/6   17/3 -19/17   -4/5      0      0      9      0      0      0      0      0]
+            [     0      0    -11   -3/2  -5/12   8/11      0  -3/19      0      0   -5/6      0      0      0      0      0]
+            [     0      0      0    5/8  -5/11   -5/4   6/11    2/3      0      0 -16/11      0      0      0      0      0]
+        """
+        cdef Py_ssize_t i
+        cdef Matrix_rational_dense mat = self._matrix
+
+        _sig_on
+        if distribution == "1/n":
+            for i from 0 <= i < mat._nrows:
+                mpq_randomize_entry_recip_uniform(mat._matrix[i][col])
+        elif mpz_cmp_si(denp1, 2):   # denom is > 1
+            for i from 0 <= i < mat._nrows:
+                mpq_randomize_entry(mat._matrix[i][col], nump1, denp1)
+        else:
+            for i from 0 <= i < mat._nrows:
+                mpq_randomize_entry_as_int(mat._matrix[i][col], nump1)
+        _sig_off
+
+    def randomize(self, density=1, num_bound=2, den_bound=2, \
+                  distribution=None, nonzero=False, *args, **kwds):
         r"""
-        Randomize the entries of self.
+        Randomize the entries of ``self``.
 
-        Choose rational numbers according to \code{distribution},
-        whose numerators are bounded by \code{num_bound} and whose
-        denominators are bounded by \code{den_bound}.
+        Choose rational numbers according to ``distribution``, whose
+        numerators are bounded by ``num_bound`` and whose denominators are
+        bounded by ``den_bound``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = Matrix(CyclotomicField(5),2,2,range(4)) ; A
             [0 1]
             [2 3]
@@ -915,8 +990,78 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [       1/2*zeta5^2 + zeta5                        1/2]
             [        -zeta5^2 + 2*zeta5 -2*zeta5^3 + 2*zeta5^2 + 2]
         """
-        self._cache = {}
-        self._matrix.randomize(density, num_bound, den_bound, distribution)
+        # Problem 1:
+        # We cannot simply call the ``randomize`` code in ``matrix2.pyx`` on
+        # the underlying matrix, since this is a d x (mn) matrix, where d is
+        # the degree of the field extension, which leads to an overly dense
+        # matrix.
+        #
+        # Problem 2:
+        # We cannot simply copy the code from ``matrix2.pyx``, since the
+        # ``random_element`` method for cyclotomic fields does not support
+        # the arguments ``num_bound`` and ``den_bound``, which are support by
+        # the rational field.
+        #
+        # Proposed solution:
+        # Randomly select a proportion of ``density`` of the elements in the
+        # matrix over the cyclotomic field, that is, this many columns in the
+        # underlying rational matrix.  Then, for each element in that column,
+        # randomize it to a rational number, applying the arguments
+        # ``num_bound`` and ``den_bound``.
+
+        density = float(density)
+        if density <= 0:
+            return
+        if density > 1:
+            density = 1
+
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef Py_ssize_t col, i, k, num
+        cdef randstate rstate = current_randstate()
+        cdef Integer B, C
+        cdef bint col_is_zero
+
+        B = Integer(num_bound+1)
+        C = Integer(den_bound+1)
+
+        if nonzero:
+            if density >= 1:
+                for col from 0 <= col < self._matrix._ncols:
+                    col_is_zero = True
+                    while col_is_zero:
+                        self._randomize_rational_column_unsafe(col, B.value, \
+                            C.value, distribution)
+                        # Check whether the new column is non-zero
+                        for i from 0 <= i < self._degree:
+                            if mpq_sgn(self._matrix._matrix[i][col]) != 0:
+                                col_is_zero = False
+                                break
+            else:
+                num = int(self._nrows * self._ncols * density)
+                for k from 0 <= k < num:
+                    col = rstate.c_random() % self._matrix._ncols
+                    col_is_zero = True
+                    while col_is_zero:
+                        self._randomize_rational_column_unsafe(col, B.value, \
+                            C.value, distribution)
+                        # Check whether the new column is non-zero
+                        for i from 0 <= i < self._degree:
+                            if mpq_sgn(self._matrix._matrix[i][col]) != 0:
+                                col_is_zero = False
+                                break
+        else:
+            if density >= 1:
+                for col from 0 <= col < self._matrix._ncols:
+                    self._randomize_rational_column_unsafe(col, B.value, \
+                        C.value, distribution)
+            else:
+                num = int(self._nrows * self._ncols * density)
+                for k from 0 <= k < num:
+                    col = rstate.c_random() % self._matrix._ncols
+                    self._randomize_rational_column_unsafe(col, B.value, \
+                        C.value, distribution)
 
     def _charpoly_bound(self):
         """

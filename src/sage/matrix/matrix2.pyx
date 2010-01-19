@@ -1783,9 +1783,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: M = random_matrix(ZZ, 10, 20)
             sage: N = random_matrix(ZZ, 20, 10)
             sage: M.trace_of_product(N)
-            -1629
+            5070
             sage: (M*N).trace()
-            -1629
+            5070
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -4739,29 +4739,30 @@ cdef class Matrix(matrix1.Matrix):
             raise TypeError, "second argument must be a matrix"
         return sage.matrix.constructor.block_matrix([x*Y for x in self.list()],self.nrows(),self.ncols())
 
-    def randomize(self, density=1, *args, **kwds):
+    def randomize(self, density=1, nonzero=False, *args, **kwds):
         """
         Randomize density proportion of the entries of this matrix, leaving
         the rest unchanged.
 
         .. note::
 
-           We actually choose at random density proportion of entries
-           of the matrix and set them to random elements. It's
-           possible that the same position can be chosen multiple
-           times, especially for a very small matrix.
+           We actually choose at random ``density`` proportion of entries of
+           the matrix and set them to random elements. It's possible that the
+           same position can be chosen multiple times, especially for a very
+           small matrix.
 
         INPUT:
 
+        -  ``density`` - ``float`` (default: 1); rough measure of the
+           proportion of nonzero entries in the random matrix
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
+           have to be non-zero
+        -  ``*args, **kwds`` - Remaining parameters may be passed to the
+           ``random_element`` function of the base ring
 
-        -  ``density`` - integer (default: 1) rough measure of
-           the proportion of nonzero entries in the random matrix
+        EXAMPLES:
 
-        -  ``*args, **kwds`` - rest of parameters may be
-           passed to the random_element function of the base ring.
-
-
-        EXAMPLES: We construct the zero matrix over a polynomial ring.
+        We construct the zero matrix over a polynomial ring.
 
         ::
 
@@ -4806,8 +4807,11 @@ cdef class Matrix(matrix1.Matrix):
         randint = current_randstate().python_random().randint
 
         density = float(density)
-        if density == 0:
+        if density <= 0:
             return
+        if density > 1:
+            density = 1
+
         self.check_mutability()
         self.clear_cache()
 
@@ -4815,16 +4819,29 @@ cdef class Matrix(matrix1.Matrix):
 
         cdef Py_ssize_t i, j, num
 
-        if density >= 1:
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < self._ncols:
-                    self.set_unsafe(i, j, R.random_element(*args, **kwds))
+        if nonzero:
+            if density >= 1:
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._ncols:
+                        self.set_unsafe(i, j, R._random_nonzero_element(*args,\
+                            **kwds))
+            else:
+                num = int(self._nrows * self._ncols * density)
+                for i from 0 <= i < num:
+                    self.set_unsafe(randint(0, self._nrows - 1),
+                                    randint(0, self._ncols - 1),
+                                    R._random_nonzero_element(*args, **kwds))
         else:
-            num = int(self._nrows * self._ncols * density)
-            for i from 0 <= i < num:
-                self.set_unsafe(randint(0, self._nrows - 1),
-                                randint(0, self._ncols - 1),
-                                R.random_element(*args, **kwds))
+            if density >= 1:
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._ncols:
+                        self.set_unsafe(i, j, R.random_element(*args, **kwds))
+            else:
+                num = int(self._nrows * self._ncols * density)
+                for i from 0 <= i < num:
+                    self.set_unsafe(randint(0, self._nrows - 1),
+                                    randint(0, self._ncols - 1),
+                                    R.random_element(*args, **kwds))
 
     def is_one(self):
         """
@@ -5001,7 +5018,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = random_matrix(GF(127),200,200,density=0.3)
             sage: A.density()
-            5159/20000
+            5211/20000
 
         ::
 

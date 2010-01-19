@@ -264,14 +264,16 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         the underlying dict of the object. It might be dangerous if you
         change entries of the returned dict.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
             sage: m = MS.random_element(density=0.002)
             sage: m._dict()
-            {(7, 43): 11, (29, 44): 10, (35, 4): 11, (16, 26): 2}
+            {(5, 25): 4, (4, 44): 7, (43, 43): 6, (26, 9): 9, (44, 38): 1}
 
-        TESTS:
-            sage: parent(m._dict()[7,43])
+        TESTS::
+
+            sage: parent(m._dict()[26,9])
             Finite Field of size 13
         """
         d = self.fetch('dict')
@@ -650,8 +652,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
             sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
             sage: A.density()
-            257/1000
-
+            2073/8000
         """
         cdef Py_ssize_t i, nonzero_entries
 

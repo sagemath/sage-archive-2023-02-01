@@ -1169,20 +1169,43 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                                    sparse=self.is_sparse())
             return self.__column_space
 
-    def random_element(self, density=1, *args, **kwds):
+    def random_element(self, density=None, *args, **kwds):
         """
+        Returns a random element from this matrix space.
+
         INPUT:
 
+        -  ``density`` - ``float`` or ``None`` (default: ``None``);  rough
+           measure of the proportion of nonzero entries in the random matrix;
+           if set to ``None``, all entries of the matrix are randomized,
+           allowing for any element of the underlying ring, but if set to
+           a ``float``, a proportion of entries is selected and randomized to
+           non-zero elements of the ring
 
-        -  ``density`` - integer (default: 1) rough measure of
-           the proportion of nonzero entries in the random matrix
+        -  ``*args, **kwds`` - remaining parameters, which may be passed to
+           the random_element function of the base ring. ("may be", since this
+           function calls the ``randomize`` function on the zero matrix, which
+           need not call the ``random_element`` function of the base ring at
+           all in general.)
 
-        -  ``*args, **kwds`` - rest of parameters may be
-           passed to the random_element function of the base ring. ("may be",
-           since this function calls the randomize function on the zero
-           matrix, which need not call the random_element function of the
-           base ring at all in general.)
+        OUTPUT:
 
+        -  Matrix
+
+        NOTES:
+
+        This method will randomize a proportion of roughly ``density`` entries
+        in a newly allocated zero matrix.
+
+        By default, if the user sets the value of ``density`` explicitly, this
+        method will enforce that these entries are set to non-zero values.
+        However, if the test for equality with zero in the base ring is too
+        expensive, the user can override this behaviour by passing the
+        argument ``nonzero=False`` to this method.
+
+        Otherwise, if the user does not set the value of ``density``, the
+        default value is taken to be 1, and the option ``nonzero=False`` is
+        passed to the ``randomize`` method.
 
         EXAMPLES::
 
@@ -1190,19 +1213,24 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [ -8   2   0   0   1]
             [ -1   2   1 -95  -1]
             sage: Mat(QQ,2,5).random_element(density=0.5)
-            [  2   0   0   0   1]
-            [  0   0   0 1/2   0]
+            [ 2  0  0  0  1]
+            [ 0  0  0 -1  0]
             sage: Mat(QQ,3,sparse=True).random_element()
-            [  -1  1/3    1]
-            [   0   -1    0]
-            [  -1    1 -1/4]
+            [  -1   -1   -1]
+            [  -3 -1/3   -1]
+            [   0   -1    1]
             sage: Mat(GF(9,'a'),3,sparse=True).random_element()
-            [      1       2       1]
-            [2*a + 1       a       2]
-            [      2 2*a + 2       1]
+            [    2*a       a       1]
+            [      2       1 2*a + 1]
+            [      a       2       2]
         """
         Z = self.zero_matrix()
-        Z.randomize(density, *args, **kwds)
+        if density is None:
+            Z.randomize(density=float(1), nonzero=kwds.pop('nonzero', False), \
+                *args, **kwds)
+        else:
+            Z.randomize(density=density, nonzero=kwds.pop('nonzero', True), \
+                *args, **kwds)
         return Z
 
     def _magma_init_(self, magma):

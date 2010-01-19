@@ -286,24 +286,24 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
             sage: {B:0} # indirect doctest
-            {[  9  75  94]
-             [  4  57 112]
-             [ 59  85  45]: 0}
+            {[ 11  86  14]
+            [ 28 103  68]
+            [108  24  74]: 0}
 
         ::
 
             sage: M = random_matrix(GF(7), 10, 10)
             sage: M.set_immutable()
             sage: hash(M)
-            143
+            774
             sage: MZ = M.change_ring(ZZ)
             sage: MZ.set_immutable()
             sage: hash(MZ)
-            143
+            774
             sage: MS = M.sparse_matrix()
             sage: MS.set_immutable()
             sage: hash(MS)
-            143
+            774
 
         TEST::
 
@@ -1576,10 +1576,21 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         else:
             return matrix_dense.Matrix_dense.determinant(self)
 
-    def randomize(self, density=1):
+    def randomize(self, density=1, nonzero=False):
         """
-        Randomize density proportion of the entries of this matrix, leaving
-        the rest unchanged.
+        Randomize ``density`` proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        INPUT:
+
+        -  ``density`` - Integer; proportion (roughly) to be considered for
+           changes
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
+           are forced to be non-zero
+
+        OUTPUT:
+
+        -  None, the matrix is modified in-space
 
         EXAMPLES::
 
@@ -1597,30 +1608,48 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [3 3 2 2 4]
             [2 2 2 1 4]
         """
-
         density = float(density)
-        if density == 0:
+        if density <= 0:
             return
+        if density > 1:
+            density = float(1)
 
         self.check_mutability()
         self.clear_cache()
 
         cdef randstate rstate = current_randstate()
-
         cdef int nc
-        if density == 1:
-            for i from 0 <= i < self._nrows*self._ncols:
-                self._entries[i] = rstate.c_random() % self.p
+        cdef long pm1
+
+        if not nonzero:
+            # Original code, before adding the ``nonzero`` option.
+            if density == 1:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    self._entries[i] = rstate.c_random() % self.p
+            else:
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                _sig_on
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = rstate.c_random() % nc
+                        self._matrix[i][k] = rstate.c_random() % self.p
+                _sig_off
         else:
-            density = float(density)
-            nc = self._ncols
-            num_per_row = int(density * nc)
-            _sig_on
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < num_per_row:
-                    k = rstate.c_random()%nc
-                    self._matrix[i][k] = rstate.c_random() % self.p
-            _sig_off
+            # New code, to implement the ``nonzero`` option.
+            pm1 = self.p - 1
+            if density == 1:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    self._entries[i] = (rstate.c_random() % pm1) + 1
+            else:
+                nc = self._ncols
+                num_per_row = int(density * nc)
+                _sig_on
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = rstate.c_random() % nc
+                        self._matrix[i][k] = (rstate.c_random() % pm1) + 1
+                _sig_off
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:
         # TODO: lots of testing

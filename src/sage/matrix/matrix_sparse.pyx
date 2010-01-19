@@ -676,9 +676,8 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: A=random_matrix(ZZ,100000,density=.00005,sparse=True)
             sage: B=A[50000:,:50000]
             sage: len(B.nonzero_positions())
-            14047              # 32-bit
-            100550             # 64-bit
-
+            17550              # 32-bit
+            125449             # 64-bit
 
         We must pass in a list of indices::
 

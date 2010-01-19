@@ -1,4 +1,3 @@
-
 include "../ext/cdefs.pxi"
 
 cimport matrix_dense

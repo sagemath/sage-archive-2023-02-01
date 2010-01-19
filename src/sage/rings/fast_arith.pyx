@@ -68,12 +68,18 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes"):
     Algorithm "pari_isprime" is slower but will work for much larger input.
 
     INPUT:
-        start -- lower bound
-        stop -- upper bound
-        algorithm -- "pari_primes": Uses PARI's primes function.  Generates all primes up to stop.
-                         Depends on PARI's primepi function.
-                     "pari_isprime": Uses a mod 2 wheel and PARI's isprime function by calling
-                         the primes iterator.
+
+        - ``start`` -- lower bound
+
+        - ``stop`` -- upper bound
+
+        - ``algorithm`` -- string, one of:
+
+             - "pari_primes": Uses PARI's primes function.  Generates all primes up to stop.
+                              Depends on PARI's primepi function.
+
+             - "pari_isprime": Uses a mod 2 wheel and PARI's isprime function by calling
+                             the primes iterator.
 
     EXAMPLES:
         sage: prime_range(10)
@@ -134,7 +140,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes"):
         from sage.rings.arith import primes
         res = list(primes(start, stop))
     else:
-        raise ValueError, "algorithm argument must be either ``pari_primes`` or ``pari_isprime``"
+        raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")
     return res
 cdef class arith_int:
     cdef public int abs_int(self, int x) except -1:

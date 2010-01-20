@@ -315,7 +315,8 @@ def format_src(s):
 
 ###############################
 
-def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
+def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
+                       extra4='', extra5='', **kwds):
     r"""
     Search the Sage library or documentation for lines containing
     ``string`` and possibly some other terms. This function is used by
@@ -368,6 +369,30 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
     """
+    # process keywords
+    if 'interact' in kwds:
+        interact = kwds['interact']
+    else:
+        interact = True
+    if 'path_re' in kwds:
+        path_re = kwds['path_re']
+    else:
+        path_re = ''
+    if 'module' in kwds:
+        module = kwds['module']
+    else:
+        module = 'sage'
+    if 'whole_word' in kwds:
+        whole_word = kwds['whole_word']
+    else:
+        whole_word = False
+    if 'ignore_case' in kwds:
+        ignore_case = kwds['ignore_case']
+    else:
+        ignore_case = False
+    # done processing keywords
+    # define module, exts (file extension), title (title of search),
+    # base_path (top directory in which to search)
     ROOT = os.environ['SAGE_ROOT']
     if what == 'src':
         if module.find('sage') == 0:
@@ -384,8 +409,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
         title = 'Documentation'
         base_path = os.path.join('devel', 'sage', 'doc', 'output')
 
-        # read the start of SAGE_ROOT/devel/sage/doc/common/builder.py
-        # to find list of languages, documents, and documents to omit
+        # check if any documentation is missing.  first read the start
+        # of SAGE_ROOT/devel/sage/doc/common/builder.py to find list
+        # of languages, documents, and documents to omit
         doc_path = os.path.join(ROOT, 'devel', 'sage', 'doc')
         builder = open(os.path.join(doc_path, 'common', 'builder.py'))
         s = builder.read()[:1000]
@@ -452,18 +478,42 @@ You can build this with 'sage -docbuild %s html'.""" % s
     base_path = os.path.join(ROOT, base_path)
     strip = len(base_path)
     results = ''
+    # in regular expressions, '\bWORD\b' matches 'WORD' but not
+    # 'SWORD' or 'WORDS'.  so if the user requests a whole_word
+    # search, append and prepend '\b' to each string.
+    if whole_word:
+        string = r'\b' + string + r'\b'
+        if extra1:
+            extra1 = r'\b' + extra1 + r'\b'
+        if extra2:
+            extra2 = r'\b' + extra2 + r'\b'
+        if extra3:
+            extra3 = r'\b' + extra3 + r'\b'
+        if extra4:
+            extra4 = r'\b' + extra4 + r'\b'
+        if extra5:
+            extra5 = r'\b' + extra5 + r'\b'
+    if ignore_case:
+        # 'flags' is a list of arguments passed to re.search
+        flags = [re.IGNORECASE]
+    else:
+        flags = []
+    # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
         for f in files:
             if re.search("\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     match_list = [(lineno, line) for lineno, line in
-                        enumerate(open(filename).read().splitlines(True)) if
-                        re.search(string, line)]
+                                  enumerate(open(filename).read().splitlines(True))
+                                  if re.search(string, line, *flags)]
                     for extra in [extra1, extra2, extra3, extra4, extra5]:
                         if extra:
-                            match_list = filter(lambda s: re.search(extra,
-                                s[1], re.MULTILINE), match_list)
+                            match_list = filter(lambda s:
+                                                    re.search(extra, s[1],
+                                                              re.MULTILINE,
+                                                              *flags),
+                                                match_list)
                     for num, line in match_list:
                         results += ':'.join([filename[strip:].lstrip("/"),
                                              str(num+1),
@@ -486,7 +536,8 @@ You can build this with 'sage -docbuild %s html'.""" % s
         page(results, screen_lines = 25)
 
 
-def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
+def search_src(string, extra1='', extra2='', extra3='', extra4='',
+               extra5='', **kwds):
     r"""
     Search Sage library source code for lines containing ``string``.
     The search is case-sensitive.
@@ -497,6 +548,15 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
     - ``extra1``, ..., ``extra5`` - additional strings to require when
       searching.  Lines must match all of these, as well as ``string``.
+
+    - ``whole_word`` (optional, default False) - if True, search for
+      ``string`` and ``extra1`` (etc.) as whole words only.  This
+      assumes that each of these arguments is a single word, not a
+      regular expression, and it might have unexpected results if used
+      with regular expressions.
+
+    - ``ignore_case`` (optional, default False) - if True, perform a
+      case-insensitive search
 
     - ``interact`` (optional, default ``True``) - if ``False``, return
       a string with all the matches. Otherwise, this function returns
@@ -520,7 +580,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will always be case-sensitive.
+    are invalid. The matches will be case-sensitive unless
+    ``ignore_case`` is True.
 
     .. note::
 
@@ -550,8 +611,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
     Note that you can do tab completion on the ``module`` string.
     Another way to accomplish a similar search::
 
-        sage: len(search_src("matrix", path_re="calc", interact=False).splitlines()) # random
-        26
+        sage: len(search_src("matrix", path_re="calc", interact=False).splitlines()) > 15
+        True
 
     The following produces an error because the string 'fetch(' is a
     malformed regular expression::
@@ -570,12 +631,16 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
         sage: print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
 
-    As noted above, the search is case-sensitive::
+    As noted above, the search is case-sensitive, but you can make it
+    case-insensitive with the 'ignore_case' key word::
 
-        sage: s = search_src('MatRiX', path_re='matrix', interact=False); s; s.find('x') > 0
-        ''
-        False
         sage: s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
+        True
+
+        sage: s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
+        False
+
+        sage: s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
         True
 
     A little recursive narcissism: let's do a doctest that searches for
@@ -588,10 +653,13 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
         sage: print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) # random # long time
         misc/sagedoc.py:... len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
-        misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) # random
+        misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) > 15
         misc/sagedoc.py:... print search_src(" fetch(", "def", interact=False)
         misc/sagedoc.py:... print search_src(" fetch\(", "def", interact=False) # random # long time
         misc/sagedoc.py:... print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
+        misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
+        misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
+        misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
@@ -614,9 +682,12 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
         matrix/matrix0.pyx:933:        Set the 2 x 3 submatrix of M starting at row index and column
 
     """
-    return _search_src_or_doc('src', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact, path_re=path_re, module=module)
+    return _search_src_or_doc('src', string, extra1=extra1, extra2=extra2,
+                              extra3=extra3, extra4=extra4, extra5=extra5,
+                              **kwds)
 
-def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re=''):
+def search_doc(string, extra1='', extra2='', extra3='', extra4='',
+               extra5='', **kwds):
     """
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-sensitive.
@@ -631,6 +702,15 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
     - ``extra1``, ..., ``extra5`` - additional strings to require when
       searching.  Lines must match all of these, as well as ``string``.
 
+    - ``whole_word`` (optional, default False) - if True, search for
+      ``string`` and ``extra1`` (etc.) as whole words only.  This
+      assumes that each of these arguments is a single word, not a
+      regular expression, and it might have unexpected results if used
+      with regular expressions.
+
+    - ``ignore_case`` (optional, default False) - if True, perform a
+      case-insensitive search
+
     - ``interact`` (optional, default ``True``) - if ``False``, return
       a string with all the matches. Otherwise, this function returns
       ``None``, and the results are displayed appropriately, according
@@ -642,7 +722,8 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will always be case-sensitive.
+    are invalid. The matches will be case-sensitive unless
+    ``ignore_case`` is True.
 
     In the command-line interface, each line of the results
     has the form ``filename:num:line of code``, where ``num`` is the
@@ -660,11 +741,27 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
         sage: search_doc('creates a polynomial', path_re='tutorial', interact=False) # random
         html/en/tutorial/tour_polynomial.html:<p>This creates a polynomial ring and tells Sage to use (the string)
+
+    If you search the documentation for 'tree', then you will get too
+    many results, because many lines in the documentation contain the
+    word 'toctree'.  If you use the ``whole_word`` option, though, you
+    can search for 'tree' without returning all of the instances of
+    'toctree'.  In the following, since ``search_doc('tree',
+    interact=False)`` returns a string with one line for each match,
+    counting the length of ``search_doc('tree',
+    interact=False).splitlines()`` gives the number of matches. ::
+
+        sage: len(search_doc('tree', interact=False).splitlines()) > 2000
+        True
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 100
+        True
     """
-    return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact, path_re=path_re)
+    return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,
+                              extra3=extra3, extra4=extra4, extra5=extra5,
+                              **kwds)
 
-
-def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
+def search_def(name, extra1='', extra2='', extra3='', extra4='',
+               extra5='', **kwds):
     r"""
     Search Sage library source code for function definitions containing
     ``name``. The search is case sensitive.
@@ -676,6 +773,15 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
 
     - ``extra1``, ..., ``extra4`` - additional strings to require, as
       in :func:`search_src`.
+
+    - ``whole_word`` (optional, default False) - if True, search for
+      ``string`` and ``extra1`` (etc.) as whole words only.  This
+      assumes that each of these arguments is a single word, not a
+      regular expression, and it might have unexpected results if used
+      with regular expressions.
+
+    - ``ignore_case`` (optional, default False) - if True, perform a
+      case-insensitive search
 
     - ``interact`` (optional, default ``True``) - if ``False``, return
       a string with all the matches. Otherwise, this function returns
@@ -691,10 +797,10 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
       ``module`` doesn't start with "sage", then the links in the
       notebook output may not function.
 
-
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will always be case-sensitive.
+    are invalid. The matches will be case-sensitive unless
+    ``ignore_case`` is True.
 
     In the command-line interface, each line of the results has the form
     ``filename:num:line of code``, where ``num`` is the line number in
@@ -723,10 +829,26 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
         sage: print search_def("fetch", path_re="pyx", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
     """
-    return _search_src_or_doc('src', '^ *[c]?def.*%s' % name, extra1=extra1,
-                      extra2=extra2, extra3=extra3, extra4=extra4,
-                      extra5=extra5, interact=interact, path_re=path_re, module=module)
+    # since we convert name to a regular expression, we need to do the
+    # 'whole_word' conversion here, rather than pass it on to
+    # _search_src_or_doc.
+    if 'whole_word' in kwds and kwds['whole_word']:
+        name = r'\b' + name + r'\b'
+        if extra1:
+            extra1 = r'\b' + extra1 + r'\b'
+        if extra2:
+            extra2 = r'\b' + extra2 + r'\b'
+        if extra3:
+            extra3 = r'\b' + extra3 + r'\b'
+        if extra4:
+            extra4 = r'\b' + extra4 + r'\b'
+        if extra5:
+            extra5 = r'\b' + extra5 + r'\b'
+        kwds['whole_word'] = False
 
+    return _search_src_or_doc('src', '^ *[c]?def.*%s' % name, extra1=extra1,
+                              extra2=extra2, extra3=extra3, extra4=extra4,
+                              extra5=extra5, **kwds)
 
 def format_search_as_html(what, r, search):
     r"""

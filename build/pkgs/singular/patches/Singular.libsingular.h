@@ -26,6 +26,7 @@
 #include "singular/grammar.h"
 #include "singular/ipid.h"
 #include "singular/ipshell.h"
+#include "singular/attrib.h"
 
 int siInit(char *);
 

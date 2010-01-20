@@ -10,6 +10,9 @@
 == Releases ==
 
 
+=== singular-3-1-0-4-20100120 (Martin Albrecht, January 20th, 2010) ===
+ * installing attrib.h from Singular
+
 === singular-3-1-0-4-20090818.p2 (Martin Albrecht, November 18th, 2009) ===
  * installing lists.h from Singular (#7194)
 

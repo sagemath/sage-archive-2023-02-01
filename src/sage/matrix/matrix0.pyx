@@ -683,10 +683,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Get the second column of M::
 
-            sage: M[1:,0]
+            sage: M[:,1]
+            [-2]
+            [ 8]
             [ 1]
-            [ 1]
-            [-1]
+            [ 2]
 
         Get the first row of M::
 

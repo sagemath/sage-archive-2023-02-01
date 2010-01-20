@@ -99,7 +99,8 @@ class PlotField(GraphicPrimitive):
                 'headwidth': 'Head width as multiple of shaft width, default is 3',
                 'headlength': 'head length as multiple of shaft width, default is 5',
                 'headaxislength': 'head length at shaft intersection, default is 4.5',
-                'zorder':'The layer level in which to draw'}
+                'zorder':'The layer level in which to draw',
+                'color':'The color of the arrows'}
 
     def _repr_(self):
         """
@@ -148,7 +149,14 @@ def plot_vector_field((f, g), xrange, yrange, **options):
 
         sage: u,v = var('u v')
         sage: f = exp(-(u^2+v^2))
-        sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
+        sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2), color='blue')
+
+    Plot two orthogonal vector fields::
+
+        sage: x,y = var('x,y')
+        sage: a=plot_vector_field((x,y), (x,-3,3),(y,-3,3),color='blue')
+        sage: b=plot_vector_field((y,-x),(x,-3,3),(y,-3,3),color='red')
+        sage: show(a+b,aspect_ratio=1)
 
     We ignore function values that are infinite or NaN::
 

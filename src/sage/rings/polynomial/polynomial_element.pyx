@@ -1598,7 +1598,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return R
 
     def _is_atomic(self):
-        return self.degree() == self.valuation()
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: S(x+2)
+            x + 2
+            sage: S(x+2)._is_atomic()
+            False
+            sage: S(x)._is_atomic()
+            True
+        """
+        return (self.degree() == self.valuation() and
+                self.leading_coefficient()._is_atomic())
 
     def _mul_generic(self, right):
         if self is right:

@@ -95,10 +95,11 @@ Get the 2 x 3 submatrix of M starting at row index and column index 1::
 
 Get the second column of M::
 
-    sage: M[1:,0]
+    sage: M[:,1]
+    [-2]
+    [ 8]
     [ 1]
-    [ 1]
-    [-1]
+    [ 2]
 
 Get the first row of M::
 

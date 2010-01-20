@@ -62,9 +62,222 @@ reduced row echelon form of `A`.
 
 ::
 
-    sage: A.echelon_form()
+    sage: A.rref()
     [      1       0 -1933/3]
     [      0       1  1550/3]
+
+
+Indexing
+========
+
+Sage has quite flexible ways of extracting elements or submatrices
+from a matrix::
+
+
+    sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)];M= matrix(m)
+    sage: M
+    [ 1 -2 -1 -1  9]
+    [ 1  8  6  2  2]
+    [ 1  1 -1  1  4]
+    [-1  2 -2 -1  4]
+
+Get the 2 x 2 submatrix of M, starting at row index and column index 1::
+
+    sage: M[1:3,1:3]
+    [ 8  6]
+    [ 1 -1]
+
+Get the 2 x 3 submatrix of M starting at row index and column index 1::
+
+    sage: M[1:3,[1..3]]
+    [ 8  6  2]
+    [ 1 -1  1]
+
+Get the second column of M::
+
+    sage: M[1:,0]
+    [ 1]
+    [ 1]
+    [-1]
+
+Get the first row of M::
+
+    sage: M[0,:]
+    [ 1 -2 -1 -1  9]
+
+Get the last row of M (negative numbers count from the end)::
+
+    sage: M[-1,:]
+    [-1  2 -2 -1  4]
+
+More examples::
+
+    sage: M[range(2),:]
+    [ 1 -2 -1 -1  9]
+    [ 1  8  6  2  2]
+    sage: M[range(2),4]
+    [9]
+    [2]
+    sage: M[range(3),range(5)]
+    [ 1 -2 -1 -1  9]
+    [ 1  8  6  2  2]
+    [ 1  1 -1  1  4]
+
+    sage: M[3,range(5)]
+    [-1  2 -2 -1  4]
+    sage: M[3,:]
+    [-1  2 -2 -1  4]
+    sage: M[3,4]
+    4
+
+    sage: M[-1,:]
+    [-1  2 -2 -1  4]
+
+    sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
+    [ 3  2 -5  0]
+    [ 1 -1  1 -4]
+    [ 1  0  1 -3]
+
+A series of three numbers, separated by colons, like ``n:m:s``, means
+numbers from ``n`` up to (but not including) ``m``, in steps of ``s``.
+So ``0:5:2`` means the sequence ``[0,2,4]``::
+
+    sage: A[:,0:4:2]
+    [ 3 -5]
+    [ 1  1]
+    [ 1  1]
+
+    sage: A[1:,0:4:2]
+    [1 1]
+    [1 1]
+
+    sage: A[2::-1,:]
+    [ 1  0  1 -3]
+    [ 1 -1  1 -4]
+    [ 3  2 -5  0]
+
+    sage: A[1:,3::-1]
+    [-4  1 -1  1]
+    [-3  1  0  1]
+
+    sage: A[1:,3::-2]
+    [-4 -1]
+    [-3  0]
+
+    sage: A[2::-1,3:1:-1]
+    [-3  1]
+    [-4  1]
+    [ 0 -5]
+
+We can also change submatrices using these indexing features::
+
+    sage: M=matrix([(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)]); M
+    [ 1 -2 -1 -1  9]
+    [ 1  8  6  2  2]
+    [ 1  1 -1  1  4]
+    [-1  2 -2 -1  4]
+
+Set the 2 x 2 submatrix of M, starting at row index and column index 1::
+
+    sage: M[1:3,1:3] = [[1,0],[0,1]]; M
+    [ 1 -2 -1 -1  9]
+    [ 1  1  0  2  2]
+    [ 1  0  1  1  4]
+    [-1  2 -2 -1  4]
+
+Set the 2 x 3 submatrix of M starting at row index and column index 1::
+
+    sage: M[1:3,[1..3]] = M[2:4,0:3]; M
+    [ 1 -2 -1 -1  9]
+    [ 1  1  0  1  2]
+    [ 1 -1  2 -2  4]
+    [-1  2 -2 -1  4]
+
+Set part of the first column of M::
+
+    sage: M[1:,0]=[[2],[3],[4]]; M
+    [ 1 -2 -1 -1  9]
+    [ 2  1  0  1  2]
+    [ 3 -1  2 -2  4]
+    [ 4  2 -2 -1  4]
+
+Or do a similar thing with a vector::
+
+    sage: M[1:,0]=vector([-2,-3,-4]); M
+    [ 1 -2 -1 -1  9]
+    [-2  1  0  1  2]
+    [-3 -1  2 -2  4]
+    [-4  2 -2 -1  4]
+
+Or a constant::
+
+    sage: M[1:,0]=30; M
+    [ 1 -2 -1 -1  9]
+    [30  1  0  1  2]
+    [30 -1  2 -2  4]
+    [30  2 -2 -1  4]
+
+
+Set the first row of M::
+
+    sage: M[0,:]=[[20,21,22,23,24]]; M
+    [20 21 22 23 24]
+    [30  1  0  1  2]
+    [30 -1  2 -2  4]
+    [30  2 -2 -1  4]
+    sage: M[0,:]=vector([0,1,2,3,4]); M
+    [ 0  1  2  3  4]
+    [30  1  0  1  2]
+    [30 -1  2 -2  4]
+    [30  2 -2 -1  4]
+    sage: M[0,:]=-3; M
+    [-3 -3 -3 -3 -3]
+    [30  1  0  1  2]
+    [30 -1  2 -2  4]
+    [30  2 -2 -1  4]
+
+
+    sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
+    [ 3  2 -5  0]
+    [ 1 -1  1 -4]
+    [ 1  0  1 -3]
+
+We can use the step feature of slices to set every other column::
+
+    sage: A[:,0:3:2] = 5; A
+    [ 5  2  5  0]
+    [ 5 -1  5 -4]
+    [ 5  0  5 -3]
+
+    sage: A[1:,0:4:2] = [[100,200],[300,400]]; A
+    [  5   2   5   0]
+    [100  -1 200  -4]
+    [300   0 400  -3]
+
+We can also count backwards to flip the matrix upside down::
+
+    sage: A[::-1,:]=A; A
+    [300   0 400  -3]
+    [100  -1 200  -4]
+    [  5   2   5   0]
+
+
+    sage: A[1:,3::-1]=[[2,3,0,1],[9,8,7,6]]; A
+    [300   0 400  -3]
+    [  1   0   3   2]
+    [  6   7   8   9]
+
+    sage: A[1:,::-2] = A[1:,::2]; A
+    [300   0 400  -3]
+    [  1   3   3   1]
+    [  6   8   8   6]
+
+    sage: A[::-1,3:1:-1] = [[4,3],[1,2],[-1,-2]]; A
+    [300   0  -2  -1]
+    [  1   3   2   1]
+    [  6   8   3   4]
+
+
 
 We save and load a matrix::
 

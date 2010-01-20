@@ -665,7 +665,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 1  1 -1  1  4]
             [-1  2 -2 -1  4]
 
-        Get The 2 x 2 submatrix of M, starting at row index and column
+        Get the 2 x 2 submatrix of M, starting at row index and column
         index 1
 
         ::

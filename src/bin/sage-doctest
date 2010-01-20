@@ -5,6 +5,14 @@
 # Sage's custom doctesting tags and framework built on top of
 # Python's doctest functionality.  In particular, this allows for
 # sage: prompts, preparsing, optional doctests, random behavior, etc.
+#
+# Return value in process exit code:
+# 0: all tests passed
+# 1: file not found
+# 2: KeyboardInterrupt
+# 3: doctest process was terminated by a signal
+# 4: the doctesting framework raised an exception
+# 100: failed doctests
 ####################################################################
 
 # System imports
@@ -152,6 +160,11 @@ def new_index(n):
         return n
 
 def test_code(filename):
+    # Process exit codes for the generated doctest runner script:
+    # 0: everything passed
+    # 1-253: number of failed doctests
+    # 254: >= 254 doctests failed
+    # 255: exception raised by doctesting framework
     dict = { 'DIR'             : repr(os.path.join(SAGE_ROOT, 'local', 'bin')),
              'FILENAME'        : repr(filename),
              'OUTPUT_FILENAME' : repr(filename + '.timeit.sobj'),
@@ -171,18 +184,27 @@ if __name__ ==  '__main__':
     m = sys.modules[__name__]
     m.__file__ = %(FILENAME)s
 
-    # configure special sage doc test runner
-    runner = sagedoctest.SageDocTestRunner(checker=None, verbose=verbose, optionflags=0)
-    runner._collect_timeit_stats = do_timeit
-    runner._reset_random_seed = True
+    try:
 
-    runner = sagedoctest.testmod_returning_runner(m,
-                   # filename=%(FILENAME)s,
-                   verbose=verbose,
-                   globs=globals(),
-                   runner=runner)
-    runner.save_timeit_stats_to_file_named(output_filename)
+        # configure special sage doc test runner
+        runner = sagedoctest.SageDocTestRunner(checker=None, verbose=verbose, optionflags=0)
+        runner._collect_timeit_stats = do_timeit
+        runner._reset_random_seed = True
+
+        runner = sagedoctest.testmod_returning_runner(m,
+                       # filename=%(FILENAME)s,
+                       verbose=verbose,
+                       globs=globals(),
+                       runner=runner)
+        runner.save_timeit_stats_to_file_named(output_filename)
+    except:
+        quit_sage(verbose=False)
+        import traceback
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(255)
     quit_sage(verbose=False)
+    if runner.failures > 254:
+        sys.exit(254)
     sys.exit(runner.failures)
 """ % dict
 
@@ -656,15 +678,21 @@ def test_file(file, library_code):
         s, numfail = post_process(out, file, f)
         s += err
 
-        if numfail == 0 and e > 0 and verbose:
+        if e == 255:
+            # The doctesting code raised an exception
+            if not verbose:
+                print "Exception raised by doctesting framework. Use -verbose for details."
+            sys.exit(4)
+
+        if numfail == 0 and e > 0:
             numfail = e
         if numfail > 0:
             if not (verbose or gdb or memcheck or massif or cachegrind):
                 print s
-            sys.exit(4)
-        elif e != 0:
+            sys.exit(100)
+        elif e < 0:
             if not verbose:
-                print "A mysterious error (perhaps a memory error?) occurred, which may have crashed doctest."
+                print "The doctested process was killed by signal %s" % (-e)
             sys.exit(3)
         else:
             delete_tmpfiles()

@@ -85,16 +85,18 @@ def test(F, cmd):
     # value in the second byte.
     err = err // 256
 
-    # Check the process exit codes that sage-doctest returns
+    # Check the process exit code that sage-doctest returns
 
     if err == 1: # process exit code 1: File not found
         failed.append(sage_test_command(F)+" # File not found")
     elif err == 2: # process exit code 2: KeyboardInterrupt
         failed.append(sage_test_command(F)+" # KeyboardInterrupt")
         raise KeyboardInterrupt
-    elif err == 3: # process exit code 3: Segfault
-        failed.append(sage_test_command(F)+" # Segfault")
-    elif err == 4: # process exit code 4: Failures
+    elif err == 3: # process exit code 3: Terminated by signal
+        failed.append(sage_test_command(F)+" # Killed/crashed")
+    elif err == 4: # process exit code 4: Unhandled doctest exception
+        failed.append(sage_test_command(F)+" # Exception from doctest framework")
+    elif err == 100: # process exit code 100: Regular doctest failures
         failed.append(sage_test_command(F))
     elif err != 0:
         failed.append(sage_test_command(F))
@@ -110,7 +112,7 @@ def test_file(F):
     if not os.path.exists(F):
         if F[:6] != "__test" and not F.endswith('.png'):
             print "ERROR: File %s is missing" % os.path.join(os.curdir, F)
-            failed.append(os.path.join(os.curdir, F))
+            failed.append(os.path.join(os.curdir, F) + " # File not found")
         return 1
 
     extra_opts = ''

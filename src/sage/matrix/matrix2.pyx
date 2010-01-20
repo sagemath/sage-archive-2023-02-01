@@ -4023,6 +4023,66 @@ cdef class Matrix(matrix1.Matrix):
     # Generic Echelon Form
     ###################################################################################
 
+
+    def rref(self, *args, **kwds):
+        """
+        Return the reduced row echelon form of the matrix, considered
+        as a matrix over a field.
+
+        If the matrix is over a ring, then an equivalent matrix is
+        constructed over the fraction field, and then row reduced.
+
+        All arguments are passed on to the echelon_form function.
+
+        EXAMPLES::
+
+            sage: A=matrix(3,range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.rref()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+
+
+        Note that there is a difference between :meth:`rref` and
+        :meth:`echelon_form` when the matrix is not over a field (in
+        this case, the integers instead of the rational numbers)::
+
+            sage: A.base_ring()
+            Integer Ring
+            sage: A.echelon_form()
+            [ 3  0 -3]
+            [ 0  1  2]
+            [ 0  0  0]
+
+            sage: B=random_matrix(QQ,3,num_bound=10); B
+            [ -4  -3   6]
+            [  5  -5 9/2]
+            [3/2  -4  -7]
+            sage: B.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        In this case, since ``B`` is a matrix over a field (the
+        rational numbers), :meth:`rref` and :meth:`echelon_form` are
+        exactly the same::
+
+            sage: B.echelon_form()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B.echelon_form() is B.rref()
+            True
+        """
+        R=self.base_ring()
+        if R.is_field():
+            return self.echelon_form()
+        else:
+            return self.change_ring(R.fraction_field()).echelon_form()
+
     def _echelonize_ring(self, **kwds):
         r"""
         Echelonize self in place, where the base ring of self is assumed to

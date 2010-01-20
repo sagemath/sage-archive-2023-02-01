@@ -1915,23 +1915,18 @@ class Graphics(SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1),1,color='red')
-            sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
+            sage: filename=os.path.join(SAGE_TMP, 'test.png')
+            sage: c.save(filename, xmin=-1,xmax=3,ymin=-1,ymax=3)
 
         To correct the aspect ratio of certain graphics, you can
-        set the ``aspect_ratio`` to 1
+        set the ``aspect_ratio`` to 1::
 
-        ::
-
-            sage: c.show(aspect_ratio=1, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: c.save(filename, aspect_ratio=1, xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You could also just make the dimensions of the picture square
-        using ``figsize``
+        using ``figsize``::
 
-        ::
-
-            sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
-
-
+            sage: c.save(filename, figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         ::
 

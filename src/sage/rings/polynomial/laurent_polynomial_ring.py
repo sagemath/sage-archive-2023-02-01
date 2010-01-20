@@ -9,6 +9,21 @@ it as a quotient ring
 
     R[x_1, y_1, x_2, y_2, \ldots, x_n, y_n] / (x_1 y_1 - 1, x_2 y_2 - 1, \ldots, x_n y_n - 1).
 
+TESTS::
+
+    sage: P.<q> = LaurentPolynomialRing(QQ)
+    sage: qi = q^(-1)
+    sage: qi in P
+    True
+    sage: P(qi)
+    q^-1
+
+    sage: A.<Y> = QQ[]
+    sage: R.<X> = LaurentPolynomialRing(A)
+    sage: matrix(R,2,2,[X,0,0,1])
+    [X 0]
+    [0 1]
+
 AUTHORS:
 
 - David Roe (2008-2-23): created
@@ -388,7 +403,10 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         self._n = R.ngens()
         self._R = R
         self._prepend_string = prepend_string
-        ParentWithGens.__init__(self, R.base_ring(), names)
+        ParentWithGens.__init__(self, base=R.base_ring(), names=names)
+        self._populate_coercion_lists_(element_constructor=self._element_constructor_,
+                                       init_no_parent=True)
+
 
     def __repr__(self):
         """
@@ -515,7 +533,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         vars.remove(str(var))
         return LaurentPolynomialRing(self.base_ring(), vars)
 
-    def coerce_map_from_impl(self, R):
+    def _coerce_map_from_(self, R):
         """
         EXAMPLES::
 
@@ -534,15 +552,15 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
 
         if R is self._R:
-            from sage.categories.morphism import FormalCoercionMorphism
-            return FormalCoercionMorphism(R, self)
+            from sage.structure.coerce_maps import CallableConvertMap
+            return CallableConvertMap(R, self, self._element_constructor_,
+                                      parent_as_first_arg=False)
         else:
             f = self._R.coerce_map_from(R)
             if f is not None:
                 from sage.categories.homset import Hom
                 from sage.categories.morphism import CallMorphism
                 return CallMorphism(Hom(self._R, self)) * f
-        return None
 
     def __cmp__(left, right):
         """
@@ -747,7 +765,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             raise ValueError, "base ring must be an integral domain"
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         EXAMPLES::
 

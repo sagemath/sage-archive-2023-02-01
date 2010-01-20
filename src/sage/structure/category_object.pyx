@@ -310,7 +310,7 @@ cdef class CategoryObject(sage_object.SageObject):
                 else:
                     ngens = self.ngens()
             names = self.normalize_names(ngens, names)
-        if not (self._names is None) and names != self._names:
+        if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
         if PY_TYPE_CHECK(names, str):
             names = (names, )  # make it a tuple

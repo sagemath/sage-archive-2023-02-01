@@ -324,12 +324,11 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ValueError: variable names cannot be changed after object creation.
         """
         if self._element_constructor is not None:
-            parent.Parent._assign_names(self, names=None, normalize=True)
-            return
+            return parent.Parent._assign_names(self, names=names, normalize=normalize)
         if names is None: return
         if normalize:
             names = normalize_names(self.ngens(), names)
-        if not (self._names is None) and names != self._names:
+        if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
         if isinstance(names, str):
             names = (names, )  # make it a tuple

@@ -44,8 +44,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     - Quartic twist: only if `j=1728\not=0` (so not if char=2,3).
     - Sextic  twist: only if `j=0\not=1728` (so not if char=2,3).
 
-    More complicated twists exist in theory for char=2,3 and
-    j=0=1728, but are not implemented.
+    More complicated twists exist in theory for char=2,3 and j=0=1728,
+    but are not implemented.
     """
 
     def quadratic_twist(self, D=None):
@@ -56,19 +56,21 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         - ``D`` (default None) the twisting parameter (see below).
 
-        In characteristics other than 2, `D` must be nonzero, and the twist is
-        isomorphic to self after adjoining `\sqrt(D)` to the base.
+        In characteristics other than 2, `D` must be nonzero, and the
+        twist is isomorphic to self after adjoining `\sqrt(D)` to the
+        base.
 
-        In characteristic 2, `D` is arbitrary, and the twist is isomorphic
-        to self after adjoining a root of `x^2+x+D` to the base.
+        In characteristic 2, `D` is arbitrary, and the twist is
+        isomorphic to self after adjoining a root of `x^2+x+D` to the
+        base.
 
         In characteristic 2 when `j=0`, this is not implemented.
 
-        If the base field `F` is finite, `D` need not be specified, and
-        the curve returned is the unique curve (up to isomorphism)
+        If the base field `F` is finite, `D` need not be specified,
+        and the curve returned is the unique curve (up to isomorphism)
         defined over `F` isomorphic to the original curve over the
-        quadratic extension of `F` but not over `F` itself.  Over infinite
-        fields, an error is raised if `D` is not given.
+        quadratic extension of `F` but not over `F` itself.  Over
+        infinite fields, an error is raised if `D` is not given.
 
         EXAMPLES::
 
@@ -267,7 +269,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         ``other`` is ``self.quadratic_twist(D)`` (up to isomorphism).
         If ``self`` and ``other`` are isomorphic, returns 1.
 
-        If the curves are defined over `\mathbb{Q}`, the output `D` is a squarefree integer.
+        If the curves are defined over `\mathbb{Q}`, the output `D` is
+        a squarefree integer.
 
         .. note::
 
@@ -549,24 +552,54 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         r"""
         Returns an elliptic curve isogeny from self.
 
-        The isogeny can be determined in two ways, either by a polynomial or a set of torsion points.
-        The methods used are:
+        The isogeny can be determined in two ways, either by a
+        polynomial or a set of torsion points.  The methods used are:
 
         - Velu's Formulas: Velu's original formulas for computing
-          isogenies.  This algorithm is selected by giving as the ``kernel`` parameter a point or a list of points which generate a finite subgroup.
+          isogenies.  This algorithm is selected by giving as the
+          ``kernel`` parameter a point or a list of points which
+          generate a finite subgroup.
 
-        - Kohel's Formulas:
-          Kohel's original formulas for computing isogenies.
-          This algorithm is selected by giving as the ``kernel`` parameter a polynomial (or a coefficient list (little endian)) which will define the kernel of the isogeny.
+        - Kohel's Formulas: Kohel's original formulas for computing
+          isogenies.  This algorithm is selected by giving as the
+          ``kernel`` parameter a polynomial (or a coefficient list
+          (little endian)) which will define the kernel of the
+          isogeny.
 
         INPUT:
 
-        - ``E``         - an elliptic curve, the domain of the isogeny to initialize.
-        - ``kernel``    - a kernel, either a point in ``E``, a list of points in ``E``, a univariate kernel polynomial or ``None``. If initiating from a domain/codomain, this must be set to None.
-        - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None, then this must be the codomain of a separable normalized isogeny, furthermore, ``degree`` must be the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this must be isomorphic to the codomain of the normalized separable isogeny defined by ``kernel``, in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
-        - ``degree``    - an integer (default:None). If ``kernel`` is None, then this is the degree of the isogeny from ``E`` to ``codomain``. If ``kernel`` is not None, then this is used to determine whether or not to skip a gcd of the kernel polynomial with the two torsion polynomial of ``E``.
-        - ``model``     - a string (default:None).  Only supported variable is "minimal", in which case if``E`` is a curve over the rationals, then the codomain is set to be the unique global minimum model.
-        - ``check`` (default: True) checks if the input is valid to define an isogeny
+        - ``E``         - an elliptic curve, the domain of the isogeny to
+                          initialize.
+
+        - ``kernel``    - a kernel, either a point in ``E``, a list of points
+                          in ``E``, a univariate kernel polynomial or ``None``.
+                          If initiating from a domain/codomain, this must be
+                          set to None.
+
+        - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is
+                          None, then this must be the codomain of a separable
+                          normalized isogeny, furthermore, ``degree`` must be
+                          the degree of the isogeny from ``E`` to ``codomain``.
+                          If ``kernel`` is not None, then this must be
+                          isomorphic to the codomain of the normalized separable
+                          isogeny defined by ``kernel``, in this case, the
+                          isogeny is post composed with an isomorphism so that
+                          this parameter is the codomain.
+
+        - ``degree``    - an integer (default:None). If ``kernel`` is None,
+                          then this is the degree of the isogeny from ``E`` to
+                          ``codomain``. If ``kernel`` is not None, then this is
+                          used to determine whether or not to skip a gcd of the
+                          kernel polynomial with the two torsion polynomial of
+                          ``E``.
+
+        - ``model``     - a string (default:None).  Only supported variable is
+                          "minimal", in which case if``E`` is a curve over the
+                          rationals, then the codomain is set to be the unique
+                          global minimum model.
+
+        - ``check`` (default: True) checks if the input is valid to define an
+                          isogeny
 
         OUTPUT:
 
@@ -609,18 +642,22 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def isogeny_codomain(self, kernel, degree=None):
         r"""
-        Returns the codomain of the isogeny from self with given kernel.
+        Returns the codomain of the isogeny from self with given
+        kernel.
 
         INPUT:
 
-        - ``kernel`` - Either a list of points in the kernel of the isogeny, or a kernel polynomial (specified as a either a univariate polynomial or a coefficient list.)
+        - ``kernel`` - Either a list of points in the kernel of the isogeny,
+                       or a kernel polynomial (specified as a either a
+                       univariate polynomial or a coefficient list.)
 
-        - ``degree`` - an integer, (default:None) optionally specified degree of the kernel.
+        - ``degree`` - an integer, (default:None) optionally specified degree
+                       of the kernel.
 
         OUTPUT:
 
-        An elliptic curve, the codomain of the separable normalized isogeny from   this kernel
-
+        An elliptic curve, the codomain of the separable normalized
+        isogeny from this kernel
 
         EXAMPLES::
 
@@ -827,11 +864,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         INPUT:
 
         - ``mprec`` - precision
-        - ``algorithm`` - string (default:``None``) an algorithm identifier indicating using the ``pari``, ``fast`` or ``quadratic`` algorithm. If the algorithm is ``None``, then this function determines the best algorithm to use.
+
+        - ``algorithm`` - string (default:``None``) an algorithm identifier
+                      indicating using the ``pari``, ``fast`` or ``quadratic``
+                      algorithm. If the algorithm is ``None``, then this
+                      function determines the best algorithm to use.
 
         OUTPUT:
 
-        a Laurent series in one variable `z` with coefficients in the base field `k` of `E`.
+        a Laurent series in one variable `z` with coefficients in the
+        base field `k` of `E`.
 
         EXAMPLES::
 

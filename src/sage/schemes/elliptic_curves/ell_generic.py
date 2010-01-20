@@ -2136,6 +2136,43 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         return mx, my
 
+    def multiplication_by_m_isogeny(self, m):
+        r"""
+        Return the ``EllipticCurveIsogeny`` object associated to the
+        multiplication-by-`m` map on self. The resulting isogeny will
+        have the associated rational maps (i.e. those returned by
+        `self.multiplication_by_m()`) already computed.
+
+        NOTE: This function is currently *much* slower than the
+        result of ``self.multiplication_by_m()``, because
+        constructing an isogeny precomputes a significant amount
+        of information. See trac tickets #7368 and #8014 for the
+        status of improving this situation.
+
+        INPUT:
+
+        -  ``m`` - a nonzero integer
+
+        OUTPUT:
+
+        - An ``EllipticCurveIsogeny`` object associated to the
+        multiplication-by-`m` map on self.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: E.multiplication_by_m_isogeny(7)
+            Isogeny of degree 49 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+
+        """
+        mx, my = self.multiplication_by_m(m)
+
+        torsion_poly = self.torsion_polynomial(m).monic()
+        phi = self.isogeny(torsion_poly, codomain=self)
+        phi._EllipticCurveIsogeny__initialize_rational_maps(precomputed_maps=(mx, my))
+
+        return phi
+
     def isomorphism_to(self, other):
         """
         Given another weierstrass model ``other`` of self, return an

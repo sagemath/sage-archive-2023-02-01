@@ -81,9 +81,21 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         sage: t4 = tetra('yellow').rotateZ(t).rotate(v,6*pi/5)
         sage: t5 = tetra('orange').rotateZ(t).rotate(v,8*pi/5)
         sage: show(t1+t2+t3+t4+t5, frame=False)
+
+    TESTS:
+
+    Copies are made of the input list, so the input list does not change::
+
+        sage: mypoints = [vector([1,2,3]), vector([4,5,6])]
+        sage: type(mypoints[0])
+        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        sage: L = line3d(mypoints)
+        sage: type(mypoints[0])
+        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
+    points = points[:]
     for i in range(len(points)):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)

@@ -772,6 +772,7 @@ class GraphPlot(SageObject):
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)
+        G._extra_kwds['axes_pad']=.05
         return G
 
     def layout_tree(self,root,orientation):

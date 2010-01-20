@@ -390,6 +390,10 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         ignore_case = kwds['ignore_case']
     else:
         ignore_case = False
+    if 'multiline' in kwds:
+        multiline = kwds['multiline']
+    else:
+        multiline = False
     # done processing keywords
     # define module, exts (file extension), title (title of search),
     # base_path (top directory in which to search)
@@ -504,26 +508,41 @@ You can build this with 'sage -docbuild %s html'.""" % s
             if re.search("\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
-                    match_list = [(lineno, line) for lineno, line in
-                                  enumerate(open(filename).read().splitlines(True))
-                                  if re.search(string, line, *flags)]
-                    for extra in [extra1, extra2, extra3, extra4, extra5]:
-                        if extra:
-                            match_list = filter(lambda s:
-                                                    re.search(extra, s[1],
-                                                              re.MULTILINE,
-                                                              *flags),
-                                                match_list)
-                    for num, line in match_list:
-                        results += ':'.join([filename[strip:].lstrip("/"),
-                                             str(num+1),
-                                             line])
+                    if multiline:
+                        line = open(filename).read()
+                        if re.search(string, line, *flags):
+                            match_list = line
+                        else:
+                            match_list = None
+                        for extra in [extra1, extra2, extra3, extra4, extra5]:
+                            if extra and match_list:
+                                if not re.search(extra, match_list):
+                                    match_list = None
+                        if match_list:
+                            results += filename[strip:].lstrip("/") + "\n"
+                    else:
+                        match_list = [(lineno, line) for lineno, line in
+                                      enumerate(open(filename).read().splitlines(True))
+                                      if re.search(string, line, *flags)]
+                        for extra in [extra1, extra2, extra3, extra4, extra5]:
+                            if extra:
+                                match_list = filter(lambda s:
+                                                        re.search(extra, s[1],
+                                                                  re.MULTILINE,
+                                                                  *flags),
+                                                    match_list)
+                        for num, line in match_list:
+                            results += ':'.join([filename[strip:].lstrip("/"),
+                                                 str(num+1),
+                                                 line])
 
     if not interact:
         return results
 
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
+        if multiline: # insert the colons that format_search_as_html expects
+            results = ":\n".join(results.splitlines()) + ":"
         # format the search terms nicely
         terms = ', '.join(['"%s"' % s for s in [string] + [extra1,
                           extra2, extra3, extra4, extra5] if s])
@@ -558,6 +577,10 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     - ``ignore_case`` (optional, default False) - if True, perform a
       case-insensitive search
 
+    - ``multiline`` (optional, default False) - if True, search more
+      than one line at a time.  In this case, print any matching file
+      names, but don't print line numbers.
+
     - ``interact`` (optional, default ``True``) - if ``False``, return
       a string with all the matches. Otherwise, this function returns
       ``None``, and the results are displayed appropriately, according
@@ -572,11 +595,17 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
       ``module`` doesn't start with "sage", then the links in the
       notebook output may not function.
 
-    The file paths in the output are relative to
-    ``$SAGE_ROOT/devel/sage/``. In the command-line interface, each line
-    of the results has the form ``filename:num:line of code``, where
-    ``num`` is the line number in ``filename`` and ``line of code`` is
-    the line that matched your search terms.
+    OUTPUT: If ``interact`` is False, then return a string with all of
+    the matches, separated by newlines.  On the other hand, if
+    ``interact`` is True (the default), there is no output.  Instead:
+    at the command line, the search results are printed on the screen
+    in the form ``filename:line_number:line of text``, showing the
+    filename in which each match occurs, the line number where it
+    occurs, and the actual matching line.  (If ``multiline`` is True,
+    then only the filename is printed for each match.)  The file paths
+    in the output are relative to ``$SAGE_ROOT/devel/sage/``.  In the
+    notebook, each match produces a link to the actual file in which
+    it occurs.
 
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
@@ -593,7 +622,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
 
     First note that without using ``interact=False``, this function
     produces no output, while with ``interact=False``, the output is a
-    string.  These examples almost all use this option.
+    string.  These examples almost all use this option, so that they
+    have something to which to compare their output.
 
     You can search for "matrix" by typing ``search_src("matrix")``.
     This particular search will produce many results::
@@ -643,6 +673,18 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         sage: s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
         True
 
+    Searches are by default restricted to single lines, but this can
+    be changed by setting ``multiline`` to be True.  In the following,
+    since ``search_src(string, interact=False)`` returns a string with
+    one line for each match, counting the length of
+    ``search_src(string, interact=False).splitlines()`` gives the
+    number of matches. ::
+
+        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 8
+        True
+        sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+        True
+
     A little recursive narcissism: let's do a doctest that searches for
     this function's doctests. Note that you can't put "sage:" in the
     doctest string because it will get replaced by the Python ">>>"
@@ -660,6 +702,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 8
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
@@ -695,49 +739,13 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     The file paths in the output are relative to
     ``$SAGE_ROOT/devel/sage/doc/output``.
 
-    INPUT:
+    INPUT: same as for :func:`search_src`.
 
-    - ``string`` - a string to find in the Sage documentation.
+    OUTPUT: same as for :func:`search_src`.
 
-    - ``extra1``, ..., ``extra5`` - additional strings to require when
-      searching.  Lines must match all of these, as well as ``string``.
+    EXAMPLES:
 
-    - ``whole_word`` (optional, default False) - if True, search for
-      ``string`` and ``extra1`` (etc.) as whole words only.  This
-      assumes that each of these arguments is a single word, not a
-      regular expression, and it might have unexpected results if used
-      with regular expressions.
-
-    - ``ignore_case`` (optional, default False) - if True, perform a
-      case-insensitive search
-
-    - ``interact`` (optional, default ``True``) - if ``False``, return
-      a string with all the matches. Otherwise, this function returns
-      ``None``, and the results are displayed appropriately, according
-      to whether you are using the notebook or the command-line
-      interface. You should not ordinarily need to use this.
-
-    - ``path_re`` (optional, default '') - regular expression which
-      the filename (including the path) must match.
-
-    The ``string`` and ``extraN`` arguments are treated as regular
-    expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will be case-sensitive unless
-    ``ignore_case`` is True.
-
-    In the command-line interface, each line of the results
-    has the form ``filename:num:line of code``, where ``num`` is the
-    line number in ``filename`` and ``line of code`` is the line that
-    matched your search terms. This may not be very helpful for this
-    function, but we include it anyway.
-
-    .. note::
-
-        The ``extraN`` parameters are present only because
-        ``search_src(string, *extras, interact=False)``
-        is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
-
-    EXAMPLES::
+    See the documentation for :func:`search_src` for more examples. ::
 
         sage: search_doc('creates a polynomial', path_re='tutorial', interact=False) # random
         html/en/tutorial/tour_polynomial.html:<p>This creates a polynomial ring and tells Sage to use (the string)
@@ -766,46 +774,9 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='',
     Search Sage library source code for function definitions containing
     ``name``. The search is case sensitive.
 
-    INPUT:
+    INPUT: same as for :func:`search_src`.
 
-    - ``name`` - a string to find in the names of functions in the Sage
-      source code.
-
-    - ``extra1``, ..., ``extra4`` - additional strings to require, as
-      in :func:`search_src`.
-
-    - ``whole_word`` (optional, default False) - if True, search for
-      ``string`` and ``extra1`` (etc.) as whole words only.  This
-      assumes that each of these arguments is a single word, not a
-      regular expression, and it might have unexpected results if used
-      with regular expressions.
-
-    - ``ignore_case`` (optional, default False) - if True, perform a
-      case-insensitive search
-
-    - ``interact`` (optional, default ``True``) - if ``False``, return
-      a string with all the matches. Otherwise, this function returns
-      ``None``, and the results are displayed appropriately, according
-      to whether you are using the notebook or the command-line
-      interface. You should not ordinarily need to use this.
-
-    - ``path_re`` (optional, default '') - regular expression which
-      the filename (including the path) must match.
-
-    - ``module`` (optional, default 'sage') - the module in which to
-      search.  The default is 'sage', the entire Sage library.  If
-      ``module`` doesn't start with "sage", then the links in the
-      notebook output may not function.
-
-    The ``string`` and ``extraN`` arguments are treated as regular
-    expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will be case-sensitive unless
-    ``ignore_case`` is True.
-
-    In the command-line interface, each line of the results has the form
-    ``filename:num:line of code``, where ``num`` is the line number in
-    ``filename`` and ``line of code`` is the line that matched your
-    search terms.
+    OUTPUT: same as for :func:`search_src`.
 
     .. note::
 
@@ -814,13 +785,9 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='',
         "def" line, this function will not find it. As tabs are not
         allowed in Sage library code, this should not be a problem.
 
-    .. note::
+    EXAMPLES:
 
-        The ``extraN`` parameters are present only because
-        ``search_src(string, *extras, interact=False)``
-        is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
-
-    EXAMPLES::
+    See the documentation for :func:`search_src` for more examples. ::
 
         sage: print search_def("fetch", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):

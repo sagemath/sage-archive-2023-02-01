@@ -674,23 +674,22 @@ def helper_matrix(Q):
 
     -  ``Q`` - cubic polynomial
     """
-
     a = Q[1]
     b = Q[0]
 
     # Discriminant (should be invertible for a curve of good reduction)
     D = 4*a**3 + 27*b**2
+    Dinv = D**(-1)  # NB do not use 1/D
 
     # This is the inverse of the matrix
     #   [  a,  -3b,    0 ]
     #   [  0,  -2a,  -3b ]
     #   [  3,    0,  -2a ]
 
-    return (1/D) * matrix(Q.base_ring(), 3, 3,
-                          [  4*a**2 , -6*b*a  , 9*b**2,
-                             -9*b   , -2*a**2 , 3*b*a,
-                              6*a   , -9*b    , -2*a**2 ])
-
+    M = Dinv * matrix( [  [4*a**2 , -6*b*a  , 9*b**2  ],
+                           [-9*b   , -2*a**2 , 3*b*a   ],
+                           [ 6*a   , -9*b    , -2*a**2 ] ])
+    return M
 
 def lift(x):
     r"""

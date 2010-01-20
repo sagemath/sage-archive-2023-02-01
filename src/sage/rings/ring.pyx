@@ -560,7 +560,7 @@ cdef class Ring(ParentWithGens):
             return False
 
         if proof:
-            raise NotImplementedError
+            raise NotImplementedError, "No way to prove that %s is an integral domain!"%self
         else:
             return False
 

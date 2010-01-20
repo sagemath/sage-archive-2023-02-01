@@ -1059,9 +1059,11 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
 
         # convert sigma to be over Z/p^N
         s = f.parent()(sigma)
+        sinv = s**(-1)
+        finv = f**(-1)
 
         # apply differential equation
-        temp = (s.derivative() / s / f).derivative() / f + c + x
+        temp = (s.derivative() * sinv * finv).derivative() * finv + c + x
 
         # coefficient of t^k in the result should be zero mod p^(N-k-2)
         for k in range(N-2):

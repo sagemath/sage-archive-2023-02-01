@@ -5118,13 +5118,12 @@ class NumberField_absolute(NumberField_generic):
         self.__maximal_order[v] = O
         return O
 
-    def order(self, *gens, **kwds):
+    def order(self, *args, **kwds):
         r"""
         Return the order with given ring generators in the maximal order of
         this number field.
 
         INPUT:
-
 
         -  ``gens`` - list of elements of self; if no
            generators are given, just returns the cardinality of this number
@@ -5160,7 +5159,27 @@ class NumberField_absolute(NumberField_generic):
 
         Alternatively, an order can be constructed by adjoining elements to
         `\ZZ`:
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: ZZ[a]
+            Order in Number Field in a0 with defining polynomial x^3 - 2
+
+        TESTS:
+
+        We verify that trac #2480 is fixed::
+
+            sage: K.<a> = NumberField(x^4 + 4*x^2 + 2)
+            sage: B = K.integral_basis()
+            sage: K.order(*B)
+            Order in Number Field in a with defining polynomial x^4 + 4*x^2 + 2
+            sage: K.order(B)
+            Order in Number Field in a with defining polynomial x^4 + 4*x^2 + 2
+            sage: K.order(gens=B)
+            Order in Number Field in a with defining polynomial x^4 + 4*x^2 + 2
         """
+        # set gens appropriately from the arguments
+        gens = kwds.pop('gens', args)
+
         if len(gens) == 0:
             return NumberField_generic.order(self)
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):

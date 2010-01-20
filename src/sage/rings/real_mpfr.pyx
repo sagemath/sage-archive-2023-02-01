@@ -216,7 +216,7 @@ def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
 
     -  ``rnd`` - (string) the rounding mode
 
-      - RNDN - (default) round to nearest:
+      - RNDN - (default) round to nearest (ties go to the even number):
         Knuth says this is the best choice to prevent "floating point
         drift".
 

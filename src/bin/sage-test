@@ -79,15 +79,24 @@ def test(F, cmd):
     t = time.time()
     if skip(F):
         return 0
-    try:
-        s = os.path.join(SAGE_ROOT, 'local', 'bin',
-                         'sage-%s' % cmd) + ' "%s"' % F
-        err = os.system(s)   # need to catch control c by writing to a file and looking at it??
-    except KeyboardInterrupt:
-        print "Keyboard Interrupt"
-        print "Aborting further tests."
-        sys.exit(1)
-    if err != 0:
+    s = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-%s' % cmd) + ' "%s"' % F
+    err = os.system(s)
+    # On unix systems, the return value of os.system has the process return
+    # value in the second byte.
+    err = err // 256
+
+    # Check the process exit codes that sage-doctest returns
+
+    if err == 1: # process exit code 1: File not found
+        failed.append(sage_test_command(F)+" # File not found")
+    elif err == 2: # process exit code 2: KeyboardInterrupt
+        failed.append(sage_test_command(F)+" # KeyboardInterrupt")
+        raise KeyboardInterrupt
+    elif err == 3: # process exit code 3: Segfault
+        failed.append(sage_test_command(F)+" # Segfault")
+    elif err == 4: # process exit code 4: Failures
+        failed.append(sage_test_command(F))
+    elif err != 0:
         failed.append(sage_test_command(F))
     os.system("mv -f __test* %s 2>/dev/null"%(TMP))
     print "\t [%.1f s]"%(time.time() - t)
@@ -110,7 +119,7 @@ def test_file(F):
 
     base, ext = os.path.splitext(F)
     if ext in ['.py', '.spyx', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
-        return test(F, 'doctest ' + opts + extra_opts)
+        test(F, 'doctest ' + opts + extra_opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not os.sep + 'notes' in F:
         ld = os.listdir(F)
@@ -158,10 +167,11 @@ if len(files) == 0:
 files.sort()
 
 for F in files:
-    e = test_file(F)
-    if e!=0 and e!=512:
-        print "exit code: %s"%e
-    #    sys.exit(1)
+    try:
+        test_file(F)
+    except KeyboardInterrupt:
+        print "Aborting further tests."
+        break
 
 print " "
 print "-"*int(70)

@@ -462,8 +462,8 @@ def implicit_plot(f, xrange, yrange, **options):
     linestyles = options.pop('linestyle', None)
     return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None)
-def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth):
+@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True)
+def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`
     and plots the region where f is True over the specified
@@ -518,19 +518,23 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     A disk centered at the origin::
 
-        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1)).show(aspect_ratio=1)
+        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1), aspect_ratio=1)
 
-    A plot with more than one condition::
+    A plot with more than one condition (all conditions must be true for the statement to be true)::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), aspect_ratio=1)
 
     Since it doesn't look very good, let's increase plot_points::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1)
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400, aspect_ratio=1)
+
+    To get plots where only one condition needs to be true, use a function::
+
+        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2), aspect_ratio=1)
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400, aspect_ratio=1)
 
     Here is another plot, with a huge border::
 
@@ -542,7 +546,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     Here we have a cut circle::
 
-        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1)
+        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200, aspect_ratio=1)
 
     The first variable range corresponds to the horizontal axis and
     the second variable range corresponds to the vertical axis::
@@ -582,25 +586,16 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     cmap.set_under(incol)
 
     g = Graphics()
-
-    opt = contour_plot.options.copy()
-    opt.pop('plot_points')
-    opt.pop('fill')
-    opt.pop('contours')
-    opt.pop('frame')
-
-    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(plot_points=plot_points,
-                                                                    contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, **opt)))
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
+    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, labels=False, **options)))
 
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
         linestyles = [borderstyle] if borderstyle else None
         linewidths = [borderwidth] if borderwidth else None
-        opt.pop('linestyles')
-        opt.pop('linewidths')
-        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(plot_points=plot_points,
+        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(
                                                                        linestyles=linestyles, linewidths=linewidths,
-                                                                       contours=[0], cmap=[bordercol], fill=False, **opt)))
+                                                                       contours=[0], cmap=[bordercol], fill=False, labels=False, **options)))
 
     return g
 
@@ -622,9 +617,18 @@ def equify(f):
         -x*y + 1
         sage: equify(y > 0)
         -y
+        sage: f=equify(lambda x,y: x>y)
+        sage: f(1,2)
+        1
+        sage: f(2,1)
+        -1
     """
     import operator
     from sage.calculus.all import symbolic_expression
+    from sage.symbolic.expression import is_Expression
+    if not is_Expression(f):
+        return lambda x,y: -1 if f(x,y) else 1
+
     op = f.operator()
     if op is operator.gt or op is operator.ge:
         return symbolic_expression(f.rhs() - f.lhs())

@@ -38,7 +38,7 @@ EXAMPLE::
     Conductor exponent: 2
     Kodaira Symbol: II
     Tamagawa Number: 1
-    sage: E.tamagawa_product()
+    sage: E.tamagawa_product_bsd()
     1
 
 ::
@@ -851,7 +851,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).tamagawa_exponent()
 
-    def tamagawa_product(self):
+    def tamagawa_product_bsd(self):
         r"""
         Given an elliptic curve `E` over a number field `K`, this function returns the
         integer `C(E/K)` that appears in the Birch and Swinnerton-Dyer conjecture accounting
@@ -874,18 +874,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([0,2+i])
-            sage: E.tamagawa_product()
+            sage: E.tamagawa_product_bsd()
             1
 
             sage: E = EllipticCurve([(2*i+1)^2,i*(2*i+1)^7])
-            sage: E.tamagawa_product()
+            sage: E.tamagawa_product_bsd()
             4
 
         An example where the Neron model changes over K::
 
             sage: K.<t> = NumberField(x^5-10*x^3+5*x^2+10*x+1)
             sage: E = EllipticCurve(K,'75a1')
-            sage: E.tamagawa_product()
+            sage: E.tamagawa_product_bsd()
             5
             sage: da = E.local_data()
             sage: [dav.tamagawa_number() for dav in da]
@@ -1023,8 +1023,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
 
             sage: E2 = E.global_minimal_model()
-            sage: E2
-            Elliptic Curve defined by y^2 + a*x*y + (a+1)*y = x^3 + (a+1)*x^2 + (12289755603565800754*a-75759141535687466985)*x + (51556320144761417221790307379*a-317814501841918807353201512829) over Number Field in a with defining polynomial x^2 - 38
+            sage: E2 # random (the global minimal model is not unique)
+            Elliptic Curve defined by y^2 + a*x*y + (a+1)*y = x^3 + (a+1)*x^2 + (368258520200522046806318444*a-2270097978636731786720859345)*x + (8456608930173478039472018047583706316424*a-52130038506793883217874390501829588391299) over Number Field in a with defining polynomial x^2 - 38
 
             sage: E2.local_data()
             []

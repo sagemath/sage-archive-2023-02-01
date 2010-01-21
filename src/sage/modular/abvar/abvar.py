@@ -1829,7 +1829,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES::
 
             sage: (J0(11) * J0(33))._ambient_latex_repr()
-            'J_0(11) \\cross J_0(33)'
+            'J_0(11) \\times J_0(33)'
         """
         v = []
         for G in self.groups():
@@ -1839,7 +1839,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 v.append('J_1(%s)'%G.level())
             elif is_GammaH(G):
                 v.append('J_H(%s,%s)'%(G.level(), G._generators_for_H()))
-        return ' \\cross '.join(v)
+        return ' \\times '.join(v)
 
 
     def _ambient_lattice(self):

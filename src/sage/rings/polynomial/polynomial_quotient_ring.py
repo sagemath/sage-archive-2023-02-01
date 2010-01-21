@@ -1065,7 +1065,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         If `D` is an etale algebra over a number field (i.e. the coefficient
         ring is a number field and the modulus is squarefree), then compute the
         Selmer group `D(S,m)`, which is defined to be the subgroup of
-        `D^\cross/(D^\cross)^m` consisting of elements `a` such that
+        `D^\times/(D^\times)^m` consisting of elements `a` such that
         `D(\sqrt[m]{a})/D` is unramified at all primes of `D` lying above a
         place outside of `S`.
 

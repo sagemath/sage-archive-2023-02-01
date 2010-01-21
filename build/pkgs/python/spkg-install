@@ -47,7 +47,7 @@ fi
 # Linux definitely does *not* work on anything else.
 if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
     echo "Updating readline.c for Linux/Itanium"
-    cp patches/readline.c-Itanium-fix Modules/readline.c
+    cp patches/readline.c-Itanium-fix src/Modules/readline.c
 else
     # Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
     # Associated bug: http://bugs.python.org/issue5833

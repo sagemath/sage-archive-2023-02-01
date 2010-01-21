@@ -64,6 +64,9 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.6.4.p5 (William Stein, Jan 20, 2010) ===
+* Fix bug on Itanium introduced by typo by Craig in #60.  See trac 8020.
+
 === python-2.6.4.p4 (Craig Citro, Jan 17, 2010) ===
 * Move MACOSX_DEPLOYMENT_TARGET fix to sage-env, so that it's
   used for all python-related spkgs. (This was leading to a

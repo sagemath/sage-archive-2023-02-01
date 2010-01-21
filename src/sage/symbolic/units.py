@@ -28,10 +28,10 @@ This unit acts exactly like a symbolic variable::
 
 Units have additional information in their docstring::
 
-	sage: units.force.dyne?
-	Docstring:
-		CGS unit for force defined to be gram*centimeter/second^2.
-		Equal to 10^-5 newtons.
+        sage: # You would type: units.force.dyne?
+	sage: print units.force.dyne._sage_doc_()
+	CGS unit for force defined to be gram*centimeter/second^2.
+	Equal to 10^-5 newtons.
 
 
 You can call the convert function with units::
@@ -49,7 +49,7 @@ Calling the convert function with no target returns base SI units::
 
 Giving improper units to convert to raises a ValueError::
 
-	sage: t.convert(unit.charge.coulomb)
+	sage: t.convert(units.charge.coulomb)
 	Traceback (most recent call last):
 	...
 	ValueError: Incompatible units
@@ -470,12 +470,23 @@ unit_to_type = {}
 value_to_unit = {}
 
 def evalunitdict():
+    """
+    Replace all the string values of the unitdict variable by their
+    evaluated forms, and builds some other tables for ease of use.
+    This function is mainly used internally, for efficiency (and
+    flexibility) purposes, making it easier to describe the units.
+
+    EXAMPLES::
+
+	sage: sage.symbolic.units.evalunitdict()
+    """
     from sage.misc.all import sage_eval
     for key, value in unitdict.iteritems():
         unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
 
-    # <<create a function to add new entries to the table without having to
-    # know anything about how the table is stored internally.>>
+    # FEATURE (todo): create a function that would allow users to add
+    # new entries to the table without having to know anything about
+    # how the table is stored internally.
 
     #
     # Format the table for easier use.
@@ -898,10 +909,50 @@ def vars_in_str(s):
     """
     Given a string like 'mass/(length*time)', return the list
     ['mass', 'length', 'time'].
+
+    INPUT:
+
+        - `s` -- string
+
+    OUTPUT:
+
+        - list of strings (unit names)
+
+    EXAMPLES::
+
+        sage: sage.symbolic.units.vars_in_str('mass/(length*time)')
+	['mass', 'length', 'time']
     """
     return re.findall('[a-z|_]+', s)
 
 def unit_derivations_expr(v):
+    """
+    Given derived units name, returns the corresponding units
+    expression.  For example, given 'acceleration' output the symbolic
+    expression length/time^2.
+
+    INPUT:
+
+        - `v` -- string, name of a unit type such as 'area', 'volume', etc.
+
+    OUTPUT:
+
+        - symbolic expression
+
+    EXAMPLES::
+
+	sage: sage.symbolic.units.unit_derivations_expr('volume')
+	length^3
+	sage: sage.symbolic.units.unit_derivations_expr('electric_potential')
+	length^2*mass/(current*time^3)
+
+    If the unit name is unknown, a KeyError is raised::
+
+	sage: sage.symbolic.units.unit_derivations_expr('invalid')
+	Traceback (most recent call last):
+	...
+	KeyError: 'invalid'
+    """
     v = str(v)
     Z = unit_derivations[v]
     if isinstance(Z,str):
@@ -923,6 +974,15 @@ class Units:
         self.__data = data
 
     def trait_names(self):
+	"""
+	Return completions of this unit objects.  This is used by the
+	Sage command line and notebook to create the list of method
+	names.
+
+	EXAMPLES::
+
+
+	"""
         return sorted([x for x in self.__data.keys() if '/' not in x])
 
     def __getattr__(self, name):
@@ -1116,7 +1176,7 @@ def base_units(unit):
 	if not unit_to_type.has_key(str(unit)):
 		return unit
 	elif unit_to_type[str(unit)] == 'si_prefixes' or unit_to_type[str(unit)] == 'unit_multipliers':
-		return unitdict[unit_to_type[str(unit)]][str(unit)]
+		return sage_eval(unitdict[unit_to_type[str(unit)]][str(unit)])
 	else:
 		v = SR.var(unit_to_type[str(unit)])
 		if unit_derivations.has_key(str(v)):
@@ -1186,6 +1246,7 @@ def convert_temperature(expr, target):
 			return a[3]*target_temp
 	else:
 		raise ValueError, "Cannot convert"
+
 
 
 

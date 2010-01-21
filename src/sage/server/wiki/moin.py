@@ -1,202 +1,126 @@
 r"""
-Wiki Interactive Web Page.
+Collaborative Wiki Engine
 
-Sage includes the Moin Moin Wiki interactive web page system
-standard. To start your own math-typesetting-aware wiki server
-immediately, just type ``wiki()`` at the command line.
+Sage includes the MoinMoin_ Wiki, "an advanced, easy to use and
+extensible WikiEngine with a large community of users.  Said in a few
+words, it is about collaboration on easily editable web pages."
 
-The Moin Moin Wiki "is an advanced, easy to use and extensible
-WikiEngine with a large community of users. Said in a few words, it
-is about collaboration on easily editable web pages."
+To start your own math-typesetting-aware wiki server immediately, just
+type ``wiki()`` at the command line.  For instructions on how to
+upgrade existing MoinMoin wikis, please visit the `MoinMoin How-Tos`_
+
+.. _MoinMoin: http://moinmo.in/
+.. _`MoinMoin How-Tos`: http://moinmo.in/HowTo
 """
 
-import os, socket, sys
+import os
+import socket
+import sys
+import shutil
 
 import sage.misc.misc as misc
+from sage.misc.viewer import browser
+from sage.server.misc import print_open_msg
 
-from   sage.misc.viewer     import browser
-from   sage.server.misc import print_open_msg
+join = os.path.join
 
-# if you change the default sage_wiki, you must also change local/bin/sage-wiki
 def wiki_create_instance(directory='sage_wiki'):
-    from MoinMoin.server.standalone import StandaloneConfig, run
+    """
+    Creates a new MoinMoin wiki.  This is a modified version of
+    MoinMoin with jsMath typesetting preconfigured.
 
-    share = '%s/share/moin'%misc.SAGE_LOCAL
+    INPUT:
+
+      - ``directory`` -- a string (default: 'sage_wiki') the directory
+        to use for the new wiki.
+    """
+    share = os.path.join(misc.SAGE_LOCAL, 'share', 'moin')
+
+    directory = os.path.abspath(directory)
 
     if os.path.exists(directory):
-        print "Directory '%s' already exists."%directory
+        print "Directory '%s' already exists." % directory
         return
 
     os.makedirs(directory)
-    os.system('cp -r %s/data %s/'%(share,directory))
-    os.system('cp -r %s/underlay %s'%(share,directory))
-    os.system('cp %s/config/wikiconfig.py %s/'%(share,directory))
-    os.system('cp %s/server/moin.py %s/'%(share,directory))
-    R = open('%s/moin.py'%directory,'r').read()
-    R = R.replace('/path/to/wikiconfig',directory)
-    open('%s/moin.py'%directory,'w').write(R)
+
+    shutil.copytree(join(share, 'data'), join(directory, 'data'))
+    shutil.copytree(join(share, 'underlay'), join(directory, 'underlay'))
+    shutil.copytree(join(share, 'server'), join(directory, 'server'))
+    shutil.copyfile(join(share, 'config', 'wikiconfig.py'),
+                    join(directory, 'wikiconfig.py'))
+
+    wsgi_conf_name = join(directory, 'server', 'moin.wsgi')
+    wsgi_conf_fd = open(wsgi_conf_name, 'r+')
+    wsgi_conf = wsgi_conf_fd.read()
+    wsgi_conf = wsgi_conf.replace("#sys.path.insert(0, '/path/to/wikiconfigdir')",
+                                  "sys.path.insert(0, os.path.join(r'{0}'))".format(directory))
+#    wsgi_conf = wsgi_conf.replace("#sys.path.insert(0, '/path/to/farmconfigdir')",
+#                                  "sys.path.insert(0, join(r'{0}', 'config', 'wikifarm'))".format(directory))
+    wsgi_conf_fd.seek(0)
+    wsgi_conf_fd.truncate(0)
+    wsgi_conf_fd.write(wsgi_conf)
+    wsgi_conf_fd.close()
+
+    os.makedirs(join(directory, 'twisted', 'plugins'))
+    shutil.copyfile(join(directory, 'server', 'mointwisted.py'),
+                   join(directory, 'twisted', 'plugins',
+                        'mointwisted_plugin.py'))
+
+    shutil.copyfile(wsgi_conf_name, join(directory, 'moin.py'))
 
 def wiki(directory='sage_wiki',
          port=9000,
          address='localhost',
-         threads=10):
+         fork=False):
     r"""
-    Create (if necessary) and start up a Moin Moin wiki.
+    Create (if necessary) and start up a MoinMoin wiki.
 
     The wiki will be served on the given port.
 
-    The moin package contains a modified version of moin moin, which
-    comes with jsmath latex typesetting preconfigured; use dollar signs
-    to typeset.
+    The moin package contains a modified version of MoinMoin, which
+    comes with jsMath's LaTeX typesetting preconfigured.  Use dollar
+    signs (\$) to delimit text to be typeset.
+
+    INPUT:
+
+      - ``directory`` -- string (default: 'sage_wiki') directory to
+        create/run the instance in
+
+      - ``port`` -- integer (default: 9000) first port to listen to.
+        If it is already taken, up to 256 subsequent port numbers will
+        be tried.
+
+      - ``address`` -- string (default: 'localhost') address to bind
+        to
+
+      - ``fork`` -- boolean (default: False) whether to daemonize the
+        process
     """
     if not os.path.exists(directory):
         wiki_create_instance(directory)
     original_path = os.path.abspath(os.curdir)
     os.chdir(directory)
 
-    moin = '%s/share/moin/'%misc.SAGE_LOCAL
     port = int(port)
 
-
     def run(port):
-        ## Create the config file
-        config = open('twistedconf.py', 'w')
-        config.write("""
-import sys
-sys.path.insert(0, '%s')
-from MoinMoin.server.twistedmoin import TwistedConfig, makeApp
-class Config(TwistedConfig):
-    name = 'mointwisted'
-    docs = '%s/local/share/moin/htdocs'
-    user = 'www-data'
-    group = 'www-data'
-    port = %s
-    interfaces = ['']
-    threads = %s
-    logPath_twisted = None
-
-application = makeApp(Config)
-"""%(directory,
-     misc.SAGE_ROOT,
-     port,
-     threads))
-
-        config.close()
-
-        ## Start up twisted
         print_open_msg(address, port)
-        e = os.system('twistd -n --python twistedconf.py')
+        daemonize_str = '-n'
+        if fork:
+            daemonize_str = ''
+        e = os.system('twistd %s moin -p %d -a "%s"' % (
+                daemonize_str, port, address))
         if e:
             raise socket.error
-
 
     for i in range(256):
         try:
             run(port + i)
         except socket.error:
-            print "Port %s is already in use.  Trying next port..."%port
+            print "Port %s is already in use.  Trying next port..." % port
         else:
             break
 
     os.chdir(original_path)
     return True
-
-
-def wiki_simple_http(directory='sage_wiki',
-         port=9000,
-         address='localhost'):
-    r"""
-    Create (if necessary) and start up a Moin Moin wiki.
-
-    The wiki will be served on the given port.
-
-    The moin package contains a modified version of moin moin, which
-    comes with jsmath latex typesetting preconfigured; use dollar signs
-    to typeset.
-    """
-    sys.path.insert(0, os.path.abspath(directory))
-
-    from MoinMoin.server.standalone import StandaloneConfig, run
-
-    if not os.path.exists(directory):
-        wiki_create_instance(directory)
-    original_path = os.path.abspath(os.curdir)
-    os.chdir(directory)
-
-    moin = '%s/share/moin/'%misc.SAGE_LOCAL
-    the_port = int(port)
-
-    class Config(StandaloneConfig):
-        # Server name
-        # Used to create .log, .pid and .prof files
-        name = 'moin'
-
-        # Path to moin shared files (default '/usr/share/moin/wiki/htdocs')
-        # If you installed with --prefix=PREFIX, use 'PREFIX/share/moin/wiki/htdocs'
-        docs = '%s/htdocs'%moin
-
-        # Port
-        port = the_port
-
-        # To serve privileged port under 1024 you will have to run as root.
-        # Interface (default 'localhost')
-        # The default will listen only to localhost.
-        # '' will listen to any interface
-        interface = address
-
-        # Log (default commented)
-        # Log is written to stderr or to a file you specify here.
-        ## logPath = name + '.log'
-
-        # Server class (default ThreadPoolServer)
-        # 'ThreadPoolServer' - create a constant pool of threads, simplified
-        # Apache worker mpm.
-        # 'ThreadingServer' - serve each request in a new thread. Much
-        # slower for static files.
-        # 'ForkingServer' - serve each request on a new child process -
-        # experimental, slow.
-        # 'SimpleServer' - server one request at a time. Fast, low
-        # memory footprint.
-        # If you set one of the threading servers and threads are not
-        # available, the server will fallback to ForkingServer. If fork is
-        # not available, the server will fallback to SimpleServer.
-        serverClass = 'ThreadPoolServer'
-
-        # Thread limit (default 10)
-        # Limit the number of threads created. Ignored on non threaded servers.
-        threadLimit = 10
-
-        # Request queue size (default 50)
-        # The size of the socket listen backlog.
-        requestQueueSize = 50
-
-        # Properties
-        # Allow overriding any request property by the value defined in
-        # this dict e.g properties = {'script_name': '/mywiki'}.
-        properties = {}
-
-        # Memory profile (default commented)
-        # Useful only if you are a developer or interested in moin memory usage
-        # A memory profile named 'moin--2004-09-27--01-24.log' is
-        # created each time you start the server.
-        ## from MoinMoin.util.profile import Profiler
-        ## memoryProfile = Profiler(name, requestsPerSample=100, collect=0)
-
-        # Hotshot profile (default commented)
-        # Not compatible with threads - use with SimpleServer only.
-        ## hotshotProfile = name + '.prof'
-
-
-    for i in range(256):
-        try:
-            print_open_msg(address, port)
-            run(Config)
-        except socket.error:
-            print "Port %s is already in use.  Trying next port..."%(Config.port)
-            Config.port += 1
-        else:
-            break
-
-    os.chdir(original_path)
-    return True
-

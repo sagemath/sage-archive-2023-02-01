@@ -174,6 +174,8 @@ class DihedralGroup(UniqueRepresentation, Parent):
         return [1,2]
 
     class Element(ElementWrapper):
+        wrapped_class = tuple
+        __lt__ = ElementWrapper._lt_by_value
 
         def has_right_descent(self, i, positive = False, side = "right"):
             r"""

@@ -1,6 +1,12 @@
 """
-A class for wrapping Sage or Python objects as Sage elements
+ElementWrapper A class for wrapping Sage or Python objects as Sage elements
 """
+#*****************************************************************************
+#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#******************************************************************************
 
 from sage.structure.element import Element
 from copy import copy
@@ -56,8 +62,8 @@ class ElementWrapper(Element):
         3
 
     This example was voluntarily kept to a bare minimum. See the
-    (upcoming) examples in the categories for several full featured
-    applications.
+    examples in the categories (e.g. ``Semigroups().example()``) for
+    several full featured applications.
 
     Caveat: the order between the value and the parent argument is
     likely to change shortly. At this point, all the code using it in
@@ -71,8 +77,13 @@ class ElementWrapper(Element):
         EXAMPLES::
 
             sage: a = ElementWrapper(1, parent = ZZ)
-            sage: a == loads(dumps(a))
-            True
+
+        TESTS::
+
+            sage: TestSuite(a).run(skip = "_test_category")
+
+        Note: ElementWrapper is not intended to be used directly,
+        hence the failing category test.
         """
         assert isinstance(value, self.wrapped_class)
         Element.__init__(self, parent = parent)
@@ -105,7 +116,7 @@ class ElementWrapper(Element):
     def __eq__(self, other):
         """
         Default implementation of equality testing: two elements are
-        equal if they have the same value, same parent, and same class.
+        equal if they have the same class, same parent, and same value.
 
         EXAMPLES::
 
@@ -126,10 +137,10 @@ class ElementWrapper(Element):
                 self.parent() == other.parent() and
                 self.value == other.value)
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         """
-        Default implementation of comparison: compare first values,
-        then parents, then class.
+        Default implementation of unequality testing by using
+        :meth:`.__eq__`.
 
         EXAMPLES::
 
@@ -139,6 +150,91 @@ class ElementWrapper(Element):
             sage: l12 = ElementWrapper(2, parent = parent1)
             sage: l21 = ElementWrapper(1, parent = parent2)
             sage: l22 = ElementWrapper(2, parent = parent2)
+            sage: l11 != l11
+            False
+            sage: l11 != l12
+            True
+            sage: l11 != l21
+            True
+        """
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        """
+        Returns whether ``self < other``. With this default
+        implementation, they are always incomparable.
+
+        Note: another option would be to not define ``__lt__``, but
+        given the current implementation of SageObject, sorted(...)
+        would break.
+
+        TESTS::
+
+            sage: x = ElementWrapper(1, parent = ZZ)
+            sage: y = ElementWrapper(2, parent = ZZ)
+            sage: x.__lt__(x), x.__lt__(y), y.__lt__(x), x.__lt__(1)
+            (False, False, False, False)
+            sage: x < x, x < y, y < x, x < 1
+            (False, False, False, False)
+            sage: sorted([x,y])
+            [1, 2]
+            sage: sorted([y,x])
+            [2, 1]
+        """
+        return False
+
+    def _lt_by_value(self, other):
+        """
+        Returns whether ``self`` is strictly smaller than ``other``.
+
+        With this implementation 'by value', they are always
+        incomparable unless ``self`` and ``other`` have the same
+        class, parent, and self.value < other.value.
+
+        EXAMPLES::
+
+            sage: class MyElement(ElementWrapper):
+            ...       __lt__ = ElementWrapper._lt_by_value
+            ...
+            sage: parent1 = ZZ
+            sage: parent2 = QQ
+            sage: l11 = MyElement(1, parent = parent1)
+            sage: l12 = MyElement(2, parent = parent1)
+            sage: l21 = MyElement(1, parent = parent2)
+            sage: l22 = MyElement(2, parent = parent2)
+            sage: l11 < l11
+            False
+            sage: l11 < l12, l12 < l11   # values differ
+            (True, False)
+            sage: l11 < l21              # parents differ
+            False
+            sage: l11 < 1                # class differ
+            False
+            sage: 1 < l11
+            False
+
+        """
+        return self.__class__ is other.__class__ and self.parent() == other.parent() and self.value < other.value
+
+    def _cmp_by_value(self, other):
+        """
+        Implementation of ``cmp`` by comparing first values, then
+        parents, then class. This behavior (which implies a total
+        order) is not always desirable and hard to override. Hence
+        derived subclasses that want to take advantage of this
+        feature need to explicitely set :meth:`.__cmp__`.
+
+        EXAMPLES::
+
+            sage: class MyElement(ElementWrapper):
+            ...       __cmp__ = ElementWrapper._cmp_by_value
+            ...
+            sage: parent1 = ZZ
+            sage: parent2 = QQ
+            sage: l11 = MyElement(1, parent = parent1)
+            sage: l12 = MyElement(2, parent = parent1)
+            sage: l21 = MyElement(1, parent = parent2)
+            sage: l22 = MyElement(2, parent = parent2)
             sage: cmp(l11, l11)
             0
             sage: cmp(l11, l12), cmp(l12, l11)   # values differ

@@ -1234,6 +1234,16 @@ cdef class ETuple:
             sage: f = ETuple([0,1,1])
             sage: e.eadd(f)
             (1, 1, 3)
+
+        Verify that trac 6428 has been addressed::
+
+            sage: R.<y,z> = Frac(QQ['x'])[]
+            sage: type(y)
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: y^(2^32)
+            Traceback (most recent call last):
+            ...
+            OverflowError: Exponent overflow (2147483648).
         """
         if self._length!=other._length:
             raise ArithmeticError
@@ -1243,6 +1253,7 @@ cdef class ETuple:
         cdef size_t index
         cdef int exp1
         cdef int exp2
+        cdef int s  # sum
         cdef size_t alloc_len = self._nonzero + other._nonzero  # we simply guesstimate the length -- there might be double the correct amount allocated -- who cares?
         if alloc_len > self._length:
             alloc_len = self._length
@@ -1250,9 +1261,13 @@ cdef class ETuple:
         result._nonzero = 0  # we don't know the correct length quite yet
         result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
-            if exp1 + exp2 != 0:
+            s = exp1 + exp2
+            # Check for overflow and underflow
+            if (exp2 > 0 and s < exp1) or (exp2 < 0 and s > exp1):
+                raise OverflowError, "Exponent overflow (%s)."%(int(exp1)+int(exp2))
+            if s != 0:
                 result._data[2*result._nonzero] = index
-                result._data[2*result._nonzero+1] = exp1 + exp2
+                result._data[2*result._nonzero+1] = s
                 result._nonzero += 1
         return result
 
@@ -1326,6 +1341,7 @@ cdef class ETuple:
         cdef size_t index
         cdef int exp1
         cdef int exp2
+        cdef int d  # difference
         cdef size_t alloc_len = self._nonzero + other._nonzero  # we simply guesstimate the length -- there might be double the correct amount allocated -- who cares?
         if alloc_len > self._length:
             alloc_len = self._length
@@ -1333,9 +1349,13 @@ cdef class ETuple:
         result._nonzero = 0  # we don't know the correct length quite yet
         result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
-            if exp1 - exp2 != 0:
+            # Check for overflow and underflow
+            d = exp1 - exp2
+            if (exp2 > 0 and d > exp1) or (exp2 < 0 and d < exp1):
+                raise OverflowError, "Exponent overflow (%s)."%(int(exp1)-int(exp2))
+            if d != 0:
                 result._data[2*result._nonzero] = index
-                result._data[2*result._nonzero+1] = exp1 - exp2
+                result._data[2*result._nonzero+1] = d
                 result._nonzero += 1
         return result
 

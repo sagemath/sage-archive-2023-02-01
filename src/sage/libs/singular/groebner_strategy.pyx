@@ -284,7 +284,7 @@ def unpickle_GroebnerStrategy0(I):
         sage: P.<x,y,z> = PolynomialRing(GF(32003))
         sage: I = Ideal([x + z, y + z])
         sage: strat = GroebnerStrategy(I)
-        sage: loads(dumps(strat)) == strat
+        sage: loads(dumps(strat)) == strat # indirect doctest
         True
     """
     return GroebnerStrategy(I)

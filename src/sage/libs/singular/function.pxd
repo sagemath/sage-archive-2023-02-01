@@ -30,21 +30,21 @@ cdef class Converter(SageObject):
     cdef leftv *args
     cdef MPolynomialRing_libsingular _ring
     cdef leftv* pop_front(self) except NULL
-    cdef void _append_leftv(self, leftv *v)
-    cdef void _append(self, void* data, int res_type)
-    cdef int append_polynomial(self, MPolynomial_libsingular p) except -1
-    cdef int append_ideal(self,  i) except -1
-    cdef int append_number(self, n) except -1
-    cdef int append_int(self, n) except -1
-    cdef int append_str(self, n) except -1
-    cdef int append_intmat(self, a) except -1
-    cdef int append_resolution(self, Resolution resolution) except -1
-    cdef int append_vector(self, v) except -1
-    cdef int append_intvec(self, v) except -1
-    cdef int append_list(self, l) except -1
-    cdef int append_matrix(self, a) except -1
-    cdef int append_ring(self, MPolynomialRing_libsingular r) except -1
-    cdef int append_module(self, m) except -1
+    cdef leftv * _append_leftv(self, leftv *v)
+    cdef leftv * _append(self, void* data, int res_type)
+    cdef leftv * append_polynomial(self, MPolynomial_libsingular p) except NULL
+    cdef leftv * append_ideal(self,  i) except NULL
+    cdef leftv * append_number(self, n) except NULL
+    cdef leftv * append_int(self, n) except NULL
+    cdef leftv * append_str(self, n) except NULL
+    cdef leftv * append_intmat(self, a) except NULL
+    cdef leftv * append_resolution(self, Resolution resolution) except NULL
+    cdef leftv * append_vector(self, v) except NULL
+    cdef leftv * append_intvec(self, v) except NULL
+    cdef leftv * append_list(self, l) except NULL
+    cdef leftv * append_matrix(self, a) except NULL
+    cdef leftv * append_ring(self, MPolynomialRing_libsingular r) except NULL
+    cdef leftv * append_module(self, m) except NULL
     cdef to_sage_integer_matrix(self, intvec *mat)
     cdef object to_sage_module_element_sequence_destructive(self, ideal *i)
     cdef to_sage_vector_destructive(self, poly *p, free_module = ?)
@@ -78,4 +78,4 @@ cdef class SingularKernelFunction(SingularFunction):
     pass
 
 # the most direct function call interface
-cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_libsingular R, bint signal_handler=?)
+cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_libsingular R, bint signal_handler=?, object attributes=?)

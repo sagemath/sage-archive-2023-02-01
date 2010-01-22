@@ -1731,15 +1731,36 @@ class SingularFunction(ExpectFunction):
         """
         EXAMPLES::
 
-            sage: singular.groebner._sage_doc_()
-            '\ngroebner...Procedure from library `standard.lib...
+            sage: 'groebner' in singular.groebner._sage_doc_()
+            True
         """
         if not nodes:
             generate_docstring_dictionary()
+
+        prefix = \
+"""
+This function is an automatic generated pexpect wrapper around the Singular
+function '%s'.
+
+EXAMPLE::
+
+    sage: groebner = singular.groebner
+    sage: P.<x, y> = PolynomialRing(QQ)
+    sage: I = P.ideal(x^2-y, y+x)
+    sage: groebner(singular(I))
+    x+y,
+    y^2-y
+"""%(self._name,)
+        prefix2 = \
+"""
+
+The Singular documentation for '%s' is given below.
+"""%(self._name,)
+
         try:
-            return nodes[node_names[self._name]]
+            return prefix + prefix2 + nodes[node_names[self._name]]
         except KeyError:
-            return ""
+            return prefix
 
 class SingularFunctionElement(FunctionElement):
     def _sage_doc_(self):

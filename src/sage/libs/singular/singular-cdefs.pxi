@@ -32,13 +32,15 @@ cdef extern from "factory.h":
     cdef int SW_USE_NTL_GCD_P
     cdef int SW_USE_NTL_SORT
 
+
 cdef extern from "libsingular.h":
 
     #
     # OPTIONS
     #
 
-    cdef int singular_options "test"
+    cdef unsigned int singular_options "test"
+    cdef unsigned int singular_verbose_options "verbose"
 
     # actual options
     cdef int OPT_PROT
@@ -63,12 +65,34 @@ cdef extern from "libsingular.h":
     cdef int OPT_NOTREGULARITY
     cdef int OPT_WEIGHTM
 
+
+
+    cdef int V_SHOW_MEM
+    cdef int V_YACC
+    cdef int V_REDEFINE
+    cdef int V_READING
+    cdef int V_LOAD_LIB
+    cdef int V_DEBUG_LIB
+    cdef int V_LOAD_PROC
+    cdef int V_DEF_RES
+    cdef int V_DEBUG_MEM
+    cdef int V_SHOW_USE
+    cdef int V_IMAP
+    cdef int V_PROMPT
+    cdef int V_NSB
+    cdef int V_CONTENTSB
+    cdef int V_CANCELUNIT
+    cdef int V_DEG_STOP
+
     # getter/setter functions
     int Sy_bit(int)
     int Sy_inset(int x,int s)
     int BTEST1(int)
     int BVERBOSE(int)
 
+    # ideal flags
+    cdef int  FLAG_STD
+    cdef int  FLAG_TWOSTD
 
     #
     # STRUCTS
@@ -219,9 +243,6 @@ cdef extern from "libsingular.h":
 
     ctypedef struct omBin "omBin_s"
 
-    ctypedef struct package "ip_package":
-        int language
-
     # pairs and polys for Groebner Strategy objects
 
     ctypedef struct LObject:
@@ -270,6 +291,22 @@ cdef extern from "libsingular.h":
         ring *uring
 
     # interpreter objects
+
+    ctypedef struct attr "sattr":
+        void (*Init)()
+        char *  name
+        void *  data
+        attr *  next
+        int     atyp # the type of the attribut, describes the data field
+
+        void (*Print)()
+        attr *(*Copy)() # copy all arguments
+        void *(*CopyA)()# copy the data of this attribute
+        attr *(*set)(char * s, void * data, int t)
+        attr *(*get)(char * s)
+        void (*kill)()
+        void (*killAll)()
+
     ctypedef struct idhdl "idrec":
         idhdl *next
         char *id
@@ -283,10 +320,14 @@ cdef extern from "libsingular.h":
         char  *id
         void* data
         #data is some union, so this might be very dangerous, but I am lazy now
-        int   typ
+        attr *attribute
         void (* Init)()
         void (* CleanUp)()
         int  rtyp
+
+    ctypedef struct package "ip_package":
+        int language
+        idhdl *idroot
 
     #
     # GLOBAL VARIABLES
@@ -894,7 +935,7 @@ cdef extern from "libsingular.h":
     cdef int INTVEC_CMD
     cdef int NONE
     cdef int RESOLUTION_CMD
-
+    cdef int PACKAGE_CMD
 
     cdef int V_SHOW_MEM
     cdef int V_YACC
@@ -936,7 +977,19 @@ cdef extern from "libsingular.h":
 
     cdef idhdl *IDROOT
 
+    cdef idhdl *IDNEXT(idhdl *)
+
+    cdef int IDTYP(idhdl *)
+
     idhdl *enterid(char * a, int lev, int t, idhdl** root, bint init)
+
+    void atSet(leftv *root, char * name, void * data, int typ)
+    void *atGet(leftv *root, char *name, int typ)
+
+    int hasFlag(leftv *A, int F)
+    void setFlag(leftv *A, int F)
+    void resetFlag(leftv *A, int F)
+
 
 cdef extern from "prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)

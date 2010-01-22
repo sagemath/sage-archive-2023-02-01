@@ -44,7 +44,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     number of degree less than `n`.
 
     You can specify the number of known bits or digits with ``known_bits=k`` or
-    ``known_digits=k``; Pari is then told to compute the result using `0.8\*k`
+    ``known_digits=k``; Pari is then told to compute the result using `0.8k`
     of these bits/digits. (The Pari documentation recommends using a factor
     between .6 and .9, but internally defaults to .8.) Or, you can specify the
     precision to use directly with ``use_bits=k`` or ``use_digits=k``. If none
@@ -1402,12 +1402,13 @@ def __LCM_sequence(v):
     return g
 
 def xlcm(m,n):
-    """
-    Extended lcm function: given two positive integers m,n, returns a
-    triple (l,m1,n1) such that l=lcm(m,n)=m1\*n1 where m1|m, n1|n and
-    gcd(m1,n1)=1. All with no factorization.
+    r"""
+    Extended lcm function: given two positive integers `m,n`, returns
+    a triple `(l,m_1,n_1)` such that `l=\mathop{\mathrm{lcm}}(m,n)=m_1
+    \cdot n_1` where `m_1|m`, `n_1|n` and `\gcd(m_1,n_1)=1`, all with no
+    factorization.
 
-    Used to construct an element of order l from elements of orders m,n
+    Used to construct an element of order `l` from elements of orders `m,n`
     in any group: see sage/groups/generic.py for examples.
 
     EXAMPLES::
@@ -1430,8 +1431,7 @@ def xlcm(m,n):
 
 def xgcd(a, b):
     r"""
-    Return a triple ``(g,s,t)`` such that
-         `g = s\cdot a+t\cdot b = \mathop{\mathrm{gcd}}(a,b)`.
+    Return a triple ``(g,s,t)`` such that `g = s\cdot a+t\cdot b = \gcd(a,b)`.
 
     .. note::
 

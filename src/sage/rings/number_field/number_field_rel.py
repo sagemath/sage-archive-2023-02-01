@@ -209,7 +209,7 @@ class NumberField_relative(NumberField_generic):
             sage: W
             Number Field in a with defining polynomial x^2 + 1 over its base field
             sage: type(W)
-            <class 'sage.rings.number_field.number_field_rel.NumberField_relative'>
+            <class 'sage.rings.number_field.number_field_rel.NumberField_relative_with_category'>
 
         Test that check=False really skips the test::
 

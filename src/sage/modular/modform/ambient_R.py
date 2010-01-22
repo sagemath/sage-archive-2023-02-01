@@ -71,6 +71,6 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
 
             sage: C = CuspForms(7, 4, base_ring=CyclotomicField(5)) # indirect doctest
             sage: type(C)
-            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_R'>
+            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_R_with_category'>
         """
         return CuspidalSubmodule_R(self)

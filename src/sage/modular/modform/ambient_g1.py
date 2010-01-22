@@ -51,7 +51,7 @@ class ModularFormsAmbient_g1_Q(ambient.ModularFormsAmbient):
             sage: m = ModularForms(Gamma1(100),5); m
             Modular Forms space of dimension 1270 for Congruence Subgroup Gamma1(100) of weight 5 over Rational Field
             sage: type(m)
-            <class 'sage.modular.modform.ambient_g1.ModularFormsAmbient_g1_Q'>
+            <class 'sage.modular.modform.ambient_g1.ModularFormsAmbient_g1_Q_with_category'>
         """
         ambient.ModularFormsAmbient.__init__(self, arithgroup.Gamma1(level), weight, rings.QQ)
 

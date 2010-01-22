@@ -37,7 +37,7 @@ See also
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # Design largely inspired from MuPAD-Combinat
-from sage.structure.parent import Parent
+from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
@@ -45,7 +45,7 @@ from sage.misc.all import cached_method
 from root_space import RootSpace
 from weight_space import WeightSpace
 
-class RootSystem(UniqueRepresentation, Parent):
+class RootSystem(UniqueRepresentation, SageObject):
     r"""
     A class for root systems.
 

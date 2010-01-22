@@ -18,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
                             ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
@@ -49,7 +50,7 @@ def is_Scheme(x):
 # the base defaults to Spec(Z) with the canonical morphism.
 
 class Scheme(ParentWithBase):
-    def __init__(self,X):
+    def __init__(self, X, category = None):
         """
         A scheme.
 
@@ -59,15 +60,28 @@ class Scheme(ParentWithBase):
             sage: I = (x^2 - y^2)*R
             sage: RmodI = R.quotient(I)
             sage: X = Spec(RmodI)
-            sage: X == loads(dumps(X))
-            True
+            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_element_pickling", "_test_some_elements"])
+
+        A scheme is in the category of all schemes over the base scheme of self::
+
+            sage: ProjectiveSpace(4, QQ).category()
+            Category of schemes over Spectrum of Rational Field
         """
         if spec.is_Spec(X):
             self._base_ring = X.coordinate_ring()
-            ParentWithBase.__init__(self, self._base_ring)
+            base = self._base_ring
         else:
             self._base_scheme = X
-            ParentWithBase.__init__(self, self._base_scheme)
+            base = self._base_scheme
+
+        from sage.categories.schemes import Schemes
+        default_category = Schemes(self.base_scheme())
+        if category is None:
+            category = default_category
+        else:
+            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+
+        ParentWithBase.__init__(self, base, category = category)
 
     def __cmp__(self, X):
         """
@@ -375,19 +389,6 @@ class Scheme(ParentWithBase):
             return self._base_morphism
 
     structure_morphism = base_morphism
-
-    def category(self):
-        """
-        Return the category to which this scheme belongs. This is the
-        category of all schemes over the base scheme of self.
-
-        EXAMPLES::
-
-            sage: ProjectiveSpace(4, QQ).category()
-            Category of schemes over Spectrum of Rational Field
-        """
-        from sage.categories.schemes import Schemes
-        return Schemes(self.base_scheme())
 
     def coordinate_ring(self):
         """

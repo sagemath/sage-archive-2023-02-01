@@ -28,18 +28,19 @@ cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
 #        Coerce x into the ring.
 #        """
 #        raise NotImplementedError
-    # Should be deprecated as soon as all modules declare their
-    # category properly at initialization
+
     def category(self):
         """
         Return the category to which this module belongs.
         """
-        category = sage.structure.category_object.CategoryObject.category(self)
-        from sage.categories.all import Objects, Modules
-        if category == Objects():
-            return Modules(self.base_ring())
-        else:
-            return category
+        # Defining a category method is deprecated for parents.
+        # Instead, the category should be specified in the constructor.
+        # See: http://sagetrac.org/sage_trac/wiki/CategoriesRoadMap
+        if self._is_category_initialized():
+            from sage.structure.parent import Parent
+            return Parent.category(self)
+        from sage.categories.modules import Modules
+        return Modules(self.base_ring())
 
     def endomorphism_ring(self):
         """

@@ -242,7 +242,7 @@ To this, Sage adds many other types. E.g., vector spaces:
     sage: V = VectorSpace(QQ, 1000000); V
     Vector space of dimension 1000000 over Rational Field
     sage: type(V)
-    <class 'sage.modules.free_module.FreeModule_ambient_field'>
+    <class 'sage.modules.free_module.FreeModule_ambient_field_with_category'>
 
 Only certain
 functions can be called on ``V``. In other math software

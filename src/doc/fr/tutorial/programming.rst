@@ -254,7 +254,7 @@ vectoriels :
     sage: V = VectorSpace(QQ, 1000000); V
     Vector space of dimension 1000000 over Rational Field
     sage: type(V)
-    <class 'sage.modules.free_module.FreeModule_ambient_field'>
+    <class 'sage.modules.free_module.FreeModule_ambient_field_with_category'>
 
 Seules certaines fonctions peuvent être appelées sur ``V``. Dans
 d'autres logiciels mathématiques, cela se fait en notation

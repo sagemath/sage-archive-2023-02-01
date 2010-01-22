@@ -44,7 +44,7 @@ def pari(x):
         sage: v.pari()
         Traceback (most recent call last):
         ...
-        AttributeError: 'sage.modules.free_module_element.FreeModuleElement' object has no attribute 'pari'
+        AttributeError: 'sage.modules.free_module_element.FreeModuleElement_generic_dense' object has no attribute 'pari'
         sage: b = pari(list(v)); b,b.type()
         ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
 

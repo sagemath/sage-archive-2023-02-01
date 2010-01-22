@@ -190,8 +190,16 @@ class Sets(Category):
                 17
                 sage: S(17) # indirect doctest
                 17
+
+            Caveat: for some parents, element_class is a method, and
+            not an attribute. We do not provide a default
+            implementation of _element_constructor for those.
+
+                sage: FreeModule(QQ,3).element_class
+                <bound method FreeModule_ambient_field_with_category.element_class of Vector space of dimension 3 over Rational Field>
+                sage: FreeModule(QQ,3)._element_constructor
             """
-            if hasattr(self, "element_class"):
+            if hasattr(self, "element_class") and issubclass(self.element_class, object):
                 return self._element_constructor_from_element_class
             else:
                 return NotImplemented

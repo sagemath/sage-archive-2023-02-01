@@ -121,6 +121,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         Spectrum of Rational Field
         sage: X.base_ring()
         Rational Field
+        sage: X.category()
+        Category of schemes over Spectrum of Rational Field
         sage: X.structure_morphism ()
         Scheme morphism:
           From: Affine Space of dimension 3 over Rational Field

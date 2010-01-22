@@ -77,11 +77,6 @@ cdef class Parent(parent.Parent):
         self._has_coerce_map_from = {}
         if category is not None:
             self._init_category_(category)
-        else:
-            # Do not use sage.categories.all here to avoid initialization loop
-            # See e-mail on sage-combinat-devel by S. Labbe, 15 Jan 2009 17:14:37
-            from sage.categories.sets_cat import Sets
-            self._category = Sets()
 
     cdef int init_coerce(self, bint warn=False) except -1:
         parent.Parent.init_coerce(self, warn)
@@ -405,7 +400,7 @@ cdef class Parent(parent.Parent):
         sage: DirichletGroup(3).list()
         [[1], [-1]]
         sage: K = GF(7^6,'a')
-        sage: K.list()[:10]
+        sage: K.list()[:10] # long time
         [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]
         sage: K.<a> = GF(4)
         sage: K.list()

@@ -80,7 +80,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             sage: A = J0(37); A
             Abelian variety J0(37) of dimension 2
             sage: type(A)
-            <class 'sage.modular.abvar.abvar_ambient_jacobian.ModAbVar_ambient_jacobian_class'>
+            <class 'sage.modular.abvar.abvar_ambient_jacobian.ModAbVar_ambient_jacobian_class_with_category'>
             sage: A.group()
             Congruence Subgroup Gamma0(37)
         """

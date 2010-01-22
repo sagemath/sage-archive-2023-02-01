@@ -118,17 +118,15 @@ Basis vectors are immutable::
     ...
     ValueError: vector is immutable; please change a copy instead (use copy())
 
-We can save and load submodules and elements::
+Among other things, this tests that we can save and load submodules
+and elements::
 
     sage: M = ZZ^3
-    sage: M == loads(M.dumps())
-    True
+    sage: TestSuite(M).run()
     sage: W = M.span_of_basis([[1,2,3],[4,5,19]])
-    sage: W == loads(W.dumps())
-    True
+    sage: TestSuite(W).run()
     sage: v = W.0 + W.1
-    sage: v == loads(v.dumps())
-    True
+    sage: TestSuite(v).run()
 
 AUTHORS:
 
@@ -322,6 +320,10 @@ class FreeModuleFactory(UniqueFactory):
             True
             sage: loads(dumps(RDF^3)) is RDF^3
             True
+
+        TODO: replace the above by ``TestSuite(...).run()``, once
+        :meth:`_test_pickling` will test unique representation and not
+        only equality.
         """
         rank = int(rank)
 
@@ -540,6 +542,20 @@ class FreeModule_generic(module.Module):
 
             sage: PolynomialRing(QQ,3,'x')^3
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+        If ``base_ring`` is a field, then the constructed module is in
+        the category of vector spaces over that field; otherwise it is
+        in the category of all free modules over that ring::
+
+            sage: FreeModule(GF(7),3).category()
+            Category of vector spaces over Finite Field of size 7
+            sage: V = QQ^4; V.category()
+            Category of vector spaces over Rational Field
+            sage: V = GF(5)**20; V.category()
+            Category of vector spaces over Finite Field of size 5
+            sage: FreeModule(ZZ,3).category()
+            Category of modules with basis over Integer Ring
+
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -549,8 +565,13 @@ class FreeModule_generic(module.Module):
         degree = sage.rings.integer.Integer(degree)
         if degree < 0:
             raise ValueError, "degree (=%s) must be nonnegative"%degree
+        from sage.categories.all import Fields, FreeModules, VectorSpaces
+        if base_ring in Fields():
+            category = VectorSpaces(base_ring)
+        else:
+            category = FreeModules(base_ring)
 
-        ParentWithGens.__init__(self, base_ring)     # names aren't used anywhere.
+        ParentWithGens.__init__(self, base_ring, category = category)     # names aren't used anywhere.
         self.__uses_ambient_inner_product = True
         self.__rank = rank
         self.__degree = degree
@@ -1191,19 +1212,6 @@ class FreeModule_generic(module.Module):
             NotImplementedError
         """
         raise NotImplementedError
-
-    def category(self):
-        """
-        Return the category to which this free module belongs. This is the
-        category of all free modules over the base ring.
-
-        EXAMPLES::
-
-            sage: FreeModule(GF(7),3).category()
-            Category of vector spaces over Finite Field of size 7
-        """
-        import sage.categories.all
-        return sage.categories.all.FreeModules(self.base_ring())
 
     def matrix(self):
         """
@@ -2912,20 +2920,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             raise ArithmeticError, "self and other must have the same ambient space"
         return V.span(self.basis() + other.basis())
 
-    def category(self):
-        """
-        Return the category to which this vector space belongs.
-
-        EXAMPLES::
-
-            sage: V = QQ^4; V.category()
-            Category of vector spaces over Rational Field
-            sage: V = GF(5)**20; V.category()
-            Category of vector spaces over Finite Field of size 5
-        """
-        import sage.categories.all
-        return sage.categories.all.VectorSpaces(self.base_field())
-
     def echelonized_basis_matrix(self):
         """
         Return basis matrix for self in row echelon form.
@@ -3428,7 +3422,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [ 1.0  0.0 -1.0]
             [ 0.0  1.0 -1.0]
             sage: type(Q)
-            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient'>
+            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
             sage: V([1,2,3])
             (1.0, 2.0, 3.0)
             sage: Q == V.quotient(W)
@@ -5428,15 +5422,11 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         [ 1  2  3]
         [ 4  5 19]
 
-    We can save and load submodules and elements.
+    Generic tests, including saving and loading submodules and elements::
 
-    ::
-
-        sage: loads(W.dumps()) == W
-        True
+        sage: TestSuite(W).run()
         sage: v = W.0 + W.1
-        sage: loads(v.dumps()) == v
-        True
+        sage: TestSuite(v).run()
     """
     def __init__(self, ambient, gens, check=True, already_echelonized=False):
         """
@@ -5582,17 +5572,13 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
         (1, 5, 9)
 
-    We can load and save submodules::
+    Generic tests, including saving and loading submodules and elements::
 
-        sage: loads(W.dumps()) == W
-        True
-
-    ::
+        sage: TestSuite(W).run()
 
         sage: K.<x> = FractionField(PolynomialRing(QQ,'x'))
         sage: M = K^3; W = M.span_of_basis([[1,1,x]])
-        sage: loads(W.dumps()) == W
-        True
+        sage: TestSuite(W).run()
     """
     def __init__(self, ambient, basis, check=True,
         echelonize=False, echelonized_basis=None, already_echelonized=False):

@@ -151,6 +151,9 @@ cdef class CategoryObject(sage_object.SageObject):
                 category = JoinCategory(category)
         self._category = category
 
+    def _is_category_initialized(self):
+        return self._category is not None
+
     def category(self):
         if self._category is None:
             # COERCE TODO: we shouldn't need this

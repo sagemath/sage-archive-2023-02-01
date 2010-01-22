@@ -23,6 +23,9 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+from sage.categories.all import GroupAlgebras
+from sage.structure.parent_gens import ParentWithGens
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.all import IntegerRing
@@ -41,7 +44,8 @@ class GroupAlgebra(Algebra):
         OUTPUT:
             -- a GroupAlgebra instance.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GroupAlgebra(GL(3, GF(7)))
             Group algebra of group "General Linear Group of degree 3 over Finite
             Field of size 7" over base ring Integer Ring
@@ -49,6 +53,10 @@ class GroupAlgebra(Algebra):
             Traceback (most recent call last):
             ...
             TypeError: "1" is not a group
+
+            sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
+            Category of group algebras over Ring of integers modulo 12
+
         """
         if not base_ring.is_commutative():
             raise NotImplementedError, "Base ring must be commutative"
@@ -56,7 +64,8 @@ class GroupAlgebra(Algebra):
         if not isinstance(group, Group):
             raise TypeError, '"%s" is not a group' % group
 
-        Algebra.__init__(self, base_ring)
+        ParentWithGens.__init__(self, base_ring, category = GroupAlgebras(base_ring))
+
         self._formal_sum_module = FormalSums(base_ring)
         self._group = group
 
@@ -283,19 +292,6 @@ class GroupAlgebra(Algebra):
             <class 'sage.algebras.group_algebra.GroupAlgebraElement'>
         """
         return GroupAlgebraElement
-
-
-    def category(self):
-        r"""
-        The category to which self belongs, which is the category of group algebras over self.base_ring().
-
-        EXAMPLES:
-            sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of group algebras over Ring of integers modulo 12
-        """
-        from sage.categories.all import GroupAlgebras
-        return GroupAlgebras(self.base_ring())
-
 
 
 class GroupAlgebraElement(AlgebraElement):

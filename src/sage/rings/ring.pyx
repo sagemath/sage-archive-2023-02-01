@@ -280,6 +280,11 @@ cdef class Ring(ParentWithGens):
             sage: FreeAlgebra(QQ, 3, 'x').category() # todo: use a ring which is not an algebra!
             Category of rings
         """
+        # Defining a category method is deprecated for parents.
+        # Instead, the category should be specified in the constructor.
+        # See: http://sagetrac.org/sage_trac/wiki/CategoriesRoadMap
+        if self._is_category_initialized():
+            return Parent.category(self)
         from sage.categories.rings import Rings
         return Rings()
 
@@ -954,6 +959,11 @@ cdef class CommutativeRing(Ring):
             sage: QQ['x,y'].category()
             Category of commutative rings
         """
+        # Defining a category method is deprecated for parents.
+        # Instead, the category should be specified in the constructor.
+        # See: http://sagetrac.org/sage_trac/wiki/CategoriesRoadMap
+        if self._is_category_initialized():
+            return Parent.category(self)
         from sage.categories.commutative_rings import CommutativeRings
         return CommutativeRings()
 
@@ -1572,6 +1582,11 @@ cdef class Field(PrincipalIdealDomain):
             sage: F.category()
             Category of number fields
         """
+        # Defining a category method is deprecated for parents.
+        # Instead, the category should be specified in the constructor.
+        # See: http://sagetrac.org/sage_trac/wiki/CategoriesRoadMap
+        if self._is_category_initialized():
+            return Parent.category(self)
         from sage.categories.fields import Fields
         return Fields()
 
@@ -2515,7 +2530,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True):
+    def __init__(self, base_ring, names=None, normalize=True, category = None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
@@ -2532,7 +2547,15 @@ cdef class CommutativeAlgebra(CommutativeRing):
         """
         if not isinstance(base_ring, CommutativeRing):
             raise TypeError, "base ring must be a commutative ring"
-        ParentWithGens.__init__(self, base_ring, names=names, normalize=normalize)
+
+        from sage.categories.algebras import Algebras
+        default_category = Algebras(base_ring)
+        if category is None:
+            category = default_category
+        else:
+            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+
+        ParentWithGens.__init__(self, base_ring, names=names, normalize=normalize, category = category)
 
     def is_commutative(self):
         """

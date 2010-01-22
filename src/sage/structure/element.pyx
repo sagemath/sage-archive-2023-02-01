@@ -185,6 +185,7 @@ import sage.misc.sageinspect as sageinspect
 cdef MethodType
 from types import MethodType
 
+from sage.categories.sets_cat   import Sets
 from sage.structure.parent      cimport Parent
 
 # This classes uses element.pxd.  To add data members, you
@@ -260,6 +261,68 @@ cdef class Element(sage_object.SageObject):
     def _make_new_with_parent_c(self, Parent parent):
         self._parent = parent
         return self
+
+
+    def __getattr__(self, name):
+        """
+        Let cat be the category of the parent of ``self``.  This
+        method emulates ``self`` being an instance of both ``Element``
+        and ``cat.element_class``, in that order, for attribute
+        lookup.
+
+        EXAMPLES:
+
+        We test that ``1`` (an instance of the extension type
+        ``Integer``) inherits the methods from the categories of
+        ``ZZ``, that is from ``CommutativeRings().element_class``::
+
+            sage: 1.is_idempotent(), 2.is_idempotent()
+            (True, False)
+
+        This method is actually provided by the ``Semigroups()`` super
+        category of ``CommutativeRings()``::
+
+            sage: 1.is_idempotent
+            <bound method EuclideanDomains.element_class.is_idempotent of 1>
+            sage: 1.is_idempotent.__module__
+            'sage.categories.semigroups'
+
+        TESTS::
+
+            sage: 1.blah_blah
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'blah_blah'
+            sage: Semigroups().example().an_element().is_idempotent
+            <bound method LeftZeroSemigroup_with_category.element_class.is_idempotent of 42>
+            sage: Semigroups().example().an_element().blah_blah
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
+        """
+        from sage.structure.parent import getattr_from_other_class
+        return getattr_from_other_class(self, self.parent().category().element_class, name)
+
+    def __dir__(self):
+        """
+        Let cat be the category of the parent of ``self``. This method
+        emulates ``self`` being an instance of both ``Element`` and
+        ``cat.element_class``, in that order, for attribute directory.
+
+        EXAMPLES::
+
+            sage: dir(1/2)
+            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+
+        Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
+
+            sage: 1.__dir__()
+            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+            sage: dir(1)         # todo: not implemented
+            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+        """
+        from sage.structure.parent import dir_with_other_class
+        return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):
         return "Generic element of a structure"

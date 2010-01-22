@@ -660,7 +660,7 @@ def QuadraticField(D, names, check=True, embedding=True):
 
         sage: from sage.rings.number_field.number_field import is_NumberField
         sage: type(K)
-        <class 'sage.rings.number_field.number_field.NumberField_quadratic'>
+        <class 'sage.rings.number_field.number_field.NumberField_quadratic_with_category'>
         sage: is_NumberField(K)
         True
 
@@ -766,7 +766,7 @@ def CyclotomicField(n, names=None, embedding=True):
     ::
 
         sage: type(k)
-        <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
+        <class 'sage.rings.number_field.number_field.NumberField_cyclotomic_with_category'>
 
     We can specify a different generator name as follows.
 
@@ -886,7 +886,8 @@ class NumberField_generic(number_field_base.NumberField):
         True
     """
     def __init__(self, polynomial, name,
-                 latex_name=None, check=True, embedding=None):
+                 latex_name=None, check=True, embedding=None,
+                 category = None):
         """
         Create a number field.
 
@@ -914,6 +915,19 @@ class NumberField_generic(number_field_base.NumberField):
             sage: (a-1)*(a+1)
             0
 
+        The constructed object is in the category of number fields::
+
+            sage: NumberField(x^2 + 3, 'a').category()
+            Category of number fields
+            sage: category(NumberField(x^2 + 3, 'a'))
+            Category of number fields
+
+        The special types of number fields, e.g., quadratic fields, do
+        not have (yet?) their own category::
+
+            sage: QuadraticField(2,'d').category()
+            Category of number fields
+
         TESTS::
 
             sage: NumberField(ZZ['x'].0^4 + 23, 'a')
@@ -925,7 +939,15 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             TypeError: polynomial must be defined over rational field
         """
-        ParentWithGens.__init__(self, QQ, name)
+
+        from sage.categories.number_fields import NumberFields
+        default_category = NumberFields()
+        if category is None:
+            category = default_category
+        else:
+            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+
+        ParentWithGens.__init__(self, QQ, name, category = category)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
 
@@ -1661,26 +1683,6 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
-
-    def category(self):
-        """
-        Return the category of number fields.
-
-        EXAMPLES::
-
-            sage: NumberField(x^2 + 3, 'a').category()
-            Category of number fields
-            sage: category(NumberField(x^2 + 3, 'a'))
-            Category of number fields
-
-        The special types of number fields, e.g., quadratic fields, don't
-        have their own category::
-
-            sage: QuadraticField(2,'d').category()
-            Category of number fields
-        """
-        from sage.categories.number_fields import NumberFields
-        return NumberFields()
 
     def __cmp__(self, other):
         """
@@ -6096,9 +6098,11 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: k = CyclotomicField(3)
             sage: type(k)
-            <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
+            <class 'sage.rings.number_field.number_field.NumberField_cyclotomic_with_category'>
 
-        TESTS:
+        TESTS::
+
+            sage: TestSuite(k).run()
             sage: type(CyclotomicField(4).zero_element())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).one_element())

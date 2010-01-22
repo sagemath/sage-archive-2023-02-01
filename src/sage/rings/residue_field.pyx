@@ -3,7 +3,8 @@ This module implements residue fields for various kinds of rings.
 
 We can take the residue field of prime ideals in maximal order of number fields:
 
-EXAMPLES:
+EXAMPLES::
+
     sage: K.<a> = NumberField(x^3-7)
     sage: P = K.ideal(29).factor()[0][0]
     sage: k = K.residue_field(P)
@@ -56,7 +57,7 @@ Calculating Groebner bases over various residue fields.  First over a small non-
     sage: reduct_id = F1.factor(47)[0][0]
     sage: Rf = F1.residue_field(reduct_id)
     sage: type(Rf)
-    <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
+    <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari_with_category'>
     sage: Rf.cardinality().factor()
     47^3
     sage: R.<X, Y> = PolynomialRing(Rf)
@@ -72,7 +73,7 @@ And now over a large prime field:
     sage: reduct_id = F1.prime_above(next_prime(2^42))
     sage: Rf = F1.residue_field(reduct_id)
     sage: type(Rf)
-    <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
+    <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
     sage: Rf.cardinality().factor()
     4398046511119
     sage: S.<X, Y, Z> = PolynomialRing(Rf, order='lex')
@@ -282,7 +283,7 @@ class ResidueField_generic(Field):
         sage: k = I.residue_field(); k
         Residue field of Fractional ideal (I + 1)
         sage: type(k)
-        <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
+        <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
     """
     def __init__(self, p, f, intp):
         """
@@ -291,18 +292,28 @@ class ResidueField_generic(Field):
            f -- the morphism from the order to self.
            intp -- the rational prime that p lives over.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-17)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P) # indirect doctest
             sage: F = ZZ.residue_field(17)  # indirect doctest
+            sage: k.category()
+            Category of fields
+            sage: F.category()
+            Category of fields
+
+        TESTS::
+
+            sage: TestSuite(k).run(skip = ["_test_element_pickling", "_test_pickling"]) # see #7929
+            sage: TestSuite(F).run(skip = ["_test_element_pickling", "_test_pickling"]) # see #7929
         """
         self.p = p
         self.f = f
         lst = [ self._generic_convert_map(self.base_ring()) ]
         if self.f is not None:
             lst.append(f)
-        ParentWithBase.__init__(self, GF(intp), coerce_from = lst)
+        ParentWithBase.__init__(self, GF(intp), coerce_from = lst, category = Fields())
 
     def ideal(self):
         r"""
@@ -815,7 +826,7 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
             sage: K.<i> = QuadraticField(-1)
             sage: kk = ResidueField(K.factor(5)[0][0])
             sage: type(kk)
-            <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
+            <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
         """
         self.p = p # Here because we have to create a NFResidueFieldHomomorphism before calling ResidueField_generic.__init__(self,...)
         if im_gen is None:
@@ -880,7 +891,7 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(923478923).factor()[0][0]
             sage: type(P.residue_field())
-            <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
+            <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari_with_category'>
         """
         FiniteField_ext_pari.__init__(self, q, name, g)
         self.p = p
@@ -899,7 +910,7 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
             sage: ff.<alpha> = P.residue_field(); ff
             Residue field in alpha of Fractional ideal (-12*aa^2 + 189*aa - 475)
             sage: type(ff)
-            <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
+            <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari_with_category'>
             sage: ff(alpha^2 + 1)
             7521*alpha + 4131
             sage: ff(17/3)

@@ -7,11 +7,11 @@ Poor Man's map
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sage.structure.element
+import sage.structure.sage_object
 
-class PoorManMap(sage.structure.element.Element):
+class PoorManMap(sage.structure.sage_object.SageObject):
     """
-    A class for maps between sets which are not (yet) modelled by parents
+    A class for maps between sets which are not (yet) modeled by parents
 
     Could possibly disapear when all combinatorial classes / enumerated sets will be parents
     """

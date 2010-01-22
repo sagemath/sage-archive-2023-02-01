@@ -66,7 +66,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         sage: loads(dumps(U)) == U
         True
         sage: type(loads(dumps(U)) )
-        <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient'>
+        <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
     """
     def __init__(self, domain, sub, quotient_matrix, lift_matrix, inner_product_matrix = None):
         """
@@ -88,7 +88,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         Behold the type of Q:
             sage: type(Q)
-            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient'>
+            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
 
         We do some consistency checks on the extra quotient and
         lifting structure of Q.
@@ -122,7 +122,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         Note the type:
             sage: type(Q)
-            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient'>
+            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
 
         The string representation mentions that this is a quotient V/W, that the quotient
         has dimension 1 and is over a finite field, and also describes V and W:

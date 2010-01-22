@@ -107,13 +107,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
 
         EXAMPLES: One should not create an instance of this class, but we
-        do so anyways here as an example.
-
-        ::
+        do so anyways here as an example::
 
             sage: A = sage.modular.abvar.abvar.ModularAbelianVariety_abstract((Gamma0(37),), QQ)
             sage: type(A)
-            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_abstract'>
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_abstract_with_category'>
+
 
         All hell breaks loose if you try to do anything with `A`::
 
@@ -121,6 +120,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Traceback (most recent call last):
             ...
             NotImplementedError: BUG -- lattice method must be defined in derived class
+
+
+        All instances of this class are in the category of modular
+        abelian varieties::
+
+            sage: A.category()
+            Category of modular abelian varieties over Rational Field
+            sage: J0(23).category()
+            Category of modular abelian varieties over Rational Field
         """
         if check:
             if not isinstance(groups, tuple):
@@ -139,7 +147,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self.__isogeny_number = isogeny_number
         if check and not is_Ring(base_field) and base_field.is_field():
             raise TypeError, "base_field must be a field"
-        ParentWithBase.__init__(self, base_field)
+        ParentWithBase.__init__(self, base_field, category = ModularAbelianVarieties(base_field))
 
     def groups(self):
         r"""
@@ -1697,23 +1705,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Abelian variety J0(23) of dimension 2
         """
         return ModularAbelianVariety(self.groups(), self.lattice(), R, check=False)
-
-    def category(self):
-        """
-        Return the category of modular abelian varieties that contains this
-        modular abelian variety.
-
-        EXAMPLES::
-
-            sage: J0(23).category()
-            Category of modular abelian varieties over Rational Field
-        """
-        try:
-            return self.__category
-        except AttributeError:
-            C = ModularAbelianVarieties(self.base_ring())
-            self.__category = C
-            return C
 
     def level(self):
         """
@@ -3509,7 +3500,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             sage: A = (J0(11) * J0(37))[1]; A
             Simple abelian subvariety 37a(1,37) of dimension 1 of J0(11) x J0(37)
             sage: type(A)
-            <class 'sage.modular.abvar.abvar.ModularAbelianVariety'>
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_with_category'>
             sage: A.lattice()
             Free module of degree 6 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -3598,7 +3589,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: A.groups()
             (Congruence Subgroup Gamma0(33),)
             sage: type(A)
-            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym'>
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym_with_category'>
         """
         return (self._modular_symbols().group(), )
 
@@ -3620,7 +3611,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             [ 1  0  0 -1  0  0]
             [ 0  0  1  0  1 -1]
             sage: type(A)
-            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym'>
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym_with_category'>
         """
         try:
             return self.__lattice
@@ -3890,7 +3881,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: A.is_ambient()
             True
             sage: type(A)
-            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym'>
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym_with_category'>
             sage: A = ModularSymbols(43).cuspidal_subspace()[1].abelian_variety(); A
             Abelian subvariety of dimension 2 of J0(43)
             sage: A.is_ambient()

@@ -63,7 +63,7 @@ TESTS::
     sage: m == loads(dumps(m))
     True
     sage: type(m)
-    <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
+    <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps_with_category'>
 """
 
 #########################################################################
@@ -113,7 +113,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m = ModularForms(DirichletGroup(11).0,3); m
             Modular Forms space of dimension 3, character [zeta10] and weight 3 over Cyclotomic Field of order 10 and degree 4
             sage: type(m)
-            <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
+            <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps_with_category'>
         """
         if not dirichlet.is_DirichletCharacter(character):
             raise TypeError, "character (=%s) must be a Dirichlet character"%character

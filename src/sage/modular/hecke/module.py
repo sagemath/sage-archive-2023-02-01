@@ -21,7 +21,6 @@ import sage.rings.all
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.modules.module
-import sage.categories.all
 import sage.structure.factorization
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
@@ -67,7 +66,7 @@ class HeckeModule_generic(sage.modules.module.Module):
     operators `T_m` for `m` not assumed to be coprime to the level, and
     *anemic* Hecke modules, for which this does not hold.
     """
-    def __init__(self, base_ring, level):
+    def __init__(self, base_ring, level, category = None):
         r"""
         Create a Hecke module. Not intended to be called directly.
 
@@ -75,10 +74,20 @@ class HeckeModule_generic(sage.modules.module.Module):
 
             sage: CuspForms(Gamma0(17),2) # indirect doctest
             Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(17) of weight 2 over Rational Field
+            sage: ModularForms(3, 3).category()
+            Category of Hecke modules over Rational Field
         """
         if not sage.rings.all.is_CommutativeRing(base_ring):
             raise TypeError, "base_ring must be commutative ring"
-        ParentWithGens.__init__(self, base_ring)
+
+        from sage.categories.hecke_modules import HeckeModules
+        default_category = HeckeModules(base_ring)
+        if category is None:
+            category = default_category
+        else:
+            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+
+        ParentWithGens.__init__(self, base_ring, category = category)
 
         level = sage.rings.all.ZZ(level)
         if level <= 0:
@@ -263,18 +272,6 @@ class HeckeModule_generic(sage.modules.module.Module):
         except AttributeError:
             self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
             return self.__anemic_hecke_algebra
-
-    def category(self):
-        r"""
-        Return the category to which this module belongs, i.e. the category of
-        Hecke modules over the given base ring.
-
-        EXAMPLE::
-
-            sage: ModularForms(3, 3).category()
-            Category of Hecke modules over Rational Field
-        """
-        return sage.categories.all.HeckeModules(self.base_ring())
 
     def character(self):
         r"""
@@ -470,10 +467,11 @@ class HeckeModule_free_module(HeckeModule_generic):
         r"""
         Initialise a module.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4)
-            <class 'sage.modular.hecke.module.HeckeModule_free_module'>
+            sage: M = sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4); M
+            <class 'sage.modular.hecke.module.HeckeModule_free_module_with_category'>
+            sage: TestSuite(M).run(skip = ["_test_additive_associativity", "_test_an_element", "_test_element_pickling", "_test_pickling", "_test_some_elements", "_test_zero"]) # is this supposed to be an abstract parent without elements?
         """
         HeckeModule_generic.__init__(self, base_ring, level)
         self.__weight = weight

@@ -71,9 +71,11 @@ class Jacobian_generic(Scheme):
             sage: J = Jacobian_generic(C); J
             Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3
             sage: type(J)
-            <class 'sage.schemes.jacobians.abstract_jacobian.Jacobian_generic'>
-            sage: J == loads(dumps(J))
-            True
+            <class 'sage.schemes.jacobians.abstract_jacobian.Jacobian_generic_with_category'>
+
+        Note: this is an abstract parent, so we skip element tests::
+
+            sage: TestSuite(J).run(skip =["_test_an_element", "_test_element_pickling", "_test_some_elements"])
 
         ::
 

@@ -20,14 +20,14 @@ EXAMPLES:
     sage: M = Matrix(QQ,[[2,1,0],[1,2,1],[0,1,2]])
     sage: V = VectorSpace(QQ,3,inner_product_matrix=M)
     sage: type(V)
-    <class 'sage.modules.free_quadratic_module.FreeQuadraticModule_ambient_field'>
+    <class 'sage.modules.free_quadratic_module.FreeQuadraticModule_ambient_field_with_category'>
     sage: V.inner_product_matrix()
     [2 1 0]
     [1 2 1]
     [0 1 2]
     sage: W = V.subspace([[1,2,7], [1,1,0]])
     sage: type(W)
-    <class 'sage.modules.free_quadratic_module.FreeQuadraticModule_submodule_field'>
+    <class 'sage.modules.free_quadratic_module.FreeQuadraticModule_submodule_field_with_category'>
     sage: W
     Quadratic space of degree 3 and dimension 2 over Rational Field
     Basis matrix:

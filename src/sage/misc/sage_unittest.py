@@ -26,7 +26,7 @@ class TestSuite(object):
     In practice this calls all the methods ``._test_*`` of this
     object, in alphabetic order::
 
-        sage: TestSuite(ZZ).run(verbose = True)
+        sage: TestSuite(1).run(verbose = True)
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
 
@@ -141,16 +141,18 @@ class TestSuite(object):
 
         We now use the ``verbose`` option::
 
-            sage: TestSuite(ZZ).run(verbose = True)
+            sage: TestSuite(1).run(verbose = True)
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
 
         Some tests may be skipped using the ``skip`` option::
 
-            sage: TestSuite(ZZ).run(verbose = True, skip ="_test_pickling")
+            sage: TestSuite(1).run(verbose = True, skip ="_test_pickling")
             running ._test_not_implemented_methods() . . . pass
-            sage: TestSuite(ZZ).run(verbose = True, skip =["_test_pickling"])
+            sage: TestSuite(1).run(verbose = True, skip =["_test_pickling"])
             running ._test_not_implemented_methods() . . . pass
+
+        We now show (and test) some standard error reports::
 
             sage: class Blah(SageObject):
             ...       def _test_a(self, tester): pass

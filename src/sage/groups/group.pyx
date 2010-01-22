@@ -55,7 +55,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         sage.structure.parent_gens.ParentWithGens.__init__(self,
                 sage.rings.integer_ring.ZZ, category = category)
 
-    def __call__(self, x):
+    def __call__(self, x): # NT: doesn't this get in the way of the coercion mechanism?
         """
         Coerce x into this group.
         """

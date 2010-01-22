@@ -61,7 +61,7 @@ cdef class Morphism(Map):
         return s
 
     def category(self):
-        return self.parent().category()
+        return self.parent().category() # Shouln't it be Category of elements of ...?
 
     def is_endomorphism(self):
         return self.parent().is_endomorphism_set()

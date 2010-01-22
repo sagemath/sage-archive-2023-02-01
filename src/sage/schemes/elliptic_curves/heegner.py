@@ -1780,7 +1780,7 @@ class HeegnerPoint(SageObject):
             sage: P.quadratic_field() is P.quadratic_field()
             True
             sage: type(P.quadratic_field())
-            <class 'sage.rings.number_field.number_field.NumberField_quadratic'>
+            <class 'sage.rings.number_field.number_field.NumberField_quadratic_with_category'>
         """
         return self.ring_class_field().quadratic_field()
 

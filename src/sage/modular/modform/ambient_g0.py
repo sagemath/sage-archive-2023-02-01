@@ -39,7 +39,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             sage: m = ModularForms(Gamma0(11),4); m
             Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
             sage: type(m)
-            <class 'sage.modular.modform.ambient_g0.ModularFormsAmbient_g0_Q'>
+            <class 'sage.modular.modform.ambient_g0.ModularFormsAmbient_g0_Q_with_category'>
         """
         ambient.ModularFormsAmbient.__init__(self, arithgroup.Gamma0(level), weight, rings.QQ)
 
@@ -57,7 +57,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             sage: s = m.cuspidal_submodule(); s
             Cuspidal subspace of dimension 10 of Modular Forms space of dimension 14 for Congruence Subgroup Gamma0(33) of weight 4 over Rational Field
             sage: type(s)
-            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_g0_Q'>
+            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_g0_Q_with_category'>
         """
         try:
             return self.__cuspidal_submodule

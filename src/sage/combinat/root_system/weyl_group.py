@@ -229,10 +229,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         """
         return self.lattice().simple_reflections().map(self.from_morphism)
 
-    @lazy_attribute
-    def reflections(self):
-        import sage
-        return sage.misc.misc.deprecation("reflections deprecated; use simple_reflections instead")
+    #@lazy_attribute
+    #def reflections(self):
+    #    import sage
+    #    return sage.misc.misc.deprecation("reflections deprecated; use simple_reflections instead")
 
     def gens(self):
         """

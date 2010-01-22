@@ -73,6 +73,7 @@ cimport sage.categories.map as map
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets
 from copy import copy
+from sage.misc.sage_itertools import unique_merge
 
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0
@@ -142,6 +143,144 @@ def is_extension_type(cls):
     """
     # Robert B claims that this should be robust
     return hasattr(cls, "__dictoffset__") and cls.__dictoffset__ == 0
+
+class A(object):
+    pass
+methodwrapper = type(A.__call__)
+
+def raise_attribute_error(self, name):
+    """
+    Tries to emulate the standard Python AttributeError exception
+
+    EXAMPLES::
+
+        sage: sage.structure.parent.raise_attribute_error(1, "bla")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute 'bla'
+        sage: sage.structure.parent.raise_attribute_error(QQ[x].gen(), "bla")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Polynomial_rational_dense' object has no attribute 'bla'
+    """
+    cls = type(self)
+    if is_extension_type(cls):
+        raise AttributeError, "'%s.%s' object has no attribute '%s'"%(cls.__module__, cls.__name__, name)
+    else:
+        raise AttributeError, "'%s' object has no attribute '%s'"%(cls.__name__, name)
+
+def getattr_from_other_class(self, cls, name):
+    """
+    INPUT::
+
+     - ``self``: some object
+     - ``cls``: a class
+     - ``name``: a string
+
+    Emulates ``getattr(self, name)``, as if self was an instance of ``cls``.
+
+    If self is an instance of cls, raises an ``AttributeError``, to
+    avoid a double lookup. This function is intended to be called from
+    __getattr__, and so should not be called if name is an attribute
+    of self.
+
+    TODO: lookup if such a function readilly exists in Python, and if
+    not triple check this specs and make this implementation
+    rock-solid.
+
+    Caveat: this is pretty hacky, does not handle caching. There is no
+    guarantee of robustness with super calls and lazy attributes, ...
+
+    EXAMPLES::
+
+        sage: from sage.structure.parent import getattr_from_other_class
+        sage: class A(object):
+        ...        def inc(self):
+        ...            return self + 1
+        ...        @lazy_attribute
+        ...        def lazy_attribute(self):
+        ...            return repr(self)
+        sage: getattr_from_other_class(1, A, "inc")
+        <bound method A.inc of 1>
+        sage: getattr_from_other_class(1, A, "inc")()
+        2
+
+    Caveat: lazy attributes don't work currently with extension types,
+    with or without a __dict__:
+
+        sage: getattr_from_other_class(1, A, "lazy_attribute")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute 'lazy_attribute'
+        sage: getattr_from_other_class(ZZ, A, "lazy_attribute")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer_ring.IntegerRing_class' object has no attribute 'lazy_attribute'
+        sage: getattr_from_other_class(QQ[x].one(), A, "lazy_attribute")
+        '1'
+
+    Caveat: When __call__ is not defined for instances, using
+    A.__call__ gives the method __call__ of the class. We use a
+    workaround but there is no guarantee for robustness.
+
+        sage: getattr_from_other_class(1, A, "__call__")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute '__call__'
+    """
+    if isinstance(self, cls):
+        raise_attribute_error(self, name)
+    try:
+        attribute = getattr(cls, name)
+    except AttributeError:
+        raise_attribute_error(self, name)
+    if isinstance(attribute, methodwrapper):
+        raise_attribute_error(self, name)
+    if isinstance(attribute, lazy_attribute):
+        # Conditionally defined lazy_attributes don't work well with fake subclasses
+        # (a TypeError is raised if the lazy attribute is not defined)
+        # For the moment, we ignore that when this occurs
+        try:
+            return attribute.__get__(self, cls)
+        except TypeError:
+            raise_attribute_error(self, name)
+    if hasattr(attribute, "__get__"):
+        return attribute.__get__(self, cls)
+    else:
+        return attribute
+
+def dir_with_other_class(self, cls):
+    """
+    Emulates ``dir(self)``, as if self was also an instance ``cls``,
+    right after ``caller_class`` in the method resolution order
+    (``self.__class__.mro()``)
+
+    EXAMPLES::
+
+        sage: class A(object):
+        ...      a = 1
+        ...      b = 2
+        ...      c = 3
+        sage: class B(object):
+        ...      b = 2
+        ...      c = 3
+        ...      d = 4
+        sage: x = A()
+        sage: x.c = 1; x.e = 1
+        sage: sage.structure.parent.dir_with_other_class(x, B)
+        [..., 'a', 'b', 'c', 'd', 'e']
+
+
+    """
+    # This tries to emulate the standard dir function
+    # Is there a better way to call dir on self, while ignoring this
+    # __dir__? Using dir(super(A, self)) does not work since the
+    # attributes coming from subclasses of A will be ignored
+    iterator = unique_merge(self.__dict__.keys(), dir(self.__class__))
+    if not isinstance(self, cls):
+        iterator = unique_merge(iterator, dir(cls))
+    return list(iterator)
+
 
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation
@@ -362,7 +501,12 @@ cdef class Parent(category_object.CategoryObject):
         EXAMPLES::
 
             sage: ZZ.categories()
-            [Category of commutative rings,
+            [Category of euclidean domains,
+             Category of principal ideal domains,
+             Category of gcd domains,
+             Category of integral domains,
+             Category of commutative rings,
+             Category of domains,
              Category of rings,
              Category of rngs,
              Category of commutative additive groups,
@@ -390,6 +534,64 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_list = []
             self._convert_from_hash = {}
             self._embedding = None
+
+    def __getattr__(self, name):
+        """
+        Let cat be the category of ``self``. This method emulates
+        ``self`` being an instance of both ``Parent`` and
+        ``cat.parent_class``, in that order, for attribute lookup.
+
+        EXAMPLES:
+
+        We test that ZZ (an extension type) inherits the methods from
+        its categories, that is from ``EuclideanDomains().parent_class``::
+
+            sage: ZZ._test_associativity
+            <bound method EuclideanDomains.parent_class._test_associativity of Integer Ring>
+            sage: ZZ._test_associativity(verbose = True)
+            sage: TestSuite(ZZ).run(verbose = True)
+            running ._test_additive_associativity() . . . pass
+            running ._test_an_element() . . . pass
+            running ._test_associativity() . . . pass
+            running ._test_element_pickling() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_one() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_prod() . . . pass
+            running ._test_some_elements() . . . pass
+            running ._test_zero() . . . pass
+
+            sage: Sets().example().sadfasdf
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'PrimeNumbers_with_category' object has no attribute 'sadfasdf'
+        """
+        if self._is_category_initialized():
+            return getattr_from_other_class(self, self.category().parent_class, name)
+        else:
+            raise_attribute_error(self, name)
+
+    def __dir__(self):
+        """
+        Let cat be the category of ``self``. This method emulates
+        ``self`` being an instance of both ``Parent`` and
+        ``cat.parent_class``, in that order, for attribute directory.
+
+        EXAMPLES::
+
+            sage: [s for s in dir(ZZ) if s[:6] == "_test_"]
+            ['_test_additive_associativity',
+             '_test_an_element',
+             '_test_associativity',
+             '_test_element_pickling',
+             '_test_not_implemented_methods',
+             '_test_one',
+             '_test_pickling',
+             '_test_prod',
+             '_test_some_elements',
+             '_test_zero']
+        """
+        return dir_with_other_class(self, self.category().parent_class)
 
     def _introspect_coerce(self):
         """

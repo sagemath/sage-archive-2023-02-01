@@ -65,6 +65,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
 
+from sage.categories.algebras import Algebras
 from sage.rings.ring import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 from sage.structure.parent_gens import ParentWithGens
@@ -114,15 +115,20 @@ class SteenrodAlgebra_generic(Algebra):
             Sq(0,1)
             sage: SteenrodAlgebra(2, 'adem').Sq(0,1)
             Sq^{2} Sq^{1} + Sq^{3}
+
+            sage: A = SteenrodAlgebra(3)
+            sage: A.category()
+            Category of algebras over Finite Field of size 3
+            sage: TestSuite(A).run()
         """
         from sage.rings.arith import is_prime
-        if is_prime(p):
-            self.prime = p
-            ParentWithGens.__init__(self, GF(p))
-            self._basis_name = basis
-        else:
+        if not is_prime(p):
             raise ValueError, "%s is not prime." % p
-
+        self.prime = p
+        base_ring = GF(p)
+        # NT: maybe AlgebrasWithBasis?
+        ParentWithGens.__init__(self, base_ring, category = Algebras(base_ring))
+        self._basis_name = basis
 
     def _repr_(self):
         """
@@ -434,20 +440,6 @@ class SteenrodAlgebra_generic(Algebra):
             False
         """
         return False
-
-
-    def category(self):
-        """
-        The Steenrod algebra is an algebra over `F_p`.
-
-        EXAMPLES::
-
-            sage: A = SteenrodAlgebra(3)
-            sage: A.category()
-            Category of algebras over Finite Field of size 3
-        """
-        from sage.categories.all import Algebras
-        return Algebras(GF(self.prime))
 
 
     def basis(self, n):

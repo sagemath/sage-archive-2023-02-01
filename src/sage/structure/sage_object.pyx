@@ -240,24 +240,15 @@ cdef class SageObject:
             AssertionError: Not implemented method: bla
 
         """
-        from sage.misc.abstract_method import AbstractMethod
         tester = self._tester(**options)
         for name in dir(self):
-            # This tries to reduce the occasions to trigger the
-            # calculation of a lazy attribute
-            # This won't work for classes using the getattr trick
-            # to pseudo inherit from category
-            if hasattr(self.__class__, name):
-                f = getattr(self.__class__, name)
-                if not isinstance(f, AbstractMethod):
-                    continue
             try:
-                # self.name may have been set explicitly in self.__dict__
                 getattr(self, name)
-            except AttributeError:
-                pass
             except NotImplementedError:
+                # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
                 tester.fail("Not implemented method: %s"%name)
+            except:
+                pass
 
     def _test_pickling(self, **options):
         """

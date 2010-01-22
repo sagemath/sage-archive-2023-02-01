@@ -51,6 +51,7 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
+            sage: TestSuite(A).run() # not tested (abstract scheme with no elements?)
         """
         if not is_CommutativeRing(R):
             raise TypeError, "R (=%s) must be a commutative ring"%R
@@ -59,6 +60,12 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
             raise ValueError, "n (=%s) must be nonnegative"%n
         self.__n = n
         self._base_ring = R
+        # NT: this seems to set improperly self._base_scheme to X instead of Spec(X)????
+        # scheme.Scheme.__init__(self, R)
+        # This should be cleaned up by someone who knows about schemes (not me!)
+        from sage.categories.schemes import Schemes
+        from sage.structure.parent_base import ParentWithBase
+        ParentWithBase.__init__(self, R, category = Schemes(self.base_scheme()))
 
     #######################################################################
     # Derived classes must overload all of the following functions

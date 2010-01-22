@@ -206,7 +206,11 @@ class NumericalEigenforms(SageObject):
             t += randint(-50,50)*M.T(p).matrix()
 
         self._hecke_matrix = t
-        evals, B = t.change_ring(CDF).right_eigenvectors()
+        # evals, B = t.change_ring(CDF).right_eigenvectors()
+        from sage.matrix.constructor import matrix
+        spectrum = t.change_ring(CDF).right_eigenvectors()
+        evals = [spectrum[i][0] for i in range(len(spectrum))]
+        B = matrix(CDF, [spectrum[i][1][0] for i in range(len(spectrum))]).transpose()
 
         # Find the eigenvalues that occur with multiplicity 1 up
         # to the given eps.

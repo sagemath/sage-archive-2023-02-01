@@ -616,65 +616,123 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def eigenspaces_left(self, var='a', algebraic_multiplicity=False):
         r"""
-        Return a list of pairs (e, V) where e runs through all complex
-        eigenvalues of this matrix, and V is the corresponding
-        left eigenspace (always a 1-dimensional complex vector space).
+        Computes the left eigenspaces of a matrix of double precision
+        real or complex numbers (i.e. RDF or CDF).
 
-        INPUT
-            Both the var and the algebraic_multiplicity arguments are
-            ignored.  They do not make much sense in a numerical
-            situation.
+        INPUT:
 
-        EXAMPLES:
-            sage: m = matrix(RDF, 3, range(9)); m
-            [0.0 1.0 2.0]
-            [3.0 4.0 5.0]
-            [6.0 7.0 8.0]
-            sage: es = m.eigenspaces_left()
-            sage: es # random
-            [(13.3484692283, Vector space of degree 3 and dimension 1 over Real Double Field
-            User basis matrix:
-            [-0.440242867236 -0.567868371314 -0.695493875393]),
-            (-1.34846922835, Vector space of degree 3 and dimension 1 over Real Double Field
-            User basis matrix:
-            [-0.897878732262 -0.278434036822  0.341010658618]),
-            (-9.10854412047e-16, Vector space of degree 3 and dimension 1 over Real Double Field
-            User basis matrix:
-            [ 0.408248290464 -0.816496580928  0.408248290464])]
+        - ``var`` - ignored for numerical matrices
+        - ``algebraic_multiplicity`` - must be set to ``False``
+          for numerical matrices, and will raise an error otherwise.
 
-            sage: e, v = es[0]
-            sage: v = v.basis()[0]
-            sage: a = v * m
-            sage: b = e * v
-            sage: diff = a.change_ring(CDF) - b
-            sage: abs(abs(diff)) < 1e-10
+        OUTPUT:
+
+        Return a list of pairs ``(e, V)`` where ``e`` is a (complex)
+        eigenvalue and ``V`` is the associated left eigenspace as a
+        vector space.
+
+        No attempt is made to determine if an eigenvalue has multiplicity
+        greater than one, so all the eigenspaces returned have dimension one.
+
+        EXAMPLES::
+
+            sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
+            sage: spectrum = m.eigenspaces_left()
+            sage: spectrum[0]
+            (2.0, Vector space of degree 4 and dimension 1 over Real Double Field
+            User basis matrix:
+            [0.5 0.5 0.5 0.5])
+
+            sage: e, V = spectrum[2]
+            sage: v = V.basis()[0]
+            sage: diff = (v*m).change_ring(CDF) - e*v
+            sage: abs(abs(diff)) < 1e-14
             True
-            sage: diff # random -- very small numbers
-            (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
 
-        TESTS:
+        TESTS::
+
             sage: m.eigenspaces_left(algebraic_multiplicity=True)
             Traceback (most recent call last):
             ...
-            ValueError: algebraic_multiplicity can only be False for double precision matrices
+            ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
-        # Raise an error if algebraic_multiplicity is True since that
-        # would normally change the format of the return value.
+        # For numerical values we leave decisions about
+        # multiplicity to the calling routine
         if algebraic_multiplicity:
-            raise ValueError, "algebraic_multiplicity can only be False for double precision matrices"
-
-        e, v = self.left_eigenvectors()
-        v = v.rows()
+            raise ValueError, "algebraic_multiplicity must be set to False for double precision matrices"
+        spectrum = self.left_eigenvectors()
         pairs = []
-        for l from 0<=l<len(e):
-            c = v[l]
-            pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
+        for evalue,evectors,_ in spectrum:
+            evector = evectors[0]
+            espace = evector.parent().span_of_basis([evector],check=False)
+            pairs.append((evalue, espace))
         return pairs
 
     left_eigenspaces = eigenspaces_left
 
-    def eigenvalues(self):
+    def eigenspaces_right(self, var='a', algebraic_multiplicity=False):
+        r"""
+        Computes the right eigenspaces of a matrix of double precision
+        real or complex numbers (i.e. RDF or CDF).
+
+        INPUT:
+
+        - ``var`` - ignored for numerical matrices
+        - ``algebraic_multiplicity`` - must be set to ``False``
+          for numerical matrices, and will raise an error otherwise.
+
+        OUTPUT:
+
+        Return a list of pairs ``(e, V)`` where ``e`` is a (complex)
+        eigenvalue and ``V`` is the associated right eigenspace as a
+        vector space.
+
+        No attempt is made to determine if an eigenvalue has multiplicity
+        greater than one, so all the eigenspaces returned have dimension one.
+
+        EXAMPLES::
+
+            sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
+            sage: m
+            [ -9.0 -14.0  19.0 -74.0]
+            [ -1.0   2.0   4.0 -11.0]
+            [ -4.0 -12.0   6.0 -32.0]
+            [  0.0  -2.0  -1.0   1.0]
+            sage: spectrum = m.eigenspaces_right()
+            sage: spectrum[0]
+            (2.0, Vector space of degree 4 and dimension 1 over Real Double Field
+            User basis matrix:
+            [ 0.258198889747 -0.516397779494  0.774596669241  0.258198889747])
+
+            sage: e, V = spectrum[2]
+            sage: v = V.basis()[0]
+            sage: diff = (m*v).change_ring(CDF) - e*v
+            sage: abs(abs(diff)) < 1e-14
+            True
+
+        TESTS::
+
+            sage: m.eigenspaces_right(algebraic_multiplicity=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
+        # For numerical values we leave decisions about
+        # multiplicity to the calling routine
+        if algebraic_multiplicity:
+            raise ValueError, "algebraic_multiplicity must be set to False for double precision matrices"
+        spectrum = self.right_eigenvectors()
+        pairs = []
+        for evalue,evectors,_ in spectrum:
+            evector = evectors[0]
+            espace = evector.parent().span_of_basis([evector],check=False)
+            pairs.append((evalue, espace))
+        return pairs
+
+    right_eigenspaces = eigenspaces_right
+
+    def eigenvalues(self):
+        r"""
         Returns a list of the eigenvalues (with multiplicity)
         of this matrix.  The returned eigenvalues are elements of CDF.
 
@@ -692,6 +750,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m = matrix(CDF, 2, 2, [I,1,-I,0])
             sage: m.eigenvalues()
             [-0.624810533844 + 1.30024259022*I, 0.624810533844 - 0.30024259022*I]
+
             sage: matrix(CDF,0,0).eigenvalues()
             []
         """
@@ -706,27 +765,42 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return [sage.rings.complex_double.CDF(x) for x in scipy.linalg.eigvals(self._matrix_numpy)]
 
     def left_eigenvectors(self):
-        """
-        Computes the eigenvalues and *left* eigenvectors of this
-        matrix m acting *from the right*.  I.e., vectors v such that
-        v*m = lambda*v.
+        r"""
+        Compute the left eigenvectors of a matrix of double precision
+        real or complex numbers (i.e. RDF or CDF).
 
         OUTPUT:
-             eigenvalues -- as a list
-             corresponding eigenvectors -- as an RDF matrix whose rows
-                           are the eigenvectors.
+        Returns a list of triples, each of the form ``(e,[v],1)``,
+        where ``e`` is the eigenvalue, and ``v`` is an associated
+        left eigenvector.  If the matrix is of size `n`, then there are
+        `n` triples.  Values are computed with the SciPy library.
 
-        EXAMPLES:
-            sage: m = Matrix(RDF, 3, range(9))
-            sage: es = m.left_eigenvectors()
-            sage: es # random-ish platform-dependent output (low order digits)
-            ([13.3484692283, -1.34846922835, -9.10854412047e-16],
-            [-0.440242867236 -0.567868371314 -0.695493875393]
-            [-0.897878732262 -0.278434036822  0.341010658618]
-            [ 0.408248290464 -0.816496580928  0.408248290464])
-            sage: e, v = es; e = e[0]; v = v[0]
-            sage: abs(abs(e*v - v*m)) < 1e-10
-            True
+        The format of this output is designed to match the format
+        for exact results.  However, since matrices here have numerical
+        entries, the resulting eigenvalues will also be numerical.  No
+        attempt is made to determine if two eigenvalues are equal, or if
+        eigenvalues might actually be zero.  So the algebraic multiplicity
+        of each eigenvalue is reported as 1.  Decisions about equal
+        eigenvalues or zero eigenvalues should be addressed in the
+        calling routine.
+
+        EXAMPLES::
+
+            sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
+            sage: m
+            [ -5.0   3.0   2.0   8.0]
+            [ 10.0   2.0   4.0  -2.0]
+            [ -1.0 -10.0 -10.0 -17.0]
+            [ -2.0   7.0   6.0  13.0]
+            sage: spectrum = m.left_eigenvectors()
+            sage: spectrum[0]
+            (2.0, [(0.5, 0.5, 0.5, 0.5)], 1)
+            sage: spectrum[1]
+            (1.0, [(-0.615457454897, -0.492365963917, -0.492365963917, -0.369274472938)], 1)
+            sage: spectrum[2]
+            (-2.0, [(-0.800640769025, -0.32025630761, -0.480384461415, -0.160128153805)], 1)
+            sage: spectrum[3]
+            (-1.0, [(0.316227766017, 0.316227766017, 0.632455532034, 0.632455532034)], 1)
         """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
@@ -737,34 +811,50 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             import scipy
         import scipy.linalg
         v,eig = scipy.linalg.eig(self._matrix_numpy, right=False, left=True)
+        # scipy puts eigenvectors in columns, we will extract from rows
         eig = matrix(eig.T)
-        return ([sage.rings.complex_double.CDF(x) for x in v], eig)
+        return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
 
     eigenvectors_left = left_eigenvectors
 
     def right_eigenvectors(self):
-        """
-        Computes the eigenvalues and *right* eigenvectors of this
-        matrix m acting *from the left*.  I.e., vectors v such that
-        m * v = lambda*v, where v is viewed as a column vector.
+        r"""
+        Compute the right eigenvectors of a matrix of double precision
+        real or complex numbers (i.e. RDF or CDF).
 
         OUTPUT:
-             eigenvalues -- as a list
-             corresponding eigenvectors -- as an RDF matrix whose columns
-                           are the eigenvectors.
+        Returns a list of triples, each of the form ``(e,[v],1)``,
+        where ``e`` is the eigenvalue, and ``v`` is an associated
+        right eigenvector.  If the matrix is of size `n`, then there
+        are `n` triples.  Values are computed with the SciPy library.
 
-        EXAMPLES:
-            sage: m = Matrix(RDF, 3, range(9))
-            sage: evals,evecs = m.right_eigenvectors()
-            sage: evals # random low-order bits
-            [13.3484692283, -1.34846922835, -1.1327908706e-15]
-            sage: evecs # random low-order bits
-            [ 0.164763817282  0.799699663112  0.408248290464]
-            [ 0.505774475901  0.104205787719 -0.816496580928]
-            [ 0.846785134519 -0.591288087674  0.408248290464]
-            sage: max([max(m*evec - evec*eval) for eval,evec in zip(evals, evecs.columns())]) < 1e-14
-            True
-        """
+        The format of this output is designed to match the format
+        for exact results.  However, since matrices here have numerical
+        entries, the resulting eigenvalues will also be numerical.  No
+        attempt is made to determine if two eigenvalues are equal, or if
+        eigenvalues might actually be zero.  So the algebraic multiplicity
+        of each eigenvalue is reported as 1.  Decisions about equal
+        eigenvalues or zero eigenvalues should be addressed in the
+        calling routine.
+
+        EXAMPLES::
+
+            sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
+            sage: m
+            [ -9.0 -14.0  19.0 -74.0]
+            [ -1.0   2.0   4.0 -11.0]
+            [ -4.0 -12.0   6.0 -32.0]
+            [  0.0  -2.0  -1.0   1.0]
+            sage: spectrum = m.right_eigenvectors()
+            sage: spectrum[0]
+            (2.0, [(0.258198889747, -0.516397779494, 0.774596669241, 0.258198889747)], 1)
+            sage: spectrum[1]
+            (1.0, [(-0.547722557505, 0.36514837167, -0.73029674334, -0.182574185835)], 1)
+            sage: spectrum[2]
+            (-2.0, [(0.693375245282, -0.138675049056, 0.693375245282, 0.138675049056)], 1)
+            sage: spectrum[3]
+            (-1.0, [(0.426401432711, -0.213200716356, 0.852802865422, 0.213200716356)], 1)
+            """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self._nrows == 0:
@@ -774,7 +864,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             import scipy
         import scipy.linalg
         v,eig = scipy.linalg.eig(self._matrix_numpy, right=True, left=False)
-        return ([sage.rings.complex_double.CDF(x) for x in v], matrix(eig))
+        # scipy puts eigenvectors in columns, we will extract from rows
+        eig = matrix(eig.T)
+        return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
 
     eigenvectors_right = right_eigenvectors
 

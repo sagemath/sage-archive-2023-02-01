@@ -1429,9 +1429,9 @@ def xlcm(m,n):
     return (l,m,n)
 
 def xgcd(a, b):
-    """
+    r"""
     Return a triple ``(g,s,t)`` such that
-         `g = s\*a+t\*b = \mathop{\mathrm{gcd}}(a,b)`.
+         `g = s\cdot a+t\cdot b = \mathop{\mathrm{gcd}}(a,b)`.
 
     .. note::
 
@@ -1450,7 +1450,7 @@ def xgcd(a, b):
 
     OUTPUT:
 
-    -  ``g, s, t`` - such that `g = s\*a + t\*b`
+    -  ``g, s, t`` - such that `g = s\cdot a + t\cdot b`
 
 
     .. note::
@@ -1482,7 +1482,7 @@ def xgcd(a, b):
         (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
     We compute an xgcd over the integers, where the linear combination
-    is not the gcd but the resultant:
+    is not the gcd but the resultant::
 
         sage: R.<x> = ZZ[]
         sage: gcd(2*x*(x-1), x^2)
@@ -1814,7 +1814,7 @@ def mqrr_rational_reconstruction(u, m, T):
     OUTPUT:
 
     Either integers `n,d` such that `d>0`, `\mathop{\mathrm{gcd}}(n,d)=1`, `n/d=u \bmod m`, and
-    `T \* d \* |n| < m`, or ``None``.
+    `T \cdot d \cdot |n| < m`, or ``None``.
 
     Reference: Monagan, Maximal Quotient Rational Reconstruction: An
     Almost Optimal Algorithm for Rational Reconstruction (page 11)

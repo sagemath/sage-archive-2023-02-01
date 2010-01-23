@@ -4,7 +4,7 @@ libSingular: Functions.
 Sage implements a C wrapper around the Singular interpreter which
 allows to call any function directly from Sage without string parsing
 or interprocess communication overhead. Users who do not want to call
-Singular functions direclty, usually do not have to worry about this
+Singular functions directly, usually do not have to worry about this
 interface, since it is handled by higher level functions in Sage.
 
 AUTHORS:
@@ -35,7 +35,6 @@ parameter::
 
 If a Singular library needs to be loaded before a certain function is
 available, use the :func:`lib` function as shown below::
-
 
     sage: from sage.libs.singular.function import singular_function, lib as singular_lib
     sage: primdecSY = singular_function('primdecSY')
@@ -1015,13 +1014,13 @@ cdef class SingularFunction(SageObject):
 
         prefix = \
 """
-This function is an automatic generated C wrapper around the Singular
+This function is an automatically generated C wrapper around the Singular
 function '%s'.
 
 This wrapper takes care of converting Sage datatypes to Singular
 datatypes and vice versa. In addition to whatever parameters the
-underlying Singular function accepts when called his function also
-accepts the following keyword parameter:
+underlying Singular function accepts when called this function also
+accepts the following keyword parameters:
 
 INPUT:
 

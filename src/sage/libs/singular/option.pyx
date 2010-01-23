@@ -4,7 +4,7 @@ libSingular: Options.
 Singular uses a set of global options to determine verbosity and the
 behavior of certain algorithms. We provide an interface to these
 options in the most 'natural' python-ic way. Users who do not wish to
-deal with Singular functions direclty usually do not have to worry
+deal with Singular functions directly usually do not have to worry
 about this interface or Singular options in general since this is
 taken care of by higher level functions.
 
@@ -34,7 +34,7 @@ However, this does not affect the global state::
     sage: opt['redTail']
     True
 
-On the other hand, any assignment to an option object will immediatly
+On the other hand, any assignment to an option object will immediately
 change the global state::
 
     sage: opt['redTail'] = False
@@ -109,7 +109,7 @@ cdef class LibSingularOptions_abstract:
         """
         INPUT:
 
-        - ``**kwds`` - all keyword parameters are immediatly applied.
+        - ``**kwds`` - all keyword parameters are immediately applied.
 
         EXAMPLE::
 
@@ -204,7 +204,7 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
        return a standard base instead of a generating set if returnSB
        is set. This option should not be used for lift.
 
-     - ``fastHC`` - tries to the find the highest corner of the
+     - ``fastHC`` - tries to find the highest corner of the
        staircase (HC) as fast as possible during a standard basis
        computation (only used for local orderings).
 
@@ -217,7 +217,7 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
        was used in SINGULAR version before 2-0 (and which may lead to
        faster or slower computations, depending on the example)
 
-     - ``length`` - select shorter reduceers in std computations,
+     - ``length`` - select shorter reducers in std computations,
 
      - ``notRegularity`` - disables the regularity bound for ``res`` and
        ``mres`` (see regularity).
@@ -259,8 +259,8 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
      - ``sugarCrit`` - uses criteria similar to the homogeneous case
        to keep more useless pairs.
 
-    - ``weightM`` - automatically computes suitable weights for the
-      weighted ecart and the weighted sugar method.
+     - ``weightM`` - automatically computes suitable weights for the
+       weighted ecart and the weighted sugar method.
 
     EXAMPLE::
 

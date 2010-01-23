@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 p-adic L-functions of elliptic curves
 
@@ -919,11 +920,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
-#        if quadratic_twist != +1 :
-#            raise NotImplementedError, "twists are not implemented for supersingular primes, so far."
 
         # check if the conditions on quadratic_twist are satisfied
-        D = quadratic_twist
+        D = ZZ(quadratic_twist)
         if D != 1:
             if D % 4 == 0:
                 d = D//4
@@ -932,8 +931,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
             else:
                 if not D.is_squarefree() or D % 4 != 1:
                     raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
-            if gcd(D,self._p*self._E.conductor()) != 1:
-                raise ValueError, "quadratic twist (=%s) must be coprime to p (=%s) and the conductor of the curve (%s) "%(D,self._p,self._E.conductor())
+            if gcd(D,self._E.conductor())!= 1:
+                for ell in prime_divisors(D):
+                    if valuation(self._E.conductor(),ell) > valuation(D,ell) :
+                        raise ValueError, "can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D)
 
         p = self._p
         if p == 2 and self._normalize :

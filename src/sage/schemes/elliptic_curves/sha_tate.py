@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tate-Shafarevich group
 
@@ -5,7 +6,7 @@ If `E` is an elliptic curve over a global field `K`, the Shafarevich-Tate group
 is the subgroup of elements in `H^1(K,E)` which map to zero under every global-to-local
 restriction map `H^1(K,E) \to H^1(K_v,E)`, one for each place `v`
 of `K`. It is known to be a torsion group and the `m`-torsion is finite for all `m>1`.
-It is conjectured to be a finite.
+It is conjectured to be finite.
 
 AUTHORS:
 
@@ -41,6 +42,7 @@ from sage.misc.functional import log
 from math import sqrt
 from sage.misc.all import verbose
 import sage.rings.arith as arith
+from sage.rings.padics.factory import Qp
 
 factor = arith.factor
 valuation = arith.valuation
@@ -289,7 +291,7 @@ class Sha(SageObject):
             self.__an = Sha
             return Sha
 
-    def an_padic(self, p, prec=0,use_twists=True):
+    def an_padic(self, p, prec=0, use_twists=True):
         r"""
         Returns the conjectural order of Sha(E),
         according to the `p`-adic analogue of the Birch
@@ -338,37 +340,35 @@ class Sha(SageObject):
             1 + O(5)
             sage: EllipticCurve('389a1').sha().an_padic(5,4) #rank 2   (long time)
             1 + O(5^3)
-            sage: EllipticCurve('858k2').sha().an_padic(7)  #rank 0, non trivial sha  (long time)
-            7^2 + O(7^3)
+            sage: EllipticCurve('858k2').sha().an_padic(7)  #rank 0, non trivial sha   (long time)
+            7^2 + O(7^6)
             sage: EllipticCurve('300b2').sha().an_padic(3)  # an example with 9 elements in sha
-            3^2 + O(3^3)
-            sage: EllipticCurve('300b2').sha().an_padic(7)
-            2 + 7 + O(7^4)
+            3^2 + O(3^6)
+            sage: EllipticCurve('300b2').sha().an_padic(7, prec=6)
+            2 + 7 + O(7^8)
 
         Exceptional cases::
 
             sage: EllipticCurve('11a1').sha().an_padic(11) #rank 0
-            1 + O(11)
+            1 + O(11^2)
+            sage: EllipticCurve('130a1').sha().an_padic(5) #rank 1
+            1 + O(5)
 
         Non-split, but rank 0 case (trac #7331)::
 
             sage: EllipticCurve('270b1').sha().an_padic(5) #rank 0
-            1 + O(5^3)
+            1 + O(5^2)
 
         The output has the correct sign ::
 
             sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
             1 + O(41)
-            sage: EllipticCurve('817a1').sha().an_padic(43) #rank 2    (long time)
-            1 + O(43)
 
         Supersingular cases::
 
-            sage: EllipticCurve('34a1').sha().an_padic(5) # rank 0     (long time)
-            1 + O(5^3)
-            sage: EllipticCurve('43a1').sha().an_padic(7) # rank 1    (very long time -- nearly a minute)
-            1 + O(7)
-            sage: EllipticCurve('1483a1').sha().an_padic(5) # rank 2   (long time)
+            sage: EllipticCurve('34a1').sha().an_padic(5) # rank 0
+            1 + O(5^2)
+            sage: EllipticCurve('53a1').sha().an_padic(5) # rank 1    (long time)
             1 + O(5)
 
         Cases that use a twist to a lower conductor ::
@@ -377,13 +377,19 @@ class Sha(SageObject):
             1 + O(5)
             sage: EllipticCurve('240d3').sha().an_padic(5)  # sha has 4 elements here
             4 + O(5)
-            sage: EllipticCurve('448c5').sha().an_padic(7,prec=4)  # long time
-            2 + 7 + O(7^3)
+            sage: EllipticCurve('448c5').sha().an_padic(7,prec=4, use_twists=False)
+            2 + 7 + O(7^6)
             sage: E = EllipticCurve([-19,34]) # trac 6455
-            sage: E.sha().an_padic(5)
+            sage: E.sha().an_padic(5) # long time
             1 + O(5)
 
         """
+        # note on the doctests (cw 2010)
+        # these tests are among the easiest test possible,
+        # so even if the rank 1 case in supersingular that
+        # takes more than 20 sec, should not be excluded.
+
+
         try:
             return self.__an_padic[(p,prec)]
         except AttributeError:
@@ -391,15 +397,12 @@ class Sha(SageObject):
         except KeyError:
             pass
 
-        # there is no reason that the theorem should not hold for cm curves.
-        #if self.E.has_cm():
-        #    raise NotImplementedError, "I don't know about curves with complex multiplication."
-
         tam = self.E.tamagawa_product()
         tors = self.E.torsion_order()**2
         reg = self.E.padic_regulator(p)
         # todo : here we should catch the rank computation
         r = self.E.rank()
+
 
         if use_twists and p > 2:
             Et, D = self.E.minimal_quadratic_twist()
@@ -431,7 +434,20 @@ class Sha(SageObject):
             lp = self.E.padic_lseries(p)
             D = 1
 
-        if self.E.is_ordinary(p):
+        if r == 0 and D == 1:
+            # short cut for rank 0 curves, we do not
+            # to compute the p-adic L-function, the leading
+            # term will be the L-value divided by the Neron
+            # period.
+            ms = self.E.modular_symbol(sign=+1, normalize='L_ratio')
+            lstar = ms(0)/self.E.real_components()
+            bsd = tam/tors
+            if prec == 0:
+                prec = valuation(lstar/bsd, p)
+            shan = Qp(p,prec=prec+2)(lstar/bsd)
+
+
+        elif self.E.is_ordinary(p):
             K = reg.parent()
             lg = log(K(1+p))
 
@@ -596,8 +612,8 @@ class Sha(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
-            sage: e.sha().an_padic(7)  # long time
-            7^2 + O(7^3)
+            sage: e.sha().an_padic(7)
+            7^2 + O(7^6)
 
             sage: e = EllipticCurve('11a3')
             sage: e.sha().p_primary_bound(5)

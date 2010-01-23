@@ -937,7 +937,7 @@ class GammaH_class(CongruenceSubgroup):
 
         from all import is_Gamma0, is_Gamma1
         if not isinstance(other, GammaH_class):
-            return NotImplementedError
+            raise NotImplementedError
 
         # level of self should divide level of other
         if self.level() % other.level():

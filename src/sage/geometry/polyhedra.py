@@ -1065,7 +1065,7 @@ class Polyhedron(SageObject):
         """
         if self.dim() > 4:
             print "Dimension is too large for wireframe"
-            return NotImplementedError
+            raise NotImplementedError
         if self.dim() < 4:
             if self.ieqs() == self.vertices() == []:
                 return Graphics()

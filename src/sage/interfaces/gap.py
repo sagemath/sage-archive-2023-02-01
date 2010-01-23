@@ -574,10 +574,10 @@ class Gap(Expect):
         E = self._expect
         try:
             if len(line) > 4095:
-                raise RuntimeError,"Passing commands this long to gap would hang"
+                raise RuntimeError("Passing commands this long to gap would hang")
             E.sendline(line)
         except OSError:
-            return RuntimeError, "Error evaluating %s in %s"%(line, self)
+            raise RuntimeError("Error evaluating %s in %s"%(line, self))
         if wait_for_prompt == False:
             return ('','')
         if len(line)==0:
@@ -629,9 +629,9 @@ class Gap(Expect):
                     pass  # there is no need to do anything
         except pexpect.EOF:
             if not expect_eof:
-                raise RuntimeError, "Unexpected EOF from %s executing %s"%(self,line)
+                raise RuntimeError("Unexpected EOF from %s executing %s"%(self,line))
         except IOError:
-            raise RuntimeError, "IO Error from %s executing %s"%(self,line)
+            raise RuntimeError("IO Error from %s executing %s"%(self,line))
         return ("".join(normal_outputs),"".join(error_outputs))
 
     def _keyboard_interrupt(self):

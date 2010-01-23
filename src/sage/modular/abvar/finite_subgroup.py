@@ -277,7 +277,7 @@ class FiniteSubgroup(Module):
         A = self.abelian_variety()
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
-            return ValueError, "self and other must be in the same ambient Jacobian"
+            raise ValueError("self and other must be in the same ambient Jacobian")
         K = composite_field(self.field_of_definition(), other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:

@@ -1967,7 +1967,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return self.__multiplicative_order
         else:
             if self.is_zero():
-                return ArithmeticError, "Multiplicative order of 0 not defined."
+                raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = (parent_object(self)).order_c() - 1
             order = 1
             for p, e in sage.rings.arith.factor(n):

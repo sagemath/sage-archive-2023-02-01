@@ -638,7 +638,7 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g))
         else:
-            return NotImplementedError("SymPy function '%s' doesn't exist" % f)
+            raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
 sympy = SympyConverter()
 

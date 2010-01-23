@@ -4001,7 +4001,7 @@ def isogenies_sporadic_Q(E, l=None):
     j = QQ(j)
     if l != None:
         if not l.is_prime():
-            return ValueError, "%s is not prime."%l
+            raise ValueError("%s is not prime."%l)
         if not isog_table.has_key((l,j)):
             return []
         Ew = E.short_weierstrass_model()

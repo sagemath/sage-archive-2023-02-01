@@ -381,7 +381,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             return self.__multiplicative_order
         except AttributeError:
             if self.is_zero():
-                return ArithmeticError, "Multiplicative order of 0 not defined."
+                raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = self.parent().order() - 1
             order = 1
             for p, e in arith.factor(n):

@@ -276,7 +276,7 @@ def RealIntervalField(prec=53, sci_not=False):
 
 cdef class RealIntervalField_class(sage.rings.ring.Field):
     """
-    RealIntervalField(prec, sci_not, rnd):
+    RealIntervalField(prec, sci_not):
 
     INPUT:
 

@@ -40,12 +40,26 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         (see g.get_embedding())
         circular -- if True, test for circular planarity
 
-    EXAMPLE:
+    EXAMPLES::
+
         sage: G = graphs.DodecahedralGraph()
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
         True
         sage: Graph('@').is_planar()
+        True
+
+    TESTS:
+
+    We try checking the planarity of all graphs on 7 or fewer
+    vertices.  In fact, to try to track down a segfault, we do it
+    twice. ::
+
+        sage: import networkx.generators.atlas  # long time
+        sage: atlas_graphs = [Graph(i) for i in networkx.generators.atlas.graph_atlas_g()] # long time
+        sage: a = [i for i in [1..1252] if atlas_graphs[i].is_planar()] # long time
+        sage: b = [i for i in [1..1252] if atlas_graphs[i].is_planar()] # long time
+        sage: a == b # long time
         True
     """
     # First take care of a trivial case.  We ignore the set_pos,

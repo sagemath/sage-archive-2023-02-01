@@ -18,6 +18,10 @@ from sage.modules.all            import vector
 from sage.misc.misc              import verbose
 from sage.rings.all              import CDF, Integer, QQ, next_prime, prime_range
 from sage.misc.prandom           import randint
+from sage.matrix.constructor     import matrix
+
+# This variable controls importing the SciPy library sparingly
+scipy=None
 
 class NumericalEigenforms(SageObject):
     """
@@ -177,7 +181,7 @@ class NumericalEigenforms(SageObject):
             return M
 
     def _eigenvectors(self):
-        """
+        r"""
         Find numerical approximations to simultaneous eigenvectors in
         self.modular_symbols() for all T_p in self._tp.
 
@@ -190,6 +194,25 @@ class NumericalEigenforms(SageObject):
             [                0    0.413171180356    0.141163094698   0.0923242547901    0.707106781187]
             [                0    0.826342360711    0.282326189397     0.18464850958 6.79812569682e-16]
             [                0      0.2402380858    0.792225196393    0.905370774276 4.70805946682e-16]
+
+        TESTS:
+
+        This tests if this routine selects only eigenvectors with
+        multiplicity one.  Two of the eigenvalues are
+        (roughly) -92.21 and -90.30 so if we set ``eps = 2.0``
+        then they should compare as equal, causing both eigenvectors
+        to be absent from the matrix returned.  The remaining eigenvalues
+        (ostensibly unique) are visible in the test, which should be
+        indepedent of which eigenvectors are returned, but it does presume
+        an ordering of these eigenvectors for the test to succeed.
+        This exercises a correction in Trac 8018. ::
+
+            sage: n = numerical_eigenforms(61, eps=2.0)
+            sage: evectors = n._eigenvectors()
+            sage: evalues = diagonal_matrix(CDF, [-283.0, 108.522012456, 142.0])
+            sage: diff = n._hecke_matrix*evectors - evectors*evalues
+            sage: sum([abs(diff[i,j]) for i in range(5) for j in range(3)]) < 1.0e-9
+            True
         """
         try:
             return self.__eigenvectors
@@ -206,28 +229,30 @@ class NumericalEigenforms(SageObject):
             t += randint(-50,50)*M.T(p).matrix()
 
         self._hecke_matrix = t
-        # evals, B = t.change_ring(CDF).right_eigenvectors()
-        from sage.matrix.constructor import matrix
-        spectrum = t.change_ring(CDF).right_eigenvectors()
-        evals = [spectrum[i][0] for i in range(len(spectrum))]
-        B = matrix(CDF, [spectrum[i][1][0] for i in range(len(spectrum))]).transpose()
 
-        # Find the eigenvalues that occur with multiplicity 1 up
-        # to the given eps.
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        evals,eig = scipy.linalg.eig(self._hecke_matrix.numpy(), right=True, left=False)
+        B = matrix(eig)
+        v = [CDF(evals[i]) for i in range(len(evals))]
+
+        # Determine the eigenvectors with eigenvalues of multiplicity
+        # one, with equality controlled by the value of eps
+        # Keep just these eigenvectors
         eps = self._eps
-        v = list(evals)
-        v.sort()
         w = []
         for i in range(len(v)):
             e = v[i]
             uniq = True
             for j in range(len(v)):
-                if i != j and abs(e-v[j]) < eps:
+                if uniq and i != j and abs(e-v[j]) < eps:
                     uniq = False
             if uniq:
                 w.append(i)
         self.__eigenvectors = B.matrix_from_columns(w)
-        return B
+        return self.__eigenvectors
 
     def _easy_vector(self):
         """

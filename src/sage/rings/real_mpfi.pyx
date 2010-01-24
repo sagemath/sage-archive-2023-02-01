@@ -1075,9 +1075,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             '2.5?5'
             sage: cmp(loads(dumps(b)), b)
             0
+            sage: R = RealIntervalField(4000)
+            sage: s = 1/R(3)
+            sage: t = loads(dumps(s))
+            sage: (t.upper(), t.lower()) == (s.upper(), s.lower())
+            True
+            sage: loads(dumps(1/RIF(0,1)))
+            [1.0000000000000000 .. +infinity]
         """
-        s = self.str(32, style='brackets', no_sci=False, e='@')
-        return (__create__RealIntervalFieldElement_version0, (self._parent, s, 32))
+        return (__create__RealIntervalFieldElement_version1, (self._parent, self.upper(), self.lower()))
 
     def  __dealloc__(self):
         if self.init:
@@ -4167,3 +4173,6 @@ def __create__RealIntervalField_version0(prec, sci_not):
 ## Keep all old versions!!!
 def __create__RealIntervalFieldElement_version0(parent, x, base=10):
     return RealIntervalFieldElement(parent, x, base=base)
+
+def __create__RealIntervalFieldElement_version1(parent, lower, upper):
+    return RealIntervalFieldElement(parent, (lower, upper))

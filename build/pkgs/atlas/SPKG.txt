@@ -35,10 +35,13 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 
 === atlas-3.8.3.p11 (Peter Jeremy, 2010-01-25)===
  * #7827: Fix atlas-3.8.3.p9 compilation on FreeBSD
+ * Minh Van Nguyen: patch spkg-install-script to copy
+   patches/SpewMakeInc.c over to src/CONFIG/src/SpewMakeInc.c
 
 === atlas-3.8.3.p10 (David Kirkby, January 5th 2010) ===
  * replace bitwidth.py which uses 'ctypes' at that is broken
    on many platforms.
+
 === atlas-3.8.3.p7 (William Stein, Sept 21 2009) ===
  * Make this into a dummy package on Cygwin that requires lapack.
 

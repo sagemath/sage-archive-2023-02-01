@@ -120,6 +120,10 @@ fi
 
 CUR=`pwd`
 echo $CUR
+if [ `uname` = "FreeBSD" ]; then
+    echo Patching SpewMakeInc.c for FreeBSD-specific build
+    cp patches/SpewMakeInc.c src/CONFIG/src/SpewMakeInc.c
+fi
 # add PPC4 7447 CPU and better Itanium2 detection:
 echo Deal with PPC4 7447 model and Itanium 2
 cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c

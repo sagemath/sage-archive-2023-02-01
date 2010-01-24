@@ -44,10 +44,11 @@ class CachedFunction(object):
             7
             sage: g.cache
             {((5, None, 'default'), ()): 7}
-            sage: def sleep1(t=1): sleep(t)
-            sage: h = CachedFunction(sleep1)
+            sage: def f(t=1): print(t)
+            sage: h = CachedFunction(f)
             sage: w = walltime()
             sage: h(); h(1); h(t=1)
+            1
             sage: walltime(w) < 2
             True
 
@@ -228,11 +229,12 @@ class CachedFunction(object):
 cached_function = CachedFunction
 
 class CachedMethodCaller(CachedFunction):
+    """
+    Utility class that is used by CachedMethod to bind a
+    cached method to an instance.
+    """
     def __init__(self, cachedmethod, inst):
         """
-        Utility class that is used by CachedMethod to bind a
-        cached method to an instance.
-
         EXAMPLES::
 
             sage: class Foo:
@@ -355,9 +357,28 @@ class CachedMethodCaller(CachedFunction):
 
 
 class CachedMethod(object):
+    """
+    A decorator that creates a cached version of an instance method of
+    a class. For proper behavior, the method must be a pure function (no side effects).
+    Arguments to the method must be hashable.
+
+    EXAMPLES::
+
+        sage: class Foo(object):
+        ...       @cached_method
+        ...       def f(self, t, x=2):
+        ...           print x + 1
+        sage: a = Foo()
+        sage: w = walltime()
+        sage: a.f(1, 2); a.f(t = 1, x = 2); a.f(1)
+        3
+        sage: walltime(w) < 2
+        True
+    """
     def __init__(self, f):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: class Foo:
             ...       def __init__(self, x):
             ...           self._x = x
@@ -376,7 +397,8 @@ class CachedMethod(object):
 
     def _instance_call(self, inst, *args, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: class Foo(object):
             ...       def __init__(self, x):
             ...           self._x = x

@@ -26,7 +26,7 @@ fi
 
 
 
-if [ `uname` = "Linux" ]; then
+if [ `uname` = "Linux" ] || [ `uname` = "FreeBSD" ]; then
     if [ `./fortran_type.pl` =  "g95" ]; then
 	cd "$SAGE_LOCAL"/lib
 	lapack_command="ld -L"$f95_dir" -L"$SAGE_LOCAL"/lib  -shared -soname liblapack.so -o liblapack.so  --whole-archive liblapack.a --no-whole-archive -lc -lm -lf95"

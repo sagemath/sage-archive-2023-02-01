@@ -1,3 +1,6 @@
+=== cddlib-094f.p2 (Volker Braun and Marshall Hampton, January 24th, 2010) ===
+ * patch cdd_both_reps.c
+
 === cddlib-094f (Sebastien Barthelemy, January 26th, 2009) ===
  * using upstream version 094f
 

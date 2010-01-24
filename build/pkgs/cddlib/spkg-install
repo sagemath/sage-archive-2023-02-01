@@ -13,7 +13,9 @@ fi
 
 cp patches/allfaces.c src/src/
 
-cd src/
+patch -p0 < patches/cdd_both_reps-make.patch
+
+cd src
 
 # This is needed for cddlib-094, which fails
 # to find the gmp headers otherwise.

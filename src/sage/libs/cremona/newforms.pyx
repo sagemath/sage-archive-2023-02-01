@@ -37,7 +37,8 @@ cdef class ECModularSymbol:
         """
         Construct the modular symbol.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.cremona.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
@@ -45,6 +46,14 @@ cdef class ECModularSymbol:
             sage: M = ECModularSymbol(E)
             sage: E = EllipticCurve('389a')
             sage: M = ECModularSymbol(E)
+
+        TESTS:
+
+        This one is from trac #8240::
+
+            sage: E = EllipticCurve('858k2')
+            sage: M = ECModularSymbol(E)
+
         """
         cdef ZZ_c a1, a2, a3, a4, a6, N
         cdef Curve *C

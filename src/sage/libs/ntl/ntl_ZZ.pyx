@@ -57,7 +57,8 @@ cdef class ntl_ZZ:
         r"""
         Initializes and NTL integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.ZZ(12r)
             12
             sage: ntl.ZZ(Integer(95413094))
@@ -71,12 +72,17 @@ cdef class ntl_ZZ:
             sage: ntl.ZZ('-1r')
             -1
 
+        TESTS::
+
+            sage: ntl.ZZ(int(2**40))
+            1099511627776
+
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
         if PY_TYPE_CHECK(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
-            ZZ_conv_from_int(self.x, v)
+            ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
         elif PyLong_Check(v):
             ZZ_set_pylong(self.x, v)
         elif PY_TYPE_CHECK(v, Integer):

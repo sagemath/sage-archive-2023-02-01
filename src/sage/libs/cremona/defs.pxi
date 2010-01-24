@@ -1,7 +1,7 @@
 cdef extern from "eclib/interface.h":
     ctypedef struct bigint:  #eclib uses NTL in Sage -- we call Cremona's "bigint" ZZ_c.
         pass
-    ZZ_c new_bigint "to_ZZ"(int)
+    ZZ_c new_bigint "to_ZZ"(long)
     int I2int(ZZ_c)
 
 cdef extern from "eclib/bigrat.h":

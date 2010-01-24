@@ -155,7 +155,7 @@ export ABI
 
 # Flags for building a dynamically linked shared object.
 SAGESOFLAGS=" "
-if [ `uname` = "Linux" ]; then
+if [ `uname` = "Linux" ] || [ `uname` = "FreeBSD" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
     export SAGESOFLAGS
 elif [ `uname` = "Darwin" ]; then

@@ -15,6 +15,14 @@ Nathann Cohen (nathann.cohen@gmail.com)
 == Upstream Contact ==
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 
+== Changelog ==
+
+=== cliquer-1.2.p3 (Peter Jeremy, 2010-01-25) ===
+ * #7824: add FreeBSD support
+
+=== cliquer-1.2.p2 (?, ?) ===
+ * changelog lost to history
+
 === cliquer-1.2.p1 Karl-Dieter Crisman, Georg S. Weber (7th October 2009) ===
  * fix trac #7115: Re-add support for building cliquer on Mac OS X 10.4
 

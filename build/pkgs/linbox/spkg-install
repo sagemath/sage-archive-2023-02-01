@@ -26,8 +26,8 @@ export CFLAGS
 export CXXFLAGS
 export CPPFLAGS
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "$SAGE64" = "yes" ]; then
+   echo "64 bit build"
    CFLAGS="-m64 $CFLAGS "; export CFLAGS
    CXXFLAGS="-m64 $CXXFLAGS "; export CXXFLAGS
    CPPFLAGS="-m64 $CPPFLAGS "; export CPPFLAGS

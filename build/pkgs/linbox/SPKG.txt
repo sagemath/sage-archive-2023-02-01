@@ -23,6 +23,11 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p3 (Jaap Spies, Jan 25th, 2010) ===
+
+=== linbox-1.1.6.p2 (William Stein, ?) ===
+ * ????
+
 === linbox-1.1.6.p1 (William Stein, Sept 21, 2009) ===
  * Use systemwide lapack on windows.
 

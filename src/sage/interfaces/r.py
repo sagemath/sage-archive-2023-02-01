@@ -376,20 +376,21 @@ class R(Expect):
         Install an R package into Sage's R installation.
 
         EXAMPLES:
-            sage: r.install_package('Hmisc')       #optional requires internet
-            [1] 4 5 6
+            sage: r.install_packages('aaMI')       #optional requires internet
+            ...
+            R is free software and comes with ABSOLUTELY NO WARRANTY.
+            You are welcome to redistribute it under certain conditions.
+            Type 'license()' or 'licence()' for distribution details.
+            ...
+            Please restart Sage in order to use 'aaMI'.
         """
-        if UNAME == "Darwin":
-            warn = "** You are using OS X.  Unfortunately, the R optional package system currently doesn't support OS X very well.  We are working on this. **"
-        else:
-            warn = None
-        if warn is not None: print warn
-
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
-        print "Please restart Sage or restart the R interface (via r.restart()) in order to use '%s'."%package_name
+        print "Please restart Sage in order to use '%s'."%package_name
 
-        if warn is not None: print warn
+        # For now, r.restart() seems to be broken
+        #print "Please restart Sage or restart the R interface (via r.restart()) in order to use '%s'."%package_name
+
         #s = r.eval('install.packages("%s")'%package_name)
         #print s
 

@@ -9,6 +9,9 @@ the place to fix it.
 
 == Releases ==
 
+=== genus2reduction-0.3.p6 (Jaap Spies, Jan 25th, 2010) ===
+ * made SAGE64=yes also work with Open Solaris 64 bit
+
 === genus2reduction-0.3.p5 (William Stein, April 5, 2009) ===
  * trac 5573: "mod --> Mod" change.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "$SAGE64" = "yes" ]; then
+   echo "64 bit build"
    CFLAGS="-O2 -g -m64 "; export CFLAGS
    CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
 fi

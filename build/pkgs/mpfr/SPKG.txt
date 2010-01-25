@@ -16,7 +16,6 @@ MPFR is free. It is distributed under the GNU Lesser General Public License
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * David Kirkby
 
 == Upstream Contact ==
@@ -35,6 +34,9 @@ INCLUDE_MPFR_PATCH to 1, to include a patch, which can cause failures
 on sun4v machines.
 
 == Changelog ==
+
+=== mpfr-2.4.1p1 (Jaap Spies, Jan 26th, 2010) ===
+ * Make SAGE64 work also on Open Solaris 64 bit
 
 === mpfr-2.4.1p0 (David Kirkby, July 17th 2009) ===
  * Sage TRAC #6453 http://sagetrac.org/sage_trac/ticket/6453

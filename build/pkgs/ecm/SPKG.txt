@@ -12,7 +12,6 @@ LGPL V2+
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * William Stein
 
 == Upstream Contact ==
@@ -28,6 +27,10 @@ LGPL V2+
 src contains upstream code, no patches were applied.
 
 == Changelog ==
+
+=== ecm-6.2.1.p1 (Jaap Spies, Jan 25th, 2010) ===
+ * Made SAGE64="yes" work also for Open Solaris 64 bit
+ * Removed Michael Mabshoff as maintainer
 
 === ecm-6.2.1.p1 (François Bissey, October 26th, 2009) ===
  * The removal of the old version of ecm in ecm-6.2.1_p0.spkg is

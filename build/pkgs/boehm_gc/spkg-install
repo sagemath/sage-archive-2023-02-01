@@ -15,8 +15,8 @@ if [ $UNAME = "Darwin" ]; then
    $CP patches/mach_dep.c src/
 fi
 
-if [ $UNAME = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "$SAGE64" = "yes" ]; then
+   echo "64 bit build"
    CFLAGS="-O2 -g -fPIC -m64 "; export CFLAGS
    LDFLAGS="-m64"; export LDFLAGS
 fi

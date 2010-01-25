@@ -16,11 +16,13 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
  * gmp
 
 == Maintainers  ==
-  * Martin Albrecht
   * Clement Pernet
   * Martin Albrecht <malb@informatik.uni-bremen.de>
 
 == Changelog ==
+
+=== givaro-3.2.13rc1.p0 (Jaap Spies, Jan 25th, 2010) ===
+ * Let SAGE64="yes" work on Open Solaris 64 bit
 
 === givaro-3.2.13rc1 (Clement Pernet, Sept 18th, 2008) ===
  * Fix endianess pb with PPC-OSX

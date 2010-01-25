@@ -78,7 +78,7 @@ from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.plot.plot import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
-from sage.geometry.polyhedra import Polyhedron, ieq_to_vert, vert_to_ieq
+from sage.geometry.polyhedra import Polyhedron
 
 def prefix_check(str_list):
     """
@@ -1040,12 +1040,15 @@ class GroebnerFan(SageObject):
             sage: g_cone = gf[0].groebner_cone()
             sage: g_cone_facets = g_cone.facets()
             sage: g_cone_ieqs = gf._cone_to_ieq(g_cone_facets)
-            sage: cone_data = ieq_to_vert(g_cone_ieqs,linearities=[[1,-1,-1,-1,-1]])
+            sage: cone_data = Polyhedron(ieqs = g_cone_ieqs, eqns = [[1,-1,-1,-1,-1]])
             sage: cone_lines = gf._4d_to_3d(cone_data)
             sage: cone_lines
-            [[[-3/5, -1/3, -1/5], [-1/7, 3/7, 5/7]], [[-3/5, -1/3, -1/5], [1, -1/3,
-            1/3]], [[-3/5, -1/3, -1/5], [1, 1, -1]], [[-1/7, 3/7, 5/7], [1, -1/3,
-            1/3]], [[-1/7, 3/7, 5/7], [1, 1, -1]], [[1, -1/3, 1/3], [1, 1, -1]]]
+            [[[-3/5, -1/3, -1/5], [-1/7, 3/7, 5/7]],
+            [[-3/5, -1/3, -1/5], [1, -1/3, 1/3]],
+            [[-3/5, -1/3, -1/5], [1, 1, -1]],
+            [[-1/7, 3/7, 5/7], [1, -1/3, 1/3]],
+            [[-1/7, 3/7, 5/7], [1, 1, -1]],
+            [[1, -1/3, 1/3], [1, 1, -1]]]
         """
         fpoints = polyhedral_data.vertices()
         tpoints = [self._embed_tetra(q) for q in fpoints]
@@ -1100,13 +1103,14 @@ class GroebnerFan(SageObject):
         g_cones_facets = [q.facets() for q in g_cones]
         g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]
         # Now the cones are intersected with a plane:
-        cone_info = [ieq_to_vert(q,linearities=[[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
+        cone_info = [Polyhedron(ieqs = q, eqns = [[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
+        #This is really just for debugging
         if verbose:
             for x in cone_info:
                 print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
                 print x.linearities()
                 print ""
-        cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], linearities = x.linearities()) for x in cone_info]
+        cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], eqns = x.linearities()) for x in cone_info]
         all_lines = []
         for cone_data in cone_info:
             try:

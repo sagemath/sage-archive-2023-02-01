@@ -1,5 +1,50 @@
-=== cddlib-094f.p2 (Volker Braun and Marshall Hampton, January 24th, 2010) ===
+= cddlib =
+
+== Description ==
+The C-library cddlib is a C implementation of the Double Description
+Method of Motzkin et al. for generating all vertices (i.e. extreme points)
+and extreme rays of a general convex polyhedron in R^d given by a system
+of linear inequalities:
+
+   P = { x=(x1, ..., xd)^T :  b - A  x  >= 0 }
+
+where  A  is a given m x d real matrix, b is a given m-vector
+and 0 is the m-vector of all zeros.
+
+The program can be used for the reverse operation (i.e. convex hull
+computation).  This means that one can move back and forth between
+an inequality representation and a generator (i.e. vertex and ray)
+representation of a polyhedron with cdd.  Also, cdd can solve a linear
+programming problem, i.e. a problem of maximizing and minimizing
+a linear function over P.
+
+== License ==
+GPL v2
+
+== SPKG Maintainers ==
+* Marshall Hampton
+* Volker Braun
+
+== Upstream Contact ==
+Komei Fukuda <fukuda@ifor.math.ethz.ch>
+Institute for Operations Research
+and Institute of Theoretical Computer Science
+ETH Zentrum, CH-8092 Zurich, Switzerland
+Tel +41-1-632-4023, Fax +41-1-632-1025
+http://www.ifor.math.ethz.ch/staff/fukuda/
+
+== Dependencies ==
+* gmp
+
+== Special Update/Build Instructions ==
+From clean upstream sources, remove directories doc, examples*, src-mathlink*.
+
+== Changelog ==
+
+=== cddlib-094f.p2 (Volker Braun, Marshall Hampton, Alex Ghitza, January 25th, 2010) ===
  * patch cdd_both_reps.c
+ * remove dist/
+ * clean up SPKG.txt
 
 === cddlib-094f (Sebastien Barthelemy, January 26th, 2009) ===
  * using upstream version 094f
@@ -10,17 +55,7 @@
 === cddlib-094b.p2 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit support on OSX
 
-* 2007-24-11 (Michael Abshoff)
+=== ??? (Michael Abshoff, November 11th, 2007) ===
+ * add -L$SAGE_LOCAL/lib to CFLAGS to force linking against Sage's gmp
+   (issue reported by Justin Walker)
 
-  - add -L$SAHE_LOCAL/lib to CFLAGS to force linking against Sage's gmp
-    (issue reported by Justin Walker)
-
-*initial build
-
-1. Deleted (large) ps and pdf files from doc directory:
-       rm doc/*.ps doc/*.pdf
-2. Remove the examples directories:
-       rm -rf example*
-3. Remove mathlink stuff:
-       rm -rf src-mathlink*
-4.

@@ -10,65 +10,73 @@
 """
 Units
 
-This is the units package. It contains information about many units and
-conversions between them.
+This is the units package. It contains information about many units
+and conversions between them.
+
+TUTORIAL:
 
 To create a unit::
 
-	sage: units.length.meter
-	meter
+    sage: units.length.meter
+    meter
 
 This unit acts exactly like a symbolic variable::
 
-	sage: s = units.length.meter
-	sage: s^2
-	meter^2
-	sage: s + var('x')
-	meter + x
+    sage: s = units.length.meter
+    sage: s^2
+    meter^2
+    sage: s + var('x')
+    meter + x
 
 Units have additional information in their docstring::
 
-        sage: # You would type: units.force.dyne?
-	sage: print units.force.dyne._sage_doc_()
-	CGS unit for force defined to be gram*centimeter/second^2.
-	Equal to 10^-5 newtons.
+    sage: # You would type: units.force.dyne?
+    sage: print units.force.dyne._sage_doc_()
+    CGS unit for force defined to be gram*centimeter/second^2.
+    Equal to 10^-5 newtons.
 
 
-You can call the convert function with units::
+You may call the convert function with units::
 
-	sage: t = units.mass.gram*units.length.centimeter/units.time.second^2
-	sage: t.convert(units.mass.pound*units.length.foot/units.time.hour^2)
-	5400000000000/5760623099*foot*pound/hour^2
-	sage: t.convert(units.force.newton)
-	1/100000*newton
+    sage: t = units.mass.gram*units.length.centimeter/units.time.second^2
+    sage: t.convert(units.mass.pound*units.length.foot/units.time.hour^2)
+    5400000000000/5760623099*foot*pound/hour^2
+    sage: t.convert(units.force.newton)
+    1/100000*newton
 
 Calling the convert function with no target returns base SI units::
 
-	sage: t.convert()
-	1/100000*kilogram*meter/second^2
+    sage: t.convert()
+    1/100000*kilogram*meter/second^2
 
 Giving improper units to convert to raises a ValueError::
 
-	sage: t.convert(units.charge.coulomb)
-	Traceback (most recent call last):
-	...
-	ValueError: Incompatible units
+    sage: t.convert(units.charge.coulomb)
+    Traceback (most recent call last):
+    ...
+    ValueError: Incompatible units
 
 Converting temperatures works as well::
 
-	sage: s = 68*units.temperature.fahrenheit
-	sage: s.convert(units.temperature.celsius)
-	20*celsius
-	sage: s.convert()
-	293.150000000000*kelvin
+    sage: s = 68*units.temperature.fahrenheit
+    sage: s.convert(units.temperature.celsius)
+    20*celsius
+    sage: s.convert()
+    293.150000000000*kelvin
 
 Trying to multiply temperatures by another unit then converting raises a ValueError::
 
-	sage: wrong = 50*units.temperature.celsius*units.length.foot
-	sage: wrong.convert()
-	Traceback (most recent call last):
-	...
-	ValueError: Cannot convert
+    sage: wrong = 50*units.temperature.celsius*units.length.foot
+    sage: wrong.convert()
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot convert
+
+
+AUTHORS:
+
+    - David Ackerman
+    - William Stein
 """
 
 # standard Python libraries
@@ -482,9 +490,9 @@ def evalunitdict():
     """
     from sage.misc.all import sage_eval
     for key, value in unitdict.iteritems():
-        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
+	unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
 
-    # FEATURE (todo): create a function that would allow users to add
+    # FEATURE IDEA: create a function that would allow users to add
     # new entries to the table without having to know anything about
     # how the table is stored internally.
 
@@ -492,12 +500,12 @@ def evalunitdict():
     # Format the table for easier use.
     #
     for k, v in unitdict.iteritems():
-        for a in v: unit_to_type[a] = k
+	for a in v: unit_to_type[a] = k
 
     for w in unitdict.iterkeys():
-        for j in unitdict[w].iterkeys():
-            if type(unitdict[w][j]) == tuple: unitdict[w][j] = unitdict[w][j][0]
-        value_to_unit[w] = dict(zip(unitdict[w].itervalues(), unitdict[w].iterkeys()))
+	for j in unitdict[w].iterkeys():
+	    if type(unitdict[w][j]) == tuple: unitdict[w][j] = unitdict[w][j][0]
+	value_to_unit[w] = dict(zip(unitdict[w].itervalues(), unitdict[w].iterkeys()))
 
 
 ###############################################################################
@@ -871,38 +879,38 @@ unit_docs = {
 ###############################################################################
 
 unit_derivations = {'acceleration':'length/time^2',
-                    'area':'length^2',
-                    'capacitance':'time^4*current^2/(length^2*mass)',
-                    'charge':'current*time',
-                    'conductance':'current^2*time^3/(mass*length^2)',
-                    'electric_potential':'mass*length^2/(current*time^3)',
-                    'energy':'mass*length^2/time^2',
-                    'fiber_linear_mass_density':'mass/length',
-                    'force':'mass*length/time^2',
-                    'frequency':'1/time',
-                    'illuminance':'luminous_intensity*solid_angle/length^2',
-                    'inductance':'length^2*mass/(time^2*current^2)',
-                    'information_rate':'information/time',
-                    'inverse_length':'1/length',
-                    'luminance':'luminous_intensity/length^2',
-                    'luminous_energy':'luminous_intensity*solid_angle*time',
-                    'luminous_flux':'luminous_intensity*solid_angle',
-                    'magnetic_field':'mass/(current*time^2)',
-                    'magnetic_flux':'mass*length^2/(current*time^2)',
-                    'magnetic_intensity':'current/length',
-                    'magnetic_moment':'current*length^2',
-                    'power':'mass*length^2/time^3',
-                    'pressure':'mass/(length*time^2)',
-                    'radiation':'1/time',
-                    'radiation_absorbed':'length^2/time^2',
-                    'radiation_ionizing':'current*time/mass',
-                    'resistance':'mass*length^2/(current^2*time^3)',
-                    'velocity':'length/time',
-                    'viscosity_absolute':'mass/(length*time)',
-                    'viscosity_kinematic':'length^2/time',
-                    'viscosity_other':'length*time/mass',
-                    'volume':'length^3'
-                    }
+		    'area':'length^2',
+		    'capacitance':'time^4*current^2/(length^2*mass)',
+		    'charge':'current*time',
+		    'conductance':'current^2*time^3/(mass*length^2)',
+		    'electric_potential':'mass*length^2/(current*time^3)',
+		    'energy':'mass*length^2/time^2',
+		    'fiber_linear_mass_density':'mass/length',
+		    'force':'mass*length/time^2',
+		    'frequency':'1/time',
+		    'illuminance':'luminous_intensity*solid_angle/length^2',
+		    'inductance':'length^2*mass/(time^2*current^2)',
+		    'information_rate':'information/time',
+		    'inverse_length':'1/length',
+		    'luminance':'luminous_intensity/length^2',
+		    'luminous_energy':'luminous_intensity*solid_angle*time',
+		    'luminous_flux':'luminous_intensity*solid_angle',
+		    'magnetic_field':'mass/(current*time^2)',
+		    'magnetic_flux':'mass*length^2/(current*time^2)',
+		    'magnetic_intensity':'current/length',
+		    'magnetic_moment':'current*length^2',
+		    'power':'mass*length^2/time^3',
+		    'pressure':'mass/(length*time^2)',
+		    'radiation':'1/time',
+		    'radiation_absorbed':'length^2/time^2',
+		    'radiation_ionizing':'current*time/mass',
+		    'resistance':'mass*length^2/(current^2*time^3)',
+		    'velocity':'length/time',
+		    'viscosity_absolute':'mass/(length*time)',
+		    'viscosity_kinematic':'length^2/time',
+		    'viscosity_other':'length*time/mass',
+		    'volume':'length^3'
+		    }
 
 
 def vars_in_str(s):
@@ -912,15 +920,15 @@ def vars_in_str(s):
 
     INPUT:
 
-        - `s` -- string
+	- `s` -- string
 
     OUTPUT:
 
-        - list of strings (unit names)
+	- list of strings (unit names)
 
     EXAMPLES::
 
-        sage: sage.symbolic.units.vars_in_str('mass/(length*time)')
+	sage: sage.symbolic.units.vars_in_str('mass/(length*time)')
 	['mass', 'length', 'time']
     """
     return re.findall('[a-z|_]+', s)
@@ -933,11 +941,11 @@ def unit_derivations_expr(v):
 
     INPUT:
 
-        - `v` -- string, name of a unit type such as 'area', 'volume', etc.
+	- `v` -- string, name of a unit type such as 'area', 'volume', etc.
 
     OUTPUT:
 
-        - symbolic expression
+	- symbolic expression
 
     EXAMPLES::
 
@@ -956,22 +964,133 @@ def unit_derivations_expr(v):
     v = str(v)
     Z = unit_derivations[v]
     if isinstance(Z,str):
-        d = dict([(x,str_to_unit(x)) for x in vars_in_str(Z)])
-        from sage.misc.all import sage_eval
-        Z = sage_eval(Z, d)
-        unit_derivations[v] = Z
+	d = dict([(x,str_to_unit(x)) for x in vars_in_str(Z)])
+	from sage.misc.all import sage_eval
+	Z = sage_eval(Z, d)
+	unit_derivations[v] = Z
     return Z
 
 class UnitExpression(Expression):
+    """
+    A symbolic unit.
+
+    EXAMPLES::
+
+	sage: acre = units.area.acre
+	sage: type(acre)
+	<class 'sage.symbolic.units.UnitExpression'>
+
+    TESTS::
+
+	sage: bool(loads(dumps(acre)) == acre)
+	True
+	sage: type(loads(dumps(acre)))
+	<class 'sage.symbolic.units.UnitExpression'>
+    """
     def _sage_doc_(self):
-        return unitdocs(self)
+	"""
+	Return docstring for this unit.
+
+	EXAMPLES::
+
+	    sage: print units.area.acre._sage_doc_()
+	    Defined to be 10 square chains or 4840 square yards.
+	    Approximately equal to 4046.856 square meters.
+	"""
+	return unitdocs(self)
 
 def str_to_unit(name):
+    """
+    Create the symbolic unit with given name.  A symbolic unit is a
+    class that derives from symbolic expression, and has a specialized
+    docstring.
+
+    INPUT:
+
+	- ``name`` -- string
+
+    OUTPUT:
+
+	- UnitExpression
+
+
+    EXAMPLES::
+
+	sage: sage.symbolic.units.str_to_unit('acre')
+	acre
+	sage: type(sage.symbolic.units.str_to_unit('acre'))
+	<class 'sage.symbolic.units.UnitExpression'>
+    """
     return UnitExpression(SR, SR.var(name))
 
 class Units:
-    def __init__(self, data):
-        self.__data = data
+    """
+    A collection of units of a some type.
+
+	EXAMPLES::
+
+	    sage: units.power
+	    Collection power of units: cheval_vapeur horsepower watt
+    """
+    def __init__(self, data, name=''):
+	"""
+	EXAMPLES::
+
+	    sage: sage.symbolic.units.Units(sage.symbolic.units.unitdict, 'all units')
+	    Collection all units of units: acceleration ... volume
+	"""
+	self.__name = name
+	self.__data = data
+	self.__units = {}
+
+    def __getstate__(self):
+	"""
+	Used for pickling.   We throw away all cached information.
+
+	EXAMPLES::
+
+	    sage: type(units.__getstate__()[0])
+	    <type 'str'>
+	    sage: type(units.__getstate__()[1])
+	    <type 'dict'>
+	    sage: loads(dumps(units)) == units
+	    True
+	    sage: loads(dumps(units.area)) == units.area
+	    True
+	    sage: bool(loads(dumps(units.area.acre)) == units.area.acre)
+	    True
+	"""
+	return (self.__name, self.__data)
+
+    def __setstate__(self, state):
+	"""
+	Used for unpickling.  See __getstate__.
+
+	EXAMPLES::
+
+	    sage: state = units.__getstate__()
+	    sage: units.__setstate__(state)
+	"""
+	self.__name = state[0]
+	self.__data = state[1]
+	self.__units = {}
+
+    def __cmp__(self, other):
+	"""
+	Compare two collections of units, or a collection of units with some other object.
+
+	EXAMPLES::
+
+	    sage: units.length == 10
+	    False
+	    sage: units.length == units.length
+	    True
+	    sage: units.length == units.mass
+	    False
+	"""
+	if not isinstance(other, Units):
+	    return cmp(type(self), type(other))
+	return cmp((self.__name, self.__data), (other.__name, other.__data))
 
     def trait_names(self):
 	"""
@@ -981,54 +1100,89 @@ class Units:
 
 	EXAMPLES::
 
-
+	    sage: units.area.trait_names()
+	    ['acre', 'are', 'barn', 'hectare', 'rood', 'section', 'square_chain', 'square_meter', 'township']
 	"""
-        return sorted([x for x in self.__data.keys() if '/' not in x])
+	return sorted([x for x in self.__data.keys() if '/' not in x])
 
     def __getattr__(self, name):
-        if len(unit_to_type) == 0:
-            evalunitdict()
-        v = self.__data[name]
-        if isinstance(v, dict):
-            return Units(self.__data[name])
-        else:
-            return str_to_unit(name)
-
-units = Units(unitdict)
-
-def unitdocs(unit):
 	"""
-	Returns docstring for unit.
-
-
-	INPUT:
-
-		- ``unit``
-
-	OUTPUT:
-
-		- ``string``
+	Return the unit with the given name.
 
 	EXAMPLES::
 
-		sage: sage.symbolic.units.unitdocs('meter')
-		'SI base unit of length.\nDefined to be the distance light travels in vacuum in 1/299792458 of a second.'
-		sage: sage.symbolic.units.unitdocs('amu')
-		'Abbreviation for atomic mass unit.\nApproximately equal to 1.660538782*10^-27 kilograms.'
+	    sage: units.area
+	    Collection area of units: acre are barn hectare rood section square_chain square_meter township
+	    sage: units.area.barn
+	    barn
 
-	Units not in the list unit_docs will raise a ValueError::
+	Units are cached::
 
-		sage: sage.symbolic.units.unitdocs('earth')
-		Traceback (most recent call last):
-		...
-		ValueError: No documentation exists for the unit earth.
+	    sage: units.area.acre is units.area.acre
+	    True
 
 	"""
-	if is_unit(unit):
-		return unit_docs[unit_to_type[str(unit)]+"_docs"][str(unit)]
+	if self.__units.has_key(name):
+	    return self.__units[name]
+	if len(unit_to_type) == 0:
+	    evalunitdict()
+	try:
+	    v = self.__data[name]
+	except KeyError:
+	    raise AttributeError
+	if isinstance(v, dict):
+	    U = Units(self.__data[name], name)
 	else:
-		raise ValueError, "No documentation exists for the unit %s."%unit
+	    U = str_to_unit(name)
+	self.__units[name] = U
+	return U
 
+    def __repr__(self):
+	"""
+	Return string representation of this collection of units.
+
+	EXAMPLES::
+
+	    sage: units.__repr__()
+	    'Collection of units: acceleration ... volume'
+	    sage: units.area.__repr__()
+	    'Collection area of units: acre are barn hectare rood section square_chain square_meter township'
+	"""
+	name = self.__name + ' ' if self.__name else ''
+	return "Collection %sof units: %s"%(name, ' '.join(sorted([str(x) for x in self.__data])))
+
+units = Units(unitdict, '')
+
+def unitdocs(unit):
+    """
+    Returns docstring for the given unit.
+
+    INPUT:
+
+        - ``unit``
+
+    OUTPUT:
+
+        - ``string``
+
+    EXAMPLES::
+
+	sage: sage.symbolic.units.unitdocs('meter')
+	'SI base unit of length.\nDefined to be the distance light travels in vacuum in 1/299792458 of a second.'
+	sage: sage.symbolic.units.unitdocs('amu')
+	'Abbreviation for atomic mass unit.\nApproximately equal to 1.660538782*10^-27 kilograms.'
+
+    Units not in the list unit_docs will raise a ValueError::
+
+	sage: sage.symbolic.units.unitdocs('earth')
+	Traceback (most recent call last):
+	...
+	ValueError: No documentation exists for the unit earth.
+    """
+    if is_unit(unit):
+	return unit_docs[unit_to_type[str(unit)]+"_docs"][str(unit)]
+    else:
+	raise ValueError, "No documentation exists for the unit %s."%unit
 
 def is_unit(s):
     """
@@ -1036,216 +1190,223 @@ def is_unit(s):
 
     INPUT:
 
-        - `s` -- an object
+	- `s` -- an object
 
     OUTPUT:
 
-        - ``bool``
+	- ``bool``
 
     EXAMPLES::
 
-        sage: sage.symbolic.units.is_unit(1)
-        False
-        sage: sage.symbolic.units.is_unit(units.length.meter)
-        True
+	sage: sage.symbolic.units.is_unit(1)
+	False
+	sage: sage.symbolic.units.is_unit(units.length.meter)
+	True
 
     The square of a unit is not a unit::
 
-        sage: sage.symbolic.units.is_unit(units.length.meter^2)
-        False
+	sage: sage.symbolic.units.is_unit(units.length.meter^2)
+	False
 
     You can also directly create units using var, though they won't have
     a nice docstring describing the unit::
 
-        sage: sage.symbolic.units.is_unit(var('meter'))
-        True
+	sage: sage.symbolic.units.is_unit(var('meter'))
+	True
     """
     return unit_to_type.has_key(str(s))
 
 def convert(expr, target):
-	"""
-	Converts units between expr and target. If target is None then converts to SI base units.
+    """
+    Converts units between expr and target. If target is None then converts to SI base units.
 
-	INPUT:
+    INPUT:
 
-		- `expr` -- the symbolic expression converting from
-		- `target` -- (default None) the symbolic expression converting to
+	- `expr` -- the symbolic expression converting from
 
-	OUTPUT:
+	- `target` -- (default None) the symbolic expression converting to
 
-		- `symbolic expression`
+    OUTPUT:
 
-	EXAMPLES::
+        - `symbolic expression`
 
-		sage: sage.symbolic.units.convert(units.length.foot, None)
-		381/1250*meter
-		sage: sage.symbolic.units.convert(units.mass.kilogram, units.mass.pound)
-		100000000/45359237*pound
+    EXAMPLES::
 
-	Raises ValueError if expr and target are not convertible::
+	sage: sage.symbolic.units.convert(units.length.foot, None)
+	381/1250*meter
+	sage: sage.symbolic.units.convert(units.mass.kilogram, units.mass.pound)
+	100000000/45359237*pound
 
-		sage: sage.symbolic.units.convert(units.mass.kilogram, units.length.foot)
-		Traceback (most recent call last):
-		...
-		ValueError: Incompatible units
-		sage: sage.symbolic.units.convert(units.length.meter^2, units.length.foot)
-		Traceback (most recent call last):
-		...
-		ValueError: Incompatible units
+    Raises ValueError if expr and target are not convertible::
 
-	Recognizes derived unit relationships to base units and other derived units::
+	sage: sage.symbolic.units.convert(units.mass.kilogram, units.length.foot)
+	Traceback (most recent call last):
+	...
+	ValueError: Incompatible units
+	sage: sage.symbolic.units.convert(units.length.meter^2, units.length.foot)
+	Traceback (most recent call last):
+	...
+	ValueError: Incompatible units
 
-		sage: sage.symbolic.units.convert(units.length.foot/units.time.second^2, units.acceleration.galileo)
-		762/25*galileo
-		sage: sage.symbolic.units.convert(units.mass.kilogram*units.length.meter/units.time.second^2, units.force.newton)
-		newton
-		sage: sage.symbolic.units.convert(units.length.foot^3, units.area.acre*units.length.inch)
-		1/3630*acre*inch
-		sage: sage.symbolic.units.convert(units.charge.coulomb, units.current.ampere*units.time.second)
-		ampere*second
-		sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)
-		1290320000000/8896443230521*pounds_per_square_inch
+    Recognizes derived unit relationships to base units and other derived units::
 
-	For decimal answers multiply 1.0::
+	sage: sage.symbolic.units.convert(units.length.foot/units.time.second^2, units.acceleration.galileo)
+	762/25*galileo
+	sage: sage.symbolic.units.convert(units.mass.kilogram*units.length.meter/units.time.second^2, units.force.newton)
+	newton
+	sage: sage.symbolic.units.convert(units.length.foot^3, units.area.acre*units.length.inch)
+	1/3630*acre*inch
+	sage: sage.symbolic.units.convert(units.charge.coulomb, units.current.ampere*units.time.second)
+	ampere*second
+	sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)
+	1290320000000/8896443230521*pounds_per_square_inch
 
-		sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)*1.0
-		0.145037737730209*pounds_per_square_inch
-	"""
-	base_target = target
-	z = {}
-	tz = {}
+    For decimal answers multiply 1.0::
 
-	for x in expr.variables():
-		if is_unit(x):
-			if unit_to_type[str(x)] == 'temperature':
-				return convert_temperature(expr, target)
-			else:
-				z[x] = base_units(x)
-	expr = expr.subs(z)
+	sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)*1.0
+	0.145037737730209*pounds_per_square_inch
+    """
+    base_target = target
+    z = {}
+    tz = {}
 
-	if target is None:
-		return expr
-	else:
-		for y in base_target.variables():
-			if is_unit(y):
-				tz[y] = base_units(y)
-		base_target = base_target.subs(tz)
+    for x in expr.variables():
+	if is_unit(x):
+	    if unit_to_type[str(x)] == 'temperature':
+		return convert_temperature(expr, target)
+	    else:
+		z[x] = base_units(x)
 
-		coeff = (expr/base_target).expand()
+    expr = expr.subs(z)
 
-		if len(coeff.variables()) != 0:
-			raise ValueError, "Incompatible units"
+    if target is None:
+	return expr
+    else:
+	for y in base_target.variables():
+	    if is_unit(y):
+		tz[y] = base_units(y)
+	base_target = base_target.subs(tz)
+	coeff = (expr/base_target).expand()
 
-		return coeff*target
+	if len(coeff.variables()) != 0:
+	    raise ValueError, "Incompatible units"
+
+	return coeff*target
 
 def base_units(unit):
-	"""
-	Converts unit to base SI units.
+    """
+    Converts unit to base SI units.
 
-	INPUT:
+    INPUT:
 
-		- ``unit``
+	    - ``unit``
 
-	OUTPUT:
+    OUTPUT:
 
-		- `symbolic expression`
+	    - `symbolic expression`
 
-	EXAMPLES::
+    EXAMPLES::
 
-		sage: sage.symbolic.units.base_units(units.length.foot)
-		381/1250*meter
+	sage: sage.symbolic.units.base_units(units.length.foot)
+	381/1250*meter
 
-	If unit is already a base unit, it just returns that unit::
+    If unit is already a base unit, it just returns that unit::
 
-		sage: sage.symbolic.units.base_units(units.length.meter)
-		meter
+	sage: sage.symbolic.units.base_units(units.length.meter)
+	meter
 
-	Derived units get broken down into their base parts::
+    Derived units get broken down into their base parts::
 
-		sage: sage.symbolic.units.base_units(units.force.newton)
-		kilogram*meter/second^2
-		sage: sage.symbolic.units.base_units(units.volume.liter)
-		1/1000*meter^3
+	sage: sage.symbolic.units.base_units(units.force.newton)
+	kilogram*meter/second^2
+	sage: sage.symbolic.units.base_units(units.volume.liter)
+	1/1000*meter^3
 
-	Returns variable if 'unit' is not a unit::
+    Returns variable if 'unit' is not a unit::
 
-		sage: sage.symbolic.units.base_units(var('x'))
-		x
-	"""
-	from sage.misc.all import sage_eval
-	if not unit_to_type.has_key(str(unit)):
-		return unit
-	elif unit_to_type[str(unit)] == 'si_prefixes' or unit_to_type[str(unit)] == 'unit_multipliers':
-		return sage_eval(unitdict[unit_to_type[str(unit)]][str(unit)])
+	sage: sage.symbolic.units.base_units(var('x'))
+	x
+    """
+    from sage.misc.all import sage_eval
+    if not unit_to_type.has_key(str(unit)):
+	return unit
+    elif unit_to_type[str(unit)] == 'si_prefixes' or unit_to_type[str(unit)] == 'unit_multipliers':
+	return sage_eval(unitdict[unit_to_type[str(unit)]][str(unit)])
+    else:
+	v = SR.var(unit_to_type[str(unit)])
+	if unit_derivations.has_key(str(v)):
+	    base = unit_derivations_expr(v)
+	    for i in base.variables():
+		base = base.subs({i:SR.var(value_to_unit[str(i)]['1'])})
+	    return base*sage_eval(unitdict[str(v)][str(unit)])
 	else:
-		v = SR.var(unit_to_type[str(unit)])
-		if unit_derivations.has_key(str(v)):
-			base = unit_derivations_expr(v)
-			for i in base.variables():
-				base = base.subs({i:SR.var(value_to_unit[str(i)]['1'])})
-			return base*sage_eval(unitdict[str(v)][str(unit)])
-		else:
-			base = SR.var(value_to_unit[str(v)]['1'])*sage_eval(unitdict[str(v)][str(unit)])
-			return base
-
+	    base = SR.var(value_to_unit[str(v)]['1'])*sage_eval(unitdict[str(v)][str(unit)])
+	    return base
 
 def convert_temperature(expr, target):
-	"""
-	Function for converting between temperatures.
+    """
+    Function for converting between temperatures.
 
-	INPUT:
+    INPUT:
 
-		- `expr` -- a unit of temperature
-		- `target` -- a units of temperature
+	- `expr` -- a unit of temperature
+	- `target` -- a units of temperature
 
-	OUTPUT:
+    OUTPUT:
 
-		- `symbolic expression`
+        - `symbolic expression`
 
-	EXAMPLES::
+    EXAMPLES::
 
-		sage: t = 32*units.temperature.fahrenheit
-		sage: t.convert(units.temperature.celsius)
-		0
-		sage: t.convert(units.temperature.kelvin)
-		273.150000000000*kelvin
+	sage: t = 32*units.temperature.fahrenheit
+	sage: t.convert(units.temperature.celsius)
+	0
+	sage: t.convert(units.temperature.kelvin)
+	273.150000000000*kelvin
 
-	If target is None then it defaults to kelvin::
+    If target is None then it defaults to kelvin::
 
-		sage: t.convert()
-		273.150000000000*kelvin
+	sage: t.convert()
+	273.150000000000*kelvin
 
-	Raises ValueError when either input is not a unit of temperature::
+    Raises ValueError when either input is not a unit of temperature::
 
-		sage: t.convert(units.length.foot)
-		Traceback (most recent call last):
-		...
-		ValueError: Cannot convert
-		sage: wrong = units.length.meter*units.temperature.fahrenheit
-		sage: wrong.convert()
-		Traceback (most recent call last):
-		...
-		ValueError: Cannot convert
-	"""
-	if len(expr.variables()) != 1:
-		raise ValueError, "Cannot convert"
-	elif target == None or unit_to_type[str(target)] == 'temperature':
-		from sage.misc.all import sage_eval
-		expr_temp = expr.variables()[0]
-		coeff = expr/expr_temp
-		if target != None:
-			target_temp = target.variables()[0]
-		a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
-		if  target == None or target_temp == units.temperature.kelvin:
-			return a[0]*units.temperature.kelvin
-		elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:
-			return a[1]*target_temp
-		elif target_temp == units.temperature.fahrenheit:
-			return a[2]*units.temperature.fahrenheit
-		elif target_temp == units.temperature.rankine:
-			return a[3]*target_temp
-	else:
-		raise ValueError, "Cannot convert"
+	sage: t.convert(units.length.foot)
+	Traceback (most recent call last):
+	...
+	ValueError: Cannot convert
+	sage: wrong = units.length.meter*units.temperature.fahrenheit
+	sage: wrong.convert()
+	Traceback (most recent call last):
+	...
+	ValueError: Cannot convert
+
+    We directly call the convert_temperature function::
+
+	sage: sage.symbolic.units.convert_temperature(37*units.temperature.celsius,  units.temperature.fahrenheit)
+	493/5*fahrenheit
+	sage: 493/5.0
+	98.6000000000000
+    """
+    if len(expr.variables()) != 1:
+	raise ValueError, "Cannot convert"
+    elif target == None or unit_to_type[str(target)] == 'temperature':
+	from sage.misc.all import sage_eval
+	expr_temp = expr.variables()[0]
+	coeff = expr/expr_temp
+	if target != None:
+	    target_temp = target.variables()[0]
+	a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
+	if  target == None or target_temp == units.temperature.kelvin:
+	    return a[0]*units.temperature.kelvin
+	elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:
+	    return a[1]*target_temp
+	elif target_temp == units.temperature.fahrenheit:
+	    return a[2]*units.temperature.fahrenheit
+	elif target_temp == units.temperature.rankine:
+	    return a[3]*target_temp
+    else:
+	raise ValueError, "Cannot convert"
 
 
 

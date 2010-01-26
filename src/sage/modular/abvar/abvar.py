@@ -2572,7 +2572,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J.rational_cuspidal_subgroup()
             Traceback (most recent call last):
             ...
-            NotImplementedError: computation of rational cuspidal subgroup only implemented in Gamma0 case.
+            NotImplementedError: only implemented when group is Gamma0
         """
         try:
             return self._rational_cuspidal_subgroup

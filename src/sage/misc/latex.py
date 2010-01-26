@@ -25,7 +25,7 @@ special method ``_latex_(self)`` that returns a string.
 
 EMBEDDED_MODE = False
 
-COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\\usepackage[utf8]{inputenc}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\usepackage[utf8]{inputenc}\\usepackage[T1]{fontenc}\n'
 
 LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
 

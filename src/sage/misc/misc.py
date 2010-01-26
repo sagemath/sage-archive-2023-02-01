@@ -2098,9 +2098,9 @@ class AttrCallObject(object):
         """
         TESTS::
 
-            sage: f = attrcall('core', 3)
-            sage: loads(dumps(f))
+            sage: f = attrcall('core', 3); f
             *.core(3)
+            sage: TestSuite(f).run()
         """
         self.name = name
         self.args = args
@@ -2146,6 +2146,37 @@ class AttrCallObject(object):
         s += ")"
         return s
 
+    def __eq__(self, other):
+        """
+        Equality testing
+
+        EXAMPLES::
+
+            sage: attrcall('core', 3, flatten = True) == attrcall('core', 3, flatten = True)
+            True
+            sage: attrcall('core', 2) == attrcall('core', 3)
+            False
+            sage: attrcall('core', 2) == 1
+            False
+        """
+        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Equality testing
+
+        EXAMPLES::
+
+            sage: attrcall('core', 3, flatten = True) != attrcall('core', 3, flatten = True)
+            False
+            sage: attrcall('core', 2) != attrcall('core', 3)
+            True
+            sage: attrcall('core', 2) != 1
+            True
+        """
+        return not self == other
+
+
 
 def attrcall(name, *args, **kwds):
     """
@@ -2155,13 +2186,11 @@ def attrcall(name, *args, **kwds):
 
     INPUT:
 
+     -  ``name`` - a string of the name of the method you
+        want to call
 
-    -  ``name`` - a string of the name of the method you
-       want to call
-
-    -  ``args, kwds`` - arguments and keywords to be passed
-       to the method
-
+     -  ``args, kwds`` - arguments and keywords to be passed
+        to the method
 
     EXAMPLES::
 

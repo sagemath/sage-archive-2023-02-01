@@ -1,6 +1,8 @@
-FIXME
+FIXME Later some day :)
 
-== Releases ==
+== Changelog
+
+=== pycrypto-2.0.1.p4 (Jaap Spies, Jan 26th, 2010) ===
 
 === pycrypto-2.0.1.p3 (Michael Abshoff, March 2nd, 2009) ===
  * Apply security fix from http://www.securityfocus.com/bid/33674/info

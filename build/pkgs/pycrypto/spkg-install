@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+if [ "$SAGE64" = "yes" ]; then
    echo "64 bit MacIntel"
    CFLAGS="-O2 -g -m64 "; export CFLAGS
    LDFLAGS="-m64 "; export LDFLAGS

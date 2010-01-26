@@ -2073,13 +2073,20 @@ def xydata_from_point_list(points):
     yields a list of one or two numbers.
 
     This function can potentially be very slow for large point sets.
+
+    TESTS::
+
+        sage: from sage.plot.plot import xydata_from_point_list
+        sage: xydata_from_point_list([CC(0), CC(1)])   # ticket 8082
+        ([0.0, 1.0], [0.0, 0.0])
     """
+    from sage.rings.complex_number import ComplexNumber
     if not isinstance(points, (list,tuple)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
-    elif len(points)==2 and not isinstance(points[0], (list,tuple)):
+    elif len(points)==2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:

@@ -13,7 +13,6 @@ GPL
 == SPKG Maintainers ==
  * William Stein
  * Martin Albrecht
- * Michael Abshoff
 
 == Upstream Contact ==
 
@@ -36,6 +35,10 @@ The following build instructions by William Stein might be incomplete and/or out
 == Changelog ==
 
 Provide a changelog of the spkg here.
+
+=== iml-1.0.1.p12 (Jaap Spies, Jan 25th, 2010) ===
+ * Let SAGE64 work for Open Solaris 64 bit
+ * Update SPKG.txt
 
 === iml-1.0.1.p11 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support

@@ -328,7 +328,7 @@ for gr in range(0,numglobaliteration):
     print "Doctesting %s %s" % (file_str, jobs_str)
 
     try:
-        from processing import Pool
+        from multiprocessing import Pool
         p = Pool(numthreads)
         for r in p.imap_unordered(test_file, files):
             #The format is  (F, ret, finished_time, ol)

@@ -214,14 +214,24 @@ def bool_function(x):
         return s[5:]
     return s
 
-def str_function(x):
+def str_function(x, escape_underscores=False):
     r"""
     Returns the LaTeX code for a string ``x``.  If ``x`` contains only
     digits, then return ``x`` itself.  Otherwise, enclose ``x`` in
-    "\texttt{}" and return that, making sure to escape underscores:
+    "\texttt{}" and return that.
+
+    If optional argument ``escape_underscores`` is True,
     replace "_" with "\\_".
 
-    INPUT: ``x`` - a string
+    INPUT:
+
+    - ``x`` - a string
+
+    - ``escape_underscores`` - boolean (optional, default False)
+
+    OUTPUT:
+
+    - a string
 
     EXAMPLES::
 
@@ -230,12 +240,17 @@ def str_function(x):
         '34'
         sage: str_function('abc')
         '\\texttt{abc}'
-        sage: str_function('hello_world')
+        sage: str_function('hello_world')  # note that this produces invalid LaTeX
+        '\\texttt{hello_world}'
+        sage: str_function('hello_world', escape_underscores=True)  # valid LaTeX
         '\\texttt{hello\\_world}'
     """
     m = re.match('[0-9]*$', x)
     if m is None:  # x contains something other than digits
-        return '\\texttt{%s}'%(x.replace('_','\\_'))
+        if escape_underscores:
+            return '\\texttt{%s}'%(x.replace('_','\\_'))
+        else:
+            return '\\texttt{%s}'%x
     else:
         return x
 
@@ -663,7 +678,7 @@ class Latex:
             if x is None:
                 return LatexExpr("\\mbox{\\mathrm{None}}")
 
-            return LatexExpr(str_function(str(x)))
+            return LatexExpr(str_function(str(x), escape_underscores=True))
 
     def _relation_symbols(self):
         """
@@ -1230,11 +1245,6 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     process = True
     if has_latex_attr(objects):
         objects = [objects]
-
-    if hasattr(objects, '__doc__') and hasattr(objects, 'func_name'):
-        process = False
-        title = "\\begin{verbatim}%s\\end{verbatim}"%objects.func_name
-        objects = [objects.__doc__]
 
     if not isinstance(objects, list):
         objects = [objects]

@@ -11,7 +11,6 @@ Website: http://www.shoup.net/ntl/
 GPL
 
 == SPKG Maintainers ==
- * Michael Abshoff
  * William Stein
 
 == Upstream Contact ==
@@ -27,6 +26,11 @@ GPL
  * We modify DoConfig and disable the help option
 
 == Changelog ==
+
+=== ntl-5.4.2.p11 (Jaap Spies, January 28th 2010) ===
+ * Added 64 bit support for Open Solaris x64
+ * This is trac http://trac.sagemath.org/sage_trac/ticket/8101
+ * Removed Michael as maintainer
 
 === ntl-5.4.2.p10 (David Kirkby, January 12th 2010) ===
  * Change variables of comman commands like 'ln' from

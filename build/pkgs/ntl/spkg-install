@@ -64,7 +64,7 @@ build()
      CFLAGS="-O2 -g $CFLAGS"
      CXXFLAGS="-O2 -g $CXXFLAGS"
 
-     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+     if [ "x$SAGE64" = xyes ]; then
          CFLAGS=" -m64 $CFLAGS"
          CXXFLAGS=" -m64 $CXXFLAGS"
      fi

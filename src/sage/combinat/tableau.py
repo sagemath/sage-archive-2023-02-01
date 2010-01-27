@@ -81,6 +81,8 @@ class Tableau_class(CombinatorialObject):
             \end{array}$}
             }
         """
+	if len(self) == 0:
+	    return "{\emptyset}"
         return self._tex_from_array()
 
     def _tex_from_array(self):

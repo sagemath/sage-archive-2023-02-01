@@ -23,12 +23,12 @@ Affine crystals
 from sage.combinat.combinat import CombinatorialObject
 from sage.rings.integer import Integer
 from sage.misc.functional import is_even, is_odd
-from sage.combinat.crystals.crystals import Crystal, ClassicalCrystal, CrystalElement
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.crystals.affine import AffineCrystal, AffineCrystalFromClassical, AffineCrystalFromClassicalElement
-from sage.combinat.crystals.affine import AffineCrystalFromClassicalAndPromotion, AffineCrystalFromClassicalAndPromotionElement
+from sage.combinat.crystals.affine import AffineCrystalFromClassicalAndPromotion
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.tensor_product import CrystalOfTableaux
-from sage.combinat.tableau import Tableau_class, Tableau
+from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
 
@@ -115,7 +115,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
 	sage: K.cartan_type()
 	['D', 4, 1]
 	sage: type(K.module_generators[0])
-	<class 'sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotionElement'>
+        <class 'sage.combinat.crystals.affine.KR_type_vertical_with_category.element_class'>
     """
     ct = CartanType(cartan_type)
     assert ct.is_affine()
@@ -153,7 +153,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystal):
 
 	TESTS::
 
-	    sage: K = sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinGenericCrystal(['A',2,1], 1, 1)
+	    sage: K = sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinGenericCrystal(CartanType(['A',2,1]), 1, 1)
 	    sage: K
 	    Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
 	    sage: K.r()
@@ -161,10 +161,18 @@ class KirillovReshetikhinGenericCrystal(AffineCrystal):
 	    sage: K.s()
 	    1
 	"""
-	self._cartan_type = CartanType(cartan_type)
+	self._cartan_type = cartan_type
 	self._r = r
 	self._s = s
-	self._name = "Kirillov-Reshetikhin crystal of type %s with (r,s)=(%d,%d)" % (cartan_type, r, s)
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+	    sage: sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinGenericCrystal(CartanType(['A',2,1]), 1, 1) # indirect doctest
+	    Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
+        """
+        return "Kirillov-Reshetikhin crystal of type %s with (r,s)=(%d,%d)" % (self.cartan_type(), self.r(), self.s())
 
     def r(self):
 	"""
@@ -210,6 +218,7 @@ class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
 	    sage: K = KirillovReshetikhinCrystal(['B',2,1], 1, 1)
 	    sage: K
 	    Kirillov-Reshetikhin crystal of type ['B', 2, 1] with (r,s)=(1,1)
+            sage: TestSuite(K).run()
 	"""
 	KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
 	AffineCrystalFromClassicalAndPromotion.__init__(self, cartan_type, self.classical_decomposition(),
@@ -237,7 +246,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
 
 	    sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
 	    sage: K.classical_decomposition()
-	    The crystal of tableaux of type ['A', 3] and shape(s) ([2, 2],)
+	    The crystal of tableaux of type ['A', 3] and shape(s) [[2, 2]]
         """
 	return CrystalOfTableaux(self.cartan_type().classical(), shape = [self.s() for i in range(1,self.r()+1)])
 
@@ -488,6 +497,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical):
 	    sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_C(['C',2,1], 1, 1)
 	    sage: K
 	    Kirillov-Reshetikhin crystal of type ['C', 2, 1] with (r,s)=(1,1)
+            sage: TestSuite(K).run()
 	"""
 	KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
 	AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
@@ -590,8 +600,8 @@ class KR_type_C(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical):
 	    sage: b=K(rows=[])
 	    sage: K.to_ambient_crystal()(b)
 	    [[2], [-2]]
-	    sage: type(K.to_ambient_crystal()(b))
-	    <class 'sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotionElement'>
+	    sage: K.to_ambient_crystal()(b).parent() # Anne: please check this!!!!
+            Kirillov-Reshetikhin crystal of type ['B', 4, 1]^* with (r,s)=(2,2)
 	"""
 	keys = self.highest_weight_dict().keys()
 	pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
@@ -624,7 +634,7 @@ class KR_type_CElement(AffineCrystalFromClassicalElement):
 
         sage: K=KirillovReshetikhinCrystal(['C',3,1],1,2)
 	sage: type(K.module_generators[0])
-	<class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_CElement'>
+        <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_C_with_category.element_class'>
     """
 
     def e0(self):
@@ -693,7 +703,7 @@ class KR_type_CElement(AffineCrystalFromClassicalElement):
 	b = self.parent().to_ambient_crystal()(self)
 	return b.phi(1)
 
-KR_type_C.element_class = KR_type_CElement
+KR_type_C.Element = KR_type_CElement
 
 
 class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical):
@@ -724,6 +734,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
 	    sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_box(['D',4,2], 1, 1)
 	    sage: K
 	    Kirillov-Reshetikhin crystal of type ['C', 3, 1]^* with (r,s)=(1,1)
+            sage: TestSuite(K).run()
 	"""
 	KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
 	AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
@@ -858,7 +869,7 @@ class KR_type_boxElement(AffineCrystalFromClassicalElement):
 
         sage: K=KirillovReshetikhinCrystal(['A',4,2],1,2)
 	sage: type(K.module_generators[0])
-	<class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_boxElement'>
+        <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_box_with_category.element_class'>
     """
 
     def e0(self):
@@ -925,7 +936,7 @@ class KR_type_boxElement(AffineCrystalFromClassicalElement):
 	b = self.parent().to_ambient_crystal()(self)
 	return b.phi(0)
 
-KR_type_box.element_class = KR_type_boxElement
+KR_type_box.Element = KR_type_boxElement
 
 
 class PMDiagram(CombinatorialObject):

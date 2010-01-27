@@ -4,7 +4,7 @@ Crystals of letters
 
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
-#                          Nicolas Thiery <nthiery at users.sf.net>
+#                          Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Daniel Bump    <bump at match.stanford.edu>
 #                          Brant Jones    <brant at math.ucdavis.edu>
 #
@@ -21,7 +21,10 @@ Crystals of letters
 #****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
+from sage.structure.element import parent
+from sage.structure.parent import Parent
+from sage.structure.element_wrapper import ElementWrapper
+from sage.categories.all import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
 
@@ -67,9 +70,13 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
     EXAMPLES::
 
         sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
+	sage: C
+	The crystal of letters for type ['E', 6]
 	sage: C.list()
 	[+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
         sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
+	sage: C
+	The crystal of letters for type ['E', 6] (dual)
 	sage: C.list()
 	[-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
     """
@@ -103,7 +110,7 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
         raise NotImplementedError
 
 
-class ClassicalCrystalOfLetters(UniqueRepresentation, ClassicalCrystal):
+class ClassicalCrystalOfLetters(ClassicalCrystal):
     r"""
     A generic class for classical crystals of letters.
 
@@ -125,16 +132,19 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, ClassicalCrystal):
         EXAMPLES::
 
             sage: C = CrystalOfLetters(['A',5])
-            sage: C == loads(dumps(C))
-            True
+            sage: C.category()
+            Category of finite enumerated sets
+            sage: TestSuite(C).run()
         """
         self._cartan_type = CartanType(cartan_type)
-        self._name = "The crystal of letters for type %s"%cartan_type
-        self.element_class = element_class
+        self.rename("The crystal of letters for type %s"%cartan_type)
+        self.Element = element_class
+	Parent.__init__(self, category = FiniteEnumeratedSets()) #, category = ClassicalCrystals()
 	if cartan_type == CartanType(['E',6]):
             if dual:
                 self.module_generators = [self([6])]
                 self._ambient = CrystalOfLetters(CartanType(['E',6]))
+		self.rename("%s (dual)"%self)
             else:
                 self.module_generators = [self([1])]
         elif cartan_type == CartanType(['E',7]):
@@ -233,78 +243,54 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, ClassicalCrystal):
 	return False
 
 # Utility. Note: much of this class should be factored out at some point!
-class Letter(Element):
+class Letter(ElementWrapper):
     r"""
     A class for letters
-    """
 
+    Like :class:`ElementWrapper`, plus delegates __lt__ (comparison)
+    to the parent.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.letters import Letter
+	sage: a = Letter(ZZ, 1)
+	sage: Letter(ZZ, 1).parent()
+	Integer Ring
+
+	sage: Letter(ZZ, 1).__repr__()
+	'1'
+
+	sage: parent1 = ZZ  # Any fake value ...
+	sage: parent2 = QQ  # Any fake value ...
+	sage: l11 = Letter(parent1, 1)
+	sage: l12 = Letter(parent1, 2)
+	sage: l21 = Letter(parent2, 1)
+	sage: l22 = Letter(parent2, 2)
+	sage: l11 == l11
+	True
+	sage: l11 == l12
+	False
+	sage: l11 == l21
+	False
+
+	sage: C = CrystalOfLetters(['B', 3])
+	sage: C(0) <> C(0)
+	False
+	sage: C(1) <> C(-1)
+	True
+    """
     def __init__(self, parent, value):
         """
         EXAMPLES::
 
             sage: from sage.combinat.crystals.letters import Letter
             sage: a = Letter(ZZ, 1)
-            sage: a == loads(dumps(a))
-            True
+            sage: TestSuite(a).run(skip = "_test_category")
+
         """
-        self._parent = parent
-        self.value = value
-
-    def parent(self):
-        """
-        Returns the parent of self.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.crystals.letters import Letter
-            sage: Letter(ZZ, 1).parent()
-            Integer Ring
-        """
-        return self._parent  # Should be inherited from Element!
-
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.crystals.letters import Letter
-            sage: Letter(ZZ, 1).__repr__()
-            '1'
-        """
-        return "%s"%self.value
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.crystals.letters import Letter
-            sage: parent1 = 1  # Any fake value ...
-            sage: parent2 = 2  # Any fake value ...
-            sage: l11 = Letter(parent1, 1)
-            sage: l12 = Letter(parent1, 2)
-            sage: l21 = Letter(parent2, 1)
-            sage: l22 = Letter(parent2, 2)
-            sage: l11 == l11
-            True
-            sage: l11 == l12
-            False
-            sage: l11 == l21
-            False
-        """
-        return self.__class__ is other.__class__ and \
-               self.parent() == other.parent() and \
-               self.value == other.value
-
-    def __ne__(self, other):
-	"""
-	EXAMPLES::
-
-	    sage: C = CrystalOfLetters(['B', 3])
-	    sage: C(0) <> C(0)
-	    False
-	    sage: C(1) <> C(-1)
-	    True
-        """
-	return not self == other
+        # Will soon be unneeded once the order of the arguments in
+        # ElementWrapper will have been fixed.
+        ElementWrapper.__init__(self, value, parent)
 
     def __lt__(self, other):
 	"""
@@ -317,7 +303,11 @@ class Letter(Element):
 	    True
 	    sage: C(4) < C(4)
 	    False
+	    sage: C(4) < 5
+	    False
         """
+	if parent(self) is not parent(other):
+	    return False
 	return self.parent().lt_elements(self, other)
 
     def __gt__(self, other):
@@ -892,6 +882,9 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
 	sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
     """
 
+    def __hash__(self):
+	return hash(tuple(self.value))
+
     def __repr__(self):
 	"""
 	In their full representation, the vertices of this crystal are labeled
@@ -1175,6 +1168,9 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
 	    return l[self.parent().list().index(self)]
 	return "%s"%self.value
 
+    def __hash__(self):
+	return hash(tuple(self.value))
+
     def lift(self):
 	"""
 	Lifts an element of self to the crystal of letters CrystalOfLetters(['E',6])
@@ -1309,6 +1305,9 @@ class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
         sage: G = C.digraph()
         sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
     """
+
+    def __hash__(self):
+	return hash(tuple(self.value))
 
     def weight(self):
         """

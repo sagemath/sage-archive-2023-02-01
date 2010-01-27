@@ -39,6 +39,7 @@ internal_repn and signature of the crystal element.
 ## TODO: proper latex'ing of spins
 
 from sage.structure.element import Element
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
 
@@ -187,25 +188,26 @@ class GenericCrystalOfSpins(ClassicalCrystal):
         EXAMPLES::
 
             sage: E = CrystalOfSpinsMinus(['D',4])
-            sage: E == loads(dumps(E))
-            True
+            sage: TestSuite(E).run()
         """
         self._cartan_type = CartanType(ct)
         if case == "spins":
-            self._name = "The crystal of spins for type %s"%ct
+            self.rename("The crystal of spins for type %s"%ct)
         elif case == "plus":
-            self._name = "The plus crystal of spins for type %s"%ct
+            self.rename("The plus crystal of spins for type %s"%ct)
         else:
-            self._name = "The minus crystal of spins for type %s"%ct
+            self.rename("The minus crystal of spins for type %s"%ct)
 
-        self.element_class = element_class
+        self.Element = element_class
+        super(GenericCrystalOfSpins, self).__init__(category = FiniteEnumeratedSets())
+
         if case == "minus":
             generator = [1]*(ct[1]-1)
             generator.append(-1)
         else:
             generator = [1]*ct[1]
         self.module_generators = [self(generator)]
-        self._list = ClassicalCrystal.list(self)
+        self._list = list(self)
         self._digraph = ClassicalCrystal.digraph(self)
         self._digraph_closure = self.digraph().transitive_closure()
 
@@ -217,8 +219,8 @@ class GenericCrystalOfSpins(ClassicalCrystal):
             sage: C([1,1,1])
             [1, 1, 1]
         """
-        if value.__class__ == self.element_class and value.parent == self:
-            return self
+        if value.__class__ == self.element_class and value.parent() == self:
+            return value
         else:
             return self.element_class(self, value)
 
@@ -287,8 +289,7 @@ class Spin(Element):
 
             sage: C = CrystalOfSpins(['B',3])
             sage: c = C([1,1,1])
-            sage: c == loads(dumps(c))
-            True
+            sage: TestSuite(c).run()
         """
         self._parent = parent
         self.value = value

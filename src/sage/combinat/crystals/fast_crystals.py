@@ -19,7 +19,8 @@ Fast Rank Two Crystals
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from sage.rings.all import Integer
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.structure.element import Element, parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.crystals import ClassicalCrystal, CrystalElement
 
@@ -83,25 +84,43 @@ class FastCrystal(ClassicalCrystal):
         sage: C.check()
         True
     """
-    def __init__(self, ct, shape, format="string"):
+
+    @staticmethod
+    def __classcall__(cls, cartan_type, shape, format = "string"):
+        """
+        Normalizes the input arguments to ensure unique representation
+
+        EXAMPLES::
+
+            sage: C1 = FastCrystal(['A',2],            shape=(4,1))
+            sage: C2 = FastCrystal(CartanType(['A',2]),shape=[4,1])
+            sage: C1 is C2
+            True
+        """
+        cartan_type = CartanType(cartan_type)
+        shape = tuple(shape)
+        if len(shape) > 2:
+            raise ValueError, "The shape must have length <=2"
+        shape = shape + (0,)*(2-len(shape))
+        return super(FastCrystal, cls).__classcall__(cls, cartan_type, shape, format)
+
+    def __init__(self, ct, shape, format):
         """
         EXAMPLES::
 
             sage: C = FastCrystal(['A',2],shape=[4,1]); C
             The fast crystal for A2 with shape [4,1]
+            sage: TestSuite(C).run()
         """
-        self._cartan_type = CartanType(ct)
+        super(FastCrystal, self).__init__(category = FiniteEnumeratedSets())
+        self._cartan_type = ct
         if ct[1] != 2:
             raise NotImplementedError
 
-        if len(shape) > 2:
-            raise ValueError, "The shape must have length <=2"
-
-        while len(shape)<2:
-            shape.append(0)
-
         l1 = shape[0]
         l2 = shape[1]
+
+        # For safety, delpat and gampat should be immutable
 
         self.delpat = []
         self.gampat = []
@@ -141,7 +160,7 @@ class FastCrystal(ClassicalCrystal):
             assert self._cartan_type[0] == 'B' and int(2*l2)%2 == 1
             l1_str = "%d/2"%int(2*l1)
             l2_str = "%d/2"%int(2*l2)
-        self._name = "The fast crystal for %s2 with shape [%s,%s]"%(ct[0],l1_str,l2_str)
+        self.rename("The fast crystal for %s2 with shape [%s,%s]"%(ct[0],l1_str,l2_str))
         self.module_generators = [self(0)]
         self._list = ClassicalCrystal.list(self)
         self._digraph = ClassicalCrystal.digraph(self)
@@ -216,8 +235,12 @@ class FastCrystal(ClassicalCrystal):
             [0, 0, 0]
             sage: C(1)
             [1, 0, 0]
+            sage: x = C(0)
+            sage: C(x) is x
+            True
         """
-        return FastCrystalElement(self, value, self.format)
+        if parent(value) is self: return value
+        return self.element_class(self, value, self.format)
 
     def list(self):
         """
@@ -287,22 +310,13 @@ class FastCrystalElement(CrystalElement):
             sage: C = FastCrystal(['A',2],shape=[2,1])
             sage: c = C(0); c
             [0, 0, 0]
-        """
-        self._parent = parent
-        self.value = value
-        self.format = format
-
-    def parent(self): # Should be inherited from Element
-        """
-        Returns the parent of self.
-
-        EXAMPLES::
-
-            sage: C = FastCrystal(['A',2],shape=[2,1])
             sage: C[0].parent()
             The fast crystal for A2 with shape [2,1]
+            sage: TestSuite(c).run()
         """
-        return self._parent
+        Element.__init__(self, parent)
+        self.value = value
+        self.format = format
 
     def weight(self):
         """
@@ -323,7 +337,7 @@ class FastCrystalElement(CrystalElement):
         """
         delpat = self.parent().delpat[self.value]
         if self.parent()._cartan_type[0] == 'A':
-            delpat.append(0)
+            delpat = delpat + [0,]
         [alpha1, alpha2] = self.parent().weight_lattice_realization().simple_roots()
         hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization().monomial(i) for i in range(2))
         return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
@@ -423,3 +437,4 @@ class FastCrystalElement(CrystalElement):
         return self.parent()(r) if r is not None else None
 
 
+FastCrystal.Element = FastCrystalElement

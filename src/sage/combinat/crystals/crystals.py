@@ -51,17 +51,15 @@ It has a single highest weight element::
     sage: C.highest_weight_vectors()
     [1]
 
-A crystal is a CombinatorialClass; and we can count and list its
-elements in the usual way::
+A crystal is an enumerated set (see :class:`EnumeratedSets`); and we
+can count and list its elements in the usual way::
 
     sage: C.cardinality()
     6
     sage: C.list()
     [1, 2, 3, 4, 5, 6]
 
-as well as use it in for loops
-
-::
+as well as use it in for loops::
 
     sage: [x for x in C]
     [1, 2, 3, 4, 5, 6]
@@ -138,18 +136,19 @@ inspiration.
 
 from sage.misc.latex import latex
 from sage.misc.cachefunc import CachedFunction
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.combinat.combinat import CombinatorialClass
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.graphs.all import DiGraph
 from sage.combinat import ranker
-from sage.combinat.tools import transitive_ideal
-from sage.combinat.root_system.weyl_characters import WeylCharacterRing, WeylCharacter
+from sage.combinat.root_system.weyl_characters import WeylCharacter
 from sage.combinat.backtrack import GenericBacktracker
 
 ## MuPAD-Combinat's Cat::Crystal
 # FIXME: crystals, like most parent should have unique data representation
-class Crystal(CombinatorialClass, Parent):
+# TODO: make into a category
+class Crystal(UniqueRepresentation, Parent):
     r"""
     The abstract class of crystals
 
@@ -161,6 +160,16 @@ class Crystal(CombinatorialClass, Parent):
        which generate the crystal using `f_i`
 
     """
+
+    def _an_element_(self):
+        """
+        Returns an element of self
+
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.an_element()
+            1
+        """
+        return self.first()
 
     def weight_lattice_realization(self):
         """
@@ -446,42 +455,18 @@ class Crystal(CombinatorialClass, Parent):
         f.write(header + self.latex() + footer)
         f.close()
 
-
     def latex(self):
         r"""
         Returns the crystal graph as a bit of latex. This can be exported
         to a file with self.latex_file('filename').
 
-        This requires dot2tex to be installed in sage-python.
-
-        Here some tips for installation:
-
+        This requires the dot2tex spkg. Here some tips for installation:
 
         -  Install graphviz = 2.14
 
-        -  Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz
-           dot2tex-2.7.0.tar.gz (see the dot2tex web page for download links)
-           (note that the most recent version of pydot may not work. Be sure
-           to install the 0.9.10 version.) Install each of them using the
-           standard python install, but using sage-python:
+        -  Download dot2tex-0.?.spkg from http://wiki.sagemath.org/combinat/FPSAC09/projects
 
-           ::
-
-                           # FIX ACCORDING TO YOUR Sage INSTALL
-                           export sagedir=/opt/sage/
-                           export sagepython=$sagedir/local/bin/sage-python
-
-                           # Use downloaded version nums
-                           for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\
-                                   tar zxvf $package.tar.gz;\
-                                   cd $package;\
-                                   sudo $sagepython setup.py install;\
-                                   cd ..;\
-                               done
-
-
-        -  Install pgf-2.00 inside your latex tree In short:
-
+        -  Install pgf-2.00 inside your latex tree. In short:
 
            -  untaring in /usr/share/texmf/tex/generic
 
@@ -490,20 +475,18 @@ class Crystal(CombinatorialClass, Parent):
            -  run texhash
 
 
+        In case LaTeX complains about tikzpicture not being defined,
+        you may need to further run::
 
-        You should be done! To test, go to the dot2tex-2.7.0/examples
-        directory, and type::
-
-                    $sagedir//local/bin/dot2tex balls.dot > balls.tex
-                    pdflatex balls.tex
-                    open balls.pdf \#your favorite viewer here
+           sage: sage.misc.latex.LATEX_HEADER+=r"\\usepackage{tikz}"
 
 
         EXAMPLES::
 
             sage: C = CrystalOfLetters(['A', 5])
-            sage: C.latex() #optional requires dot2tex
+            sage: C.latex()         #optional requires dot2tex
             ...
+            sage: view(C, pdflatex = True, tightpage = True) # optional
         """
 
         try:
@@ -518,6 +501,8 @@ class Crystal(CombinatorialClass, Parent):
         content = (Dot2TikZConv(options)).convert(self.dot_tex())
 
         return content
+
+    _latex_ = latex
 
     def metapost(self, filename, thicklines=False, labels=True, scaling_factor=1.0, tallness=1.0):
         """Use C.metapost("filename.mp",[options])
@@ -687,7 +672,14 @@ class Crystal(CombinatorialClass, Parent):
                 child = x.f(i)
                 if child is None:
                     continue
-                result += "  " + vertex_key(x) + " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
+#                result += "  " + vertex_key(x) + " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
+                if i == 0:
+                    option = "dir = back, "
+                    (source, target) = (child, x)
+                else:
+                    option = ""
+                    (source, target) = (x, child)
+		result += "  " + vertex_key(source) + " -> "+vertex_key(target)+ " [ "+option+"label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
         result+="}"
         return result
 
@@ -1074,7 +1066,24 @@ class ClassicalCrystal(Crystal):
     r"""
     The abstract class of classical crystals
     """
-    list  = CombinatorialClass.list#__list_from_iterator
+
+    def list(self):
+        r"""
+        Returns the list of the elements of ``self``, as per
+        :meth:`FiniteEnumeratedSets.ParentMethods.list`
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D',4])
+            sage: C.list()
+            [1, 2, 3, 4, -4, -3, -2, -1]
+
+        FIXME: this is just there to reinstate the default
+        implementation of list which is overriden in
+        :class:`Crystals`.
+        """
+        return self._list_from_iterator()
+
     def __iter__(self):
         r"""
         Returns an iterator over the elements of the crystal.

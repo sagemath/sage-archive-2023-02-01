@@ -67,7 +67,7 @@ One may also construct crystals associated to various Dynkin diagrams. For examp
 
     sage: C = CrystalOfTableaux(T, shape=[2])
     sage: C
-    The crystal of tableaux of type ['A', 4] and shape(s) ([2],)
+    The crystal of tableaux of type ['A', 4] and shape(s) [[2]]
     sage: C.cardinality()
     15
 

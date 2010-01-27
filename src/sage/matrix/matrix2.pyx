@@ -2065,6 +2065,109 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.ncols() - self.rank()
 
+    ######################################
+    # Kernel Helper Functions
+    ######################################
+
+    def _right_kernel_trivial(self):
+        r"""
+        Computes the right kernel of matrices with zero rows or zero columns (or both).
+
+        OUTPUT:
+        For a matrix with zero columns, the returned kernel
+        has degree zero and thus dimension zero.  For a matrix with
+        zero rows the degree is the number of columns and the
+        dimension is full (the number of columns).
+
+        If the base ring is a field the result is a
+        :class:`sage.modules.free_module.VectorSpace`,
+        otherwise the result is a
+        :class:`sage.modules.free_module.FreeModule`.
+
+        TESTS:
+
+        Three rows, zero columns, over a field. ::
+
+            sage: m = matrix(QQ, [[],[],[]])
+            sage: m._right_kernel_trivial()
+            Vector space of degree 0 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        Zero rows, three columns, over a field. ::
+
+            sage: m = matrix(QQ, [[],[],[]]).transpose()
+            sage: m._right_kernel_trivial()
+            Vector space of dimension 3 over Rational Field
+
+        Three rows, zero columns, over a principal ideal domain. ::
+
+            sage: m = matrix(ZZ, [[],[],[]])
+            sage: m._right_kernel_trivial()
+            Free module of degree 0 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+
+        Zero rows, three columns, over a  principal ideal domain. ::
+
+            sage: m = matrix(ZZ, [[],[],[]]).transpose()
+            sage: m._right_kernel_trivial()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        Three rows, zero columns, over an integral domain.
+        If modules over integral domains ever allow creation of
+        zero submodules, this test will fail to raise an error.
+        This is a response to Trac #8071. ::
+
+            sage: m = matrix(ZZ['x'], [[],[],[]])
+            sage: m._right_kernel_trivial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot create kernel over Univariate Polynomial Ring in x over Integer Ring
+
+        Zero rows, three columns, over an integral domain.
+        Creating a full free module as a return value is
+        not problematic. ::
+
+            sage: m = matrix(ZZ['x'], [[],[],[]]).transpose()
+            sage: m._right_kernel_trivial()
+            Ambient free module of rank 3 over the integral domain Univariate Polynomial Ring in x over Integer Ring
+
+        Three rows, zero columns, over a generic ring.
+        If modules over generic rings ever allow creation of
+        zero submodules, this test will fail to raise an error.
+        This is a response to Trac #8071. ::
+
+            sage: m = matrix(Integers(6), [[],[],[]])
+            sage: m._right_kernel_trivial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot create kernel over Ring of integers modulo 6
+
+        Zero rows, three columns, over a generic ring.
+        Creating a full free module as a return value is
+        not problematic. ::
+
+            sage: m = matrix(Integers(6), [[],[],[]]).transpose()
+            sage: m._right_kernel_trivial()
+            Ambient free module of rank 3 over Ring of integers modulo 6
+        """
+        if self._ncols != 0 and self._nrows != 0:
+            raise ValueError('The right kernel is not automatically trivial for %s' % self )
+        R = self._base_ring
+        if self._ncols == 0:    # from a degree-0 space
+            V = sage.modules.free_module.FreeModule(R, self._ncols)
+            try:
+                Z = V.zero_submodule()
+            except AttributeError:
+                raise NotImplementedError('Cannot create kernel over %s' % R)
+            self.cache('right_kernel', Z)
+            return Z
+        elif self._nrows == 0:  # to a degree-0 space
+            Z = sage.modules.free_module.FreeModule(R, self._ncols)
+            self.cache('right_kernel', Z)
+            return Z
+
     def kernel(self, *args, **kwds):
         r"""
         Return the (left) kernel of this matrix, as a vector space. This is
@@ -2267,9 +2370,7 @@ cdef class Matrix(matrix1.Matrix):
             [      1  4/13*zeta12^2 - 1/13      0 -2/13*zeta12^2 + 7/13]
             [      0                     0      1                     0]
 
-        A nontrivial right kernel over a complicated base field.
-
-        ::
+        A nontrivial right kernel over a complicated base field. ::
 
             sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
             sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
@@ -2285,9 +2386,7 @@ cdef class Matrix(matrix1.Matrix):
         in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
         3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
         or two orders of magnitude larger indicate problems with reaching specialized
-        derived classes.
-
-        ::
+        derived classes. ::
 
             sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
             sage: a = matrix(QQ, entries)
@@ -2298,9 +2397,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Right kernel of a matrix defined over a principal ideal domain which is
         not ZZ or a field. This invokes the general Smith normal form routine,
-        rather than echelon form which is less suitable in this case.
-
-        ::
+        rather than echelon form which is less suitable in this case. ::
 
             sage: L.<w> = NumberField(x^2 - x + 2)
             sage: OL = L.ring_of_integers()
@@ -2310,22 +2407,30 @@ cdef class Matrix(matrix1.Matrix):
             Echelon basis matrix:
             [    -1 -w + 1]
 
+        With zero columns the right kernel has dimension 0. ::
+
+            sage: M = matrix(QQ, [[],[],[]])
+            sage: M.right_kernel()
+            Vector space of degree 0 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        With zero rows, the whole domain is the kernel, so the
+        dimension is the number of columns. ::
+
+            sage: M = matrix(QQ, [[],[],[]]).transpose()
+            sage: M.right_kernel()
+            Vector space of dimension 3 over Rational Field
         """
         K = self.fetch('right_kernel')
         if not K is None:
             return K
 
-        R = self._base_ring
+        # First: obvious and easy kernels, for matrices over any ring
+        if self._ncols == 0 or self._nrows == 0:
+            return self._right_kernel_trivial()
 
-        if self._ncols == 0:    # from a degree-0 space
-            V = sage.modules.free_module.VectorSpace(R, self._ncols)
-            Z = V.zero_subspace()
-            self.cache('right_kernel', Z)
-            return Z
-        elif self._nrows == 0:  # to a degree-0 space
-            Z = sage.modules.free_module.VectorSpace(R, self._ncols)
-            self.cache('right_kernel', Z)
-            return Z
+        R = self._base_ring
 
         if is_IntegerRing(R):
             Z = self.right_kernel(*args, **kwds)

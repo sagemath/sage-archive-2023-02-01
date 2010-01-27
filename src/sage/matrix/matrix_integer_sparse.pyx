@@ -391,16 +391,29 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             proof -- None (default: proof.linear_algebra()); if False,
                    impacts how determinants are computed.
 
-        By convention if self has 0 rows, the kernel is of dimension
-        0, whereas the kernel is the whole domain if self has 0 columns.
+        EXAMPLES::
 
-        EXAMPLES:
             sage: M = MatrixSpace(ZZ,2,4,sparse=True)(range(8))
             sage: M.right_kernel()
             Free module of degree 4 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 1  0 -3  2]
             [ 0  1 -2  1]
+
+        With zero columns the right kernel has dimension 0. ::
+
+            sage: M = matrix(ZZ, [[],[],[]],sparse=True)
+            sage: M.right_kernel()
+            Free module of degree 0 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+
+        With zero rows, the whole domain is the kernel, so the
+        dimension is the number of columns. ::
+
+            sage: M = matrix(ZZ, [[],[],[]],sparse=True).transpose()
+            sage: M.right_kernel()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
         return self.dense_matrix().right_kernel(algorithm, LLL, proof, echelonize)
 

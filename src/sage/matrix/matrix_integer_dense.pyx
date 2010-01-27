@@ -2364,12 +2364,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def right_kernel(self, algorithm='default', LLL=False, proof=None, echelonize=True):
         r"""
-        Return the right kernel of this matrix, as a module over the
-        integers. This is the saturated ZZ-module spanned by all the column
-        vectors v such that self\*v = 0.
+        Return the right kernel of a matrix over the integers.
 
         INPUT:
-
 
         -  ``algorithm`` - see the docs for ``self.kernel_matrix``
 
@@ -2379,9 +2376,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         -  ``proof`` - None (default: proof.linear_algebra());
            if False, impacts how determinants are computed.
 
-
-        By convention if self has 0 columns, the right kernel is of dimension 0,
-        whereas the right kernel is the whole domain if self has 0 rows.
+        OUTPUT:
+        A module over the integers is returned. This is the
+        saturated ZZ-module spanned by all the column
+        vectors ``v`` such that ``self*v = 0``.
 
         EXAMPLES::
 
@@ -2391,12 +2389,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Echelon basis matrix:
             [ 1  0 -3  2]
             [ 0  1 -2  1]
+
+        With zero columns the right kernel has dimension 0. ::
+
+            sage: M = matrix(ZZ, [[],[],[]])
+            sage: M.right_kernel()
+            Free module of degree 0 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+
+        With zero rows, the whole domain is the kernel, so the
+        dimension is the number of columns. ::
+
+            sage: M = matrix(ZZ, [[],[],[]]).transpose()
+            sage: M.right_kernel()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        if self._ncols == 0:    # from a 0 space
-            M = sage.modules.free_module.FreeModule(ZZ, self._ncols)
-            return M.zero_submodule()
-        elif self._nrows == 0:  # to a 0 space
-            return sage.modules.free_module.FreeModule(ZZ, self._ncols)
+        if self._ncols == 0 or self._nrows == 0:
+            return self._right_kernel_trivial()
 
         X = self._right_kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
         if not LLL and echelonize:

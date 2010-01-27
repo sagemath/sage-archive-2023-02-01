@@ -1207,7 +1207,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return _pr
 
     def right_kernel(self, algorithm='padic', **kwds):
-        """
+        r"""
         Return the right kernel of this matrix, as a vector space over QQ.
         For a left kernel use self.left_kernel() or just self.kernel().
 
@@ -1244,8 +1244,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 Vector space of degree 3 and dimension 1 over Rational Field
                 Basis matrix:
                 [   1 -5/2 -1/2]
-
-
         """
         K = self.fetch('right_kernel')
         if not K is None:
@@ -1258,6 +1256,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             V = K.column_space()
             self.cache('right_kernel', V)
             return V
+        elif self._nrows == 0 or self._ncols == 0:
+            return self._right_kernel_trivial()
         else:
             return matrix_dense.Matrix_dense.right_kernel(self, algorithm, **kwds)
 

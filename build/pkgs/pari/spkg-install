@@ -49,8 +49,8 @@ export LANG
 
 build()
 {
-    #  add the proper flags for 64-bit build mode on OS X
-    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    #  add the proper flags for 64-bit build mode on OS X and Open Solaris x64
+    if [ "x$SAGE64" = xyes ]; then
 	CFLAGS="-g -m64 " && export CFLAGS
     fi
 

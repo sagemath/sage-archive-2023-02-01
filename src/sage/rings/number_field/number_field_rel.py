@@ -723,7 +723,7 @@ class NumberField_relative(NumberField_generic):
             sage: K._coerce_non_number_field_element_in(f)
             Traceback (most recent call last):
             ...
-            TypeError: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
 
         One can also coerce an element of the polynomial quotient ring
         that is isomorphic to the number field::

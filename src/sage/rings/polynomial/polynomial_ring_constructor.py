@@ -420,7 +420,7 @@ def _single_variate(base_ring, name, sparse, implementation):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
         elif base_ring.is_field(proof = False):
-            R = m.PolynomialRing_field(base_ring, name, sparse)
+            R = m.PolynomialRing_field(base_ring, name, sparse, implementation=implementation)
 
         elif base_ring.is_integral_domain(proof = False):
             R = m.PolynomialRing_integral_domain(base_ring, name, sparse, implementation)

@@ -1223,6 +1223,12 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
 
+    Extension('sage.rings.polynomial.polynomial_zz_pex',
+              sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
+              libraries = ['ntl', 'stdc++', 'gmp'],
+              language = 'c++',
+              include_dirs = ['sage/libs/ntl/']),
+
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
               sources = ['sage/rings/polynomial/polynomial_zmod_flint.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "ntl", "zn_poly"],

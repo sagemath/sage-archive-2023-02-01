@@ -1174,7 +1174,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
-    def __init__(self, base_ring, name="x", sparse=False, element_class=None):
+    def __init__(self, base_ring, name="x", sparse=False, element_class=None, implementation=None):
         """
         TESTS:
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_field as PRing
@@ -1191,6 +1191,16 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: type(R.gen())
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
         """
+        if implementation is None: implementation="NTL"
+        if implementation == "NTL" and \
+                sage.rings.finite_field.is_FiniteField(base_ring):
+            p=base_ring.characteristic()
+            from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            self.__modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
+            element_class=Polynomial_ZZ_pEX
+
         if not element_class:
             if sparse:
                 element_class = polynomial_element_generic.Polynomial_generic_sparse_field

@@ -7,6 +7,7 @@
 #include <NTL/ZZ_pX.h>
 #include <NTL/ZZ_pE.h>
 #include <NTL/ZZ_pEX.h>
+#include <NTL/ZZ_pEXFactoring.h>
 #include <NTL/lzz_p.h>
 #include <NTL/lzz_pX.h>
 #include <NTL/mat_ZZ.h>

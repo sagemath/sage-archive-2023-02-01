@@ -121,4 +121,6 @@ cdef extern from "ntl_wrap.h":
 
     void ZZ_pEX_conv_modulus(ZZ_pEX_c fout, ZZ_pEX_c fin, ZZ_pContext_c c)
 
-
+    long ZZ_pEX_IterIrredTest "IterIrredTest"(ZZ_pEX_c x)
+    long ZZ_pEX_DetIrredTest "DetIrredTest"(ZZ_pEX_c x)
+    long ZZ_pEX_ProbIrredTest "ProbIrredTest"(ZZ_pEX_c x, long iter)

@@ -5,7 +5,12 @@ MAINTAINERS:
 
 ----------------------------
 
+NEW:
+Downloaded from
+   packages.ubuntu.com/lucid/python-cvxopt
+   1.1.2 + their patch file
 
+OLD:
 Downloaded from
    www.ee.ucla.edu/~vandenbe/cvxopt/
 
@@ -15,8 +20,10 @@ Downloaded from
 NEW COMMENTS for 1.1.2
 
  * removed doc and examples directory
- * modified setup.py and __init__.py
+ * modified setup.py and src/python/__init__.py
  * old patches are in patches-old (solaris, ...)
+ * original 1.1.2 cvxopt compiled, but on import it claimed
+   cvxopt/base.so: undefined symbol: _g95_stop_blank
 
 OLD COMMENTS:
 

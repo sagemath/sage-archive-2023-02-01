@@ -8,17 +8,17 @@ fi
 
 CUR=`pwd`
 
-VER_STRING="`sage_fortran --version`"
-case "$VER_STRING" in
-    G95*)
-        echo "Using g95"
-        cp "patches/setup_f95.py" "src/src/setup.py"
-        ;;
-    *)
-        echo "Using gfortran"
-        cp "patches/setup_gfortran.py" "src/src/setup.py"
-        ;;
-esac
+#VER_STRING="`sage_fortran --version`"
+#case "$VER_STRING" in
+#    G95*)
+#        echo "Using g95"
+#        cp "patches/setup_f95.py" "src/src/setup.py"
+#        ;;
+#    *)
+#        echo "Using gfortran"
+#        cp "patches/setup_gfortran.py" "src/src/setup.py"
+#        ;;
+#esac
 
 cd src/src
 

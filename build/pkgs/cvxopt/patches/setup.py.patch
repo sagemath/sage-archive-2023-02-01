@@ -1,0 +1,8 @@
+3a4,6
+> import os
+> SAGE_LIB = os.environ['SAGE_LOCAL']+'/lib'
+> 
+5c8
+< ATLAS_LIB_DIR = '/usr/lib'
+---
+> ATLAS_LIB_DIR = SAGE_LIB

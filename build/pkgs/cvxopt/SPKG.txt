@@ -1,15 +1,24 @@
 MAINTAINERS:
    * William Stein
    * Josh Kantor
+   * Harald Schilly
 
 ----------------------------
+
 
 Downloaded from
    www.ee.ucla.edu/~vandenbe/cvxopt/
 
-Removed the examples and doc directory to save 0.5MB space.
 
 == Build Instructions ==
+
+NEW COMMENTS for 1.1.2
+
+ * removed doc and examples directory
+ * modified setup.py and __init__.py
+ * old patches are in patches-old (solaris, ...)
+
+OLD COMMENTS:
 
 Against policy we patch some files in src/src/C
 
@@ -27,6 +36,12 @@ setup_f95.py
 setup_gfortran.py
 
 == Releases ==
+
+=== cvxopt-1.1.2-1 (Harald Schilly, Jan 26th, 2010) ===
+
+ * simplifying spkg-install
+ * patching two files - see /patches
+ * removing doc + examples
 
 === cvxopt-0.9.p8 (Gonzalo Tornaria, June 19th, 2009) ===
 

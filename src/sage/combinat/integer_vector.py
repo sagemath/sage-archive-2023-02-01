@@ -179,12 +179,12 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
         partitions of `n` of respective lengths `k_1,k_2`, then there is
         a binary `k_1\times k_2` matrix `M` such that `p_1` is the vector
         of row sums and `p_2` is the vector of column sums of `M`, if
-        and only if `p_2` dominates `p_1`.
+        and only if the conjugate of `p_2` dominates `p_1`.
 
         INPUT:
 
-        - ``p1`` -- the first partition of `n` (trailing 0's allowed)
-        - ``p2`` -- the second partition of `n` (trailing 0's allowed)
+        - ``p1, p2``-- list of integers representing the vectors
+          of row/column sums
 
         - ``algorithm`` -- two possible string values :
 

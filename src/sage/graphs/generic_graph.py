@@ -6190,6 +6190,134 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return list(self.degree_iterator(vertices,labels))
 
+    def average_degree(self):
+        r"""
+        Returns the average degree of the graph.
+
+        The average degree of a graph `G=(V,E)` is equal to
+        ``\frac {2|E|}{|V|}``.
+
+        EXAMPLES:
+
+        The average degree of a regular graph is equal to the
+        degree of any vertex::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.average_degree() == 4
+            True
+
+        The average degree of a tree is always strictly less than
+        `2`::
+
+           sage: g = graphs.RandomGNP(20,.5)
+           sage: tree = Graph()
+           sage: tree.add_edges(g.min_spanning_tree())
+           sage: tree.average_degree() < 2
+           True
+
+        For any graph, it is equal to ``\frac {2|E|}{|V|}``::
+
+            sage: g = graphs.RandomGNP(50,.8)
+            sage: g.average_degree() == 2*g.size()/g.order()
+            True
+        """
+
+        return 2*Integer(self.size())/Integer(self.order())
+
+    def maximum_average_degree(self, value_only=True):
+        r"""
+        Returns the Maximum Average Degree (MAD) of the current graph.
+
+        The Maximum Average Degree (MAD) of a graph is defined as
+        the average degree of its densest subgraph. More formally,
+        ``Mad(G) = \max_{H\subseteq G} Ad(H)``, where `Ad(G)` denotes
+        the average degree of `G`.
+
+        This can be computed in polynomial time.
+
+        INPUT:
+
+        - ``value_only`` (boolean) -- ``True`` by default
+
+            - If ``value_only=True``, only the numerical
+              value of the `MAD` is returned.
+
+            - Else, the subgraph of `G` realizing the `MAD`
+              is returned.
+
+        EXAMPLES:
+
+        In any graph, the `Mad` is always larger than the average
+        degree::
+
+            sage: g = graphs.RandomGNP(20,.3)
+            sage: mad_g = g.maximum_average_degree()                       # optional - requires GLPK or CBC
+            sage: g.average_degree() <= mad_g                              # optional - requires GLPK or CBC
+            True
+
+        Unlike the average degree, the `Mad` of the disjoint
+        union of two graphs is the maximum of the `Mad` of each
+        graphs::
+
+            sage: h = graphs.RandomGNP(20,.3)
+            sage: mad_h = h.maximum_average_degree()                      # optional - requires GLPK or CBC
+            sage: (g+h).maximum_average_degree() == max(mad_g, mad_h)     # optional - requires GLPK or CBC
+            True
+
+        The subgraph of a regular graph realizing the maximum
+        average degree is always the whole graph ::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            True
+
+        This also works for complete bipartite graphs ::
+
+            sage: g = graphs.CompleteBipartiteGraph(3,4)                  # optional - requires GLPK or CBC
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            True
+        """
+
+        g = self
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=True)
+
+        d = p.new_variable()
+        one = p.new_variable()
+
+        # Reorders u and v so that uv and vu are not considered
+        # to be different edges
+        reorder = lambda u,v : (min(u,v),max(u,v))
+
+        for u,v in g.edge_iterator(labels=False):
+	    p.add_constraint( one[ reorder(u,v) ] - 2*d[u] , max = 0 )
+	    p.add_constraint( one[ reorder(u,v) ] - 2*d[v] , max = 0 )
+
+        p.add_constraint( sum([d[v] for v in g]), max = 1)
+
+        p.set_objective( sum([ one[reorder(u,v)] for u,v in g.edge_iterator(labels=False)]) )
+
+        obj = p.solve()
+
+        # Paying attention to numerical error :
+        # The zero values could be something like 0.000000000001
+        # so I can not write l > 0
+        # And the non-zero, though they should be equal to
+        # 1/(order of the optimal subgraph) may be a bit lower
+
+        # setting the minimum to 1/(10 * size of the whole graph )
+        # should be safe :-)
+        m = 1/(10*g.order())
+        g_mad = g.subgraph([v for v,l in p.get_values(d).iteritems() if l>m ])
+
+        if value_only:
+            return g_mad.average_degree()
+        else:
+            return g_mad
+
     def degree_histogram(self):
         """
         Returns a list, whose ith entry is the frequency of degree i.

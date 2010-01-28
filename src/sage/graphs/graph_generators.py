@@ -4452,15 +4452,15 @@ class GraphGenerators():
         we are given as expected the complete bipartite
         graph `K_{2,5}` ::
 
-            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,2],[5,5]) # optional - requires GLPK or CBC
-            sage: g.is_isomorphic(graphs.CompleteBipartiteGraph(5,2))   # optional - requires GLPK or CBC
+            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,2],[5,5])
+            sage: g.is_isomorphic(graphs.CompleteBipartiteGraph(5,2))
             True
 
         Some sequences being uncompatible if, for example, their sums
         are different, the functions raises a ``ValueError`` when no
         graph corresponding to the degree sequences exists. ::
 
-            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,1],[5,5]) # optional - requires GLPK or CBC
+            sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,1],[5,5])
             Traceback (most recent call last):
             ...
             ValueError: There exists no bipartite graph corresponding to the given degree sequences

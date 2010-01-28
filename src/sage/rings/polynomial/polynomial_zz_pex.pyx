@@ -171,13 +171,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         _a = self._parent._PolynomialRing_field__modulus.ZZ_pE(list(a.polynomial()))
         ZZ_pEX_eval(c_b, self.x, _a.x)
-        g = K.gen()
-        res = K(0)
-        m = K(1)
-        for c in ZZ_pE_c_to_list(c_b):
-            res += m*c
-            m *= g
-        return res
+
+        R = K.polynomial_ring()
+        return K(str(R(ZZ_pE_c_to_list(c_b))))
 
     def resultant(self, Polynomial_ZZ_pEX other):
         """

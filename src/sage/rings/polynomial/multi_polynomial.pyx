@@ -1040,7 +1040,133 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.structure.factorization import Factorization
         return Factorization(v, unit)
 
+    def denominator(self):
+        """
+        Return a denominator of self.
 
+        First, the lcm of the denominators of the entries of self
+        is computed and returned. If this computation fails, the
+        unit of the parent of self is returned.
+
+        Note that some subclases may implement its own denominator
+        function.
+
+        .. warning::
+
+           This is not the denominator of the rational function
+           defined by self, which would always be 1 since self is a
+           polynomial.
+
+        EXAMPLES:
+
+        First we compute the denominator of a polynomial with
+        integer coefficients, which is of course 1.
+
+        ::
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = x^3 + 17*y + x + y
+            sage: f.denominator()
+            1
+
+        Next we compute the denominator of a polynomial over a number field.
+
+        ::
+
+            sage: R.<x,y> = NumberField(symbolic_expression(x^2+3)  ,'a')['x,y']
+            sage: f = (1/17)*x^19 + (1/6)*y - (2/3)*x + 1/3; f
+            1/17*x^19 - 2/3*x + 1/6*y + 1/3
+            sage: f.denominator()
+            102
+
+        Finally, we try to compute the denominator of a polynomial with
+        coefficients in the real numbers, which is a ring whose elements do
+        not have a denominator method.
+
+        ::
+
+            sage: R.<a,b,c> = RR[]
+            sage: f = a + b + RR('0.3'); f
+            a + b + 0.300000000000000
+            sage: f.denominator()
+            1.00000000000000
+        """
+        if self.degree() == -1:
+            return 1
+        x = self.coefficients()
+        try:
+            d = x[0].denominator()
+            for y in x:
+                d = d.lcm(y.denominator())
+            return d
+        except(AttributeError):
+            return self.parent().base_ring().one_element()
+
+    def numerator(self):
+        """
+        Return a numerator of self computed as self * self.denominator()
+
+        Note that some subclases may implement its own numerator
+        function.
+
+        .. warning::
+
+           This is not the numerator of the rational function
+           defined by self, which would always be self since self is a
+           polynomial.
+
+        EXAMPLES:
+
+        First we compute the numerator of a polynomial with
+        integer coefficients, which is of course self.
+
+        ::
+
+            sage: R.<x, y> = ZZ[]
+            sage: f = x^3 + 17*x + y + 1
+            sage: f.numerator()
+            x^3 + 17*x + y + 1
+            sage: f == f.numerator()
+            True
+
+        Next we compute the numerator of a polynomial over a number field.
+
+        ::
+
+            sage: R.<x,y> = NumberField(symbolic_expression(x^2+3)  ,'a')['x,y']
+            sage: f = (1/17)*y^19 - (2/3)*x + 1/3; f
+            1/17*y^19 - 2/3*x + 1/3
+            sage: f.numerator()
+            3*y^19 - 34*x + 17
+            sage: f == f.numerator()
+            False
+
+        We try to compute the numerator of a polynomial with coefficients in
+        the finite field of 3 elements.
+
+        ::
+
+            sage: K.<x,y,z> = GF(3)['x, y, z']
+            sage: f = 2*x*z + 2*z^2 + 2*y + 1; f
+            -x*z - z^2 - y + 1
+            sage: f.numerator()
+            -x*z - z^2 - y + 1
+
+        We check that the computation the numerator and denominator
+        are valid
+
+        ::
+
+            sage: K=NumberField(symbolic_expression('x^3+2'),'a')['x']['s,t']
+            sage: f=K.random_element()
+            sage: f.numerator() / f.denominator() == f
+            True
+            sage: R=RR['x,y,z']
+            sage: f=R.random_element()
+            sage: f.numerator() / f.denominator() == f
+            True
+        """
+        return self * self.denominator()
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

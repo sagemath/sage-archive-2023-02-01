@@ -20,7 +20,7 @@ if [ `uname` = "FreeBSD" ] ; then
 fi
 
 # needed to pick up zlib.h
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+if [ "x$SAGE64" = xyes ]; then
    CFLAGS=" -m64 $CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\" -I$SAGE_LOCAL/include/freetype2/"
    LDFLAGS="-m64 -L$SAGE_LOCAL/lib"; export LDFLAGS
 else

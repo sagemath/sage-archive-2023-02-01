@@ -49,12 +49,17 @@ cdef class ECModularSymbol:
 
         TESTS:
 
-        This one is from trac #8042 (note that it causes trouble on
-        32-bit platforms, see trac #8114)::
+        This one is from trac #8042 (note that Cremona's code is more limited
+        when run on a 32-bit platform, but works fine on 64-bit in this
+        case; see trac #8114).
 
+            sage: from sage.libs.cremona.newforms import ECModularSymbol
             sage: E = EllipticCurve('858k2')
-            sage: M = ECModularSymbol(E) # 64-bit
-
+            sage: ECModularSymbol(E)
+            Traceback (most recent call last):                     # 32-bit
+	    ...                                                    # 32-bit
+            OverflowError: long int too large to convert to int    # 32-bit
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field         # 64-bit
         """
         cdef ZZ_c a1, a2, a3, a4, a6, N
         cdef Curve *C

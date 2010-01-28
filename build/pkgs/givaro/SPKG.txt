@@ -22,7 +22,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 == Changelog ==
 
 === givaro-3.2.13rc1.p0 (Jaap Spies, Jan 25th, 2010) ===
- * Let SAGE64="yes" work on Open Solaris 64 bit
+ * If $SAGE64="yes" add -m64 to CFLAGS. This works on Open Solaris x64 64 bit.
+   It used to work only on OSX and may work on other 64 bit systems.
+ * This is trac http://trac.sagemath.org/sage_trac/ticket/8062
 
 === givaro-3.2.13rc1 (Clement Pernet, Sept 18th, 2008) ===
  * Fix endianess pb with PPC-OSX

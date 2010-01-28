@@ -49,10 +49,11 @@ cdef class ECModularSymbol:
 
         TESTS:
 
-        This one is from trac #8240::
+        This one is from trac #8042 (note that it causes trouble on
+        32-bit platforms, see trac #8114)::
 
             sage: E = EllipticCurve('858k2')
-            sage: M = ECModularSymbol(E)
+            sage: M = ECModularSymbol(E) # 64-bit
 
         """
         cdef ZZ_c a1, a2, a3, a4, a6, N

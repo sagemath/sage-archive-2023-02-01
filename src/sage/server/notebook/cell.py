@@ -61,8 +61,7 @@ else:
 
 # Introspection.  The cache directory is a module-scope variable set
 # in the first call to Cell.set_introspect_html().
-import errno, hashlib, time
-from sphinx.application import Sphinx
+Sphinx = None
 _SAGE_INTROSPECT = None
 
 class Cell_generic:
@@ -1638,7 +1637,10 @@ class Cell(Cell_generic):
             # latter is exclusive to a worksheet's process.  The Sage
             # cleaner should delete the temporary directory (or
             # directories) after the notebook server exits.
-            global _SAGE_INTROSPECT
+            import errno, hashlib
+            global Sphinx, _SAGE_INTROSPECT
+            if not Sphinx:
+                from sphinx.application import Sphinx
 
             if _SAGE_INTROSPECT is None:
                 from sage.misc.misc import DOT_SAGE, tmp_dir

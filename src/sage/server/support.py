@@ -8,7 +8,6 @@ AUTHORS:
 - Nick Alexander
 """
 
-import inspect
 import os
 import string
 from cPickle import PicklingError
@@ -21,8 +20,6 @@ import sage.misc.sagedoc as sagedoc
 import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
-
-import pydoc
 
 ######################################################################
 # Initialization
@@ -98,7 +95,6 @@ def help(obj):
         sage: os.chdir(current_dir)
     """
     from pydoc import resolve, html, describe
-    import sage.server.notebook.interact as interact
 
     print '<html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
     object, name = resolve(obj)

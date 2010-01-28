@@ -14,9 +14,9 @@
 #from interact import interact, input_box, slider, range_slider, selector, checkbox, input_grid, text_control
 
 # We import the following two only for doctesting purposes
-import sage.server.notebook.notebook
-import sage.server.notebook.interact
-import sage.server.notebook.sage_email
+#import sage.server.notebook.notebook
+#import sage.server.notebook.interact
+#import sage.server.notebook.sage_email
 
 # Import the new separated Sage notebook.
 from sagenb.notebook.all import *

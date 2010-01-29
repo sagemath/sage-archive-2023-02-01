@@ -1130,6 +1130,14 @@ class WordMorphism(SageObject):
 
         - ``self`` - an endomorphism
 
+        ALGORITHM:
+
+            Exercices 8.7.8, p.281 in [1] :
+            (c) Let `y(M)` be the least integer `e` such that `M^e` has all
+            positive entries. Prove that, for all primitive matrices `M`,
+            we have `y(M) \leq (d-1)^2 + 1`.
+            (d) Prove that the bound `y(M)\leq (d-1)^2+1` is best possible.
+
         EXAMPLES::
 
             sage: tm = WordMorphism('a->ab,b->ba')
@@ -1145,6 +1153,15 @@ class WordMorphism(SageObject):
             sage: f.is_primitive()
             False
 
+        ::
+
+            sage: s = WordMorphism('a->b,b->c,c->ab')
+            sage: s.is_primitive()
+            True
+            sage: s = WordMorphism('a->b,b->c,c->d,d->e,e->f,f->g,g->h,h->ab')
+            sage: s.is_primitive()
+            True
+
         TESTS::
 
             sage: m = WordMorphism('a->bb,b->aac')
@@ -1158,20 +1175,32 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('a->,b->')
             sage: m.is_primitive()
             False
+
+        REFERENCES:
+
+        - [1] Jean-Paul Allouche and Jeffrey Shallit, Automatic Sequences:
+          Theory, Applications, Generalizations, Cambridge University Press,
+          2003.
         """
         if not self.is_endomorphism():
             raise TypeError, "self (=%s) is not a endomorphism"%self
-
-        dom_alphabet = self.domain().alphabet()
+        m = self.incidence_matrix()
+        power = m
+        order = 1
         dim = self.domain().size_of_alphabet()
-
-        power = self
-        for k in range(dim):
-            if power._check_primitive():
+        max_order = (dim-1)**2 + 1
+        while True:
+            l = power.list()
+            if len(l) == 0:
+                return False
+            try:
+                l.index(0)
+            except ValueError:
                 return True
-            power *= self
-        else:
-            return False
+            if order > max_order:
+                return False
+            power *= power
+            order += order
 
     def is_prolongable(self, letter):
         r"""

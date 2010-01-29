@@ -236,7 +236,7 @@ def circle(center, radius, **options):
         sage: c
 
     We can also use this command to plot three-dimensional circles parallel
-    to the `xy`-plane.
+    to the `xy`-plane::
 
         sage: c = circle((1,1,3), 1, rgbcolor=(1,0,0))
         sage: c

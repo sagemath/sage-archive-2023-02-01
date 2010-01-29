@@ -8,6 +8,8 @@ AUTHORS:
 - Joel B. Mohler (2006-12-16): naive rewrite into pyrex
 
 - William Stein(2007-01): rewrite of Mohler's rewrite
+
+- Vincent Delecroix (2010-01): plot function
 """
 
 #################################################################################
@@ -1037,8 +1039,39 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
 
     ########################################################################
+    # Plotting
+    ########################################################################
+
+    def plot(self, **kargs):
+        """
+        Plots this complex number as a point in the plane
+
+        The accepted options are the ones of :meth:`~sage.plot.point.point2d`.
+        Type ``point2d.options`` to see all options.
+
+        .. note::
+
+            Just wraps the sage.plot.point.point2d method
+
+        EXAMPLES:
+
+        You can either use the indirect::
+
+            sage: z = CC(0,1)
+            sage: plot(z)
+
+        or the more direct::
+
+            sage: z = CC(0,1)
+            sage: z.plot()
+        """
+        return sage.plot.point.point2d((self.real(), self.imag()), **kargs)
+
+    ########################################################################
     # Transcendental (and other) functions
     ########################################################################
+
+
 
 
     # Trig functions

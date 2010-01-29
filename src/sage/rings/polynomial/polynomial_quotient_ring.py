@@ -1075,7 +1075,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         If `D` is an etale algebra over a number field (i.e. the coefficient
         ring is a number field and the modulus is squarefree), then compute the
         Selmer group `D(S,m)`, which is defined to be the subgroup of
-        `D^\times/(D^\times)^m` consisting of elements `a` such that
+        `D^*/(D^*)^m` consisting of elements `a` such that
         `D(\sqrt[m]{a})/D` is unramified at all primes of `D` lying above a
         place outside of `S`.
 
@@ -1119,9 +1119,9 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             if order == Infinity or order.gcd(m) != 1:
                 gens.append(unit)
         for gen, order, pr in clgp_gens:
-                # gen^(order/gcd) is the generator in Cl_S(D)[m], of
-                # order gcd, and we take a principal generator of
-                # gen^order to get the corresponding generator in D(S,m)
+            # gen^(order/gcd) is the generator in Cl_S(D)[m], of
+            # order gcd, and we take a principal generator of
+            # gen^order to get the corresponding generator in D(S,m)
             if order.gcd(m) != 1:
                 gens.append(pr)
         return gens

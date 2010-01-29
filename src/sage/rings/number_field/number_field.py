@@ -2701,6 +2701,59 @@ class NumberField_generic(number_field_base.NumberField):
 
         return units, clgp_gens
 
+    def selmer_group(self, S, m, proof=True):
+        """
+        Compute the Selmer group `K(S,m)`, which is defined to be the subgroup of
+        `K^\times/(K^\times)^m` consisting of elements `a` such that
+        `K(\sqrt[m]{a})/K` is unramified at all primes of `K` lying above a
+        place outside of `S`.
+
+        INPUT:
+
+        - ``S`` - A set of primes of self.
+
+        - ``m`` - A positive integer.
+
+        - ``proof`` - If False, assume Pari's GRH++ in computing the class group.
+
+        OUTPUT:
+
+        A list of generators of `K(S,m)`.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: K.selmer_group((), 2)
+            [-1, 2]
+            sage: K.selmer_group([K.ideal(2, -a+1)], 2)
+            [2, -1]
+            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
+            [2, a + 1, -1]
+            sage: K.selmer_group((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
+            [2, a + 1, -1]
+            sage: K.selmer_group([K.ideal(2, -a+1)], 3)
+            [2]
+            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
+            [2, a + 1]
+            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            [2, a + 1, -a]
+
+        """
+        units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
+        gens = []
+        from sage.rings.infinity import Infinity
+        for unit in units:
+            order = unit.multiplicative_order()
+            if order == Infinity or order.gcd(m) != 1:
+                gens.append(unit)
+        for gen, order, pr in clgp_gens:
+            # gen^(order/gcd) is the generator in Cl_S(D)[m], of
+            # order gcd, and we take a principal generator of
+            # gen^order to get the corresponding generator in D(S,m)
+            if order.gcd(m) != 1:
+                gens.append(pr)
+        return gens
+
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
         List of all possible composite number fields formed from self and

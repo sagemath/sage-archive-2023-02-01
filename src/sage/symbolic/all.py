@@ -6,5 +6,5 @@ i = I
 from expression import Expression
 from callable import is_CallableSymbolicExpressionRing, CallableSymbolicExpressionRing
 
-from sage.symbolic.relation import solve, solve_mod
+from sage.symbolic.relation import solve, solve_mod, solve_ineq
 from sage.symbolic.assumptions import assume, forget, assumptions

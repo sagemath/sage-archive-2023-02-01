@@ -5815,8 +5815,8 @@ cdef class Expression(CommutativeRingElement):
 
     def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
         r"""
-        Analytically solve the equation ``self == 0`` for the
-        variable `x`.
+        Analytically solve the equation ``self == 0`` or an univarite
+        inequality for the variable `x`.
 
         .. warning::
 
@@ -5830,18 +5830,22 @@ cdef class Expression(CommutativeRingElement):
 
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.  This keyword is
-           incompatible with ``to_poly_solve=True``.
+           incompatible with ``to_poly_solve=True`` and does not make
+	   any sense when solving inequality.
 
         -  ``solution_dict`` - bool (default: False); if True,
-           return a list of dictionaries containing solutions.
+           return a list of dictionaries containing solutions. Not used
+           when solving inequality.
 
         -  ``explicit_solutions`` - bool (default: False); require that
-           all roots be explicit rather than implicit
+           all roots be explicit rather than implicit. Not used
+           when solving inequality.
 
         -  ``to_poly_solve`` - bool (default: False); use Maxima's
            ``to_poly_solver`` package to search for more possible
            solutions, but possibly encounter approximate solutions.
-           This keyword is incompatible with ``multiplicities=True``.
+           This keyword is incompatible with ``multiplicities=True``
+	   and is not used when solving inequality.
 
         EXAMPLES::
 
@@ -5918,14 +5922,31 @@ cdef class Expression(CommutativeRingElement):
             sage: symbolic_expression_from_maxima_element(sol)
             [[x == 1/4*pi + pi*z73]]
 
+        Some basic inequalities can be also solved::
+
+            sage: x,y=var('x,y'); (ln(x)-ln(y)>0).solve(x)
+            [[log(x) - log(y) > 0]]
+
+        ::
+
+            sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x) # not tested - output depends on system
+            [[0 < y, y < x, 0 < x]]
+            [[y < x, 0 < y]]
+
         TESTS::
 
-            sage: (x^2>0).solve(x)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: solving only implemented for equalities
+        Trac #7325 (solving inequalities)::
+
+            sage: (x^2>1).solve(x)
+            [[x < -1], [x > 1]]
+
+	Catch error message from Maxima::
+
             sage: solve(acot(x),x)
             []
+
+	::
+
             sage: solve(acot(x),x,to_poly_solve=True)
             []
 
@@ -5942,7 +5963,15 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ex
         if is_a_relational(self._gobj):
             if self.operator() is not operator.eq:
-                raise NotImplementedError, "solving only implemented for equalities"
+                from sage.symbolic.relation import solve_ineq
+                try:
+                    return(solve_ineq(self)) # trying solve_ineq_univar
+                except:
+                    pass
+                try:
+                    return(solve_ineq([self])) # trying solve_ineq_fourier
+                except:
+                    raise NotImplementedError, "solving only implemented for equalities and few special inequalities, see solve_ineq"
             ex = self
         else:
             ex = (self == 0)

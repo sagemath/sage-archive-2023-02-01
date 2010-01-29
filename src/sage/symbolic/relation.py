@@ -1,7 +1,7 @@
 r"""
 Symbolic Equations and Inequalities.
 
-Sage can solve symbolic equations and express inequalities. For
+Sage can solve symbolic equations and inequalities. For
 example, we derive the quadratic formula as follows::
 
     sage: a,b,c = var('a,b,c')
@@ -143,6 +143,11 @@ We illustrate finding multiplicities of solutions::
     [x == -I, x == I, x == 1]
     sage: solve(f == 0, x, multiplicities=True)
     ([x == -I, x == I, x == 1], [1, 1, 5])
+
+We can also solve many inequalities::
+
+    sage: solve(1/(x-1)<=8,x)
+    [[x < 1], [x >= (9/8)]]
 
 We can numerically find roots of equations::
 
@@ -456,7 +461,8 @@ def string_to_list_of_solutions(s):
 def solve(f, *args, **kwds):
     r"""
     Algebraically solve an equation or system of equations (over the
-    complex numbers) for given variables.
+    complex numbers) for given variables. Inequalities and systems
+    of inequalities are also supported.
 
     INPUT:
 
@@ -587,6 +593,11 @@ def solve(f, *args, **kwds):
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
         sage: solve(sys,[s,j])
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
+
+    Inequalities can be also solved::
+
+        sage: solve(x^2>8,x)
+        [[x < -2*sqrt(2)], [x > 2*sqrt(2)]]
 
     TESTS::
 
@@ -822,3 +833,201 @@ def solve_mod_enumerate(eqns, modulus):
             ans.append(t)
 
     return ans
+
+def solve_ineq_univar(ineq):
+    """
+    Function solves rational inequality in one variable.
+
+    INPUT:
+
+    - ``ineq`` - inequality in one variable
+
+    OUTPUT:
+
+    - ``list`` -- output is list of solutions as a list of simple inequalities
+      output [A,B,C] means (A or B or C) each A, B, C is again a list and
+      if A=[a,b], then A means (a and b). The list is empty if there is no
+      solution.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.relation import solve_ineq_univar
+        sage: solve_ineq_univar(x-1/x>0)
+        [[x > -1, x < 0], [x > 1]]
+
+        sage: solve_ineq_univar(x^2-1/x>0)
+        [[x < 0], [x > 1]]
+
+        sage: solve_ineq_univar((x^3-1)*x<=0)
+        [[x >= 0, x <= 1]]
+
+    ALGORITHM::
+
+    Calls Maxima command solve_rat_ineq
+
+    AUTHORS:
+
+    - Robert Marik (01-2010)
+    """
+    ineqvar = ineq.variables()
+    if len(ineqvar) != 1:
+        raise NotImplementedError, "The command solve_ineq_univar accepts univariate inequalities only. Your variables are ", ineqvar
+    ineq0 = ineq._maxima_()
+    ineq0.parent().eval("if solve_rat_ineq_loaded#true then (solve_rat_ineq_loaded:true,load(\"solve_rat_ineq.mac\")) ")
+    sol = ineq0.solve_rat_ineq().sage()
+    if repr(sol)=="all":
+        from sage.rings.infinity import Infinity
+        sol = [ineqvar[0]<Infinity]
+    return sol
+
+def solve_ineq_fourier(ineq,vars=None):
+    """
+    Solves sytem of inequalities using Maxima and fourier elimination
+
+    Can be used for system of linear inequalities and for some types
+    of nonlinear inequalities. For examples see the section EXAMPLES
+    below and http://maxima.cvs.sourceforge.net/viewvc/maxima/maxima/share/contrib/fourier_elim/rtest_fourier_elim.mac
+
+
+    INPUT:
+
+    - ``ineq`` - list with system of inequalities
+
+    - ``vars`` - optionally list with variables for fourier elimination.
+
+    OUTPUT:
+
+    - ``list`` - output is list of solutions as a list of simple inequalities
+      output [A,B,C] means (A or B or C) each A, B, C is again a list and
+      if A=[a,b], then A means (a and b). The list is empty if there is no
+      solution.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.relation import solve_ineq_fourier
+        sage: y=var('y')
+        sage: solve_ineq_fourier([x+y<9,x-y>4],[x,y])
+        [[y + 4 < x, x < -y + 9, y < (5/2)]]
+        sage: solve_ineq_fourier([x+y<9,x-y>4],[y,x])
+        [[y < min(x - 4, -x + 9)]]
+
+        sage: solve_ineq_fourier([x^2>=0])
+        [[x < +Infinity]]
+
+        sage: solve_ineq_fourier([log(x)>log(y)],[x,y])
+        [[y < x, 0 < y]]
+        sage: solve_ineq_fourier([log(x)>log(y)],[y,x])
+        [[0 < y, y < x, 0 < x]]
+
+    Note that different systems will find default variables in different
+    orders, so the following is not tested::
+
+        sage: solve_ineq_fourier([log(x)>log(y)]) # not tested - one of the following appears
+        [[0 < y, y < x, 0 < x]]
+        [[y < x, 0 < y]]
+
+    ALGORITHM::
+
+    Calls Maxima command fourier_elim
+
+    AUTHORS:
+
+    - Robert Marik (01-2010)
+    """
+    if vars is None:
+        setvars = set([])
+        for i in (ineq):
+            setvars = setvars.union(set(i.variables()))
+            vars =[i for i in setvars]
+    ineq0 = [i._maxima_() for i in ineq]
+    ineq0[0].parent().eval("if fourier_elim_loaded#true then (fourier_elim_loaded:true,load(\"fourier_elim\"))")
+    sol = ineq0[0].parent().fourier_elim(ineq0,vars)
+    ineq0[0].parent().eval("or_to_list(x):=\
+        if not atom(x) and op(x)=\"or\" then args(x) \
+        else [x]")
+    sol = sol.or_to_list().sage()
+    if repr(sol) == "[emptyset]":
+        sol = []
+    if repr(sol) == "[universalset]":
+        from sage.rings.infinity import Infinity
+        sol = [[i<Infinity for i in vars]]
+    return sol
+
+def solve_ineq(ineq, vars=None):
+    """
+    Solves inequalities and systems of inequalities using Maxima.
+    Switches between rational inequalities
+    (sage.symbolic.relation.solve_ineq_rational)
+    and fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
+    See the documentation of these functions for more details.
+
+    INPUT:
+
+    - ``ineq`` - one inequality or a list of inequalities
+
+      Case1: If ``ineq`` is one equality, then it should be rational
+      expression in one varible. This input is passed to
+      sage.symbolic.relation.solve_ineq_univar function.
+
+      Case2: If ``ineq`` is a list involving one or more
+      inequalities, than the input is passed to
+      sage.symbolic.relation.solve_ineq_fourier function. This
+      function can be used for system of linear inequalities and
+      for some types of nonlinear inequalities. See
+      http://maxima.cvs.sourceforge.net/viewvc/maxima/maxima/share/contrib/fourier_elim/rtest_fourier_elim.mac
+      for a big gallery of problems covered by this algorithm.
+
+    - ``vars`` - optional parameter with list of variables. This list
+      is used only if fourier elimination is used. If omitted or if
+      rational inequality is solved, then variables are determined
+      automatically.
+
+    OUTPUT:
+
+    - ``list`` -- output is list of solutions as a list of simple inequalities
+      output [A,B,C] means (A or B or C) each A, B, C is again a list and
+      if A=[a,b], then A means (a and b)::
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.relation import solve_ineq
+
+    Inequalities in one variable. The variable is detected automatically::
+
+        sage: solve_ineq(x^2-1>3)
+        [[x < -2], [x > 2]]
+
+        sage: solve_ineq(1/(x-1)<=8)
+        [[x < 1], [x >= (9/8)]]
+
+    System of inequalities with automatically detected inequalities::
+
+        sage: y=var('y')
+        sage: solve_ineq([x-y<0,x+y-3<0],[y,x])
+        [[x < y, y < -x + 3, x < (3/2)]]
+        sage: solve_ineq([x-y<0,x+y-3<0],[x,y])
+        [[x < min(-y + 3, y)]]
+
+    Note that although Sage will detect the variables automatically,
+    the order it puts them in may depend on the system, so the following
+    command is only guaranteed to give you one of the above answers::
+
+        sage: solve_ineq([x-y<0,x+y-3<0]) # not tested - random
+        [[x < y, y < -x + 3, x < (3/2)]]
+
+    ALGORITHM::
+
+    Calls solve_ineq_fourier if inequalities are list and
+    solve_ineq_univar of the inequality is symbolic expression. See
+    the description of these commands for more details related to the
+    set of inequalities which can be solved. The list is empty if
+    there is no solution.
+
+    AUTHORS:
+
+    - Robert Marik (01-2010)
+    """
+    if isinstance(ineq,list):
+        return(solve_ineq_fourier(ineq, vars))
+    else:
+        return(solve_ineq_univar(ineq))

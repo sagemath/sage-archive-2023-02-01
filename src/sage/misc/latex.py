@@ -783,7 +783,8 @@ class Latex:
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(x.encode('utf-8'))
+        from sagenb.misc.misc import encoded_str
+        O.write(encoded_str(x))
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:

@@ -165,6 +165,9 @@ The following are some other relevant issues:
   alternative to bundles is to use Mercurial queues to flatten the
   history. That might or might not be desirable.
 
+
+.. _section-review-patches:
+
 Reviewing Patches
 =================
 

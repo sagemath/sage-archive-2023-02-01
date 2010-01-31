@@ -178,12 +178,17 @@ html_split_index = True
 
 # Options for LaTeX output
 # ------------------------
+# See http://sphinx.pocoo.org/config.html#confval-latex_elements
+latex_elements = {}
 
-# The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+# Extended UTF-8 scheme
+latex_elements['inputenc'] = '\\usepackage[utf8x]{inputenc}'
+
+# The paper size ('letterpaper' or 'a4paper').
+#latex_elements['papersize'] = 'letterpaper'
 
 # The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
+#latex_elements['pointsize'] = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
@@ -198,8 +203,7 @@ latex_documents = []
 #latex_use_parts = False
 
 # Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
-latex_preamble = '\usepackage{amsmath}\n\usepackage{amsfonts}\n'
+latex_elements['preamble'] = '\usepackage{amsmath}\n\usepackage{amsfonts}\n'
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
@@ -219,7 +223,7 @@ except NameError:
 
 for macro in sage_latex_macros:
     # used when building latex and pdf versions
-    latex_preamble += macro + '\n'
+    latex_elements['preamble'] += macro + '\n'
     # used when building html version
     pngmath_latex_preamble += macro + '\n'
 

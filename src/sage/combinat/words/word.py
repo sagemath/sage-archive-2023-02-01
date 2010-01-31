@@ -1034,8 +1034,8 @@ class Word_class(SageObject):
 
         INPUT:
 
-        - ``max_length`` - integer or None (optional, default: None)
-          the maximum length of the considered prefixes
+        - ``max_length`` - non negative integer or None (optional,
+          default: None) the maximum length of the prefixes
 
         OUTPUT:
 
@@ -1071,6 +1071,11 @@ class Word_class(SageObject):
             word: 010010
             word: 0100101
             word: 01001010
+
+        TESTS::
+
+            sage: list(f.prefixes_iterator(max_length=0))
+            [word: ]
         """
         to_consider = self if max_length is None else self[:max_length]
         yield self[:0]
@@ -1083,8 +1088,8 @@ class Word_class(SageObject):
 
         INPUT:
 
-        - ``max_length`` - integer or None (optional, default: None)
-          the maximum length of the considered prefixes
+        - ``max_length`` - non negative integer or None (optional,
+          default: None) the maximum length of the prefixes
 
         OUTPUT:
 

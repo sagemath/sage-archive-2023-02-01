@@ -312,7 +312,7 @@ yields the two plots :math:`(t,x(t)), (t,y(t))` on the same graph
 
 for :math:`0 <= t <= 2`. The same result can be obtained by using ``desolve_system_rk4``::
 
-    sage: var('x y t')
+    sage: x, y, t = var('x y t')
     sage: P=desolve_system_rk4([x+y, x-y], [x,y], ics=[0,1,-1], ivar=t, end_points=2)
     sage: p1 = list_plot([[i,j] for i,j,k in P], plotjoined=True)
     sage: p2 = list_plot([[i,k] for i,j,k in P], plotjoined=True, color='red')

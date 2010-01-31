@@ -33,5 +33,18 @@ latex_documents = [
    u'The Sage Development Team', 'manual'),
 ]
 
+latex_elements['preamble'] += r'''
+% One-column index
+\makeatletter
+\renewenvironment{theindex}{
+  \chapter*{\indexname}
+  \markboth{\MakeUppercase\indexname}{\MakeUppercase\indexname}
+  \setlength{\parskip}{0.1em}
+  \relax
+  \let\item\@idxitem
+}{}
+\makeatother
+'''
+
 #Ignore all .rst in the _sage subdirectory
 exclude_trees = exclude_trees + ['_sage']

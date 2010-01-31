@@ -22,8 +22,8 @@ a linear function over P.
 GPL v2
 
 == SPKG Maintainers ==
-* Marshall Hampton
-* Volker Braun
+ * Marshall Hampton
+ * Volker Braun
 
 == Upstream Contact ==
 Komei Fukuda <fukuda@ifor.math.ethz.ch>
@@ -34,17 +34,38 @@ Tel +41-1-632-4023, Fax +41-1-632-1025
 http://www.ifor.math.ethz.ch/staff/fukuda/
 
 == Dependencies ==
-* gmp
+ * gmp (or its fork mpir)
 
 == Special Update/Build Instructions ==
-From clean upstream sources, remove directories doc, examples*, src-mathlink*.
+From clean upstream sources:
+ * remove directories doc, examples/*, src-mathlink/*, autom4te.cache
+
 
 == Changelog ==
+
+=== cddlib-094f.p4 (Volker Braun, January 29th, 2010) ===
+ * renamed patches/cdd_both_reps-makefiles.patch -> patches/automake.patch
+ * added check for required mpir (aka GMP) to spkg-install
+ * added spkg-check
+ * corrected src/patching, see
+   http://trac.sagemath.org/sage_trac/ticket/8115 and
+   http://groups.google.com/group/sage-devel/browse_thread/thread/e599fd37de909264
+ * removed CFLAGS settings in spkg-install, not required.
+
+=== cddlib-094f.p3 (Volker Braun, January 26th, 2010) ===
+ * libtool-ized
+   After implementing the changes, I found that tabbott proposed a
+   similar patch to the automake files earlier:
+   http://sagetrac.org/sage_trac/ticket/3304
+ * renamed configure.in -> configure.ac (preferred usage)
 
 === cddlib-094f.p2 (Volker Braun, Marshall Hampton, Alex Ghitza, January 25th, 2010) ===
  * patch cdd_both_reps.c
  * remove dist/
  * clean up SPKG.txt
+ * updated makefiles and regenerated configure scripts
+   Note: For future reference, patches/cdd_both_reps-makefiles.patch
+   shows the changed automake-sources. This is already applied to src/
 
 === cddlib-094f (Sebastien Barthelemy, January 26th, 2009) ===
  * using upstream version 094f

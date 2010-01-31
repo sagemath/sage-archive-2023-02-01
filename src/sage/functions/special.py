@@ -410,6 +410,16 @@ def _init():
     _done = True
 
 class MaximaFunction(BuiltinFunction):
+    """
+    EXAMPLES::
+
+        sage: from sage.functions.special import MaximaFunction
+        sage: f = MaximaFunction("jacobi_sn")
+        sage: f(1,1)
+        tanh(1)
+        sage: f(1/2,1/2).n()
+        0.470750473655657
+    """
     def __init__(self, name, nargs=2, conversions={}):
         """
         EXAMPLES::
@@ -1199,45 +1209,66 @@ def inverse_jacobi(sym,x,m):
 #### elliptic integrals
 
 class EllipticE(MaximaFunction):
-    def __init__(self):
-        r"""
-        This returns the value of the incomplete elliptic integral of the
-        second kind, `\int_0^\phi \sqrt(1 - m\sin(x)^2)\, dx`, ie,
-        ``integrate(sqrt(1 - m*sin(x)2), x, 0, phi)``. Taking
-        `\phi = \pi/2` gives ``elliptic_ec``.
+    r"""
+    This returns the value of the "incomplete elliptic integral of the
+    second kind,"
 
+    .. math::
+
+        \int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,
+
+    i.e., ``integrate(sqrt(1 - m*sin(x)^2), x, 0, phi)``.  Taking `\phi
+    = \pi/2` gives ``elliptic_ec``.
+
+    EXAMPLES::
+
+        sage: z = var("z")
+        sage: elliptic_e(z, 1)
+        sin(z)
+        sage: elliptic_e(z, 0)
+        z
+        sage: elliptic_e(0.5, 0.1)
+        0.498011394499
+
+        sage: loads(dumps(elliptic_e))
+        elliptic_e
+    """
+    def __init__(self):
+        """
         EXAMPLES::
 
-            sage: z = var("z")
-            sage: elliptic_e(z, 1)
-            sin(z)
-            sage: elliptic_e(z, 0)
-            z
             sage: elliptic_e(0.5, 0.1)
             0.498011394499
-
-            sage: loads(dumps(elliptic_e))
-            elliptic_e
         """
         MaximaFunction.__init__(self, "elliptic_e")
 
 elliptic_e = EllipticE()
 
 class EllipticEC(MaximaFunction):
+    """
+    This returns the value of the "complete elliptic integral of the
+    second kind,"
+
+    .. math::
+
+        \int_0^{\pi/2} \sqrt{1 - m\sin(x)^2}\, dx.
+
+    EXAMPLES::
+
+        sage: elliptic_ec(0.1)
+        1.5307576369
+        sage: elliptic_ec(x).diff()
+        1/2*(elliptic_ec(x) - elliptic_kc(x))/x
+
+        sage: loads(dumps(elliptic_ec))
+        elliptic_ec
+    """
     def __init__(self):
         """
-        This returns the value of the complete elliptic integral of the
-        second kind, `\int_0^{\pi/2} \sqrt(1 - m\sin(x)^2)\, dx`.
-
         EXAMPLES::
 
             sage: elliptic_ec(0.1)
             1.5307576369
-            sage: elliptic_ec(x).diff()
-            1/2*(elliptic_ec(x) - elliptic_kc(x))/x
-
-            sage: loads(dumps(elliptic_ec))
-            elliptic_ec
         """
         MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
 
@@ -1256,12 +1287,24 @@ class EllipticEC(MaximaFunction):
 elliptic_ec = EllipticEC()
 
 class EllipticEU(MaximaFunction):
+    r"""
+    This returns the value of the "incomplete elliptic integral of the
+    second kind,"
+
+    .. math::
+
+        \int_0^u \mathrm{dn}(x,m)^2\, dx = \int_0^\tau
+        {\sqrt{1-m x^2}\over\sqrt{1-x^2}}\, dx.
+
+    where `\tau = \mathrm{sn}(u, m)`.
+
+    EXAMPLES::
+
+        sage: elliptic_eu (0.5, 0.1)
+        0.496054551287
+    """
     def __init__(self):
         r"""
-        This returns the value of the incomplete elliptic integral of the
-        second kind defined by
-        `\int_0^u jacobi_dn(x,m)^2)\, dx`.
-
         EXAMPLES::
 
             sage: elliptic_eu (0.5, 0.1)
@@ -1272,21 +1315,31 @@ class EllipticEU(MaximaFunction):
 elliptic_eu = EllipticEU()
 
 class EllipticF(MaximaFunction):
+    r"""
+    This returns the value of the "incomplete elliptic integral of the
+    first kind,"
+
+    .. math::
+
+        \int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}},
+
+    i.e., ``integrate(1/sqrt(1 - m*sin(x)^2), x, 0, phi)``.  Taking
+    `\phi = \pi/2` gives ``elliptic_kc``.
+
+    EXAMPLES::
+
+        sage: z = var("z")
+        sage: elliptic_f (z, 0)
+        z
+        sage: elliptic_f (z, 1)
+        log(tan(1/4*pi + 1/2*z))
+        sage: elliptic_f (0.2, 0.1)
+        0.200132506748
+    """
     def __init__(self):
         r"""
-        This returns the value of the "incomplete elliptic integral of the
-        first kind",
-        `\int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}}`, ie,
-        ``integrate(1/sqrt(1 - m*sin(x)2), x, 0, phi)``.
-        Taking `\phi = \pi/2` gives ``elliptic_kc``.
-
         EXAMPLES::
 
-            sage: z = var("z")
-            sage: elliptic_f (z, 0)
-            z
-            sage: elliptic_f (z, 1)
-            log(tan(1/4*pi + 1/2*z))
             sage: elliptic_f (0.2, 0.1)
             0.200132506748
         """
@@ -1295,12 +1348,23 @@ class EllipticF(MaximaFunction):
 elliptic_f = EllipticF()
 
 class EllipticKC(MaximaFunction):
+    r"""
+    This returns the value of the "complete elliptic integral of the
+    first kind,"
+
+    .. math::
+
+        \int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}.
+
+    EXAMPLES::
+
+        sage: elliptic_kc(0.5)
+        1.8540746773
+        sage: elliptic_f(RR(pi/2), 0.5)
+        1.8540746773
+    """
     def __init__(self):
         r"""
-        This returns the value of the "complete elliptic integral of the
-        first kind",
-        `\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}`.
-
         EXAMPLES::
 
             sage: elliptic_kc(0.5)
@@ -1313,15 +1377,22 @@ class EllipticKC(MaximaFunction):
 elliptic_kc = EllipticKC()
 
 class EllipticPi(MaximaFunction):
+    r"""
+    This returns the value of the "incomplete elliptic integral of the
+    third kind,"
+
+    .. math::
+
+        \int_0^\phi \frac{dx}{(1 - n\sin(x)^2)\sqrt{1 -
+        m\sin(x)^2}}.
+
+    EXAMPLES::
+
+        sage: elliptic_pi(0.1, 0.2, 0.3)
+        0.200665068221
+    """
     def __init__(self):
         r"""
-        This returns the value of the "incomplete elliptic integral of the
-        third kind",
-
-        .. math::
-
-            \int_0^\phi \frac{dx}{\sqrt{(1 - m\sin(x)^2)(1 - n\sin(x)^2)}}.
-
         EXAMPLES::
 
             sage: elliptic_pi(0.1, 0.2, 0.3)

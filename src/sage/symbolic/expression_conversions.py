@@ -234,8 +234,11 @@ class Converter(object):
             sage: c.get_fake_div((2*x^3+2*x-1)/((x-2)*(x+1)))
             FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x - 2, x + 1], <built-in function mul>)], <built-in function div>)
 
+        Check if #8056 is fixed, i.e., if numerator is 1.::
+
+            sage: c.get_fake_div(1/pi/x)
+            FakeExpression([1, FakeExpression([pi, x], <built-in function mul>)], <built-in function div>)
         """
-        from sage.rings.all import ZZ
         d = []
         n = []
         for arg in ex.operands():
@@ -261,7 +264,9 @@ class Converter(object):
         else:
             d = FakeExpression(d, _operator.mul)
 
-        if len(n) == 1:
+        if len(n) == 0:
+            return FakeExpression([SR.one_element(), d], _operator.div)
+        elif len(n) == 1:
             n = n[0]
         else:
             n = FakeExpression(n, _operator.mul)
@@ -1270,9 +1275,15 @@ class FastCallableConverter(Converter):
 
         TESTS::
 
+        Check if rational functions with numerator 1 can be converted. #8056::
+
+            sage: (1/pi/x)._fast_callable_(etb)
+            div(1, mul(pi, v_0))
+
             sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
             sage: (x^7)._fast_callable_(etb)
             ipow(v_0, 7)
+            sage: f(x)=1/pi/x; plot(f,2,3)
         """
         # This used to convert the operands first.  Doing it this way
         # instead gives a chance to notice powers with an integer
@@ -1280,7 +1291,6 @@ class FastCallableConverter(Converter):
         # to another type.
         operands = ex.operands()
         if operator is _operator.pow:
-            from sage.rings.all import Rational
             exponent = operands[1]
             if exponent == -1:
                 return self.etb.call(_operator.div, 1, operands[0])

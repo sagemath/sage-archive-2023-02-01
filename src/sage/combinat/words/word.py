@@ -1028,6 +1028,96 @@ class Word_class(SageObject):
         """
         return Word(self._iterated_right_palindromic_closure_iterator(f=f), length='unknown')
 
+    def prefixes_iterator(self, max_length=None):
+        r"""
+        Returns an iterator over the prefixes of self.
+
+        INPUT:
+
+        - ``max_length`` - integer or None (optional, default: None)
+          the maximum length of the considered prefixes
+
+        OUTPUT:
+
+            iterator
+
+        EXAMPLES::
+
+            sage: w = Word('abaaba')
+            sage: for p in w.prefixes_iterator(): print p
+            word:
+            word: a
+            word: ab
+            word: aba
+            word: abaa
+            word: abaab
+            word: abaaba
+            sage: for p in w.prefixes_iterator(max_length=3): print p
+            word:
+            word: a
+            word: ab
+            word: aba
+
+        You can iterate over the prefixes of an infinite word::
+
+            sage: f = words.FibonacciWord()
+            sage: for p in f.prefixes_iterator(max_length=8): print p
+            word:
+            word: 0
+            word: 01
+            word: 010
+            word: 0100
+            word: 01001
+            word: 010010
+            word: 0100101
+            word: 01001010
+        """
+        to_consider = self if max_length is None else self[:max_length]
+        yield self[:0]
+        for (i,a) in enumerate(to_consider):
+            yield self[:i+1]
+
+    def palindrome_prefixes_iterator(self, max_length=None):
+        r"""
+        Returns an iterator over the palindrome prefixes of self.
+
+        INPUT:
+
+        - ``max_length`` - integer or None (optional, default: None)
+          the maximum length of the considered prefixes
+
+        OUTPUT:
+
+            iterator
+
+        EXAMPLES::
+
+            sage: w = Word('abaaba')
+            sage: for pp in w.palindrome_prefixes_iterator(): print pp
+            word:
+            word: a
+            word: aba
+            word: abaaba
+            sage: for pp in w.palindrome_prefixes_iterator(max_length=4): print pp
+            word:
+            word: a
+            word: aba
+
+        You can iterate over the palindrome prefixes of an infinite word::
+
+            sage: f = words.FibonacciWord()
+            sage: for pp in f.palindrome_prefixes_iterator(max_length=20): print pp
+            word:
+            word: 0
+            word: 010
+            word: 010010
+            word: 01001010010
+            word: 0100101001001010010
+        """
+        for p in self.prefixes_iterator(max_length):
+            if p.is_palindrome():
+                yield p
+
     @lazy_attribute
     def _word_content(self):
         r"""
@@ -3066,6 +3156,25 @@ exponent %s: the length of the word (%s) times the exponent \
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
         return self.palindromic_lacunas_study(f=f)[2]
+
+    def palindrome_prefixes(self):
+        r"""
+        Returns a list of all palindrome prefixes of self.
+
+        OUTPUT:
+
+            list -- A list of all palindrome prefixes of self.
+
+        EXAMPLES::
+
+            sage: w = Word('abaaba')
+            sage: w.palindrome_prefixes()
+            [word: , word: a, word: aba, word: abaaba]
+            sage: w = Word('abbbbbbbbbb')
+            sage: w.palindrome_prefixes()
+            [word: , word: a]
+        """
+        return list(self.palindrome_prefixes_iterator())
 
     def defect(self, f=None):
         r"""

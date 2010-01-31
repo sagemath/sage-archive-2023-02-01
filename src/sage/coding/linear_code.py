@@ -1251,10 +1251,10 @@ class LinearCode(module.Module):
 
         EXAMPLES::
 
-        sage: G = matrix(GF(2),[[1,0,0],[1,1,0]])
-        sage: C = LinearCode(G)
-        sage: C.dimension()
-        2
+            sage: G = matrix(GF(2),[[1,0,0],[1,1,0]])
+            sage: C = LinearCode(G)
+            sage: C.dimension()
+            2
         """
         return self.__dim
 
@@ -2025,7 +2025,7 @@ class LinearCode(module.Module):
 
     def sd_duursma_data(C, i):
         r"""
-        Returns the Duursama data `v` and `m` of this formally s.d. code `C`
+        Returns the Duursma data `v` and `m` of this formally s.d. code `C`
         and the type number `i` in (1,2,3,4).  Does *not* check if this code
         is actually sd.
 
@@ -2035,12 +2035,12 @@ class LinearCode(module.Module):
 
         OUTPUT:
 
-        - Pair ``(v, m)`` as in Duursama [D]_
+        - Pair ``(v, m)`` as in Duursma [D]_
 
         REFERENCES:
 
-        - [D] - I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
+        .. [D] I. Duursma, "Extremal weight enumerators and ultraspherical
+           polynomials"
         """
         n = C.length()
         d = C.minimum_distance()
@@ -2069,7 +2069,7 @@ class LinearCode(module.Module):
 
         OUTPUT:
 
-        - Coefficients `q_0, q_1, ...` of `q(T)` as in Duursama [D]_
+        - Coefficients `q_0, q_1, ...` of `q(T)` as in Duursma [D]_
 
         REFERENCES:
 

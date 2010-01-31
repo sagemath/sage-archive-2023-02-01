@@ -31,10 +31,11 @@ patch() {
 
     # Do not apply patches/automake.patch here!
     # The following is the result of applying automake.patch
+    cp patches/Makefile.am src/Makefile.am
     cp patches/src-gmp-Makefile.am src/src-gmp/Makefile.am
     cp patches/src-Makefile.am src/src/Makefile.am
-    cp patches/lib-src-Makefile.am src/lib-src/
-    cp patches/lib-src-gmp-Makefile.am src/lib-src-gmp/
+    cp patches/lib-src-Makefile.am src/lib-src/Makefile.am
+    cp patches/lib-src-gmp-Makefile.am src/lib-src-gmp/Makefile.am
     rm src/configure.in
     cp patches/configure.ac src/
 

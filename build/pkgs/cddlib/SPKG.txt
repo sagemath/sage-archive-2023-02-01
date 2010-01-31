@@ -43,7 +43,7 @@ From clean upstream sources:
 
 == Changelog ==
 
-=== cddlib-094f.p4 (Volker Braun, January 29th, 2010) ===
+=== cddlib-094f.p4 (Volker Braun, Minh Van Nguyen, January 29th, 2010) ===
  * renamed patches/cdd_both_reps-makefiles.patch -> patches/automake.patch
  * added check for required mpir (aka GMP) to spkg-install
  * added spkg-check

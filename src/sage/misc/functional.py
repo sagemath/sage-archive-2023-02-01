@@ -663,21 +663,34 @@ def symbolic_sum(expression, *args, **kwds):
 
 def integral(x, *args, **kwds):
     """
-    Returns an indefinite integral of an object x.
+    Returns an indefinite or definite integral of an object x.
 
     First call x.integrate() and if that fails make an object and
     integrate it using Maxima, maple, etc, as specified by algorithm.
+
+    For symbolic expression calls
+    ``sage.calculus.calculus.integral`` - see this function for
+    available options.
 
     EXAMPLES::
 
         sage: f = cyclotomic_polynomial(10)
         sage: integral(f)
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+
+    ::
+
         sage: integral(sin(x),x)
         -cos(x)
+
+    ::
+
         sage: y = var('y')
         sage: integral(sin(x),y)
         y*sin(x)
+
+    ::
+
         sage: integral(sin(x), x, 0, pi/2)
         1
         sage: sin(x).integral(x, 0,pi/2)

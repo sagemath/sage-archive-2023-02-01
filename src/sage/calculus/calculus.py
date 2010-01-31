@@ -514,12 +514,17 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     If ``self`` has only one variable, then it returns the
     integral with respect to that variable.
 
-     INPUT:
+    If definite integration fails, it could be still possbile to
+    evaluate definite integral using indefinite integral and Newton -
+    Leibniz theorem (however, the user has to ensure that the
+    indefinite integral is continuous on compact interval `[a,b]` and
+    this theorem can be applied).
 
+    INPUT:
 
     - ``v`` - (optional) a variable or variable name.  This can also
-       be a tuple of the variable (optional) and endpoints (i.e.,
-       ``(x,0,1)`` or ``(0,1)``).
+      be a tuple of the variable (optional) and endpoints (i.e.,
+      ``(x,0,1)`` or ``(0,1)``).
 
     - ``a`` - (optional) lower endpoint of definite integral
 
@@ -533,7 +538,7 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
 
-     EXAMPLES::
+    EXAMPLES::
 
         sage: x = var('x')
         sage: h = sin(x)/(cos(x))^2

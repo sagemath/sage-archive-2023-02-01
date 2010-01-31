@@ -29,17 +29,18 @@ Differentiation:
     sage: latex(f.diff(x))
     k x^{3} e^{\left(k x\right)} \sin\left(w x\right) + w x^{3} e^{\left(k x\right)} \cos\left(w x\right) + 3 \, x^{2} e^{\left(k x\right)} \sin\left(w x\right)
 
-If you type ``view(f.diff('x'))`` another window will open up
+If you type ``view(f.diff(x))`` another window will open up
 displaying the compiled output. In the notebook, you can enter
 
 ::
 
-    f = maxima('x^3 * %e^(k*x) * sin(w*x)')
+    var('x k w')
+    f = x^3 * e^(k*x) * sin(w*x)
     show(f)
-    show(f.diff('x'))
+    show(f.diff(x))
 
 into a cell and press ``shift-enter`` for a similar result. You can
-also call Maxima indirectly using the commands
+also differentiate and integrate using the commands
 
 ::
 
@@ -263,41 +264,36 @@ is another way.
 Ordinary differential equations
 ===============================
 
-Symbolically solving ODEs can be done using 's interface with
-Maxima. Numerical solution of ODEs can be done using 's interface
+Symbolically solving ODEs can be done using Sage interface with
+Maxima. See
+
+::
+
+    sage:desolvers?
+
+for available commands. Numerical solution of ODEs can be done using Sage interface
 with Octave (an experimental package), or routines in the GSL (Gnu
 Scientific Library).
 
-You can solve ODE's symbolically in Sage using the Maxima interface
+An example, how to solve ODE's symbolically in Sage using the Maxima interface
 (do not type the ``...``):
 
 ::
 
-    sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
-    y=3*x-2*%e^(x-1)
-    sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
-    y=%k1*%e^x+%k2*%e^-x+3*x
-    sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
-    y=(%c-3*(-x-1)*%e^-x)*%e^x
-    sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
-    y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
+    sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
+    3*x - 2*e^(x - 1)
+    sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
+    k1*e^x + k2*e^(-x) + 3*x
+    sage: desolve(diff(y,x) + 3*x == y, dvar = y)
+    (3*(x + 1)*e^(-x) + c)*e^x
+    sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
+    3*x - 5*e^(x - 1) + 3
 
-    sage: maxima.clear('x'); maxima.clear('f')
-    sage: maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)",\
-    ...   ["x","f"], [0,1,2])
-    f(x)=x*%e^x+%e^x
+    sage: f=function('f',x); desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
+    x*e^x + e^x
 
-    sage: maxima.clear('x'); maxima.clear('f')
-    sage: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)",\
-    ...   ["x","f"])
-    sage: f
-    f(x)=x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
-    sage: f.display2d()
-                                                   !
-                                       x  d        !                  x          x
-                            f(x) = x %e  (-- (f(x))!     ) - f(0) x %e  + f(0) %e
-                                          dx       !
-                                                   !x = 0
+    sage: desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f)
+    -x*e^x*f(0) + x*e^x*D[0](f)(0) + e^x*f(0)
 
 .. index:
    pair: differential equations; plot
@@ -314,19 +310,24 @@ yields the two plots :math:`(t,x(t)), (t,y(t))` on the same graph
 .. math::
     x' = x+y, x(0) = 1; y' = x-y, y(0) = -1,
 
-for :math:`0 <= t <= 2`. Another way this system can be solved is to use the
-command ``desolve_system`` in ``calculus/examples``.
+for :math:`0 <= t <= 2`. The same result can be obtained by using ``desolve_system_rk4``::
+
+    sage: var('x y t')
+    sage: P=desolve_system_rk4([x+y, x-y], [x,y], ics=[0,1,-1], ivar=t, end_points=2)
+    sage: p1 = list_plot([[i,j] for i,j,k in P], plotjoined=True)
+    sage: p2 = list_plot([[i,k] for i,j,k in P], plotjoined=True, color='red')
+    sage: p1+p2
+
+Another way this system can be solved is to use the command ``desolve_system``.
 
 .. skip
 
 ::
 
-    sage: attach os.environ['SAGE_ROOT'] + '/examples/calculus/desolvers.sage'
-    sage: des = ["'diff(x(t),t)=x(t)+y(t)","'diff(y(t),t)=x(t)-y(t)"]
-    sage: vars = ["t","x","y"]
-    sage: ics = [0,1,-1]
-    sage: desolve_system(des,vars,ics)
-    [x(t)=cosh(2^(1/2)*t),y(t)=2*sinh(2^(1/2)*t)/sqrt(2)-cosh(2^(1/2)*t)]
+    sage: t=var('t'); x=function('x',t); y=function('y',t)
+    sage: des = [diff(x,t) == x+y, diff(y,t) == x-y]
+    sage: desolve_system(des, [x,y], ics = [0, 1, -1])
+    [x(t) == cosh(sqrt(2)*t), y(t) == sqrt(2)*sinh(sqrt(2)*t) - cosh(sqrt(2)*t)]
 
 The output of this command is *not* a pair of functions.
 

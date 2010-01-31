@@ -1,3 +1,13 @@
+r"""
+Solving ODE numericaly by GSL
+
+AUTHORS:
+
+- Joshua Kantor (2004-2006)
+
+- Robert Marik (2010 - fixed docstrings)
+
+"""
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)

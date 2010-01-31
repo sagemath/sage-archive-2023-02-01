@@ -1,4 +1,6 @@
-"""
+r"""
+Solving ordinary differential equations
+
 This file contains functions useful for solving differential equations
 which occur commonly in a 1st semester differential equations
 course. For another numerical solver see :meth:`ode_solver` function
@@ -80,12 +82,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
       - for a second-order boundary solution, specify initial and
         final ``x`` and ``y`` initial conditions gives error if the
-        solution is not SymbolisEquation (as happens for example for
+        solution is not SymbolicEquation (as happens for example for
         clairot equation)
 
-    - ``ivar`` - (optional) the independent variable  (hereafter called x),
-                    which must be specified if there is more than one
-                    independent variable in the equation.
+    - ``ivar`` - (optional) the independent variable (hereafter called
+      x), which must be specified if there is more than one
+      independent variable in the equation.
 
     - ``show_method`` - (optional) if true, then Sage returns pair
       ``[solution, method]``, where method is the string describing
@@ -638,25 +640,31 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
 
 def desolve_system_strings(des,vars,ics=None):
-    """
+    r"""
     Solves any size system of 1st order ODE's. Initials conditions are optional.
 
+    This function is obsolete, use desolve_system.
 
     INPUT:
-        de    -- a list of strings representing the ODEs in maxima notation
-                 (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-        vars  -- a list of strings representing the variables
-                 (eg, vars = ["s","x","y"], where s is the independent variable
-                  and x,y the dependent variables)
-        ics   -- a list of numbers representing initial conditions
-                 (eg, x(0)=1, y(0)=2 is ics = [0,1,2])
+
+    - ``de`` - a list of strings representing the ODEs in maxima
+      notation (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
+
+    - ``vars`` - a list of strings representing the variables (eg,
+      vars = ["s","x","y"], where s is the independent variable and
+      x,y the dependent variables)
+
+    - ``ics`` - a list of numbers representing initial conditions
+      (eg, x(0)=1, y(0)=2 is ics = [0,1,2])
 
     WARNING:
-        The given ics sets the initial values of the dependent vars in maxima, so
-        subsequent ODEs involving these variables will have these initial conditions
-        automatically imposed.
 
-    EXAMPLES:
+        The given ics sets the initial values of the dependent vars in
+        maxima, so subsequent ODEs involving these variables will have
+        these initial conditions automatically imposed.
+
+    EXAMPLES::
+
         sage: from sage.calculus.desolvers import desolve_system_strings
         sage: s = var('s')
         sage: function('x', s)
@@ -678,10 +686,12 @@ def desolve_system_strings(des,vars,ics=None):
         sage: P1 = plot([solnx,solny],(0,1))
         sage: P2 = parametric_plot((solnx,solny),(0,1))
 
-        Now type show(P1), show(P2) to view these.
+    Now type show(P1), show(P2) to view these.
 
 
-    AUTHORS: David Joyner (3-2006, 8-2007)
+    AUTHORS:
+
+    - David Joyner (3-2006, 8-2007)
     """
     d = len(des)
     dess = [de._maxima_init_() + "=0" for de in des]
@@ -702,7 +712,7 @@ def desolve_system_strings(des,vars,ics=None):
     return [f.rhs()._maxima_init_() for f in soln]
 
 def eulers_method(f,x0,y0,h,x1,method="table"):
-    """
+    r"""
     This implements Euler's method for finding numerically the
     solution of the 1st order ODE ``y' = f(x,y)``, ``y(a)=c``. The "x"
     column of the table increments from ``x0`` to ``x1`` by ``h`` (so
@@ -786,7 +796,7 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
         return soln
 
 def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
-    """
+    r"""
     This implements Euler's method for finding numerically the
     solution of the 1st order system of two ODEs
 
@@ -881,7 +891,9 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
         return soln
 
 def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
-    """
+    r"""
+    Plots solution of ODE
+
     This plots the soln in the rectangle ``(xrange[0],xrange[1])
     x (yrange[0],yrange[1])`` and plots using Euler's method the
     numerical solution of the 1st order ODEs `x' = f(t,x,y)`,
@@ -891,13 +903,14 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
 
     EXAMPLES::
 
-    The following example plots the solution to
-    `\\theta''+\\sin(\\theta)=0`, `\\theta(0)=\\frac 34`, `\\theta'(0) =
-    0`.  Type ``P[0].show()`` to plot the solution,
-    ``(P[0]+P[1]).show()`` to plot `(t,\\theta(t))` and
-    `(t,\\theta'(t))`::
-
         sage: from sage.calculus.desolvers import eulers_method_2x2_plot
+
+    The following example plots the solution to
+    `\theta''+\sin(\theta)=0`, `\theta(0)=\frac 34`, `\theta'(0) =
+    0`.  Type ``P[0].show()`` to plot the solution,
+    ``(P[0]+P[1]).show()`` to plot `(t,\theta(t))` and
+    `(t,\theta'(t))`::
+
         sage: f = lambda z : z[2]; g = lambda z : -sin(z[1])
         sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
     """
@@ -1108,7 +1121,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
 
 def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1):
-    """
+    r"""
     Solves numerically system of first-order ordinary differential
     equations using the 4th order Runge-Kutta method. Wrapper for
     Maxima command ``rk``. See also ``ode_solver``.
@@ -1141,6 +1154,8 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     Returns a list of points.
 
     EXAMPLES::
+
+        sage: from sage.calculus.desolvers import desolve_system_rk4
 
     Lotka Volterra system::
 

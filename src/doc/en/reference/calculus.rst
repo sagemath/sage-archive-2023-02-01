@@ -13,3 +13,5 @@ Symbolic Calculus
    sage/calculus/tests
    sage/symbolic/expression_conversions
    sage/calculus/wester
+   sage/calculus/desolvers
+   sage/gsl/ode

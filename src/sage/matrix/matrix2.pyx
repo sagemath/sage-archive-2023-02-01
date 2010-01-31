@@ -5335,7 +5335,7 @@ cdef class Matrix(matrix1.Matrix):
         - ``base_ring`` - Ring in which to compute the Jordan form.
 
         - ``sparse`` - (default ``False``) If ``sparse=True``, return a sparse
-           matrix.
+          matrix.
 
         - ``subdivide`` - (default ``True``) If ``subdivide=True``, the
           subdivisions for the Jordan blocks in the matrix are shown.

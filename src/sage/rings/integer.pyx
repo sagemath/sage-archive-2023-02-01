@@ -1348,9 +1348,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_off
 
     cpdef ModuleElement _add_(self, ModuleElement right):
+        """
+        Integer addition.
+
+        TESTS::
+
+            sage: Integer(32) + Integer(23)
+            55
+            sage: sum(Integer(i) for i in [1..100])
+            5050
+            sage: a = ZZ.random_element(10^50000)
+            sage: b = ZZ.random_element(10^50000)
+            sage: a+b == b+a
+            True
+        """
         # self and right are guaranteed to be Integers
-        cdef Integer x
-        x = PY_NEW(Integer)
+        cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
@@ -1359,10 +1372,63 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(self.value, self.value, (<Integer>right).value)
         return self
 
+    cdef RingElement _add_long(self, long n):
+        """
+        Fast path for adding a C long.
+
+        TESTS::
+            sage: int(10) + Integer(100)
+            110
+            sage: Integer(100) + int(10)
+            110
+            sage: Integer(10^100) + int(10)
+            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010
+
+        Also called for subtraction::
+
+            sage: Integer(100) - int(10)
+            90
+            sage: Integer(10^100) - int(10)
+            9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999990
+
+        Make sure it works when -<long>n would overflow::
+
+            sage: most_neg_long = int(-sys.maxint - 1)
+            sage: type(most_neg_long), type(-most_neg_long)
+            (<type 'int'>, <type 'long'>)
+            sage: 0 + most_neg_long == most_neg_long
+            True
+            sage: 0 - most_neg_long == -most_neg_long
+            True
+        """
+        cdef Integer x = <Integer>PY_NEW(Integer)
+        if n > 0:
+            mpz_add_ui(x.value, self.value, n)
+        else:
+            # Note that 0-<unsigned long>n is always -n as an unsigned
+            # long (whereas -n may overflow).
+            mpz_sub_ui(x.value, self.value, 0 - <unsigned long>n)
+        return x
+
     cpdef ModuleElement _sub_(self, ModuleElement right):
+        """
+        Integer subtraction.
+
+        TESTS::
+
+            sage: Integer(32) - Integer(23)
+            9
+            sage: Integer(10^100) - Integer(1)
+            9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+            sage: Integer(1) - Integer(10^100)
+            -9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+            sage: a = ZZ.random_element(10^50000)
+            sage: b = ZZ.random_element(10^50000)
+            sage: a-b == -(b-a) == a + -b
+            True
+        """
         # self and right are guaranteed to be Integers
-        cdef Integer x
-        x = PY_NEW(Integer)
+        cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
 
@@ -1370,9 +1436,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_sub(self.value, self.value, (<Integer>right).value)
         return self
 
+    def __neg__(self):
+        """
+        TESTS::
+
+            sage: a = Integer(3)
+            sage: -a
+            -3
+            sage: a = Integer(3^100); a
+            515377520732011331036461129765621272702107522001
+            sage: -a
+            -515377520732011331036461129765621272702107522001
+        """
+        cdef Integer x = <Integer>PY_NEW(Integer)
+        mpz_neg(x.value, self.value)
+        return x
+
     cpdef ModuleElement _neg_(self):
-        cdef Integer x
-        x = PY_NEW(Integer)
+        cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
 
@@ -1388,10 +1469,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if isinstance(s, (str, list, tuple)):
             return s*int(self)
 
+    cdef ModuleElement _mul_long(self, long n):
+        """
+        Fast path for multiplying a C long.
+
+        TESTS::
+
+            sage: Integer(25) * int(4)
+            100
+            sage: int(4) * Integer(25)
+            100
+            sage: Integer(10^100) * int(4)
+            40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        """
+        cdef Integer x = <Integer>PY_NEW(Integer)
+        if mpz_size(self.value) > 100000:
+            _sig_on
+            mpz_mul_si(x.value, self.value, n)
+            _sig_off
+        else:
+            mpz_mul_si(x.value, self.value, n)
+        return x
+
     cpdef RingElement _mul_(self, RingElement right):
+        """
+        Integer multiplication.
+
+            sage: Integer(25) * Integer(4)
+            100
+            sage: Integer(5^100) * Integer(2^100)
+            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a = ZZ.random_element(10^50000)
+            sage: b = ZZ.random_element(10^50000)
+            sage: a*b == b*a
+            True
+        """
         # self and right are guaranteed to be Integers
-        cdef Integer x
-        x = PY_NEW(Integer)
+        cdef Integer x = <Integer>PY_NEW(Integer)
         if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
             # We only use the signal handler (to enable ctrl-c out) when the
             # product might take a while to compute

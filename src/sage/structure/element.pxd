@@ -38,6 +38,8 @@ cdef class ModuleElement(Element):
     # self._lmul_(x) is self * x, to abide with Python conventions.
     cpdef ModuleElement _rmul_(self, RingElement left)
 
+    cdef ModuleElement _mul_long(self, long n)
+
     # Inplace operations, override, do *NOT* call directly
     cpdef ModuleElement _iadd_(self, ModuleElement right)
     cpdef ModuleElement _isub_(self, ModuleElement right)
@@ -63,6 +65,8 @@ cdef class RingElement(ModuleElement):
     # Inplace operations, override, do *NOT* call directly
     cpdef RingElement _imul_(self, RingElement right)
     cpdef RingElement _idiv_(self, RingElement right)
+
+    cdef RingElement _add_long(self, long n)
 
 cdef class CommutativeRingElement(RingElement):
     pass

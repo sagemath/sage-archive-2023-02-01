@@ -991,6 +991,10 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
+        if PyInt_CheckExact(right):
+            return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
+        if PyInt_CheckExact(left):
+            return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent(left, right):
             raise arith_error_message(left, right, mul)
         # Always do this
@@ -1026,6 +1030,12 @@ cdef class ModuleElement(Element):
         Returning None indicates that this action is not implemented here.
         """
         return None
+
+    cdef ModuleElement _mul_long(self, long n):
+        """
+        Generic path for multiplying by a C long, assumed to commute.
+        """
+        return coercion_model.bin_op(self, n, mul)
 
     cpdef ModuleElement _ilmul_(self, RingElement right):
         return self._lmul_(right)
@@ -1205,6 +1215,52 @@ cdef class RingElement(ModuleElement):
         return self == self._parent(1)
 
     ##################################
+    # Fast long add/sub path.
+    ##################################
+
+    def __add__(left, right):
+        """
+        Top-level addition operator for RingElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent(left, right):
+            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
+            else:
+                return (<ModuleElement>left)._add_(<ModuleElement>right)
+        if PyInt_CheckExact(right):
+            return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
+        elif PyInt_CheckExact(left):
+            return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
+        return coercion_model.bin_op(left, right, add)
+
+    cdef RingElement _add_long(self, long n):
+        """
+        Generic path for adding a C long, assumed to commute.
+        """
+        return coercion_model.bin_op(self, n, add)
+
+    def __sub__(left, right):
+        """
+        Top-level subtraction operator for RingElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        cdef long n
+        if have_same_parent(left, right):
+            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+                return (<ModuleElement>left)._isub_(<ModuleElement>right)
+            else:
+                return (<ModuleElement>left)._sub_(<ModuleElement>right)
+        if PyInt_CheckExact(right):
+            n = PyInt_AS_LONG(right)
+            # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
+            if (n == 0) | (<unsigned long>n != 0 - <unsigned long>n):
+                return (<RingElement>left)._add_long(-n)
+        return coercion_model.bin_op(left, right, sub)
+
+    ##################################
     # Multiplication
     ##################################
 
@@ -1216,7 +1272,7 @@ cdef class RingElement(ModuleElement):
         # We return None to invoke the default action of coercing into self
         return None
 
-    def __mul__(self, right):
+    def __mul__(left, right):
         """
         Top-level multiplication operator for ring elements.
         See extensive documentation at the top of element.pyx.
@@ -1330,13 +1386,16 @@ cdef class RingElement(ModuleElement):
         # (We know at least one of the arguments is a RingElement. So if their
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via PY_TYPE_CHECK.)
-        if have_same_parent(self, right):
-            if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
-                return (<RingElement>self)._imul_(<RingElement>right)
+        if have_same_parent(left, right):
+            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+                return (<RingElement>left)._imul_(<RingElement>right)
             else:
-                return (<RingElement>self)._mul_(<RingElement>right)
-        global coercion_model
-        return coercion_model.bin_op(self, right, mul)
+                return (<RingElement>left)._mul_(<RingElement>right)
+        if PyInt_CheckExact(right):
+            return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
+        elif PyInt_CheckExact(left):
+            return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
+        return coercion_model.bin_op(left, right, mul)
 
     cpdef RingElement _mul_(self, RingElement right):
         """

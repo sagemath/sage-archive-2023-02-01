@@ -37,7 +37,7 @@ from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, RR
 from sage.rings.infinity import Infinity
 from sage.combinat.words.word import (FiniteWord_class, Word_class,
         FiniteWord_list, Factorization)
@@ -458,8 +458,8 @@ class WordGenerator(object):
         W = Words(alphabet)
 
         if construction_method == "recursive":
-            w = W(self._FibonacciWord_RecursiveConstructionIterator(alphabet), \
-                    datatype='iter')
+            w = W(self._FibonacciWord_RecursiveConstructionIterator(alphabet),
+                  datatype='iter')
             return w
 
         elif construction_method in ("fixed point", "fixed_point"):
@@ -613,35 +613,60 @@ class WordGenerator(object):
         else:
             return alphabet[0]
 
-    def CharacteristicSturmianWord(self, cf, alphabet=(0, 1), repeat=True):
+    def CharacteristicSturmianWord(self, cf, alphabet=(0, 1), bits=None):
         r"""
-        Returns the characteristic Sturmian word over the given two-letter
-        alphabet with slope given by the continued fraction
-        [0, cf[1], cf[2], ...].
-        Here cf should be an iterator.
+        Returns the characteristic Sturmian word of the given slope ``cf``.
 
-        The *characteristic Sturmian word of slope*
-        `\alpha = [0, d[1] + 1, d[2], d[3], \ldots]` is the limit of the
-        sequence: `s_0 = 1, s_1 = 0, \ldots, s_{n+1} = s_n^{d_n} s_{n-1}`
-        for `n > 0`.
-
-        Equivalently, the `n`-th term of the characteristic Sturmian word
-        of slope `\alpha` is `\lfloor\alpha(n+1)\rfloor -
-        \lfloor\alpha n\rfloor + \lfloor\alpha\rfloor`.
+        The `n`-th term of the characteristic Sturmian word
+        of an irrational slope `\alpha` is `\lfloor\alpha(n+1)\rfloor -
+        \lfloor\alpha n\rfloor + \lfloor\alpha\rfloor`. [1]
 
         INPUT:
 
+        -  ``cf`` - the slope of the word. It can be one of the following :
+
+           -  real number in `]0, 1[`
+
+           -  iterable over the continued fraction expansion of a real
+              number in `]0, 1[`
+
         -  ``alphabet`` - any container of length two that is suitable to
            build an instance of OrderedAlphabet (list, tuple, str, ...)
-        -  ``cf`` - an iterator outputting integers (thought of as a
-           continued fraction)
 
-        EXAMPLES::
+        -  ``bits`` - integer (optional and considered only if ``cf`` is a real
+           number) the number of bits to consider when computing the
+           continued fraction.
+
+        OUTPUT:
+
+        word
+
+        ALGORITHM:
+
+        Let `[0, d_1 + 1, d_2, d_3, \ldots]` be the continued fraction
+        expansion of `\alpha`. Then, the characteristic Sturmian word of
+        slope `\alpha` is the limit of the sequence: `s_0 = 1`, `s_1 = 0`
+        and `s_{n+1} = s_n^{d_n} s_{n-1}` for `n > 0`.
+
+        EXAMPLES:
+
+        From real slope::
+
+            sage: words.CharacteristicSturmianWord(1/golden_ratio^2)
+            word: 0100101001001010010100100101001001010010...
+            sage: words.CharacteristicSturmianWord(4/5)
+            word: 11110
+            sage: words.CharacteristicSturmianWord(5/14)
+            word: 01001001001001
+            sage: words.CharacteristicSturmianWord(pi-3)
+            word: 0000001000000100000010000001000000100000...
+
+        From an iterator of the continued fraction expansion of a real::
 
             sage: def cf():
             ...     yield 0
+            ...     yield 2
             ...     while True: yield 1
-            ...
             sage: F = words.CharacteristicSturmianWord(cf()); F
             word: 0100101001001010010100100101001001010010...
             sage: Fib = words.FibonacciWord(); Fib
@@ -649,16 +674,39 @@ class WordGenerator(object):
             sage: F[:10000] == Fib[:10000]
             True
 
-        ::
+        The alphabet may be specified::
 
-            sage: def cf():
-            ...     yield 0
-            ...     while True: yield 1
-            ...
-            sage: G = words.CharacteristicSturmianWord(cf(),'rs'); G
+            sage: words.CharacteristicSturmianWord(cf(), 'rs')
             word: rsrrsrsrrsrrsrsrrsrsrrsrrsrsrrsrrsrsrrsr...
-            sage: print G[:50]
-            word: rsrrsrsrrsrrsrsrrsrsrrsrrsrsrrsrrsrsrrsrsrrsrrsrsr
+
+        The characteristic sturmian word of slope `(\sqrt(3)-1)/2`::
+
+            sage: words.CharacteristicSturmianWord((sqrt(3)-1)/2)
+            word: 0100100101001001001010010010010100100101...
+
+        The same word defined from the continued fraction expansion of
+        `(\sqrt(3)-1)/2`::
+
+            sage: from itertools import cycle, chain
+            sage: it = chain([0], cycle([2, 1]))
+            sage: words.CharacteristicSturmianWord(it)
+            word: 0100100101001001001010010010010100100101...
+
+        The first terms of the standard sequence of the characteristic
+        sturmian word of slope `(\sqrt(3)-1)/2`::
+
+            sage: words.CharacteristicSturmianWord([0,2])
+            word: 01
+            sage: words.CharacteristicSturmianWord([0,2,1])
+            word: 010
+            sage: words.CharacteristicSturmianWord([0,2,1,2])
+            word: 01001001
+            sage: words.CharacteristicSturmianWord([0,2,1,2,1])
+            word: 01001001010
+            sage: words.CharacteristicSturmianWord([0,2,1,2,1,2])
+            word: 010010010100100100101001001001
+            sage: words.CharacteristicSturmianWord([0,2,1,2,1,2,1])
+            word: 0100100101001001001010010010010100100101...
 
         TESTS::
 
@@ -666,41 +714,241 @@ class WordGenerator(object):
             Traceback (most recent call last):
             ...
             TypeError: alphabet does not contain two distinct elements
+
+        ::
+
+            sage: words.CharacteristicSturmianWord(5/4)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The argument cf (=5/4) must be in ]0,1[.
+
+        ::
+
+            sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
+            word: 0100101001001010010100100101001001010010...
+            sage: _.length()
+            28657
+
+        ::
+
+            sage: a = words.LowerMechanicalWord(1/pi)[1:]
+            sage: b = words.UpperMechanicalWord(1/pi)[1:]
+            sage: c = words.CharacteristicSturmianWord(1/pi)
+            sage: n = 500; a[:n] == b[:n] == c[:n]
+            True
+
+        ::
+
+            sage: alpha = random()
+            sage: c = words.CharacteristicSturmianWord(alpha)
+            sage: l = words.LowerMechanicalWord(alpha)[1:]
+            sage: u = words.UpperMechanicalWord(alpha)[1:]
+            sage: i = 10000; j = i + 500; c[i:j] == l[i:j] == u[i:j]
+            True
+
+        ::
+
+            sage: a, b = 207, 232
+            sage: u = words.ChristoffelWord(a, b)
+            sage: v = words.CharacteristicSturmianWord(a/(a+b))
+            sage: u[1:-1] == v[:-2]
+            True
+
+        REFERENCES:
+
+        -   [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+            Encyclopedia of Mathematics and its Applications, Cambridge
+            University Press, U.K., 2002.
         """
         if len(set(alphabet)) != 2:
             raise TypeError, "alphabet does not contain two distinct elements"
-        if not repeat:
-            d = iter(cf)
+        if cf in RR:
+            if not 0 < cf < 1:
+                msg = "The argument cf (=%s) must be in ]0,1[."%cf
+                raise NotImplementedError, msg
+            from sage.rings.all import CFF
+            cf = iter(CFF(cf, bits=bits))
+            length = 'finite'
+        elif hasattr(cf, '__iter__'):
+            cf = iter(cf)
+            length = Infinity
         else:
-            d = cycle(cf)
-        w = Words(alphabet)( \
-                self._CharacteristicSturmianWord_LetterIterator(d,alphabet), \
-                datatype='iter')
+            raise TypeError("cf (=%s) must be a real number"%cf +
+                            "or an iterable.")
+        w = Words(alphabet)(
+                self._CharacteristicSturmianWord_LetterIterator(cf,alphabet),
+                datatype='iter', length=length)
         return w
 
-    def _CharacteristicSturmianWord_LetterIterator(self, d, alphabet=(0,1)):
+    def _CharacteristicSturmianWord_LetterIterator(self, cf, alphabet=(0,1)):
         r"""
-        Internal function iterating over the symbols of the characteristic
-        Sturmian word of slope `[0, d[1] + 1, d[2], d[3], \ldots]`. This
-        word is the limit of the sequence:
-            `s_0 = 1, s_1 = 0, \ldots, s_{n+1} = s_n^{d_n} s_{n-1}` for `n > 0`.
+        Returns an iterator over the symbols of the characteristic
+        Sturmian word of slope ``cf``.
 
-        TESTS::
+        INPUT:
 
-            sage: d = iter([1,1,1,1,1,1])
-            sage: list(words._CharacteristicSturmianWord_LetterIterator(d))
-            [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1]
+        - ``cf`` - iterator, the continued fraction expansion of a real
+          number in `]0, 1[`.
+        - ``alphabet`` - the alphabet (optional, default ``(0,1)``) of
+          the output
+
+        OUTPUT:
+
+        iterator of letters
+
+        ALGORITHM:
+
+        Let `[0, d_1 + 1, d_2, d_3, \ldots]` be the continued fraction
+        expansion of `\alpha`. Then, the characteristic Sturmian word of
+        slope `\alpha` is the limit of the sequence: `s_0 = 1`, `s_1 = 0`
+        and `s_{n+1} = s_n^{d_n} s_{n-1}` for `n > 0`.
+
+        EXAMPLES::
+
+            sage: CFF(1/golden_ratio^2)[:8]
+            [0, 2, 1, 1, 1, 1, 1, 1]
+            sage: cf = iter(_)
+            sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
+            word: 0100101001001010010100100101001001
+
+        ::
+
+            sage: alpha = (sqrt(3)-1)/2
+            sage: CFF(alpha)[:10]
+            [0, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+            sage: cf = iter(_)
+            sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
+            word: 0100100101001001001010010010010100100101...
         """
-        s0 = [0]
-        s1 = [1]
-        s1, s0 = s1*(d.next()-1) + s0, s1
+        if cf.next() != 0:
+            raise ValueError, "The first term of the continued fraction expansion must be zero."
+        s0 = [1]
+        s1 = [0]
+        e = cf.next()
+        if not e >= 1:
+            raise ValueError, "The second term of the continued fraction expansion must be larger or equal to 1."
+        s1, s0 = s1*(e-1) + s0, s1
         n = 0
         while True:
             for i in s1[n:]:
                 n += 1
                 yield alphabet[i]
             else:
-                s1, s0 = s1*d.next() + s0, s1
+                s1, s0 = s1*cf.next() + s0, s1
+
+    def LowerMechanicalWord(self, alpha, rho=0, alphabet=None):
+        r"""
+        Returns the lower mechanical word.
+
+        The word `s_{\alpha,\rho}` is the *lower mechanical word* with
+        slope `\alpha` and intercept `\rho` defined by
+        `s_{\alpha,\rho}(n)=\lfloor\alpha(n+1)+\rho\rfloor -
+        \lfloor\alpha n + \rho\rfloor`. [1]
+
+        INPUT:
+
+        - ``alpha`` - real number such that `0 \leq\alpha\leq 1`
+        - ``rho`` - real number (optional, default: 0)
+        - ``alphabet`` - iterable of two elements or None
+          (optional, default: None)
+
+        OUTPUT:
+
+        infinite word
+
+        EXAMPLES::
+
+            sage: words.LowerMechanicalWord(1/golden_ratio^2)
+            word: 0010010100100101001010010010100100101001...
+            sage: words.LowerMechanicalWord(1/5)
+            word: 0000100001000010000100001000010000100001...
+            sage: words.LowerMechanicalWord(1/pi)
+            word: 0001001001001001001001000100100100100100...
+
+        TESTS::
+
+            sage: m = words.LowerMechanicalWord(1/golden_ratio^2)[1:]
+            sage: s = words.CharacteristicSturmianWord(1/golden_ratio^2)
+            sage: m[:500] == s[:500]
+            True
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+          Encyclopedia of Mathematics and its Applications, Cambridge
+          University Press, U.K., 2002.
+        """
+        from sage.functions.other import floor
+        if not 0 <= alpha <= 1:
+            msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
+            raise NotImplementedError, msg
+        if alphabet is None or alphabet in ((0, 1), [0, 1]):
+            s = lambda n: floor(alpha*(n+1) + rho) - floor(alpha*n + rho)
+        else:
+            from sage.combinat.words.alphabet import Alphabet
+            A = Alphabet(alphabet)
+            card = A.cardinality()
+            if card != 2:
+                raise TypeError, "size of alphabet (=%s) must be two"%card
+            s = lambda n: A[floor(alpha*(n+1) + rho) - floor(alpha*n + rho)]
+        return Words(alphabet)(s)
+
+    def UpperMechanicalWord(self, alpha, rho=0, alphabet=None):
+        r"""
+        Returns the upper mechanical word.
+
+        The word `s'_{\alpha,\rho}` is the *upper mechanical word* with
+        slope `\alpha` and intercept `\rho` defined by
+        `s'_{\alpha,\rho}(n)=\lceil\alpha(n+1)+\rho\rceil -
+        \lceil\alpha n + \rho\rceil`. [1]
+
+        INPUT:
+
+        - ``alpha`` - real number such that `0 \leq\alpha\leq 1`
+        - ``rho`` - real number (optional, default: 0)
+        - ``alphabet`` - iterable of two elements or None
+          (optional, default: None)
+
+        OUTPUT:
+
+        infinite word
+
+        EXAMPLES::
+
+            sage: words.UpperMechanicalWord(1/golden_ratio^2)
+            word: 1010010100100101001010010010100100101001...
+            sage: words.UpperMechanicalWord(1/5)
+            word: 1000010000100001000010000100001000010000...
+            sage: words.UpperMechanicalWord(1/pi)
+            word: 1001001001001001001001000100100100100100...
+
+        TESTS::
+
+            sage: m = words.UpperMechanicalWord(1/golden_ratio^2)[1:]
+            sage: s = words.CharacteristicSturmianWord(1/golden_ratio^2)
+            sage: m[:500] == s[:500]
+            True
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+          Encyclopedia of Mathematics and its Applications, Cambridge
+          University Press, U.K., 2002.
+        """
+        from sage.functions.other import ceil
+        if not 0 <= alpha <= 1:
+            msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
+            raise NotImplementedError, msg
+        if alphabet is None or alphabet in ((0, 1), [0, 1]):
+            s = lambda n: ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)
+        else:
+            from sage.combinat.words.alphabet import Alphabet
+            A = Alphabet(alphabet)
+            card = A.cardinality()
+            if card != 2:
+                raise TypeError, "size of alphabet (=%s) must be two"%card
+            s = lambda n: A[ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)]
+        return Words(alphabet)(s)
 
     def StandardEpisturmianWord(self, directive_word):
         r"""

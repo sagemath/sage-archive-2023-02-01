@@ -105,25 +105,41 @@ import re
 
 def remove_output_labels(s):
     """
+    Remove output labels of Macaulay2 from a string.
+
+    :param s: output of Macaulay2
+
+    :type s: string
+
+    :returns: the input string with `n` symbols removed from the beginning
+        of each line, where `n` is the minimal number of spaces or
+        symbols of Macaulay2 output labels (looking like 'o39 = ')
+        present on every non-empty line.
+
+    :rtype: string
+
+    :note: If ``s`` consists of several outputs and their lables have
+        different width, it is possible that some strings will have leading
+        spaces (or maybe even pieces of output labels). However, this
+        function will try not cut any messages.
+
     EXAMPLES:
         sage: from sage.interfaces.macaulay2 import remove_output_labels
         sage: output = 'o1 = QQ [x, y]\n\no1 : PolynomialRing\n'
         sage: remove_output_labels(output)
         'QQ [x, y]\n\nPolynomialRing\n'
     """
-    m = re.search('o[0-9]+ = ', s)
-    if m is None: return s
-    i = m.start()
-    j = m.end()
-    n = j - i
-    s = s[:i] + ' '*n + s[j:]
-    # Now remove n spaces from beginning of each line.
-    v = s.split('\n')
-    s = '\n'.join([x[n:] for x in v])
-    return s
-
+    label = re.compile("^o[0-9]+ (=|:) |^ *")
+    lines = s.split("\n")
+    matches = [label.match(l) for l in lines if l != ""]
+    if len(matches) == 0:
+        return s
+    else:
+        n = min(m.end() - m.start() for m in matches)
+        return "\n".join(l[n:] for l in lines)
 
 COMMANDS_CACHE = '%s/macaulay2_commandlist_cache.sobj'%DOT_SAGE
+PROMPT = "_EGAS_ : "
 
 class Macaulay2(Expect):
     """
@@ -132,14 +148,36 @@ class Macaulay2(Expect):
     def __init__(self, maxread=10000, script_subdirectory="",
                  logfile=None, server=None,server_tmpdir=None):
         """
+        Initialize a Macaulay2 interface instance.
+
+        We replace the standard input prompt with a strange one, so that
+        we do not catch input prompts inside the documentation.
+
+        We replace the standard input continuation prompt, which is
+        just a bunch of spaces and cannot be automatically detected in a
+        reliable way. This is necessary for allowing commands that occupy
+        several strings.
+
+        We also change the starting line number to make all the output
+        labels to be of the same length. This allows correct stripping of
+        the output of several commands.
+
         TESTS:
             sage: macaulay2 == loads(dumps(macaulay2))
             True
         """
+        init_str = (
+            # Prompt changing commands
+            """ZZ#{Standard,Core#"private dictionary"#"InputPrompt"} = lineno -> "%s";""" % PROMPT +
+            """ZZ#{Standard,Core#"private dictionary"#"InputContinuationPrompt"} = lineno -> "%s";""" % PROMPT +
+            # Also prevent line wrapping in Macaulay2
+            "printWidth = 0;" +
+            # And make all output labels to be of the same width
+            "lineNumber = 10^9;")
         Expect.__init__(self,
                         name = 'macaulay2',
-                        prompt = 'i[0-9]* : ',
-                        command = "M2 --no-debug --no-readline --silent ",
+                        prompt = PROMPT,
+                        command = "M2 --no-debug --no-readline --silent -e '%s'" % init_str,
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -226,6 +264,17 @@ class Macaulay2(Expect):
         if strip:
             ans = remove_output_labels(ans)
         return AsciiArtString(ans)
+
+    def restart(self):
+        r"""
+        Restart Macaulay2 interpreter.
+
+        TEST:
+            sage: macaulay2.restart()  # optional
+        """
+        # If we allow restart to be called as a function, there will be
+        # parasitic output
+        self.eval("restart")
 
     def get(self, var):
         """

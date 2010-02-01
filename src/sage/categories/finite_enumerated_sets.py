@@ -201,7 +201,7 @@ class FiniteEnumeratedSets(Category):
                 AssertionError: 4 != 3
             """
             tester = self._tester(**options)
-            if self.cardinality != self._cardinality_from_iterator:
+            if self.cardinality != self._cardinality_from_iterator and self.cardinality() <= self.max_test_enumerated_set_loop:
                 tester.assertEqual(self.cardinality(),
                                    self._cardinality_from_iterator())
 

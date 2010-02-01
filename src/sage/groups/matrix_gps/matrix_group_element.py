@@ -30,7 +30,7 @@ there::
     sage: g + h
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand type(s) for +: 'MatrixGroupElement' and 'MatrixGroupElement'
+    TypeError: unsupported operand type(s) for +: 'MatrixGroup_gens_finite_field_with_category.element_class' and 'MatrixGroup_gens_finite_field_with_category.element_class'
 
 ::
 
@@ -64,6 +64,7 @@ from sage.interfaces.gap import gap
 import sage.structure.element as element
 from sage.matrix.matrix import Matrix
 from sage.structure.factorization import Factorization
+from sage.structure.sage_object import have_same_parent
 
 def is_MatrixGroupElement(x):
     return isinstance(x, MatrixGroupElement)
@@ -79,7 +80,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         sage: G = MatrixGroup(gens)
         sage: g = G.random_element()
         sage: type(g)
-        <class 'sage.groups.matrix_gps.matrix_group_element.MatrixGroupElement'>
+        <class 'sage.groups.matrix_gps.matrix_group_element.MatrixGroup_gens_finite_field_with_category.element_class'>
     """
     def __init__(self, g, parent, check = True):
         r"""
@@ -103,8 +104,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: g = G.random_element()
-            sage: g == loads(dumps(g))
-            True
+            sage: TestSuite(g).run()
         """
         if check:
             if not isinstance(g, Matrix):
@@ -204,7 +204,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: g = G([[1, 1], [0, 1]])
-            sage: g
+            sage: g                        # indirect doctest
             [1 1]
             [0 1]
         """
@@ -241,11 +241,12 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: G = MatrixGroup(gens)
             sage: g = G([1,1, 0,1])
             sage: h = G([1,1, 0,1])
-            sage: g*h
+            sage: g*h		# indirect doctest
             [1 2]
             [0 1]
         """
-        return MatrixGroupElement(self.__mat * other.__mat, self.parent(), check=False)
+        parent = self.parent()
+        return parent.element_class(self.__mat * other.__mat, parent, check=False)
 
     def _act_on_(self, x, self_on_left):
         """
@@ -256,7 +257,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             (3, 2, 3, 4)
             sage: v = vector(GF(7), [3,2,1,-1])
             sage: g = G.1
-            sage: v * g == v * g.matrix()
+            sage: v * g == v * g.matrix()   # indirect doctest
             True
         """
         if not is_MatrixGroupElement(x) and x not in self.parent().base_ring():
@@ -269,7 +270,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
                 return None
 
     def __invert__(self):
-        return MatrixGroupElement(~self.__mat, self.parent(), check=False)
+        parent = self.parent()
+        return parent.element_class(~self.__mat, parent, check=False)
 
     def __cmp__(self, other):
         """
@@ -284,6 +286,36 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             True
         """
         return cmp(self.__mat, other.__mat)
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F = GF(3); MS = MatrixSpace(F,2)
+            sage: gens = [MS([1,0, 0,1]), MS([1,1, 0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: H = MatrixGroup(gens)
+            sage: g = G([1,1, 0,1])
+            sage: h = H([1,1, 0,1])
+            sage: g == h
+            True
+        """
+        return have_same_parent(self, other) and self.__mat == other.__mat
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F = GF(3); MS = MatrixSpace(F,2)
+            sage: gens = [MS([1,0, 0,1]), MS([1,1, 0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: H = MatrixGroup(gens)
+            sage: g = G([1,1, 0,1])
+            sage: h = H([1,1, 0,1])
+            sage: g != h
+            False
+        """
+        return not self.__eq__(other)
 
     def order(self):
         """

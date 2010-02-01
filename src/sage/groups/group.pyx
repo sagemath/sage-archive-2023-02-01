@@ -55,11 +55,11 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         sage.structure.parent_gens.ParentWithGens.__init__(self,
                 sage.rings.integer_ring.ZZ, category = category)
 
-    def __call__(self, x): # NT: doesn't this get in the way of the coercion mechanism?
-        """
-        Coerce x into this group.
-        """
-        raise NotImplementedError
+    #def __call__(self, x): # this gets in the way of the coercion mechanism
+    #    """
+    #    Coerce x into this group.
+    #    """
+    #    raise NotImplementedError
 
     def __contains__(self, x):
         r"""
@@ -173,7 +173,7 @@ cdef class FiniteGroup(Group):
             sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time (less than a minute)
             sage: G.num_edges()
             120
-            sage: G = A5.cayley_graph(connecting_set=A5.gens()[0])
+            sage: G = A5.cayley_graph(connecting_set=[A5.gens()[0]])
             sage: G.num_edges()
             60
             sage: g=PermutationGroup([(i+1,j+1) for i in range(5) for j in range(5) if j!=i])

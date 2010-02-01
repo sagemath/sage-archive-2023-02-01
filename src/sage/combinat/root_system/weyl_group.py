@@ -1,5 +1,30 @@
 """
 Weyl Groups
+
+AUTHORS:
+
+- Daniel Bump (2008): initial version
+- Mike Hansen (2008): initial version
+- Anne Schilling (2008): initial version
+- Nicolas Thiery (2008): initial version
+
+EXAMPLES:
+
+More examples on Weyl Groups should be added here...
+
+The Cayley graph of the Weyl Group of type ['A', 3]::
+
+    sage: w = WeylGroup(['A',3])
+    sage: d = w.cayley_graph(); d
+    Digraph on 24 vertices
+    sage: d.show3d(color_by_label=True, edge_size=0.01, vertex_size=0.03)
+
+The Cayley graph of the Weyl Group of type ['D', 4]::
+
+    sage: w = WeylGroup(['D',4])
+    sage: d = w.cayley_graph(); d
+    Digraph on 192 vertices
+    sage: d.show3d(color_by_label=True, edge_size=0.01, vertex_size=0.03) #long time (less than one minute)
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Daniel Bump <bump at match.stanford.edu>,
@@ -134,11 +159,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             category = FiniteWeylGroups()
         else:
             category = WeylGroups()
-        self._init_category_(category)
         self.n = lattice.dimension() # Really needed?
         # MatrixGroup_gens takes plain matrices as input. So we can't do:
         #MatrixGroup_gens.__init__(self, list(self.simple_reflections()))
-        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.lattice().simple_reflection(i)) for i in self.index_set()])
+        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.lattice().simple_reflection(i)) for i in self.index_set()], category = category)
 
     @cached_method
     def cartan_type(self):

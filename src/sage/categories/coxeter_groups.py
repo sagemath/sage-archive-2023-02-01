@@ -278,22 +278,36 @@ class CoxeterGroups(Category):
             from sage.sets.family import Family
             return Family(self.index_set(), self.simple_reflection)
 
-        def semigroup_generators(self):
+        def group_generators(self):
             r"""
-            Implements :meth:`SemiGroups.ParentMethods.semigroup_generators`
+            Implements :meth:`Groups.ParentMethods.group_generators`
             by returning the simple reflections of ``self``.
 
             EXAMPLES::
 
                 sage: D10 = FiniteCoxeterGroups().example(10)
-                sage: D10.semigroup_generators()
+                sage: D10.group_generators()
                 Finite family {1: (1,), 2: (2,)}
-                sage: D5 = FiniteCoxeterGroups().example(5)
-                sage: D5.semigroup_generators()
-                Finite family {1: (1,), 2: (2,)}
+                sage: SymmetricGroup(5).group_generators()
+                Finite family {1: (1,2), 2: (2,3), 3: (3,4), 4: (4,5)}
+
+            Those give semigroup generators, even for an infinite group::
+
+                sage: W = WeylGroup(["A",2,1])
+                sage: W.semigroup_generators()
+                Finite family {0: [-1  1  1]
+                                  [ 0  1  0]
+                                  [ 0  0  1],
+                               1: [ 1  0  0]
+                                  [ 1 -1  1]
+                                  [ 0  0  1],
+                               2: [ 1  0  0]
+                                  [ 0  1  0]
+                                  [ 1  1 -1]}
             """
             return self.simple_reflections()
 
+        semigroup_generators = group_generators
 
         def simple_projection(self, i, side = 'right', toward_max = True):
             r"""

@@ -60,9 +60,9 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import is_FiniteField, Integer, FiniteField
 from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
-from matrix_group_element import MatrixGroupElement
 
 def SL(n, R, var='a'):
     r"""
@@ -75,6 +75,8 @@ def SL(n, R, var='a'):
         Special Linear Group of degree 3 over Finite Field of size 2
         sage: G = SL(15,GF(7)); G
         Special Linear Group of degree 15 over Finite Field of size 7
+        sage: G.category()
+        Category of finite groups
         sage: G.order()
         1956712595698146962015219062429586341124018007182049478916067369638713066737882363393519966343657677430907011270206265834819092046250232049187967718149558134226774650845658791865745408000000
         sage: len(G.gens())
@@ -107,6 +109,8 @@ def SL(n, R, var='a'):
         [0 1 0]
         [0 0 1]
         ]
+
+        sage: TestSuite(G).run()
     """
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)
@@ -115,7 +119,7 @@ def SL(n, R, var='a'):
     else:
         return SpecialLinearGroup_generic(n, R)
 
-class SpecialLinearGroup_generic(MatrixGroup_gap):
+class SpecialLinearGroup_generic(UniqueRepresentation, MatrixGroup_gap):
     def _gap_init_(self):
         """
         String to create this group in GAP.
@@ -164,14 +168,14 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
             [0 1 0]
             [0 0 1]
         """
-        if isinstance(x, MatrixGroupElement) and x.parent() is self:
+        if isinstance(x, self.element_class) and x.parent() is self:
             return x
         try:
             m = self.matrix_space()(x)
         except TypeError:
             raise TypeError, "Cannot coerce %s to a %s-by-%s matrix over %s"%(x,self.degree(),self.degree(),self.base_ring())
         if m.determinant() == self.base_ring()(1):
-            return MatrixGroupElement(m, self)
+            return self.element_class(m, self)
         else:
             raise TypeError, "%s does not have determinant 1"%(x)
 

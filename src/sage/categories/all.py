@@ -34,6 +34,12 @@ from enumerated_sets import EnumeratedSets
 from finite_enumerated_sets import FiniteEnumeratedSets
 from infinite_enumerated_sets import InfiniteEnumeratedSets
 
+# finite groups/...
+from finite_semigroups import FiniteSemigroups
+from finite_monoids import FiniteMonoids
+from finite_groups import FiniteGroups
+from finite_permutation_groups import FinitePermutationGroups
+
 # fields
 from quotient_fields import QuotientFields
 from finite_fields import FiniteFields

@@ -5,13 +5,34 @@ PARI Groups
 import group
 from sage.libs.all import pari, pari_gen
 from sage.rings.all import Integer
+from sage.structure.parent import Parent
 
-class PariGroup(group.FiniteGroup):
+class PariGroup(group.Group):
     def __init__(self, x, degree=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = x^4 - 17*x^3 - 2*x + 1
+            sage: G = f.galois_group(pari_group=True); G
+            PARI group [24, -1, 5, "S4"] of degree 4
+            sage: G.category()
+            Category of finite groups
+
+        Caveat: fix those tests and/or document precisely that this is
+        an abstract group without explicit elements::
+
+            sage: TestSuite(G).run()
+            Failure in
+            ...
+            The following tests failed: _test_an_element, _test_associativity, _test_elements, _test_enumerated_set_contains, _test_enumerated_set_iter_cardinality, _test_enumerated_set_iter_list, _test_inverse, _test_one, _test_prod, _test_some_elements
+        """
         if not isinstance(x, pari_gen):
             raise TypeError, "x (=%s) must be a PARI gen"%x
         self.__x = x
         self.__degree = degree
+        from sage.categories.finite_groups import FiniteGroups
+        Parent.__init__(self, category = FiniteGroups())
 
     def __repr__(self):
         return "PARI group %s of degree %s"%(self.__x, self.__degree)

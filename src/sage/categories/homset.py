@@ -61,9 +61,9 @@ def Hom(X, Y, category=None):
         Set of Morphisms from Vector space of dimension 3 over Rational
         Field to Vector space of dimension 3 over Rational Field in
         Category of vector spaces over Rational Field
-        sage: G = SymmetricGroup(3)
+        sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
+        Set of Morphisms from AlternatingGroup(3) to AlternatingGroup(3) in Category of finite permutation groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
@@ -194,14 +194,14 @@ def End(X, category=None):
 
     ::
 
-        sage: G = SymmetricGroup(3)
+        sage: G = AlternatingGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
+        Set of Morphisms from AlternatingGroup(3) to AlternatingGroup(3) in Category of finite permutation groups
         sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
         sage: S.domain()
-        Symmetric group of order 3! as a permutation group
+        Alternating group of order 3!/2 as a permutation group
 
     To avoid creating superfluous categories, homsets are in the
     homset category of the lowest category which currently says
@@ -313,9 +313,9 @@ class Homset(Set_generic):
 
         EXAMPLES::
 
-            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
+            sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
             sage: H.homset_category()
-            Category of groups
+            Category of finite permutation groups
         """
         return self.__category
 

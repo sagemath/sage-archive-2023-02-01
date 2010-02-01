@@ -10,6 +10,7 @@ FiniteSemigroups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.categories.category import Category
@@ -178,73 +179,6 @@ class FiniteSemigroups(Category):
             """
             from sage.combinat.backtrack import TransitiveIdeal
             return TransitiveIdeal(self.succ_generators(side = side), gens)
-
-        def cayley_graph(self, side="twosided", simple=False):
-            r"""
-            Returns the Cayley graph of the semigroup.
-
-            INPUT::
-
-             - ``side`` -- [default:"twosided"] the side on which the
-               generators act
-             - ``simple`` -- [default:False] if True, then returns a simple
-               (no loops or multiple edges) graph
-
-            OUTPUT::
-
-             - :class:`DiGraph`
-
-            EXAMPLES::
-
-                sage: S = FiniteSemigroups().example(alphabet=('a','b'))
-                sage: g = S.cayley_graph(side="right", simple=True)
-                sage: g.vertices()
-                ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
-                [('a', 'ab', None), ('b', 'ba', None)]
-
-            ::
-
-                sage: g = S.cayley_graph(side="left", simple=True)
-                sage: g.vertices()
-                ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
-                [('a', 'ba', None), ('ab', 'ba', None), ('b', 'ab', None),
-                ('ba', 'ab', None)]
-
-            ::
-
-                sage: g = S.cayley_graph(side="twosided", simple=True)
-                sage: g.vertices()
-                ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
-                [('a', 'ab', None), ('a', 'ba', None), ('ab', 'ba', None),
-                ('b', 'ab', None), ('b', 'ba', None), ('ba', 'ab', None)]
-
-            TODO: add an option to specify a subset of module generators and module operators, and a predicate to stop the iteration
-
-            """
-            from sage.graphs.digraph import DiGraph
-            if simple:
-                result = DiGraph()
-            else:
-                result = DiGraph(multiedges = True, loops = True)
-            result.add_vertices([x for x in self])
-            generators = self.semigroup_generators()
-            left  = (side == "left"  or side == "twosided")
-            right = (side == "right" or side == "twosided")
-            def edge(source, target, label):
-                if simple:
-                    return [source, target]
-                else:
-                    return [source, target, label]
-            for x in self:
-                for i in generators.keys():
-                    if left:
-                        result.add_edge(edge(x, generators[i]*x, (i, "left" )))
-                    if right:
-                        result.add_edge(edge(x, x*generators[i], (i, "right")))
-            return result
 
         @cached_method
         def j_classes(self):

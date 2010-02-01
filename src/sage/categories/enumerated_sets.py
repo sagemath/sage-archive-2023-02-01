@@ -559,16 +559,20 @@ class EnumeratedSets(Category):
                 Traceback (most recent call last):
                 ...
                 AssertionError: 3 != 4
+
+            ..warning: this test does nothing if the cardinality of
+            ``self`` exceeds ``self.max_test_enumerated_set_loop``.
             """
             tester = self._tester(**options)
             if self.list != self._list_default:
+                if self.cardinality() > self.max_test_enumerated_set_loop:
+                    tester.info("Enumerated set too big; skipping test; see ``self.max_test_enumerated_set_loop``")
+                    return
                 ls = self.list()
                 i = 0
                 for obj in self:
                     tester.assertEqual(obj, ls[i])
                     i += 1
-                    if i > self.max_test_enumerated_set_loop:
-                        return
                 tester.assertEqual(i, len(ls))
 
     class ElementMethods:

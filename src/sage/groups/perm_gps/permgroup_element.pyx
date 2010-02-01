@@ -883,6 +883,65 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         sage_free(seen)
         return L
 
+    def has_descent(self, i, side = "right", positive = False):
+        """
+        INPUT:
+
+         - ``i``: an element of the index set
+         - ``side``: "left" or "right" (default: "right")
+         - ``positive``: a boolean (default: False)
+
+        Returns whether ``self`` has a left (resp. right) descent at
+        position ``i``. If ``positive`` is True, then test for a non
+        descent instead.
+
+        Beware that, since permutations are acting on the right, the
+        meaning of descents is the reverse of the usual
+        convention. Hence, ``self`` has a left descent at position
+        ``i`` if ``self(i) > self(i+1)``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup([1,2,3])
+            sage: S.one().has_descent(1)
+            False
+            sage: S.one().has_descent(2)
+            False
+            sage: s = S.simple_reflections()
+            sage: x = s[1]*s[2]
+            sage: x.has_descent(1, side = "right")
+            False
+            sage: x.has_descent(2, side = "right")
+            True
+            sage: x.has_descent(1, side = "left")
+            True
+            sage: x.has_descent(2, side = "left")
+            False
+            sage: S._test_has_descent()
+
+        The symmetric group acting on a set not of the form
+        `(1,\dots,n)` is also supported::
+
+            sage: S = SymmetricGroup([2,4,1])
+            sage: s = S.simple_reflections()
+            sage: x = s[2]*s[4]
+            sage: x.has_descent(4)
+            True
+            sage: S._test_has_descent()
+        """
+        if side == "right":
+            self = ~self
+        try:
+            if not self.parent()._has_natural_set():
+                set = self.parent()._set
+                pos = set.index(i)
+                i1  = set[pos+1]
+                res = set.index(self(i)) > set.index(self(i1))
+                return res is not positive
+        except AttributeError:
+            pass
+        return (self(i) > self(i+1)) is not positive
+
     def matrix(self):
         """
         Returns deg x deg permutation matrix associated to the permutation
@@ -962,6 +1021,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
+
+
 
 
 cdef bint is_valid_permutation(int* perm, int n):

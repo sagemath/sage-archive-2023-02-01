@@ -43,17 +43,16 @@ EXAMPLES::
     [0 2]
     ]
 
-Loading and saving work::
+Loading, saving, ... works::
 
     sage: G = GL(2,5); G
     General Linear Group of degree 2 over Finite Field of size 5
-    sage: loads(dumps(G)) == G
-    True
+    sage: TestSuite(G).run()
+
     sage: g = G.1; g
     [4 1]
     [4 0]
-    sage: loads(dumps(g)) == g
-    True
+    sage: TestSuite(g).run()
 """
 
 ##############################################################################
@@ -68,6 +67,9 @@ Loading and saving work::
 
 
 from sage.misc.randstate import current_randstate
+from sage.categories.groups import Groups
+from sage.categories.finite_groups import FiniteGroups
+from sage.structure.parent import Parent
 from matrix_group_element import MatrixGroupElement
 from sage.groups.group import Group
 from sage.rings.all import IntegerRing, is_Ring, infinity
@@ -172,7 +174,9 @@ def MatrixGroup(gens):
         return MatrixGroup_gens(gens)
 
 class MatrixGroup_gap(MatrixGroup_generic):
-    def __init__(self, n, R, var='a'):
+    Element = MatrixGroupElement
+
+    def __init__(self, n, R, var='a', category = None):
         """
         INPUT:
 
@@ -193,6 +197,20 @@ class MatrixGroup_gap(MatrixGroup_generic):
         if self.__n <= 0:
             raise ValueError, "The degree must be at least 1"
         self.__R = R
+
+        if self.base_ring().is_finite():
+            default_category = FiniteGroups()
+        else:
+            # Should we ask GAP whether the group is finite?
+            default_category = Groups()
+        if category is None:
+            category = default_category
+        else:
+            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+        Parent.__init__(self, category = category)
+        # TODO: inherit from ParentWithBase, once the Group class will
+        # be fully replaced by the Groups() category
+        # ParentWithBase.__init__(self, base, category = category)
 
     def _gap_(self, G=None):
         try:
@@ -217,10 +235,10 @@ class MatrixGroup_gap(MatrixGroup_generic):
             [1 0]
             [0 1]
         """
-        if isinstance(x, MatrixGroupElement) and x.parent() is self:
+        if isinstance(x, self.element_class) and x.parent() is self:
             return x
         M = self.matrix_space()(x)
-        g = MatrixGroupElement(M, self)
+        g = self.element_class(M, self)
         if not gap(g) in gap(self):
             raise TypeError, "no way to coerce element to self."
         return g
@@ -405,7 +423,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
             pass
         F = self.field_of_definition()
         gap_gens = list(gap(self).GeneratorsOfGroup())
-        gens = Sequence([MatrixGroupElement(g._matrix_(F), self, check=False) for g in gap_gens],
+        gens = Sequence([self.element_class(g._matrix_(F), self, check=False) for g in gap_gens],
                         cr=True, universe=self, check=False)
         self.__gens = gens
         return gens
@@ -522,7 +540,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
         if not self.base_ring().is_field():
             s = self._gap_().Elements().str(use_file=True)
             es = eval(s)
-            v = [MatrixGroupElement(MS(x), self, check=False) for x in es]
+            v = [self.element_class(MS(x), self, check=False) for x in es]
             self.__list = v
             return list(v)
 
@@ -549,7 +567,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
         # Finally, create the matrix space in which all these matrices live,
         # and make each element as a MatrixGroupElement.
-        v = [MatrixGroupElement(MS(x), self, check=False) for x in v]
+        v = [self.element_class(MS(x), self, check=False) for x in v]
         self.__list = v
         return list(v)
 
@@ -627,9 +645,8 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             [1 4]
         """
         current_randstate().set_seed_gap()
-        from matrix_group_element import MatrixGroupElement
         F = self.field_of_definition()
-        return MatrixGroupElement(gap(self).Random()._matrix_(F), self, check=False)
+        return self.element_class(gap(self).Random()._matrix_(F), self, check=False)
 
     def random(self):
         """
@@ -667,8 +684,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             ...
             TypeError: no way to coerce element to self.
         """
-        from matrix_group_element import MatrixGroupElement
-        if isinstance(x, MatrixGroupElement):
+        if isinstance(x, self.element_class):
             if x.parent() == self:
                 return True
             return gap(x) in gap(self)
@@ -698,7 +714,6 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             return self.__reps
         except AttributeError:
             pass
-        from matrix_group_element import MatrixGroupElement
         G    = self._gap_().ConjugacyClasses()
         reps = list(gap.List(G, 'x -> Representative(x)'))
         F    = self.field_of_definition()
@@ -752,7 +767,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         [1 0]
         [0 0]
     """
-    def __init__(self, gensG):
+    def __init__(self, gensG, category = None):
         v = Sequence(gensG, immutable=True)
         M = v.universe()
         if not is_MatrixSpace(M):
@@ -763,7 +778,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             if not x.is_invertible():
                 raise ValueError, "each generator must be an invertible matrix but one is not:\n%s"%x
         self._gensG = v
-        MatrixGroup_gap.__init__(self, M.nrows(), M.base_ring())
+        MatrixGroup_gap.__init__(self, M.nrows(), M.base_ring(), category = category)
 
     def as_permutation_group(self, method =None):
         r"""
@@ -913,7 +928,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         try:
             return self.__gens
         except AttributeError:
-            t = Sequence([MatrixGroupElement(x, self) for x in self._gensG],
+            t = Sequence([self.element_class(x, self) for x in self._gensG],
                          immutable=True, universe=self)
             self.__gens = t
             return t

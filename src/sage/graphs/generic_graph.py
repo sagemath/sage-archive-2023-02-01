@@ -8753,14 +8753,13 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = AlternatingGroup(5).cayley_graph()
+            sage: G = SymmetricGroup(4).cayley_graph()
             sage: G.num_edges()
-            120
+            72
             sage: G._color_by_label()
-            {'#00ffff': [((1,4)(3,5), (1,5,4), (3,4,5)),
-             ...],
-             '#ff0000': [((1,4)(3,5), (1,5,4,2,3), (1,2,3,4,5)),
-             ...]}
+            {'#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
+             '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)],
+             '#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)]}
         """
         from sage.plot.colors import rainbow
         edge_labels = []

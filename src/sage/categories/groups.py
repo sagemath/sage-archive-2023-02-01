@@ -11,15 +11,14 @@ Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.monoids import Monoids
-from sage.misc.cachefunc import cached_method
 
 class Groups(Category):
     """
     The category of (multiplicative) groups, i.e. monoids with
-    inverses
-
+    inverses.
 
     EXAMPLES::
 
@@ -44,6 +43,21 @@ class Groups(Category):
         return [Monoids()]
 
     class ParentMethods:
+
+        def group_generators(self):
+            """
+            Returns group generators for self.
+
+            This default implementation calls :meth:`.gens`, for
+            backward compatibility.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.group_generators()
+                [(1,2,3), (2,3,4)]
+            """
+            return self.gens()
 
         def _test_inverse(self, **options):
             """

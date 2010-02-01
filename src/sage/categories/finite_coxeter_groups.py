@@ -13,7 +13,7 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category import Category
 from sage.categories.coxeter_groups import CoxeterGroups
-from sage.categories.finite_semigroups import FiniteSemigroups
+from sage.categories.finite_groups import FiniteGroups
 from sage.combinat.backtrack import search_forest_iterator
 
 class FiniteCoxeterGroups(Category):
@@ -52,9 +52,9 @@ class FiniteCoxeterGroups(Category):
         EXAMPLES::
 
             sage: FiniteCoxeterGroups().super_categories()
-            [Category of coxeter groups, Category of finite semigroups]
+            [Category of coxeter groups, Category of finite groups]
         """
-        return [CoxeterGroups(), FiniteSemigroups()]
+        return [CoxeterGroups(), FiniteGroups()]
 
     class ParentMethods:
         def __iter__(self):

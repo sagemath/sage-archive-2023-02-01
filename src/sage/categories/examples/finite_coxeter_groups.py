@@ -89,21 +89,20 @@ class DihedralGroup(UniqueRepresentation, Parent):
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
 
-        sage: c = G = FiniteCoxeterGroups().example(3).cayley_graph(side = "right")
+        sage: c = FiniteCoxeterGroups().example(3).cayley_graph()
         sage: sorted(c.edges())
-        [((), (1,), (1, 'right')),
-         ((), (2,), (2, 'right')),
-         ((1,), (), (1, 'right')),
-         ((1,), (1, 2), (2, 'right')),
-         ((1, 2), (1,), (2, 'right')),
-         ((1, 2), (1, 2, 1), (1, 'right')),
-         ((1, 2, 1), (1, 2), (1, 'right')),
-         ((1, 2, 1), (2, 1), (2, 'right')),
-         ((2,), (), (2, 'right')),
-         ((2,), (2, 1), (1, 'right')),
-         ((2, 1), (1, 2, 1), (2, 'right')),
-         ((2, 1), (2,), (1, 'right'))]
-
+        [((), (1,), 1),
+         ((), (2,), 2),
+         ((1,), (), 1),
+         ((1,), (1, 2), 2),
+         ((1, 2), (1,), 2),
+         ((1, 2), (1, 2, 1), 1),
+         ((1, 2, 1), (1, 2), 1),
+         ((1, 2, 1), (2, 1), 2),
+         ((2,), (), 2),
+         ((2,), (2, 1), 1),
+         ((2, 1), (1, 2, 1), 2),
+         ((2, 1), (2,), 1)]
     """
 
     def __init__(self, n = 5):

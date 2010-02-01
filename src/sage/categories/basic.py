@@ -22,8 +22,6 @@ from commutative_additive_groups import CommutativeAdditiveGroups
 
 from semigroups import Semigroups
 from monoids import Monoids
-from finite_semigroups import FiniteSemigroups
-from finite_monoids import FiniteMonoids
 from groups import Groups
 from partially_ordered_monoids import PartiallyOrderedMonoids
 # For backward compatibility; might be deprecated at some point

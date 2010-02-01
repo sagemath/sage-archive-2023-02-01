@@ -53,9 +53,11 @@ patch
 
 cd src
 
-# Make sure that we find the gmp/mpir headers
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+# Make sure that we find the gmp/mpir headers and library
+CPPFLAGS=" -I$SAGE_LOCAL/include $CPPFLAGS"
 export CPPFLAGS
+LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
+export LDFLAGS
 
 ./configure --prefix=$SAGE_LOCAL
 if [ $? -ne 0 ]; then

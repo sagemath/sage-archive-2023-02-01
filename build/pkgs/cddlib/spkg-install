@@ -53,6 +53,10 @@ patch
 
 cd src
 
+# Make sure that we find the gmp/mpir headers
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+export CPPFLAGS
+
 ./configure --prefix=$SAGE_LOCAL
 if [ $? -ne 0 ]; then
    echo "Error configuring cddlib"

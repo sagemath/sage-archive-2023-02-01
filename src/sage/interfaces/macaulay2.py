@@ -40,8 +40,9 @@ EXAMPLES:
     sage: R = macaulay2('ZZ/5[x,y,z]')  #optional
     sage: print R                       #optional
     ZZ
-    -- [x, y, z]
-     5
+    --[x..z, Degrees => {3:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+     5                                                       {GRevLex => {3:1}  }
+                                                             {Position => Up    }
     sage: x = macaulay2('x')            #optional
     sage: y = macaulay2('y')            #optional
     sage: print (x+y)^5                 #optional
@@ -396,7 +397,7 @@ class Macaulay2(Expect):
 
         EXAMPLES:
             sage: macaulay2.version() #optional
-            (1, 1)
+            (1, 3, 1)
         """
         s = self.eval("version")
         r = re.compile("VERSION => (.*?)\n")
@@ -417,7 +418,9 @@ class Macaulay2(Expect):
 
         EXAMPLES:
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional
-            QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
+            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+                                                                     {Lex => 2          }
+                                                                     {Position => Up    }
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
                       3    2
             ideal (- x  + y , x - y)
@@ -455,14 +458,17 @@ class Macaulay2(Expect):
         of order 7, with graded reverse lex ordering:
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex');  R1  # optional
             ZZ
-            -- [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
-             7
+            --[a..d, Degrees => {4:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+             7                                                       {GRevLex => {4:1}  }
+                                                                     {Position => Up    }
             sage: R1.char()                                             # optional
             7
 
         This is a polynomial ring over the rational numbers:
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2               # optional
-            QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
+            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+                                                                     {Lex => 2          }
+                                                                     {Position => Up    }
         """
         varstr = str(vars)[1:-1]
         if ".." in varstr:
@@ -506,30 +512,21 @@ class Macaulay2(Expect):
         cmds.sort()
         return cmds
 
-
     def help(self, s):
         """
         EXAMPLES:
-            sage: macaulay2.help("gb") #optional
-            help(gb)
+            sage: macaulay2.help("load")  # optional
+            load -- read Macaulay2 commands
+            *******************************
             ...
-            gb -- compute a Groebner basis
-            ******************************
-            ...
-            * gb(Matrix)
-            * gb(Module)
+              * "input" -- read Macaulay2 commands and echo
+              * "notify" -- whether to notify the user when a file is loaded
         """
-        import re
-        div = re.compile("o[0-9]+ : DIV")
-        if self._expect is None:
-            self._start()
-        E = self._expect
-        E.sendline("help(%s)"%s)
-        E.expect(div)
-        s = E.before
-        E.expect(self._prompt)
-        return AsciiArtString(s)
-
+        r = self.eval("help %s" % s)
+        end = r.rfind("\n\nDIV")
+        if end != -1:
+            r = r[:end]
+        return AsciiArtString(r)
 
     def trait_names(self, verbose=True, use_disk_cache=True):
         """
@@ -576,11 +573,14 @@ class Macaulay2(Expect):
             sage: P = macaulay2("ZZ/7[symbol x, symbol y]") #optional
             sage: macaulay2("x").cls()                      #optional
             ZZ
-            -- [x, y]
-             7
+            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+             7                                                       {GRevLex => {2:1}  }
+                                                                     {Position => Up    }
             sage: macaulay2.use(R)                          #optional
             sage: macaulay2("x").cls()                      #optional
-            QQ [x, y]
+            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+                                                                     {GRevLex => {2:1}  }
+                                                                     {Position => Up    }
         """
         R = self(R)
         self.eval("use %s"%R.name())
@@ -637,10 +637,12 @@ class Macaulay2Element(ExpectElement):
             sage: print x+y                                #optional
             x + y
             sage: print macaulay2("QQ[x,y,z]")             #optional
-            QQ [x, y, z]
+            QQ[x..z, Degrees => {3:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+                                                                     {GRevLex => {3:1}  }
+                                                                     {Position => Up    }
             sage: print macaulay2("QQ[x,y,z]/(x+y+z)")     #optional
-            QQ [x, y, z]
-            ------------
+            QQ[x, y, z]
+            -----------
              x + y + z
         """
         P = self._check_valid()
@@ -653,7 +655,7 @@ class Macaulay2Element(ExpectElement):
         EXAMPLES:
            sage: R = macaulay2("QQ[symbol x, symbol y]")  #optional
            sage: R.external_string()                      #optional
-           'QQ [x, y]'
+           'QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => VerticalList{MonomialSize => 32, GRevLex => {2:1}, Position => Up}, DegreeRank => 1]'
         """
         P = self._check_valid()
         code = 'toExternalString(%s)'%self.name()
@@ -731,8 +733,9 @@ class Macaulay2Element(ExpectElement):
         Now make the M2 version of R, so we can coerce elements of R to M2:
             sage: macaulay2(R)                           # optional
             ZZ
-            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-             7
+            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+             7                                                       {GRevLex => {2:1}  }
+                                                                     {Position => Up    }
             sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
             sage: h = macaulay2(f); h                    # optional
@@ -763,8 +766,9 @@ class Macaulay2Element(ExpectElement):
         Now make the M2 version of R, so we can coerce elements of R to M2:
             sage: macaulay2(R)                              # optional
             ZZ
-            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-             7
+            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+             7                                                       {GRevLex => {2:1}  }
+                                                                     {Position => Up    }
             sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
             x^21 + 2*x^7*y^14
             sage: h = macaulay2(f); print h                 # optional
@@ -1045,11 +1049,12 @@ class Macaulay2Element(ExpectElement):
                 #Get a string list of generators
                 gens = str(self.gens())[1:-1]
 
+                # Check that we are dealing with default degrees, i.e. 1's.
+                if self.degrees().any("x -> x != {1}").to_sage():
+                    raise ValueError, "cannot convert Macaulay2 polynomial ring with non-default degrees to Sage"
                 #Handle the term order
                 external_string = self.external_string()
                 order = None
-                if "Degrees" in external_string:
-                    raise ValueError, "cannot convert Macaulay2 polynomial ring with non-default degrees to Sage"
                 if "MonomialOrder" not in external_string:
                     order = "degrevlex"
                 else:
@@ -1113,14 +1118,12 @@ class Macaulay2Function(ExpectFunction):
     def _sage_doc_(self):
         """
         EXAMPLES:
-            sage: print macaulay2.gb._sage_doc_() #optional
-            help(gb)
+            sage: print macaulay2.load._sage_doc_()  # optional
+            load -- read Macaulay2 commands
+            *******************************
             ...
-            gb -- compute a Groebner basis
-            ******************************
-            ...
-            * gb(Matrix)
-            * gb(Module)
+              * "input" -- read Macaulay2 commands and echo
+              * "notify" -- whether to notify the user when a file is loaded
         """
         return self._parent.help(self._name)
 

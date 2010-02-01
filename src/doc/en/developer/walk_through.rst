@@ -183,7 +183,7 @@ follow these steps:
 #. Run Sage: from ``SAGE_ROOT``, type ``./sage``.
 #. Apply the patch: at the Sage command line, type::
 
-       ``hg_sage.apply("<full-path-and-filename.patch>")``.
+       hg_sage.apply("<full-path-and-filename.patch>")
 
 #. Quit Sage: use the command ``exit``.
 #. Rebuild Sage: use the command ``./sage -b`` to rebuild the affected
@@ -214,7 +214,7 @@ To actually test out a patch, do the following:
    will take a while to complete. No, it is not optional.  A reviewer
    or release manager could discover this step was skipped and request
    that you modify your patch to fix any resulting doctest failures.
-#. Ensure that the documentation builds. From``SAGE_ROOT`` run,
+#. Ensure that the documentation builds. From ``SAGE_ROOT``, run
    ``./sage -docbuild reference html``, which will build the HTML
    version of the documentation.  Check the "look" of affected files
    in the output directory for the documentation (see above).

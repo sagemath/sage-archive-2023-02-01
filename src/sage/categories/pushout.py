@@ -53,7 +53,7 @@ class CompositConstructionFunctor(ConstructionFunctor):
     INPUT:
 
     ``F1,F2,...``: A list of Construction Functors. The result is the
-    composition '``F1`` followd by ``F2`` followed by ...'
+    composition ``F1`` followed by ``F2`` followed by ...
 
     EXAMPLES::
 
@@ -67,6 +67,7 @@ class CompositConstructionFunctor(ConstructionFunctor):
         Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
 
     """
+
     def __init__(self, *args):
         """
         TESTS::
@@ -102,7 +103,7 @@ class CompositConstructionFunctor(ConstructionFunctor):
 
     def __mul__(self, other):
         """
-        Convention: ``(F1*F2)(X) == F1(F2(X))``
+        Convention: ``(F1*F2)(X) == F1(F2(X))``.
 
         EXAMPLES::
 
@@ -328,6 +329,354 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             MPoly[x,y,z,t]
         """
         return "MPoly[%s]" % ','.join(self.vars)
+
+
+
+class InfinitePolynomialFunctor(ConstructionFunctor):
+    """
+    A Construction Functor for Infinite Polynomial Rings (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`)
+
+    AUTHOR:
+       -- Simon King
+
+    This construction functor is used to provide uniqueness of infinite polynomial rings as parent structures.
+    As usual, the construction functor allows for constructing pushouts.
+
+    Another purpose is to avoid name conflicts of variables of the to-be-constructed infinite polynomial ring with
+    variables of the base ring, and moreover to keep the internal structure of an Infinite Polynomial Ring as simple
+    as possible: If variables `v_1,...,v_n` of the given base ring generate an *ordered* sub-monoid of the monomials
+    of the ambient Infinite Polynomial Ring, then they are removed from the base ring and merged with the generators
+    of the ambient ring. However, if the orders don't match, an error is raised, since there was a name conflict
+    without merging.
+
+    EXAMPLES::
+
+        sage: A.<a,b> = InfinitePolynomialRing(ZZ['t'])
+        sage: A.construction()
+        [InfPoly{[a,b], "lex", "dense"},
+         Univariate Polynomial Ring in t over Integer Ring]
+        sage: type(_[0])
+        <class 'sage.categories.pushout.InfinitePolynomialFunctor'>
+        sage: B.<x,y,a_3,a_1> = PolynomialRing(QQ, order='lex')
+        sage: B.construction()
+        (MPoly[x,y,a_3,a_1], Rational Field)
+        sage: A.construction()[0]*B.construction()[0]
+        InfPoly{[a,b], "lex", "dense"}(MPoly[x,y](...))
+
+    Apparently the variables `a_1,a_3` of the polynomial ring are merged with the variables
+    `a_0, a_1, a_2, ...` of the infinite polynomial ring; indeed, they form an ordered sub-structure.
+    However, if the polynomial ring was given a different ordering, merging would not be allowed,
+    resulting in a name conflict::
+
+        sage: A.construction()[0]*PolynomialRing(QQ,names=['x','y','a_3','a_1']).construction()[0]
+        Traceback (most recent call last):
+        ...
+        CoercionException: Incompatible term orders lex, degrevlex
+
+    In an infinite polynomial ring with generator `a_\\ast`, the variable `a_3` will always be greater
+    than the variable `a_1`. Hence, the orders are incompatible in the next example as well::
+
+        sage: A.construction()[0]*PolynomialRing(QQ,names=['x','y','a_1','a_3'], order='lex').construction()[0]
+        Traceback (most recent call last):
+        ...
+        CoercionException: Overlapping variables (('a', 'b'),['a_1', 'a_3']) are incompatible
+
+    Another requirement is that after merging the order of the remaining variables must be unique.
+    This is not the case in the following example, since it is not clear whether the variables `x,y`
+    should be greater or smaller than the variables `b_\\ast`::
+
+        sage: A.construction()[0]*PolynomialRing(QQ,names=['a_3','a_1','x','y'], order='lex').construction()[0]
+        Traceback (most recent call last):
+        ...
+        CoercionException: Overlapping variables (('a', 'b'),['a_3', 'a_1']) are incompatible
+
+    Since the construction functors are actually used to construct infinite polynomial rings, the following
+    result is no surprise:
+
+        sage: C.<a,b> = InfinitePolynomialRing(B); C
+        Infinite polynomial ring in a, b over Multivariate Polynomial Ring in x, y over Rational Field
+
+    There is also an overlap in the next example::
+
+        sage: X.<w,x,y> = InfinitePolynomialRing(ZZ)
+        sage: Y.<x,y,z> = InfinitePolynomialRing(QQ)
+
+    `X` and `Y` have an overlapping generators `x_\\ast, y_\\ast`. Since the default lexicographic order is
+    used in both rings, it gives rise to isomorphic sub-monoids in both `X` and `Y`. They are merged in the
+    pushout, which also yields a common parent for doing arithmetic.
+
+        sage: P = sage.categories.pushout.pushout(Y,X); P
+        Infinite polynomial ring in w, x, y, z over Rational Field
+        sage: w[2]+z[3]
+        w_2 + z_3
+        sage: _.parent() is P
+        True
+
+    """
+
+    # We do provide merging with polynomial rings. However, it seems that it is better
+    # to have a greater rank, since we want to apply InfinitePolynomialFunctor *after*
+    # [Multi]PolynomialFunktor, which have rank 9. But there is the MatrixFunctor, which
+    # has rank 10. So, do fine tuning...
+    rank = 9.5
+
+    def __init__(self, gens, order, implementation):
+        """
+        TEST::
+
+            sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doc test
+            InfPoly{[a,b,x], "degrevlex", "sparse"}
+            sage: F == loads(dumps(F))
+            True
+
+        """
+        if len(gens)<1:
+            raise ValueError, "Infinite Polynomial Rings have at least one generator"
+        ConstructionFunctor.__init__(self, Rings(), Rings())
+        self._gens = tuple(gens)
+        self._order = order
+        self._imple = implementation
+
+    def __call__(self, R):
+        """
+        TEST::
+
+            sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F
+            InfPoly{[a,b,x], "degrevlex", "sparse"}
+            sage: F(QQ['t']) # indirect doc test
+            Infinite polynomial ring in a, b, x over Univariate Polynomial Ring in t over Rational Field
+
+        """
+        from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
+        return InfinitePolynomialRing(R, self._gens, order=self._order, implementation=self._imple)
+
+    def __str__(self):
+        """
+        TEST::
+
+            sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doc test
+            InfPoly{[a,b,x], "degrevlex", "sparse"}
+
+        """
+        return 'InfPoly{[%s], "%s", "%s"}'%(','.join(self._gens), self._order, self._imple)
+
+    def __cmp__(self, other):
+        """
+        TEST::
+
+            sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doc test
+            InfPoly{[a,b,x], "degrevlex", "sparse"}
+            sage: F == loads(dumps(F)) # indirect doc test
+            True
+            sage: F == sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'deglex','sparse')
+            False
+
+        """
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self._gens, other._gens) or cmp(self._order, other._order) or cmp(self._imple, other._imple)
+        return c
+
+    def __mul__(self, other):
+        """
+        TESTS::
+
+            sage: F1 = QQ['a','x_2','x_1','y_3','y_2'].construction()[0]; F1
+            MPoly[a,x_2,x_1,y_3,y_2]
+            sage: F2 = InfinitePolynomialRing(QQ, ['x','y'],order='degrevlex').construction()[0]; F2
+            InfPoly{[x,y], "degrevlex", "dense"}
+            sage: F3 = InfinitePolynomialRing(QQ, ['x','y'],order='degrevlex',implementation='sparse').construction()[0]; F3
+            InfPoly{[x,y], "degrevlex", "sparse"}
+            sage: F2*F1
+            InfPoly{[x,y], "degrevlex", "dense"}(Poly[a](...))
+            sage: F3*F1
+            InfPoly{[x,y], "degrevlex", "sparse"}(Poly[a](...))
+            sage: F4 = sage.categories.pushout.FractionField()
+            sage: F2*F4
+            InfPoly{[x,y], "degrevlex", "dense"}(FractionField(...))
+
+        """
+        if isinstance(other, self.__class__): #
+            INT = set(self._gens).intersection(other._gens)
+            if INT:
+                # if there is overlap of generators, it must only be at the ends, so that
+                # the resulting order after the merging is unique
+                if other._gens[-len(INT):] != self._gens[:len(INT)]:
+                    raise CoercionException, "Overlapping variables (%s,%s) are incompatible" % (self._gens, other._gens)
+                OUTGENS = list(other._gens) + list(self._gens[len(INT):])
+            else:
+                OUTGENS = list(other._gens) + list(self._gens)
+            # the orders must coincide
+            if self._order != other._order:
+                return CompositConstructionFunctor(other, self)
+            # the implementations must coincide
+            if self._imple != other._imple:
+                return CompositConstructionFunctor(other, self)
+            return InfinitePolynomialFunctor(OUTGENS, self._order, self._imple)
+
+        # Polynomial Constructor
+        # Idea: We merge into self, if the polynomial functor really provides a substructure,
+        # even respecting the order. Note that, if the pushout is computed, only *one* variable
+        # will occur in the polynomial constructor. Hence, any order is fine, which is exactly
+        # what we need in order to have coercion maps for different orderings.
+        if isinstance(other, MultiPolynomialFunctor) or isinstance(other, PolynomialFunctor):
+            if isinstance(other, MultiPolynomialFunctor):
+                othervars = other.vars
+            else:
+                othervars = [other.var]
+            OverlappingGens = [] ## Generator names of variable names of the MultiPolynomialFunctor
+                              ## that can be interpreted as variables in self
+            OverlappingVars = [] ## The variable names of the MultiPolynomialFunctor
+                                 ## that can be interpreted as variables in self
+            RemainingVars = [x for x in othervars]
+            IsOverlap = False
+            BadOverlap = False
+            for x in othervars:
+                if x.count('_') == 1:
+                    g,n = x.split('_')
+                    if n.isdigit():
+                        if g.isalnum(): # we can interprete x in any InfinitePolynomialRing
+                            if g in self._gens: # we can interprete x in self, hence, we will not use it as a variable anymore.
+                                RemainingVars.pop(RemainingVars.index(x))
+                                IsOverlap = True # some variables of other can be interpreted in self.
+                                if OverlappingVars:
+                                    # Is OverlappingVars in the right order?
+                                    g0,n0 = OverlappingVars[-1].split('_')
+                                    i = self._gens.index(g)
+                                    i0 = self._gens.index(g0)
+                                    if i<i0: # wrong order
+                                        BadOverlap = True
+                                    if i==i0 and int(n)>int(n0): # wrong order
+                                        BadOverlap = True
+                                OverlappingVars.append(x)
+                            else:
+                                if IsOverlap: # The overlap must be on the right end of the variable list
+                                    BadOverlap = True
+                        else:
+                            if IsOverlap: # The overlap must be on the right end of the variable list
+                                BadOverlap = True
+                    else:
+                        if IsOverlap: # The overlap must be on the right end of the variable list
+                            BadOverlap = True
+                else:
+                    if IsOverlap: # The overlap must be on the right end of the variable list
+                        BadOverlap = True
+
+            if BadOverlap: # the overlapping variables appear in the wrong order
+                raise CoercionException, "Overlapping variables (%s,%s) are incompatible" % (self._gens, OverlappingVars)
+            if len(OverlappingVars)>1: # multivariate, hence, the term order matters
+                if other.term_order.name()!=self._order:
+                    raise CoercionException, "Incompatible term orders %s, %s" % (self._order, other.term_order.name())
+            # ok, the overlap is fine, we will return something.
+            if RemainingVars: # we can only partially merge other into self
+                if len(RemainingVars)>1:
+                    return CompositConstructionFunctor(MultiPolynomialFunctor(RemainingVars,term_order=other.term_order), self)
+                return CompositConstructionFunctor(PolynomialFunctor(RemainingVars[0]), self)
+            return self
+        return CompositConstructionFunctor(other, self)
+
+    def merge(self,other):
+        """
+        Merge two construction functors of infinite polynomial rings, regardless of monomial order and implementation.
+
+        The purpose is to have a pushout (and thus, arithmetic) even in cases when the parents are isomorphic as
+        rings, but not as ordered rings.
+
+        EXAMPLES::
+
+            sage: X.<x,y> = InfinitePolynomialRing(QQ,implementation='sparse')
+            sage: Y.<x,y> = InfinitePolynomialRing(QQ,order='degrevlex')
+            sage: X.construction()
+            [InfPoly{[x,y], "lex", "sparse"}, Rational Field]
+            sage: Y.construction()
+            [InfPoly{[x,y], "degrevlex", "dense"}, Rational Field]
+            sage: Y.construction()[0].merge(Y.construction()[0])
+            InfPoly{[x,y], "degrevlex", "dense"}
+            sage: y[3] + X(x[2])
+            x_2 + y_3
+            sage: _.parent().construction()
+            [InfPoly{[x,y], "degrevlex", "dense"}, Rational Field]
+
+        """
+        # Merging is only done if the ranks of self and other are the same.
+        # It may happen that other is a substructure of self up to the monomial order
+        # and the implementation. And this is when we want to merge, in order to
+        # provide multiplication for rings with different term orderings.
+        if not isinstance(other, InfinitePolynomialFunctor):
+            return None
+        if set(other._gens).issubset(self._gens):
+            return self
+        return None
+        try:
+            OUT = self*other
+            # The following happens if "other" has the same order type etc.
+            if not isinstance(OUT, CompositConstructionFunctor):
+                return OUT
+        except CoercionException:
+            pass
+        if isinstance(other,InfinitePolynomialFunctor):
+            # We don't require that the orders coincide. This is a difference to self*other
+            # We only merge if other's generators are an ordered subset of self's generators
+            for g in other._gens:
+                if g not in self._gens:
+                    return None
+            # The sequence of variables is part of the ordering. It must coincide in both rings
+            Ind = [self._gens.index(g) for g in other._gens]
+            if sorted(Ind)!=Ind:
+                return None
+            # OK, other merges into self. Now, chose the default dense implementation,
+            # unless both functors refer to the sparse implementation
+            if self._imple != other._imple:
+                return InfinitePolynomialFunctor(self._gens, self._order, 'dense')
+            return self
+##         if isinstance(other, PolynomialFunctor) or isinstance(other, MultiPolynomialFunctor):
+##             # For merging, we don't care about the orders
+## ##            if isinstance(other, MultiPolynomialFunctor) and self._order!=other.term_order.name():
+## ##                return None
+##             # We only merge if other's variables can all be interpreted in self.
+##             if isinstance(other, PolynomialFunctor):
+##                 if other.var.count('_')!=1:
+##                     return None
+##                 g,n = other.var.split('_')
+##                 if not ((g in self._gens) and n.isdigit()):
+##                     return None
+##                 # other merges into self!
+##                 return self
+##             # Now, other is MultiPolynomial
+##             for v in other.vars:
+##                 if v.count('_')!=1:
+##                     return None
+##                 g,n = v.split('_')
+##                 if not ((g in self._gens) and n.isdigit()):
+##                     return None
+##             # other merges into self!
+##             return self
+        return None
+
+    def expand(self):
+        """
+        Decompose the functor `F` into sub-functors, whose product returns `F`
+
+        EXAMPLES::
+
+            sage: F = InfinitePolynomialRing(QQ, ['x','y'],order='degrevlex').construction()[0]; F
+            InfPoly{[x,y], "degrevlex", "dense"}
+            sage: F.expand()
+            [InfPoly{[y], "degrevlex", "dense"}, InfPoly{[x], "degrevlex", "dense"}]
+            sage: F = InfinitePolynomialRing(QQ, ['x','y','z'],order='degrevlex').construction()[0]; F
+            InfPoly{[x,y,z], "degrevlex", "dense"}
+            sage: F.expand()
+            [InfPoly{[z], "degrevlex", "dense"},
+             InfPoly{[y], "degrevlex", "dense"},
+             InfPoly{[x], "degrevlex", "dense"}]
+            sage: prod(F.expand())==F
+            True
+
+        """
+        if len(self._gens)==1:
+            return [self]
+        return [InfinitePolynomialFunctor((x,), self._order, self._imple) for x in reversed(self._gens)]
+
 
 
 class MatrixFunctor(ConstructionFunctor):

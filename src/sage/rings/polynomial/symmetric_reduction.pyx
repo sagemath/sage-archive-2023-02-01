@@ -7,7 +7,7 @@ provides a framework for efficient symmetric reduction of Infinite Polynomials, 
 
 AUTHORS:
 
-- Simon King <simon.king@uni-jena.de>
+- Simon King <simon.king@nuigalway.ie>
 
 THEORY:
     According to M. Aschenbrenner and C. Hillar [AB2007]_, Symmetric Reduction
@@ -47,55 +47,55 @@ EXAMPLES:
 First, we create an infinite polynomial ring and one of its elements::
 
     sage: X.<x,y> = InfinitePolynomialRing(QQ)
-    sage: p = y[1]^2*y[3]+y[1]*x[3]
+    sage: p = y[1]*y[3]+y[1]^2*x[3]
 
 We want to symmetrically reduce it by another polynomial. So, we put this other
 polynomial into a list and create a Symmetric Reduction Strategy object::
 
     sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
-    sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1]])
+    sage: S = SymmetricReductionStrategy(X, [y[2]^2*x[1]])
     sage: S
     Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-        y2^2*y1
+        x_1*y_2^2
     sage: S.reduce(p)
-    y3*y1^2 + y1*x3
+    x_3*y_1^2 + y_3*y_1
 
-The preceding is correct, since any permutation that turns ``y[2]^2*y[1]`` into
-a factor of ``y[1]^2*y[3]`` interchanges the variable indices 1 and 2 -- which is not
-allowed in a symmetric reduction. However, reduction by ``y[1]^2*y[2]`` works,
+The preceding is correct, since any permutation that turns ``y[2]^2*x[1]`` into
+a factor of ``y[1]^2*x[3]`` interchanges the variable indices 1 and 2 -- which is not
+allowed in a symmetric reduction. However, reduction by ``y[1]^2*x[2]`` works,
 since one can change variable index 1 into 2 and 2 into 3. So, we add this to ``S``::
 
-    sage: S.add_generator(y[1]^2*y[2])
+    sage: S.add_generator(y[1]^2*x[2])
     sage: S
     Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-        y2*y1^2,
-        y2^2*y1
+        x_2*y_1^2,
+        x_1*y_2^2
     sage: S.reduce(p)
-    y1*x3
+    y_3*y_1
 
 The next example shows that tail reduction is not done, unless it is explicitly advised::
 
-    sage: S.reduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
-    y3 + 3*y2^2*y1 + 2*y2*y1^2
-    sage: S.tailreduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
-    y3
+    sage: S.reduce(x[3] + 2*x[2]*y[1]^2 + 3*y[2]^2*x[1])
+    x_3 + 2*x_2*y_1^2 + 3*x_1*y_2^2
+    sage: S.tailreduce(x[3] + 2*x[2]*y[1]^2 + 3*y[2]^2*x[1])
+    x_3
 
 However, it is possible to ask for tailreduction already when the Symmetric Reduction
 Strategy is created::
 
-    sage: S2 = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], tailreduce=True)
+    sage: S2 = SymmetricReductionStrategy(X, [y[2]^2*x[1],y[1]^2*x[2]], tailreduce=True)
     sage: S2
     Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-        y2*y1^2,
-        y2^2*y1
+        x_2*y_1^2,
+        x_1*y_2^2
     with tailreduction
-    sage: S2.reduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
-    y3
+    sage: S2.reduce(x[3] + 2*x[2]*y[1]^2 + 3*y[2]^2*x[1])
+    x_3
 
 """
 
 #*****************************************************************************
-#       Copyright (C) 2009 Simon King <king@mathematik.uni-jena.de>
+#       Copyright (C) 2009 Simon King <king@mathematik.nuigalway.ie>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -129,9 +129,9 @@ cdef class SymmetricReductionStrategy:
         sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
         sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], good_input=True)
         sage: S.reduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
-        y3 + 3*y2^2*y1 + 2*y2*y1^2
+        y_3 + 3*y_2^2*y_1 + 2*y_2*y_1^2
         sage: S.tailreduce(y[3] + 2*y[2]*y[1]^2 + 3*y[2]^2*y[1])
-        y3
+        y_3
 
     """
     def __init__(self, Parent, L=None, tailreduce=False, good_input=None):
@@ -162,6 +162,11 @@ cdef class SymmetricReductionStrategy:
         return (self._parent,[],self._tail,None)
 
     def __getstate__(self):
+        # Apparently, for pickling it is needed to update self._lm and self._min_lm before
+        # calling dumps...
+        R = self._parent
+        self._lm = [R(x) for x in self._lm] # I have no idea why -- but it seems needed.
+        self._min_lm = R(self._min_lm)
         return (self._lm, self._lengths, self._min_lm, self._tail, self._parent)
 
     def __setstate__(self, L): #(lm, lengths, min_lm, tail)
@@ -192,10 +197,10 @@ cdef class SymmetricReductionStrategy:
             sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in y over Rational Field, modulo
-                y2*y1^2,
-                y2^2*y1
+                y_2*y_1^2,
+                y_2^2*y_1
             sage: S.gens()
-            [y2*y1^2, y2^2*y1]
+            [y_2*y_1^2, y_2^2*y_1]
 
         """
         return self._lm
@@ -222,8 +227,8 @@ cdef class SymmetricReductionStrategy:
             sage: R.setgens(S.gens())
             sage: R
             Symmetric Reduction Strategy in Infinite polynomial ring in y over Rational Field, modulo
-                y2*y1^2,
-                y2^2*y1
+                y_2*y_1^2,
+                y_2^2*y_1
             sage: R.gens() is S.gens()
             False
             sage: R.gens() == S.gens()
@@ -244,8 +249,8 @@ cdef class SymmetricReductionStrategy:
             sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in y over Rational Field, modulo
-                y2*y1^2,
-                y2^2*y1
+                y_2*y_1^2,
+                y_2^2*y_1
             sage: S.reset()
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in y over Rational Field
@@ -266,8 +271,8 @@ cdef class SymmetricReductionStrategy:
             sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], tailreduce=True)
             sage: S  # indirect doctest
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                y2*y1^2,
-                y2^2*y1
+                y_2*y_1^2,
+                y_2^2*y_1
             with tailreduction
 
         """
@@ -318,7 +323,7 @@ cdef class SymmetricReductionStrategy:
             return p
         # now we really need to work...
         R = self._R
-        VarList = list(set(R.variable_names() + p.parent().variable_names()))
+        VarList = list(set(list(R.variable_names()) + list(p.parent().variable_names())))
         VarList.sort(cmp=self._parent.varname_cmp,reverse=True)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         self._R = PolynomialRing(self._parent.base_ring(), VarList, order = self._parent._order)
@@ -344,15 +349,15 @@ cdef class SymmetricReductionStrategy:
             sage: S.add_generator(y[3] + y[1]*(x[3]+x[1]))
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                y3 + y1*x3 + y1*x1
+                x_3*y_1 + x_1*y_1 + y_3
 
         Note that the first added polynomial will be simplified when adding a suitable second polynomial::
 
             sage: S.add_generator(x[2]+x[1])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                y3,
-                x2 + x1
+                y_3,
+                x_2 + x_1
 
         By default, reduction is applied to any newly added polynomial. This can be avoided by
         specifying the optional parameter 'good_input'::
@@ -360,24 +365,24 @@ cdef class SymmetricReductionStrategy:
             sage: S.add_generator(y[2]+y[1]*x[2])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                y3,
-                y2 + y1*x2,
-                x2 + x1
+                y_3,
+                x_1*y_1 - y_2,
+                x_2 + x_1
             sage: S.reduce(x[3]+x[2])
-            -2*x1
+            -2*x_1
             sage: S.add_generator(x[3]+x[2], good_input=True)
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                y3,
-                x3 + x2,
-                y2 + y1*x2,
-                x2 + x1
+                y_3,
+                x_3 + x_2,
+                x_1*y_1 - y_2,
+                x_2 + x_1
 
         In the previous example, ``x[3] + x[2]`` is added without being reduced to zero.
 
         """
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
-        p = InfinitePolynomial(self._parent, self(p), is_good_poly=True)
+        p = InfinitePolynomial(self._parent, self(p))
         cdef SymmetricReductionStrategy tmpStrategy
         if good_input is None:
             p = self.reduce(p)
@@ -438,23 +443,23 @@ cdef class SymmetricReductionStrategy:
 
             sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: S = SymmetricReductionStrategy(X, [x[3]], tailreduce=True)
+            sage: S = SymmetricReductionStrategy(X, [y[3]], tailreduce=True)
             sage: S.reduce(y[4]*x[1] + y[1]*x[4])
-            y4*x1
+            x_4*y_1
             sage: S.reduce(y[4]*x[1] + y[1]*x[4], notail=True)
-            y4*x1 + y1*x4
+            x_4*y_1 + x_1*y_4
 
         Last, we demonstrate the 'report' option::
 
-            sage: S = SymmetricReductionStrategy(X, [y[2]+x[1],y[2]*y[3]+y[1]*x[2]+x[4],x[3]+x[2]])
+            sage: S = SymmetricReductionStrategy(X, [x[2]+y[1],x[2]*y[3]+x[1]*y[2]+y[4],y[3]+y[2]])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                x3 + x2,
-                y2 + x1,
-                y1*x2 + x4 + x1^2
-            sage: S.reduce(y[3] + y[1]*x[3] + y[1]*x[1],report=True)
+                y_3 + y_2,
+                x_2 + y_1,
+                x_1*y_2 + y_4 - y_3*y_1
+            sage: S.reduce(x[3] + x[1]*y[3] + x[1]*y[1],report=True)
             :::>
-            y1*x1 + x4 + x1^2 - x1
+            x_1*y_1 + y_4 - y_3*y_1 - y_1
 
         Each ':' indicates that one reduction of the leading monomial was performed. Eventually, the '>'
         indicates that the computation is finished.
@@ -484,9 +489,9 @@ cdef class SymmetricReductionStrategy:
             p = self(p) # now this is a usual polynomial
             R = self._R
             if hasattr(p,'reduce'):
-                new_p = InfinitePolynomial(self._parent, p.reduce([R(X) for X in REDUCTOR]), is_good_poly=True)
+                new_p = InfinitePolynomial(self._parent, p.reduce([R(X) for X in REDUCTOR]))
             else:
-                new_p = InfinitePolynomial(self._parent, p % (REDUCTOR*R), is_good_poly=True)
+                new_p = InfinitePolynomial(self._parent, p % (REDUCTOR*R))
             if report is not None:
                 sys.stdout.write(':')
                 sys.stdout.flush()
@@ -517,25 +522,25 @@ cdef class SymmetricReductionStrategy:
 
             sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: S = SymmetricReductionStrategy(X, [x[3]])
+            sage: S = SymmetricReductionStrategy(X, [y[3]])
             sage: S.reduce(y[4]*x[1] + y[1]*x[4])
-            y4*x1 + y1*x4
+            x_4*y_1 + x_1*y_4
             sage: S.tailreduce(y[4]*x[1] + y[1]*x[4])
-            y4*x1
+            x_4*y_1
 
 
         Last, we demonstrate the 'report' option::
 
-            sage: S = SymmetricReductionStrategy(X, [y[2]+x[1],y[2]*y[3]+y[1]*x[2]+x[4],x[3]+x[2]])
+            sage: S = SymmetricReductionStrategy(X, [x[2]+y[1],x[2]*x[3]+x[1]*y[2]+y[4],y[3]+y[2]])
             sage: S
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
-                x3 + x2,
-                y2 + x1,
-                y1*x2 + x4 + x1^2
-            sage: S.tailreduce(y[3] + y[1]*x[3] + y[1]*x[1],report=True)
+                y_3 + y_2,
+                x_2 + y_1,
+                x_1*y_2 + y_4 + y_1^2
+            sage: S.tailreduce(x[3] + x[1]*y[3] + x[1]*y[1],report=True)
             T[3]:::>
             T[3]:>
-            y1*x1 - x2 + x1^2 - x1
+            x_1*y_1 - y_2 + y_1^2 - y_1
 
         The protocol means the following.
          * 'T[3]' means that we currently do tail reduction for a polynomial with three terms.

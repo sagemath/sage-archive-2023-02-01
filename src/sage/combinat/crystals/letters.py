@@ -58,8 +58,8 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
         sage: C = CrystalOfLetters(['A',5])
         sage: C.list()
         [1, 2, 3, 4, 5, 6]
-	sage: C.cartan_type()
-	['A', 5]
+        sage: C.cartan_type()
+        ['A', 5]
 
     For type E6, one can also specify how elements are printed.
     This option is usually set to None and the default representation is used.
@@ -70,15 +70,15 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
     EXAMPLES::
 
         sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
-	sage: C
-	The crystal of letters for type ['E', 6]
-	sage: C.list()
-	[+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+        sage: C
+        The crystal of letters for type ['E', 6]
+        sage: C.list()
+        [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
         sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
-	sage: C
-	The crystal of letters for type ['E', 6] (dual)
-	sage: C.list()
-	[-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+        sage: C
+        The crystal of letters for type ['E', 6] (dual)
+        sage: C.list()
+        [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
     """
     ct = CartanType(cartan_type)
     if ct.letter == 'A':
@@ -94,12 +94,12 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_D_element)
     elif ct.letter == 'E' and ct[1] == 6:
-	if dual is None:
-	    return ClassicalCrystalOfLetters(ct,
-					     Crystal_of_letters_type_E6_element, element_print_style)
-	else:
-	    return ClassicalCrystalOfLetters(ct,
-					     Crystal_of_letters_type_E6_element_dual, element_print_style, dual = True)
+        if dual is None:
+            return ClassicalCrystalOfLetters(ct,
+                                             Crystal_of_letters_type_E6_element, element_print_style)
+        else:
+            return ClassicalCrystalOfLetters(ct,
+                                             Crystal_of_letters_type_E6_element_dual, element_print_style, dual = True)
     elif ct.letter == 'E' and ct[1] == 7:
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_E7_element)
@@ -139,20 +139,20 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
         self._cartan_type = CartanType(cartan_type)
         self.rename("The crystal of letters for type %s"%cartan_type)
         self.Element = element_class
-	Parent.__init__(self, category = FiniteEnumeratedSets()) #, category = ClassicalCrystals()
-	if cartan_type == CartanType(['E',6]):
+        Parent.__init__(self, category = FiniteEnumeratedSets()) #, category = ClassicalCrystals()
+        if cartan_type == CartanType(['E',6]):
             if dual:
                 self.module_generators = [self([6])]
                 self._ambient = CrystalOfLetters(CartanType(['E',6]))
-		self.rename("%s (dual)"%self)
+                self.rename("%s (dual)"%self)
             else:
                 self.module_generators = [self([1])]
         elif cartan_type == CartanType(['E',7]):
             self.module_generators = [self([7])]
-       	else:
-	    self.module_generators = [self(1)]
+        else:
+            self.module_generators = [self(1)]
         self._list = ClassicalCrystal.list(self)
-	self._element_print_style = element_print_style
+        self._element_print_style = element_print_style
         self._digraph = ClassicalCrystal.digraph(self)
         self._digraph_closure = self.digraph().transitive_closure()
 
@@ -231,16 +231,16 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
             False
             sage: C.lt_elements(x,x)
             False
-	    sage: C = CrystalOfLetters(['D', 4])
-	    sage: C.lt_elements(C(4),C(-4))
-	    False
-	    sage: C.lt_elements(C(-4),C(4))
-	    False
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: C.lt_elements(C(4),C(-4))
+            False
+            sage: C.lt_elements(C(-4),C(4))
+            False
         """
         assert x.parent() == self and y.parent() == self
         if self._digraph_closure.has_edge(x,y):
             return True
-	return False
+        return False
 
 # Utility. Note: much of this class should be factored out at some point!
 class Letter(ElementWrapper):
@@ -253,31 +253,31 @@ class Letter(ElementWrapper):
     EXAMPLES::
 
         sage: from sage.combinat.crystals.letters import Letter
-	sage: a = Letter(ZZ, 1)
-	sage: Letter(ZZ, 1).parent()
-	Integer Ring
+        sage: a = Letter(ZZ, 1)
+        sage: Letter(ZZ, 1).parent()
+        Integer Ring
 
-	sage: Letter(ZZ, 1).__repr__()
-	'1'
+        sage: Letter(ZZ, 1).__repr__()
+        '1'
 
-	sage: parent1 = ZZ  # Any fake value ...
-	sage: parent2 = QQ  # Any fake value ...
-	sage: l11 = Letter(parent1, 1)
-	sage: l12 = Letter(parent1, 2)
-	sage: l21 = Letter(parent2, 1)
-	sage: l22 = Letter(parent2, 2)
-	sage: l11 == l11
-	True
-	sage: l11 == l12
-	False
-	sage: l11 == l21
-	False
+        sage: parent1 = ZZ  # Any fake value ...
+        sage: parent2 = QQ  # Any fake value ...
+        sage: l11 = Letter(parent1, 1)
+        sage: l12 = Letter(parent1, 2)
+        sage: l21 = Letter(parent2, 1)
+        sage: l22 = Letter(parent2, 2)
+        sage: l11 == l11
+        True
+        sage: l11 == l12
+        False
+        sage: l11 == l21
+        False
 
-	sage: C = CrystalOfLetters(['B', 3])
-	sage: C(0) <> C(0)
-	False
-	sage: C(1) <> C(-1)
-	True
+        sage: C = CrystalOfLetters(['B', 3])
+        sage: C(0) <> C(0)
+        False
+        sage: C(1) <> C(-1)
+        True
     """
     def __init__(self, parent, value):
         """
@@ -293,66 +293,66 @@ class Letter(ElementWrapper):
         ElementWrapper.__init__(self, value, parent)
 
     def __lt__(self, other):
-	"""
-	EXAMPLES::
-
-	    sage: C = CrystalOfLetters(['D', 4])
-	    sage: C(-4) < C(4)
-	    False
-	    sage: C(4) < C(-3)
-	    True
-	    sage: C(4) < C(4)
-	    False
-	    sage: C(4) < 5
-	    False
         """
-	if parent(self) is not parent(other):
-	    return False
-	return self.parent().lt_elements(self, other)
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: C(-4) < C(4)
+            False
+            sage: C(4) < C(-3)
+            True
+            sage: C(4) < C(4)
+            False
+            sage: C(4) < 5
+            False
+        """
+        if parent(self) is not parent(other):
+            return False
+        return self.parent().lt_elements(self, other)
 
     def __gt__(self, other):
-	"""
-	EXAMPLES::
-
-	    sage: C = CrystalOfLetters(['D', 4])
-	    sage: C(-4) > C(4)
-	    False
-	    sage: C(4) > C(-3)
-	    False
-	    sage: C(4) < C(4)
-	    False
-	    sage: C(-1) > C(1)
-	    True
         """
-	return other.__lt__(self)
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: C(-4) > C(4)
+            False
+            sage: C(4) > C(-3)
+            False
+            sage: C(4) < C(4)
+            False
+            sage: C(-1) > C(1)
+            True
+        """
+        return other.__lt__(self)
 
     def __le__(self, other):
-	"""
-	EXAMPLES::
-
-	    sage: C = CrystalOfLetters(['D', 4])
-	    sage: C(-4) <= C(4)
-	    False
-	    sage: C(4) <= C(-3)
-	    True
-	    sage: C(4) <= C(4)
-	    True
         """
-	return self.__lt__(other) or self == other
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: C(-4) <= C(4)
+            False
+            sage: C(4) <= C(-3)
+            True
+            sage: C(4) <= C(4)
+            True
+        """
+        return self.__lt__(other) or self == other
 
     def __ge__(self, other):
-	"""
-	EXAMPLES::
-
-	    sage: C = CrystalOfLetters(['D', 4])
-	    sage: C(-4) >= C(4)
-	    False
-	    sage: C(4) >= C(-3)
-	    False
-	    sage: C(4) >= C(4)
-	    True
         """
-	return other.__le__(self)
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: C(-4) >= C(4)
+            False
+            sage: C(4) >= C(-3)
+            False
+            sage: C(4) >= C(4)
+            True
+        """
+        return other.__le__(self)
 
 #    def __cmp__(self, other):
 #        """
@@ -865,44 +865,44 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
     TESTS::
 
         sage: C = CrystalOfLetters(['E',6])
-	sage: C.module_generators
-	[[1]]
-	sage: C.list()
-	[[1], [-1, 3], [-3, 4], [-4, 2, 5], [-2, 5], [-5, 2, 6], [-2, -5, 4, 6],
-	[-4, 3, 6], [-3, 1, 6], [-1, 6], [-6, 2], [-2, -6, 4], [-4, -6, 3, 5],
-	[-3, -6, 1, 5], [-1, -6, 5], [-5, 3], [-3, -5, 1, 4], [-1, -5, 4], [-4, 1, 2],
-	[-1, -4, 2, 3], [-3, 2], [-2, -3, 4], [-4, 5], [-5, 6], [-6], [-2, 1], [-1, -2, 3]]
+        sage: C.module_generators
+        [[1]]
+        sage: C.list()
+        [[1], [-1, 3], [-3, 4], [-4, 2, 5], [-2, 5], [-5, 2, 6], [-2, -5, 4, 6],
+        [-4, 3, 6], [-3, 1, 6], [-1, 6], [-6, 2], [-2, -6, 4], [-4, -6, 3, 5],
+        [-3, -6, 1, 5], [-1, -6, 5], [-5, 3], [-3, -5, 1, 4], [-1, -5, 4], [-4, 1, 2],
+        [-1, -4, 2, 3], [-3, 2], [-2, -3, 4], [-4, 5], [-5, 6], [-6], [-2, 1], [-1, -2, 3]]
         sage: C.check()
         True
-	sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
-	True
-	sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
-	True
-	sage: G = C.digraph()
-	sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
+        sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
+        True
+        sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
+        True
+        sage: G = C.digraph()
+        sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
     """
 
     def __hash__(self):
-	return hash(tuple(self.value))
+        return hash(tuple(self.value))
 
     def __repr__(self):
-	"""
-	In their full representation, the vertices of this crystal are labeled
-	by their weight. For example vertex [-5,2,6] indicates that a 5-arrow
-	is coming into this vertex, and a 2-arrow and 6-arrow is leaving the vertex.
-	Specifying element_print_style = 'compact' for a given crystal C, labels the
-	vertices of this crystal by the 27 letters +abcdefghijklmnopqrstuvwxyz.
+        """
+        In their full representation, the vertices of this crystal are labeled
+        by their weight. For example vertex [-5,2,6] indicates that a 5-arrow
+        is coming into this vertex, and a 2-arrow and 6-arrow is leaving the vertex.
+        Specifying element_print_style = 'compact' for a given crystal C, labels the
+        vertices of this crystal by the 27 letters +abcdefghijklmnopqrstuvwxyz.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
-	    sage: C.list()
-	    [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+            sage: C.list()
+            [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
         """
-	if self.parent()._element_print_style == 'compact':
-	    l=['+','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
-	    return l[self.parent().list().index(self)]
-	return "%s"%self.value
+        if self.parent()._element_print_style == 'compact':
+            l=['+','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+            return l[self.parent().list().index(self)]
+        return "%s"%self.value
 
     def weight(self):
         """
@@ -911,36 +911,36 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
         EXAMPLES::
 
             sage: [v.weight() for v in CrystalOfLetters(['E',6])]
-	    [(0, 0, 0, 0, 0, -2/3, -2/3, 2/3),
-	    (-1/2, 1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
-	    (1/2, -1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
-	    (1/2, 1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
-	    (-1/2, -1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
-	    (1/2, 1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
-	    (-1/2, -1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
-	    (-1/2, 1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
-	    (1/2, -1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
-	    (0, 0, 0, 0, 1, 1/3, 1/3, -1/3),
-	    (1/2, 1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
-	    (-1/2, -1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
-	    (-1/2, 1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
-	    (1/2, -1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
-	    (0, 0, 0, 1, 0, 1/3, 1/3, -1/3),
-	    (-1/2, 1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
-	    (1/2, -1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
-	    (0, 0, 1, 0, 0, 1/3, 1/3, -1/3),
-	    (1/2, 1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
-	    (0, 1, 0, 0, 0, 1/3, 1/3, -1/3),
-	    (1, 0, 0, 0, 0, 1/3, 1/3, -1/3),
-	    (0, -1, 0, 0, 0, 1/3, 1/3, -1/3),
-	    (0, 0, -1, 0, 0, 1/3, 1/3, -1/3),
-	    (0, 0, 0, -1, 0, 1/3, 1/3, -1/3),
-	    (0, 0, 0, 0, -1, 1/3, 1/3, -1/3),
-	    (-1/2, -1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
-	    (-1, 0, 0, 0, 0, 1/3, 1/3, -1/3)]
+            [(0, 0, 0, 0, 0, -2/3, -2/3, 2/3),
+            (-1/2, 1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+            (1/2, -1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+            (1/2, 1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+            (-1/2, -1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+            (1/2, 1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+            (-1/2, -1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+            (-1/2, 1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+            (1/2, -1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+            (0, 0, 0, 0, 1, 1/3, 1/3, -1/3),
+            (1/2, 1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+            (-1/2, -1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+            (-1/2, 1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+            (1/2, -1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+            (0, 0, 0, 1, 0, 1/3, 1/3, -1/3),
+            (-1/2, 1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+            (1/2, -1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+            (0, 0, 1, 0, 0, 1/3, 1/3, -1/3),
+            (1/2, 1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+            (0, 1, 0, 0, 0, 1/3, 1/3, -1/3),
+            (1, 0, 0, 0, 0, 1/3, 1/3, -1/3),
+            (0, -1, 0, 0, 0, 1/3, 1/3, -1/3),
+            (0, 0, -1, 0, 0, 1/3, 1/3, -1/3),
+            (0, 0, 0, -1, 0, 1/3, 1/3, -1/3),
+            (0, 0, 0, 0, -1, 1/3, 1/3, -1/3),
+            (-1/2, -1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+            (-1, 0, 0, 0, 0, 1/3, 1/3, -1/3)]
         """
-	R=self.parent().weight_lattice_realization().fundamental_weights()
-	return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+        R=self.parent().weight_lattice_realization().fundamental_weights()
+        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
 
     def e(self, i):
         r"""
@@ -948,12 +948,12 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6])
-	    sage: C([-1,3]).e(1)
-	    [1]
-	    sage: C([-2,-3,4]).e(2)
-	    [-3, 2]
-	    sage: C([1]).e(1)
+            sage: C = CrystalOfLetters(['E',6])
+            sage: C([-1,3]).e(1)
+            [1]
+            sage: C([-2,-3,4]).e(2)
+            [-3, 2]
+            sage: C([1]).e(1)
         """
         assert i in self.index_set()
 
@@ -1039,10 +1039,10 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6])
-	    sage: C([1]).f(1)
-	    [-1, 3]
-	    sage: C([-6]).f(1)
+            sage: C = CrystalOfLetters(['E',6])
+            sage: C([1]).f(1)
+            [-1, 3]
+            sage: C([-6]).f(1)
         """
         assert i in self.index_set()
 
@@ -1130,79 +1130,79 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
     TESTS::
 
         sage: C = CrystalOfLetters(['E',6], dual = True)
-	sage: C.module_generators
-	[[6]]
-	sage: all(b==b.retract(b.lift()) for b in C)
-	True
-	sage: C.list()
-	[[6], [5, -6], [4, -5], [2, 3, -4], [3, -2], [1, 2, -3], [2, -1], [1, 4, -2, -3],
-	[4, -1, -2], [1, 5, -4], [3, 5, -1, -4], [5, -3], [1, 6, -5], [3, 6, -1, -5], [4, 6, -3, -5],
-	[2, 6, -4], [6, -2], [1, -6], [3, -1, -6], [4, -3, -6], [2, 5, -4, -6], [5, -2, -6], [2, -5],
-	[4, -2, -5], [3, -4], [1, -3], [-1]]
+        sage: C.module_generators
+        [[6]]
+        sage: all(b==b.retract(b.lift()) for b in C)
+        True
+        sage: C.list()
+        [[6], [5, -6], [4, -5], [2, 3, -4], [3, -2], [1, 2, -3], [2, -1], [1, 4, -2, -3],
+        [4, -1, -2], [1, 5, -4], [3, 5, -1, -4], [5, -3], [1, 6, -5], [3, 6, -1, -5], [4, 6, -3, -5],
+        [2, 6, -4], [6, -2], [1, -6], [3, -1, -6], [4, -3, -6], [2, 5, -4, -6], [5, -2, -6], [2, -5],
+        [4, -2, -5], [3, -4], [1, -3], [-1]]
         sage: C.check()
         True
-	sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
-	True
-	sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
-	True
-	sage: G = C.digraph()
-	sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
+        sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
+        True
+        sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
+        True
+        sage: G = C.digraph()
+        sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
     """
 
     def __repr__(self):
-	"""
-	In their full representation, the vertices of this crystal are labeled
-	by their weight. For example vertex [-2,1] indicates that a 2-arrow
-	is coming into this vertex, and a 1-arrow is leaving the vertex.
-	Specifying the option element_print_style = 'compact' for a given crystal C,
-	labels the vertices of this crystal by the 27 letters -ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        """
+        In their full representation, the vertices of this crystal are labeled
+        by their weight. For example vertex [-2,1] indicates that a 2-arrow
+        is coming into this vertex, and a 1-arrow is leaving the vertex.
+        Specifying the option element_print_style = 'compact' for a given crystal C,
+        labels the vertices of this crystal by the 27 letters -ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
-	    sage: C.list()
-	    [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
-	    """
-	if self.parent()._element_print_style == 'compact':
-	    l=['-','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-	    return l[self.parent().list().index(self)]
-	return "%s"%self.value
+            sage: C.list()
+            [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+            """
+        if self.parent()._element_print_style == 'compact':
+            l=['-','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+            return l[self.parent().list().index(self)]
+        return "%s"%self.value
 
     def __hash__(self):
-	return hash(tuple(self.value))
+        return hash(tuple(self.value))
 
     def lift(self):
-	"""
-	Lifts an element of self to the crystal of letters CrystalOfLetters(['E',6])
-	by taking its inverse weight.
+        """
+        Lifts an element of self to the crystal of letters CrystalOfLetters(['E',6])
+        by taking its inverse weight.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6], dual = True)
-	    sage: b=C.module_generators[0]
-	    sage: b.lift()
-	    [-6]
-	"""
-	return self.parent()._ambient([-i for i in self.value])
+            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: b=C.module_generators[0]
+            sage: b.lift()
+            [-6]
+        """
+        return self.parent()._ambient([-i for i in self.value])
 
     def retract(self, p):
-	"""
-	Retracts element p, which is an element in CrystalOfLetters(['E',6]) to
-	an element in CrystalOfLetters(['E',6], dual = True) by taking its inverse weight.
+        """
+        Retracts element p, which is an element in CrystalOfLetters(['E',6]) to
+        an element in CrystalOfLetters(['E',6], dual = True) by taking its inverse weight.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6])
-	    sage: Cd = CrystalOfLetters(['E',6], dual = True)
-	    sage: b = Cd.module_generators[0]
-	    sage: p = C([-1,3])
-	    sage: b.retract(p)
-	    [1, -3]
-	    sage: b.retract(None)
-	"""
-	if p is None:
-	    return None
-	return self.parent()([-i for i in p.value])
+            sage: C = CrystalOfLetters(['E',6])
+            sage: Cd = CrystalOfLetters(['E',6], dual = True)
+            sage: b = Cd.module_generators[0]
+            sage: p = C([-1,3])
+            sage: b.retract(p)
+            [1, -3]
+            sage: b.retract(None)
+        """
+        if p is None:
+            return None
+        return self.parent()([-i for i in p.value])
 
     def e(self, i):
         r"""
@@ -1210,11 +1210,11 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6], dual = True)
-	    sage: C([-1]).e(1)
-	    [1, -3]
+            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C([-1]).e(1)
+            [1, -3]
         """
-	return self.retract(self.lift().f(i))
+        return self.retract(self.lift().f(i))
 
     def f(self, i):
         r"""
@@ -1222,12 +1222,12 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',6], dual = True)
-	    sage: C([6]).f(6)
-	    [5, -6]
-	    sage: C([6]).f(1)
+            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C([6]).f(6)
+            [5, -6]
+            sage: C([6]).f(1)
         """
-	return self.retract(self.lift().e(i))
+        return self.retract(self.lift().e(i))
 
     def weight(self):
         """
@@ -1236,39 +1236,39 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
         EXAMPLES::
 
             sage: C = CrystalOfLetters(['E',6], dual = True)
-	    sage: b=C.module_generators[0]
-	    sage: b.weight()
-	    (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
+            sage: b=C.module_generators[0]
+            sage: b.weight()
+            (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
             sage: [v.weight() for v in C]
-	    [(0, 0, 0, 0, 1, -1/3, -1/3, 1/3),
-	    (0, 0, 0, 1, 0, -1/3, -1/3, 1/3),
-	    (0, 0, 1, 0, 0, -1/3, -1/3, 1/3),
-	    (0, 1, 0, 0, 0, -1/3, -1/3, 1/3),
-	    (-1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
-	    (1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
-	    (1/2, 1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
-	    (0, -1, 0, 0, 0, -1/3, -1/3, 1/3),
-	    (-1/2, -1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
-	    (0, 0, -1, 0, 0, -1/3, -1/3, 1/3),
-	    (-1/2, 1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
-	    (1/2, -1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
-	    (0, 0, 0, -1, 0, -1/3, -1/3, 1/3),
-	    (-1/2, 1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
-	    (1/2, -1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
-	    (1/2, 1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
-	    (-1/2, -1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
-	    (0, 0, 0, 0, -1, -1/3, -1/3, 1/3),
-	    (-1/2, 1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
-	    (1/2, -1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
-	    (1/2, 1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
-	    (-1/2, -1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
-	    (1/2, 1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
-	    (-1/2, -1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
-	    (-1/2, 1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
-	    (1/2, -1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
-	    (0, 0, 0, 0, 0, 2/3, 2/3, -2/3)]
+            [(0, 0, 0, 0, 1, -1/3, -1/3, 1/3),
+            (0, 0, 0, 1, 0, -1/3, -1/3, 1/3),
+            (0, 0, 1, 0, 0, -1/3, -1/3, 1/3),
+            (0, 1, 0, 0, 0, -1/3, -1/3, 1/3),
+            (-1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
+            (1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
+            (1/2, 1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+            (0, -1, 0, 0, 0, -1/3, -1/3, 1/3),
+            (-1/2, -1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+            (0, 0, -1, 0, 0, -1/3, -1/3, 1/3),
+            (-1/2, 1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+            (1/2, -1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+            (0, 0, 0, -1, 0, -1/3, -1/3, 1/3),
+            (-1/2, 1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+            (1/2, -1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+            (1/2, 1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+            (-1/2, -1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+            (0, 0, 0, 0, -1, -1/3, -1/3, 1/3),
+            (-1/2, 1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+            (1/2, -1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+            (1/2, 1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+            (-1/2, -1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+            (1/2, 1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+            (-1/2, -1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+            (-1/2, 1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+            (1/2, -1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+            (0, 0, 0, 0, 0, 2/3, 2/3, -2/3)]
         """
-	return -self.lift().weight()
+        return -self.lift().weight()
 
 
 #########################
@@ -1307,7 +1307,7 @@ class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
     """
 
     def __hash__(self):
-	return hash(tuple(self.value))
+        return hash(tuple(self.value))
 
     def weight(self):
         """
@@ -1356,10 +1356,10 @@ class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',7])
-	    sage: C([7]).e(7)
-	    sage: C([-7,6]).e(7)
-	    [7]
+            sage: C = CrystalOfLetters(['E',7])
+            sage: C([7]).e(7)
+            sage: C([-7,6]).e(7)
+            [7]
         """
         assert i in self.index_set()
 
@@ -1541,10 +1541,10 @@ class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
 
         EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['E',7])
-	    sage: C([-7]).f(7)
-	    sage: C([7]).f(7)
-	    [-7, 6]
+            sage: C = CrystalOfLetters(['E',7])
+            sage: C([-7]).f(7)
+            sage: C([7]).f(7)
+            [-7, 6]
         """
         assert i in self.index_set()
 

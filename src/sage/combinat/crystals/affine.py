@@ -39,6 +39,9 @@ class AffineCrystalFromClassical(Crystal, UniqueRepresentation):
     The zero arrows can be implemented using different methods (for example using a Dynkin diagram
     automorphisms or virtual crystals).
 
+    This is a helper class, mostly used to implement Kirillov-Reshetikhin crystals
+    (see: :function:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhin`).
+
     For general information about crystals see :mod:`sage.combinat.crystals`.
 
     INPUT:
@@ -106,7 +109,7 @@ class AffineCrystalFromClassical(Crystal, UniqueRepresentation):
         super(AffineCrystalFromClassical, self).__init__(category = category)
         self.classical_crystal = classical_crystal;
         self.module_generators = map( self.retract, self.classical_crystal.module_generators )
-	self.element_class._latex_ = lambda x: x.lift()._latex_()
+        self.element_class._latex_ = lambda x: x.lift()._latex_()
 
     def _repr_(self):
         """

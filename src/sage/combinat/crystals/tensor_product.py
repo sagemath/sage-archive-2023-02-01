@@ -42,7 +42,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class TestParent(UniqueRepresentation, Parent):
     def _repr_(self):
-	return "A parent for tests"
+        return "A parent for tests"
 
 class ImmutableListWithParent(CombinatorialObject, Element):
     r"""
@@ -59,7 +59,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         sage: l._list
         [1, 2, 3]
         sage: l.parent()
-	A parent for tests
+        A parent for tests
         sage: l.sibling([2,1]) == ImmutableListWithParent(TestParent(), [2,1])
         True
         sage: l.reversed()
@@ -75,12 +75,12 @@ class ImmutableListWithParent(CombinatorialObject, Element):
             sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent, TestParent
             sage: l = ImmutableListWithParent(TestParent(), [1,2,3])
             sage: l.parent()
-	    A parent for tests
-	    sage: parent(l)
-	    A parent for tests
+            A parent for tests
+            sage: parent(l)
+            A parent for tests
             sage: TestSuite(l).run(skip = "_test_category")
         """
-	Element.__init__(self, parent)
+        Element.__init__(self, parent)
         CombinatorialObject.__init__(self, list)
 
     def _repr_(self):
@@ -114,26 +114,26 @@ class ImmutableListWithParent(CombinatorialObject, Element):
                self._list == other._list
 
     def __ne__(self, other):
-	return not self.__eq__(other)
+        return not self.__eq__(other)
 
     # Should go in Element? Sets.ElementMethods?
     # How to define them conditionally, only of __lt__ is defined?
     def __le__(self, other):
-	if self == other:
-	    return True
-	else:
-	    return self.__le__(other)
+        if self == other:
+            return True
+        else:
+            return self.__le__(other)
 
     def __gt__(self, other):
-	if parent(self) is not parent(other):
-	    return NotImplemented
-	return other.__lt__(self)
+        if parent(self) is not parent(other):
+            return NotImplemented
+        return other.__lt__(self)
 
     def __ge__(self, other):
-	if self == other:
-	    return True
-	else:
-	    return self.__le__(other)
+        if self == other:
+            return True
+        else:
+            return self.__le__(other)
 
     def sibling(self, l):
         """
@@ -150,7 +150,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
             sage: m = l.sibling([2,3,4]); m
             [2, 3, 4]
             sage: m.parent()
-	    A parent for tests
+            A parent for tests
         """
         return self.__class__(self.parent(), list=l)
 
@@ -182,7 +182,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
             sage: l.set_index(1,4)
             [1, 4, 3]
             sage: _.parent()
-	    A parent for tests
+            A parent for tests
         """
         l = [i for i in self._list]
         l[k] = value
@@ -417,21 +417,21 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
     def __lt__(self, other):
         """
         Non elements of the crystal are incomparable with elements of the crystal
-	(or should it return NotImplemented?)
+        (or should it return NotImplemented?)
 
-	Comparison of two elements of this crystal:
+        Comparison of two elements of this crystal:
          - different length: incomparable
          - otherwise lexicographicaly, considering self[i] and other[i]
            as incomparable if self[i] < other[i] returns NotImplemented
         """
-	if parent(self) is not parent(other):
-	    return False
-	if len(self) != len(other):
+        if parent(self) is not parent(other):
+            return False
+        if len(self) != len(other):
             return False
         for i in range(len(self)):
-	    if (self[i] < other[i]) == True:
-	        return True
-	    if (self[i] > other[i]) == True:
+            if (self[i] < other[i]) == True:
+                return True
+            if (self[i] > other[i]) == True:
                 return False
         return False
 
@@ -467,9 +467,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
             sage: T = TensorProductOfCrystals(C,C)
             sage: T(C(1),C(2)).weight()
             (1, 1, 0, 0)
-	    sage: T=CrystalOfTableaux(['D',4],shape=[])
-	    sage: T.list()[0].weight()
-	    (0, 0, 0, 0)
+            sage: T=CrystalOfTableaux(['D',4],shape=[])
+            sage: T.list()[0].weight()
+            (0, 0, 0, 0)
         """
         return sum((self[j].weight() for j in range(len(self))), self.parent().weight_lattice_realization().zero())
 
@@ -593,18 +593,18 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
         return [len(self)-1-l[j] for j in range(len(l))]
 
     def _latex_(self):
-	"""
-	Returns latex code for self.
+        """
+        Returns latex code for self.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: C = CrystalOfLetters(["A",2])
-	    sage: D = CrystalOfTableaux(["A",2], shape=[2])
-	    sage: E = TensorProductOfCrystals(C,D)
-	    sage: E.module_generators[0]._latex_()
+            sage: C = CrystalOfLetters(["A",2])
+            sage: D = CrystalOfTableaux(["A",2], shape=[2])
+            sage: E = TensorProductOfCrystals(C,D)
+            sage: E.module_generators[0]._latex_()
             '1\\otimes{\\def\\lr#1{\\multicolumn{1}{|@{\\hspace{.6ex}}c@{\\hspace{.6ex}}|}{\\raisebox{-.3ex}{$#1$}}}\n\\raisebox{-.6ex}{$\\begin{array}[b]{cc}\n\\cline{1-1}\\cline{2-2}\n\\lr{1}&\\lr{1}\\\\\n\\cline{1-1}\\cline{2-2}\n\\end{array}$}\n}'
         """
-	return '\otimes'.join(latex(c) for c in self)
+        return '\otimes'.join(latex(c) for c in self)
 
 CrystalOfWords.Element = TensorProductOfCrystalsElement
 
@@ -888,16 +888,16 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
         return repr(self.to_tableau())
 
     def pp(self):
-	"""
-	EXAMPLES::
+        """
+        EXAMPLES::
 
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(rows=[[1,2],[3,4]])
-	    sage: t.pp()
-	    1  2
-	    3  4
-	"""
-	return self.to_tableau().pp()
+            sage: t.pp()
+            1  2
+            3  4
+        """
+        return self.to_tableau().pp()
 
     def _latex_(self):
         r"""

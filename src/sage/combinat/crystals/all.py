@@ -9,3 +9,5 @@ from fast_crystals import FastCrystal
 from affine import AffineCrystalFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion
 from kirillov_reshetikhin import KirillovReshetikhinCrystal
+from highest_weight_crystals import HighestWeightCrystal
+from direct_sum import DirectSumOfCrystals

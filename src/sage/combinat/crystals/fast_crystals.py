@@ -61,8 +61,8 @@ class FastCrystal(ClassicalCrystal):
         sage: C = FastCrystal(['A',2],shape=[4,1])
         sage: C.cardinality()
         24
-	sage: C.cartan_type()
-	['A', 2]
+        sage: C.cartan_type()
+        ['A', 2]
         sage: C.check()
         True
         sage: C = FastCrystal(['B',2],shape=[4,1])

@@ -114,6 +114,7 @@ Unfortunately, there is no argspec extractable from builtins::
 
 import inspect
 import os
+import tokenize
 EMBEDDED_MODE = False
 
 def isclassinstance(obj):
@@ -189,6 +190,67 @@ def _extract_embedded_position(docstring):
         return (original, filename, lineno)
     return None
 
+
+class BlockFinder:
+    """
+    Provide a tokeneater() method to detect the end of a code block.
+
+    This is the Python library's :class:`inspect.BlockFinder` modified
+    to recognize Cython definitions.
+    """
+    def __init__(self):
+        self.indent = 0
+        self.islambda = False
+        self.started = False
+        self.passline = False
+        self.last = 1
+
+    def tokeneater(self, type, token, srow_scol, erow_ecol, line):
+        srow, scol = srow_scol
+        erow, ecol = erow_ecol
+        if not self.started:
+            # look for the first "(cp)def", "class" or "lambda"
+            if token in ("def", "cpdef", "class", "lambda"):
+                if token == "lambda":
+                    self.islambda = True
+                self.started = True
+            self.passline = True    # skip to the end of the line
+        elif type == tokenize.NEWLINE:
+            self.passline = False   # stop skipping when a NEWLINE is seen
+            self.last = srow
+            if self.islambda:       # lambdas always end at the first NEWLINE
+                raise inspect.EndOfBlock
+        elif self.passline:
+            pass
+        elif type == tokenize.INDENT:
+            self.indent = self.indent + 1
+            self.passline = True
+        elif type == tokenize.DEDENT:
+            self.indent = self.indent - 1
+            # the end of matching indent/dedent pairs end a block
+            # (note that this only works for "def"/"class" blocks,
+            #  not e.g. for "if: else:" or "try: finally:" blocks)
+            if self.indent <= 0:
+                raise inspect.EndOfBlock
+        elif self.indent == 0 and type not in (tokenize.COMMENT, tokenize.NL):
+            # any other token on the same indentation level end the previous
+            # block as well, except the pseudo-tokens COMMENT and NL.
+            raise inspect.EndOfBlock
+
+def _getblock(lines):
+    """
+    Extract the block of code at the top of the given list of lines.
+
+    This is the Python library's :func:`inspect.getblock`, except that
+    it uses an instance of our custom :class:`BlockFinder`.
+    """
+    blockfinder = BlockFinder()
+    try:
+        tokenize.tokenize(iter(lines).next, blockfinder.tokeneater)
+    except (inspect.EndOfBlock, IndentationError):
+        pass
+    return lines[:blockfinder.last]
+
 def _extract_source(lines, lineno):
     r"""
     Given a list of lines or a multiline string and a starting lineno,
@@ -217,7 +279,7 @@ def _extract_source(lines, lineno):
         # Fixes an issue with getblock
         lines[-1] += '\n'
 
-    return inspect.getblock(lines[lineno:])
+    return _getblock(lines[lineno:])
 
 def _sage_getargspec_cython(source):
     r"""

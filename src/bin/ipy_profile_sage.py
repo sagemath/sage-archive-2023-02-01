@@ -27,3 +27,7 @@ if 'SAGE_CLEAN' not in os.environ:
 
     from sage.misc.sage_timeit import sage_timeit
     _ip.expose_magic('timeit', lambda self, s: sage_timeit(s, _ip.user_ns))
+
+    from sage.misc.preparser import preparse
+    old_prun = _ip.IP.magic_prun
+    _ip.expose_magic('prun', lambda self, s: old_prun(preparse(s)))

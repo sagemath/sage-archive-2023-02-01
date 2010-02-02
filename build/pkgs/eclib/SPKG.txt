@@ -10,14 +10,12 @@ over 25 years of hard work.
 
  * William Stein
  * John Cremona
- * Ralph Philip Weinmann
- * Michael Abshoff
 
 == Upstream Contact ==
 
  * Author: John Cremona
  * Email: john.cremona@gmail.com
- * Website: http://www.warwick.ac.uk/~masgaj/mwrank/index.html
+ * Website: http://www.warwick.ac.uk/staff/J.E.Cremona/mwrank/index.html
 
 == Dependencies ==
 
@@ -39,10 +37,16 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p9 (John Cremona, 2nd February 2010) ===
+ * Fix bug in second descent (R-solubility not tested)
+ * Enhance descent interface by providing separate rank_bound and
+   selmer_rank functions
+
 === eclib-20080310.p8 (David Kirkby, 2nd January 2010) ===
  * Allow SAGE64 to work on all platforms, not just OS X.
+
 === eclib-20080310.p7 (Michael Abshoff, October 12th, 2008) ===
- * Work around paralle make issue (#4228)
+ * Work around parallel make issue (#4228)
 
 === eclib-20080310.p6 (John Cremona, September 24th, 2008) ===
  * Apply Arnaud Bergeron's patch to use ${MAKE} instead of make.

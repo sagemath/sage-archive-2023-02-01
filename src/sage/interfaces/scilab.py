@@ -1,31 +1,36 @@
 r"""
 Interface to Scilab
 
-Scilab is a scientific software package for numerical computations providing a powerful open computing environment for engineering and scientific applications.
-Scilab includes hundreds of mathematical functions with the possibility to add interactively programs from various languages (C, C++, Fortran...).
-It has sophisticated data structures (including lists, polynomials, rational functions, linear systems...), an interpreter and a high level programming language.
+Scilab is a scientific software package for numerical computations
+providing a powerful open computing environment for engineering and
+scientific applications.  Scilab includes hundreds of mathematical
+functions with the possibility to add interactively programs from
+various languages (C, C++, Fortran...).  It has sophisticated data
+structures (including lists, polynomials, rational functions, linear
+systems...), an interpreter and a high level programming language.
 
-The commands in this section only work if you have the
-"scilab" interpreter installed and available in
-your PATH.  It's not necessary to install any special
-\sage packages.
+The commands in this section only work if you have the "scilab"
+interpreter installed and available in your PATH.  It's not necessary
+to install any special Sage packages.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: scilab.eval('2+2')                 # optional - scilab
     'ans  =\n \n    4.'
     sage: scilab('2+2')                      # optional - scilab
     4.
     sage: a = scilab(10)                     # optional - scilab
     sage: a**10                              # optional - scilab
-       1.000E+10
+    1.000D+10
 
+Tutorial based the MATLAB interface tutorial:
 
-\subsection{Tutorial based on Matlab's one}
-EXAMPLES:
+EXAMPLES::
+
     sage: scilab('4+10')                     # optional - scilab
     14.
     sage: scilab('date')                     # optional - scilab; random output
-    12-Dec-2008
+    15-Feb-2010
     sage: scilab('5*10 + 6')                 # optional - scilab
     56.
     sage: scilab('(6+6)/3')                  # optional - scilab
@@ -93,17 +98,20 @@ EXAMPLES:
     sage: my_vector1(3)                                 # optional - scilab
     7.
 
-Matrix indexing works as follows:
+Matrix indexing works as follows::
+
     sage: my_matrix = scilab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')     # optional - scilab
     sage: my_matrix(3,2)                                # optional - scilab
     4.
 
-One can also use square brackets:
+One can also use square brackets::
+
     sage: my_matrix[3,2]                                # optional - scilab
     4.
 
 
-Setting using parenthesis cannot work (because of how the Python language works).  Use square brackets or the set function:
+Setting using parenthesis cannot work (because of how the Python
+language works).  Use square brackets or the set function::
 
     sage: my_matrix = scilab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional - scilab
     sage: my_matrix.set(2,3, 1999)                          # optional - scilab
@@ -119,13 +127,12 @@ Setting using parenthesis cannot work (because of how the Python language works)
           12.          4.         23.
            8.          1.          1.
 
-TESTS:
+TESTS::
+
     sage: M = scilab(x)                                     # optional - scilab
     Traceback (most recent call last):
     ...
-    TypeError: Error executing code in Scilab
-    ...
-    Undefined variable: x
+    TypeError: _interface_init_() takes exactly one argument (0 given)
     sage: M = scilab(matrix(3,range(9))); M                 # optional - scilab
         0.    1.    2.
         3.    4.    5.
@@ -157,16 +164,13 @@ TESTS:
     sage: M(9) = x                                          # optional - scilab
     Traceback (most recent call last):
     ...
-    TypeError: Must construct a function with a tuple (or list) of SymbolicVariables.
-
+    SyntaxError: can't assign to function call (..., line 1)
 
 AUTHORS:
-   -- Ronan Paixao (2008-11-26)
-   based on the MATLAB one by William Stein (2006-10-11)
+
+   -- Ronan Paixao (2008-11-26), based on the MATLAB tutorial by
+      William Stein (2006-10-11)
 """
-
-import sys
-
 ##############################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Ronan Paixao <ronanpaixao@yahoo.com.br>
@@ -184,9 +188,9 @@ import sys
 ##############################################################################
 
 import os
+import sys
 
 from expect import Expect, ExpectElement
-
 from sage.misc.misc import verbose
 
 
@@ -261,7 +265,7 @@ class Scilab(Expect):
         Expect._start(self)
         self.eval("mode(0)")
 
-    def eval(self, command, **kwds):
+    def eval(self, command, *args, **kwds):
         """
         Evaluates commands.
 
@@ -338,7 +342,7 @@ class Scilab(Expect):
 
         EXAMPLES:
             sage: scilab.version()                      # optional - scilab
-            'scilab-5.0...'
+            'scilab-...'
         """
         return scilab_version()
 
@@ -503,7 +507,7 @@ def scilab_version():
     EXAMPLES:
         sage: from sage.interfaces.scilab import scilab_version # optional - scilab
         sage: scilab_version()    # optional - scilab
-        'scilab-5.0...'
+        'scilab-...'
     """
     return str(scilab('getversion()')).strip()
 

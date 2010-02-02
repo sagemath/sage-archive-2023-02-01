@@ -358,21 +358,272 @@ better way, but the following steps should be easy to follow.)
    replacement happened.
 
 
-Being more efficient
---------------------
+Being more efficient - Mercurial queues
+---------------------------------------
 
-Making a new clone for every review and for each revision to a patch
-seems rather inefficient.  If you agree, then learn about Mercurial
-queues.  They allow you to have two stacks (queues) of
-"works-in-progress".  One stack is applied to your Sage installation,
-the other is off to the side, i.e. the unapplied stack.  You can
-pop/push from one stack to the other.  You can work on a named set of
-changes and create a patch file from those changes without making an
-irreversible commit. So a reviewer's changes are trivial to make, and
-you can easily remove them after a review, or leave them in place to
-review something that depends on them.  Also, it is very easy to
-update a patch of your own in response to a reviewer's comments
-(without making a whole sequence of patches). The following URLs
+Making a new clone for every review and for each revision to a
+patch seems rather inefficient.  If you agree, then learn here
+about Mercurial queues.  They use Sage's Mercurial repository for
+tracking, collecting and organizing changes to Sage but are much
+more flexible and fit better with the way a typical Sage
+developer needs to work.  You will find them much more natural
+and useful than repeatedly making clones and adjusting patches in
+response to reviews.  And you don't need to learn anything about
+Mercurial itself before you can begin.
+
+In a nutshell, Mercurial queues are two stacks of patches (a
+"patch" here means "a named collection of changes").  One stack
+is a sequence of patches applied in the order in the stack, the
+other stack is a set of patches that are "out of the way" - but
+still arranged in some order.  Simple commands then allow you to
+move a patch off the top of one stack to the top of the other (in
+either direction).
+
+We will describe first how to get started, then three typical
+activities will show how to use the basic commands, and we will
+finish with a "big picture" view (which you can read first if
+your mind works that way).
+
+Starting with Mercurial queues
+------------------------------
+You might find it most convenient to install a fresh copy of Sage
+as your "development" version.  Instead of a version number for
+the ``SAGE_ROOT`` directory you might name it something like
+``dev``.  Since you will likely keep it constantly upgraded, a
+version number will not make much sense.  Mine lives at
+``/sage/dev`` with other copies right alongside in places like
+``/sage/sage-4.3.1/``.
+
+You also need to install a copy of Mercurial on your system,
+since now you will not be using Sage's simplified interface.  So
+use a package manager, or whatever, to install a recent version.
+
+You first need to "turn on" support for queues.  It is all
+built-in by default but not visible.  Edit your ``~/.hgrc`` file
+(in your home directory, where your user info is) and add the
+follwing stanza if it is not present::
+
+     [extensions]
+     # Enable the Mercurial queue extension.
+     hgext.mq =
+
+The main Mercurial repository for the Sage library lives in
+``SAGE_ROOT/devel/sage`` so you will interact with the repository
+using this as the working directory.  This means to actually run
+Sage, or rebuild it, you will use commands such as ``../../sage
+-b``.  One time only, for each repository, you need to initialize
+it for use with queues, so do the following::
+
+    cd SAGE_ROOT/devel/sage
+    hg qinit
+
+HG is the symbol for the chemical element mercury, so ``hg`` is
+the executable.  All the commands specific to queues begin with
+the letter "q".  That's all the setup, you are ready to go.  ``hg
+help mq`` will give a summary of queue commands, commands like
+``hg help qpop`` will give help for specific commands.
+
+.. _section-review-patches-queues-walkthrough:
+
+Reviewing patches with queues
+-----------------------------
+
+The two stacks used by queues are called "applied" and
+"unapplied" and the names do a good job of describing the status
+of the patches in each.  Download a patch from Trac as described
+above (:ref:`section-review-patch-walkthrough`) in the usual way.
+Then execute ::
+
+    hg qimport <path-and-filename.patch>
+
+This will add the patch to the top of your unapplied stack.  Use
+``hg qunapplied`` to verify that the patch is in this stack.
+Presumably you want to have the changes in this patch applied to
+your Sage library, so use the simple command ``hg qpush`` to
+accomplish this.  Now issue the command ``hg qapplied`` to see
+the patch now present in the applied stack.  You can now rebuild
+Sage, run the modified version, run tests, build documentation
+and so on, as described above.
+
+Let's suppose the patch you were reviewing was so bad, Sage
+wouldn't even build due to compiler errors.  So you have the time
+to review something else.  Let's move the first patch out of the
+way.  The command ``hg qpop`` will move the top patch in the
+applied queue over to the top of the unapplied queue, so you
+would do that now.  Use ``hg qapplied`` and ``hg qunapplied`` to
+verify this movement.  Now download a new patch, ``hg qimport``
+it, and ``hg qpush`` to apply it.
+
+Suppose this second patch turned out to be too far beyond your
+expertise in a certain area of mathematics or programming.  Pop
+it off the applied stack with ``hg qpop`` so it is now at the top
+of the unapplied stack, sitting on top of the the un-compilable
+patch (you hadn't forgotten that one, had you?).  Use ::
+
+    hg qdelete <patch-name>
+
+to totally get rid of it.  Bye-bye. In the meantime, the author
+of the first patch found the single little error that prevented
+the patch from compiling and has posted a very small patch to
+make the correction.  First, apply the original patch again with
+``hg qpush``, then download the small patch with the fix, use
+``hg qimport`` to get it onto the unapplied stack, then finally
+``hg qpush`` to apply it on top of the buggy patch.  Now you
+should be able to compile, experiment and test as usual with both
+patches applied.
+
+So we see you can use ``hg qimport`` and ``hg qdelete`` to move
+patches in and out, ``hg qpop`` and ``hg qpush`` to move patches
+between applied and unapplied states (stacks).  Keep track of
+where you are with liberal use of ``hg qapplied`` and ``hg
+qunapplied``.
+
+You may be wondering what to do if your patches in the stacks end
+up "out of order."  We'll cover that in a bit.
+
+Creating your own patch with queues
+-----------------------------------
+
+Let's suppose you are ready to make some changes to the Sage
+library of your own.  Put anything in the applied stack that you
+need to build on, get everything else out of the way on the
+unapplied stack (see
+:ref:`section-review-patches-queues-walkthrough` for techniques).
+Issue ::
+
+    hg qnew <descriptive-name>
+
+I am always in such a rush, I often forget this step.  I usually
+undo everything in my editor, start the patch, then redo all my
+edits, but maybe there is a better way.  The "descriptive-name"
+can be anything you like, nobody else ever has to see it.  Use a
+Trac ticket number or whatever you please.  Edit, build, test,
+create documentation, knock yourself out.  At any time, run ``hg
+qdiff`` to see your changes.
+
+Once satisfied with your work, use ``hg qrefresh`` to save your
+changes into the patch.  Even better is to use the ``-e`` or
+``-m`` switches to allow you to edit (or specify) a summary line
+for the patch.  This was described above as the commit message.
+The use of ``-m`` is illustrated below.  To create a patch file
+in the proper format for submission to Trac you need a generic
+Mercurial command.  Your patch is at the "tip" of the Mercurial
+repository and you want to export it, with redirection to a file.
+
+::
+
+    hg qrefresh -m "Trac 1234: modified matrix memory management mostly"
+    hg export tip > ~/sage-patches/trac_1234_matrix_memory.patch
+
+Now upload this to the ticket in the usual way.  Note the message
+in the ``-m`` switch is what others will see as a description of
+your patch, not the name you used in ``hg qnew`` initially.  *Do
+not use* ``hg qfinish`` when you think a patch is done, despite
+the pleasing sounding name.  It will finalize your patch, add it
+into the main repository, remove it from your queues, and
+generally make it much harder to get back to with subsequent
+edits based on reviewer comments.  Your work is not gone, but it
+will take a few steps to get it out as a patch and back into the
+queues.
+
+Of course, the minute you upload, you get a better idea about a
+key step in your algorithm.  Simple - edit some more, then ``hg
+qrefresh`` (the message stays put, so you don't have to redo it),
+and ``hg export tip > <filename>``.  You can use a new filename,
+or recycle the previous one.  Trac will let you add a new file,
+or replace the existing one with a file having the same name.
+
+Suppose a reviewer suggests some changes.  You can just keep
+editing the same patch, or you could ``hg qnew`` a second patch
+on top of the old one.  It would depend on circumstances, there
+are situations where either approach would make sense.
+
+Suppose it takes a while for a reviewer to look at your patch.
+Move it off into the unapplied stack with ``hg qpop`` and then
+begin a new project with ``hg qnew <another-name>``.  Or, leave
+your patch in the applied queue and start something new that
+relies on your first set of changes (again using ``hg qnew``).
+
+So the sequence ``hg qnew``, ``hg qrefresh``, ``hg export tip >``
+will create a new patch and allow you to easily amend or extend
+it, or totally move it "out of the way" to do other things.
+
+Upgrading Sage with queues present
+----------------------------------
+
+When it is time to upgrade Sage to the latest release, you need
+to return your development version back to a virgin state.  Use
+``hg qrefresh`` on whatever patch you are currently creating (if
+any).  Then pop everything off the applied stack with ``hg qpop
+-a``, where the switch means "all."  There you are - back to a
+known good state.  Now use the standard commands to upgrade
+Sage::
+
+    cd SAGE_ROOT
+    ./sage -upgrade
+
+Sometimes for intermediate releases you will need a URL as an
+argument to the ``-upgrade`` switch.  Check the Sage discussion
+groups, where these locations are typically announced.  Now you
+can ``hg qpush`` to put all your patches back onto the applied
+stack in the same order.  Realize however, that the upgrade may
+have changed some of the source code where your patches have
+changes.  Certainly, if you have patches you reviewed positively,
+those exact changes may already be present (so at least ``hg
+qdelete`` those patches before pushing everything back on).
+
+
+The Big Picture for Mercurial queues
+------------------------------------
+
+At some time when you have a few patches applied, and a few
+unapplied, run ::
+
+    cd SAGE_ROOT/devel/sage
+    hg qapplied
+    hg qunapplied
+    cat .hg/patches/series
+
+The output of the two ``hg`` commands should together look just
+like the output of the ``cat`` command.  The
+``.hg/patches/series`` file has all of the names of your patches
+in some order, and you can imagine a separator that splits the
+list into the applied portion at the start of the file and the
+unapplied portion at the end of the file.  The top of each stack
+is on either side of the separator.  (So the order of each stack
+runs in opposite directions in this file.)
+
+``hg qpush`` moves the separator toward the end of the file,
+while ``hg qpop`` moves the separator toward the start of the
+file.  ``hg qnew`` inserts a new patch on the side of the
+separator toward the start of the file, while ``hg qimport`` adds
+an existing patch on the side of the separator toward the end of
+the file.  ``hg qdelete`` just totally removes a name from the
+series file.
+
+So what if you want to rearrange the order of your patches (in
+either stack).  ``hg qpop`` until all the affected patches are in
+the unapplied stack.  Open ``.hg/patches/series`` with a text
+editor and rearrange the lines below the imaginary separator.
+Save the series file and confirm the new ordering with ``hg
+applied`` and ``hg qunapplied``.  ``hg qpush`` repeatedly to get
+to where you want to be.
+
+
+More on queues
+--------------
+So with careful mangement of your queues and regular upgrades,
+you can contribute to Sage easily, review others' patches, work
+on several projects simultaneously, etc, all with just a single
+copy of Sage devoted to development.
+
+If you know how "regular" Mercurial functions (and even if you
+don't) you can look at the main Mercurial repository (with ``hg
+log | more``) and see how queues "insert" your applied patches
+near the tip of the repository, all "behind the scenes."
+
+There's lots more you can do with queues, but you should
+understand enough now to experiment safely. The following URLs
 contain introductory tutorials on using Mercurial queues:
 
 * http://mercurial.selenic.com/wiki/MqExtension
@@ -381,6 +632,6 @@ contain introductory tutorials on using Mercurial queues:
 
 The online book
 `Mercurial: The Definitive Guide <http://hgbook.red-bean.com>`_
-by Bryan O'Sullivan contains numerous examples on using Mercurial. See
-especially Chapters 12 and 13 for explanation on how to effectively
-use Mercurial queue.
+by Bryan O'Sullivan contains numerous examples on using
+Mercurial. See especially Chapters 12 and 13 for explanation
+on how to effectively use Mercurial queues.

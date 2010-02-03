@@ -2786,6 +2786,48 @@ cdef class Expression(CommutativeRingElement):
 
     trig_expand = expand_trig
 
+    def reduce_trig(self, var=None):
+        r"""
+        Combines products and powers of trigonometric and hyperbolic
+        sin's and cos's of x into those of multiples of x. It also
+        tries to eliminate these functions when they occur in
+        denominators.
+
+        INPUT:
+
+        - ``self`` - a symbolic expression
+
+        - ``var`` - (default: None) the variable which is used for
+          these transformations. If not specified, all variables are
+          used.
+
+        OUTPUT: a symbolic expression
+
+        EXAMPLES::
+
+            sage: y=var('y')
+            sage: f=sin(x)*cos(x)^3+sin(y)^2
+            sage: f.reduce_trig()
+            1/4*sin(2*x) + 1/8*sin(4*x) - 1/2*cos(2*y) + 1/2
+
+        To reduce only the expressions involving x we use optional parameter::
+
+            sage: f.reduce_trig(x)
+            sin(y)^2 + 1/4*sin(2*x) + 1/8*sin(4*x)
+
+        ALIASES: :meth:`trig_reduce` and :meth:`reduce_trig` are the same
+        """
+        M = self._maxima_()
+        P = M.parent()
+        if var is None:
+            cmd = 'trigreduce(%s)'%(M.name())
+        else:
+            cmd = 'trigreduce(%s,%s)'%(M.name(),str(var))
+        ans = P(cmd)
+        return self.parent()(ans)
+
+    trig_reduce = reduce_trig
+
     ############################################################################
     # Pattern Matching
     ############################################################################
@@ -5357,7 +5399,7 @@ cdef class Expression(CommutativeRingElement):
 
            :meth:`simplify_full`, :meth:`simplify_trig`,
            :meth:`simplify_rational`, :meth:`simplify_radical`,
-           :meth:`simplify_factorial`
+           :meth:`simplify_factorial`, :meth:`simplify_log`
 
         EXAMPLES::
 
@@ -5406,18 +5448,29 @@ cdef class Expression(CommutativeRingElement):
         x = x.simplify_trig()
         x = x.simplify_rational()
         x = x.simplify_radical()
+        x = x.simplify_log('one')
         return x
 
     full_simplify = simplify_full
 
-    def simplify_trig(self):
+    def simplify_trig(self,expand=True):
         r"""
-        First expands using trig_expand, then employs the identities
-        `\sin(x)^2 + \cos(x)^2 = 1` and
-        `\cosh(x)^2 - \sin(x)^2 = 1` to simplify expressions
-        containing tan, sec, etc., to sin, cos, sinh, cosh.
+        Optionally expands and then employs the identities
+        `\sin(x)^2 + \cos(x)^2 = 1` and `\cosh(x)^2 - \sinh(x)^2 = 1`
+        to simplify expressions containing tan, sec, etc., to sin,
+        cos, sinh, cosh.
 
-        ALIAS: trig_simplify and simplify_trig are the same
+        INPUT:
+
+        - ``self`` - symbolic expression
+
+        - ``expand`` - (default:True) if True, expands trigonometric
+          and hyperbolic functions of sums of angles and of multiple
+          angles occurring in ``self`` first. For best results,
+          ``self`` should be expanded. See also :meth:`expand_trig` to
+          get more controls on this expansion.
+
+        ALIAS: :meth:`trig_simplify` and :meth:`simplify_trig` are the same
 
         EXAMPLES::
 
@@ -5427,18 +5480,55 @@ cdef class Expression(CommutativeRingElement):
             sin(x)^2 + cos(x)^2
             sage: f.simplify_trig()
             1
+
+        In some cases we do not want to expand::
+
+            sage: f=tan(3*x)
+            sage: f.simplify_trig()
+            (4*cos(x)^2 - 1)*sin(x)/(4*cos(x)^3 - 3*cos(x))
+            sage: f.simplify_trig(False)
+            sin(3*x)/cos(3*x)
+
         """
         # much better to expand first, since it often doesn't work
         # right otherwise!
-        return self.parent()(self._maxima_().trigexpand().trigsimp())
+        if expand:
+            return self.parent()(self._maxima_().trigexpand().trigsimp())
+        else:
+            return self.parent()(self._maxima_().trigsimp())
 
     trig_simplify = simplify_trig
 
-    def simplify_rational(self):
-        """
-        Simplify by expanding repeatedly rational expressions.
+    def simplify_rational(self,method='full', map=False):
+        r"""
+        Simplify rational expressions.
 
-        ALIAS: rational_simplify and simplify_rational are the same
+        INPUT:
+
+        - ``self`` - symbolic expression
+
+        - ``method`` - (default: 'full') string which switches the
+          method for simplifications. Possible values are
+
+          - 'simple' (simplify rational functions into quotient of two
+            poylnomials),
+
+          - 'full' (apply repeatedly, if necessary)
+
+          - 'noexpand' (convert to commmon denominator and add)
+
+        - ``map`` - (default: False) if True, the result is an
+          expression whose leading operator is the same as that of the
+          expression ``self`` but whose subparts are the results of
+          applying simplifaction rules to the corresponding subparts
+          of the expressions.
+
+        ALIAS: :meth:`rational_simplify` and :meth:`simplify_rational`
+        are the same
+
+        DETAILS: We call Maxima functions ratsimp, fullratsimp and
+        xthru. If each part of the expression has to be simplified
+        separately, we use Maxima function map.
 
         EXAMPLES::
 
@@ -5454,13 +5544,49 @@ cdef class Expression(CommutativeRingElement):
             ((x - 1)^(3/2) - sqrt(x - 1)*(x + 1))/sqrt((x - 1)*(x + 1))
             sage: f.simplify_rational()
             -2*sqrt(x - 1)/sqrt(x^2 - 1)
+
+        With ``map=True`` each term in a sum is simplified separately
+        and thus the resuls are shorter for functions which are
+        combination of rational and nonrational funtions. In the
+        following example, we use this option if we want not to
+        combine logarithm and the rational function into one
+        fraction::
+
+            sage: f=(x^2-1)/(x+1)-ln(x)/(x+2)
+            sage: f.simplify_rational()
+            (x^2 + x - log(x) - 2)/(x + 2)
+            sage: f.simplify_rational(map=True)
+            x - log(x)/(x + 2) - 1
+
+        With option ``method='noexpand'`` we only convert to common
+        denominators and add. No expansion of products is performed::
+
+            sage: f=1/(x+1)+x/(x+2)^2
+            sage: f.simplify_rational()
+            (2*x^2 + 5*x + 4)/(x^3 + 5*x^2 + 8*x + 4)
+            sage: f.simplify_rational(method='noexpand')
+            ((x + 1)*x + (x + 2)^2)/((x + 1)*(x + 2)^2)
+
         """
-        return self.parent()(self._maxima_().fullratsimp())
+        self_m = self._maxima_()
+        if method == 'full':
+            maxima_method = 'fullratsimp'
+        elif method == 'simple':
+            maxima_method = 'ratsimp'
+        elif method == 'noexpand':
+            maxima_method = 'xthru'
+        else:
+            raise NotImplementedError, "unknown method, see the help for available methods"
+        P = self_m.parent()
+        self_str=self_m.str()
+        if map:
+            cmd = "if atom(%s) then %s(%s) else map(%s,%s)"%(self_str,maxima_method,self_str,maxima_method,self_str)
+        else:
+            cmd = "%s(%s)"%(maxima_method,self_m.str())
+        res = P(cmd)
+        return self.parent()(res)
 
     rational_simplify = simplify_rational
-
-    # TODO: come up with a way to intelligently wrap Maxima's way of
-    # fine-tuning all simplificationsrational
 
     def simplify_factorial(self):
         """
@@ -5525,8 +5651,8 @@ cdef class Expression(CommutativeRingElement):
         among the components of the expression for simplifications based on
         factoring and partial fraction expansions of exponents."
 
-        ALIAS: radical_simplify, simplify_radical, simplify_log,
-        log_simplify, exp_simplify, simplify_exp are all the same
+        ALIAS: radical_simplify, simplify_radical, exp_simplify, simplify_exp
+        are all the same
 
         EXAMPLES::
 
@@ -5557,8 +5683,233 @@ cdef class Expression(CommutativeRingElement):
         maxima.eval('domain: complex$')
         return res
 
-    radical_simplify = simplify_log = log_simplify = simplify_radical
+    radical_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
+
+    def simplify_log(self,method=None):
+        r"""
+        Simplifies symbolic expression, which can contain logs.
+
+        Recursively scans the expression self, transforming
+        subexpressions of the form a1*log(b1) + a2*log(b2) + c into
+        log(b1^a1 * b2^a2) + c and simplifies inside logarithm. User
+        can specify, which conditions must satisfy a1 and a2 to use
+        this transformation in optional parameter ``method``.
+
+        INPUT:
+
+        - ``self`` - expression to be simplified
+
+        - ``method`` - (default: None) optional, governs the condition
+          on a1 and a2 which must be satisfied to contract expression
+          a1*log(b1) + a2*log(b2). Values are
+
+          - None (use Maxima default, integers),
+
+          - 'one' (1 and -1),
+
+          - 'ratios' (integers and fractions of integers),
+
+          - 'constants' (constants),
+
+          - 'all' (all expressions).
+
+          See also examples below.
+
+        DETAILS: This uses the Maxima logcontract() command. From the
+        Maxima documentation: "Recursively scans the expression expr,
+        transforming subexpressions of the form a1*log(b1) +
+        a2*log(b2) + c into log(ratsimp(b1^a1 * b2^a2)) + c. The user
+        can control which coefficients are contracted by setting the
+        option logconcoeffp to the name of a predicate function of one
+        argument. E.g. if you like to generate SQRTs, you can do
+        logconcoeffp:'logconfun$ logconfun(m):=featurep(m,integer) or
+        ratnump(m)$ . Then logcontract(1/2*log(x)); will give
+        log(sqrt(x))."
+
+        ALIAS: :meth:`log_simplify` and :meth:`log_simplify` are the
+        same
+
+        EXAMPLES::
+
+            sage: x,y,t=var('x y t')
+
+        Only two first terms are contracted in the following example ,
+        the logarithm with coefficient 1/2 is not contracted::
+
+            sage: f = log(x)+2*log(y)+1/2*log(t)
+            sage: f.simplify_log()
+            log(x*y^2) + 1/2*log(t)
+
+        To contract all terms in previous example use option ``method``::
+
+            sage: f.simplify_log(method='ratios')
+            log(sqrt(t)*x*y^2)
+
+        This shows that the option ``method`` from the previous call
+        has no influence to future calls (we changed some default
+        Maxima flag and have to ensure, that this flag has been
+        restored)::
+
+            sage: f.simplify_log('one')
+            1/2*log(t) + log(x) + 2*log(y)
+
+            sage: f.simplify_log('ratios')
+            log(sqrt(t)*x*y^2)
+
+            sage: f.simplify_log()
+            log(x*y^2) + 1/2*log(t)
+
+        To contract terms with no coefficient (more preciselly, with
+        coefficients 1 and -1) use option ``method``::
+
+            sage: f = log(x)+2*log(y)-log(t)
+            sage: f.simplify_log('one')
+            2*log(y) + log(x/t)
+
+        ::
+
+            sage: f = log(x)+log(y)-1/3*log((x+1))
+            sage: f.simplify_log()
+            -1/3*log(x + 1) + log(x*y)
+
+            sage: f.simplify_log('ratios')
+            log(x*y/(x + 1)^(1/3))
+
+        `\pi` is irrational number, to contract logarithms in the following example
+        we have to put ``method`` to ``constants`` or ``all``::
+
+            sage: f = log(x)+log(y)-pi*log((x+1))
+            sage: f.simplify_log('constants')
+            log(x*y/(x + 1)^pi)
+
+        x*log(9) is contracted only if ``method`` is ``all``::
+
+            sage: (x*log(9)).simplify_log()
+            x*log(9)
+            sage: (x*log(9)).simplify_log('all')
+            log(9^x)
+
+        TESTS::
+
+        This shows that the issue at trac #7344 is fixed::
+
+            sage: (log(sqrt(2)-1)+log(sqrt(2)+1)).simplify_full()
+            0
+
+        AUTHORS:
+
+        - Robert Marik (11-2009)
+        """
+        from sage.calculus.calculus import maxima
+        maxima.eval('domain: real$ savelogexpand:logexpand$ logexpand:false$')
+        if method is not None:
+            maxima.eval('logconcoeffp:\'logconfun$')
+        if method == 'ratios':
+            maxima.eval('logconfun(m):= featurep(m,integer) or ratnump(m)$')
+        elif method == 'one':
+            maxima.eval('logconfun(m):= is(m=1) or is(m=-1)$')
+        elif method == 'constants':
+            maxima.eval('logconfun(m):= constantp(m)$')
+        elif method == 'all':
+            maxima.eval('logconfun(m):= true$')
+        elif method is not None:
+            raise NotImplementedError, "unknown method, see the help for available methods"
+        res = self.parent()(self._maxima_().logcontract())
+        maxima.eval('domain: complex$')
+        if method is not None:
+            maxima.eval('logconcoeffp:false$')
+            maxima.eval('logexpand:savelogexpand$')
+        return res
+
+    log_simplify = simplify_log
+
+    def expand_log(self,method='products'):
+        r"""
+        Simplifies symbolic expression, which can contain logs.
+
+        Expands logarithms of powers, logarithms of products and
+        logarithms of quotients.  the option ``mehotd`` tells, which
+        expression should be expanded.
+
+        INPUT:
+
+        - ``self`` - expression to be simplified
+
+        - ``method`` - (default: 'product') optional, governs which
+          expression is expanded. Possible values are
+
+          - 'nothing' (no expansion),
+
+          - 'powers' (log(a^r) is expanded),
+
+          - 'products' (like 'powers' and also log(a*b) are expanded),
+
+          - 'all' (all possible expansion).
+
+          See also examples below.
+
+        DETAILS: This uses the Maxima simplifier and sets
+        ``logexpand`` option for this simplifier. From the Maxima
+        documentation: "Logexpand:true causes log(a^b) to become
+        b*log(a). If it is set to all, log(a*b) will also simplify to
+        log(a)+log(b). If it is set to super, then log(a/b) will also
+        simplify to log(a)-log(b) for rational numbers a/b,
+        a#1. (log(1/b), for integer b, always simplifies.) If it is
+        set to false, all of these simplifications will be turned
+        off. "
+
+        ALIAS: :meth:`log_expand` and :meth:`expand(log)` are the same
+
+        EXAMPLES::
+
+        By default powers and products (and quotients) are expanded,
+        but not quotients of integers::
+
+            sage: (log(3/4*x^pi)).log_expand()
+            pi*log(x) + log(3/4)
+
+        To expand also log(3/4) use ``method='all'``::
+
+            sage: (log(3/4*x^pi)).log_expand('all')
+            pi*log(x) + log(3) - log(4)
+
+        To expand only the power use ``method='powers'``.::
+
+            sage: (log(x^6)).log_expand('powers')
+            6*log(x)
+
+        The expression ``log((3*x)^6)`` is not expanded with
+        ``method='powers'``, since it is converted into product
+        first::
+
+            sage: (log((3*x)^6)).log_expand('powers')
+            log(729*x^6)
+
+
+        AUTHORS:
+
+        - Robert Marik (11-2009)
+        """
+        from sage.calculus.calculus import maxima
+        maxima.eval('domain: real$')
+        if method == 'nothing':
+            maxima_method='false'
+        elif method == 'powers':
+            maxima_method='true'
+        elif method == 'products':
+            maxima_method='all'
+        elif method == 'all':
+            maxima_method='super'
+        else:
+            raise NotImplementedError, "unknown method, see the help for available methods"
+        self_m = self._maxima_()
+        res = self_m.ev("logexpand:%s"%maxima_method)
+        res = res.sage()
+        maxima.eval('domain: complex$')
+        return res
+
+    log_expand = expand_log
 
 
     def factor(self, dontfactor=[]):

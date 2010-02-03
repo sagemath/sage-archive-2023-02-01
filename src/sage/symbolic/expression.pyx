@@ -313,9 +313,7 @@ cdef class Expression(CommutativeRingElement):
         # extract the expression from the archive
         GEx_construct_ex(&self._gobj, ar.unarchive_ex(sym_lst, <unsigned>0))
 
-    # TODO: The keyword argument simplify is for compatibility with
-    # old symbolics, once the switch is complete, it should be removed
-    def _repr_(self, simplify=None):
+    def _repr_(self):
         """
         Return string representation of this symbolic expression.
 
@@ -2529,7 +2527,7 @@ cdef class Expression(CommutativeRingElement):
                 raise ValueError, "No differentiation variable specified."
         if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
                 or deg < 1:
-            raise TypeError, "argument deg should be an integer >1."
+            raise TypeError, "argument deg should be an integer >= 1."
         cdef Expression symbol = self.coerce_in(symb)
         if not is_a_symbol(symbol._gobj):
             raise TypeError, "argument symb must be a symbol"
@@ -5516,6 +5514,23 @@ cdef class Expression(CommutativeRingElement):
         if var is None:
             var = self.default_variable()
         return self.parent()(self._maxima_().partfrac(var))
+
+    def maxima_methods(self):
+        """
+        Provides easy access to maxima methods, converting the result to a
+        Sage expression automatically.
+
+        EXAMPLES::
+
+            sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
+            log(sqrt(2) - 1) + log(sqrt(2) + 1)
+            sage: res = t.maxima_methods().logcontract(); res
+            0
+            sage: type(res)
+            <type 'sage.symbolic.expression.Expression'>
+        """
+        from sage.symbolic.maxima_wrapper import MaximaWrapper
+        return MaximaWrapper(self)
 
     def simplify(self):
         """

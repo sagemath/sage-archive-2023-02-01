@@ -21,6 +21,7 @@ from sage.all import ntl
 from sage.rings.integer cimport Integer
 
 include "../../ext/cdefs.pxi"
+include "../../ext/interrupt.pxi"
 include "../../libs/flint/fmpz_poly.pxi"
 
 from sage.libs.flint.zmod_poly cimport *, zmod_poly_t
@@ -937,7 +938,7 @@ def test_els(a,b,c,d,e):
 
 cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len,
                int global_limit_small, int global_limit_large,
-               int verbosity, bint selmer_only, mpz_t n1, mpz_t n2):
+               int verbosity, bint selmer_only, mpz_t n1, mpz_t n2) except -1:
     """
     Count the number of els/gls quartic 2-covers of E.
     """
@@ -1013,13 +1014,15 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
                 print "\nCalling ratpoints for small point search"
             for i from 0 <= i <= 4:
                 mpz_set(coeffs_ratp[i], coeffs[i])
-            if ratpoints_mpz_exists_only(coeffs_ratp, global_limit_small, 4, verbose):
+            _sig_on
+            found_global_points = ratpoints_mpz_exists_only(coeffs_ratp, global_limit_small, 4, verbose)
+            _sig_off
+            if found_global_points:
                 if verbosity > 2:
                     a_Int = Integer(0); mpz_set(a_Int.value, coeffs[4])
                     c_Int = Integer(0); mpz_set(c_Int.value, coeffs[2])
                     e_Int = Integer(0); mpz_set(e_Int.value, coeffs[0])
                     print 'Found small global point, quartic (%d,%d,%d,%d,%d)'%(a_Int,0,c_Int,0,e_Int)
-                found_global_points = 1
                 mpz_add_ui(n1, n1, ui1)
                 mpz_add_ui(n2, n2, ui1)
             if verbose:
@@ -1043,7 +1046,10 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
                         print "\nCalling ratpoints for large point search"
                     for i from 0 <= i <= 4:
                         mpz_set(coeffs_ratp[i], coeffs[i])
-                    if ratpoints_mpz_exists_only(coeffs_ratp, global_limit_large, 4, verbose):
+                    _sig_on
+                    found_global_points = ratpoints_mpz_exists_only(coeffs_ratp, global_limit_large, 4, verbose)
+                    _sig_off
+                    if found_global_points:
                         if verbosity > 2:
                             print '  -- Found large global point.'
                         mpz_add_ui(n1, n1, ui1)
@@ -1125,6 +1131,28 @@ def two_descent_by_two_isogeny(E,
         sage: n1, n2, n1_prime, n2_prime = two_descent_by_two_isogeny(E)
         sage: log(n1,2) + log(n1_prime,2) - 2 # the rank
         0
+
+    TESTS:
+
+    Here we contrive an example to demonstrate that a keyboard interrupt
+    is caught. Here we let `E` be the smallest optimal curve with two-torsion
+    and nontrivial Sha[2]. This ensures that the two-descent will be looking
+    for rational points which do not exist, and by setting global_limit_large
+    to a very high bound, it will still be working when we simulate a ctrl-c::
+
+        sage: from sage.schemes.elliptic_curves.descent_two_isogeny import two_descent_by_two_isogeny
+        sage: import signal
+        sage: E = EllipticCurve('960d'); E
+        Elliptic Curve defined by y^2 = x^3 - x^2 - 900*x - 10098 over Rational Field
+        sage: E.sha().an()
+        4
+        sage: try:
+        ...     signal.alarm(2)
+        ...     two_descent_by_two_isogeny(E, global_limit_large=10^8)
+        ... except KeyboardInterrupt:
+        ...     print "Caught!"
+        0
+        ... Caught!
 
     """
     cdef Integer a1, a2, a3, a4, a6, s2, s4, s6

@@ -613,17 +613,29 @@ class WordGenerator(object):
         else:
             return alphabet[0]
 
-    def CharacteristicSturmianWord(self, cf, alphabet=(0, 1), bits=None):
+    def CharacteristicSturmianWord(self, slope, alphabet=(0, 1), bits=None):
         r"""
-        Returns the characteristic Sturmian word of the given slope ``cf``.
+        Returns the characteristic Sturmian word (also called standard
+        Sturmian word) of given slope.
 
-        The `n`-th term of the characteristic Sturmian word
-        of an irrational slope `\alpha` is `\lfloor\alpha(n+1)\rfloor -
-        \lfloor\alpha n\rfloor + \lfloor\alpha\rfloor`. [1]
+        Over a binary alphabet `\{a,b\}`, the characteristic Sturmian
+        word `c_\alpha` of slope `\alpha` is the infinite word satisfying
+        `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`, where
+        `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower and
+        upper mechanical words with slope `\alpha` and intercept `0`.
+        Equivalently, `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
+
+        Let `\alpha = [0, d_1 + 1, d_2, d_3, \ldots]` be the continued
+        fraction expansion of `\alpha`. It has been shown that the
+        characteristic Sturmian word of slope `\alpha` is also the limit of
+        the sequence: `s_0 = b, s_1 = a, \ldots, s_{n+1} = s_n^{d_n} s_{n-1}`
+        for `n > 0`.
+
+        See Section 2.1 of [1] for more details.
 
         INPUT:
 
-        -  ``cf`` - the slope of the word. It can be one of the following :
+        -  ``slope`` - the slope of the word. It can be one of the following :
 
            -  real number in `]0, 1[`
 
@@ -633,8 +645,8 @@ class WordGenerator(object):
         -  ``alphabet`` - any container of length two that is suitable to
            build an instance of OrderedAlphabet (list, tuple, str, ...)
 
-        -  ``bits`` - integer (optional and considered only if ``cf`` is a real
-           number) the number of bits to consider when computing the
+        -  ``bits`` - integer (optional and considered only if ``slope`` is
+           a real number) the number of bits to consider when computing the
            continued fraction.
 
         OUTPUT:
@@ -645,7 +657,7 @@ class WordGenerator(object):
 
         Let `[0, d_1 + 1, d_2, d_3, \ldots]` be the continued fraction
         expansion of `\alpha`. Then, the characteristic Sturmian word of
-        slope `\alpha` is the limit of the sequence: `s_0 = 1`, `s_1 = 0`
+        slope `\alpha` is the limit of the sequence: `s_0 = b`, `s_1 = a`
         and `s_{n+1} = s_n^{d_n} s_{n-1}` for `n > 0`.
 
         EXAMPLES:
@@ -679,13 +691,13 @@ class WordGenerator(object):
             sage: words.CharacteristicSturmianWord(cf(), 'rs')
             word: rsrrsrsrrsrrsrsrrsrsrrsrrsrsrrsrrsrsrrsr...
 
-        The characteristic sturmian word of slope `(\sqrt(3)-1)/2`::
+        The characteristic sturmian word of slope `(\sqrt{3}-1)/2`::
 
             sage: words.CharacteristicSturmianWord((sqrt(3)-1)/2)
             word: 0100100101001001001010010010010100100101...
 
         The same word defined from the continued fraction expansion of
-        `(\sqrt(3)-1)/2`::
+        `(\sqrt{3}-1)/2`::
 
             sage: from itertools import cycle, chain
             sage: it = chain([0], cycle([2, 1]))
@@ -693,7 +705,7 @@ class WordGenerator(object):
             word: 0100100101001001001010010010010100100101...
 
         The first terms of the standard sequence of the characteristic
-        sturmian word of slope `(\sqrt(3)-1)/2`::
+        sturmian word of slope `(\sqrt{3}-1)/2`::
 
             sage: words.CharacteristicSturmianWord([0,2])
             word: 01
@@ -720,7 +732,7 @@ class WordGenerator(object):
             sage: words.CharacteristicSturmianWord(5/4)
             Traceback (most recent call last):
             ...
-            NotImplementedError: The argument cf (=5/4) must be in ]0,1[.
+            ValueError: The argument slope (=5/4) must be in ]0,1[.
 
         ::
 
@@ -762,18 +774,18 @@ class WordGenerator(object):
         """
         if len(set(alphabet)) != 2:
             raise TypeError, "alphabet does not contain two distinct elements"
-        if cf in RR:
-            if not 0 < cf < 1:
-                msg = "The argument cf (=%s) must be in ]0,1[."%cf
-                raise NotImplementedError, msg
+        if slope in RR:
+            if not 0 < slope < 1:
+                msg = "The argument slope (=%s) must be in ]0,1[."%slope
+                raise ValueError, msg
             from sage.rings.all import CFF
-            cf = iter(CFF(cf, bits=bits))
+            cf = iter(CFF(slope, bits=bits))
             length = 'finite'
-        elif hasattr(cf, '__iter__'):
-            cf = iter(cf)
+        elif hasattr(slope, '__iter__'):
+            cf = iter(slope)
             length = Infinity
         else:
-            raise TypeError("cf (=%s) must be a real number"%cf +
+            raise TypeError("slope (=%s) must be a real number"%slope +
                             "or an iterable.")
         w = Words(alphabet)(
                 self._CharacteristicSturmianWord_LetterIterator(cf,alphabet),
@@ -838,12 +850,13 @@ class WordGenerator(object):
 
     def LowerMechanicalWord(self, alpha, rho=0, alphabet=None):
         r"""
-        Returns the lower mechanical word.
+        Returns the lower mechanical word with slope `\alpha` and
+        intercept `\rho`
 
-        The word `s_{\alpha,\rho}` is the *lower mechanical word* with
-        slope `\alpha` and intercept `\rho` defined by
+        The lower mechanical word `s_{\alpha,\rho}` with
+        slope `\alpha` and intercept `\rho` is defined by
         `s_{\alpha,\rho}(n)=\lfloor\alpha(n+1)+\rho\rfloor -
-        \lfloor\alpha n + \rho\rfloor`. [1]
+        \lfloor\alpha n + \rho\rfloor` [1].
 
         INPUT:
 
@@ -881,7 +894,7 @@ class WordGenerator(object):
         from sage.functions.other import floor
         if not 0 <= alpha <= 1:
             msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
-            raise NotImplementedError, msg
+            raise ValueError, msg
         if alphabet is None or alphabet in ((0, 1), [0, 1]):
             s = lambda n: floor(alpha*(n+1) + rho) - floor(alpha*n + rho)
         else:
@@ -895,10 +908,11 @@ class WordGenerator(object):
 
     def UpperMechanicalWord(self, alpha, rho=0, alphabet=None):
         r"""
-        Returns the upper mechanical word.
+        Returns the upper mechanical word with slope `\alpha` and
+        intercept `\rho`
 
-        The word `s'_{\alpha,\rho}` is the *upper mechanical word* with
-        slope `\alpha` and intercept `\rho` defined by
+        The upper mechanical word `s'_{\alpha,\rho}` with
+        slope `\alpha` and intercept `\rho` is defined by
         `s'_{\alpha,\rho}(n)=\lceil\alpha(n+1)+\rho\rceil -
         \lceil\alpha n + \rho\rceil`. [1]
 
@@ -938,7 +952,7 @@ class WordGenerator(object):
         from sage.functions.other import ceil
         if not 0 <= alpha <= 1:
             msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
-            raise NotImplementedError, msg
+            raise ValueError, msg
         if alphabet is None or alphabet in ((0, 1), [0, 1]):
             s = lambda n: ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)
         else:

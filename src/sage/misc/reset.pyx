@@ -4,7 +4,7 @@ import sys
 # DATA, base64 -- needed by the notebook
 EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64'])
 
-def reset(vars=None):
+def reset(vars=None, attached=False):
     """
     Delete all user-defined variables, reset all global variables
     back to their default states, and reset all interfaces to other
@@ -17,14 +17,33 @@ def reset(vars=None):
     excluded from being reset.
 
     INPUT:
-        vars -- (default: None), a list, or space or comma separated
-        string.
 
-    EXAMPLES:
+    - ``vars`` - a list, or space or comma separated string (default:
+      None), variables to restore
+
+    - ``attached`` - boolean (default: False), if ``vars`` is not None,
+      whether to detach all attached files
+
+    EXAMPLES::
+
         sage: x = 5
         sage: reset()
         sage: x
         x
+
+        sage: fn = os.path.normpath(tmp_filename() + 'foo.py')
+        sage: sage.misc.reset.EXCLUDE.add('fn')
+        sage: open(fn, 'w').write('a = 111')
+        sage: attach(fn)
+        sage: [fn] == attached_files()
+        True
+        sage: reset()
+        sage: [fn] == attached_files()
+        True
+        sage: reset(attached=True)
+        sage: [fn] == attached_files()
+        False
+        sage: sage.misc.reset.EXCLUDE.remove('fn')
 
     TESTS:
 
@@ -57,17 +76,20 @@ def reset(vars=None):
     restore()
     forget()
     reset_interfaces()
-    reset_attached()
+    if attached:
+        reset_attached()
 
 def restore(vars=None):
     """
     Restore predefined global variables to their default values.
 
     INPUT:
-       vars -- string or list (default: None) if not None, restores
-               just the given variables to the default value.
 
-    EXAMPLES:
+    - ``vars`` - string or list (default: None), if not None, restores
+      just the given variables to the default value.
+
+    EXAMPLES::
+
         sage: x = 10; y = 15/3; QQ='red'
         sage: QQ
         'red'
@@ -157,4 +179,3 @@ def reset_attached():
     """
     import preparser
     preparser.attached = {}
-

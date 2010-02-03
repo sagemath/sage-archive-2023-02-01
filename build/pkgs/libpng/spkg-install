@@ -11,7 +11,7 @@ unset RM
 cd src
 
 # Need to detect zlib
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+if [ `uname` = "x$SAGE64" = xyes ]; then
     CFLAGS="-m64 $CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
     LDFLAGS="-m64"; export LDFLAGS
 else

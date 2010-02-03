@@ -12,7 +12,6 @@ The libpng license - see http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
  * William Stein
 
 == Upstream Contact ==
@@ -36,6 +35,9 @@ This spkg provides dependencies for
  * No changes went into src. There are two different tarballs, but we use the one with configure.
 
 == Changelog ==
+
+=== libpng-1.2.35.p0 (Jaap Spies, Feb 1th, 2010) ===
+ *
 
 === libpng-1.2.35 (Michael Abshoff, April 10th, 2009) ===
  * update to latest upstream due to security issue in libpng (#5696)

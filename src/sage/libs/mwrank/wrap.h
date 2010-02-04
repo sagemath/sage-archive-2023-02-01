@@ -104,15 +104,17 @@ EXTERN struct two_descent* two_descent_new(struct Curvedata* curve,  \
 
 EXTERN void two_descent_del(struct two_descent* t);
 
-EXTERN long two_descent_getrank(struct two_descent* t);
+EXTERN long two_descent_get_rank(struct two_descent* t);
 
-EXTERN long two_descent_getselmer(struct two_descent* t);
+EXTERN long two_descent_get_rank_bound(struct two_descent* t);
 
-EXTERN char* two_descent_getbasis(struct two_descent* t);
+EXTERN long two_descent_get_selmer_rank(struct two_descent* t);
+
+EXTERN char* two_descent_get_basis(struct two_descent* t);
 
 EXTERN int two_descent_ok(const struct two_descent* t);
 
-EXTERN long two_descent_getcertain(const struct two_descent* t);
+EXTERN long two_descent_get_certain(const struct two_descent* t);
 
 EXTERN void two_descent_saturate(struct two_descent* t, long sat_bd); // = 0 for unbounded
 

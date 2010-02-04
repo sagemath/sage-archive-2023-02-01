@@ -73,11 +73,12 @@ cdef extern from "wrap.h":
 
     void two_descent_del(two_descent* t)
     int two_descent_ok(two_descent* t)
-    long two_descent_getcertain(two_descent* t)
-    char* two_descent_getbasis(two_descent* t)
+    long two_descent_get_certain(two_descent* t)
+    char* two_descent_get_basis(two_descent* t)
     char* two_descent_regulator(two_descent* t)
-    long two_descent_getrank(two_descent* t)
-    long two_descent_getselmer(two_descent* t)
+    long two_descent_get_rank(two_descent* t)
+    long two_descent_get_rank_bound(two_descent* t)
+    long two_descent_get_selmer_rank(two_descent* t)
     void two_descent_saturate(two_descent* t, long sat_bd)
 
 
@@ -296,13 +297,20 @@ cdef class _two_descent:
     def getrank(self):
         cdef int r
         _sig_on
-        r = two_descent_getrank(self.x)
+        r = two_descent_get_rank(self.x)
+        _sig_off
+        return r
+
+    def getrankbound(self):
+        cdef int r
+        _sig_on
+        r = two_descent_get_rank_bound(self.x)
         _sig_off
         return r
 
     def getselmer(self):
         _sig_on
-        r = two_descent_getselmer(self.x)
+        r = two_descent_get_selmer_rank(self.x)
         _sig_off
         return r
 
@@ -310,7 +318,7 @@ cdef class _two_descent:
         return two_descent_ok(self.x)
 
     def getcertain(self):
-        return two_descent_getcertain(self.x)
+        return two_descent_get_certain(self.x)
 
     def saturate(self, saturation_bound=0):
         _sig_on
@@ -319,7 +327,7 @@ cdef class _two_descent:
 
     def getbasis(self):
         _sig_on
-        return string_sigoff(two_descent_getbasis(self.x))
+        return string_sigoff(two_descent_get_basis(self.x))
 
     def regulator(self):
         _sig_on

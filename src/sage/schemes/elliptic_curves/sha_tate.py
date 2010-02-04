@@ -640,14 +640,9 @@ class Sha(SageObject):
 
     def two_selmer_bound(self):
         r"""
-        This returns a lower bound on the `\mathbb{F}_2`-dimension
+        This returns the 2-rank, i.e. the `\mathbb{F}_2`-dimension
         of the 2-torsion part of Sha, provided we can determine the
-        rank of `E`. But it is not the best possible bound.
-
-        TO DO: This should be rewritten, to give the exact order
-        of Sha[2], or if we can not find sufficiently many points
-        it should give a lower bound.
-
+        rank of `E`.
         EXAMPLE::
 
             sage: sh = EllipticCurve('571a1').sha()
@@ -664,19 +659,14 @@ class Sha(SageObject):
 
             sage: sh = EllipticCurve('960d1').sha()
             sage: sh.two_selmer_bound()
-            0
+            2
             sage: sh.an()
             4
         """
-        S = self.E.selmer_rank_bound()
+        S = self.E.selmer_rank()
         r = self.E.rank()
         t = self.E.two_torsion_rank()
         b = S - r - t
-        # the following is not true, selmer_rank_bound also
-        # uses descent by two-isogeny, so b need not be even.
-        # e.g. for 66a1, we find b = -1.
-        #if b % 2 != 0:
-        #    raise ArithmeticError, "There is a bug in two_selmer_bound since it's %s, but it must be even."%b
         if  b < 0 :
             b = 0
         return b

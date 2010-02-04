@@ -244,17 +244,22 @@ void two_descent_del(struct two_descent* t)
   delete t;
 }
 
-long two_descent_getrank(struct two_descent* t)
+long two_descent_get_rank(struct two_descent* t)
 {
   return t->getrank();
 }
 
-long two_descent_getselmer(struct two_descent* t)
+long two_descent_get_rank_bound(struct two_descent* t)
+{
+  return t->getrankbound();
+}
+
+long two_descent_get_selmer_rank(struct two_descent* t)
 {
   return t->getselmer();
 }
 
-char* two_descent_getbasis(struct two_descent* t)
+char* two_descent_get_basis(struct two_descent* t)
 {
   return p2point_vector_to_str(t->getbasis());
 }
@@ -264,7 +269,7 @@ int two_descent_ok(const struct two_descent* t)
   return t->ok();
 }
 
-long two_descent_getcertain(const struct two_descent* t)
+long two_descent_get_certain(const struct two_descent* t)
 {
   return t->getcertain();
 }

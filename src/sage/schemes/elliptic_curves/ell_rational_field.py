@@ -2446,13 +2446,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             return rings.Integer(0)
 
-    def selmer_rank_bound(self):
+    def selmer_rank(self):
         """
-        Bound on the rank of the curve, computed using the 2-selmer group.
-        This is the rank of the curve minus the rank of the 2-torsion,
-        minus a number determined by whatever mwrank was able to determine
-        related to Sha[2]. Thus in many cases, this is the actual rank of
-        the curve.
+        The rank of the 2-Selmer group of the curve.
 
         EXAMPLE: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
@@ -2460,7 +2456,57 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve([0, -1, 0, -900, -10098])
-            sage: E.selmer_rank_bound()
+            sage: E.selmer_rank()
+            3
+
+	Here the Selmer rank is equal to the 2-torsion rank (=1) plus
+	the 2-rank of Sha (=2), and the rank itself is zero::
+
+	    sage: E.rank()
+	    0
+
+        In contrast, for the curve 571A, also with rank 0 and Sha of
+        order 4, we get a worse bound::
+
+            sage: E = EllipticCurve([0, -1, 1, -929, -10595])
+            sage: E.selmer_rank()
+            2
+            sage: E.rank_bound()
+            2
+
+	To establish that the rank is in fact 0 in this case, we would
+	need to carry out a higher descent::
+
+	    sage: E.three_selmer_rank() # optional: magma
+	    0
+
+	Or use the L-function to compute the analytic rank::
+
+            sage: E.rank(only_use_mwrank=False)
+            0
+        """
+        try:
+            return self.__selmer_rank
+        except AttributeError:
+            C = self.mwrank_curve()
+            self.__selmer_rank = C.selmer_rank()
+            return self.__selmer_rank
+
+
+    def rank_bound(self):
+        """
+        Upper bound on the rank of the curve, computed using
+        2-descent.  In many cases, this is the actual rank of the
+        curve.  If the curve has no 2-torsion it is the same as the
+        2-selmer rank.
+
+        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        Sha of order 4.
+
+        ::
+
+            sage: E = EllipticCurve([0, -1, 0, -900, -10098])
+            sage: E.rank_bound()
             0
 
         It gives 0 instead of 2, because it knows Sha is nontrivial. In
@@ -2468,17 +2514,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         we get a worse bound::
 
             sage: E = EllipticCurve([0, -1, 1, -929, -10595])
-            sage: E.selmer_rank_bound()
+            sage: E.rank_bound()
             2
             sage: E.rank(only_use_mwrank=False)   # uses L-function
             0
         """
         try:
-            return self.__selmer_rank_bound
+            return self.__rank_bound
         except AttributeError:
             C = self.mwrank_curve()
-            self.__selmer_rank_bound = C.selmer_rank_bound()
-            return self.__selmer_rank_bound
+            self.__rank_bound = C.rank_bound()
+            return self.__rank_bound
 
 
     def an(self, n):
@@ -5555,7 +5601,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         A curve for which 3 divides the order of the Shafarevich-Tate group::
 
             sage: E = EllipticCurve('681b')
-            sage: E.prove_BSD(verbosity=2)               # long time
+            sage: E.prove_BSD(verbosity=2)
             p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2, 3} by Kolyvagin.
             ALERT: p = 3 left in Kolyvagin bound
@@ -5580,14 +5626,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('438e1')
             sage: E.prove_BSD(verbosity=1)
-            p = 2: mwrank did not achieve a tight bound on the Selmer rank.
+            p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             True for p not in {2} by Kolyvagin.
             [2]
 
         ::
 
             sage: E = EllipticCurve('960d1')
-            sage: E.prove_BSD(verbosity=1)
+            sage: E.prove_BSD(verbosity=1) # long time
             p = 2: Unverified since it is difficult to access the rank bound for Sha[2] computed by MWrank
             Timeout stopped Heegner index computation...
             Proceeding to use heegner_index_bound instead.
@@ -5612,7 +5658,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else:
                 raise RuntimeError("Rank can't be computed precisely using Simon's program.")
         else:
-            two_sel_rk_bd = self.mwrank_curve().selmer_rank_bound()
+            two_sel_rk_bd = self.rank_bound()
             rank = self.rank()
         if rank > 1:
             # We do not know BSD(E,p) for even a single p, since it's
@@ -5637,7 +5683,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 print 'p = 2: mwrank did not achieve a tight bound on the Selmer rank.'
             two_proven = False
         elif two_sel_rk_bd < rank:
-            raise RuntimeError("MWrank seems to have computed an incorrect lower bound of %d on the rank."%two_sel_rk_bd)
+            raise RuntimeError("MWrank seems to have computed an incorrect upper bound of %d on the rank."%two_sel_rk_bd)
         else:
             # until we can easily access the computed rank of Sha[2]:
             two_proven = False

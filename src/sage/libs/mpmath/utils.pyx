@@ -254,7 +254,6 @@ def sage_to_mpmath(x, prec):
         sage: a.sage_to_mpmath(0, 53)
         0
     """
-    from mpmath.mptypes import make_mpf, make_mpc
     cdef RealNumber y
     if isinstance(x, Element):
         if PY_TYPE_CHECK(x, Integer):

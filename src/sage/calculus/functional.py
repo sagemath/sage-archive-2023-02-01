@@ -193,7 +193,7 @@ def integral(f, *args, **kwds):
         sage: area = integral(integral(exp(y^2),x,0,y),y,0,1); area
         1/2*e - 1/2
         sage: float(area)
-        0.85914091422952255
+        0.859140914229522...
 
     We compute the line integral of `\sin(x)` along the arc of
     the curve `x=y^4` from `(1,-1)` to

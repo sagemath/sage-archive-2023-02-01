@@ -349,8 +349,11 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             [[x, 1]]
             sage: y.word_problem([x,y])
             [[y, 1]]
-            sage: (y*x).word_problem([x,y])
+            sage: v = (y*x).word_problem([x,y]); v #random
             [[x, 1], [y, 1]]
+            sage: prod([x^i for x,i in v]) == y*x
+            True
+
         """
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)

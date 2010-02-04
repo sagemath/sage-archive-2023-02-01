@@ -485,7 +485,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: p._gap_init_() # The variable name $sage2 belongs to the gap(F) and is somehow random
             'GeneratorsOfField($sage2)[1]^2 + 2*GeneratorsOfField($sage2)[1] - 3'
             sage: gap(p._gap_init_())
-            (-3+2*zeta8+zeta8^2)
+            zeta8^2+2*zeta8-3
         """
         s = self.__repr__()
         return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())

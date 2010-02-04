@@ -2454,7 +2454,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f
             <algebraic extension over the Rationals of degree 4>
             sage: f.GeneratorsOfDivisionRing()
-            [ (zeta8) ]
+            [ zeta8 ]
         """
         if not self.is_absolute():
             raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"

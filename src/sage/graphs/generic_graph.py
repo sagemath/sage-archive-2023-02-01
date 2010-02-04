@@ -10217,9 +10217,9 @@ class GenericGraph(GenericGraph_pyx):
             (24, [(2,3), (1,2), (1,4)])
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
-            sage: M = G.character_table()
-            sage: M.determinant()
-            -712483534798848
+            sage: M = G.character_table() # random order of rows, thus abs() below
+            sage: QQ(M.determinant()).abs()
+            712483534798848
             sage: G.order()
             384
 

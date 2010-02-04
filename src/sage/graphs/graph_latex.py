@@ -97,14 +97,14 @@ def check_tkz_graph():
     global _checked_tkz_graph
     if not _checked_tkz_graph:
         import os
-        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty > /dev/null'))
+        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty &> /dev/null'))
         if not have_tkzgraph:
             print 'Warning: tkz-graph.sty is not part'
             print "of this computer's TeX installation."
             print 'This package is required to'
             print 'render graphs in LaTeX.  Visit'
             print 'http://altermundus.com/pages/graph.html'
-        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty > /dev/null'))
+        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty &> /dev/null'))
         if not have_tkzberge:
             print 'Warning: tkz-berge.sty is not part'
             print "of this computer's TeX installation."
@@ -137,8 +137,8 @@ def have_tkz_graph():
     global _have_tkz_graph
     if _have_tkz_graph is None:
         import os
-        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty > /dev/null'))
-        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty > /dev/null'))
+        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty &> /dev/null'))
+        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty &> /dev/null'))
         _have_tkz_graph = have_tkzgraph and have_tkzberge
     return _have_tkz_graph
 

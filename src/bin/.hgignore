@@ -43,6 +43,8 @@ bzip2recover
 bzless
 bzmore
 bzr
+cdd_both_reps
+cdd_both_reps_gmp
 cftp
 change_cost
 checkbtrees.py

@@ -1,79 +1,55 @@
-diff --git a/cvxopt-1.1.2.p1/src/src/setup.py b/cvxopt-1.1.2.p1/src/src/setup.py.orig
-index d588c48..c6959bf 100644
---- a/cvxopt-1.1.2.p1/src/src/setup.py
-+++ b/cvxopt-1.1.2.p1/src/src/setup.py.orig
-@@ -1,16 +1,8 @@
- from distutils.core import setup, Extension
- from glob import glob
- 
--import os
--SAGE_LIB = os.environ['SAGE_LOCAL']+'/lib'
--
- # directory containing libblas and liblapack
--ATLAS_LIB_DIR = SAGE_LIB
--
--if os.uname()[0]=="Darwin":
--    libraries = ['m','lapack','blas','gfortran']
--else:
--    libraries = ['m','lapack','cblas','f77blas','atlas','gfortran']
-+ATLAS_LIB_DIR = '/usr/lib'
- 
- # Set to 1 if you are using the random number generators in the GNU
- # Scientific Library.
-@@ -93,20 +85,17 @@ if BLAS_NOUNDERSCORES:
- else:    
-     MACROS = []
- 
--base = Extension('base', libraries = libraries,
-+base = Extension('base', libraries = ['m','lapack','blas'],
-     library_dirs = [ ATLAS_LIB_DIR ],
-     define_macros = MACROS,
-     sources = ['C/base.c','C/dense.c','C/sparse.c']) 
- 
--random = Extension('random',
--    sources = ['C/random.c', 'C/rngs/rngs.c', 'C/rngs/rvgs.c'])
--
--blas = Extension('blas', libraries = libraries,
-+blas = Extension('blas', libraries = ['blas'],
-     library_dirs = [ ATLAS_LIB_DIR ],
-     define_macros = MACROS,
-     sources = ['C/blas.c'] )
- 
--lapack = Extension('lapack', libraries = libraries,
-+lapack = Extension('lapack', libraries = ['lapack','blas'],
-     library_dirs = [ ATLAS_LIB_DIR ],
-     define_macros = MACROS,
-     sources = ['C/lapack.c'] )
-@@ -117,7 +106,7 @@ umfpack = Extension('umfpack',
-         'C/SuiteSparse/UFconfig' ],
-     library_dirs = [ ATLAS_LIB_DIR ],
-     define_macros = MACROS,
--    libraries = libraries,
-+    libraries = [ 'blas', 'lapack'],
-     sources = [ 'C/umfpack.c',
-         'C/SuiteSparse/UMFPACK/Source/umfpack_global.c',
-         'C/SuiteSparse/UMFPACK/Source/umfpack_tictoc.c' ] +
-@@ -159,7 +148,7 @@ extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers]
- 
- setup (name = 'cvxopt', 
-     description = 'Convex optimization package',
--    version = '0.9', 
-+    version = '1.1.2', 
-     long_description = '''
- CVXOPT is a free software package for convex optimization based on the 
- Python programming language. It can be used with the interactive Python 
-@@ -169,10 +158,10 @@ purpose is to make the development of software for convex optimization
- applications straightforward by building on Python's extensive standard 
- library and on the strengths of Python as a high-level programming 
- language.''', 
--    author='J. Dahl and L. Vandenberghe',
--    author_email='joachim@es.aau.dk, vandenbe@ee.ucla.edu',
--    url='http://abel.ee.ucla.edu/cvxopt',
--    license='GNU GPL version 3',
-+    author = 'J. Dahl and L. Vandenberghe',
-+    author_email = 'joachim@es.aau.dk, vandenbe@ee.ucla.edu',
-+    url = 'http://abel.ee.ucla.edu/cvxopt',
-+    license = 'GNU GPL version 3',
-     ext_package = "cvxopt",
-     ext_modules = extmods,
-     package_dir = {"cvxopt": "python"},
+3a4,6
+> import os
+> SAGE_LIB = os.environ['SAGE_LOCAL']+'/lib'
+> 
+5c8,13
+< ATLAS_LIB_DIR = '/usr/lib'
+---
+> ATLAS_LIB_DIR = SAGE_LIB
+> 
+> if os.uname()[0]=="Darwin":
+>     libraries = ['m','lapack','blas','gfortran']
+> else:
+>     libraries = ['m','lapack','cblas','f77blas','atlas','gfortran']
+88c96
+< base = Extension('base', libraries = ['m','lapack','blas'],
+---
+> base = Extension('base', libraries = libraries,
+93c101,104
+< blas = Extension('blas', libraries = ['blas'],
+---
+> random = Extension('random',
+>     sources = ['C/random.c', 'C/rngs/rngs.c', 'C/rngs/rvgs.c'])
+> 
+> blas = Extension('blas', libraries = libraries,
+98c109
+< lapack = Extension('lapack', libraries = ['lapack','blas'],
+---
+> lapack = Extension('lapack', libraries = libraries,
+109c120
+<     libraries = [ 'blas', 'lapack'],
+---
+>     libraries = libraries,
+121c132
+<     libraries = ['lapack', 'blas'],
+---
+>     libraries = ['m','lapack','gsl','gslcblas','f77blas','gfortran','atlas'],
+142c153,154
+< misc_solvers = Extension('misc_solvers', libraries = ['lapack', 'blas'],
+---
+> misc_solvers = Extension('misc_solvers',
+>     libraries = ['m','lapack','gsl','gslcblas','f77blas','gfortran','atlas'],
+151c163
+<     version = '1.1.2', 
+---
+>     version = '0.9', 
+161,164c173,176
+<     author = 'J. Dahl and L. Vandenberghe',
+<     author_email = 'joachim@es.aau.dk, vandenbe@ee.ucla.edu',
+<     url = 'http://abel.ee.ucla.edu/cvxopt',
+<     license = 'GNU GPL version 3',
+---
+>     author='J. Dahl and L. Vandenberghe',
+>     author_email='joachim@es.aau.dk, vandenbe@ee.ucla.edu',
+>     url='http://abel.ee.ucla.edu/cvxopt',
+>     license='GNU GPL version 3',

@@ -24,6 +24,7 @@ NEW COMMENTS for 1.1.2
  * old patches are in patches-old (solaris, ...)
  * original 1.1.2 cvxopt compiled, but on import it claimed
    cvxopt/base.so: undefined symbol: _g95_stop_blank
+ * added patch from http://trac.sagemath.org/sage_trac/ticket/6456#comment:6
 
 OLD COMMENTS:
 

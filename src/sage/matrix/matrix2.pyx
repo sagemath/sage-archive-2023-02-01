@@ -4032,7 +4032,13 @@ cdef class Matrix(matrix1.Matrix):
         If the matrix is over a ring, then an equivalent matrix is
         constructed over the fraction field, and then row reduced.
 
-        All arguments are passed on to the echelon_form function.
+        All arguments are passed on to :meth:``echelon_form``.
+
+        .. note::
+
+            Because the matrix is viewed as a matrix over a field,
+            every leading coefficient of the returned matrix will be
+            one and will be the only nonzero entry in its column.
 
         EXAMPLES::
 
@@ -4076,12 +4082,43 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
             sage: B.echelon_form() is B.rref()
             True
+
+        Since :meth:`echelon_form` is not implemented for every ring,
+        sometimes behavior varies, as here::
+
+            sage: R.<x>=ZZ[]
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1])
+            sage: C.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: C.base_ring()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: C.echelon_form()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Univariate Polynomial Ring in x over Integer Ring'.
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1/2])
+            sage: C.echelon_form()
+            [                               2                                x                              x^2]
+            [                               0                                1            15*x^2 - 3/2*x - 31/2]
+            [                               0                                0 5/2*x^3 - 15/4*x^2 - 9/4*x + 7/2]
+            sage: C.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1/x,3,2,1/2])
+            sage: C.echelon_form()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         R=self.base_ring()
         if R.is_field():
             return self.echelon_form()
         else:
-            return self.change_ring(R.fraction_field()).echelon_form()
+            F=R.fraction_field()
+            return self.change_ring(F).echelon_form()
 
     def _echelonize_ring(self, **kwds):
         r"""
@@ -4266,6 +4303,15 @@ cdef class Matrix(matrix1.Matrix):
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
         Return the echelon form of self.
+
+	.. note::
+
+	    This row reduction does not use division if the
+	    matrix is not over a field (e.g., if the matrix is over
+	    the integers).  If you want to calculate the echelon form
+	    using division, then use :meth:`rref`, which assumes that
+	    the matrix entries are in a field (specifically, the field
+	    of fractions of the base ring of the matrix).
 
         INPUT:
 

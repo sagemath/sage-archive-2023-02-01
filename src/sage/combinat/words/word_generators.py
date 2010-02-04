@@ -44,6 +44,7 @@ from sage.combinat.words.word import (FiniteWord_class, Word_class,
 from sage.combinat.words.words import Words
 from sage.combinat.words.morphism import WordMorphism
 from sage.rings.arith import gcd
+from sage.plot.misc import rename_keyword
 
 def _build_tab(sym, tab, W):
     r"""
@@ -613,17 +614,19 @@ class WordGenerator(object):
         else:
             return alphabet[0]
 
+    @rename_keyword(cf='slope')
     def CharacteristicSturmianWord(self, slope, alphabet=(0, 1), bits=None):
         r"""
         Returns the characteristic Sturmian word (also called standard
         Sturmian word) of given slope.
 
         Over a binary alphabet `\{a,b\}`, the characteristic Sturmian
-        word `c_\alpha` of slope `\alpha` is the infinite word satisfying
-        `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`, where
-        `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower and
-        upper mechanical words with slope `\alpha` and intercept `0`.
-        Equivalently, `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
+        word `c_\alpha` of irrational slope `\alpha` is the infinite word
+        satisfying `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`,
+        where `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower
+        and upper mechanical words with slope `\alpha` and intercept `0`.
+        Equivalently, for irrationnal `\alpha`,
+        `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
 
         Let `\alpha = [0, d_1 + 1, d_2, d_3, \ldots]` be the continued
         fraction expansion of `\alpha`. It has been shown that the

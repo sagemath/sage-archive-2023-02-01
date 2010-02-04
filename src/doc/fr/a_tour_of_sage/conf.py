@@ -34,3 +34,6 @@ latex_documents = [
    u'The Sage Development Team', 'manual'),
 ]
 
+# the definition of \\at in the standard preamble of the sphinx doc
+# conflicts with that in babel/french[b]
+latex_elements['preamble'] += '\\let\\at\\undefined'

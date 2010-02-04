@@ -500,6 +500,18 @@ ext_modules = [
               sources = ["sage/libs/mpmath/utils.pyx"],
               libraries = ['mpfr', 'gmp']),
 
+    Extension('sage.libs.mpmath.ext_impl',
+              sources = ["sage/libs/mpmath/ext_impl.pyx"],
+              libraries = ['gmp']),
+
+    Extension('sage.libs.mpmath.ext_main',
+              sources = ["sage/libs/mpmath/ext_main.pyx"],
+              libraries = ['gmp']),
+
+    Extension('sage.libs.mpmath.ext_libmp',
+              sources = ["sage/libs/mpmath/ext_libmp.pyx"],
+              libraries = ['gmp']),
+
         ###################################
         ##
         ## sage.libs.cremona

@@ -763,11 +763,11 @@ class HG:
         -  ``url`` - (Default: self.push_url())  the official
            repository
 
-           - http://[user@]host[:port]/[path]
+           - ``http://[user@]host[:port]/[path]``
 
-           - https://[user@]host[:port]/[path]
+           - ``https://[user@]host[:port]/[path]``
 
-           - ssh://[user@]host[:port]/[path]
+           - ``ssh://[user@]host[:port]/[path]``
 
            - local directory (starting with a /)
 
@@ -804,11 +804,11 @@ class HG:
         -  ``url`` - (Default: self.push_url())  the official
            repository
 
-           - http://[user@]host[:port]/[path]
+           - ``http://[user@]host[:port]/[path]``
 
-           - https://[user@]host[:port]/[path]
+           - ``https://[user@]host[:port]/[path]``
 
-           - ssh://[user@]host[:port]/[path]
+           - ``ssh://[user@]host[:port]/[path]``
 
            - local directory (starting with a /)
 
@@ -831,7 +831,7 @@ class HG:
 
         - path is relative to the remote user's home directory by
           default. Use an extra slash at the start of a path to
-          specify an absolute path: ssh://example.com//tmp/repository
+          specify an absolute path: ``ssh://example.com//tmp/repository``
 
         - Mercurial doesn't use its own compression via SSH; the right
           thing to do is to configure it in your /.ssh/ssh_config,
@@ -871,11 +871,11 @@ class HG:
         -  ``url`` - (Default: self.push_url())  the official
            repository
 
-           - http://[user@]host[:port]/[path]
+           - ``http://[user@]host[:port]/[path]``
 
-           - https://[user@]host[:port]/[path]
+           - ``https://[user@]host[:port]/[path]``
 
-           - ssh://[user@]host[:port]/[path]
+           - ``ssh://[user@]host[:port]/[path]``
 
            - local directory (starting with a /)
 
@@ -897,7 +897,7 @@ class HG:
 
         - path is relative to the remote user's home directory by
           default. Use an extra slash at the start of a path to
-          specify an absolute path: ssh://example.com//tmp/repository
+          specify an absolute path: ``ssh://example.com//tmp/repository``
 
         - Mercurial doesn't use its own compression via SSH; the right
           thing to do is to configure it in your /.ssh/ssh_config,

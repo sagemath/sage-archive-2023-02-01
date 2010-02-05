@@ -260,28 +260,85 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
         r"""
         Return the rational points on this curve computed via enumeration.
 
+
+        INPUT:
+
+        - ``algorithm`` (string, default: 'enum') -- the algorithm to
+          use.  Currently this is ignored.
+
+        - ``sort`` (boolean, default ``True``) -- whether the output
+          points should be sorted.  If False, the order of the output
+          is non-deterministic.
+
+        OUTPUT:
+
+        A list of all the rational points on the curve defined over
+        its base field, possibly sorted.
+
         .. note::
 
            This is a slow Python-level implementation.
+
+
+        EXAMPLES::
+
+            sage: F = GF(5)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^3+Y^3-Z^3)
+            sage: C.rational_points()
+            [(0 : 1 : 1), (1 : 0 : 1), (2 : 2 : 1), (3 : 4 : 1), (4 : 1 : 0), (4 : 3 : 1)]
+            sage: C.rational_points(sort=False)
+            [(4 : 1 : 0), (1 : 0 : 1), (0 : 1 : 1), (2 : 2 : 1), (4 : 3 : 1), (3 : 4 : 1)]
+
+        ::
+
+            sage: F = GF(1009)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^5+12*X*Y*Z^3 + X^2*Y^3 - 13*Y^2*Z^3)
+            sage: len(C.rational_points())
+            1043
+
+        ::
+
+            sage: F = GF(2^6,'a')
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^5+11*X*Y*Z^3 + X^2*Y^3 - 13*Y^2*Z^3)
+            sage: len(C.rational_points())
+            104
+
+        ::
+
+            sage: R.<x,y,z> = GF(2)[]
+            sage: f = x^3*y + y^3*z + x*z^3
+            sage: C = Curve(f); pts = C.rational_points()
+            sage: pts
+            [(0 : 0 : 1), (0 : 1 : 0), (1 : 0 : 0)]
+
         """
         g = self.defining_polynomial()
-        R = g.parent()
-        X,Y,Z = R.gens()
-        K = R.base_ring()
-        # Points with z = 1:
-        points = []
-        for x in K:
-            for y in K:
-                if g(x,y,1) == 0:
-                    points.append(self((x,y,1)))
-        # Points with z = 0 and x = 1:
-        for y in K:
-            if g(1, y, 0) == 0:
-                points.append(self((1,y,0)))
+        K = g.parent().base_ring()
+        from sage.rings.polynomial.all import PolynomialRing
+        R = PolynomialRing(K,'X')
+        X = R.gen()
+        one = K.one_element()
+        zero = K.zero_element()
 
-        # Point with z = 0 and x = 0:
-        if g(0, 1, 0) == 0:
-            points.append(self(0,1,0))
+        points = []
+        # Point with y = z = 0:
+        try:
+            points.append(self.point([one,zero,zero]))
+        except TypeError:
+            pass
+
+        # Points with z = 0 and y = 1:
+        for x in R(g((X,one,zero))).roots(multiplicities=False):
+            points.append(self.point([x,one,zero]))
+
+        # Points with z = 1:
+        for y in K:
+            for x in R(g((X,y,one))).roots(multiplicities=False):
+                points.append(self.point([x,y,one]))
+
         if sort:
             points.sort()
         return points
@@ -309,9 +366,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
-            sage: v = C._points_via_singular(sort=True)
-            sage: v
-            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
+            sage: C._points_via_singular(sort=False)     #random
+            [(0 : 1 : 0), (3 : 1 : 1), (3 : 4 : 1), (2 : 2 : 1), (0 : 0 : 1), (2 : 3 : 1)]
+
 
         .. note::
 
@@ -341,7 +398,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
 
 
-        if sorted:
+        if sort:
             pnts.sort()
         return pnts
 

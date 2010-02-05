@@ -206,7 +206,7 @@ class ode_solver(object):
 
         sage: T.solution               # not tested
 
-    EXAMPLES::
+    EXAMPLES:
 
     Consider solving the Van der Pol oscillator `x''(t) +
     ux'(t)(x(t)^2-1)+x(t)=0` between `t=0` and `t= 100`.  As a first

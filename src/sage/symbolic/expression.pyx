@@ -5933,7 +5933,7 @@ cdef class Expression(CommutativeRingElement):
             [[0 < y, y < x, 0 < x]]
             [[y < x, 0 < y]]
 
-        TESTS::
+        TESTS:
 
         Trac #7325 (solving inequalities)::
 

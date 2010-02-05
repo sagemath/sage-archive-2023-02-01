@@ -528,7 +528,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S.ideal(x+y+1)
             Ideal (xbar + ybar + 1) of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
 
-        TESTS::
+        TESTS:
 
         We create an ideal of a fairly generic integer ring (see trac 5666)::
 

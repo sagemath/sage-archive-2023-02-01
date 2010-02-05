@@ -2156,7 +2156,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         OUTPUT:
 
         - An ``EllipticCurveIsogeny`` object associated to the
-        multiplication-by-`m` map on self.
+          multiplication-by-`m` map on self.
 
         EXAMPLES::
 

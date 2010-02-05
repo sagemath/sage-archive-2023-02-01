@@ -617,32 +617,118 @@ class Word_class(SageObject):
         else:
             raise StopIteration
 
-    def longest_common_prefix(self, other):
+    def longest_common_prefix(self, other, length='unknown'):
         r"""
         Returns the longest common prefix of self and other.
+
+        INPUT:
+
+        -  ``other`` - word
+
+        -  ``length`` - str or +Infinity (optional, default: ``'unknown'``)
+           the length of the result if known. It may be one of the following:
+
+           - ``'unknown'``
+           - ``'finite'``
+           - ``'infinite'`` or ``Infinity``
 
         EXAMPLES::
 
             sage: f = lambda n : add(Integer(n).digits(2)) % 2
-            sage: t = Word(f); t
-            word: 0110100110010110100101100110100110010110...
-            sage: u = t[:10]; u
-            word: 0110100110
-            sage: w = t.longest_common_prefix(u); w
+            sage: t = Word(f)
+            sage: u = t[:10]
+            sage: t.longest_common_prefix(u)
             word: 0110100110
 
         The longest common prefix of two equal infinite words::
 
-            sage: t1 = Word(f); t1
-            word: 0110100110010110100101100110100110010110...
-            sage: t2 = Word(f); t2
-            word: 0110100110010110100101100110100110010110...
+            sage: t1 = Word(f)
+            sage: t2 = Word(f)
             sage: t1.longest_common_prefix(t2)
             word: 0110100110010110100101100110100110010110...
+
+        Usefull to study the approximation of an infinite word::
+
+            sage: a = 0.618
+            sage: g = words.CodingOfRotationWord(alpha=a, beta=1-a, x=a)
+            sage: f = words.FibonacciWord()
+            sage: p = f.longest_common_prefix(g, length='finite')
+            sage: p.length()
+            231
         """
-        if isinstance(other, FiniteWord_class):
-            return other.longest_common_prefix(self)
-        return self._parent(self._longest_common_prefix_iterator(other), length="unknown")
+        if (isinstance(self, FiniteWord_class) or
+            isinstance(other, FiniteWord_class)):
+            length = "finite"
+        it = self._longest_common_prefix_iterator(other)
+        return self._parent(it, length=length)
+
+    def _longest_periodic_prefix_iterator(self, period=1):
+        r"""
+        Returns an iterator of the longest prefix of self having the given
+        period.
+
+        INPUT:
+
+        - ``period`` - positive integer (optional, default 1)
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES::
+
+            sage: list(Word([])._longest_periodic_prefix_iterator())
+            []
+            sage: list(Word([1])._longest_periodic_prefix_iterator())
+            [1]
+            sage: list(Word([1,2])._longest_periodic_prefix_iterator())
+            [1]
+            sage: list(Word([1,1,2])._longest_periodic_prefix_iterator())
+            [1, 1]
+            sage: list(Word([1,1,1,2])._longest_periodic_prefix_iterator())
+            [1, 1, 1]
+            sage: Word(Word(lambda n:0)._longest_periodic_prefix_iterator())
+            word: 0000000000000000000000000000000000000000...
+            sage: list(Word([1,2,1,2,1,3])._longest_periodic_prefix_iterator(2))
+            [1, 2, 1, 2, 1]
+        """
+        for i,l in enumerate(self):
+            if self[i%period] == l:
+                yield l
+            else:
+                raise StopIteration
+
+    def longest_periodic_prefix(self, period=1):
+        r"""
+        Returns the longest prefix of self having the given period.
+
+        INPUT:
+
+        - ``period`` - positive integer (optional, default 1)
+
+        OUTPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: Word([]).longest_periodic_prefix()
+            word:
+            sage: Word([1]).longest_periodic_prefix()
+            word: 1
+            sage: Word([1,2]).longest_periodic_prefix()
+            word: 1
+            sage: Word([1,1,2]).longest_periodic_prefix()
+            word: 11
+            sage: Word([1,2,1,2,1,3]).longest_periodic_prefix(2)
+            word: 12121
+            sage: type(_)
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+            sage: Word(lambda n:0).longest_periodic_prefix()
+            word: 0000000000000000000000000000000000000000...
+        """
+        length = 'finite' if isinstance(self, FiniteWord_class) else 'unknown'
+        return self._parent(self._longest_periodic_prefix_iterator(period), length=length)
 
     def is_empty(self):
         r"""
@@ -1021,12 +1107,26 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word:
 
+        If the word is finite, so the result is::
+
+            sage: w = Word([0,1]*7)
+            sage: c = w.iterated_right_palindromic_closure()
+            sage: type(c)
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+
         REFERENCES:
 
         -   A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        return Word(self._iterated_right_palindromic_closure_iterator(f=f), length='unknown')
+        if isinstance(self, FiniteWord_class):
+            length = "finite"
+        elif isinstance(self, InfiniteWord_class):
+            length = None
+        else:
+            length = "unknown"
+        it = self._iterated_right_palindromic_closure_iterator(f=f)
+        return self._parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
         r"""
@@ -1235,6 +1335,15 @@ class Word_class(SageObject):
             word: 01101100000
             sage: w.partial_sums(0, mod=1)
             word: 00000000000
+
+        TESTS:
+
+        If the word is infinite, so the result is::
+
+            sage: w = Word(lambda n:1)
+            sage: u = w.partial_sums(0)
+            sage: type(u)
+            <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
         """
         it = self._partial_sums_iterator(start=start, mod=mod)
 
@@ -1243,7 +1352,13 @@ class Word_class(SageObject):
         elif mod in ZZ:
             alphabet = Integers(mod)
 
-        return Word(it, alphabet=alphabet, length="unknown")
+        if isinstance(self, FiniteWord_class):
+            length = "finite"
+        elif isinstance(self, InfiniteWord_class):
+            length = None
+        else:
+            length = "unknown"
+        return Word(it, alphabet=alphabet, length=length)
 
     def _finite_differences_iterator(self, mod=None):
         r"""
@@ -1348,6 +1463,15 @@ class Word_class(SageObject):
             sage: w = Word()
             sage: w.finite_differences()
             word:
+
+        If the word is infinite, so the result is::
+
+            sage: w = Word(lambda n:n)
+            sage: u = w.finite_differences()
+            sage: u
+            word: 1111111111111111111111111111111111111111...
+            sage: type(u)
+            <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
         """
         it = self._finite_differences_iterator(mod=mod)
 
@@ -1356,7 +1480,13 @@ class Word_class(SageObject):
         elif mod in ZZ:
             alphabet = Integers(mod)
 
-        return Word(it, alphabet=alphabet, length="unknown")
+        if isinstance(self, FiniteWord_class):
+            length = "finite"
+        elif isinstance(self, InfiniteWord_class):
+            length = None
+        else:
+            length = "unknown"
+        return Word(it, alphabet=alphabet, length=length)
 
 class FiniteWord_class(Word_class):
     def __str__(self):

@@ -71,7 +71,7 @@ Python classes with no docstring, but an __init__ docstring::
     ...         pass
     ...
     sage: sage_getdoc(Foo)
-    'docstring'
+    'docstring\n'
 
 Test introspection of functions defined in Python and Cython files:
 
@@ -84,7 +84,7 @@ Cython functions::
     '.../rational.pyx'
 
     sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
-    "Make a rational number ...
+    "Make a rational number ..."
 
     sage: sage_getsource(sage.rings.rational.make_rational, True)[4:]
     'make_rational(s):...'
@@ -461,6 +461,45 @@ def sage_getdef(obj, obj_name=''):
     except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
 
+def _sage_getdoc_unformatted(obj):
+    r"""
+    Return the unformatted docstring associated to ``obj`` as a
+    string.  Feed the results from this into the
+    sage.misc.sagedoc.format for printing to the screen.
+
+    INPUT: ``obj``, a function, module, etc.: something with a docstring.
+
+    If ``obj`` is a Cython object with an embedded position in its
+    docstring, the embedded position is stripped.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
+        sage: _sage_getdoc_unformatted(identity_matrix)[5:44]
+        'Return the `n \\times n` identity matrix'
+
+    AUTHORS:
+
+    - William Stein
+    - extensions by Nick Alexander
+    """
+    if obj is None: return ''
+    r = None
+    try:
+        r = obj._sage_doc_()
+    except AttributeError:
+        r = obj.__doc__
+
+    #Check to see if there is an __init__ method, and if there
+    #is, use its docstring.
+    if r is None and hasattr(obj, '__init__'):
+        r = obj.__init__.__doc__
+
+    if r is None:
+        return ''
+    from sagenb.misc.misc import encoded_str
+    return encoded_str(r)
+
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
@@ -478,26 +517,17 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getdoc
-        sage: sage_getdoc(identity_matrix)[5:39]
-        'Return the `n x n` identity matrix'
+        sage: sage_getdoc(identity_matrix)[3:39]
+        'Return the n x n identity matrix ove'
 
     AUTHORS:
 
     - William Stein
     - extensions by Nick Alexander
     """
-    if obj is None: return ''
     import sage.misc.sagedoc
-    r = None
-    try:
-        r = obj._sage_doc_()
-    except AttributeError:
-        r = obj.__doc__
-
-    #Check to see if there is an __init__ method, and if there
-    #is, use its docstring.
-    if r is None and hasattr(obj, '__init__'):
-        r = obj.__init__.__doc__
+    if obj is None: return ''
+    r = _sage_getdoc_unformatted(obj)
 
     if r is None:
         return ''

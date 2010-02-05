@@ -157,13 +157,13 @@ def detex(s, embedded=False):
 
         sage: from sage.misc.sagedoc import detex
         sage: detex(r'Some math: `n \geq k`.  A website: \url{sagemath.org}.')
-        'Some math: `n >= k`.  A website: sagemath.org.'
+        'Some math: n >= k.  A website: sagemath.org.\n'
         sage: detex(r'More math: `x \mapsto y`.  {\bf Bold face}.')
-        'More math: `x  |-->  y`.  { Bold face}.'
+        'More math: x  |-->  y.  { Bold face}.\n'
         sage: detex(r'`a, b, c, \ldots, z`')
-        '`a, b, c, ..., z`'
+        'a, b, c, ..., z\n'
         sage: detex(r'`a, b, c, \ldots, z`', embedded=True)
-        '`a, b, c, \\\\ldots, z`'
+        '`a, b, c, \\ldots, z`'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
@@ -182,12 +182,10 @@ def detex(s, embedded=False):
     for a,b in nonmath_substitutes:
         s = s.replace(a,b)
     if not embedded: # not in the notebook
+        s = sphinxify(s, format='text')
         for a,b in math_substitutes:  # do math substitutions
             s = s.replace(a,b)
         s = s.replace('\\','')        # nuke backslashes
-        s = s.replace('.. math::\n', '')  # get rid of .. math:: directives
-    else:
-        s = s.replace('\\','\\\\')    # double up backslashes for jsMath
     return s
 
 def format(s, embedded=False):
@@ -214,7 +212,7 @@ def format(s, embedded=False):
         sage: identity_matrix(2).rook_vector.__doc__[115:184]
         'Let `A` be a general `m` by `n`\n        (0,1)-matrix with `m \\le n`. '
         sage: format(identity_matrix(2).rook_vector.__doc__[115:184])
-        'Let `A` be a general `m` by `n`\n        (0,1)-matrix with `m <= n`. '
+        'Let A be a general m by n\n   (0,1)-matrix with m <= n.\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
     don't modify any TeX commands::
@@ -225,11 +223,11 @@ def format(s, embedded=False):
     Testing a string enclosed in triple angle brackets::
 
         sage: format('<<<identity_matrix')
-        '<<<identity_matrix'
+        '<<<identity_matrix\n'
         sage: format('identity_matrix>>>')
-        'identity_matrix>>>'
+        'identity_matrix>>>\n'
         sage: format('<<<identity_matrix>>>')[:28]
-        '\nDefinition: identity_matrix'
+        'Definition: identity_matrix('
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
@@ -971,7 +969,7 @@ class _sage_doc:
         INPUT:
 
         - ``obj`` - a Sage object
-        - ``output`` - either 'html' or 'rst': return documentation in this form
+        - ``output`` - 'html', 'rst', or 'text': return documentation in this form
         - ``view`` - only has an effect if output is 'html': in this
           case, if ``view`` is ``True``, display the documentation in
           a web browser.  Otherwise, return the documentation as a
@@ -981,10 +979,18 @@ class _sage_doc:
 
             sage: browse_sage_doc(identity_matrix, 'rst')
             "...**File:**...**Type:**...**Definition:** identity_matrix..."
-            sage: identity_matrix.__doc__.replace('\\','\\\\') in browse_sage_doc(identity_matrix, 'rst')
+            sage: identity_matrix.__doc__ in browse_sage_doc(identity_matrix, 'rst')
             True
             sage: browse_sage_doc(identity_matrix, 'html', False)
             '...div...File:...Type:...Definition:...identity_matrix...'
+
+        In the 'text' version, double colons have been replaced with
+        single ones (among other things)::
+
+            sage: '::' in browse_sage_doc(identity_matrix, 'rst')
+            True
+            sage: '::' in browse_sage_doc(identity_matrix, 'text')
+            False
         """
         if output != 'html' and view:
             view = False
@@ -1082,6 +1088,8 @@ class _sage_doc:
                 return html
         elif output == 'rst':
             return s
+        elif output == 'text':
+            return sphinxify(s, format='text')
         else:
             raise ValueError, "output type %s not recognized" % output
 

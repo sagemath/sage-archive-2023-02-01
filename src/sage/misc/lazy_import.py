@@ -99,7 +99,7 @@ class LazyImport(object):
             sage: my_isprime._sage_doc_() is is_prime.__doc__
             True
         """
-        return sageinspect.sage_getdoc(self._get_object())
+        return sageinspect._sage_getdoc_unformatted(self._get_object())
 
     def _sage_src_(self):
         """

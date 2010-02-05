@@ -239,7 +239,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     We check that instrospection works reasonably::
 
         sage: sage.misc.sageinspect.sage_getdoc(FooBar)
-        'The Foo class'
+        'The Foo class\n'
 
     Finally, we check that classes derived from UniqueRepresentation
     are handled gracefuly (despite them also using a metaclass)::

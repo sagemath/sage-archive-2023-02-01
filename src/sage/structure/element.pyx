@@ -3183,7 +3183,7 @@ cdef class NamedBinopMethod:
             sage: sage_getdoc(g) == sage_getdoc(gcd)
             True
         """
-        return sageinspect.sage_getdoc(self._func)
+        return sageinspect._sage_getdoc_unformatted(self._func)
 
     def _sage_src_(self):
         """

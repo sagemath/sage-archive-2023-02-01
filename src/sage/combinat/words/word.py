@@ -626,11 +626,16 @@ class Word_class(SageObject):
         -  ``other`` - word
 
         -  ``length`` - str or +Infinity (optional, default: ``'unknown'``)
-           the length of the result if known. It may be one of the following:
+           the length type of the resulting word if known. It may be one of
+           the following:
 
            - ``'unknown'``
            - ``'finite'``
            - ``'infinite'`` or ``Infinity``
+
+        OUTPUT:
+
+        word
 
         EXAMPLES::
 
@@ -647,7 +652,7 @@ class Word_class(SageObject):
             sage: t1.longest_common_prefix(t2)
             word: 0110100110010110100101100110100110010110...
 
-        Usefull to study the approximation of an infinite word::
+        Useful to study the approximation of an infinite word::
 
             sage: a = 0.618
             sage: g = words.CodingOfRotationWord(alpha=a, beta=1-a, x=a)
@@ -1107,7 +1112,7 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word:
 
-        If the word is finite, so the result is::
+        If the word is finite, so is the result::
 
             sage: w = Word([0,1]*7)
             sage: c = w.iterated_right_palindromic_closure()
@@ -1338,7 +1343,7 @@ class Word_class(SageObject):
 
         TESTS:
 
-        If the word is infinite, so the result is::
+        If the word is infinite, so is the result::
 
             sage: w = Word(lambda n:1)
             sage: u = w.partial_sums(0)
@@ -1464,7 +1469,7 @@ class Word_class(SageObject):
             sage: w.finite_differences()
             word:
 
-        If the word is infinite, so the result is::
+        If the word is infinite, so is the result::
 
             sage: w = Word(lambda n:n)
             sage: u = w.finite_differences()

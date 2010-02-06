@@ -283,7 +283,7 @@ def catalan_number(n):
 
     .. math::
 
-               C_n = \frac{1}{n+1}{2n\choose n} = \frac{(2n)!}{(n+1)!\,n!}              \qquad\mbox{ for }n\ge 0.
+               C_n = \frac{1}{n+1}{2n\choose n} = \frac{(2n)!}{(n+1)!\,n!}              \qquad\mbox{ for }\quad n\ge 0.
 
 
 
@@ -298,18 +298,28 @@ def catalan_number(n):
     When `n=-1`, this function raises a ZeroDivisionError; for
     other `n<0` it returns `0`.
 
+    INPUT:
+
+    - ``n`` - integer
+
+    OUTPUT: integer
+
+
+
     EXAMPLES::
 
         sage: [catalan_number(i) for i in range(7)]
         [1, 1, 2, 5, 14, 42, 132]
-        sage: maxima.eval("-(1/2)*taylor (sqrt (1-4*x^2), x, 0, 15)")
-        '-1/2+x^2+x^4+2*x^6+5*x^8+14*x^10+42*x^12+132*x^14'
+        sage: taylor((-1/2)*sqrt(1 - 4*x^2), x, 0, 15)
+        132*x^14 + 42*x^12 + 14*x^10 + 5*x^8 + 2*x^6 + x^4 + x^2 - 1/2
         sage: [catalan_number(i) for i in range(-7,7) if i != -1]
         [0, 0, 0, 0, 0, 0, 1, 1, 2, 5, 14, 42, 132]
         sage: catalan_number(-1)
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Rational division by zero
+        ZeroDivisionError
+        sage: [catalan_number(n).mod(2) for n in range(16)]
+        [1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
 
     REFERENCES:
 
@@ -319,7 +329,7 @@ def catalan_number(n):
     """
     from sage.rings.arith import binomial
     n = ZZ(n)
-    return binomial(2*n,n)/(n+1)
+    return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
 def euler_number(n):
     """

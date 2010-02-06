@@ -232,9 +232,8 @@ class ElementWrapper(Element):
             False
             sage: l11 < 1                # class differ
             False
-            sage: 1 < l11		 # False would seem preferable, but that's Integer's responsibility
-            True
-
+            sage: 1 < l11		 # random, since it depends on what the Integer 1 decides to do, which may just involve memory locations
+            False
         """
         return self.__class__ is other.__class__ and self.parent() == other.parent() and self.value < other.value
 

@@ -17,17 +17,17 @@ class ElementWrapper(Element):
 
     EXAMPLES::
 
-        sage: o = ElementWrapper("bla", parent=ZZ); o
+        sage: from sage.structure.element_wrapper import DummyParent
+        sage: parent = DummyParent("A parent")
+
+        sage: o = ElementWrapper("bla", parent = parent); o
         'bla'
         sage: isinstance(o, sage.structure.element.Element)
         True
         sage: o.parent()
-        Integer Ring
+        A parent
         sage: o.value
         'bla'
-
-    This is of course a meaningless example: `bla` is not an element
-    of ``ZZ``.
 
     Note that ``o`` is not *an instance of* ``str``, but rather
     *contains a* ``str``. Therefore, ``o`` does not inherit the string
@@ -76,7 +76,8 @@ class ElementWrapper(Element):
         """
         EXAMPLES::
 
-            sage: a = ElementWrapper(1, parent = ZZ)
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: a = ElementWrapper(1, parent = DummyParent("A parent"))
 
         TESTS::
 
@@ -93,7 +94,8 @@ class ElementWrapper(Element):
         """
         EXAMPLES::
 
-            sage: ElementWrapper(1, parent = ZZ)
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: ElementWrapper(1, parent = DummyParent("A parent"))
             1
         """
         return repr(self.value)
@@ -104,9 +106,12 @@ class ElementWrapper(Element):
 
         EXAMPLES::
 
-            sage: hash(ElementWrapper(1, parent = ZZ))
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent1 = DummyParent("A parent")
+            sage: parent2 = DummyParent("Another parent")
+            sage: hash(ElementWrapper(1, parent = parent1))
             1
-            sage: hash(ElementWrapper(1, parent = QQ))
+            sage: hash(ElementWrapper(1, parent = parent2))
             1
 
         TODO: should this take the parent and/or the class into account?
@@ -120,8 +125,11 @@ class ElementWrapper(Element):
 
         EXAMPLES::
 
-            sage: parent1 = ZZ
-            sage: parent2 = QQ
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent1 = DummyParent("A parent")
+            sage: parent2 = DummyParent("Another parent")
+            sage: parent1 == parent2
+            False
             sage: l11 = ElementWrapper(1, parent = parent1)
             sage: l12 = ElementWrapper(2, parent = parent1)
             sage: l21 = ElementWrapper(1, parent = parent2)
@@ -144,8 +152,11 @@ class ElementWrapper(Element):
 
         EXAMPLES::
 
-            sage: parent1 = ZZ
-            sage: parent2 = QQ
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent1 = DummyParent("A parent")
+            sage: parent2 = DummyParent("Another parent")
+            sage: parent1 == parent2
+            False
             sage: l11 = ElementWrapper(1, parent = parent1)
             sage: l12 = ElementWrapper(2, parent = parent1)
             sage: l21 = ElementWrapper(1, parent = parent2)
@@ -170,8 +181,10 @@ class ElementWrapper(Element):
 
         TESTS::
 
-            sage: x = ElementWrapper(1, parent = ZZ)
-            sage: y = ElementWrapper(2, parent = ZZ)
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent = DummyParent("A parent")
+            sage: x = ElementWrapper(1, parent = parent)
+            sage: y = ElementWrapper(2, parent = parent)
             sage: x.__lt__(x), x.__lt__(y), y.__lt__(x), x.__lt__(1)
             (False, False, False, False)
             sage: x < x, x < y, y < x, x < 1
@@ -193,11 +206,12 @@ class ElementWrapper(Element):
 
         EXAMPLES::
 
+            sage: from sage.structure.element_wrapper import DummyParent
             sage: class MyElement(ElementWrapper):
             ...       __lt__ = ElementWrapper._lt_by_value
             ...
-            sage: parent1 = ZZ
-            sage: parent2 = QQ
+            sage: parent1 = DummyParent("A parent")
+            sage: parent2 = DummyParent("Another parent")
             sage: l11 = MyElement(1, parent = parent1)
             sage: l12 = MyElement(2, parent = parent1)
             sage: l21 = MyElement(1, parent = parent2)
@@ -210,8 +224,8 @@ class ElementWrapper(Element):
             False
             sage: l11 < 1                # class differ
             False
-            sage: 1 < l11
-            False
+            sage: 1 < l11		 # False would seem preferable, but that's Integer's responsibility
+            True
 
         """
         return self.__class__ is other.__class__ and self.parent() == other.parent() and self.value < other.value
@@ -229,8 +243,11 @@ class ElementWrapper(Element):
             sage: class MyElement(ElementWrapper):
             ...       __cmp__ = ElementWrapper._cmp_by_value
             ...
-            sage: parent1 = ZZ
-            sage: parent2 = QQ
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent1 = DummyParent("A parent")
+            sage: parent2 = DummyParent("Another parent")
+            sage: parent1 == parent2
+            False
             sage: l11 = MyElement(1, parent = parent1)
             sage: l12 = MyElement(2, parent = parent1)
             sage: l21 = MyElement(1, parent = parent2)
@@ -258,7 +275,9 @@ class ElementWrapper(Element):
 
         EXAMPLES::
 
-            sage: o1 = ElementWrapper([1], parent=ZZ); o1
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent = DummyParent("A parent")
+            sage: o1 = ElementWrapper([1], parent=parent); o1
             [1]
             sage: o2 = copy(o1); o2
             [1]
@@ -269,7 +288,7 @@ class ElementWrapper(Element):
             sage: o1
             [1]
             sage: class bla(ElementWrapper): pass
-            sage: o3 = bla([1], parent=ZZ)
+            sage: o3 = bla([1], parent=parent)
             sage: o4 = copy(o3)
             sage: o3.value[0] = 3; o4
             [1]
@@ -283,7 +302,34 @@ class ElementWrapper(Element):
         res.value = copy(self.value)
         return res
 
-from sage.rings.integer_ring import ZZ
+
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+class DummyParent(UniqueRepresentation, Parent):
+    """
+    A class for creating dummy parents for testing ElementWrapper
+    """
+    def __init__(self, name):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: parent = DummyParent("A Parent")
+            sage: TestSuite(parent).run(skip = ["_test_an_element", "_test_category", "_test_elements", "_test_some_elements"])
+        """
+        self.name = name
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: DummyParent("A Parent")
+            A Parent
+        """
+        return self.name
+
+from sage.categories.sets_cat import Sets
 class ElementWrapperTester(ElementWrapper):
     """
     Test class for the default :meth:`.__copy` method of subclasses of
@@ -312,7 +358,7 @@ class ElementWrapperTester(ElementWrapper):
             sage: x = ElementWrapperTester(); x
             [n=0, value=[]]
         """
-        super(ElementWrapperTester, self).__init__([], parent = ZZ)
+        super(ElementWrapperTester, self).__init__([], parent = Sets().example("facade"))
         self.n = 0
 
     def append(self, x):

@@ -1,118 +1,109 @@
 .. _chapter-cython:
 
-==========================
+=========================
 Coding in Other Languages
-==========================
+=========================
 
 When writing code for Sage, use Python for the basic structure and
 interface. For speed, efficiency, or convenience, you can implement
-parts of the code using any of the following languages: Cython,
-C/C++, Fortran 95, GAP, Common Lisp, Singular, and GP/PARI. You can
-also use all C/C++ libraries included with Sage  [3]_. (And if you
-are okay with your code depending on optional Sage packages, you
-can use Octave, or even Magma, Mathematica, or Maple.)
+parts of the code using any of the following languages: Cython, C/C++,
+Fortran 95, GAP, Common Lisp, Singular, and GP/PARI. You can also use
+all C/C++ libraries included with Sage  [3]_. (And if you are okay
+with your code depending on optional Sage packages, you can use
+Octave, or even Magma, Mathematica, or Maple.)
 
-The first section of this chapter discusses Cython (which is a
-compiled language, based on Python); many components of Sage are
-written in Cython. Later sections discuss the interfaces between
-Sage and PARI, GAP, and Singular.
+The first section of this chapter discusses Cython, which is a
+compiled language based on Python. Many components of Sage are written
+in Cython. Later sections discuss the interfaces between Sage and
+PARI, GAP, and Singular.
+
 
 Cython
 ======
 
-Cython is a compiled version of Python; it is based on Pyrex
+Cython is a compiled version of Python. It is based on Pyrex
 (http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/). To a
 large degree, Cython has changed based on what Sage's developers
-needed: Cython has been developed in concert with Sage. However, it
-is an independent project now which is used beyond the scope of
-Sage.
+needed; Cython has been developed in concert with Sage. However, it is
+an independent project now, which is used beyond the scope of Sage.
 
-As such, it is a young, but developing, language, with young, but
-developing, documentation. See its web page,
+As such, it is a young, but developing language, with young, but
+developing documentation. See its web page,
 http://www.cython.org/, for the most up-to-date information.
 
-Python is an interpreted language and has no declared data types
-for variables. These features make it easy to write and debug, but
-Python code can sometimes be slow. Cython code can look a lot like
-Python, but it gets translated into C code (often very efficient C
-code) and then compiled. Thus it offers a language which is
-familiar to Python developers, but with the potential for much
-greater speed.
+Python is an interpreted language and has no declared data types for
+variables. These features make it easy to write and debug, but Python
+code can sometimes be slow. Cython code can look a lot like Python,
+but it gets translated into C code (often very efficient C code) and
+then compiled. Thus it offers a language which is familiar to Python
+developers, but with the potential for much greater speed.
 
 There are several ways to create and build Cython code in Sage.
 
-
-#. In the Sage Notebook begin any cell with ``%cython``.
-   When you evaluate that cell,
-
+#. In the Sage Notebook, begin any cell with ``%cython``. When you
+   evaluate that cell,
 
    #. It is saved to a file.
 
    #. Cython is run on it with all the standard Sage libraries
       automatically linked if necessary.
 
-   #. The resulting .so file is then loaded into your running instance
-      of Sage.
+   #. The resulting ``.so`` file is then loaded into your running
+      instance of Sage.
 
    #. The functionality defined in that cell is now available for you
       to use in the notebook. Also, the output cell has a link to the C
-      program that was compiled to create the .so file.
+      program that was compiled to create the ``.so`` file.
 
+#. Create an ``.spyx`` file and attach or load it from the command
+   line. This is similar to creating a ``%cython`` cell in the
+   notebook but works completely from the command line (and not from
+   the notebook).
 
-#. Create an .spyx file and attach or load it from the command
-   line. This is similar to creating a %cython cell in the notebook
-   but works completely from the command line (and not from the
-   notebook).
-
-#. Create a .pyx file and add it to the Sage library.
-
+#. Create a ``.pyx`` file and add it to the Sage library.
 
    #. First, add a listing for the Cython extension to the variable
       ``ext_modules`` in the file
       ``SAGE_ROOT/devel/sage/module_list.py``. See the
-      ``distutils.extension.Extension`` class for more information on creating
-      a new Cython extension.
+      ``distutils.extension.Extension`` class for more information on
+      creating a new Cython extension.
 
-   #. Then, if you created a new directory for your .pyx file, add the directory
-      name to the ``packages`` list in the file
+   #. Then, if you created a new directory for your ``.pyx`` file, add
+      the directory name to the ``packages`` list in the file
       ``SAGE_ROOT/devel/sage/setup.py``.  (See also the section on
       "Creating a new directory" in :ref:`chapter-python`.)
 
    #. Run ``sage -b`` to rebuild Sage.
 
-
-   For example, the file ``SAGE_ROOT/devel/sage/sage/graphs/chrompoly.pyx``
-   has the lines
+   For example, the file
+   ``SAGE_ROOT/devel/sage/sage/graphs/chrompoly.pyx`` has the lines
 
    ::
 
      Extension('sage.graphs.chrompoly',
                sources = ['sage/graphs/chrompoly.pyx']),
 
-   in ``module_list.py``. In addition, ``sage.graphs`` is included in the
-   ``packages`` list under the Distutils section of ``setup.py`` since
-   chrompoly.pyx is contained in the directory 'sage/graphs'.
+   in ``module_list.py``. In addition, ``sage.graphs`` is included in
+   the ``packages`` list under the Distutils section of ``setup.py``
+   since ``chrompoly.pyx`` is contained in the directory
+   ``sage/graphs``.
 
 
-Special Pragmas
+Special pragmas
 ---------------
 
 If Cython code is either attached or loaded as a ``.spyx`` file or
 loaded from the notebook as a ``%cython`` block, the following
 pragmas are available:
 
-clang
-    may be either c or c++ indicating whether a C or C++ compiler
-    should be used
+* clang --- may be either c or c++ indicating whether a C or C++
+  compiler should be used.
 
-clib
-    additional libraries to be linked in, the space separated list is
-    split and passed to distutils.
+* clib --- additional libraries to be linked in, the space separated
+  list is split and passed to distutils.
 
-cinclude
-    additional directories to search for header files. The space
-    separated list is split and passed to distutils.
-
+* cinclude --- additional directories to search for header files. The
+  space separated list is split and passed to distutils.
 
 For example:
 
@@ -122,13 +113,13 @@ For example:
     #clib givaro
     #cinclude /usr/local/include/
 
-Attaching or Loading  .spyx
----------------------------
+
+Attaching or loading .spyx
+--------------------------
 
 The easiest way to try out Cython without having to learn anything
-about distutils, etc., is to create a file with the extension spyx,
-which stands for "Sage Pyrex":
-
+about distutils, etc., is to create a file with the extension
+``spyx``, which stands for "Sage Pyrex":
 
 #. Create a file ``power2.spyx``.
 
@@ -141,7 +132,7 @@ which stands for "Sage Pyrex":
                n = n >> 1
            return n == 1
 
-#. Start the Sage command-line interpreter and load the spyx file
+#. Start the Sage command line interpreter and load the ``spyx`` file
    (this will fail if you do not have a C compiler installed).
 
    .. skip
@@ -153,10 +144,9 @@ which stands for "Sage Pyrex":
        sage: is2pow(12)
        False
 
-
-Note that you can change ``power2.spyx``, then load it again
-and it will be recompiled on the fly. You can also attach
-``power2.spyx`` so it is reloaded whenever you make changes:
+Note that you can change ``power2.spyx``, then load it again and it
+will be recompiled on the fly. You can also attach ``power2.spyx`` so
+it is reloaded whenever you make changes:
 
 .. skip
 
@@ -176,9 +166,9 @@ Opteron:
     CPU times: user 0.60 s, sys: 0.00 s, total: 0.60 s
     Wall time: 0.60 s
 
-Now, the code in the file ``power2.spyx`` is valid Python,
-and if we copy this to a file ``powerslow.py`` and load that,
-we get the following:
+Now, the code in the file ``power2.spyx`` is valid Python, and if we
+copy this to a file ``powerslow.py`` and load that, we get the
+following:
 
 .. skip
 
@@ -191,47 +181,49 @@ we get the following:
     Wall time: 1.05 s
 
 By the way, we could gain even a little more speed with the Cython
-version with a type declaration, by changing
-``def is2pow(n):`` to ``def is2pow(unsigned int n):``.
+version with a type declaration, by changing ``def is2pow(n):`` to
+``def is2pow(unsigned int n):``.
 
-Other Languages
+
+Other languages
 ===============
 
-Since Sage is based on Python, it interfaces with C and C++, as
-well as other languages. See the Python documentation at
-http://www.python.org/doc/ for more details; in particular,
-"Extending and Embedding the Python Interpreter", available at
+Since Sage is based on Python, it interfaces with C and C++, as well
+as other languages. See the Python documentation at
+http://www.python.org/doc/ for more details. In particular, the
+section "Extending and Embedding the Python Interpreter", available at
 http://docs.python.org/ext/ext.html, describes how to write C or
 C++ modules for use in Python.
 
-The PARI C-library Interface
+
+The PARI C library interface
 ============================
 
 (This chapter was written by Martin Albrecht.)
 
-Here is the step-by-step guide to adding new PARI functions to
-Sage. We use the Frobenius form of a matrix as an example.
+Here is a step-by-step guide to adding new PARI functions to Sage. We
+use the Frobenius form of a matrix as an example.
 
 Some heavy lifting for matrices over integers is implemented using
 the PARI library. To compute the Frobenius form in PARI, the
 ``matfrobenius`` function is used.
 
-There are two ways to interact with the PARI library from Sage: The
-gp interface uses the gp interpreter, and the PARI interface uses
-direct calls to the PARI C functions -- this is the preferred way
+There are two ways to interact with the PARI library from Sage. The
+gp interface uses the gp interpreter. The PARI interface uses
+direct calls to the PARI C functions---this is the preferred way
 as it is much faster. Thus this section focuses on using PARI.
 
-So we will add a new method to the gen class: this is the abstract
+We will add a new method to the gen class. This is the abstract
 representation of all PARI library objects. That means that once we
-add a method to this class, every PARI object, whether it is a
-number, polynomial or matrix, will have our new method. So you can
-do ``pari(1).matfrobenius()``, but since PARI wants to apply
+add a method to this class, every PARI object, whether it is a number,
+polynomial or matrix, will have our new method. So you can do
+``pari(1).matfrobenius()``, but since PARI wants to apply
 ``matfrobenius`` to matrices, not numbers, you will receive a
 PariError in this case.
 
 The gen class is defined in
-``SAGE_ROOT/devel/sage/sage/libs/pari/gen.pyx``, and this is
-where we add the method ``matfrobenius``:
+``SAGE_ROOT/devel/sage/sage/libs/pari/gen.pyx``, and this is where we
+add the method ``matfrobenius``:
 
 ::
 
@@ -246,33 +238,31 @@ where we add the method ``matfrobenius``:
             _sig_on
             return self.new_gen(matfrobenius(self.g, flag))
 
-The ``_sig_on`` statement is some magic to prevent SIGSEGVs
-from the PARI C library to crash the Sage interpreter by catching
-these signals. Note that ``self.new_gen()`` calls a closing
-``_sig_off`` macro. These two *must always* come in pairs,
-i.e. every ``_sig_on`` must be matched by a closing
-``_sig_off``. The ``self.new_gen()`` call constructs
-a new Sage-python-gen object from a given pari-C-gen where the
-pari-C-gen is stored as the Sage-python-gen.g attribute. The
-``matfrobenius`` call is just a call to the PARI C library
-function ``matfrobenius`` with the appropriate parameters.
+The ``_sig_on`` statement is some magic for catching segfault signals.
+In this way, it prevents SIGSEGVs from the PARI C library crashing the
+Sage interpreter. Note that ``self.new_gen()`` calls a closing
+``_sig_off`` macro. These two *must always* come in pairs, i.e. every
+``_sig_on`` must be matched by a closing ``_sig_off``. The
+``self.new_gen()`` call constructs a new Sage-python-gen object from a
+given pari-C-gen where the pari-C-gen is stored as the
+Sage-python-gen.g attribute. The ``matfrobenius`` call is just a call
+to the PARI C library function ``matfrobenius`` with the appropriate
+parameters.
 
-The information about which function to call and how to call it can
-be retrieved from the PARI user's manual (note: Sage includes the
+The information about which function to call and how to call it can be
+retrieved from the PARI user's manual (note: Sage includes the
 development version of PARI, so check that version of the user's
 manual). Looking for ``matfrobenius`` you can find:
 ``"The library syntax is matfrobenius(M,flag)"``.
 
-In case you are familiar with gp, please note that the PARI C
-function may have a name that is different from the corresponding gp
-function (for example, see ``mathnf``), so always check the
-manual.
+In case you are familiar with gp, please note that the PARI C function
+may have a name that is different from the corresponding gp function
+(for example, see ``mathnf``), so always check the manual.
 
-We can also add a ``frobenius(flag)`` method to the
-``matrix_integer`` class where we call the
-``matfrobenius()`` method on the PARI object associated to
-the matrix after doing some sanity checking. Then we convert output
-from PARI to Sage objects:
+We can also add a ``frobenius(flag)`` method to the ``matrix_integer``
+class where we call the ``matfrobenius()`` method on the PARI object
+associated to the matrix after doing some sanity checking. Then we
+convert output from PARI to Sage objects:
 
 ::
 
@@ -324,19 +314,20 @@ from PARI to Sage objects:
                                              self.nrows())(v[1].python())
                 return F,B
 
+
 GAP
 ===
 
 (The first version of this chapter was written by David Joyner.)
 
 Wrapping a GAP function in Sage is a matter of writing a program in
-Python which uses the pexpect interface to pipe various commands to
-GAP and read back the input into Sage. This is sometimes easy,
-sometimes hard.
+Python that uses the pexpect interface to pipe various commands to GAP
+and read back the input into Sage. This is sometimes easy, sometimes
+hard.
 
-For example, suppose we want to make a wrapper for the computation
-of the Cartan matrix of a simple Lie algebra. The Cartan matrix of
-:math:`G_2` is available in GAP using the commands
+For example, suppose we want to make a wrapper for the computation of
+the Cartan matrix of a simple Lie algebra. The Cartan matrix of `G_2`
+is available in GAP using the commands
 
 ::
 
@@ -346,8 +337,8 @@ of the Cartan matrix of a simple Lie algebra. The Cartan matrix of
     <root system of rank 2>
     gap> CartanMatrix( R );
 
-(Incidentally, most of the GAP Lie algebra implementation was
-written by Thomas Breuer, Willem de Graaf and Craig Struble.)
+(Incidentally, most of the GAP Lie algebra implementation was written
+by Thomas Breuer, Willem de Graaf and Craig Struble.)
 
 In Sage, one can access these commands by typing
 
@@ -361,26 +352,24 @@ In Sage, one can access these commands by typing
     sage: R.CartanMatrix()
     [ [ 2, -1 ], [ -3, 2 ] ]
 
-Note the ``'"G"'`` which is evaluated in GAP as the string
-``"G"``.
+Note the ``'"G"'`` which is evaluated in GAP as the string ``"G"``.
 
 The purpose of this section is to use this example to show how one
-might write a Python/Sage program whose input is, say,
-``('G',2)`` and whose output is the matrix above (but as a
-Sage Matrix -- see the code in the directory
-``SAGE_ROOT/devel/sage/sage/matrix/`` and the corresponding
-parts of the Sage reference manual).
+might write a Python/Sage program whose input is, say, ``('G',2)`` and
+whose output is the matrix above (but as a Sage Matrix---see the code
+in the directory ``SAGE_ROOT/devel/sage/sage/matrix/`` and the
+corresponding parts of the Sage reference manual).
 
 First, the input must be converted into strings consisting of legal
 GAP commands. Then the GAP output, which is also a string, must be
 parsed and converted if possible to a corresponding Sage/Python
-class object.
+object.
 
 ::
 
     def cartan_matrix(type, rank):
         """
-        Return the Cartain matrix of given Chevalley type and rank.
+        Return the Cartan matrix of given Chevalley type and rank.
 
         INPUT:
             type -- a Chevalley letter name, as a string, for
@@ -406,53 +395,51 @@ class object.
         MS  = MatrixSpace(QQ, rank)
         return MS(ans)
 
-The output ``ans`` is a Python list. The last two lines
-convert that list to an instance of the Sage class
-``Matrix``.
+The output ``ans`` is a Python list. The last two lines convert that
+list to an instance of the Sage class ``Matrix``.
 
-Alternatively, one could replace the first line of the above
-function with this:
+Alternatively, one could replace the first line of the above function
+with this:
 
 ::
 
         L = gap.new('SimpleLieAlgebra("%s", %s, Rationals);'%(type, rank))
 
-Defining "easy" and "hard" is subjective, but here is one
-definition: wrapping a GAP function is "easy" if there is already a
-corresponding class in Python or Sage for the output data type of
-the GAP function you are trying to wrap. For example, wrapping any
-GUAVA (GAP's error-correcting codes package) function is "easy"
-since error-correcting codes are vector spaces over finite fields
-and GUAVA functions return one of the following data types:
+Defining "easy" and "hard" is subjective, but here is one definition.
+Wrapping a GAP function is "easy" if there is already a corresponding
+class in Python or Sage for the output data type of the GAP function
+you are trying to wrap. For example, wrapping any GUAVA (GAP's
+error-correcting codes package) function is "easy" since
+error-correcting codes are vector spaces over finite fields and GUAVA
+functions return one of the following data types:
 
+- vectors over finite fields,
 
--  vectors over finite fields,
+- polynomials over finite fields,
 
--  polynomials over finite fields,
+- matrices over finite fields,
 
--  matrices over finite fields,
+- permutation groups or their elements,
 
--  permutation groups or their elements,
-
--  integers.
+- integers.
 
 
 Sage already has classes for each of these.
 
 A "hard" example is left as an exercise! Here are a few ideas.
 
-    Write a wrapper for GAP's ``FreeLieAlgebra`` function (or,
-    more generally, all the finitely presented Lie algebra functions
-    in GAP). This would require creating new Python objects.
+- Write a wrapper for GAP's ``FreeLieAlgebra`` function (or, more
+  generally, all the finitely presented Lie algebra functions in
+  GAP). This would require creating new Python objects.
 
-    Write a wrapper for GAP's ``FreeGroup`` function (or, more
-    generally, all the finitely presented groups functions in GAP).
-    This would require writing some new Python objects.
+- Write a wrapper for GAP's ``FreeGroup`` function (or, more
+  generally, all the finitely presented groups functions in GAP). This
+  would require writing some new Python objects.
 
-    Write a wrapper for GAP's character tables. Though this could be
-    done without creating new Python objects, to make the most use of
-    these tables, it probably would be best to have new Python objects
-    for this.
+- Write a wrapper for GAP's character tables. Though this could be
+  done without creating new Python objects, to make the most use of
+  these tables, it probably would be best to have new Python objects
+  for this.
 
 
 Singular
@@ -460,30 +447,27 @@ Singular
 
 (The first version of this chapter was written by David Joyner.)
 
-Using Singular functions from Sage is not much different
-conceptually from using GAP functions from Sage. As with GAP, this
-can range from easy to hard, depending on how much of the data
-structure of the output of the Singular function is already present
-in Sage.
+Using Singular functions from Sage is not much different conceptually
+from using GAP functions from Sage. As with GAP, this can range from
+easy to hard, depending on how much of the data structure of the
+output of the Singular function is already present in Sage.
 
-First, some terminology. For us, a *curve* :math:`X` over a
-finite field :math:`F` is an equation of the form
-:math:`f(x,y)=0`, where :math:`f\in F[x,y]` is a polynomial. It
-may or may not be singular. A *place of degree* :math:`d` is a
-Galois orbit of :math:`d` points in :math:`X(E)`, where
-:math:`E/F` is of degree :math:`d`. For example, a place of degree
-:math:`1` is also a place of degree :math:`3`, but a place of
-degree :math:`2` is not since no degree :math:`3` extension of
-:math:`F` contains a degree :math:`2` extension. Places of
-degree :math:`1` are also called :math:`F`-rational points.
+First, some terminology. For us, a *curve* `X` over a finite field `F`
+is an equation of the form `f(x,y) = 0`, where `f \in F[x,y]` is a
+polynomial. It may or may not be singular. A *place of degree* `d` is
+a Galois orbit of `d` points in `X(E)`, where `E/F` is of degree
+`d`. For example, a place of degree `1` is also a place of degree `3`,
+but a place of degree `2` is not since no degree `3` extension of `F`
+contains a degree `2` extension. Places of degree `1` are also called
+`F`-rational points.
 
-As an example of the Sage-Singular interface, we will explain how
-to wrap Singular's ``NSplaces``, which computes places on a
-curve over a finite field. (The command ``closed_points``
-also does this in some cases.) This is "easy" since no new Python
-classes are needed in Sage to carry this out.
+As an example of the Sage/Singular interface, we will explain how to
+wrap Singular's ``NSplaces``, which computes places on a curve over a
+finite field. (The command ``closed_points`` also does this in some
+cases.) This is "easy" since no new Python classes are needed in Sage
+to carry this out.
 
-Here's an example of how to use this command in Singular:
+Here is an example on how to use this command in Singular:
 
 ::
 
@@ -556,8 +540,8 @@ Here's an example of how to use this command in Singular:
        [3]:
           1
 
-Here's one way of doing this same calculation in the Sage interface
-to Singular:
+Here is another way of doing this same calculation in the Sage
+interface to Singular:
 
 ::
 
@@ -613,12 +597,12 @@ to Singular:
           1
     ...
 
-From looking at the output, notice that our wrapper function will
-need to parse the string represented by :math:`L` above, so let
-us write a separate function to do just that. This requires
-figuring out how to determine where the coordinates of the points
-are placed in the string L. Python has some very useful string
-manipulation commands to do just that.
+From looking at the output, notice that our wrapper function will need
+to parse the string represented by `L` above, so let us write a
+separate function to do just that. This requires figuring out how to
+determine where the coordinates of the points are placed in the string
+`L`. Python has some very useful string manipulation commands to do
+just that.
 
 ::
 
@@ -672,16 +656,14 @@ manipulation commands to do just that.
             L1=L1[idx+8:] # repeat block 2 more times
         return tuple(Pts)
 
-Now it is an easy matter to put these ingredients together into a
-Sage function which takes as input a triple :math:`(f,F,d)`: a
-polynomial :math:`f` in :math:`F[x,y]` defining
-:math:`X:\  f(x,y)=0` (note that the variables :math:`x,y` must
-be used), a finite field :math:`F` *of prime order*, and the
-degree :math:`d`. The output is the number of places in
-:math:`X` of degree :math:`d=1` over :math:`F`. At the
-moment, there is no "translation" between elements of
-:math:`GF(p^d)` in Singular and Sage unless :math:`d=1`. So,
-for this reason, we restrict ourselves to points of degree one.
+Now it is an easy matter to put these ingredients together into a Sage
+function which takes as input a triple `(f,F,d)`: a polynomial `f` in
+`F[x,y]` defining `X:\  f(x,y)=0` (note that the variables `x,y` must
+be used), a finite field `F` *of prime order*, and the degree `d`. The
+output is the number of places in `X` of degree `d=1` over `F`. At the
+moment, there is no "translation" between elements of `GF(p^d)` in
+Singular and Sage unless `d=1`. So, for this reason, we restrict
+ourselves to points of degree one.
 
 ::
 
@@ -715,9 +697,8 @@ for this reason, we restrict ourselves to points of degree one.
         L = singular.eval("POINTS;")
         return points_parser(L,F)
 
-Note that the ordering returned by this Sage function is exactly
-the same as the ordering in the Singular variable
-``POINTS``.
+Note that the ordering returned by this Sage function is exactly the
+same as the ordering in the Singular variable ``POINTS``.
 
 One more example (in addition to the one in the docstring):
 
@@ -732,12 +713,13 @@ One more example (in addition to the one in the docstring):
     sage: places_on_curve(f,F)
     ((0, 1, 0), (1, 0, 0), (0, 0, 1))
 
-Singular: Another Approach
+
+Singular: Another approach
 ==========================
 
-There is also a more Python-like interface to Singular. Using this
-the code is much simpler, as illustrated below. First we
-demonstrate computing the places on a curve in a particular case.
+There is also a more Python-like interface to Singular. Using this,
+the code is much simpler, as illustrated below. First, we demonstrate
+computing the places on a curve in a particular case.
 
 ::
 
@@ -759,9 +741,9 @@ demonstrate computing the places on a curve in a particular case.
     [(0, 1, 0), (2, 2, 1), (0, 0, 1), (-2, -1, 1), (-2, 1, 1), (2, -2, 1)]  # 32-bit
     [(0, 1, 0), (-2, 1, 1), (-2, -1, 1), (2, 2, 1), (0, 0, 1), (2, -2, 1)]  # 64-bit
 
-Next we implement the general function (for brevity we omit the
-docstring, which is the same as above). Note that the
-``point_parser`` function is not required.
+Next, we implement the general function (for brevity we omit the
+docstring, which is the same as above). Note that the ``point_parser``
+function is not required.
 
 ::
 
@@ -782,27 +764,27 @@ docstring, which is the same as above). Note that the
                  for i in range(1,int(L.size())+1)]
 
 This code is much shorter, nice, and more readable. However, it
-depends on certain functions, e.g., ``singular.setring``
-having been implemented in the Sage/Singular interface, whereas the
-code in the previous section used only the barest minimum of that
-interface.
+depends on certain functions, e.g. ``singular.setring`` having been
+implemented in the Sage/Singular interface, whereas the code in the
+previous section used only the barest minimum of that interface.
 
-Creating a new Pseudo-tty Interface
+
+Creating a new pseudo-tty interface
 ===================================
 
-You can create Sage pseudo-tty interfaces that allow Sage to work
-with almost any command-line program, and which don't require any
-modification or extensions to that program. They are also
-surprisingly fast and flexible (given how they work!), because all
-I/O is buffered, and because interaction between Sage and the
-command line program can be non-blocking (asynchronous); this is
-because they all derive from the Sage class ``Expect``, which
+You can create Sage pseudo-tty interfaces that allow Sage to work with
+almost any command line program, and which do not require any
+modification or extensions to that program. They are also surprisingly
+fast and flexible (given how they work!), because all I/O is buffered,
+and because interaction between Sage and the command line program can
+be non-blocking (asynchronous). A pseudo-tty Sage interface is
+asynchronous because it derives from the Sage class ``Expect``, which
 handles the communication between Sage and the external process.
 
 For example, here is part of the file
 ``SAGE_ROOT/devel/sage/sage/interfaces/octave.py``, which
-defines an interface between Sage and Octave, an open-source
-program for doing numerical computations, among other things.
+defines an interface between Sage and Octave, an open source program
+for doing numerical computations, among other things.
 
 ::
 
@@ -813,11 +795,10 @@ program for doing numerical computations, among other things.
         ...
 
 The first two lines import the library ``os``, which contains
-operating system routines, and also class ``Expect``, which
-is the basic class for interfaces. The third line defines the class
-``Octave``: it derives from ``Expect``. After this
-comes a docstring, which we omit here - see the file for details.
-Next comes:
+operating system routines, and also the class ``Expect``, which is the
+basic class for interfaces. The third line defines the class
+``Octave``; it derives from ``Expect`` as well. After this comes a
+docstring, which we omit here (see the file for details). Next comes:
 
 ::
 
@@ -836,8 +817,7 @@ Next comes:
                             logfile = logfile,
                             eval_using_file_cutoff=100)
 
-This uses the class ``Expect`` to set up the Octave
-interface.
+This uses the class ``Expect`` to set up the Octave interface.
 
 ::
 
@@ -862,9 +842,8 @@ interface.
             octave_console()
 
 These let users type ``octave.set('x', 3)``, after which
-``octave.get('x')`` returns ``' 3'``. Running
-``octave.console()`` dumps the user into Octave interactive
-shell.
+``octave.get('x')`` returns ``' 3'``. Running ``octave.console()``
+dumps the user into an Octave interactive shell.
 
 ::
 
@@ -908,15 +887,13 @@ shell.
             sol  = soln[3:]
             return eval(sol)
 
-This code defines the method ``solve_linear_system``, which
-works as documented.
+This code defines the method ``solve_linear_system``, which works as
+documented.
 
-These are only excerpts from ``octave.py``; check that file
-for more definitions and examples. Look at other files in the
-directory ``SAGE_ROOT/devel/sage/sage/interfaces/`` for
-examples of interfaces to other software packages.
+These are only excerpts from ``octave.py``; check that file for more
+definitions and examples. Look at other files in the directory
+``SAGE_ROOT/devel/sage/sage/interfaces/`` for examples of interfaces
+to other software packages.
 
 
 .. [3] See http://www.sagemath.org/links-components.html for a list
-
-

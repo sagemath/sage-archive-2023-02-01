@@ -1,5 +1,9 @@
 """
 ElementWrapper A class for wrapping Sage or Python objects as Sage elements
+
+WARNING: This class has serious issues that can lead to subtle
+segfaults.  Do not use it unless you read trac 8200 first:
+http://trac.sagemath.org/sage_trac/ticket/8200
 """
 #*****************************************************************************
 #  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -14,6 +18,10 @@ from copy import copy
 class ElementWrapper(Element):
     r"""
     A class for wrapping Sage or Python objects as Sage elements
+
+    WARNING: This class has serious issues that can lead to subtle
+    segfaults.  Do not use it unless you read trac 8200 first:
+    http://trac.sagemath.org/sage_trac/ticket/8200
 
     EXAMPLES::
 

@@ -1796,7 +1796,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``verbose`` - (default: None), if specified changes
            the verbosity of mwrank computations.
 
-        -  ``rank1_search`` - (default: 16), if the curve has
+        -  ``rank1_search`` - (default: 10), if the curve has
            analytic rank 1, try to find a generator by a direct search up to
            this logarithmic height. If this fails the usual mwrank procedure
            is called. algorithm -
@@ -1816,7 +1816,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``use_database`` - bool (default True) if True,
            attempts to find curve and gens in the (optional) database
 
-        -  ``descent_second_limit`` - (default: 16)- used in 2-descent
+        -  ``descent_second_limit`` - (default: 12)- used in 2-descent
 
         OUTPUT:
 
@@ -2035,7 +2035,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``precision`` - int or None (default: None): the
            precision in bits of the result (default real precision if None)
 
-        -  ``descent_second_limit`` - (default: 16)- used in 2-descent
+        -  ``descent_second_limit`` - (default: 12)- used in 2-descent
 
         -  ``verbose`` - whether to print mwrank's verbose output
 

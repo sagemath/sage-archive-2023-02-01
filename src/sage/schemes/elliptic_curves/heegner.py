@@ -6329,7 +6329,7 @@ def heegner_point_height(self, D, prec=2):
         return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=16, verbose_mwrank=False):
+def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mwrank=False):
     r"""
     Return an interval that contains the index of the Heegner
     point `y_K` in the group of `K`-rational points modulo torsion
@@ -6358,7 +6358,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=16, verbose_mw
     -  ``prec (int)`` - (default: 5), use prec\*sqrt(N) +
        20 terms of L-series in computations, where N is the conductor.
 
-    -  ``descent_second_limit`` - (default: 16)- used in 2-descent
+    -  ``descent_second_limit`` - (default: 12)- used in 2-descent
        when computing regulator of the twist
 
     OUTPUT: an interval that contains the index
@@ -6411,19 +6411,17 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=16, verbose_mw
 
     This example demonstrates the `descent_second_limit` option,
     which can be used to fine tune the 2-descent used to compute
-    the regulator of the twist. If we set the parameter lower than
-    its usual value, then the point search is not high enough to
-    find what it is looking for::
+    the regulator of the twist::
 
         sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
-        sage: E.heegner_index(-8, descent_second_limit=10)
+        sage: E.heegner_index(-8)
         Traceback (most recent call last):
         ...
         RuntimeError: ...
 
-    However when we use the default values, we find the points we need::
+    However when we search higher, we find the points we need::
 
-        sage: E.heegner_index(-8)
+        sage: E.heegner_index(-8, descent_second_limit=16)
         1.00000?
 
     """

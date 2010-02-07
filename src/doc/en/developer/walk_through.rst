@@ -509,13 +509,17 @@ Issue ::
 
     hg qnew <descriptive-name>
 
-I am always in such a rush, I often forget this step.  I usually
-undo everything in my editor, start the patch, then redo all my
-edits, but maybe there is a better way.  The "descriptive-name" can be
-anything you like, nobody else ever has to see it.  Use a Trac ticket
-number or whatever you please. Edit, build, test, create
-documentation, knock yourself out.  At any time, run ``hg qdiff`` to
-see your changes.
+I am always in such a rush, I often forget this step. If you are
+like me, then ::
+
+    hg qnew -f <descriptive-name>
+
+will capture your changes made so far and give you a patch to
+work with.  The "descriptive-name" can be anything you like,
+nobody else ever has to see it.  Use a Trac ticket number or
+whatever you please. Edit, build, test, create documentation,
+knock yourself out.  At any time, run ``hg qdiff`` to see your
+changes.
 
 Once satisfied with your work, use ``hg qrefresh`` to save your
 changes into the patch.  Even better is to use the ``-e`` or
@@ -641,6 +645,13 @@ If you know how "regular" Mercurial functions (and even if you
 don't) you can look at the main Mercurial repository (with
 ``hg log | more``) and see how queues "insert" your applied patches
 near the tip of the repository, all "behind the scenes."
+
+The "record" extensions allow you to selectively pick (record)
+portions of a patch to group together.  So you can round up
+related bits and pieces of a patch if that makes sense in the
+context of your work.  For more on record, qrecord and crecord, see
+
+* http://mercurial.selenic.com/wiki/RecordExtension
 
 There are lots more you can do with queues, but you should
 understand enough now to experiment safely. The following URLs

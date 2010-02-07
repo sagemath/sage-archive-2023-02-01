@@ -188,6 +188,135 @@ def detex(s, embedded=False):
         s = s.replace('\\','')        # nuke backslashes
     return s
 
+def process_dollars(s):
+    r"""nodetex
+    Replace dollar signs with backticks.
+
+    More precisely, do a regular expression search.  Replace a plain
+    dollar sign ($) by a backtick (`).  Replace an escaped dollar sign
+    (\$) by a dollar sign ($).  Don't change a dollar sign preceded or
+    followed by a backtick (`$ or $`), because of strings like
+    "``$HOME``".  Don't make any changes on lines starting with more
+    spaces than the first nonempty line in ``s``, because those are
+    indented and hence part of a block of code or examples.
+
+    This also doesn't replaces dollar signs enclosed in curly braces,
+    to avoid nested math environments.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import process_dollars
+        sage: process_dollars('hello')
+        'hello'
+        sage: process_dollars('some math: $x=y$')
+        'some math: `x=y`'
+
+    Replace \$ with $, and don't do anything when backticks are involved::
+
+        sage: process_dollars(r'a ``$REAL`` dollar sign: \$')
+        'a ``$REAL`` dollar sign: $'
+
+    Don't make any changes on lines indented more than the first
+    nonempty line::
+
+        sage: s = '\n first line\n     indented $x=y$'
+        sage: s == process_dollars(s)
+        True
+
+    Don't replace dollar signs enclosed in curly braces::
+
+        sage: process_dollars(r'f(n) = 0 \text{ if $n$ is prime}')
+        'f(n) = 0 \\text{ if $n$ is prime}'
+
+    This is not perfect:
+
+        sage: process_dollars(r'$f(n) = 0 \text{ if $n$ is prime}$')
+        '`f(n) = 0 \\text{ if $n$ is prime}$'
+
+    The regular expression search doesn't find the last $.
+    Fortunately, there don't seem to be any instances of this kind of
+    expression in the Sage library, as of this writing.
+    """
+    if s.find("$") == -1:
+        return s
+    # find how much leading whitespace s has, for later comparison:
+    # ignore all $ on lines which start with more whitespace.
+    whitespace = re.match(r'\s*\S', s.lstrip('\n'))
+    whitespace = ' ' * (whitespace.end() - 1) # leading whitespace
+    # Indices will be a list of pairs of positions in s, to search between.
+    # If the following search has no matches, then indices will be (0, len(s)).
+    indices = [0]
+    # This searches for "$blah$" inside a pair of curly braces --
+    # don't change these, since they're probably coming from a nested
+    # math environment.  So for each match, search to the left of its
+    # start and to the right of its end, but not in between.
+    for m in re.finditer(r"{[^{}$]*\$([^{}$]*)\$[^{}$]*}", s):
+        indices[-1] = (indices[-1], m.start())
+        indices.append(m.end())
+    indices[-1] = (indices[-1], len(s))
+    # regular expression for $ (not \$, `$, $`, and only on a line
+    # with no extra leading whitespace).
+    #
+    # in detail:
+    #   re.compile("^" # beginning of line
+    #               + "(%s%)?" % whitespace
+    #               + r"""(\S # non whitespace
+    #                     .*?)? # non-greedy match any non-newline characters
+    #                     (?<!`|\\)\$(?!`) # $ with negative lookbehind and lookahead
+    #                  """, re.M | re.X)
+    #
+    # except that this doesn't work, so use the equivalent regular
+    # expression without the 're.X' option.  Maybe 'whitespace' gets
+    # eaten up by re.X?
+    regexp = "^" + "(%s)?"%whitespace + r"(\S.*?)?(?<!`|\\)\$(?!`)"
+    dollar = re.compile(regexp, re.M)
+    # regular expression for \$
+    slashdollar = re.compile(r"\\\$")
+    for start, end in indices:
+        while dollar.search(s, start, end):
+            m = dollar.search(s, start, end)
+            s = s[:m.end()-1] + "`" + s[m.end():]
+        while slashdollar.search(s, start, end):
+            m = slashdollar.search(s, start, end)
+            s = s[:m.start()] + "$" + s[m.end():]
+    return s
+
+def process_mathtt(s, embedded=False):
+    r"""nodetex
+    Replace \mathtt{BLAH} with either \verb|BLAH| (in the notebook) or
+    BLAH (from the command line).
+
+    INPUT:
+
+    - ``s`` - string, in practice a docstring
+    - ``embedded`` - boolean (optional, default False)
+
+    This function is called by :func:`format`, and if in the notebook,
+    it sets ``embedded`` to be ``True``, otherwise ``False``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import process_mathtt
+        sage: process_mathtt(r'e^\mathtt{self}')
+        'e^self'
+        sage: process_mathtt(r'e^\mathtt{self}', embedded=True)
+        'e^{\\verb|self|}'
+    """
+    replaced = False
+    while True:
+        start = s.find("\\mathtt{")
+        end = s.find("}", start)
+        if start == -1 or end == -1:
+            break
+        if embedded:
+            left = "{\\verb|"
+            right = "|}"
+        else:
+            left = ""
+            right = ""
+        s = s[:start] + left + s[start+8:end] + right + s[end+1:]
+    return s
+
 def format(s, embedded=False):
     r"""
     Format Sage documentation ``s`` for viewing with IPython.
@@ -263,6 +392,8 @@ def format(s, embedded=False):
         s = s[:i] + '\n' + t + s[i+6+j:]
 
     if 'nodetex' not in directives:
+        s = process_dollars(s)
+        s = process_mathtt(s, embedded=embedded)
         s = detex(s, embedded=embedded)
     else:
         # strip the 'nodetex' directive from s

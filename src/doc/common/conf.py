@@ -297,59 +297,26 @@ def skip_NestedClass(app, what, name, obj, skip, options):
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
-
-    More precisely, do a regular expression search.  Replace a plain
-    dollar sign ($) by a backtick (`).  Replace an escaped dollar sign
-    (\$) by a dollar sign ($).  Don't change a dollar sign preceded or
-    followed by a backtick (`$ or $`), because of strings like
-    "``$HOME``".  Don't make any changes on lines starting with
-    spaces, because those are indented and hence part of a block of
-    code or examples.
-
-    This also doesn't replaces dollar signs enclosed in curly braces,
-    to avoid nested math environments, such as ::
-
-      $f(n) = 0 \text{ if $n$ is prime}$
-
-    Thus the above line would get changed to
-
-      `f(n) = 0 \text{ if $n$ is prime}`
+    See sage.misc.sagedoc.process_dollars for more information
     """
-    s = "\n".join(docstringlines)
-    if s.find("$") == -1:
-        return
-    # Indices will be a list of pairs of positions in s, to search between.
-    # If the following search has no matches, then indices will be (0, len(s)).
-    indices = [0]
-    # This searches for "$blah$" inside a pair of curly braces --
-    # don't change these, since they're probably coming from a nested
-    # math environment.  So for each match, search to the left of its
-    # start and to the right of its end, but not in between.
-    for m in re.finditer(r"{[^{}$]*\$([^{}$]*)\$[^{}$]*}", s):
-        indices[-1] = (indices[-1], m.start())
-        indices.append(m.end())
-    indices[-1] = (indices[-1], len(s))
+    if len(docstringlines) > 0:
+        from sage.misc.sagedoc import process_dollars as sagedoc_dollars
+        s = sagedoc_dollars("\n".join(docstringlines))
+        lines = s.split("\n")
+        for i in range(len(lines)):
+            docstringlines[i] = lines[i]
 
-    # regular expression for $ (not \$, `$, $`, and only on a line
-    # with no leading whitespace).
-    dollar = re.compile(r"""^ # beginning of line
-                            ([^\s] # non whitespace
-                            .*?)? # non-greedy match any non-newline characters
-                            (?<!`|\\)\$(?!`) # $ with negative lookbehind and lookahead
-                            """, re.M | re.X)
-    # regular expression for \$
-    slashdollar = re.compile(r"\\\$")
-    for start, end in indices:
-        while dollar.search(s, start, end):
-            m = dollar.search(s, start, end)
-            s = s[:m.end()-1] + "`" + s[m.end():]
-        while slashdollar.search(s, start, end):
-            m = slashdollar.search(s, start, end)
-            s = s[:m.start()] + "$" + s[m.end():]
-    # now save results in docstringlines
-    lines = s.split("\n")
-    for i in range(len(lines)):
-        docstringlines[i] = lines[i]
+def process_mathtt(app, what, name, obj, options, docstringlines):
+    r"""
+    Replace \mathtt{BLAH} with \verb|BLAH| if using jsMath.
+    See sage.misc.sagedoc.process_mathtt for more information
+    """
+    if len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ:
+        from sage.misc.sagedoc import process_mathtt as sagedoc_mathtt
+        s = sagedoc_mathtt("\n".join(docstringlines), True)
+        lines = s.split("\n")
+        for i in range(len(lines)):
+            docstringlines[i] = lines[i]
 
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
@@ -359,4 +326,5 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_directives)
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
+    app.connect('autodoc-process-docstring', process_mathtt)
     app.connect('autodoc-skip-member', skip_NestedClass)

@@ -212,7 +212,7 @@ class ode_solver(object):
     ux'(t)(x(t)^2-1)+x(t)=0` between `t=0` and `t= 100`.  As a first
     order system it is `x'=y`, `y'=-x+uy(1-x^2)`. Let us take `u=10`
     and use initial conditions `(x,y)=(1,0)` and use the runga-kutta
-    prince-dormand algorithm.::
+    prince-dormand algorithm. ::
 
         sage: def f_1(t,y,params):
         ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
@@ -232,14 +232,14 @@ class ode_solver(object):
 
         sage: T.ode_solve(y_0=[1,0],t_span=[x/10.0 for x in range(1000)],params = [10.0])
 
-    Lets try a system::
+    Let's try a system::
 
         y_0'=y_1*y_2
         y_1'=-y_0*y_2
         y_2'=-.51*y_0*y_1
 
     We will not use the jacobian this time and will change the
-    error tolerances.::
+    error tolerances. ::
 
         sage: g_1= lambda t,y: [y[1]*y[2],-y[0]*y[2],-0.51*y[0]*y[1]]
         sage: T.function=g_1
@@ -257,7 +257,7 @@ class ode_solver(object):
     The method interpolate_solution will return a spline interpolation
     through the points found by the solver. By default y_0 is
     interpolated.  You can interpolate y_i through the keyword
-    argument i.::
+    argument i. ::
 
         sage: f = T.interpolate_solution()
         sage: plot(f,0,12).show()

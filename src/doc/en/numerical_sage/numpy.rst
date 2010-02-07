@@ -97,7 +97,7 @@ You can do basic arithmetic operations
     sage: 2.5*l
     array([  0. ,   2.5,   5. ,   7.5,  10. ,  12.5,  15. ,  17.5,  20. ,  22.5])
 
- Note that ``l*l`` will multiply the elements of ``l`` componentwise. To get
+Note that ``l*l`` will multiply the elements of ``l`` componentwise. To get
 a dot product, use :meth:`numpy.dot`.
 
 .. link

@@ -969,7 +969,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             g = self._minpoly_linbox(var)
             if proof == True:
                 while g(self):  # insanely toy slow (!)
-                    g = self._minpoly_linbox(var)
+                    g = g.lcm(self._minpoly_linbox(var))
         elif algorithm == 'generic':
             raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
         else:

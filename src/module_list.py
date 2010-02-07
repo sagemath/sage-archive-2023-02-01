@@ -1301,6 +1301,14 @@ ext_modules = [
               include_dirs = ['sage/libs/ntl/',
                               'sage/schemes/hyperelliptic_curves/hypellfrob/']),
 
+    ################################
+    ##
+    ## sage.sets
+    ##
+    ################################
+
+    Extension('sage.sets.disjoint_set',
+              sources = ['sage/sets/disjoint_set.pyx']),
 
     ################################
     ##

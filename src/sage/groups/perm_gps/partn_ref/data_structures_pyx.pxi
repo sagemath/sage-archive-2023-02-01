@@ -117,14 +117,14 @@ cdef inline int OP_merge_list_perm(OrbitPartition *OP, int *gamma):
             OP_join(OP, i_root, gamma_i_root)
     return changed
 
-def OP_represent(int n=9, merges=[(0,1),(2,3),(3,4)], perm=[1,2,0,4,3,6,7,5,8]):
+def OP_represent(int n, merges, perm):
     """
     Demonstration and testing.
 
-    DOCTEST:
-        sage: from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label \
-        ... import OP_represent
-        sage: OP_represent()
+    TESTS::
+
+        sage: from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label import OP_represent
+        sage: OP_represent(9, [(0,1),(2,3),(3,4)], [1,2,0,4,3,6,7,5,8])
         Allocating OrbitPartition...
         Allocation passed.
         Checking that each element reports itself as its root.
@@ -460,14 +460,14 @@ cdef inline int PS_get_perm_from(PartitionStack *PS1, PartitionStack *PS2, int *
     for i from 0 <= i < PS1.degree:
         gamma[PS2.entries[i]] = PS1.entries[i]
 
-def PS_represent(partition=[[6],[3,4,8,7],[1,9,5],[0,2]], splits=[6,1,8,2]):
+def PS_represent(partition, splits):
     """
     Demonstration and testing.
 
-    DOCTEST:
-        sage: from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label \
-        ... import PS_represent
-        sage: PS_represent()
+    TESTS::
+
+        sage: from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label import PS_represent
+        sage: PS_represent([[6],[3,4,8,7],[1,9,5],[0,2]], [6,1,8,2])
         Allocating PartitionStack...
         Allocation passed:
         (0 1 2 3 4 5 6 7 8 9)

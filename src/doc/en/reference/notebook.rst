@@ -6,6 +6,7 @@ The Sage Notebook
 .. toctree::
    :maxdepth: 2
 
+   sagenb/notebook/notebook_object
    sagenb/notebook/config
    sagenb/notebook/interact
    sagenb/notebook/cell

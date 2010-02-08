@@ -4209,10 +4209,19 @@ exponent %s: the length of the word (%s) times the exponent \
             True
             sage: Word('32')._pos_in(Word('131231'), 0) is None
             True
+
+        The empty word occurs in a word::
+
+            sage: Word('')._pos_in(Word('123'), 0)
+            0
+            sage: Word('')._pos_in(Word(''), 0)
+            0
         """
         lf = self.length()
         lm = len(other)
-        if lf == 0 or lm == 0:
+        if lf == 0:
+            return p
+        elif lm == 0:
             return None
         occ = self.last_position_dict()
         suff = self.good_suffix_table()
@@ -4279,6 +4288,17 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word('1231241231312312312')
             sage: u.is_factor(w)
             False
+
+        The empty word is factor of another word::
+
+            sage: Word().is_factor(Word())
+            True
+            sage: Word().is_factor(Word('a'))
+            True
+            sage: Word().is_factor(Word([1,2,3]))
+            True
+            sage: Word().is_factor(Word(lambda n:n, length=5))
+            True
         """
         return self.first_pos_in(other) is not None
 

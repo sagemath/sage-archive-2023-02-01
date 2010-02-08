@@ -145,13 +145,17 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         Finite Field for characteristic 2 and order >= 2.
 
         INPUT:
-            q     -- 2^n (must be 2 power)
-            names  -- variable used for poly_repr (default: 'a')
-            modulus -- you may provide a minimal polynomial to use for
-                     reduction or 'random' to force a random
-                     irreducible polynomial. (default: None, a conway
-                     polynomial is used if found. Otherwise a random sparse
-                     polynomial is used)
+            q       -- 2^n (must be 2 power)
+            names   -- variable used for poly_repr (default: 'a')
+            modulus -- you may provide a polynomial to use for reduction or
+                     a string:
+                     'conway': force the use of a Conway polynomial, will
+                     raise a RuntimeError if none is found in the database;
+                     'minimal_weight': use a minimal weight polynomial, should
+                     result in faster arithmetic;
+                     'random': use a random irreducible polynomial.
+                     'default':a Conway polynomial is used if found. Otherwise
+                     a sparse polynomial is used.
             repr  -- controls the way elements are printed to the user:
                      (default: 'poly')
                      'poly': polynomial representation
@@ -159,7 +163,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         OUTPUT:
             Finite field with characteristic 2 and cardinality 2^n.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: k.<a> = GF(2^16)
             sage: type(k)
             <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
@@ -172,6 +177,23 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
             sage: k.modulus().is_irreducible()
             True
+            sage: k.<a> = GF(2^211, modulus='minimal_weight')
+            sage: k.modulus()
+            x^211 + x^11 + x^10 + x^8 + 1
+            sage: k.<a> = GF(2^211, modulus='conway')
+            sage: k.modulus()
+            x^211 + x^9 + x^6 + x^5 + x^3 + x + 1
+            sage: k.<a> = GF(2^411, modulus='conway')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: requested conway polynomial not in database.
+
+        TESTS::
+
+            sage: k.<a> = GF(2^100, modulus='strangeinput')
+            Traceback (most recent call last):
+            ...
+            TypeError: Modulus parameter not understood
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -190,46 +212,57 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
         q = Integer(q)
         if q < 2:
-            raise ValueError, "q  must be a 2-power"
+            raise ValueError("q  must be a 2-power")
         F = q.factor()
         if len(F) > 1:
-            raise ValueError, "q must be a 2-power"
+            raise ValueError("q must be a 2-power")
         p = F[0][0]
         k = F[0][1]
 
         if p != 2:
-            raise ValueError, "q must be a 2-power"
+            raise ValueError("q must be a 2-power")
 
         ParentWithGens.__init__(self, GF(p), names, normalize=True)
 
         self._kwargs = {'repr':repr}
         self._is_conway = False
 
-        if modulus is None or modulus == "random":
-            if modulus == "random":
+        unknown_modulus = True
+
+        if modulus is None or modulus == 'default':
+            import sage.rings.finite_field
+            if sage.rings.finite_field.exists_conway_polynomial(p, k):
+                modulus = "conway"
+            else:
+                modulus = "minimal_weight"
+
+        if isinstance(modulus,str):
+            unknown_modulus = False
+            if modulus == "conway":
+                modulus = conway_polynomial(p, k)
+                self._is_conway = True
+            elif modulus == "minimal_weight":
+                GF2X_BuildSparseIrred(ntl_m, k)
+            elif modulus == "random":
                 current_randstate().set_seed_ntl(False)
                 GF2X_BuildSparseIrred(ntl_tmp, k)
                 GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
-            elif ConwayPolynomials().has_polynomial(p, k):
-                modulus = conway_polynomial(p, k)
-                modulus = modulus.list()
-                self._is_conway = True
-                for i from 0 <= i < len(modulus):
-                    GF2_conv_long(c, int(modulus[i]))
-                    GF2X_SetCoeff(ntl_m, i, c)
             else:
-                GF2X_BuildSparseIrred(ntl_m, k)
-            GF2EContext_construct_GF2X(&self.F, &ntl_m)
-        else:
-            if is_Polynomial(modulus):
-                modulus = modulus.list()
-            if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
-                for i from 0 <= i < len(modulus):
-                    GF2_conv_long(c, int(modulus[i]))
-                    GF2X_SetCoeff(ntl_m, i, c)
-                GF2EContext_construct_GF2X(&self.F, &ntl_m)
-            else:
-                raise TypeError, "Modulus parameter not understood"
+                unknown_modulus = True
+
+        if is_Polynomial(modulus):
+            modulus = modulus.list()
+
+        if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
+            for i from 0 <= i < len(modulus):
+                GF2_conv_long(c, int(modulus[i]))
+                GF2X_SetCoeff(ntl_m, i, c)
+            unknown_modulus = False
+
+        if unknown_modulus:
+            raise TypeError("Modulus parameter not understood")
+
+        GF2EContext_construct_GF2X(&self.F, &ntl_m)
 
     def __dealloc__(FiniteField_ntl_gf2e self):
         GF2EContext_destruct(&self.F)

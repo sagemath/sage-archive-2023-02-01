@@ -61,13 +61,13 @@ class UniqueRepresentation:
     on a small set of elements (say the multiplication table of a
     small group), and access this cache as quickly as possible.
 
-    The :class:`UniqueRepresentation` and :class:`UniqueFactory`
-    classes provide two alternative implementations of this design
-    pattern. Both implementations have their own
-    merits. :class:`UniqueRepresentation` is very easy to use: a class
-    just needs to derive from it, or make sure some of its super
-    classes does. For basic usage . Also, it groups together the class and the factory
-    in a single gadget; in the example above, one would want to do::
+    The :class:`UniqueRepresentation` and :class:`UniqueFactory` classes
+    provide two alternative implementations of this design pattern. Both
+    implementations have their own merits. :class:`UniqueRepresentation` is
+    very easy to use: a class just needs to derive from it, or make sure some
+    of its super classes does. For basic usage . Also, it groups together the
+    class and the factory in a single gadget; in the example above, one would
+    want to do::
 
         sage: isinstance(f, GF)         # todo: not implemented
         True
@@ -470,6 +470,31 @@ class UniqueRepresentation:
             False
         """
         return self is other
+
+    # Should be cythoned
+    def __hash__(self):
+        """
+        Returns the hash value of ``self``.
+
+        See also :class:`UniqueRepresentation` for a discussion.
+
+        EXAMPLES::
+
+            sage: x = UniqueRepresentation()
+            sage: y = UniqueRepresentation()
+            sage: hash(x) # random
+            74153040
+            sage: type(hash(x))
+            <type 'int'>
+            sage: hash(x) == hash(y)
+            True
+            sage: class bla(UniqueRepresentation, SageObject): pass
+            sage: x = bla(); hx = hash(x)
+            sage: x.rename("toto")
+            sage: hx == hash(x)
+            True
+        """
+        return id(self)
 
     def __reduce__(self):
         """

@@ -40,8 +40,9 @@ This file contains
    bounds_minimum_distance which call tables in GUAVA (updated May 2006)
    created by Cen Tjhai instead of the online internet tables,
 
-#. gen_mat, list, check_mat, decode, dual_code, extended_code, shortened,
-   punctured, genus, binomial_moment, and divisor methods for LinearCode,
+#. gen_mat, gen_mat_systematic, information_set, list, check_mat, decode,
+   dual_code, extended_code, shortened, punctured, genus, binomial_moment,
+   and divisor methods for LinearCode,
 
 #. Boolean-valued functions such as "==", is_self_dual, is_self_orthogonal,
    is_subcode, is_permutation_automorphism, is_permutation_equivalent (which
@@ -155,6 +156,9 @@ AUTHORS:
 
 - David Joyner (2009-05): removed dependence on Guava, allowing it to be an
   option. Fixed errors in some docstrings.
+
+- Kwankyu Lee (2010-01): added methods gen_mat_systematic, information_set, and
+  magma interface for linear codes.
 
 TESTS::
 
@@ -1396,7 +1400,7 @@ class LinearCode(module.Module):
 
     def gen_mat(self):
         r"""
-        Returns the generator matrix of this code.
+        Return a generator matrix of this code.
 
         EXAMPLES::
 
@@ -1413,6 +1417,26 @@ class LinearCode(module.Module):
             [    0     0     1     1     a]
         """
         return self.__gen_mat
+
+    def gen_mat_systematic(self):
+        """
+        Return a systematic generator matrix of the code.
+
+        A generator matrix of a code is called systematic if it contains
+        a set of columns forming an identity matrix.
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.gen_mat()
+            [1 2 1]
+            [2 1 1]
+            sage: code.gen_mat_systematic()
+            [1 2 0]
+            [0 0 1]
+        """
+        return self.__gen_mat.echelon_form()
 
     def gens(self):
         r"""
@@ -1449,6 +1473,30 @@ class LinearCode(module.Module):
         k = self.dimension()
         gammaC = n+1-k-d
         return gammaC
+
+    def information_set(self):
+        """
+        Return an information set of the code.
+
+        A set of column positions of a generator matrix of a code
+        is called an information set if the corresponding columns
+        form a square matrix of full rank.
+
+        OUTPUT:
+
+        - Information set of a systematic generator matrix of the code.
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,-1,0,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.gen_mat_systematic()
+            [1 2 0]
+            [0 0 1]
+            sage: code.information_set()
+            [0, 2]
+        """
+        return self.__gen_mat.transpose().pivot_rows()
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -1645,6 +1693,22 @@ class LinearCode(module.Module):
             True
         """
         return self.gen_mat().row_space().list()
+
+    def _magma_init_(self, magma):
+        r"""
+        Retun a string representation in Magma of this linear code.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: Cm = magma(C)                 # optional - magma
+            sage: Cm.MinimumWeight()            # optional - magma
+            3
+
+        """
+        G = magma(self.gen_mat())._ref()
+        s = 'LinearCode(%s)' % G
+        return s
 
     def minimum_distance(self, method=None):
         r"""

@@ -428,8 +428,12 @@ cdef class PolynomialRealDense(Polynomial):
         cdef Py_ssize_t i, j
         cdef mp_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
-        cdef PolynomialRealDense f = left._new(left._degree + right._degree)
+        cdef PolynomialRealDense f
         cdef mpfr_t tmp
+        if left._degree < 0 or right._degree < 0:
+            f = left._new(-1)
+        else:
+            f = left._new(left._degree + right._degree)
         _sig_on
         mpfr_init2(tmp, left._base_ring.__prec)
         for i from 0 <= i <= f._degree:

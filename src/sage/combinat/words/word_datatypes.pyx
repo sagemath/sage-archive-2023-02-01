@@ -448,6 +448,114 @@ cdef class WordDatatype_str(WordDatatype):
         """
         return self._data.count(letter)
 
+    def split(self, sep=None, maxsplit=None):
+        r"""
+        Returns a list of words, using sep as a delimiter string.
+        If maxsplit is given, at most maxsplit splits are done.
+
+        See also the partition method.
+
+        .. note::
+
+           This just wraps Python's builtin :meth:`str::split` for :class:`str`.
+        INPUT:
+
+        - ``sep`` - a string or a Word
+
+        - ``maxsplit`` - None or a positive integer
+
+        OUTPUT:
+
+        - a list of words
+
+        EXAMPLES:
+
+        You can split along white space to find words in a sentence::
+
+            sage: w = Word("My tailor is poor")
+            sage: w.split(" ")
+            [word: My, word: tailor, word: is, word: poor]
+
+        You can split in two words letters to get the length of blocks in the
+        other letter::
+
+            sage: w = Word("ababbabaaba")
+            sage: w.split('a')
+            [word: , word: b, word: bb, word: b, word: , word: b, word: ]
+            sage: w.split('b')
+            [word: a, word: a, word: , word: a, word: aa, word: a]
+
+        You can split along words::
+
+            sage: w = Word("3230301030323212323032321")
+            sage: w.split("32")
+            [word: , word: 30301030, word: , word: 12, word: 30, word: , word: 1]
+
+        If the separator is not a string a ValueError is raised::
+
+            sage: w = Word("le papa du papa du papa etait un petit pioupiou")
+            sage: w.split(Word(['p','a','p','a']))
+            Traceback (most recent call last):
+            ...
+            ValueError: the separator must be a string.
+        """
+        if isinstance(sep, str):
+            pass
+        elif isinstance(sep, WordDatatype_str):
+            sep = sep._data
+        else:
+            raise ValueError, "the separator must be a string."
+
+        if maxsplit is None:
+            return map(self._parent, self._data.split(sep))
+        else:
+            return map(self._parent, self._data.split(sep,maxsplit))
+
+    def partition(self, sep):
+        r"""
+        Search for the separator sep in S, and return the part before it, the
+        separator itself, and the part after it. The concatenation of the terms
+        in the list gives back the initial word.
+
+        See also the split method.
+
+        .. note::
+
+           This just wraps Python's builtin :meth:`str::partition` for :class:`str`.
+        INPUT:
+
+        - ``sep`` - a string or a Word
+
+        EXAMPLES::
+
+            sage: w = Word("MyTailorIsPoor")
+            sage: w.partition("Tailor")
+            [word: My, word: Tailor, word: IsPoor]
+
+        ::
+
+            sage: w = Word("3230301030323212323032321210121232121010")
+            sage: l = w.partition("323")
+            sage: print l
+            [word: , word: 323, word: 0301030323212323032321210121232121010]
+            sage: sum(l, Word('')) == w
+            True
+
+        If the separator is not a string an error is raised::
+
+            sage: w = Word("le papa du papa du papa etait un petit pioupiou")
+            sage: w.partition(Word(['p','a','p','a']))
+            Traceback (most recent call last):
+            ...
+            ValueError: the separator must be a string.
+        """
+        if isinstance(sep, str):
+            return map(self._parent, self._data.partition(sep))
+        elif isinstance(sep, WordDatatype_str):
+            return map(self._parent, self._data.partition(sep._data))
+        else:
+            raise ValueError, "the separator must be a string."
+
     def is_suffix(self, other):
         r"""
         Test whether ``self`` is a suffix of ``other``.

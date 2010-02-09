@@ -271,13 +271,22 @@ def dir_with_other_class(self, cls):
         sage: sage.structure.parent.dir_with_other_class(x, B)
         [..., 'a', 'b', 'c', 'd', 'e']
 
+    Check that objects without dicts are well handled
+
+        sage: F = GF(9,'a')
+        sage: hasattr(F, '__dict__')
+        False
+        sage: sage.structure.parent.dir_with_other_class(F, B)
+        [..., ... '__class__', ..., '_test_pickling', ..., 'b', ..., 'extension', ...]
 
     """
     # This tries to emulate the standard dir function
     # Is there a better way to call dir on self, while ignoring this
     # __dir__? Using dir(super(A, self)) does not work since the
     # attributes coming from subclasses of A will be ignored
-    iterator = unique_merge(self.__dict__.keys(), dir(self.__class__))
+    iterator = dir(self.__class__)
+    if hasattr(self, "__dict__"):
+        iterator = unique_merge(iterator, self.__dict__.keys())
     if not isinstance(self, cls):
         iterator = unique_merge(iterator, dir(cls))
     return list(iterator)
@@ -619,6 +628,10 @@ cdef class Parent(category_object.CategoryObject):
              '_test_prod',
              '_test_some_elements',
              '_test_zero']
+            sage: F = GF(9,'a')
+            sage: dir(F)
+            [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
+
         """
         return dir_with_other_class(self, self.category().parent_class)
 

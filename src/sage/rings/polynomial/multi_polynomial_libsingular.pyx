@@ -4303,6 +4303,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.resultant(g,x)
             3*y^3 + 9*y^2*z + 9*y*z^2 + 3*z^3 - 18*y^2 - 36*y*z - 18*z^2 + 35*y + 36*z - 24
 
+        Resultants are also supported over the Integers::
+
+            sage: R.<x,y,a,b,u>=PolynomialRing(ZZ, 5, order='lex')
+            sage: r = (x^4*y^2+x^2*y-y).resultant(x*y-y*a-x*b+a*b+u,x)
+            sage: r
+            y^6*a^4 - 4*y^5*a^4*b - 4*y^5*a^3*u + y^5*a^2 - y^5 + 6*y^4*a^4*b^2 + 12*y^4*a^3*b*u - 4*y^4*a^2*b + 6*y^4*a^2*u^2 - 2*y^4*a*u + 4*y^4*b - 4*y^3*a^4*b^3 - 12*y^3*a^3*b^2*u + 6*y^3*a^2*b^2 - 12*y^3*a^2*b*u^2 + 6*y^3*a*b*u - 4*y^3*a*u^3 - 6*y^3*b^2 + y^3*u^2 + y^2*a^4*b^4 + 4*y^2*a^3*b^3*u - 4*y^2*a^2*b^3 + 6*y^2*a^2*b^2*u^2 - 6*y^2*a*b^2*u + 4*y^2*a*b*u^3 + 4*y^2*b^3 - 2*y^2*b*u^2 + y^2*u^4 + y*a^2*b^4 + 2*y*a*b^3*u - y*b^4 + y*b^2*u^2
+
         TESTS::
 
             sage: P.<x,y> = PolynomialRing(QQ, order='degrevlex')
@@ -4313,6 +4320,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: d = a.resultant(b,y); d
             2*x^3
 
+
+            sage: P.<x,y> = PolynomialRing(ZZ,2)
+            sage: f = x+y
+            sage: g=y^2+x
+            sage: f.resultant(g,y)
+            x^2 + x
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         cdef poly *rt
@@ -4329,6 +4342,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "Resultants of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
+        if is_IntegerRing(self._parent._base):
+            ret = self.change_ring(RationalField()).resultant(other.change_ring(RationalField()),
+                                                              variable.change_ring(RationalField()))
+            return ret.change_ring(ZZ)
+        elif not self._parent._base.is_field():
+            raise ValueError("Resultants require base fields or integer base ring.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20)+singular_polynomial_length_bounded(other._poly,20)
         if count >= 20:

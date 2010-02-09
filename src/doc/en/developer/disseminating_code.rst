@@ -40,4 +40,5 @@ Contents:
    inclusion
    producing_patches
    producing_spkgs
+   patching_spkgs
    trac

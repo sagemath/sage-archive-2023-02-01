@@ -248,6 +248,8 @@ as follows:
    why there are code reviews.  But do not cut corners.
 
 
+.. _section-submitting-change:
+
 Submitting a change
 -------------------
 

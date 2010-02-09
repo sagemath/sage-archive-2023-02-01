@@ -5,35 +5,52 @@ Producing New Sage Packages
 ===========================
 
 If you are producing code to add new functionality to Sage, you might
-consider turning it into a package (an ``spkg`` file) instead of a
-patch file. If your code is very large (for instance) and should be
-offered as an optional download, a package is the right
-choice. Similarly, if your code depends on some other optional
-component of Sage, you should produce a package.
+consider turning it into a package (an "spkg") instead of a patch
+file. If your code is very large (for instance) and should be offered
+as an optional download, a package is the right choice. Similarly, if
+your code depends on some other optional component of Sage, you should
+produce a package. When in doubt, ask for advice on the ``sage-devel``
+mailing list.
 
-If you are not sure whether to build an spkg file or a patch file,
-ask for advice on ``sage-devel``.
+This chapter covers issues relevant to producing a package. The
+directory structure of a package is discussed along with scripts for
+installing a package and running the test suite (if any) contained in
+an upstream project's source distribution. For guidelines on patching
+an existing Sage package, see the chapter
+:ref:`chapter-patching-spkgs`.
 
 
-Creating a new spkg file
-========================
+Creating a new spkg
+===================
 
-Sage packages are distributed as ``.spkg`` files, but an ``.spkg``
-file is just a ``.tar.bz2`` file (or a tar file), but named with the
-extension ``.spkg`` to discourage confusion. In particular, you can
+The abbreviation "spkg" stands for "Sage package". The directory
+``SAGE_ROOT/spkg/standard`` contains spkg's. In a source install,
+these are all Sage spkg files (actually ``.tar`` or ``.tar.bz2``
+files), which are the source code that defines Sage. In a binary
+install, some of these may be small placeholder files to save space.
+
+Sage packages are distributed as ``.spkg`` files, which are
+``.tar.bz2`` files (or ``tar`` files) but have the extension ``.spkg``
+to discourage confusion. Although Sage packages are packed using tar
+and/or bzip2, note that ``.spkg`` files contain control information
+(installation scripts and metadata) that are necessary for building
+and installing them. For source distributions, when you compile Sage
+the file ``SAGE_ROOT/makefile`` takes care of the unpacking,
+compilation, and installation of Sage packages for you. You can
 type
 
 ::
 
-         tar jxvf mypackage-version.spkg
+    tar -jxvf mypackage-version.spkg
 
 to extract an spkg and see what is inside.  If you want to create a
-new ``.spkg`` file, you should start by looking at some existing
-ones. In a source code distribution of Sage, the standard spkg's can
-be found in ``SAGE_ROOT/spkg/standard``, or you can download ``.spkg``
-files from http://www.sagemath.org/download-packages.html.
+new Sage package, it is recommended that you start by examining some
+existing spkg's. In a source distribution of Sage, the standard spkg's
+can be found under ``SAGE_ROOT/spkg/standard/``. The URL
+http://www.sagemath.org/download-packages.html lists standard spkg's
+available for download.
 
-Here is how to make your own ``.spkg`` file. First, make a directory,
+Here is how to make your own spkg. First, create a directory,
 e.g. ``mypackage-0.1``. The name of the directory should be a
 lower-case string with no dashes, followed by a dash, followed by a
 version number.
@@ -44,33 +61,33 @@ Directory structure
 
 Put your files in the directory ``mypackage-0.1``.  If you are porting
 another software package, then the directory should contain a
-subdirectory "src", containing an unaltered copy of the package.
-Every file not in "src" should be under version control, i.e. checked
+subdirectory ``src/``, containing an unaltered copy of the package.
+Every file not in ``src/`` should be under version control, i.e. checked
 into an hg repository.
 
 More precisely, the directory should contain the following:
 
-- ``src``: this directory contains vanilla upstream code, with a few
+- ``src/``: this directory contains vanilla upstream code, with a few
   exceptions, e.g. when the spkg shipped with Sage is in effect
   upstream, and development on that code base is happening in close
   coordination with Sage.  See John Cremona's  eclib spkg, for
-  instance.
+  instance. The directory ``src/`` must not be under revision control.
 
 - ``.hg``, ``.hgignore``, and ``.hgtags``: The Sage project uses
   Mercurial for its revision control system (see
   :ref:`chapter-mercurial`).  The hidden directory ``.hg`` is part
   of the standard Sage spkg layout.  It contains the Mercurial
-  repository for all files not in the ``src`` directory.
+  repository for all files not in the ``src/`` directory.
 
   The files ``.hgignore`` and ``.hgtags`` also belong to the
   Mercurial repository.  The file ``.hgtags`` is optional, and is
   frequently omitted.  You should make sure that the file
-  ``.hgignore`` contains "src", since we are not tracking its
+  ``.hgignore`` contains "src/", since we are not tracking its
   content.  Indeed, frequently this file contains only a single line,
 
   ::
 
-      src
+      src/
 
 - ``spkg-install``: this file contains the install script. See below
   for more information and a template.
@@ -85,13 +102,24 @@ More precisely, the directory should contain the following:
   create such a script since it helps isolate bugs in upstream
   packages
 
-- ``patches``: this directory contains patches against ``src``. Each
-  file requiring changes (e.g. ``foo.c``) needs to have a diff
-  against the original file (e.g. ``foo.c.patch``) for easy rebases
-  against new upstream. Updated files should be copied into the
-  right place in ``src`` at the start of ``spkg-install``. Please
-  document all patches in ``SPKG.txt``, i.e. what they do, if they
-  are platform specific, if they should be pushed upstream, etc.
+- ``patches/``: this directory contains patched versions of upstream
+  source files under ``src/``. Each file requiring changes
+  (e.g. ``foo.c``) must have a diff against the original file
+  (e.g. ``foo.c.patch``) for easy rebases against new upstream source
+  releases. Updated files should be copied into the right place under
+  ``src/`` at the start of ``spkg-install``. Please document all
+  patches in ``SPKG.txt``, i.e. what they do, if they are platform
+  specific, if they should be pushed upstream, etc. To ensure that all
+  patched versions of upstream source files under ``src/`` are under
+  revision control, the whole directory ``patches/`` must be under
+  revision control.
+
+**Never** apply patches to upstream source files under ``src/`` and
+then package up an spkg. Such a mixture of upstream source with Sage
+specific patched versions is a recipe for confusion. There must be a
+**clean separation** between the source provided by the upstream
+project and the patched versions that the Sage project generates based
+on top of the upstream source.
 
 
 The file spkg-install
@@ -269,3 +297,19 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
      that Magma-enabled users can use, that is where you would put
      it. You would also want to have relevant Python code to make the
      Magma code easily usable.
+
+
+.. _section-spkg-avoiding-troubles:
+
+Avoiding troubles
+=================
+
+This section contains some guidelines on what an spkg must never do to
+a Sage installation. You are encouraged to produce an spkg that is as
+self-contained as possible.
+
+#. An spkg must not modify an existing source file in the Sage
+   library.
+#. Do not allow an spkg to modify another spkg. One spkg can depend on
+   other spkg. You need to first test for the existence of the
+   prerequisite spkg before installing an spkg that depends on it.

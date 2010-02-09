@@ -193,7 +193,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^100, modulus='strangeinput')
             Traceback (most recent call last):
             ...
-            TypeError: Modulus parameter not understood
+            ValueError: Modulus parameter not understood
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -243,6 +243,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
                 self._is_conway = True
             elif modulus == "minimal_weight":
                 GF2X_BuildSparseIrred(ntl_m, k)
+            elif modulus == "first_lexicographic":
+                GF2X_BuildIrred(ntl_m, k)
             elif modulus == "random":
                 current_randstate().set_seed_ntl(False)
                 GF2X_BuildSparseIrred(ntl_tmp, k)
@@ -260,7 +262,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             unknown_modulus = False
 
         if unknown_modulus:
-            raise TypeError("Modulus parameter not understood")
+            raise ValueError("Modulus parameter not understood")
 
         GF2EContext_construct_GF2X(&self.F, &ntl_m)
 

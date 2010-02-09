@@ -147,11 +147,13 @@ class FiniteField_ext_pari(FiniteField_generic):
                     field.  Also, two finite fields are considered
                     equal if they have the same variable name, and not
                     otherwise.
-            modulus -- you may provide a minimal polynomial to use for
-                       reduction or None to force a random or Conway
-                       irreducible polynomial. (default: None, a Conway
-                       polynomial is used if found. Otherwise a random
-                       polynomial is used)
+            modulus -- you may provide a polynomial to use for reduction or
+                     a string:
+                     'conway': force the use of a Conway polynomial, will
+                     raise a RuntimeError if none is found in the database;
+                     'random': use a random irreducible polynomial.
+                     'default':a Conway polynomial is used if found. Otherwise
+                     a random polynomial is used.
 
         OUTPUT:
             FiniteField_ext_pari -- a finite field of order q with given variable name.
@@ -193,13 +195,19 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__degree = integer.Integer(F[0][1])
         self.__order = q
         self.__is_field = True
-        if modulus is None:
-            from finite_field import conway_polynomial
-            from finite_field import exists_conway_polynomial
 
+        if modulus is None or modulus == "default":
+            from finite_field import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
-                modulus = conway_polynomial(self.__char, self.__degree)
+                modulus = "conway"
             else:
+                modulus = "random"
+
+        if isinstance(modulus,str):
+            if modulus == "conway":
+                from finite_field import conway_polynomial
+                modulus = conway_polynomial(self.__char, self.__degree)
+            elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since
                 # it crashes on 64-bit machines, and I can't figure out why:
                 #     self.__pari_modulus = pari.pari.finitefield_init(self.__char, self.__degree, self.variable_name())
@@ -211,9 +219,17 @@ class FiniteField_ext_pari(FiniteField_generic):
                     modulus = modulus.monic()
                     if modulus.degree() == self.__degree and modulus.is_irreducible():
                         break
-        assert not (modulus is None)
-        if isinstance(modulus, (list, tuple)):
+            else:
+                raise ValueError("Modulus parameter not understood")
+
+        elif isinstance(modulus, (list, tuple)):
             modulus = GF(self.__char)['x'](modulus)
+        elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
+            if modulus.parent() is not base_ring:
+                modulus = modulus.change_ring(base_ring)
+        else:
+            raise ValueError("Modulus parameter not understood")
+
         self.__modulus = modulus
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one

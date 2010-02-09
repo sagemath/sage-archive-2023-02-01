@@ -55,6 +55,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../libs/ntl/decl.pxi"
 include "../ext/interrupt.pxi"
 
 # this fails with a scoping error:
@@ -158,11 +159,19 @@ cdef class FiniteField_givaro(FiniteField):
         INPUT:
             q     -- p^n (must be prime power)
             name  -- variable used for poly_repr (default: 'a')
-            modulus -- you may provide a minimal polynomial to use for
-                     reduction or 'random' to force a random
-                     irreducible polynomial. (default: None, a conway
-                     polynomial is used if found. Otherwise a random
-                     polynomial is used)
+            modulus -- you may provide a polynomial to use for reduction or
+                     a string:
+                     'conway': force the use of a Conway polynomial, will
+                     raise a RuntimeError if none is found in the database;
+                     'random': use a random irreducible polynomial.
+                     'default':a Conway polynomial is used if found. Otherwise
+                     a random polynomial is used.
+
+                     Furthermore, for binary fields we allow two more options:
+                     'minimal_weight': use a minimal weight polynomial, should
+                     result in faster arithmetic;
+                     'first_lexicographic': use the first irreducible polynomial
+                     in lexicographic order.
             repr  -- controls the way elements are printed to the user:
                      (default: 'poly')
                      'log': repr is element.log_repr()
@@ -180,7 +189,7 @@ cdef class FiniteField_givaro(FiniteField):
 
         EXAMPLES:
 
-            By default conway polynomials are used:
+        By default Conway polynomials are used::
 
             sage: k.<a> = GF(2**8)
             sage: -a ^ k.degree()
@@ -188,23 +197,29 @@ cdef class FiniteField_givaro(FiniteField):
             sage: f = k.modulus(); f
             x^8 + x^4 + x^3 + x^2 + 1
 
-            You may enforce a modulus:
+        You may enforce a modulus::
 
             sage: P.<x> = PolynomialRing(GF(2))
-            sage: f = x^8 + x^4 + x^3 + x + 1 # Rijndael Polynomial
+            sage: f = x^8 + x^4 + x^3 + x + 1 # Rijndael polynomial
             sage: k.<a> = GF(2^8, modulus=f)
             sage: k.modulus()
             x^8 + x^4 + x^3 + x + 1
             sage: a^(2^8)
             a
 
-            You may enforce a random modulus:
+        You may enforce a random modulus::
 
             sage: k = GF(3**5, 'a', modulus='random')
             sage: k.modulus() # random polynomial
             x^5 + 2*x^4 + 2*x^3 + x^2 + 2
 
-            Three different representations are possible:
+        For binary fields, you may ask for a  minimal weight polynomial::
+
+            sage: k = GF(2**10, 'a', modulus='minimal_weight')
+            sage: k.modulus()
+            x^10 + x^3 + 1
+
+        Three different representations are possible::
 
             sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='poly').gen()
             a
@@ -219,6 +234,8 @@ cdef class FiniteField_givaro(FiniteField):
         late_import()
 
         cdef intvec cPoly
+        cdef GF2X_c ntl_m, ntl_tmp
+        cdef GF2_c c
 
         self._kwargs = {}
 
@@ -249,39 +266,58 @@ cdef class FiniteField_givaro(FiniteField):
         ParentWithGens.__init__(self, finite_field.FiniteField(p), name, normalize=False)
 
         self._is_conway = False
-        if modulus is None or modulus=="random":
-            if k>1 and ConwayPolynomials().has_polynomial(p, k) and modulus!="random":
+        if modulus is None or modulus == "default":
+            import sage.rings.finite_field
+            if k>1 and sage.rings.finite_field.exists_conway_polynomial(p, k):
+                modulus = "conway"
+            else:
+                modulus = "random"
+
+        if isinstance(modulus,str):
+            if modulus == "conway":
                 modulus = conway_polynomial(p, k)
                 self._is_conway = True
-            else:
-                _sig_on
-                self.objectptr = gfq_factorypk(p,k)
-                self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
-                self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
-                _sig_off
-                if cache:
-                    self._array = self.gen_array()
-                return
+            elif p==2:
+                if modulus == "minimal_weight":
+                    GF2X_BuildSparseIrred(ntl_m, k)
+                elif modulus == "first_lexicographic":
+                    GF2X_BuildIrred(ntl_m, k)
+                elif modulus == "random":
+                    current_randstate().set_seed_ntl(False)
+                    GF2X_BuildSparseIrred(ntl_tmp, k)
+                    GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
+                else:
+                    raise ValueError, "Cannot understand modulus"
+
+                modulus = []
+                for i in range(k+1):
+                    c = GF2X_coeff(ntl_m, i)
+                    if not GF2_IsZero(c):
+                        modulus.append(1)
+                    else:
+                        modulus.append(0)
 
         if is_Polynomial(modulus):
             modulus = modulus.list()
 
         if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
-
-            for i from 0 <= i < len(modulus):
-                cPoly.push_back(int( modulus[i] % p ))
-
+            for i in modulus:
+                cPoly.push_back(int( i % p ))
             _sig_on
-            self.objectptr = gfq_factorypkp(p, k,cPoly)
+            self.objectptr = gfq_factorypkp(p, k, cPoly)
             _sig_off
-            self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
-            self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
+        elif modulus == "random":
+            _sig_on
+            self.objectptr = gfq_factorypk(p,k)
+            _sig_off
+        else:
+            raise ValueError, "Cannot understand modulus"
 
-            if cache:
-                self._array = self.gen_array()
-            return
+        self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
+        self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
 
-        raise TypeError, "Cannot understand modulus"
+        if cache:
+            self._array = self.gen_array()
 
     cdef gen_array(FiniteField_givaro self):
         """

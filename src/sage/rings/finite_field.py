@@ -185,10 +185,18 @@ class FiniteFieldFactory(UniqueFactory):
     -  ``name`` - string; must be specified if not a prime
        field
 
-    -  ``modulus`` - (optional) defining polynomial for
+    -  ``modulus`` - (optional) either a defining polynomial for the
        field, i.e., generator of the field will be a root of this
-       polynomial; if not specified the choice of defining polynomials
-       can be arbitrary.
+       polynomial; or a string:
+           'conway': force the use of a Conway polynomial, will
+            raise a RuntimeError if none is found in the database;
+           'random': use a random irreducible polynomial;
+           'default':a Conway polynomial is used if found. Otherwise
+            a sparse polynomial is used for binary fields and a
+            random polynomial is used for other characteristics.
+
+       Other options might be available depending on the
+       implementation.
 
     -  ``elem_cache`` - cache all elements to avoid
        creation time (default: order < 500)
@@ -270,7 +278,7 @@ class FiniteFieldFactory(UniqueFactory):
         sage: GF(100)
         Traceback (most recent call last):
         ...
-        ValueError: order of finite field must be a prime power
+        ValueError: the order of a finite field must be a prime power
 
     Finite fields with random modulus are not cached::
 
@@ -302,29 +310,47 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: GF.create_key_and_extra_args(9, 'a')
-            ((9, ('a',), None, None, '{}'), {})
+            ((9, ('a',), 'conway', None, '{}'), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
-            ((9, ('a',), None, None, "{'foo': 'value'}"), {'foo': 'value'})
+            ((9, ('a',), 'conway', None, "{'foo': 'value'}"), {'foo': 'value'})
         """
         order = int(order)
+        if order == 1:
+            raise ValueError("the order of a finite field must be > 1")
+        elif not arith.is_prime_power(order):
+            raise ValueError("the order of a finite field must be a prime power")
+
         if arith.is_prime(order):
             name = None
             modulus = None
         else:
             if not names is None: name = names
             name = normalize_names(1,name)
-            if modulus is not None:
-                if isinstance(modulus, (list, tuple)):
-                    p = arith.factor(order)[0][0]
-                    modulus = FiniteField(p)['x'](modulus)
-                # some classes use 'random' as the modulus to
-                # generate a random modulus, but we don't want
-                # to cache it
-                elif isinstance(modulus, str):
-                    if modulus == 'random':
-                        modulus += str(random.randint(0, 1<<128))
+
+            p,n = arith.factor(order)[0]
+
+            if modulus is None or modulus == "default":
+                from finite_field import exists_conway_polynomial
+                if exists_conway_polynomial(p,n):
+                    modulus = "conway"
                 else:
-                    modulus = modulus.change_variable_name('x')
+                    if p==2:
+                        modulus = "minimal_weight"
+                    else:
+                        modulus = "random"
+
+            if isinstance(modulus, (list, tuple)):
+                modulus = FiniteField(p)['x'](modulus)
+            # some classes use 'random' as the modulus to
+            # generate a random modulus, but we don't want
+            # to cache it
+            elif isinstance(modulus, str):
+                if modulus == 'random':
+                    modulus += str(random.randint(0, 1<<128))
+            elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
+                modulus = modulus.change_variable_name('x')
+            else:
+                raise ValueError("Modulus parameter not understood")
 
         return (order, name, modulus, impl, str(kwds)), kwds
 
@@ -348,8 +374,6 @@ class FiniteFieldFactory(UniqueFactory):
             from finite_field_prime_modn import FiniteField_prime_modn
             K = FiniteField_prime_modn(order, **kwds)
         else:
-            if not arith.is_prime_power(order):
-                raise ValueError, "order of finite field must be a prime power"
             if check_irreducible and polynomial_element.is_Polynomial(modulus):
                 if modulus.parent().base_ring().characteristic() == 0:
                     p = arith.factor(order)[0][0]
@@ -378,7 +402,7 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
-            (9, ('a',), None, None, '{}')
+            (9, ('a',), 'conway', None, '{}')
             sage: K = GF.create_object(0, key); K
             Finite Field in a of size 3^2
             sage: GF.other_keys(key, K)

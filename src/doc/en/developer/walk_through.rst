@@ -648,13 +648,6 @@ don't) you can look at the main Mercurial repository (with
 ``hg log | more``) and see how queues "insert" your applied patches
 near the tip of the repository, all "behind the scenes."
 
-The "record" extensions allow you to selectively pick (record)
-portions of a patch to group together.  So you can round up
-related bits and pieces of a patch if that makes sense in the
-context of your work.  For more on record, qrecord and crecord, see
-
-* http://mercurial.selenic.com/wiki/RecordExtension
-
 There are lots more you can do with queues, but you should
 understand enough now to experiment safely. The following URLs
 contain introductory tutorials on using Mercurial queues:
@@ -662,6 +655,40 @@ contain introductory tutorials on using Mercurial queues:
 * http://mercurial.selenic.com/wiki/MqExtension
 * http://wiki.sagemath.org/MercurialQueues
 * https://developer.mozilla.org/en/Mercurial_Queues
+
+Cherry picking
+--------------
+
+The "record" extensions allow you to selectively pick (record)
+portions of a patch to group together.  (Also known as "cherry
+picking.") So you can round up related bits and pieces of a patch
+if that makes sense in the context of your work.  To enable this
+feature, just edit your ``.hgrc`` file to include ::
+
+    [extensions]
+    hgext.record=
+
+Use the command ``hg record`` with "regular" Mercurial and ``hg
+qrecord`` if you are working with Mercurial queues.  The use of
+the two is slightly different.  We will illustrate the use of
+``qrecord``.  The command ::
+
+    hg qrecord another-patch
+
+creates a new, empty patch at the top of the applied stack.  It
+then begins to interactively examine your changes at the
+granularity of a patch "hunk."  You can then choose to include
+each "hunk" of changes into this new patch or not.  Then you can
+work with this patch as before with ``hg qrefresh``, ``hg qpop``,
+etc.
+
+For more on record, qrecord and crecord, see
+
+* http://mercurial.selenic.com/wiki/RecordExtension
+
+
+More about Mercurial
+--------------------
 
 The online book
 `Mercurial: The Definitive Guide <http://hgbook.red-bean.com>`_

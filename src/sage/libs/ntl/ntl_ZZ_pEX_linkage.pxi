@@ -8,7 +8,7 @@ AUTHOR:
     -- Yann Laigle-Chapuy (2010-01): initial version
 """
 #*****************************************************************************
-#       Copyright (C)
+#       Copyright (C) 2010 Yann Laigle-Chapuy
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -272,7 +272,7 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
     cdef ZZ_pEX_Modulus_c mod
     if modulus == NULL:
         if ZZ_pEX_IsX(x[0]):
-                ZZ_pEX_LeftShift(res[0], x[0], e - 1)
+            ZZ_pEX_LeftShift(res[0], x[0], e - 1)
         else:
             _sig_on
             ZZ_pEX_power(res[0], x[0], e)

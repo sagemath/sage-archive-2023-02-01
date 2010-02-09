@@ -1197,7 +1197,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             p=base_ring.characteristic()
             from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
-            self.__modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
             element_class=Polynomial_ZZ_pEX
 

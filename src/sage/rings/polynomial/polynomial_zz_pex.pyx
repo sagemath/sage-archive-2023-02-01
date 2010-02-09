@@ -1,3 +1,9 @@
+"""
+Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
+
+AUTHOR:
+- Yann Laigle-Chapuy (2010-01) initial implementation
+"""
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -22,7 +28,7 @@ cdef cparent get_cparent(parent):
     if parent is None:
         return NULL
     cdef ntl_ZZ_pEContext_class c
-    c = parent._PolynomialRing_field__modulus
+    c = parent._modulus
     return &(c.x)
 
 # first we include the definitions
@@ -63,7 +69,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        Create a new univariate polynomials over GF(2).
+        Create a new univariate polynomials over GF(p^n).
 
         EXAMPLE::
 
@@ -79,7 +85,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
                 _parent = get_cparent(parent)
                 Polynomial.__init__(self, parent, is_gen=is_gen)
                 celement_construct(&self.x, _parent)
-                d = parent._PolynomialRing_field__modulus.ZZ_pE(list(x.polynomial()))
+                d = parent._modulus.ZZ_pE(list(x.polynomial()))
                 ZZ_pEX_SetCoeff(self.x, 0, d.x)
                 return
         except AttributeError:
@@ -93,10 +99,10 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             for i,e in enumerate(x):
                 if not hasattr(e,'polynomial'):
                     try:
-                        e = K._coerce_(e)
+                        e = K.coerce(e)
                     except:
                         TypeError("unable to coerce this value to the base ring")
-                d = parent._PolynomialRing_field__modulus.ZZ_pE(list(e.polynomial()))
+                d = parent._modulus.ZZ_pE(list(e.polynomial()))
                 ZZ_pEX_SetCoeff(self.x, i, d.x)
             return
 
@@ -116,7 +122,6 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: f[2]
             0
         """
-        cdef list L = []
         cdef ZZ_pE_c c_pE
         cdef cparent _parent
 
@@ -126,7 +131,6 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         K = self._parent.base_ring()
         return K(K.polynomial_ring()(ZZ_pE_c_to_list(c_pE)))
-        return ZZ_pE_to_PyString(&c_pE)
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -141,7 +145,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, get_cparent(self._parent))
         r._parent = self._parent
-        d = self._parent._PolynomialRing_field__modulus.ZZ_pE(list(left.polynomial()))
+        d = self._parent._modulus.ZZ_pE(list(left.polynomial()))
         ZZ_pEX_mul_ZZ_pE(r.x, self.x, d.x)
         return r
 
@@ -165,17 +169,17 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         try:
             if a.parent() is not K:
-                a = coerce(K,a)
-        except:
+                a = K.coerce(a)
+        except (TypeError, AttributeError, NotImplementedError):
             return Polynomial.__call__(self, a)
 
-        _a = self._parent._PolynomialRing_field__modulus.ZZ_pE(list(a.polynomial()))
+        _a = self._parent._modulus.ZZ_pE(list(a.polynomial()))
         ZZ_pEX_eval(c_b, self.x, _a.x)
 
         R = K.polynomial_ring()
         return K(str(R(ZZ_pE_c_to_list(c_b))))
 
-    def resultant(self, Polynomial_ZZ_pEX other):
+    def resultant(self, other):
         """
         Returns the resultant of self and other, which must lie in the same
         polynomial ring.
@@ -197,17 +201,17 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             True
         """
         cdef ZZ_pE_c r
-        self._parent._PolynomialRing_field__modulus.restore()
+        self._parent._modulus.restore()
 
-        if other._parent is not self._parent:
-            other = self._parent._coerce_(other)
+        if other.parent() is not self._parent:
+            other = self._parent.coerce(other)
 
-        ZZ_pEX_resultant(r, self.x, other.x)
+        ZZ_pEX_resultant(r, self.x, (<Polynomial_ZZ_pEX>other).x)
 
         K = self._parent.base_ring()
         return K(K.polynomial_ring()(ZZ_pE_c_to_list(r)))
 
-    def is_irreducible(self, algorithm="fast_when_false"):
+    def is_irreducible(self, algorithm="fast_when_false", iter=1):
         """
         Returns `True` precisely when self is irreducible over its base ring.
 
@@ -216,6 +220,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         :argument algorithm: a string (default "fast_when_false"),
             there are 3 available algorithms:
             "fast_when_true", "fast_when_false" and "probabilistic".
+        :argument iter: (default: 1) if the algorithm is "probabilistic"
+            defines the number of iterations. The error probability is bounded
+            by `q**-iter` for polynomials in `GF(q)[x]`.
 
         EXAMPLES::
 
@@ -235,8 +242,8 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             False
             sage: Q.is_irreducible(algorithm="probabilistic")
             False
-        """
-        self._parent._PolynomialRing_field__modulus.restore()
+            """
+        self._parent._modulus.restore()
         if algorithm=="fast_when_false":
             _sig_on
             res = ZZ_pEX_IterIrredTest(self.x)
@@ -247,20 +254,46 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             _sig_off
         elif algorithm=="probabilistic":
             _sig_on
-            res = ZZ_pEX_ProbIrredTest(self.x, 1)
+            res = ZZ_pEX_ProbIrredTest(self.x, iter)
             _sig_off
         else:
             raise ValueError("unknown algorithm")
         return res != 0
 
     cdef int _cmp_c_impl(left,Element right) except -2:
-        left._parent._PolynomialRing_field__modulus.restore()
+        """
+        EXAMPLE::
+
+            sage: K.<a>=GF(next_prime(2**60)**3)
+            sage: R.<x> = PolynomialRing(K,implementation='NTL')
+            sage: P1 = (a**2+a+1)*x^2+a*x+1
+            sage: P2 = (     a+1)*x^2+a*x+1
+            sage: P1 < P2 # indirect doctests
+            False
+
+        TEST::
+
+            sage: P3 = (a**2+a+1)*x^2+  x+1
+            sage: P4 =                  x+1
+            sage: P1 < P3
+            True
+            sage: P1 < P4
+            False
+            sage: P1 > P2
+            True
+            sage: P1 > P3
+            False
+            sage: P1 > P4
+            True
+        """
+        cdef long ld, rd, i
+
+        left._parent._modulus.restore()
         ld = left.degree()
         rd = right.degree()
         if ld < rd: return -1
         if ld > rd: return 1
         # degrees are equal
-        cdef int i
         for i in range(ld,-1,-1):
             li = left[i]
             ri = right[i]
@@ -281,7 +314,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: f.shift(-1)
             x^2 + x
         """
-        self._parent._PolynomialRing_field__modulus.restore()
+        self._parent._modulus.restore()
         cdef Polynomial_ZZ_pEX r
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, get_cparent(self._parent))

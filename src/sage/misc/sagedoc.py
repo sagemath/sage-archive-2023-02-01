@@ -1307,7 +1307,7 @@ def help(module=None):
         sage: help()
         Welcome to Sage ...
     """
-    if module:
+    if not module is None:
         python_help(module)
     else:
         print """Welcome to Sage %s!  To view the Sage tutorial in your web browser,

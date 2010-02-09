@@ -1377,7 +1377,7 @@ def _do_show(x):
     if sage.plot.plot.DOCTEST_MODE:
         return sage.misc.latex.latex(x)
     from latex import view
-    view(x)
+    view(x, mode='display')
     #raise AttributeError, "object %s does not support show."%(x, )
 
 def sqrt(x):

@@ -1507,7 +1507,7 @@ def jsmath(x, mode='display'):
         x = str(x)
     return html(delimiter + x + delimiter)
 
-def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, viewer = None, tightpage = None, **kwds):
+def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, viewer = None, tightpage = None, mode='inline', **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
     and display typeset. If used from the command line, this requires
@@ -1535,6 +1535,10 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
 
     -  ``tightpage`` - bool (default: False): use the LaTeX package
        'preview' with the 'tightpage' option.
+
+    - ``mode`` -- string (default: 'inline'): 'display' for
+      displaymath or 'inline' for inline math
+
 
     OUTPUT: Display typeset objects.
 
@@ -1597,6 +1601,8 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         sage: sage.misc.latex.EMBEDDED_MODE = True
         sage: view(3)
         <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
+        sage: view(3, mode='display')
+        <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
         sage: sage.misc.latex.EMBEDDED_MODE = False
     """
     if isinstance(objects, LatexExpr):
@@ -1617,7 +1623,7 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
             if not jsMath_okay:
                 break
         if jsMath_okay:
-            print JSMath().eval(objects, mode='inline')  # put comma at end of line?
+            print JSMath().eval(objects, mode=mode)  # put comma at end of line?
         else:
             base_dir = os.path.abspath("")
             png_file = graphics_filename(ext='png')

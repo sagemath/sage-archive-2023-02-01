@@ -5,9 +5,19 @@
 #    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
 #
 
-GAP0=`$SAGE_ROOT/spkg/standard/newest_version gap`
+HERE=`pwd`
+
+cd $SAGE_ROOT/spkg
+${gapver:=$SAGE_ROOT/spkg/standard/newest_version gap}
+GAP0=`$gapver`
+#GAP0=`$SAGE_ROOT/spkg/standard/newest_version gap`
 GAP=`echo $GAP0 | cut -f 1,2,3 -d "."`
 # returns latest gap version - eg, GAP=gap-4.4.12
+echo "********************************************************************"
+echo "Installing optional GAP packages, which may not be open source."
+echo "Installing GAP $GAP packages to $HERE/.. "
+echo "Please see SPKG.txt for license details."
+echo "********************************************************************"
 
 PATH=$SAGE_ROOT:$SAGE_ROOT/local/bin:$PATH
 
@@ -16,9 +26,10 @@ export PATH
 rm -rf "$SAGE_ROOT/local/lib/$GAP/pkg/"
 mkdir "$SAGE_ROOT/local/lib/$GAP/pkg/"
 
-cp patches/guava/* src/guava3.9/   # is this still needed?
+#cp patches/guava/* src/guava/   # is this still needed?
 # get around problem on osx
 
+cd $HERE
 
 $CP -pr SPKG.txt "$SAGE_ROOT/local/lib/$GAP/pkg/"
 
@@ -66,7 +77,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copying GAPDoc package"
-$CP -pr  GAPDoc-1.2             "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -pr  GAPDoc             "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
     echo "Error copying gapdoc package."
     exit 1
@@ -80,16 +91,16 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copying Guava package"
-$CP -pr  guava3.9              "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -pr  guava              "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
     echo "Error copying guava package."
     exit 1
 fi
 
 echo "Copying HAP package"
-$CP -pr  Hap1.8             "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -pr  Hap             "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
-    echo "Error copying Hap1.8 package."
+    echo "Error copying Hap package."
     exit 1
 fi
 
@@ -100,12 +111,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Copying HAPprime package"
-$CP -pr  happrime-0.3.2             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying happrime package."
-    exit 1
-fi
+###### Should be added in the future?
+#echo "Copying HAPprime package"
+#$CP -pr  happrime-0.3.2             "$SAGE_ROOT/local/lib/$GAP/pkg/"
+#if [ $? -ne 0 ]; then
+#    echo "Error copying happrime package."
+#    exit 1
+#fi
 
 echo "Copying Laguna package"
 $CP -pr  laguna             "$SAGE_ROOT/local/lib/$GAP/pkg/"
@@ -129,7 +141,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copying toric package"
-$CP -pr  toric1.4           "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -pr  toric           "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
     echo "Error copying toric package."
     exit 1
@@ -154,7 +166,7 @@ fi
 
 
 # Finally build Guava
-"$SAGE_ROOT/local/lib/$GAP/pkg/guava3.9/"
+"$SAGE_ROOT/local/lib/$GAP/pkg/guava/"
 ./configure ../../ --enable-libsuffix=64
 if [ $? -ne 0 ]; then
    echo "Error configuring Guava"

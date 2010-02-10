@@ -1,4 +1,10 @@
 
+= gap_packages-4.4.12_2 (Dima Pasechnik) =
+bumped up design, toric and laguna packages to the latest stable revisions
+stripped package directory names in src/, and appropriate places in
+spkg-install, of package version numbers, to make it consistent,
+and avoid changing spkg-install in the future unnecessarily.
+
 = gap_packages-4.4.10_3 (Michael Abshoff) =
  * fix "implausibly old time stamp 1969-12-31 16:00:00"
 

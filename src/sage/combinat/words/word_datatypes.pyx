@@ -119,6 +119,60 @@ cdef class WordDatatype_list(WordDatatype):
         """
         return iter(self._data)
 
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_list.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+        bool or NotImplemented
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: w == w
+            True
+            sage: z = Word(range(20))
+            sage: w == z
+            False
+            sage: z == w
+            False
+
+        It works if the parent are not the same::
+
+            sage: Words([0,1])([0,1,1]) == Words([0,1,2])([0,1,1])
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDlistrichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_list):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_list):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
+
     def __len__(self):
         r"""
         Return the length of the word.
@@ -242,6 +296,62 @@ cdef class WordDatatype_str(WordDatatype):
 
         """
         return iter(self._data)
+
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_str.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+        bool or NotImplemented
+
+        EXAMPLES::
+
+            sage: w = Word('abcde')
+            sage: w == w
+            True
+            sage: z = Word('epoisudfafgh')
+            sage: w == z
+            False
+            sage: z == w
+            False
+
+        It works if the parent are not the same::
+
+            sage: Words('ab')('ababa') == Words('abcd')('ababa')
+            True
+            sage: Words('ab')('ababa') == Word('ababa')
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDstrrichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_str):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_str):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
 
     def __contains__(self, a):
         r"""
@@ -764,6 +874,62 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         """
         return iter(self._data)
+
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_tuple.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+        bool or NotImplemented
+
+        EXAMPLES::
+
+            sage: Word((1,2,3)) == Word((1,2,3))
+            True
+            sage: Word((1,2,3)) == Word(())
+            False
+            sage: Word((1,2,3)) == Word((1,2,3,4))
+            False
+            sage: Word((1,2,3)) == Word((1,2,3,'a'))
+            False
+
+        It works if the parents are not the same::
+
+            sage: Words([1,2])((1,1,1,2)) == Words([1,2,3])((1,1,1,2))
+            True
+            sage: Words([1,2])((1,1,1,2)) == Word((1,1,1,2))
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDtuplerichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_tuple):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_tuple):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
 
     def __len__(self):
         r"""

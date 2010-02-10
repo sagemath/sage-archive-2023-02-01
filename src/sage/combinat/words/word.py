@@ -537,10 +537,14 @@ class Word_class(SageObject):
 
     def __cmp__(self, other):
         r"""
-        Compares two words lexicographically according to Python's built-in
-        ordering. Provides for all normal comparison operators.
+        Compares two words lexicographically according to the ordering
+        defined by the parent of self. This corresponds to Python's built-in
+        ordering when no parent nor alphabet was used to defined the word.
 
-        NOTE:
+        Provides for all normal comparison operators.
+
+        .. note::
+
             This function will not terminate if self and other are equal
             infinite words!
 
@@ -596,6 +600,122 @@ class Word_class(SageObject):
                     r = cmp_fcn(cs, co)
                     if r != 0:
                         return r
+
+    def __eq__(self, other):
+        r"""
+        Returns True if self is equal to other and False otherwise.
+
+        INPUT:
+
+        - ``other`` - a word
+
+        OUTPUT:
+
+        bool
+
+        .. NOTE:
+
+            This function will not terminate if self and other are equal
+            infinite words!
+
+        EXAMPLES::
+
+            sage: Word('abc') == Word(['a','b','c'])
+            True
+            sage: Words([0,1])([0,1,0,1]) == Words([0,1])([0,1,0,1])
+            True
+            sage: Words([0,1])([0,1,0,1]) == Words([0,1])([0,1,0,0])
+            False
+
+        It works when parents are not the same::
+
+            sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
+            True
+            sage: Words('abc')('abab') == Words([0,9])([0,0,9])
+            False
+            sage: Word('ababa') == Words('abcd')('ababa')
+            True
+
+        Between finite and infinite words::
+
+            sage: Word(range(20)) == Word(lambda n:n)
+            False
+            sage: Word(lambda n:n) == Word(range(20))
+            False
+
+        Beware the following does not halt!::
+
+            sage: from itertools import count
+            sage: Word(lambda n:n) == Word(count()) #not tested
+
+        TESTS::
+
+            sage: Word(count())[:20] == Word(range(20))
+            True
+            sage: Word(range(20)) == Word(count())[:20]
+            True
+            sage: Word(range(20)) == Word(lambda n:n)[:20]
+            True
+            sage: Word(range(20)) == Word(lambda n:n,length=20)
+            True
+        """
+        if not isinstance(other, Word_class):
+            return NotImplemented
+        self_it, other_it = iter(self), iter(other)
+        while True:
+            try:
+                cs = self_it.next()
+            except StopIteration:
+                try:
+                    co = other_it.next()
+                except StopIteration:
+                    # If both self_it and other_it are exhausted then
+                    # self == other. Return 0.
+                    return True
+                else:
+                    # If self_it is exhausted, but not other_it, then
+                    # self is a proper prefix of other: return -1
+                    return False
+            else:
+                try:
+                    co = other_it.next()
+                except StopIteration:
+                    # If self_it is not exhausted but other_it is, then
+                    # other is a proper prefix of self: return 1.
+                    return False
+                else:
+                    if cs != co:
+                        return False
+
+    def __ne__(self, other):
+        r"""
+        Returns True if self is not equal to other and False otherwise.
+
+        INPUT:
+
+        - ``other`` - a word
+
+        OUTPUT:
+
+        bool
+
+        .. NOTE:
+
+            This function will not terminate if self and other are equal
+            infinite words!
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: z = Word(range(10))
+            sage: w != z
+            False
+            sage: u = Word(range(12))
+            sage: u != w
+            True
+        """
+        #print '__ne__', self, other, type(self), type(other)
+        return not self.__eq__(other)
 
     def _longest_common_prefix_iterator(self, other):
         r"""

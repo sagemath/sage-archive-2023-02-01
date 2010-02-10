@@ -558,32 +558,44 @@ class Word_class(SageObject):
             True
             sage: W(count()).__cmp__(W(range(10))) > 0
             True
+
+        ::
+
+            sage: W = Words(['a', 'b', 'c'])
+            sage: W('a').__cmp__(W([]))
+            1
+            sage: W([]).__cmp__(W('a'))
+            -1
         """
         if not isinstance(other, Word_class):
             return NotImplemented
         self_it, other_it = iter(self), iter(other)
         cmp_fcn = self._parent.cmp_letters
-        for (c1, c2) in izip(self_it, other_it):
-            r = cmp_fcn(c1,c2)
-            if r != 0:
-                return r
-        else:
-            # If self_it is not exhausted, then other_it must be,
-            # so other is a proper prefix of self. So self > other;
-            # return 1.
+        while True:
             try:
-                self_it.next()
-                return 1
+                cs = self_it.next()
             except StopIteration:
-                # If self_it is exhausted, then we need to check other_it.
-                # If other_it is exhausted also, then self == other. Return
-                # 0. Otherwise, self is a proper prefix of other.
-                # So self < other; return -1.
                 try:
-                    other_it.next()
-                    return -1
+                    co = other_it.next()
                 except StopIteration:
+                    # If both self_it and other_it are exhausted then
+                    # self == other. Return 0.
                     return 0
+                else:
+                    # If self_it is exhausted, but not other_it, then
+                    # self is a proper prefix of other: return -1
+                    return -1
+            else:
+                try:
+                    co = other_it.next()
+                except StopIteration:
+                    # If self_it is not exhausted but other_it is, then
+                    # other is a proper prefix of self: return 1.
+                    return 1
+                else:
+                    r = cmp_fcn(cs, co)
+                    if r != 0:
+                        return r
 
     def _longest_common_prefix_iterator(self, other):
         r"""
@@ -660,6 +672,38 @@ class Word_class(SageObject):
             sage: p = f.longest_common_prefix(g, length='finite')
             sage: p.length()
             231
+
+        TESTS::
+
+            sage: w = Word('12345')
+            sage: y = Word('1236777')
+            sage: w.longest_common_prefix(y)
+            word: 123
+            sage: w.longest_common_prefix(w)
+            word: 12345
+            sage: y.longest_common_prefix(w)
+            word: 123
+            sage: y.longest_common_prefix(y)
+            word: 1236777
+            sage: Word().longest_common_prefix(w)
+            word:
+            sage: w.longest_common_prefix(Word())
+            word:
+            sage: w.longest_common_prefix(w[:3])
+            word: 123
+            sage: Word("11").longest_common_prefix(Word("1"))
+            word: 1
+            sage: Word("1").longest_common_prefix(Word("11"))
+            word: 1
+
+        With infinite words::
+
+            sage: t = words.ThueMorseWord('ab')
+            sage: u = t[:10]
+            sage: u.longest_common_prefix(t)
+            word: abbabaabba
+            sage: u.longest_common_prefix(u)
+            word: abbabaabba
         """
         if (isinstance(self, FiniteWord_class) or
             isinstance(other, FiniteWord_class)):
@@ -1556,46 +1600,6 @@ class FiniteWord_class(Word_class):
                 except:
                     raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
         return self, other
-
-    def __cmp__(self, other):
-        r"""
-        Compares two finite words lexicographically according to Python's
-        built-in ordering. Provides for all normal comparison operators.
-
-        EXAMPLES::
-
-            sage: W = Word
-            sage: W('123').__cmp__(W('1211')) > 0
-            True
-            sage: W('2111').__cmp__(W('12')) > 0
-            True
-            sage: W('123').__cmp__(W('123')) == 0
-            True
-            sage: W('121').__cmp__(W('121')) == 0
-            True
-            sage: W('123').__cmp__(W('22')) < 0
-            True
-            sage: W('122').__cmp__(W('32')) < 0
-            True
-            sage: W([1,1,1]).__cmp__(W([1,1,1,1,1])) < 0
-            True
-            sage: W([1,1,1,1,1]).__cmp__(W([1,1,1])) > 0
-            True
-        """
-        if isinstance(other, type(self)):
-            try:
-                self, other = self.coerce(other)
-            except TypeError:
-                return NotImplemented
-            cmp_fcn = self._parent.cmp_letters
-            for (c1, c2) in izip(self, other):
-                r = cmp_fcn(c1,c2)
-                if r != 0:
-                    return r
-            return self.length() - other.length()
-        else:
-            # for infinite words, use a super __cmp__.
-            return super(FiniteWord_class, self).__cmp__(other)
 
     def __hash__(self):
         r"""
@@ -2668,54 +2672,6 @@ exponent %s: the length of the word (%s) times the exponent \
         except StopIteration:
             return False
         return True
-
-    def longest_common_prefix(self, other):
-        r"""
-        Returns the longest common prefix of self and other.
-
-        EXAMPLES::
-
-            sage: W = Word
-            sage: w = W('12345')
-            sage: y = W('1236777')
-            sage: w.longest_common_prefix(y)
-            word: 123
-            sage: w.longest_common_prefix(w)
-            word: 12345
-            sage: y.longest_common_prefix(w)
-            word: 123
-            sage: y.longest_common_prefix(w)==w.longest_common_prefix(y)
-            True
-            sage: y.longest_common_prefix(y)==y
-            True
-            sage: W().longest_common_prefix(w)
-            word:
-            sage: w.longest_common_prefix(W()) == w
-            False
-            sage: w.longest_common_prefix(W()) == W()
-            True
-            sage: w.longest_common_prefix(w[:3]) == w[:3]
-            True
-            sage: w.longest_common_prefix(w[:3]) == w
-            False
-            sage: Word("11").longest_common_prefix(Word("1"))
-            word: 1
-
-        With infinite words::
-
-            sage: t = words.ThueMorseWord('ab')
-            sage: u = t[:10]
-            sage: u.longest_common_prefix(t)
-            word: abbabaabba
-            sage: u.longest_common_prefix(u)
-            word: abbabaabba
-        """
-        i=0
-        for i,(b,c) in enumerate(izip(self, other)):
-            if b != c:
-                return self[:i]
-        else:
-            return self[:i+1]
 
     def longest_common_suffix(self, other):
         r"""

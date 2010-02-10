@@ -457,12 +457,14 @@ cdef class WordDatatype_str(WordDatatype):
 
         .. note::
 
-           This just wraps Python's builtin :meth:`str::split` for :class:`str`.
+           This just wraps Python's builtin :meth:`str::split` for
+           :class:`str`.
+
         INPUT:
 
-        - ``sep`` - a string or a Word
+        - ``sep`` - string or word (optional, default: None)
 
-        - ``maxsplit`` - None or a positive integer
+        - ``maxsplit`` - positive integer (optional, default: None)
 
         OUTPUT:
 
@@ -474,6 +476,11 @@ cdef class WordDatatype_str(WordDatatype):
 
             sage: w = Word("My tailor is poor")
             sage: w.split(" ")
+            [word: My, word: tailor, word: is, word: poor]
+
+        The python behavior is kept when no argument is given::
+
+            sage: w.split()
             [word: My, word: tailor, word: is, word: poor]
 
         You can split in two words letters to get the length of blocks in the
@@ -499,7 +506,7 @@ cdef class WordDatatype_str(WordDatatype):
             ...
             ValueError: the separator must be a string.
         """
-        if isinstance(sep, str):
+        if sep is None or isinstance(sep, str):
             pass
         elif isinstance(sep, WordDatatype_str):
             sep = sep._data
@@ -513,18 +520,20 @@ cdef class WordDatatype_str(WordDatatype):
 
     def partition(self, sep):
         r"""
-        Search for the separator sep in S, and return the part before it, the
-        separator itself, and the part after it. The concatenation of the terms
-        in the list gives back the initial word.
+        Search for the separator sep in S, and return the part before it,
+        the separator itself, and the part after it. The concatenation of
+        the terms in the list gives back the initial word.
 
         See also the split method.
 
         .. note::
 
-           This just wraps Python's builtin :meth:`str::partition` for :class:`str`.
+           This just wraps Python's builtin :meth:`str::partition` for
+           :class:`str`.
+
         INPUT:
 
-        - ``sep`` - a string or a Word
+        - ``sep`` - string or word
 
         EXAMPLES::
 

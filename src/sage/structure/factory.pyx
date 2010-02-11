@@ -232,7 +232,7 @@ cdef class UniqueFactory(SageObject):
 
         EXAMPLES:
             sage: key, _ = GF.create_key_and_extra_args(27, 'k'); key
-            (27, ('k',), None, None, '{}')
+            (27, ('k',), 'conway', None, '{}')
             sage: K = GF.create_object(0, key); K
             Finite Field in k of size 3^3
             sage: GF.other_keys(key, K)

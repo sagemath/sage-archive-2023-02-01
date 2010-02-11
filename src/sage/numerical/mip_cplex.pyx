@@ -5,9 +5,10 @@ cdef int REAL = -1
 cdef int INTEGER = 0
 
 
-def solve_coin(self,log=0,objective_only=False, threads = 0):
+
+def solve_cplex(self,log=0,objective_only=False):
     r"""
-    Solves the ``MixedIntegerLinearProgram`` using COIN-OR CBC/CLP
+    Solves the ``MixedIntegerLinearProgram`` using CPLEX
     *Use ``solve()`` instead*
 
     INPUT:
@@ -22,21 +23,17 @@ def solve_coin(self,log=0,objective_only=False, threads = 0):
       to ``True`` saves some time on the computation when
       this information is not needed.
 
-    - ``threads`` -- Number of threads to use. Set ``threads``
-      to 0 (its default value) to use one thread per core available.
-
-
     OUTPUT:
 
     This function returns the optimal value of the objective
-    function given by Coin.
+    function given by CPLEX.
 
     EXAMPLE:
 
-    Solving a simple Linear Program using Coin as a solver
+    Solving a simple Linear Program using CPLEX as a solver
     (Computation of a maximum stable set in Petersen's graph)::
 
-        sage: from sage.numerical.mip_coin import solve_coin     # optional - requires Cbc
+        sage: from sage.numerical.mip_cplex import solve_cplex     # optional - requires Cplex
         sage: g = graphs.PetersenGraph()
         sage: p = MixedIntegerLinearProgram(maximization=True)
         sage: b = p.new_variable()
@@ -44,35 +41,22 @@ def solve_coin(self,log=0,objective_only=False, threads = 0):
         sage: for (u,v) in g.edges(labels=None):
         ...       p.add_constraint(b[u] + b[v], max=1)
         sage: p.set_binary(b)
-        sage: solve_coin(p,objective_only=True)     # optional - requires Cbc
+        sage: solve_cplex(p,objective_only=True)     # optional - requires Cplex
         4.0
     """
+
+
+
     # Creates the solver interfaces
-    cdef c_OsiCbcSolverInterface* si
-    si = new_c_OsiCbcSolverInterface();
-
-    # stuff related to the loglevel
-    cdef c_CoinMessageHandler * msg
-    cdef c_CbcModel * model
-    model = si.getModelPtr()
-    if threads == 0:
-        import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
-    else:
-        model.setNumberThreads(threads)
-
-
-    msg = model.messageHandler()
-    msg.setLogLevel(log)
+    cdef c_OsiCpxSolverInterface* si
+    si = new_c_OsiCpxSolverInterface();
 
     from sage.numerical.mip import MIPSolverException
-
     cdef Osi_interface OSI
+
     OSI = Osi_interface()
 
-
-    return_value = OSI.osi_solve(self, <c_OsiSolverInterface *> si, objective_only, False)
-    del_OsiCbcSolverInterface(si)
+    return_value = OSI.osi_solve(self, <c_OsiSolverInterface *> si, objective_only, True)
+    del_OsiCpxSolverInterface(si)
 
     return return_value
-

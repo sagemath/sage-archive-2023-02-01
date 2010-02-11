@@ -29,6 +29,33 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
      c_CbcModel *new_c_CbcModel "new CbcModel" ()
      void del_CbcModel "delete" (c_CbcModel *)
 
+cdef extern from "../../local/include/coin/OsiSolverInterface.hpp":
+     ctypedef struct c_OsiSolverInterface "OsiSolverInterface":
+         double getInfinity()
+         void loadProblem(c_CoinPackedMatrix, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
+         void assignProblem(c_CoinPackedMatrix *, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
+         void writeMps(char *, char *, double)
+         void initialSolve()
+         void branchAndBound()
+         void readMps(string)
+         float getObjValue()
+         double * getColSolution()
+         void setObjSense (double )
+         void setLogLevel(int)
+         void setInteger(int)
+         void setContinuous(int)
+         c_CbcModel * getModelPtr  ()
+         c_CoinMessageHandler * messageHandler ()
+         int isAbandoned ()
+         int isProvenOptimal ()
+         int isProvenPrimalInfeasible ()
+         int isProvenDualInfeasible ()
+         int isPrimalObjectiveLimitReached ()
+         int isDualObjectiveLimitReached ()
+         int isIterationLimitReached ()
+         void setMaximumSolutions(int)
+         int getMaximumSolutions()
+
 cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
      ctypedef struct c_OsiCbcSolverInterface "OsiCbcSolverInterface":
          double getInfinity()
@@ -58,5 +85,5 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
      c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
      void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
 
-from sage.numerical.osi_interface cimport Osi_interface
-from sage.numerical.osi_interface cimport c_OsiSolverInterface
+cdef class Osi_interface:
+     cdef float osi_solve(self, LP, c_OsiSolverInterface * si,bool objective_only, bool is_cplex) except? -687654

@@ -207,17 +207,65 @@ Solvers
 -------
 
 Sage solves linear programs by calling specific libraries. The
-following libraries are currently supported as optional packages:
+following libraries are currently supported :
 
-* `GLPK <http://www.gnu.org/software/glpk/>`_: A linear program solver
-  from `GNU <http://www.gnu.org/>`_
+* `CBC <http://www.coin-or.org/projects/Cbc.xml>`_: A solver from
+  from `COIN-OR <http://www.coin-or.org/>`_ (CPL -- Free)
 
-* `CBC <http://www.coin-or.org/projects/Cbc.xml>`_: Mixed integer
-  linear program solver from `COIN-OR <http://www.coin-or.org/>`_
+* `CPLEX <http://www-01.ibm.com/software/integration/optimization/cplex/>`_: A
+  solver from `ILOG <http://www.ilog.com/>`_ (Proprietary)
 
-Each of these packages can be installed as follows::
+* `GLPK <http://www.gnu.org/software/glpk/>`_: A solver
+  from `GNU <http://www.gnu.org/>`_ (GPL3, Free)
+
+Installing GLPK or CBC
+""""""""""""""""""""""""
+
+GPLK and CBC being free softwares, they can be easily installed
+as follows::
 
     sage: # To install GLPK
     sage: install_package("glpk")  # not tested
     sage: # To install COIN-OR Branch and Cut (CBC)
     sage: install_package("cbc")   # not tested
+
+Installing CPLEX
+""""""""""""""""
+
+ILOG CPLEX, on the other hand, is Proprietary -- to use it through Sage, you
+must first be in possession of :
+
+* A valid license file
+* A compiled version of the CPLEX library (usually named libcplex.a)
+* The header file cplex.h
+
+The license file path must be set the value of the environment
+variable ILOG_LICENSE_FILE. For example, you can write ::
+
+    export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
+
+at the end of your .bashrc file.
+
+As Sage also needs the files libcplex.a and cplex.h, the easiest way
+is to create symbolic links toward these files in the appropriate
+directories :
+
+* libcplex.a -- in SAGE_ROOT/local/lib/, type ::
+
+    ln -s /path/to/lib/libcplex.a .
+
+* cplex.h -- in SAGE_ROOT/local/include/, type ::
+
+    ln -s /path/to/include/cplex.h .
+
+Once this is done, and as CPLEX is used in Sage through the Osi
+library, which is part of the Cbc package, you can type::
+
+    sage: install_package("cbc")  # not tested
+
+or, if you had already installed Cbc ::
+
+    sage: install_package("cbc", force = True)  # not tested
+
+to reinstall it.
+

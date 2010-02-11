@@ -62,15 +62,30 @@ class MixedIntegerLinearProgram:
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
         """
+
+        self._default_solver = None
+
         try:
-            from sage.numerical.mip_coin import solve_coin
-            self._default_solver = "Coin"
-        except:
-            try:
+            if self._default_solver == None:
+                from sage.numerical.mip_cplex import solve_cplex
+                self._default_solver = "CPLEX"
+        except ImportError:
+            pass
+
+        try:
+            if self._default_solver == None:
+                from sage.numerical.mip_coin import solve_coin
+                self._default_solver = "Coin"
+        except ImportError:
+            pass
+
+        try:
+            if self._default_solver == None:
                 from sage.numerical.mip_glpk import solve_glpk
                 self._default_solver = "GLPK"
-            except:
-                self._default_solver = None
+        except ImportError:
+            pass
+
 
         # List of all the MIPVariables linked to this instance of
         # MixedIntegerLinearProgram
@@ -89,7 +104,7 @@ class MixedIntegerLinearProgram:
         self.__INTEGER = 0
 
         # ######################################################
-        # The informations of a Linear Program
+        # The information data of a Linear Program
         #
         # - name
         # - maximization
@@ -138,6 +153,7 @@ class MixedIntegerLinearProgram:
         self._constraints_matrix_values = []
         self._constraints_bounds_max = []
         self._constraints_bounds_min = []
+
 
 
     def __repr__(self):
@@ -511,10 +527,10 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable()
             sage: y = p.new_variable(dim=2)
-            sage: p.set_objective(x[3] + y[2][9] + x[5])
+            sage: p.set_objective(x[3] + 3*y[2][9] + x[5])
             sage: p.add_constraint(x[3] + y[2][9] + 2*x[5], max=2)
             sage: p.solve() # optional - requires Glpk or COIN-OR/CBC
-            2.0
+            6.0
 
         To return  the optimal value of ``y[2][9]``::
 
@@ -597,8 +613,8 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
             sage: p.add_constraint(1.5*x[1]+3*x[2], max=4)
-            sage: p.solve()     # optional - requires Glpk or COIN-OR/CBC
-            6.6666666666666661
+            sage: round(p.solve(),5)     # optional - requires Glpk or COIN-OR/CBC
+            6.66667
             sage: p.set_objective(None)
             sage: p.solve() #optional - requires Glpk or COIN-OR/CBC
             0.0
@@ -662,8 +678,8 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
-            sage: p.solve()     # optional - requires Glpk or COIN-OR/CBC
-            6.6666666666666661
+            sage: round(p.solve(),6)     # optional - requires Glpk or COIN-OR/CBC
+            6.666667
 
         There are two different ways to add the constraint
         ``x[5] + 3*x[7] <= x[6] + 3`` to self.
@@ -946,7 +962,7 @@ class MixedIntegerLinearProgram:
             return True
         return False
 
-    def solve(self, solver=None, log=False, objective_only=False):
+    def solve(self, solver=None, log=0, objective_only=False, threads = 0):
         r"""
         Solves the ``MixedIntegerLinearProgram``.
 
@@ -970,6 +986,10 @@ class MixedIntegerLinearProgram:
 
         - ``log`` -- This boolean variable indicates whether progress should
           be printed during the computations.
+
+        - ``threads`` -- Number of threads to use. This option is only useful
+          when Coin is used to solve the problem. Set ``threads`` to 0 (its
+          default value) to use one thread per core available.
 
         - ``objective_only`` -- Boolean variable.
 
@@ -1001,8 +1021,8 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
-            sage: p.solve()           # optional - requires Glpk or COIN-OR/CBC
-            6.6666666666666661
+            sage: round(p.solve(),6)  # optional - requires Glpk or COIN-OR/CBC
+            6.666667
             sage: p.get_values(x)     # optional random - requires Glpk or COIN-OR/CBC
             {0: 0.0, 1: 1.3333333333333333}
 
@@ -1017,53 +1037,43 @@ class MixedIntegerLinearProgram:
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)     # optional - requires Glpk or COIN-OR/CBC
             4.0
-
-        TESTS::
-
-            sage: g = graphs.PetersenGraph()
-            sage: p = MixedIntegerLinearProgram(maximization=True)
-            sage: b = p.new_variable()
-            sage: p.set_objective(sum([b[v] for v in g]))
-            sage: p.set_binary(b)
-            sage: p.solve(solver='GLPK', objective_only=True) # optional - requires GLPK
-            Traceback (most recent call last):
-            ...
-            RuntimeError
         """
+
+
         if self._objective_i == None:
             raise ValueError("No objective function has been defined.")
 
         if solver == None:
             solver = self._default_solver
 
+
         if solver == None:
-            raise ValueError("There does not seem to be any Linear Program solver installed. Please visit http://www.sagemath.org/packages/optional/ to install CBC or GLPK.")
-        elif solver == "Coin":
-            try:
-                from sage.numerical.mip_coin import solve_coin
-            except:
-                raise NotImplementedError("Coin/CBC is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('cbc')")
-            _sig_on
-            r = solve_coin(self, log=log, objective_only=objective_only)
-            _sig_off
-            return r
-        elif solver == "GLPK":
-            try:
-                from sage.numerical.mip_glpk import solve_glpk
-            except:
-                raise NotImplementedError("GLPK is not installed and cannot be used to solve this MixedIntegerLinearProgram. To install it, you can type in Sage: install_package('glpk')")
-            _sig_on
-            r = solve_glpk(self, log=log, objective_only=objective_only)
-            _sig_off
-            return r
-        elif solver == "CPLEX":
-            raise NotImplementedError("The support for CPLEX is not implemented yet.")
+            raise ValueError("There does not seem to be any (Mixed) Integer Linear Program solver installed. Please visit http://www.sagemath.org/doc/constructions/linear_programming.html to learn more about the solvers available.")
+
+
+        try:
+            if solver == "Coin":
+                from sage.numerical.mip_coin import solve_coin as solve
+            elif solver == "GLPK":
+                from sage.numerical.mip_glpk import solve_glpk as solve
+            elif solver == "CPLEX":
+                from sage.numerical.mip_cplex import solve_cplex as solve
+            else:
+                NotImplementedError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
+
+        except ImportError:
+            raise NotImplementedError("The required solver is not installed and cannot be used to solve this (Mixed) Integer Linear Program. To install it, follow the instructions given at http://www.sagemath.org/doc/constructions/linear_programming.html")
+
+
+        if solver=="Coin":
+            return solve(self, log=log, objective_only=objective_only, threads=threads)
         else:
-            raise NotImplementedError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
+            return solve(self, log=log, objective_only=objective_only)
+
 
     def _add_element_to_ring(self, vtype):
         r"""
-        Creates a new variable in the Linear Program.
+        Creates a new variable in the (Mixed) Integer Linear Program.
 
         INPUT:
 

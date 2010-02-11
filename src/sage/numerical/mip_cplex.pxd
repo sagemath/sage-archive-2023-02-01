@@ -13,24 +13,8 @@ cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
      c_CoinPackedMatrix *new_c_CoinPackedMatrix "new CoinPackedMatrix" (bool, double, double)
      void del_CoinPackedMatrix "delete" (c_CoinPackedMatrix *)
 
-cdef extern from "../../local/include/coin/CoinMessageHandler.hpp":
-     ctypedef struct c_CoinMessageHandler "CoinMessageHandler":
-         void setLogLevel (int)
-     c_CoinMessageHandler *new_c_CoinMessageHandler "new CoinMessageHandler" ()
-     void del_CoinMessageHandler "delete" (c_CoinMessageHandler *)
-
-
-cdef extern from "../../local/include/coin/CbcModel.hpp":
-     ctypedef struct c_CbcModel "CbcModel":
-         c_CoinMessageHandler * messageHandler ()
-         void setNumberThreads (int)
-         int getSolutionCount()
-
-     c_CbcModel *new_c_CbcModel "new CbcModel" ()
-     void del_CbcModel "delete" (c_CbcModel *)
-
-cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
-     ctypedef struct c_OsiCbcSolverInterface "OsiCbcSolverInterface":
+cdef extern from "../../local/include/coin/OsiCpxSolverInterface.hpp":
+     ctypedef struct c_OsiCpxSolverInterface "OsiCpxSolverInterface":
          double getInfinity()
          void loadProblem(c_CoinPackedMatrix, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
          void assignProblem(c_CoinPackedMatrix *, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
@@ -44,8 +28,6 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          void setLogLevel(int)
          void setInteger(int)
          void setContinuous(int)
-         c_CoinMessageHandler * messageHandler ()
-         c_CbcModel * getModelPtr  ()
          int isAbandoned ()
          int isProvenOptimal ()
          int isProvenPrimalInfeasible ()
@@ -55,8 +37,10 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          int isIterationLimitReached ()
          void setMaximumSolutions(int)
          int getMaximumSolutions()
-     c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
-     void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
+     c_OsiCpxSolverInterface *new_c_OsiCpxSolverInterface "new OsiCpxSolverInterface" ()
+     void del_OsiCpxSolverInterface "delete" (c_OsiCpxSolverInterface *)
+
+
 
 from sage.numerical.osi_interface cimport Osi_interface
 from sage.numerical.osi_interface cimport c_OsiSolverInterface

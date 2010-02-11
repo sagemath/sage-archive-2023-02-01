@@ -2459,11 +2459,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.selmer_rank()
             3
 
-	Here the Selmer rank is equal to the 2-torsion rank (=1) plus
-	the 2-rank of Sha (=2), and the rank itself is zero::
+        Here the Selmer rank is equal to the 2-torsion rank (=1) plus
+        the 2-rank of Sha (=2), and the rank itself is zero::
 
-	    sage: E.rank()
-	    0
+            sage: E.rank()
+            0
 
         In contrast, for the curve 571A, also with rank 0 and Sha of
         order 4, we get a worse bound::
@@ -2474,16 +2474,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.rank_bound()
             2
 
-	To establish that the rank is in fact 0 in this case, we would
-	need to carry out a higher descent::
+        To establish that the rank is in fact 0 in this case, we would
+        need to carry out a higher descent::
 
-	    sage: E.three_selmer_rank() # optional: magma
-	    0
+            sage: E.three_selmer_rank() # optional: magma
+            0
 
-	Or use the L-function to compute the analytic rank::
+        Or use the L-function to compute the analytic rank::
 
             sage: E.rank(only_use_mwrank=False)
             0
+
         """
         try:
             return self.__selmer_rank
@@ -2518,6 +2519,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.rank(only_use_mwrank=False)   # uses L-function
             0
+
         """
         try:
             return self.__rank_bound

@@ -244,26 +244,26 @@ class mwrank_EllipticCurve(SageObject):
         """
         Returns the rank of this curve, computed using 2-descent.
 
-	In general this may only be a lower bound for the rank; an
-	upper bound may be obtained using the function rank_bound().
-	To test whether the value has been proved to be correct, use
-	the method \method{certain}.
+        In general this may only be a lower bound for the rank; an
+        upper bound may be obtained using the function rank_bound().
+        To test whether the value has been proved to be correct, use
+        the method \method{certain}.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: E = mwrank_EllipticCurve([0, -1, 0, -900, -10098])
-	    sage: E.rank()
-	    0
-	    sage: E.certain()
-	    True
+            sage: E = mwrank_EllipticCurve([0, -1, 0, -900, -10098])
+            sage: E.rank()
+            0
+            sage: E.certain()
+            True
 
-	::
+        ::
 
-	    sage: E = mwrank_EllipticCurve([0, -1, 1, -929, -10595])
-	    sage: E.rank()
-	    0
-	    sage: E.certain()
-	    False
+            sage: E = mwrank_EllipticCurve([0, -1, 1, -929, -10595])
+            sage: E.rank()
+            0
+            sage: E.certain()
+            False
 
         """
         return self.__two_descent_data().getrank()
@@ -273,11 +273,11 @@ class mwrank_EllipticCurve(SageObject):
         Returns an upper bound for the rank of this curve, computed
         using 2-descent.
 
-	If the curve has no 2-torsion, this is equal to the 2-Selmer
-	rank.  If the curve has 2-torsion, the upper bound may be
-	smaller than the bound obtained from the 2-Selmer rank minus
-	the 2-rank of the torsion, since more information is gained
-	from the 2-isogenous curve or curves.
+        If the curve has no 2-torsion, this is equal to the 2-Selmer
+        rank.  If the curve has 2-torsion, the upper bound may be
+        smaller than the bound obtained from the 2-Selmer rank minus
+        the 2-rank of the torsion, since more information is gained
+        from the 2-isogenous curve or curves.
 
         EXAMPLES:
 
@@ -307,32 +307,33 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank_bound()
             2
 
-	In this case the value returned by \method{rank} is only a
-	lower bound in general (though in this is correct)::
+        In this case the value returned by \method{rank} is only a
+        lower bound in general (though in this is correct)::
 
             sage: E.rank()
             0
-	    sage: E.certain()
-	    False
+            sage: E.certain()
+            False
+
         """
         return self.__two_descent_data().getrankbound()
 
     def selmer_rank(self):
         r"""
-	Returns the rank of the 2-Selmer group of the curve.
+        Returns the rank of the 2-Selmer group of the curve.
 
         EXAMPLES:
 
-	The following is the curve 960D1, which has rank 0, but Sha of
+        The following is the curve 960D1, which has rank 0, but Sha of
         order 4.  The 2-torsion has rank 2, and the Selmer rank is 3::
 
             sage: E = mwrank_EllipticCurve([0, -1, 0, -900, -10098])
             sage: E.selmer_rank()
             3
 
-	Nevertheless, we can obtain a tight upper bound on the rank
-	since a second descent is performed which establishes the
-	2-rank of Sha::
+        Nevertheless, we can obtain a tight upper bound on the rank
+        since a second descent is performed which establishes the
+        2-rank of Sha::
 
             sage: E.rank_bound()
             0
@@ -355,14 +356,14 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank_bound()
             2
 
-	In cases like this with no 2-torsion, the rank upper bound is
-	always equal to the 2-Selmer rank.  If we ask for the rank,
-	all we get is a lower bound::
+        In cases like this with no 2-torsion, the rank upper bound is
+        always equal to the 2-Selmer rank.  If we ask for the rank,
+        all we get is a lower bound::
 
             sage: E.rank()
             0
-	    sage: E.certain()
-	    False
+            sage: E.certain()
+            False
 
         """
         return self.__two_descent_data().getselmer()
@@ -411,8 +412,8 @@ class mwrank_EllipticCurve(SageObject):
         called, then it is first called by \method{certain}
         using the default parameters.
 
-	The result is true if and only if the results of the methods
-	\method{rank} and \method{rank_bound} are equal.
+        The result is true if and only if the results of the methods
+        \method{rank} and \method{rank_bound} are equal.
 
         EXAMPLES:
 
@@ -427,7 +428,7 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank()
             0
 
-	The previous value is only a lower bound; the upper bound is greater::
+        The previous value is only a lower bound; the upper bound is greater::
 
             sage: E.rank_bound()
             2

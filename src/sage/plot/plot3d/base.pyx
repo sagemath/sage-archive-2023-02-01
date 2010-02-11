@@ -1392,8 +1392,10 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sphere(color='red') + sphere(color='yellow')
-            sage: G.texture_set()
-            set([Texture(texture..., yellow, ffff00), Texture(texture..., red, ff0000)])
+            sage: [t for t in G.texture_set() if t.color == (1, 0, 0)] # one red texture
+            [Texture(texture..., red, ff0000)]
+            sage: [t for t in G.texture_set() if t.color == (1, 1, 0)] # one yellow texture
+            [Texture(texture..., yellow, ffff00)]
 
             sage: T = sage.plot.plot3d.texture.Texture('blue'); T
             Texture(texture..., blue, 0000ff)

@@ -1681,6 +1681,57 @@ cdef class Expression(CommutativeRingElement):
         # able to find anything.
         return NotImplemented
 
+    def negation(self):
+        """
+        Returns the negated version of self, that is the relation that is
+        False iff self is True.
+
+        EXAMPLES::
+
+            sage: (x < 5).negation()
+            x >= 5
+            sage: (x == sin(3)).negation()
+            x != sin(3)
+            sage: (2*x >= sqrt(2)).negation()
+            2*x < sqrt(2)
+        """
+        if not self.is_relational():
+            raise ValueError, "self must be a relation"
+        cdef operators op = relational_operator(self._gobj)
+        if op == equal:
+            falsify = operator.ne
+        elif op == not_equal:
+            falsify = operator.eq
+        elif op == less:
+            falsify = operator.ge
+        elif op == less_or_equal:
+            falsify = operator.gt
+        elif op == greater:
+            falsify = operator.le
+        elif op == greater_or_equal:
+            falsify = operator.lt
+        return falsify(self.lhs(), self.rhs())
+
+    def contradicts(self, soln):
+        """
+        Returns ``True`` if this relation is violated by the given variable assignment(s).
+
+        EXAMPLES::
+
+            sage: (x<3).contradicts(x==0)
+            False
+            sage: (x<3).contradicts(x==3)
+            True
+            sage: (x<=3).contradicts(x==3)
+            False
+            sage: y = var('y')
+            sage: (x<y).contradicts(x==30)
+            False
+            sage: (x<y).contradicts({x: 30, y: 20})
+            True
+        """
+        return bool(self.negation().subs(soln))
+
     def is_unit(self):
         """
         Return True if this expression is a unit of the symbolic ring.
@@ -5900,6 +5951,34 @@ cdef class Expression(CommutativeRingElement):
             sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
             [x == 1/4*pi + pi*z45]
 
+        An effort is made to only return solutions that satisfy the current assumptions::
+
+            sage: solve(x^2==4, x)
+            [x == -2, x == 2]
+            sage: assume(x<0)
+            sage: solve(x^2==4, x)
+            [x == -2]
+            sage: solve((x^2-4)^2 == 0, x, multiplicities=True)
+            ([x == -2], [2])
+            sage: solve(x^2==2, x)
+            [x == -sqrt(2)]
+            sage: assume(x, 'rational')
+            sage: solve(x^2 == 2, x)
+            []
+            sage: solve(x^2==2-z, x)
+            [x == -sqrt(-z + 2)]
+            sage: solve((x-z)^2==2, x)
+            [x == z - sqrt(2), x == z + sqrt(2)]
+
+        There is still room for improvement::
+
+            sage: assume(x, 'integer')
+            sage: assume(z, 'integer')
+            sage: solve((x-z)^2==2, x)
+            [x == z - sqrt(2), x == z + sqrt(2)]
+
+            sage: forget()
+
         In some cases it may be worthwhile to directly use to_poly_solve,
         if one suspects some answers are being missed::
 
@@ -5957,6 +6036,12 @@ cdef class Expression(CommutativeRingElement):
             [y == r1]
             sage: solve(y==y,y,multiplicities=True)
             ([y == r1], [])
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration
+            sage: GenericDeclaration(x, 'rational').assume()
+            sage: solve(x^2 == 2, x)
+            []
+            sage: forget()
 
         """
         import operator
@@ -6023,9 +6108,7 @@ cdef class Expression(CommutativeRingElement):
             if len(X) == 0:
                 return X, []
             else:
-                if solution_dict:
-                    X=[dict([[sol.left(),sol.right()]]) for sol in X]
-                return X, [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
+                ret_multiplicities = [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
 
         ########################################################
         # Maxima's to_poly_solver package converts difficult   #
@@ -6035,7 +6118,7 @@ cdef class Expression(CommutativeRingElement):
         # but also allows for the possibility of approximate   #
         # solutions being returned.                            #
         ########################################################
-        if to_poly_solve:
+        if to_poly_solve and not multiplicities:
             if len(X)==0: # if Maxima's solve gave no solutions, only try it
                 try:
                     s = m.to_poly_solve(x)
@@ -6060,10 +6143,25 @@ cdef class Expression(CommutativeRingElement):
                         else:
                             raise
 
+        # make sure all the assumptions are satisfied
+        from sage.symbolic.assumptions import assumptions
+        to_check = assumptions()
+        if to_check:
+            for ix, soln in reversed(list(enumerate(X))):
+                if soln.lhs()._is_symbol():
+                    if any([a.contradicts(soln) for a in to_check]):
+                        del X[ix]
+                        if multiplicities:
+                            del ret_multiplicities[ix]
+                        continue
+
         if solution_dict is True:
             X=[dict([[sol.left(),sol.right()]]) for sol in X]
 
-        return X
+        if multiplicities:
+            return X, ret_multiplicities
+        else:
+            return X
 
     def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
         """

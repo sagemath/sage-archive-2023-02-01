@@ -191,6 +191,9 @@ Forgetting assumptions::
     sage: (y < 2).forget()
     sage: assumptions()
     [x > 0]
+    sage: forget()
+    sage: assumptions()
+    []
 
 
 Miscellaneous

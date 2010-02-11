@@ -1,4 +1,5 @@
 from sage.structure.sage_object import SageObject
+from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 _assumptions = []
 
@@ -140,6 +141,81 @@ class GenericDeclaration(SageObject):
                     x.forget()
                     break
             return
+
+    def contradicts(self, soln):
+        """
+        Returns ``True`` if this assumption is violated by the given variable assignment(s).
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration
+            sage: GenericDeclaration(x, 'integer').contradicts(x==4)
+            False
+            sage: GenericDeclaration(x, 'integer').contradicts(x==4.0)
+            False
+            sage: GenericDeclaration(x, 'integer').contradicts(x==4.5)
+            True
+            sage: GenericDeclaration(x, 'integer').contradicts(x==sqrt(17))
+            True
+            sage: GenericDeclaration(x, 'noninteger').contradicts(x==sqrt(17))
+            False
+            sage: GenericDeclaration(x, 'noninteger').contradicts(x==17)
+            True
+            sage: GenericDeclaration(x, 'even').contradicts(x==3)
+            True
+            sage: GenericDeclaration(x, 'complex').contradicts(x==3)
+            False
+            sage: GenericDeclaration(x, 'imaginary').contradicts(x==3)
+            True
+            sage: GenericDeclaration(x, 'imaginary').contradicts(x==I)
+            False
+
+            sage: var('y,z')
+            (y, z)
+            sage: GenericDeclaration(x, 'imaginary').contradicts(x==y+z)
+            False
+
+            sage: GenericDeclaration(x, 'rational').contradicts(y==pi)
+            False
+            sage: GenericDeclaration(x, 'rational').contradicts(y==pi)
+            False
+            sage: GenericDeclaration(x, 'rational').contradicts(y==pi)
+            False
+            sage: GenericDeclaration(x, 'rational').contradicts({x: pi, y: pi})
+            True
+            sage: GenericDeclaration(x, 'rational').contradicts({z: pi, y: pi})
+            False
+       """
+        if isinstance(soln, dict):
+            value = soln.get(self._var)
+            if value is None:
+                return False
+        elif soln.lhs() == self._var:
+            value = soln.rhs()
+        else:
+            return False
+        try:
+            CC(value)
+        except:
+            return False
+        if self._assumption == 'integer':
+            return value not in ZZ
+        elif self._assumption == 'noninteger':
+            return value in ZZ
+        elif self._assumption == 'even':
+            return value not in ZZ or ZZ(value) % 2 != 0
+        elif self._assumption == 'odd':
+            return value not in ZZ or ZZ(value) % 2 != 1
+        elif self._assumption == 'rational':
+            return value not in QQ
+        elif self._assumption == 'irrational':
+            return value in QQ
+        elif self._assumption == 'real':
+            return value not in RR
+        elif self._assumption == 'imaginary':
+            return value not in CC or CC(value).real() != 0
+        elif self._assumption == 'complex':
+            return value not in CC
 
 def preprocess_assumptions(args):
     """

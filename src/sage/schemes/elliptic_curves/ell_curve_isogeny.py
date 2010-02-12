@@ -2119,7 +2119,7 @@ class EllipticCurveIsogeny(Morphism):
 
 
         #check if the polynomial really divides the two_torsion_polynomial
-        if  self.__check and E.division_polynomial(2)(self.__x_var) % psi_G  != 0 :
+        if  self.__check and E.division_polynomial(2, x=self.__x_var) % psi_G  != 0 :
             raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
 
         n = psi_G.degree()
@@ -2213,13 +2213,22 @@ class EllipticCurveIsogeny(Morphism):
              1,
              3)
 
+	    sage: E = EllipticCurve(j=-262537412640768000)
+	    sage: f = (E.isogenies_prime_degree()[0]).kernel_polynomial()
+	    sage: f.degree()
+	    81
+	    sage: E.isogeny(kernel=f) # long time (21s)
+	    Isogeny of degree 163 from Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
+
         """
         n = psi.degree()
         d = 2*n + 1
 
         # check if the polynomial really divides the torsion polynomial :
-        if self.__check and E.division_polynomial(d)(self.__x_var) % psi != 0:
-            raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
+	if self.__check:
+	    alpha = psi.parent().quotient(psi).gen()
+	    if not E.division_polynomial(d, x=alpha).is_zero():
+		raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
 
         x = self.__x_var
 

@@ -313,6 +313,40 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic1, (self._parent, type(self), a, b, denom)
 
+    cdef void _randomize(self, num_bound, den_bound, distribution):
+        cdef Integer temp, denom1, denom2
+
+        # in theory, we could just generate two random numerators and
+        # a random denominator. however, this would mean that we were
+        # extraordinarily unlikely to run into results of the form
+        # 1/3 + 1/5*sqrt(D), which are often some of the best examples
+        # for testing out code. since this is probably the primary use
+        # of the random element code, it's worth doing slightly more
+        # work to make this possible.
+
+        # normalize denominator bound
+        if den_bound is None or den_bound < 1:
+            den_bound = 1
+
+        # generate denominators
+        denom1 = <Integer>(ZZ.random_element(x=1,
+                                             y=den_bound+1,
+                                             distribution=distribution))
+        denom2 = <Integer>(ZZ.random_element(x=1,
+                                             y=den_bound+1,
+                                             distribution=distribution))
+
+        # set a, b
+        temp = <Integer>(ZZ.random_element(x=num_bound, distribution=distribution))
+        mpz_mul(self.a, temp.value, denom2.value)
+        temp = <Integer>(ZZ.random_element(x=num_bound, distribution=distribution))
+        mpz_mul(self.b, temp.value, denom1.value)
+        # set denom
+        mpz_mul(self.denom, denom1.value, denom2.value)
+
+        self._reduce_c_()
+
+
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
         """
         Creates an element of the passed field from this field.  This

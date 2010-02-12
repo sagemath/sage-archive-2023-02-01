@@ -60,9 +60,8 @@ import sage.rings.arith
 
 import number_field
 
-from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
-from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.rings.integer_ring cimport IntegerRing_class
+from sage.rings.rational cimport Rational
 
 from sage.modules.free_module_element import vector
 
@@ -602,6 +601,97 @@ cdef class NumberFieldElement(FieldElement):
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
+
+    def _random_element(self, num_bound=None, den_bound=None, distribution=None):
+        """
+        Return a new random element with the same parent as self.
+
+        INPUT:
+
+        - ``num_bound`` - Bound for the numerator of coefficients of result
+
+        - ``den_bound`` - Bound for the denominator of coefficients of result
+
+        - ``distribution`` - Distribution to use for coefficients of result
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: a._random_element()
+            -1/2*a^2 - 4
+            sage: K.<a> = NumberField(x^2-5)
+            sage: a._random_element()
+            -2*a - 1
+        """
+        cdef NumberFieldElement elt = self._new()
+        elt._randomize(num_bound, den_bound, distribution)
+        return elt
+
+    cdef void _randomize(self, num_bound, den_bound, distribution):
+        cdef int i
+        cdef Integer denom_temp = PY_NEW(Integer)
+        cdef Integer tmp_integer = PY_NEW(Integer)
+        cdef ZZ_c ntl_temp
+        cdef list coeff_list
+        cdef Rational tmp_rational
+
+        # It seems like a simpler approach would be to simply generate
+        # random integers for each coefficient of self.__numerator
+        # and an integer for self.__denominator. However, this would
+        # generate things with a fairly fixed shape: in particular,
+        # we'd be very unlikely to get elements like 1/3*a^3 + 1/7,
+        # or anything where the denominators are actually unrelated
+        # to one another. The extra code below is to make exactly
+        # these kinds of results possible.
+
+        if den_bound == 1:
+            # in this case, we can skip all the business with LCMs,
+            # storing a list of rationals, etc. this gives a factor of
+            # two or so speedup ...
+
+            # set the denominator
+            mpz_set_si(denom_temp.value, 1)
+            denom_temp._to_ZZ(&self.__denominator)
+            for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
+                tmp_integer = <Integer>(ZZ.random_element(x=num_bound,
+                                                   distribution=distribution))
+                tmp_integer._to_ZZ(&ntl_temp)
+                ZZX_SetCoeff(self.__numerator, i, ntl_temp)
+
+        else:
+            coeff_list = []
+            mpz_set_si(denom_temp.value, 1)
+            tmp_integer = PY_NEW(Integer)
+
+            for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
+                tmp_rational = <Rational>(QQ.random_element(num_bound=num_bound,
+                                                            den_bound=den_bound,
+                                                            distribution=distribution))
+                coeff_list.append(tmp_rational)
+                mpz_lcm(denom_temp.value, denom_temp.value,
+                        mpq_denref(tmp_rational.value))
+
+            # now denom_temp has the denominator, and we just need to
+            # scale the numerators and set everything appropriately
+
+            # first, the denominator (easy)
+            denom_temp._to_ZZ(&self.__denominator)
+
+            # now the coefficients themselves.
+            for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
+                # calculate the new numerator. if our old entry is
+                # p/q, and the lcm is k, it's just pk/q, which we
+                # also know is integral -- so we can use mpz_divexact
+                # below
+                tmp_rational = <Rational>(coeff_list[i])
+                mpz_mul(tmp_integer.value, mpq_numref(tmp_rational.value),
+                        denom_temp.value)
+                mpz_divexact(tmp_integer.value, tmp_integer.value,
+                             mpq_denref(tmp_rational.value))
+
+                # now set the coefficient of self
+                tmp_integer._to_ZZ(&ntl_temp)
+                ZZX_SetCoeff(self.__numerator, i, ntl_temp)
 
     def __abs__(self):
         r"""

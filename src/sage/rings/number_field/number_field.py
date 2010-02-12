@@ -1178,15 +1178,26 @@ class NumberField_generic(number_field_base.NumberField):
         self.__primitive_element = from_K(K.gen())
         return self.__primitive_element
 
-    def random_element(self, *args, **kwds):
+    def random_element(self, num_bound=None, den_bound=None,
+                       integral_coefficients=False, distribution=None):
         r"""
         Return a random element of this number field.
 
         INPUT:
 
-        - ``*args``, ``**kwds`` - Arguments for randomization that are
-          (eventually) passed on to the ``random_element`` method of the
-          ground field
+        - ``num_bound`` - Bound on numerator of the coefficients of
+                          the resulting element
+
+        - ``den_bound`` - Bound on denominators of the coefficients
+                          of the resulting element
+
+        - ``integral_coefficients`` (default: False) - If True, then
+                          the resulting element will have integral
+                          coefficients. This option overrides any
+                          value of `den_bound`.
+
+        - ``distribution`` - Distribution to use for the coefficients
+                          of the resulting element
 
         OUTPUT:
 
@@ -1200,10 +1211,18 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
             sage: K.random_element()
-            ((-c + 1)*b - c + 2/3)*a - 5/2*b + 2/3*c - 1/4
+            ((6136*c - 7489/3)*b + 5825/3*c - 71422/3)*a + (-4849/3*c + 58918/3)*b - 45718/3*c + 75409/12
+
+            sage: K.<a> = NumberField(x^5-2)
+            sage: K.random_element(integral_coefficients=True)
+            a^3 + a^2 - 3*a - 1
         """
-        return self(self.polynomial_quotient_ring().random_element( \
-            *args, **kwds))
+        if integral_coefficients:
+            den_bound = 1
+
+        return self._zero_element._random_element(num_bound=num_bound,
+                                                  den_bound=den_bound,
+                                                  distribution=distribution)
 
     def subfield(self, alpha, name=None, names=None):
         r"""

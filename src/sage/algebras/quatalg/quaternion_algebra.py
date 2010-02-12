@@ -455,16 +455,16 @@ class QuaternionAlgebra_abstract(Algebra):
         EXAMPLES::
 
             sage: QuaternionAlgebra(QQ[sqrt(2)],-3,7).random_element()
-            -4 + (-1/95*sqrt2 - 1/2)*i + (-12*sqrt2 + 1/2)*j + (1/2*sqrt2 - 1)*k
+            (sqrt2 + 2)*i + (-12*sqrt2 - 2)*j + (-sqrt2 + 1)*k
             sage: QuaternionAlgebra(-3,19).random_element()
-            -1/4 + 2/3*i - 5/2*j
+            -1 + 2*i - j - 6/5*k
             sage: QuaternionAlgebra(GF(17)(2),3).random_element()
-            11 - i + 4*j + 13*k
+            14 + 10*i + 4*j + 7*k
 
         Specify the numerator and denominator bounds::
 
             sage: QuaternionAlgebra(-3,19).random_element(10^6,10^6)
-            -61003/263835 + 222181/103881*i - 7314/2707*j + 458453/129132*k
+            -979933/553629 + 255525/657688*i - 3511/6929*j - 700105/258683*k
         """
         K = self.base_ring()
         return self([ K.random_element(*args, **kwds) for _ in range(4) ])

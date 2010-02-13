@@ -279,6 +279,28 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         sage: blum_blum_shub(length=6, lbound=10**4, ubound=10**5)  # random
         110111
 
+    Under some reasonable hypotheses, Blum-Blum-Shub [BlumBlumShub1982]_
+    sketch a proof that the period of the BBS stream cipher is equal to
+    `\lambda(\lambda(n))`, where `\lambda(n)` is the Carmichael function of
+    `n`. This is verified below in a few examples by using the function
+    :func:`lfsr_connection_polynomial() <sage.crypto.lfsr.lfsr_connection_polynomial>`
+    (written by Tim Brock) which computes the connection polynomial of a
+    linear feedback shift register sequence. The degree of that polynomial
+    is the period. ::
+
+        sage: from sage.crypto.stream import blum_blum_shub
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: carmichael_lambda(carmichael_lambda(7*11))
+        4
+        sage: s = [GF(2)(int(str(x))) for x in blum_blum_shub(60, p=7, q=11, seed=13)]
+        sage: lfsr_connection_polynomial(s)
+        x^3 + x^2 + x + 1
+        sage: carmichael_lambda(carmichael_lambda(11*23))
+        20
+        sage: s = [GF(2)(int(str(x))) for x in blum_blum_shub(60, p=11, q=23, seed=13)]
+        sage: lfsr_connection_polynomial(s)
+        x^19 + x^18 + x^17 + x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
     TESTS:
 
     Make sure that there is at least one Blum prime between the lower and
@@ -322,6 +344,11 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         ValueError: The lower bound must be less than the upper bound.
 
     REFERENCES:
+
+    .. [BlumBlumShub1982] L. Blum, M. Blum, and M. Shub.
+      Comparison of Two Pseudo-Random Number Generators.
+      *Advances in Cryptology: Proceedings of Crypto '82*,
+      pp.61--78, 1982.
 
     .. [BlumBlumShub1986] L. Blum, M. Blum, and M. Shub.
       A Simple Unpredictable Pseudo-Random Number Generator.

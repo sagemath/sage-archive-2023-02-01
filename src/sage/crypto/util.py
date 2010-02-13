@@ -27,10 +27,13 @@ AUTHORS:
 ###########################################################################
 
 from sage.monoids.string_monoid import BinaryStrings
+from sage.rings.arith import factor
 from sage.rings.arith import is_prime
+from sage.rings.arith import lcm
 from sage.rings.arith import primes
 from sage.rings.arith import random_prime
 from sage.rings.integer_mod import Mod as mod
+from sage.structure.element import generic_power
 
 def ascii_integer(B):
     r"""
@@ -261,6 +264,179 @@ def bin_to_ascii(B):
         # ASCII integer to the corresponding ASCII character.
         A.append(chr(ascii_integer(b[8*i : 8*(i+1)])))
     return "".join(A)
+
+def carmichael_lambda(n):
+    r"""
+    Return the Carmichael function of a positive integer ``n``.
+
+    The Carmichael function of `n`, denoted `\lambda(n)`, is the smallest
+    positive integer `k` such that `a^k \equiv 1 \pmod{n}` for all
+    `a \in \ZZ/n\ZZ` satisfying `\gcd(a, n) = 1`. Thus, `\lambda(n) = k`
+    is the exponent of the multiplicative group `(\ZZ/n\ZZ)^{\ast}`.
+
+    INPUT:
+
+    - ``n`` -- a positive integer.
+
+    OUTPUT:
+
+    - The Carmichael function of ``n``.
+
+    ALGORITHM:
+
+    If `n = 2, 4` then `\lambda(n) = \varphi(n)`. Let `p \geq 3` be an odd
+    prime and let `k` be a positive integer. Then
+    `\lambda(p^k) = p^{k - 1}(p - 1) = \varphi(p^k)`. If `k \geq 3`, then
+    `\lambda(2^k) = 2^{k - 2}`. Now consider the case where `n > 3` is
+    composite and let `n = p_1^{k_1} p_2^{k_2} \cdots p_t^{k_t}` be the
+    prime factorization of `n`. Then
+
+    .. MATH::
+
+        \lambda(n)
+        = \lambda(p_1^{k_1} p_2^{k_2} \cdots p_t^{k_t})
+        = \text{lcm}(\lambda(p_1^{k_1}), \lambda(p_2^{k_2}), \dots, \lambda(p_t^{k_t}))
+
+    EXAMPLES:
+
+    The Carmichael function of all positive integers up to and including 10::
+
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: map(carmichael_lambda, [1..10])
+        [1, 1, 2, 2, 4, 2, 6, 2, 6, 4]
+
+    The Carmichael function of the first ten primes::
+
+        sage: map(carmichael_lambda, primes_first_n(10))
+        [1, 2, 4, 6, 10, 12, 16, 18, 22, 28]
+
+    Cases where the Carmichael function is equivalent to the Euler phi
+    function::
+
+        sage: carmichael_lambda(2) == euler_phi(2)
+        True
+        sage: carmichael_lambda(4) == euler_phi(4)
+        True
+        sage: p = random_prime(1000, lbound=3, proof=True)
+        sage: k = randint(1, 1000)
+        sage: carmichael_lambda(p^k) == euler_phi(p^k)
+        True
+
+    A case where `\lambda(n) \neq \varphi(n)`::
+
+        sage: k = randint(1, 1000)
+        sage: carmichael_lambda(2^k) == 2^(k - 2)
+        True
+        sage: carmichael_lambda(2^k) == 2^(k - 2) == euler_phi(2^k)
+        False
+
+    Verifying the current implementation of the Carmichael function using
+    another implemenation. The other implementation that we use for
+    verification is an exhaustive search for the exponent of the
+    multiplicative group `(\ZZ/n\ZZ)^{\ast}`. ::
+
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: n = randint(1, 500)
+        sage: c = carmichael_lambda(n)
+        sage: def coprime(n):
+        ...       return [i for i in xrange(n) if gcd(i, n) == 1]
+        ...
+        sage: def znpower(n, k):
+        ...       L = coprime(n)
+        ...       return map(power_mod, L, [k]*len(L), [n]*len(L))
+        ...
+        sage: def my_carmichael(n):
+        ...       for k in xrange(1, n):
+        ...           L = znpower(n, k)
+        ...           ones = [1] * len(L)
+        ...           T = [L[i] == ones[i] for i in xrange(len(L))]
+        ...           if all(T):
+        ...               return k
+        ...
+        sage: c == my_carmichael(n)
+        True
+
+    Carmichael's theorem states that `a^{\lambda(n)} \equiv 1 \pmod{n}`
+    for all elements `a` of the multiplicative group `(\ZZ/n\ZZ)^{\ast}`.
+    Here, we verify Carmichael's theorem. ::
+
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: n = randint(1, 1000)
+        sage: c = carmichael_lambda(n)
+        sage: ZnZ = IntegerModRing(n)
+        sage: M = ZnZ.list_of_elements_of_multiplicative_group()
+        sage: ones = [1] * len(M)
+        sage: P = [power_mod(a, c, n) for a in M]
+        sage: P == ones
+        True
+
+    TESTS:
+
+    The input ``n`` must be a positive integer::
+
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: carmichael_lambda(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input n must be a positive integer.
+        sage: carmichael_lambda(randint(-10, 0))
+        Traceback (most recent call last):
+        ...
+        ValueError: Input n must be a positive integer.
+
+    REFERENCES:
+
+    .. [Carmichael2010] Carmichael function,
+      http://en.wikipedia.org/wiki/Carmichael_function
+    """
+    # sanity checks
+    if n < 1:
+        raise ValueError("Input n must be a positive integer.")
+    # special cases
+    if n in [1, 2]:
+        return 1
+    if n in [3, 4, 6, 8]:
+        return 2
+    if n in [5, 10]:
+        return 4
+    if n in [7, 9]:
+        return 6
+    if is_prime(n):
+        return n - 1
+    # the case where n > 1 is composite
+    L = factor(n)
+    t = len(L)      # the number of distinct prime factors of n
+    if t == 1:      # n is a prime power
+        p = L[0][0]
+        # So n is a power of 2, i.e. n = p^k for positive integer k > 2,
+        # with p = 2. We have already tested for the case n = 2^2 = 4 above.
+        if p == 2:
+            return n / 4
+        # here p > 3
+        else:
+            return ((p - 1)*n) / p
+    # The following two lines constitute a recursive implementation.
+    # powers = [L[i][0]**L[i][1] for i in range(t)]
+    # return lcm([carmichael_lambda(m) for m in powers])
+    # The following is a non-recursive implementation.
+    E = []
+    for F in L:
+        p = F[0]
+        k = F[1]
+        if p == 2:
+            # p^k = 2^1 = 2
+            if k == 1:
+                E.append(1)
+            # p^k = 2^2 = 4
+            elif k == 2:
+                E.append(2)
+            # p^k = 2^k for k > 2
+            else:
+                E.append(generic_power(p, k-2))
+        # here p > 3
+        else:
+            E.append(generic_power(p, k-1) * (p - 1))
+    return lcm(E)
 
 def has_blum_prime(lbound, ubound):
     """

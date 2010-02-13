@@ -29,7 +29,7 @@ checkdotsage()
     fi
 }
 
-if [ "$(which latex)" != "" ]
+if [ "$(which latex)" -a "$(kpsewhich tkz-berge.sty)" ]
 then
     cd src
 
@@ -39,7 +39,7 @@ then
     typeset sagetexpackage.dtx
     checkdotsage sagetexpackage
 else
-    echo "LaTeX isn't installed (or isn't in \$PATH); skipping test of SageTeX spkg."
+    echo "LaTeX isn't installed (or isn't in \$PATH) or tkz-berge.sty couldn't be found. Skipping test of SageTeX spkg."
 fi
 
 # if we get here, we assume the .sage files are good, and exit successfully

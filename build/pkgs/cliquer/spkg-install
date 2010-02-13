@@ -155,21 +155,31 @@ export ABI
 
 # Flags for building a dynamically linked shared object.
 SAGESOFLAGS=" "
-if [ `uname` = "Linux" ] || [ `uname` = "FreeBSD" ]; then
+if [ "$UNAME" = "Linux" ] || [ "$UNAME" = "FreeBSD" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
     export SAGESOFLAGS
-elif [ `uname` = "Darwin" ]; then
+elif [ "$UNAME" = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET="10.3"
     export MACOSX_DEPLOYMENT_TARGET
     SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
     export SAGESOFLAGS
-elif [ `uname` = "SunOS" ]; then
+elif [ "$UNAME" = "SunOS" ]; then
     SAGESOFLAGS="-G -Bdynamic"
+    export SAGESOFLAGS
+elif [ "$UNAME" = "CYGWIN" ]; then
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
     export SAGESOFLAGS
 else
     # We exit here, since we are possibly on an unsupported platform.
-    echo "Cannot determine your platform or it is not supported... exiting"
-    exit 1
+    if [ -n "${SAGE_PORT:-x}" ]; then
+        echo "Cannot determine your platform or it is not supported... exiting"
+        exit 1
+    else
+        echo "Cannot determine your platform or it is not supported"
+        echo "Since SAGE_PORT is set, setting SAGESOFLAGS to Linux defaults."
+        SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
+        export SAGESOFLAGS
+    fi
 fi
 
 # Copy over custom Makefile for Sage. This custom Makefile contains Sage
@@ -215,7 +225,7 @@ else
 fi
 
 cp -f *.h "$SAGE_LOCAL/include/cliquer/"
-if [ `uname` = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dylib"
     # On OS X 10.6 at least, the above does *NOT* work at all.
     # So I'm also doing the following, which can't hurt.

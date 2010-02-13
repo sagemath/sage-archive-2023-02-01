@@ -17,6 +17,9 @@ Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 
 == Changelog ==
 
+=== cliquer-1.2.p4 Mike Hansen, William Stein (12 February 2010) ===
+ * Fixed Trac #7308 to make the cliquer spkg work on Cygwin.
+
 === cliquer-1.2.p3 (Peter Jeremy, 2010-01-25) ===
  * #7824: add FreeBSD support
 

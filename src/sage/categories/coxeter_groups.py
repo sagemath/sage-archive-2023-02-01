@@ -16,6 +16,7 @@ from sage.categories.category import Category
 from sage.categories.groups import Groups
 from sage.combinat.backtrack import SearchForest
 from sage.combinat.finite_class import FiniteCombinatorialClass
+from sage.misc.flatten import flatten
 
 class CoxeterGroups(Category):
     r"""
@@ -402,6 +403,47 @@ class CoxeterGroups(Category):
             """
             from sage.sets.family import Family
             return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, toward_max = toward_max))
+
+        def bruhat_interval(self, x, y):
+            """
+            Returns the list of t such that x <= t <= y.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup("A3", prefix="s")
+                sage: [s1,s2,s3]=W.simple_reflections()
+                sage: W.bruhat_interval(s2,s1*s3*s2*s1*s3)
+                [s1*s2*s3*s2*s1, s2*s3*s2*s1, s3*s1*s2*s1, s1*s2*s3*s1, s1*s2*s3*s2, s3*s2*s1, s2*s3*s1, s2*s3*s2, s1*s2*s1, s3*s1*s2, s1*s2*s3, s2*s1, s3*s2, s2*s3, s1*s2, s2]
+                sage: W = WeylGroup(['A',2,1], prefix="s")
+                sage: [s0,s1,s2]=W.simple_reflections()
+                sage: W.bruhat_interval(1,s0*s1*s2)
+                [s0*s1*s2, s1*s2, s0*s2, s0*s1, s2, s1, s0, 1]
+            """
+            if x == 1:
+                x = self.one()
+            if y == 1:
+                y = self.one()
+            if x == y:
+                return [x]
+            ret = []
+            if not x.bruhat_le(y):
+                return ret
+            ret.append([y])
+            while ret[-1] != []:
+                nextlayer = []
+                for z in ret[-1]:
+                    for t in z.bruhat_lower_covers():
+                        if t not in nextlayer:
+                            if x.bruhat_le(t):
+                                nextlayer.append(t)
+                ret.append(nextlayer)
+            return flatten(ret)
+
+        # TODO: Groups() should have inverse() call __invert__
+        # With strong doc stating that this is just a convenience for the user
+        # and links to ~ / __invert__
+
+        # parabolic_subgroup
 
         def _test_simple_projections(self, **options):
             """
@@ -1218,8 +1260,3 @@ class CoxeterGroups(Category):
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
 
-        # TODO: Groups() should have inverse() call __invert__
-        # With strong doc stating that this is just a convenience for the user
-        # and links to ~ / __invert__
-
-        # parabolic_subgroup

@@ -49,14 +49,21 @@ from sage.combinat.root_system.root_lattice_realization import RootLatticeRealiz
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.sets.family import Family
+from sage.matrix.constructor import Matrix
+from sage.graphs.graph import DiGraph
 
-def WeylGroup(x):
+def WeylGroup(x, prefix=None):
     """
-    Returns the Weyl group of type type.
+    Returns the Weyl group of type ct.
 
     INPUT:
 
     - ``ct`` - a Cartan Type.
+
+    OPTIONAL:
+
+    - ``prefix`` - changes the representation of elements from matrices
+      to products of simple reflections
 
     EXAMPLES: The following constructions yield the same result, namely
     a weight lattice and its corresponding Weyl group::
@@ -90,6 +97,25 @@ def WeylGroup(x):
         sage: w.length() # length function on Weyl group
         4
 
+    The default representation of Weyl group elements is as matrices.
+    If you prefer, you may specify a prefix, in which case the
+    elements are represented as products of simple reflections.
+
+    ::
+
+        sage: W=WeylGroup("C3",prefix="s")
+        sage: [s1,s2,s3]=W.simple_reflections() # lets Sage parse its own output
+        sage: s2*s1*s2*s3
+        s1*s2*s3*s1
+        sage: s2*s1*s2*s3 == s1*s2*s3*s1
+        True
+        sage: (s2*s3)^2==(s3*s2)^2
+        True
+        sage: (s1*s2*s3*s1).matrix()
+        [ 0  0 -1]
+        [ 0  1  0]
+        [ 1  0  0]
+
     ::
 
         sage: L = G.lattice()
@@ -104,7 +130,6 @@ def WeylGroup(x):
         sage: TestSuite(WeylGroup(["A",3])).run()
         sage: TestSuite(WeylGroup(["A",3, 1])).run()
 
-
         sage: W=WeylGroup(['A',3,1])
         sage: s=W.simple_reflections()
         sage: w=s[0]*s[1]*s[2]
@@ -115,37 +140,20 @@ def WeylGroup(x):
         [2, 0]
     """
     if isinstance(x, RootLatticeRealization):
-        return WeylGroup_gens(x)
+        return WeylGroup_gens(x, prefix=prefix)
 
     ct = CartanType(x)
     if ct.is_affine():
-        return WeylGroup_gens(ct.root_system().root_space())
+        return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)
     else:
-        return WeylGroup_gens(ct.root_system().ambient_space())
-
-# def _WeylGroup(lattice):
-#     """
-#     Returns the Weyl group of type ct.  This function is wrapped by a cache
-#     object so that the Weyl group only gets computed once for each type.
-
-#     EXAMPLES:
-#         sage: from sage.combinat.root_system.weyl_group import _WeylGroup
-#         sage: e = CartanType(['A',2]).root_system().ambient_space()
-#         sage: _WeylGroup(e)
-#         Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
-#     """
-#     basis = lattice.basis()
-#     gens = []
-#     for s_k in lattice.simple_reflections():
-#         m = [s_k(b).to_vector() for b in basis]
-#         gens.append(matrix(QQ, m).transpose())
-#     return WeylGroup_gens(gens, lattice)
-
-# weyl_group_cache = Cache(_WeylGroup)
-
+        return WeylGroup_gens(ct.root_system().ambient_space(), prefix=prefix)
 
 class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens):
-    def __init__(self, lattice):
+    @staticmethod
+    def __classcall__(cls, lattice, prefix=None):
+        return super(WeylGroup_gens, cls).__classcall__(cls, lattice, prefix)
+
+    def __init__(self, lattice, prefix):
         """
         EXAMPLES::
 
@@ -162,6 +170,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         self.n = lattice.dimension() # Really needed?
         # MatrixGroup_gens takes plain matrices as input. So we can't do:
         #MatrixGroup_gens.__init__(self, list(self.simple_reflections()))
+        self._prefix = prefix
         MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.lattice().simple_reflection(i)) for i in self.index_set()], category = category)
 
     @cached_method
@@ -176,7 +185,6 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             ['F', 4]
         """
         return self.lattice().cartan_type()
-
 
     @cached_method
     def index_set(self):
@@ -253,10 +261,32 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         """
         return self.lattice().simple_reflections().map(self.from_morphism)
 
-    #@lazy_attribute
-    #def reflections(self):
-    #    import sage
-    #    return sage.misc.misc.deprecation("reflections deprecated; use simple_reflections instead")
+    def reflections(self):
+        """
+        The reflections of W are the conjugates of the simple reflections.
+        They are in bijection with the positive roots, for given a positive
+        root, we may have the reflection in the hyperplane orthogonal to it.
+        This method returns a dictionary indexed by the reflections taking
+        values in the positive roots. This requires self to be a finite
+        Weyl group.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("B2",prefix="s")
+            sage: refdict = W.reflections(); refdict
+            {s1*s2*s1: (1, 0), s2*s1*s2: (1, 1), s1: (1, -1), s2: (0, 1)}
+            sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
+            [(0, 0), (0, 0), (0, 0), (0, 0)]
+
+        """
+        ret = {}
+        try:
+            for alp in self.lattice().positive_roots():
+                r = self.__call__(Matrix([self.lattice().reflection(alp)(x).to_vector() for x in self.lattice().basis()]))
+                ret[r] = alp
+            return ret
+        except:
+            raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
     def gens(self):
         """
@@ -548,7 +578,39 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         TODO: extract parabolic subgroup method
         """
         assert(self.cartan_type().is_affine())
-        return ClassicalWeylSubgroup(self._lattice)
+        return ClassicalWeylSubgroup(self._lattice, prefix=self._prefix)
+
+    def bruhat_graph(self, x, y):
+        """
+        The Bruhat graph Gamma(x,y), defined if x <= y in the Bruhat order, has
+        as its vertices the Bruhat interval, {t | x <= t <= y}, and as its
+        edges the pairs u, v such that u = r.v where r is a reflection, that
+        is, a conjugate of a simple reflection.
+
+        Returns the Bruhat graph as a directed graph, with an edge x --> y
+        if and only if x < y in the Bruhat order, and u = r.v.
+
+        See:
+
+        Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar, and
+        rational smoothness of Schubert varieties. Algebraic groups and their
+        generalizations: classical methods (University Park, PA, 1991), 53--61,
+        Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
+
+
+        EXAMPLES:
+
+            sage: W = WeylGroup("A3", prefix = "s")
+            sage: [s1,s2,s3] = W.simple_reflections()
+            sage: W.bruhat_graph(s1*s3,s1*s2*s3*s2*s1)
+            Digraph on 10 vertices
+        """
+        g = self.bruhat_interval(x, y)
+        ref = self.reflections()
+        d = {}
+        for x in g:
+            d[x] = [y for y in g if x.length() < y.length() and ref.has_key(x*y.inverse())]
+        return DiGraph(d)
 
 
 class ClassicalWeylSubgroup(WeylGroup_gens):
@@ -569,7 +631,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     TESTS::
 
         sage: from sage.combinat.root_system.weyl_group import ClassicalWeylSubgroup
-        sage: H = ClassicalWeylSubgroup(RootSystem(["A", 3, 1]).root_space())
+        sage: H = ClassicalWeylSubgroup(RootSystem(["A", 3, 1]).root_space(), prefix=None)
         sage: H is G
         True
 
@@ -628,8 +690,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
                                                                            self._lattice._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
-
-    def weyl_group(self):
+    def weyl_group(self, prefix="hereditary"):
         """
         Return the Weyl group associated to the parabolic subgroup.
 
@@ -642,7 +703,9 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['E',8,1]).classical().weyl_group()
             Weyl Group of type ['E', 8, 1] (as a matrix group acting on the root space)
         """
-        return self.lattice().weyl_group()
+        if prefix == "hereditary":
+            prefix = self._prefix
+        return self.lattice().weyl_group(prefix)
 
     def _test_is_finite(self, **options):
         """
@@ -654,7 +717,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['B', 3, 1]).classical()._test_is_finite()
         """
         tester = self._tester(**options)
-        assert(not self.weyl_group().is_finite())
+        assert(not self.weyl_group(self._prefix).is_finite())
         assert(self.is_finite())
 
 class WeylGroupElement(MatrixGroupElement):
@@ -689,6 +752,33 @@ class WeylGroupElement(MatrixGroupElement):
             Ambient space of the Root system of type ['A', 2]
         """
         return self._parent.lattice()
+
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',2,1], prefix="s")
+            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: s0*s1
+            s0*s1
+            sage: W = WeylGroup(['A',2,1])
+            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: s0*s1
+            [ 0 -1  2]
+            [ 1 -1  1]
+            [ 0  0  1]
+        """
+        if self._parent._prefix is None:
+            return MatrixGroupElement.__repr__(self)
+        else:
+            redword = self.reduced_word()
+            if len(redword) == 0:
+                return "1"
+            else:
+                ret = ""
+                for i in redword[:-1]:
+                    ret += "%s%d*"%(self._parent._prefix, i)
+            return ret + "%s%d"%(self._parent._prefix, redword[-1])
 
     def matrix(self):
         """

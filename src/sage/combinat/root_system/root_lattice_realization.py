@@ -653,7 +653,7 @@ class RootLatticeRealization(SageObject):
     # Weyl group
     ##########################################################################
 
-    def weyl_group(self):
+    def weyl_group(self, prefix=None):
         """
         Returns the Weyl group associated to self.
 
@@ -666,7 +666,7 @@ class RootLatticeRealization(SageObject):
 
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
-        return WeylGroup(self)
+        return WeylGroup(self, prefix=prefix)
 
 class RootLatticeRealizationElement(object):
     def scalar(self, lambdacheck):

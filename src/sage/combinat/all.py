@@ -102,3 +102,4 @@ from dlx import AllExactCovers, OneExactCover, DLXMatrix
 
 from multichoose_nk import MultichooseNK
 
+from kazhdan_lusztig import KazhdanLusztigPolynomial

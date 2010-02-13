@@ -30,3 +30,5 @@ Miscellaneous
    sage/misc/random_testing
    sage/misc/sagedoc
    sage/rings/arith
+   sage/misc/nested_class
+   sage/misc/classcall_metaclass

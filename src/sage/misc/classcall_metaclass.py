@@ -1,5 +1,5 @@
 r"""
-ClasscallMetaclass
+Special Methods for Classes.
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
@@ -31,8 +31,8 @@ class ClasscallMetaclass(NestedClassMetaclass):
      - ``.__classget__`` for customizing the binding behavior in
        ``foo.cls`` (analogue of ``.__get__``).
 
-    See the documentation of :meth:`.__classcall__`` and of
-    :meth:`.__classget`` for the description of the respective protocol.
+    See the documentation of :meth:`.__call__`` and of
+    :meth:`.__get__`` for the description of the respective protocols.
 
     TODO: find a good name for this metaclass.
 
@@ -68,8 +68,11 @@ class ClasscallMetaclass(NestedClassMetaclass):
         ``obj.Inner(...)`` is equivalent to ``Outer.Inner(obj, ...)``::
 
             sage: import functools
+            sage: from sage.misc.nested_class import NestedClassMetaclass
             sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
             sage: class Outer:
+            ...       __metaclass__ = NestedClassMetaclass # workaround for python pickling bug
+            ...
             ...       class Inner(object):
             ...           __metaclass__ = ClasscallMetaclass
             ...           @staticmethod
@@ -83,16 +86,16 @@ class ClasscallMetaclass(NestedClassMetaclass):
             ...               self.instance = instance
             sage: obj = Outer()
             sage: bar = obj.Inner()
-            calling __classget__(<class '__main__.Inner'>, <__main__.Outer instance at 0x...>, __main__.Outer)
+            calling __classget__(<class '__main__.Outer.Inner'>, <__main__.Outer object at 0x...>, <class '__main__.Outer'>)
             sage: bar.instance == obj
             True
 
         Calling ``Outer.Inner`` returns the (unbinded) class as usual::
 
             sage: Inner = Outer.Inner
-            calling __classget__(<class '__main__.Inner'>, None, __main__.Outer)
+            calling __classget__(<class '__main__.Outer.Inner'>, None, <class '__main__.Outer'>)
             sage: Inner
-            <class '__main__.Inner'>
+            <class '__main__.Outer.Inner'>
             sage: type(bar) is Inner
             True
 
@@ -101,7 +104,7 @@ class ClasscallMetaclass(NestedClassMetaclass):
         ..warning:: calling ``obj.Inner`` does no longer return a class::
 
             sage: bind = obj.Inner
-            calling __classget__(<class '__main__.Inner'>, <__main__.Outer instance at ...>, __main__.Outer)
+            calling __classget__(<class '__main__.Outer.Inner'>, <__main__.Outer object at 0x...>, <class '__main__.Outer'>)
             sage: bind
             <functools.partial object at 0x...>
         """

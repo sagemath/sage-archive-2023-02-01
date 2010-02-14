@@ -6343,15 +6343,17 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     Return an interval that contains the index of the Heegner
     point `y_K` in the group of `K`-rational points modulo torsion
     on this elliptic curve, computed using the Gross-Zagier
-    formula and/or a point search, or the index divided by `2`.
+    formula and/or a point search, or possibly half the index
+    if the rank is greater than one.
 
     .. note::
 
        If ``min_p`` is bigger than 2 then the index can be off by
        any prime less than ``min_p``. This function returns the
-       index divided by `2` exactly when
-       `E(\QQ)_{/tor}` has index `2` in
-       `E(K)_{/tor}`.
+       index divided by `2` exactly when the rank of `E(K)` is
+       greater than 1 and `E(\QQ)_{/tor} \oplus E^D(\QQ)_{/tor}`
+       has index `2` in `E(K)_{/tor}`, where the second factor
+       undergoes a twist.
 
     INPUT:
 
@@ -6370,7 +6372,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     -  ``descent_second_limit`` - (default: 12)- used in 2-descent
        when computing regulator of the twist
 
-    OUTPUT: an interval that contains the index
+    OUTPUT: an interval that contains the index, or half the index
 
     EXAMPLES::
 
@@ -6402,14 +6404,10 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
         ...
         ArithmeticError: Discriminant (=-3) must not be -3 or -4.
 
-    The curve 681b returns an interval that contains `3/2`.
-    This is because `E(\QQ)` is not saturated in
-    `E(K)`. The true index is `3`::
+    The curve 681b returns the true index, which is `3`::
 
         sage: E = EllipticCurve('681b')
         sage: I = E.heegner_index(-8); I
-        1.50000?
-        sage: 2*I
         3.0000?
 
     In fact, whenever the returned index has a denominator of
@@ -6448,6 +6446,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
         F = self.quadratic_twist(D)
     else:
         F = self
+    # Now rank(F) > 0
     h  = ht.upper()
     verbose("Heegner height bound = %s"%h)
     B = F.CPS_height_bound()
@@ -6459,10 +6458,24 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
 
     IR = rings.RealIntervalField(20)  # todo: 20?
 
+    a = 1
     if c > _MAX_HEIGHT or F is self:
         verbose("Doing direct computation of MW group.")
         reg = F.regulator(descent_second_limit=descent_second_limit, verbose=verbose_mwrank)
-        return self._adjust_heegner_index(ht/IR(reg))
+        if F.rank() == 1:
+            z = F.gens()[0]
+            FK = F.base_extend(QuadraticField(D,'a'))
+            z = FK(z)
+            if z.is_divisible_by(2):
+                a = 2
+            else:
+                FK_even_tor_pts = [T for T in FK.torsion_subgroup().gens() if T.order()%2==0]
+                if len(FK_even_tor_pts) == 2:
+                    FK_even_tor_pts.append(sum(FK_even_tor_pts))
+                for T in FK_even_tor_pts:
+                    if (z + T).is_divisible_by(2):
+                        a = 2; break
+        return a*self._adjust_heegner_index(ht/IR(reg))
 
     # Do naive search to eliminate possibility that Heegner point
     # is divisible by p<min_p, without finding Heegner point.
@@ -6470,13 +6483,27 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     P = F.point_search(c)
     verbose("done with point search")
     P = [x for x in P if x.order() == rings.infinity]
+    a = 1
     if len(P) == 0:
         return IR(1)
+    elif len(P) == 1:
+        z = P[0]
+        FK = F.base_extend(QuadraticField(D,'a'))
+        z = FK(z)
+        if z.is_divisible_by(2):
+            a = 2
+        else:
+            FK_even_tor_pts = [T for T in FK.torsion_subgroup().gens() if T.order()%2==0]
+            if len(FK_even_tor_pts) == 2:
+                FK_even_tor_pts.append(sum(FK_even_tor_pts))
+            for T in FK_even_tor_pts:
+                if (z + T).is_divisible_by(2):
+                    a = 2; break
 
     verbose("saturating")
     S, I, reg = F.saturation(P)
     verbose("done saturating")
-    return self._adjust_heegner_index(ht/IR(reg))
+    return a*self._adjust_heegner_index(ht/IR(reg))
 
 def _adjust_heegner_index(self, a):
     r"""
@@ -6568,11 +6595,14 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     verbose("Heegner height bound = %s"%h)
     B = F.CPS_height_bound()
     verbose("CPS bound = %s"%B)
-    H = h
+    if self.two_torsion_rank() == 0:
+        H = h
+    else:
+        H = 4*h
     p = 3
     from sage.all import next_prime
     while True:
-        c = h/(2*p**2) + B
+        c = H/(2*p**2) + B
         if c < max_height:
             break
         if p > 100:

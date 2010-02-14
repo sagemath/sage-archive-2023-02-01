@@ -1,0 +1,12 @@
+59,63c59,63
+< 	${INSTALL_PROGRAM} $(MAIN1) ${bindir}
+< 	${INSTALL_PROGRAM} $(MAIN2) ${bindir}
+< 	${INSTALL_PROGRAM} $(MAIN3) ${bindir}
+< 	${INSTALL_PROGRAM} $(MAIN4) ${bindir}
+< 	${INSTALL_PROGRAM} $(LLL) ${bindir}
+---
+> 	${INSTALL_PROGRAM} $(MAIN1).exe ${bindir}
+> 	${INSTALL_PROGRAM} $(MAIN2).exe ${bindir}
+> 	${INSTALL_PROGRAM} $(MAIN3).exe ${bindir}
+> 	${INSTALL_PROGRAM} $(MAIN4).exe ${bindir}
+> 	${INSTALL_PROGRAM} $(LLL).exe ${bindir}

@@ -98,8 +98,12 @@ patch()
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
     cp patches/Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.tesths.cc src/Singular/tesths.cc
-    # Fine to make this patch on any system, because it is code that is only compiled on Windows.
-    cp patches/sing_win.cc src/Singular/
+
+    if [ "$UNAME" = "CYGWIN" ]; then
+        # Fine to make this patch on any system, because it is code that is only compiled on Windows.
+        cp patches/sing_win.cc src/Singular/
+        cp patches/IntegerProgramming-Makefile.in src/IntegerProgramming/Makefile.in
+    fi
 
     #cp patches/Singular.configure src/Singular/configure
     #cp patches/Singular.configure.in src/Singular/configure.in

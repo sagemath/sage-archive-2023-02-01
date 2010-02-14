@@ -1,0 +1,115 @@
+## Makefile for integer programming
+SINGUNAME       = @SINGUNAME@
+##
+## various paths
+##
+bindir          = @bindir@
+prefix          = @prefix@
+slibdir         = ${prefix}/LIB
+install_bindir  = ${install_prefix}/${SINGUNAME}
+libdir          = @libdir@
+
+
+##
+## various programs
+##
+@SET_MAKE@
+CXX             = @CXX@
+## gcc won't work
+ifeq ($(CXX),gcc)
+CXX := c++
+endif
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@  -s
+MKINSTALLDIRS   = ../mkinstalldirs
+
+##
+## compiler and linker options
+##
+CPPFLAGS	= -I. @CPPFLAGS@
+CXXFLAGS        = @CXXFLAGS@
+LDFLAGS         = -L${libdir} @LDFLAGS@ -lgmp
+
+
+MAIN1	:= solve_IP
+OBJECTS1:= $(MAIN1).o
+
+MAIN2	:= change_cost
+OBJECTS2:= $(MAIN2).o
+
+MAIN3	:= toric_ideal
+OBJECTS3:= $(MAIN3).o
+
+MAIN4   := gen_test
+OBJECTS4:= $(MAIN4).o
+
+LLL   := LLL
+OBJECTS_LLL:= LLL_lattice_to_send.o
+
+%.o: %.cc si_gcc_v.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+all: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
+
+install-nolns: install
+
+install: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
+	${MKINSTALLDIRS} ${bindir}
+	${INSTALL_PROGRAM} $(MAIN1).exe ${bindir}
+	${INSTALL_PROGRAM} $(MAIN2).exe ${bindir}
+	${INSTALL_PROGRAM} $(MAIN3).exe ${bindir}
+	${INSTALL_PROGRAM} $(MAIN4).exe ${bindir}
+	${INSTALL_PROGRAM} $(LLL).exe ${bindir}
+
+install-bindist: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4)
+	${MKINSTALLDIRS} ${install_bindir}
+	${INSTALL_PROGRAM} -s $(MAIN1) ${install_bindir}
+	${INSTALL_PROGRAM} -s $(MAIN2) ${install_bindir}
+	${INSTALL_PROGRAM} -s $(MAIN3) ${install_bindir}
+	${INSTALL_PROGRAM} -s $(MAIN4) ${install_bindir}
+	${INSTALL_PROGRAM} -s $(LLL) ${install_bindir}
+
+clean:
+	rm -f *.o *~  $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL) si_gcc_v.h
+
+distclean: clean
+	-rm -f ${bindir}/$(MAIN1)
+	-rm -f ${bindir}/$(MAIN2)
+	-rm -f ${bindir}/$(MAIN3)
+	-rm -f ${bindir}/$(MAIN4)
+	-rm -f ${bindir}/$(LLL)
+
+si_gcc_v.h:
+	./gccversion.sh
+
+$(MAIN1): term_ordering.o binomial.o list.o BigInt.o LLL.o matrix.o \
+	ideal.o \
+	Buchberger.o ideal_stuff.o IP_algorithms.o testdata.o \
+	$(OBJECTS1)
+	$(CXX) $^ -o $@ $(LDFLAGS)
+
+$(MAIN2): term_ordering.o binomial.o list.o BigInt.o LLL.o matrix.o \
+	ideal.o \
+	Buchberger.o ideal_stuff.o IP_algorithms.o testdata.o  \
+	$(OBJECTS2)
+	$(CXX)  $^ -o $@ $(LDFLAGS)
+
+$(MAIN3): term_ordering.o binomial.o list.o BigInt.o LLL.o matrix.o \
+	ideal.o \
+	Buchberger.o ideal_stuff.o IP_algorithms.o testdata.o \
+	$(OBJECTS3)
+	$(CXX)  $^ -o $@ $(LDFLAGS)
+
+$(MAIN4): term_ordering.o binomial.o list.o BigInt.o LLL.o matrix.o \
+	ideal.o \
+	Buchberger.o ideal_stuff.o IP_algorithms.o testdata.o \
+	$(OBJECTS4)
+	$(CXX)  $^ -o $@ $(LDFLAGS)
+
+$(LLL): $(OBJECTS_LLL)
+	$(CXX)  $^ -o $@ $(LDFLAGS)
+
+Makefile: Makefile.in
+	cd ..; 	CONFIG_FILES="IntegerProgramming/Makefile" CONFIG_HEADERS= ./config.status
+

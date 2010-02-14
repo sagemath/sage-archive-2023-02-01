@@ -6542,6 +6542,17 @@ class InfiniteWord_class(Word_class):
 
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
+    Finite word represented by a python list.
+
+    For any word `w`, type `w.` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(range(10))
+        sage: w.iterated_right_palindromic_closure()
+        word: 0102010301020104010201030102010501020103...
+
     TESTS::
 
         sage: w = Word([0,1,1,0])
@@ -6552,6 +6563,17 @@ class FiniteWord_list(WordDatatype_list, FiniteWord_class):
 
 class FiniteWord_str(WordDatatype_str, FiniteWord_class):
     r"""
+    Finite word represented by a python str.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word('abcdef')
+        sage: w.is_square()
+        False
+
     TESTS::
 
         sage: w = Word('abba')
@@ -6562,6 +6584,17 @@ class FiniteWord_str(WordDatatype_str, FiniteWord_class):
 
 class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     r"""
+    Finite word represented by a python tuple.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(())
+        sage: w.is_empty()
+        True
+
     TESTS::
 
         sage: w = Word((0,1,1,0))
@@ -6572,6 +6605,17 @@ class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
 
 class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_class):
     r"""
+    Finite word represented by an iterator (with caching).
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(iter('abcdef'))
+        sage: w.conjugate(2)
+        word: cdefab
+
     TESTS::
 
         sage: w = Word(iter(range(10)))
@@ -6587,6 +6631,19 @@ class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_cl
 
 class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
     r"""
+    Finite word represented by an iterator.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(iter(range(10)), caching=False)
+        sage: w
+        word: 0123456789
+        sage: w.finite_differences()
+        word: 111111111
+
     TESTS::
 
         sage: w = Word(iter(range(10)), caching=False)
@@ -6602,6 +6659,20 @@ class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
 
 class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, FiniteWord_class):
     r"""
+    Finite word represented by a callable (with caching).
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: f = lambda n : n % 3
+        sage: w = Word(f, length=32)
+        sage: w
+        word: 01201201201201201201201201201201
+        sage: w.border()
+        word: 01201201201201201201201201201
+
     TESTS::
 
         sage: w = Word(lambda n:n, length=10)
@@ -6639,6 +6710,20 @@ class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Finit
 
 class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
     r"""
+    Finite word represented by a callable.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: f = lambda n : 3 if n > 8 else 6
+        sage: w = Word(f, length=30, caching=False)
+        sage: w
+        word: 666666666333333333333333333333
+        sage: w.is_symmetric()
+        True
+
     TESTS::
 
         sage: w = Word(lambda n:n, length=10, caching=False)
@@ -6656,6 +6741,26 @@ class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
 
 class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWord_class):
     r"""
+    Infinite word represented by an iterable (with caching).
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: from itertools import cycle
+        sage: w = Word(cycle([9,8,4]))
+        sage: w
+        word: 9849849849849849849849849849849849849849...
+        sage: prefix = w[:23]
+        sage: prefix
+        word: 98498498498498498498498
+        sage: prefix.minimal_period()
+        3
+
     TESTS::
 
         sage: from itertools import count
@@ -6674,6 +6779,26 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
 
 class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
     r"""
+    Infinite word represented by an iterable.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: from itertools import chain, cycle
+        sage: w = Word(chain('letsgo', cycle('forever')), caching=False)
+        sage: w
+        word: letsgoforeverforeverforeverforeverforeve...
+        sage: prefix = w[:100]
+        sage: prefix
+        word: letsgoforeverforeverforeverforeverforeve...
+        sage: prefix.is_lyndon()
+        False
+
     TESTS::
 
         sage: from itertools import count
@@ -6692,6 +6817,21 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
 
 class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, InfiniteWord_class):
     r"""
+    Infinite word represented by a callable (with caching).
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(lambda n:n)
+        sage: factor = w[4:13]
+        sage: factor
+        word: 4,5,6,7,8,9,10,11,12
+
     TESTS::
 
         sage: w = Word(lambda n:n)
@@ -6707,6 +6847,22 @@ class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Inf
 
 class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
     r"""
+    Infinite word represented by a callable.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(lambda n:n, caching=False)
+        sage: w
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: w.iterated_right_palindromic_closure()
+        word: 0102010301020104010201030102010501020103...
+
     TESTS::
 
         sage: w = Word(lambda n:n, caching=False)
@@ -6724,6 +6880,23 @@ class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
 
 class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
     r"""
+    Word of unknown length (finite or infinite) represented by an
+    iterable (with caching).
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(iter([1,2,3]*1000), length='unknown')
+        sage: w
+        word: 1231231231231231231231231231231231231231...
+        sage: w.finite_differences(mod=2)
+        word: 1101101101101101101101101101101101101101...
+
     TESTS::
 
         sage: w = Word(iter('abcd'*100), length='unknown')
@@ -6743,6 +6916,23 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
 
 class Word_iter(WordDatatype_iter, Word_class):
     r"""
+    Word of unknown length (finite or infinite) represented by an
+    iterable.
+
+    For such word `w`, type "w." and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Words behave like a python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(iter([1,1,4,9]*1000), length='unknown', caching=False)
+        sage: w
+        word: 1149114911491149114911491149114911491149...
+        sage: w.delta()
+        word: 2112112112112112112112112112112112112112...
+
     TESTS::
 
         sage: w = Word(iter('abcd'*100), length='unknown', caching=False)

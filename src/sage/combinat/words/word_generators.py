@@ -296,17 +296,56 @@ class ChristoffelWord_Lower(LowerChristoffelWord):
 
 class WordGenerator(object):
     r"""
-    A class consisting of constructors for several famous words.
+    Constructor of several famous words.
+
+    EXAMPLES::
+
+        sage: words.ThueMorseWord()
+        word: 0110100110010110100101100110100110010110...
+
+    ::
+
+        sage: words.FibonacciWord()
+        word: 0100101001001010010100100101001001010010...
+
+    ::
+
+        sage: words.ChristoffelWord(5, 8)
+        word: 0010010100101
+
+    ::
+
+        sage: words.RandomWord(10, 4)    # not tested random
+        word: 1311131221
+
+    ::
+
+        sage: words.CodingOfRotationWord(alpha=0.618, beta=0.618)
+        word: 1010110101101101011010110110101101101011...
+
+    ::
+
+        sage: tm = WordMorphism('a->ab,b->ba')
+        sage: fib = WordMorphism('a->ab,b->a')
+        sage: tmword = words.ThueMorseWord([0, 1])
+        sage: from itertools import repeat
+        sage: words.s_adic(tmword, repeat('a'), {0:tm, 1:fib})
+        word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+    .. NOTE:
+
+        To see a list of all word constructors, type “words.” and then
+        press the tab key. The documentation for each constructor
+        includes information about each word, which provides a useful
+        reference.
 
     TESTS::
 
         sage: from sage.combinat.words.word_generators import WordGenerator
-        sage: MyWordBank = WordGenerator()
-        sage: type(loads(dumps(MyWordBank)))
+        sage: words2 = WordGenerator()
+        sage: type(loads(dumps(words2)))
         <class 'sage.combinat.words.word_generators.WordGenerator'>
-
     """
-
     def ThueMorseWord(self, alphabet=(0, 1), base=2):
         r"""
         Returns the (Generalized) Thue-Morse word over the given alphabet.

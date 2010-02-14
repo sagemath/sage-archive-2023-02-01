@@ -10,6 +10,9 @@
 == Releases ==
 
 
+=== singular-3-1-0-4-20100214 (William Stein, February 14, 2010) ===
+ * patch for Cygwin (trac 7338)
+
 === singular-3-1-0-4-20100120 (Martin Albrecht, January 20th, 2010) ===
  * installing attrib.h from Singular
 

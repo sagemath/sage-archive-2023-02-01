@@ -166,7 +166,7 @@ fi
 
 
 # Finally build Guava
-"$SAGE_ROOT/local/lib/$GAP/pkg/guava/"
+cd "$SAGE_ROOT/local/lib/$GAP/pkg/guava/"
 ./configure ../../ --enable-libsuffix=64
 if [ $? -ne 0 ]; then
    echo "Error configuring Guava"

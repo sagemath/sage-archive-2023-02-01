@@ -26,6 +26,9 @@ AUTHORS:
 
 - John Cremona (2008-07): further work on integral_points
 
+- Christian Wuthrich (2010-01): moved Galois reps and modular
+  parametrization in a separate file
+
 """
 
 ##############################################################################
@@ -43,49 +46,33 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import constructor
+import BSD
+from   ell_generic import EllipticCurve_generic, is_EllipticCurve
+import ell_modular_symbols
+from   ell_number_field import EllipticCurve_number_field
 import ell_point
-import formal_group
+import ell_tate_curve
 import ell_torsion
-from ell_generic import EllipticCurve_generic, is_EllipticCurve
-from ell_number_field import EllipticCurve_number_field
+import formal_group
+import heegner
+import gp_cremona
+from   gp_simon import simon_two_descent
+from   lseries_ell import Lseries_ell
+import mod5family
+from   modular_parametrization import ModularParameterization
+import padic_lseries
+import padics
+import sea
+
+import sage.modular.modform.constructor
+import sage.modular.modform.element
+import sage.libs.mwrank.all as mwrank
+import sage.databases.cremona
 
 import sage.groups.all
 import sage.rings.arith as arith
 import sage.rings.all as rings
-import sage.misc.misc as misc
-from sage.misc.all import verbose
-import sage.modular.modform.constructor
-import sage.modular.modform.element
-from sage.misc.functional import log
-from sage.rings.padics.factory import Zp, Qp
-
-# Use some interval arithmetic to guarantee correctness.  We assume
-# that alpha is computed to the precision of a float.
-# IR = rings.RIF
-#from sage.rings.interval import IntervalRing; IR = IntervalRing()
-
-import sage.matrix.all as matrix
-import sage.databases.cremona
-from   sage.libs.pari.all import pari, PariError
-import sage.functions.transcendental as transcendental
-from math import sqrt
-import sage.libs.mwrank.all as mwrank
-import constructor
-from sage.interfaces.all import gp
-
-import ell_modular_symbols
-import padic_lseries
-import padics
-from sage.rings.padics.precision_error import PrecisionError
-
-import heegner
-import BSD
-
-from lseries_ell import Lseries_ell
-
-import mod5family
-
-from sage.sets.set import Set
 from sage.rings.all import (
     PowerSeriesRing, LaurentSeriesRing, O,
     infinity as oo,
@@ -94,12 +81,25 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import gp_cremona
-import sea
+import sage.misc.misc as misc
+from sage.misc.all import verbose
 
-from gp_simon import simon_two_descent
+from sage.misc.functional import log
+from sage.rings.padics.factory import Zp, Qp
+from sage.rings.padics.precision_error import PrecisionError
+from sage.sets.set import Set
 
-import ell_tate_curve
+# Use some interval arithmetic to guarantee correctness.  We assume
+# that alpha is computed to the precision of a float.
+# IR = rings.RIF
+#from sage.rings.interval import IntervalRing; IR = IntervalRing()
+
+import sage.matrix.all as matrix
+from   sage.libs.pari.all import pari, PariError
+import sage.functions.transcendental as transcendental
+from math import sqrt
+from sage.interfaces.all import gp
+from sage.misc.cachefunc import cached_method
 
 factor = arith.factor
 mul = misc.mul
@@ -110,8 +110,6 @@ C = ComplexField()
 R = RealField()
 Z = IntegerRing()
 IR = rings.RealIntervalField(20)
-
-from sage.misc.cachefunc import cached_method
 
 _MAX_HEIGHT=21
 
@@ -4587,233 +4585,150 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     # Galois Representations
     ##########################################################
 
+    def galois_representation(self):
+        r"""
+        The compatible family of the Galois representation
+        attached to this elliptic curve.
+
+        Given an elliptic curve `E` over `\QQ`
+        and a rational prime number `p`, the `p^n`-torsion
+        `E[p^n]` points of `E` is a representation of the
+        absolute Galois group of `\QQ`. As `n` varies
+        we obtain the Tate module `T_p E` which is a
+        a representation of `G_K` on a free `\ZZ_p`-module
+        of rank `2`. As `p` varies the representations
+        are compatible.
+
+        EXAMPLES::
+
+            sage: rho = EllipticCurve('11a1').galois_representation()
+            sage: rho
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.is_irreducible(5)
+            False
+            sage: rho.is_surjective(11)
+            True
+            sage: rho.non_surjective()
+            [5]
+            sage: rho = EllipticCurve('37a1').galois_representation()
+            sage: rho.non_surjective()
+            []
+            sage: rho = EllipticCurve('27a1').galois_representation()
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.non_surjective()   # cm-curve
+            [0]
+
+       """
+        try:
+            return self.__rho
+        except AttributeError:
+            from gal_reps import GaloisRepresentation
+            self.__rho = GaloisRepresentation(self)
+        return self.__rho
+
+    # deprecated as it should be the is_reducible for a scheme (and hence return False always).
     def is_reducible(self, p):
         """
         Return True if the mod-p representation attached to E is
         reducible.
 
-        INPUT:
-
-
-        -  ``p`` - a prime number
-
-
-        .. note::
-
-           The answer is cached.
+        Note that this function is deprecated, and that you should use
+        galois_representation().is_reducible(p) instead as this will be
+        disappearing in the near future.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('121a'); E
-            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 30*x - 76 over Rational Field
-            sage: E.is_reducible(7)
-            False
-            sage: E.is_reducible(11)
+            sage: EllipticCurve('20a1').is_reducible(3) #random
+            doctest:1: DeprecationWarning: is_reducible is deprecated, use galois_representation().is_reducible(p) instead!
             True
-            sage: EllipticCurve('11a').is_reducible(5)
-            True
-            sage: e = EllipticCurve('11a2')
-            sage: e.is_reducible(5)
-            True
-            sage: e.torsion_order()
-            1
+
         """
-        try:
-            return self.__is_reducible[p]
-        except AttributeError:
-            self.__is_reducible = {}
-        except KeyError:
-            pass
+        from sage.misc.misc import deprecation
+        deprecation("is_reducible is deprecated, use galois_representation().is_reducible(p) instead!")
+        return self.galois_representation().is_reducible(p)
 
-        if not arith.is_prime(p):
-            raise ValueError, 'p (=%s) must be prime'%p
-        # we do is_surjective first, since this is
-        # much easier than computing isogeny_class
-        t, why = self.is_surjective(p)
-        if t == True:
-            self.__is_reducible[p] = False
-            return False  # definitely not reducible
-        isogeny_matrix = self.isogeny_class()[ 1 ]
-        v = isogeny_matrix.row(0) # first row
-        for a in v:
-            if a != 0 and a % p == 0:
-                self.__is_reducible[p] = True
-                return True
-        self.__is_reducible[p] = False
-        return False
-
+    # deprecated as it should be the is_irreducible for a scheme (and hence return True always).
     def is_irreducible(self, p):
         """
         Return True if the mod p representation is irreducible.
 
+        Note that this function is deprecated, and that you should use
+        galois_representation().is_irreducible(p) instead as this will be
+        disappearing in the near future.
+
         EXAMPLES::
 
-            sage: e = EllipticCurve('37b')
-            sage: e.is_irreducible(2)
+            sage: EllipticCurve('20a1').is_irreducible(7) #random
+            doctest:1: DeprecationWarning: is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!
             True
-            sage: e.is_irreducible(3)
-            False
-            sage: e.is_reducible(2)
-            False
-            sage: e.is_reducible(3)
-            True
-        """
-        return not self.is_reducible(p)
 
+        """
+        from sage.misc.misc import deprecation
+        deprecation("is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!")
+        return self.galois_representation().is_irreducible(p)
+
+    # deprecated
     def is_surjective(self, p, A=1000):
-        """
-        Return True if the mod-p representation attached to E is
-        surjective, False if it is not, or None if we were unable to
-        determine whether it is or not.
+        r"""
+        Returns true if the mod p representation is surjective
 
-        .. note::
-
-           The answer is cached.
-
-        INPUT:
-
-
-        -  ``p`` - int (a prime number)
-
-        -  ``A`` - int (a bound on the number of a_p to use)
-
-
-        OUTPUT:
-
-        A 2-tuple:
-
-        - surjective or (probably) not
-
-        - information about what it is if not surjective
-
+        Note that this function is deprecated, and that you should use
+        galois_representation().is_surjective(p) instead as this will be
+        disappearing in the near future.
 
         EXAMPLES::
 
-            sage: e = EllipticCurve('37b')
-            sage: e.is_surjective(2)
-            (True, None)
-            sage: e.is_surjective(3)
-            (False, '3-torsion')
+            sage: EllipticCurve('20a1').is_surjective(7) #random
+            doctest:1: DeprecationWarning: is_surjective is deprecated, use galois_representation().is_surjective(p) instead!
+            True
 
-        REMARKS:
-
-        1. If `p = 5` then the mod-p representation is
-           surjective if and only if the p-adic representation is
-           surjective. When `p = 2, 3` there are
-           counterexamples. See a very recent paper of Elkies for more
-           details when `p=3`.
-
-        2. When p = 3 this function always gives the correct result
-           irregardless of A, since it explicitly determines the
-           p-division polynomial.
         """
-        if not arith.is_prime(p):
-            raise TypeError, "p (=%s) must be prime."%p
-        A = int(A)
-        key = (p, A)
-        try:
-            return self.__is_surjective[key]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__is_surjective = {}
+        from sage.misc.misc import deprecation
+        deprecation("is_surjective is deprecated, use galois_representation().is_surjective(p) instead!")
+        return self.galois_representation().is_surjective(p,A)
 
-        ans = self._is_surjective(p, A)
-        self.__is_surjective[key] = ans
-        return ans
+    # deprecated
+    def reducible_primes(self):
+        r"""
+        Returns a list of reducible primes.
 
-    def _is_surjective(self, p, A):
-        T = self.torsion_subgroup().order()
-        if T % p == 0:
-            return False, "%s-torsion"%p
+        Note that this function is deprecated, and that you should use
+        galois_representation().reducible_primes() instead as this will be
+        disappearing in the near future.
 
-        if p == 2:
-            # E is isomorphic to  [0,b2,0,8*b4,16*b6]
-            b2,b4,b6,b8=self.b_invariants()
-            R = rings.PolynomialRing(self.base_ring(), 'x')
-            x = R.gen()
-            f = x**3 + b2*x**2 + 8*b4*x + 16*b6
-            if not f.is_irreducible():
-                return False, '2-torsion'
-            if arith.is_square(f.discriminant()):
-                return False, "A3"
-            return True, None
+        EXAMPLES::
 
-        if p == 3:
-            # Algorithm: Let f be the 3-division polynomial, which is
-            # a polynomial of degree 4.  Then I claim that this
-            # polynomial has Galois group S_4 if and only if the
-            # representation rhobar_{E,3} is surjective.  If the group
-            # is S_4, then S_4 is a quotient of the image of
-            # rhobar_{E,3}.  Since S_4 has order 24 and GL_2(F_3)
-            # has order 48, the only possibility we have to consider
-            # is that the image of rhobar is isomorphic to S_4.
-            # But this is not the case because S_4 is not a subgroup
-            # of GL_2(F_3).    If it were, it would be normal, since
-            # it would have index 2.  But there is a *unique* normal
-            # subgroup of GL_2(F_3) of index 2, namely SL_2(F_3),
-            # and SL_2(F_3) is not isomorphic to S_4 (S_4 has a normal
-            # subgroup of index 2 and SL_2(F_3) does not.)
-            # (What's a simple way to see that SL_2(F_3) is the
-            # unique index-2 normal subgroup?  I didn't see an obvious
-            # reason, so just used the NormalSubgroups command in MAGMA
-            # and it output exactly one of index 2.)
+            sage: EllipticCurve('20a1').reducible_primes() #random
+            doctest:1: DeprecationWarning: reducible_primes is deprecated, use galois_representation().reducible_primes() instead!
+            [2,3]
 
-            # Here's Noam Elkies proof for the other direction:
+       """
+        from sage.misc.misc import deprecation
+        deprecation("reducible_primes is deprecated, use galois_representation().reducible_primes() instead!")
+        return self.galois_representation().reducible_primes()
 
-            #> Let E be an elliptic curve over Q.  Is the mod-3
-            #> representation E[3]  surjective if and only if the
-            #> (degree 4) division polynomial has Galois group S_4?  I
-            #> can see why the group being S_4 implies the
-            #> representation is surjective, but the converse is not
-            #> clear to me.
-            # I would have thought that this is the easier part: to
-            # say that E[3] is surjective is to say the 3-torsion
-            # field Q(E[3]) has Galois group GL_2(Z/3) over Q.  Let
-            # E[3]+ be the subfield fixed by the element -1 of
-            # GL_2(Z/3).  Then E[3] has Galois group PGL_2(Z/3), which
-            # is identified with S_4 by its action on the four
-            # 3-element subgroups of E[3].  Each such subgroup is in
-            # turn determined by the x-coordinate shared by its two
-            # nonzero points.  So, if E[3] is surjective then any
-            # permutation of those x-coordinates is realized by some
-            # element of Gal(E[3]+/Q).  Thus the Galois group of the
-            # division polynomial (whose roots are those
-            # x-coordinates) maps surjectively to S_4, which means it
-            # equals S_4.
+    # deprecated
+    def non_surjective(self, A=1000):
+        r"""
+        Returns a list of primes p for which the Galois representation mod p is not surjective.
 
+        Note that this function is deprecated, and that you should use
+        galois_representation().non_surjective() instead as this will be
+        disappearing in the near future.
 
-            f = self.division_polynomial(3)
-            if not f.is_irreducible():
-                return False, "reducible_3-divpoly"
-            n = pari(f).polgalois()[0]
-            if n == 24:
-                return True, None
-            else:
-                return False, "3-divpoly_galgroup_order_%s"%n
+        EXAMPLES::
 
-        if self.has_cm():
-            return False, "CM"
-        an = self.anlist(A)
-        ell = 0
-        Np = self.conductor() * p
-        signs = []
-        while True:
-            ell = arith.next_prime(ell)
-            if ell >= A: break
-            if Np % ell != 0:
-                a_ell = an[int(ell)]
-                if a_ell % p != 0:
-                    s = arith.kronecker(a_ell**2 - 4*ell, p)
-                    #print ell, s
-                    if s == 0: continue
-                    if not (s in signs):
-                        signs.append(s)
-                        if len(signs) == 2:
-                            return True, None
+            sage: EllipticCurve('20a1').non_surjective() #random
+            doctest:1: DeprecationWarning: non_surjective is deprecated, use galois_representation().non_surjective() instead!
+            [2,3]
 
-        # could do something further here...
-        return False, signs
+        """
+        from sage.misc.misc import deprecation
+        deprecation("non_surjective is deprecated, use galois_representation().non_surjective() instead!")
+        return self.galois_representation().non_surjective()
 
     def is_semistable(self):
         """
@@ -4828,112 +4743,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.is_semistable()
             False
         """
-        if self.base_ring() != Q:
-            raise NotImplementedError, "is_semistable only implemented for curves over the rational numbers."
         return self.conductor().is_squarefree()
-
-    def reducible_primes(self):
-        r"""
-        Returns a list of the primes `p` such that the mod
-        `p` representation `\rho_{E,p}` is reducible. For
-        all other primes the representation is irreducible.
-
-        .. note::
-
-           This is *not* provably correct in general. See the
-           documentation for :meth:`.isogeny_class`.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('225a')
-            sage: E.reducible_primes()
-            [3]
-        """
-        try:
-            return self.__reducible_primes
-        except AttributeError:
-            pass
-        C, I = self.isogeny_class(algorithm='mwrank')
-        X = set(I.list())
-        R = [p for p in X if arith.is_prime(p)]
-        self.__reducible_primes = R
-        return R
-
-    def non_surjective(self, A=1000):
-        r"""
-        Returns a list of primes p such that the mod-p representation
-        `\rho_{E,p}` *might* not be surjective (this list
-        usually contains 2, because of shortcomings of the algorithm). If p
-        is not in the returned list, then rho_E,p is provably surjective
-        (see A. Cojocaru's paper). If the curve has CM then infinitely many
-        representations are not surjective, so we simply return the
-        sequence [(0,"cm")] and do no further computation.
-
-        INPUT:
-
-
-        -  ``A`` - an integer
-
-
-        OUTPUT:
-
-
-        -  ``list`` - if curve has CM, returns [(0,"cm")].
-           Otherwise, returns a list of primes where mod-p representation is
-           very likely not surjective. At any prime not in this list, the
-           representation is definitely surjective.
-
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0, 0, 1, -38, 90])  # 361A
-            sage: E.non_surjective()   # CM curve
-            [(0, 'cm')]
-
-        ::
-
-            sage: E = EllipticCurve([0, -1, 1, 0, 0]) # X_1(11)
-            sage: E.non_surjective()
-            [(5, '5-torsion')]
-
-        ::
-
-            sage: E = EllipticCurve([0, 0, 1, -1, 0]) # 37A
-            sage: E.non_surjective()
-            []
-
-        ::
-
-            sage: E = EllipticCurve([0,-1,1,-2,-1])   # 141C
-            sage: E.non_surjective()
-            [(13, [1])]
-
-        ALGORITHM: When p=3 use division polynomials. For 5 = p = B, where
-        B is Cojocaru's bound, use the results in Section 2 of Serre's
-        inventiones paper"Sur Les Representations Modulaires Deg Degre 2 de
-        Galqbar Over Q."
-        """
-        if self.has_cm():
-            misc.verbose("cm curve")
-            return [(0,"cm")]
-        N = self.conductor()
-        if self.is_semistable():
-            C = 11
-            misc.verbose("semistable -- so bound is 11")
-        else:
-            C = 1 + 4*sqrt(6)*int(N)/3 * sqrt(mul([1+1.0/int(p) for p,_ in factor(N)]))
-            misc.verbose("conductor = %s, and bound is %s"%(N,C))
-        C = 1 + 4*sqrt(6)*int(N)/3 * sqrt(mul([1+1.0/int(p) for p,_ in factor(N)]))
-        misc.verbose("conductor = %s, and bound is %s"%(N,C))
-        B = []
-        p = 2
-        while p <= C:
-            t, v = self.is_surjective(p, A=A)
-            misc.verbose("(%s,%s,%s)"%(p,t,v))
-            if not t:
-                B.append((p,v))
-            p = next_prime(p)
-        return B
 
     def is_ordinary(self, p, ell=None):
         """
@@ -4942,9 +4752,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-
         -  ``p`` - a prime ell - a prime (default: p)
-
 
         OUTPUT: bool
 
@@ -4958,6 +4766,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             False
             sage: [p for p in prime_range(50) if E.is_ordinary(p)]
             [5, 13, 17, 29, 37, 41]
+
         """
         if ell is None:
             ell = p
@@ -4970,9 +4779,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-
         -  ``p`` - a prime
-
 
         OUTPUT: bool
 
@@ -4985,6 +4792,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ValueError: p must be prime
             sage: e.is_good(-8, check=False)
             True
+
         """
         if check:
             if not arith.is_prime(p):
@@ -5000,9 +4808,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-
         -  ``p`` - a prime ell - a prime (default: p)
-
 
         OUTPUT: bool
 
@@ -5018,6 +4824,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
             sage: [p for p in prime_range(50) if E.is_supersingular(p)]
             [3, 7, 11, 19, 23, 31, 43, 47]
+
         """
         if ell is None:
             ell = p
@@ -6707,205 +6514,4 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
             RPi[i] = RPi[i-1] + RgensN[i]
 
     return xs
-
-
-class ModularParameterization:
-    r"""
-    This class represents the modular parametrization of an elliptic curve
-
-    .. math::
-
-        \phi_E: X_0(N) \rightarrow E.
-
-    Evaluation is done by passing through the lattice representation of `E`.
-    """
-    def __init__(self, E):
-        """
-        EXAMPLES::
-
-            sage: from sage.schemes.elliptic_curves.ell_rational_field import ModularParameterization
-            sage: phi = ModularParameterization(EllipticCurve('389a'))
-            sage: phi(CC.0/5)
-            (27.1965586309057 : -144.727322178983 : 1.00000000000000)
-        """
-        self._E = E
-
-    def curve(self):
-        """
-        Returns the curve associated to this modular parametrization.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('15a')
-            sage: phi = E.modular_parametrization()
-            sage: phi.curve() is E
-            True
-        """
-        return self._E
-
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: E = EllipticCurve('37a')
-            sage: phi = E.modular_parametrization()
-            sage: phi
-            Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: phi.__repr__()
-            'Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field'
-        """
-        return "Modular parameterization from the upper half plane to %s" % self._E
-
-    def __call__(self, z, prec=None):
-        r"""
-        Evaluate self at a point `z \in X_0(N)` where `z` is given by a
-        representative in the upper half plane. All computations done with ``prec``
-        bits of precision. If ``prec`` is not given, use the precision of `z`.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a')
-            sage: phi = E.modular_parametrization()
-            sage: phi((sqrt(7)*I - 17)/74, 53)
-            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
-
-        Verify that the mapping is invariant under the action of `\Gamma_0(N)`
-        on the upper half plane::
-
-            sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_parametrization()
-            sage: tau = CC((1+1j)/5)
-            sage: phi(tau)
-            (-3.92181329652811 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
-            sage: phi(tau+1)
-            (-3.92181329652810 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
-            sage: phi((6*tau+1) / (11*tau+2))
-            (-3.92181329652853 - 12.2578555525369*I : 44.9649874434897 + 14.3257120944671*I : 1.00000000000000)
-
-        We can also apply the odular parametrization to a Heegner point on `X_0(N)`::
-
-            sage: H = heegner_points(389,-7,5); H
-            All Heegner points of conductor 5 on X_0(389) associated to QQ[sqrt(-7)]
-            sage: x = H[0]; x
-            Heegner point 5/778*sqrt(-7) - 147/778 of discriminant -7 and conductor 5 on X_0(389)
-            sage: E = EllipticCurve('389a'); phi = E.modular_parametrization()
-            sage: phi(x)
-            Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
-            sage: phi(x).quadratic_form()
-            389*x^2 + 147*x*y + 14*y^2
-
-
-        ALGORITHM:
-
-            Integrate the modular form attached to this elliptic curve from
-            `z` to `\infty` to get a point on the lattice representation of
-            `E`, then use the Weierstrass `\wp` function to map it to the
-            curve itself.
-        """
-        if isinstance(z, heegner.HeegnerPointOnX0N):
-            return z.map_to_curve(self.curve())
-        # Map to the CC of CC/PeriodLattice.
-        tm = verbose("Evaluating modular parameterization to precision %s bits"%prec)
-        w = self.map_to_complex_numbers(z, prec=prec)
-        # Map to E via Weierstrass P
-        z = self._E.elliptic_exponential(w)
-        verbose("Finished evaluating modular parameterization", tm)
-        return z
-
-    def map_to_complex_numbers(self, z, prec=None):
-        """
-        Evaluate self at a point `z \in X_0(N)` where `z` is given by
-        a representative in the upper half plane, returning a point in
-        the complex numbers.  All computations done with ``prec`` bits
-        of precision.  If ``prec`` is not given, use the precision of `z`.
-        Use self(z) to compute the image of z on the Weierstrass equation
-        of the curve.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a'); phi = E.modular_parametrization()
-            sage: tau = (sqrt(7)*I - 17)/74
-            sage: z = phi.map_to_complex_numbers(tau); z
-            0.929592715285395 - 1.22569469099340*I
-            sage: E.elliptic_exponential(z)
-            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
-            sage: phi(tau)
-            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
-        """
-        if prec is None:
-            try:
-                prec = z.parent().prec()
-            except AttributeError:
-                prec = 53
-        CC = ComplexField(prec)
-        if z in QQ:
-            raise NotImplementedError
-        z = CC(z)
-        if z.imag() <= 0:
-            raise ValueError, "Point must be in the upper half plane"
-        # TODO: for very small imaginary part, maybe try to transform under
-        # \Gamma_0(N) to a better representative?
-        q = (2*CC.gen()*CC.pi()*z).exp()
-        # TODO: where does nterms come from???
-        nterms = (-prec/q.abs().log2()).ceil()
-        # Use Horner's rule to sum the integral of the form
-        enumerated_an = list(enumerate(self._E.anlist(nterms)))[1:]
-        lattice_point = 0
-        for n, an in reversed(enumerated_an):
-            lattice_point += an/n
-            lattice_point *= q
-        return lattice_point
-
-    def power_series(self):
-        r"""
-        Computes and returns the power series of this modular parametrization.
-
-        The curve must be a a minimal model.
-
-        OUTPUT: A list of two Laurent series ``[X(x),Y(x)]`` of degrees -2, -3
-        respectively, which satisfy the equation of the elliptic curve.
-        There are modular functions on `\Gamma_0(N)` where `N` is the
-        conductor.
-
-        The series should satisfy the differential equation
-
-        .. math::
-
-            \frac{\mathrm{d}X}{2Y + a_1 X + a_3} = \frac{f(q)\, \mathrm{d}q}{q}
-
-        where `f` is ``self.curve().q_expansion()``.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve('389a1')
-            sage: phi = E.modular_parametrization()
-            sage: X,Y = phi.power_series()
-            sage: X
-            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2365*q^15 + 3463*q^16 + 4508*q^17 + O(q^18)
-            sage: Y
-            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 - 861*q^7 - 1383*q^8 - 2218*q^9 - 3472*q^10 - 5451*q^11 - 8447*q^12 - 13020*q^13 - 20083*q^14 - 29512*q^15 - 39682*q^16 + O(q^17)
-
-        The following should give 0, but only approximately::
-
-            sage: q = X.parent().gen()
-            sage: E.defining_polynomial()(X,Y,1) + O(q^11) == 0
-            True
-
-        Note that below we have to change variable from x to q::
-
-            sage: a1,_,a3,_,_=E.a_invariants()
-            sage: f=E.q_expansion(17)
-            sage: q=f.parent().gen()
-            sage: f/q == (X.derivative()/(2*Y+a1*X+a3))
-            True
-        """
-#        from sage.libs.all import pari
-#        old_prec = pari.get_series_precision()
-#        pari.set_series_precision(prec)
-        R = LaurentSeriesRing(RationalField(),'q')
-        if not self._E.is_minimal():
-            raise NotImplementedError, "Only implemented for minimal curves."
-        XY = self._E.pari_mincurve().elltaniyama()
-#        pari.set_series_precision(old_prec)
-        return 1/R(1/XY[0]),1/R(1/XY[1])
 

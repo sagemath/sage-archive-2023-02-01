@@ -32,6 +32,8 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/monsky_washnitzer
    sage/schemes/elliptic_curves/padic_lseries
    sage/schemes/elliptic_curves/ell_modular_symbols
+   sage/schemes/elliptic_curves/modular_parametrization
+   sage/schemes/elliptic_curves/gal_reps
    sage/schemes/elliptic_curves/sha_tate
    sage/schemes/elliptic_curves/padics
    sage/schemes/elliptic_curves/cm

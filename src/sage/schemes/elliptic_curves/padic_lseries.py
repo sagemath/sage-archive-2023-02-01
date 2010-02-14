@@ -860,7 +860,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             pass
         E = self._E
         p = self._p
-        if E.is_irreducible(p):
+        if E.galois_representation().is_irreducible(p):
             ans = 0
         else:
             m = E.modular_symbol_space(sign=1)

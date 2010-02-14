@@ -648,7 +648,7 @@ class Sha(SageObject):
         """
         p = Integer(p)
         if self.E.is_ordinary(p) or self.E.is_good(p):
-            su, _ = self.E.is_surjective(p)
+            su = self.E.galois_representation().is_surjective(p)
             if not su :
                 raise ValueError, "The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound."
             shan = self.an_padic(p,prec = 0,use_twists=True)
@@ -847,7 +847,7 @@ class Sha(SageObject):
             else:
                 n /= 2**e  # replace n by its odd part
         if not ignore_nonsurj_hypothesis:
-            for p, _ in E.non_surjective():
+            for p in E.galois_representation().non_surjective():
                 B.append(p)
         B = list(set([int(x) for x in B]))
         B.sort()
@@ -885,7 +885,7 @@ class Sha(SageObject):
             sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
             sage: E.sha().bound_kato()                 # long time (about 1 second)
             [2, 3, 5]
-            sage: E.non_surjective()                # long time (about 1 second)
+            sage: E.galois_representation().non_surjective()                # long time (about 1 second)
             []
 
         For this one, Sha is divisible by 7::
@@ -916,7 +916,7 @@ class Sha(SageObject):
         if self.E.lseries().L1_vanishes():
             return False
         B = [2,3]
-        for p, _ in self.E.non_surjective():   # for p >= 5, mod-p surj => p-adic surj
+        for p in self.E.galois_representation().non_surjective():   # for p >= 5, mod-p surj => p-adic surj
             if p > 3:
                 B.append(p)
 

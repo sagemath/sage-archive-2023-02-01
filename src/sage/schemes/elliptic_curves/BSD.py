@@ -381,7 +381,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
     else: # no CM
         E = self
         # do some tricks to get to a finite set without calling bound_kolyvagin
-        remaining_primes = [p for p, reason in E.non_surjective()]
+        remaining_primes = E.galois_representation().non_surjective()
         for p in heegner_primes:
             if p not in remaining_primes:
                 remaining_primes.append(p)
@@ -394,7 +394,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
             print 'True for p not in {' + str([2]+list(remaining_primes))[1:-1] + '} by Kolyvagin.'
         primes_to_remove = []
         for p in remaining_primes:
-            if E.is_surjective(p)[0] and not E.has_additive_reduction(p):
+            if E.galois_representation().is_surjective(p) and not E.has_additive_reduction(p):
                 if E.has_nonsplit_multiplicative_reduction(p):
                     if E.rank() > 0:
                         continue
@@ -417,7 +417,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
             remaining_primes.remove(p)
         kolyvagin_primes = []
         for p in remaining_primes:
-            if E.is_surjective(p)[0]:
+            if E.galois_representation().is_surjective(p):
                 kolyvagin_primes.append(p)
         for p in kolyvagin_primes:
             remaining_primes.remove(p)
@@ -427,7 +427,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
     assert 2 not in remaining_primes
     # Cha's hypothesis
     for p in remaining_primes:
-        if D_K%p != 0 and N%(p**2) != 0 and E.is_irreducible(p):
+        if D_K%p != 0 and N%(p**2) != 0 and E.galois_representation().is_irreducible(p):
             if verbosity > 0:
                 print 'Kolyvagin\'s bound for p = %d applies by Cha.'%p
             kolyvagin_primes.append(p)
@@ -499,7 +499,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
                     print 'Kato further implies that #Sha[%d] is trivial.'%p
                 primes_to_remove.append(p)
             if p not in [2,3] and N%p != 0:
-                if E.is_surjective(p)[0]:
+                if E.galois_representation().is_surjective(p):
                     if verbosity > 1:
                         print 'Kato might apply nontrivially for %d'%p
                     # ordp(sha) <= ordp(L_over_omega)
@@ -509,7 +509,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
     # Mazur
     if N.is_prime():
         for p in remaining_primes:
-            if E.is_reducible(p):
+            if E.galois_representation().is_reducible(p):
                 remaining_primes.remove(p)
                 if verbosity > 0:
                     print 'True for p=%s by Mazur'%p
@@ -524,10 +524,10 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
             print 'Remaining primes:'
         for p in remaining_primes:
             s = 'p = ' + str(p) + ': '
-            if not E.is_reducible(p):
+            if not E.galois_representation().is_reducible(p):
                 s += 'ir'
             s += 'reducible, '
-            if not E.is_surjective(p)[0]:
+            if not E.galois_representation().is_surjective(p):
                 s += 'not '
             s += 'surjective, '
             a_p = E.an(p)
@@ -535,7 +535,7 @@ def prove_BSD(self, verbosity=0, simon=False, proof=None, secs_hi=30):
                 if a_p%p != 0:
                     s += 'good ordinary'
                 else:
-                    s += 'good, non-ordinary'
+                    s += 'good supersingular'
             else:
                 assert E.is_minimal()
                 if a_p == 0:

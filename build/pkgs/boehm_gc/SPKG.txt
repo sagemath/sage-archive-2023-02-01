@@ -27,6 +27,9 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.1.p4 (Mike Hansen, February 15th, 2010) ===
+ * #7336: Make boehm_gc work on Cygwin by disabling THREADDLLIBS.
+
 === boehm_gc-7.1.p3 (Jaap Spies, Jan 25th, 2010) ===
  * made SAGE64 also work for Open Solaris 64 bit
 

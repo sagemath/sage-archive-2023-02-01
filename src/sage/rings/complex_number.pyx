@@ -1830,9 +1830,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             -0.0013781309 + 0.0065198200*I
             sage: C(2).gamma_inc(1 + i)
             0.70709210 - 0.42035364*I
-            sage: gamma_inc(2, 1 + i)
-            0.70709210 - 0.42035364*I
-            sage: gamma_inc(2, 5)
+            sage: CC(2).gamma_inc(5)
             0.0404276819945128
         """
         return self._parent(self._pari_().incgam(t))

@@ -101,33 +101,6 @@ def exponential_integral_1(x, n=0):
     else:
         return [float(z) for z in pari(x).eint1(n)]
 
-def gamma_inc(s, t):
-    """
-    Incomplete Gamma function Gamma(s,t).
-
-    EXAMPLES::
-
-        sage: gamma_inc(CDF(0,1), 3)
-        0.00320857499337 + 0.0124061858119*I
-        sage: gamma_inc(3, 3)
-        0.846380162253687
-        sage: gamma_inc(RDF(1), 3)
-        0.0497870683678639
-    """
-    try:
-        return s.gamma_inc(t)
-    except AttributeError:
-        if not (is_ComplexNumber(s)):
-            if is_ComplexNumber(t):
-                C = t.parent()
-            else:
-                C = ComplexField()
-            s = C(s)
-        return s.gamma_inc(t)
-
-
-# synonym.
-incomplete_gamma = gamma_inc
 
 def zeta(s):
     """

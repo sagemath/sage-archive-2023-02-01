@@ -202,11 +202,12 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        sinh(sinh(-coth(v2)/csc((-0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + erf((-0.708874026302 - 0.954135400334*I)*v3)))^coth(-cosh(-polylog((v2 + 0.913564344312 + 0.0898040160336*I)^((-0.723896589334 - 0.799038508886*I)*v2), -v1 - v3))/arcsin((-0.0263902659909 + 0.153261789843*I)*cosh(pi*catalan)))
+        sinh(sinh((-0.314177274493 + 0.144437996366*I)/csc(-v1^2*e/v3) + erf((-0.708874026302 - 0.954135400334*I)*v3) + 0.0275857401668 - 0.479027260657*I))^(-cosh(-polylog((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/cosh((-0.436810529675 + 0.736945423566*I)*arccot(pi)))))
         sage: random_expr(5, verbose=True)
         About to apply <built-in function add> to [v1, v1]
-        About to apply <built-in function div> to [-1/3, 2*v1]
-        -1/6/v1
+        About to apply <built-in function mul> to [v1, -1/2]
+        About to apply <built-in function mul> to [2*v1, -1/2*v1]
+        -v1^2
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

@@ -5,9 +5,19 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, CC, RR
+from sage.rings.all import Integer, Rational, RealField, CC, RR, \
+     is_ComplexNumber, ComplexField
 from sage.misc.latex import latex
 import math
+
+import sage.structure.element
+coercion_model = sage.structure.element.get_coercion_model()
+
+from sage.structure.coerce import parent
+from sage.symbolic.constants import pi
+from sage.symbolic.function import is_inexact
+from sage.functions.log import exp
+from sage.functions.transcendental import Ei
 
 one_half = ~SR(2)
 
@@ -538,6 +548,94 @@ class Function_gamma(GinacFunction):
         return res
 
 gamma = Function_gamma()
+
+class Function_gamma_inc(BuiltinFunction):
+    def __init__(self):
+        """
+        The incomplete gamma function.
+
+        EXAMPLES::
+
+            sage: gamma_inc(CDF(0,1), 3)
+            0.00320857499337 + 0.0124061858119*I
+            sage: gamma_inc(RDF(1), 3)
+            0.0497870683678639
+            sage: gamma_inc(3,2)
+            gamma(3, 2)
+            sage: gamma_inc(x,0)
+            gamma(x)
+            sage: latex(gamma_inc(3,2))
+            \Gamma\left(3, 2\right)
+            sage: loads(dumps((gamma_inc(3,2))))
+            gamma(3, 2)
+            sage: i = ComplexField(30).0; gamma_inc(2, 1 + i)
+            0.70709210 - 0.42035364*I
+            sage: gamma_inc(2., 5)
+            0.0404276819945128
+        """
+        BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma")
+
+    def _eval_(self, x, y):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc(2.,0)
+            1.00000000000000
+            sage: gamma_inc(2,0)
+            1
+            sage: gamma_inc(1/2,2)
+            -(erf(sqrt(2)) - 1)*sqrt(pi)
+            sage: gamma_inc(1/2,1)
+            -(erf(1) - 1)*sqrt(pi)
+            sage: gamma_inc(1/2,0)
+            sqrt(pi)
+            sage: gamma_inc(x,0)
+            gamma(x)
+            sage: gamma_inc(1,2)
+            e^(-2)
+            sage: gamma_inc(0,2)
+            -Ei(-2)
+        """
+        if not isinstance(x, Expression) and not isinstance(y, Expression) and \
+               (is_inexact(x) or is_inexact(y)):
+            x, y = coercion_model.canonical_coercion(x, y)
+            return self._evalf_(x, y, parent(x))
+
+        if y == 0:
+            return gamma(x)
+        if x == 1:
+            return exp(-y)
+        if x == 0:
+            return -Ei(-y)
+        if x == Rational(1)/2: #only for x>0
+            return sqrt(pi)*(1-erf(sqrt(y)))
+        return None
+
+    def _evalf_(self, x, y, parent=None):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc(0,2)
+            -Ei(-2)
+            sage: gamma_inc(0,2.)
+            0.0489005107080611
+            sage: gamma_inc(3,2).n()
+            1.35335283236613
+        """
+        try:
+            return x.gamma_inc(y)
+        except AttributeError:
+            if not (is_ComplexNumber(x)):
+                if is_ComplexNumber(y):
+                    C = y.parent()
+                else:
+                    C = ComplexField()
+                    x = C(x)
+            return x.gamma_inc(y)
+
+# synonym.
+incomplete_gamma = gamma_inc=Function_gamma_inc()
+
 
 class Function_psi1(GinacFunction):
     def __init__(self):

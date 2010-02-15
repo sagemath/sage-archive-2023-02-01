@@ -14,37 +14,17 @@ echo "*WARNING*: Unsetting CC since that tends to break GAP building"
 unset CC
 echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
 unset CXX
-echo "IMPORTANT: We should work out why this breaks GAP, as it is will"
-echo "IMPORTANT: prevent a build with some other compiler. We should"
-echo "IMPORTANT: be able to specify the compiler"
 
-TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
+TARGET="gap-4.4.12"  #NOTE: Be sure to also update patches/gap*
 
 # Indicate that Gap has somehow been updated, which invalidates all workspaces.
 touch "$SAGE_LOCAL/bin/gap_stamp"
-
-# If we're on an Itanium Linux box, we overwite configure.out with a slightly
-# modified version.  The modified version has all -O2's replaced by -O0.
-# See http://www.gap-system.org/Faq/Hardware-OS/hardware-os8.html
-# On the San Diego Super computer `uname -p` is unknown, but
-# uname -a includes ia64 in the output.  So this is a better
-# detection method.
-# Note that GAP was "fixed" to work fine on Itanium without this -O0 hack, but with
-# GCC-4.4.0, GAP mysterious stopped working again.  So we revert to using -O0.
-if [ `uname` = "Linux" ]; then
-   uname -a |grep ia64
-   if [ $? = 0 -o `uname -p` = "ia64" ]; then
-       cp patches/configure.out-ia64 src/cnf/configure.out
-       echo "The file configure.out was patched for SAGE!" > src/cnf/configure.out.README
-   fi
-fi
-
 
 build()
 {
     CUR=`pwd`
     INSTALL_DIR=$SAGE_LOCAL/lib/$TARGET
-    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.*
+    rm -rf $INSTALL_DIR
     if [ $? -ne 0 ]; then
         echo "Couldn't remove old dir."
         exit 1
@@ -80,21 +60,6 @@ build()
     mkdir $INSTALL_DIR
     cp -r * $INSTALL_DIR
 
-    # building CJ's + Leon's code
-    cd pkg/guava3.4
-    ./configure ../../ --enable-libsuffix=64
-    if [ $? -ne 0 ]; then
-       echo "Error configuring Guava"
-       exit 1
-    fi
-    $MAKE
-    if [ $? -ne 0 ]; then
-        echo "Error building Guava"
-        exit 1
-    fi
-
-    cp -r ./bin/* $INSTALL_DIR/pkg/guava3.4/bin
-
     cd "$SAGE_LOCAL/bin"
     rm -f gap
     if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then
@@ -117,4 +82,13 @@ build()
 }
 
 build
+
+if [ $? -eq 0 ]; then
+    # Delete the old version if it is still there.
+    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.10
+    exit 0
+else
+    echo "Something went wrong when building GAP."
+    exit 1
+fi
 

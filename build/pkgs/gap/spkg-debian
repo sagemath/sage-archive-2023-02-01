@@ -1,13 +1,3 @@
 #!/bin/sh -xe
-echo "Building the GAP Guava package"
-GUAVA=$(echo $(basename `ls -d src/pkg/guava*`) | sed 's/guava\([0-9.]*\)/guava-\1/' )
-mkdir -p "$GUAVA/dist"
-mv dist/debian "$GUAVA/dist/debian-tmp"
-mv src/pkg/guava* "$GUAVA"/src
-cd "$GUAVA"
+# Guava is no longer included in Sage's standard GAP package
 
-echo "Building Guava for GAP"
-mv dist/debian-tmp/guava-debian dist/debian
-${SAGE_LOCAL}/bin/sage-build-debian
-
-echo "Done building Guava!"

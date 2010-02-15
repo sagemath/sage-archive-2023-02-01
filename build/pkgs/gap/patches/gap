@@ -24,7 +24,7 @@ fi
 ##  You won't have to change this unless you move the installation.
 ##
 if [ "x$GAP_DIR" = "x" ];  then
-GAP_DIR="$SAGE_ROOT/local/lib/gap-4.4.10"
+GAP_DIR="$SAGE_ROOT/local/lib/gap-4.4.12"
 fi
 
 

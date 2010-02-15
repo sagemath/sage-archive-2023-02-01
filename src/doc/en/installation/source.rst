@@ -11,7 +11,7 @@ version of Sage with which you can change absolutely any part
 or the programs on which Sage depends. You can also recompile Sage.
 
 As of this writing, Sage is known to work on Linux (32-bit x86, 64-bit
-x86-64, IA64, or 32-bit PPC) and OS X (10.4 or 10.5, PPC or
+x86-64, IA64, or 32-bit PPC) and OS X (10.4, 10.5, 10.6, PPC or
 x86, 32-bit only). (See http://wiki.sagemath.org/SupportedPlatforms
 for the latest information.)
 
@@ -34,19 +34,22 @@ for the latest information.)
 
 
 Assumptions: You have a computer with about 2 GB of free
-disk space running Linux (32-bit or 64-bit), Mac OS X 10.4 or 10.5 with
-XCode. In particular, under Linux the following standard
+disk space running Linux (32-bit or 64-bit), Mac OS X 10.4, 10.5, or
+10.6 with XCode. In particular, under Linux the following standard
 command-line development tools must be installed on your computer
 (under OS X they all come with XCode):
 
 ::
 
-       gcc  (with C++ support)
+       gcc
+       g++
+       gfortran
        make
        m4
        perl
        ranlib
        tar
+       readline and its development headers
        ssh-keygen -- needed to run the notebook in secure mode.
        latex -- highly recommended, though not strictly required
 
@@ -70,8 +73,7 @@ Ubuntu 9.04), you can install the above commands as follows:
 
 ::
 
-     sudo apt-get install build-essential
-     sudo apt-get install m4
+     sudo apt-get install build-essential m4 gfortran
 
 It is recommended that you install the readline package and its
 corresponding development headers. These packages make it easier to
@@ -82,8 +84,7 @@ development headers:
 
 ::
 
-    sudo apt-get install readline
-    sudo apt-get install libreadline-dev
+    sudo apt-get install readline-common libreadline-dev
 
 The LaTeX package and a PDF previewer are optional but they can be
 installed using
@@ -162,6 +163,59 @@ are:
    database, which appears to be hardcoded into the PARI binary.
    (Somebody help fix this!)
 
+
+Fortran
+-------
+
+On Linux and Solaris systems, a working Fortran compiler is required
+for building Sage from source. If you are using Fortran on a platform
+for which Sage does not include g95 binaries, you must use a
+system-wide gFortran. For example, Solaris 10 does not ship with any
+Fortran binaries. You need to explicitly tell the Sage build process
+about the Fortran compiler and library location. Do this by typing ::
+
+    export SAGE_FORTRAN=/exact/path/to/gfortran
+    export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
+
+Note that the ``SAGE_FORTRAN`` environment variable is supposed to
+impact *only* the Fortran Sage package, otherwise known as the Fortran
+spkg. Apart from that, this variable is *not* designed to do anything
+at all to other spkg's that use Fortran. For example, the Lapack spkg
+uses Fortran, but the compilation process of Lapack should ignore the
+``SAGE_FORTRAN`` environment variable. The ``SAGE_FORTRAN``
+environment variable does not mean "build any spkg that uses Fortran
+using this Fortran". It means "when installing the Fortran spkg, setup
+the ``sage_fortran`` script to run the Fortran compiler specified by
+the ``SAGE_FORTRAN`` variable".
+
+On Mac OS X, you are not required to have a Fortran compiler on your
+system. The Sage source distribution is shipped with a Fortran
+compiler for Mac OS X. This Fortran compiler is used, unless you
+specify another Fortran compiler via the variable ``SAGE_FORTRAN``.
+
+On platforms such as AIX, HP-UX, and Solaris, where both 32- and
+64-bit builds are supported, the library path variable
+``SAGE_FORTRAN_LIB`` must point to the 32-bit library if you are
+building Sage in 32-bit. Also, ``SAGE_FORTRAN_LIB`` must point to a
+64-bit library if you are building Sage in 64-bit. For example, on
+Solaris both of the variables ``SAGE_FORTRAN`` and
+``SAGE_FORTRAN_LIB`` could be set as follows (you need to check
+this)::
+
+    # SPARC and x86
+    SAGE_FORTRAN=/path/to/gcc/install/directory/bin/gfortran
+
+    # 32-bit SPARC
+    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/libgfortran.so
+
+    # 64-bit SPARC
+    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/sparcv9/libgfortran.so
+
+    # 32-bit x86
+    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/libgfortran.so
+
+    # 64-bit x64
+    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/amd64/libgfortran.so
 
 
 Steps to Install from Source

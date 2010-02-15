@@ -113,9 +113,31 @@ class LowerChristoffelWord(FiniteWord_list):
         word: 01
     """
 
-    def __init__(self, p, q, alphabet=(0,1)):
+    def __init__(self, p, q, alphabet=(0,1), algorithm='cf'):
         r"""
+        INPUT:
+
+        - ``p`` - integer coprime with ``q``
+        - ``q`` - integer coprime with ``p``
+        - ``alphabet`` - sequence of two elements (optional, default (0, 1))
+        - ``algorithm`` - construction method (optional, default 'cf').
+          It can be one of the following:
+
+          - ``'linear'`` - Linear algorithm in the length of the word.
+          - ``'cf'`` - Fast method using continued fraction.
+
         TESTS::
+
+            sage: words.ChristoffelWord(9, 4, algorithm='linear')
+            word: 0110110110111
+            sage: words.ChristoffelWord(9, 4, algorithm='cf')
+            word: 0110110110111
+            sage: words.ChristoffelWord(4, 9, algorithm='linear')
+            word: 0001001001001
+            sage: words.ChristoffelWord(4, 9, algorithm='cf')
+            word: 0001001001001
+
+        ::
 
             sage: words.LowerChristoffelWord(4,8)
             Traceback (most recent call last):
@@ -139,16 +161,42 @@ class LowerChristoffelWord(FiniteWord_list):
         if gcd(p,q) != 1:
             raise ValueError, "%s and %s are not relatively prime" % (p, q)
         # Compute the Christoffel word
-        w = []
-        u = 0
-        if (p, q) == (0, 1):
-            w = [alphabet[0]]
+        if algorithm is 'linear':
+            w = []
+            u = 0
+            if (p, q) == (0, 1):
+                w = [alphabet[0]]
+            else:
+                for i in range(p + q):
+                    v = (u+p) % (p+q)
+                    new_letter = alphabet[0] if u < v else alphabet[1]
+                    w.append(new_letter)
+                    u = v
+        elif algorithm is 'cf':
+            if (p, q) == (0, 1):
+                w = [alphabet[0]]
+            elif (p, q) == (1, 0):
+                w = [alphabet[1]]
+            else:
+                from sage.rings.all import QQ, CFF
+                cf = CFF(QQ((p, q)))
+                u = [alphabet[0]]
+                v = [alphabet[1]]
+                #do not consider the first zero if p < q
+                start = 1 if p < q else 0
+                for i in range(start, len(cf)-1):
+                    if i % 2 == 0:
+                        u = u + v * cf[i]
+                    else:
+                        v = u * cf[i] + v
+                i = len(cf)-1
+                if i % 2 == 0:
+                    u = u + v * (cf[i]-1)
+                else:
+                    v = u * (cf[i]-1) + v
+                w = u + v
         else:
-            for i in range(p + q):
-                v = (u+p) % (p+q)
-                new_letter = alphabet[0] if u < v else alphabet[1]
-                w.append(new_letter)
-                u = v
+            raise ValueError, 'Unknown algorithm (=%s)'%algorithm
         super(LowerChristoffelWord, self).__init__(Words(alphabet), w)
         self.__p = p
         self.__q = q

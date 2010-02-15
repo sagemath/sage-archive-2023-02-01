@@ -1219,3 +1219,26 @@ def unpickle_wrapper(p):
         return None
     return unpickle_function(p)
 
+def is_inexact(x):
+    """
+    Returns True if the argument is an inexact object.
+
+    TESTS::
+
+        sage: from sage.symbolic.function import is_inexact
+        sage: is_inexact(5)
+        False
+        sage: is_inexact(5.)
+        True
+        sage: is_inexact(pi)
+        True
+        sage: is_inexact(5r)
+        False
+        sage: is_inexact(5.4r)
+        True
+    """
+    if isinstance(x, (float, complex)):
+        return True
+    if isinstance(x, Element):
+        return not (<Element>x)._parent.is_exact()
+    return False

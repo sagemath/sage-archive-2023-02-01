@@ -18,19 +18,23 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-
+from sage.libs.mpmath import utils as mpmath_utils
 import  sage.libs.pari.all
 from sage.libs.pari.all import pari, PariError
 import sage.rings.complex_field as complex_field
 import sage.rings.real_double as real_double
 import sage.rings.complex_number
 from sage.gsl.integration import numerical_integral
+from sage.structure.parent import Parent
+from sage.structure.coerce import parent
+from sage.symbolic.expression import Expression
+from sage.functions.log import exp
 
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
 
-from sage.symbolic.function import BuiltinFunction, SR
+from sage.symbolic.function import BuiltinFunction, SR, is_inexact
 
 import sage.plot.all
 
@@ -230,39 +234,118 @@ def zeta_symmetric(s):
 #   return real_field.RealField(prec).pi()
 
 
-def Ei(z, prec=None):
-    """
-    Return the value of the complex exponential integral Ei(z) at a
-    complex number z.
+class Function_exp_integral(BuiltinFunction):
+    def __init__(self):
+        """
+        Return the value of the complex exponential integral Ei(z) at a
+        complex number z.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: Ei(10)
-        2492.22897624188
-        sage: Ei(20)
-        2.56156526640566e7
-        sage: Ei(I)
-        0.337403922900968 + 2.51687939716208*I
-        sage: Ei(3+I)
-        7.82313467600158 + 6.09751978399231*I
+            sage: Ei(10)
+            Ei(10)
+            sage: Ei(I)
+            Ei(I)
+            sage: Ei(3+I)
+            Ei(I + 3)
+            sage: Ei(1.3)
+            2.72139888023202
 
-    The branch cut for this function is along the negative real axis::
+        The branch cut for this function is along the negative real axis::
 
-        sage: Ei(-3 + 0.1*I)
-        -0.0129379427181693 + 3.13993830250942*I
-        sage: Ei(-3 - 0.1*I)
-        -0.0129379427181693 - 3.13993830250942*I
+            sage: Ei(-3 + 0.1*I)
+            -0.0129379427181693 + 3.13993830250942*I
+            sage: Ei(-3 - 0.1*I)
+            -0.0129379427181693 - 3.13993830250942*I
 
-    ALGORITHM: Uses mpmath.
-    """
-    if prec is None:
-        try:
-            prec = z.prec()
-        except AttributeError:
+        ALGORITHM: Uses mpmath.
+        """
+        BuiltinFunction.__init__(self, "Ei")
+
+    def _eval_(self, x ):
+        """
+        EXAMPLES::
+
+            sage: Ei(10)
+            Ei(10)
+            sage: Ei(I)
+            Ei(I)
+            sage: Ei(1.3)
+            2.72139888023202
+            sage: Ei(10r)
+            Ei(10)
+            sage: Ei(1.3r)
+            2.72139888023202
+        """
+        if not isinstance(x, Expression) and is_inexact(x):
+            return self._evalf_(x, parent(x))
+        return None
+
+    def _evalf_(self, x, parent=None):
+        """
+        EXAMPLES::
+
+            sage: Ei(10).n()
+            2492.22897624188
+            sage: Ei(20).n()
+            2.56156526640566e7
+            sage: Ei(I).n()
+            0.337403922900968 + 2.51687939716208*I
+            sage: Ei(3+I).n()
+            7.82313467600158 + 6.09751978399231*I
+        """
+        import mpmath
+        if isinstance(parent, Parent) and hasattr(parent, 'prec'):
+            prec = parent.prec()
+        else:
             prec = 53
+        return mpmath_utils.call(mpmath.ei, x, prec=prec)
 
-    import sage.libs.mpmath.all as mp
-    return mp.call(mp.ei, z, prec=prec)
+    def __call__(self, x, prec=None, coerce=True, hold=False ):
+        """
+        Note that the ``prec`` argument is deprecated. The precision for
+        the result is deduced from the precision of the input. Convert
+        the input to a higher precision explicitly if a result with higher
+        precision is desired.
+
+        EXAMPLES::
+
+            sage: t = Ei(RealField(100)(2.5)); t
+            7.0737658945786007119235519625
+            sage: t.prec()
+            100
+
+            sage: Ei(1.1, prec=300)
+            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.
+            2.16737827956340306615064476647912607220394065907142504328679588538509331805598360907980986
+        """
+        if prec is not None:
+            from sage.misc.misc import deprecation
+            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
+
+            import mpmath
+            return mpmath_utils.call(mpmath.ei, x, prec=prec)
+
+        return BuiltinFunction.__call__(self, x, coerce=coerce, hold=hold)
+
+    def _derivative_(self, x, diff_param=None):
+        """
+        EXAMPLES::
+
+            sage: Ei(x).diff(x)
+            e^x/x
+            sage: Ei(x).diff(x).subs(x=1)
+            e
+            sage: Ei(x^2).diff(x)
+            2*e^(x^2)/x
+            sage: f = function('f')
+            sage: Ei(f(x)).diff(x)
+            e^f(x)*D[0](f)(x)/f(x)
+        """
+        return exp(x)/x
+
+Ei = Function_exp_integral()
+
 
 def Li(x, eps_rel=None, err_bound=False):
     r"""

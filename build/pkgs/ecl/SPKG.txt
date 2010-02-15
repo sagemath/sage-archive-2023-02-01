@@ -45,6 +45,9 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-10.2.1 (William Stein, 14 February 2010) ===
+  * Upgrade to latest stable upstream release.
+
 === ecl-9.10.2-20091105cvs.p1 (William Stein, December 17, 2009) ===
   * Remove the encodings directory, since it contains potentially
     dangerous binary files.

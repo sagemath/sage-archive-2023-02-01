@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-###########################################
-## ECL 9.8.4 - CVS snapshot from 13th Sept 2009.
-###########################################
 
 if [ -z "$SAGE_LOCAL" ] ; then
    echo "SAGE_LOCAL undefined ... exiting";

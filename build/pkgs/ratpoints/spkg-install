@@ -33,13 +33,15 @@ export CCFLAGS2
 export CCFLAGS3
 export CCFLAGS
 
-make
+
+# PLEASE, don't break this again by deleting "libratpoints.a".  See trac 8267.
+make libratpoints.a
 
 if [ $? -ne 0 ]; then
-    if [ `uname` != "Darwin" ]; then
+    if [ "$UNAME" != "Darwin" ]; then
         echo "Build failed. Trying without SSE2 instructions."
         CCFLAGS1="$CCFLAGS_NO_SSE"; export CCFLAGS1
-        make
+        make libratpoints.a
     else
         echo "Error building ratpoints"
         exit 1

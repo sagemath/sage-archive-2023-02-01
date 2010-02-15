@@ -26,6 +26,13 @@ Michael Stoll's program which searches for rational points on hyperelliptic curv
 
 == Changelog ==
 
+=== ratpoints-2.1.3 (William Stein, 14 Feb 2010) ===
+ * Evidently somebody updated ratpoints to 2.1.3 and didn't
+   update the SPKG.txt.  Oops.
+ * Include change to spkg-install so that build works on Cygwin,
+   a fix that was in (trac #7015), and somehow got list.  See
+   trac #8267.
+
 === ratpoints-2.1.2.p1 (William Stein, 8 July 2009) ===
  * add hgignore
  * fix mistake in spkg-install (!= versus -ne)
@@ -38,4 +45,3 @@ Michael Stoll's program which searches for rational points on hyperelliptic curv
 
 === ratpoints-2.1.3 (Robert Miller, 30 September 2009) ===
  * Updated to 2.1.3
-

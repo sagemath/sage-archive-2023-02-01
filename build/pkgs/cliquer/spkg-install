@@ -167,7 +167,7 @@ elif [ "$UNAME" = "SunOS" ]; then
     SAGESOFLAGS="-G -Bdynamic"
     export SAGESOFLAGS
 elif [ "$UNAME" = "CYGWIN" ]; then
-    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.dll"
     export SAGESOFLAGS
 else
     # We exit here, since we are possibly on an unsupported platform.

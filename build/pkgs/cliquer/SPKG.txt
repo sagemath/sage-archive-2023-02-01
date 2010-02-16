@@ -17,6 +17,9 @@ Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 
 == Changelog ==
 
+=== cliquer-1.2.p5 Mike Hansen (15 February 2010) ===
+ * Fixed Trac #8279 to make the cliquer spkg work on Cygwin with the Sage library.
+
 === cliquer-1.2.p4 Mike Hansen, William Stein (12 February 2010) ===
  * Fixed Trac #7308 to make the cliquer spkg work on Cygwin.
 

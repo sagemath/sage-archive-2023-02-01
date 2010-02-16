@@ -26,7 +26,7 @@ LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib "
 # Compile for 64-bit if SAGE64 is set to 'yes' or '1'.
 # On 64-bit hardware, we don't need to set this variable to true. A
 # 64-bit cliquer library would be built on such platform.
-if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]; then
+if [ "x$SAGE64" = "xyes" ]; then
     echo "Building a 64-bit version of cliquer"
     CFLAGS="$CFLAGS -m64 "
     CXXFLAGS="$CXXFLAGS -m64 "
@@ -97,15 +97,6 @@ fi
 
 set -e
 
-# Check if SAGE_FORTRAN_LIB is defined, that the file actually exists.
-# SAGE_FORTRAN_LIB does not always need to be defined, but if it is defined,
-# then the file should exist.
-
-if [ -n "$SAGE_FORTRAN_LIB" ] && [ ! -e "$SAGE_FORTRAN_LIB" ]; then
-    echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist"
-    exit 1
-fi
-
 # Checks that the user is not mixing the Sun and GNU compilers. This problem
 # has been seen on code built with the aid of SCons, but in general could
 # happen with any code if the user has specified a C compiler but not a C++
@@ -170,16 +161,10 @@ elif [ "$UNAME" = "CYGWIN" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.dll"
     export SAGESOFLAGS
 else
-    # We exit here, since we are possibly on an unsupported platform.
-    if [ -n "${SAGE_PORT:-x}" ]; then
-        echo "Cannot determine your platform or it is not supported... exiting"
-        exit 1
-    else
-        echo "Cannot determine your platform or it is not supported"
-        echo "Since SAGE_PORT is set, setting SAGESOFLAGS to Linux defaults."
-        SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
-        export SAGESOFLAGS
-    fi
+    echo "Cannot determine your platform or it is not supported"
+    echo "Since SAGE_PORT is set, setting SAGESOFLAGS to Linux defaults."
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
+    export SAGESOFLAGS
 fi
 
 # Copy over custom Makefile for Sage. This custom Makefile contains Sage

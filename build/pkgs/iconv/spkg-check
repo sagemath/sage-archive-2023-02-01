@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    exit 1
+fi
+
+if [ "x`uname`" = xSunOS ] ; then
+   echo "If you see 3 core dumps, do not be too alarmed. See"
+   echo "http://trac.sagemath.org/sage_trac/ticket/8270"
+   echo "This is a Solaris bug and can be safely ignored"
+   echo "http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6550204"
+   echo "It will probably be fixed in later releases of Solaris 10"
+fi
+
+cd src
+
+make check
+
+if [ $? -ne 0 ]; then
+    echo "Error encountered while running the iconv testsuite ... exiting"
+    exit 1
+fi
+

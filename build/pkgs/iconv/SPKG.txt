@@ -1,0 +1,37 @@
+== iconv ==
+
+== Description ==
+GNU libiconv is a library that is used to enable different
+languages, with different characters to be handled properly.
+
+For more details see http://www.gnu.org/software/libiconv/
+
+== License ==
+GPL 3 and LGPL 3. So we can link against the library ok.
+
+== SPKG Maintainers ==
+ * David Kirkby
+
+== Dependencies ==
+
+ * None for the purposes of Sage, but in general gettext.
+
+== Special Update/Build Instructions ==
+
+  * spkg-install removes ALL files installed by inconv - man pages,
+    docs, etc etc. If iconv gets updated, check these still
+    remove all traces of iconv.
+
+    The sizes of the docs and man pages is small, so they are not
+    work removing from the package, as they potentially risk
+    breaking the install.
+
+== Changelog ==
+
+=== iconv-1.13.1 (David Kirkby, February 13th 2010) ===
+ * #8191 First release of libiconv, needed for R on Solaris
+   and probably for Cygwin too (see #7319)
+
+
+
+

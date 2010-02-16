@@ -343,7 +343,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
         sage: Word(5)
         Traceback (most recent call last):
         ...
-        ValueError: Cannot guess a datatype; please specify one
+        ValueError: Cannot guess a datatype from data (=5); please specify one
 
     ::
 

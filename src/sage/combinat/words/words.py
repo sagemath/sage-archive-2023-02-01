@@ -380,16 +380,121 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             word: abbabaab
             sage: w.parent()
             Words
+
+        Creation of a word from a word::
+
+            sage: Words([0,1,2,3])(Words([2,3])([2,2,2,3,3,2]))
+            word: 222332
+            sage: _.parent()
+            Words over Ordered Alphabet [0, 1, 2, 3]
+
+        ::
+
+            sage: Words([3,2,1])(Words([2,3])([2,2,2,3,3,2]))
+            word: 222332
+            sage: _.parent()
+            Words over Ordered Alphabet [3, 2, 1]
+
+        Construction of a word from a word when the parents are the same::
+
+            sage: l = range(8)
+            sage: w = Word(l)
+            sage: z = Word(w)
+            sage: w is z
+            True
+
+        Construction of a word path from a finite word::
+
+            sage: W = Words('abcd')
+            sage: P = WordPaths('abcd')
+            sage: w = W('aaab')
+            sage: P(w)
+            Path: aaab
+
+        Construction of a word path from a Christoffel word::
+
+            sage: w = words.ChristoffelWord(5,8)
+            sage: w
+            word: 0010010100101
+            sage: P = WordPaths([0,1,2,3])
+            sage: P(w)
+            Path: 0010010100101
+
+        Construction of a word represented by a list from a word
+        represented by a str ::
+
+            sage: w = Word('ababbbabab')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: z = Word(w, datatype='list')
+            sage: type(z)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: y = Word(w, alphabet='abc', datatype='list')
+            sage: type(y)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+
+        Creation of a word from a concatenation of words::
+
+            sage: W = Words()
+            sage: w = W() * W('a')
+            sage: Z = Words('ab')
+            sage: Z(w)
+            word: a
+
+        Creation of a word path from a FiniteWord_iter::
+
+            sage: w = words.FibonacciWord()
+            sage: f = w[:100]
+            sage: P = WordPaths([0,1,2,3])
+            sage: p = P(f); p
+            Path: 0100101001001010010100100101001001010010...
+            sage: p.length()
+            100
+
+        Creation of a word path from a FiniteWord_callable::
+
+            sage: g = Word(lambda n:n%2, length = 100)
+            sage: P = WordPaths([0,1,2,3])
+            sage: p = P(g); p
+            Path: 0101010101010101010101010101010101010101...
+            sage: p.length()
+            100
+
         """
-        # TODO: doctest this part!
         from sage.combinat.words.word import Word_class
+        from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable, WordDatatype_iter
+        from sage.combinat.words.word_datatypes import WordDatatype
         if isinstance(data, Word_class):
-            if data.parent() != self:
-                import copy
-                data = copy.copy(data)
-                data._parent = self
-                data.parent()._check(data)
-            return data
+            ####################
+            # If `data` is already a word and if its parent is self,
+            # then return `data` (no matter what the parameter length,
+            # datatype and length are).
+            ###########################
+            if data.parent() == self:
+                return data
+            ###########################
+            # Otherwise, if self is not the parent of `data`, then we
+            # try to recover the data, the length and the datatype of the
+            # input `data`
+            ###########################
+            if isinstance(data,  WordDatatype_callable):
+                from sage.combinat.words.word import CallableFromListOfWords
+                if isinstance(data._func, CallableFromListOfWords):
+                    # The following line is important because, in this case,
+                    # data._func is also a tuple (indeed
+                    # CallableFromListOfWords inherits from tuple)
+                    datatype = "callable"
+                if length is None:
+                    length = data._len
+                data = data._func
+            elif isinstance(data,  WordDatatype_iter):
+                if length is None:
+                    length = data._len
+                data = iter(data)
+            elif isinstance(data, WordDatatype):
+                data = data._data
+            else:
+                raise TypeError, "Any instance of Word_class must be an instance of WordDatatype."
 
         if data is None:
             data = []
@@ -412,7 +517,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 from sage.combinat.words.word import _word_from_word_content
                 return _word_from_word_content(data=data, parent=self)
             else:
-                raise ValueError, "Cannot guess a datatype; please specify one"
+                raise ValueError, "Cannot guess a datatype from data (=%s); please specify one"%data
         else:
             # type check the datatypes
             if datatype == "iter" and not hasattr(data, "__iter__"):
@@ -423,56 +528,38 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                                     "callable", "iter"):
                 raise ValueError, "Unknown datatype"
 
-        wordclass = self._element_classes
-
-        # Construct the word
-        if datatype == 'list':
-            cls = wordclass['FiniteWord_list']
-            w = cls(parent=self,data=data)
-        elif datatype == 'str':
-            cls = wordclass['FiniteWord_str']
-            w = cls(parent=self,data=data)
-        elif datatype == 'tuple':
-            cls = wordclass['FiniteWord_tuple']
-            w = cls(parent=self,data=data)
+        # Construct the word class and keywords
+        if datatype in ('list','str','tuple'):
+            cls_str = 'FiniteWord_%s'%datatype
+            kwds = dict(parent=self,data=data)
         elif datatype == 'callable':
-            if caching:
-                if length is None or length is Infinity:
-                    cls = wordclass['InfiniteWord_callable_with_caching']
-                else:
-                    cls = wordclass['FiniteWord_callable_with_caching']
+            if length in (None, Infinity, 'infinite'):
+                cls_str = 'InfiniteWord_callable'
             else:
-                if length is None or length is Infinity:
-                    cls = wordclass['InfiniteWord_callable']
-                else:
-                    cls = wordclass['FiniteWord_callable']
-            w = cls(parent=self,callable=data,length=length)
+                cls_str = 'FiniteWord_callable'
+            if caching:
+                cls_str += '_with_caching'
+            kwds = dict(parent=self,callable=data,length=length)
         elif datatype == 'iter':
-            if caching:
-                if length is None or length is Infinity:
-                    cls = wordclass['InfiniteWord_iter_with_caching']
-                elif length == 'finite':
-                    cls = wordclass['FiniteWord_iter_with_caching']
-                elif length == 'unknown':
-                    cls = wordclass['Word_iter_with_caching']
-                elif length in ZZ and length >= 0:
-                    cls = wordclass['FiniteWord_iter_with_caching']
-                else:
-                    raise ValueError, "not a correct value for length (%s)" % length
+            if length in (None, Infinity, 'infinite'):
+                cls_str = 'InfiniteWord_iter'
+            elif length == 'finite':
+                cls_str = 'FiniteWord_iter'
+            elif length == 'unknown':
+                cls_str = 'Word_iter'
+            elif length in ZZ and length >= 0:
+                cls_str = 'FiniteWord_iter'
             else:
-                if length is None or length is Infinity:
-                    cls = wordclass['InfiniteWord_iter']
-                elif length == 'finite':
-                    cls = wordclass['FiniteWord_iter']
-                elif length == 'unknown':
-                    cls = wordclass['Word_iter']
-                elif length in ZZ and length >= 0:
-                    cls = wordclass['FiniteWord_iter']
-                else:
-                    raise ValueError, "not a correct value for length (%s)" % length
-            w = cls(parent=self,iter=data,length=length)
+                raise ValueError, "not a correct value for length (%s)" % length
+            if caching:
+                cls_str += '_with_caching'
+            kwds = dict(parent=self,iter=data,length=length)
         else:
             raise ValueError, "Not known datatype"
+
+        wordclass = self._element_classes
+        cls = wordclass[cls_str]
+        w = cls(**kwds)
         return w
 
     def _check(self, w, length=40):

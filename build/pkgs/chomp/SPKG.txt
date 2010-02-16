@@ -1,0 +1,42 @@
+= CHomP =
+
+== Description ==
+
+CHomP stands for "Computational Homology Project," and it is a
+collection of software for homology computation.  It includes both
+command-line functions and a C++ library.
+
+Website: http://chomp.rutgers.edu
+
+== License ==
+
+The CHomP software is licensed under version 2 of the GNU GPL.
+
+== SPKG Maintainers ==
+
+ * John Palmieri
+
+== Upstream Contact ==
+
+ * Pawel Pilarczyk is one of the main authors and maintainers, http://www.pawelpilarczyk.com/
+
+== Dependencies ==
+
+ * None
+
+== Special Update/Build Instructions ==
+
+ * According to the web page
+   http://chomp.rutgers.edu/advanced/compile.php, we are supposed to
+   use GNU make, version 3.77 or higher.
+
+=== Patches ===
+
+None
+
+== Changelog ==
+
+=== chomp-20100213 (John Palmieri, Feb 16, 2010) ===
+
+* initial version
+

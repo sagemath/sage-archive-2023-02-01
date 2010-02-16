@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+###########################################
+## CHomP
+###########################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# According to the web page
+# http://chomp.rutgers.edu/advanced/compile.php, we need to use GNU
+# make, version 3.77 or higher.
+if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
+    echo ""
+    echo "GNU make not found.  You must use the GNU version of make"
+    echo "to build CHomP.  Please ensure that a GNU version of make"
+    echo "is first in your path."
+    exit 1
+fi
+
+# disable parallel building
+MAKE=make; export MAKE
+
+cd src
+
+if [ `uname` = "Darwin" ]; then
+    target='mac'; export target
+else
+    target='unx'; export target
+fi
+
+# Do not exit script if there is an error, but instead print an
+# informative error message. This is helps in determining why the
+# configuration, compilation or installation failed. So put this before
+# the make command.
+set +e
+
+$MAKE target=$target
+
+if [ $? -ne 0 ]; then
+    echo "Error building CHomP"
+    exit 1
+fi
+
+cp bin/homchain bin/homsimpl bin/homcubes $SAGE_LOCAL/bin/

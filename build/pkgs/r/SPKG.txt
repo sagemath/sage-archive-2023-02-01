@@ -5,7 +5,7 @@
  * From the "Introdution to R" from the above website: R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
 
 == License ==
- * GPL (2.6.1 release)
+ * GPL 2 (2.10.1 release)
 
 == SPKG Maintainers ==
 
@@ -21,6 +21,23 @@
 == Build Notes ==
 
 == Changelog ==
+
+=== r-2.10.1.p0 (David Kirkby, February 16th 2010) ===
+ * Several items all covered by #8285
+ * Added the undocumented option "--without-ICU" on Solaris,
+   as that allows R to build - otherwise it fails. I suspect the
+   ideal solution would be to add the ICU library from
+   http://site.icu-project.org/
+   but this option does allow R to build.
+ * Ensure SAGE64 will add the -m64 option on any platform,
+   not just OS X as before.
+ * Removed all references to the option --with-iconv=no,
+   as R needs iconv now - it is no longer optioonal - see
+   http://trac.sagemath.org/sage_trac/ticket/8191
+ * Implement a test for X on Solaris, as the previous test in
+   spkg-install would always fail on Solaris, as Solaris
+   lacks the header file checked for, despite the fact X
+   support works fine. So now I check for a library on Solaris.
 
 === r-2.10.1 (Karl-Dieter Crisman, January 15, 2010) ===
  * Readline import issue is now fixed in R

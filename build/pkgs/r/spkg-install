@@ -6,8 +6,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "x$SAGE64" = xyes  ]; then
+   echo "Building R 64 bit."
    CFLAGS="-O2 -g -m64 "; export CFLAGS
    LDFLAGS="-m64 "; export LDFLAGS
 fi
@@ -20,7 +20,7 @@ fi
 
 CUR=`pwd`
 
-# set CPPFLAGS so that Sage's readline is picked up
+# set CPPFLAGS so that Sage's readline & iconv are picked up
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"; export CPPFLAGS
 
 # Hack to get around dumb hardcoding.
@@ -29,25 +29,41 @@ cp patches/R.sh.in src/src/scripts/
 
 # I have problems with this on OSX Intel 10.5.1 -- for now just turn it off.
 # It will be good to get something fully working before worrying about X.
+# Note by David Kirkby, Feb 16th 2010. /usr/include/X11/Xwindows.h does
+# not exist on Solaris, but R configures OK with X support. Hence I've added
+# a more specific test on Solaris, by testing for a library. That library
+# exists both on Solaris 10 03/2005 (SPARC) and on OpenSolaris.
 if [ -f /usr/include/X11/Xwindows.h ]; then
     XSUPPORT=yes
 else
-    XSUPPORT=no
+   if [ "x`uname`" = xSunOS ] && [ -f /usr/X11/lib/libXv.so ] ; then
+       XSUPPORT=yes
+   else
+       XSUPPORT=no
+   fi
 fi
 
 if [ `uname` = "Darwin" ]; then
     OSXFW="--enable-R-framework=no --with-aqua=no"; export OSXFW
     if [ "$SAGE64" = "yes" ]; then
-       echo "Disabling iconv and aqua support on 64 bit OSX"
-       OSXFW="--enable-R-framework=no --with-iconv=no --with-aqua=no"; export OSXFW
+       echo "Disabling aqua support on 64 bit OSX"
+       OSXFW="--enable-R-framework=no --with-aqua=no"; export OSXFW
     fi
 else
     OSXFW=""; export OSXFW
 fi
 
-if [ `uname` = "SunOS" ]; then
-    echo "Disabling libiconv support on Solaris"
-    SUN_FLAGS="--with-iconv=no"; export SUN_FLAGS
+if [ "x`uname`" = xSunOS ]; then
+    # Note by David Kirkby, 16th Feb 2010. Even after adding the iconv library
+    # R would not build properly on Solaris 10, complaining of undefined symbols
+    # uiter_setUTF8 and  ucol_strcollIter
+    # After an email to r-help@r-project.org, Ei-ji Nakama (rim.nakama@gmail.com)
+    # emailed me and said the option --without-ICU might help, which it did. I don't see
+    # this option documented, but for now at least, it does allow R to build.
+
+    echo "Disabling ICU on Solaris, using an undocumented option --without-ICU"
+    echo "since the ICU library is not included on Solaris."
+    SUN_FLAGS="--without-ICU"; export SUN_FLAGS
 fi
 
 # let's remove old install, even the wrongly installed ones
@@ -75,6 +91,12 @@ LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"; export LDFLAGS
 # FreeBSD needs the path to libiconv to be explicitly specified.  In theory,
 # --with-libiconv-prefix should work but configure script is broken and
 # ignores that path when looking for libiconv.  Hard-wire via xxFLAGS.
+# Note by David Kirkby, 16th Feb 2010. The option --with-libiconv-prefix
+# is not documented in the latest R manual, neither is it an option if you
+# type 'configure --help'.  Since there is an iconv library going to be
+# integrated into Sage - see http://trac.sagemath.org/sage_trac/ticket/8191
+# it is likely these FreeBSD specific lines can be removed, but I'll leave
+# them here for a FreeBSD developer to address.
 if [ `uname` = "FreeBSD" ]; then
     CPPFLAGS="$CPPFLAGS -I/usr/local/include"
     CFLAGS="$CFLAGS -I/usr/local/include"

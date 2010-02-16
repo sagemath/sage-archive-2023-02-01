@@ -164,23 +164,36 @@ def hecke_operator_on_basis(B, n, k, eps=None,
         sage: hecke_operator_on_basis(ModularForms(1,12).q_expansion_basis(30), 3, 12)
         [   252      0]
         [     0 177148]
+
+    TESTS:
+
+    This shows that the problem with finite fields reported at trac #8281 is solved::
+
+        sage: bas_mod5 = [f.change_ring(GF(5)) for f in victor_miller_basis(12, 20)]
+        sage: hecke_operator_on_basis(bas_mod5, 2, 12)
+        [4 0]
+        [0 1]
     """
-    if eps is None:
-        eps = DirichletGroup(1).gen(0)
     if not isinstance(B, (list, tuple)):
         raise TypeError, "B (=%s) must be a list or tuple"%B
     if len(B) == 0:
-        return MatrixSpace(eps.base_ring(),0)(0)
+        if eps is None:
+            R = CyclotomicField(1)
+        else:
+            R = eps.base_ring()
+        return MatrixSpace(eps.base_ring(), 0)(0)
+    f = B[0]
+    R = f.base_ring()
+    if eps is None:
+        eps = DirichletGroup(1, R).gen(0)
     all_powerseries = True
     for x in B:
         if not is_PowerSeries(x):
             all_powerseries = False
     if not all_powerseries:
         raise TypeError, "each element of B must be a power series"
-    f = B[0]
     n = Integer(n)
     k = Integer(k)
-    R = f.base_ring()
     prec = (f.prec()-1)//n
     A = R**prec
     V = A.span_of_basis([g.padded_list(prec) for g in B],

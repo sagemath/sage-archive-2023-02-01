@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+B#!/usr/bin/env bash
 
 ################################################################
 #
@@ -55,6 +55,11 @@ if [ $UNAME != "Darwin" ]; then
     fi
     $CP libzn_poly-0.9.so "$SAGE_LOCAL/lib/"
     (cd $SAGE_LOCAL/lib/ && ln -sf libzn_poly-0.9.so libzn_poly.so)
+fi
+
+# CYGWIN
+if [ $UNAME = "CYGWIN" ]; then
+    ln -s "$SAGE_LOCAL"/lib/libzn_poly.so "$SAGE_LOCAL"/lib/libzn_poly.dll
 fi
 
 

@@ -23,19 +23,18 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
-=== gap-4.4.12.p2 (Dima Pasechnik, 2010-1-25) ===
-
+=== gap-4.4.12.p1 (Dima Pasechnik, 2010-1-25) ===
+ * See ticket #8076 for full details.
  * Added .hgignore.
- *  Applied Steve Linton's Itanium patch to GAP_ROOT/src/saveload.c
+ * Applied Steve Linton's Itanium patch to GAP_ROOT/src/saveload.c
    (not using the usual patches/* procedure, as this is
    an upstream patch.)
  *  Removed a stray binary file "patch" at the top level.
  *  Replaced $LN, $MKDIR, etc as done in gap-4.4.10.p13 (see below)
 
 === gap-4.4.12.p0 (David Joyner, 2009-6-17) ===
-
-Upgraded to gap-4.4.12. Removed guava compilation. From the source
-GAP tarball, removed tomlib, small, prim, trans.
+ * Upgraded to gap-4.4.12. Removed guava compilation. From the source
+   GAP tarball, removed tomlib, small, prim, trans.
 
 === gap-4.4.10.p13 (David Kirkby, January 8th, 2010) ===
  * #7873 Remove references to $LN, $MKIDR and $RM and replace

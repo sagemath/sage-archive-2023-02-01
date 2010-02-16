@@ -35,6 +35,9 @@ on sun4v machines.
 
 == Changelog ==
 
+=== mpfr-2.4.2 (Mike Hansen, February 16th, 2010) ===
+ * #8261: Upgrade MPFR to 2.4.2.
+
 === mpfr-2.4.1p1 (Jaap Spies, Jan 26th, 2010) ===
  * Make SAGE64 work also on Open Solaris 64 bit
 

@@ -213,7 +213,7 @@ cdef class Matrix:
 
         # Ugly code...
         if sparse:
-            Ts = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix()
+            Ts = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix().__copy__()
             k = 0
             for i from 0 <= i < n:
                 for j from 0 <= j < n:
@@ -222,7 +222,7 @@ cdef class Matrix:
                     k += 1
             return Ts
         else:
-            Td = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix()
+            Td = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix().__copy__()
             k = 0
             for i from 0 <= i < n:
                 for j from 0 <= j < n:

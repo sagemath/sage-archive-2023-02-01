@@ -171,6 +171,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
+from copy import copy
+
 from sage.categories.homset import HomsetWithBase
 from sage.misc.functional import parent
 
@@ -559,7 +561,7 @@ class Homspace(HomsetWithBase):
                         hom_gens = Asimples[i].Hom(Bsimples[j]).gens()
                         for sub_gen in hom_gens:
                             sub_mat = sub_gen.matrix()
-                            M = self.matrix_space()(0)
+                            M = copy(self.matrix_space().zero_matrix())
                             M.set_block(sub_mat.nrows()*i, sub_mat.ncols()*j, sub_mat)
                             gens.append(phi_matrix * M * psi_t_matrix)
 
@@ -577,7 +579,7 @@ class Homspace(HomsetWithBase):
                     if Asimple.newform_label() == Bsimple.newform_label():
                         for sub_gen in Afactor.Hom(Bfactor).gens():
                             sub_mat = sub_gen.matrix()
-                            M = self.matrix_space()(0)
+                            M = copy(self.matrix_space().zero_matrix())
                             M.set_block(cur_row - sub_mat.nrows(),
                                         cur_col - sub_mat.ncols(),
                                         sub_mat)

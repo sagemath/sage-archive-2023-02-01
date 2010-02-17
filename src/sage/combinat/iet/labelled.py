@@ -533,7 +533,7 @@ class LabelledPermutation(SageObject):
         winner_letter = self._intervals[winner][side]
         loser_letter = self._intervals[1-winner][side]
 
-        m = identity_matrix(len(self))
+        m = copy(identity_matrix(len(self)))
         m[winner_letter, loser_letter] = 1
 
         return m

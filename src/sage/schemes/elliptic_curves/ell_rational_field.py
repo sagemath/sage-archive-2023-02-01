@@ -100,6 +100,7 @@ import sage.functions.transcendental as transcendental
 from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
+from copy import copy
 
 factor = arith.factor
 mul = misc.mul
@@ -5601,7 +5602,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while break_cond < 0.9: #as long as the improvement of the new bound in comparison to the old is greater than 10%
             c = R((H_q**n)*10)  #c has to be greater than H_q^n
             M = matrix.MatrixSpace(Z,n)
-            m = M.identity_matrix()
+            m = copy(M.identity_matrix())
             for i in range(r):
                 m[i, r] = R(c*mw_base_log[i]).round()
             m[r,r] = max(Z(1),R(c*w1).round()) #ensures that m isn't singular
@@ -5888,7 +5889,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             """
             indexp = S.index(p)
             pc = Z(p**(R(c.log()/log(p,e)).ceil()))
-            m = M.identity_matrix()
+            m = copy(M.identity_matrix())
             for i in range(r):
                 try:
                     m[i, r] = Z((beta[indexp][i])%pc)
@@ -6237,7 +6238,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
          #reduction at infinity
             bound_list=[]
             c = R((H_q**n)*100)
-            m = M.identity_matrix()
+            m = copy(M.identity_matrix())
             for i in range(r):
                 m[i, r] = R(c*mw_base_log[i]).round()
             m[r,r] = max(Z(1), R(c*w1).round())

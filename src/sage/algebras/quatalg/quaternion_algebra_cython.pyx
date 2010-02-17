@@ -66,7 +66,7 @@ def integral_matrix_and_denom_from_rational_quaternions(v):
 
     cdef Py_ssize_t i, n=len(v)
     M = MatrixSpace(ZZ, n, 4)
-    cdef Matrix_integer_dense A = M.zero_matrix()
+    cdef Matrix_integer_dense A = M.zero_matrix().__copy__()
     if n == 0: return A
 
     # Find least common multiple of the denominators
@@ -110,7 +110,7 @@ def rational_matrix_from_rational_quaternions(v):
     """
     cdef Py_ssize_t i, j, n=len(v)
     M = MatrixSpace(QQ, n, 4)
-    cdef Matrix_rational_dense A = M.zero_matrix()
+    cdef Matrix_rational_dense A = M.zero_matrix().__copy__()
     if n == 0: return A
 
     cdef QuaternionAlgebraElement_rational_field x

@@ -229,6 +229,8 @@ from sage.misc.mrange import cartesian_product_iterator
 
 from sage.misc.cachefunc import cached_method
 
+from copy import copy
+
 cache = {}
 
 def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
@@ -955,7 +957,7 @@ class BrandtModule_class(AmbientHeckeModule):
         if B is None:
             B = self.dimension() // 2 + 5
 
-        T = matrix(self.base_ring(), self.dimension(), sparse=sparse)
+        T = copy(matrix(self.base_ring(), self.dimension(), sparse=sparse))
         C = self.right_ideals()
         theta_dict = self._theta_dict(B)
         # I think the runtime of this algorithm is now dominated by
@@ -1079,7 +1081,7 @@ class BrandtModule_class(AmbientHeckeModule):
             B = self._brandt_series_vectors(2*n+10)
         m = len(B)
         K = self.base_ring()
-        Bmat = matrix(K, m, m, sparse=sparse)
+        Bmat = copy(matrix(K, m, m, sparse=sparse))
         for i in range(m):
             for j in range(m):
                 Bmat[i,j] = K(B[j][i][n])

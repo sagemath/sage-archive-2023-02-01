@@ -627,10 +627,10 @@ You can build this with 'sage -docbuild %s html'.""" % s
         if extra5:
             extra5 = r'\b' + extra5 + r'\b'
     if ignore_case:
-        # 'flags' is a list of arguments passed to re.search
-        flags = [re.IGNORECASE]
+        # 'flags' is a flag passed to re.search. use bit-wise or "|" to combine flags.
+        flags = re.IGNORECASE
     else:
-        flags = []
+        flags = 0
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
         for f in files:
@@ -639,7 +639,7 @@ You can build this with 'sage -docbuild %s html'.""" % s
                 if re.search(path_re, filename):
                     if multiline:
                         line = open(filename).read()
-                        if re.search(string, line, *flags):
+                        if re.search(string, line, flags):
                             match_list = line
                         else:
                             match_list = None
@@ -652,13 +652,12 @@ You can build this with 'sage -docbuild %s html'.""" % s
                     else:
                         match_list = [(lineno, line) for lineno, line in
                                       enumerate(open(filename).read().splitlines(True))
-                                      if re.search(string, line, *flags)]
+                                      if re.search(string, line, flags)]
                         for extra in [extra1, extra2, extra3, extra4, extra5]:
                             if extra:
                                 match_list = filter(lambda s:
                                                         re.search(extra, s[1],
-                                                                  re.MULTILINE,
-                                                                  *flags),
+                                                                  re.MULTILINE | flags),
                                                     match_list)
                         for num, line in match_list:
                             results += ':'.join([filename[strip:].lstrip("/"),

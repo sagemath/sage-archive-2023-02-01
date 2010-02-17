@@ -447,7 +447,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         self.mpz_denom(D.value)
 
         MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=True)
-        A = MZ.zero_matrix()
+        A = MZ.zero_matrix().__copy__()
 
         mpz_init(t)
         _sig_on
@@ -609,7 +609,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Matrix_rational_dense B
         cdef mpq_vector* v
 
-        B = self.matrix_space(sparse=False).zero_matrix()
+        B = self.matrix_space(sparse=False).zero_matrix().__copy__()
         for i from 0 <= i < self._nrows:
             v = &(self._matrix[i])
             for j from 0 <= j < v.num_nonzero:

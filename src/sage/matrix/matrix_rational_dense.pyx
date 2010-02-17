@@ -2547,13 +2547,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: x = matrix(QQ,2,0); y= matrix(QQ,0,2); x*y
             [0 0]
             [0 0]
+            sage: matrix(ZZ, 0, 0)*matrix(QQ, 0, 5)
+            []
         """
         if self._ncols != right._nrows:
             raise ArithmeticError, "self must be a square matrix"
         if not self._ncols*self._nrows or not right._ncols*right._nrows:
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
-            return self.matrix_space(self._nrows, right._ncols).zero_matrix()
+            return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
         cdef PariInstance P = sage.libs.pari.gen.pari
         _sig_on
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))

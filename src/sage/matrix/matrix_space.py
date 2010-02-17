@@ -341,15 +341,23 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MS(g)
             [1 1]
             [0 1]
-        """
-        if entries is None:
-            entries = 0
 
-        if entries == 0 and hasattr(self, '__zero_matrix'):
-            if copy:
-                return self.zero_matrix().__copy__()
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
+            sage: mat = MS(); mat
+            [0 0]
+            [0 0]
+            sage: mat.is_mutable()
+            True
+            sage: mat2 = mat.change_ring(QQ); mat2.is_mutable()
+            True
+        """
+        if entries is None or entries == 0:
+            if self.__is_sparse: # faster to create a new one than copy.
+                return self.__matrix_class(self, {}, coerce=coerce, copy=copy)
             else:
-                return self.zero_matrix()
+                return self.zero_matrix().__copy__()
 
         if isinstance(entries, (list, tuple)) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
@@ -1027,6 +1035,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         z[r,c] = 1
         return z
 
+    @cached_method
     def zero_matrix(self):
         """
         Returns the zero matrix in ``self``.
@@ -1036,23 +1045,30 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         EXAMPLES::
 
-            sage: MatrixSpace(GF(7),2,4).zero_matrix()
+            sage: z = MatrixSpace(GF(7),2,4).zero_matrix(); z
             [0 0 0 0]
             [0 0 0 0]
+            sage: z.is_mutable()
+            False
 
         TESTS::
 
+            sage: MM = MatrixSpace(RDF,1,1,sparse=False); mat = MM.zero_matrix()
+            sage: copy(mat)
+            [0.0]
             sage: MM = MatrixSpace(RDF,0,0,sparse=False); mat = MM.zero_matrix()
             sage: copy(mat)
             []
+            sage: mat.is_mutable()
+            False
+            sage: MM.zero().is_mutable()
+            False
         """
-        try:
-            z = self.__zero_matrix
-        except AttributeError:
-            z = self(0)
-            z.set_immutable()
-            self.__zero_matrix = z
-        return z
+        res = self.__matrix_class(self, 0, coerce=False, copy=False)
+        res.set_immutable()
+        return res
+
+    zero = zero_matrix
 
     def ngens(self):
         """

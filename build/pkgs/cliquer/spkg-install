@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+B1;2000;0c#!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
@@ -158,7 +158,7 @@ elif [ "$UNAME" = "SunOS" ]; then
     SAGESOFLAGS="-G -Bdynamic"
     export SAGESOFLAGS
 elif [ "$UNAME" = "CYGWIN" ]; then
-    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.dll"
+    SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
     export SAGESOFLAGS
 else
     echo "Cannot determine your platform or it is not supported"
@@ -215,6 +215,8 @@ if [ "$UNAME" = "Darwin" ]; then
     # On OS X 10.6 at least, the above does *NOT* work at all.
     # So I'm also doing the following, which can't hurt.
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dll"
 else
     cp -f libcliquer.so "$SAGE_LOCAL/lib/"
 fi

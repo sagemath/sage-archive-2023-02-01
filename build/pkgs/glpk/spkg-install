@@ -14,8 +14,16 @@ fi
 : ${MV=mv}; MV="$MV -f"; export MV
 : ${RM=rm}; RM="$RM -f"; export RM
 
-cd src
-LIBS=-ldl ./configure --prefix=$SAGE_LOCAL
-make prefix=$SAGE_LOCAL
-make install && cd .. && python setup.py install
+cd src &&
+LIBS=-ldl ./configure --prefix=$SAGE_LOCAL &&
+make prefix=$SAGE_LOCAL &&
+make install &&
+cd .. &&
+python setup.py install &&
+echo "********************************************************************************" &&
+echo "" &&
+echo "    ATTENTION: YOU HAVE TO REBUILD THE SAGE LIBRARY TO GET THIS TO WORK" &&
+echo "    exit any running sage instances and call \"sage -b\"" &&
+echo "" &&
+echo "********************************************************************************"
 

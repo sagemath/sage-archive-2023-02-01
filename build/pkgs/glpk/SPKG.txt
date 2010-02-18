@@ -1,4 +1,4 @@
-= GLPK 4.38 =
+= GLPK 4.42 =
 
 == Description ==
 

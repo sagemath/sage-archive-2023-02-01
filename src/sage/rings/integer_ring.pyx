@@ -423,6 +423,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         TESTS::
 
+            sage: 5r + True
+            6
+            sage: 5 + True
+            6
+
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -436,13 +441,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         ::
 
-            sage: f(10000000000000000000000r) # random
+            sage: a = 10000000000000000000000r
+            sage: type(a)
+            <type 'long'>
+            sage: f(a) # random
             5
         """
         if S is int:
             return sage.rings.integer.int_to_Z()
         elif S is long:
             return sage.rings.integer.long_to_Z()
+        elif S is bool:
+            return True
         else:
             None
 

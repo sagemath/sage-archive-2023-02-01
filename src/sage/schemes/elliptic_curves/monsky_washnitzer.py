@@ -17,7 +17,6 @@ REFERENCES:
 -  Edixhoven, B., "Point counting after Kedlaya", EIDMA-Stieltjes
    graduate course, Lieden (lecture notes?).
 
-
 AUTHORS:
 
 - David Harvey and Robert Bradshaw: initial code developed at the 2006

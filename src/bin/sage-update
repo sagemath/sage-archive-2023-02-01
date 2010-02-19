@@ -13,48 +13,39 @@
 #
 #####################################################
 
-# Standard system libraries
 import os
 import sys
 import urllib
+from textwrap import fill
 
-# Make sure the SAGE_ROOT variable is set.  This should always be set
-# because sage-update is only supposed to be called by sage-upgrade,
-# which is called only by sage-sage, after sage-env.
-if not os.environ.has_key("SAGE_ROOT"):
-    raise RuntimeError, "The environment variable SAGE_ROOT must be set"
-SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 
 # Figure out what the package server is, where we will download our
-# spkg's.  This defaults to the 'best' mirror server by some heuristics,
-# falls back to SAGE_SERVER in case of an exception, but can be overridden
-# by the first command line argument.
-
+# spkg's.  This defaults to the 'best' mirror server by some
+# heuristics, falls back to SAGE_SERVER in case of an exception, but
+# can be overridden by the first command line argument.
 def get_sage_mirror(ask=False):
     """
     Find a good Sage mirror.
 
-    Retrieves official list of active and up-to-date mirrors.
-    This only works in conjunction with a server script that
-    generates the SAGE_SERVER/mirror_list file every 10 minutes.
-    Then selects one of the top 3 mirrors, where pinging
-    the host for index.html responses fastest.
+    Retrieves official list of active and up-to-date mirrors.  This
+    only works in conjunction with a server script that generates the
+    SAGE_SERVER/mirror_list file every 10 minutes.  Then selects one
+    of the top 3 mirrors, where pinging the host for index.html
+    responses fastest.
 
     @return: String, URL of suitable Sage mirror
     """
-
     import re
     import time
     import threading
     import random
     import socket
-
     # sometimes, everything stalls since timeouts are not part of urllib!
     # http://viralcontentnetwork.blogspot.com/2007/08/handling-timeouts-with-urllib2-in.html
     socket.setdefaulttimeout(20)
 
     # the list of active and up-to-date mirrors
-    if not os.environ.has_key("SAGE_SERVER"):
+    if 'SAGE_SERVER' not in os.environ:
         print "The environment variable SAGE_SERVER must be set."
         sys.exit(1)
     SAGE_SERVER = os.environ['SAGE_SERVER']
@@ -89,14 +80,14 @@ def get_sage_mirror(ask=False):
         if delay is None:
             return
         timings.append((delay, m))
-        print '[%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
+        print '    [%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
 
-    # parallelization. safe, since most of the time we
-    # are waiting for the network to respond
-    print 'Testing mirrors...'
+    # parallelization. safe, since most of the time we are waiting for
+    # the network to respond
+    print 'Testing mirrors...\n'
     tasks = []
     for idx, m in enumerate(mirrors):
-        t = threading.Thread(target=task, args=(idx,m,timings))
+        t = threading.Thread(target=task, args=(idx, m, timings))
         t.start()
         tasks.append(t)
 
@@ -109,102 +100,80 @@ def get_sage_mirror(ask=False):
     random.shuffle(top)
     sel = top[0][1]
     sel_host = re_host.search(sel).group(1)
-    print('automatically selected server %s (%s)' % (sel_host, sel))
+    print '\nAutomatically selected server %s (%s)' % (sel_host, sel)
     if ask:
         try:
-            input = raw_input('press RETURN to continue or enter a number to select another one: ')
-            print 'manually selected %s' % mirrors[int(input)]
-            return mirrors[int(input)]
-        except:
-            print 'Error: you have to enter a number or press RETURN'
+            input = raw_input('Press RETURN to continue or enter a number to select another one: ')
+            if input:
+                print 'Manually selected %s' % mirrors[int(input)]
+                return mirrors[int(input)]
+        except ValueError:
+            print 'Error: you have to enter a number or press RETURN!'
             import sys
             sys.exit(1)
     return sel
 
-# end of get_sage_mirror()
-
-try:
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'ask':
-             # upgrade script should ask which server to use
-             PKG_SERVER = get_sage_mirror(ask = True)
-        else:
-             # Server given on command line, typically a URL to a specific Sage install.
-             PKG_SERVER = sys.argv[1]
-    else:
-        # Best server: determine a suitable and available mirror by some heuristics
-        #              fall back to default if there is an exception
-        # Default server: specified by environment variable.
-        PKG_SERVER = get_sage_mirror(ask = False)
-except:
-    if not os.environ.has_key("SAGE_SERVER"):
-        print "The environment variable SAGE_SERVER must be set."
-        sys.exit(1)
-    PKG_SERVER = os.environ['SAGE_SERVER']
-
-if not PKG_SERVER.endswith('/spkg'):
-    PKG_SERVER += '/spkg'
-
-# Announce where we will download from.
-print "Downloading packages from %s"%PKG_SERVER
-
-# reporthook is a standard Python function that prints .'s as a URL is downloaded.
 cur = 0
 def reporthook(block, size, total):
+    """
+    Used with urllib.urlretrieve, prints .'s as a URL is downloaded.
+    """
     global cur
-    n = block*size*50/total
+    n = block * size * 50 / total
     if n > cur:
-         cur = n
-         sys.stdout.write('.')
-         sys.stdout.flush()
+        cur = n
+        sys.stdout.write('.')
+        sys.stdout.flush()
 
 def download_file(file):
     """
     INPUT:
-        file -- a string
-     OUTPUT:
+    file -- a string
+    OUTPUT:
         downloads file from PKG_SERVER to a temp file, then if the
         download finishes it moves it to the proper spkg name, then
         deletes all old versions of the spkg.
     """
-    url = "%s/%s"%(PKG_SERVER, file)
+    url = "%s/%s" % (PKG_SERVER, file)
     i = url.rfind('/')
-    file = url[i+1:]
-    print url, "-->", file
+    file = url[i + 1:]
+    print url, "-->", file,
     global cur
     cur = 0
     j = file.find("-")
     if j != -1:
-        # Blatantly delete all old versions of the given spkg.
-        # We used to move these to archive, but nobody ever used that,
-        # so now we delete them.
-        # First we make a list of the old versions here, then
-        # we download the new version, and only if that succeeds
-        # do we actually do the delete of the old versions.
-        old_versions = [x for x in os.listdir('.') if x.startswith(file[:j+1]) and os.path.isfile(x)]
+        # Blatantly delete all old versions of the given spkg.  We
+        # used to move these to archive, but nobody ever used that, so
+        # now we delete them.
+        # First we make a list of the old versions here, then we
+        # download the new version, and only if that succeeds do we
+        # actually do the delete of the old versions.
+        old_versions = [x for x in os.listdir('.')
+                        if x.startswith(file[:j + 1]) and os.path.isfile(x)]
     else:
         old_versions = []
 
     if file in old_versions:
-        print "%s already present"%file
+        print "%s already present" % file
         return
 
     print "[",
-    urllib.urlretrieve(url, file+'.part', reporthook)
+    urllib.urlretrieve(url, file + '.part', reporthook)
     print "]"
-    # If the downloaded file is suspiciously small, check that it was actually valid.
-    # If not bail and completely kill the entire upgrade process (that's what exit 2 does).
-    if os.path.getsize(file+'.part') < 2000 and 'not found' in open(file+'.part').read().lower():
-        os.unlink(file+'.part')
-        print "Failed to download '%s'"%url
+    # If the downloaded file is suspiciously small, check that it was
+    # actually valid.  If not bail and completely kill the entire
+    # upgrade process (that's what exit 2 does).
+    if os.path.getsize(file + '.part') < 2000 and 'not found' in open(file + '.part').read().lower():
+        os.unlink(file + '.part')
+        print "Failed to download '%s'" % url
         print "Abort."
         sys.exit(2)
     else:
         # we're good -- move temp file over and delete all old versions.
-        os.rename(file+'.part', file)
+        os.rename(file + '.part', file)
         for X in old_versions:
             if os.path.exists(X):
-                print "Deleting old spkg %s"%X
+                print "Deleting old spkg %s" % X
                 os.unlink(X)
 
 def permission_error():
@@ -212,7 +181,7 @@ def permission_error():
     Print a message that user doesn't have sufficient enough
     permissions, and needs to fix that problem.
     """
-    print "You must have write permissions to the following directory: %s"%SPKG_ROOT
+    print "You must have write permissions to the following directory: %s" % SPKG_ROOT
     print "Please login as UNIX user with appropriate permissions and try again."
     sys.exit(2)
 
@@ -225,9 +194,9 @@ def spkg_list(url):
     """
     # file - file in which to put a list of all spkg's in the given URL.
     file = 'list.tmp'
-    web_url = "%s/%s"%(PKG_SERVER, url)
-    print web_url
-    print "Reading package lists..."
+    web_url = "%s/%s" % (PKG_SERVER, url)
+
+    print "Reading package lists...",
     # Download the spkg/ directory listing.
     try:
         urllib.urlretrieve(web_url, file, reporthook)
@@ -238,11 +207,13 @@ def spkg_list(url):
         raise
     r = open(file).read()
     os.unlink(file)
+
     if 'not found' in r.lower():
-        print "\n404 Error: Package server %s not found"%PKG_SERVER
+        print "\n404 Error: Package server %s not found" % PKG_SERVER
         print "Abort."
         sys.exit(2)
-    print "Done"
+    print " Done!"
+
     # This is a pretty silly/arbitrary way to do this but directory
     # listings from HTTP have links to each file, and the code below
     # simply finds (one each) via a silly approach all the spkg's
@@ -251,6 +222,34 @@ def spkg_list(url):
     v = list(set([x.strip() for x in r if x.endswith('.spkg')]))
     v.sort()
     return v
+
+def chop(s, endstring):
+    """
+    Chops a substring from the end of a string.
+
+    INPUT:
+
+    - ``s`` - string; the string to truncate
+
+    - ``endstring`` - string; the string to remove from the end of
+      ``s``, *if* ``s`` ends with ``endstring``
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
+        sage: chop('foo', 'bar')
+        'foo'
+        sage: chop('foo', 'fo')
+        'foo'
+        sage: chop('bar.txt', '.txt')
+        'bar'
+    """
+    if s.endswith(endstring):
+        s = s[: - len(endstring)]
+    return s
 
 def do_update():
     """
@@ -263,7 +262,7 @@ def do_update():
         Creates and deletes files from SAGE_ROOT/spkg/
     """
     # Download list of all spkg's
-    os.chdir("%s/standard/"%SPKG_ROOT)
+    os.chdir("%s/standard/" % SPKG_ROOT)
     packages = spkg_list('standard')
 
     # Figure out which spkg's haven't been installed locally.  Note
@@ -271,24 +270,28 @@ def do_update():
     # successfully installed.  This is great because it means that
     # partial or corrupted downloads get fixed if they failed to
     # download correctly in the past.
-    installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
-    to_download = [x for x in packages if not x.rstrip('.spkg') in installed]
+    installed = set(os.listdir("%s/installed/" % SPKG_ROOT))
+    to_download = [x for x in packages if not chop(x, '.spkg') in installed]
     if len(to_download) == 0:
          # Nothing to do.
-         print "No new packages."
-         return
+        print "No new packages."
+        return
 
     # Display list of packages to upgrade.
-    print "The following packages will be upgraded:"
-    print '  ' + ' '.join([x.rstrip('.spkg') for x in to_download])
-    # Make sure the user really wants to upgrade.  After all upgrading,
-    # is not guaranteed to work, yet.  This is for "power users".
-    print "* WARNING: This is a source-based upgrade, which could take hours, fail and render your Sage install useless!!"
+    print "The following packages will be upgraded:\n"
+    print fill(' '.join([chop(x, '.spkg') for x in to_download]),
+               initial_indent='    ', subsequent_indent='    ') + '\n'
+
+    # Make sure the user really wants to upgrade.  After all
+    # upgrading, is not guaranteed to work, yet.  This is for "power
+    # users".
+    warning = "WARNING: This is a source-based upgrade, which could take hours, fail, and render your Sage install useless!!"
+
     for F in os.listdir("."):
         if os.path.isfile(F) and 'Placeholder spkg file' in open(F).readline():
-            print "* This is a binary install, so upgrading in place is *not* recommended unless you are an expert."
-            print "* (Considering installing a new binary from http://sagemath.org instead.)"
+            warning += " This is a binary install, so upgrading in place is *not* recommended unless you are an expert.  Please consider installing a new binary from http://sagemath.org instead."
             break
+    print fill(warning, initial_indent=' ** ', subsequent_indent=' ** ') + '\n'
 
     # The default answer is "no":
     ans = raw_input("Do you want to continue [y/N]? ")
@@ -302,19 +305,54 @@ def do_update():
 
     # Let's do it -- download everything.
     for P in to_download:
-        download_file("standard/%s"%P)
+        download_file("standard/%s" % P)
 
     # Download these since the build system requires them to be
     # updated or we can't build correctly.
     os.chdir(SPKG_ROOT)
     download_file("install")
     os.system('chmod +x install')
-    os.chdir("%s/standard/"%SPKG_ROOT)
+    os.chdir("%s/standard/" % SPKG_ROOT)
     download_file("standard/deps")
     download_file("standard/newest_version")
     os.system('chmod +x newest_version')
 
-if __name__ ==  '__main__':
+
+if __name__ == '__main__':
+    # Make sure the SAGE_ROOT variable is set.  This should always be
+    # set because sage-update is only supposed to be called by
+    # sage-upgrade, which is called only by sage-sage, after sage-env.
+    if 'SAGE_ROOT' not in os.environ:
+        raise RuntimeError("The environment variable SAGE_ROOT must be set")
+    SPKG_ROOT = "%s/spkg/" % os.environ["SAGE_ROOT"]
+
+    try:
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'ask':
+                # upgrade script should ask which server to use
+                PKG_SERVER = get_sage_mirror(ask = True)
+            else:
+                # Server given on command line, typically a URL to a
+                # specific Sage install.
+                PKG_SERVER = sys.argv[1]
+        else:
+            # Best server: determine a suitable and available mirror
+            # by some heuristics fall back to default if there is an
+            # exception
+            # Default server: specified by environment variable.
+            PKG_SERVER = get_sage_mirror(ask = False)
+    except Exception:
+        if 'SAGE_SERVER' not in os.environ:
+            print "The environment variable SAGE_SERVER must be set."
+            sys.exit(1)
+        PKG_SERVER = os.environ['SAGE_SERVER']
+
+    if not PKG_SERVER.endswith('/spkg'):
+        PKG_SERVER += '/spkg'
+
+    # Announce where we will download from.
+    print "Downloading packages from %s" % PKG_SERVER
+
     try:
         do_update()
     except KeyboardInterrupt:

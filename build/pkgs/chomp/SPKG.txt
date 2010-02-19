@@ -36,6 +36,12 @@ None
 
 == Changelog ==
 
+=== chomp-20100213.p0 (John Palmieri, Feb 19, 2010) ===
+
+* remove a bunch of programs from the makefile: Sage doesn't use them,
+  so don't build them.  (This saves time, and also building some of
+  the 'extra' programs fails on Solaris.)
+
 === chomp-20100213 (John Palmieri, Feb 16, 2010) ===
 
 * initial version

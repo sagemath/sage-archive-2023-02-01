@@ -9,6 +9,21 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# patch main makefile and remove auxiliary makefiles so that only
+# homchain, homcubes, and friends are built -- don't build all of the
+# programs that come with CHomP.
+cp patches/makefile src/make/makefile
+rm src/programs/chmap/makefile
+rm src/programs/chom/makefile
+rm src/programs/chompdemo/makefile
+rm src/programs/chomprog/makefile
+rm src/programs/cubtools/makefile
+rm src/programs/cubtop/makefile
+rm src/programs/examples/makefile
+rm src/programs/mwdemo/makefile
+rm src/programs/showcubes/makefile
+rm src/programs/utils/makefile
+
 # According to the web page
 # http://chomp.rutgers.edu/advanced/compile.php, we need to use GNU
 # make, version 3.77 or higher.

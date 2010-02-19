@@ -434,6 +434,11 @@ def sage_getargspec(obj):
         return sage_getargspec(obj.__class__.__call__)
     elif inspect.isclass(obj):
         return sage_getargspec(obj.__call__)
+    elif (hasattr(obj, '__objclass__') and hasattr(obj, '__name__') and
+          obj.__name__ == 'next'):
+        # Handle sage.rings.ring.FiniteFieldIterator.next and similar
+        # slot wrappers.  This is mainly to suppress Sphinx warnings.
+        return ['self'], None, None, None
     else:
         # Perhaps it is binary and defined in a Cython file
         source = sage_getsource(obj, is_binary=True)

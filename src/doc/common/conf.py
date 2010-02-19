@@ -6,13 +6,14 @@ SAGE_DOC = os.path.join(SAGE_ROOT, 'devel/sage/doc')
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sage_autodoc']
 
 if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
@@ -292,14 +293,15 @@ def skip_NestedClass(app, what, name, obj, skip, options):
     sage.misc.misc.)  Otherwise, abide by Sphinx's decision.
     """
     skip_nested = str(obj).find("sage.misc.misc") != -1 and name.find("MainClass.NestedClass") != -1
-    return skip or skip_nested
+    skip_download_worksheets = name.find("userchild_download_worksheets.zip") != -1
+    return skip or skip_nested or skip_download_worksheets
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
     See sage.misc.sagedoc.process_dollars for more information
     """
-    if len(docstringlines) > 0:
+    if len(docstringlines) > 0 and name.find("process_dollars") == -1:
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")
@@ -311,7 +313,8 @@ def process_mathtt(app, what, name, obj, options, docstringlines):
     Replace \mathtt{BLAH} with \verb|BLAH| if using jsMath.
     See sage.misc.sagedoc.process_mathtt for more information
     """
-    if len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ:
+    if (len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ
+        and name.find("process_mathtt") == -1):
         from sage.misc.sagedoc import process_mathtt as sagedoc_mathtt
         s = sagedoc_mathtt("\n".join(docstringlines), True)
         lines = s.split("\n")

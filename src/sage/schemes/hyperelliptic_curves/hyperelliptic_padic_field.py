@@ -296,7 +296,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def tiny_integrals(self, F, P, Q):
         """
-        Evaluate the integrals of $f_i dx/y$ from $P$ to $Q$ for each $f_i$ in $F$
+        Evaluate the integrals of $f_i dx/2y$ from $P$ to $Q$ for each $f_i$ in $F$
         by formally integrating a power series in a local parameter $t$
 
         $P$ and $Q$ MUST be in the same residue disk for this result to make sense.
@@ -304,7 +304,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         x, y, z = self.local_analytic_interpolation(P, Q)  #homogeneous coordinates
         x = x/z
         y = y/z
-        dt = x.derivative() / y
+        dt = x.derivative() / (2*y)
         integrals = []
         g = self.genus()
         for f in F:
@@ -319,7 +319,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def tiny_integrals_on_basis(self, P, Q):
         """
-        Evaluate the integrals $\{\int_P^Q x^i dx/y \}_{i=0}^{2g-1}$
+        Evaluate the integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
         by formally integrating a power series in a local parameter $t$.
         $P$ and $Q$ MUST be in the same residue disc for this result to make sense.
 
@@ -328,7 +328,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 	    - Q a point on self (in the same residue disc as P)
 
         OUTPUT:
-	The integrals $\{\int_P^Q x^i dx/y \}_{i=0}^{2g-1}$
+	The integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
 
         EXAMPLES:
             sage: K = pAdicField(17, 5)
@@ -336,7 +336,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P = E(K(14/3), K(11/2))
             sage: TP = E.teichmuller(P);
             sage: E.tiny_integrals_on_basis(P, TP)
-            (2*17 + 11*17^2 + 3*17^3 + 16*17^4 + O(17^5), 15*17 + 11*17^2 + 16*17^3 + 11*17^4 + O(17^5))
+            (17 + 14*17^2 + 17^3 + 8*17^4 + O(17^5), 16*17 + 5*17^2 + 8*17^3 + 14*17^4 + O(17^5))
 
 	    sage: K = pAdicField(11, 5)
 	    sage: x = polygen(K)
@@ -344,9 +344,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 	    sage: P = C.lift_x(11^(-2))
 	    sage: Q = C.lift_x(3*11^(-2))
 	    sage: C.tiny_integrals_on_basis(P,Q)
-	    (6*11^3 + 3*11^4 + 9*11^5 + 3*11^6 + O(11^8), 6*11 + 9*11^2 + 6*11^3 +
-	    8*11^4 + 4*11^5 + O(11^6), 8*11^-1 + 4 + 11 + 2*11^2 + 4*11^3 +
-	    O(11^4), 2*11^-3 + 11^-2 + 5*11^-1 + 4 + O(11^2))
+            (3*11^3 + 7*11^4 + 4*11^5 + 7*11^6 + 5*11^7 + O(11^8), 3*11 + 10*11^2 + 8*11^3 + 9*11^4 + 7*11^5 + O(11^6), 4*11^-1 + 2 + 6*11 + 6*11^2 + 7*11^3 + O(11^4), 11^-3 + 6*11^-2 + 2*11^-1 + 2 + O(11^2))
+
 
         Note that this fails if the points are not in the same residue disc:
 	    sage: S = C(0,1/4)
@@ -397,7 +396,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def coleman_integrals_on_basis(self, P, Q, algorithm=None):
         """
-        Computes the Coleman integrals on basis differentials
+        Computes the Coleman integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
 
         INPUT:
             - P point on self
@@ -405,7 +404,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             - algorithm (optional) = None (uses Frobenius) or teichmuller (uses Teichmuller points)
 
         OUTPUT:
-            the Coleman integrals $\int_P^Q w_i$ for $w_i = x^i dx/y$
+            the Coleman integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
 
         EXAMPLES:
             sage: K = pAdicField(11, 5)
@@ -414,16 +413,18 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P = C.lift_x(2)
             sage: Q = C.lift_x(3)
             sage: C.coleman_integrals_on_basis(P, Q)
-            (9*11 + 11^2 + 11^3 + 5*11^4 + O(11^5), 2*11 + 7*11^2 + 4*11^3 + 8*11^4 + O(11^5), 6 + 9*11 + 8*11^3 + 9*11^4 + O(11^5), 6 + 2*11 + 10*11^2 + 8*11^4 + O(11^5))
+            (10*11 + 6*11^3 + 2*11^4 + O(11^5), 11 + 9*11^2 + 7*11^3 + 9*11^4 + O(11^5), 3 + 10*11 + 5*11^2 + 9*11^3 + 4*11^4 + O(11^5), 3 + 11 + 5*11^2 + 4*11^4 + O(11^5))
             sage: C.coleman_integrals_on_basis(P, Q, algorithm='teichmuller')
-            (9*11 + 11^2 + 11^3 + 5*11^4 + O(11^5), 2*11 + 7*11^2 + 4*11^3 + 8*11^4 + O(11^5), 6 + 9*11 + 8*11^3 + 9*11^4 + O(11^5), 6 + 2*11 + 10*11^2 + 8*11^4 + O(11^5))
+            (10*11 + 6*11^3 + 2*11^4 + O(11^5), 11 + 9*11^2 + 7*11^3 + 9*11^4 + O(11^5), 3 + 10*11 + 5*11^2 + 9*11^3 + 4*11^4 + O(11^5), 3 + 11 + 5*11^2 + 4*11^4 + O(11^5))
+
 	    sage: K = pAdicField(11,5)
 	    sage: x = polygen(K)
 	    sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
 	    sage: P = C.lift_x(11^(-2))
 	    sage: Q = C.lift_x(3*11^(-2))
 	    sage: C.coleman_integrals_on_basis(P, Q)
-	    (6*11^3 + 3*11^4 + 9*11^5 + 3*11^6 + O(11^8), 6*11 + 9*11^2 + 6*11^3 + 8*11^4 + 4*11^5 + O(11^6), 8*11^-1 + 4 + 11 + 2*11^2 + 4*11^3 + O(11^4), 2*11^-3 + 11^-2 + 5*11^-1 + 4 + O(11^2))
+            (3*11^3 + 7*11^4 + 4*11^5 + 7*11^6 + 5*11^7 + O(11^8), 3*11 + 10*11^2 + 8*11^3 + 9*11^4 + 7*11^5 + O(11^6), 4*11^-1 + 2 + 6*11 + 6*11^2 + 7*11^3 + O(11^4), 11^-3 + 6*11^-2 + 2*11^-1 + 2 + O(11^2))
+
             sage: R = C(0,1/4)
             sage: a = C.coleman_integrals_on_basis(P,R)
             sage: b = C.coleman_integrals_on_basis(R,Q)
@@ -441,15 +442,15 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 	    sage: Q = HK.lift_x(5^-2)
 	    sage: R = HK.lift_x(4*5^-2)
 	    sage: HK.coleman_integrals_on_basis(S,P)
-	    (4*5^2 + 2*5^4 + 2*5^5 + 5^6 + 2*5^7 + O(5^9), 2*5 + 4*5^2 + 3*5^3 + 5^5 + 5^6 + 4*5^7 + O(5^9))
+            (2*5^2 + 5^4 + 5^5 + 3*5^6 + 3*5^7 + 2*5^8 + O(5^9), 5 + 2*5^2 + 4*5^3 + 2*5^4 + 3*5^6 + 4*5^7 + 2*5^8 + O(5^9))
 	    sage: HK.coleman_integrals_on_basis(T,P)
-	    (4*5^2 + 2*5^4 + 2*5^5 + 5^6 + 2*5^7 + O(5^9), 2*5 + 4*5^2 + 3*5^3 + 5^5 + 5^6 + 4*5^7 + O(5^9))
+            (2*5^2 + 5^4 + 5^5 + 3*5^6 + 3*5^7 + 2*5^8 + O(5^9), 5 + 2*5^2 + 4*5^3 + 2*5^4 + 3*5^6 + 4*5^7 + 2*5^8 + O(5^9))
 	    sage: HK.coleman_integrals_on_basis(P,S) == -HK.coleman_integrals_on_basis(S,P)
 	    True
 	    sage: HK.coleman_integrals_on_basis(S,Q)
-	    (3*5 + 4*5^2 + 4*5^3 + O(5^4), 2*5^-1 + O(5^3))
+	    (4*5 + 4*5^2 + 4*5^3 + O(5^4), 5^-1 + O(5^3))
 	    sage: HK.coleman_integrals_on_basis(Q,R)
-	    (3*5 + 3*5^5 + 2*5^6 + 2*5^7 + 5^8 + O(5^9), 4*5^-1 + 3 + 4*5 + 4*5^2 + 4*5^3 + 2*5^5 + O(5^7))
+            (4*5 + 2*5^2 + 2*5^3 + 2*5^4 + 5^5 + 5^6 + 5^7 + 3*5^8 + O(5^9), 2*5^-1 + 4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 3*5^5 + 2*5^6 + O(5^7))
 	    sage: HK.coleman_integrals_on_basis(S,R) == HK.coleman_integrals_on_basis(S,Q) + HK.coleman_integrals_on_basis(Q,R)
 	    True
 	    sage: HK.coleman_integrals_on_basis(T,T)
@@ -562,7 +563,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 L = [f(PP[0], PP[1]) for f in forms]
             else:
                 L = [f(PP[0], PP[1]) - f(QQ[0], QQ[1]) for f in forms]
-        b = 2*V(L)
+        b = V(L)
         if PP is None:
             b -= TQ_to_Q
         elif QQ is None:
@@ -636,7 +637,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: C.coleman_integral(x*w, P, Q)
             O(11^6)
             sage: C.coleman_integral(x^2*w, P, Q)
-            3*11 + 2*11^2 + 7*11^3 + 2*11^4 + 10*11^5 + O(11^6)
+            7*11 + 6*11^2 + 3*11^3 + 11^4 + 5*11^5 + O(11^6)
 
             sage: p = 71; m = 4
             sage: K = pAdicField(p, m)
@@ -650,7 +651,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             (O(71^4), O(71^4))
             sage: R, R1 = C.lift_x(4, all=True)
             sage: w.integrate(P, R)
-            42*71 + 63*71^2 + 55*71^3 + O(71^4)
+            21*71 + 67*71^2 + 27*71^3 + O(71^4)
             sage: w.integrate(P, R) + w.integrate(P1, R1)
             O(71^4)
 
@@ -679,12 +680,29 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: w = HK.invariant_differential()
             sage: x,y = HK.monsky_washnitzer_gens()
             sage: f = forms[0]
-            sage: S= HK(9,36)
+            sage: S = HK(9,36)
             sage: Q = HK.teichmuller(S)
             sage: P = HK(-1,4)
             sage: b = x*w*w._coeff.parent()(f)
             sage: HK.coleman_integral(b,P,Q)
             7 + 7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^6 + 5*7^7 + 3*7^8 + 4*7^9 + 4*7^10 + O(7^11)
+
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^3+1)
+            sage: K = Qp(5,8)
+            sage: HK = H.change_ring(K)
+            sage: w = HK.invariant_differential()
+            sage: P = HK(0,1)
+            sage: Q = HK.lift_x(5)
+            sage: x,y = HK.monsky_washnitzer_gens()
+            sage: (2*y*w).coleman_integral(P,Q)
+            5 + O(5^9)
+            sage: xloc,yloc,zloc = HK.local_analytic_interpolation(P,Q)
+            sage: I2 = (xloc.derivative()/(2*yloc)).integral()
+            sage: I2(1)-I2(0)
+            3*5 + 2*5^2 + 2*5^3 + 5^4 + 4*5^6 + 5^7 + O(5^9)
+            sage: HK.coleman_integral(w,P,Q)
+            3*5 + 2*5^2 + 2*5^3 + 5^4 + 4*5^6 + 5^7 + O(5^9)
 
     	Integrals involving Weierstrass points:
 
@@ -703,17 +721,17 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HK.coleman_integral(w*x^3,T,S)
             0
             sage: HK.coleman_integral(w,S,P)
-            4*5^2 + 2*5^4 + 2*5^5 + 5^6 + 2*5^7 + O(5^9)
+            2*5^2 + 5^4 + 5^5 + 3*5^6 + 3*5^7 + 2*5^8 + O(5^9)
             sage: HK.coleman_integral(w,T,P)
-            4*5^2 + 2*5^4 + 2*5^5 + 5^6 + 2*5^7 + O(5^9)
+            2*5^2 + 5^4 + 5^5 + 3*5^6 + 3*5^7 + 2*5^8 + O(5^9)
             sage: HK.coleman_integral(w*x^3,T,P)
-            2*5^2 + 4*5^3 + 5^6 + 2*5^7 + O(5^8)
+            5^2 + 2*5^3 + 3*5^6 + 3*5^7 + O(5^8)
             sage: HK.coleman_integral(w*x^3,S,P)
-            2*5^2 + 4*5^3 + 5^6 + 2*5^7 + O(5^8)
+            5^2 + 2*5^3 + 3*5^6 + 3*5^7 + O(5^8)
             sage: HK.coleman_integral(w, P, negP, algorithm='teichmuller')
-            2*5^2 + 3*5^3 + 2*5^6 + 4*5^8 + O(5^9)
+            5^2 + 4*5^3 + 2*5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 4*5^8 + O(5^9)
             sage: HK.coleman_integral(w, P, negP)
-            2*5^2 + 3*5^3 + 2*5^6 + 4*5^8 + O(5^9)
+            5^2 + 4*5^3 + 2*5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 4*5^8 + O(5^9)
 
         AUTHORS:
 	    - Robert Bradshaw (2007-03)
@@ -962,14 +980,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def P_to_S(self, P, S):
         """
         Given a finite Weierstrass point $P$ and a point $S$
-        in the same disc, computes the Coleman integrals $\int_P^S w_i$
+        in the same disc, computes the Coleman integrals $\{\int_P^S x^i dx/2y \}_{i=0}^{2g-1}$
 
         INPUT:
             - P: finite Weierstrass point
             - S: point in disc of P
 
         OUTPUT:
-            Coleman integrals $\int_P^S w_i$
+            Coleman integrals $\{\int_P^S x^i dx/2y \}_{i=0}^{2g-1}$
 
         EXAMPLES:
             sage: R.<x> = QQ['x']
@@ -980,7 +998,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HJ = HK.curve_over_ram_extn(10)
             sage: S = HK.get_boundary_point(HJ,P)
             sage: HK.P_to_S(P, S)
-            (4*a + 3*a^3 + 4*a^11 + 4*a^13 + 4*a^17 + 4*a^19 + 2*a^21 + 4*a^23 + 2*a^25 + 4*a^27 + 4*a^29 + a^31 + 4*a^33 + O(a^35), 2*a^-5 + 4*a + 4*a^3 + 2*a^7 + a^11 + 2*a^13 + a^15 + a^17 + 4*a^19 + 4*a^21 + 3*a^23 + 4*a^25 + 2*a^29 + 3*a^31 + 2*a^33 + O(a^35))
+            (2*a + 4*a^3 + 2*a^11 + 4*a^13 + 2*a^17 + 2*a^19 + a^21 + 4*a^23 + a^25 + 2*a^27 + 2*a^29 + 3*a^31 + 4*a^33 + O(a^35), a^-5 + 2*a + 2*a^3 + a^7 + 3*a^11 + a^13 + 3*a^15 + 3*a^17 + 2*a^19 + 4*a^21 + 4*a^23 + 4*a^25 + 2*a^27 + a^29 + a^31 + 3*a^33 + O(a^35))
 
         AUTHOR:
             - Jennifer Balakrishnan
@@ -991,7 +1009,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         prec2= prec*deg
         x,y = self.local_coord(P,prec2)
         g = self.genus()
-        integrals = [((x**k*x.derivative()/y).integral()) for k in range(2*g)]
+        integrals = [((x**k*x.derivative()/(2*y)).integral()) for k in range(2*g)]
         val = [I(S[1]) for I in integrals]
         return vector(val)
 
@@ -1033,18 +1051,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         prec2= prec*deg
         x,y = self.local_coord(P,prec2)
         g = self.genus()
-        if w.reduce_fast()[1] == vector(2*g*[0]):  #this relates to an earlier normalization
-            c = 2
-        else:
-            c = 1
-        int_sing = (w.coeff()(x,y)*x.derivative()/(c*y)).integral()  ##/y or /(2*y)
+        int_sing = (w.coeff()(x,y)*x.derivative()/(2*y)).integral()
         int_sing_a = int_sing(S[1])
         return int_sing_a
 
     def S_to_Q(self,S,Q):
         """
         Given $S$ a point on self over an extension field, computes the
-        Coleman integrals $\int_S^Q w_i$ for all $i$
+        Coleman integrals $\{\int_S^Q x^i dx/2y \}_{i=0}^{2g-1}$
 
         **one should be able to feed $S,Q$ into coleman_integral,
         but currently that segfaults
@@ -1054,7 +1068,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             - Q: a non-Weierstrass point defined over $\Q_p$
 
         OUTPUT:
-            the Coleman integrals $\int_S^Q w_i$ in terms of $a$
+            the Coleman integrals $\{\int_S^Q x^i dx/2y \}_{i=0}^{2g-1}$ in terms of $a$
 
         EXAMPLES:
             sage: R.<x> = QQ['x']
@@ -1071,11 +1085,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P_to_S = HK.P_to_S(P,S)
             sage: S_to_Q = HJ.S_to_Q(S,Q)
             sage: P_to_S + S_to_Q
-            (4*a^40 + 2*a^80 + 2*a^100 + O(a^105), 2*a^20 + 4*a^40 + 3*a^60 + a^100 + O(a^105))
-            sage: HK.coleman_integral(w,P,Q)
-            4*5^2 + 2*5^4 + 2*5^5 + 5^6 + O(5^7)
-            sage: HK.coleman_integral(x*w,P,Q)
-            2*5 + 4*5^2 + 3*5^3 + 5^5 + 2*5^6 + O(5^7)
+            (2*a^40 + a^80 + a^100 + O(a^105), a^20 + 2*a^40 + 4*a^60 + 2*a^80 + O(a^105))
+            sage: HK.coleman_integrals_on_basis(P,Q)
+            (2*5^2 + 5^4 + 5^5 + 3*5^6 + O(5^7), 5 + 2*5^2 + 4*5^3 + 2*5^4 + 5^6 + O(5^7))
 
         AUTHOR:
             - Jennifer Balakrishnan
@@ -1105,7 +1117,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         else:
             P = self(ZZ(FS[0][0]),ZZ(FS[1][0]))
             x,y = self.local_coord(P,prec2)
-            integrals = [(x**i*x.derivative()/y).integral() for i in range(dim)]
+            integrals = [(x**i*x.derivative()/(2*y)).integral() for i in range(dim)]
             S_to_FS = vector([I(FS[1])-I(S[1]) for I in integrals])
         if HJ(Q[0],Q[1]) == HJ(FQ):
             FQ_to_Q = V(dim*[0])
@@ -1116,7 +1128,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         except ValueError:
             forms = [f.change_ring(K) for f in forms]
             L = [f(S[0], S[1]) - f(Q[0], Q[1]) for f in forms]
-        b = 2*V(L)
+        b = V(L)
         M_sys = matrix(K, M_frob).transpose() - 1
         B = (~M_sys)
         v = [B.list()[i].valuation() for i in range(len(B.list()))]
@@ -1138,7 +1150,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             - Q: a non-Weierstrass point defined over \Q_p
 
         OUTPUT:
-            the Coleman integrals $\int_S^Q w_i$
+            the Coleman integral $\int_S^Q w$
 
         EXAMPLES:
             sage: R.<x> = QQ['x']
@@ -1207,9 +1219,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             3 + O(5^6)
             sage: w = HK.invariant_differential()
             sage: HK.coleman_integral_from_weierstrass_via_boundary(w,P,Q,20)
-            4*a^40 + 2*a^80 + 2*a^100 + O(a^105)
+            2*a^40 + a^80 + a^100 + O(a^105)
             sage: HK.coleman_integral(w,P,Q)
-            4*5^2 + 2*5^4 + 2*5^5 + 5^6 + O(5^7)
+            2*5^2 + 5^4 + 5^5 + 3*5^6 + O(5^7)
 
         AUTHOR:
             - Jennifer Balakrishnan

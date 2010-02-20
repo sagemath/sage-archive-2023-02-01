@@ -300,6 +300,39 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         by formally integrating a power series in a local parameter $t$
 
         $P$ and $Q$ MUST be in the same residue disk for this result to make sense.
+
+        INPUT:
+	    - F a list of functions $f_i$
+            - P a point on self
+            - Q a point on self (in the same residue disc as P)
+
+        OUTPUT:
+	    The integrals $\int_P^Q f_i dx/2y$
+
+        EXAMPLES:
+            sage: K = pAdicField(17, 5)
+            sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
+            sage: P = E(K(14/3), K(11/2))
+            sage: TP = E.teichmuller(P);
+	    sage: x,y = E.monsky_washnitzer_gens()
+            sage: E.tiny_integrals([1,x],P, TP) == E.tiny_integrals_on_basis(P,TP)
+	    True
+
+	    sage: K = pAdicField(11, 5)
+            sage: x = polygen(K)
+            sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
+            sage: P = C.lift_x(11^(-2))
+            sage: Q = C.lift_x(3*11^(-2))
+            sage: C.tiny_integrals([1],P,Q)
+	    (3*11^3 + 7*11^4 + 4*11^5 + 7*11^6 + 5*11^7 + O(11^8))
+
+        Note that this fails if the points are not in the same residue disc:
+            sage: S = C(0,1/4)
+            sage: C.tiny_integrals([1,x,x^2,x^3],P,S)
+            Traceback (most recent call last):
+            ...
+            ValueError: (11^-2 + O(11^3) : 11^-5 + 8*11^-2 + O(11^0) : 1 + O(11^5)) and (0 : 3 + 8*11 + 2*11^2 + 8*11^3 + 2*11^4 + O(11^5) : 1 + O(11^5)) are not in the same residue disc
+
         """
         x, y, z = self.local_analytic_interpolation(P, Q)  #homogeneous coordinates
         x = x/z
@@ -308,8 +341,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         integrals = []
         g = self.genus()
         for f in F:
-            f_dt = f(x,y)*dt
-            if x.valuation() != -2:
+	    try:
+                f_dt = f(x,y)*dt
+            except TypeError:   #if f is a constant, not callable
+ 	    	f_dt = f*dt
+	    if x.valuation() != -2:
                 I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree()+1)]) # \int_0^1 f dt
             else:
                 If_dt = f_dt.integral()
@@ -328,7 +364,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 	    - Q a point on self (in the same residue disc as P)
 
         OUTPUT:
-	The integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
+	    The integrals $\{\int_P^Q x^i dx/2y \}_{i=0}^{2g-1}$
 
         EXAMPLES:
             sage: K = pAdicField(17, 5)

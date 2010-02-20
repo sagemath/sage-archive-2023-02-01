@@ -703,7 +703,7 @@ def integral(x, *args, **kwds):
         sage: h = integral(sin(x)/x^2, (x, 1, pi/2)); h
         integrate(sin(x)/x^2, x, 1, 1/2*pi)
         sage: h.n()
-        0.33944794097891573
+        0.339447940978915...
 
     Specific algorithm can be used for integration::
 

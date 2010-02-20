@@ -35,13 +35,13 @@ import integer
 # Elementary Arithmetic
 ##################################################################
 
-def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=None):
+def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
     """
-    Returns a polynomial of degree at most `n` which is
+    Returns a polynomial of degree at most `degree` which is
     approximately satisfied by the number `z`. Note that the
     returned polynomial need not be irreducible, and indeed usually
     won't be if `z` is a good approximation to an algebraic
-    number of degree less than `n`.
+    number of degree less than `degree`.
 
     You can specify the number of known bits or digits with ``known_bits=k`` or
     ``known_digits=k``; Pari is then told to compute the result using `0.8k`
@@ -50,7 +50,14 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     precision to use directly with ``use_bits=k`` or ``use_digits=k``. If none
     of these are specified, then the precision is taken from the input value.
 
-    ALGORITHM: Uses the PARI C-library algdep command.
+    A height bound may specified to indicate the maximum coefficient size of
+    the returned polynomial; if a sufficiently small polyomial is not found
+    then ``None`` wil be returned. If ``proof=True`` then the result is returned
+    only if it can be proved correct (i.e. the only possible minimal polynomial
+    satisfying the height bound, or no such polynomial exists). Otherwise a
+    ``ValueError`` is raised indicating that higher precision is required.
+
+    ALGORITHM: Uses LLL for real/complex inputs, PARI C-library algdep command otherwise.
 
     Note that ``algebraic_dependency`` is a synonym for ``algdep``.
 
@@ -59,7 +66,12 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
 
     -  ``z`` - real, complex, or `p`-adic number
 
-    -  ``n`` - an integer
+    -  ``degree`` - an integer
+
+    -  ``height_bound`` - an integer (default ``None``) specifying the maximum
+                          coefficient size for the returned polynomial
+
+    -  ``proof`` - a boolean (default ``False``), requres height_bound to be set
 
 
     EXAMPLES::
@@ -102,9 +114,9 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
 
         sage: z = sqrt(RealField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
-        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
+        227004321085*x^4 - 216947902586*x^3 - 99411220986*x^2 + 82234881648*x - 211871195088
         sage: factor(p)
-        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
+        227004321085*x^4 - 216947902586*x^3 - 99411220986*x^2 + 82234881648*x - 211871195088
         sage: algdep(z, 4, known_bits=32)
         x^2 - 2
         sage: algdep(z, 4, known_digits=10)
@@ -113,49 +125,126 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         x^2 - 2
         sage: algdep(z, 4, use_digits=8)
         x^2 - 2
-    """
 
-    # TODO -- change to use PARI C library???
-    from sage.rings.polynomial.polynomial_ring import polygen
-    x = polygen(ZZ)
+    Using the ``height_bound`` and ``proof`` parameters, we can see that
+    `pi` is not the root of an integer polynomial of degree at most 5
+    and coefficients bounded above by 10.
+
+    ::
+
+        sage: algdep(pi.n(), 5, height_bound=10, proof=True) is None
+        True
+
+    For stronger results, we need more precicion.
+
+    ::
+
+        sage: algdep(pi.n(), 5, height_bound=100, proof=True) is None
+        Traceback (most recent call last):
+        ...
+        ValueError: insufficient precision for non-existence proof
+        sage: algdep(pi.n(200), 5, height_bound=100, proof=True) is None
+        True
+
+        sage: algdep(pi.n(), 10, height_bound=10, proof=True) is None
+        Traceback (most recent call last):
+        ...
+        ValueError: insufficient precision for non-existence proof
+        sage: algdep(pi.n(200), 10, height_bound=10, proof=True) is None
+        True
+
+    We can also use ``proof=True`` to get positive results.
+
+    ::
+
+        sage: a = sqrt(2) + sqrt(3) + sqrt(5)
+        sage: algdep(a.n(), 8, height_bound=1000, proof=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: insufficient precision for uniqueness proof
+        sage: f = algdep(a.n(1000), 8, height_bound=1000, proof=True); f
+        x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
+        sage: f(a).expand()
+        0
+    """
+    if proof and not height_bound:
+        raise ValueError, "height_bound must be given for proof=True"
+
+    x = ZZ['x'].gen()
 
     if isinstance(z, (int, long, integer.Integer)):
+        if height_bound and abs(z) >= height_bound:
+            return None
         return x - ZZ(z)
 
-    n = ZZ(n)
+    degree = ZZ(degree)
 
     if isinstance(z, (sage.rings.rational.Rational)):
+        if height_bound and max(abs(z.denominator()), abs(z.numerator())) >= height_bound:
+            return None
         return z.denominator()*x - z.numerator()
 
     if isinstance(z, float):
-        z = sage.rings.real_mpfr.RealField()(z)
+        z = sage.rings.real_mpfr.RR(z)
     elif isinstance(z, complex):
-        z = sage.rings.complex_field.ComplexField()(z)
+        z = sage.rings.complex_field.CC(z)
 
     if isinstance(z, (sage.rings.real_mpfr.RealNumber,
                       sage.rings.complex_number.ComplexNumber)):
-        # We need to specify a precision.  Otherwise, Pari will default
-        # to using 80% of the bits in the Pari value; for certain precisions,
-        # this could be very wrong.  (On a 32-bit machine, a RealField(33)
-        # value gets translated to a 64-bit Pari value; so Pari would
-        # try to use about 51 bits of our 32-bit value.  Similarly
-        # bad things would happen on a 64-bit machine with RealField(65).)
-        log2 = 0.301029995665
-        digits = int(log2 * z.prec()) - 2
-        if known_bits is not None:
-            known_digits = log2 * known_bits
+
+        log2_10 = 3.32192809488736
+
+        prec = z.prec() - 6
         if known_digits is not None:
-            use_digits = known_digits * 0.8
-        if use_bits is not None:
-            use_digits = log2 * use_bits
+            known_bits = known_digits * log2_10
+        if known_bits is not None:
+            use_bits = known_bits * 0.8
         if use_digits is not None:
-            digits = int(use_digits)
-        if digits == 0:
-            digits = 1
-        f = pari(z).algdep(n, digits)
+            use_bits = use_digits * log2_10
+        if use_bits is not None:
+            prec = int(use_bits)
+
+        is_complex = isinstance(z, sage.rings.complex_number.ComplexNumber)
+        n = degree+1
+        from sage.matrix.all import matrix
+        M = matrix(ZZ, n, n+1+int(is_complex))
+        r = ZZ(1) << prec
+        M[0, 0] = 1
+        M[0,-1] = r
+        for k in range(1, degree+1):
+            M[k,k] = 1
+            r *= z
+            if is_complex:
+                M[k, -1] = r.real().round()
+                M[k, -2] = r.imag().round()
+            else:
+                M[k, -1] = r.round()
+        LLL = M.LLL(delta=.75)
+        coeffs = LLL[0][:n]
+        if height_bound:
+            def norm(v):
+                # norm on an integer vector invokes Integer.sqrt() which tries to factor...
+                from sage.rings.real_mpfi import RIF
+                return v.change_ring(RIF).norm()
+            if max(abs(a) for a in coeffs) > height_bound:
+                if proof:
+                    # Given an LLL reduced basis $b_1, ..., b_n$, we only
+                    # know that $|b_1| <= 2^((n-1)/2) |x|$ for non-zero $x \in L$.
+                    if norm(LLL[0]) <= 2**((n-1)/2) * n.sqrt() * height_bound:
+                        raise ValueError, "insufficient precision for non-existence proof"
+                return None
+            elif proof and norm(LLL[1]) < 2**((n-1)/2) * max(norm(LLL[0]), n.sqrt()*height_bound):
+                raise ValueError, "insufficient precision for uniqueness proof"
+        if coeffs[degree] < 0:
+            coeffs = -coeffs
+        f = list(coeffs)
+
+    elif proof or height_bound:
+        raise NotImplementedError, "proof and height bound only implemented for real and complex numbers"
+
     else:
         y = pari(z)
-        f = y.algdep(n)
+        f = y.algdep(degree)
 
     return x.parent()(f)
 

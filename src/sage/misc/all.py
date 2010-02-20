@@ -58,7 +58,7 @@ from mathml import mathml
 
 from defaults import set_default_variable_name
 
-from preparser import preparse, implicit_multiplication, BackslashOperator, attached_files, detach
+from preparser import preparse, implicit_multiplication, BackslashOperator, attached_files, detach, load_attach_path, reset_load_attach_path
 
 from interpreter import preparser
 

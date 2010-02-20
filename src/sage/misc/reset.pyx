@@ -128,6 +128,7 @@ def reset_attached():
 
         sage: sage.misc.reset.reset_attached()
         sage: t = tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t = os.path.normpath(t)
         sage: attach(t)
         hello world
         sage: attached_files() == [t]

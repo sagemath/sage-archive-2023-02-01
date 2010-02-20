@@ -1363,8 +1363,9 @@ class BackslashOperator:
 def is_loadable_filename(filename):
     """
     Returns whether a file can be loaded into Sage.  This checks only
-    whether its name ends in one of the supported extensions .py,
-    .pyx, .sage, and .spyx.
+    whether its name ends in one of the supported extensions ``.py``,
+    ``.pyx``, ``.sage``, ``.spyx``, and ``.m``.  Note: :func:`load`
+    assumes the latter signifies a Magma file.
 
     INPUT:
 
@@ -1382,21 +1383,68 @@ def is_loadable_filename(filename):
         False
         sage: sage.misc.preparser.is_loadable_filename('foo.sage')
         True
+        sage: sage.misc.preparser.is_loadable_filename('foo.m')
+        True
     """
-    # Loop over list of supported code file extensions for the load function.
-    for ext in ['.py', '.pyx', '.sage', '.spyx']:
-        if filename.endswith(ext):
-            return True
+    if filename.endswith(('.py', '.pyx', '.sage', '.spyx', '.m')):
+        return True
     return False
+
+
+def reset_load_attach_path():
+    """
+    Resets the current search path for loading and attaching files.
+
+    The default path is '.' plus any paths specified in the environment
+    variable `SAGE_LOAD_ATTACH_PATH`.
+
+    EXAMPLES::
+
+        sage: load_attach_path()
+        ['.']
+        sage: t_dir = tmp_dir()
+        sage: load_attach_path(t_dir)
+        sage: t_dir in load_attach_path()
+        True
+        sage: reset_load_attach_path(); load_attach_path()
+        ['.']
+
+    At startup, Sage adds colon-separated paths in the environment
+    variable ``SAGE_LOAD_ATTACH_PATH``::
+
+        sage: reset_load_attach_path(); load_attach_path()
+        ['.']
+        sage: os.environ['SAGE_LOAD_ATTACH_PATH'] = '/veni/vidi:vici:'
+        sage: reload(sage.misc.preparser)    # Simulate startup
+        <module 'sage.misc.preparser' from '...'>
+        sage: load_attach_path()
+        ['.', '/veni/vidi', 'vici']
+        sage: del os.environ['SAGE_LOAD_ATTACH_PATH']
+        sage: reload(sage.misc.preparser)    # Simulate startup
+        <module 'sage.misc.preparser' from '...'>
+        sage: reset_load_attach_path(); load_attach_path()
+        ['.']
+    """
+    global _load_attach_path
+    _load_attach_path = ['.']
+    if 'SAGE_LOAD_ATTACH_PATH' in os.environ:
+        epaths = os.environ['SAGE_LOAD_ATTACH_PATH'].split(':')
+        _load_attach_path.extend(epaths)
+        while '' in _load_attach_path:
+            _load_attach_path.remove('')
+
+# Set up the initial search path for loading and attaching files.  A
+# user can modify the path with the function load_attach_path.
+reset_load_attach_path()
 
 def load(filename, globals, attach=False):
     """
     Executes a file in the scope given by ``globals``.  The
     ``filename`` itself is also evaluated in the scope.  If the name
-    starts with http://, it is treated as a URL and downloaded.
+    starts with ``http://``, it is treated as a URL and downloaded.
 
     .. note:: For Cython files, the situation is more complicated --
-       the module is first compiled to a temporary module t and
+       the module is first compiled to a temporary module ``t`` and
        executed via::
 
            from t import *
@@ -1445,7 +1493,7 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load('a.foo',globals())
         Traceback (most recent call last):
         ...
-        ValueError: argument (='a.foo') to load or attach must have extension py, sage, or pyx
+        ValueError: argument (='a.foo') to load or attach must have extension py, pyx, sage, spyx, or m
 
     A filename given as an expression get evaluated.  This ensures
     that ``load DATA+'foo.sage'`` works in the Notebook, say::
@@ -1464,7 +1512,7 @@ def load(filename, globals, attach=False):
         sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
         sage: sage.misc.preparser.load(t, globals(), attach=True)
         hello world
-        sage: t in sage.misc.preparser.attached
+        sage: os.path.normpath(t) in sage.misc.preparser.attached
         True
 
     You can't attach remote URLs (yet)::
@@ -1473,6 +1521,29 @@ def load(filename, globals, attach=False):
         Traceback (most recent call last):
         ...
         NotImplementedError: you can't attach a URL
+
+    The default search path for loading and attaching files is the
+    current working directory, i.e., ``'.'``.  But you can modify the
+    path with :func:`load_attach_path`::
+
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
+        sage: load_attach_path()
+        ['.']
+        sage: t_dir = tmp_dir()
+        sage: fullpath = os.path.join(t_dir, 'test.py')
+        sage: open(fullpath, 'w').write("print 37 * 3")
+        sage: load_attach_path(t_dir)
+        sage: attach('test.py')
+        111
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path() # clean up
+
+    or by setting the environment variable ``SAGE_LOAD_ATTACH_PATH``
+    to a colon-separated list before starting Sage::
+
+        $ export SAGE_LOAD_ATTACH_PATH="/path/to/my/library:/path/to/utils"
+        $ sage
+        sage: load_attach_path()          # not tested
+        ['.', '/path/to/my/library', '/path/to/utils']
     """
     try:
         filename = eval(filename, globals)
@@ -1493,29 +1564,124 @@ def load(filename, globals, attach=False):
             # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.
             # http://www.diveintopython.org/http_web_services/etags.html
-            raise NotImplementedError, "you can't attach a URL"
+            raise NotImplementedError("you can't attach a URL")
         from remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=False)
 
-    if filename.endswith('.py'):
-        execfile(filename, globals)
-    elif filename.endswith('.sage'):
-        exec(preparse_file(open(filename).read()), globals)
-    elif filename.endswith('.spyx') or filename.endswith('.pyx'):
+    if not is_loadable_filename(filename):
+        raise ValueError('argument (=%r) to load or attach must have extension py, pyx, sage, spyx, or m' % filename)
+
+    fpath = os.path.expanduser(filename)
+    if os.path.isabs(fpath):
+        if not os.path.exists(fpath):
+            raise IOError('did not find file %r to load or attach' % filename)
+    else:
+        global _load_attach_path
+        for path in _load_attach_path:
+            fpath = os.path.join(path, filename)
+            fpath = os.path.expanduser(fpath)
+            if os.path.exists(fpath):
+                break
+        else:
+            raise IOError('did not find file %r in load / attach search path' \
+                % filename)
+
+    if fpath.endswith('.py'):
+        execfile(fpath, globals)
+    elif fpath.endswith('.sage'):
+        exec(preparse_file(open(fpath).read()), globals)
+    elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
         import interpreter
-        exec(interpreter.load_cython(filename), globals)
-    elif filename.endswith('.m'):
+        exec(interpreter.load_cython(fpath), globals)
+    elif fpath.endswith('.m'):
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file
         # further.
-        s = globals['magma'].load(filename)
+        s = globals['magma'].load(fpath)
         i = s.find('\n'); s = s[i+1:]
         print s
-    else:
-        raise ValueError, "argument (='%s') to load or attach must have extension py, sage, or pyx"%filename
 
-    if attach and os.path.exists(filename):
-        attached[filename] = os.path.getmtime(filename)
+    if attach:
+        # TODO: Use the MD5 hash of the file, instead.
+        fpath = os.path.abspath(fpath)
+        attached[fpath] = os.path.getmtime(fpath)
+
+
+def load_attach_path(path=None, replace=False):
+    """
+    Get or modify the current search path for loading and attaching
+    files.
+
+    INPUT:
+
+    - ``path`` - string or list of strings (default: None); path(s) to
+      append to or replace the current path
+
+    - ``replace`` - boolean (default: False); if ``path`` is not None,
+      whether to *replace* the search path instead of *appending* to
+      it
+
+    OUTPUT:
+
+    - None or a *reference* to the current list of search paths
+
+    EXAMPLES:
+
+    First, we extend the example given in :func:`load`'s docstring::
+
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
+        sage: load_attach_path()
+        ['.']
+        sage: t_dir = tmp_dir()
+        sage: fullpath = os.path.join(t_dir, 'test.py')
+        sage: open(fullpath, 'w').write("print 37 * 3")
+        sage: attach('test.py')
+        Traceback (most recent call last):
+        ...
+        IOError: did not find file 'test.py' in load / attach search path
+        sage: load_attach_path(t_dir)
+        sage: attach('test.py')
+        111
+        sage: attached_files() == [fullpath]
+        True
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
+        sage: load_attach_path() == ['.']
+        True
+        sage: load('test.py')
+        Traceback (most recent call last):
+        ...
+        IOError: did not find file 'test.py' in load / attach search path
+
+    The function returns a reference to the path list::
+
+        sage: reset_load_attach_path(); load_attach_path()
+        ['.']
+        sage: load_attach_path('/path/to/my/sage/scripts'); load_attach_path()
+        ['.', '/path/to/my/sage/scripts']
+        sage: load_attach_path(['good', 'bad', 'ugly'], replace=True)
+        sage: load_attach_path()
+        ['good', 'bad', 'ugly']
+        sage: p = load_attach_path(); p.pop()
+        'ugly'
+        sage: p[0] = 'weird'; load_attach_path()
+        ['weird', 'bad']
+        sage: reset_load_attach_path(); load_attach_path()
+        ['.']
+    """
+    global _load_attach_path
+
+    if path is None:
+        return _load_attach_path
+    else:
+        if isinstance(path, basestring):
+            path = [path]
+
+        if replace:
+            _load_attach_path = path
+        else:
+            for p in path:
+                if p not in _load_attach_path:
+                    _load_attach_path.append(p)
 
 
 import base64
@@ -1598,11 +1764,11 @@ def attached_files():
 
         sage: sage.misc.reset.reset_attached()
         sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t = os.path.normpath(t)
         sage: attach(t)
         hello world
         sage: attached_files() == [t]
         True
-
     """
     return list(sorted(attached.keys()))
 
@@ -1618,6 +1784,7 @@ def detach(filename):
 
         sage: sage.misc.reset.reset_attached()
         sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t = os.path.normpath(t)
         sage: attach(t)
         hello world
         sage: attached_files() == [t]
@@ -1625,6 +1792,41 @@ def detach(filename):
         sage: detach(t)
         sage: attached_files()
         []
+
+    ::
+
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
+        sage: load_attach_path()
+        ['.']
+        sage: t_dir = tmp_dir()
+        sage: fullpath = os.path.join(t_dir, 'test.py')
+        sage: open(fullpath, 'w').write("print 37 * 3")
+        sage: load_attach_path(t_dir)
+        sage: attach('test.py')
+        111
+        sage: attached_files() == [os.path.normpath(fullpath)]
+        True
+        sage: detach('test.py')
+        sage: attached_files()
+        []
+        sage: attach('test.py')
+        111
+        sage: detach(fullpath)
+        sage: attached_files()
+        []
+        sage: sage.misc.reset.reset_attached(); reset_load_attach_path() # clean up
+
     """
-    if attached.has_key(filename):
-        del attached[filename]
+    fpath = os.path.expanduser(filename)
+    if not os.path.isabs(fpath):
+        for path in load_attach_path():
+            epath = os.path.expanduser(path)
+            fpath = os.path.join(epath, filename)
+            if fpath in attached:
+                break
+
+    if fpath in attached:
+        attached.pop(fpath)
+    else:
+        raise ValueError("File '%r' seems not to be attached. To see a list \
+            of attached files, call attached_files()" % filename)

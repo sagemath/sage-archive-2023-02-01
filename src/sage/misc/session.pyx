@@ -380,6 +380,7 @@ def attach(*files):
         sage: sage.misc.reset.reset_attached()
         sage: t1=tmp_filename()+'.py'; open(t1,'w').write("print 'hello world'")
         sage: t2=tmp_filename()+'.py'; open(t2,'w').write("print 'hi there xxx'")
+        sage: t1, t2 = map(os.path.normpath, (t1, t2))
         sage: attach(t1, t2)
         hello world
         hi there xxx

@@ -142,6 +142,7 @@ def laurent_polynomial_truncate(p, n):
     of degree <n, similar to the truncate method for polynomials.
 
     EXAMPLES ::
+
         sage: from sage.combinat.kazhdan_lusztig import laurent_polynomial_truncate
         sage: P.<q> = LaurentPolynomialRing(QQ)
         sage: laurent_polynomial_truncate((q+q^-1)^3+q^2*(q+q^-1)^4,3)

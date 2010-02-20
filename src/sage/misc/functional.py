@@ -696,7 +696,7 @@ def integral(x, *args, **kwds):
         sage: sin(x).integral(x, 0,pi/2)
         1
         sage: integral(exp(-x), (x, 1, oo))
-        gamma_incomplete(1, 1)
+        e^(-1)
 
     Numerical approximation::
 

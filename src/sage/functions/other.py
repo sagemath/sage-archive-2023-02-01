@@ -18,6 +18,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
 from sage.functions.transcendental import Ei
+from sage.libs.mpmath import utils as mpmath_utils
 
 one_half = ~SR(2)
 
@@ -394,66 +395,45 @@ class Function_gamma(GinacFunction):
 
         EXAMPLES::
 
-            sage: gamma(CDF(0.5,14))
+            sage: from sage.functions.other import gamma1
+            sage: gamma1(CDF(0.5,14))
             -4.05370307804e-10 - 5.77329983455e-10*I
-            sage: gamma(CDF(I))
+            sage: gamma1(CDF(I))
             -0.154949828302 - 0.498015668118*I
 
         Recall that `\Gamma(n)` is `n-1` factorial::
 
-            sage: gamma(11) == factorial(10)
+            sage: gamma1(11) == factorial(10)
             True
-            sage: gamma(6)
+            sage: gamma1(6)
             120
-            sage: gamma(1/2)
+            sage: gamma1(1/2)
             sqrt(pi)
-            sage: gamma(-1)
+            sage: gamma1(-1)
             Infinity
-            sage: gamma(I)
+            sage: gamma1(I)
             gamma(I)
-            sage: gamma(x/2)(x=5)
+            sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma(float(6))
+            sage: gamma1(float(6))
             120.0
-            sage: gamma(x)
+            sage: gamma1(x)
             gamma(x)
 
         ::
 
-            sage: gamma(pi)
+            sage: gamma1(pi)
             gamma(pi)
-            sage: gamma(i)
+            sage: gamma1(i)
             gamma(I)
-            sage: gamma(i).n()
+            sage: gamma1(i).n()
             -0.154949828301811 - 0.498015668118356*I
-            sage: gamma(int(5))
+            sage: gamma1(int(5))
             24
 
 
-            sage: plot(gamma(x),(x,1,5))
-
-        The gamma function only works with input that can be coerced to the
-        Symbolic Ring::
-
-            sage: Q.<i> = NumberField(x^2+1)
-            sage: gamma(i)
-            doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
-            -0.154949828301811 - 0.498015668118356*I
-
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
-
-            sage: gamma(QQbar(I))
-            -0.154949828301811 - 0.498015668118356*I
+            sage: plot(gamma1(x),(x,1,5))
 
         TESTS:
 
@@ -461,17 +441,17 @@ class Function_gamma(GinacFunction):
         convert back to Sage::
 
             sage: z = var('z')
-            sage: maxima(gamma(z)).sage()
+            sage: maxima(gamma1(z)).sage()
             gamma(z)
-            sage: latex(gamma(z))
+            sage: latex(gamma1(z))
             \Gamma\left(z\right)
 
         Test that Trac ticket 5556 is fixed::
 
-            sage: gamma(3/4)
+            sage: gamma1(3/4)
             gamma(3/4)
 
-            sage: gamma(3/4).n(100)
+            sage: gamma1(3/4).n(100)
             1.2254167024651776451290983034
 
         Check that negative integer input works::
@@ -488,9 +468,10 @@ class Function_gamma(GinacFunction):
             Infinity
         """
         GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
-                ginac_name='tgamma')
+                ginac_name='tgamma',
+                conversions={'mathematica':'Gamma','maple':'GAMMA'})
 
-    def __call__(self, x, coerce=True, hold=False, prec=None):
+    def __call__(self, x, prec=None, coerce=True, hold=False):
         """
         Note that the ``prec`` argument is deprecated. The precision for
         the result is deduced from the precision of the input. Convert
@@ -501,7 +482,6 @@ class Function_gamma(GinacFunction):
             1.3293403881791370204736256125
             sage: t.prec()
             100
-
 
             sage: gamma(6, prec=53)
             doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.
@@ -518,6 +498,8 @@ class Function_gamma(GinacFunction):
         if prec is not None:
             from sage.misc.misc import deprecation
             deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
+            import mpmath
+            return mpmath_utils.call(mpmath.gamma, x, prec=prec)
 
         # this is a kludge to keep
         #     sage: Q.<i> = NumberField(x^2+1)
@@ -542,12 +524,9 @@ class Function_gamma(GinacFunction):
                 x = parent.complex_field()(x)
             res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
 
-        if prec is not None:
-            return res.n(prec)
-
         return res
 
-gamma = Function_gamma()
+gamma1 = Function_gamma()
 
 class Function_gamma_inc(BuiltinFunction):
     def __init__(self):
@@ -573,7 +552,9 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(2., 5)
             0.0404276819945128
         """
-        BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma")
+        BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
+                conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
+                    'maple':'GAMMA'})
 
     def _eval_(self, x, y):
         """
@@ -636,6 +617,73 @@ class Function_gamma_inc(BuiltinFunction):
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
 
+def gamma(a, *args, **kwds):
+    r"""
+    Gamma and incomplete gamma functions.
+    This is defined by the integral
+    `\Gamma(a, z) = \int_z^\infty t^{a-1}e^{-t} dt`.
+
+    EXAMPLES::
+
+        Recall that `\Gamma(n)` is `n-1` factorial::
+
+            sage: gamma(11) == factorial(10)
+            True
+            sage: gamma(6)
+            120
+            sage: gamma(1/2)
+            sqrt(pi)
+            sage: gamma(-1)
+            Infinity
+
+        ::
+
+            sage: gamma_inc(3,2)
+            gamma(3, 2)
+            sage: gamma_inc(x,0)
+            gamma(x)
+
+        ::
+
+            sage: gamma(5, hold=True)
+            gamma(5)
+            sage: gamma(x, 0, hold=True)
+            gamma(x, 0)
+
+        ::
+
+            sage: gamma(CDF(0.5,14))
+            -4.05370307804e-10 - 5.77329983455e-10*I
+            sage: gamma(CDF(I))
+            -0.154949828302 - 0.498015668118*I
+
+        The gamma function only works with input that can be coerced to the
+        Symbolic Ring::
+
+            sage: Q.<i> = NumberField(x^2+1)
+            sage: gamma(i)
+            doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
+            -0.154949828301811 - 0.498015668118356*I
+
+        We make an exception for elements of AA or QQbar, which cannot be
+        coerced into symbolic expressions to allow this usage::
+
+            sage: t = QQbar(sqrt(2)) + sqrt(3); t
+            3.146264369941973?
+            sage: t.parent()
+            Algebraic Field
+
+        Symbolic functions convert the arguments to symbolic expressions if they
+        are in QQbar or AA::
+
+            sage: gamma(QQbar(I))
+            -0.154949828301811 - 0.498015668118356*I
+    """
+    if not args:
+        return gamma1(a, **kwds)
+    if len(args) > 1:
+        raise TypeError, "Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1)
+    return incomplete_gamma(a,args[0],**kwds)
 
 class Function_psi1(GinacFunction):
     def __init__(self):
@@ -775,12 +823,12 @@ def psi(x, *args, **kwds):
         sage: psi(2, x, 3)
         Traceback (most recent call last):
         ...
-        TypeError: Symbolic function psi takes exactly 2 arguments (3 given)
+        TypeError: Symbolic function psi takes at most 2 arguments (3 given)
     """
     if not args:
         return psi1(x, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function psi takes exactly 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError, "Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1)
     return psi2(x,args[0],**kwds)
 
 

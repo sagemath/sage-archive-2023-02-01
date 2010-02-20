@@ -96,7 +96,7 @@ from sage.sets.set import Set
 
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
-import sage.functions.transcendental as transcendental
+from sage.functions.other import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
@@ -3085,13 +3085,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         s = C(s)
         N = self.conductor()
         pi = R(pi)
-        from sage.functions.all import gamma as Gamma
-        Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
         sqrtN = float(N.sqrt())
         def _F(n, t):
-            return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
+            return gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in xrange(1,prec+1)])
 
     def is_local_integral_model(self,*p):

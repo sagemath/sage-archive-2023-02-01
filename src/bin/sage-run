@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys
+from subprocess import call
 
 os.chdir(sys.argv[1])
 
@@ -8,27 +9,22 @@ if len(sys.argv) < 3:
     print "You must give a file argument"
     sys.exit(1)
 
-file    = sys.argv[2]
-options = ' '.join(sys.argv[3:])
+fn = sys.argv[2]
+opts = sys.argv[3:]
 
-if file[0] == '-':
-    print "Unknown option: %s"%file
+if fn.startswith('-'):
+    print "sage-run received unknown option: %s " % fn
     print "usage: sage [options]"
     print "Try 'sage -h' for more information."
     sys.exit(1)
 
-if file.endswith('.sage'):
-    if os.system('sage -preparse %s'%file):
+binpath = os.path.join(os.environ['SAGE_LOCAL'], 'bin')
+
+if fn.endswith('.sage'):
+    if call(['sage', '-preparse', fn]) > 0:
         sys.exit(1)
-    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s.py %s'%(file[:-5], options))
-    sys.exit(e>>8)
-elif file.endswith('.spyx'):
-    e = os.system('"$SAGE_LOCAL/bin/sage-sagex" %s'%file)
-    sys.exit(e>>8)
+    sys.exit(call([os.path.join(binpath, 'sage-python'), fn[:-5] + '.py'] + opts))
+elif fn.endswith('.spyx'):
+    sys.exit(call([os.path.join(binpath, 'sage-sagex'), fn] + opts))
 else:
-    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s %s'%(file, options))
-    sys.exit(e>>8)
-
-
-
-
+    sys.exit(call([os.path.join(binpath, 'sage-python'), fn] + opts))

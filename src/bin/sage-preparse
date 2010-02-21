@@ -77,7 +77,7 @@ def do_preparse(f, files_before=[]):
         return
     files_so_far.append(f)
     if not os.path.exists(f):
-        print "%s: File %s is missing"%(sys.argv[0], f)
+        print "%s: File '%s' is missing"%(sys.argv[0], f)
         return
     if f[-3:] == '.py':
         return

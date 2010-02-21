@@ -136,7 +136,7 @@ fi
 # SAGE startup script passes some funny options, which are
 # best ignored.
 if [ $# -eq 3 ]; then
-   if [ $1 = '-i' -a $2 = '-colors' ]; then
+   if [ "$1" = '-i' -a "$2" = '-colors' ]; then
        shift
        shift
        shift
@@ -144,10 +144,10 @@ if [ $# -eq 3 ]; then
 fi
 
 if [ $# -gt 0 ]; then
-  if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 = '--help' ]; then
+  if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
      usage
   fi
-  if [ $1 = "-advanced" -o $1 = "--advanced" ]; then
+  if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
      usage_advanced
   fi
 fi
@@ -197,7 +197,7 @@ sage_setup() {
 
 
 if [ $# -gt 0 ]; then
-    if [ $1 = "-np" ]; then
+    if [ "$1" = "-np" ]; then
        LOGOPT="-prompt_out=\\r $LOGOPT"
        shift
     fi
@@ -213,12 +213,12 @@ if [ $# -eq 0 ]; then
     exit $?
 fi
 
-if [ $1 = '-cleaner' ]; then
+if [ "$1" = '-cleaner' ]; then
     sage-cleaner
     exit $?
 fi
 
-if [ $1 = '-min' -o $1 = '--min' ]; then
+if [ "$1" = '-min' -o "$1" = '--min' ]; then
     SAGE_IMPORTALL="no"
     export SAGE_IMPORTALL
     shift
@@ -230,17 +230,17 @@ fi
 # Report information about the Sage environment
 #####################################################################
 
-if [ $1 = '-v' -o $1 = '-version' -o $1 = '--version' ]; then
+if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
     cat "$SAGE_LOCAL/bin/sage-banner" | grep -i "version" | sed "s/\| //" | sed "s/ *\|//"
     exit $?
 fi
 
-if [ $1 = '-root'  -o $1 = '--root' ]; then
+if [ "$1" = '-root'  -o "$1" = '--root' ]; then
     echo "$SAGE_ROOT"
     exit 0
 fi
 
-if [ $1 = '-branch'  -o $1 = '--branch' ]; then
+if [ "$1" = '-branch'  -o "$1" = '--branch' ]; then
     readlink "$SAGE_ROOT/devel/sage" | sed "s/sage-//"
     exit $?
 fi
@@ -249,91 +249,91 @@ fi
 # Run Sage's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
-if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
+if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
     cd "$CUR"
     shift
    axiom "$@"
     exit $?
 fi
 
-if [ $1 = '-combinat' -o $1 = '--combinat' ]; then
+if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
     cd "$CUR"
     shift
     sage-combinat "$@"
     exit $?
 fi
 
-if [ $1 = '-gap' -o $1 = '--gap' ]; then
+if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
     cd "$CUR"
     shift
     gap "$@"
     exit $?
 fi
 
-if [ $1 = '-gp'  -o $1 = '--gp' ]; then
+if [ "$1" = '-gp'  -o "$1" = '--gp' ]; then
     cd "$CUR"
     shift
     gp "$@"
     exit $?
 fi
 
-if [ $1 = '-singular'  -o $1 = '--singular' ]; then
+if [ "$1" = '-singular'  -o "$1" = '--singular' ]; then
     cd "$CUR"
     shift
     singular "$@"
     exit $?
 fi
 
-if [ $1 = '-twistd'  -o $1 = '--twistd' ]; then
+if [ "$1" = '-twistd'  -o "$1" = '--twistd' ]; then
     cd "$CUR"
     shift
     python $(which twistd) "$@"
     exit $?
 fi
 
-if [ $1 = '-ecl'  -o $1 = '--ecl' ]; then
+if [ "$1" = '-ecl'  -o "$1" = '--ecl' ]; then
     cd "$CUR"
     shift
     ecl "$@"
     exit $?
 fi
 
-if [ $1 = '-lisp'  -o $1 = '--lisp' ]; then
+if [ "$1" = '-lisp'  -o "$1" = '--lisp' ]; then
     cd "$CUR"
     shift
     ecl "$@"
     exit $?
 fi
 
-if [ $1 = '-kash'  -o $1 = '--kash' ]; then
+if [ "$1" = '-kash'  -o "$1" = '--kash' ]; then
     cd "$CUR"
     shift
     kash "$@"
     exit $?
 fi
 
-if [ $1 = '-fixdoctests' -o $1 = '--fixdoctests' ]; then
+if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
     cd "$CUR"
     shift
     sage-fixdoctests "$@"
     exit $?
 fi
 
-if [ $1 = '-maxima'  -o $1 = '--maxima' ]; then
+if [ "$1" = '-maxima'  -o "$1" = '--maxima' ]; then
     cd "$CUR"
     shift
     maxima "$@"
     exit $?
 fi
 
-if [ $1 = '-mwrank'  -o $1 = '--mwrank' ]; then
+if [ "$1" = '-mwrank'  -o "$1" = '--mwrank' ]; then
     cd "$CUR"
     shift
     mwrank "$@"
     exit $?
 fi
 
-if [ $1 = '-M2'  -o $1 = '--M2' ]; then
+if [ "$1" = '-M2'  -o "$1" = '--M2' ]; then
     cd "$CUR"
     shift
     # It is critical to use an exact path for any optional packages.
@@ -341,35 +341,35 @@ if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     exit $?
 fi
 
-if [ $1 = '-scons'  -o $1 = '--scons' ]; then
+if [ "$1" = '-scons'  -o "$1" = '--scons' ]; then
     cd "$CUR"
     shift
     scons "$@"
     exit $?
 fi
 
-if [ $1 = '-python'  -o $1 = '--python' ]; then
+if [ "$1" = '-python'  -o "$1" = '--python' ]; then
     cd "$CUR"
     shift
     python "$@"
     exit $?
 fi
 
-if [ $1 = '-R'  -o $1 = '--R' ]; then
+if [ "$1" = '-R'  -o "$1" = '--R' ]; then
     cd "$CUR"
     shift
     R "$@"
     exit $?
 fi
 
-if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
+if [ "$1" = '-ipython'  -o "$1" = '--ipython' ]; then
     cd "$CUR"
     shift
     ipython "$@"
     exit $?
 fi
 
-if [ $1 = '-sh'  -o $1 = '--sh' ]; then
+if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     # AUTHORS:
     #   Carl Witty and William Stein: initial version
     #   Craig Citro: add options for not loading profile
@@ -418,28 +418,28 @@ if [ $1 = '-sh'  -o $1 = '--sh' ]; then
     exit $?
 fi
 
-if [ $1 = '-gdb-ipython'  -o $1 = '--gdb-ipython' ]; then
+if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then
     cd "$CUR"
     shift
     sage-gdb-ipython "$@"
     exit $?
 fi
 
-if [ $1 = '-darcs'  -o $1 = '--darcs' ]; then
+if [ "$1" = '-darcs'  -o "$1" = '--darcs' ]; then
     cd "$CUR"
     shift
     darcs "$@"
     exit $?
 fi
 
-if [ $1 = '-hg'  -o $1 = '--hg' ]; then
+if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
     cd "$CUR"
     shift
     hg "$@" # XXX
     exit $?
 fi
 
-if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
+if [ "$1" = '-hgmerge'  -o "$1" = '--hgmerge' ]; then
     ## NEED in Sage Environment under OS X
     unset LIBRARY_PATH
     unset LD_LIBRARY_PATH
@@ -451,7 +451,7 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
     exit $?
 fi
 
-if [ $1 = '-merge' ]; then
+if [ "$1" = '-merge' ]; then
     cd "$CUR"
     shift
     sage-apply-ticket "$@"
@@ -462,14 +462,14 @@ fi
 # Test coverage of a module?
 #####################################################################
 
-if [ $1 = "-coverage" -o $1 = "--coverage" ]; then
+if [ "$1" = "-coverage" -o "$1" = "--coverage" ]; then
    cd "$CUR"
    shift
    sage-coverage "$@"
    exit $?
 fi
 
-if [ $1 = "-coverageall" -o $1 = "--coverageall" ]; then
+if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
    cd "$CUR"
    shift
    sage-coverageall "$@"
@@ -481,7 +481,7 @@ fi
 # Crap
 #####################################################################
 
-if [ $1 = "-crap" -o $1 = "--crap" ]; then
+if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
    shift
    cd "$CUR"
    sage-crap $@
@@ -505,7 +505,7 @@ build_sage() {
     fi
 }
 
-if [ $1 = "-notebook"  -o $1 = '--notebook' -o $1 = '-n' ]; then
+if [ "$1" = "-notebook"  -o "$1" = '--notebook' -o "$1" = '-n' ]; then
    cd "$CUR"
    shift
    sage-cleaner &
@@ -513,7 +513,7 @@ if [ $1 = "-notebook"  -o $1 = '--notebook' -o $1 = '-n' ]; then
    exit $?
 fi
 
-if [ $1 = "-bn" -o $1 = "--build-and-notebook" ]; then
+if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
     cd "$CUR"
     shift
     sage-cleaner &
@@ -521,7 +521,7 @@ if [ $1 = "-bn" -o $1 = "--build-and-notebook" ]; then
     exit $?
 fi
 
-if [ $1 = "-inotebook"  -o $1 = '--inotebook' ]; then
+if [ "$1" = "-inotebook"  -o "$1" = '--inotebook' ]; then
    cd "$CUR"
    shift
    sage-cleaner &
@@ -529,33 +529,33 @@ if [ $1 = "-inotebook"  -o $1 = '--inotebook' ]; then
    exit $?
 fi
 
-if [ $1 = "-wiki"  -o $1 = '--wiki' ]; then
+if [ "$1" = "-wiki"  -o "$1" = '--wiki' ]; then
    cd "$CUR"
    shift
    sage-wiki "$@"
    exit $?
 fi
 
-if [ $1 = "-log" -o $1 = "--log" ]; then
+if [ "$1" = "-log" -o "$1" = "--log" ]; then
    sage-log
    exit 0
 fi
 
-if [ $1 = '-grep' -o $1 = "--grep" ]; then
+if [ "$1" = '-grep' -o "$1" = "--grep" ]; then
    sage_setup
    shift
    sage-grep "$@"
    exit 0
 fi
 
-if [ $1 = '-grepdoc' -o $1 = "--grepdoc" ]; then
+if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" ]; then
    sage_setup
    shift
    sage-grepdoc "$@"
    exit 0
 fi
 
-if [ $1 = '-q' ]; then
+if [ "$1" = '-q' ]; then
    SAGE_BANNER="no"
    sage_setup
    shift
@@ -563,19 +563,19 @@ if [ $1 = '-q' ]; then
    exit $?
 fi
 
-if [ $1 = '-b' ]; then
+if [ "$1" = '-b' ]; then
     shift
     time build_sage "$@"
     exit $?
 fi
 
-if [ $1 = '-br' -o $1 = "--br" ]; then
+if [ "$1" = '-br' -o "$1" = "--br" ]; then
     shift
     build_sage "$@" && sage
     exit $?
 fi
 
-if [ $1 = '-r' ]; then
+if [ "$1" = '-r' ]; then
    shift
    if [ "$1" != "" ]; then
       cd "$SAGE_ROOT/devel/"
@@ -591,7 +591,7 @@ if [ $1 = '-r' ]; then
    exit $?
 fi
 
-if [ $1 = '-ba' ]; then
+if [ "$1" = '-ba' ]; then
    shift
    echo " *** WARNING *** "
    echo " You are about to rebuild the entire Sage library."
@@ -609,25 +609,25 @@ if [ $1 = '-ba' ]; then
    exit $?
 fi
 
-if [ $1 = '-ba-force' ]; then
+if [ "$1" = '-ba-force' ]; then
    shift
    build_sage -b "$@"
    exit $?
 fi
 
-if [ $1 = '-sync-build' -o $1 = '--sync-build' ]; then
+if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
    shift
    python "$SAGE_LOCAL"/bin/sage-sync-build.py "$@"
    exit $?
 fi
 
-if [ $1 = '-clone' -o $1 = "--clone" ]; then
+if [ "$1" = '-clone' -o "$1" = "--clone" ]; then
    shift
    time sage-clone "$@"
    exit $?
 fi
 
-if [ $1 = '-t' ]; then
+if [ "$1" = '-t' ]; then
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
       echo "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
@@ -638,7 +638,7 @@ if [ $1 = '-t' ]; then
    exit $?
 fi
 
-if [ $1 = '-tp' ]; then
+if [ "$1" = '-tp' ]; then
    cd "$CUR"
    sage-starts
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
@@ -650,20 +650,20 @@ if [ $1 = '-tp' ]; then
    exit $?
 fi
 
-if [ $1 = '-tnew' ]; then
+if [ "$1" = '-tnew' ]; then
    cd "$CUR"
    shift
    sage-test-new "$@"
    exit $?
 fi
 
-if [ $1 = '-testall' -o $1 = "--testall" ]; then
+if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
    shift
    sage-maketest "$@"
    exit $?
 fi
 
-if [ $1 = '-c' ]; then
+if [ "$1" = '-c' ]; then
    cd "$CUR"
    shift
    SAGE_BANNER="no"
@@ -680,7 +680,7 @@ install() {
    fi
    OPT="$1"
    shift
-   if [ $1 = '-m' -o $1 = '-s' ]; then
+   if [ "$1" = '-m' -o "$1" = '-s' ]; then
        OPT=$OPT" "$1
        shift
    fi
@@ -704,34 +704,34 @@ install() {
    exit $?
 }
 
-if [ $1 = '-optional' -o $1 = "--optional" ]; then
+if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
    sage-list-optional
    exit 0
 fi
 
-if [ $1 = '-experimental' -o $1 = "--experimental" ]; then
+if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
    sage-list-experimental
    exit 0
 fi
 
-if [ $1 = '-standard' -o $1 = "--standard" ]; then
+if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
    sage-list-standard
    exit 0
 fi
 
-if [ $1 = '-i' ]; then
+if [ "$1" = '-i' ]; then
    shift
    echo "Installing $@"
    install " " "$@"
 fi
 
-if [ $1 = '-f' ]; then
+if [ "$1" = '-f' ]; then
    shift
    echo "Force installing $@"
    install -f "$@"
 fi
 
-if [ "$1" = '-pkg' -o "$1" = '-spkg' -o $1 = "--pkg" -o $1 = "--spkg" ]; then
+if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
    cd "$CUR"
    shift
    for PKG in "$@"
@@ -745,7 +745,7 @@ if [ "$1" = '-pkg' -o "$1" = '-spkg' -o $1 = "--pkg" -o $1 = "--spkg" ]; then
    exit $?
 fi
 
-if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
+if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
    cd "$CUR"
    shift
    for PKG in "$@"
@@ -759,7 +759,7 @@ if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
    exit $?
 fi
 
-if [ $1 = '-sdist' -o $1 = "--sdist" ]; then
+if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -767,7 +767,7 @@ if [ $1 = '-sdist' -o $1 = "--sdist" ]; then
    exit $?
 fi
 
-if [ $1 = '-ldist' -o $1 = "--ldist" ]; then
+if [ "$1" = '-ldist' -o "$1" = "--ldist" ]; then
    echo "sage -ldist currently disabled"
    echo "To work on it, remove the exit after this message in SAGE_ROOT/local/bin/sage-sage"
    exit 1
@@ -788,7 +788,7 @@ if [ $1 = '-ldist' -o $1 = "--ldist" ]; then
    exit $?
 fi
 
-if [ $1 = '-bdist' -o $1 = "--bdist" ]; then
+if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -796,18 +796,18 @@ if [ $1 = '-bdist' -o $1 = "--bdist" ]; then
    exit $?
 fi
 
-#if [ $1 = '-update' ]; then
+#if [ "$1" = '-update' ]; then
 #    sage-update
 #    exit $?
 #fi
 
-#if [ $1 = '-update-build' -o $1 = "--update-build" ]; then
+#if [ "$1" = '-update-build' -o "$1" = "--update-build" ]; then
 #    sage-update-build
 #    sage-update-build
 #    exit $?
 #fi
 
-if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
+if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
     # People often move the Sage install right before doing the upgrade, so it's
     # important to fix any path hardcoding issues first, or certain library
     # links will fail.
@@ -827,7 +827,7 @@ if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
     exit $?
 fi
 
-if [ $1 = "-docbuild" -o $1 = "--docbuild" ]; then
+if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
    cd "$CUR"
    shift
    python "$SAGE_ROOT"/devel/sage/doc/common/builder.py $@
@@ -835,62 +835,62 @@ if [ $1 = "-docbuild" -o $1 = "--docbuild" ]; then
 fi
 
 
-if [ $1 = '-gdb' -o $1 = "--gdb" ]; then
+if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     sage_setup
     sage-gdb
     exit $?
 fi
 
-if [ $1 = '-preparse' -o $1 = "--preparse" ]; then
+if [ "$1" = '-preparse' -o "$1" = "--preparse" ]; then
     shift
     cd "$SAGE_LOCAL/bin/"
     sage-preparse "$CUR" "$@"
     exit $?
 fi
 
-if [ $1 = "-cython" -o $1 = '--cython' -o $1 = '-pyrex' -o $1 = "--pyrex" ]; then
+if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
     shift
     cd "$CUR"
     sage-cython "$@"
     exit $?
 fi
 
-if [ $1 = '-valgrind' -o $1 = "--valgrind" -o $1 = '-memcheck' -o $1 = "--memcheck" ]; then
+if [ "$1" = '-valgrind' -o "$1" = "--valgrind" -o "$1" = '-memcheck' -o "$1" = "--memcheck" ]; then
     sage_setup
     sage-valgrind
     exit $?
 fi
 
-if [ $1 = '-massif' -o $1 = "--massif" ]; then
+if [ "$1" = '-massif' -o "$1" = "--massif" ]; then
     sage_setup
     sage-massif
     exit $?
 fi
 
-if [ $1 = '-cachegrind' -o $1 = "--cachegrind" ]; then
+if [ "$1" = '-cachegrind' -o "$1" = "--cachegrind" ]; then
     sage_setup
     sage-cachegrind
     exit $?
 fi
 
-if [ $1 = '-callgrind' -o $1 = "--callgrind" ]; then
+if [ "$1" = '-callgrind' -o "$1" = "--callgrind" ]; then
     sage_setup
     sage-callgrind
     exit $?
 fi
 
-if [ $1 = '-omega' -o $1 = "--omega" ]; then
+if [ "$1" = '-omega' -o "$1" = "--omega" ]; then
     sage_setup
     sage-omega
     exit $?
 fi
 
-if [ $1 = '-startuptime' -o $1 = '--startuptime' ]; then
+if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
     python "$SAGE_LOCAL"/bin/sage-startuptime.py
     exit $?
 fi
-if [ $1 = '-gthread' -o $1 = '-qthread' -o $1 = '-q4thread' -o $1 = '-wthread' -o $1 = '-pylab' ]; then
-    sage $1
+if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
+    sage "$1"
     exit $?
 fi
 

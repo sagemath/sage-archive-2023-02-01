@@ -47,7 +47,7 @@ import sage.rings.rational_field
 #pari = sage.libs.pari.gen.pari
 #QQ = sage.rings.rational_field.QQ
 
-cdef long maxordp = (1L << (sizeof(long) * 8 - 2))
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
     def __richcmp__(left, right, int op):
@@ -803,6 +803,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             -2
             sage: R(1/50).valuation()
             -2
+
+            sage: K.<a> = Qq(25)
+            sage: K(0).valuation()
+            +Infinity
         """
         cdef long v = self.valuation_c()
         if v == maxordp:

@@ -24,6 +24,8 @@ name = 'numerical_sage'
 # "<project> v<release> documentation".
 html_title = project + " v"+release
 
+html_short_title = u'Numerical Sage v' + release
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = name
 

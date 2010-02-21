@@ -1228,7 +1228,98 @@ class Word_class(SageObject):
             for a in w[-d:]:
                 yield a
 
-    def iterated_right_palindromic_closure(self, f=None):
+    def _iterated_right_palindromic_closure_recursive_iterator(self, f=None):
+        r"""
+        Returns an iterator over the iterated (`f`-)palindromic closure of self.
+
+        INPUT:
+
+        -  ``f`` - involution (default: None) on the alphabet of self. It must
+           be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            iterator -- the iterated (`f`-)palindromic closure of self
+
+        ALGORITHM:
+
+            For the case of palindromes only, it has been shown in [2] that
+            the iterated right palindromic closure of a given word `w`,
+            denoted by `IRPC(w)`, may be obtained as follows.
+            Let `w` be any word and `x` be a letter. Then
+
+            #. If `x` does not occur in `w`,
+               `IRPC(wx) = IRPC(w) \cdot x \cdot IRPC(w)`
+            #. Otherwise, write `w = w_1xw_2` such that `x` does not
+               occur in `w_2`. Then `IRPC(wx) = IRPC(w) \cdot IRPC(w_1)^{-1}
+               \cdot IRPC(w)`
+
+            This formula is directly generalized to the case of `f`-palindromes.
+            See [1] for more details.
+
+        EXAMPLES::
+
+            sage: w = Word('abc')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: abacaba
+
+        ::
+
+            sage: w = Word('aaa')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: aaa
+
+        ::
+
+            sage: w = Word('abbab')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: ababaabababaababa
+
+        An infinite word::
+
+            sage: t = words.ThueMorseWord('ab')
+            sage: it = t._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: ababaabababaababaabababaababaabababaabab...
+
+        TESTS:
+
+        The empty word::
+
+            sage: w = Word()
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: it.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        REFERENCES:
+
+        -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
+            in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
+        -   [2] J. Justin, Episturmian morphisms and a Galois theorem on
+            continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
+            207-215.
+        """
+        parent = self.parent()
+        ipcw = self[:0]
+        lengths = []
+        for i, letter in enumerate(self):
+            lengths.append(ipcw.length())
+            w = self[:i]
+            pos = w.rfind(parent([letter]))
+            if pos == -1:
+                to_append = parent([letter]).palindromic_closure(f=f) + ipcw
+            else:
+                to_append = ipcw[lengths[pos]:]
+            ipcw += to_append
+            for a in to_append:
+                yield a
+
+    def iterated_right_palindromic_closure(self, f=None, algorithm='recursive'):
         r"""
         Returns the iterated (`f`-)palindromic closure of self.
 
@@ -1236,6 +1327,16 @@ class Word_class(SageObject):
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
            be callable on letters as well as words (e.g. WordMorphism).
+
+        -  ``algorithm`` - string (default: 'recursive') specifying which algorithm
+           to be used when computing the iterated palindromic closure. It must
+           be one of the two following values:
+
+           - ``'definition'`` means that the iterated right palindromic closure is
+             computed using the definition.
+           - ``'recursive'`` is based on an efficient formula that recursively
+             computes the iterated right palindromic closure without having to
+             recompute the longest `f`-palindromic suffix at each iteration [2].
 
         OUTPUT:
 
@@ -1255,7 +1356,7 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word: ababaabababaababa
 
-        An right f-palindromic closure::
+        A right `f`-palindromic closure::
 
             sage: f = WordMorphism('a->b,b->a')
             sage: w = Word('abbab')
@@ -1267,6 +1368,22 @@ class Word_class(SageObject):
             sage: t = words.ThueMorseWord('ab')
             sage: t.iterated_right_palindromic_closure()
             word: ababaabababaababaabababaababaabababaabab...
+
+        There are two implementations computing the iterated right
+        `f`-palindromic closure, the latter being much more efficient::
+
+            sage: w = Word('abaab')
+            sage: u = w.iterated_right_palindromic_closure(algorithm='definition')
+            sage: v = w.iterated_right_palindromic_closure(algorithm='recursive')
+            sage: u
+            word: abaabaababaabaaba
+            sage: u == v
+            True
+            sage: w = words.RandomWord(8)
+            sage: u = w.iterated_right_palindromic_closure(algorithm='definition')
+            sage: v = w.iterated_right_palindromic_closure(algorithm='recursive')
+            sage: u == v
+            True
 
         TESTS:
 
@@ -1285,8 +1402,11 @@ class Word_class(SageObject):
 
         REFERENCES:
 
-        -   A. de Luca, A. De Luca, Pseudopalindrome closure operators
+        -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
+        -   [2] J. Justin, Episturmian morphisms and a Galois theorem on
+            continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
+            207-215.
         """
         if isinstance(self, FiniteWord_class):
             length = "finite"
@@ -1294,7 +1414,12 @@ class Word_class(SageObject):
             length = None
         else:
             length = "unknown"
-        it = self._iterated_right_palindromic_closure_iterator(f=f)
+        if algorithm == 'definition':
+            it = self._iterated_right_palindromic_closure_iterator(f=f)
+        elif algorithm == 'recursive':
+            it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
+        else:
+            raise ValueError, "algorithm (=%s) must be either 'definition' or 'recursive'"
         return self._parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
@@ -4325,6 +4450,116 @@ exponent %s: the length of the word (%s) times the exponent \
             True
         """
         return self._pos_in(other, 0)
+
+    def find(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the first occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
+
+        INPUT:
+
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position from which to start the search.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position at which the search must stop. If None, then
+           the search is performed up to the end of the string.
+
+        OUTPUT:
+
+            non negative integer or -1
+
+        EXAMPLES::
+
+            sage: w = Word([0,1,0,0,1])
+            sage: w.find(Word([0,1]))
+            0
+            sage: w.find(Word([0,1]), start=1)
+            3
+            sage: w.find(Word([0,1]), start=1, end=5)
+            3
+            sage: w.find(Word([0,1]), start=1, end=4) == -1
+            True
+            sage: w.find(Word([1,1])) == -1
+            True
+
+        Instances of Word_str handle string inputs as well::
+
+            sage: w = Word('abac')
+            sage: w.find('a')
+            0
+            sage: w.find(Word('a'))
+            0
+        """
+        w = self[start:end]
+        if isinstance(sub, FiniteWord_class):
+            p = sub.first_pos_in(w)
+            if p is None:
+                return -1
+            else:
+                return p + start
+        else:
+            l = len(sub)
+            if start is None:
+                i = len(self) - l
+            else:
+                i = start - l
+            while i >= end:
+                if self[i:i+l] == sub: return i
+                i -= 1
+            return -1
+
+    def rfind(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the last occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
+
+        INPUT:
+
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position at which the search must stop.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position from which to start the search. If None, then
+           the search is performed up to the end of the string.
+
+        OUTPUT:
+
+            non negative integer or -1
+
+        EXAMPLES::
+
+            sage: w = Word([0,1,0,0,1])
+            sage: w.rfind(Word([0,1]))
+            3
+            sage: w.rfind(Word([0,1]), end=4)
+            0
+            sage: w.rfind(Word([0,1]), end=5)
+            3
+            sage: w.rfind(Word([0,0]), start=2, end=5)
+            2
+            sage: w.rfind(Word([0,0]), start=3, end=5) == -1
+            True
+
+        Instances of Word_str handle string inputs as well::
+
+            sage: w = Word('abac')
+            sage: w.rfind('a')
+            2
+            sage: w.rfind(Word('a'))
+            2
+        """
+        l = len(sub)
+        if end is None:
+            i = len(self) - l
+        else:
+            i = end - l
+        while i >= start:
+            if self[i:i+l] == sub: return i
+            i -= 1
+        return -1
 
     ###########################################################################
     ##### DEPRECATION WARNINGS ################################################

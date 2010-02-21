@@ -410,22 +410,24 @@ cdef class WordDatatype_str(WordDatatype):
             return w in self._data
         raise ValueError
 
-    cpdef find(self, letter, start=None, stop=None):
-        """
-        Return the position of the first occurrence of ``letter`` in
-        ``self``.
+    cpdef find(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the first occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
 
         INPUT:
 
-        -  ``letter`` - the letter to search for
-        - ``start`` - [default: 0] the position in which to start searching
-        - ``stop`` - [default: None] the position in which to stop searching
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position from which to start the search.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position at which the search must stop. If None, then
+           the search is performed up to the end of the string.
 
         OUTPUT:
 
-        - nonnegative integer if the ``letter`` occurs in the word
-        - ``-1`` if ``letter`` does not occur in the word. (This is the same
-          behaviour as Python's :class:`str`.)
+           non negative integer or -1
 
         EXAMPLES::
 
@@ -436,30 +438,34 @@ cdef class WordDatatype_str(WordDatatype):
             5
             sage: w.find("a", 4, 5)
             -1
-
         """
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self._data)
-        return self._data.find(letter, start, stop)
+        if end is None:
+            end = len(self._data)
+        if isinstance(sub, WordDatatype_str):
+            return self._data.find(sub._data, start, end)
+        elif isinstance(sub, str):
+            return self._data.find(sub, start, end)
+        else:
+            return super(WordDatatype_str, self).find(sub, start, end)
 
-    def rfind(self, letter, start=None, stop=None):
-        """
-        Similar to :method:`find`, but searches through the word in
-        reverse.
+    def rfind(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the last occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
 
         INPUT:
 
-        - ``letter`` - the letter to search for
-        - ``start`` - [default: None] the position in which to start searching
-        - ``stop`` - [default: None] the position in which to stop searching
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position at which the search must stop.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position from which to start the search. If None, then
+           the search is performed up to the end of the string.
 
         OUTPUT:
 
-        - nonnegative integer if the ``letter`` occurs in the word
-        - ``-1`` if ``letter`` does not occur in the word. (This is the same
-          behaviour as Python's :class:`str`.)
+            non negative integer or -1
 
         EXAMPLES::
 
@@ -470,15 +476,15 @@ cdef class WordDatatype_str(WordDatatype):
             6
             sage: w.rfind("a", 4, 5)
             -1
-
         """
-        if len(letter) != 1:
-           return False
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self._data)
-        return self._data.rfind(letter, start, stop)
+        if end is None:
+            end = len(self._data)
+        if isinstance(sub, WordDatatype_str):
+            return self._data.rfind(sub._data, start, end)
+        elif isinstance(sub, str):
+            return self._data.rfind(sub, start, end)
+        else:
+            return super(WordDatatype_str, self).rfind(sub, start, end)
 
     def __len__(self):
         r"""

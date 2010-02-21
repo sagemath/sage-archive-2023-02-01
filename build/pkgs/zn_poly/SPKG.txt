@@ -24,6 +24,12 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
 
 == Changelog ==
 
+
+=== zn_poly-0.9.p3 (Jaap Spies, February 21th, 2010) ===
+ * Ticket #8178: if SAGE64=yes we set CFLAGS appropriate. In patches/makemakefile.py we add $(LDFLAGS)
+   when we build the shared library. This works for Darwin and Open Solaris.
+
+
 === zn_poly-0.9.p2 (Mike Hansen, February 15th, 2010) ===
  *  Ticket #8280: cygwin: zn_poly shared library named incorrectly on cygwin
 

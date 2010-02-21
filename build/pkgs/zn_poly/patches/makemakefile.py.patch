@@ -1,12 +1,15 @@
---- makemakefile.py.orig	2008-08-19 17:13:51.000000000 -0700
-+++ makemakefile.py	2008-08-19 17:14:37.000000000 -0700
-@@ -167,6 +167,9 @@
- print "libzn_poly.dylib: $(LIBOBJS)"
- print "\t$(CC) -single_module -fPIC -dynamiclib -o libzn_poly.dylib $(LIBOBJS) $(LIBS)"
+--- ../src/makemakefile.py	2008-09-22 17:35:05.000000000 +0200
++++ makemakefile.py	2010-02-21 17:59:07.440760614 +0100
+@@ -192,8 +192,11 @@
+ print "\t$(CC) -single_module -fPIC -dynamiclib -o libzn_poly.dylib " \
+       "$(LIBOBJS) $(LIBS)"
  print
 +print "libzn_poly.dylib64: $(LIBOBJS)"
 +print "\t$(CC) -m64 -single_module -fPIC -dynamiclib -o libzn_poly.dylib $(LIBOBJS) $(LIBS)"
 +print
  print "libzn_poly.so: $(LIBOBJS)"
- print "\t$(CC) -shared -o libzn_poly.so $(LIBOBJS) $(LIBS)"
+-print "\t$(CC) -shared -Wl,-soname,libzn_poly-`cat VERSION`.so " \
++print "\t$(CC) -shared $(LDFLAGS) -Wl,-soname,libzn_poly-`cat VERSION`.so " \
+       "-o libzn_poly-`cat VERSION`.so $(LIBOBJS) $(LIBS)"
+ print "\t ln -sf libzn_poly-`cat VERSION`.so libzn_poly.so"
  

@@ -12,9 +12,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "x$SAGE64" = xyes ]; then
+   echo "64 bit build"
    CFLAGS="-O3 -g -m64 -fPIC -L."; export CFLAGS
    LDFLAGS="-m64 "; export LDFLAGS
    cp patches/makemakefile.py src/makemakefile.py

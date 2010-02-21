@@ -196,7 +196,7 @@ print "libzn_poly.dylib64: $(LIBOBJS)"
 print "\t$(CC) -m64 -single_module -fPIC -dynamiclib -o libzn_poly.dylib $(LIBOBJS) $(LIBS)"
 print
 print "libzn_poly.so: $(LIBOBJS)"
-print "\t$(CC) -shared -Wl,-soname,libzn_poly-`cat VERSION`.so " \
+print "\t$(CC) -shared $(LDFLAGS) -Wl,-soname,libzn_poly-`cat VERSION`.so " \
       "-o libzn_poly-`cat VERSION`.so $(LIBOBJS) $(LIBS)"
 print "\t ln -sf libzn_poly-`cat VERSION`.so libzn_poly.so"
 

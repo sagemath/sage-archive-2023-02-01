@@ -29,7 +29,7 @@ checkdotsage()
     fi
 }
 
-if [ "$(which latex)" && "$(kpsewhich tkz-berge.sty)" ]
+if [ "$(which latex)" ] && [ "$(kpsewhich tkz-berge.sty)" ]
 then
     cd src
 

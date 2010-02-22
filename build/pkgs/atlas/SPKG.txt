@@ -33,6 +33,10 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p12 (Jaap Spies, Februari 22th 2010) ===
+ * #8039 For use with the Sun ld with SAGE64="yes" change ldflag -melf_86_64 to -64
+ * See also the remarks from David Kirky on atlas-3.8.3.p5
+
 === atlas-3.8.3.p11 (Peter Jeremy, 2010-01-25)===
  * #7827: Fix atlas-3.8.3.p9 compilation on FreeBSD
  * Minh Van Nguyen: patch spkg-install-script to copy

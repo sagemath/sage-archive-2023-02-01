@@ -86,11 +86,16 @@ build()
              echo "'--no-whole-archive' will be changed to '-zdefaultextract'"
              echo "A copy of the original Makefile will be copied to Makefile.orig"
              cp Makefile Makefile.orig
-             sed 's/-shared/-G/g' Makefile > makefile
-             sed 's/-soname/-h/g' makefile > Makefile
-             sed 's/--whole-archive/-z allextract/g' Makefile > makefile
-             sed 's/--no-whole-archive/-z defaultextract/g' makefile > Makefile
-             rm makefile
+             sed 's/-shared/-G/g' Makefile > makefile.tmp
+             sed 's/-soname/-h/g' makefile.tmp > Makefile
+             sed 's/--whole-archive/-z allextract/g' Makefile > makefile.tmp
+             sed 's/--no-whole-archive/-z defaultextract/g' makefile.tmp > Makefile
+             rm makefile.tmp
+             echo "Change ldflag -melf_x86_64 to -64 as needed for Sun ld"
+             if [ "x$SAGE64" = xyes ]; then
+                sed 's/-melf_x86_64/-64/g' Make.inc > makeinc
+                mv makeinc Make.inc
+             fi
           else
              echo "WARNING You are using the GNU linker from 'binutils'"
              echo "Generally it is considered better to use the Sun linker"

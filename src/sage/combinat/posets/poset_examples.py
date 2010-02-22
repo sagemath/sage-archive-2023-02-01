@@ -17,7 +17,7 @@ Some examples of posets and lattices.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from random import random
+import random
 from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset, Posets_all, FinitePosets_n
 from sage.combinat.posets.lattices import LatticePoset
@@ -225,7 +225,7 @@ class PosetsGenerator(object):
         D.add_vertices(range(n))
         for i in range(n):
             for j in range(n):
-                if random() < p:
+                if random.random() < p:
                     D.add_edge(i,j)
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)

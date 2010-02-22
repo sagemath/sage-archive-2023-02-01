@@ -24,7 +24,7 @@ from sage.rings.integer import Integer
 from sage.graphs.all import DiGraph
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import *
-from random import random
+import random
 from sage.combinat.combinat import CombinatorialClass, InfiniteAbstractCombinatorialClass
 
 def Poset(data=None, element_labels=None, cover_relations=False):
@@ -1364,7 +1364,7 @@ class FinitePoset(ParentWithBase):
         elements = []
         p = float(p)
         for v in self:
-            if random() <= p:
+            if random.random() <= p:
                 elements.append(v)
         return self.subposet(elements)
 

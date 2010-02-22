@@ -1497,6 +1497,36 @@ class CGraphBackend(GenericGraphBackend):
         return (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v))) and \
             (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v, reverse=True)))
 
+    def strongly_connected_component_containing_vertex(self, v):
+        r"""
+        Returns the strongly connected component containing the given vertex
+
+        INPUT:
+
+        - ``v`` -- a vertex
+
+        EXAMPLE:
+
+        The digraph obtained from the PetersenGraph has an unique
+        strongly connected component ::
+
+            sage: g = DiGraph(graphs.PetersenGraph())
+            sage: g.strongly_connected_component_containing_vertex(0)
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        In the Butterfly DiGraph, each vertex is a strongly connected
+        component::
+
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: all([[v] == g.strongly_connected_component_containing_vertex(v) for v in g])
+            True
+        """
+        cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef set a = set(self.depth_first_search(v))
+        cdef set b = set(self.depth_first_search(v, reverse=True))
+        return list(a & b)
+
+
 
 cdef class Search_iterator:
     cdef graph

@@ -1438,14 +1438,120 @@ class DiGraph(GenericGraph):
             [[0, 1, 2, 3], [4, 5, 6]]
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.strongly_connected_components()
-            [[3], [2], [1], [0], [6], [5], [4]]
+            [[0], [1], [2], [3], [4], [5], [6]]
             sage: D.add_edge([2,0])
             sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [6], [5], [4]]
+            [[0, 1, 2], [3], [4], [5], [6]]
+        """
+
+        try:
+            vertices = set(self.vertices())
+            scc = []
+            while vertices:
+                tmp = self.strongly_connected_component_containing_vertex(vertices.__iter__().next())
+                vertices.difference_update(set(tmp))
+                scc.append(tmp)
+            return scc
+
+        except ValueError:
+            import networkx
+            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+
+
+    def strongly_connected_component_containing_vertex(self, v):
+        """
+        Returns the set of vertices whose strongly connected component is the same as v's.
+
+        INPUT:
+
+        - ``v`` -- a vertex
+
+        EXAMPLE:
+
+        In the symmetric digraph of a graph, the strongly connected components are the connected
+        components::
+
+            sage: g = graphs.PetersenGraph()
+            sage: d = DiGraph(g)
+            sage: d.strongly_connected_component_containing_vertex(0)
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+
+        if self.order()==1:
+            return [v]
+
+        try:
+            return self._backend.strongly_connected_component_containing_vertex(v)
+
+        except AttributeError:
+            raise ValueError("This function is only defined for C graphs.")
+
+    def strongly_connected_components_subgraphs(self):
+        r"""
+        Returns the strongly connected components as a list of subgraphs.
+
+        EXAMPLE:
+
+        In the symmetric digraph of a graph, the strongly connected components are the connected
+        components::
+
+            sage: g = graphs.PetersenGraph()
+            sage: d = DiGraph(g)
+            sage: d.strongly_connected_components_subgraphs()
+            [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        import networkx
-        return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+        return map(self.subgraph, self.strongly_connected_components())
+
+
+    def strongly_connected_components_digraph(self):
+        r"""
+        Returns the digraph of the strongly connected components
+
+        The digraph of the strongly connected components of a graph `G` has
+        a vertex per strongly connected component included in `G`. There
+        is an edge from a component `C_1` to a component `C_2` if there is
+        an edge from one to the other in `G`.
+
+        EXAMPLE:
+
+        Such a digraph is always acyclic ::
+
+            sage: g = digraphs.RandomDirectedGNP(15,.1)
+            sage: scc_digraph = g.strongly_connected_components_digraph()
+            sage: scc_digraph.is_directed_acyclic()
+            True
+
+        The vertices of the digraph of strongly connected components are
+        exactly the strongly connected components::
+
+            sage: g = digraphs.ButterflyGraph(2)
+            sage: scc_digraph = g.strongly_connected_components_digraph()
+            sage: g.is_directed_acyclic()
+            True
+            sage: all([ Set(scc) in scc_digraph.vertices() for scc in g.strongly_connected_components()])
+            True
+        """
+
+        from sage.sets.set import Set
+
+        scc = self.strongly_connected_components()
+        scc_set = map(Set,scc)
+
+        d = {}
+        for i,c in enumerate(scc):
+            for v in c:
+                d[v] = i
+
+        g = DiGraph()
+        g.add_vertices(scc_set)
+        g.allow_multiple_edges(False)
+
+        g.add_edges( (scc_set[d[u]], scc_set[d[u]]) for u,v in self.edges(labels=False) )
+
+        return g
+
+
 
     def is_strongly_connected(self):
         r"""

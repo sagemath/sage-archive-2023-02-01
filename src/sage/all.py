@@ -158,7 +158,7 @@ for name,func in globs.items():
 
     globs[name] = partial(wrapper, func, name)
 
-del globs, wraps, partial
+del globs, wraps, partial, name, func
 
 
 

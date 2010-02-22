@@ -9,6 +9,16 @@ AUTHORS:
   users' home directory has a space in it.
 
 - Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
+
+TESTS:
+
+Check the fix from trac #8323::
+
+    sage: globals().has_key('name')
+    False
+    sage: globals().has_key('func')
+    False
+
 """
 
 ########################################################################

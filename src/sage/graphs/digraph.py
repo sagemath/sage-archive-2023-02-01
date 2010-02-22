@@ -301,6 +301,16 @@ class DiGraph(GenericGraph):
             sage: a = matrix(2,2,[3,2,0,1])
             sage: DiGraph(a,sparse=True).adjacency_matrix() == a
             True
+
+        The positions are copied when the DiGraph is built from
+        another DiGraph or from a Graph ::
+
+            sage: g = DiGraph(graphs.PetersenGraph())
+            sage: h = DiGraph(g)
+            sage: g.get_pos() == h.get_pos()
+            True
+            sage: g.get_pos() == graphs.PetersenGraph().get_pos()
+            True
         """
         from sage.all import walltime
         msg = ''
@@ -443,6 +453,8 @@ class DiGraph(GenericGraph):
             if weighted is None: weighted = data.weighted()
             num_verts = data.num_verts()
             verts = data.vertex_iterator()
+            if data.get_pos() is not None:
+                pos = data.get_pos().copy()
         elif format == 'rule':
             f = data[1]
             if loops is None: loops = any(f(v,v) for v in data[0])

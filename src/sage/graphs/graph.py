@@ -771,6 +771,22 @@ class Graph(GenericGraph):
             sage: a = matrix(2,2,[2,0,0,1])
             sage: Graph(a,sparse=True).adjacency_matrix() == a
             True
+
+        The positions are copied when the graph is built from
+        another graph ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: h = Graph(g)
+            sage: g.get_pos() == h.get_pos()
+            True
+
+        Or from a DiGraph ::
+
+            sage: d = DiGraph(g)
+            sage: h = Graph(d)
+            sage: g.get_pos() == h.get_pos()
+            True
+
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -953,6 +969,9 @@ class Graph(GenericGraph):
             if weighted is None: weighted = data.weighted()
             num_verts = data.num_verts()
             verts = data.vertex_iterator()
+            if data.get_pos() is not None:
+                pos = data.get_pos().copy()
+
         elif format == 'rule':
             f = data[1]
             if loops is None: loops = any(f(v,v) for v in data[0])

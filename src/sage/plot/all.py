@@ -25,6 +25,6 @@ from animate import Animation as animate
 
 from plot3d.tachyon import Tachyon
 
-from colors import Color, hue, rainbow
+from colors import Color, hue, rainbow, colors, colormaps
 
 from step import plot_step_function

@@ -755,9 +755,9 @@ end_scene""" % (render_params.antialiasing,
             set([])
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
-            sage: [t for t in G.texture_set() if t.color == (1, 0, 0)] # we should have two red textures
+            sage: [t for t in G.texture_set() if t.color == colors.red] # we should have two red textures
             [Texture(texture..., red, ff0000), Texture(texture..., red, ff0000)]
-            sage: [t for t in G.texture_set() if t.color == (1, 1, 0)] # ...and one yellow
+            sage: [t for t in G.texture_set() if t.color == colors.yellow] # ...and one yellow
             [Texture(texture..., yellow, ffff00)]
         """
         return set()
@@ -1392,9 +1392,9 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sphere(color='red') + sphere(color='yellow')
-            sage: [t for t in G.texture_set() if t.color == (1, 0, 0)] # one red texture
+            sage: [t for t in G.texture_set() if t.color == colors.red] # one red texture
             [Texture(texture..., red, ff0000)]
-            sage: [t for t in G.texture_set() if t.color == (1, 1, 0)] # one yellow texture
+            sage: [t for t in G.texture_set() if t.color == colors.yellow] # one yellow texture
             [Texture(texture..., yellow, ffff00)]
 
             sage: T = sage.plot.plot3d.texture.Texture('blue'); T

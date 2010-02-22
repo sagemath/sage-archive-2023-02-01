@@ -327,8 +327,10 @@ class SimplicialComplexMorphism(SageObject):
             else:
                 matrices[-1] = m.transpose()
         for dim in range(min_dim+1):
-            X_faces = list(self._domain.faces()[dim])
-            Y_faces = list(self._codomain.faces()[dim])
+#             X_faces = list(self._domain.faces()[dim])
+#             Y_faces = list(self._codomain.faces()[dim])
+            X_faces = list(self._domain.n_cells(dim))
+            Y_faces = list(self._codomain.n_cells(dim))
             num_faces_X = len(X_faces)
             num_faces_Y = len(Y_faces)
             mval = [0 for i in range(num_faces_X*num_faces_Y)]
@@ -345,11 +347,11 @@ class SimplicialComplexMorphism(SageObject):
                 matrices[dim] = m.transpose()
         for dim in range(min_dim+1,max_dim+1):
             try:
-                l1 = len(self._codomain.faces()[dim])
+                l1 = len(self._codomain.n_cells(dim))
             except KeyError:
                 l1 = 0
             try:
-                l2 = len(self._domain.faces()[dim])
+                l2 = len(self._domain.n_cells(dim))
             except KeyError:
                 l2 = 0
             m = matrix.zero_matrix(base_ring,l1,l2,sparse=True)

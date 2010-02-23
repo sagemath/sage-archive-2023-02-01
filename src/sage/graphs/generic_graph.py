@@ -4661,6 +4661,65 @@ class GenericGraph(GenericGraph_pyx):
 
     __contains__ = has_vertex
 
+    def random_vertex(self,**kwds):
+        r"""
+        Returns a random vertex.
+
+        INPUT:
+
+        - ``**kwds`` -- arguments to be passed down to the
+          ``vertex_iterator`` method.
+
+        EXAMPLE:
+
+        The returned value belong to the set of vertices::
+
+            sage: g = graphs.PetersenGraph()
+            sage: v = g.random_vertex()
+            sage: v in g
+            True
+        """
+
+        from sage.misc.prandom import randint
+        it = self.vertex_iterator(**kwds)
+        for i in xrange(0, randint(0,self.order()-1)):
+            it.next()
+
+        return it.next()
+
+    def random_edge(self,**kwds):
+        r"""
+        Returns a random edge.
+
+        INPUT:
+
+        - ``**kwds`` -- arguments to be passed down to the
+          ``edge_iterator`` method.
+
+        EXAMPLE:
+
+        The returned value belong to the set of edges::
+
+            sage: g = graphs.PetersenGraph()
+            sage: u,v = g.random_edge(labels=False)
+            sage: g.has_edge(u,v)
+            True
+
+        As the ``edges()`` method would, this function returns
+        by default a triple ``(u,v,l)`` of values, in which
+        ``l`` is the label of edge `u,v` ::
+
+            sage: g.random_edge()
+            (...,...,...)
+        """
+
+        from sage.misc.prandom import randint
+        it = self.edge_iterator(**kwds)
+        for i in xrange(0, randint(0,self.size()-1)):
+            it.next()
+
+        return it.next()
+
     def vertex_boundary(self, vertices1, vertices2=None):
         """
         Returns a list of all vertices in the external boundary of

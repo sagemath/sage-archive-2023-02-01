@@ -221,6 +221,13 @@ class BipartiteGraph(Graph):
             Graph.__init__(self)
             self.left = set(); self.right = set()
             return
+
+        # need to turn off partition checking for Graph.__init__() adding
+        # vertices; methods are restored ad the end of big "if" statement below
+        import types
+        self.add_vertex = types.MethodType(Graph.add_vertex, self, BipartiteGraph)
+        self.add_vertices = types.MethodType(Graph.add_vertices, self, BipartiteGraph)
+
         arg1 = args[0]
         args = args[1:]
         from sage.structure.element import is_Matrix
@@ -229,7 +236,10 @@ class BipartiteGraph(Graph):
             self.left, self.right = set(arg1.left), set(arg1.right)
         elif isinstance(arg1, str):
             Graph.__init__(self, *args, **kwds)
-            self.load_afile(arg1)
+            # will call self.load_afile after restoring add_vertex() instance
+            # methods; initialize left and right attributes
+            self.left = set()
+            self.right = set()
         elif is_Matrix(arg1):
             # sanity check for mutually exclusive keywords
             if kwds.get('multiedges',False) and kwds.get('weighted',False):
@@ -287,10 +297,9 @@ class BipartiteGraph(Graph):
                             self.delete_edges([(a, b) for b in a_nbrs])
                 self.left, self.right = set(args[0][0]), set(args[0][1])
         elif isinstance(arg1, Graph):
+            Graph.__init__(self, arg1, *args, **kwds)
             try:
-                Graph.__init__(self, arg1, *args, **kwds)
                 self.left, self.right = self.bipartite_sets()
-                return
             except:
                 raise TypeError("Input graph is not bipartite!")
         else:
@@ -315,6 +324,16 @@ class BipartiteGraph(Graph):
                 except:
                     raise TypeError("Input graph is not bipartite!")
 
+        # restore vertex partition checking
+        self.add_vertex = types.MethodType(BipartiteGraph.add_vertex, self, BipartiteGraph)
+        self.add_vertices = types.MethodType(BipartiteGraph.add_vertices, self, BipartiteGraph)
+
+        # post-processing
+        if isinstance(arg1, str):
+            self.load_afile(arg1)
+
+        return
+
     def __repr__(self):
         r"""
         Returns a short string representation of self.
@@ -330,6 +349,312 @@ class BipartiteGraph(Graph):
             return s.capitalize()
         else:
             return 'Bipartite ' + s
+
+
+    def add_vertex(self, name=None, left=False, right=False):
+        """
+        Creates an isolated vertex. If the vertex already exists, then
+        nothing is done.
+
+        INPUT:
+
+        - ``name`` - Name of the new vertex.  If no name is specified, then the
+           vertex will be represented by the least non-negative integer not
+           already representing a vertex.  Name must be an immutable object,
+           and cannot be None.
+
+        - ``left`` - if True, puts the new vertex in the left partition.
+
+        - ``right`` - if True, puts the new vertex in the right partition.
+
+        Obviously, ``left`` and ``right`` are mutually exclusive.
+
+        As it is implemented now, if a graph `G` has a large number
+        of vertices with numeric labels, then G.add_vertex() could
+        potentially be slow, if name is None.
+
+        EXAMPLES::
+
+            sage: G = BipartiteGraph()
+            sage: G.add_vertex(left=True)
+            sage: G.add_vertex(right=True)
+            sage: G.vertices()
+            [0, 1]
+            sage: G.left
+            set([0])
+            sage: G.right
+            set([1])
+
+        TEST::
+
+          Exactly one of ``left`` and ``right`` must be true::
+
+            sage: G = BipartiteGraph()
+            sage: G.add_vertex()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Partition must be specified (e.g. left=True).
+            sage: G.add_vertex(left=True, right=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Only one partition may be specified.
+
+          Adding the same vertex must specify the same partition::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertex(0, right=True)
+            sage: bg.add_vertex(0, right=True)
+            sage: bg.vertices()
+            [0]
+            sage: bg.add_vertex(0, left=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cannot add duplicate vertex to other partition.
+
+
+        """
+        # sanity check on partition specifiers
+        if left and right:
+            raise RuntimeError('Only one partition may be specified.')
+        if not (left or right):
+            raise RuntimeError('Partition must be specified (e.g. left=True).')
+
+        # do nothing if we already have this vertex (idempotent)
+        if (name is not None) and (name in self):
+            if ((name in self.left) and left) or ((name in self.right) and right):
+                return
+            else:
+                raise RuntimeError('Cannot add duplicate vertex to other partition.')
+
+        # add the vertex
+        if name is not None:
+            # easy add
+            Graph.add_vertex(self, name)
+        else:
+            # figure out what vertex name we end up with
+            old_verts = set(self.vertices())
+            Graph.add_vertex(self, name)
+            new_verts = set(self.vertices())
+            name = list(new_verts - old_verts)[0]
+
+        # add to proper partition
+        if left:
+            self.left.add(name)
+        else:
+            self.right.add(name)
+
+        return
+
+
+    def add_vertices(self, vertices, left=False, right=False):
+        """
+        Add vertices to the bipartite graph from an iterable container of
+        vertices.  Vertices that already exist in the graph will not be added
+        again.
+
+        INPUTS::
+
+          - ``vertices`` - sequence of vertices to add.
+
+          - ``left`` - either True or sequence of same length as ``vertices``
+            with True/False elements.
+
+          - ``right`` - either True or sequence of the same length as
+            ``vertices`` with True/False elements.
+
+        Only one of ``left`` and ``right`` keywords should be provided.  See
+        the examples below.
+
+        EXAMPLES::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertices([0,1,2], left=True)
+            sage: bg.add_vertices([3,4,5], left=[True, False, True])
+            sage: bg.add_vertices([6,7,8], right=[True, False, True])
+            sage: bg.add_vertices([9,10,11], right=True)
+            sage: bg.left
+            set([0, 1, 2, 3, 5, 7])
+            sage: bg.right
+            set([4, 6, 8, 9, 10, 11])
+
+
+        TEST::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertices([0,1,2], left=True)
+            sage: bg.add_vertices([0,1,2], left=[True,True,True])
+            sage: bg.add_vertices([0,1,2], right=[False,False,False])
+            sage: bg.add_vertices([0,1,2], right=[False,False,False])
+            sage: bg.add_vertices([0,1,2])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Partition must be specified (e.g. left=True).
+            sage: bg.add_vertices([0,1,2], left=True, right=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Only one partition may be specified.
+            sage: bg.add_vertices([0,1,2], right=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cannot add duplicate vertex to other partition.
+            sage: (bg.left, bg.right)
+            (set([0, 1, 2]), set([]))
+
+        """
+        # sanity check on partition specifiers
+        if left and right:  # also triggered if both lists are specified
+            raise RuntimeError('Only one partition may be specified.')
+        if not (left or right):
+            raise RuntimeError('Partition must be specified (e.g. left=True).')
+
+        # handle partitions
+        if left and (not hasattr(left, '__iter__')):
+            new_left = set(vertices)
+            new_right = set()
+        elif right and (not hasattr(right, '__iter__')):
+            new_left = set()
+            new_right = set(vertices)
+        else:
+            # simplify to always work with left
+            if right:
+                left = map(lambda tf: not tf, right)
+            new_left = set()
+            new_right = set()
+            for tf,vv in zip(left, vertices):
+                if tf:
+                    new_left.add(vv)
+                else:
+                    new_right.add(vv)
+
+        # check that we're not trying to add vertices to the wrong sets
+        if (new_left & self.right) or (new_right & self.left):
+            raise RuntimeError('Cannot add duplicate vertex to other partition.')
+
+        # add vertices
+        Graph.add_vertices(self, vertices)
+        self.left.update(new_left)
+        self.right.update(new_right)
+
+        return
+
+    def delete_vertex(self, vertex, in_order=False):
+        """
+        Deletes vertex, removing all incident edges. Deleting a non-existent
+        vertex will raise an exception.
+
+        INPUT:
+
+
+        - ``in_order`` - (default ``False``) If ``True``, this deletes the ith vertex
+           in the sorted list of vertices, i.e.  ``G.vertices()[i]``
+
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(4))
+            sage: B
+            Bipartite cycle graph: graph on 4 vertices
+            sage: B.delete_vertex(0)
+            sage: B
+            Bipartite cycle graph: graph on 3 vertices
+            sage: B.left
+            set([2])
+            sage: B.edges()
+            [(1, 2, None), (2, 3, None)]
+            sage: B.delete_vertex(3)
+            sage: B.right
+            set([1])
+            sage: B.edges()
+            [(1, 2, None)]
+            sage: B.delete_vertex(0)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Vertex (0) not in the graph.
+
+        ::
+
+            sage: g = Graph({'a':['b'], 'c':['b']})
+            sage: bg = BipartiteGraph(g)  # finds bipartition
+            sage: bg.vertices()
+            ['a', 'b', 'c']
+            sage: bg.delete_vertex('a')
+            sage: bg.edges()
+            [('b', 'c', None)]
+            sage: bg.vertices()
+            ['b', 'c']
+            sage: bg2 = BipartiteGraph(g)
+            sage: bg2.delete_vertex(0, in_order=True)
+            sage: bg2 == bg
+            True
+        """
+        # cache vertex lookup if requested
+        if in_order:
+            vertex = self.vertices()[vertex]
+
+        # delete from the graph
+        Graph.delete_vertex(self, vertex)
+
+        # now remove from partition (exception already thrown for non-existant
+        # vertex)
+        try:
+            self.left.remove(vertex)
+        except:
+            try:
+                self.right.remove(vertex)
+            except:
+                raise RuntimeError("Vertex (%s) not found in partitions"%vertex)
+
+    def delete_vertices(self, vertices):
+        """
+        Remove vertices from the bipartite graph taken from an iterable
+        sequence of vertices. Deleting a non-existent vertex will raise an
+        exception.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(4))
+            sage: B
+            Bipartite cycle graph: graph on 4 vertices
+            sage: B.delete_vertices([0,3])
+            sage: B
+            Bipartite cycle graph: graph on 2 vertices
+            sage: B.left
+            set([2])
+            sage: B.right
+            set([1])
+            sage: B.edges()
+            [(1, 2, None)]
+            sage: B.delete_vertices([0])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Vertex (0) not in the graph.
+
+        """
+        # remove vertices from the graph
+        Graph.delete_vertices(self, vertices)
+
+        # now remove vertices from partition lists (exception already thrown
+        # for non-existant vertices)
+        for vertex in vertices:
+            try:
+                self.left.remove(vertex)
+            except:
+                try:
+                    self.right.remove(vertex)
+                except:
+                    raise RuntimeError("Vertex (%s) not found in partitions"%vertex)
+
+    def to_undirected(self):
+        """
+        Return an undirected Graph (without bipartite constraint) of the given
+        object.
+
+        EXAMPLES::
+
+            sage: BipartiteGraph(graphs.CycleGraph(6)).to_undirected()
+            Cycle graph: Graph on 6 vertices
+        """
+        return Graph(self)
 
     def bipartition(self):
         r"""
@@ -483,7 +808,8 @@ class BipartiteGraph(Graph):
 
         # clear out self
         self.clear()
-        self.add_vertices(range(num_cols + num_rows))
+        self.add_vertices(range(num_cols), left=True)
+        self.add_vertices(range(num_cols, num_cols+num_rows), right=True)
 
         # read adjacency information
         for cidx in range(num_cols):

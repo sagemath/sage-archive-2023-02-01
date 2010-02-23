@@ -1,4 +1,11 @@
+r"""
+Generic graphs
 
+This module implements the base class for graphs and digraphs.
+
+Class and methods
+-----------------
+"""
 
 from sage.plot.misc import options
 from sage.misc.prandom import random

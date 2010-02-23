@@ -104,7 +104,7 @@ from sage.rings.all      import RationalField, Integer, RDF
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import sage.structure.coerce as coerce
-from sage.rings.finite_field import FiniteField as GF
+from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.plot.all import polygon, text

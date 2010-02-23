@@ -69,15 +69,15 @@ import sage.misc.prandom as random
 import weakref
 
 from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
-import commutative_ring
-import field
+import sage.rings.commutative_ring as commutative_ring
+import sage.rings.field as field
 import integer_mod
-import integer
-import integer_ring
-import rational
-import quotient_ring
-import ideal
-import finite_field_element
+import sage.rings.integer as integer
+import sage.rings.integer_ring as integer_ring
+import sage.rings.rational as rational
+import sage.rings.quotient_ring as quotient_ring
+import sage.rings.ideal as ideal
+import element_ext_pari
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.pari.all import pari, PariError
@@ -144,7 +144,7 @@ def is_IntegerModRing(x):
 
     EXAMPLES::
 
-        sage: from sage.rings.integer_mod_ring import is_IntegerModRing
+        sage: from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         sage: R = IntegerModRing(17)
         sage: is_IntegerModRing(R)
         True
@@ -341,7 +341,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._pyx_order.precompute_table(self)
 
     def list_of_elements_of_multiplicative_group(self):
-        import fast_arith as a
+        import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
             gcd = a.arith_int().gcd_int
         elif self.__order <= 2147483647:   # todo: don't hard code
@@ -443,8 +443,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except AttributeError:
             if not self.is_field():
                 raise ValueError, "self must be a field"
-            import finite_field
-            k = finite_field.FiniteField(self.order())
+            import constructor
+            k = constructor.FiniteField(self.order())
             self.__field = k
             return k
 
@@ -641,7 +641,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 vmod.append(w)
                 moduli.append(k)
             # Now combine in all possible ways using the CRT
-            from arith import CRT_basis
+            from sage.rings.arith import CRT_basis
             basis = CRT_basis(moduli)
             from sage.misc.mrange import cartesian_product_iterator
             v = []
@@ -829,7 +829,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
-        if integer_mod.is_IntegerMod(x) and not finite_field_element.is_FiniteFieldElement(x):
+        if integer_mod.is_IntegerMod(x) and not element_ext_pari.is_FiniteFieldElement(x):
             if x.parent().order() % self.characteristic() == 0:
                 return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"

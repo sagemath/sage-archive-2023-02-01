@@ -14,13 +14,13 @@ using the PARI implementation.
 
 EXAMPLES:
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k = GF(5^2,'c'); type(k)
-    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
     sage: k = GF(2^16,'c'); type(k)
-    <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+    <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
 
     sage: n = previous_prime_power(2^16 - 1)
     sage: while is_prime(n):
@@ -28,7 +28,7 @@ EXAMPLES:
     sage: factor(n)
     251^2
     sage: k = GF(n,'c'); type(k)
-    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
 
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
@@ -55,12 +55,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../libs/ntl/decl.pxi"
-include "../ext/interrupt.pxi"
+include "../../libs/ntl/decl.pxi"
+include "../../ext/interrupt.pxi"
 
 # this fails with a scoping error:
 #   AttributeError: CVoidType instance has no attribute 'scope'
-#include "../ext/stdsage.pxi"
+#include "../../ext/stdsage.pxi"
 
 cdef extern from "stdsage.h":
     ctypedef void PyObject
@@ -70,14 +70,13 @@ cdef extern from "stdsage.h":
 #init_csage()
 
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.rings.ring cimport FiniteField
+from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
-from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
-from sage.rings.finite_field_element import FiniteField_ext_pariElement
+from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
 from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
-import finite_field
+import constructor as finite_field
 import finite_field_ext_pari
 
 import sage.interfaces.gap
@@ -116,11 +115,11 @@ cdef void late_import():
     if is_IntegerMod is not None:
         return
 
-    import sage.rings.integer_mod
-    is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
+    import sage.rings.finite_rings.integer_mod
+    is_IntegerMod = sage.rings.finite_rings.integer_mod.is_IntegerMod
 
-    import sage.rings.integer_mod_ring
-    IntegerModRing_generic = sage.rings.integer_mod_ring.IntegerModRing_generic
+    import sage.rings.finite_rings.integer_mod_ring
+    IntegerModRing_generic = sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic
 
     import sage.rings.integer
     Integer = sage.rings.integer.Integer
@@ -134,8 +133,8 @@ cdef void late_import():
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_field
-    conway_polynomial = sage.rings.finite_field.conway_polynomial
+    import sage.rings.finite_rings.constructor
+    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial
@@ -221,11 +220,11 @@ cdef class FiniteField_givaro(FiniteField):
 
         Three different representations are possible::
 
-            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='poly').gen()
+            sage: sage.rings.finite_rings.element_givaro.FiniteField_givaro(9,repr='poly').gen()
             a
-            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
+            sage: sage.rings.finite_rings.element_givaro.FiniteField_givaro(9,repr='int').gen()
             3
-            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
+            sage: sage.rings.finite_rings.element_givaro.FiniteField_givaro(9,repr='log').gen()
             5
         """
 
@@ -267,8 +266,8 @@ cdef class FiniteField_givaro(FiniteField):
 
         self._is_conway = False
         if modulus is None or modulus == "default":
-            import sage.rings.finite_field
-            if k>1 and sage.rings.finite_field.exists_conway_polynomial(p, k):
+            import sage.rings.finite_rings.constructor
+            if k>1 and sage.rings.finite_rings.constructor.exists_conway_polynomial(p, k):
                 modulus = "conway"
             else:
                 modulus = "random"
@@ -407,7 +406,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: e = k.random_element(); e
             9*a^2 + 10*a + 3
             sage: type(e)
-            <type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>
+            <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
@@ -468,7 +467,7 @@ cdef class FiniteField_givaro(FiniteField):
 
         Univariate polynomials coerce into finite fields by evaluating
         the polynomial at the field's generator:
-            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: from sage.rings.finite_rings.element_givaro import FiniteField_givaro
             sage: R.<x> = QQ[]
             sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
             sage: k(R(2/3))
@@ -515,7 +514,7 @@ cdef class FiniteField_givaro(FiniteField):
 
             GAP elements need to be finite field elements:
 
-            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: from sage.rings.finite_rings.element_givaro import FiniteField_givaro
             sage: x = gap('Z(13)')
             sage: F = FiniteField_givaro(13)
             sage: F(x)
@@ -536,7 +535,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k(48771/1225)
             28
 
-            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: from sage.rings.finite_rings.element_givaro import FiniteField_givaro
             sage: F9 = FiniteField_givaro(9)
             sage: F81 = FiniteField_givaro(81)
             sage: F81(F9.gen())
@@ -687,7 +686,7 @@ cdef class FiniteField_givaro(FiniteField):
             Traceback (most recent call last):
             ...
             IndexError: only one generator
-            sage: F = sage.rings.finite_field_givaro.FiniteField_givaro(31)
+            sage: F = sage.rings.finite_rings.element_givaro.FiniteField_givaro(31)
             sage: F.gen()
             1
         """
@@ -715,7 +714,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: S.prime_subfield()
             Finite Field of size 5
             sage: type(S.prime_subfield())
-            <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+            <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
         """
         return self.prime_subfield_C()
 
@@ -932,12 +931,12 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k._element_repr(a^20)
             '2*a^3 + 2*a^2 + 2'
 
-            sage: k = sage.rings.finite_field_givaro.FiniteField_givaro(3^4,'a', repr='int')
+            sage: k = sage.rings.finite_rings.element_givaro.FiniteField_givaro(3^4,'a', repr='int')
             sage: a = k.gen()
             sage: k._element_repr(a^20)
             '74'
 
-            sage: k = sage.rings.finite_field_givaro.FiniteField_givaro(3^4,'a', repr='log')
+            sage: k = sage.rings.finite_rings.element_givaro.FiniteField_givaro(3^4,'a', repr='log')
             sage: a = k.gen()
             sage: k._element_repr(a^20)
             '20'
@@ -1200,7 +1199,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(5^2)
-            sage: from sage.rings.finite_field_givaro import FiniteField_givaroElement
+            sage: from sage.rings.finite_rings.element_givaro import FiniteField_givaroElement
             sage: FiniteField_givaroElement(k)
             0
 
@@ -1896,11 +1895,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: b.charpoly('x')
             x^2 + 4*x + 2
             sage: P = S._finite_field_ext_pari_(); type(P)
-            <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
             sage: c = b._finite_field_ext_pari_element(P); c
             b
             sage: type(c)
-            <class 'sage.rings.finite_field_element.FiniteField_ext_pariElement'>
+            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
             sage: c.charpoly('x')
             x^2 + 4*x + 2
 
@@ -1908,7 +1907,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: d = b._finite_field_ext_pari_element(); d
             b
             sage: type(d)
-            <class 'sage.rings.finite_field_element.FiniteField_ext_pariElement'>
+            <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
         """
         if k is None:
             k = (<FiniteField_givaro>self._parent)._finite_field_ext_pari_()
@@ -1996,7 +1995,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         # TODO -- I'm sure this can be made vastly faster
         # using how elements are represented as a power of the generator ??
 
-        # code copy'n'pasted from finite_field_element.py
+        # code copy'n'pasted from element_ext_pari.py
         import sage.rings.arith
 
         if self.__multiplicative_order is not None:
@@ -2050,7 +2049,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: S(gap('Z(25)^3'))
             4*b + 3
         """
-        #copied from finite_field_element.py
+        #copied from element_ext_pari.py
         cdef FiniteField_givaro F
         F = parent_object(self)
         if not F._is_conway:
@@ -2137,8 +2136,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return unpickle_FiniteField_givaroElement,(parent_object(self),self.element)
 
-
-
 def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     """
     EXAMPLE:
@@ -2148,6 +2145,9 @@ def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
         True
     """
     return make_FiniteField_givaroElement(parent, x)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.rings.finite_field_givaro', 'unpickle_FiniteField_givaroElement', unpickle_FiniteField_givaroElement)
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     cdef FiniteField_givaroElement y

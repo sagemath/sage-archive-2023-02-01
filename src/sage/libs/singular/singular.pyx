@@ -39,9 +39,9 @@ from sage.libs.singular.decl cimport rChangeCurrRing
 
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
-from sage.rings.integer_mod_ring import IntegerModRing_generic
-from sage.rings.finite_field_prime_modn import FiniteField_prime_modn
-from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
+from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.libs.pari.all import pari
 
 from sage.structure.parent_base cimport ParentWithBase
@@ -172,7 +172,7 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base)
         sage: f.lc()
         a^11 + a^10 + a^8 + a^7 + a^6 + a^5 + a^2 + a
         sage: type(f.lc())
-        <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2eElement'>
+        <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement'>
     """
     cdef napoly *z
     cdef int c, e
@@ -205,7 +205,7 @@ cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
         sage: f.lc()
         a^12 + a^11 + a^9 + a^8 + a^7 + 2*a^6 + a^5
         sage: type(f.lc())
-        <class 'sage.rings.finite_field_element.FiniteField_ext_pariElement'>
+        <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement'>
     """
     cdef napoly *z
     cdef int c, e

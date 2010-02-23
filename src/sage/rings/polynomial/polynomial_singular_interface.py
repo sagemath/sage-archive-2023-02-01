@@ -36,7 +36,6 @@ TESTS::
 #
 ######################################################################
 
-import sage.rings.finite_field
 import sage.rings.fraction_field
 import sage.rings.number_field as number_field
 
@@ -44,12 +43,12 @@ from sage.interfaces.all import singular as singular_default
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.real_double import is_RealDoubleField
 from sage.rings.rational_field import is_RationalField
 from sage.rings.integer_ring import ZZ
 import sage.rings.arith
-import sage.rings.ring
+import sage.rings.finite_rings.constructor
 
 
 class PolynomialRing_singular_repr:
@@ -184,7 +183,7 @@ class PolynomialRing_singular_repr:
             R._check_valid()
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
-            if sage.rings.ring.is_FiniteField(self.base_ring()) or\
+            if sage.rings.finite_rings.constructor.is_FiniteField(self.base_ring()) or\
                     (number_field.all.is_NumberField(self.base_ring()) and self.base_ring().is_absolute()):
                 R.set_ring() #sorry for that, but needed for minpoly
                 if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
@@ -240,7 +239,7 @@ class PolynomialRing_singular_repr:
         elif base_ring.is_prime_field():
             self.__singular = singular.ring(self.characteristic(), _vars, order=order, check=False)
 
-        elif sage.rings.ring.is_FiniteField(base_ring):
+        elif sage.rings.finite_rings.constructor.is_FiniteField(base_ring):
             # not the prime field!
             gen = str(base_ring.gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
@@ -311,7 +310,7 @@ def can_convert_to_singular(R):
         return False;
 
     base_ring = R.base_ring()
-    return ( sage.rings.ring.is_FiniteField(base_ring)
+    return ( sage.rings.finite_rings.constructor.is_FiniteField(base_ring)
              or is_RationalField(base_ring)
              or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
              or is_RealField(base_ring)

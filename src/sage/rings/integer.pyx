@@ -1709,7 +1709,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if modulus is not None:
             #raise RuntimeError, "__pow__ dummy argument ignored"
-            from sage.rings.integer_mod import Mod
+            from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
 

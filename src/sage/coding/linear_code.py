@@ -183,7 +183,7 @@ import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.interfaces.all import gap
-from sage.rings.finite_field import FiniteField as GF
+from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix

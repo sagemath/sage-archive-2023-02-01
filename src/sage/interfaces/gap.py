@@ -1253,7 +1253,7 @@ def gfq_gap_to_sage(x, F):
 
     - David Joyner and William Stein
     """
-    from sage.rings.finite_field import FiniteField
+    from sage.rings.finite_rings.constructor import FiniteField
 
     s = str(x)
     if s[:2] == '0*':

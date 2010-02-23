@@ -4215,7 +4215,7 @@ def four_squares(n):
         sage: sum([i-sum([q^2 for q in four_squares(i)]) for i in range(2,10000)]) # long time
         0
     """
-    from sage.rings.integer_mod import mod
+    from sage.rings.finite_rings.integer_mod import mod
     from math import sqrt
     from sage.rings.arith import _brute_force_four_squares
     try:

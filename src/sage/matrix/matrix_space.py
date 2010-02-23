@@ -71,11 +71,10 @@ import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
 import sage.rings.field as field
-import sage.rings.finite_field as finite_field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
-import sage.rings.integer_mod_ring
+import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
@@ -848,7 +847,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             elif R==sage.rings.complex_double.CDF:
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
+            elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
@@ -865,7 +864,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 return matrix_generic_dense.Matrix_generic_dense
 
         else:
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
+            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_sparse.Matrix_rational_sparse

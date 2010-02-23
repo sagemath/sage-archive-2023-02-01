@@ -14,7 +14,7 @@ from sage.misc.misc import prod
 from sage.misc.mrange import mrange
 from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.rings.arith import legendre_symbol, kronecker, prime_divisors
 from sage.quadratic_forms.extras import sgn

@@ -1,7 +1,7 @@
 from sage.rings.homset import RingHomset_generic
 from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.rings.integer import Integer
-from sage.rings.integer_mod_ring import Zmod
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.sequence import Sequence
 
 class NumberFieldHomset(RingHomset_generic):

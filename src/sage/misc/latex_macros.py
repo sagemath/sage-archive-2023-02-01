@@ -72,7 +72,7 @@ def produce_latex_macro(name, *sample_args):
     If the Sage object is not in the global name space, describe it
     like so::
 
-         sage: produce_latex_macro('sage.rings.finite_field.FiniteField', 3)
+         sage: produce_latex_macro('sage.rings.finite_rings.constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
     from sage.misc.latex import latex

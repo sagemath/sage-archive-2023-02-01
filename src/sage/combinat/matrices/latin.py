@@ -142,7 +142,7 @@ from sage.combinat.permutation import Permutation
 from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.arith import is_prime
-from sage.rings.finite_field import FiniteField
+from sage.rings.finite_rings.constructor import FiniteField
 from sage.misc.misc import uniq
 from sage.misc.flatten import flatten
 

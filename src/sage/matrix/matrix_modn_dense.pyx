@@ -138,7 +138,7 @@ linbox = Linbox_modn_dense()
 
 from sage.structure.element cimport Matrix
 
-from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, cputime
 

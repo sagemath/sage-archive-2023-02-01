@@ -82,12 +82,11 @@ import sage.misc.latex as latex
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
-import sage.rings.finite_field as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
-import sage.rings.integer_mod_ring
+import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens

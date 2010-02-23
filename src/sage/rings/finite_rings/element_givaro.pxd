@@ -1,6 +1,7 @@
-from sage.rings.ring cimport FiniteField
+from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
-from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
+from sage.structure.element cimport Element, RingElement, ModuleElement
+from sage.rings.finite_rings.element_base cimport FiniteFieldElement
 
 from sage.structure.parent  cimport Parent
 

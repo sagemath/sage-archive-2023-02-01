@@ -38,13 +38,13 @@ from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 #import sage.rings.padics.padic_ring_generic_element
 #import sage.rings.padics.padic_field_generic_element
 #import sage.rings.padics.padic_lazy_element
-import sage.rings.integer_mod
+import sage.rings.finite_rings.integer_mod
 import sage.libs.pari.gen
 import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.infinity import infinity
-from sage.rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
 #pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
@@ -165,7 +165,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
-        if sage.rings.integer_mod.is_IntegerMod(x):
+        if sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             if (<Integer>x.modulus())._is_power_of(<Integer>parent.prime()):
                 x = x.lift()
             else:

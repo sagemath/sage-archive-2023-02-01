@@ -9,7 +9,7 @@ import sage.rings.padics.padic_generic_element as padic_generic_element
 import power_series_ring_element
 import integer
 import rational
-from sage.rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.polynomial.polynomial_element import Polynomial
 
 def O(x):

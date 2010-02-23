@@ -10,12 +10,11 @@
 import sage.misc.misc as misc
 from sage.rings.arith import LCM
 from sage.rings.real_mpfr import RealField
-from sage.rings.finite_field import FiniteField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
-
+from sage.rings.finite_rings.constructor import FiniteField
 
 def Genus(A):
     """

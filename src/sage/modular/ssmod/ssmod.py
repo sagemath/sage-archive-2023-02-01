@@ -658,7 +658,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         if level != 1:
             raise NotImplementedError, "supersingular modules of level > 1 not yet implemented"
         self.__prime = prime
-        self.__finite_field = rings.FiniteField(prime**2,'a')
+        from sage.rings.all import FiniteField
+        self.__finite_field = FiniteField(prime**2,'a')
         self.__level = level
         self.__hecke_matrices = {}
         hecke.HeckeModule_free_module.__init__(

@@ -36,7 +36,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 import matrix_space
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):

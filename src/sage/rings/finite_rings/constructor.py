@@ -7,25 +7,25 @@ Sage for several sizes of primes `p`. These implementations
 are
 
 
--  ``sage.rings.integer_mod.IntegerMod_int``,
+-  ``sage.rings.finite_rings.integer_mod.IntegerMod_int``,
 
--  ``sage.rings.integer_mod.IntegerMod_int64``, and
+-  ``sage.rings.finite_rings.integer_mod.IntegerMod_int64``, and
 
--  ``sage.rings.integer_mod.IntegerMod_gmp``.
+-  ``sage.rings.finite_rings.integer_mod.IntegerMod_gmp``.
 
 
 Small extension fields of cardinality `< 2^{16}` are
 implemented using tables of Zech logs via the Givaro C++ library
-(``sage.rings.finite_field_givaro.FiniteField_givaro``).
+(``sage.rings.finite_rings.element_givaro.FiniteField_givaro``).
 While this representation is very fast it is limited to finite
 fields of small cardinality. Larger finite extension fields of
 order `q >= 2^{16}` are internally represented as
 polynomials over smaller finite prime fields. If the
 characteristic of such a field is 2 then NTL is used internally to
 represent the field
-(``sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e``).
+(``sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e``).
 In all other case the PARI C library is used
-(``sage.rings.finite_field_ext_pari.FiniteField_ext_pari``).
+(``sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari``).
 
 However, this distinction is internal only and the user usually
 does not have to worry about it because consistency across all
@@ -53,22 +53,22 @@ finite fields yet.
 EXAMPLES::
 
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
 
 ::
 
     sage: k = GF(5^2,'c'); type(k)
-    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
 
 ::
 
     sage: k = GF(2^16,'c'); type(k)
-    <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+    <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
 
 ::
 
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
 
 Finite Fields support iteration, starting with 0.
 
@@ -98,21 +98,21 @@ We output the base rings of several finite fields.
 ::
 
     sage: k = GF(3); type(k)
-    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k.base_ring()
     Finite Field of size 3
 
 ::
 
     sage: k = GF(9,'alpha'); type(k)
-    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
     sage: k.base_ring()
     Finite Field of size 3
 
 ::
 
     sage: k = GF(3^40,'b'); type(k)
-    <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -153,18 +153,18 @@ AUTHORS:
 
 import random
 
-from ring import is_FiniteField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.structure.parent_gens import normalize_names
 
-import arith
-import integer
+import sage.rings.arith as arith
+import sage.rings.integer as integer
 
-import polynomial.polynomial_element as polynomial_element
-import polynomial.multi_polynomial_element as multi_polynomial_element
+import sage.rings.polynomial.polynomial_element as polynomial_element
+import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
 
 # We don't late import this because this means trouble with the Givaro library
 # TODO: figure out why
-from finite_field_givaro import FiniteField_givaro
+from element_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
 import sage.databases.conway
@@ -331,7 +331,6 @@ class FiniteFieldFactory(UniqueFactory):
             p,n = arith.factor(order)[0]
 
             if modulus is None or modulus == "default":
-                from finite_field import exists_conway_polynomial
                 if exists_conway_polynomial(p,n):
                     modulus = "conway"
                 else:
@@ -390,7 +389,7 @@ class FiniteFieldFactory(UniqueFactory):
                 K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
             else:
                 if order % 2 == 0 and (impl is None or impl == 'ntl'):
-                    from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+                    from element_ntl_gf2e import FiniteField_ntl_gf2e
                     K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
                 else:
                     from finite_field_ext_pari import FiniteField_ext_pari
@@ -420,7 +419,7 @@ class FiniteFieldFactory(UniqueFactory):
         elif isinstance(K, FiniteField_givaro):
             impl = 'givaro'
         else:
-            from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+            from element_ntl_gf2e import FiniteField_ntl_gf2e
             from finite_field_ext_pari import FiniteField_ext_pari
             if isinstance(K, FiniteField_ntl_gf2e):
                 impl = 'ntl'
@@ -439,7 +438,7 @@ def is_PrimeFiniteField(x):
 
     EXAMPLES::
 
-        sage: from sage.rings.finite_field import is_PrimeFiniteField
+        sage: from sage.rings.finite_rings.constructor import is_PrimeFiniteField
         sage: is_PrimeFiniteField(QQ)
         False
         sage: is_PrimeFiniteField(GF(7))
@@ -450,7 +449,7 @@ def is_PrimeFiniteField(x):
         True
     """
     from finite_field_prime_modn import FiniteField_prime_modn
-    from ring import FiniteField as FiniteField_generic
+    from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
     return isinstance(x, FiniteField_prime_modn) or \
            (isinstance(x, FiniteField_generic) and x.degree() == 1)

@@ -30,7 +30,7 @@ systems['KASH'] = ['sage.interfaces.kash']
 systems['Linbox'] = ['sage.libs.linbox']
 systems['Symmetrica'] = ['sage.libs.symmetrica']
 systems['NTL'] = ['sage.libs.ntl',
-                  'sage.rings.finite_field_ntl_gf2e']
+                  'sage.rings.finite_rings.element_ntl_gf2e']
 systems['FLINT'] = ['_flint']
 systems['GMP'] = ['sage.rings.integer.Integer']
 systems['MPFR'] = ['sage.rings.real_mpfr',
@@ -38,7 +38,7 @@ systems['MPFR'] = ['sage.rings.real_mpfr',
 systems['MPFI'] = ['sage.rings.real_mpfi',
                    'sage.rings.complex_interval']
 systems['M4RI'] = ['sage.matrix.matrix_mod2_dense']
-systems['Givaro'] = ['sage.rings.finite_field_givaro']
+systems['Givaro'] = ['sage.rings.finite_rings.element_givaro']
 systems['PolyBoRi'] = ['sage.rings.polynomial.pbori']
 
 def get_systems(cmd):

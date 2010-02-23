@@ -1018,23 +1018,8 @@ ext_modules = [
               sources = ['sage/rings/fast_arith.pyx'],
               libraries=['gmp','pari','csage']),
 
-    Extension('sage.rings.finite_field_givaro',
-              sources = ["sage/rings/finite_field_givaro.pyx"],
-              # this order is needed to compile under windows.
-              libraries = ['givaro', 'gmpxx', 'gmp', 'm', 'stdc++', ],
-              language='c++'),
-
-    Extension('sage.rings.finite_field_ntl_gf2e',
-              sources = ['sage/rings/finite_field_ntl_gf2e.pyx'],
-              libraries = ['ntl', 'gmp'],
-              language = 'c++'),
-
     Extension('sage.rings.fraction_field_element',
               sources = ['sage/rings/fraction_field_element.pyx']),
-
-    Extension('sage.rings.integer_mod',
-              sources = ['sage/rings/integer_mod.pyx'],
-              libraries = ['gmp']),
 
     Extension('sage.rings.laurent_series_ring_element',
               sources = ['sage/rings/laurent_series_ring_element.pyx']),
@@ -1085,6 +1070,33 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+        ################################
+        ##
+        ## sage.rings.finite_rings
+        ##
+        ################################
+
+    Extension('sage.rings.finite_rings.finite_field_base',
+              sources = ['sage/rings/finite_rings/finite_field_base.pyx']),
+
+    Extension('sage.rings.finite_rings.element_base',
+              sources = ['sage/rings/finite_rings/element_base.pyx']),
+
+    Extension('sage.rings.finite_rings.integer_mod',
+              sources = ['sage/rings/finite_rings/integer_mod.pyx'],
+              libraries = ['gmp']),
+
+    Extension('sage.rings.finite_rings.element_givaro',
+              sources = ["sage/rings/finite_rings/element_givaro.pyx"],
+              # this order is needed to compile under windows.
+              libraries = ['givaro', 'gmpxx', 'gmp', 'm', 'stdc++', ],
+              language='c++'),
+
+    Extension('sage.rings.finite_rings.element_ntl_gf2e',
+              sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx'],
+              libraries = ['ntl', 'gmp'],
+              language = 'c++'),
 
         ################################
         ##

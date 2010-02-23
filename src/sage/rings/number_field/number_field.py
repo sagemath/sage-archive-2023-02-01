@@ -110,7 +110,7 @@ import sage.rings.complex_double
 import sage.rings.real_double
 import sage.rings.real_lazy
 
-from sage.rings.integer_mod import mod
+from sage.rings.finite_rings.integer_mod import mod
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify

@@ -46,7 +46,7 @@ import sage.rings.rational as rational
 import sage.rings.integer as integer
 import sage.rings.arith as arith
 import sage.misc.misc as misc
-from sage.rings.finite_field import FiniteField
+from sage.rings.finite_rings.constructor import FiniteField
 
 import number_field
 import number_field_element

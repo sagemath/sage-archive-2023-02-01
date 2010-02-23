@@ -36,8 +36,8 @@ from sage.rings.all import IntegerRing, is_Integer, RationalField
 from sage.groups.group import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
-from sage.rings.integer_mod import Mod
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.matrix.constructor import matrix
 from sage.modules.free_module import FreeModule
 from sage.misc.misc import union

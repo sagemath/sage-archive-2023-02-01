@@ -29,14 +29,14 @@ TESTS:
 
 import sys
 
-from ring import FiniteField as FiniteField_generic
+from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 from sage.structure.parent_gens import normalize_names, ParentWithGens
 
-import integer_mod_ring
-import integer
-import rational
-import integer_mod
-import arith
+import sage.rings.finite_rings.integer_mod_ring as integer_mod_ring
+import sage.rings.integer as integer
+import sage.rings.rational as rational
+import sage.rings.finite_rings.integer_mod as integer_mod
+import sage.rings.arith as arith
 
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
@@ -174,7 +174,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__polynomial[name]
         except  AttributeError:
-            from sage.rings.finite_field import FiniteField
+            from sage.rings.finite_rings.constructor import FiniteField
             R = FiniteField(self.characteristic())[name]
             f = self[name]([0,1])
             try:

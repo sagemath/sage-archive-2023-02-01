@@ -381,7 +381,7 @@ class ChainComplex(SageObject):
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1)], base_ring=QQ)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce 0 (<type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>) to Rational
+        TypeError: Unable to coerce 0 (<type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
     """
 
     def __init__(self, data=None, **kwds):

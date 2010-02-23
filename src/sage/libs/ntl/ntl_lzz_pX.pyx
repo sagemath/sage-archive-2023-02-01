@@ -33,7 +33,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
-from sage.rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int, IntegerMod_int64
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int, IntegerMod_int64
 
 from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext
 from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class

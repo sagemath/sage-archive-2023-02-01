@@ -26,10 +26,10 @@ from sage.libs.singular.decl cimport p_Copy
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 from sage.rings.rational_field import RationalField
-from sage.rings.ring import FiniteField as FiniteField_generic
+from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular

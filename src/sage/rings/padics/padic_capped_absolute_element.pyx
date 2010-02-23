@@ -33,13 +33,13 @@ from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 import sage.rings.padics.padic_generic_element
-import sage.rings.integer_mod
+import sage.rings.finite_rings.integer_mod
 import sage.libs.pari.gen
 import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.infinity import infinity
-from sage.rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
 pari = sage.libs.pari.gen.pari
@@ -124,7 +124,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
-        elif sage.rings.integer_mod.is_IntegerMod(x):
+        elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.prime_pow.prime.value)
             if mpz_cmp_ui(modulus, 1) == 0:

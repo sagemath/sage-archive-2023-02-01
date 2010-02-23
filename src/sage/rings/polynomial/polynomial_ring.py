@@ -1192,8 +1192,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
         """
         if implementation is None: implementation="NTL"
-        if implementation == "NTL" and \
-                sage.rings.finite_field.is_FiniteField(base_ring):
+        from sage.rings.finite_rings.finite_field_base import is_FiniteField
+        if implementation == "NTL" and is_FiniteField(base_ring):
             p=base_ring.characteristic()
             from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX

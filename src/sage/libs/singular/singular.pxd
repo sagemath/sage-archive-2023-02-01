@@ -3,11 +3,11 @@ from sage.libs.singular.decl cimport ring, poly, number, intvec
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element
 from sage.rings.integer cimport Integer
-from sage.rings.integer_mod cimport IntegerMod_abstract
-from sage.rings.finite_field_givaro cimport FiniteField_givaro
-from sage.rings.finite_field_givaro cimport FiniteField_givaroElement as FFgivE
-from sage.rings.finite_field_ntl_gf2e cimport FiniteField_ntl_gf2e
-from sage.rings.finite_field_ntl_gf2e cimport FiniteField_ntl_gf2eElement as FFgf2eE
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract
+from sage.rings.finite_rings.element_givaro cimport FiniteField_givaro
+from sage.rings.finite_rings.element_givaro cimport FiniteField_givaroElement as FFgivE
+from sage.rings.finite_rings.element_ntl_gf2e cimport FiniteField_ntl_gf2e
+from sage.rings.finite_rings.element_ntl_gf2e cimport FiniteField_ntl_gf2eElement as FFgf2eE
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 

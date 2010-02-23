@@ -74,7 +74,7 @@ from matrix_group_element import MatrixGroupElement
 from sage.groups.group import Group
 from sage.rings.all import IntegerRing, is_Ring, infinity
 from sage.misc.functional import is_field
-from sage.rings.finite_field import is_FiniteField
+from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap, GapElement
 from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix
 import sage.rings.integer as integer

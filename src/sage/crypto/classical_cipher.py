@@ -123,7 +123,7 @@ class AffineCipher(SymmetricKeyCipher):
         if M.parent() != D:
             raise TypeError("Argument M must be a string in the plaintext/ciphertext space.")
 
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         A = list(D.alphabet())     # plaintext/ciphertext alphabet as a list
         N = self.domain().ngens()  # number of elements in this alphabet
         a, b = self.key()          # encryption/decryption key (a,b)
@@ -337,7 +337,7 @@ class ShiftCipher(SymmetricKeyCipher):
         dom = self.domain()  # = plaintext_space = ciphertext_space
         if not isinstance(M, StringMonoidElement) and M.parent() == dom:
             raise TypeError("Argument M (= %s) must be a string in the plaintext/ciphertext space." % M)
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         A = list(dom.alphabet())   # plaintext/ciphertext alphabet as a list
         N = self.domain().ngens()  # number of elements in this alphabet
         K = self.key()             # encryption/decryption key

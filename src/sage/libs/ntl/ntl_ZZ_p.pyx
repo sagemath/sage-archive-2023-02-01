@@ -438,13 +438,13 @@ cdef class ntl_ZZ_p:
             sage: c = ntl.ZZ_pContext(20)
             sage: n = ntl.ZZ_p(2983, c)
             sage: type(n._sage_())
-            <type 'sage.rings.integer_mod.IntegerMod_int'>
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: n
             3
 
         AUTHOR: Joel B. Mohler
         """
-        from sage.rings.integer_mod_ring import IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
         cdef ZZ_c rep
         self.c.restore_c()

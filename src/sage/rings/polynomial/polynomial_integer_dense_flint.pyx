@@ -1161,7 +1161,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.factor_mod(7)
             (2) * x * (x + 5)^2
         """
-        from sage.rings.finite_field import FiniteField
+        from sage.rings.finite_rings.constructor import FiniteField
         p = Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"

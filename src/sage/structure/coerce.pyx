@@ -508,7 +508,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print res
             Finite Field of size 7
             sage: f = steps[1]; type(f)
-            <type 'sage.rings.integer_mod.Integer_to_IntegerMod'>
+            <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
             """

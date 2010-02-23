@@ -58,8 +58,8 @@ from sage.monoids.string_monoid import BinaryStrings
 from sage.rings.arith import gcd
 from sage.rings.arith import power_mod
 from sage.rings.arith import xgcd
-from sage.rings.integer_mod import Mod as mod
-from sage.rings.integer_mod_ring import IntegerModFactory
+from sage.rings.finite_rings.integer_mod import Mod as mod
+from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 
 floor = Function_floor()
 IntegerModRing = IntegerModFactory("IntegerModRing")

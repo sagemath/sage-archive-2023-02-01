@@ -3,12 +3,12 @@ include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 
 from sage.rings.arith import valuation, kronecker_symbol, is_prime
-from sage.rings.integer_mod import IntegerMod, Mod
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod import IntegerMod, Mod
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 from sage.rings.integer_ring import ZZ
 
-from sage.rings.integer_mod cimport IntegerMod_gmp
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_gmp
 from sage.sets.set import Set
 
 

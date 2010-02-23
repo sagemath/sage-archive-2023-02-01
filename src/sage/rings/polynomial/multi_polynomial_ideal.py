@@ -2627,7 +2627,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
         available), or a toy implementation.
         """
-        from sage.rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"

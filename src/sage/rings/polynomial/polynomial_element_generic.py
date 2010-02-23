@@ -1012,7 +1012,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        import sage.rings.finite_field as finite_field
+        import sage.rings.finite_rings.constructor as finite_field
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1118,7 +1118,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 raise ArithmeticError, "The polynomial must be square free modulo p."
             y.append(g)
         H = self._pari_().polhensellift(y, p, e)
-        from sage.rings.integer_mod_ring import IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
         R = IntegerModRing(p**e)
         S = R[self.parent().variable_name()]
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]

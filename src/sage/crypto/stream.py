@@ -17,8 +17,8 @@ from sage.crypto.util import random_blum_prime
 from sage.monoids.string_monoid import BinaryStrings
 from sage.rings.arith import gcd
 from sage.rings.arith import power_mod
-from sage.rings.finite_field import FiniteField
-from sage.rings.integer_mod_ring import IntegerModFactory
+from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

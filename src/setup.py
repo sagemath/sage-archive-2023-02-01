@@ -880,6 +880,7 @@ code = setup(name = 'sage',
                      'sage.quadratic_forms.genera',
 
                      'sage.rings',
+                     'sage.rings.finite_rings',
                      'sage.rings.number_field',
                      'sage.rings.padics',
                      'sage.rings.polynomial',

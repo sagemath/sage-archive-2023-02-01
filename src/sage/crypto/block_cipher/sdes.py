@@ -197,7 +197,7 @@ class SimplifiedDES(SageObject):
             ValueError: algorithm must be either 'encrypt' or 'decrypt'
         """
         from sage.monoids.string_monoid_element import StringMonoidElement
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         # S-DES operates on 8-bit ciphertext/plaintext blocks
         Blength = 8
 
@@ -1257,7 +1257,7 @@ class SimplifiedDES(SageObject):
         if len(key) != 8:
             raise ValueError, "input key must be an 8-bit subkey"
 
-        from sage.rings.finite_field import FiniteField
+        from sage.rings.finite_rings.constructor import FiniteField
         GF = FiniteField(2, "x")
         bin = BinaryStrings()
         bin_to_GF2 = {bin("0"): GF(0), bin("1"): GF(1)}

@@ -303,7 +303,7 @@ REFERENCES:
 """
 from __future__ import with_statement
 
-from sage.rings.finite_field import FiniteField as GF
+from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, BooleanPolynomialRing_constructor as BooleanPolynomialRing
 

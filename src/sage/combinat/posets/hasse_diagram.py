@@ -24,7 +24,7 @@ from sage.rings.integer import Integer
 from sage.graphs.all import Graph, DiGraph
 from sage.misc.sage_eval import sage_eval
 from sage.matrix.constructor import matrix
-from sage.rings.finite_field import FiniteField
+from sage.rings.finite_rings.constructor import FiniteField
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq

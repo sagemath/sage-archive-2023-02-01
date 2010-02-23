@@ -19,7 +19,7 @@ AUTHORS:
 
 
 from padic_extension_generic import pAdicExtensionGeneric
-from sage.rings.finite_field import GF
+from sage.rings.finite_rings.constructor import GF
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     """

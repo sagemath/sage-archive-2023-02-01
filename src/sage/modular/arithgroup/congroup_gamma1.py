@@ -24,7 +24,7 @@ from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup
 
 # Just for now until we make an SL_2 group type.
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.matrix.matrix_space import MatrixSpace
 Mat2Z = MatrixSpace(IntegerModRing(0),2)
 

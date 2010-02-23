@@ -725,7 +725,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             raise TypeError, "I must be an ideal of ZZ or an integer"
         if n == 0:
             return self
-        return sage.rings.integer_mod_ring.IntegerModRing(n)
+        return sage.rings.finite_rings.integer_mod_ring.IntegerModRing(n)
 
     def residue_field(self, prime, check = True):
         """

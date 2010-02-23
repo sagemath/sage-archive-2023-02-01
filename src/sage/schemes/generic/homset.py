@@ -145,7 +145,7 @@ import sage.structure.parent_old as parent_old
 
 from sage.categories.homset import HomsetWithBase
 from sage.rings.integer_ring import ZZ
-from sage.rings.ring import is_FiniteField
+from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.rational_field import is_RationalField
 from sage.rings.morphism import is_RingHomomorphism
 import spec

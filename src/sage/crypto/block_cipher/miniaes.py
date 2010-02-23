@@ -30,7 +30,7 @@ from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.matrix.matrix_space import MatrixSpace, MatrixSpace_generic
 from sage.monoids.string_monoid import BinaryStrings
 from sage.monoids.string_monoid_element import StringMonoidElement
-from sage.rings.finite_field import FiniteField
+from sage.rings.finite_rings.constructor import FiniteField
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 
@@ -352,7 +352,7 @@ class MiniAES(SageObject):
             ...
             ValueError: algorithm must be either 'encrypt' or 'decrypt'
         """
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         if not isinstance(B, StringMonoidElement):
             raise TypeError, "input B must be a non-empty binary string with number of bits a multiple of 16"
         if (len(B) == 0) or (Mod(len(B), self._key_size).lift() != 0):
@@ -1866,7 +1866,7 @@ class MiniAES(SageObject):
             ...
             ValueError: the number of bits in the binary string B must be positive and a multiple of 4
         """
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         bin = BinaryStrings()
         b = bin(B)
         # an empty string
@@ -1936,7 +1936,7 @@ class MiniAES(SageObject):
             ...
             ValueError: the number of bits in the binary string B must be positive and a multiple of 4
         """
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         bin = BinaryStrings()
         b = bin(B)
         # an empty string

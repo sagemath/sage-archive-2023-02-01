@@ -1650,7 +1650,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         d = self.denominator()
         alpha, d = d.val_unit(2)
         beta, d  = d.val_unit(5)
-        from sage.rings.integer_mod import Mod
+        from sage.rings.finite_rings.integer_mod import Mod
         return Mod(ZZ(10),d).multiplicative_order()
 
     def nth_root(self, int n):

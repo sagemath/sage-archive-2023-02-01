@@ -57,16 +57,12 @@ from rational import Rational
 Rationals = RationalField
 
 # Integers modulo n.
-from integer_mod_ring import IntegerModRing, Zmod, is_IntegerModRing
-from integer_mod import IntegerMod, Mod, mod, is_IntegerMod
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing, Zmod, is_IntegerModRing
+from sage.rings.finite_rings.integer_mod import IntegerMod, Mod, mod, is_IntegerMod
 Integers = IntegerModRing
 
 # Finite fields
-from finite_field import (FiniteField, is_FiniteField, is_PrimeFiniteField,
-                          conway_polynomial, exists_conway_polynomial)
-GF = FiniteField
-
-from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
+from finite_rings.all import *
 
 # Number field
 from number_field.all import *

@@ -67,8 +67,8 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.finite_field import FiniteField as GF
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.rings.arith import gcd
 

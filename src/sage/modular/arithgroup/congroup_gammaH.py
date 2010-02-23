@@ -29,7 +29,7 @@ from sage.misc.cachefunc import cached_method
 
 # Just for now until we make an SL_2 group type.
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.matrix.matrix_space import MatrixSpace
 
 Mat2Z = MatrixSpace(ZZ,2)

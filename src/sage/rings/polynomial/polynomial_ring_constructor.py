@@ -41,7 +41,7 @@ import weakref
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 _cache = {}
 

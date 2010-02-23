@@ -1,7 +1,8 @@
-include "../libs/ntl/decl.pxi"
+include "../../libs/ntl/decl.pxi"
 
-from sage.rings.ring cimport FiniteField
-from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
+from sage.rings.finite_rings.finite_field_base cimport FiniteField
+from sage.structure.element cimport Element, RingElement, ModuleElement
+from sage.rings.finite_rings.element_base cimport FiniteFieldElement
 
 cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement)
 

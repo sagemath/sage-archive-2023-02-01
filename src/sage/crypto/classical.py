@@ -52,7 +52,7 @@ from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.arith import xgcd
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
@@ -1237,7 +1237,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         """
         try:
             from sage.rings.arith import inverse_mod
-            from sage.rings.integer_mod import Mod
+            from sage.rings.finite_rings.integer_mod import Mod
             n = self.alphabet_size()
             aInv = inverse_mod(a, n)
             bInv = Mod(-b * aInv, n).lift()
@@ -1931,7 +1931,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
         # same alphabet.
         if 0 <= K < self.alphabet_size():
             return ShiftCipher(self, K)
-            # from sage.rings.integer_mod import Mod
+            # from sage.rings.finite_rings.integer_mod import Mod
             # return ShiftCipher(self, Mod(K, self.alphabet_size()).lift())
         else:
             raise ValueError("K (=%s) is outside the range of acceptable values for a key of this shift cryptosystem." % K)

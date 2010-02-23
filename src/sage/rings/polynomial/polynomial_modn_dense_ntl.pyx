@@ -32,7 +32,7 @@ from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX ##, set_modulus
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer_mod import IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod import IntegerMod_abstract
 
 from sage.rings.fraction_field_element import FractionFieldElement
 import sage.rings.polynomial.polynomial_ring

@@ -32,7 +32,7 @@ from sage.rings.arith import lcm
 from sage.rings.arith import primes
 from sage.rings.arith import random_prime
 from sage.rings.integer import Integer
-from sage.rings.integer_mod import Mod as mod
+from sage.rings.finite_rings.integer_mod import Mod as mod
 
 def ascii_integer(B):
     r"""

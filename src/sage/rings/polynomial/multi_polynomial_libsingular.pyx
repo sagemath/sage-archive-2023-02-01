@@ -186,16 +186,14 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
 
 # base ring imports
-from sage.rings.finite_field_prime_modn import FiniteField_prime_modn
-from sage.rings.finite_field_givaro cimport FiniteField_givaroElement
-from sage.rings.finite_field_givaro cimport FiniteField_givaro
+from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import RationalField
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.rings.integer cimport Integer
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
 from sage.rings.arith import gcd
@@ -476,7 +474,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # base ring elements
             if  <Parent>element.parent() is base_ring:
                 # shortcut for GF(p)
-                if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
+                if isinstance(base_ring, FiniteField_prime_modn):
                     _p = p_ISet(int(element) % _ring.ch, _ring)
                 else:
                     _n = sa2si(element,_ring)
@@ -484,7 +482,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             # also accepting ZZ
             elif is_IntegerRing(element.parent()):
-                if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
+                if isinstance(base_ring, FiniteField_prime_modn):
                     _p = p_ISet(int(element),_ring)
                 else:
                     _n = sa2si(base_ring(element),_ring)
@@ -497,7 +495,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         # Accepting int
         elif PY_TYPE_CHECK(element, int):
-            if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
+            if isinstance(base_ring, FiniteField_prime_modn):
                 _p = p_ISet(int(element) % _ring.ch,_ring)
             else:
                 _n = sa2si(base_ring(element),_ring)
@@ -505,7 +503,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         # and longs
         elif PY_TYPE_CHECK(element, long):
-            if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
+            if isinstance(base_ring, FiniteField_prime_modn):
                 element = element % self.base_ring().characteristic()
                 _p = p_ISet(int(element),_ring)
             else:

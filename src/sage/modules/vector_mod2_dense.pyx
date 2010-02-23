@@ -26,7 +26,7 @@ EXAMPLES::
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
-from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector

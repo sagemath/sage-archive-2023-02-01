@@ -43,7 +43,7 @@ from   sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
-from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 

@@ -82,7 +82,7 @@ include '../modules/vector_modn_sparse_c.pxi'
 cimport matrix
 cimport matrix_sparse
 cimport matrix_dense
-from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 

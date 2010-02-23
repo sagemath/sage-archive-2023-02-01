@@ -33,7 +33,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
 
 import sage.modules.free_module
@@ -1027,7 +1027,7 @@ cdef class Matrix(matrix1.Matrix):
           - Sebastian Pancratz (2009-06-25): Use the division-free algorithm for charpoly
         """
 
-        from sage.rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
         if self._nrows != self._ncols:
             raise ValueError, "self must be a square matrix"
@@ -1389,7 +1389,7 @@ cdef class Matrix(matrix1.Matrix):
         - Sebastian Pancratz (2009-06-25): Include the division-free algorithm
         """
 
-        from sage.rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
         D = self.fetch('charpoly')
         if not D is None:

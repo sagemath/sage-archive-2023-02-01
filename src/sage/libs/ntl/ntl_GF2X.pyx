@@ -120,10 +120,10 @@ cdef class ntl_GF2X:
             [1 0 1 0 0 1]
         """
 
-        from sage.rings.finite_field_element import FiniteField_ext_pariElement
-        from sage.rings.finite_field_givaro import FiniteField_givaroElement
-        from sage.rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2eElement
-        from sage.rings.ring import FiniteField
+        from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
+        from sage.rings.finite_rings.element_givaro import FiniteField_givaroElement
+        from sage.rings.finite_rings.element_ntl_gf2e import FiniteField_ntl_gf2eElement
+        from sage.rings.finite_rings.finite_field_base import FiniteField
         from sage.rings.polynomial.polynomial_gf2x import Polynomial_GF2X
 
         cdef long _x
@@ -537,7 +537,7 @@ cdef class ntl_GF2X:
         """
         if R==None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.finite_field import FiniteField
+            from sage.rings.finite_rings.constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
         return R(map(int,self.list()))

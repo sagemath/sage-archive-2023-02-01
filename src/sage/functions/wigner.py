@@ -31,7 +31,7 @@ AUTHORS:
 
 from sage.rings.complex_number import ComplexNumber
 from sage.rings.integer import Integer
-from sage.rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.symbolic.constants import pi
 
 # This list of precomputed factorials is needed to massively

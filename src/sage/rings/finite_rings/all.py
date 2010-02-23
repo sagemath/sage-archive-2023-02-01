@@ -1,9 +1,10 @@
 """
-Abstract base class for fields
+Finite Fields.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2010 David Roe <roed@math.harvard.edu>
+#                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -17,13 +18,9 @@ Abstract base class for fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.ring import Field, is_Field
+from constructor import (FiniteField, is_FiniteField, is_PrimeFiniteField,
+                          conway_polynomial, exists_conway_polynomial)
+GF = FiniteField
 
-def is_PrimeField(R):
-    from finite_field.constructor import is_FiniteField
-    from rational_field import is_RationalField
-    if is_RationalField(R):
-        return True
-    if is_FiniteField(R):
-        return R.degree() == 1
-    return False
+from element_base import FiniteFieldElement, is_FiniteFieldElement
+

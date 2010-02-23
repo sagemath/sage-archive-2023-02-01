@@ -26,22 +26,19 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "../libs/ntl/decl.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
+include "../../libs/ntl/decl.pxi"
+include "../../ext/interrupt.pxi"
+include "../../ext/stdsage.pxi"
 
 from sage.structure.sage_object cimport SageObject
 
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
-from sage.structure.element cimport Element, ModuleElement
 
 from sage.rings.ring cimport Ring
-from sage.structure.element cimport RingElement
 
-from sage.rings.ring cimport FiniteField
-from sage.structure.element cimport FiniteFieldElement
+from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
@@ -51,9 +48,9 @@ from sage.interfaces.gap import is_GapElement
 from sage.misc.randstate import current_randstate
 
 from finite_field_ext_pari import FiniteField_ext_pari
-from finite_field_element import FiniteField_ext_pariElement
+from element_ext_pari import FiniteField_ext_pariElement
 
-from polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 cdef object is_IntegerMod
 cdef object IntegerModRing_generic
@@ -90,11 +87,11 @@ cdef void late_import():
     if is_IntegerMod is not None:
         return
 
-    import sage.rings.integer_mod
-    is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
+    import sage.rings.finite_rings.integer_mod
+    is_IntegerMod = sage.rings.finite_rings.integer_mod.is_IntegerMod
 
-    import sage.rings.integer_mod_ring
-    IntegerModRing_generic = sage.rings.integer_mod_ring.IntegerModRing_generic
+    import sage.rings.finite_rings.integer_mod_ring
+    IntegerModRing_generic = sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic
 
     import sage.rings.integer
     Integer = sage.rings.integer.Integer
@@ -108,8 +105,8 @@ cdef void late_import():
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_field
-    conway_polynomial = sage.rings.finite_field.conway_polynomial
+    import sage.rings.finite_rings.constructor
+    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial
@@ -120,8 +117,7 @@ cdef void late_import():
     import sage.modules.free_module_element
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
 
-    import sage.rings.finite_field
-    GF = sage.rings.finite_field.FiniteField
+    GF = sage.rings.finite_rings.constructor.FiniteField
     GF2 = GF(2)
     GF2_0 = GF2(0)
     GF2_1 = GF2(1)
@@ -167,7 +163,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
             sage: k.<a> = GF(2^16)
             sage: type(k)
-            <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+            <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
             sage: k.<a> = GF(2^1024)
             sage: k.modulus()
             x^1024 + x^19 + x^6 + x + 1
@@ -230,8 +226,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         unknown_modulus = True
 
         if modulus is None or modulus == 'default':
-            import sage.rings.finite_field
-            if sage.rings.finite_field.exists_conway_polynomial(p, k):
+            import sage.rings.finite_rings.constructor
+            if sage.rings.finite_rings.constructor.exists_conway_polynomial(p, k):
                 modulus = "conway"
             else:
                 modulus = "minimal_weight"
@@ -659,7 +655,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: kP
             Finite Field in a of size 2^20
             sage: type(kP)
-            <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
         """
         f = self.polynomial()
         return FiniteField_ext_pari(self.order(), self.variable_name(), f)
@@ -736,7 +732,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(2^16)
-            sage: from sage.rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2eElement
+            sage: from sage.rings.finite_rings.element_ntl_gf2e import FiniteField_ntl_gf2eElement
             sage: FiniteField_ntl_gf2eElement(k)
             0
         """
@@ -1505,3 +1501,6 @@ def unpickleFiniteField_ntl_gf2eElement(parent, elem):
         True
     """
     return parent(elem)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.rings.finite_field_ntl_gf2e', 'unpickleFiniteField_ntl_gf2eElement', unpickleFiniteField_ntl_gf2eElement)

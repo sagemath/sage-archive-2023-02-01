@@ -23,7 +23,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
-from sage.rings.integer_mod import is_IntegerMod
+from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ext
 from sage.rings.rational_field import QQ

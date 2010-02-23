@@ -29,7 +29,7 @@ import sage.rings.arith
 from sage.libs.ntl import all as ntl
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 import sage.libs.pari.gen
-from sage.rings.integer_mod_ring import Integers
+from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.bernmm import bernmm_bern_modp
 
 

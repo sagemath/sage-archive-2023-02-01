@@ -47,13 +47,13 @@ from sage.rings.rational cimport Rational
 
 import sage.rings.padics.padic_generic_element
 #import sage.rings.padics.padic_lazy_element
-import sage.rings.integer_mod
+import sage.rings.finite_rings.integer_mod
 import sage.rings.integer
 import sage.rings.rational
 
 cdef object infinity
 from sage.rings.infinity import infinity
-from sage.rings.integer_mod import Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
 #from sage.rings.padics.padic_lazy_element import pAdicLazyElement
@@ -238,7 +238,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 self._normalized = 1
             return
 
-        elif sage.rings.integer_mod.is_IntegerMod(x):
+        elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.prime_pow.prime.value)
             if mpz_cmp_ui(modulus, 1) == 0:

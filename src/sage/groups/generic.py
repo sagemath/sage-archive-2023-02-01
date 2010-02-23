@@ -571,7 +571,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
 
     """
     from sage.rings.integer import Integer
-    from sage.rings.integer_mod_ring import IntegerModRing
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
     from operator import mul, add, pow
 
     # should be reasonable choices

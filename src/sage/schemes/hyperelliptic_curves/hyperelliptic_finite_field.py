@@ -315,7 +315,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: len(C.points())
             122
         """
-        from sage.rings.finite_field import zech_log_bound
+        from sage.rings.finite_rings.constructor import zech_log_bound
         try:
             return self.__points
         except AttributeError: pass

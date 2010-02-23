@@ -111,7 +111,7 @@ import arith
 import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
-from integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 import sage.libs.pari.all
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log

@@ -185,4 +185,7 @@ class FiniteFieldHomset(RingHomset_generic):
 class FiniteFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
     pass
 
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomset', FiniteFieldHomset)
+register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomomorphism_im_gens', FiniteFieldHomomorphism_im_gens)
 

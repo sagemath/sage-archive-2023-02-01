@@ -182,7 +182,7 @@ import weakref
 
 from sage.misc.randstate import current_randstate
 from sage.rings.integer import Integer
-from sage.rings.finite_field import FiniteField as GF
+from sage.rings.finite_rings.constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal

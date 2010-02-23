@@ -40,7 +40,7 @@ def flatten(in_list, ltypes=(list, tuple), max_level=sys.maxint):
        [0, 1, 2, 3, 4]
        sage: flatten([GF(5)])
        [Finite Field of size 5]
-       sage: flatten([GF(5)], ltypes = (list, tuple, sage.rings.finite_field_prime_modn.FiniteField_prime_modn))
+       sage: flatten([GF(5)], ltypes = (list, tuple, sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn))
        [0, 1, 2, 3, 4]
 
    Degenerate cases:

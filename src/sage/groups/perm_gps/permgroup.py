@@ -125,7 +125,7 @@ from sage.interfaces.all import is_ExpectElement
 from sage.interfaces.gap import gap, is_GapElement, GapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import sage.structure.coerce as coerce
-from sage.rings.finite_field import FiniteField as GF
+from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even, log
 from sage.rings.rational_field import RationalField

@@ -22,7 +22,7 @@ Standard test of pickleability::
 """
 
 from sage.structure.sage_object import SageObject
-from sage.rings.integer_mod_ring import Integers
+from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.parent_gens import ParentWithGens

@@ -1880,7 +1880,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_field import FiniteField as GF
+    from sage.rings.finite_rings.constructor import FiniteField as GF
 
     cdef int i, j
     cdef Matrix_mod2_dense A
@@ -1929,7 +1929,7 @@ def from_png(filename):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_field import FiniteField as GF
+    from sage.rings.finite_rings.constructor import FiniteField as GF
 
     cdef int i,j,r,c
     cdef Matrix_mod2_dense A

@@ -44,10 +44,17 @@ else
    FLINT_TUNE=" -fPIC -funroll-loops  "
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-   FLINT_TUNE=" -fPIC -m64 -funroll-loops"
-   export CFLAGS
-   export CFLAG64
+if [ -z "$CFLAG64" ] ; then
+    CFLAG64=-m64
+fi
+
+if [ -z "$CXXFLAG64" ] ; then
+    CXXFLAG64=-m64
+fi
+
+
+if [ "x$SAGE64" = xyes ]; then
+   FLINT_TUNE=" -fPIC $CFLAG64 -funroll-loops"
    export CXXFLAG64
 fi
 

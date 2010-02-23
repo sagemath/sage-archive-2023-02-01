@@ -1328,15 +1328,15 @@ class Word_class(SageObject):
         -  ``f`` - involution (default: None) on the alphabet of self. It must
            be callable on letters as well as words (e.g. WordMorphism).
 
-        -  ``algorithm`` - string (default: 'recursive') specifying which algorithm
-           to be used when computing the iterated palindromic closure. It must
-           be one of the two following values:
+        -  ``algorithm`` - string (default: ``'recursive'``) specifying which
+           algorithm to be used when computing the iterated palindromic closure.
+           It must be one of the two following values:
 
-           - ``'definition'`` means that the iterated right palindromic closure is
-             computed using the definition.
-           - ``'recursive'`` is based on an efficient formula that recursively
-             computes the iterated right palindromic closure without having to
-             recompute the longest `f`-palindromic suffix at each iteration [2].
+           - ``'definition'`` - computed using the definition
+           - ``'recursive'`` - computation based on an efficient formula
+             that recursively computes the iterated right palindromic closure
+             without having to recompute the longest `f`-palindromic suffix
+             at each iteration [2].
 
         OUTPUT:
 
@@ -1348,9 +1348,13 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word: abacaba
 
+        ::
+
             sage: w = Word('aaa')
             sage: w.iterated_right_palindromic_closure()
             word: aaa
+
+        ::
 
             sage: w = Word('abbab')
             sage: w.iterated_right_palindromic_closure()
@@ -4500,13 +4504,13 @@ exponent %s: the length of the word (%s) times the exponent \
             else:
                 return p + start
         else:
-            l = len(sub)
+            L = len(sub)
             if start is None:
-                i = len(self) - l
+                i = len(self) - L
             else:
-                i = start - l
+                i = start - L
             while i >= end:
-                if self[i:i+l] == sub: return i
+                if self[i:i+L] == sub: return i
                 i -= 1
             return -1
 
@@ -4551,13 +4555,13 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.rfind(Word('a'))
             2
         """
-        l = len(sub)
+        L = len(sub)
         if end is None:
-            i = len(self) - l
+            i = len(self) - L
         else:
-            i = end - l
+            i = end - L
         while i >= start:
-            if self[i:i+l] == sub: return i
+            if self[i:i+L] == sub: return i
             i -= 1
         return -1
 

@@ -1103,7 +1103,7 @@ class CrystalElement(Element):
         """
         if index_set is None:
             index_set = self.index_set()
-        return all(self.e(i) == None for i in index_set)
+        return all(self.e(i) is None for i in index_set)
 
     def to_highest_weight(self, list = [], index_set = None):
         r"""

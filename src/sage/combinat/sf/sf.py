@@ -289,6 +289,23 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return sfa.cache_m(self.base_ring())
     m = monomial
 
+    def from_polynomial(self, f):
+        """
+        This function converts a symmetric polynomial `f` in a polynomial ring in finitely
+        many variables to a symmetric function in the monomial
+        basis of the ring of symmetric functions over the same base ring.
+
+        EXAMPLES::
+
+            sage: P = PolynomialRing(QQ, 'x', 3)
+            sage: x= P.gens()
+            sage: f = x[0] + x[1] + x[2]
+            sage: S = SymmetricFunctions(QQ)
+            sage: S.from_polynomial(f)
+            m[1]
+        """
+        return self.m().from_polynomial(f)
+
     def register_isomorphism(self, morphism):
         """
         Registers an isomorphism between two bases of self, as a canonical coercion

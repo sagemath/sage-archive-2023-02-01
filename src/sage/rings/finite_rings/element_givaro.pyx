@@ -452,7 +452,7 @@ cdef class Cache_givaro(SageObject):
             pass # handle this in next if clause
 
         elif PY_TYPE_CHECK(e,FiniteField_ext_pariElement):
-            # reduce FiniteFieldElements to pari
+            # reduce FiniteField_ext_pariElements to pari
             e = e._pari_()
 
         elif sage.interfaces.gap.is_GapElement(e):
@@ -838,7 +838,7 @@ cdef class FiniteField_givaro_iterator:
         """
         return self
 
-cdef class FiniteField_givaroElement(FiniteFieldElement):
+cdef class FiniteField_givaroElement(FinitePolyExtElement):
     """
     An element of a (Givaro) finite field.
     """
@@ -867,7 +867,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             0
 
         """
-        FiniteFieldElement.__init__(self, parent)
+        FinitePolyExtElement.__init__(self, parent)
         self._cache = parent._cache
         self.element = 0
 

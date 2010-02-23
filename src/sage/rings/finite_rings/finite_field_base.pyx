@@ -481,6 +481,34 @@ cdef class FiniteField(Field):
         """
         raise NotImplementedError
 
+    def factored_order(self):
+        """
+        Returns the factored order of this field.  For compatibility with IntegerModRing.
+
+        EXAMPLES::
+
+            sage: GF(7^2,'a').factored_order()
+            7^2
+        """
+        from sage.structure.factorization import Factorization
+        return Factorization([(self.characteristic(), self.degree())])
+
+    def factored_unit_order(self):
+        """
+        Returns the factorization of ``self.order()-1``, as a 1-element list.  The format is for compatibility with IntegerModRing.
+
+        EXAMPLES::
+
+            sage: GF(7^2,'a').factored_unit_order()
+            [2^4 * 3]
+        """
+        if self.__factored_unit_order is None:
+            if self.characteristic() in []: # want to be [2,3,5,7,11] once #7240 is finished.
+                self.__factored_unit_order = [(self.order()-1)._factor_cunningham()]
+            else:
+                self.__factored_unit_order = [(self.order()-1).factor()]
+        return self.__factored_unit_order
+
     def cardinality(self):
         """
         Return the order of this finite field (same as self.order()).

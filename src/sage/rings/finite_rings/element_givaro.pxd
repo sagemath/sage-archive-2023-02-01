@@ -1,5 +1,5 @@
 from sage.structure.element cimport Element, RingElement, ModuleElement
-from sage.rings.finite_rings.element_base cimport FiniteFieldElement
+from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 
 from sage.structure.parent  cimport Parent
 from sage.structure.sage_object cimport SageObject
@@ -61,7 +61,7 @@ cdef extern from "givaro/givgfq.h":
     void delete "delete "(void *o)
     int gfq_element_factory "GFqDom<int>::Element"()
 
-cdef class FiniteField_givaroElement(FiniteFieldElement) #forward declaration
+cdef class FiniteField_givaroElement(FinitePolyExtElement) #forward declaration
 
 cdef class Cache_givaro(SageObject):
     cdef GivaroGfq *objectptr # C++ object
@@ -83,7 +83,7 @@ cdef class FiniteField_givaro_iterator:
     cdef int iterator
     cdef Cache_givaro _cache
 
-cdef class FiniteField_givaroElement(FiniteFieldElement):
+cdef class FiniteField_givaroElement(FinitePolyExtElement):
     cdef int element
     cdef Cache_givaro _cache
     cdef object _multiplicative_order

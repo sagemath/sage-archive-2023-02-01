@@ -29,7 +29,74 @@ def is_FiniteFieldElement(x):
     from sage.rings.finite_rings.finite_field_base import is_FiniteField
     return isinstance(x, Element) and is_FiniteField(x.parent())
 
-cdef class FiniteFieldElement(FieldElement):
+cdef class FiniteRingElement(CommutativeRingElement):
+    def _nth_root_common(self, n, all, algorithm, cunningham):
+        """
+        This function exists to reduce code duplication between finite field nth roots and integer_mod nth roots.
+
+        The inputs are described there.
+
+        TESTS::
+
+            sage: a = Zmod(17)(13)
+            sage: a._nth_root_common(4, True, "Johnston", False)
+            [3, 5, 14, 12]
+        """
+        K = self.parent()
+        q = K.order()
+        if self.is_one():
+            gcd = n.gcd(q-1)
+            if gcd == 1:
+                if all: return [self]
+                else: return self
+            else:
+                # the following may eventually be improved to not need a multiplicative generator.
+                g = K.multiplicative_generator()
+                q1overn = (q-1)//gcd
+                nthroot = g**q1overn
+                return [nthroot**a for a in range(gcd)] if all else nthroot
+        n = n % (q-1)
+        if n == 0:
+            if all: return []
+            else: raise ValueError, "no nth root"
+        gcd, alpha, beta = n.xgcd(q-1) # gcd = alpha*n + beta*(q-1), so 1/n = alpha/gcd (mod q-1)
+        if gcd == 1:
+            return [self**alpha] if all else self**alpha
+        n = gcd
+        q1overn = (q-1)//n
+        if self**q1overn != 1:
+            if all: return []
+            else: raise ValueError, "no nth root"
+        self = self**alpha
+        if cunningham:
+            F = n._factor_cunningham()
+        else:
+            F = n.factor()
+        from sage.groups.generic import discrete_log
+        if algorithm is None or algorithm == 'Johnston':
+            g = K.multiplicative_generator()
+            for r, v in F:
+                k, h = (q-1).val_unit(r)
+                z = h * (-h).inverse_mod(r**v)
+                x = (1 + z) // r**v
+                if k == 1:
+                    self = self**x
+                else:
+                    t = discrete_log(self**h, g**(r**v*h), r**(k-v), operation='*')
+                    self = self**x * g**(-z*t)
+            if all:
+                nthroot = g**q1overn
+                L = [self]
+                for i in range(1,n):
+                    self *= nthroot
+                    L.append(self)
+                return L
+            else:
+                return self
+        else:
+            raise ValueError, "unknown algorithm"
+
+cdef class FinitePolyExtElement(FiniteRingElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -386,62 +453,16 @@ cdef class FiniteFieldElement(FieldElement):
         if self.is_zero():
             raise ArithmeticError, "Multiplicative order of 0 not defined."
         n = self._parent.order() - 1
+        F = self._parent.factored_unit_order()[0]
         order = 1
-        for p, e in sage.rings.arith.factor(n):
+        for p, e in F:
             # Determine the power of p that divides the order.
-            a = self**(n/(p**e))
+            a = self**(n//(p**e))
             while a != 1:
                 order = order * p
                 a = a**p
 
         return order
-
-    def nth_root(self, int n, extend = False, all = False):
-        r"""
-        Returns an nth root of self.
-
-        INPUT:
-
-        - ``n`` - integer >= 1 (must fit in C int type)
-
-        - ``extend`` - bool (default: True); if True, return an nth
-          root in an extension ring, if necessary. Otherwise, raise a
-          ValueError if the root is not in the base ring.  Warning:
-          this option is not implemented!
-
-        - ``all`` - bool (default: False); if True, return all nth
-          roots of self, instead of just one.
-
-        OUTPUT:
-
-        If self has an nth root, returns one (if all == False) or a
-        list of all of them (if all == True).  Otherwise, raises a
-        ValueError (if extend = False) or a NotImplementedError (if
-        extend = True).
-
-        .. warning::
-
-           The 'extend' option is not implemented (yet).
-
-        AUTHOR:
-
-        - David Roe (2007-10-3)
-
-        """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.integer import Integer
-        if extend:
-            raise NotImplementedError
-        R = PolynomialRing(self.parent(), "x")
-        f = R([-self] + [self.parent()(Integer(0))] * (n - 1) + [self.parent()(1)])
-        L = f.roots()
-        if all:
-            return [x[0] for x in L]
-        else:
-            if len(L) == 0:
-                raise ValueError, "no nth root"
-            else:
-                return L[0][0]
 
     def additive_order(self):
         """
@@ -460,6 +481,129 @@ cdef class FiniteFieldElement(FieldElement):
             from sage.rings.integer import Integer
             return Integer(1)
         return self.parent().characteristic()
+
+    def nth_root(self, n, extend = False, all = False, algorithm=None, cunningham=False):
+        r"""
+        Returns an `n`\th root of ``self``.
+
+        INPUT:
+
+        - ``n`` - integer `\geq 1`
+
+        - ``extend`` - bool (default: ``False``); if ``True``, return an `n`\th
+          root in an extension ring, if necessary. Otherwise, raise a
+          ValueError if the root is not in the base ring.  Warning:
+          this option is not implemented!
+
+        - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
+          roots of ``self``, instead of just one.
+
+        - ``algorithm`` - string (default: ``None``); 'Johnston' is the only
+          currently supported option.  For IntegerMod elements, the problem
+          is reduced to the prime modulus case using CRT and `p`-adic logs,
+          and then this algorithm used.
+
+        OUTPUT:
+
+        If self has an `n`\th root, returns one (if ``all`` is ``False``) or a
+        list of all of them (if ``all`` is ``True``).  Otherwise, raises a
+        ValueError (if ``extend`` is ``False``) or a ``NotImplementedError`` (if
+        ``extend`` is ``True``).
+
+        .. warning::
+
+           The 'extend' option is not implemented (yet).
+
+        EXAMPLES::
+
+            sage: K = GF(31)
+            sage: a = K(22)
+            sage: K(22).nth_root(7)
+            13
+            sage: K(25).nth_root(5)
+            5
+            sage: K(23).nth_root(3)
+            29
+
+            sage: K.<a> = GF(625)
+            sage: (3*a^2+a+1).nth_root(13)**13
+            3*a^2 + a + 1
+
+            sage: k.<a> = GF(29^2)
+            sage: b = a^2 + 5*a + 1
+            sage: b.nth_root(11)
+            3*a + 20
+            sage: b.nth_root(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root
+            sage: b.nth_root(5, all = True)
+            []
+            sage: b.nth_root(3, all = True)
+            [14*a + 18, 10*a + 13, 5*a + 27]
+
+            sage: k.<a> = GF(29^5)
+            sage: b = a^2 + 5*a + 1
+            sage: b.nth_root(5)
+            19*a^4 + 2*a^3 + 2*a^2 + 16*a + 3
+            sage: b.nth_root(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root
+            sage: b.nth_root(4, all=True)
+            []
+
+        TESTS::
+
+            sage: for p in [2,3,5,7,11]: # long
+            ...       for n in [2,5,10]:
+            ...           q = p^n
+            ...           K.<a> = GF(q)
+            ...           for r in (q-1).divisors():
+            ...               if r == 1: continue
+            ...               x = K.random_element()
+            ...               y = x^r
+            ...               if y.nth_root(r)**r != y: raise RuntimeError
+            ...               if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
+            ...               if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
+
+            sage: k.<a> = GF(4)
+            sage: a.nth_root(0,all=True)
+            []
+            sage: k(1).nth_root(0,all=True)
+            [a, a + 1, 1]
+
+        ALGORITHMS:
+
+        - The default is currently an algorithm described in the following paper:
+
+        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+
+        AUTHOR:
+
+        - David Roe (2010-02-13)
+        """
+        if self.is_zero():
+            if n <= 0:
+                if all: return []
+                else: raise ValueError
+            if all: return [self]
+            else: return self
+        if n < 0:
+            self = ~self
+            n = -n
+        elif n == 0:
+            if self == 1:
+                if all: return [a for a in self.parent().list() if a != 0]
+                else: return self
+            else:
+                if all: return []
+                else: raise ValueError
+        if extend:
+            raise NotImplementedError
+        from sage.rings.integer import Integer
+        n = Integer(n)
+        return self._nth_root_common(n, all, algorithm, cunningham)
 
     def pth_power(self, int k = 1):
         """
@@ -516,3 +660,4 @@ cdef class FiniteFieldElement(FieldElement):
             b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
         """
         return self.pth_power(-k)
+

@@ -34,7 +34,7 @@ import sage.rings.integer_ring as integer_ring
 from sage.rings.integer import Integer
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, pari_gen
-from sage.rings.finite_rings.element_base import FiniteFieldElement
+from sage.rings.finite_rings.element_base import FinitePolyExtElement
 import sage.rings.field_element as field_element
 import sage.rings.finite_rings.integer_mod as integer_mod
 from element_base import is_FiniteFieldElement
@@ -42,7 +42,7 @@ from sage.modules.free_module_element import FreeModuleElement
 from sage.structure.dynamic_class import dynamic_class
 from sage.categories.finite_fields import FiniteFields
 
-class FiniteField_ext_pariElement(FiniteFieldElement):
+class FiniteField_ext_pariElement(FinitePolyExtElement):
     """
     An element of a finite field.
 
@@ -304,64 +304,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         -  ``extend`` - ignored
         """
         return self.square_root(extend=extend, all=all)
-
-    def nth_root(self, n, extend = False, all = False):
-        r"""
-        Returns an nth root of self.
-
-        INPUT:
-
-
-        -  ``n`` - integer = 1 (must fit in C int type)
-
-        -  ``extend`` - bool (default: True); if True, return
-           an nth root in an extension ring, if necessary. Otherwise, raise a
-           ValueError if the root is not in the base ring. Warning: this
-           option is not implemented!
-
-        -  ``all`` - bool (default: False); if True, return all
-           nth roots of self, instead of just one.
-
-
-        OUTPUT: If self has an nth root, returns one (if all == False) or a
-        list of all of them (if all == True). Otherwise, raises a
-        ValueError (if extend = False) or a NotImplementedError (if extend
-        = True).
-
-        .. warning::
-
-           The 'extend' option is not implemented (yet).
-
-        AUTHORS:
-
-        - David Roe (2007-10-3)
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(29^5)
-            sage: b = a^2 + 5*a + 1
-            sage: b.nth_root(5)
-            19*a^4 + 2*a^3 + 2*a^2 + 16*a + 3
-            sage: b.nth_root(7)
-            Traceback (most recent call last):
-            ...
-            ValueError: no nth root
-            sage: b.nth_root(4, all=True)
-            []
-        """
-        if extend:
-            raise NotImplementedError
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        R = PolynomialRing(self.parent(), "x")
-        f = R([-self] + [self.parent()(0)] * (n - 1) + [self.parent()(1)])
-        L = f.roots()
-        if all:
-            return [x[0] for x in L]
-        else:
-            if len(L) == 0:
-                raise ValueError, "no nth root"
-            else:
-                return L[0][0]
 
     def rational_reconstruction(self):
         """

@@ -22,5 +22,6 @@ from constructor import (FiniteField, is_FiniteField, is_PrimeFiniteField,
                           conway_polynomial, exists_conway_polynomial)
 GF = FiniteField
 
-from element_base import FiniteFieldElement, is_FiniteFieldElement
+from element_base import FinitePolyExtElement as FiniteFieldElement # for backward compatibility; is this needed?
+from element_base import is_FiniteFieldElement
 

@@ -482,7 +482,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             pass # handle this in next if clause
 
         elif PY_TYPE_CHECK(e,FiniteField_ext_pariElement):
-            # reduce FiniteFieldElements to pari
+            # reduce FiniteField_ext_pariElements to pari
             e = e._pari_()
 
         elif is_GapElement(e):
@@ -728,7 +728,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         f = pari(str(self.modulus()))
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
 
-cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
+cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
     """
     An element of an NTL:GF2E finite field.
     """

@@ -1,4 +1,7 @@
-from sage.structure.element cimport FieldElement
+from sage.structure.element cimport CommutativeRingElement
 
-cdef class FiniteFieldElement(FieldElement):
+cdef class FiniteRingElement(CommutativeRingElement):
+    pass
+
+cdef class FinitePolyExtElement(FiniteRingElement):
     pass

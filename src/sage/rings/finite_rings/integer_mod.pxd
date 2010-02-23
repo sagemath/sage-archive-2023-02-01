@@ -8,7 +8,7 @@ cdef extern from "stdint.h":
     int_fast32_t INTEGER_MOD_INT32_LIMIT
     int_fast64_t INTEGER_MOD_INT64_LIMIT
 
-cimport sage.structure.element
+from sage.rings.finite_rings.element_base cimport FiniteRingElement
 from sage.rings.integer cimport Integer
 
 cdef class NativeIntStruct:
@@ -19,7 +19,7 @@ cdef class NativeIntStruct:
     cdef object inverses # also a list
     cdef lookup(NativeIntStruct self, Py_ssize_t value)
 
-cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
+cdef class IntegerMod_abstract(FiniteRingElement):
     cdef NativeIntStruct __modulus
     cdef _new_c_from_long(self, long value)
     cdef void set_from_mpz(self, mpz_t value)

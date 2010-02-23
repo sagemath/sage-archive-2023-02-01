@@ -269,6 +269,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._pyx_order = integer_mod.NativeIntStruct(order)
         self.__unit_group_exponent = None
         self.__factored_order = None
+        self.__factored_unit_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
         if category is None:
             from sage.categories.commutative_rings import CommutativeRings
@@ -688,8 +689,26 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         if self.__factored_order is not None:
             return self.__factored_order
-        self.__factored_order = factor(self.__order, int_=True)
+        self.__factored_order = factor(self.__order, int_=(self.__order < 2**31))
         return self.__factored_order
+
+    def factored_unit_order(self):
+        """
+        Returns a list of Factorization objects, each the factorization of the
+        order of the units in a `\ZZ / p^n \ZZ` component of this group (using
+        the Chinese Remainder Theorem).
+
+        EXAMPLES::
+
+            sage: R = Integers(8*9*25*17*29)
+            sage: R.factored_unit_order()
+            [2^2, 2 * 3, 2^2 * 5, 2^4, 2^2 * 7]
+        """
+        ans = []
+        from sage.structure.factorization import Factorization
+        for p, e in self.factored_order():
+            ans.append(Factorization([(p,e-1)]) * factor(p-1, int_=(self.__order < 2**31)))
+        return ans
 
     def characteristic(self):
         """

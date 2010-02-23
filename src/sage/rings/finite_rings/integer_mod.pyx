@@ -255,7 +255,7 @@ cdef class NativeIntStruct:
         return <object>PyList_GET_ITEM(self.table, value)
 
 
-cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
+cdef class IntegerMod_abstract(FiniteRingElement):
 
     def __init__(self, parent):
         """
@@ -972,69 +972,271 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
     square_root = sqrt
 
-    def nth_root(self, int n, extend = False, all = False):
+    def nth_root(self, n, extend = False, all = False, algorithm = None, cunningham = False):
         r"""
         Returns an `n`\th root of ``self``.
 
         INPUT:
 
+        - ``n`` - integer `\geq 1`
 
-        -  ``n`` - integer `\geq 1` (must fit in C
-           ``int`` type)
+        - ``extend`` - bool (default: True); if True, return an nth
+          root in an extension ring, if necessary. Otherwise, raise a
+          ValueError if the root is not in the base ring.  Warning:
+          this option is not implemented!
 
-        -  ``all`` - bool (default: ``False``); if
-           ``True``, return all `n`\th roots of
-           ``self``, instead of just one.
+        - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
+          roots of ``self``, instead of just one.
 
+        - ``algorithm`` - string (default: None); The algorithm for the prime modulus case.
+          CRT and p-adic log techniques are used to reduce to this case.
+          'Johnston' is the only currently supported option.
 
-        OUTPUT: If self has an `n`\th root, returns one (if
-        ``all`` is false) or a list of all of them (if
-        ``all`` is true). Otherwise, raises a
-        ``ValueError``.
+        OUTPUT:
 
-        AUTHORS:
+        If self has an `n`\th root, returns one (if ``all`` is ``False``) or a
+        list of all of them (if ``all`` is ``True``).  Otherwise, raises a
+        ``ValueError`` (if ``extend`` is ``False``) or a ``NotImplementedError`` (if
+        ``extend`` is ``True``).
 
-        - David Roe (2007-10-3)
+        .. warning::
+           The 'extend' option is not implemented (yet).
+
+        NOTES:
+
+        - If `n = 0`:
+
+          - if ``all=True``:
+
+            - if ``self=1``: all nonzero elements of the parent are returned in
+              a list.  Note that this could be very expensive for large
+              parents.
+
+            - otherwise: an empty list is returned
+
+          - if ``all=False``:
+
+            - if ``self=1``: ``self`` is returned
+
+            - otherwise; a ``ValueError`` is raised
+
+        - If `n < 0`:
+
+          - if self is invertible, the `(-n)`\th root of the inverse of self is returned
+
+          - otherwise a ``ValueError`` is raised or empty list returned.
 
         EXAMPLES::
 
-            sage: k.<a> = GF(29)
-            sage: b = a^2 + 5*a + 1
-            sage: b.nth_root(5)
-            24
-            sage: b.nth_root(7)
+
+            sage: K = GF(31)
+            sage: a = K(22)
+            sage: K(22).nth_root(7)
+            13
+            sage: K(25).nth_root(5)
+            5
+            sage: K(23).nth_root(3)
+            29
+            sage: mod(225,2^5*3^2).nth_root(4, all=True)
+            [225, 129, 33, 63, 255, 159, 9, 201, 105, 279, 183, 87, 81, 273, 177, 207, 111, 15, 153, 57, 249, 135, 39, 231]
+            sage: mod(275,2^5*7^4).nth_root(7, all=True)
+            [58235, 25307, 69211, 36283, 3355, 47259, 14331]
+            sage: mod(1,8).nth_root(2,all=True)
+            [1, 7, 5, 3]
+            sage: mod(4,8).nth_root(2,all=True)
+            [2, 6]
+            sage: mod(1,16).nth_root(4,all=True)
+            [1, 15, 13, 3, 9, 7, 5, 11]
+            sage: (mod(22,31)^200).nth_root(200)
+            5
+            sage: mod(3,6).nth_root(0,all=True)
+            []
+            sage: mod(3,6).nth_root(0)
             Traceback (most recent call last):
             ...
-            ValueError: no nth root
-            sage: b.nth_root(4, all=True)
-            [21, 20, 9, 8]
+            ValueError
+            sage: mod(1,6).nth_root(0,all=True)
+            [1, 2, 3, 4, 5]
+
+        TESTS::
+
+            sage: for p in [1009,2003,10007,100003]:
+            ...       K = GF(p)
+            ...       for r in (p-1).divisors():
+            ...           if r == 1: continue
+            ...           x = K.random_element()
+            ...           y = x^r
+            ...           if y.nth_root(r)**r != y: raise RuntimeError
+            ...           if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
+            ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
+
+            sage: for t in xrange(200):
+            ...       n = randint(1,2^63)
+            ...       K = Integers(n)
+            ...       b = K.random_element()
+            ...       e = randint(-2^62, 2^63)
+            ...       try:
+            ...           a = b.nth_root(e)
+            ...           if a^e != b:
+            ...               print n, b, e, a
+            ...               raise NotImplementedError
+            ...       except ValueError:
+            ...           pass
+
+        ALGORITHMS:
+
+        - The default for prime modulus is currently an algorithm described in the following paper:
+
+        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+
+        AUTHORS:
+
+        - David Roe (2010-2-13)
         """
-
-        # I removed the following text from the docstring, because
-        # this behavior is not implemented:
-#             extend -- bool (default: True); if True, return a square
-#                  root in an extension ring, if necessary. Otherwise,
-#                  raise a \class{ValueError} if the square is not in the base
-#                  ring.
-# ...
-#                                                           (if
-#            extend = False) or a NotImplementedError (if extend = True).
-
-
         if extend:
             raise NotImplementedError
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        R = PolynomialRing(self.parent(), "x")
-        f = R([-self] + [self.parent()(0)] * (n - 1) + [self.parent()(1)])
-        L = f.roots()
-        if all:
-            return [x[0] for x in L]
-        else:
-            if len(L) == 0:
-                raise ValueError, "no nth root"
+        K = self.parent()
+        n = Integer(n)
+        if n == 0:
+            if self == 1:
+                if all: return [K(a) for a in range(1,K.order())]
+                else: return self
             else:
-                return L[0][0]
+                if all: return []
+                else: raise ValueError
+        F = K.factored_order()
+        if len(F) == 0:
+            if all:
+                return [self]
+            else:
+                return self
+        if len(F) != 1:
+            if all:
+                # we should probably do a first pass to see if there are any solutions so that we don't get giant intermediate lists and waste time...
+                L = []
+                for p, k in F:
+                    L.append(mod(self, p**k).nth_root(n, all=True, algorithm=algorithm))
+                ans = L[0]
+                for i in range(1, len(L)):
+                    ans = [a.crt(b) for a in ans for b in L[i]]
+            else:
+                ans = mod(0,1)
+                for p, k in F:
+                    ans = ans.crt(mod(self, p**k).nth_root(n, algorithm=algorithm))
+            return ans
+        p, k = F[0]
+        if self.is_zero():
+            if n < 0:
+                if all: return []
+                else: raise ValueError
+            if all:
+                if k == 1:
+                    return [self]
+                else:
+                    minval = max(1, (k/n).ceil())
+                    return [K(a*p**minval) for a in range(p**(k-minval))]
+            else:
+                return self
+        if n < 0:
+            try:
+                self = ~self
+            except ZeroDivisionError:
+                if all: return []
+                else: raise ValueError
+            n = -n
+        if p == 2 and k == 1:
+            if all: return [self]
+            else: return self
+        if k > 1:
+            pval, upart = self.lift().val_unit(p)
+            if not n.divides(pval):
+                if all:
+                    return []
+                else:
+                    raise ValueError, "no nth root"
+            if pval > 0:
+                if all:
+                    return [K(a.lift()*p**(pval // n) + p**(k - (pval - pval//n)) * b) for a in mod(upart, p**(k-pval)).nth_root(n, all=True, algorithm=algorithm) for b in range(p**(pval - pval//n))]
+                else:
+                    return K(p**(pval // n) * mod(upart, p**(k-pval)).nth_root(n, algorithm=algorithm).lift())
+            from sage.rings.padics.all import ZpFM
+            R = ZpFM(p,k,print_mode='digits')
+            self_orig = self
+            if p == 2:
+                sign = [1]
+                if self % 4 == 3:
+                    if n % 2 == 0:
+                        if all: return []
+                        else: raise ValueError, "no nth root"
+                    else:
+                        sign = [-1]
+                        self = -self
+                elif n % 2 == 0:
+                    if k > 2 and self % 8 == 5:
+                        if all: return []
+                        else: raise ValueError, "no nth root"
+                    sign = [1, -1]
+                if k == 2:
+                    if all: return [K(s) for s in sign[:2]]
+                    else: return K(sign[0])
+                if all: modp = [mod(self,8)]
+                else: modp = mod(self,8)
+            else:
+                sign = [1]
+                modp = self % p
+                self = self / K(R.teichmuller(modp))
+                modp = modp.nth_root(n, all=all, algorithm=algorithm)
+            # now self is congruent to 1 mod 4 or 1 mod p (for odd p), so the power series for p-adic log converges.
+            # Hensel lifting is probably better, but this is easier at the moment.
+            plog = R(self).log()
+            nval = n.valuation(p)
+            if nval >= plog.valuation() + (-1 if p == 2 else 0):
+                if self == 1:
+                    if all:
+                        return [s*K(p*k+m.lift()) for k in range(p**(k-(2 if p==2 else 1))) for m in modp for s in sign]
+                    else: return self_orig
+                else:
+                    if all: return []
+                    else: raise ValueError, "no nth root"
+            if all:
+                ans = [plog // n + p**(k - nval) * i for i in range(p**nval)]
+                ans = [s*K(R.teichmuller(m) * a.exp()) for a in ans for m in modp for s in sign]
+                return ans
+            else:
+                return sign[0] * K(R.teichmuller(modp) * (plog // n).exp())
+        return self._nth_root_common(n, all, algorithm, cunningham)
 
+    def _nth_root_naive(self, n):
+        """
+        Computes all nth roots using brute force, for doc-testing.
+
+        TESTS::
+
+            sage: for n in range(2,100): # long time
+            ...       K=Integers(n)
+            ...       elist = range(1,min(2*n+2,100))
+            ...       for e in random_sublist(elist, 5/len(elist)):
+            ...           for a in random_sublist(range(1,n), min((n+2)//2,10)/(n-1)):
+            ...               b = K(a)
+            ...               try:
+            ...                   L = b.nth_root(e, all=True)
+            ...                   if len(L) > 0:
+            ...                       c = b.nth_root(e)
+            ...               except:
+            ...                   L = [-1]
+            ...               M = b._nth_root_naive(e)
+            ...               if sorted(L) != M:
+            ...                   print "mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)"%(a,n,e,a,n,e)
+            ...                   raise ValueError
+            ...               if len(L) > 0 and (c not in L):
+            ...                   print "mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)"%(a,n,e,a,n,e)
+            ...                   raise ValueError
+        """
+        L = []
+        for a in self.parent():
+            if a**n == self:
+                L.append(a)
+        return L
 
     def _balanced_abs(self):
         """

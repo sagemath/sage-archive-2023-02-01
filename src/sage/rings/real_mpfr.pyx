@@ -177,11 +177,11 @@ def mpfr_prec_min():
     """
     return MPFR_PREC_MIN
 
-cdef int MY_MPFR_PREC_MAX = 16777216
+cdef int MY_MPFR_PREC_MAX = 2147483647
 def mpfr_prec_max():
     global MY_MPFR_PREC_MAX
-    # lots of things in mpfr *crash* if we use MPFR_PREC_MAX!
-    # So don't.   Using 2**24 seems to work well. (see above)
+    # We use 2^31-1 as the largest precision, since 2^31 is not representable
+    # as a 32-bit int
     return MY_MPFR_PREC_MAX
 
 #*****************************************************************************

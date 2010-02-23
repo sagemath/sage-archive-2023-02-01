@@ -108,7 +108,7 @@ from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
 import weakref
 from sage.rings.finite_rings.constructor import FiniteField as GF
-from sage.rings.finite_rings.element_givaro import FiniteField_givaro
+from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.structure.parent_base import ParentWithBase

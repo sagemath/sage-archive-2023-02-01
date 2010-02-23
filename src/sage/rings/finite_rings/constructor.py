@@ -16,7 +16,7 @@ are
 
 Small extension fields of cardinality `< 2^{16}` are
 implemented using tables of Zech logs via the Givaro C++ library
-(``sage.rings.finite_rings.element_givaro.FiniteField_givaro``).
+(``sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro``).
 While this representation is very fast it is limited to finite
 fields of small cardinality. Larger finite extension fields of
 order `q >= 2^{16}` are internally represented as
@@ -58,7 +58,7 @@ EXAMPLES::
 ::
 
     sage: k = GF(5^2,'c'); type(k)
-    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
+    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro'>
 
 ::
 
@@ -105,7 +105,7 @@ We output the base rings of several finite fields.
 ::
 
     sage: k = GF(9,'alpha'); type(k)
-    <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaro'>
+    <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -163,8 +163,9 @@ import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
 
 # We don't late import this because this means trouble with the Givaro library
+# On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
 # TODO: figure out why
-from element_givaro import FiniteField_givaro
+from finite_field_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
 import sage.databases.conway

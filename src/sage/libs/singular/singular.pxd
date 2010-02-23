@@ -4,7 +4,7 @@ from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract
-from sage.rings.finite_rings.element_givaro cimport FiniteField_givaro
+from sage.rings.finite_rings.element_givaro cimport Cache_givaro
 from sage.rings.finite_rings.element_givaro cimport FiniteField_givaroElement as FFgivE
 from sage.rings.finite_rings.element_ntl_gf2e cimport FiniteField_ntl_gf2e
 from sage.rings.finite_rings.element_ntl_gf2e cimport FiniteField_ntl_gf2eElement as FFgf2eE
@@ -20,7 +20,7 @@ from sage.rings.number_field.number_field_base cimport NumberField
 cdef Rational si2sa_QQ(number (*),ring (*))
 cdef Integer  si2sa_ZZ(number (*),ring (*))
 
-cdef FFgivE   si2sa_GFqGivaro(number *n, ring *_ring, FiniteField_givaro base)
+cdef FFgivE   si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache)
 cdef FFgf2eE  si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base)
 cdef object   si2sa_GFqPari(number *n, ring *_ring, object base)
 cdef object   si2sa_ZZmod(number *n, ring *_ring, object base)

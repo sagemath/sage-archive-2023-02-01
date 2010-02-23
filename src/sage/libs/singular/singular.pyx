@@ -42,6 +42,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
+from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.libs.pari.all import pari
 
 from sage.structure.parent_base cimport ParentWithBase
@@ -124,7 +125,7 @@ cdef Integer si2sa_ZZ(number *n, ring *_ring):
     z.set_from_mpz(<__mpz_struct*>n)
     return z
 
-cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, FiniteField_givaro base):
+cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     """
     TESTS::
 
@@ -142,25 +143,25 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, FiniteField_givaro base):
     cdef int order
 
     if naIsZero(n):
-        return base._zero_element
+        return cache._zero_element
     elif naIsOne(n):
-        return base._one_element
+        return cache._one_element
     z = (<lnumber*>n).z
 
-    a = base.objectptr.sage_generator()
-    ret = base.objectptr.zero
-    order = base.objectptr.cardinality() - 1
+    a = cache.objectptr.sage_generator()
+    ret = cache.objectptr.zero
+    order = cache.objectptr.cardinality() - 1
 
     while z:
-        c = base.objectptr.initi(c,<long>napGetCoeff(z))
+        c = cache.objectptr.initi(c,<long>napGetCoeff(z))
         e = napGetExp(z,1)
         if e == 0:
-            ret = base.objectptr.add(ret, c, ret)
+            ret = cache.objectptr.add(ret, c, ret)
         else:
-            a = ( e * base.objectptr.sage_generator() ) % order
-            ret = base.objectptr.axpy(ret, c, a, ret)
+            a = ( e * cache.objectptr.sage_generator() ) % order
+            ret = cache.objectptr.axpy(ret, c, a, ret)
         z = napIter(z)
-    return (<FFgivE>base._zero_element)._new_c(ret)
+    return (<FFgivE>cache._zero_element)._new_c(ret)
 
 cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base):
     """
@@ -544,7 +545,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         return si2sa_ZZ(n,_ring)
 
     elif PY_TYPE_CHECK(base, FiniteField_givaro):
-        return si2sa_GFqGivaro(n, _ring, base)
+        return si2sa_GFqGivaro(n, _ring, base._cache)
 
     elif PY_TYPE_CHECK(base, FiniteField_ext_pari):
         return si2sa_GFqPari(n, _ring, base)
@@ -574,8 +575,8 @@ cdef number *sa2si(Element elem, ring * _ring):
     elif PY_TYPE_CHECK(elem._parent, IntegerRing_class):
         return sa2si_ZZ(elem, _ring)
 
-    elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
-        return sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FFgivE>elem).element ), _ring )
+    elif isinstance(elem._parent, FiniteField_givaro):
+        return sa2si_GFqGivaro( (<FFgivE>elem)._cache.objectptr.convert(i, (<FFgivE>elem).element ), _ring )
 
     elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
         return sa2si_GFqPari(elem, _ring)

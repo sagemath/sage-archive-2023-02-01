@@ -1,10 +1,8 @@
-from sage.rings.finite_rings.finite_field_base cimport FiniteField
-from sage.rings.ring cimport Ring
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.rings.finite_rings.element_base cimport FiniteFieldElement
 
 from sage.structure.parent  cimport Parent
-
+from sage.structure.sage_object cimport SageObject
 
 cdef extern from "givaro/givconfig.h":
     pass
@@ -63,33 +61,32 @@ cdef extern from "givaro/givgfq.h":
     void delete "delete "(void *o)
     int gfq_element_factory "GFqDom<int>::Element"()
 
+cdef class FiniteField_givaroElement(FiniteFieldElement) #forward declaration
 
-cdef class FiniteField_givaro(FiniteField):
+cdef class Cache_givaro(SageObject):
     cdef GivaroGfq *objectptr # C++ object
-    cdef object _polynomial
-    cdef object _polynomial_ring
-    cdef object _prime_subfield
-    cdef object _array
-    cdef object _is_conway
-    cdef object _hash
-    cdef int repr
-    cdef gen_array(FiniteField_givaro self)
-    cdef order_c(FiniteField_givaro self)
-    cdef _coerce_c_impl(self, x)
-    cdef prime_subfield_C(FiniteField_givaro self)
+    cdef public object _array
+    cdef FiniteField_givaroElement _zero_element
+    cdef FiniteField_givaroElement _one_element
+    cdef public int repr
+    cdef bint _has_array
+    cdef bint _is_conway
+    cdef Parent parent
+    cdef gen_array(self)
+    cpdef int exponent(self)
+    cpdef int order_c(self)
+    cpdef int characteristic(self)
+    cpdef FiniteField_givaroElement gen(self)
+    cpdef FiniteField_givaroElement element_from_data(self, e)
 
 cdef class FiniteField_givaro_iterator:
     cdef int iterator
-    cdef FiniteField_givaro _parent
+    cdef Cache_givaro _cache
 
 cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef int element
-    cdef object __multiplicative_order
-    cpdef ModuleElement _add_(self, ModuleElement right)
-    cpdef RingElement _mul_(self, RingElement right)
-    cpdef RingElement _div_(self, RingElement right)
-    cpdef ModuleElement _sub_(self, ModuleElement right)
-    cdef int _cmp_c_impl(left, Element right) except -2
+    cdef Cache_givaro _cache
+    cdef object _multiplicative_order
     cdef FiniteField_givaroElement _new_c(self, int value)
 
 

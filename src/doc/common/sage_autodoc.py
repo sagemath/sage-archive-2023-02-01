@@ -844,11 +844,52 @@ class ClassDocumenter(ModuleLevelDocumenter):
 
     def import_object(self):
         ret = ModuleLevelDocumenter.import_object(self)
-        # if the class is documented under another name, document it
+        # If the class is already documented under another name, document it
         # as data/attribute
+        #
+        # Notes from Florent Hivert (2010-02-18) Sage trac #7448:
+        #
+        #  - The original goal of this was that if some class is aliased, the
+        # alias is generated as a link rather than duplicated. For example in:
+        #     class A: pass
+        #     B = A
+        # Then B is an alias of A, and should be generated as such.
+        #
+        #  - the way it is solved is to compare the name under which the
+        # current class is found and the actual name if the class (stored in
+        # the attribute __name__):
+        #   if hasattr(self.object, '__name__'):
+        #       self.doc_as_attr = (self.objpath[-1] != self.object.__name__)
+        #   else:
+        #       self.doc_as_attr = True
+        #
+        #  - The original implementation as well as the new one don't work if
+        # a class is aliased from a different place under the same name. For
+        # example, in the following
+        #     class A: pass
+        #     class Container:
+        #         A = A
+        # The nested copy Container.A is also documented. Actually, it seems
+        # that there is no way to solve this by introspection. I'll submbit
+        # this problem on sphinx trac.
+        #
+        #  - Now, to work around a pickling bug of nested class in Python,
+        # by using the metaclass NestedMetaclass, we change the attribute
+        # __name__ of the nested class. For example, in
+        #     class A(object): pass
+        #        __metaclass__ = NestedClassMetaclass
+        #        class B(object): pass
+        # the class B get its name changed to 'A.B'. Such dots '.' in names
+        # are not supposed to occur in normal python name. I use it to check
+        # if the class is a nested one and to compare its __name__ with its
+        # path.
+        #
+        # References: Sage #5986, file sage/misc/nested_class.py
         if ret:
             if hasattr(self.object, '__name__'):
-                self.doc_as_attr = (self.objpath[-1] != self.object.__name__)
+                name = self.object.__name__
+                self.doc_as_attr = (self.objpath != name.split('.') and
+                                    self.check_module())
             else:
                 self.doc_as_attr = True
         return ret

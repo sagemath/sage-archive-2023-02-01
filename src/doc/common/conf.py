@@ -285,16 +285,30 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
         else:
             break
 
-def skip_NestedClass(app, what, name, obj, skip, options):
+def skip_member(app, what, name, obj, skip, options):
     """
-    Don't include the docstring for any class/function/object in
-    sage.misc.misc whose ``name`` contains "MainClass.NestedClass".
-    (This is to avoid some Sphinx warnings when processing
-    sage.misc.misc.)  Otherwise, abide by Sphinx's decision.
+    To suppress Sphinx warnings / errors, we
+
+    - Don't include the docstring for any nested class which has been
+      inserted into its module by
+      :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
+      class will be properly documented inside its surrounding class.
+
+    - Don't include
+      sagenb.notebook.twist.userchild_download_worksheets.zip.
+
+    Otherwise, we abide by Sphinx's decision.  Note: The object
+    ``obj`` is excluded (included) if this handler returns True
+    (False).
     """
-    skip_nested = str(obj).find("sage.misc.misc") != -1 and name.find("MainClass.NestedClass") != -1
-    skip_download_worksheets = name.find("userchild_download_worksheets.zip") != -1
-    return skip or skip_nested or skip_download_worksheets
+    if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
+        obj.__name__.split('.')[-1] != name):
+        return True
+
+    if name.find("userchild_download_worksheets.zip") != -1:
+        return True
+
+    return skip
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
@@ -330,4 +344,4 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
     app.connect('autodoc-process-docstring', process_mathtt)
-    app.connect('autodoc-skip-member', skip_NestedClass)
+    app.connect('autodoc-skip-member', skip_member)

@@ -1,4 +1,6 @@
 """
+Test for nested class Parent
+
 This file contains a discussion, examples, and tests about nested
 classes and parents. It is kept in a separate file to avoid import
 loops.
@@ -42,6 +44,8 @@ alternative is to use ClasscallMetaclass as metaclass::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+
+__all__ = [] # Don't document any parents
 
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
@@ -120,3 +124,67 @@ class TestParent4(Parent):
 
     class Element(ElementWrapper):
         pass
+
+
+# Class for tests:
+class B(object):
+    """
+    A normal external class.
+    """
+    pass
+
+class ABB(object):
+    class B(object):
+        """
+        This class is broken and can't be pickled.
+        A warning is emmited during compilation.
+        """
+        pass
+
+class ABL(object):
+    """
+    There is no problem here.
+    """
+    B=B
+
+class ALB(object):
+    """
+    There is a nested class just below. Which can't be properly sphinxed.
+    """
+    class C(object):
+        """
+        Internal C class.
+
+        Thanks to the links below this class is pickled ok.
+        But it is sphixed wrong: It is typeset as a link to an outer class.
+        """
+        pass
+
+C = ALB.C
+
+
+
+class ABBMeta(object):
+    __metaclass__ = NestedClassMetaclass
+    class B(object):
+        """
+        B interne
+        """
+        pass
+
+class ABLMeta(object):
+    __metaclass__ = NestedClassMetaclass
+    B=B
+
+class ALBMeta(object):
+    """
+    There is a nested class just below which is properly sphinxed.
+    """
+    __metaclass__ = NestedClassMetaclass
+    class CMeta(object):
+        """
+        B interne
+        """
+        pass
+
+CMeta = ALBMeta.CMeta

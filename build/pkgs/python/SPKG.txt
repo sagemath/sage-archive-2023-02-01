@@ -64,6 +64,9 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.6.4.p6 (Jaap Spies, Feb 23, 2010) ===
+ * #7761 Fix build in Open Solaris x64 with SAGE64=yes
+
 === python-2.6.4.p5 (William Stein, Jan 20, 2010) ===
 * Fix bug on Itanium introduced by typo by Craig in #60.  See trac 8020.
 

@@ -105,7 +105,7 @@ build()
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
     if [ `uname` = "Darwin" ]; then
-        if [ "$SAGE64" = "yes" ]; then
+        if [ "x$SAGE64" = xyes ]; then
             echo "64 bit OSX build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
             ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
@@ -113,6 +113,16 @@ build()
         else
             ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
 	    --enable-unicode=ucs4 --disable-toolbox-glue
+        fi
+    elif [ `uname` = "SunOS" ]; then
+        if [ "x$SAGE64" = xyes ]; then
+            echo "64 bit Open Solaris build enabled"
+            OPT="-g -O3 -Wall -Wstrict-prototypes"; export OPT
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            --enable-unicode=ucs4 --with-gcc="gcc -m64"
+        else
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            --enable-unicode=ucs4
         fi
     else
         ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"

@@ -58,8 +58,8 @@ ifeq ($(G5),TRUE)
    #MACHINE_SPECIFIC_FLAGS = -mpowerpc -mpowerpc64 -m64
 endif
 
-CCFLAGS =  -Wa,-W -O3 $(OPENMP_FLAG) -Wno-deprecated $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
-#CCFLAGS =  -Wa,-W -O3 $(OPENMP_FLAG)  $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
+CCFLAGS =  -W -O3 $(OPENMP_FLAG) -Wno-deprecated $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
+#CCFLAGS =  -W -O3 $(OPENMP_FLAG)  $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
 #CCFLAGS =  -Wa,-W -O2 -fno-exceptions -Wno-deprecated $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
 
 #warning- O2 doesn't help with -DUSE_LONG_DOUBLE on mac, and actually seems to hurt, making runtime longer
@@ -88,26 +88,12 @@ INCLUDEFILES= -I../include
 #For Mac os x we omit shared library options
 
 ifeq ($(OS_NAME),Darwin)
-    LDFLAGS2 =
     DYN_OPTION=dynamiclib
 else
-    LDFLAGS1 = -Xlinker -export-dynamic #not sure why pari calls these when linking but on the web I found
-    #'Libtool provides the `-export-dynamic' link flag (see section Link mode), which does this declaration.
-    #You need to use this flag if you are linking a shared library that will be dlopened'
-    #see notes below
-    #ifeq ($(PARI_DEFINE),-DINCLUDE_PARI)
-       LDFLAGS2 = $(LDFLAGS1) -Xlinker -rpath -Xlinker $(LOCATION_PARI_LIBRARY)
-    #else
-    #    LDFLAGS2 = $(LDFLAGS1)
-    #endif
     DYN_OPTION=shared
 endif
 
-ifeq ($(PARI_DEFINE),-DINCLUDE_PARI)
-    LDFLAGS = $(LDFLAGS2) -L$(LOCATION_PARI_LIBRARY) -lpari
-else
-    LDFLAGS = $(LDFLAGS2)
-endif
+LDFLAGS = -L$(LOCATION_PARI_LIBRARY) -lpari
 
 
 

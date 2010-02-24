@@ -117,14 +117,14 @@ class LowerChristoffelWord(FiniteWord_list):
         r"""
         INPUT:
 
-        - ``p`` - integer coprime with ``q``
-        - ``q`` - integer coprime with ``p``
-        - ``alphabet`` - sequence of two elements (optional, default (0, 1))
-        - ``algorithm`` - construction method (optional, default 'cf').
+        - ``p`` - integer coprime with ``q``.
+        - ``q`` - integer coprime with ``p``.
+        - ``alphabet`` - sequence of two elements (optional, default: (0, 1)).
+        - ``algorithm`` - construction method (optional, default: 'cf').
           It can be one of the following:
 
-          - ``'linear'`` - Linear algorithm in the length of the word.
-          - ``'cf'`` - Fast method using continued fraction.
+          - ``'linear'`` - linear algorithm in the length of the word.
+          - ``'cf'`` - fast method using continued fraction.
 
         TESTS::
 
@@ -161,7 +161,7 @@ class LowerChristoffelWord(FiniteWord_list):
         if gcd(p,q) != 1:
             raise ValueError, "%s and %s are not relatively prime" % (p, q)
         # Compute the Christoffel word
-        if algorithm is 'linear':
+        if algorithm == 'linear':
             w = []
             u = 0
             if (p, q) == (0, 1):
@@ -172,7 +172,7 @@ class LowerChristoffelWord(FiniteWord_list):
                     new_letter = alphabet[0] if u < v else alphabet[1]
                     w.append(new_letter)
                     u = v
-        elif algorithm is 'cf':
+        elif algorithm == 'cf':
             if (p, q) == (0, 1):
                 w = [alphabet[0]]
             elif (p, q) == (1, 0):

@@ -5906,7 +5906,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x*log(9)).simplify_log('all')
             log(9^x)
 
-        TESTS::
+        TESTS:
 
         This shows that the issue at trac #7344 is fixed::
 
@@ -5977,7 +5977,7 @@ cdef class Expression(CommutativeRingElement):
 
         ALIAS: :meth:`log_expand` and :meth:`expand_log` are the same
 
-        EXAMPLES::
+        EXAMPLES:
 
         By default powers and products (and quotients) are expanded,
         but not quotients of integers::

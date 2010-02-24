@@ -120,7 +120,7 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
 def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
-    """
+    r"""
     INPUT::
      - ``name``: a string
      - ``bases``: a tuple of classes

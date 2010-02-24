@@ -543,7 +543,7 @@ class Word_class(SageObject):
 
         Provides for all normal comparison operators.
 
-        .. note::
+        .. NOTE::
 
             This function will not terminate if self and other are equal
             infinite words!
@@ -611,7 +611,7 @@ class Word_class(SageObject):
 
         OUTPUT:
 
-        bool
+            boolean
 
         .. NOTE:
 
@@ -627,7 +627,7 @@ class Word_class(SageObject):
             sage: Words([0,1])([0,1,0,1]) == Words([0,1])([0,1,0,0])
             False
 
-        It works when parents are not the same::
+        It works even when parents are not the same::
 
             sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
             True
@@ -636,7 +636,7 @@ class Word_class(SageObject):
             sage: Word('ababa') == Words('abcd')('ababa')
             True
 
-        Between finite and infinite words::
+        Or when one word is finite while the other is infinite::
 
             sage: Word(range(20)) == Word(lambda n:n)
             False
@@ -697,7 +697,7 @@ class Word_class(SageObject):
 
         OUTPUT:
 
-        bool
+            boolean
 
         .. NOTE:
 

@@ -131,7 +131,7 @@ cdef class WordDatatype_list(WordDatatype):
 
         OUTPUT:
 
-        bool or NotImplemented
+            boolean or NotImplemented
 
         EXAMPLES::
 
@@ -144,7 +144,7 @@ cdef class WordDatatype_list(WordDatatype):
             sage: z == w
             False
 
-        It works if the parent are not the same::
+        It works even if the parents are not the same::
 
             sage: Words([0,1])([0,1,1]) == Words([0,1,2])([0,1,1])
             True
@@ -309,7 +309,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         OUTPUT:
 
-        bool or NotImplemented
+            boolean or NotImplemented
 
         EXAMPLES::
 
@@ -322,7 +322,7 @@ cdef class WordDatatype_str(WordDatatype):
             sage: z == w
             False
 
-        It works if the parent are not the same::
+        It works even if the parents are not the same::
 
             sage: Words('ab')('ababa') == Words('abcd')('ababa')
             True
@@ -887,7 +887,7 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         OUTPUT:
 
-        bool or NotImplemented
+            boolean or NotImplemented
 
         EXAMPLES::
 
@@ -900,7 +900,7 @@ cdef class WordDatatype_tuple(WordDatatype):
             sage: Word((1,2,3)) == Word((1,2,3,'a'))
             False
 
-        It works if the parents are not the same::
+        It works even if the parents are not the same::
 
             sage: Words([1,2])((1,1,1,2)) == Words([1,2,3])((1,1,1,2))
             True

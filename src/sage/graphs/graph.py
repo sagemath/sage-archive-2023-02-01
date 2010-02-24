@@ -1620,15 +1620,15 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.CycleGraph(4).bipartite_sets()
-            ([0, 2], [1, 3])
+            (set([0, 2]), set([1, 3]))
             sage: graphs.CycleGraph(5).bipartite_sets()
             Traceback (most recent call last):
             ...
             RuntimeError: Graph is not bipartite.
         """
         color = self.bipartite_color()
-        left = [v for v in color if color[v] == 1]
-        right = [v for v in color if color[v] == 0]
+        left = set([v for v in color if color[v] == 1])
+        right = set([v for v in color if color[v] == 0])
         return (left, right)
 
     def chromatic_polynomial(self):

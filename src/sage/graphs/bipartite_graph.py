@@ -77,16 +77,16 @@ class BipartiteGraph(Graph):
         sage: B == G
         True
         sage: B.left
-        [0, 1, 2, 3]
+        set([0, 1, 2, 3])
         sage: B.right
-        [4, 5, 6]
+        set([4, 5, 6])
         sage: B = BipartiteGraph({0:[5,6], 1:[4,5], 2:[4,6], 3:[4,5,6]})
         sage: B == G
         True
         sage: B.left
-        [0, 1, 2, 3]
+        set([0, 1, 2, 3])
         sage: B.right
-        [4, 5, 6]
+        set([4, 5, 6])
 
     3. From a graph and a partition. Note that if the input graph is not
     bipartite, then Sage will raise an error. However, if one specifies check =
@@ -103,7 +103,7 @@ class BipartiteGraph(Graph):
 
         sage: B = BipartiteGraph(P, partition, check=False)
         sage: B.left
-        [0, 1, 2, 3, 4]
+        set([0, 1, 2, 3, 4])
         sage: B.show()
 
     ::
@@ -219,14 +219,14 @@ class BipartiteGraph(Graph):
         """
         if len(args) == 0:
             Graph.__init__(self)
-            self.left = []; self.right = []
+            self.left = set(); self.right = set()
             return
         arg1 = args[0]
         args = args[1:]
         from sage.structure.element import is_Matrix
         if isinstance(arg1, BipartiteGraph):
             Graph.__init__(self, arg1, *args, **kwds)
-            self.left, self.right = arg1.left, arg1.right
+            self.left, self.right = set(arg1.left), set(arg1.right)
         elif isinstance(arg1, str):
             Graph.__init__(self, *args, **kwds)
             self.load_afile(arg1)
@@ -237,7 +237,7 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, *args, **kwds)
             ncols = arg1.ncols()
             nrows = arg1.nrows()
-            self.left, self.right = range(ncols), range(ncols, nrows+ncols)
+            self.left, self.right = set(xrange(ncols)), set(xrange(ncols, nrows+ncols))
             if kwds.get('multiedges',False):
                 for ii in range(ncols):
                     for jj in range(nrows):
@@ -285,7 +285,7 @@ class BipartiteGraph(Graph):
                         a_nbrs = set( arg1.neighbors(a) ) & set(right)
                         if len( a_nbrs ) != 0:
                             self.delete_edges([(a, b) for b in a_nbrs])
-                self.left, self.right = copy(args[0][0]), copy(args[0][1])
+                self.left, self.right = set(args[0][0]), set(args[0][1])
         elif isinstance(arg1, Graph):
             try:
                 Graph.__init__(self, arg1, *args, **kwds)
@@ -299,13 +299,13 @@ class BipartiteGraph(Graph):
             if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
                 if hasattr(arg1, 'node_type'):
                     # Assume the graph is bipartite
-                    self.left = []
-                    self.right = []
+                    self.left = set()
+                    self.right = set()
                     for v in arg1.nodes_iter():
                         if arg1.node_type[v] == 'Bottom':
-                            self.left.append(v)
+                            self.left.add(v)
                         elif arg1.node_type[v] == 'Top':
-                            self.right.append(v)
+                            self.right.add(v)
                         else:
                             raise TypeError("NetworkX node_type defies bipartite assumption (is not 'Top' or 'Bottom')")
             # make sure we found a bipartition
@@ -338,7 +338,7 @@ class BipartiteGraph(Graph):
         EXAMPLE:
             sage: B = BipartiteGraph( graphs.CycleGraph(4) )
             sage: B.bipartition()
-            ([0, 2], [1, 3])
+            (set([0, 2]), set([1, 3]))
 
         """
         return (self.left, self.right)
@@ -395,22 +395,26 @@ class BipartiteGraph(Graph):
             kwds['pos'] = None
         if kwds['pos'] is None:
             pos = {}
+            left = list(self.left)
+            right = list(self.right)
+            left.sort()
+            right.sort()
             l_len = len(self.left)
             r_len = len(self.right)
             if l_len == 1:
-                pos[self.left[0]] = [-1, 0]
+                pos[left[0]] = [-1, 0]
             elif l_len > 1:
                 i = 0
                 d = 2./(l_len-1)
-                for v in self.left:
+                for v in left:
                     pos[v] = [-1, 1-i*d]
                     i += 1
             if r_len == 1:
-                pos[self.right[0]] = [1, 0]
+                pos[right[0]] = [1, 0]
             elif r_len > 1:
                 i = 0
                 d = 2./(r_len-1)
-                for v in self.right:
+                for v in right:
                     pos[v] = [1, 1-i*d]
                     i += 1
             kwds['pos'] = pos
@@ -492,8 +496,8 @@ class BipartiteGraph(Graph):
         #NOTE:: we could check the actual node degrees against the reported node degrees....
 
         # now we have all the edges in our graph, just fill in the bipartite partitioning
-        self.left = list(range(num_cols))
-        self.right = list(range(num_cols, num_cols + num_rows))
+        self.left = set(xrange(num_cols))
+        self.right = set(xrange(num_cols, num_cols + num_rows))
 
         # return self for chaining calls if desired
         return self
@@ -552,8 +556,10 @@ class BipartiteGraph(Graph):
             return
 
         # prep: handy lists, functions for extracting adjacent nodes
-        vnodes = self.left
-        cnodes = self.right
+        vnodes = list(self.left)
+        cnodes = list(self.right)
+        vnodes.sort()
+        cnodes.sort()
         max_vdeg = max(self.degree(vnodes))
         max_cdeg = max(self.degree(cnodes))
         num_vnodes = len(vnodes)
@@ -580,7 +586,7 @@ class BipartiteGraph(Graph):
         # return self for chaining calls if desired
         return
 
-    def __edge2idx(self, v1, v2):
+    def __edge2idx(self, v1, v2, left, right):
         r"""
         Translate an edge to its reduced adjacency matrix position.
 
@@ -590,15 +596,15 @@ class BipartiteGraph(Graph):
             sage: P = graphs.PetersenGraph()
             sage: partition = [range(5), range(5,10)]
             sage: B = BipartiteGraph(P, partition, check=False)
-            sage: B._BipartiteGraph__edge2idx(2,7)
+            sage: B._BipartiteGraph__edge2idx(2,7,range(5),range(5,10))
             (2, 2)
 
         """
         try:
-            if v1 in self.left:
-                return (self.right.index(v2), self.left.index(v1))
+            if v1 in self.left:  # note uses attribute for faster lookup
+                return (right.index(v2), left.index(v1))
             else:
-                return (self.right.index(v1), self.left.index(v2))
+                return (right.index(v1), left.index(v2))
         except ValueError:
             raise ValueError("Tried to map invalid edge (%d,%d) to vertex indices" \
                                  % (v1, v2))
@@ -670,16 +676,22 @@ class BipartiteGraph(Graph):
         if self.is_directed():
             raise NotImplementedError, "Reduced adjacency matrix does not exist for directed graphs."
 
+        # create sorted lists of left and right edges
+        left = list(self.left)
+        right = list(self.right)
+        left.sort()
+        right.sort()
+
         # create dictionary of edges, values are weights for weighted graph,
         # otherwise the number of edges (always 1 for simple graphs)
         D = {}
         if self.weighted():
             for (v1, v2, weight) in self.edge_iterator():
-                D[self.__edge2idx(v1,v2)] = weight
+                D[self.__edge2idx(v1, v2, left, right)] = weight
         else:
             # if we're normal or multi-edge, just create the matrix over ZZ
             for (v1, v2, name) in self.edge_iterator():
-                idx = self.__edge2idx(v1, v2)
+                idx = self.__edge2idx(v1, v2, left, right)
                 if D.has_key(idx):
                     D[idx] = 1 + D[idx]
                 else:

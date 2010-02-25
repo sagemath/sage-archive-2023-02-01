@@ -179,6 +179,17 @@ def mpfr_prec_min():
 
 cdef int MY_MPFR_PREC_MAX = 2147483647
 def mpfr_prec_max():
+    """
+    TESTS::
+
+        sage: R = RealField(2147483647)
+        sage: R
+        Real Field with 2147483647 bits of precision
+        sage: R = RealField(2147483648)
+        Traceback (most recent call last):
+        ...
+        OverflowError: ... too large to convert to int
+    """
     global MY_MPFR_PREC_MAX
     # We use 2^31-1 as the largest precision, since 2^31 is not representable
     # as a 32-bit int

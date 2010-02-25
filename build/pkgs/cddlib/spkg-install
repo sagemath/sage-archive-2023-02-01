@@ -6,16 +6,18 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# We depend on mpir, make sure it is installed (GMP fork)
-MPIR_VERSION=`cd $SAGE_ROOT/spkg/standard/; ./newest_version mpir`
-if [ $? -ne 0 ]; then
-    echo "Failed to find mpir.  Please install the mpir spkg"
-    exit 1
+# Normaly for a 64-bit build, the -m64 option is added to
+# gcc, but other compilers will not accept that, so
+# allow it to be configured as something different if need
+# be.
+
+if [ -z $CFLAG64 ] ; then
+   CFLAG64=-m64
 fi
 
-if [ `uname` = "Darwin" ] && [ "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
-   CFLAGS="$CFLAGS -m64 "; export CFLAGS
+if [ "x$SAGE64" = xyes ]; then
+   echo "64 bit build of cddlib"
+   CFLAGS="$CFLAGS $CFLAG64"; export CFLAGS
 fi
 
 

@@ -43,6 +43,14 @@ From clean upstream sources:
 
 == Changelog ==
 
+=== cddlib-094f.p5 (David Kirkby, 25th February 2010) ===
+ * #8363 Remove pointless check for mpir, which is breaking on Solaris.
+   mpir is built long before cddlib (50 packages earlier), so its
+   hard to see why it should be checked.  In any case, the dependancy
+   is already in spkg/standard/deps.
+ * Allow a 64-bit build on any platform, not just OS X by resolving the
+   usual use of SAGE64 which currently only works on OS X.
+
 === cddlib-094f.p4 (Volker Braun, Minh Van Nguyen, January 29th, 2010) ===
  * renamed patches/cdd_both_reps-makefiles.patch -> patches/automake.patch
  * added check for required mpir (aka GMP) to spkg-install

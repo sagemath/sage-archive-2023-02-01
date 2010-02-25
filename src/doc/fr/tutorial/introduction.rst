@@ -65,7 +65,7 @@ quelques commandes en ligne à l'adresse http://www.sagenb.org.
 
 Des instructions pour installer Sage sur votre ordinateur sont
 disponibles dans le guide d'installation (*Installation Guide*), dans
-la section documentation de la page web principale de Sage [Sage]_.
+la section documentation de la page web principale de Sage [SA]_.
 Nous nous limiterons ici à quelques remarques.
 
 #. La version téléchargeable de Sage vient avec ses dépendances.

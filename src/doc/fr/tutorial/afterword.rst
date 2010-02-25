@@ -153,7 +153,7 @@ Si vous souhaitez contribuer au developpement de Sage, votre aide sera grandemen
 appréciée ! Cela peut aller de contributions substantielles en code au
 signalement de bogues en passant par l'enrichissement de la documentation.
 
-Parcourrez la page web de Sage pour y trouver les informations pour les
+Parcourez la page web de Sage pour y trouver les informations pour les
 développeurs. Entre autres choses, vous trouverez une longue liste de
 projets en lien avec Sage rangés par priorité et catégorie. Le Guide du
 développeur Sage (`Sage Developer's Guide
@@ -172,7 +172,7 @@ calculs faits avec Sage en citant
     [SAGE], SAGE Mathematical Software, Version 4.3, http://www.sagemath.org
 
 dans votre bibliographie (en remplaçant 4.3 par la version de Sage que
-vous avez utilisée). De plus, pensez à rechercher les composantes de Sage
+vous avez utilisée). De plus, pensez à rechercher les composants de Sage
 que vous avez utilisés pour vos calculs, par exemple PARI, GAP, Singular,
 Maxima et citez également ces systèmes. Si vous vous demandez quel
 logiciel votre calcul utilise, n'hésitez pas à poser la question sur le

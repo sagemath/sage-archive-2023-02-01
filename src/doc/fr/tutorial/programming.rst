@@ -90,7 +90,7 @@ ordres de grandeur si elles sont implémentées sur des types statiques
 dans un langage compilé. Certaines parties de Sage auraient été trop
 lentes si elles avaient été écrites entièrement en Python. Pour pallier
 ce problème, Sage supporte une sorte de « version compilée » de Python
-appelée Cython (voir [Cython]_ et [Pyrex]_). Cython ressemble à la fois
+appelée Cython (voir [Cyt]_ et [Pyr]_). Cython ressemble à la fois
 à Python et à C. La plupart des constructions Python, dont la définition
 de listes par compréhension, les expressions conditionnelles, les
 constructions comme ``+=`` sont autorisées en Cython. Vous pouvez aussi

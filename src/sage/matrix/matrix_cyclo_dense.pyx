@@ -48,7 +48,6 @@ from matrix_space import MatrixSpace
 from matrix cimport Matrix
 import matrix_dense
 from matrix_integer_dense import _lift_crt
-from matrix_modn_dense import _matrix_from_rows_of_matrices
 from sage.structure.element cimport Matrix as baseMatrix
 from misc import matrix_integer_dense_rational_reconstruction
 from sage.ext.multi_modular import MAX_MODULUS
@@ -623,8 +622,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             Amodp, _ = self._reductions(p)
             Bmodp, _ = right._reductions(p)
             _,     S = self._reduction_matrix(p)
-            X = _matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i
-                                               in range(len(Amodp))])
+            X = Amodp[0]._matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i in range(len(Amodp))])
             v.append(S*X)
             p = previous_prime(p)
         M = matrix(ZZ, self._base_ring.degree(), self._nrows*right.ncols())

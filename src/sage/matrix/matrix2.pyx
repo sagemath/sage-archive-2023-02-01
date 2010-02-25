@@ -1092,8 +1092,8 @@ cdef class Matrix(matrix1.Matrix):
         # As of Sage 3.4, computing determinants directly in Z/nZ for
         # n composite is too slow, so we lift to Z and compute there.
         if is_IntegerModRing(R):
-            from matrix_modn_dense import Matrix_modn_dense
-            if not (isinstance(self, Matrix_modn_dense) and R.characteristic().is_prime()):
+            from matrix_modn_dense import is_Matrix_modn_dense
+            if not (is_Matrix_modn_dense(self) and R.characteristic().is_prime()):
                 return R(self.lift().det())
 
         # N.B.  The following comment should be obsolete now that the generic

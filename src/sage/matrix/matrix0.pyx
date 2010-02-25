@@ -4206,7 +4206,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: m = matrix(Zmod(49),2,[2,1,3,3])
             sage: type(m)
-            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
             sage: ~m
             [ 1 16]
             [48 17]

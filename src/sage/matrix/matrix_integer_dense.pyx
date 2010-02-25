@@ -100,10 +100,15 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
-from matrix_modn_dense import Matrix_modn_dense
-from matrix_modn_dense cimport Matrix_modn_dense
+from matrix_modn_dense_float cimport Matrix_modn_dense_template
+from matrix_modn_dense_float cimport Matrix_modn_dense_float
+from matrix_modn_dense_double cimport Matrix_modn_dense_double
+
 from matrix_mod2_dense import Matrix_mod2_dense
 from matrix_mod2_dense cimport Matrix_mod2_dense
+
+from matrix_modn_dense cimport is_Matrix_modn_dense
+
 
 from matrix2 import decomp_seq
 
@@ -1220,22 +1225,45 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return res
 
     cdef _mod_int_c(self, mod_int p):
+        from matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
+        from matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
+
+        cdef Py_ssize_t i, j
+        cdef mpz_t* self_row
+
+        cdef float* res_row_f
+        cdef Matrix_modn_dense_float res_f
+
+        cdef double* res_row_d
+        cdef Matrix_modn_dense_double res_d
+
         if p == 2:
             return self._mod_two()
-        cdef Py_ssize_t i, j
-        cdef Matrix_modn_dense res
-        cdef mpz_t* self_row
-        cdef mod_int* res_row
-        res = Matrix_modn_dense.__new__(Matrix_modn_dense,
-                        matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
-        for i from 0 <= i < self._nrows:
-            self_row = self._matrix[i]
-            res_row = res._matrix[i]
-            for j from 0 <= j < self._ncols:
-                res_row[j] = mpz_fdiv_ui(self_row[j], p)
-        return res
+        elif p < MAX_MODULUS_FLOAT:
+            res_f = Matrix_modn_dense_float.__new__(Matrix_modn_dense_float,
+                                                    matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+            for i from 0 <= i < self._nrows:
+                self_row = self._matrix[i]
+                res_row_f = res_f._matrix[i]
+                for j from 0 <= j < self._ncols:
+                    res_row_f[j] = <float>mpz_fdiv_ui(self_row[j], p)
+            return res_f
+
+        elif p < MAX_MODULUS_DOUBLE:
+            res_d = Matrix_modn_dense_double.__new__(Matrix_modn_dense_double,
+                                                     matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+            for i from 0 <= i < self._nrows:
+                self_row = self._matrix[i]
+                res_row_d = res_d._matrix[i]
+                for j from 0 <= j < self._ncols:
+                    res_row_d[j] = <double>mpz_fdiv_ui(self_row[j], p)
+            return res_d
+        else:
+            raise ValueError("p to big.")
 
     def _reduce(self, moduli):
+        from matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
+        from matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
 
         if isinstance(moduli, (int, long, Integer)):
             return self._mod_int(moduli)
@@ -1245,9 +1273,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef MultiModularBasis mm
         mm = moduli
 
-        res = [Matrix_modn_dense.__new__(Matrix_modn_dense,
-                                         matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False),
-                                         None, None, None) for p in mm]
+        res = []
+        for p in mm:
+            if p < MAX_MODULUS_FLOAT:
+                res.append( Matrix_modn_dense_float.__new__(Matrix_modn_dense_float,
+                                                            matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False),
+                                                            None, None, None) )
+            elif p < MAX_MODULUS_DOUBLE:
+                res.append( Matrix_modn_dense_double.__new__(Matrix_modn_dense_double,
+                                                             matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False),
+                                                             None, None, None) )
+            else:
+                raise ValueError("p=%d too big."%p)
 
         cdef size_t i, k, n
         cdef Py_ssize_t nr, nc
@@ -1260,14 +1297,25 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
         if row_list == NULL:
             raise MemoryError("out of memory allocating multi-modular coefficient list")
+        for k in range(n):
+            row_list[k] = <mod_int*>sage_malloc(sizeof(mod_int)*nc)
+            if row_list[k] == NULL:
+                raise MemoryError("out of memory allocating multi-modular coefficient list")
 
         sig_on()
         for i from 0 <= i < nr:
             for k from 0 <= k < n:
-                row_list[k] = (<Matrix_modn_dense>res[k])._matrix[i]
-            mm.mpz_reduce_vec(self._matrix[i], row_list, nc)
+                mm.mpz_reduce_vec(self._matrix[i], row_list, nc)
+                if isinstance(res[k], Matrix_modn_dense_float):
+                    for j in range(nc):
+                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>row_list[k][j])%(<Matrix_modn_dense_float>res[k]).p
+                else:
+                    for j in range(nc):
+                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>row_list[k][j])%(<Matrix_modn_dense_double>res[k]).p
         sig_off()
 
+        for k in range(n):
+            sage_free(row_list[k])
         sage_free(row_list)
         return res
 
@@ -4978,8 +5026,8 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not PY_TYPE_CHECK(b, Matrix_modn_dense):
-            raise TypeError("Can only perform CRT on list of type Matrix_modn_dense.")
+        if not is_Matrix_modn_dense(b):
+            raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list
     row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
@@ -4987,13 +5035,21 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
         raise MemoryError("out of memory allocating multi-modular coefficient list")
 
     sig_on()
-    for i from 0 <= i < nr:
-        for k from 0 <= k < n:
-            row_list[k] = (<Matrix_modn_dense>residues[k])._matrix[i]
-        mm.mpz_crt_vec(M._matrix[i], row_list, nc)
-    sig_off()
+    for k in range(n):
+        row_list[k] = <mod_int *>sage_malloc(sizeof(mod_int) * nc)
+        if row_list[k] == NULL:
+            raise MemoryError("out of memory allocating multi-modular coefficient list")
 
+    for i in range(nr):
+        for k in range(n):
+            (<Matrix_modn_dense_template>residues[k])._copy_row_to_mod_int_array(row_list[k],i)
+        mm.mpz_crt_vec(M._matrix[i], row_list, nc)
+
+    for k in range(n):
+        sage_free(row_list[k])
     sage_free(row_list)
+
+    sig_off()
     return M
 
 #######################################################

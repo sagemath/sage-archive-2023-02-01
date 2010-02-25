@@ -931,6 +931,18 @@ ext_modules = [
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.matrix.matrix_modn_dense_float',
+              sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
+              language="c++",
+              libraries = ['gmp', 'linbox', BLAS, BLAS2],
+              extra_compile_args = ['-DDISABLE_COMMENTATOR']),
+
+    Extension('sage.matrix.matrix_modn_dense_double',
+              sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
+              language="c++",
+              libraries = ['gmp', 'linbox', BLAS, BLAS2],
+              extra_compile_args = ['-DDISABLE_COMMENTATOR']),
+
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx'],
               libraries = ['gmp']),

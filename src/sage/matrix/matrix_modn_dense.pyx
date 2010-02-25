@@ -19,7 +19,7 @@ EXAMPLES::
     sage: a.rank()
     2
     sage: type(a)
-    <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+    <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
     sage: a[0,0] = 5
     sage: a.rank()
     3
@@ -127,6 +127,8 @@ cimport matrix
 cimport matrix0
 cimport sage.structure.element
 
+from sage.matrix.matrix_modn_dense_float cimport Matrix_modn_dense_float
+from sage.matrix.matrix_modn_dense_double cimport Matrix_modn_dense_double
 
 from sage.libs.linbox.linbox cimport Linbox_modn_dense
 cdef Linbox_modn_dense linbox
@@ -153,10 +155,8 @@ ai = arith_int()
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
-
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
-
 
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
@@ -176,6 +176,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x * __richcmp__    -- always the same
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
+        sage.misc.misc.deprecation("This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.")
 
         matrix_dense.Matrix_dense.__init__(self, parent)
 
@@ -225,7 +226,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [6 5]
             [4 2]
         """
-
         cdef mod_int e
         cdef Py_ssize_t i, j, k
         cdef mod_int *v
@@ -1711,7 +1711,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [3 4 5]
             [6 0 1]
             sage: type(a)
-            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
 
         We test the optional check flag.
 
@@ -1899,17 +1899,20 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ans.append(M)
         return ans
 
+    _matrix_from_rows_of_matrices = staticmethod(__matrix_from_rows_of_matrices)
 
-def _matrix_from_rows_of_matrices(X):
+def __matrix_from_rows_of_matrices(X):
     """
+    Return a matrix whose ith row is ``X[i].list()``.
+
     INPUT:
 
+    - ``X`` - a nonempty list of matrices of the same size mod a
+       single modulus ``p``
 
-    -  ``X`` - a nonempty list of matrices of the same size
-       mod a single prime p
+    OUTPUT: A single matrix mod p whose ith row is ``X[i].list()``.
 
 
-    OUTPUT: A single matrix mod p whose ith row is X[i].list().
     """
     # The code below is just a fast version of the following:
     ##     from constructor import matrix
@@ -1924,9 +1927,7 @@ def _matrix_from_rows_of_matrices(X):
 
     T = X[0]
     m = T._nrows * T._ncols
-    A = Matrix_modn_dense.__new__(Matrix_modn_dense,
-           MatrixSpace(X[0].base_ring(), n, m),
-                                  0, 0, 0)
+    A = Matrix_modn_dense.__new__(Matrix_modn_dense, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
     A.p = T.p
     A.gather = T.gather
 
@@ -1935,3 +1936,7 @@ def _matrix_from_rows_of_matrices(X):
         memcpy(A._entries + i*m, T._entries, sizeof(mod_int)*m)
     return A
 
+cpdef is_Matrix_modn_dense(self):
+    """
+    """
+    return isinstance(self, Matrix_modn_dense) | isinstance(self, Matrix_modn_dense_float) | isinstance(self, Matrix_modn_dense_double)

@@ -1101,6 +1101,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     all "standard pickles" unpickle::
 
         sage: sage.structure.sage_object.unpickle_all()  # (4s on sage.math, 2011)
+        doctest:... DeprecationWarning: This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
 

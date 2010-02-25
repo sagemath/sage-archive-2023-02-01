@@ -24,3 +24,5 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef _init_linbox(self)
     cpdef _export_as_string(self)
 
+
+cpdef is_Matrix_modn_dense(self)

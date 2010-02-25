@@ -114,11 +114,11 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: f = x[0]**2+x[1]**2+x[2]**2
             sage: m.from_polynomial(f)
             m[2]
-            sage: f=x[0]^1+x[1]
+            sage: f=x[0]^2+x[1]
             sage: m.from_polynomial(f)
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: x0^2 + x1 is not a symmetric polynomial
             sage: f = (m[2,1]+m[1,1]).expand(3)
             sage: m.from_polynomial(f)
             m[1, 1] + m[2, 1]
@@ -126,11 +126,11 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m.from_polynomial(f)
             m[1, 1] + 2*m[2, 1] + 3*m[3]
         """
-        assert(self.base_ring() == f.base_ring())
+        assert self.base_ring() == f.base_ring()
         d = dict([(e,c) for e,c in f.dict().iteritems() if tuple(sorted(e)) == tuple(reversed(e))])
         out = self.sum(d[la]*self(Partition(la)) for la in d.keys())
-        if check:
-            assert( out.expand(f.parent().ngens(),f.parent().gens()) == f )
+        if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
+            raise ValueError, "%s is not a symmetric polynomial"%f
         return out
 
 

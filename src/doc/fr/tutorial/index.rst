@@ -39,6 +39,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    interactive_shell
    interfaces
    programming
+   sagetex
    afterword
    appendix
    bibliography

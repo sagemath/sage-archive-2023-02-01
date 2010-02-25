@@ -55,6 +55,8 @@ tutoriel est le bon endroit où commencer. Voici quelques exemples :
     sage: latex(k)
     \frac{1}{I \, \sqrt{3} + \frac{5}{9} \, \sqrt{73} + \frac{3}{4}}
 
+.. _installation:
+
 Installation
 ============
 
@@ -64,7 +66,7 @@ quelques commandes en ligne à l'adresse http://www.sagenb.org.
 Des instructions pour installer Sage sur votre ordinateur sont
 disponibles dans le guide d'installation (*Installation Guide*), dans
 la section documentation de la page web principale de Sage [Sage]_.
-Nous nous limiterons ici à deux remarques.
+Nous nous limiterons ici à quelques remarques.
 
 #. La version téléchargeable de Sage vient avec ses dépendances.
    Autrement dit, bien que Sage utilise Python, IPython, PARI, GAP,
@@ -82,6 +84,24 @@ Nous nous limiterons ici à deux remarques.
    est souvent plus facile et plus rapide à installer que la
    distribution en code source. Pour l'installer, décompressez
    l'archive et lancez simplement le programme ``sage``.
+
+#. Si vous souhaitez utiliser SageTeX (qui permet d'insérer
+   automatiquement dans un document LaTeX les résultats de calculs
+   effectués avec Sage), vous devrez faire en sorte que votre
+   distribution LaTeX le trouve (et, plus précisément, en trouve la
+   version correspondant à la version de Sage que vous utilisez). Pour
+   ce faire, consultez la section "Make SageTeX known to TeX" dans le
+   guide d'installation (`Sage installation guide
+   <http://www.sagemath.org/doc/installation/>`_, `ce lien
+   <../../en/installation/index.html>`_ devrait pointer vers une copie
+   locale). L'installation est facile : il suffit de copier un fichier
+   dans un répertoire que TeX examine, ou de régler une variable
+   d'environnement.
+
+   La documentation de SageTeX se trouve dans le répertoire
+   ``$SAGE_ROOT/local/share/texmf/tex/generic/sagetex/``, où
+   "``$SAGE_ROOT``" est le répertoire où vous avez installé Sage, par
+   exemple ``/opt/sage-4.3.4``.
 
 Les différentes manières d'utiliser Sage
 ========================================

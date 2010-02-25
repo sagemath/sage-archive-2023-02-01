@@ -114,9 +114,9 @@ class ContourPlot(GraphicPrimitive):
                  'contours':"""Either an integer specifying the number of
                         contour levels, or a sequence of numbers giving
                         the actual contours to use.""",
-                'linewidths':'the width of the lines to be plotted (ignored if fill=True)',
-                'linestyles':'the style of the lines to be plotted (ignored if fill=True)',
-                'labels':'show line labels or not (ignored if fill=True)',
+                'linewidths':'the width of the lines to be plotted',
+                'linestyles':'the style of the lines to be plotted',
+                'labels':'show line labels or not',
                 'label_options':'a dictionary of options for the labels',
                 'zorder':'The layer level in which to draw'}
 
@@ -168,25 +168,27 @@ class ContourPlot(GraphicPrimitive):
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
                 subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
-        else:
-            linewidths = options['linewidths']
-            if isinstance(linewidths, (int, Integer)):
-                linewidths = int(linewidths)
-            elif isinstance(linewidths, (list, tuple)):
-                linewidths = tuple(int(x) for x in linewidths)
-            linestyles = options['linestyles']
-            if contours is None:
-                CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
-                                     linewidths=linewidths, linestyles=linestyles)
-            else:
-                CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
-                                linewidths=linewidths, linestyles=linestyles)
-            if options['labels']:
-                label_options = options['label_options']
-                label_options['fontsize'] = int(label_options['fontsize'])
-                subplot.clabel(CS, **label_options)
 
-@suboptions('label', fontsize=9, colors=None, inline=True, inline_spacing=3, fmt="%1.2f")
+        linewidths = options['linewidths']
+        if isinstance(linewidths, (int, Integer)):
+            linewidths = int(linewidths)
+        elif isinstance(linewidths, (list, tuple)):
+            linewidths = tuple(int(x) for x in linewidths)
+        linestyles = options['linestyles']
+        if contours is None:
+            CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
+                                 linewidths=linewidths, linestyles=linestyles)
+        else:
+            CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
+                            linewidths=linewidths, linestyles=linestyles)
+        if options['labels']:
+            label_options = options['label_options']
+            label_options['fontsize'] = int(label_options['fontsize'])
+            if fill and label_options is None:
+                label_options['inline']=False
+            subplot.clabel(CS, **label_options)
+
+@suboptions('label', fontsize=9, colors=None, inline=None, inline_spacing=3, fmt="%1.2f")
 @options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
@@ -231,17 +233,14 @@ def contour_plot(f, xrange, yrange, **options):
       a single integer all levels will be of the width given,
       otherwise the levels will be plotted with the width in the order
       given.  If the list is shorter than the number of contours, then
-      the widths will be repeated cyclically.  This option is ignored
-      if fill=True.
+      the widths will be repeated cyclically.
 
     - ``linestyles`` -- string or list of strings (default: None), the
       style of the lines to be plotted, one of: solid, dashed,
       dashdot, or dotted.  If the list is shorter than the number of
-      contours, then the styles will be repeated cyclically.  This
-      option is ignored if fill=True.
+      contours, then the styles will be repeated cyclically.
 
     - ``labels`` -- boolean (default: False) Show level labels or not.
-      This option is ignored if fill=True.
 
     The following options are to adjust the style and placement of labels,
     they have no effect if no labels are shown.
@@ -253,8 +252,9 @@ def contour_plot(f, xrange, yrange, **options):
       If a sequence, gives the colors of the labels.  A color is a string giving
       the name of one or a 3-tuple of floats.
 
-    - ``label_inline`` -- boolean (default: True), controls whether the
-      underlying contour is removed or not.
+    - ``label_inline`` -- boolean (default: False if fill is True,
+      otherwise True), controls whether the underlying contour is
+      removed or not.
 
     - ``label_inline_spacing``  -- integer (default: 3), When inline, this is
       the amount of contour that is removed from each side, in pixels.
@@ -306,6 +306,7 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
         sage: contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],linewidths=[1,5],linestyles=['solid','dashed'],fill=False)
+        sage: contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],linewidths=[1,5],linestyles=['solid','dashed'])
 
     We can add labels and play with them::
 
@@ -316,9 +317,10 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline_spacing=1)
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline=False)
 
-    If we do not specify fill=False, then the label and line options are ignored::
+    If fill is True (the default), then we may have to color the
+    labels so that we can see them::
 
-        sage: contour_plot(f, (-2,2), (-2,2), labels=True, linestyles='dashed')
+        sage: contour_plot(f, (-2,2), (-2,2), labels=True, label_colors='red')
 
     This should plot concentric circles centered at the origin::
 
@@ -387,11 +389,10 @@ def implicit_plot(f, xrange, yrange, **options):
 
     - ``linewidth`` -- integer (default: None), if a single integer all levels
       will be of the width given, otherwise the levels will be plotted with the
-      widths in the order given. This option is ignored if fill=True.
+      widths in the order given.
 
     - ``linestyle`` -- string (default: None), the style of the line to be
-      plotted, one of: solid, dashed, dashdot or dotted. This option is ignored
-      if fill=True.
+      plotted, one of: solid, dashed, dashdot or dotted.
 
     EXAMPLES:
 

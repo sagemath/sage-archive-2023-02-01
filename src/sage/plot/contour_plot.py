@@ -110,6 +110,8 @@ class ContourPlot(GraphicPrimitive):
                         a list of colors, or an instance of a
                         matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
                         for available colormap names.""",
+                'colorbar': "Include a colorbar indicating the levels",
+                'colorbar_options': "a dictionary of options for colorbars",
                 'fill':'Fill contours or not',
                  'contours':"""Either an integer specifying the number of
                         contour levels, or a sequence of numbers giving
@@ -163,11 +165,12 @@ class ContourPlot(GraphicPrimitive):
         if isinstance(contours, (int, Integer)):
             contours = int(contours)
 
+        CSF=None
         if fill:
             if contours is None:
-                subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+                CSF=subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
+                CSF=subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
 
         linewidths = options.get('linewidths',None)
         if isinstance(linewidths, (int, Integer)):
@@ -187,9 +190,19 @@ class ContourPlot(GraphicPrimitive):
             if fill and label_options is None:
                 label_options['inline']=False
             subplot.clabel(CS, **label_options)
+        if options['colorbar']:
+            colorbar_options = options['colorbar_options']
+            from matplotlib import colorbar
+            cax,kwds=colorbar.make_axes(subplot,**colorbar_options)
+            if CSF is None:
+                cb=colorbar.Colorbar(cax,CS, **colorbar_options)
+            else:
+                cb=colorbar.Colorbar(cax,CSF, **colorbar_options)
+                cb.add_lines(CS)
 
+@suboptions('colorbar', orientation='vertical', format=None, spacing=None)
 @suboptions('label', fontsize=9, colors='blue', inline=None, inline_spacing=3, fmt="%1.2f")
-@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False)
+@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -242,27 +255,46 @@ def contour_plot(f, xrange, yrange, **options):
 
     - ``labels`` -- boolean (default: False) Show level labels or not.
 
-    The following options are to adjust the style and placement of labels,
-    they have no effect if no labels are shown.
+      The following options are to adjust the style and placement of
+      labels, they have no effect if no labels are shown.
 
-    - ``label_fontsize`` -- integer (default: 9), the font size of the labels.
+      - ``label_fontsize`` -- integer (default: 9), the font size of the labels.
 
-    - ``label_colors`` -- string or sequence of colors (default: None) If a
-      string, gives the name of a single color with which to draw all labels.
-      If a sequence, gives the colors of the labels.  A color is a string giving
-      the name of one or a 3-tuple of floats.
+      - ``label_colors`` -- string or sequence of colors (default:
+        None) If a string, gives the name of a single color with which
+        to draw all labels.  If a sequence, gives the colors of the
+        labels.  A color is a string giving the name of one or a
+        3-tuple of floats.
 
-    - ``label_inline`` -- boolean (default: False if fill is True,
-      otherwise True), controls whether the underlying contour is
-      removed or not.
+      - ``label_inline`` -- boolean (default: False if fill is True,
+        otherwise True), controls whether the underlying contour is
+        removed or not.
 
-    - ``label_inline_spacing``  -- integer (default: 3), When inline, this is
-      the amount of contour that is removed from each side, in pixels.
+      - ``label_inline_spacing`` -- integer (default: 3), When inline,
+        this is the amount of contour that is removed from each side,
+        in pixels.
 
-    - ``label_fmt`` -- a format string (default: "%1.2f"), this is
-      used to get the label text from the level.  This can also be a
-      dictionary with the contour levels as keys and corresponding
-      text string labels as values.
+      - ``label_fmt`` -- a format string (default: "%1.2f"), this is
+        used to get the label text from the level.  This can also be a
+        dictionary with the contour levels as keys and corresponding
+        text string labels as values.
+
+    - ``colorbar`` -- boolean (default: False) Show a colorbar or not.
+
+      The following options are to adjust the style and placement of
+      colorbars.  They have no effect if a colorbar is not shown.
+
+      - ``colorbar_orientation`` -- string (default: 'vertical'),
+        controls placement of the colorbar, can be either 'vertical'
+        or 'horizontal'
+
+      - ``colorbar_format`` -- a format string, this is used to format
+        the colorbar labels.
+
+      - ``colorbar_spacing`` -- string (default: 'proportional').  If
+        'proportional', make the contour divisions proportional to
+        values.  If 'uniform', space the colorbar divisions uniformly,
+        without regard for numeric values.
 
     EXAMPLES:
 
@@ -373,6 +405,17 @@ def contour_plot(f, xrange, yrange, **options):
     We can change the color of the labels if so desired::
 
         sage: contour_plot(f, (-2,2), (-2,2), labels=True, label_colors='red')
+
+    We can add a colorbar as well::
+
+        sage: f(x,y)=x^2-y^2
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True,colorbar_orientation='horizontal')
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],colorbar=True)
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],colorbar=True,colorbar_spacing='uniform')
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[0,2,3,6],colorbar=True,colorbar_format='%.3f')
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), labels=True,label_colors='red',contours=[0,2,3,6],colorbar=True)
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), cmap='winter', contours=20, fill=False, colorbar=True)
 
     This should plot concentric circles centered at the origin::
 

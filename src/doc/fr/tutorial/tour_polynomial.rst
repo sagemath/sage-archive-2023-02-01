@@ -336,8 +336,3 @@ idéaux premiers associés de :math:`I`:
     sage: I.associated_primes()
     [Ideal (x) of Multivariate Polynomial Ring in x, y over Rational Field,
      Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field]
-
-.. [Si] G.-M. Greuel, G. Pfister, and H. Schönemann.
-        ``Singular`` 3.0. A Computer Algebra System for Polynomial
-        Computations. Center for Computer Algebra, University of
-        Kaiserslautern (2005). http://www.singular.uni-kl.de .

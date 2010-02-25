@@ -172,9 +172,3 @@ Objectifs à long terme de Sage
    et de consulter la documentation et le code source. Également,
    arriver à un bon niveau d'assistance utilisateur.
 
-.. [Dive] Dive into Python, Freely available online at
-          http://diveintopython.org
-
-.. [PyT] The Python Tutorial, http://www.python.org/
-
-.. [Sage] Sage, http://www.sagemath.org

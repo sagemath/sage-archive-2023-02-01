@@ -24,6 +24,10 @@ Bibliographie
 
 ..  [Max] Maxima http://maxima.sf.net/
 
+..  [NagleEtAl2004] Nagle, Saff, and Snider.
+    *Fundamentals of Differential Equations*. 6th edition, Addison-Wesley,
+    2004.
+
 ..  [Py] The Python language http://www.python.org/
     Reference Manual http://docs.python.org/ref/ref.html.
 
@@ -36,8 +40,7 @@ Bibliographie
 
 ..  [PyT] The Python Tutorial http://www.python.org/.
 
-..  [SA] Sage web site http://www.sagemath.org/ and
-    http://sage.sf.net/.
+..  [SA] Sage web site http://www.sagemath.org/.
 
 ..  [Si] G.-M. Greuel, G. Pfister, and H. Schönemann. Singular
     3.0. A Computer Algebra System for Polynomial Computations. Center

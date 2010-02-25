@@ -3,7 +3,8 @@ Algèbre de base et calcul infinitésimal
 
 Sage peut accomplir divers calculs d'algèbre et d'analyse de base : par
 exemple, trouver les solutions d'équations, dériver, intégrer, calculer
-des transformées de Laplace. Voir la documentation *Sage Constructions*
+des transformées de Laplace. Voir la documentation
+`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
 pour plus d'exemples.
 
 Résolution d'équations
@@ -252,10 +253,10 @@ Les coordonnées individuelles peuvent être tracées en utilisant
     sage: p2 = plot(4*cos(t) - cos(2*t), (t, 0, 2*pi), rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
-(Pour plus d'information sur le tracé de graphe, voir :ref:`section-plot`.)
-
-RÉFÉRENCES : Nagle, Saff, Snider, Fundamentals of Differential
-Equations, 6th ed, Addison-Wesley, 2004. (see § 5.5).
+Les fonctions de tracé de graphes sont décrites dans la section
+:ref:`section-plot` de ce tutoriel. On pourra aussi consulter
+[NagleEtAl2004]_, §5.5 pour plus d'informations sur les équations
+différentielles.
 
 Méthode d'Euler pour les systèmes d'équations différentielles
 -------------------------------------------------------------
@@ -266,8 +267,7 @@ d'abord le principe de la méthode pour les équations du premier ordre.
 Etant donné un problème donné avec une valeur initiale sous la forme
 
 .. math::
-    y'=f(x,y)
-    y(a)=c
+    y'=f(x,y), \quad y(a)=c,
 
 
 nous cherchons une valeur approchée de la solution au point
@@ -391,7 +391,3 @@ l'interface Maxima directement, comme le présente l'exemple suivant :
     'bessel_y(v,w)'
     sage: maxima.eval("diff(f,w)")
     '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
-
-.. [GAP] The GAP Group, ``GAP - Groups, Algorithms, and Programming``, http://www.gap-system.org
-
-.. [Max] Maxima, http://maxima.sf.net/

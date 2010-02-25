@@ -354,4 +354,3 @@ Et la fameuse bouteille de Klein (n'entrez pas les ``...``):
     ...   "[y, -%pi, %pi]", "['grid, 40, 40]",\
     ...   '[plot_format, openmath]') # not tested
 
-.. [GAPkg] GAP Packages, http://www.gap-system.org/Packages/packages.html

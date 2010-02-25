@@ -872,9 +872,3 @@ Le fichier ``cachegrind.out.42`` peut maintenant être examiné avec
 ``kcachegrind``. Notez qu'il est important de respecter la convention de
 nommage ``cachegrind.out.XX``.
 
-
-.. [Cython] Cython, http://www.cython.org
-
-.. [Pyrex] Pyrex, http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
-
-.. [PyT] The Python Tutorial, http://www.python.org/

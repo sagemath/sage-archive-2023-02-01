@@ -6571,37 +6571,193 @@ class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     pass
 
 class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(iter(range(10)))
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(iter(range(10)), caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_iter'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, FiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(lambda n:n, length=10)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+
+    Pickle also works for concatenation of words::
+
+        sage: w = Word(range(10)) * Word(range(4))
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+
+    Pickle also works for power of words::
+
+        sage: w = Word(range(10)) ^ 2
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(lambda n:n, length=10, caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_callable'>
+    """
     pass
 
 ##### Infinite Words #####
 
 class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: from itertools import count
+        sage: w = Word(count())
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+
+    Pickle is not supported for infinite word defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: from itertools import count
+        sage: w = Word(count(), caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_iter'>
+
+    Pickle is not supported for infinite word defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, InfiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(lambda n:n)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: z
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: type(z)
+        <class 'sage.combinat.words.word.InfiniteWord_callable_with_caching'>
+    """
     pass
 
 class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(lambda n:n, caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_callable'>
+        sage: z = loads(dumps(w))
+        sage: z
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: type(z)
+        <class 'sage.combinat.words.word.InfiniteWord_callable'>
+    """
     pass
 
 ##### Words of unknown length #####
 
 class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(iter('abcd'*100), length='unknown')
+        sage: type(w)
+        <class 'sage.combinat.words.word.Word_iter_with_caching'>
+        sage: w
+        word: abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd...
+
+    Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class Word_iter(WordDatatype_iter, Word_class):
+    r"""
+    TESTS::
+
+        sage: w = Word(iter('abcd'*100), length='unknown', caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.Word_iter'>
+        sage: w
+        word: abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd...
+
+    Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 #######################################################################

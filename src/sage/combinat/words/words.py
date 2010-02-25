@@ -162,7 +162,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter': word.Word_iter
             }
 
-    def __call__(self, data=None, length=None, datatype=None, **kwds):
+    def __call__(self, data=None, length=None, datatype=None, caching=True, **kwds):
         r"""
         Construct a new word object with parent self.
 
@@ -182,8 +182,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
            terminates, but do know know the length.
 
         -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
-           "callable". If None, then the function
-           tries to guess this from the data.
+           "callable" or "pickled_function". If None, then the function tries
+           to guess this from the data.
 
         -  ``caching`` - (default: True) True or False. Whether to keep a cache
            of the letters computed by an iterator or callable.
@@ -218,6 +218,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         kwds['data'] = data
         kwds['length'] = length
         kwds['datatype'] = datatype
+        kwds['caching'] = caching
         #kwds['alphabet'] = self
 
         ## BACKWARD COMPATIBILITY / DEPRECATION WARNINGS.
@@ -460,6 +461,14 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: p.length()
             100
 
+        Creation of a word from a pickled function::
+
+            sage: f = lambda n : n % 10
+            sage: from sage.misc.fpickle import pickle_function
+            sage: s = pickle_function(f)
+            sage: Word(s, datatype='pickled_function')
+            word: 0123456789012345678901234567890123456789...
+
         """
         from sage.combinat.words.word import Word_class
         from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable, WordDatatype_iter
@@ -525,8 +534,14 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif datatype == "callable" and not callable(data):
                 raise ValueError, "Your data is not callable"
             elif datatype not in ("list", "tuple", "str",
-                                    "callable", "iter"):
+                                "callable", "iter", "pickled_function"):
                 raise ValueError, "Unknown datatype"
+
+        # If `data` is a pickled_function, restore the function
+        if datatype == 'pickled_function':
+            from sage.misc.fpickle import unpickle_function
+            data = unpickle_function(data)
+            datatype = 'callable'
 
         # Construct the word class and keywords
         if datatype in ('list','str','tuple'):

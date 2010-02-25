@@ -52,7 +52,7 @@ cdef class WordDatatype(SageObject):
 
 cdef class WordDatatype_list(WordDatatype):
     r"""
-    Datatype class for words defined by tuples.
+    Datatype class for words defined by lists.
     """
     cdef public list _data
 

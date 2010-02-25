@@ -460,24 +460,18 @@ class WordMorphism(SageObject):
             sage: m(w)
             word: 0110101011010110101011010101101011010101...
 
-        The default datatype of the output is an iterable which is good
-        because it is obtained in constant time but which is bad because it
-        is actually not pickable and hence can't be saved::
+        The default datatype of the output is an iterable which
+        can be saved (for finite word only)::
 
             sage: m = WordMorphism('a->ab,b->ba')
             sage: w = m('aabb')
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
-            sage: dumps(w)
-            Traceback (most recent call last):
-            ...
-            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            sage: w == loads(dumps(w))
+            True
             sage: save(w,'test')
-            Traceback (most recent call last):
-            ...
-            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
 
-        A solution is to impose the datatype of the resulting word::
+        One may impose the datatype of the resulting word::
 
             sage: w = m('aaab',datatype='list')
             sage: type(w)
@@ -488,13 +482,6 @@ class WordMorphism(SageObject):
             sage: w = m('aaab',datatype='tuple')
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_tuple'>
-
-        This allows the pickle system to work and hence to use the command
-        ``save`` on it::
-
-            sage: w = m('aabb', datatype='list')
-            sage: loads(dumps(w)) == w
-            True
 
         To use str datatype for the output word, the domain and codomain
         alphabet must consist of str objects::

@@ -272,13 +272,25 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda n : n%3+10, caching=False)
             sage: w.__reduce__()
-            (<function Word at ...>, (<function <lambda> at ...>, Words, +Infinity, 'callable', False))
+            (Words, ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', False))
+
+        ::
+
             sage: w = Word(lambda n : n%3+10, caching=False, length=8)
             sage: w.__reduce__()
-            (<function Word at ...>, (<function <lambda> at ...>, Words, 8, 'callable', False))
+            (Words, ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', False))
         """
-        from sage.combinat.words.word import Word
-        return Word, (self._func, self._parent, self._len, 'callable', False)
+        from sage.misc.fpickle import pickle_function
+        try:
+            s = pickle_function(self._func)
+        except Exception:
+            from sage.combinat.words.word import FiniteWord_class
+            if isinstance(self, FiniteWord_class):
+                return self._parent, (list(self),)
+            else:
+                return self._parent, (self._func, self._len, 'callable', False)
+        else:
+            return self._parent, (s, self._len, 'pickled_function', False)
 
 class WordDatatype_callable_with_caching(WordDatatype_callable):
     r"""
@@ -480,13 +492,33 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda n : n%3+10, caching=True)
             sage: w.__reduce__()
-            (<function Word at ...>, (<function <lambda> at ...>, Words, +Infinity, 'callable', True))
+            (Words, ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', True))
+
+        ::
+
             sage: w = Word(lambda n : n%3+10, caching=True, length=8)
             sage: w.__reduce__()
-            (<function Word at ...>, (<function <lambda> at ...>, Words, 8, 'callable', True))
+            (Words, ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', True))
+
+        Because ``pickle_function`` fails on CallableFromListOfWords,
+        then concatenation of words are expanded as a list::
+
+            sage: w = Word(range(5)) + Word('abcde')
+            sage: w.__reduce__()
+            (Words, ([0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e'],))
+
         """
-        from sage.combinat.words.word import Word
-        return Word, (self._func, self._parent, self._len, 'callable', True)
+        from sage.misc.fpickle import pickle_function
+        try:
+            s = pickle_function(self._func)
+        except Exception:
+            from sage.combinat.words.word import FiniteWord_class
+            if isinstance(self, FiniteWord_class):
+                return self._parent, (list(self),)
+            else:
+                return self._parent, (self._func, self._len, 'callable', True)
+        else:
+            return self._parent, (s, self._len, 'pickled_function', True)
 
     def flush(self):
         r"""
@@ -814,17 +846,25 @@ class WordDatatype_iter(WordDatatype):
 
     def __reduce__(self):
         r"""
+        If finite, it expands the iterator in a list.
+
         EXAMPLES::
 
             sage: w = Word(iter('ab'), caching=False, length='unknown')
             sage: w.__reduce__()
-            (<function Word at ...>, (<generator object __iter__ at ...>, Words, 2, 'iter', False))
+            (Words, (['a', 'b'],))
+
+        ::
+
             sage: w = Word(iter('ab'*10000), caching=False, length='unknown')
             sage: w.__reduce__()
-            (<function Word at ...>, (<generator object __iter__ at ...>, Words, None, 'iter', False))
+            (Words, (<generator object __iter__ at ...>, None, 'iter', False))
         """
-        from sage.combinat.words.word import Word
-        return Word, (iter(self), self._parent, self._len, 'iter', False)
+        from sage.combinat.words.word import FiniteWord_class
+        if isinstance(self, FiniteWord_class):
+            return self._parent, (list(self),)
+        else:
+            return self._parent, (iter(self), self._len, 'iter', False)
 
 class WordDatatype_iter_with_caching(WordDatatype_iter):
     def __init__(self, parent, iter, length=None):
@@ -1081,17 +1121,26 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
     def __reduce__(self):
         r"""
+        If finite, it expands the iterator in a list.
+
         EXAMPLES::
 
             sage: w = Word(iter('ab'), caching=True, length='unknown')
             sage: w.__reduce__()
-            (<function Word at ...>, (<generator object __iter__ at ...>, Words, 2, 'iter', True))
+            (Words, (['a', 'b'],))
+
+        ::
+
             sage: w = Word(iter('ab'*10000), caching=True, length='unknown')
             sage: w.__reduce__()
-            (<function Word at ...>, (<generator object __iter__ at ...>, Words, None, 'iter', True))
+            (Words, (<generator object __iter__ at ...>, None, 'iter', True))
+
         """
-        from sage.combinat.words.word import Word
-        return Word, (iter(self), self._parent, self._len, 'iter', True)
+        from sage.combinat.words.word import Word, FiniteWord_class
+        if isinstance(self, FiniteWord_class):
+            return self._parent, (list(self),)
+        else:
+            return self._parent, (iter(self), self._len, 'iter', True)
 
     def flush(self):
         r"""

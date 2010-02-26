@@ -63,6 +63,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/expect
    sage/interfaces/axiom
    sage/interfaces/gap
+   sage/interfaces/gap3
    sage/interfaces/gp
    sage/interfaces/gnuplot
    sage/interfaces/kash

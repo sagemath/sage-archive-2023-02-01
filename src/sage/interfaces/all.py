@@ -6,6 +6,7 @@ from fricas import FriCAS, fricas, fricas_console
 
 from expect import is_ExpectElement
 from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElement, Gap
+from gap3 import gap3, gap3_console, gap3_version, Gap3
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan
 from gp import gp, gp_console, gp_version, is_GpElement, Gp
@@ -37,7 +38,7 @@ from r import r, r_console, R, r_version, is_RElement
 # signal handling
 from get_sigs import *
 
-interfaces = ['gap', 'gp', 'mathematica', 'gnuplot', \
+interfaces = ['gap', 'gap3', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', 'r', \
               'singular', 'sage0', 'sage']

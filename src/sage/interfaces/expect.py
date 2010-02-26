@@ -1201,7 +1201,8 @@ If this all works, you can then make calls like:
         """
         Clear the variable named var.
         """
-        self._available_vars.append(var)
+        if var not in self._available_vars:
+            self._available_vars.append(var)
 
     def _next_var_name(self):
         if len(self._available_vars) != 0:

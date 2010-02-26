@@ -1,5 +1,5 @@
 """
-Parallel Iterator built using PyProcessing
+Parallel Iterator built using Python's multiprocessing module
 """
 
 ################################################################################
@@ -11,7 +11,7 @@ Parallel Iterator built using PyProcessing
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from processing import Pool
+from multiprocessing import Pool
 from functools import partial
 from sage.misc.fpickle import pickle_function, call_pickled_function
 import ncpus
@@ -29,7 +29,7 @@ def pyprocessing(processes=0):
          a (partially evaluated) function
 
     EXAMPLES:
-        sage: from sage.parallel.multiprocessing import pyprocessing
+        sage: from sage.parallel.multiprocessing_sage import pyprocessing
         sage: p_iter = pyprocessing(4)
         sage: P = parallel(p_iter=p_iter)
         sage: def f(x): return x+x
@@ -53,8 +53,8 @@ def parallel_iter(processes, f, inputs):
 
     EXAMPLES:
         sage: def f(x): return x+x
-        sage: import sage.parallel.multiprocessing
-        sage: v = list(sage.parallel.multiprocessing.parallel_iter(2, f, [((2,), {}), ((3,),{})]))
+        sage: import sage.parallel.multiprocessing_sage
+        sage: v = list(sage.parallel.multiprocessing_sage.parallel_iter(2, f, [((2,), {}), ((3,),{})]))
         sage: v.sort(); v
         [(((2,), {}), 4), (((3,), {}), 6)]
     """
@@ -62,7 +62,7 @@ def parallel_iter(processes, f, inputs):
     p = Pool(processes)
     fp = pickle_function(f)
 
-    result = p.imapUnordered(call_pickled_function, [ (fp, t) for t in inputs ])
+    result = p.imap_unordered(call_pickled_function, [ (fp, t) for t in inputs ])
     for res in result:
         yield res
 

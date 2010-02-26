@@ -91,6 +91,8 @@ if [ -d "$DEVEL/sage-main" ]; then
     # is safe, since at worst it increases build time.  -- William Stein
     rm -f build/*/sage/symbolic/constants*
     rm -f build/sage/symbolic/constants*
+    rm -f build/*/sage/parallel/multiprocessing.py*
+    rm -f build/sage/parallel/multiprocessing.py*
 
     sage -sync-build
 

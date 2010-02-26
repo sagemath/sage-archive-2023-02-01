@@ -26,6 +26,7 @@ il vous faudra peut-être appuyer sur ``maj-return`` plutôt que
    tour_help
    tour_algebra
    tour_plotting
+   tour_functions
    tour_rings
    tour_polynomial
    tour_linalg

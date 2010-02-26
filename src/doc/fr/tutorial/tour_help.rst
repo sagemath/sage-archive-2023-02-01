@@ -101,6 +101,8 @@ appuyant sur la touche tabulation. Ainsi, si vous tapez ``ta`` suivi de
 commode de voir quels noms de fonctions et d'autres structures sont
 disponibles en Sage.
 
+.. _section-functions:
+
 Fonctions, indentation et itération
 ===================================
 

@@ -126,6 +126,15 @@ cdef class PynacConstant:
 # keep exp(1) for fast access
 # this is initialized in the constructor of the class E below to prevent
 # circular imports while loading the library
+
+# Note, the nearest IEEE 754 value of e is NOT the same as the correctly
+# rounded decimal value of e.
+# The numerical value of e                      = 2.71828182845904523536...
+# Correctly rounded decimal number              = 2.7182818284590452
+# Nearest IEEE 754 format number                = 2.7182818284590451
+# Value returned on some or all AMD/Intel CPUs  = 2.7182818284590451
+# On Sun Blade 1000 with SPARC processors       = 2.7182818284590455
+
 cdef object exp_one
 
 cdef class E(Expression):
@@ -187,15 +196,15 @@ cdef class E(Expression):
             sage: t                                # optional
             E
             sage: float(t)                         # optional
-            2.7182818284590451
+            2.718281828459045...
 
             sage: loads(dumps(e))
             e
 
             sage: float(e)
-            2.7182818284590451
+            2.718281828459045...
             sage: e.__float__()
-            2.7182818284590451
+            2.718281828459045...
             sage: e._mpfr_(RealField(100))
             2.7182818284590452353602874714
             sage: e._real_double_(RDF)

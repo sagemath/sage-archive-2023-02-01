@@ -1266,6 +1266,13 @@ def py_zeta_for_doctests(x):
     """
     return py_zeta(x)
 
+# py_exp(float(1)) should return the value of e
+# Note, the nearest IEEE 754 value of e is NOT the same as
+# the correctly rounded decimal value.
+# The numerical value of e                = 2.71828182845904523536...
+# Correctly rounded decimal number        = 2.7182818284590452
+# Nearest IEEE 754 format number          = 2.7182818284590451
+# On Sun Blade 1000 with SPARC processors = 2.7182818284590455
 cdef public object py_exp(object x) except +:
     """
     Return the value of the exp function at the given value.
@@ -1280,7 +1287,7 @@ cdef public object py_exp(object x) except +:
         sage: py_exp(CC(.5*I))
         0.877582561890373 + 0.479425538604203*I
         sage: py_exp(float(1))
-        2.7182818284590451
+        2.718281828459045...
         sage: py_exp(QQbar(I))
         0.540302305868140 + 0.841470984807897*I
     """

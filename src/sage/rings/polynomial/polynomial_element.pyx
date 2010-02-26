@@ -1118,6 +1118,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(GF(3))
             sage: x.squarefree_decomposition()
             x
+            sage: f = QQbar['x'](1)
+            sage: f.squarefree_decomposition()
+            1
         """
 
         # Wikipedia says this works for arbitrary fields of
@@ -1139,6 +1142,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         a = []
         for i in range(len(g) - 1):
             a.append(g[i] // g[i+1])
+        if g == []: # do not factor the unit part
+            return Factorization([(self,1)])
         a.append(g[-1])
 
         factors = []
@@ -2531,9 +2536,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (8) * (x^3 + 1/4) * (x^6 + 5*x^3 - 1/2)
             sage: f.change_ring(K).factor()
             (8) * (x - 3260097/3158212*a^22 + 35861067/3158212*a^21 - 197810817/3158212*a^20 + 722970825/3158212*a^19 - 1980508347/3158212*a^18 + 4374189477/3158212*a^17 - 4059860553/1579106*a^16 + 6442403031/1579106*a^15 - 17542341771/3158212*a^14 + 20537782665/3158212*a^13 - 20658463789/3158212*a^12 + 17502836649/3158212*a^11 - 11908953451/3158212*a^10 + 6086953981/3158212*a^9 - 559822335/789553*a^8 + 194545353/789553*a^7 - 505969453/3158212*a^6 + 338959407/3158212*a^5 - 155204647/3158212*a^4 + 79628015/3158212*a^3 - 57339525/3158212*a^2 + 26692783/3158212*a - 1636338/789553) * ...
-
+            sage: f = QQbar['x'](1)
+            sage: f.factor()
+            1
         """
-
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
         #     better than NTL.  (And magma is better yet.)  And the
@@ -2571,6 +2577,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         R = self.parent().base_ring()
         if self.degree() < 0:
             raise ValueError, "factorization of 0 not defined"
+        if self.degree() == 0:
+            return Factorization([(self,1)])
         G = None
 
         ch = R.characteristic()

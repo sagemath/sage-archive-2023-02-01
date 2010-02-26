@@ -253,17 +253,15 @@ actual computation). Do not type the ``...``:
 Maxima
 ======
 
-Maxima is included with Sage, as is clisp (a version of the Lisp
-language). An open source Tk/Tcl-based plotting program used by
-Maxima, ``openmath``, is also distributed with Sage. However, the gnuplot
-package (which Maxima uses by default for plotting) is distributed
-as a Sage optional package. Among other things, Maxima does symbolic
-manipulation. Maxima can integrate and differentiate functions
-symbolically, solve 1st order ODEs, most linear 2nd order ODEs, and
-has implemented the Laplace transform method for linear ODEs of any
-degree. Maxima also knows about a wide range of special functions,
-has plotting capabilities via gnuplot, and has methods to solve and
-manipulate matrices (such as row reduction, eigenvalues and
+Maxima is included with Sage, as well as a Lisp implementation. The
+gnuplot package (which Maxima uses by default for plotting) is
+distributed as a Sage optional package. Among other things, Maxima
+does symbolic manipulation. Maxima can integrate and differentiate
+functions symbolically, solve 1st order ODEs, most linear 2nd order
+ODEs, and has implemented the Laplace transform method for linear ODEs
+of any degree. Maxima also knows about a wide range of special
+functions, has plotting capabilities via gnuplot, and has methods to
+solve and manipulate matrices (such as row reduction, eigenvalues and
 eigenvectors), and polynomial equations.
 
 We illustrate the Sage/Maxima interface by constructing the matrix

@@ -228,6 +228,38 @@ cdef class WordDatatype_list(WordDatatype):
         else:
             return self._data[key]
 
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by a list
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: w * w
+            word: 01234567890123456789
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+        """
+        if isinstance(other, WordDatatype_list):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_list, self).__mul__(other)
+
+    __add__ = __mul__
+
     def count(self, a):
         r"""
         Returns the number of occurrences of the letter ``a`` in the word
@@ -538,6 +570,38 @@ cdef class WordDatatype_str(WordDatatype):
         if isinstance(key, slice):
             return self._parent(self._data[key])
         return self._data[key]
+
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by an str
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word('abcdef')
+            sage: w * w
+            word: abcdefabcdef
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+        """
+        if isinstance(other, WordDatatype_str):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_str, self).__mul__(other)
+
+    __add__ = __mul__
 
     def count(self, letter):
         r"""
@@ -1015,3 +1079,38 @@ cdef class WordDatatype_tuple(WordDatatype):
         if isinstance(key, slice):
             return self._parent(self._data[key])
         return self._data[key]
+
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by a tuple
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word((1,2,3,4))
+            sage: w * w
+            word: 12341234
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+            sage: type(w + w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+        """
+        if isinstance(other, WordDatatype_tuple):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_tuple, self).__mul__(other)
+
+    __add__ = __mul__
+

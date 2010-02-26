@@ -1901,7 +1901,26 @@ class FiniteWord_class(Word_class):
             sage: z = Word('12223', alphabet = '123')
             sage: z + y                   #todo: not implemented
             word: 1222353587
+
+        TESTS:
+
+        The empty word is not considered by concatenation::
+
+            sage: type(Word([]) * Word('abcd'))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word())
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word([]))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word(()))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word([1,2,3]) * Word(''))
+            <class 'sage.combinat.words.word.FiniteWord_list'>
         """
+        if self.is_empty():
+            return other
+        if isinstance(other, Word_class) and other.is_empty():
+            return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
         return self._parent(f, length=length, datatype='callable', caching=True)
@@ -6686,7 +6705,7 @@ class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Finit
 
     Pickle also works for concatenation of words::
 
-        sage: w = Word(range(10)) * Word(range(4))
+        sage: w = Word(range(10)) * Word('abcdef')
         sage: type(w)
         <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
         sage: z = loads(dumps(w))

@@ -3043,7 +3043,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('aababb').is_palindrome(f)
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            KeyError: 'b'
 
         TESTS:
 
@@ -3676,7 +3676,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            KeyError: 'b'
 
         REFERENCES:
 

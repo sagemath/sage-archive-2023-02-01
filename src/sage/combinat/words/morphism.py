@@ -397,8 +397,7 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        -  ``w`` - finite word in the domain of ``self``, must be
-           of length one if order is ``Infinity``
+        -  ``w`` - word or sequence in the domain of ``self``
         -  ``order`` - integer or plus ``Infinity`` (default: 1)
         - ``datatype`` - (default: 'iter') "list", "str", "tuple",
           "iter". The datatype of the output (note that only list, str
@@ -516,8 +515,7 @@ class WordMorphism(SageObject):
             sage: tm('0021')
             Traceback (most recent call last):
             ...
-            ValueError: 0 not in alphabet!
-
+            KeyError: '0'
 
         The order must be a positive integer or plus Infinity::
 
@@ -530,16 +528,14 @@ class WordMorphism(SageObject):
             ...
             TypeError: order (6.70000000000000) must be a positive integer or plus Infinity
 
-        Infinitely iterated image of a word is defined only for those of
-        length one::
+        Only the first letter is considers for infinitely iterated image of
+        a word under a morphism::
 
             sage: tm('aba',oo)
-            Traceback (most recent call last):
-            ...
-            TypeError: For infinite powers, the length of the word must be 1 (not 3)
+            word: abbabaabbaababbabaababbaabbabaabbaababba...
 
-        ``self`` must be prolongable on the given letter for infinitely iterated
-        image::
+        ``self`` must be prolongable on the given letter for infinitely
+        iterated image::
 
             sage: m = WordMorphism('a->ba,b->ab')
             sage: m('a', oo)
@@ -562,26 +558,36 @@ class WordMorphism(SageObject):
             sage: m('')
             word:
         """
-        if w in self.domain().alphabet():
-            w = self._domain([w])
-        else:
-            w = self._domain(w)
-
         if order is Infinity:
-            if w.length() != 1:
-                raise TypeError, "For infinite powers, the length of the word must be 1 (not %s)"%w.length()
-            return self.fixed_point(letter=w[0])
+            if isinstance(w, (tuple,str,list,FiniteWord_class)):
+                letter = w[0]
+            elif hasattr(w, '__iter__'):
+                letter = w.next()
+            elif w in self._domain.alphabet():
+                letter = w
+            else:
+                raise TypeError, "Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w
+            return self.fixed_point(letter=letter)
 
         if not isinstance(order, (int,Integer)) or order < 0 :
             raise TypeError, "order (%s) must be a positive integer or plus Infinity" % order
         elif order == 0:
-            return w
+            return self._domain(w)
         elif order == 1:
-            if isinstance(w, FiniteWord_class):
+            if isinstance(w, (tuple,str,list)):
+                length = 'finite'
+            elif isinstance(w, FiniteWord_class):
+                #Is it really a good thing to precompute the length?
                 length = sum(self._morph[a].length() * b for (a,b) in w.evaluation_dict().iteritems())
-                return self.codomain()((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
+            elif hasattr(w, '__iter__'):
+                length = Infinity
+                datatype = 'iter'
+            elif w in self._domain.alphabet():
+                w = [w]
+                length = 'finite'
             else:
-                return self.codomain()((x for y in w for x in self._morph[y]), length=Infinity, datatype='iter')
+                raise TypeError, "Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w
+            return self.codomain()((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
         elif order > 1:
             return self(self(w, order-1),datatype=datatype)
 
@@ -635,12 +641,10 @@ class WordMorphism(SageObject):
             sage: WordMorphism('')*m
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            KeyError: 'b'
             sage: print m * WordMorphism('')
             WordMorphism:
         """
-        #TODO : Est-ce que c'est le comportement que l'on veut pour le produit
-        #par le morphisme vide? Voir lignes ci-haut.
         return WordMorphism(dict((key, self(w)) for (key, w) in other._morph.iteritems()), codomain=self.codomain())
 
     def __pow__(self, exp):
@@ -678,7 +682,7 @@ class WordMorphism(SageObject):
             sage: n^2
             Traceback (most recent call last):
             ...
-            ValueError: c not in alphabet!
+            KeyError: 'c'
         """
         #If exp is not an integer
         if not isinstance(exp, (int,Integer)):
@@ -845,7 +849,6 @@ class WordMorphism(SageObject):
             L.append([ev_dict.get(a,0) for a in codomain_alphabet])
         M = Matrix(IntegerRing(), L).transpose()
         return M
-
 
     def domain(self):
         r"""

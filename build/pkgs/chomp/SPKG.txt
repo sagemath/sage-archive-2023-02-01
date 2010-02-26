@@ -36,6 +36,10 @@ None
 
 == Changelog ==
 
+=== chomp-20100213.p1 (Volker Braun, Feb 26, 2010) ===
+
+* patch src/include/chomp/multiwork/mwdata.h so it builds on Fedora 12
+
 === chomp-20100213.p0 (John Palmieri, Feb 19, 2010) ===
 
 * remove a bunch of programs from the makefile: Sage doesn't use them,

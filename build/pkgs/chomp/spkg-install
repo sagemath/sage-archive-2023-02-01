@@ -24,6 +24,9 @@ rm src/programs/mwdemo/makefile
 rm src/programs/showcubes/makefile
 rm src/programs/utils/makefile
 
+# patch src/include/chomp/multiwork/mwdata.h so it builds on Fedora 12
+cp patches/mwdata.h src/include/chomp/multiwork/mwdata.h
+
 # According to the web page
 # http://chomp.rutgers.edu/advanced/compile.php, we need to use GNU
 # make, version 3.77 or higher.

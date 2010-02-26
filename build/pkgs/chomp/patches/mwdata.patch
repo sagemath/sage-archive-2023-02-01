@@ -1,0 +1,10 @@
+--- ../src/include/chomp/multiwork/mwdata.h	2010-01-24 21:17:19.000000000 -0800
++++ mwdata.h	2010-02-26 14:30:52.000000000 -0800
+@@ -45,6 +45,7 @@
+ #if mwSTREAMS
+ 	#include <iostream>
+ #endif // use mwSTREAMS
++#include <stdio.h>
+ 
+ 
+ namespace chomp {

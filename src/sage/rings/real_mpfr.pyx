@@ -227,15 +227,15 @@ def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
 
     -  ``rnd`` - (string) the rounding mode
 
-      - RNDN - (default) round to nearest (ties go to the even number):
+      - 'RNDN' - (default) round to nearest (ties go to the even number):
         Knuth says this is the best choice to prevent "floating point
         drift".
 
-      - RNDD - round towards minus infinity
+      - 'RNDD' - round towards minus infinity
 
-      - RNDZ - round towards zero
+      - 'RNDZ' - round towards zero
 
-      - RNDU - round towards plus infinity
+      - 'RNDU' - round towards plus infinity
 
     EXAMPLES::
 
@@ -245,6 +245,15 @@ def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
         Real Field with 53 bits of precision
         sage: RealField(100000)
         Real Field with 100000 bits of precision
+
+    Here we show the effect of rounding::
+
+        sage: R17d = RealField(17,rnd='RNDD')
+        sage: a = R17d(1)/R17d(3); a.exact_rational()
+        87381/262144
+        sage: R17u = RealField(17,rnd='RNDU')
+        sage: a = R17u(1)/R17u(3); a.exact_rational()
+        43691/131072
 
     .. note::
 

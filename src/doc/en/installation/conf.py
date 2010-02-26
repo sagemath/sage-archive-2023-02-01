@@ -22,6 +22,7 @@ name = 'installation'
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = project + " v"+release
+html_short_title = u"Install Guide v" + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name

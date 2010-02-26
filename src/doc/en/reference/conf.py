@@ -23,7 +23,7 @@ name = "reference"
 # "<project> v<release> documentation".
 html_title = project + " v"+release
 
-html_short_title = u'Reference v' + release
+html_short_title = u'Sage Reference v' + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name

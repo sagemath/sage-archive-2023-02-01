@@ -393,19 +393,20 @@ class WordMorphism(SageObject):
 
     def __call__(self, w, order=1, datatype='iter'):
         r"""
-        Returns the image of ``w`` under ``self`` to the given ``order``.
+        Returns the image of ``w`` under self to the given order.
 
         INPUT:
 
-        -  ``w`` - word or sequence in the domain of ``self``
+        -  ``w`` - word or sequence in the domain of self
         -  ``order`` - integer or plus ``Infinity`` (default: 1)
-        - ``datatype`` - (default: 'iter') "list", "str", "tuple",
-          "iter". The datatype of the output (note that only list, str
-          and tuple allows the word to be pickled and saved).
+        - ``datatype`` - (default: ``'iter'``) ``'list'``, ``'str'``,
+          ``'tuple'``, ``'iter'``. The datatype of the output
+          (note that only list, str and tuple allows the word to be
+          pickled and saved).
 
         OUTPUT:
 
-        -  ``word`` - order-th iterated image under ``self`` of ``w``
+        -  ``word`` - order-th iterated image under self of ``w``
 
         EXAMPLES:
 
@@ -442,7 +443,7 @@ class WordMorphism(SageObject):
             sage: n(t)[:1000] == t[:1000]
             True
 
-        ::
+        The Fibonacci word::
 
             sage: w = words.FibonacciWord()
             sage: m = WordMorphism({0:'a', 1:'b'})
@@ -510,7 +511,7 @@ class WordMorphism(SageObject):
             sage: w = m([0],4,datatype='tuple'); type(w)
             <class 'sage.combinat.words.word.FiniteWord_tuple'>
 
-        The word must be in the domain of ``self``::
+        The word must be in the domain of self::
 
             sage: tm('0021')
             Traceback (most recent call last):
@@ -528,13 +529,13 @@ class WordMorphism(SageObject):
             ...
             TypeError: order (6.70000000000000) must be a positive integer or plus Infinity
 
-        Only the first letter is considers for infinitely iterated image of
+        Only the first letter is considered for infinitely iterated image of
         a word under a morphism::
 
             sage: tm('aba',oo)
             word: abbabaabbaababbabaababbaabbabaabbaababba...
 
-        ``self`` must be prolongable on the given letter for infinitely
+        The morphism self must be prolongable on the given letter for infinitely
         iterated image::
 
             sage: m = WordMorphism('a->ba,b->ab')
@@ -542,6 +543,18 @@ class WordMorphism(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: self must be prolongable on a
+
+        The empty word is fixed by any morphism for all natural
+        powers::
+
+            sage: phi = WordMorphism('a->ab,b->a')
+            sage: phi(Word())
+            word:
+            sage: phi(Word(), oo)
+            word:
+            sage: it = iter([])
+            sage: phi(it, oo)
+            word:
 
         TESTS::
 
@@ -560,9 +573,15 @@ class WordMorphism(SageObject):
         """
         if order is Infinity:
             if isinstance(w, (tuple,str,list,FiniteWord_class)):
-                letter = w[0]
+                if len(w) == 0:
+                    return self.codomain()()
+                else:
+                    letter = w[0]
             elif hasattr(w, '__iter__'):
-                letter = w.next()
+                try:
+                    letter = w.next()
+                except StopIteration:
+                    return self.codomain()()
             elif w in self._domain.alphabet():
                 letter = w
             else:

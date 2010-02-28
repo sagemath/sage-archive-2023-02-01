@@ -10,7 +10,6 @@ LGPL V2.1 or later
 
 == SPKG Maintainers ==
  * Robert Miller
- * Michael Abshoff
  * Gregory McWhirter
 
 == Upstream Contact ==
@@ -27,7 +26,7 @@ See http://networkx.lanl.gov/
 == Changelog ==
 
 === networkx-1.0.1 (Gregory McWhirter, January 27, 2010) ===
- * upgraded to the 1.0.1 release
+ * upgraded to the 1.0.1 release (see #7608)
  * deleted obsolete patches to nx_pylab.py
 
 === networkx-0.99.p1 (Jason Grout, September 1st, 2009) ===

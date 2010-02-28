@@ -6,16 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ "$MAKE" == gmake ]; then
-   echo "using gmake"
-else
-   echo "Disabling parallel make for now"
-   MAKE=make; export $MAKE
-fi
-
 CUR=`pwd`
 
-echo "Deleting old versions of cremona libraries, which"
+echo "Deleting old versions of eclib libraries, which"
 echo "would interfere with new builds."
 cd "$SAGE_LOCAL"/lib/
 rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.* libmwrank.*
@@ -42,22 +35,22 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 export PICFLAG
 
-make
+$MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building cremona"
+    echo "Error building eclib"
     exit 1
 fi
 
 if [ `uname` = "Darwin" ]; then
-    make dylib
+    $MAKE dylib
 elif [ "$UNAME" = "CYGWIN" ]; then
-    make dll
+    $MAKE dll
 else
-    make so
+    $MAKE so
 fi
 
 if [ $? -ne 0 ]; then
-    echo "Error building cremona shared libraries"
+    echo "Error building eclib shared libraries"
     exit 1
 fi
 

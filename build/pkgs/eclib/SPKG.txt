@@ -37,6 +37,11 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p10 (Mitesh Patel, 27nd February 2010) ===
+ * Suppress writing PRIMES on exit.  See line 327 in src/procs/marith.cc.
+ * Delete '1' after check.
+ * Tweak Makefiles and remove #4228's work around to enable parallel builds
+
 === eclib-20080310.p9 (John Cremona, 2nd February 2010) ===
  * Fix bug in second descent (R-solubility not tested)
  * Enhance descent interface by providing separate rank_bound and

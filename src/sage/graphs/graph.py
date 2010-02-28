@@ -1916,6 +1916,166 @@ class Graph(GenericGraph):
 
         return repr
 
+    def minor(self, H, **kwds):
+        r"""
+        Returns the vertices of a minor isomorphic to `H` in the current graph.
+
+        We say that a graph `G` has a `H`-minor (or that it has
+        a graph isomorphic to `H` as a minor), if for all `h\in H`,
+        there exist disjoint sets `S_h \subseteq V(G)` such that
+        once the vertices of each `S_h` have been merged to create
+        a new graph `G'`, this new graph contains `H` as a subgraph.
+
+        For more information of minor theory, see
+        http://en.wikipedia.org/wiki/Minor_(graph_theory)
+
+        INPUT:
+
+        - ``H`` -- The minor to find for in the current graph
+
+        - ``**kwds`` -- arguments to be passed down to the ``solve``
+          function of ``MixedIntegerLinearProgram``. See the documentation
+          of ``MixedIntegerLinearProgram.solve`` for more informations.
+
+        OUTPUT:
+
+        A dictionary associating to each vertex of `H` the set of vertices
+        in the current graph representing it.
+
+        ALGORITHM:
+
+        Mixed Integer Linear Programming
+
+        COMPLEXITY:
+
+        Theoretically, when `H` is fixed, testing for the existence of
+        a `H`-minor is polynomial. The known algorithms are highly
+        exponential in `H`, though.
+
+        NOTE:
+
+        This function can be expected to be *very* slow, especially
+        where the minor does not exist.
+
+        EXAMPLE:
+
+        Trying to find a minor isomorphic to `K_4` in
+        the `4\times 4` grid ::
+
+            sage: g = graphs.GridGraph([4,4])
+            sage: h = graphs.CompleteGraph(4)
+            sage: L = g.minor(h)                                                 # optional - requires GLPK, CPLEX or CBC
+            sage: gg = g.subgraph(flatten(L.values(), max_level = 1))            # optional - requires GLPK, CPLEX or CBC
+            sage: _ = [gg.merge_vertices(l) for l in L.values() if len(l)>1]     # optional - requires GLPK, CPLEX or CBC
+            sage: gg.is_isomorphic(h)                                            # optional - requires GLPK, CPLEX or CBC
+            True
+
+        We can also try to prove this way that the Petersen graph
+        is not planar, as it has a `K_5` minor ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # optional long - requires GLPK, CPLEX or CBC
+
+        And even a `K_{3,3}` minor ::
+
+            sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # optional long - requires GLPK, CPLEX or CBC
+
+        (It is much faster to use the linear-time test of
+        planarity in this situation, though)
+
+        As there is no cycle in a tree, looking for a `K_3` minor is useless.
+        This function will raise an exception in this case::
+
+            sage: g = graphs.RandomGNP(20,.5)
+            sage: g = g.subgraph(edges = g.min_spanning_tree())
+            sage: g.is_tree()
+            True
+            sage: L = g.minor(graphs.CompleteGraph(3))                           # optional - requires GLPK, CPLEX or CBC
+            Traceback (most recent call last):
+            ...
+            ValueError: This graph has no minor isomorphic to H !
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram()
+
+        # sorts an edge
+        S = lambda (x,y) : (x,y) if x<y else (y,x)
+
+        # rs = Representative set of a vertex
+        # for h in H, v in G is such that rs[h][v] == 1 if and only if v
+        # is a representant of h in self
+        rs = p.new_variable(dim=2)
+
+        for v in self:
+            p.add_constraint(sum([rs[h][v] for h in H]), max = 1)
+
+        # We ensure that the set of representatives of a
+        # vertex h contains a tree, and thus is connected
+
+        # edges represents the edges of the tree
+        edges = p.new_variable(dim = 2)
+
+        # there can be a edge for h between two vertices
+        # only if those vertices represent h
+        for u,v in self.edges(labels=None):
+            for h in H:
+                p.add_constraint(edges[h][S((u,v))] - rs[h][u], max = 0 )
+                p.add_constraint(edges[h][S((u,v))] - rs[h][v], max = 0 )
+
+        # The number of edges of the tree in h is exactly the cardinal
+        # of its representative set minus 1
+
+        for h in H:
+            p.add_constraint(sum([edges[h][S(e)] for e in self.edges(labels=None)])-sum([rs[h][v] for v in self]), min=-1, max=-1)
+
+        # a tree  has no cycle
+        epsilon = 1/(5*Integer(self.order()))
+        r_edges = p.new_variable(dim=2)
+
+        for h in H:
+            for u,v in self.edges(labels=None):
+                p.add_constraint(r_edges[h][(u,v)] + r_edges[h][(v,u)] - edges[h][S((u,v))], min = 0)
+
+            for v in self:
+                p.add_constraint(sum([r_edges[h][(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
+
+        # Once the representative sets are described, we must ensure
+        # there are arcs corresponding to those of H between them
+        h_edges = p.new_variable(dim=2)
+
+        for h1, h2 in H.edges(labels=None):
+
+            for v1, v2 in self.edges(labels=None):
+
+                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h2][v2], max = 0)
+                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h1][v1], max = 0)
+
+                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h1][v2], max = 0)
+                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h2][v1], max = 0)
+
+            p.add_constraint(sum([h_edges[(h1,h2)][S(e)] + h_edges[(h2,h1)][S(e)] for e in self.edges(labels=None) ]), min = 1)
+
+        p.set_binary(rs)
+        p.set_binary(edges)
+
+        p.set_objective(None)
+
+        try:
+            p.solve(**kwds)
+        except MIPSolverException:
+            raise ValueError("This graph has no minor isomorphic to H !")
+
+        rs = p.get_values(rs)
+
+        from sage.sets.set import Set
+        rs_dict = {}
+        for h in H:
+            rs_dict[h] = [v for v in self if rs[h][v]==1]
+
+        return rs_dict
+
+
     ### Centrality
 
     def centrality_betweenness(self, normalized=True):

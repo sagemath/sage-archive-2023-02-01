@@ -73,6 +73,8 @@ QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
+from sage.rings.real_mpfi import RealInterval
+
 from sage.rings.complex_field import ComplexField
 CC = ComplexField(53)
 
@@ -3041,6 +3043,59 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         R = self.number_field().base_field()[var]
         return R(self.list())
 
+    def is_real_positive(self, min_prec=53):
+        r"""
+        Using the ``n`` method of approximation, return ``True`` if
+        ``self`` is a real positive number and ``False`` otherwise.
+        This method is completely dependent of the embedding used by
+        the ``n`` method.
+
+        The algorithm first checks that ``self`` is not a strictly
+        complex number. Then if ``self`` is not zero, by approximation
+        more and more precise, the method answers True if the
+        number is positive. Using `RealInterval`, the result is
+        guaranteed to be correct.
+
+        For CyclotomicField, the embedding is the natural one
+        sending `zetan` on `cos(2*pi/n)`.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: (a+a^2).is_real_positive()
+            False
+            sage: (-a-a^2).is_real_positive()
+            True
+            sage: K.<a> = CyclotomicField(1000)
+            sage: (a+a^(-1)).is_real_positive()
+            True
+            sage: K.<a> = CyclotomicField(1009)
+            sage: d = a^252
+            sage: (d+d.conjugate()).is_real_positive()
+            True
+            sage: d = a^253
+            sage: (d+d.conjugate()).is_real_positive()
+            False
+            sage: K.<a> = QuadraticField(3)
+            sage: a.is_real_positive()
+            True
+            sage: K.<a> = QuadraticField(-3)
+            sage: a.is_real_positive()
+            False
+            sage: (a-a).is_real_positive()
+            False
+        """
+        if self != self.conjugate() or self.is_zero():
+            return False
+        else:
+            approx = RealInterval(self.n(min_prec).real())
+            if approx.lower() > 0:
+                return True
+            else:
+                if approx.upper() < 0:
+                    return False
+                else:
+                    return self.is_real_positive(min_prec+20)
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
     r"""

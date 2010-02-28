@@ -202,7 +202,7 @@ As matrix and many other sage objects, words have a parent::
 from itertools import tee, islice, ifilter, ifilterfalse, imap, izip, \
                       starmap, count, dropwhile, chain, cycle, groupby
 from sage.structure.sage_object import SageObject
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set
 from sage.rings.all import Integer, Integers, Infinity, ZZ
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
@@ -5054,85 +5054,134 @@ exponent %s: the length of the word (%s) times the exponent \
         else:
             return Partition(p)
 
-    def overlap_partition(self, other, delay=0, p=None):
+    def overlap_partition(self, other, delay=0, p=None, involution=None) :
         r"""
-        Returns the partition of the alphabet induced by the equivalence
+        Returns the partition of the alphabet induced by the overlap of
+        self and other with the given delay.
+
+        The partition of the alphabet is given by the equivalence
         relation obtained from the symmetric, reflexive and transitive
-        closure of `R_{self,other,delay}\cup p` defined below.
+        closure of the set of pairs of letters
+        `R_{u,v,d} = \{ (u_k, v_{k-d}) : 0 \leq k < n, 0\leq k-d < m \}`
+        where `u = u_0 u_1 \cdots u_{n-1}`, `v = v_0v_1\cdots v_{m-1}` are
+        two words on the alphabet `A` and `d` is an integer.
 
-        Let `u = u_0 u_1 \cdots u_{n-1}`, `v = v_0v_1\cdots v_{m-1}` be two
-        words on the alphabet `A` where `u_i, v_j \in A` are letters and
-        let `d` be an integer. We define a relation
-        `R_{u,v,d}\subseteq A \times A` by
-        `R_{u,v,d} = \{ (u_k, v_{k-d}) : 0 \leq k < n, 0\leq k-d < m \}`.
-        The equivalence relation obtained from `R` is inspired from [1].
-
-        EXAMPLE:
-
-            Let `A = \{\tt{a}, \tt{b}, \tt{c}, \tt{d}, \tt{e}, \tt{f}, \tt{h},
-            \tt{l}, \tt{v} \}`,
-            `s=\tt{cheval}, t=\tt{abcdef} \in A^*` and `d=3`.
-            Then `0 \leq k < 6` and `0\leq k-3 < 6` implies that
-            `3\leq k \leq 5`. Then,
-            `R_{s,t,d} = \{ (s_3, t_0), (s_4, t_1), (s_5, t_2) \} = \{ (\tt{v},
-            \tt{a}), (\tt{a}, \tt{b}), (\tt{l}, \tt{c}) \}`.
-            These three couples correspond to the pairs of letters one above
-            the other in the following overlap :
-
-                    `\tt{cheval}`
-                       `\tt{abcdef}`
-
-            The symmetric, reflexive and transitive closure of `R_{s,t,d}`
-            defines the following partition of the alphabet `A`:
-            `\{\{\tt{a}, \tt{b}, \tt{v}\}, \{\tt{c}, \tt{l}\}, \{\tt{d}\},
-            \{\tt{e}\}, \{\tt{f}\}, \{\tt{h}\}\}`.
+        The equivalence relation defined by `R` is inspired from [1].
 
         INPUT:
 
         -  ``other`` - word on the same alphabet as self
         -  ``delay`` - integer
-        -  ``p`` - Set (default: None), a partition of the alphabet
+        -  ``p`` - disjoint sets data structure (optional, default: None),
+           a partition of the alphabet into disjoint sets to start with.
+           If None, each letter start in distinct equivalence classes.
+        -  ``involution`` - callable (optional, default: None), an
+           involution on the alphabet. If involution is not None, the relation
+           `R_{u,v,d} \cup R_{involution(u),involution(v),d}` is considered.
 
         OUTPUT:
 
-        -  ``p`` - Set, a set partition of the alphabet of self and other.
+        -  disjoint set data structure
 
         EXAMPLES:
 
-        The above example::
+            sage: W = Words(list('abc')+range(6))
+            sage: u = W('abc')
+            sage: v = W(range(5))
+            sage: u.overlap_partition(v)
+            {{0, 'a'}, {1, 'b'}, {2, 'c'}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, 2)
+            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, -1)
+            {{0}, {1, 'a'}, {2, 'b'}, {3, 'c'}, {4}, {5}}
 
-            sage: W = Words('abcdefhlv')
-            sage: cheval = W('cheval')
-            sage: abcdef = W('abcdef')
-            sage: p = cheval.overlap_partition(abcdef,3); p
-            {{'f'}, {'e'}, {'d'}, {'a', 'b', 'v'}, {'c', 'l'}, {'h'}}
+        You can re-use the same disjoint set and do more than one overlap::
 
-        The same example with delay 2 ::
+            sage: p = u.overlap_partition(v, 2)
+            sage: p
+            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, 1, p)
+            {{'a'}, {0, 1, 'b', 'c'}, {2}, {3}, {4}, {5}}
 
-            sage: cheval.overlap_partition(abcdef,2,p)
-            {{'f'}, {'a', 'c', 'b', 'e', 'd', 'v', 'l'}, {'h'}}
+        The function  ``overlap_partition`` can be used to study equations
+        on words. For example, if a word `w` overlaps itself with delay `d`, then
+        `d` is a period of `w`::
 
-        ::
+            sage: W = Words(range(20))
+            sage: w = W(range(14)); w
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+            sage: d = 5
+            sage: p = w.overlap_partition(w, d)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 56789567895678
+            sage: w2.minimal_period() == d
+            True
+
+        If a word is equal to its reversal, then it is a palindrome::
+
+            sage: W = Words(range(20))
+            sage: w = W(range(17)); w
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+            sage: p = w.overlap_partition(w.reversal(), 0)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 01234567876543210
+            sage: w2.parent()
+            Words over Ordered Alphabet [0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19]
+            sage: w2.is_palindrome()
+            True
+
+        If the reversal of a word `w` is factor of its square `w^2`, then
+        `w` is symmetric, i.e. the product of two palindromes::
+
+            sage: W = Words(range(10))
+            sage: w = W(range(10)); w
+            word: 0123456789
+            sage: p = (w*w).overlap_partition(w.reversal(), 4)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 0110456654
+            sage: w2.is_symmetric()
+            True
+
+        If the image of the reversal of a word `w` under an involution `f`
+        is factor of its square `w^2`, then `w` is `f`-symmetric::
+
+            sage: W = Words([-11,-9,..,11])
+            sage: w = W([1,3,..,11])
+            sage: w
+            word: 1,3,5,7,9,11
+            sage: inv = lambda x:-x
+            sage: f = WordMorphism(dict( (a, inv(a)) for a in W.alphabet()))
+            sage: p = (w*w).overlap_partition(f(w).reversal(), 2, involution=f)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: m(w)
+            word: 1,-1,5,7,-7,-5
+            sage: m(w).is_symmetric(f)
+            True
+
+        TESTS::
 
             sage: W = Words('abcdef')
             sage: w = W('abc')
             sage: y = W('def')
             sage: w.overlap_partition(y, -3)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, -2)
-            {{'a', 'f'}, {'e'}, {'d'}, {'c'}, {'b'}}
+            {{'a', 'f'}, {'b'}, {'c'}, {'d'}, {'e'}}
             sage: w.overlap_partition(y, -1)
-            {{'a', 'e'}, {'d'}, {'c'}, {'b', 'f'}}
+            {{'a', 'e'}, {'b', 'f'}, {'c'}, {'d'}}
             sage: w.overlap_partition(y, 0)
-            {{'b', 'e'}, {'a', 'd'}, {'c', 'f'}}
+            {{'a', 'd'}, {'b', 'e'}, {'c', 'f'}}
             sage: w.overlap_partition(y, 1)
-            {{'c', 'e'}, {'f'}, {'b', 'd'}, {'a'}}
+            {{'a'}, {'b', 'd'}, {'c', 'e'}, {'f'}}
             sage: w.overlap_partition(y, 2)
-            {{'f'}, {'e'}, {'b'}, {'a'}, {'c', 'd'}}
+            {{'a'}, {'b'}, {'c', 'd'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, 3)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, 4)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
 
         ::
 
@@ -5144,17 +5193,24 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.overlap_partition(w, 1)
             {{0, 1}}
 
-        TESTS::
+        ::
 
             sage: empty = Word()
             sage: empty.overlap_partition(empty, 'yo')
             Traceback (most recent call last):
             ...
-            TypeError: delay (type given: <type 'str'>) must be an integer
+            TypeError: delay (=yo) must be an integer
             sage: empty.overlap_partition(empty,2,'yo')
             Traceback (most recent call last):
             ...
-            TypeError: p(=yo) is not a Set
+            TypeError: p(=yo) is not a DisjointSet
+
+        The involution input can be any callable::
+
+            sage: w = Words([-5,..,5])([-5..5])
+            sage: inv = lambda x:-x
+            sage: w.overlap_partition(w, 2, involution=inv)
+            {{-4, -2, 0, 2, 4}, {-5, -3, -1, 1, 3, 5}}
 
         REFERENCES:
 
@@ -5163,39 +5219,38 @@ exponent %s: the length of the word (%s) times the exponent \
             109 pages.
         """
         if not isinstance(delay, (int, Integer)):
-            raise TypeError, \
-                  "delay (type given: %s) must be an integer"%type(delay)
+            raise TypeError, "delay (=%s) must be an integer"%delay
         elif delay < 0:
             return other.overlap_partition(self, -delay, p)
 
-        alphabet = self.parent().alphabet()
-
+        from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
             if self.parent().size_of_alphabet() is Infinity:
-                raise ValueError, 'cannot construct the default set partition of an infinite alphabet'
-            else:
-                R = [[x] for x in alphabet]
+                raise ValueError, "The alphabet of the parent must be finite"
+            from sage.sets.disjoint_set import DisjointSet
+            p = DisjointSet(self.parent().alphabet())
+        elif not isinstance(p, DisjointSet_class):
+            raise TypeError, "p(=%s) is not a DisjointSet" % p
+
+        #Join the classes of each pair of letters that are one above the other
+        from itertools import islice, izip
+        from sage.combinat.words.morphism import WordMorphism
+        S = izip(islice(self, delay, None), other)
+        if involution is None:
+            for (a,b) in S:
+                p.union(a, b)
+        elif isinstance(involution, WordMorphism):
+            for (a,b) in S:
+                p.union(a, b)
+                # take the first letter of the word
+                p.union(involution(a)[0], involution(b)[0])
+        elif callable(involution):
+            for (a,b) in S:
+                p.union(a, b)
+                p.union(involution(a), involution(b))
         else:
-            if not is_Set(p):
-                raise TypeError, "p(=%s) is not a Set" % p
-            if Set(alphabet.list()) != reduce(lambda x,y:x.union(y), p):
-                raise TypeError, "p(=%s) is not a partition of the alphabet" % p
-            R = map(list,p)
-
-        d, n, m = delay, self.length(), other.length()
-        S = [(self[k], other[k-d]) for k in range(max(0,d), min(n,m+d))]
-
-        for (a,b) in S:
-            index_a, index_b = -1, -1
-            for (i, r) in enumerate(R):
-                if index_a < 0 and a in r: index_a = i
-                if index_b < 0 and b in r: index_b = i
-                if index_a >= 0 and index_b >= 0: break
-            if index_a != index_b:
-                set_a = R.pop(max(index_a, index_b))
-                set_b = R.pop(min(index_a, index_b))
-                R += [set_a + set_b]
-        return Set(map(Set, R))
+            raise TypeError, "involution (=%s) must be callable"%involution
+        return p
 
     # TODO: requires a parent with a cmp_letters method
     def standard_permutation(self):

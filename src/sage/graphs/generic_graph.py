@@ -3087,6 +3087,199 @@ class GenericGraph(GenericGraph_pyx):
             v = pv
         return B, C
 
+    def edge_disjoint_spanning_trees(self,k, root=None, **kwds):
+        r"""
+        Returns the desired number of edge-disjoint spanning
+        trees/arborescences.
+
+        INPUT:
+
+        - ``k`` (integer) -- the required number of edge-disjoint
+          spanning trees/arborescences
+
+        - ``root`` (vertex) -- root of the disjoint arborescences
+          when the graph is directed.
+          If set to ``None``, the first vertex in the graph is picked.
+
+        - ``**kwds`` -- arguments to be passed down to the ``solve``
+          function of ``MixedIntegerLinearProgram``. See the documentation
+          of ``MixedIntegerLinearProgram.solve`` for more informations.
+
+        ALGORITHM:
+
+        Mixed Integer Linear Program. The formulation can be found
+        in [JVNC]_.
+
+        There are at least two possible rewritings of this method
+        which do not use Linear Programming:
+
+            * The algorithm presented in the paper entitled "A short
+              proof of the tree-packing theorem", by Thomas Kaiser
+              [KaisPacking]_.
+
+            * The implementation of a Matroid class and of the Matroid
+              Union Theorem (see section 42.3 of [SchrijverCombOpt]_),
+              applied to the cycle Matroid (see chapter 51 of
+              [SchrijverCombOpt]_).
+
+        EXAMPLES:
+
+        The Petersen Graph does have a spanning tree (it is connected)::
+
+            sage: g = graphs.PetersenGraph()
+            sage: [T] = g.edge_disjoint_spanning_trees(1)       # optional - GLPK, CBC
+            sage: T.is_tree()                                   # optional - GLPK, CBC
+            True
+
+        Though, it does not have 2 edge-disjoint trees (as it has less
+        than `2(|V|-1)` edges)::
+
+            sage: g.edge_disjoint_spanning_trees(2)              # optional - GLPK, CBC
+            Traceback (most recent call last):
+            ...
+            ValueError: This graph does not contain the required number of trees/arborescences !
+
+        By Edmond's theorem, a graph which is `k`-connected always has `k` edge-disjoint
+        arborescences, regardless of the root we pick::
+
+            sage: g = digraphs.RandomDirectedGNP(30,.3)
+            sage: k = Integer(g.edge_connectivity())                            # optional - GLPK, CBC
+            sage: arborescences = g.edge_disjoint_spanning_trees(k)             # optional - GLPK, CBC
+            sage: all([a.is_directed_acyclic() for a in arborescences])         # optional - GLPK, CBC
+            True
+            sage: all([a.is_connected() for a in arborescences])                # optional - GLPK, CBC
+            True
+
+        In the undirected case, we can only ensure half of it::
+
+            sage: g = graphs.RandomGNP(30,.3)
+            sage: k = floor(Integer(g.edge_connectivity())/2)                   # optional - GLPK, CBC
+            sage: trees = g.edge_disjoint_spanning_trees(k)                     # optional - GLPK, CBC
+            sage: all([t.is_tree() for t in trees])                             # optional - GLPK, CBC
+            True
+
+        REFERENCES:
+
+        .. [JVNC] David Joyner, Minh Van Nguyen, and Nathann Cohen,
+          Algorithmic Graph Theory,
+          http://code.google.com/p/graph-theory-algorithms-book/
+
+        .. [KaisPacking] Thomas Kaiser
+          A short proof of the tree-packing theorem
+          http://arxiv.org/abs/0911.2809
+
+        .. [SchrijverCombOpt] Alexander Schrijver
+          Combinatorial optimization: polyhedra and efficiency
+          2003
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram()
+        p.set_objective(None)
+
+        # The colors we can use
+        colors = range(0,k)
+
+        # edges[j][e] is equal to one if and only if edge e belongs to color j
+        edges = p.new_variable(dim=2)
+
+
+        # r_edges is a relaxed variable grater than edges. It is used to
+        # check the presence of cycles
+        r_edges = p.new_variable(dim=2)
+
+        epsilon = 1/(10*(Integer(self.order())))
+
+
+        if self.is_directed():
+            # Does nothing ot an edge.. Useful when out of "if self.directed"
+            S = lambda (x,y) : (x,y)
+
+            if root == None:
+                root = self.vertex_iterator().next()
+
+
+            # An edge belongs to at most arborescence
+            for e in self.edges(labels=False):
+                p.add_constraint(sum([edges[j][e] for j in colors]), max=1)
+
+
+            for j in colors:
+                # each color class has self.order()-1 edges
+                p.add_constraint(sum([edges[j][e] for e in self.edges(labels=None)]), min=self.order()-1)
+
+                # Each vertex different from the root has indegree equals to one
+                for v in self.vertices():
+                    if v is not root:
+                        p.add_constraint(sum([edges[j][e] for e in self.incoming_edges(v, labels=None)]), max=1, min=1)
+                    else:
+                        p.add_constraint(sum([edges[j][e] for e in self.incoming_edges(v, labels=None)]), max=0, min=0)
+
+                # r_edges is larger than edges
+                for u,v in self.edges(labels=None):
+                    if self.has_edge(v,u):
+                        if v<u:
+                            p.add_constraint(r_edges[j][(u,v)] + r_edges[j][(v, u)] - edges[j][(u,v)] - edges[j][(v,u)], min=0)
+                    else:
+                        p.add_constraint(r_edges[j][(u,v)] + r_edges[j][(v, u)] - edges[j][(u,v)], min=0)
+
+                from sage.graphs.digraph import DiGraph
+                D = DiGraph()
+                D.add_vertices(self.vertices())
+                D.set_pos(self.get_pos())
+                classes = [D.copy() for j in colors]
+
+        else:
+
+            # Sort an edge
+            S = lambda (x,y) : (x,y) if x<y else (y,x)
+
+            # An edge belongs to at most one arborescence
+            for e in self.edges(labels=False):
+                p.add_constraint(sum([edges[j][S(e)] for j in colors]), max=1)
+
+
+            for j in colors:
+                # each color class has self.order()-1 edges
+                p.add_constraint(sum([edges[j][S(e)] for e in self.edges(labels=None)]), min=self.order()-1)
+
+                # Each vertex is in the tree
+                for v in self.vertices():
+                    p.add_constraint(sum([edges[j][S(e)] for e in self.edges_incident(v, labels=None)]), min=1)
+
+                # r_edges is larger than edges
+                for u,v in self.edges(labels=None):
+                    p.add_constraint(r_edges[j][(u,v)] + r_edges[j][(v, u)] - edges[j][S((u,v))], min=0)
+
+                from sage.graphs.graph import Graph
+                D = Graph()
+                D.add_vertices(self.vertices())
+                D.set_pos(self.get_pos())
+                classes = [D.copy() for j in colors]
+
+        # no cycles
+        for j in colors:
+            for v in self:
+                p.add_constraint(sum(r_edges[j][(u,v)] for u in self.neighbors(v)), max=1-epsilon)
+
+        p.set_binary(edges)
+
+        try:
+            p.solve(**kwds)
+
+        except MIPSolverException:
+            raise ValueError("This graph does not contain the required number of trees/arborescences !")
+
+        edges = p.get_values(edges)
+
+        for j,g in enumerate(classes):
+            for e in self.edges(labels=False):
+                if edges[j][S(e)] == 1:
+                    g.add_edge(e)
+
+        return classes
+
+
     def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
         Returns a minimum edge cut between vertices `s` and `t`

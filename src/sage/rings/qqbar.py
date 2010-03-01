@@ -491,7 +491,7 @@ from sage.rings.number_field.number_field_element import is_NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.rings.arith import factor
 from sage.libs.pari.gen import pari
-from sage.structure.element import generic_power
+from sage.structure.element import generic_power, canonical_coercion
 import infinity
 from sage.misc.functional import cyclotomic_polynomial
 
@@ -2831,9 +2831,19 @@ class AlgebraicNumber(AlgebraicNumber_base):
             True
             sage: QQbar(I) == QQbar(I * (2^100+1)/(2^100))
             False
+            sage: QQbar(2) == 2
+            True
+            sage: QQbar(2) == GF(7)(2)
+            False
+            sage: GF(7)(2) in QQbar
+            False
         """
         if not isinstance(other, AlgebraicNumber):
-            other = self.parent()(other)
+            try:
+                self, other = canonical_coercion(self, other)
+                return self == other
+            except TypeError:
+                return False
         if self is other: return True
         if other._descr.is_rational() and other._descr.rational_value() == 0:
             return not self.__nonzero__()

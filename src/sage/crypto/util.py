@@ -384,59 +384,41 @@ def carmichael_lambda(n):
         ...
         ValueError: Input n must be a positive integer.
 
+    bug reported in trac #8283::
+
+        sage: from sage.crypto.util import carmichael_lambda
+        sage: type(carmichael_lambda(16))
+        <type 'sage.rings.integer.Integer'>
+
     REFERENCES:
 
     .. [Carmichael2010] Carmichael function,
       http://en.wikipedia.org/wiki/Carmichael_function
     """
-    # sanity checks
+    import sage.rings.integer
+    n = sage.rings.integer.Integer(n)
+    # sanity check
     if n < 1:
         raise ValueError("Input n must be a positive integer.")
-    # special cases
-    if n in [1, 2]:
-        return 1
-    if n in [3, 4, 6, 8]:
-        return 2
-    if n in [5, 10]:
-        return 4
-    if n in [7, 9]:
-        return 6
-    if is_prime(n):
-        return n - 1
-    # the case where n > 1 is composite
-    L = factor(n)
-    t = len(L)      # the number of distinct prime factors of n
-    if t == 1:      # n is a prime power
-        p = L[0][0]
-        # So n is a power of 2, i.e. n = p^k for positive integer k > 2,
-        # with p = 2. We have already tested for the case n = 2^2 = 4 above.
-        if p == 2:
-            return n / 4
-        # here p > 3
-        else:
-            return ((p - 1)*n) / p
-    # The following two lines constitute a recursive implementation.
-    # powers = [L[i][0]**L[i][1] for i in range(t)]
-    # return lcm([carmichael_lambda(m) for m in powers])
-    # The following is a non-recursive implementation.
-    E = []
-    for F in L:
-        p = F[0]
-        k = F[1]
-        if p == 2:
-            # p^k = 2^1 = 2
-            if k == 1:
-                E.append(1)
-            # p^k = 2^2 = 4
-            elif k == 2:
-                E.append(2)
-            # p^k = 2^k for k > 2
-            else:
-                E.append(generic_power(p, k-2))
-        # here p > 3
-        else:
-            E.append(generic_power(p, k-1) * (p - 1))
-    return lcm(E)
+
+    L = n.factor()
+    t = []
+
+    # first get rid of the even part
+    if n & 1 == 0:
+        e = L[0][1]
+        L = L[1:]   # now, n = 2**e * L.value()
+        if e < 3:   # for 1<=k<3, lambda(2**k)=2**(k-1)
+            e = e-1
+        else:       # for k>=3,   lambda(2**k)=2**(k-2)
+            e = e-2
+        t.append(1<<e)
+
+    # then other prime factors
+    t += [ p**(k-1)*(p-1) for p,k in L ]
+
+    # finish the job
+    return lcm(t)
 
 def has_blum_prime(lbound, ubound):
     """

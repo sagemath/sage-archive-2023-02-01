@@ -59,7 +59,7 @@ downloading this spkg.
 
 == Changelog ==
 
-=== sagetex-2.2.3.p0 (Dan Drake, 13 Feb 2010) ===
+=== sagetex-2.2.3.p0 (Dan Drake, 2 Mar 2010) ===
 
  * Couple documentation fixes; spkg-check now bails if it can't find
    tkz-berge.sty (since the example file needs that)

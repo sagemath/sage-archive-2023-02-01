@@ -7,12 +7,12 @@
 
 typeset()
 {
-    pdflatex -interaction=nonstopmode $1
+    latex -interaction=nonstopmode $1
     if [ $? -ne 0 ]
     then
         echo "Error typesetting $1! To fully test SageTeX, make sure"
         echo "LaTeX can find sagetex.sty, and that TikZ (version 2.00"
-        echo "or newer), tkz-berge.sty and tkz-graph.sty is installed."
+        echo "or newer), tkz-berge.sty and tkz-graph.sty are installed."
         exit 1
     fi
 }
@@ -29,18 +29,27 @@ checkdotsage()
     fi
 }
 
-if [ "$(which latex)" ] && [ "$(kpsewhich tkz-berge.sty)" ]
+latex -version
+if [ $? -ne 0 ]
 then
-    cd src
-
-    typeset example.tex
-    checkdotsage example
-
-    typeset sagetexpackage.dtx
-    checkdotsage sagetexpackage
-else
-    echo "LaTeX isn't installed (or isn't in \$PATH) or tkz-berge.sty couldn't be found. Skipping test of SageTeX spkg."
+    echo "LaTeX isn't installed (or isn't in \$PATH). Skipping test of SageTeX spkg."
+    exit 0
 fi
+
+kpsewhich tkz-berge.sty
+if [ $? -ne 0 ]
+then
+    echo "Could not find tkz-berge.sty. Skipping test of SageTeX spkg."
+    exit 0
+fi
+
+cd src
+
+typeset example.tex
+checkdotsage example
+
+typeset sagetexpackage.dtx
+checkdotsage sagetexpackage
 
 # if we get here, we assume the .sage files are good, and exit successfully
 exit 0

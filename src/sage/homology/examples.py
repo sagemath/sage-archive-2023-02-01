@@ -78,6 +78,9 @@ def matching(A, B):
                     answer.append(new)
     return answer
 
+# for backwards compatibility:
+SimplicialSurface = SimplicialComplex
+
 class SimplicialComplexExamples():
     """
     Some examples of simplicial complexes.

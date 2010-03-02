@@ -561,7 +561,7 @@ def homchain(complex=None, **kwds):
         sage: C2 = delta_complexes.Sphere(2).chain_complex()
         sage: homchain(C2, generators=True)[2]  # optional: need CHomP
         (Z, [(1, -1)])
-        sage: homchain(C2, generators=True, base_ring=GF(2))[2]
+        sage: homchain(C2, generators=True, base_ring=GF(2))[2]  # optional: need CHomP
         (Vector space of dimension 1 over Finite Field of size 2, [(1, 1)])
 
     TESTS:

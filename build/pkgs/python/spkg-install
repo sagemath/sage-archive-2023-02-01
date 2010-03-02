@@ -13,6 +13,24 @@ fi
 
 # PATCH
 
+# Due to a python bug with Solaris
+# see http://bugs.python.org/issue1759169
+# it is necessary to apply a patch to configure.in
+# then run autoconf. This not only generates a
+# new 'configure' script, but some subdirectories too
+# so these will be copied.
+
+if [ "x`uname`" = xSunOS ] ; then
+   cp -r patches/autom4te.cache patches/configure patches/configure.in src
+   if [ $? -ne 0 ]; then
+      echo "Failed to apply the Solaris patches needed for"
+      echo "http://bugs.python.org/issue1759169"
+      echo "http://trac.sagemath.org/sage_trac/ticket/7867"
+      exit 1
+   fi
+fi
+
+
 cp patches/locale.py src/Lib/locale.py
 if [ $? -ne 0 ]; then
     echo "Error copying patched locale.py"

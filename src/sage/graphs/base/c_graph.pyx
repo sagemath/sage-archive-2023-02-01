@@ -632,18 +632,13 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
     u is actually in the graph), or -1 if a new association must be made for u
     to be a vertex.
     """
-    cdef int u_int
     if u in vertex_ints:
         return vertex_ints[u]
-    try:
-        u_int = u
-    except TypeError:
+    if not isinstance(u,(int,long,Integer)) or\
+            u < 0 or u >= G.active_vertices.size or\
+            u in vertex_labels:
         return -1
-    if u_int < 0 or u_int >= G.active_vertices.size:
-        return -1
-    if u_int in vertex_labels:
-        return -1
-    return u_int
+    return u
 
 cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
                       CGraph G):

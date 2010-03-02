@@ -12,6 +12,14 @@ TESTS:
     sage: loads(dumps(B)) == B
     True
 
+::
+
+    sage: B=BipartiteGraph(graphs.CycleGraph(4))
+    sage: B == B.copy()
+    True
+    sage: type(B.copy())
+    <class 'sage.graphs.bipartite_graph.BipartiteGraph'>
+
 """
 
 #*****************************************************************************

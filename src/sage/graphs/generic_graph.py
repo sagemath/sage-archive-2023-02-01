@@ -487,12 +487,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.base.dense_graph import DenseGraphBackend
             sparse = (not isinstance(self._backend, DenseGraphBackend))
         from copy import copy
-        if self._directed:
-            from sage.graphs.all import DiGraph
-            G = DiGraph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
-        else:
-            from sage.graphs.all import Graph
-            G = Graph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
+        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:

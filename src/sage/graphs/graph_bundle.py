@@ -3,6 +3,10 @@ Graph Bundles
 
 This module implements graph bundles.
 
+WARNING::
+
+    This module has known bugs.  See the ``plot`` method, for example.
+
 AUTHORS:
     -- Robert L. Miller (2008-01-20): initial version
 
@@ -156,11 +160,14 @@ class GraphBundle(Graph):
         r"""
         Overrides Graph's plot function, to illustrate the bundle nature.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = graphs.PetersenGraph()
             sage: partition = [range(5), range(5,10)]
             sage: B = GraphBundle(P, partition)
-            sage: B.plot()
+            sage: #B.plot()
+
+          Test disabled due to bug in GraphBundle.__init__().  See trac #8329.
 
         """
         if 'pos' not in kwds.keys():

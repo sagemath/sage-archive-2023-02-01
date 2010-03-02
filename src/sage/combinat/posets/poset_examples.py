@@ -60,10 +60,23 @@ class PosetsGenerator(object):
             ...       for j in range(5):
             ...           if C.covers(C(i),C(j)) and j != i+1:
             ...              print "TEST FAILED"
+
+        TESTS:
+
+        Check that #8422 is solved::
+
+            sage: Posets.ChainPoset(0)
+            Finite lattice containing 0 elements
+            sage: C = Posets.ChainPoset(1); C
+            Finite lattice containing 1 elements
+            sage: C.cover_relations()
+            []
+            sage: C = Posets.ChainPoset(2); C
+            Finite lattice containing 2 elements
+            sage: C.cover_relations()
+            [[0, 1]]
         """
-        c = [[x+1] for x in range(n)]
-        c[n-1] = []
-        return LatticePoset(c)
+        return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]))
 
     def AntichainPoset(self, n):
         """
@@ -78,9 +91,23 @@ class PosetsGenerator(object):
             ...       for j in range(5):
             ...           if A.covers(A(i),A(j)):
             ...              print "TEST FAILED"
+
+        TESTS:
+
+        Check that #8422 is solved::
+
+            sage: Posets.AntichainPoset(0)
+            Finite poset containing 0 elements
+            sage: C = Posets.AntichainPoset(1); C
+            Finite poset containing 1 elements
+            sage: C.cover_relations()
+            []
+            sage: C = Posets.AntichainPoset(2); C
+            Finite poset containing 2 elements
+            sage: C.cover_relations()
+            []
         """
-        c = [[] for x in range(n)]
-        return Poset(c)
+        return Poset((range(n), []))
 
     def PentagonPoset(self):
         """

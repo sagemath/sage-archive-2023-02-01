@@ -256,6 +256,115 @@ class ProjectiveCurve_generic(Curve_generic_projective):
 
 
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
+    def rational_points_iterator(self):
+        r"""
+        Return a generator object for the rational points on this curve.
+
+        INPUT:
+
+        - ``self`` -- a projective curve
+
+        OUTPUT:
+
+        A generator of all the rational points on the curve defined over its base field.
+
+        EXAMPLE::
+
+            sage: F = GF(37)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^7+Y*X*Z^5*55+Y^7*12)
+            sage: len(list(C.rational_points_iterator()))
+            37
+
+        ::
+
+            sage: F = GF(2)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X*Y*Z)
+            sage: a = C.rational_points_iterator()
+            sage: a.next()
+            (1 : 0 : 0)
+            sage: a.next()
+            (0 : 1 : 0)
+            sage: a.next()
+            (1 : 1 : 0)
+            sage: a.next()
+            (0 : 0 : 1)
+            sage: a.next()
+            (1 : 0 : 1)
+            sage: a.next()
+            (0 : 1 : 1)
+            sage: a.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        ::
+
+            sage: F = GF(3^2,'a')
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^3+5*Y^2*Z-33*X*Y*X)
+            sage: b = C.rational_points_iterator()
+            sage: b.next()
+            (0 : 1 : 0)
+            sage: b.next()
+            (0 : 0 : 1)
+            sage: b.next()
+            (2*a + 2 : 2*a : 1)
+            sage: b.next()
+            (2 : a + 1 : 1)
+            sage: b.next()
+            (a + 1 : a + 2 : 1)
+            sage: b.next()
+            (1 : 2 : 1)
+            sage: b.next()
+            (2*a + 2 : a : 1)
+            sage: b.next()
+            (2 : 2*a + 2 : 1)
+            sage: b.next()
+            (a + 1 : 2*a + 1 : 1)
+            sage: b.next()
+            (1 : 1 : 1)
+            sage: b.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        """
+        g = self.defining_polynomial()
+        K = g.parent().base_ring()
+        from sage.rings.polynomial.all import PolynomialRing
+        R = PolynomialRing(K,'X')
+        X = R.gen()
+        one = K.one_element()
+        zero = K.zero_element()
+
+        # the point with  Z = 0 = Y
+        try:
+            t = self.point([one,zero,zero])
+            yield(t)
+        except TypeError:
+            pass
+
+        # points with Z = 0, Y = 1
+        g10 = R(g(X,one,zero))
+        if g10.is_zero():
+            for x in K:
+                yield(self.point([x,one,zero]))
+        else:
+            for x in g10.roots(multiplicities=False):
+                yield(self.point([x,one,zero]))
+
+        # points with Z = 1
+        for y in K:
+            gy1 = R(g(X,y,one))
+            if gy1.is_zero():
+                for x in K:
+                    yield(self.point([x,y,one]))
+            else:
+                for x in gy1.roots(multiplicities=False):
+                    yield(self.point([x,y,one]))
+
     def rational_points(self, algorithm="enum", sort=True):
         r"""
         Return the rational points on this curve computed via enumeration.
@@ -282,21 +391,20 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: F = GF(5)
+            sage: F = GF(7)
             sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
             sage: C = Curve(X^3+Y^3-Z^3)
             sage: C.rational_points()
-            [(0 : 1 : 1), (1 : 0 : 1), (2 : 2 : 1), (3 : 4 : 1), (4 : 1 : 0), (4 : 3 : 1)]
-            sage: C.rational_points(sort=False)
-            [(4 : 1 : 0), (1 : 0 : 1), (0 : 1 : 1), (2 : 2 : 1), (4 : 3 : 1), (3 : 4 : 1)]
+            [(0 : 1 : 1), (0 : 2 : 1), (0 : 4 : 1), (1 : 0 : 1), (2 : 0 : 1), (3 : 1 : 0), (4 : 0 : 1), (5 : 1 : 0), (6 : 1 : 0)]
+
 
         ::
 
-            sage: F = GF(1009)
+            sage: F = GF(1237)
             sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
-            sage: C = Curve(X^5+12*X*Y*Z^3 + X^2*Y^3 - 13*Y^2*Z^3)
+            sage: C = Curve(X^7+7*Y^6*Z+Z^4*X^2*Y*89)
             sage: len(C.rational_points())
-            1043
+            1237
 
         ::
 
@@ -315,34 +423,10 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
             [(0 : 0 : 1), (0 : 1 : 0), (1 : 0 : 0)]
 
         """
-        g = self.defining_polynomial()
-        K = g.parent().base_ring()
-        from sage.rings.polynomial.all import PolynomialRing
-        R = PolynomialRing(K,'X')
-        X = R.gen()
-        one = K.one_element()
-        zero = K.zero_element()
-
-        points = []
-        # Point with y = z = 0:
-        try:
-            points.append(self.point([one,zero,zero]))
-        except TypeError:
-            pass
-
-        # Points with z = 0 and y = 1:
-        for x in R(g((X,one,zero))).roots(multiplicities=False):
-            points.append(self.point([x,one,zero]))
-
-        # Points with z = 1:
-        for y in K:
-            for x in R(g((X,y,one))).roots(multiplicities=False):
-                points.append(self.point([x,y,one]))
-
+        points = list(self.rational_points_iterator())
         if sort:
             points.sort()
         return points
-
 
 class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
     def _points_via_singular(self, sort=True):

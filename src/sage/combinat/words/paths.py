@@ -1444,7 +1444,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         OUTPUT:
 
-            non negative integer
+            non negative real number
 
         EXAMPLES::
 
@@ -1485,7 +1485,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         OUTPUT:
 
-            non negative integer
+            non negative real number
 
         EXAMPLES::
 
@@ -1846,12 +1846,19 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
         return ' -- '.join(map(str,self.points()))
 
 class FiniteWordPath_triangle_grid(FiniteWordPath_2d):
-
-    # Since triangle grid paths are implemented with quadratic fields,
-    # there is a problem with the order of elements of Q[sqrt3].
+    # Triangle grid paths are implemented with quadratic fields,
+    # and the ordering of such elements is currently problematic:
+    #
+    #     sage: Q.<sqrt3> = QuadraticField(3)
+    #     sage: sqrt3 > 0
+    #     True
+    #     sage: 0 < sqrt3
+    #     False
+    #     sage: max(2*sqrt3, sqrt3/10)
+    #     1/10*sqrt3
+    #
     # Therefore, the functions xmin(), xmax(), ymin() and ymax() are
-    # redefined here in order to avoid this problem
-
+    # redefined here with conversion to RR in order to avoid this problem
     def xmin(self):
         r"""
         Returns the minimum of the x-coordinates of the path.

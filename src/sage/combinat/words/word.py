@@ -6542,9 +6542,9 @@ class InfiniteWord_class(Word_class):
 
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
-    Finite word represented by a python list.
+    Finite word represented by a Python list.
 
-    For any word `w`, type `w.` and hit TAB key to see the list of
+    For any word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6563,9 +6563,9 @@ class FiniteWord_list(WordDatatype_list, FiniteWord_class):
 
 class FiniteWord_str(WordDatatype_str, FiniteWord_class):
     r"""
-    Finite word represented by a python str.
+    Finite word represented by a Python str.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6584,9 +6584,9 @@ class FiniteWord_str(WordDatatype_str, FiniteWord_class):
 
 class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     r"""
-    Finite word represented by a python tuple.
+    Finite word represented by a Python tuple.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6607,7 +6607,7 @@ class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_cl
     r"""
     Finite word represented by an iterator (with caching).
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6633,7 +6633,7 @@ class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
     r"""
     Finite word represented by an iterator.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type  ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6661,7 +6661,7 @@ class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Finit
     r"""
     Finite word represented by a callable (with caching).
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6712,7 +6712,7 @@ class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
     r"""
     Finite word represented by a callable.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
     EXAMPLES::
@@ -6743,10 +6743,10 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
     r"""
     Infinite word represented by an iterable (with caching).
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Infinite words behave like a python list : they can be sliced using
+    Infinite words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::
@@ -6781,10 +6781,10 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
     r"""
     Infinite word represented by an iterable.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Infinite words behave like a python list : they can be sliced using
+    Infinite words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::
@@ -6819,10 +6819,10 @@ class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Inf
     r"""
     Infinite word represented by a callable (with caching).
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Infinite words behave like a python list : they can be sliced using
+    Infinite words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::
@@ -6849,10 +6849,10 @@ class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
     r"""
     Infinite word represented by a callable.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Infinite words behave like a python list : they can be sliced using
+    Infinite words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::
@@ -6883,10 +6883,10 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
     Word of unknown length (finite or infinite) represented by an
     iterable (with caching).
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Words behave like a python list : they can be sliced using
+    Words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::
@@ -6919,10 +6919,10 @@ class Word_iter(WordDatatype_iter, Word_class):
     Word of unknown length (finite or infinite) represented by an
     iterable.
 
-    For such word `w`, type "w." and hit TAB key to see the list of
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
     functions defined on `w`.
 
-    Words behave like a python list : they can be sliced using
+    Words behave like a Python list : they can be sliced using
     square braquets to define for example a prefix or a factor.
 
     EXAMPLES::

@@ -332,10 +332,10 @@ class WordGenerator(object):
         sage: words.s_adic(tmword, repeat('a'), {0:tm, 1:fib})
         word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-    .. NOTE:
+    .. NOTE::
 
-        To see a list of all word constructors, type “words.” and then
-        press the tab key. The documentation for each constructor
+        To see a list of all word constructors, type "words." and then
+        hit the TAB key. The documentation for each constructor
         includes information about each word, which provides a useful
         reference.
 

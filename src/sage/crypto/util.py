@@ -27,13 +27,12 @@ AUTHORS:
 ###########################################################################
 
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import factor
 from sage.rings.arith import is_prime
 from sage.rings.arith import lcm
 from sage.rings.arith import primes
 from sage.rings.arith import random_prime
+from sage.rings.integer import Integer
 from sage.rings.integer_mod import Mod as mod
-from sage.structure.element import generic_power
 
 def ascii_integer(B):
     r"""
@@ -262,7 +261,7 @@ def bin_to_ascii(B):
     for i in xrange(k):
         # Convert from 8-bit string to ASCII integer. Then convert the
         # ASCII integer to the corresponding ASCII character.
-        A.append(chr(ascii_integer(b[8*i : 8*(i+1)])))
+        A.append(chr(ascii_integer(b[8*i: 8*(i+1)])))
     return "".join(A)
 
 def carmichael_lambda(n):
@@ -384,7 +383,7 @@ def carmichael_lambda(n):
         ...
         ValueError: Input n must be a positive integer.
 
-    bug reported in trac #8283::
+    Bug reported in trac #8283::
 
         sage: from sage.crypto.util import carmichael_lambda
         sage: type(carmichael_lambda(16))
@@ -395,8 +394,7 @@ def carmichael_lambda(n):
     .. [Carmichael2010] Carmichael function,
       http://en.wikipedia.org/wiki/Carmichael_function
     """
-    import sage.rings.integer
-    n = sage.rings.integer.Integer(n)
+    n = Integer(n)
     # sanity check
     if n < 1:
         raise ValueError("Input n must be a positive integer.")
@@ -404,18 +402,18 @@ def carmichael_lambda(n):
     L = n.factor()
     t = []
 
-    # first get rid of the even part
+    # first get rid of the prime factor 2
     if n & 1 == 0:
         e = L[0][1]
         L = L[1:]   # now, n = 2**e * L.value()
-        if e < 3:   # for 1<=k<3, lambda(2**k)=2**(k-1)
-            e = e-1
-        else:       # for k>=3,   lambda(2**k)=2**(k-2)
-            e = e-2
-        t.append(1<<e)
+        if e < 3:   # for 1 <= k < 3, lambda(2**k) = 2**(k - 1)
+            e = e - 1
+        else:       # for k >= 3, lambda(2**k) = 2**(k - 2)
+            e = e - 2
+        t.append(1 << e)  # 2**e
 
     # then other prime factors
-    t += [ p**(k-1)*(p-1) for p,k in L ]
+    t += [p**(k - 1) * (p - 1) for p, k in L]
 
     # finish the job
     return lcm(t)
@@ -603,7 +601,7 @@ def least_significant_bits(n, k):
         sage: least_significant_bits(n, len(b))
         [1, 1, 1, 1, 0, 1, 1]
     """
-    return map(lambda x: int(x), list(n.binary()[-k:]))
+    return map(int, list(n.binary()[-k:]))
 
 def random_blum_prime(lbound, ubound, ntries=100):
     r"""

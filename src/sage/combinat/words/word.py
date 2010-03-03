@@ -2779,6 +2779,139 @@ exponent %s: the length of the word (%s) times the exponent \
                 g.add_edge(u,v,a)
         return g
 
+    def reduced_rauzy_graph(self, n):
+        r"""
+        Returns the reduced Rauzy graph of order `n` of self.
+
+        DEFINITION:
+
+        For infinite periodic words (resp. for finite words of type `u^i u[0:j]`),
+        the reduced Rauzy graph of order `n` (resp. for `n` smaller or equal
+        to `(i-1)|u|+j`) is the directed graph whose unique vertex is the prefix `p`
+        of length `n` of self and which has an only edge which is a loop on `p`
+        labelled by `w[n+1:|w|] p` where `w` is the unique return word to `p`.
+
+        In other cases, it is the directed graph defined as followed.
+        Let `G_n` be the Rauzy graph of order `n` of self. The vertices are the
+        vertices of `G_n` that are either special or not prolongable to the right
+        of to the left. For each couple (`u`, `v`) of such vertices and each
+        directed path in `G_n` from `u` to `v` that contains no other vertices
+        that are special, there is an edge from `u` to `v` in the reduced Rauzy
+        graph of order `n` whose label is the label of the path in `G_n`.
+
+        NOTE:
+
+        In the case of infinite recurrent non periodic words, this definition
+        correspond to the following one that can be found in [1] and [2]  where
+        a simple path is a path that begins with a special factor, ends with
+        a special factor and contains no other vertices that are special:
+
+        The reduced Rauzy graph of factors of length `n` is obtained from `G_n`
+        by replacing each simple path `P=v_1 v_2 ... v_{\ell}` with an edge
+        `v_1 v_{\ell}` whose label is the concatenation of the labels of the
+        edges of `P`.
+
+        INPUT:
+
+        - ``n`` - integer
+
+        OUTPUT:
+
+        Digraph
+
+        EXAMPLES::
+
+            sage: w = Word(range(10)); w
+            word: 0123456789
+            sage: g = w.reduced_rauzy_graph(3); g
+            Looped multi-digraph on 2 vertices
+            sage: g.vertices()
+            [word: 012, word: 789]
+            sage: g.edges()
+            [(word: 012, word: 789, word: 3456789)]
+
+        ::
+
+        For the Fibonacci word:
+
+        ::
+
+            sage: f = words.FibonacciWord()[:100]
+            sage: g = f.reduced_rauzy_graph(8);g
+            Looped multi-digraph on 2 vertices
+            sage: g.vertices()
+            [word: 01001010, word: 01010010]
+            sage: g.edges()
+            [(word: 01001010, word: 01010010, word: 010), (word: 01010010, word: 01001010, word: 01010), (word: 01010010, word: 01001010, word: 10)]
+
+        ::
+
+        For periodic words:
+
+        ::
+
+            sage: from itertools import cycle
+            sage: w = Word(cycle('abcd'))[:100]
+            sage: g = w.reduced_rauzy_graph(3)
+            sage: g.edges()
+            [(word: abc, word: abc, word: dabc)]
+
+        ::
+
+            sage: w = Word('111')
+            sage: for i in range(5) : w.reduced_rauzy_graph(i)
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
+            Looped multi-digraph on 0 vertices
+
+        ::
+
+        For ultimataly periodic words:
+
+        ::
+
+            sage: sigma = WordMorphism('a->abcd,b->cd,c->cd,d->cd')
+            sage: w = sigma.fixed_point('a')[:100]; w
+            word: abcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd...
+            sage: g = w.reduced_rauzy_graph(5)
+            sage: g.vertices()
+            [word: abcdc, word: cdcdc]
+            sage: g.edges()
+            [(word: abcdc, word: cdcdc, word: dc), (word: cdcdc, word: cdcdc, word: dc)]
+
+        REFERENCES:
+
+        - [1] M. Bucci et al.  A. De Luca, A. Glen, L. Q. Zamboni, A
+          connection between palindromic and factor complexity using
+          return words," Advances in Applied Mathematics 42, no. 1 60-74
+
+        - [2] L'ubomira Balkova, Edita Pelantova, and Wolfgang Steiner.
+          Sequences with constant number of return words. Monatsh. Math,
+          155,(3-4) : 251-263, 2008.
+
+        """
+        from sage.graphs.all import DiGraph
+        from copy import copy
+        g = copy(self.rauzy_graph(n))
+        # Otherwise it changes the rauzy_graph function.
+        l = [v for v in g if g.in_degree(v)==1 and g.out_degree(v)==1]
+        if g.num_verts() !=0 and len(l)==g.num_verts():       # In this case, the Rauzy graph is simply a cycle.
+            g = DiGraph()
+            g.allow_loops(True)
+            g.add_vertex(self[:n])
+            g.add_edge(self[:n],self[:n],self[n:n+len(l)])
+        else:
+            g.allow_loops(True)
+            g.allow_multiple_edges(True)
+            for v in l:
+                [i] = g.neighbors_in(v)
+                [o] = g.neighbors_out(v)
+                g.add_edge(i,o,g.edge_label(i,v)[0]+g.edge_label(v,o)[0])
+                g.delete_vertex(v)
+        return g
+
     def commutes_with(self, other):
         r"""
         Returns True if self commutes with other, and False otherwise.

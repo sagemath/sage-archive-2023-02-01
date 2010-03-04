@@ -285,10 +285,13 @@ def contour_plot(f, xrange, yrange, **options):
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
-    variables x,y::
+    variables `x`, `y`::
 
         sage: x,y = var('x,y')
         sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
+
+    ::
+
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
 
     We can play with the contour levels::
@@ -296,26 +299,76 @@ def contour_plot(f, xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: f(x,y) = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
+
+    ::
+
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
+
+    ::
+
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
+
+    ::
+
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False, aspect_ratio=1)
+
+    ::
+
         sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,0,1])
 
     We can change the style of the lines::
 
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
+
+    ::
+
         sage: contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
-        sage: contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],linewidths=[1,5],linestyles=['solid','dashed'],fill=False)
-        sage: contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],linewidths=[1,5],linestyles=['solid','dashed'])
+
+    ::
+
+        sage: P=contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],\
+        ...    linewidths=[1,5],linestyles=['solid','dashed'],fill=False)
+        sage: P
+
+    ::
+
+        sage: P=contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],\
+        ...    linewidths=[1,5],linestyles=['solid','dashed'])
+        sage: P
 
     We can add labels and play with them::
 
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True)
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fmt="%1.0f", label_colors='black')
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, contours=[-4,0,4], label_fmt={-4:"low", 0:"medium", 4: "hi"}, label_colors='black')
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_fontsize=18)
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline_spacing=1)
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv', labels=True, label_inline=False)
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),  fill=False, cmap='hsv', labels=True)
+
+    ::
+
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv',\
+        ...     labels=True, label_fmt="%1.0f", label_colors='black')
+        sage: P
+
+    ::
+
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv',labels=True,\
+        ...    contours=[-4,0,4],  label_fmt={-4:"low", 0:"medium", 4: "hi"}, label_colors='black')
+        sage: P
+
+    ::
+
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), \
+        ...    fill=False, cmap='hsv', labels=True, label_fontsize=18)
+        sage: P
+
+    ::
+
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), \
+        ...    fill=False, cmap='hsv', labels=True, label_inline_spacing=1)
+        sage: P
+
+    ::
+
+        sage: P= contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), \
+        ...    fill=False, cmap='hsv', labels=True, label_inline=False)
+        sage: P
 
     If fill is True (the default), then we may have to color the
     labels so that we can see them::
@@ -331,6 +384,9 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: f(x, y) = cos(x) + sin(y)
         sage: contour_plot(f, (0, pi), (0, pi), axes=True)
+
+    ::
+
         sage: contour_plot(f, (0, pi), (0, pi)).show(axes=True) # These are equivalent
 
     Note that with ``fill=False`` and grayscale contours, there is the

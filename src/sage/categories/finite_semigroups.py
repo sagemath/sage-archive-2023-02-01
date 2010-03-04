@@ -90,9 +90,8 @@ class FiniteSemigroups(Category):
             EXAMPLES::
 
                 sage: S = FiniteSemigroups().example(alphabet=('x','y'))
-                sage: S.idempotents()
-                ['y', 'x', 'xy', 'yx']
-
+                sage: sorted(S.idempotents())
+                ['x', 'xy', 'y', 'yx']
             """
             return [x for x in self if x.is_idempotent()]
 
@@ -195,10 +194,8 @@ class FiniteSemigroups(Category):
             EXAMPLES::
 
                 sage: S = FiniteSemigroups().example(alphabet=('a','b', 'c'))
-                sage: S.j_classes()
-                [['acb', 'cab', 'bca', 'abc', 'bac', 'cba'], ['ac', 'ca'],
-                ['ab', 'ba'], ['bc', 'cb'], ['a'], ['c'], ['b']]
-
+                sage: sorted(map(sorted, S.j_classes()))
+                [['a'], ['ab', 'ba'], ['abc', 'acb', 'bac', 'bca', 'cab', 'cba'], ['ac', 'ca'], ['b'], ['bc', 'cb'], ['c']]
             """
             return self.cayley_graph(side="twosided", simple=True).strongly_connected_components()
 
@@ -230,7 +227,7 @@ class FiniteSemigroups(Category):
 
                 sage: S = FiniteSemigroups().example(alphabet=('a','b', 'c'))
                 sage: sorted(S.j_transversal_of_idempotents())
-                ['a', 'ab', 'ac', 'acb', 'b', 'bc', 'c']
+                ['a', 'ab', 'ac', 'acb', 'b', 'c', 'cb']
             """
             def first_idempotent(l):
                 for x in l:

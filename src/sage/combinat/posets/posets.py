@@ -292,15 +292,33 @@ class FinitePoset(ParentWithBase):
             elif isinstance(digraph, DiGraph):
                 elements = digraph.vertices()
         self._elements = elements
+        self._hash = None
 
     # This defines the type (class) of elements of poset.
     _element_type = PosetElement
 
-    def __cmp__(self, other):
-        r"""
-        Define comparison for finite posets.
+    def __hash__(self):
+        """
+        TESTS::
 
-        We compare types, then number of elements, then Hasse
+            sage: P = Poset([[1,2],[3],[3]])
+            sage: P.__hash__()
+            6557284140853143473 # 64-bit
+            584755121 # 32-bit
+            sage: P = Poset([[1],[3],[3]])
+            sage: P.__hash__()
+            5699294501102840900 # 64-bit
+            278031428 # 32-bit
+        """
+        if self._hash is None:
+            self._hash = tuple(map(tuple, self.cover_relations())).__hash__()
+        return self._hash
+
+    def __eq__(self, other):
+        r"""
+        Define equality for finite posets.
+
+        We test equality of  types, then number of elements and elements, then Hasse
         diagrams.
 
         TESTS::
@@ -310,19 +328,45 @@ class FinitePoset(ParentWithBase):
             sage: Q = Poset([[1,2],[],[1]])
             sage: Q == P
             False
-            sage: Q < P
-            True
-            sage: Q > P
-            False
+            sage: p1, p2 = Posets(2).list()
+            sage: p2 == p1, p1 != p2
+            (False, True)
+            sage: [[p1.__eq__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
+            [[True, False], [False, True]]
+            sage: [[p2.__eq__(p1) for p1 in Posets(2)] for p2 in Posets(2)]
+            [[True, False], [False, True]]
+            sage: [[p2 == p1 for p1 in Posets(3)] for p2 in Posets(3)]
+            [[True, False, False, False, False], [False, True, False, False, False], [False, False, True, False, False], [False, False, False, True, False], [False, False, False, False, True]]
         """
         if isinstance(other, type(self)):
-            if len(self._elements) == len(other._elements):
-                return cmp(self._elements, other._elements) and \
-                        cmp(self._hasse_diagram, other._hasse_diagram)
+            if len(self._elements) == len(other._elements) and self._elements == other._elements:
+                return self._hasse_diagram == other._hasse_diagram
             else:
-                return len(self._elements) - len(other._elements)
+                return False
         else:
-            return cmp(type(other), type(self))
+            return False
+
+    def  __ne__(self, other):
+        r"""
+        Return True if ``self`` and ``other`` are two
+        different posets.
+
+        TESTS::
+
+            sage: [[p1.__ne__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
+            [[False, True], [True, False]]
+            sage: P = Poset([[1,2,4],[3],[3]])
+            sage: Q = Poset([[1,2],[],[1],[4]])
+            sage: P != Q
+            True
+            sage: P != P
+            False
+            sage: Q != Q
+            False
+            sage: [[p1.__ne__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
+            [[False, True], [True, False]]
+        """
+        return (not self.__eq__(other))
 
     def _element_to_vertex(self,x):
         """

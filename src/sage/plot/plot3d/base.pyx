@@ -51,6 +51,10 @@ from sage.interfaces.tachyon import tachyon_rt
 
 from sage.plot.plot import show_default
 
+# import the double infinity constant
+cdef extern from "math.h":
+     enum: INFINITY
+
 
 default_texture = Texture()
 pi = RDF.pi()
@@ -2057,15 +2061,18 @@ def point_list_bounding_box(v):
         sage: from sage.plot.plot3d.base import point_list_bounding_box
         sage: point_list_bounding_box([(1,2,3),(4,5,6),(-10,0,10)])
         ((-10.0, 0.0, 3.0), (4.0, 5.0, 10.0))
+        sage: point_list_bounding_box([(float('nan'), float('inf'), float('-inf')), (10,0,10)])
+        ((10.0, 0.0, 10.0), (10.0, 0.0, 10.0))
     """
-    cdef point_c lower, upper, cur
-    cur.x, cur.y, cur.z = v[0]
-    upper = lower = cur
+    cdef point_c low, high, cur
+    low.x, low.y, low.z = INFINITY, INFINITY, INFINITY
+    high.x, high.y, high.z = -INFINITY, -INFINITY, -INFINITY
+
     for P in v:
         cur.x, cur.y, cur.z = P
-        point_c_lower_bound(&lower, lower, cur)
-        point_c_upper_bound(&upper, upper, cur)
-    return (lower.x, lower.y, lower.z), (upper.x, upper.y, upper.z)
+        point_c_update_finite_lower_bound(&low, cur)
+        point_c_update_finite_upper_bound(&high, cur)
+    return ((low.x, low.y, low.z), (high.x, high.y, high.z))
 
 def optimal_aspect_ratios(ratios):
     # average the aspect ratios

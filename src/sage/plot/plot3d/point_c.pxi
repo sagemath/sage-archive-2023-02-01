@@ -20,6 +20,8 @@
 
 cdef extern from "math.h":
     double stdmath_sqrt "sqrt" (double)
+    int isfinite(double x)
+
 
 cdef inline bint point_c_set(point_c* res, P) except -2:
     res.x, res.y, res.z = P[0], P[1], P[2]
@@ -47,6 +49,24 @@ cdef inline int point_c_cmp(point_c P, point_c Q):
         return -1
     else:
         return 1
+
+cdef inline void point_c_update_finite_lower_bound(point_c* res, point_c P):
+    # We use the condition "not P.x>res.x" so that the condition returns True if res.x is NaN
+    if isfinite(P.x) and not P.x>res.x:
+        res.x = P.x
+    if isfinite(P.y) and not P.y>res.y:
+        res.y = P.y
+    if isfinite(P.z) and not P.z>res.z:
+        res.z = P.z
+
+cdef inline void point_c_update_finite_upper_bound(point_c* res, point_c P):
+    # We use the condition "not P.x<res.x" so that the condition returns True if res.x is NaN
+    if isfinite(P.x) and not P.x<res.x:
+        res.x = P.x
+    if isfinite(P.y) and not P.y<res.y:
+        res.y = P.y
+    if isfinite(P.z) and not P.z<res.z:
+        res.z = P.z
 
 cdef inline void point_c_lower_bound(point_c* res, point_c P, point_c Q):
     res.x = P.x if P.x < Q.x else Q.x

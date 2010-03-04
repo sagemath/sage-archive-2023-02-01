@@ -41,6 +41,10 @@ cdef extern from *:
      int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
      int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
+# import the double infinity constant
+cdef extern from "math.h":
+     enum: INFINITY
+
 include "../../ext/python_list.pxi"
 include "../../ext/python_string.pxi"
 
@@ -471,14 +475,36 @@ cdef class IndexFaceSet(PrimitiveObject):
 """%(coordIndex, points)
 
     def bounding_box(self):
+        r"""
+        Calculate the bounding box for the vertices in this object
+        (ignoring infinite or NaN coordinates).
+
+        OUTPUT:
+
+        a tuple ( (low_x, low_y, low_z), (high_x, high_y, high_z)),
+        which gives the coordinates of opposite corners of the
+        bounding box.
+
+        EXAMPLE::
+
+            sage: x,y=var('x,y')
+            sage: p=plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
+            sage: p.bounding_box()
+            ((0.0, 0.0, -0.0), (6.2831853071795862, 6.2831853071795862, 0.9991889981715697))
+        """
         if self.vcount == 0:
             return ((0,0,0),(0,0,0))
 
         cdef Py_ssize_t i
-        cdef point_c low = self.vs[0], high = self.vs[0]
-        for i from 1 <= i < self.vcount:
-            point_c_lower_bound(&low, low, self.vs[i])
-            point_c_upper_bound(&high, high, self.vs[i])
+        cdef point_c low
+        cdef point_c high
+
+        low.x, low.y, low.z = INFINITY, INFINITY, INFINITY
+        high.x, high.y, high.z = -INFINITY, -INFINITY, -INFINITY
+
+        for i in range(0,self.vcount):
+            point_c_update_finite_lower_bound(&low, self.vs[i])
+            point_c_update_finite_upper_bound(&high, self.vs[i])
         return ((low.x, low.y, low.z), (high.x, high.y, high.z))
 
     def partition(self, f):

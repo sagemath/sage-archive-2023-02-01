@@ -112,6 +112,7 @@ Unfortunately, there is no argspec extractable from builtins::
     'find( [noargspec] )'
 """
 
+import ast
 import inspect
 import os
 import tokenize
@@ -281,6 +282,224 @@ def _extract_source(lines, lineno):
 
     return _getblock(lines[lineno:])
 
+
+class SageArgSpecVisitor(ast.NodeVisitor):
+    """
+    A simple visitor class that walks an abstract-syntax tree (AST)
+    for a Python function's argspec.  It returns the contents of nodes
+    representing the basic Python types: None, booleans, numbers,
+    strings, lists, tuples, and dictionaries.  We use this class in
+    :func:`_sage_getargspec_from_ast` to extract an argspec from a
+    function's or method's source code.
+
+    EXAMPLES::
+
+        sage: import ast, sage.misc.sageinspect as sms
+        sage: visitor = sms.SageArgSpecVisitor()
+        sage: visitor.visit(ast.parse('[1,2,3]').body[0].value)
+        [1, 2, 3]
+        sage: visitor.visit(ast.parse("{'a':('e',2,[None,({False:True},'pi')]), 37.0:'temp'}").body[0].value)
+        {'a': ('e', 2, [None, ({False: True}, 'pi')]), 37.0: 'temp'}
+        sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
+        <_ast.Assign object at ...>
+        sage: [x for x in dir(v) if not x.startswith('__')]
+        ['_attributes', '_fields', 'col_offset', 'lineno', 'targets', 'value']
+        sage: visitor.visit(v.targets[0])
+        'jc'
+        sage: visitor.visit(v.value)
+        ['veni', 'vidi', 'vici']
+    """
+    def visit_Name(self, node):
+        """
+        Visit a Python AST :class:`ast.Name` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - None, True, False, or the ``node``'s name as a string.
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Name(ast.parse(x).body[0].value)
+            sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
+            [True, False, None, 'foo', 'bar']
+            sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
+            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>, <type 'str'>, <type 'str'>]
+        """
+        what = node.id
+        if what == 'None':
+            return None
+        elif what == 'True':
+            return True
+        elif what == 'False':
+            return False
+        return node.id
+
+    def visit_Num(self, node):
+        """
+        Visit a Python AST :class:`ast.Num` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - the number the ``node`` represents
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Num(ast.parse(x).body[0].value)
+            sage: [vis(n) for n in ['123', '0.0', str(-pi.n())]]
+            [123, 0.0, -3.14159265358979]
+        """
+        return node.n
+
+    def visit_Str(self, node):
+        r"""
+        Visit a Python AST :class:`ast.Str` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - the string the ``node`` represents
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Str(ast.parse(x).body[0].value)
+            sage: [vis(s) for s in ['"abstract"', "u'syntax'", '''r"tr\ee"''']]
+            ['abstract', u'syntax', 'tr\\ee']
+        """
+        return node.s
+
+    def visit_List(self, node):
+        """
+        Visit a Python AST :class:`ast.List` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - the list the ``node`` represents
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_List(ast.parse(x).body[0].value)
+            sage: [vis(l) for l in ['[]', "['s', 't', 'u']", '[[e], [], [pi]]']]
+            [[], ['s', 't', 'u'], [['e'], [], ['pi']]]
+         """
+        t = []
+        for n in node.elts:
+            t.append(self.visit(n))
+        return t
+
+    def visit_Tuple(self, node):
+        """
+        Visit a Python AST :class:`ast.Tuple` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - the tuple the ``node`` represents
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Tuple(ast.parse(x).body[0].value)
+            sage: [vis(t) for t in ['()', '(x,y)', '("Au", "Al", "Cu")']]
+            [(), ('x', 'y'), ('Au', 'Al', 'Cu')]
+        """
+        t = []
+        for n in node.elts:
+            t.append(self.visit(n))
+        return tuple(t)
+
+    def visit_Dict(self, node):
+        """
+        Visit a Python AST :class:`ast.Dict` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - the dictionary the ``node`` represents
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Dict(ast.parse(x).body[0].value)
+            sage: [vis(d) for d in ['{}', "{1:one, 'two':2, other:bother}"]]
+            [{}, {1: 'one', 'other': 'bother', 'two': 2}]
+        """
+        d = {}
+        for k, v in zip(node.keys, node.values):
+            d[self.visit(k)] = self.visit(v)
+        return d
+
+def _sage_getargspec_from_ast(source):
+    r"""
+    Return an argspec for a Python function or method by compiling its
+    source to an abstract-syntax tree (AST) and walking its ``args``
+    subtrees with :class:`SageArgSpecVisitor`.  We use this in
+    :func:`_sage_getargspec_cython`.
+
+    INPUT:
+
+    - ``source`` - a string; the function's (or method's) source code
+      definition.  The function's body is ignored.
+
+    OUTPUT:
+
+    - an instance of :obj:`inspect.ArgSpec`, i.e., a named tuple
+
+    EXAMPLES::
+
+        sage: import inspect, sage.misc.sageinspect as sms
+        sage: from_ast = sms._sage_getargspec_from_ast
+        sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"
+        sage: from_ast(s)
+        ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(2, {'a': [4, 5.5, False]}, (None, True)))
+        sage: context = {}
+        sage: exec compile(s, '<string>', 'single') in context
+        sage: inspect.getargspec(context['f'])
+        ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(2, {'a': [4, 5.5, False]}, (None, True)))
+        sage: from_ast(s) == inspect.getargspec(context['f'])
+        True
+        sage: set(from_ast(sms.sage_getsource(x)) == inspect.getargspec(x) for x in [factor, identity_matrix, Graph.__init__])
+        set([True])
+    """
+    ast_args = ast.parse(source.lstrip()).body[0].args
+
+    visitor = SageArgSpecVisitor()
+    args = [visitor.visit(a) for a in ast_args.args]
+    defaults = [visitor.visit(d) for d in ast_args.defaults]
+
+    return inspect.ArgSpec(args, ast_args.vararg, ast_args.kwarg,
+                           tuple(defaults) if defaults else None)
+
 def _sage_getargspec_cython(source):
     r"""
     inspect.getargspec from source code.  That is, get the names and
@@ -294,11 +513,23 @@ def _sage_getargspec_cython(source):
 
     EXAMPLES::
 
-        sage: from sage.misc.sageinspect import _sage_getargspec_cython
-        sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
+        sage: from sage.misc.sageinspect import _sage_getargspec_cython as sgc
+        sage: sgc("cpdef double abc(self, x=None, base=0):")
         (['self', 'x', 'base'], None, None, (None, 0))
-        sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
+        sage: sgc("def __init__(self, x=None, unsigned int base=0):")
         (['self', 'x', 'base'], None, None, (None, 0))
+        sage: sgc('def o(p, *q, r={}, **s) except? -1:')
+        (['p', '*q', 'r', '**s'], None, None, ({},))
+        sage: sgc('cpdef how(r=(None, "u:doing?")):')
+        ArgSpec(args=['r'], varargs=None, keywords=None, defaults=((None, 'u:doing?'),))
+        sage: sgc('def _(x="):"):')
+        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=('):',))
+        sage: sgc('def f(z = {(1,2,3): True}):\n    return z')
+        ArgSpec(args=['z'], varargs=None, keywords=None, defaults=({(1, 2, 3): True},))
+        sage: sgc('def f(double x, z = {(1,2,3): True}):\n    return z')
+        Traceback (most recent call last):
+        ...
+        ValueError: Could not parse cython argspec
 
     AUTHOR:
 
@@ -352,8 +583,25 @@ def _sage_getargspec_cython(source):
             argdefs = None
 
         return (argnames, None, None, argdefs)
-    except:
-        raise ValueError, "Could not parse cython argspec"
+
+    except Exception:
+        try:
+            # Try to parse the entire definition as Python and get an
+            # argspec.
+            beg = re.search(r'def([ ]+\w+)+[ ]*\(', source).end() - 1
+            proxy = 'def dummy' + source[beg:] + '\n    return'
+            return _sage_getargspec_from_ast(proxy)
+
+        except Exception:
+            try:
+                # Try to parse just the arguments as a Python argspec.
+                beg = re.search(r'def([ ]+\w+)+[ ]*\(', source).end() - 1
+                end = re.search(r'\)[ ]*:', source).end()
+                proxy = 'def dummy' + source[beg:end] + '\n    return'
+                return _sage_getargspec_from_ast(proxy)
+
+            except Exception:
+                raise ValueError, "Could not parse cython argspec"
 
 def sage_getfile(obj):
     r"""

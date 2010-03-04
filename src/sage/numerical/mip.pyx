@@ -629,20 +629,15 @@ class MixedIntegerLinearProgram:
         INPUT:
 
         - ``linear_function`` -- Two different types of arguments are possible:
-
             - A linear function. In this case, arguments ``min`` or ``max``
               have to be specified.
-
             - A linear constraint of the form ``A <= B``, ``A >= B``,
               ``A <= B <= C``, ``A >= B >= C`` or ``A == B``. In this
               case, arguments ``min`` and ``max`` will be ignored.
-
         - ``max`` -- An upper bound on the constraint (set to ``None``
           by default). This must be a numerical value.
-
         - ``min`` -- A lower bound on the constraint.  This must be a
           numerical value
-
         - ``name`` -- A name for the constraint.
 
         EXAMPLE:
@@ -722,7 +717,7 @@ class MixedIntegerLinearProgram:
             c = len(self._constraints_bounds_min)
 
             for (v,coeff) in f.iteritems():
-                if v!=-1:
+                if v != -1:
                     self._constraints_matrix_i.append(c)
                     self._constraints_matrix_j.append(v)
                     self._constraints_matrix_values.append(coeff)
@@ -1465,7 +1460,7 @@ class LinearFunction:
         by the keys ( which are integers ). The key ``-1``
         corresponds to the constant term.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: from sage.numerical.mip import LinearFunction
             sage: lf = LinearFunction({0 : 1, 3 : -8})
@@ -1666,7 +1661,7 @@ class LinearFunction:
 
     def __hash__(self):
         r"""
-        Defining a ``__hash__`` function
+        Defines a ``__hash__`` function
 
         EXAMPLE::
 
@@ -1723,7 +1718,7 @@ class LinearConstraint:
 
         INPUT:
 
-        - ``c`` -- A ``LinearFunction``
+        - ``c`` -- A linear function (see ``LinearFunction``).
 
         EXAMPLE::
 
@@ -1741,7 +1736,7 @@ class LinearConstraint:
 
     def __repr__(self):
         r"""
-        Returns a description of the constraint
+        Returns a string representation of the constraint.
 
         EXAMPLE::
 
@@ -1804,7 +1799,7 @@ class LinearConstraint:
 
     def __lt__(self, other):
         r"""
-        Prevents the use of the stricts operators ``<,>``
+        Prevents the use of the stricts operators ``<`` and ``>``
 
         EXAMPLE::
 

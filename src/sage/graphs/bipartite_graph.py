@@ -5,6 +5,8 @@ This module implements bipartite graphs.
 
 AUTHORS:
     -- Robert L. Miller (2008-01-20): initial version
+    -- Ryan W. Hinton (2010-03-04): overrides for adding and deleting vertices
+       and edges
 
 TESTS:
 
@@ -223,10 +225,12 @@ class BipartiteGraph(Graph):
             return
 
         # need to turn off partition checking for Graph.__init__() adding
-        # vertices; methods are restored ad the end of big "if" statement below
+        # vertices and edges; methods are restored ad the end of big "if"
+        # statement below
         import types
         self.add_vertex = types.MethodType(Graph.add_vertex, self, BipartiteGraph)
         self.add_vertices = types.MethodType(Graph.add_vertices, self, BipartiteGraph)
+        self.add_edge = types.MethodType(Graph.add_edge, self, BipartiteGraph)
 
         arg1 = args[0]
         args = args[1:]
@@ -327,6 +331,7 @@ class BipartiteGraph(Graph):
         # restore vertex partition checking
         self.add_vertex = types.MethodType(BipartiteGraph.add_vertex, self, BipartiteGraph)
         self.add_vertices = types.MethodType(BipartiteGraph.add_vertices, self, BipartiteGraph)
+        self.add_edge = types.MethodType(BipartiteGraph.add_edge, self, BipartiteGraph)
 
         # post-processing
         if isinstance(arg1, str):
@@ -642,6 +647,53 @@ class BipartiteGraph(Graph):
                     self.right.remove(vertex)
                 except:
                     raise RuntimeError("Vertex (%s) not found in partitions"%vertex)
+
+    def add_edge(self, u, v=None, label=None):
+        """
+        Adds an edge from u and v.
+
+        INPUT: The following forms are all accepted:
+
+        - G.add_edge( 1, 2 )
+        - G.add_edge( (1, 2) )
+        - G.add_edges( [ (1, 2) ])
+        - G.add_edge( 1, 2, 'label' )
+        - G.add_edge( (1, 2, 'label') )
+        - G.add_edges( [ (1, 2, 'label') ] )
+
+        See Graph.add_edge for more detail.  This method simply checks that the
+        edge endpoints are in different partitions.
+
+        TEST::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertices([0,1,2], left=[True,False,True])
+            sage: bg.add_edges([(0,1), (2,1)])
+            sage: bg.add_edge(0,2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Edge vertices must lie in different partitions.
+
+        """
+        # logic for getting endpoints copied from generic_graph.py
+        if label is None:
+            if v is None:
+                try:
+                    u, v, label = u
+                except:
+                    u, v = u
+                    label = None
+        else:
+            if v is None:
+                u, v = u
+
+        # check for endpoints in different partitions
+        if self.left.issuperset((u,v)) or self.right.issuperset((u,v)):
+            raise RuntimeError('Edge vertices must lie in different partitions.')
+
+        # add the edge
+        Graph.add_edge(self, u, v, label)
+        return
 
     def to_undirected(self):
         """

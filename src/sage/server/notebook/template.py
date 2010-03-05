@@ -28,12 +28,12 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-import jinja
+import jinja2
 import sage.misc.misc
 from sage.version import version
 
 TEMPLATE_PATH = sage.misc.misc.SAGE_ROOT + '/devel/sage/sage/server/notebook/templates'
-env = jinja.Environment(loader=jinja.FileSystemLoader(TEMPLATE_PATH))
+env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_PATH))
 
 def contained_in(container):
     """
@@ -100,7 +100,7 @@ def template(filename, **user_context):
     """
     try:
         tmpl = env.get_template(filename)
-    except jinja.exceptions.TemplateNotFound:
+    except jinja2.exceptions.TemplateNotFound:
         return template('template_error.html', template=filename)
     context = dict(default_context)
     context.update(user_context)

@@ -259,7 +259,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         except AttributeError: pass
 
         from sage.structure.sequence import Sequence
-        if self.base_ring().is_prime_field():
+        k = self.base_ring()
+        if k.is_prime_field() and k.order()>50:
             v = self._points_via_group_structure()
         else:
             v =self._points_fast_sqrt()
@@ -326,8 +327,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Returns a random point on this elliptic curve.
 
-        Returns the point at infinity with probability `1/(q+1)`
-        where the base field has cardinality `q`.
+        If `q` is small, finds all points and returns one at random.
+        Otherwise, returns the point at infinity with probability
+        `1/(q+1)` where the base field has cardinality `q`, and then
+        picks random `x`-coordinates from the base field until one
+        gives a rational point.
 
         EXAMPLES::
 
@@ -361,11 +365,47 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
             True
+
+        TESTS:
+
+        See trac #8311::
+
+            sage: E = EllipticCurve(GF(3), [0,0,0,2,2])
+            sage: E.random_element()
+            (0 : 1 : 0)
+            sage: E.cardinality()
+            1
+
+            sage: E = EllipticCurve(GF(2), [0,0,1,1,1])
+            sage: E.random_point()
+            (0 : 1 : 0)
+            sage: E.cardinality()
+            1
+
+            sage: F.<a> = GF(4)
+            sage: E = EllipticCurve(F, [0, 0, 1, 0, a])
+            sage: E.random_point()
+            (0 : 1 : 0)
+            sage: E.cardinality()
+            1
+
         """
         random = current_randstate().python_random().random
         k = self.base_field()
+        q = k.order()
+
+        # For small fields we find all the rational points and pick
+        # one at random.  Note that the group can be trivial for
+        # q=2,3,4 only (see #8311) so these cases need special
+        # treatment.
+
+        if q < 5:
+            pts = self.points() # will be cached
+            return pts[ZZ.random_element(len(pts))]
+
+
         # The following allows the origin self(0) to be picked
-        if random() <= 1/float(k.order()+1):
+        if random() <= 1/float(q+1):
             return self(0)
 
         while True:
@@ -847,6 +887,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 pass
 
         k = self.base_ring()
+        q = k.cardinality()
+
+        if q < 50:
+            return self.cardinality_exhaustive()
 
         # use special code for j=0, 1728 (for any field)
         j = self.j_invariant()
@@ -856,7 +900,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return self._cardinality_with_j_invariant_1728()
 
         N = 0
-        q = k.cardinality()
         p = k.characteristic()
         d = k.degree()
 

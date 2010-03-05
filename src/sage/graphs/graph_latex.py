@@ -96,21 +96,30 @@ def check_tkz_graph():
     """
     global _checked_tkz_graph
     if not _checked_tkz_graph:
-        import os
-        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty &> /dev/null'))
+        from subprocess import call, PIPE
+        try:
+            retcode = call("kpsewhich" + " tkz-graph.sty", shell=True, stdout=PIPE, stderr=PIPE)
+            have_tkzgraph = (retcode == 0)
+        except OSError:
+            have_tkzgraph = False
         if not have_tkzgraph:
-            print 'Warning: tkz-graph.sty is not part'
-            print "of this computer's TeX installation."
-            print 'This package is required to'
-            print 'render graphs in LaTeX.  Visit'
-            print 'http://altermundus.com/pages/graph.html'
-        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty &> /dev/null'))
+            print """
+Warning: tkz-graph.sty is not part of this computer's TeX
+installation.  This package is required to render graphs in LaTeX.
+Visit 'http://altermundus.com/pages/graph.html'.
+"""
+
+        try:
+            retcode = call("kpsewhich" + " tkz-berge.sty", shell=True, stdout=PIPE, stderr=PIPE)
+            have_tkzberge = (retcode == 0)
+        except OSError:
+            have_tkzberge = False
         if not have_tkzberge:
-            print 'Warning: tkz-berge.sty is not part'
-            print "of this computer's TeX installation."
-            print 'This package is required to'
-            print 'render graphs in LaTeX.  Visit'
-            print 'http://altermundus.com/pages/graph.html'
+            print """
+Warning: tkz-berge.sty is not part of this computer's TeX
+installation.  This package is required to render graphs in LaTeX.
+Visit 'http://altermundus.com/pages/graph.html'.
+"""
     _checked_tkz_graph = True
 
 
@@ -136,9 +145,19 @@ def have_tkz_graph():
     """
     global _have_tkz_graph
     if _have_tkz_graph is None:
-        import os
-        have_tkzgraph = not bool(os.system('kpsewhich tkz-graph.sty &> /dev/null'))
-        have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty &> /dev/null'))
+        from subprocess import call, PIPE
+
+        try:
+            retcode = call("kpsewhich" + " tkz-graph.sty", shell=True, stdout=PIPE, stderr=PIPE)
+            have_tkzgraph = (retcode == 0)
+        except OSError:
+            have_tkzgraph = False
+        try:
+            retcode = call("kpsewhich" + " tkz-berge.sty", shell=True, stdout=PIPE, stderr=PIPE)
+            have_tkzberge = (retcode == 0)
+        except OSError:
+            have_tkzberge = False
+
         _have_tkz_graph = have_tkzgraph and have_tkzberge
     return _have_tkz_graph
 

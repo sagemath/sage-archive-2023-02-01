@@ -2785,7 +2785,8 @@ exponent %s: the length of the word (%s) times the exponent \
 
         INPUT:
 
-        - ``n`` - integer
+        - ``n`` - non negative integer. Every vertex of a reduced
+          Rauzy graph of order `n` is a factor of length `n` of self.
 
         OUTPUT:
 

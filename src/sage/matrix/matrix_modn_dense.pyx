@@ -1380,6 +1380,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             m[i][col_to] = (m[i][col_to] + multiple * m[i][col_from]) %p
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
+        """
+        EXAMPLES::
+
+            sage: A = matrix(Integers(8), 2,[1,2,3,4])
+            sage: A.swap_rows(0,1)
+            sage: A
+            [3 4]
+            [1 2]
+        """
         cdef mod_int* temp
         temp = self._matrix[row1]
         self._matrix[row1] = self._matrix[row2]
@@ -1803,9 +1812,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: w.parent()(w.list()) == w
             True
         """
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, j
         F = self.base_ring()
-        return [F(self._entries[i]) for i in range(self._nrows*self._ncols)]
+        entries = []
+        for i from 0 <= i < self._nrows:
+            for j from 0<= j < self._ncols:
+                entries.append(F(self._matrix[i][j]))
+        return entries
 
     def lift(self):
         """

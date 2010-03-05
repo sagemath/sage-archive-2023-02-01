@@ -65,12 +65,16 @@ http://www.python.org/community/
 == Changelog ==
 
 
-=== python-2.6.4.p7 (David Kirkby, 2nd March, 2010) ===
- #7867 Fixes a Python bug that prevents some python extensions
+=== python-2.6.4.p7 (David Kirkby, 5th March, 2010) ===
+ * #7867 Fixes a Python bug that prevents some python extensions
  being build on Solaris. See http://bugs.python.org/issue1759169
  http://trac.sagemath.org/sage_trac/ticket/7867
  This is a critical bug fix, as it completely stops a build on
  Solaris 10 (SPARC).
+ * #8440 Set HAVE_FD_TRANSFER=0 in setup.py to allow
+   _multiprocessing to build on Solaris.
+ * #8356 Remove the option --without-libpng to Python's configure
+   script, as that is no longer a valid option.
 
 === python-2.6.4.p6 (Jaap Spies, Feb 23, 2010) ===
  * #7761 Fix build in Open Solaris x64 with SAGE64=yes

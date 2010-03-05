@@ -21,11 +21,23 @@ fi
 # so these will be copied.
 
 if [ "x`uname`" = xSunOS ] ; then
+   echo "Applying a revised 'configure' script for Solaris"
+   echo "See http://bugs.python.org/issue1759169"
+   echo "http://trac.sagemath.org/sage_trac/ticket/7867"
    cp -r patches/autom4te.cache patches/configure patches/configure.in src
    if [ $? -ne 0 ]; then
       echo "Failed to apply the Solaris patches needed for"
       echo "http://bugs.python.org/issue1759169"
       echo "http://trac.sagemath.org/sage_trac/ticket/7867"
+      exit 1
+   fi
+   echo "Setting  HAVE_FD_TRANSFER=0 for Solaris to allow"
+   echo "the python module '_multiprocessing' to build"
+   echo "See: http://trac.sagemath.org/sage_trac/ticket/8440"
+   cp patches/setup.py src
+   if [ $? -ne 0 ]; then
+      echo "Failed to apply the Solaris patch needed for"
+      echo "http://trac.sagemath.org/sage_trac/ticket/8440"
       exit 1
    fi
 fi
@@ -126,24 +138,24 @@ build()
         if [ "x$SAGE64" = xyes ]; then
             echo "64 bit OSX build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" \
 	    --enable-unicode=ucs4 --with-gcc="gcc -m64" --disable-toolbox-glue
         else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
 	    --enable-unicode=ucs4 --disable-toolbox-glue
         fi
     elif [ `uname` = "SunOS" ]; then
         if [ "x$SAGE64" = xyes ]; then
             echo "64 bit Open Solaris build enabled"
             OPT="-g -O3 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
             --enable-unicode=ucs4 --with-gcc="gcc -m64"
         else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
             --enable-unicode=ucs4
         fi
     else
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --enable-unicode=ucs4 CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
     fi
 
 

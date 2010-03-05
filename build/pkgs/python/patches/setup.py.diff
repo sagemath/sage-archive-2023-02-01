@@ -1,0 +1,39 @@
+*** src/setup.py	Thu Oct  8 02:48:32 2009
+--- patches/setup.py	Thu Mar  4 16:48:27 2010
+***************
+*** 1293,1312 ****
+--- 1293,1326 ----
+  
+          elif platform.startswith('netbsd'):
+              macros = dict(                  # at least NetBSD 5
+                  HAVE_SEM_OPEN=1,
+                  HAVE_SEM_TIMEDWAIT=0,
+                  HAVE_FD_TRANSFER=1,
+                  HAVE_BROKEN_SEM_GETVALUE=1
+                  )
+              libraries = []
+  
++         elif platform.startswith('sunos'):
++             macros = dict(                   
++                 HAVE_SEM_OPEN=1,
++                 HAVE_SEM_TIMEDWAIT=1,
++                 # See http://trac.sagemath.org/sage_trac/ticket/8440
++                 # The documentation for the older pyprocessing package said of
++                 # HAVE_FD_TRANSFER "If you get errors about missing CMSG_* macros
++                 # then you should set this to 0". Without this being set to zero,
++                 # CMSG_SPACE, CMSG_LEN etc all generate errors. 
++                 
++                 HAVE_FD_TRANSFER=0              
++                 )
++             libraries = ['rt']
++ 
+          else:                                   # Linux and other unices
+              macros = dict(
+                  HAVE_SEM_OPEN=1,
+                  HAVE_SEM_TIMEDWAIT=1,
+                  HAVE_FD_TRANSFER=1
+                  )
+              libraries = ['rt']
+  
+          if platform == 'win32':
+              multiprocessing_srcs = [ '_multiprocessing/multiprocessing.c',

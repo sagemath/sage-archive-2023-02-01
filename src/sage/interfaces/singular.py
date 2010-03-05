@@ -9,7 +9,7 @@ AUTHORS:
   singular(...), x.[tab] includes all singular commands.
 
 - Martin Albrecht (2006-03-06): This patch adds the equality symbol to
-  singular. Also fix problem in which" " as prompt means comparison
+
   will break all further communication with Singular.
 
 - Martin Albrecht (2006-03-13): added current_ring() and
@@ -1769,8 +1769,8 @@ class SingularFunctionElement(FunctionElement):
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
-            sage: A.nrows._sage_doc_()
-            "\nnrows\n-----\n\n`*Syntax:*'\n ...
+            sage: 'matrix_expression' in A.nrows._sage_doc_()
+            True
         """
         if not nodes:
             generate_docstring_dictionary()
@@ -1829,7 +1829,7 @@ def generate_docstring_dictionary():
     singular_docdir = os.environ["SAGE_LOCAL"]+"/share/singular/"
 
     new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
-    new_lookup = re.compile("\* ([^:]*):*([^.]*)\.")
+    new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")
 
     L, in_node, curr_node = [], False, None
 
@@ -1849,7 +1849,7 @@ def generate_docstring_dictionary():
                a,b = m.groups()
                node_names[a] = b.strip()
 
-        if line == "Index\n":
+        if line == "6 Index\n":
             in_node = False
 
     nodes[curr_node] = "".join(L) # last node

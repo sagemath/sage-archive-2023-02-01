@@ -280,11 +280,11 @@ def select(P):
         sage: G = [f, fx, fy]
         sage: B = set(filter(lambda (x,y): x!=y, [(f1,f2) for f1 in G for f2 in G]))
         sage: select(B)
-        (3*x^2 + 7, x^3 - y^2 + 7*x - y + 1)
+        (-2*y - 1, 3*x^2 + 7)
     """
     min_d = 2**20
     min_pair = 0,0
-    for fi,fj in P:
+    for fi,fj in sorted(P):
         d = fi.parent().monomial_lcm(fi.lm(),fj.lm()).total_degree()
         if d < min_d:
             min_d = d

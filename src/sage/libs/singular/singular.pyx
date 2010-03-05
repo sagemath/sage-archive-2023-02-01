@@ -29,12 +29,12 @@ from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options
 from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
 from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
-from sage.libs.singular.decl cimport nlGetNom, nlGetDenom, nlDelete, nlInit2gmp
+from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
 from sage.libs.singular.decl cimport naIsOne, naIsOne, naIsZero, naPar, naInit, naAdd, naMult, naDelete, naMap00
-from sage.libs.singular.decl cimport napGetCoeff, napGetExp, napIter
+from sage.libs.singular.decl cimport napGetCoeff, napGetExpFrom, pNext
 from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
 from sage.libs.singular.decl cimport siInit
-from sage.libs.singular.decl cimport nInt, n_Init
+from sage.libs.singular.decl cimport n_Int, n_Init
 from sage.libs.singular.decl cimport rChangeCurrRing
 
 from sage.rings.rational_field import RationalField
@@ -79,11 +79,11 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
     ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
     ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
     ##  Using immediates as pointers and dereferencing them gives address errors.
-    nom = nlGetNom(n, _ring)
+    nom = nlGetNumerator(n, _ring)
     mpz_init(nom_z)
 
     if (SR_HDL(nom) & SR_INT): mpz_set_si(nom_z, SR_TO_INT(nom))
-    else: mpz_set(nom_z,&nom.z)
+    else: mpz_set(nom_z,nom.z)
 
     mpq_set_num(_z,nom_z)
     nlDelete(&nom,_ring)
@@ -93,7 +93,7 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
     mpz_init(denom_z)
 
     if (SR_HDL(denom) & SR_INT): mpz_set_si(denom_z, SR_TO_INT(denom))
-    else: mpz_set(denom_z,&denom.z)
+    else: mpz_set(denom_z,denom.z)
 
     mpq_set_den(_z, denom_z)
     nlDelete(&denom,_ring)
@@ -154,13 +154,13 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
 
     while z:
         c = cache.objectptr.initi(c,<long>napGetCoeff(z))
-        e = napGetExp(z,1)
+        e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
         else:
             a = ( e * cache.objectptr.sage_generator() ) % order
             ret = cache.objectptr.axpy(ret, c, a, ret)
-        z = napIter(z)
+        z = <napoly*>pNext(<poly*>z)
     return (<FFgivE>cache._zero_element)._new_c(ret)
 
 cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base):
@@ -191,9 +191,9 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base)
 
     while z:
         c = <long>napGetCoeff(z)
-        e = napGetExp(z,1)
+        e = napGetExpFrom(z,1, _ring)
         ret += c * a**e
-        z = napIter(z)
+        z = <napoly*>pNext(<poly*>z)
     return ret
 
 cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
@@ -224,12 +224,12 @@ cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
 
     while z:
         c = <long>napGetCoeff(z)
-        e = napGetExp(z,1)
+        e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = ret + c
         elif c != 0:
             ret = ret  + c * a**e
-        z = napIter(z)
+        z = <napoly*>pNext(<poly*>z)
     return base(ret)
 
 cdef object si2sa_NF(number *n, ring *_ring, object base):
@@ -262,12 +262,12 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
     while z:
         c = napGetCoeff(z)
         coeff = si2sa_QQ(c, _ring)
-        e = napGetExp(z,1)
+        e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = ret + coeff
         elif coeff != 0:
             ret = ret  + coeff * a**e
-        z = napIter(z)
+        z = <napoly*>pNext(<poly*>z)
     return base(ret)
 
 cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
@@ -314,7 +314,7 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
         ret.set_from_mpz(<__mpz_struct*>n)
         return base(ret)
 
-    return base(_ring.cf.nInt(n))
+    return base(_ring.cf.n_Int(n,_ring))
 
 cdef number *sa2si_QQ(Rational r, ring *_ring):
     """
@@ -343,11 +343,11 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 
     a = naPar(1)
 
-    apow1 = naInit(1)
-    n1 = naInit(0)
+    apow1 = naInit(1, _ring)
+    n1 = naInit(0, _ring)
 
     while quo!=0:
-        coeff = naInit(quo%b)
+        coeff = naInit(quo%b, _ring)
 
         if not naIsZero(coeff):
             n2 = naAdd( naMult(coeff, apow1),  n1)
@@ -376,12 +376,12 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
-        n1 = naInit(0)
+        n1 = naInit(0, _ring)
         a = naPar(1)
-        apow1 = naInit(1)
+        apow1 = naInit(1, _ring)
 
         for i from 0 <= i <= GF2X_deg(rep):
-            coeff = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)))
+            coeff = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)), _ring)
 
             if not naIsZero(coeff):
                 n2 = naAdd( naMult(coeff, apow1),  n1)
@@ -397,7 +397,7 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
         naDelete(&apow1, _ring)
         naDelete(&a, _ring)
     else:
-       n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)))
+       n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)), _ring)
 
     return n1
 
@@ -413,12 +413,12 @@ cdef number *sa2si_GFqPari(object elem, ring *_ring):
 
 
     if len(elem) > 1:
-        n1 = naInit(0)
+        n1 = naInit(0, _ring)
         a = naPar(1)
-        apow1 = naInit(1)
+        apow1 = naInit(1, _ring)
 
         for i from 0 <= i < len(elem):
-            coeff = naInit(int(elem[i]))
+            coeff = naInit(int(elem[i]), _ring)
 
             if not naIsZero(coeff):
                 n2 = naAdd( naMult(coeff, apow1),  n1)
@@ -434,7 +434,7 @@ cdef number *sa2si_GFqPari(object elem, ring *_ring):
         naDelete(&apow1, _ring)
         naDelete(&a, _ring)
     else:
-        n1 = naInit(int(elem))
+        n1 = naInit(int(elem), _ring)
 
     return n1
 
@@ -448,9 +448,9 @@ cdef number *sa2si_NF(object elem, ring *_ring):
 
     elem = list(elem)
 
-    n1 = naInit(0)
+    n1 = naInit(0, _ring)
     a = naPar(1)
-    apow1 = naInit(1)
+    apow1 = naInit(1, _ring)
 
     for i from 0 <= i < len(elem):
         nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value) )
@@ -486,7 +486,7 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
         sage: P(12345678901234567890) + 2 - 2
         12345678901234567890
     """
-    cdef number *n = nrzInit(0)
+    cdef number *n = nrzInit(0, _ring)
     mpz_set(<__mpz_struct*>n, d.value)
     return <number*>n
 
@@ -536,7 +536,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
 
 cdef object si2sa(number *n, ring *_ring, object base):
     if PY_TYPE_CHECK(base, FiniteField_prime_modn):
-        return base(nInt(n))
+        return base(n_Int(n, _ring))
 
     elif PY_TYPE_CHECK(base, RationalField):
         return si2sa_QQ(n,_ring)
@@ -558,7 +558,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
 
     elif PY_TYPE_CHECK(base, IntegerModRing_generic):
         if _ring.ringtype == 0:
-            return base(nInt(n))
+            return base(n_Int(n, _ring))
         return si2sa_ZZmod(n, _ring, base)
 
     else:

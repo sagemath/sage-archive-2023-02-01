@@ -426,8 +426,8 @@ def inter_reduction(Q):
     Q = set(Q)
     while True:
         Qbar = set(Q)
-        for p in Qbar:
-            p = Q.pop()
+        for p in sorted(Qbar):
+            Q.remove(p)
             h = p.reduce(Q)
             if h!=0:
                 Q.add(h)

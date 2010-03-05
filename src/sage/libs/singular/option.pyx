@@ -93,7 +93,7 @@ from sage.libs.singular.decl cimport OPT_RETURN_SB, OPT_FASTHC, OPT_OLDSTD, OPT_
 from sage.libs.singular.decl cimport OPT_WEIGHTM, Sy_bit
 
 from sage.libs.singular.decl cimport V_SHOW_MEM, V_YACC, V_REDEFINE, V_READING, V_LOAD_LIB, V_DEBUG_LIB
-from sage.libs.singular.decl cimport V_LOAD_PROC, V_DEF_RES, V_DEBUG_MEM, V_SHOW_USE, V_IMAP, V_PROMPT
+from sage.libs.singular.decl cimport V_LOAD_PROC, V_DEF_RES, V_SHOW_USE, V_IMAP, V_PROMPT
 from sage.libs.singular.decl cimport V_NSB, V_CONTENTSB, V_CANCELUNIT, V_DEG_STOP
 
 
@@ -314,7 +314,6 @@ cdef class LibSingularVerboseOptions(LibSingularOptions_abstract):
      - ``debugLib`` -
      - ``loadProc`` -
      - ``defRes`` -
-     - ``debugMem`` -
      - ``usage`` -
      - ``Imap`` -
      - ``prompt`` -
@@ -350,7 +349,6 @@ cdef class LibSingularVerboseOptions(LibSingularOptions_abstract):
                          "debugLib": Sy_bit(V_DEBUG_LIB),
                          "loadProc": Sy_bit(V_LOAD_PROC),
                          "defRes":   Sy_bit(V_DEF_RES),
-                         "debugMem": Sy_bit(V_DEBUG_MEM),
                          "usage":    Sy_bit(V_SHOW_USE),
                          "Imap":     Sy_bit(V_IMAP),
                          "prompt":   Sy_bit(V_PROMPT),

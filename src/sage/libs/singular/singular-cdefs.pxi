@@ -75,7 +75,6 @@ cdef extern from "libsingular.h":
     cdef int V_DEBUG_LIB
     cdef int V_LOAD_PROC
     cdef int V_DEF_RES
-    cdef int V_DEBUG_MEM
     cdef int V_SHOW_USE
     cdef int V_IMAP
     cdef int V_PROMPT
@@ -115,6 +114,8 @@ cdef extern from "libsingular.h":
         napoly *n
         int s
 
+    ctypedef struct ring "ip_sring"
+
     ctypedef struct n_Procs_s:
 
         number* nDiv(number *, number *)
@@ -127,7 +128,7 @@ cdef extern from "libsingular.h":
         number*  (*nPar)(int i)
         int     (*nParDeg)(number* n)
         int     (*nSize)(number* n)
-        int     (*nInt)(number* n)
+        int     (*n_Int)(number* n, ring *)
         int     (*nDivComp)(number* a,number* b)
         number*  (*nGetUnit)(number* a)
         number*  (*nExtGcd)(number* a, number* b, number* *s, number* *t)
@@ -211,7 +212,7 @@ cdef extern from "libsingular.h":
 
     # ideals
 
-    ctypedef struct ideal "ip_sideal":
+    ctypedef struct ideal "sip_sideal":
         poly **m # gens array
         long rank # rank of module, 1 for ideals
         int nrows # always 1
@@ -671,7 +672,7 @@ cdef extern from "libsingular.h":
 
     # return int representation of number n
 
-    int nInt(number *n)
+    int n_Int(number *n, ring *r)
 
     # general number division
 
@@ -719,7 +720,7 @@ cdef extern from "libsingular.h":
 
     # get numerator
 
-    number *nlGetNom(number *n, ring *r)
+    number *nlGetNumerator(number *n, ring *r)
 
     # get denominator
 
@@ -751,7 +752,7 @@ cdef extern from "libsingular.h":
 
     # algebraic number from int
 
-    number *naInit(int)
+    number *naInit(int, ring *r)
 
     # algebraic number destructor
 
@@ -771,11 +772,7 @@ cdef extern from "libsingular.h":
 
     # get exponent of i-th variable
 
-    int napGetExp(napoly *, int i)
-
-    # loop through algebraic number
-
-    napoly *napIter(napoly *)
+    int napGetExpFrom(napoly *, int i, ring* r)
 
     # normalize a number
 
@@ -793,7 +790,7 @@ cdef extern from "libsingular.h":
     number *naMap00(number *c)
 
     # init integer
-    number *nrzInit(int i)
+    number *nrzInit(int i, ring *r)
 
     # init ZmodN from GMP
     number *nrnMapGMP(number *v)
@@ -936,7 +933,6 @@ cdef extern from "libsingular.h":
     cdef int V_DEBUG_LIB
     cdef int V_LOAD_PROC
     cdef int V_DEF_RES
-    cdef int V_DEBUG_MEM
     cdef int V_SHOW_USE
     cdef int V_IMAP
     cdef int V_PROMPT
@@ -953,7 +949,7 @@ cdef extern from "libsingular.h":
 
     int     IsCmd(char *n, int  tok)
 
-    idhdl* ggetid(char *n, bint local)
+    idhdl* ggetid(char *n)
 
     leftv * iiMake_proc(idhdl *pn, package *pack, leftv *sl)
 

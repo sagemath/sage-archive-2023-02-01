@@ -3609,7 +3609,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         delete(iv)
         id_Delete(&I,_ring)
-        p_Delete(&ptemp,_ring)
 
         return F
 
@@ -4353,7 +4352,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int count = singular_polynomial_length_bounded(self._poly,20)+singular_polynomial_length_bounded(other._poly,20)
         if count >= 20:
             _sig_on
-        rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        rt =  singclap_resultant(self._poly, other._poly,(<MPolynomial_libsingular>variable)._poly )
         if count >= 20:
             _sig_off
         return new_MP(self._parent, rt)

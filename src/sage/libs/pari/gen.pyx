@@ -6842,13 +6842,13 @@ cdef class gen(sage.structure.element.RingElement):
             sage: y = QQ['yy'].0; _ = pari(y) # pari has variable ordering rules
             sage: x = QQ['zz'].0; nf = pari(x^2 + 2).nfinit()
             sage: nf.nfroots(y^2 + 2)
-            [-zz, zz]
+            [Mod(-zz, zz^2 + 2), Mod(zz, zz^2 + 2)]
             sage: nf = pari(x^3 + 2).nfinit()
             sage: nf.nfroots(y^3 + 2)
-            [zz]
+            [Mod(zz, zz^3 + 2)]
             sage: nf = pari(x^4 + 2).nfinit()
             sage: nf.nfroots(y^4 + 2)
-            [-zz, zz]
+            [Mod(-zz, zz^4 + 2), Mod(zz, zz^4 + 2)]
         """
         t0GEN(poly)
         _sig_on
@@ -7809,7 +7809,7 @@ cdef class gen(sage.structure.element.RingElement):
         ::
 
             sage: E.ellwp(1)
-            13.9658695257485 + 1.140149682... E-18*I
+            13.9658695257485 + 0.E-18*I
 
         Compute P(1+i), where i = sqrt(-1).
 
@@ -7835,20 +7835,19 @@ cdef class gen(sage.structure.element.RingElement):
         lattice::
 
             sage: pari([1.2692, 0.63 + 1.45*i]).ellwp(1)
-            13.9656146936689 + 0.000644829272810537*I
+            13.9656146936689 + 0.000644829272810...*I
 
         With flag 1 compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
-            [13.9658695257485 + 1.140149682 E-18*I, 50.5619300880073 + 1.040834085 E-17*I] # 32-bit
-            [13.9658695257485 + 1.14014968292839 E-18*I, 50.5619300880073 + 6.93889390390723 E-18*I] # 64-bit
+            [13.9658695257485 + 0.E-18*I, 50.5619300880073 ... E-18*I]
 
         With flag=2, the computed pair is (x,y) on the curve instead of
         [P(z),P'(z)]::
 
             sage: E.ellwp(1, flag=2)
             [14.2992028590818 + 1.140149682 E-18*I, 50.0619300880073 + 1.040834085 E-17*I] # 32-bit
-            [14.2992028590818 + 1.14014968292839 E-18*I, 50.0619300880073 + 6.93889390390723 E-18*I] # 64-bit
+            [14.2992028590818 + 0.E-18*I, 50.0619300880073 ... E-18*I] # 64-bit
         """
         t0GEN(z)
         if n < 0:

@@ -285,6 +285,34 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
         else:
             break
 
+skip_picklability_check_modules = [
+    #'sage.misc.nested_class_test', # for test only
+    'sage.misc.latex',
+    'sage.misc.explain_pickle',
+    '__builtin__',
+]
+
+def check_nested_class_picklability(app, what, name, obj, skip, options):
+    """
+    Print a warning if pickling is broken for nested classes.
+    """
+    import types
+    if hasattr(obj, '__dict__') and hasattr(obj, '__module__'):
+        # Check picklability of nested classes.  Adapted from
+        # sage.misc.nested_class.modify_for_nested_pickle.
+        module = sys.modules[obj.__module__]
+        for (nm, v) in obj.__dict__.iteritems():
+            if (isinstance(v, (type, types.ClassType)) and
+                v.__name__ == nm and
+                v.__module__ == module.__name__ and
+                getattr(module, nm, None) is not v and
+                v.__module__ not in skip_picklability_check_modules):
+                # OK, probably this is an *unpicklable* nested class.
+                app.warn('Pickling of nested class %r is probably broken. '
+                         'Please set __metaclass__ of the parent class to '
+                         'sage.misc.nested_class.NestedClassMetaclass.' % (
+                        v.__module__ + '.' + name + '.' + nm))
+
 def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
@@ -297,10 +325,15 @@ def skip_member(app, what, name, obj, skip, options):
     - Don't include
       sagenb.notebook.twist.userchild_download_worksheets.zip.
 
+    - Optionally, check whether pickling is broken for nested classes.
+
     Otherwise, we abide by Sphinx's decision.  Note: The object
     ``obj`` is excluded (included) if this handler returns True
     (False).
     """
+    if 'SAGE_CHECK_NESTED' in os.environ:
+        check_nested_class_picklability(app, what, name, obj, skip, options)
+
     if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
         obj.__name__.split('.')[-1] != name):
         return True

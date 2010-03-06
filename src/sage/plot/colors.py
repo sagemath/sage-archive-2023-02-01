@@ -658,7 +658,7 @@ class Color(object):
             sage: yellow.__truediv__(4)
             RGB color (0.25, 0.25, 0.0)
             sage: gold / pi + yellow * e
-            RGB color (0.51829585732141792, 0.49333037605210095, 0.0)
+            RGB color (0.51829585732141..., 0.49333037605210..., 0.0)
         """
         return self.__div__(right)
 

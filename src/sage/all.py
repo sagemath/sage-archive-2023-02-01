@@ -312,3 +312,7 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
 #sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
+
+# Cache the contents of star imports.
+import sage.misc.lazy_import
+sage.misc.lazy_import.save_cache_file()

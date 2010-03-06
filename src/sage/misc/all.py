@@ -154,6 +154,8 @@ from cachefunc import CachedFunction, cached_function, cached_method, cached_in_
 
 from lazy_attribute import lazy_attribute
 
+from lazy_import import lazy_import
+
 from abstract_method import abstract_method
 
 from sagex_ds import BinaryTree

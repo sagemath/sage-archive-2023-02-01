@@ -1413,8 +1413,7 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
-            'li[2]':'polylog2', 'li[3]':'polylog3'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
 
 from sage.misc.multireplace import multiple_replace
 import re
@@ -1455,6 +1454,14 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         x#0
         sage: a.sage()
         x != 0
+
+    TESTS:
+
+    Trac #8459 fixed::
+
+        sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
+        3*polylog(2, u) + 8*polylog(33, e^u)
+
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1485,6 +1492,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%","")
 
+    regex=re.compile('li\[([0-9]+?)\]\(')
+    s = regex.sub('polylog(\\1,',s)
     s = multiple_replace(symtable, s)
     s = s.replace("%","")
 

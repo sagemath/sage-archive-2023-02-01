@@ -391,7 +391,7 @@ class IntervalExchangeTransformation(SageObject):
             self.length() == other.length())
 
         from labelled import LabelledPermutationIET
-        from sage.combinat.words.word import Words
+        from sage.combinat.words.words import Words
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]

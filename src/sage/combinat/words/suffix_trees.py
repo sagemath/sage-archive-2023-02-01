@@ -13,9 +13,10 @@ Suffix Tries and Suffix Trees
 from sage.structure.sage_object import SageObject
 from sage.graphs.all import Graph, DiGraph
 from sage.graphs.generic_graph_pyx import spring_layout_fast
-from sage.misc.flatten import flatten
 from sage.sets.set import Set
-from sage.combinat.words.word import Word, Words, FiniteWord_class
+from sage.combinat.words.word import Word
+from sage.combinat.words.finite_word import FiniteWord_class
+from sage.combinat.words.words import Words
 from sage.rings.integer import Integer
 from itertools import izip
 from sage.misc.lazy_attribute import lazy_attribute

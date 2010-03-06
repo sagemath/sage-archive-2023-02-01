@@ -25,7 +25,7 @@ import __builtin__
 import necklace
 from integer_vector import IntegerVectors
 
-from sage.combinat.words.word import FiniteWord_list, FiniteWord_class
+from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.words import Words_all, FiniteWords_length_k_over_OrderedAlphabet
 from sage.rings.integer_ring import ZZ
 from sage.combinat.words.alphabet import OrderedAlphabet

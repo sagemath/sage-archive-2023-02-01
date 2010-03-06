@@ -39,8 +39,9 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, RR
 from sage.rings.infinity import Infinity
-from sage.combinat.words.word import (FiniteWord_class, Word_class,
-        FiniteWord_list, Factorization)
+from sage.combinat.words.abstract_word import Word_class
+from sage.combinat.words.word import FiniteWord_list
+from sage.combinat.words.finite_word import FiniteWord_class, Factorization
 from sage.combinat.words.words import Words
 from sage.combinat.words.morphism import WordMorphism
 from sage.rings.arith import gcd

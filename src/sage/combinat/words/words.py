@@ -473,7 +473,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             word: 0123456789012345678901234567890123456789...
 
         """
-        from sage.combinat.words.word import Word_class
+        from sage.combinat.words.abstract_word import Word_class
         from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable, WordDatatype_iter
         from sage.combinat.words.word_datatypes import WordDatatype
         if isinstance(data, Word_class):
@@ -490,7 +490,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             # input `data`
             ###########################
             if isinstance(data,  WordDatatype_callable):
-                from sage.combinat.words.word import CallableFromListOfWords
+                from sage.combinat.words.finite_word import CallableFromListOfWords
                 if isinstance(data._func, CallableFromListOfWords):
                     # The following line is important because, in this case,
                     # data._func is also a tuple (indeed
@@ -631,7 +631,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: Words('ab')('abba') in Words_all()
             True
         """
-        from sage.combinat.words.word import Word_class
+        from sage.combinat.words.abstract_word import Word_class
         return isinstance(x, Word_class)
 
     class _python_object_alphabet(UniqueRepresentation):
@@ -802,7 +802,7 @@ class Words_over_Alphabet(Words_all):
             sage: [1, 'a'] in Words_over_Alphabet([1,2,3])
             False
         """
-        from sage.combinat.words.word import Word_class
+        from sage.combinat.words.abstract_word import Word_class
         return isinstance(x, Word_class) and x.parent().alphabet() == self.alphabet()
 
     def __lt__(self, other):
@@ -963,7 +963,7 @@ class Words_n(Words_all):
             sage: Words([0,1])([1,0,1]) in Words_n(3)
             True
         """
-        from sage.combinat.words.word import FiniteWord_class
+        from sage.combinat.words.finite_word import FiniteWord_class
         return isinstance(x, FiniteWord_class) and x.length() == self._n
 
 class Words_over_OrderedAlphabet(Words_over_Alphabet):

@@ -1,0 +1,8 @@
+--- ../src/config/get_ld	2006-01-24 13:24:26.000000000 -0800
++++ get_ld	2007-12-26 21:35:54.000000000 -0800
+@@ -64,3 +64,5 @@
+     aix) runpathprefix='-blibpath:' ;;
+   esac
+ fi
++# We want Sage directories to be relocatable, so rpath is bad.  Kill it.
++runpathprefix=''

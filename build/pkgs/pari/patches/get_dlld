@@ -9,7 +9,7 @@ DLSUFFIX=so
 soname=.$soname_num
 do_dll=yes
 case "$osname" in
-  gnu*|aix|osf1|solaris|linux|freebsd)
+  gnu*|aix|osf1|solaris|linux|freebsd|netbsd)
     case $pari_release_verbose in
       *STABLE*)      sodest=.$version.$patch;; # released version
       *DEVELOPMENT*) sodest=.$patch.0.0;;      # unstable version
@@ -65,7 +65,7 @@ if test -n "$DLLD"; then
   else # DLLD != GNU ld
     case "$osname" in
       aix)     DLLDFLAGS='-r' ;;
-      darwin)  DLLD=gcc; DLLDFLAGS='-flat_namespace -undefined suppress' ;;
+      darwin)  DLLD=; DLLDFLAGS='-flat_namespace -undefined suppress' ;;
       freebsd) DLLDFLAGS='-Bshareable -x' ;;
       hpux)    DLLDFLAGS='-b' ;;
       irix)    DLLDFLAGS='-shared -elf -no_unresolved -all' ;;
@@ -76,7 +76,6 @@ if test -n "$DLLD"; then
       *)         DLLD=;;
     esac
   fi
-
   if test -n "$DLLDFLAGS"; then
     DLLDFLAGS=`./ldflags "$DLLDisGCC" "$DLLDFLAGS"`
   fi
@@ -89,7 +88,6 @@ if test -n "$DLLD"; then
       sparc*) extra='-mimpure-text';;
       *) extra=;;
     esac
-
     if test "$osname" = darwin; then
         DLLDFLAGS="-dynamiclib $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
     else
@@ -97,7 +95,7 @@ if test -n "$DLLD"; then
     fi
   fi
   case "$osname" in
-    osf1|freebsd|linux|sunos|solaris) EXTRADLLDFLAGS='-lc ${LIBS}';;
+    gnu*|osf1|freebsd|linux|sunos|solaris) EXTRADLLDFLAGS='-lc ${LIBS}';;
   esac
 
   if test "$fastread" != yes; then

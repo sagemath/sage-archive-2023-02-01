@@ -65,6 +65,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.5 (Mike Hansen, March 5th, 2010 ===
+ * Update to PARI 2.3.5
+ * Removed the alglin2.c patch since it was included upstream.
+
 === pari-2.3.3.p8 (Jaap Spies, January 28th 2010) ===
  * Added 64 bit support for Open Solaris x64
  * This is trac http://trac.sagemath.org/sage_trac/ticket/8099

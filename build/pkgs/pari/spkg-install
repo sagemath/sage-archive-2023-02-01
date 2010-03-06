@@ -31,9 +31,6 @@ cp "$TOP"/patches/get_ld config/
 # cwitty: disable TeX; allow bz2 compression
 cp "$TOP"/patches/gphelp.in doc/
 
-# mabshoff: copy over patched hnf routine (#2204)
-cp "$TOP"/patches/alglin2.c src/basemath/
-
 # Minh Van Nguyen: copy over patched get_cc (see ticket #7092). It's
 # reported that 32-bit Fedora 11 would fail to build otherwise.
 if [ `uname` = "Linux" ]; then

@@ -1,0 +1,12 @@
+--- ../src/config/get_cc	2007-03-10 07:57:08.000000000 -0800
++++ get_cc	2009-10-03 02:18:29.000000000 -0700
+@@ -106,7 +106,8 @@
+ if test -n "$__gnuc__"; then
+   __GNUC__="-D__GNUC__"
+   warn="-Wall"
+-  OPTFLAGS=-O3
++  # Work around for building on 32-bit Fedora 11. See ticket #7092.
++  OPTFLAGS=-O1
+   ASMINLINE=yes
+   case "$asmarch" in
+     alpha)

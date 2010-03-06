@@ -14,7 +14,8 @@ MIT
 
 == SPKG Maintainers ==
 
- * Yi Qiang
+ * Mike Hansen
+ * Mitesh Patel
 
 == Upstream Contact ==
 
@@ -29,6 +30,11 @@ MIT
 Use the standard sources. No changes from the official sources.
 
 == Changelog ==
+
+=== SQLAlchemy-0.5.8.p0 (Mitesh Patel, March 4, 2010) ===
+ * Upgrade to 0.5.8.
+ * Tweak removal of previous versions.
+ * Disable tests in spkg-check, since they now require nose.
 
 === SQLAlchemy-0.4.6.p0 (Yi Qiang, June 25, 2008) ===
  * version bump

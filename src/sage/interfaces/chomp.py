@@ -38,10 +38,10 @@ def have_chomp(program='homsimpl'):
         sage: sage.interfaces.chomp._have_chomp['homsimpl'] == have_chomp()
         True
     """
-    from os import system
     global _have_chomp
     if program not in _have_chomp:
-        _have_chomp[program] = not bool(system('which %s >/dev/null' % program))
+        from sage.misc.sage_ostools import have_program
+        _have_chomp[program] = have_program(program)
     return _have_chomp[program]
 
 class CHomP:

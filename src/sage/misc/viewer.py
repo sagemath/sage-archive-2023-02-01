@@ -4,15 +4,14 @@ Determination of Programs for Viewing web pages, etc.
 
 import os
 
-def cmd_exists(cmd):
-    return os.system('which %s 2>/dev/null >/dev/null'%cmd) == 0
-
 BROWSER    = None
 DVI_VIEWER = None
 PDF_VIEWER = None
 PNG_VIEWER = None
 
 def viewer():
+    from sage.misc.sage_ostools import have_program
+
     global BROWSER, DVI_VIEWER, PDF_VIEWER, PNG_VIEWER
 
     if not (BROWSER is None):
@@ -51,7 +50,7 @@ def viewer():
         PDF_VIEWER = BROWSER
         PNG_VIEWER = BROWSER
 
-    elif cmd_exists('xdg-open'):
+    elif have_program('xdg-open'):
 
         # On other OS'es try xdg-open if present.
         # See http://portland.freedesktop.org/xdg-utils-1.0.
@@ -70,7 +69,7 @@ def viewer():
         except KeyError:
             BROWSER = 'less'  # silly default; lets hope it doesn't come to this!
             for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
-                if cmd_exists(cmd):
+                if have_program(cmd):
                     BROWSER = cmd
                     break
         DVI_VIEWER = BROWSER
@@ -82,14 +81,14 @@ def viewer():
             DVI_VIEWER = os.environ['DVI_VIEWER']
         except KeyError:
             for cmd in ['xdvi', 'kdvi']:
-                if cmd_exists(cmd):
+                if have_program(cmd):
                     DVI_VIEWER = cmd
                     break
         try:
             PDF_VIEWER = os.environ['PDF_VIEWER']
         except KeyError:
             for cmd in ['acroread', 'xpdf']:
-                if cmd_exists(cmd):
+                if have_program(cmd):
                     PDF_VIEWER = cmd
                     break
 

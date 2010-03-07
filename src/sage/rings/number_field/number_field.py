@@ -974,7 +974,16 @@ class NumberField_generic(number_field_base.NumberField):
         r"""
         Make x into an element of this number field, possibly not canonically.
 
-        EXAMPLES:
+        INPUT:
+
+            - ``x`` - the element
+
+        OUTPUT:
+
+            ``x``, as an element of this number field
+
+        TESTS::
+
             sage: K.<a> = NumberField(x^3 + 17)
             sage: K(a) is a
             True
@@ -984,6 +993,10 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in a with defining polynomial x^3 + 17
             sage: K(3/5).parent()
             Number Field in a with defining polynomial x^3 + 17
+            sage: K.<a> = NumberField(polygen(QQ)^2 - 5)
+            sage: F.<b> = K.extension(polygen(K))
+            sage: F([a])
+            a
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1006,7 +1019,10 @@ class NumberField_generic(number_field_base.NumberField):
                  self.base_ring().has_coerce_map_from(x.parent().base_ring())):
             if len(x) != self.relative_degree():
                 raise ValueError, "Length must be equal to the degree of this number field"
-            return sum([ x[i]*self.gen(0)**i for i in range(self.relative_degree()) ])
+            result = x[0]
+            for i in xrange(1,self.relative_degree()):
+                result += x[i]*self.gen(0)**i
+            return result
         return self._coerce_non_number_field_element_in(x)
 
     def _coerce_from_str(self, x):
@@ -2674,16 +2690,9 @@ class NumberField_generic(number_field_base.NumberField):
         ###############################################################
         # The following line computes S-class gp and S-units in Pari, #
         # assuming the Generalized Riemann Hypothesis + other         #
-        # "heuristic" assumptions (GRH++).                            #
+        # "heuristic" assumptions (GRH++), or nothing if certify.     #
         ###############################################################
-        D_gp = gp(self.pari_bnf())
-        if proof:
-            ################################################
-            # The following line attempts to remove GRH++. #
-            # If the result is not provable, may output an #
-            # error message, or loop indefinitely.         #
-            ################################################
-            assert D_gp.bnfcertify() == 1
+        D_gp = gp(self.pari_bnf(certify=proof))
 
         S_gp = [convert_to_idealprimedec_form(self, p) for p in S]
         units = []
@@ -2691,16 +2700,16 @@ class NumberField_generic(number_field_base.NumberField):
         result = D_gp.bnfsunit(S_gp)
         x = self.gen()
         for unit in result[1]:
-            sage_unit = 0
-            for i in xrange(unit.poldegree()+1):
+            sage_unit = QQ(unit.polcoeff(0))
+            for i in xrange(1, unit.poldegree()+1):
                 sage_unit += QQ(unit.polcoeff(i))*x**i
             units.append(sage_unit)
         units += self.unit_group().gens()
 
         IB = []
         for f_gp in D_gp[7][7]:
-            f = 0
-            for i in xrange(f_gp.length()):
+            f = QQ(f_gp.polcoeff(0))
+            for i in xrange(1, f_gp.length()):
                 f += QQ(f_gp.polcoeff(i))*x**i
             IB.append(f)
         clgp_gens = []
@@ -2756,6 +2765,9 @@ class NumberField_generic(number_field_base.NumberField):
             [2, a + 1]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
             [2, a + 1, -a]
+            sage: K.<a> = NumberField(polygen(QQ))
+            sage: K.selmer_group([],5)
+            []
 
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)

@@ -184,6 +184,13 @@ def ResidueField(p, names = None, check = True):
         Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
         sage: F.degree()
         1
+
+    TESTS::
+
+        sage: K.<a> = NumberField(polygen(QQ))
+        sage: K.residue_field(K.ideal(3))
+        Residue field of Fractional ideal (3)
+
     """
     if isinstance(names, tuple):
         if len(names) > 0:
@@ -233,7 +240,11 @@ def ResidueField(p, names = None, check = True):
     from sage.matrix.constructor import matrix
     try:
         x = K.gen()
-        M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)])
+        if not x:
+            LL = [to_vs(1).list()] + [to_vs(x**i).list() for i in range(1,n+1)]
+            M = matrix(k, n+1, n, LL)
+        else:
+            M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)])
         W = M.transpose().echelon_form()
         if M.rank() == n:
             PB = M.matrix_from_rows(range(n))

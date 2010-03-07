@@ -181,6 +181,13 @@ class Function_ceil(BuiltinFunction):
 
             sage: latex(ceil(x))
             \left \lceil x \right \rceil
+
+        ::
+
+            sage: import numpy
+            sage: a = numpy.linspace(0,2,6)
+            sage: ceil(a)
+            array([ 0.,  1.,  1.,  2.,  2.,  2.])
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling'))
@@ -217,6 +224,9 @@ class Function_ceil(BuiltinFunction):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
+            elif type(x).__module__ == 'numpy':
+                import numpy
+                return numpy.ceil(x)
 
         x_original = x
 
@@ -327,6 +337,12 @@ class Function_floor(BuiltinFunction):
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
+
+        ::
+            sage: import numpy
+            sage: a = numpy.linspace(0,2,6)
+            sage: floor(a)
+            array([ 0.,  0.,  0.,  1.,  1.,  2.])
         """
         BuiltinFunction.__init__(self, "floor")
 
@@ -362,6 +378,9 @@ class Function_floor(BuiltinFunction):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
+            elif type(x).__module__ == 'numpy':
+                import numpy
+                return numpy.floor(x)
 
         x_original = x
 
@@ -1148,9 +1167,16 @@ def sqrt(x, *args, **kwds):
             sqrt(x^2)
             sage: sqrt(2).n()
             1.41421356237310
+            sage: import numpy
+            sage: a = numpy.arange(2,5)
+            sage: sqrt(a)
+            array([ 1.41421356,  1.73205081,  2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)
+        elif type(x).__module__ == 'numpy':
+            from numpy import sqrt
+            return sqrt(x)
         try:
             return x.sqrt(*args, **kwds)
         # The following includes TypeError to catch cases where sqrt
@@ -1206,6 +1232,18 @@ class Function_real_part(GinacFunction):
         GinacFunction.__init__(self, "real_part",
                                    conversions=dict(maxima='realpart'))
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
+            sage: real_part(a)
+            array([ 1., -2.])
+        """
+        import numpy
+        return numpy.real(x)
+
 real = real_part = Function_real_part()
 
 class Function_imag_part(GinacFunction):
@@ -1232,6 +1270,18 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                    conversions=dict(maxima='imagpart'))
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
+            sage: imag_part(a)
+            array([ 2., -3.])
+        """
+        import numpy
+        return numpy.imag(x)
 
 imag = imag_part = imaginary = Function_imag_part()
 

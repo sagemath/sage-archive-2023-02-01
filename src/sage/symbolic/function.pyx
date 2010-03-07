@@ -360,12 +360,16 @@ cdef class Function(SageObject):
                     return getattr(args[0], self._name)()
                 except AttributeError, err:
                     raise TypeError, "cannot handle fast float arguments"
-            elif type(args[0]).__module__ == 'numpy': # avoid importing
-                import numpy
+
+        # support numpy arrays as arguments
+        if any([type(arg).__module__ == 'numpy' for arg in args]): # avoid importing
+            import numpy
+            # check that at least one of the arguments is a numpy array
+            if any([isinstance(arg, numpy.ndarray) for arg in args]):
                 try:
-                    return getattr(numpy, self.name())(args[0])
+                    return getattr(numpy, self.name())(*args)
                 except AttributeError:
-                    pass
+                    return self._eval_numpy_(*args)
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
@@ -593,6 +597,26 @@ cdef class Function(SageObject):
         """
         args = [etb._var_number(n) for n in range(self.number_of_arguments())]
         return etb.call(self, *args)
+
+    def _eval_numpy_(self, *args):
+        r"""
+        Evaluates this function at the given arguments.
+
+        At least one of elements of args is supposed to be a numpy array.
+
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(5)
+            sage: csc(a)
+            array([        Inf,  1.18839511,  1.09975017,  7.0861674 , -1.32134871])
+
+            sage: factorial(a)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The Function factorial does not support numpy arrays as arguments
+        """
+        raise NotImplementedError("The Function %s does not support numpy arrays as arguments" % self.name())
 
 cdef class GinacFunction(BuiltinFunction):
     """

@@ -107,6 +107,17 @@ class Function_sec(BuiltinFunction):
             return 1/math.cos(x)
         return (1 / x.cos())
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: sec(a)
+            array([-2.40299796, -1.01010867, -1.52988566])
+        """
+        return 1 / cos(x)
+
     def _eval_(self, x):
         """
         EXAMPLES::
@@ -174,6 +185,18 @@ class Function_csc(BuiltinFunction):
         if parent is float:
             return 1/math.sin(x)
         return (1 / x.sin())
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: csc(a)
+            array([ 1.09975017,  7.0861674 , -1.32134871])
+        """
+        return 1 / sin(x)
+
 
     def _eval_(self, x):
         """
@@ -246,6 +269,17 @@ class Function_cot(BuiltinFunction):
             return None
         else:
             return 1/tan_x
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: cot(a)
+            array([-0.45765755, -7.01525255,  0.86369115])
+        """
+        return 1 / tan(x)
 
     def _evalf_(self, x, parent=None):
         """
@@ -385,6 +419,17 @@ class Function_arccot(BuiltinFunction):
         from sage.symbolic.constants import pi
         return parent(pi/2 - x.arctan())
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: arccot(a)
+            array([ 0.46364761,  0.32175055,  0.24497866])
+        """
+        return math.pi/2 - arctan(x)
+
     def _derivative_(self, *args, **kwds):
         """
         EXAMPLES::
@@ -429,6 +474,17 @@ class Function_arccsc(BuiltinFunction):
             return math.asin(1/x)
         return (1/x).arcsin()
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: arccsc(a)
+            array([ 0.52359878,  0.33983691,  0.25268026])
+        """
+        return arcsin(1.0/x)
+
     def _derivative_(self, x, diff_param=None):
         """
         EXAMPLES::
@@ -467,6 +523,18 @@ class Function_arcsec(BuiltinFunction):
         if parent is float:
             return math.acos(1/x)
         return (1/x).arccos()
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: arcsec(a)
+            array([ 1.04719755,  1.23095942,  1.31811607])
+        """
+        return arccos(1.0/x)
+
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -530,6 +598,20 @@ class Function_arctan2(GinacFunction):
             -0.46364760900080611621425623146
             sage: arctan2(2,3).n(100)
             0.58800260354756755124561108063
+
+        The function also works with numpy arrays as input::
+
+            sage: import numpy
+            sage: a = numpy.linspace(1, 3, 3)
+            sage: b = numpy.linspace(3, 6, 3)
+            sage: atan2(a, b)
+            array([ 0.32175055,  0.41822433,  0.46364761])
+
+            sage: atan2(1,a)
+            array([ 0.78539816,  0.46364761,  0.32175055])
+
+            sage: atan2(a, 1)
+            array([ 0.78539816,  1.10714872,  1.24904577])
 
         TESTS::
 

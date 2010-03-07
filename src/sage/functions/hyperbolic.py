@@ -174,6 +174,17 @@ class Function_coth(HyperbolicFunction):
         HyperbolicFunction.__init__(self, "coth", latex_name=r"\coth",
                                    evalf_float=lambda x: 1/math.tanh(x))
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: coth(a)
+            array([ 1.03731472,  1.00496982,  1.00067115])
+        """
+        return 1 / tanh(x)
+
     def _derivative_(self, *args, **kwds):
         """
         EXAMPLES::
@@ -209,6 +220,17 @@ class Function_sech(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "sech", latex_name=r"{\rm sech}",
                                    evalf_float=lambda x: 1/math.cosh(x))
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: sech(a)
+            array([ 0.26580223,  0.09932793,  0.03661899])
+        """
+        return 1 / cosh(x)
 
     def _derivative_(self, *args, **kwds):
         """
@@ -246,6 +268,17 @@ class Function_csch(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "csch", latex_name=r"{\rm csch}",
                                    evalf_float=lambda x: 1/math.sinh(x))
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2, 5)
+            sage: csch(a)
+            array([ 0.27572056,  0.09982157,  0.03664357])
+        """
+        return 1 / sinh(x)
 
     def _derivative_(self, *args, **kwds):
         """
@@ -384,6 +417,17 @@ class Function_arccoth(HyperbolicFunction):
                 latex_name=r"{\rm arccoth}", conversions=dict(maxima='acoth'),
                 evalf_float=lambda x: atanh(float(1/x)))
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.arange(2,5)
+            sage: arccoth(a)
+            array([ 0.54930614,  0.34657359,  0.25541281])
+        """
+        return arctanh(1.0 / x)
+
     def _derivative_(self, *args, **kwds):
         """
         EXAMPLES::
@@ -423,6 +467,17 @@ class Function_arcsech(HyperbolicFunction):
                 evalf_float=lambda x: acosh(float(1/x)),
                 conversions=dict(maxima='asech'))
 
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.linspace(0,1,3)
+            sage: arcsech(a)
+            array([       Inf,  1.3169579,  0.       ])
+        """
+        return arccosh(1.0 / x)
+
     def _derivative_(self, *args, **kwds):
         """
         EXAMPLES::
@@ -460,6 +515,17 @@ class Function_arccsch(HyperbolicFunction):
                 latex_name=r"{\rm arccsch}",
                 evalf_float=lambda x: arcsinh(float(1/x)),
                 conversions=dict(maxima='acsch'))
+
+    def _eval_numpy_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import numpy
+            sage: a = numpy.linspace(0,1,3)
+            sage: arccsch(a)
+            array([        Inf,  1.44363548,  0.88137359])
+        """
+        return arcsinh(1.0 / x)
 
     def _derivative_(self, *args, **kwds):
         """

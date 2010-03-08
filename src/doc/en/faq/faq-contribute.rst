@@ -1,0 +1,210 @@
+.. _chapter-faq-contribute:
+
+=========================
+FAQ: Contributing to Sage
+=========================
+
+
+How can I get started contributing to Sage?
+"""""""""""""""""""""""""""""""""""""""""""
+
+This is a quick guide for anyone who wants to contribute to Sage. It
+is intended especially for anyone who is new to computer
+programming. First, Sage's main programming language is
+`Python <http://www.python.org>`_.
+Some parts of Sage can be written in other languages, especially the
+components that do the heavy number crunching, but most native
+functionality is done using Python, including "glue code". One of the
+good aspects of Python that Sage inherits is that working code is
+considered more valuable than just fast code. Fast code is valuable,
+but clean, readable code is important. In the mathematics community,
+inaccurate results are unacceptable. Correctness comes before
+optimization. In the following paper
+
+* D. Knuth. Structured Programming with go to Statements.
+  *ACM Journal Computing Surveys*, 6(4), 1974.
+
+Don Knuth observes that: "We should forget about small efficiencies,
+say about 97% of the time: premature optimization is the root of all
+evil."
+
+If you do not know Python, you should start learning that language. A
+good place to start is the
+`Python Official Tutorial <http://docs.python.org/tutorial>`_
+and other documents in the
+`Python standard documentation <http://docs.python.org>`_.
+Another good place to take a look at is
+`Dive Into Python <http://www.diveintopython.org>`_
+by Mark Pilgrim, which may be pretty helpful on some specific topics
+like test-driven development. The book
+`Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
+by Steven F. Lott is suitable for anyone who is already comfortable
+with programming. In the meantime, you can grab your copy of the Sage
+source and familiarize yourself with the
+`Mercurial <http://mercurial.selenic.com>`_
+source control management system. The book
+`Mercurial: The Definitive Guide <http://hgbook.red-bean.com>`_
+by Bryan O'Sullivan is recommended for those who want to start using
+Mercurial. Once you are comfortable with Python itself, which is
+pretty fast for basics, you can start using Sage. If you want, you can
+try to learn Python by using Sage, but that is not recommended because
+it is helpful to know what is pure Python and when Sage is doing its
+"magic". There are many things that work in Python but not in Sage,
+and vice versa.
+
+Then take a look at the
+`official development guide <http://www.sagemath.org/doc/developer>`_
+for Sage. At a minimum, the first chapter in that guide is required
+reading for any Sage developer. Also pay special attention to the
+`trac guidelines <http://www.sagemath.org/doc/developer/trac.html>`_.
+You can also join the
+`sage-devel <http://groups.google.com/group/sage-devel>`_
+mailing list and hang around on the
+``#sage-devel`` IRC channel on
+`freenode <http://freenode.net>`_.
+
+The best way to become familiar with the Sage development process is
+to choose a ticket from the
+`trac server <http://trac.sagemath.org>`_
+and review the proposed changes contained in that ticket. If you want
+to implement something, it is a good practice to discuss your ideas on
+the ``sage-devel`` mailing list first, so that other developers have a
+chance to comment on your ideas/proposals. They are pretty open to new
+ideas, too, like all mathematicians should be.
+
+
+I'm not a programmer. Is there another way I can help out?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Yes. Like any free open source software project, there are numerous
+ways in which you could help out within the Sage community. And
+programming is one of many ways to contribute. If you can speak, read,
+and write in another (natural) language, there are many ways in which
+your contribution would be very valuable to the whole Sage
+community. Say you know Italian. Then you can write a Sage tutorial in
+Italian, or help out with translating the official Sage tutorial to
+Italian. For the graphics designers or artistically creative, you can
+help out with improving the design of the Sage website. Or you can
+cast your critical artistic eyes over the Sage notebook interface and
+find out where it needs improvement.
+
+Many people like writing technical tutorials. One of the joys of doing
+so is that you also learn something new in the process. At the same
+time, you communicate your knowledge to beginners, a skill which is
+useful in fields other than technical writing itself. A main point
+about technical writing is that you communicate a technical subject to
+beginners, so keep technical jargons to a minimum. Darrell Anderson
+has written some
+`tips on technical writing <http://humanreadable.nfshost.com/howtos/technical_writing_tips.htm>`_,
+which you are highly recommended to read. The above is a very short
+list. There are many, many more ways in which you can help out. Feel
+free to send an email to the
+`sage-devel <http://groups.google.com/group/sage-devel>`_
+mailing list to ask about possible ways in which you could help out,
+or to suggest a project idea.
+
+
+Where can I find resources on Python or Cython?
+"""""""""""""""""""""""""""""""""""""""""""""""
+
+Here is an incomplete list of resources on Python and Cython. Further
+resources can be found by a web search.
+
+**General resources**
+
+* `Cython <http://www.cython.org>`_
+* `pep8 <http://pypi.python.org/pypi/pep8>`_
+* `py2depgraph <http://www.tarind.com/depgraph.html>`_
+* `pycallgraph <http://pycallgraph.slowchop.com>`_
+* `PyChecker <http://pychecker.sourceforge.net>`_
+* `PyFlakes <http://divmod.org/trac/wiki/DivmodPyflakes>`_
+* `Pylint <http://www.logilab.org/project/pylint>`_
+* `Python <http://www.python.org>`_ home page and the
+  `Python standard documentation <http://docs.python.org>`_
+* `Snakefood <http://furius.ca/snakefood>`_
+* `Sphinx <http://sphinx.pocoo.org>`_
+* `XDot <http://code.google.com/p/jrfonseca/wiki/XDot>`_
+
+**Tutorials and books**
+
+* `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
+  by Steven F. Lott
+* `Cython Tutorial <http://conference.scipy.org/proceedings/SciPy2009/paper_1/>`_
+  by Stefan Behnel, Robert W. Bradshaw, and Dag Sverre Seljebotn
+* `Dive into Python <http://www.diveintopython.org>`_ by Mark Pilgrim
+* `Dive Into Python 3 <http://www.diveintopython3.org>`_ by Mark Pilgrim
+* `Fast Numerical Computations with Cython <http://conference.scipy.org/proceedings/SciPy2009/paper_2/>`_
+  by Dag Sverre Seljebotn
+* `How to Think Like a Computer Scientist <http://www.openbookproject.net/thinkCSpy>`_
+  by Jeffrey Elkner, Allen B. Downey, and Chris Meyers
+* `Official Python Tutorial <http://docs.python.org/tutorial>`_
+
+**Articles and HOWTOs**
+
+* `decorator <http://pypi.python.org/pypi/decorator>`_
+* `Functional Programming HOWTO <http://docs.python.org/howto/functional.html>`_
+  by A. M. Kuchling
+* `Python Functional Programming for Mathematicians <http://wiki.sagemath.org/devel/FunctionalProgramming>`_
+  by Minh Van Nguyen
+* `Regular Expression HOWTO <http://docs.python.org/howto/regex.html>`_
+  by A. M. Kuchling
+* `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
+* `Static Code Analizers for Python <http://www.doughellmann.com/articles/pythonmagazine/completely-different/2008-03-linters/>`_
+  by Doug Hellmann
+
+
+Are there any coding conventions I need to follow?
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You should follow the standard Python conventions as documented at
+`PEP 0008 <http://www.python.org/dev/peps/pep-0008>`_
+and
+`PEP 0257 <http://www.python.org/dev/peps/pep-0257>`_.
+Also consult the Sage Developer's Guide, especially the chapter
+`Conventions for Coding in Sage <http://www.sagemath.org/doc/developer/conventions.html>`_.
+
+
+I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my patch?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+We are not trying to ignore your patch. People who work on Sage do so
+in their free time. With hundreds of open tickets of varying degrees of
+impacts on the whole Sage community, people who work on tickets need
+to prioritize their time and work on those tickets that interest
+them. Sometimes you may be the only person who understands your
+patch. In that case, you are encouraged to take extra care to make it
+as easy as possible for anyone to review your patch. Here are some
+tips on making your patch easy to review:
+
+* Have you clearly described the problem your patch is trying to
+  solve?
+* Have you provided any background information relevant to the problem
+  your patch is trying to solve? Such information include links to
+  online resources and any relevant papers, books and reference
+  materials.
+* Have you clearly described how your patch solves the problem under
+  consideration?
+* Have you clearly described how to test the changes in your patch?
+* Have you listed any tickets that your patch depends on?
+* If there are more than one patch, have you clearly stated the order
+  in which those patches are to be applied?
+* Does your patch
+  `follow relevant conventions <http://www.sagemath.org/doc/developer/writing_code.html>`_
+  as documented in the Developer's Guide?
+
+If your patch stands no chance of being merged in the Sage source
+tree, we will not ignore your patch but simply close the relevant
+ticket with an explanation why we cannot include your changes.
+
+
+When and how might I remind the Sage community of a patch I care about?
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You are encouraged to take extra care in how you remind the Sage
+community of a patch you want to get merged into the Sage source
+tree. There might be an upcoming bug squash sprint or an upcoming Sage
+Days workshop that relates to your patch. Monitor the relevant Sage
+mailing lists and respond politely to any relevant email threads, with
+clear explanation on why your patch is relevant. Monitor the
+``#sage-devel`` IRC channel, taking care to strategically time your
+reminders.

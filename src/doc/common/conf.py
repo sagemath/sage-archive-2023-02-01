@@ -317,6 +317,8 @@ def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
 
+    - Don't include [aliases of] builtins.
+
     - Don't include the docstring for any nested class which has been
       inserted into its module by
       :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
@@ -333,6 +335,9 @@ def skip_member(app, what, name, obj, skip, options):
     """
     if 'SAGE_CHECK_NESTED' in os.environ:
         check_nested_class_picklability(app, what, name, obj, skip, options)
+
+    if getattr(obj, '__module__', None) == '__builtin__':
+        return True
 
     if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
         obj.__name__.split('.')[-1] != name):

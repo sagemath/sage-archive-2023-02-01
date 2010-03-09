@@ -631,6 +631,19 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
     Returns an int representing the arbitrary hashable vertex u (whether or not
     u is actually in the graph), or -1 if a new association must be made for u
     to be a vertex.
+
+    TESTS:
+
+        We check that the bug described in #8406 is gone::
+
+        sage: G=Graph()
+        sage: R.<a>=GF(3**3)
+        sage: S.<x>=R[]
+        sage: G.add_vertex(a**2)
+        sage: G.add_vertex(x)
+        sage: G.vertices()
+        [a^2, x]
+
     """
     if u in vertex_ints:
         return vertex_ints[u]

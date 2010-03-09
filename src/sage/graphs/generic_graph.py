@@ -1534,9 +1534,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: [..., ...],
+            {0: (..., ...),
              ...
-             9: [..., ...]}
+             9: (..., ...)}
         """
         return self._pos
 
@@ -1585,9 +1585,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: [..., ...],
+            {0: (..., ...),
              ...
-             9: [..., ...]}
+             9: (..., ...)}
 
         ::
 
@@ -4573,7 +4573,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_boundary()
             [2]
             sage: G.get_pos()
-            {0: [0, 0], 2: [2, 0], 3: [3, 0], 4: [4, 0]}
+            {0: (0, 0), 2: (2, 0), 3: (3, 0), 4: (4, 0)}
         """
         if in_order:
             vertex = self.vertices()[vertex]
@@ -9313,16 +9313,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: [6.12..., 1.0...],
-             1: [-0.95..., 0.30...],
-             2: [-0.58..., -0.80...],
-             3: [0.58..., -0.80...],
-             4: [0.95..., 0.30...],
-             5: [1.53..., 0.5...],
-             6: [-0.47..., 0.15...],
-             7: [-0.29..., -0.40...],
-             8: [0.29..., -0.40...],
-             9: [0.47..., 0.15...]}
+            {0: (6.12..., 1.0...),
+             1: (-0.95..., 0.30...),
+             2: (-0.58..., -0.80...),
+             3: (0.58..., -0.80...),
+             4: (0.95..., 0.30...),
+             5: (1.53..., 0.5...),
+             6: (-0.47..., 0.15...),
+             7: (-0.29..., -0.40...),
+             8: (0.29..., -0.40...),
+             9: (0.47..., 0.15...)}
             sage: P = G.plot(save_pos=True, layout='spring')
 
             The following illustrates the format of a position dictionary,
@@ -10160,7 +10160,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_boundary()
             [1, 2]
             sage: G.get_pos()
-            {0: [0, 0], 1: [2, 0], 2: [3, 0], 3: [4, 0]}
+            {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
         """
         if perm is None:
             verts = self.vertices() # vertices() returns a sorted list:

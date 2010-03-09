@@ -2289,8 +2289,7 @@ class Graph(GenericGraph):
             if (y < ymin):
                 ymin = y
         for v in pos:
-            pos[v][0] = 1.8*(pos[v][0] - xmin)/(xmax - xmin) - 0.9
-            pos[v][1] = 1.8*(pos[v][1] - ymin)/(ymax - ymin) - 0.9
+            pos[v] = (1.8*(pos[v][0] - xmin)/(xmax - xmin) - 0.9, 1.8*(pos[v][1] - ymin)/(ymax - ymin) - 0.9)
         if filename[-4:] != '.eps':
             filename += '.eps'
         f = open(filename, 'w')

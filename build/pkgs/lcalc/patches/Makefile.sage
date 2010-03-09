@@ -58,9 +58,7 @@ ifeq ($(G5),TRUE)
    #MACHINE_SPECIFIC_FLAGS = -mpowerpc -mpowerpc64 -m64
 endif
 
-CCFLAGS =  -W -O3 $(OPENMP_FLAG) -Wno-deprecated $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
-#CCFLAGS =  -W -O3 $(OPENMP_FLAG)  $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
-#CCFLAGS =  -Wa,-W -O2 -fno-exceptions -Wno-deprecated $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
+CCFLAGS =  $(CXXFLAGS) -O3  $(OPENMP_FLAG)  $(PREPROCESSOR_DEFINE) $(MACHINE_SPECIFIC_FLAGS) $(EXTRA)
 
 #warning- O2 doesn't help with -DUSE_LONG_DOUBLE on mac, and actually seems to hurt, making runtime longer
 #by a factor of 1.5

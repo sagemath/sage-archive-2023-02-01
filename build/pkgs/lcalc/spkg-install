@@ -188,6 +188,7 @@ echo "Now copying over lcalc binary"
 # Exit if the copy fails, by using set -e.
 set -e
 cp lcalc "$SAGE_LOCAL"/bin
+echo "Now copying over lcalc library"
 cp libLfunction.so $SAGE_LOCAL/lib/
 cp ../include/* $SAGE_LOCAL/include
 

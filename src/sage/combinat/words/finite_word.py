@@ -4951,12 +4951,22 @@ exponent %s: the length of the word (%s) times the exponent \
             False
             sage: W().is_square_free()
             True
+
+        TESTS::
+
+            sage: W = Words('123')
+            sage: W('11').is_square_free() # trac 8490
+            False
+            sage: W('211').is_square_free() # trac 8490
+            False
+            sage: W('3211').is_square_free() # trac 8490
+            False
         """
         l = self.length()
         if l < 2:
             return True
         suff = self
-        for i in xrange(0, l - 2):
+        for i in xrange(0, l-1):
             for ll in xrange(2, l-i+1, 2):
                 if suff[:ll].is_square():
                     return False

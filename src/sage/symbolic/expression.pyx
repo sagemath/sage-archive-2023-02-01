@@ -580,6 +580,14 @@ cdef class Expression(CommutativeRingElement):
             \frac{2}{{\left(x + 1\right)}}
             sage: latex(1/2/(x+1))
             \frac{1}{2 \, {\left(x + 1\right)}}
+
+        Check if rational function coefficients without a `numerator()` method
+        are printed correctly. #8491::
+
+            sage: latex(6.5/x)
+            \frac{6.50000000000000}{x}
+            sage: latex(Mod(2,7)/x)
+            \frac{2}{x}
         """
         return self._parent._latex_element_(self)
 
@@ -2312,7 +2320,17 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: (Mod(2,7)*x^2 + Mod(2,7))^7
-            (2*x^2 + 2)^7
+            128*(x^2 + 1)^7
+
+        The coefficient in the result above is 128, because::
+
+            sage: t = Mod(2,7); gcd(t, t)^7
+            128
+            sage: gcd(t,t).parent()
+            Integer Ring
+
+        ::
+
             sage: k = GF(7)
             sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
             x^35 + x^14 + 2
@@ -6726,7 +6744,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a.solve(t)
             []
             sage: b = a.simplify_radical(); b
-            (-576000.0*e^(900*t) + 46080.0*e^(1800*t) + 737280.0)*e^(-2400*t)
+            -23040*(25.0*e^(900*t) - 2.0*e^(1800*t) - 32.0)*e^(-2400*t)
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)

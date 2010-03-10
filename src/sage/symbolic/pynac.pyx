@@ -1045,7 +1045,7 @@ cdef public object py_numer(object n) except +:
     try:
         return n.numerator()
     except AttributeError:
-        return 1
+        return n
 
 cdef public object py_denom(object n) except +:
     if isinstance(n, (int, long, Integer)):

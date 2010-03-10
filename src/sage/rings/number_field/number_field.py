@@ -5673,7 +5673,10 @@ class NumberField_absolute(NumberField_generic):
 
         On the other hand, if prec is not None, we simply return places
         into RealField(prec) and ComplexField(prec) (or RDF, CDF if
-        prec=53).
+        prec=53). One can also use ``prec=infinity``, which returns embeddings
+        into the field `\overline{\QQ}` of algebraic numbers (or its subfield
+        `\mathbb{A}` of algebraic reals); this permits exact computatation, but
+        can be extremely slow.
 
         There is an optional flag all_complex, which defaults to False. If
         all_complex is True, then the real embeddings are returned as
@@ -5731,9 +5734,15 @@ class NumberField_absolute(NumberField_generic):
         if prec is None:
             R = RIF
             C = CIF
+
         elif prec == 53:
             R = sage.rings.real_double.RDF
             C = sage.rings.complex_double.CDF
+
+        elif prec == sage.rings.infinity.Infinity:
+            R = sage.rings.all.AA
+            C = sage.rings.all.QQbar
+
         else:
             R = sage.rings.real_mpfr.RealField(prec)
             C = sage.rings.complex_field.ComplexField(prec)
@@ -7645,13 +7654,36 @@ def refine_embedding(e, prec=None):
         sage: e(a)^3
         2
 
+    Embeddings into lazy fields work::
 
+        sage: L = CyclotomicField(7)
+        sage: x = L.specified_complex_embedding(); x
+        Generic morphism:
+          From: Cyclotomic Field of order 7 and degree 6
+          To:   Complex Lazy Field
+          Defn: zeta7 -> 0.623489801858734? + 0.781831482468030?*I
+        sage: refine_embedding(x, 300)
+        Ring morphism:
+          From: Cyclotomic Field of order 7 and degree 6
+          To:   Complex Field with 300 bits of precision
+          Defn: zeta7 |--> 0.623489801858733530525004884004239810632274730896402105365549439096853652456487284575942507 + 0.781831482468029808708444526674057750232334518708687528980634958045091731633936441700868007*I
+        sage: refine_embedding(x, infinity)
+        Ring morphism:
+          From: Cyclotomic Field of order 7 and degree 6
+          To:   Algebraic Field
+          Defn: zeta7 |--> 0.6234898018587335? + 0.7818314824680299?*I
     """
     K = e.domain()
     RC = e.codomain()
     if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
         return e
-    prec_old = RC.precision()
+    if RC in (RLF, CLF):
+        prec_old = e.gen_image().approx().prec()
+        old_root = e(K.gen()).approx()
+    else:
+        prec_old = RC.precision()
+        old_root = e(K.gen())
+
     if prec is None:
         prec = 2*prec_old
     elif prec_old >= prec:
@@ -7672,6 +7704,5 @@ def refine_embedding(e, prec=None):
     # Now we determine which is an extension of the old one; this
     # relies on the fact that coercing a high-precision root into a
     # field with lower precision will equal the lower-precision root!
-    old_root = e(K.gen())
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
     return elist[min(izip(diffs,count()))[1]]

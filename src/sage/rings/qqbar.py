@@ -586,7 +586,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
     def __init__(self):
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         r"""
         Coerce ``x`` into the field of algebraic real numbers.
 
@@ -625,15 +625,21 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         """
         return sib.name('AA')
 
-    def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
-                          sage.rings.rational.Rational)):
-            return self(x)
-        elif hasattr(x, '_algebraic_'):
-            return x._algebraic_(AA)
-        raise TypeError, 'no implicit coercion of element to the algebraic numbers'
+    def _coerce_map_from_(self, from_par):
+        r"""
+        Set up the coercion model.
 
-    def has_coerce_map_from_impl(self, from_par):
+        TESTS::
+
+            sage: AA.has_coerce_map_from(ZZ)
+            True
+            sage: K.<a> = QuadraticField(7, embedding=AA(7).sqrt()); AA.has_coerce_map_from(K)
+            True
+            sage: a in AA
+            True
+            sage: a + AA(3)
+            5.645751311064590?
+        """
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
         if from_par == AA:
@@ -767,7 +773,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
     def __init__(self):
         ParentWithGens.__init__(self, AA, ('I',), normalize=False)
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         Coerce x into the field of algebraic numbers.
 
@@ -802,17 +808,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         """
         return sib.name('QQbar')
 
-    def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
-                          sage.rings.rational.Rational)):
-            return self(x)
-        elif hasattr(x, '_algebraic_'):
-            return x._algebraic_(QQbar)
-        elif isinstance(x, AlgebraicReal):
-            return AlgebraicNumber(x._descr)
-        raise TypeError, 'no implicit coercion of element to the algebraic numbers'
-
-    def has_coerce_map_from_impl(self, from_par):
+    def _coerce_map_from_(self, from_par):
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
         if from_par == AA or from_par == QQbar:
@@ -4947,7 +4943,7 @@ def cyclotomic_generator(n):
     except KeyError:
         assert(n > 2 and n != 4)
         n = ZZ(n)
-        f = CyclotomicField(n)
+        f = CyclotomicField(n, embedding=CC.zeta(n))
         v = ANRootOfUnity(~n, QQ_1)
         g = AlgebraicGenerator(f, v)
         g.set_cyclotomic(n)
@@ -5711,7 +5707,7 @@ def _init_qqbar():
 
     AA_0 = AA(0)
 
-    QQbar_I_nf = QuadraticField(-1, 'I')
+    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen())
     # XXX change ANRoot to ANRootOfUnity below
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))

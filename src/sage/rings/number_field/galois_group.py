@@ -28,6 +28,10 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.parent_gens import ParentWithGens
 from sage.misc.cachefunc import cached_method
 from sage.libs.pari.gen import pari, PariError
+from sage.rings.infinity import infinity
+from sage.rings.number_field.number_field import refine_embedding
+from sage.rings.all import AA
+from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
 
 class GaloisGroup_v1(SageObject):
     r"""
@@ -354,6 +358,8 @@ class GaloisGroup_v2(PermutationGroup_generic):
         This function will raise an error if P is not prime or the given number
         field is not Galois.
 
+        P can also be an infinite prime, i.e. an embedding into `\RR` or `\CC`.
+
         EXAMPLE::
 
             sage: K.<a> = NumberField(x^4 - 2*x^2 + 2,'b').galois_closure()
@@ -370,13 +376,66 @@ class GaloisGroup_v2(PermutationGroup_generic):
             ...
             ValueError: Fractional ideal (17) is not prime
 
+        An example with an infinite place::
+
+            sage: L.<b> = NumberField(x^3 - 2,'a').galois_closure(); G=L.galois_group()
+            sage: x = L.places()[0]
+            sage: G.decomposition_group(x).order()
+            2
         """
         if not self.is_galois():
             raise TypeError, "Decomposition groups only defined for Galois extensions"
-        P = self.number_field().ideal_monoid()(P)
-        if not P.is_prime():
-            raise ValueError, "%s is not prime" % P
-        return self.subgroup([s for s in self if s(P) == P])
+
+        if isinstance(P, NumberFieldHomomorphism_im_gens):
+            if self.number_field().is_totally_real():
+                return self.subgroup([self.identity()])
+            else:
+                return self.subgroup([self.identity(), self.complex_conjugation(P)])
+        else:
+            P = self.number_field().ideal_monoid()(P)
+            if not P.is_prime():
+                raise ValueError, "%s is not prime" % P
+            return self.subgroup([s for s in self if s(P) == P])
+
+    def complex_conjugation(self, P=None):
+        """
+        Return the unique element of self corresponding to complex conjugation,
+        for a specified embedding P into the complex numbers. If P is not
+        specified, use the "standard" embedding, whenever that is well-defined.
+
+        EXAMPLE::
+
+            sage: L = CyclotomicField(7)
+            sage: G = L.galois_group()
+            sage: G.complex_conjugation()
+            (1,6)(2,3)(4,5)
+
+        An example where the field is not CM, so complex conjugation really
+        depends on the choice of embedding::
+
+            sage: L = NumberField(x^6 + 40*x^3 + 1372,'a')
+            sage: G = L.galois_group()
+            sage: [G.complex_conjugation(x) for x in L.places()]
+            [(1,3)(2,6)(4,5), (1,5)(2,4)(3,6), (1,2)(3,4)(5,6)]
+        """
+        if P is None:
+            Q = self.number_field().specified_complex_embedding()
+            if Q is None:
+                raise ValueError, "No default complex embedding specified"
+            P = Q
+
+        P = refine_embedding(P, infinity)
+
+        if not self.number_field().is_galois():
+            raise TypeError, "Extension is not Galois"
+        if self.number_field().is_totally_real():
+            raise TypeError, "No complex conjugation (field is real)"
+
+        g = self.number_field().gen()
+        gconj = P(g).conjugate()
+        elts = [s for s in self if P(s(g)) == gconj]
+        if len(elts) != 1: raise ArithmeticError, "Something has gone very wrong here"
+        return elts[0]
 
     def ramification_group(self, P, v):
         """

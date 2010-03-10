@@ -606,6 +606,13 @@ def solve(f, *args, **kwds):
 
         sage: solve([sin(x)==x,y^2==x],x,y)
         [sin(x) == x, y^2 == x]
+
+    Use use_grobner if no solution is obtained from to_poly_solve::
+
+       sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
+       sage: solve([c1(x,y),c2(x,y)],[x,y])
+       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(5)*sqrt(11) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(5)*sqrt(11) + 123/68]]
+
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -653,6 +660,12 @@ def solve(f, *args, **kwds):
         if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
             try:
                 s = m.to_poly_solve(variables)
+            except: # if that gives an error, stick with no solutions
+                s = []
+
+        if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
+            try:
+                s = m.to_poly_solve(variables,'use_grobner=true')
             except: # if that gives an error, stick with no solutions
                 s = []
 

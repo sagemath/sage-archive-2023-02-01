@@ -109,7 +109,10 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
                 return FiniteWords_length_k_over_OrderedAlphabet(alphabet, length)
     raise ValueError, "do not know how to make a combinatorial class of words from your input"
 
+from sage.misc.nested_class import NestedClassMetaclass
+from sage.structure.unique_representation import UniqueRepresentation
 class Words_all(InfiniteAbstractCombinatorialClass):
+    __metaclass__ = NestedClassMetaclass
     r"""
     TESTS::
 
@@ -631,9 +634,17 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         from sage.combinat.words.word import Word_class
         return isinstance(x, Word_class)
 
-    class _python_object_alphabet(object):
+    class _python_object_alphabet(UniqueRepresentation):
         r"""
         The "ordered" alphabet of all Python objects.
+
+        TESTS:
+
+        Test that #8475 is fixed::
+
+            sage: W = Words()
+            sage: A = W._python_object_alphabet()
+            sage: TestSuite(A).run()
         """
         def __contains__(self, x):
             r"""

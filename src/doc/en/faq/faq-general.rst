@@ -22,7 +22,7 @@ underlying packages for number theory research. Such software packages
 include
 `Givaro <http://ljk.imag.fr/CASYS/LOGICIELS/givaro>`_,
 `MPIR <http://www.mpir.org>`_,
-`NTL <http://www.shoup.net/ntl.>`_,
+`NTL <http://www.shoup.net/ntl>`_,
 `Pari/GP <http://pari.math.u-bordeaux.fr>`_,
 and many others too numerous to list here. Students, teachers,
 professors, researchers throughout the world use Sage because they

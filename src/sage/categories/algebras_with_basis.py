@@ -216,7 +216,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
 
             Returns the product of the two corresponding basis elements
 
-            If implemented, :met:`product` is defined from it by bilinearity.
+            If implemented, :meth:`product` is defined from it by bilinearity.
 
             EXAMPLES::
 

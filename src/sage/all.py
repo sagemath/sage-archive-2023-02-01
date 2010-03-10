@@ -131,6 +131,8 @@ import sage.stats.all as stats
 
 import sage.finance.all  as finance
 
+import sage.interacts as interacts
+
 from sage.parallel.all   import *
 
 from sage.ext.fast_callable  import fast_callable

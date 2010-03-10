@@ -140,13 +140,9 @@ This example shows how to compute the corners of a skew partition.
 
 import sage.combinat.composition
 import sage.combinat.partition
-import sage.combinat.misc as misc
-import sage.combinat.generator as generator
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import QQ
 from sage.sets.set import Set
 from sage.graphs.all import DiGraph
-from UserList import UserList
 from combinat import CombinatorialClass, CombinatorialObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.infinity import PlusInfinity
@@ -166,7 +162,7 @@ def SkewPartition(skp):
         [3, 2, 1]
     """
     if skp not in SkewPartitions():
-        raise ValueError, "invalid skew partition"
+        raise ValueError, "invalid skew partition: %s"%skp
     else:
         return SkewPartition_class(skp)
 
@@ -591,6 +587,96 @@ class SkewPartition_class(CombinatorialObject):
                     row.append(h([v]))
             m.append(row)
         return H(m)
+
+
+def from_row_and_column_length(rowL, colL):
+    """
+    Construct a partition from its row lengths and column lengths.
+
+    INPUT:
+
+     - ``rowL`` -- a composition or a list of positive integers
+     - ``colL`` -- a composition or a list of positive integers
+
+    OUTPUT:
+
+     - If it exists the unique skew-partitions with row lengths ``rowL``
+       and column lengths ``colL``.
+     - Raise a ``ValueError`` if ``rowL`` and ``colL`` are not compatible.
+
+    EXAMPLES::
+
+       sage: from sage.combinat.skew_partition import from_row_and_column_length
+       sage: print from_row_and_column_length([3,1,2,2],[2,3,1,1,1]).diagram()
+         ###
+        #
+       ##
+       ##
+       sage: from_row_and_column_length([],[])
+       [[], []]
+       sage: from_row_and_column_length([1],[1])
+       [[1], []]
+       sage: from_row_and_column_length([2,1],[2,1])
+       [[2, 1], []]
+       sage: from_row_and_column_length([1,2],[1,2])
+       [[2, 2], [1]]
+       sage: from_row_and_column_length([1,2],[1,3])
+       Traceback (most recent call last):
+       ...
+       ValueError: Sum mismatch : [1, 2] and [1, 3]
+       sage: from_row_and_column_length([3,2,1,2],[2,3,1,1,1])
+       Traceback (most recent call last):
+       ...
+       ValueError: Incompatible row and column length : [3, 2, 1, 2] and [2, 3, 1, 1, 1]
+
+    .. warning::
+
+       If some rows and columns have length zero, there is no way to retrieve
+       unambiguously the skew partition. We therefore raise a ValueError. For
+       examples here are two skew partitions with the same row and column
+       lengths::
+
+           sage: skp1 = SkewPartition([[2,2],[2,2]])
+           sage: skp2 = SkewPartition([[2,1],[2,1]])
+           sage: skp1.row_lengths(), skp1.column_lengths()
+           ([0, 0], [0, 0])
+           sage: skp2.row_lengths(), skp2.column_lengths()
+           ([0, 0], [0, 0])
+           sage: from_row_and_column_length([0,0], [0,0])
+           Traceback (most recent call last):
+           ...
+           ValueError: row and column length must be positive
+
+    TESTS::
+
+       sage: all(from_row_and_column_length(p.row_lengths(), p.column_lengths()) == p
+       ...         for i in range(8) for p in SkewPartitions(i))
+       True
+    """
+    if sum(rowL) != sum(colL):
+        raise ValueError, "Sum mismatch : %s and %s"%(rowL, colL)
+    if not all(i>0 for i in rowL) or not all(i>0 for i in colL):
+        raise ValueError, "row and column length must be positive"
+    if rowL == []:
+        return SkewPartition([[],[]])
+    colL_new = colL[:]
+    resIn  = []
+    resOut = []
+    inPOld = len(colL)
+    for row in rowL:
+        inP = len(colL_new) - row
+        if inP < 0 or inP > inPOld:
+            raise ValueError, "Incompatible row and column length : %s and %s"%(rowL, colL)
+        inPOld = inP
+        resIn.append(inP)
+        resOut.append(len(colL_new))
+        for iCol in range(inP, len(colL_new)):
+            colL_new[iCol] -= 1;
+            if colL_new[iCol] < 0:
+                raise ValueError, "Incompatible row and column length : %s and %s"%(rowL, colL)
+        while colL_new != [] and colL_new[-1] == 0:
+            colL_new.pop()
+    return SkewPartition([resOut, filter(lambda x:x, resIn)])
 
 
 def row_lengths_aux(skp):
@@ -1052,9 +1138,6 @@ class SkewPartitions_rowlengths(CombinatorialClass):
         for sskp in SkewPartitions(row_lengths=co[:-1], overlap=overlap):
             result += self._from_row_lengths_aux(sskp, co[-2], co[-1], overlap)
         return result
-
-
-
 
 
 

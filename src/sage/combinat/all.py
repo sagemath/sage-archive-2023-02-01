@@ -18,7 +18,11 @@ from symmetric_group_representations import SymmetricGroupRepresentation, Symmet
 from yang_baxter_graph import YangBaxterGraph
 #from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
+#Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
+
+#PerfectMatchings
+from perfect_matching import PerfectMatching, PerfectMatchings
 
 # Integer lists lex
 

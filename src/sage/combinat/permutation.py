@@ -2609,7 +2609,29 @@ class Permutation_class(CombinatorialObject):
             i -= 1
         return Permutation_class(self[:i+1])
 
+    def coset_type(self):
+        from sage.combinat.perfect_matching import PerfectMatchings
+        r"""
+        returns the coset type of ``self``, which must be a permutation of even
+        size `2n`. The coset-type determines the double class of the
+        permutation, that is its image in `H_n \ S_2n / H_n`, where `H_n` is the
+        hyperoctahedral group of order `n`. See I. G. Macdonald, Symmetric
+        functions and Hall polynomials, Oxford University Press, second edition,
+        1995 (chapter VII) for more details.
 
+        EXAMPLE::
+
+            sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).coset_type()
+            [3, 1]
+            sage: all([p.coset_type()==p.inverse().coset_type()
+            ...         for p in Permutations(4)])
+            True
+        """
+        n = len(self)
+        if n%2==1:
+            raise ValueError, "%s is a permutation of odd size and has no coset-type"%p
+        S=PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
+        return S.loop_type(S.conjugate_by_permutation(self))
 
 ################################################################
 

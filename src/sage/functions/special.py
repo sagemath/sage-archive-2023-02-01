@@ -1454,7 +1454,7 @@ def exp_int(t):
 
         sage: exp_int(6)
         doctest:...: DeprecationWarning: The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
-        0.000360082452162655
+        0.000360082452162659
     """
     from sage.misc.misc import deprecation
     deprecation("The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")

@@ -65,6 +65,19 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
+We test that bug #8415 (caused by a Pari bug fixed in v2.3.5) is OK::
+
+    sage: E = EllipticCurve('37a')
+    sage: K.<a> = QuadraticField(-7)
+    sage: EK = E.change_ring(K)
+    sage: EK.period_lattice(K.complex_embeddings()[0])
+    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with respect to the embedding Ring morphism:
+      From: Number Field in a with defining polynomial x^2 + 7
+      To:   Algebraic Field
+      Defn: a |--> -2.645751311064591?*I
+
+
+
 AUTHORS:
 
 - ?: initial version.

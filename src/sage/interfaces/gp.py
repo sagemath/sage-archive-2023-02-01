@@ -474,7 +474,7 @@ class Gp(Expect):
         EXAMPLES::
 
             sage: gp.version()
-            ((2, 3, 3), 'GP/PARI CALCULATOR Version 2.3.3 (released)')
+            ((2, 3, 5), 'GP/PARI CALCULATOR Version 2.3.5 (released)')
         """
         return gp_version()
 

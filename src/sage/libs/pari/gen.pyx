@@ -8400,7 +8400,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             return self.ZERO
 
         cdef GEN g
-        _sig_on
         t = str(s)
         _sig_str('evaluating PARI string')
         g = gp_read_str(t)

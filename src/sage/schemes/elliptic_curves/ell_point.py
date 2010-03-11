@@ -1518,6 +1518,21 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             False
             sage: (4*P).has_good_reduction()
             True
+
+        TESTS:
+
+        An example showing that #8498 is fixed::
+
+            sage: E = EllipticCurve('11a1')
+            sage: K.<t> = NumberField(x^2+47)
+            sage: EK = E.base_extend(K)
+            sage: T = EK(5,5)
+            sage: P = EK(-2, -1/2*t - 1/2)
+            sage: p = K.ideal(11)
+            sage: T.has_good_reduction(p)
+            False
+            sage: P.has_good_reduction(p)
+            True
         """
         if self.is_zero():       # trivial case
             return True
@@ -1550,10 +1565,20 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             pie = pi**e
             xyz = [c/pie for c in xyz]
 
-        # Evaluate the partial derivatives at the point to see if they are zero mod P:
+        # Evaluate the partial derivatives at the point to see if they
+        # are zero mod P
+
+        # See #8498: sometimes evaluating F's derivatives at xyz
+        # returns a constant polynomial instead of a constant
+
         F = Emin.defining_polynomial()
         for v in F.variables():
-            if F.derivative(v)(xyz).valuation(P) == 0:
+            c = (F.derivative(v))(xyz)
+            try:
+                val = c.valuation(P)
+            except AttributeError:
+                val = c.constant_coefficient().valuation(P)
+            if val == 0:
                 return True
         return False
 

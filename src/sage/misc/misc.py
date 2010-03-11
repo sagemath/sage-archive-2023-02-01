@@ -2343,3 +2343,40 @@ def inject_variable_test(name, value, depth):
         inject_variable(name, value)
     else:
         inject_variable_test(name, value, depth - 1)
+
+from functools import update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
+from sage.misc.sageinspect import sage_getsource
+
+def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
+    """
+    Decorator factory to apply update_wrapper() to a wrapper function,
+    and additionally add a _sage_src_ attribute for Sage introspection.
+
+    Use this exactly like @wraps from the functools module.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import sage_wraps
+        sage: def square(f):
+        ...     @sage_wraps(f)
+        ...     def new_f(x):
+        ...         return f(x)*f(x)
+        ...     return new_f
+        sage: @square
+        ... def g(x):
+        ...     "My little function"
+        ...     return x
+        sage: g(2)
+        4
+        sage: g(x)
+        x^2
+        sage: g._sage_src_()
+        '@square...def g(x)...'
+        sage: g.__doc__
+        'My little function'
+    """
+    def f(wrapper):
+        update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
+        wrapper._sage_src_=lambda: sage_getsource(wrapped)
+        return wrapper
+    return f

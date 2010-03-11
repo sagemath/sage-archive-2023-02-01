@@ -164,6 +164,7 @@ from sage.misc.misc import add, prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 import sage.groups.group as group
 from sage.rings.integer_ring import IntegerRing
+from sage.rings.arith import lcm
 ZZ = IntegerRing()
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
@@ -611,13 +612,15 @@ class AbelianGroup_class(group.AbelianGroup):
             Multiplicative Abelian Group isomorphic to C2 x C3 x C7
             sage: G.exponent()
             42
+            sage: G = AbelianGroup([2,4,6]); G
+            Multiplicative Abelian Group isomorphic to C2 x C4 x C6
+            sage: G.exponent()
+            12
         """
-        from sage.interfaces.all import gap
         try:
             return self.__exponent
         except AttributeError:
-            e = Integer(gap(self).Exponent())
-            self.__exponent = e
+            self.__exponent = e = lcm(self.invariants())
             return e
 
 

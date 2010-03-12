@@ -338,7 +338,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k = GF(next_prime(7^5))
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
-            (751 : 6230 : 1)
+            (16740 : 12486 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -349,7 +349,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
-            (a^4 + a + 5 : 6*a^4 + 3*a^3 + 2*a^2 + 4 : 1)
+            (2*a^4 + 3*a^3 + 5*a^2 + 6*a + 4 : 6*a^4 + 4*a^3 + a + 6 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -360,11 +360,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(2^5)
             sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
             sage: P = E.random_element(); P
-            (a^4 : 0 : 1)
+            (a^4 + a^2 + 1 : a^3 + a : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
             True
+
+        Ensure that the entire point set is reachable::
+
+            sage: E = EllipticCurve(GF(11), [2,1])
+            sage: len(set(E.random_element() for _ in range(100)))
+            16
+            sage: E.cardinality()
+            16
 
         TESTS:
 
@@ -390,7 +398,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             1
 
         """
-        random = current_randstate().python_random().random
+        random = current_randstate().c_rand_double
         k = self.base_field()
         q = k.order()
 
@@ -409,10 +417,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return self(0)
 
         while True:
-            try:
-                return self.lift_x(k.random_element())
-            except:
-                pass
+            v = self.lift_x(k.random_element(), all=True)
+            if v:
+                return v[int(random() * len(v))]
 
     random_point = random_element
 
@@ -1301,9 +1308,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         EXAMPLES::
 
-            sage: E=EllipticCurve(GF(11),[2,5]) # random output
-            sage: E.gens()
-            ((0 : 4 : 1),)
+            sage: E=EllipticCurve(GF(11),[2,5])
+            sage: E.gens()                           # random output
+            ((0 : 7 : 1),)
             sage: EllipticCurve(GF(41),[2,5]).gens() # random output
             ((21 : 1 : 1), (8 : 0 : 1))
             sage: F.<a>=GF(3^6,'a')

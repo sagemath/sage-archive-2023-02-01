@@ -25,6 +25,7 @@ cdef class CategoryObject(sage_object.SageObject):
     cdef public _names # will be _printer
     cdef public _factory_data
     cdef object __weakref__
+    cdef long _hash_value
 
 #    cpdef Generators gens(self, category = *)
 #    cpdef gen(self, index = *, category = *)

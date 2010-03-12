@@ -135,6 +135,9 @@ cdef class CategoryObject(sage_object.SageObject):
         if category is not None:
             self._init_category_(category)
 
+    def __cinit__(self):
+        self._hash_value = -1
+
     def _init_category_(self, category):
         """
         Sets the category or categories of this object.
@@ -742,6 +745,26 @@ cdef class CategoryObject(sage_object.SageObject):
             raise
             #raise RuntimeError, "If you change the pickling code in parent or category_object, you need to update the _pickle_version field"
 
+    def __hash__(self):
+        """
+        A default hash is provide based on the string representation of the
+        self. It is cached to remain consistent throughout a session, even
+        if the representation changes.
+
+        EXAMPLES::
+
+            sage: bla = PolynomialRing(ZZ,"x")
+            sage: hash(bla)
+            -5279516879544852222  # 64-bit
+            -1056120574           # 32-bit
+            sage: bla.rename("toto")
+            sage: hash(bla)
+            -5279516879544852222  # 64-bit
+            -1056120574           # 32-bit
+        """
+        if self._hash_value == -1:
+            self._hash_value = hash(repr(self))
+        return self._hash_value
 
 #     #################################################################################
 #     # Morphisms of objects with generators

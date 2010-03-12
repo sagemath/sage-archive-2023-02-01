@@ -222,6 +222,7 @@ from sage.structure.element import coerce_binop
 from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
+from sage.structure.category_object cimport CategoryObject
 
 from sage.structure.element cimport EuclideanDomainElement
 from sage.structure.element cimport RingElement
@@ -1359,6 +1360,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         return self.__singular
 
+    # It is required in cython to redefine __hash__ when __richcmp__ is
+    # overloaded. Also just writing
+    #         __hash__ = CategoryObject.__hash__
+    # doesn't work.
     def __hash__(self):
         """
         Return a hash for this ring, that is, a hash of the string
@@ -1371,7 +1376,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             967902441410893180 # 64-bit
             -1767675994        # 32-bit
         """
-        return hash(self.__repr__())
+        return CategoryObject.__hash__(self)
 
     def __richcmp__(left, right, int op):
         r"""

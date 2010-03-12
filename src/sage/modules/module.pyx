@@ -69,9 +69,6 @@ cdef class Module_old(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
         """
         return False
 
-    def __hash__(self):
-        return hash(self.__repr__())
-
 
 
 
@@ -109,6 +106,16 @@ cdef class Module(sage.structure.parent.Parent):
         sage: M_QQ = Module(QQ)
         sage: M_QQ.category()
         Category of vector spaces over Rational Field
+
+     TESTS:
+
+     We check for #8119::
+
+        sage: M = ZZ^3
+        sage: h = M.__hash__()
+        sage: M.rename('toto')
+        sage: h == M.__hash__()
+        True
     """
 
     def __init__(self, base):
@@ -171,24 +178,6 @@ cdef class Module(sage.structure.parent.Parent):
         """
         return False
 
-
-    def __hash__(self):
-        """
-        Return a hash value for the :class:`Module` instance.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modules.module import Module
-            sage: M = Module(ZZ)
-            sage: M.__hash__()
-            1969817954           # 32-bit
-            6190647798068218210  # 64-bit
-        """
-        return hash(self.__repr__())
 
 
 

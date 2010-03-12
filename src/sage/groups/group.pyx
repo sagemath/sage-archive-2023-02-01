@@ -34,6 +34,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
 
         TESTS::
+
             sage: from sage.groups.group import Group
             sage: G = Group()
             sage: G.category()
@@ -45,6 +46,14 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             Traceback (most recent call last):
             ...
             AssertionError: Category of commutative additive groups is not a subcategory of Category of groups
+
+         Check for #8119::
+
+            sage: G = SymmetricGroup(2)
+            sage: h = hash(G)
+            sage: G.rename('S2')
+            sage: h == hash(G)
+            True
         """
         from sage.categories.basic import Groups
         if category is None:
@@ -179,19 +188,6 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             True
         """
         return True
-
-    def __hash__(self):
-        """
-        Returns the hash value of the group (from its string
-        representation).
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: h = hash(G)       #indirect doctest
-        """
-        return hash(self.__repr__())
 
     def random_element(self, bound=None):
         """

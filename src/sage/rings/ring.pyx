@@ -1177,17 +1177,6 @@ cdef class Ring(ParentWithGens):
             return 1
         raise NotImplementedError
 
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-            sage: hash(ZZ)
-            554590422
-        """
-        return hash(self.__repr__())
-
     def zeta(self, n=2, all=False):
         """
         Return an n-th root of unity in self if there is one,

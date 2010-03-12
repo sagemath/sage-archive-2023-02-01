@@ -1,5 +1,12 @@
 #!/bin/sh
 
+mv -f src/GNUmakefile src/Makefile
+
+if [ $? -ne 0 ]; then
+    echo "Error patching PALP."
+    exit 1
+fi
+
 cd src
 
 make

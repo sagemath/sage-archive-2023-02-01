@@ -34,6 +34,12 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.4 (Burcin Erocal and Alexander Dreyer, March 12th, 2010) ===
+ * upgraded to current upstream release
+ * removed obsolete patches (SConstruct, cpu_stats.c)
+ * removed obsolete work arounds (delete shared libraries and touch pbori.pyx)
+
+
 === polybori-0.6.3-r1647-20091028 (Martin Albrecht, October 29th, 2009) ===
  * upgraded to current mercurial tip (which did pass the PolyBoRi testsuite last night)
 

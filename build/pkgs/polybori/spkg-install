@@ -6,14 +6,14 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.6
+PBDIR=polybori-0.6.4
 WORKDIR=${PWD}/src
 SCONS=scons
 
 # For some strange reason the installed boost in $SAGE_LOCAL causes
 # make install failures, so copy it over.
-mkdir src/boost_1_34_1.cropped
-cp -r $SAGE_LOCAL/include/boost src/boost_1_34_1.cropped
+#mkdir src/boost_1_34_1.cropped
+#cp -r $SAGE_LOCAL/include/boost src/boost_1_34_1.cropped
 BOOSTDIR=boost_1_34_1.cropped
 
 patch()
@@ -26,9 +26,6 @@ patch()
 
     cp patches/SConstruct src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
-
-    # workaround so will build on cygwin
-    cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
 }
 
 
@@ -68,7 +65,7 @@ clean_polybori()
 
 remove_dylib()
 {
-    # linking dynmic libraries causes segfaults at exit (see #2822)
+    # linking dynamic libraries causes segfaults at exit (see #2822)
     if [ `uname` = "Darwin" ]; then
         rm -f $SAGE_LOCAL/lib/libpolybori.dylib
         rm -f $SAGE_LOCAL/lib/libpboriCudd.dylib
@@ -99,11 +96,5 @@ install_polybori
 echo "Done installing PolyBoRi."
 
 echo "Removing dynamic libraries..."
-remove_dylib
+#remove_dylib
 echo "Done removing dynamic libraries."
-
-# force a rebuild of the PolyBoRi extension
-if [ -f $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx ]; then
-    touch $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx
-fi
-

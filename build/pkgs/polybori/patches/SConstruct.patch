@@ -15,15 +15,6 @@
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
  opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
-@@ -321,7 +327,7 @@
- Help(opts.GenerateHelpText(env))
- 
- have_l2h = have_t4h = False
--external_m4ri = False
-+external_m4ri = True
- 
- if not env.GetOption('clean'):
-     conf = Configure(env)
 @@ -511,8 +517,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:

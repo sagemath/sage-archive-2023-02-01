@@ -10,7 +10,7 @@ opts = Variables('custom.py')
 # Some hard-coded settings
 pboriname = 'PolyBoRi'
 pboriversion = "0.6"
-pborirelease = "3"
+pborirelease = "4"
 
 libraryversion = "0.0.0"
 debname = "polybori-" + pboriversion
@@ -101,6 +101,8 @@ if distribute or rpm_generation or deb_generation:
         return arg
 
 defaultenv = Environment()
+if defaultenv['PLATFORM'] == "darwin":
+    defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
 
 # See also:  http://trac.sagemath.org/sage_trac/ticket/6437
 def sun_linker_detected():
@@ -122,8 +124,9 @@ def sonameprefix(env):
     else:
         return '-Wl,-soname,'
 
+if 'dump_default' in COMMAND_LINE_TARGETS:
+  print defaultenv.Dump()
 
-#print defaultenv.Dump()
 # Define option handle, may be changed from command line or custom.py
 opts.Add('CXX', 'C++ Compiler',  defaultenv['CXX'])
 opts.Add('CC', 'C Compiler', defaultenv['CC'])
@@ -144,9 +147,23 @@ opts.Add('CCFLAGS', "C/C++ compiler flags", "-O3", converter = Split)
 
 opts.Add('CFLAGS', "C compiler flags", "-std=c99",
          converter = Split)
-opts.Add('CXXFLAGS', "C++ compiler flags",
-         "-std=c++98 -ftemplate-depth-100",
+opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
          converter = Split)
+
+for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+    if defaultenv.has_key(var):
+        opts.Add(var, "inherited from SCons", defaultenv[var])
+    else:
+        print "Variable", var, "not in default environment!"
+
+for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
+    if defaultenv.has_key(flag):
+        opts.Add(flag, "flags inherited from SCons",
+             defaultenv[flag], converter = Split)
+    else:
+        print "Flags", flag, "not in default environment!"
+
 #The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
 # opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 # Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
@@ -154,6 +171,7 @@ if os.environ['SAGE64'] == "yes":
          opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
 #End modifications
 
+#opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
 
 opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
@@ -179,6 +197,9 @@ opts.Add(BoolVariable('HAVE_PYTHON_EXTENSION',
                     'Build python extension, if possible', True))
 opts.Add(BoolVariable('BOOST_WORKS',
                     'Skip check for Boost libraries', False))
+
+opts.Add('BOOST_LIBRARY',
+         'Name of Boost library to link with', 'boost_python')
 
 opts.Add(BoolVariable('RELATIVE_SYMLINK',
                     'Use relative symbolic links on install', True))
@@ -243,6 +264,9 @@ for key in ['PATH', 'HOME', 'LD_LIBRARY_PATH'] :
 
 env = Environment(ENV = getenv, options = opts, tools = tools, toolpath = '.')
 
+if 'dump' in COMMAND_LINE_TARGETS:
+  print env.Dump()
+
 # Extract some option values
 HAVE_DOXYGEN = env['HAVE_DOXYGEN'] and ("doxygen" in tools)
 HAVE_PYTHON_EXTENSION = env['HAVE_PYTHON_EXTENSION']
@@ -258,7 +282,6 @@ if HAVE_DOXYGEN:
         print "Doxygen not found, skipping C++-documentation generation!"
 
 
-#print env.Dump()
 
 # soname related stuff
 def _sonamecmd(prefix, target, suffix, env = env):
@@ -327,7 +350,7 @@ env.AppendUnique(PYTHONSITE = pyconf.sitedir)
 Help(opts.GenerateHelpText(env))
 
 have_l2h = have_t4h = False
-external_m4ri = True
+external_m4ri = False
 
 if not env.GetOption('clean'):
     conf = Configure(env)
@@ -461,12 +484,9 @@ cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                'cudd/cuddInt.h'] ]
 
 env.Append(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
-visibility_hidden=(env['PLATFORM']=="darwin")
+
 def shared_object(o):
-    if not visibility_hidden:
-        return env.SharedObject(o)
-    else:
-        return env.SharedObject(o,CCFLAGS=env["CCFLAGS"]+["-fvisibility=hidden"],CXXFLAGS=env["CXXFLAGS"]+["-fvisibility=hidden"])
+    return env.SharedObject(o)
 
 for fdir in Split("cudd mtr st epd"):
     env.Append( CPPPATH=[CuddPath(fdir)] )
@@ -561,7 +581,7 @@ gb_src=Split("groebner.cc literal_factorization.cc randomset.cc pairs.cc groebne
 gb_src = [GBPath('src', source) for source in gb_src]
 if not(external_m4ri):
    gb_src += m4ri
-gb=env.StaticLibrary(GBPath('groebner'), gb_src+[libpb])
+gb=env.StaticLibrary(GBPath('groebner'), gb_src)#+[libpb])
 
 #print "gb:", gb, dir(gb)
 #sometimes l seems to be boxed by a list
@@ -593,7 +613,7 @@ for t in tests_gb:
         CPPPATH=CPPPATH)
 
 
-LIBS = env['LIBS']+['boost_python']+USERLIBS
+LIBS = env['LIBS']+[env['BOOST_LIBRARY']]+USERLIBS
 
 LIBS_static = ["polybori", 'groebner', cudd_name] + LIBS
 #env["CPPDEFINES"].Append("Packed")
@@ -632,15 +652,14 @@ if HAVE_PYTHON_EXTENSION:
             wrapper_files + shared_resources,
             LINKFLAGS="-bundle_loader " + python_absolute,
             LIBS = pyconf.libs + LIBS,LDMODULESUFFIX=".so",
-            CPPPATH=CPPPATH,CCFLAGS=env["CCFLAGS"]+["-fvisibility=hidden"],CXXFLAGS=env["CXXFLAGS"]+["-fvisibility=hidden"])
+            CPPPATH=CPPPATH)
     else:
         #print "l:", l
         pypb=env.SharedLibrary(PyPBPath('PyPolyBoRi'),
             wrapper_files + shared_resources,
             LDMODULESUFFIX=".so",SHLIBPREFIX="", LIBS = LIBS,
             CPPPATH=CPPPATH)
-            #LIBS=env['LIBS']+['boost_python',l])#,LDMODULESUFFIX=".so",\
-            #SHLIBPREFIX="")
+
     DefaultBuild(pypb)
 
     # Define the dynamic python modules in pyroot
@@ -734,14 +753,12 @@ if HAVE_SINGULAR_EXTENSION:
         singpb=env.LoadableModule('Singular/polybori_module', wrapper_files,
             LINKFLAGS="-bundle_loader " + SINGULAR_HOME+"Singular/Singular",
             LIBS=SINGULAR_LIBS,LDMODULESUFFIX=".so",
-            CPPPATH=SING_INCLUDES+CPPPATH,CCFLAGS=env["CCFLAGS"]+["-fvisibility=hidden"],CXXFLAGS=env["CXXFLAGS"]+["-fvisibility=hidden"])
+            CPPPATH = SING_INCLUDES + CPPPATH)
     else:
         #print "l:", l
         singpb=env.SharedLibrary('Singular/polybori_module', wrapper_files,
             LDMODULESUFFIX=".so",SHLIBPREFIX="", LIBS=SINGULAR_LIBS,
             CPPPATH=SING_INCLUDES+CPPPATH)
-            #LIBS=env['LIBS']+['boost_python',l])#,LDMODULESUFFIX=".so",\
-            #SHLIBPREFIX="")
     DefaultBuild(singpb)
 
 
@@ -751,7 +768,7 @@ env.Append(DISTTAR_EXCLUDEEXTS = Split(""".o .os .so .a .dll .cache .pyc
            .cvsignore .dblite .log .sconsign .depend .out .graphViz_temp
            .kprof.html .rpm .spec .so.0 .so.0.0.0 .0"""),
            DISTTAR_EXCLUDEDIRS = Split("""CVS .svn .sconf_temp SOURCES BUILD
-           aux"""),
+           auxiliary"""),
            DISTTAR_EXCLUDEPATTERN = Split(""".#* #*# *~ profiled cacheopts.h
            coding.py """))
 

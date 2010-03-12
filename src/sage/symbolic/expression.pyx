@@ -3171,7 +3171,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS::
 
-            # no arguments return the same expression
+            sage: # no arguments return the same expression
             sage: t.subs()
             (x + y)^3 + a^2 + b^2
 

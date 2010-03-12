@@ -2756,30 +2756,28 @@ class Graph(GenericGraph):
 
     def _gomory_hu_tree(self, vertices=None):
         r"""
-        Returns the Gomory-Hu tree associated to self (private function)
+        Returns a Gomory-Hu tree associated to self.
 
-        This function is the privatre counterpart of ``gomory_hu_tree``,
-        with the difference that it accepts an optional argument
+        This function is the private counterpart of ``gomory_hu_tree()``,
+        with the difference that it has an optional argument
         needed for recursive computations, which the user is not
-        interested in defining by himself.
+        interested in defining himself.
 
-        See the documentation of ``gomory_hu_tree`` for more information.
+        See the documentation of ``gomory_hu_tree()`` for more information.
 
         INPUT:
 
-        - ``vertices`` -- a set of ''real'' vertices, as opposed to the
+        - ``vertices`` - a set of "real" vertices, as opposed to the
           fakes one introduced during the computations. This variable is
-          useful for the algorithm, and I see no reason for the user to
-          change it.
+          useful for the algorithm and for recursion purposes.
 
         EXAMPLE:
 
-        This function is actually tested in ``gomory_hu_tree``, this
-        example is only present to have a doctest coverage of 100%
+        This function is actually tested in ``gomory_hu_tree()``, this
+        example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
             sage: t = g._gomory_hu_tree()      # optional - requires GLPK or CBC
-
         """
         from sage.sets.set import Set
 
@@ -2819,9 +2817,10 @@ class Graph(GenericGraph):
         # Take any two vertices
         u,v = vertices[0:2]
 
-        # flow = connectivity between u and v
-        # edges = min cut
-        # sets1, sets2 = the two sides of the edge cut
+        # Recovers the following values
+        # flow is the connectivity between u and v
+        # edges of a min cut
+        # sets1, sets2 are the two sides of the edge cut
         flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True)
 
         # One graph for each part of the previous one
@@ -2875,16 +2874,18 @@ class Graph(GenericGraph):
 
     def gomory_hu_tree(self):
         r"""
-        Returns the Gomory-Hu tree associated to self.
+        Returns a Gomory-Hu tree of self.
 
-        Given a tree `T` with labelled edges representing capacities, it is very
+        Given a tree `T` with labeled edges representing capacities, it is very
         easy to determine the maximal flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
-        Given a graph `G`, the Gomory-Hu tree `T` of `G`, is a tree
+        Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
         with the same set of vertices, and such that the maximal flow
-        between any two vertices is the same in `G` and in `T`.
+        between any two vertices is the same in `G` as in `T`.
         (see http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree)
+        Note that, in general, a graph admits more than one Gomory-Hu
+        tree.
 
         OUTPUT:
 
@@ -2916,7 +2917,7 @@ class Graph(GenericGraph):
             sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ]) # optional - requires GLPK or CBC
             True
 
-        Just to make sure, let's check the same is true for two vertices
+        Just to make sure, we can check that the same is true for two vertices
         in a random graph::
 
             sage: g = graphs.RandomGNP(20,.3)

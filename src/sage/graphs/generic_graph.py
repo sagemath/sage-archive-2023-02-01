@@ -3035,28 +3035,28 @@ class GenericGraph(GenericGraph_pyx):
         represented by a list of edges.
 
         A minimum edge cut between two vertices `s` and `t` of self
-        is a set `U` of edges of minimum weight such that the graph
-        obtained by removing `U` from self is disconnected.
+        is a set `A` of edges of minimum weight such that the graph
+        obtained by removing `A` from self is disconnected.
         ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
 
         INPUT:
 
-        - ``s`` -- source vertex
-        - ``t`` -- sink vertex
-        - ``value_only`` -- boolean (default: True). When set to
+        - ``s`` - source vertex
+        - ``t`` - sink vertex
+        - ``value_only`` - boolean (default: True). When set to
           True, only the weight of a minimum cut is returned.
           Otherwise, a list of edges of a minimum cut is also returned.
-        - ``use_edge_labels`` -- boolean (default: False). When set to
+        - ``use_edge_labels`` - boolean (default: False). When set to
           True, computes a weighted minimum cut where each edge has
           a weight defined by its label (if an edge has no label, `1`
           is assumed). Otherwise, each edge has weight `1`.
-        - ``vertices`` -- boolean (default: False). When set to True,
+        - ``vertices`` - boolean (default: False). When set to True,
           also returns the two sets of vertices that are disconnected by
           the cut. Implies ``value_only=False``.
 
         OUTPUT:
 
-        real number or tuple, depending on the arguments given
+        real number or tuple, depending on the given arguments
         (examples are given below)
 
         EXAMPLES:
@@ -3084,12 +3084,12 @@ class GenericGraph(GenericGraph_pyx):
 
         The two sides of the edge cut are obviously shorter paths::
 
-           sage: value,edges,[set1,set2] = g.edge_cut(0, 14, use_edge_labels=True, vertices=True)  # optional - requires Glpk or COIN-OR/CBC
-           sage: g.subgraph(set1).is_isomorphic(graphs.PathGraph(len(set1)))                     # optional - requires Glpk or COIN-OR/CBC
+           sage: value,edges,[set1,set2] = g.edge_cut(0, 14, use_edge_labels=True, vertices=True)  # optional - requires GLPK or COIN-OR/CBC
+           sage: g.subgraph(set1).is_isomorphic(graphs.PathGraph(len(set1))) # optional - requires GLPK or COIN-OR/CBC
            True
-           sage: g.subgraph(set2).is_isomorphic(graphs.PathGraph(len(set2)))                     # optional - requires Glpk or COIN-OR/CBC
+           sage: g.subgraph(set2).is_isomorphic(graphs.PathGraph(len(set2))) # optional - requires GLPK or COIN-OR/CBC
            True
-           sage: len(set1) + len(set2) == g.order()                                                # optional - requires Glpk or COIN-OR/CBC
+           sage: len(set1) + len(set2) == g.order() # optional - requires GLPK or COIN-OR/CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -3167,42 +3167,42 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``value_only`` -- boolean (default: True). When set to
+        - ``value_only`` - boolean (default: True). When set to
           True, only the size of the minimum cut is returned
-        - ``vertices`` -- boolean (default: False). When set to
+        - ``vertices`` - boolean (default: False). When set to
           True, also returns the two sets of vertices that
           are disconnected by the cut. Implies ``value_only``
           set to False.
 
         OUTPUT:
 
-        real number or tuple, depending on the arguments given
+        real number or tuple, depending on the given arguments
         (examples are given below)
 
         EXAMPLE:
 
-        A basic application in a Pappus graph::
+        A basic application in the Pappus graph::
 
            sage: g = graphs.PappusGraph()
-           sage: g.vertex_cut(1, 16, value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: g.vertex_cut(1, 16, value_only=True) # optional - requires GLPK or COIN-OR/CBC
            3.0
 
         In the bipartite complete graph `K_{2,8}`, a cut between the two
         vertices in the size `2` part consists of the other `8` vertices::
 
            sage: g = graphs.CompleteBipartiteGraph(2, 8)
-           sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False) # optional - requires Glpk or COIN-OR/CBC
-           sage: print value # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False) # optional - requires GLPK or COIN-OR/CBC
+           sage: print value # optional - requires GLPK or COIN-OR/CBC
            8.0
-           sage: vertices == range(2,10) # optional - requires Glpk or COIN-OR/CBC
+           sage: vertices == range(2,10) # optional - requires GLPK or COIN-OR/CBC
            True
 
         Clearly, in this case the two sides of the cut are singletons ::
 
-           sage: [value, vertices, [set1, set2]] = g.vertex_cut(0,1, vertices=True) # optional - requires Glpk or COIN-OR/CBC
-           sage: len(set1) == 1 # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, vertices, [set1, set2]] = g.vertex_cut(0,1, vertices=True) # optional - requires GLPK or COIN-OR/CBC
+           sage: len(set1) == 1 # optional - requires GLPK or COIN-OR/CBC
            True
-           sage: len(set2) == 1 # optional - requires Glpk or COIN-OR/CBC
+           sage: len(set2) == 1 # optional - requires GLPK or COIN-OR/CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -3271,7 +3271,7 @@ class GenericGraph(GenericGraph_pyx):
         by a list of vertices.
 
         A minimum vertex cover of a graph is a set `S` of
-        its vertices such that each edge is incident to at least
+        vertices such that each edge is incident to at least
         one element of `S`, and such that `S` is of minimum
         cardinality.
         ( cf. http://en.wikipedia.org/wiki/Vertex_cover )

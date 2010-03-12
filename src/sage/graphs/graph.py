@@ -2753,6 +2753,185 @@ class Graph(GenericGraph):
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
 
+
+    def _gomory_hu_tree(self, vertices=None):
+        r"""
+        Returns the Gomory-Hu tree associated to self (private function)
+
+        This function is the privatre counterpart of ``gomory_hu_tree``,
+        with the difference that it accepts an optional argument
+        needed for recursive computations, which the user is not
+        interested in defining by himself.
+
+        See the documentation of ``gomory_hu_tree`` for more information.
+
+        INPUT:
+
+        - ``vertices`` -- a set of ''real'' vertices, as opposed to the
+          fakes one introduced during the computations. This variable is
+          useful for the algorithm, and I see no reason for the user to
+          change it.
+
+        EXAMPLE:
+
+        This function is actually tested in ``gomory_hu_tree``, this
+        example is only present to have a doctest coverage of 100%
+
+            sage: g = graphs.PetersenGraph()
+            sage: t = g._gomory_hu_tree()      # optional - requires GLPK or CBC
+
+        """
+        from sage.sets.set import Set
+
+        # The default capacity of an arc is 1
+        capacity = lambda label: label if label is not None else 1
+
+        # Keeping the graph's embedding
+        pos = False
+
+        # Small case, not really a problem ;-)
+        if self.order() == 1:
+            return copy(g)
+
+        # This is a sign that this is the first call
+        # to this recursive function
+        if vertices is None:
+            # Now is the time to care about positions
+            pos = self.get_pos()
+
+            # if the graph is not connected, returns the union
+            # of the Gomory-Hu tree of each component
+            if not self.is_connected():
+                g = Graph()
+                for cc in self.connected_components_subgraphs():
+                    g = g.union(cc._gomory_hu_tree())
+                g.set_pos(self.get_pos())
+                return g
+            # All the vertices is this graph are the "real ones"
+            vertices = Set(self.vertices())
+
+        # There may be many vertices, though only one which is "real"
+        if len(vertices) == 1:
+            g = Graph()
+            g.add_vertex(vertices[0])
+            return g
+
+        # Take any two vertices
+        u,v = vertices[0:2]
+
+        # flow = connectivity between u and v
+        # edges = min cut
+        # sets1, sets2 = the two sides of the edge cut
+        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True)
+
+        # One graph for each part of the previous one
+        g1,g2 = self.subgraph(set1), self.subgraph(set2)
+
+        # Adding the fake vertex to each part
+        g1_v = Set(set2)
+        g2_v = Set(set1)
+        g1.add_vertex(g1_v)
+        g1.add_vertex(g2_v)
+
+        # Each part of the graph had many edges going to the other part
+        # Now that we have a new fake vertex in each part
+        # we just say that the edges which were in the cut and going
+        # to the other side are now going to this fake vertex
+
+        # We must preserve the labels. They sum.
+
+        for x,y in edges:
+            # Assumes x is in g1
+            if x in g2:
+                x,y = y,x
+            # If the edge x-g1_v exists, adds to its label the capacity of arc xy
+            if g1.has_edge(x, g1_v):
+                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + capacity(self.edge_label(x, y)))
+            else:
+                # Otherwise, creates it with the good label
+                g1.add_edge(x, g1_v, capacity(self.edge_label(x, y)))
+            # Same thing for g2
+            if g2.has_edge(y, g2_v):
+                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + capacity(self.edge_label(x, y)))
+            else:
+                g2.add_edge(y, g2_v, capacity(self.edge_label(x, y)))
+
+        # Recursion for the two new graphs... The new "real" vertices are the intersection with
+        # with the previous set of "real" vertices
+        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())))
+        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())))
+
+        # Union of the two partial trees ( it is disjoint, but
+        # disjoint_union does not preserve the name of the vertices )
+        g = g1_tree.union(g2_tree)
+
+        # An edge to connect them, with the appropriate label
+        g.add_edge(g1_tree.vertex_iterator().next(), g2_tree.vertex_iterator().next(), flow)
+
+        if pos:
+            g.set_pos(pos)
+
+        return g
+
+    def gomory_hu_tree(self):
+        r"""
+        Returns the Gomory-Hu tree associated to self.
+
+        Given a tree `T` with labelled edges representing capacities, it is very
+        easy to determine the maximal flow between any pair of vertices :
+        it is the minimal label on the edges of the unique path between them.
+
+        Given a graph `G`, the Gomory-Hu tree `T` of `G`, is a tree
+        with the same set of vertices, and such that the maximal flow
+        between any two vertices is the same in `G` and in `T`.
+        (see http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree)
+
+        OUTPUT:
+
+        graph with labeled edges
+
+        EXAMPLE:
+
+        Taking the Petersen graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: t = g.gomory_hu_tree() # optional - requires GLPK or CBC
+
+        Obviously, this graph is a tree::
+
+            sage: t.is_tree()  # optional - requires GLPK or CBC
+            True
+
+        Note that if the original graph is not connected, then the
+        Gomory-Hu tree is in fact a forest::
+
+            sage: (2*g).gomory_hu_tree().is_forest() # optional - requires GLPK or CBC
+            True
+            sage: (2*g).gomory_hu_tree().is_connected() # optional - requires GLPK or CBC
+            False
+
+        On the other hand, such a tree has lost nothing of the initial
+        graph connectedness::
+
+            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ]) # optional - requires GLPK or CBC
+            True
+
+        Just to make sure, let's check the same is true for two vertices
+        in a random graph::
+
+            sage: g = graphs.RandomGNP(20,.3)
+            sage: t = g.gomory_hu_tree() # optional - requires GLPK or CBC
+            sage: g.flow(0,1) == t.flow(0,1) # optional - requires GLPK or CBC
+            True
+
+        And also the min cut::
+
+            sage: g.edge_connectivity() == min(t.edge_labels()) # optional - requires GLPK or CBC
+            True
+        """
+        return self._gomory_hu_tree()
+
+
     def two_factor_petersen(self):
         r"""
         Returns a decomposition of the graph into 2-factors.

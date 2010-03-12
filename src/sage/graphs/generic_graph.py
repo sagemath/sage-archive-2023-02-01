@@ -3029,88 +3029,104 @@ class GenericGraph(GenericGraph_pyx):
             v = pv
         return B, C
 
-    def edge_cut(self,s,t,value_only=True,use_edge_labels=False):
+    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False):
         r"""
         Returns a minimum edge cut between vertices `s` and `t`
-        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
         represented by a list of edges.
 
+        A minimum edge cut between two vertices `s` and `t` of self
+        is a set `U` of edges of minimum weight such that the graph
+        obtained by removing `U` from self is disconnected.
+        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
 
         INPUT:
 
-        - ``s`` -- Source vertex
+        - ``s`` -- source vertex
+        - ``t`` -- sink vertex
+        - ``value_only`` -- boolean (default: True). When set to
+          True, only the weight of a minimum cut is returned.
+          Otherwise, a list of edges of a minimum cut is also returned.
+        - ``use_edge_labels`` -- boolean (default: False). When set to
+          True, computes a weighted minimum cut where each edge has
+          a weight defined by its label (if an edge has no label, `1`
+          is assumed). Otherwise, each edge has weight `1`.
+        - ``vertices`` -- boolean (default: False). When set to True,
+          also returns the two sets of vertices that are disconnected by
+          the cut. Implies ``value_only=False``.
 
-        - ``t`` -- Sink vertex
+        OUTPUT:
 
-        - ``value_only`` (boolean)
+        real number or tuple, depending on the arguments given
+        (examples are given below)
 
-            - When set to ``True``, only the value of a maximal
-              flow is returned.
+        EXAMPLES:
 
-            - When set to ``False``, a list of edges in the minimum cut is
-              also returned.
+        A basic application in the Pappus graph::
 
-        - ``use_edge_labels`` (boolean)
-            - When set to ``True``, computes a weighted minimum cut
-              where each edge has a weight defined by its label. ( if
-              an edge has no label, `1` is assumed )
-
-            - when set to ``False`` (default), each edge has weight `1`.
-
-        EXAMPLE:
-
-        A basic application in a ``PappusGraph``::
-
-           sage: g=graphs.PappusGraph()
-           sage: g.edge_cut(1,2,value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: g = graphs.PappusGraph()
+           sage: g.edge_cut(1, 2, value_only=True) # optional - requires GLPK or COIN-OR/CBC
            3.0
 
-        If the graph is a path with weighted edges, the edge cut between the two ends
-        is the edge of minimum weight ::
+        If the graph is a path with randomly weighted edges::
 
            sage: g = graphs.PathGraph(15)
            sage: for (u,v) in g.edge_iterator(labels=None):
            ...      g.set_edge_label(u,v,random())
+
+        The edge cut between the two ends is the edge of minimum weight::
+
            sage: minimum = min([l for u,v,l in g.edge_iterator()])
-           sage: minimum == g.edge_cut(0,14,use_edge_labels=True)                                # optional - requires Glpk or COIN-OR/CBC
+           sage: minimum == g.edge_cut(0, 14, use_edge_labels=True) # optional - requires GLPK or COIN-OR/CBC
            True
-           sage: [value,[[u,v]]] = g.edge_cut(0,14,use_edge_labels=True, value_only=False)       # optional - requires Glpk or COIN-OR/CBC
-           sage: g.edge_label(u,v) == minimum                                                    # optional - requires Glpk or COIN-OR/CBC
+           sage: [value,[[u,v]]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False) # optional - requires GLPK or COIN-OR/CBC
+           sage: g.edge_label(u, v) == minimum # optional - requires GLPK or COIN-OR/CBC
+           True
+
+        The two sides of the edge cut are obviously shorter paths::
+
+           sage: value,edges,[set1,set2] = g.edge_cut(0, 14, use_edge_labels=True, vertices=True)  # optional - requires Glpk or COIN-OR/CBC
+           sage: g.subgraph(set1).is_isomorphic(graphs.PathGraph(len(set1)))                     # optional - requires Glpk or COIN-OR/CBC
+           True
+           sage: g.subgraph(set2).is_isomorphic(graphs.PathGraph(len(set2)))                     # optional - requires Glpk or COIN-OR/CBC
+           True
+           sage: len(set1) + len(set2) == g.order()                                                # optional - requires Glpk or COIN-OR/CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-        p=MixedIntegerLinearProgram(maximization=False)
-        b=p.new_variable(dim=2)
-        v=p.new_variable()
+        g = self
+        p = MixedIntegerLinearProgram(maximization=False)
+        b = p.new_variable(dim=2)
+        v = p.new_variable()
 
+        if vertices:
+            value_only = False
         if use_edge_labels:
-            weight=lambda x: 1 if x==None else x
+            weight = lambda x: 1 if x == None else x
         else:
-            weight=lambda x: 1
+            weight = lambda x: 1
 
         # Some vertices belong to part 1, others to part 0
-        p.add_constraint(v[s],min=0,max=0)
-        p.add_constraint(v[t],min=1,max=1)
+        p.add_constraint(v[s], min=0, max=0)
+        p.add_constraint(v[t], min=1, max=1)
 
         if g.is_directed():
+
             # we minimize the number of edges
-            p.set_objective(sum([weight(w)*b[x][y] for (x,y,w) in g.edges()]))
-
-            # Adjacent vertices can belong to different parts only if the
-            # edge that connects them is part of the cut
-            [p.add_constraint(v[x]+b[x][y]-v[y],min=0,max=0) for (x,y) in g.edges(labels=None)]
-
-
-        else:
-            # we minimize the number of edges
-            p.set_objective(sum([weight(w)*b[min(x,y)][max(x,y)] for (x,y,w) in g.edges()]))
+            p.set_objective(sum([weight(w) * b[x][y] for (x,y,w) in g.edges()]))
 
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
             for (x,y) in g.edges(labels=None):
-                p.add_constraint(v[x]+b[min(x,y)][max(x,y)]-v[y],min=0)
-                p.add_constraint(v[y]+b[min(x,y)][max(x,y)]-v[x],min=0)
+                p.add_constraint(v[x] + b[x][y] - v[y], min=0, max=0)
+
+        else:
+            # we minimize the number of edges
+            p.set_objective(sum([weight(w) * b[min(x,y)][max(x,y)] for (x,y,w) in g.edges()]))
+            # Adjacent vertices can belong to different parts only if the
+            # edge that connects them is part of the cut
+            for (x,y) in g.edges(labels=None):
+                p.add_constraint(v[x] + b[min(x,y)][max(x,y)] - v[y], min=0)
+                p.add_constraint(v[y] + b[min(x,y)][max(x,y)] - v[x], min=0)
 
         p.set_binary(v)
         p.set_binary(b)
@@ -3118,74 +3134,112 @@ class GenericGraph(GenericGraph_pyx):
         if value_only:
             return p.solve(objective_only=True)
         else:
-            obj=p.solve()
-            b=p.get_values(b)
+            obj = p.solve()
+            b = p.get_values(b)
+            answer = [obj]
             if g.is_directed():
-                return [obj,[(x,y) for (x,y) in g.edges(labels=None) if b[x][y]==1]]
+                answer.append([(x,y) for (x,y) in g.edges(labels=None) if b[x][y] == 1])
             else:
-                return [obj,[(x,y) for (x,y) in g.edges(labels=None) if b[min(x,y)][max(x,y)]==1]]
+                answer.append([(x,y) for (x,y) in g.edges(labels=None) if b[min(x,y)][max(x,y)] == 1])
 
-    def vertex_cut(self,s,t,value_only=True):
+            if vertices:
+                v = p.get_values(v)
+                l0 = []
+                l1 = []
+                for x in g.vertex_iterator():
+                    if v.has_key(x) and v[x] == 1:
+                        l1.append(x)
+                    else:
+                        l0.append(x)
+                answer.append([l0, l1])
+            return tuple(answer)
+
+    def vertex_cut(self, s, t, value_only=True, vertices=False):
         r"""
-        Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
-        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+        Returns a minimum vertex cut between non adjacent vertices `s` and `t`
         represented by a list of vertices.
+
+        A vertex cut between two non adjacent vertices is a set `U`
+        of vertices of self such that the graph obtained by removing
+        `U` from self is disconnected.
+        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
 
 
         INPUT:
 
-        - ``value_only`` : When set to ``True``, only the cardinal of the
-          minimum cut is returned
+        - ``value_only`` -- boolean (default: True). When set to
+          True, only the size of the minimum cut is returned
+        - ``vertices`` -- boolean (default: False). When set to
+          True, also returns the two sets of vertices that
+          are disconnected by the cut. Implies ``value_only``
+          set to False.
+
+        OUTPUT:
+
+        real number or tuple, depending on the arguments given
+        (examples are given below)
 
         EXAMPLE:
 
-        A basic application in a ``PappusGraph``::
+        A basic application in a Pappus graph::
 
-           sage: g=graphs.PappusGraph()
-           sage: g.vertex_cut(1,16,value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_cut(1, 16, value_only=True) # optional - requires Glpk or COIN-OR/CBC
            3.0
 
-        Or in a bipartite complete graph `K_{2,8}` between the first 2
-        vertices, in which case the minimum cut is the other set of 8
-        vertices ::
+        In the bipartite complete graph `K_{2,8}`, a cut between the two
+        vertices in the size `2` part consists of the other `8` vertices::
 
-           sage: g = graphs.CompleteBipartiteGraph(2,8)
-           sage: [value, vertices] = g.vertex_cut(0,1, value_only=False) # optional - requires Glpk or COIN-OR/CBC
-           sage: print value                                             # optional - requires Glpk or COIN-OR/CBC
+           sage: g = graphs.CompleteBipartiteGraph(2, 8)
+           sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False) # optional - requires Glpk or COIN-OR/CBC
+           sage: print value # optional - requires Glpk or COIN-OR/CBC
            8.0
-           sage: vertices == range(2,10)                                 # optional - requires Glpk or COIN-OR/CBC
+           sage: vertices == range(2,10) # optional - requires Glpk or COIN-OR/CBC
+           True
+
+        Clearly, in this case the two sides of the cut are singletons ::
+
+           sage: [value, vertices, [set1, set2]] = g.vertex_cut(0,1, vertices=True) # optional - requires Glpk or COIN-OR/CBC
+           sage: len(set1) == 1 # optional - requires Glpk or COIN-OR/CBC
+           True
+           sage: len(set2) == 1 # optional - requires Glpk or COIN-OR/CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
+        g = self
         if g.has_edge(s,t):
             raise ValueError, "There can be no vertex cut between adjacent vertices !"
+        if vertices:
+            value_only = False
 
-        p=MixedIntegerLinearProgram(maximization=False)
-        b=p.new_variable()
-        v=p.new_variable()
+        p = MixedIntegerLinearProgram(maximization=False)
+        b = p.new_variable()
+        v = p.new_variable()
 
         # Some vertices belong to part 1, some others to part 0
-        p.add_constraint(v[s],min=0,max=0)
-        p.add_constraint(v[t],min=1,max=1)
+        p.add_constraint(v[s], min=0, max=0)
+        p.add_constraint(v[t], min=1, max=1)
 
         # b indicates whether the vertices belong to the cut
-        p.add_constraint(b[s],min=0,max=0)
-        p.add_constraint(b[t],min=0,max=0)
+        p.add_constraint(b[s], min=0, max=0)
+        p.add_constraint(b[t], min=0, max=0)
 
         if g.is_directed():
+
             p.set_objective(sum([b[x] for x in g.vertices()]))
+
             # adjacent vertices belong to the same part except if one of them
             # belongs to the cut
-            [p.add_constraint(v[x]+b[y]-v[y],min=0) for (x,y) in g.edges(labels=None)]
+            for (x,y) in g.edges(labels=None):
+                p.add_constraint(v[x] + b[y] - v[y], min=0)
 
         else:
             p.set_objective(sum([b[x] for x in g.vertices()]))
             # adjacent vertices belong to the same part except if one of them
             # belongs to the cut
             for (x,y) in g.edges(labels=None):
-                p.add_constraint(v[x]+b[y]-v[y],min=0)
-                p.add_constraint(v[y]+b[x]-v[x],min=0)
+                p.add_constraint(v[x] + b[y] - v[y],min=0)
+                p.add_constraint(v[y] + b[x] - v[x],min=0)
 
         p.set_binary(b)
         p.set_binary(v)
@@ -3193,25 +3247,39 @@ class GenericGraph(GenericGraph_pyx):
         if value_only:
             return p.solve(objective_only=True)
         else:
-            obj=p.solve()
-            b=p.get_values(b)
-            return [obj,[v for v in g if b[v]==1]]
+            obj = p.solve()
+            b = p.get_values(b)
+            answer = [obj,[x for x in g if b[x] == 1]]
+            if vertices:
+                v = p.get_values(v)
+                l0 = []
+                l1 = []
+                for x in g.vertex_iterator():
+                    # if the vertex is not in the cut
+                    if not (b.has_key(x) and b[x] == 1):
+                        if (v.has_key(x) and v[x] == 1):
+                            l1.append(x)
+                        else:
+                            l0.append(x)
+                answer.append([l0, l1])
+            return tuple(answer)
+
 
     def vertex_cover(self,algorithm="Cliquer",value_only=False,log=0):
         r"""
-        Returns a minimum vertex cover of the graph
-        ( cf. http://en.wikipedia.org/wiki/Vertex_cover )
-        represented by the list of its vertices.
+        Returns a minimum vertex cover of self represented
+        by a list of vertices.
 
         A minimum vertex cover of a graph is a set `S` of
         its vertices such that each edge is incident to at least
         one element of `S`, and such that `S` is of minimum
         cardinality.
+        ( cf. http://en.wikipedia.org/wiki/Vertex_cover )
 
-        A vertex cover is also defined as the complement of an
-        independent set.
+        Equivalently, a vertex cover is defined as the
+        complement of an independent set.
 
-        As an optimization problem, it can be expressed as :
+        As an optimization problem, it can be expressed as follows:
 
         .. MATH::
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
@@ -3220,76 +3288,67 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``algorithm`` -- Select an algorithm
-
-            - ``"Cliquer"`` (default) will return a minimum vertex cover
+        - ``algorithm`` -- string (default: ``"Cliquer") indicating
+          which algorithm is performed. It can be one of those two values.
+          - ``"Cliquer"`` will compute a minimum vertex cover
               using the algorithm Cliquer.
-
-            - ``"MILP"`` will return a minimum vertex cover through a Mixed
-              Integer Linear Program ( requires packages GLPK or CBC )
-
-        - ``value_only`` --
-            - If ``value_only = True``, only the cardinality of a
-              minimum vertex cover is returned.
-            - If ``value_only = False`` ( default ), a minimum vertex cover
-              is returned as the list of its vertices
-
-        - ``log`` ( integer ) --
-          As vertex cover is an `NP`-complete problem, its solving may take some time
-          depending on the graph. Use ``log`` to define the level of verbosity you want
-          from the linear program solver.
-
-          By default ``log=0``, meaning that there will be no message printed by the solver.
-
-          Only useful if ``algorithm="MILP"``.
+            - ``"MILP"`` will compute a minimum vertex cover through a mixed
+              integer linear program (requires packages GLPK or CBC).
+        - ``value_only`` -- boolean (default: False). If set to True,
+          only the size of a minimum vertex cover is returned. Otherwise,
+          a minimum vertex cover is returned as a list of vertices.
+        - ``log`` -- non negative integer (default: 0) precising the level
+          of verbosity you want from the linear program solver. Since the
+          problem of computing a vertex cover is `NP`-complete, its solving
+          may take some time depending on the graph. A value of 0 means
+          that there will be no message printed by the solver. Only useful
+          if ``algorithm="MILP"``.
 
         EXAMPLES:
 
-        On a ``PappusGraph`` ::
+        On the Pappus graph ::
 
-           sage: g=graphs.PappusGraph()
+           sage: g = graphs.PappusGraph()
            sage: g.vertex_cover(value_only=True)
            9
 
-        Obviously, the two methods return the same results ::
+        The two algorithms should return the same result::
 
-           sage: g=graphs.RandomGNP(10,.5)
-           sage: vc1 = g.vertex_cover(algorithm="MILP")     # optional requires GLPK or CBC
-           sage: vc2 = g.vertex_cover(algorithm="Cliquer")  # optional requires GLPK or CBC
+           sage: g = graphs.RandomGNP(10,.5)
+           sage: vc1 = g.vertex_cover(algorithm="MILP") # optional requires GLPK or CBC
+           sage: vc2 = g.vertex_cover(algorithm="Cliquer") # optional requires GLPK or CBC
            sage: len(vc1) == len(vc2) # optional requires GLPK or CBC
            True
         """
-
-
-        if algorithm=="Cliquer":
+        if algorithm == "Cliquer":
             independent = self.independent_set()
-
             if value_only:
-                return self.order()-len(independent)
+                return self.order() - len(independent)
             else:
                 return set(self.vertices()).difference(set(independent))
 
-        elif algorithm=="MILP":
+        elif algorithm == "MILP":
 
             from sage.numerical.mip import MixedIntegerLinearProgram
-            g=self
-            p=MixedIntegerLinearProgram(maximization=False)
-            b=p.new_variable()
+            g = self
+            p = MixedIntegerLinearProgram(maximization=False)
+            b = p.new_variable()
 
             # minimizes the number of vertices in the set
             p.set_objective(sum([b[v] for v in g.vertices()]))
 
             # an edge contains at least one vertex of the minimum vertex cover
-            [p.add_constraint(b[u]+b[v],min=1) for (u,v) in g.edges(labels=None)]
+            for (u,v) in g.edges(labels=None):
+                p.add_constraint(b[u] + b[v], min=1)
 
             p.set_binary(b)
 
             if value_only:
-                return p.solve(objective_only=True,log=log)
+                return p.solve(objective_only=True, log=log)
             else:
                 p.solve()
-                b=p.get_values(b)
-                return set([v for v in g.vertices() if b[v]==1])
+                b = p.get_values(b)
+                return set([v for v in g.vertices() if b[v] == 1])
         else:
             raise ValueError("Only two algorithms are available : Cliquer and MILP.")
 
@@ -3379,14 +3438,19 @@ class GenericGraph(GenericGraph_pyx):
         N=range(n)
 
         # First and second constraints
-        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
-        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+        for v in self:
+            p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1)
+
+        for i in N:
+            p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1)
 
         # Definition of d_v
-        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+        for v in self:
+            p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0)
 
         # The removed vertices cover all the back arcs ( third condition )
-        [p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=0) for (u,v) in self.edges(labels=None)]
+        for (u,v) in self.edges(labels=None):
+            p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=0)
 
         p.set_binary(b)
         p.set_binary(x)
@@ -3487,14 +3551,19 @@ class GenericGraph(GenericGraph_pyx):
         N=range(n)
 
         # First and second constraints
-        [p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1) for v in self]
-        [p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+        for v in self:
+            p.add_constraint(sum([x[v][i] for i in N]),min=1,max=1)
+
+        for i in N:
+            p.add_constraint(sum([x[v][i] for v in self]),min=1,max=1)
 
         # Definition of d_v
-        [p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+        for v in self:
+            p.add_constraint(sum([i*x[v][i] for i in N])-d[v],max=0,min=0)
 
         # The removed vertices cover all the back arcs ( third condition )
-        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=0) for (u,v) in self.edges(labels=None)]
+        for (u,v) in self.edges(labels=None):
+            p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=0)
 
         p.set_binary(b)
         p.set_binary(x)
@@ -3715,14 +3784,14 @@ class GenericGraph(GenericGraph_pyx):
         a sink `t` to all the vertices of the second set, then computing
         a maximum `s-t` flow ::
 
-            sage: g = graphs.CompleteBipartiteGraph(4,4)
+            sage: g = DiGraph()
             sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
             sage: g.add_edges([(4+i,'t') for i in range(4)])
             sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - requries GLPK or CBC
             sage: flow_graph.delete_vertices(['s','t'])                                  # optional - requries GLPK or CBC
-            sage: flow_graph.edges(labels=None)                                          # optional - requries GLPK or CBC
-            [(0, 5), (1, 4), (2, 7), (3, 6)]
-
+            sage: len(flow_graph.edges(labels=None))                                     # optional - requries GLPK or CBC
+            4
 
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -3745,13 +3814,18 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(flow_sum(x))
 
             # Elsewhere, the flow is equal to 0-
-            [p.add_constraint(flow_sum(v),min=0,max=0) for v in g if v!=x and v!=y]
+            for v in g:
+                if v!=x and v!=y:
+                    p.add_constraint(flow_sum(v),min=0,max=0)
 
             # Capacity constraints
-            [p.add_constraint(flow[u][v],max=capacity(w)) for (u,v,w) in g.edges()]
+            for (u,v,w) in g.edges():
+                p.add_constraint(flow[u][v],max=capacity(w))
 
             if vertex_bound:
-                [p.add_constraint(sum([flow[uu][vv] for (uu,vv) in g.outgoing_edges([v],labels=None)]),max=1) for v in g.vertices() if v!=x and v!=y]
+                for v in g.vertices():
+                    if v!=x and v!=y:
+                        p.add_constraint(sum([flow[uu][vv] for (uu,vv) in g.outgoing_edges([v],labels=None)]),max=1)
 
         else:
             # This function return the balance of flow at X
@@ -3761,13 +3835,18 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(flow_sum(x))
 
             # Elsewhere, the flow is equal to 0
-            [p.add_constraint(flow_sum(v),min=0,max=0) for v in g if v!=x and v!=y]
+            for v in g:
+                if v!=x and v!=y:
+                    p.add_constraint(flow_sum(v),min=0,max=0)
 
             # Capacity constraints
-            [p.add_constraint(flow[u][v]+flow[v][u],max=capacity(w)) for (u,v,w) in g.edges()]
+            for (u,v,w) in g.edges():
+                p.add_constraint(flow[u][v]+flow[v][u],max=capacity(w))
 
             if vertex_bound:
-                [p.add_constraint([flow[X][v] for X in g[v]],max=1) for v in g if v!=x and v!=y]
+                for v in g:
+                    if v!=x and v!=y:
+                        p.add_constraint([flow[X][v] for X in g[v]],max=1)
 
 
         if integer:
@@ -3946,11 +4025,12 @@ class GenericGraph(GenericGraph_pyx):
         p=MixedIntegerLinearProgram(maximization=True)
 
         b=p.new_variable(dim=2)
-        [p.set_objective(sum([weight(w)*b[min(u,v)][max(u,v)] for (u,v,w) in g.edges()]))]
+        p.set_objective(sum([weight(w)*b[min(u,v)][max(u,v)] for (u,v,w) in g.edges()]))
 
 
         # for any vertex v, there is at most one edge incident to v in the maximum matching
-        [p.add_constraint(sum([b[min(u,v)][max(u,v)] for u in g.neighbors(v)]),max=1) for v in g.vertices()]
+        for v in g.vertices():
+            p.add_constraint(sum([b[min(u,v)][max(u,v)] for u in g.neighbors(v)]),max=1)
 
         p.set_binary(b)
 
@@ -4026,12 +4106,14 @@ class GenericGraph(GenericGraph_pyx):
 
         # For any vertex v, one of its neighbors or v itself is in
         # the minimum dominating set
-        [p.add_constraint(b[v]+sum([b[u] for u in g.neighbors(v)]),min=1) for v in g.vertices()]
+        for v in g.vertices():
+            p.add_constraint(b[v]+sum([b[u] for u in g.neighbors(v)]),min=1)
 
 
         if independent:
             # no two adjacent vertices are in the set
-            [p.add_constraint(b[u]+b[v],max=1) for (u,v) in g.edges(labels=None)]
+            for (u,v) in g.edges(labels=None):
+                p.add_constraint(b[u]+b[v],max=1)
 
         # Minimizes the number of vertices used
         p.set_objective(sum([b[v] for v in g.vertices()]))

@@ -4408,19 +4408,21 @@ class GraphGenerators():
             sage: g = graphs.DegreeSequenceBipartite([2,2,2,2,1],[5,5]) # optional - requires GLPK or CBC
             Traceback (most recent call last):
             ...
-            ValueError: The two partitions must sum to the same value.
+            ValueError: There exists no bipartite graph corresponding to the given degree sequences
         """
 
-        from sage.combinat.partition import Partition
+        from sage.combinat.integer_vector import gale_ryser_theorem
         from sage.graphs.bipartite_graph import BipartiteGraph
 
-        s1.sort(reverse=True)
-        s2.sort(reverse=True)
+        s1 = sorted(s1, reverse = True)
+        s2 = sorted(s2, reverse = True)
 
-        p1 = Partition(s1)
-        p2 = Partition(s2)
+        m = gale_ryser_theorem(s1,s2)
 
-        return BipartiteGraph(p1.gale_ryser_theorem(p2))
+        if m is False:
+            raise ValueError("There exists no bipartite graph corresponding to the given degree sequences")
+        else:
+            return BipartiteGraph(m)
 
     def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
         """

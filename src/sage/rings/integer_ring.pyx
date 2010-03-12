@@ -35,7 +35,7 @@ integers, when it makes sense.
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -118,9 +118,37 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         0
         sage: Z.is_field()
         False
-
         sage: Z.category()
         Category of euclidean domains
+        sage: Z(2^(2^5) + 1)
+        4294967297
+
+    One can give strings to create integers. Strings starting with
+    ``0x`` are interpreted as hexadecimal, and strings starting with
+    ``0`` are interpreted as octal::
+
+        sage: parent('37')
+        <type 'str'>
+        sage: parent(Z('37'))
+        Integer Ring
+        sage: Z('0x10')
+        16
+        sage: Z('0x1a')
+        26
+        sage: Z('020')
+        16
+
+    As an inverse to :meth:`~sage.rings.integer.Integer.digits`,
+    lists of digits are accepted, provided that you give a base. The
+    lists are interpreted in little-endian order, so that entry ``i`` of
+    the list is the coefficient of ``base^i``::
+
+        sage: Z([3, 7], 10)
+        73
+        sage: Z([3, 7], 9)
+        66
+        sage: Z([], 10)
+        0
 
     We next illustrate basic arithmetic in `\ZZ`::
 

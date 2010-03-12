@@ -305,11 +305,6 @@ cdef void late_import():
 
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
-# This crashes Sage:
-#  s = 2003^100300000
-# The problem is related to realloc moving all the memory
-# and returning a pointer to the new block of memory, I think.
-
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
@@ -1112,9 +1107,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            sufficient number of zeros are added to make the list minimum that
            length (default: 0)
 
-        As a shorthand for ``digits(2)``, you can use meth:`.bits`.
+        As a shorthand for ``digits(2)``, you can use :meth:`.bits`.
 
-        Also see meth:`ndigits`.
+        Also see :meth:`ndigits`.
 
         EXAMPLES::
 
@@ -1149,7 +1144,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-12).digits(2)
             [0, 0, -1, -1]
 
-        We support large bases
+        We support large bases.
 
         ::
 
@@ -1165,6 +1160,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: sum(base^i*l[i] for i in range(len(l)))==n
             True
             sage: base=3; n=-30; l=n.digits(base); sum(base^i*l[i] for i in range(len(l)))==n
+            True
+
+        The inverse of this method -- constructing an integer from a
+        list of digits and a base -- can be done using the above method
+        or by simply using :class:`ZZ()
+        <sage.rings.integer_ring.IntegerRing_class>` with a base::
+
+            sage: x = 123; ZZ(x.digits(), 10)
+            123
+            sage: x == ZZ(x.digits(6), 6)
+            True
+            sage: x == ZZ(x.digits(25), 25)
+            True
+
+        Using :func:`sum` and :func:`enumerate` to do the same thing is
+        slightly faster in many cases (and
+        :func:`~sage.misc.misc_c.balanced_sum` may be faster yet). Of
+        course it gives the same result::
+
+            sage: base = 4
+            sage: sum(digit * base^i for i, digit in enumerate(x.digits(base))) == ZZ(x.digits(base), base)
             True
 
         Note: In some cases it is faster to give a digits collection. This

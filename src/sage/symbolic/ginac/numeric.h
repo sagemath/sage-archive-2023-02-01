@@ -48,6 +48,7 @@
 #include "basic.h"
 #include "constant.h"
 #include "ex.h"
+#include "py_funcs.h"
 
 #include <stdexcept>
 #include <vector>
@@ -449,7 +450,6 @@ namespace GiNaC {
   ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent=NULL);
   ex InfinityEvalf(unsigned serial, PyObject* parent=NULL);
   ex NegInfinityEvalf(unsigned serial, PyObject* parent=NULL);
-
 
 } // namespace GiNaC
 

@@ -64,86 +64,6 @@
 
 #include <cmath>
 
-extern "C" {
-	PyObject* py_binomial(PyObject* a, PyObject* b);
-	PyObject* py_gcd(PyObject* a, PyObject* b);
-	PyObject* py_lcm(PyObject* a, PyObject* b);
-	PyObject* py_real(PyObject* a);
-	PyObject* py_imag(PyObject* a);
-	PyObject* py_numer(PyObject* a);
-	PyObject* py_denom(PyObject* a);
-	PyObject* py_conjugate(PyObject* a);
-
-	bool      py_is_rational(PyObject* a);
-	bool      py_is_crational(PyObject* a);
-	bool      py_is_real(PyObject* a);
-	bool      py_is_integer(PyObject* a);
-        bool      py_is_equal(PyObject* a, PyObject* b);
-	bool      py_is_even(PyObject* a);
-	bool      py_is_cinteger(PyObject* a);
-	bool      py_is_prime(PyObject* n);
-	PyObject* py_int(PyObject* n);
-	PyObject* py_integer_from_long(long int x);
-	PyObject* py_integer_from_python_obj(PyObject* x);
-
-	PyObject* py_float(PyObject* a, PyObject* parent);
-	PyObject* py_RDF_from_double(double x);
-
-	PyObject* py_factorial(PyObject* a);
-	PyObject* py_fibonacci(PyObject* n);
-	PyObject* py_step(PyObject* n);
-	PyObject* py_doublefactorial(PyObject* a);
-	PyObject* py_bernoulli(PyObject* n);
-	PyObject* py_sin(PyObject* n);
-	PyObject* py_cos(PyObject* n);
-	PyObject* py_zeta(PyObject* n);
-	PyObject* py_exp(PyObject* n);
-	PyObject* py_log(PyObject* n);
-	PyObject* py_tan(PyObject* n);
-	PyObject* py_asin(PyObject* n);
-	PyObject* py_acos(PyObject* n);
-	PyObject* py_atan(PyObject* n);
-	PyObject* py_atan2(PyObject* n, PyObject* y);
-	PyObject* py_sinh(PyObject* n);
-	PyObject* py_cosh(PyObject* n);
-	PyObject* py_tanh(PyObject* n);
-	PyObject* py_asinh(PyObject* n);
-	PyObject* py_acosh(PyObject* n);
-	PyObject* py_atanh(PyObject* n);
-    PyObject* py_li(PyObject* x, PyObject* n, PyObject* prec);
-	PyObject* py_li2(PyObject* n);
-	PyObject* py_lgamma(PyObject* n);
-	PyObject* py_tgamma(PyObject* n);
-	PyObject* py_psi(PyObject* n);
-	PyObject* py_psi2(PyObject* n, PyObject* b);
-	PyObject* py_isqrt(PyObject* n);
-	PyObject* py_sqrt(PyObject* n);
-	PyObject* py_abs(PyObject* n);
-	PyObject* py_mod(PyObject* n, PyObject* b);
-	PyObject* py_smod(PyObject* n, PyObject* b);
-	PyObject* py_irem(PyObject* n, PyObject* b);
-	PyObject* py_iquo(PyObject* n, PyObject* b);
-	PyObject* py_iquo2(PyObject* n, PyObject* b);
-	int       py_int_length(PyObject* x);
-
-	PyObject* py_eval_constant(unsigned serial, PyObject* parent);
-	PyObject* py_eval_unsigned_infinity();
-	PyObject* py_eval_infinity();
-	PyObject* py_eval_neg_infinity();
-
-	// we use this to check if the element lives in a domain of positive
-	// characteristic, in which case we have to do modulo reductions
-	int py_get_parent_char(PyObject* o);
-
-	// printing helpers
-	std::string* py_latex(PyObject* o, int level);
-	std::string* py_repr(PyObject* o, int level);
-
-	// archive helper
-	std::string* py_dumps(PyObject* o);
-	PyObject* py_loads(PyObject* s);
-}
-
 // Call the Python function f on *this as input and return the result
 // as a PyObject*.
 #define PY_RETURN(f)  PyObject *a = Number_T_to_pyobject(*this);		 \
@@ -206,8 +126,6 @@ extern "C" {
 //////////////////////////////////////////////////////////////
 // Python Interface
 //////////////////////////////////////////////////////////////
-
-
 void py_error(const char* s) {
   if (PyErr_Occurred()) {
     throw std::runtime_error("");
@@ -243,7 +161,7 @@ void ginac_pyinit_Integer(PyObject* f) {
 
 PyObject* Integer(const long int& x) {
   if (initialized) 
-    return py_integer_from_long(x);
+    return GiNaC::py_funcs.py_integer_from_long(x);
   
   // Slow version since we can't call Cython-exported code yet.
   PyObject* m = PyImport_ImportModule("sage.rings.integer");
@@ -265,7 +183,6 @@ PyObject* Rational(const long int& n, const long int& d) {
 namespace GiNaC {
  
   numeric I; 
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // class Number_T
@@ -465,7 +382,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (!(v._pyobject =  PyFloat_FromDouble(x)))
       py_error("Error creating double");
 
-    //    if (!(v._pyobject = py_RDF_from_double(x)))
+    //    if (!(v._pyobject = py_funcs.py_RDF_from_double(x)))
 
 
     //t = DOUBLE;
@@ -531,10 +448,10 @@ Number_T::Number_T(const archive_node &n, lst &sym_lst)
 			    throw(std::runtime_error("archive error: cannot read pyobject data"));
 			arg = Py_BuildValue("s#",str.c_str(), str.size());
 			// unpickle
-			v._pyobject = py_loads(arg);
+			v._pyobject = py_funcs.py_loads(arg);
 			Py_DECREF(arg);
 			if (PyErr_Occurred()) {
-			    throw(std::runtime_error("archive error: caught exception in py_dumps"));
+			    throw(std::runtime_error("archive error: caught exception in py_loads"));
 			}
 			Py_INCREF(v._pyobject);
 			return;
@@ -552,7 +469,7 @@ void Number_T::archive(archive_node &n) const {
 	std::string *tstr;
 	switch(t) {
 		case PYOBJECT:
-			tstr = py_dumps(v._pyobject);
+			tstr = py_funcs.py_dumps(v._pyobject);
 			if (PyErr_Occurred()) {
 			    throw(std::runtime_error("archive error: exception in py_dumps"));
 			}
@@ -640,13 +557,13 @@ void Number_T::archive(archive_node &n) const {
 		Py_INCREF(o);
 		return o;
 	    } else if (PyLong_Check(x.v._pyobject)) {
-		PyObject* d = py_integer_from_python_obj(x.v._pyobject);
+		PyObject* d = py_funcs.py_integer_from_python_obj(x.v._pyobject);
 		PyObject* ans = PyNumber_Divide(v._pyobject, d);
 		Py_DECREF(d);
 		return ans;
 	    }
 	} else if (PyLong_Check(v._pyobject)) {
-	    PyObject* n = py_integer_from_python_obj(v._pyobject);
+	    PyObject* n = py_funcs.py_integer_from_python_obj(v._pyobject);
 	    PyObject* ans = PyNumber_Divide(n, x.v._pyobject);
 	    Py_DECREF(n);
 	    return ans;
@@ -814,7 +731,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long == right.v._long;
     case PYOBJECT:
-      return py_is_equal(v._pyobject, right.v._pyobject);
+      return py_funcs.py_is_equal(v._pyobject, right.v._pyobject);
     default:
       stub("invalid type: operator== type not handled");
     }
@@ -833,7 +750,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long != right.v._long;
     case PYOBJECT:
-      return (!py_is_equal(v._pyobject, right.v._pyobject));
+      return (!py_funcs.py_is_equal(v._pyobject, right.v._pyobject));
     default:
       stub("invalid type: operator!= type not handled");
     }
@@ -1025,7 +942,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return true;
     case PYOBJECT:
-      return py_is_integer(v._pyobject);
+      return py_funcs.py_is_integer(v._pyobject);
     default:
       stub("invalid type: is_integer() type not handled");
     }
@@ -1039,7 +956,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return true;
     case PYOBJECT:
-      return py_is_cinteger(v._pyobject);
+      return py_funcs.py_is_cinteger(v._pyobject);
     default:
       stub("invalid type -- is_cinteger() type not handled");
     }
@@ -1092,7 +1009,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return (v._long %2 == 0);
     case PYOBJECT:
-      return py_is_even(v._pyobject);
+      return py_funcs.py_is_even(v._pyobject);
     default:
       stub("invalid type: is_even() type not handled");
     }
@@ -1120,11 +1037,11 @@ void Number_T::archive(archive_node &n) const {
       return false;
     case LONG:
       a = Number_T_to_pyobject(*this);
-      b = py_is_prime(a);
+      b = py_funcs.py_is_prime(a);
       Py_DECREF(a);
       return b;
     case PYOBJECT:
-      return py_is_prime(v._pyobject);
+      return py_funcs.py_is_prime(v._pyobject);
     default:
       stub("invalid type: is_prime() type not handled");
     }
@@ -1138,7 +1055,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return true;
     case PYOBJECT:
-      return py_is_rational(v._pyobject);
+      return py_funcs.py_is_rational(v._pyobject);
     default:
       stub("invalid type -- is_rational() type not handled");
     }
@@ -1152,7 +1069,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return true;
     case PYOBJECT:
-      return py_is_crational(v._pyobject);
+      return py_funcs.py_is_crational(v._pyobject);
     default:
       stub("invalid type -- is_crational() type not handled");
     }
@@ -1165,7 +1082,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return true;
     case PYOBJECT:
-      return py_is_real(v._pyobject);
+      return py_funcs.py_is_real(v._pyobject);
     default:
       stub("invalid type -- is_real() type not handled");
     }
@@ -1180,7 +1097,7 @@ void Number_T::archive(archive_node &n) const {
       return 0;
     case PYOBJECT:
       {
-	int c = py_get_parent_char(v._pyobject);
+	int c = py_funcs.py_get_parent_char(v._pyobject);
 	if (c == -1) py_error("error in py_get_parent_char");
 	return c;
       }
@@ -1202,7 +1119,7 @@ void Number_T::archive(archive_node &n) const {
       break;
 
     case PYOBJECT:
-      a = py_numer(v._pyobject);
+      a = py_funcs.py_numer(v._pyobject);
       if (!a) py_error("numer");
       ans = a;
       break;
@@ -1226,7 +1143,7 @@ void Number_T::archive(archive_node &n) const {
       break;
 
     case PYOBJECT:
-      a = py_denom(v._pyobject);
+      a = py_funcs.py_denom(v._pyobject);
       if (!a) py_error("denom");
       ans = a;
       break;
@@ -1240,12 +1157,12 @@ void Number_T::archive(archive_node &n) const {
   }
 
   Number_T Number_T::conjugate() const {
-    PY_RETURN(py_conjugate);
+    PY_RETURN(py_funcs.py_conjugate);
   }
   
   Number_T Number_T::evalf(PyObject* parent) const {
 	  PyObject *a = Number_T_to_pyobject(*this);
-	  PyObject *ans = py_float(a, parent);
+	  PyObject *ans = py_funcs.py_float(a, parent);
 	  Py_DECREF(a);
 	  if (!ans)
 		  throw(std::runtime_error("numeric::evalf(): error calling py_float()"));
@@ -1254,149 +1171,149 @@ void Number_T::archive(archive_node &n) const {
   }
 
   Number_T Number_T::step() const {
-    PY_RETURN(py_step);
+    PY_RETURN(py_funcs.py_step);
   }
 
   Number_T Number_T::fibonacci() const {
-    PY_RETURN(py_fibonacci);
+    PY_RETURN(py_funcs.py_fibonacci);
   }
 
   Number_T Number_T::sin() const {
-    PY_RETURN(py_sin);
+    PY_RETURN(py_funcs.py_sin);
   }
 
   Number_T Number_T::cos() const {
-    PY_RETURN(py_cos);
+    PY_RETURN(py_funcs.py_cos);
   }
 
   Number_T Number_T::zeta() const {
-    PY_RETURN(py_zeta);
+    PY_RETURN(py_funcs.py_zeta);
   }
 
   Number_T Number_T::exp() const {
-    PY_RETURN(py_exp);
+    PY_RETURN(py_funcs.py_exp);
   }
   
   Number_T Number_T::log() const {
-    PY_RETURN(py_log);
+    PY_RETURN(py_funcs.py_log);
   }
   
   Number_T Number_T::tan() const {
-    PY_RETURN(py_tan);
+    PY_RETURN(py_funcs.py_tan);
   }
   
   Number_T Number_T::asin() const {
-    PY_RETURN(py_asin);
+    PY_RETURN(py_funcs.py_asin);
   }
     
   Number_T Number_T::acos() const {
-    PY_RETURN(py_acos);
+    PY_RETURN(py_funcs.py_acos);
   }
 
   Number_T Number_T::atan() const {
-    PY_RETURN(py_atan);
+    PY_RETURN(py_funcs.py_atan);
   }
 
   Number_T Number_T::atan(const Number_T& y) const {
-    PY_RETURN2(py_atan2, y);
+    PY_RETURN2(py_funcs.py_atan2, y);
   }
   
   Number_T Number_T::sinh() const {
-    PY_RETURN(py_sinh);
+    PY_RETURN(py_funcs.py_sinh);
   }
 
   Number_T Number_T::cosh() const {
-    PY_RETURN(py_cosh);
+    PY_RETURN(py_funcs.py_cosh);
   }
 
   Number_T Number_T::tanh() const {
-    PY_RETURN(py_tanh);
+    PY_RETURN(py_funcs.py_tanh);
   }
 
   Number_T Number_T::asinh() const {
-    PY_RETURN(py_asinh);
+    PY_RETURN(py_funcs.py_asinh);
   }
 
   Number_T Number_T::acosh() const {
-    PY_RETURN(py_acosh);
+    PY_RETURN(py_funcs.py_acosh);
   }
 
   Number_T Number_T::atanh() const {
-    PY_RETURN(py_atanh);
+    PY_RETURN(py_funcs.py_atanh);
   }
 
   Number_T Number_T::Li(const Number_T &n, PyObject* parent) const {
     PyObject *aa = Number_T_to_pyobject(*this);	
     PyObject* nn = Number_T_to_pyobject(n);	
-    PyObject *ans = py_li(aa, nn, parent);             
+    PyObject *ans = py_funcs.py_li(aa, nn, parent);             
     if (!ans) py_error("error calling function");
     Py_DECREF(aa); Py_DECREF(nn);
     return ans; 
   }
 
   Number_T Number_T::Li2() const {
-    PY_RETURN(py_li2);
+    PY_RETURN(py_funcs.py_li2);
   }
 
   Number_T Number_T::lgamma() const {
-    PY_RETURN(py_lgamma);
+    PY_RETURN(py_funcs.py_lgamma);
   }
 
   Number_T Number_T::tgamma() const {
-    PY_RETURN(py_tgamma);
+    PY_RETURN(py_funcs.py_tgamma);
   }
   
   Number_T Number_T::psi() const {
-    PY_RETURN(py_psi);
+    PY_RETURN(py_funcs.py_psi);
   }
 
   Number_T Number_T::psi(const Number_T& y) const {
-    PY_RETURN2(py_psi2, y);
+    PY_RETURN2(py_funcs.py_psi2, y);
   }
 
   Number_T Number_T::factorial() const {
-    PY_RETURN(py_factorial);
+    PY_RETURN(py_funcs.py_factorial);
   }
   
   Number_T Number_T::doublefactorial() const {
-    PY_RETURN(py_doublefactorial);
+    PY_RETURN(py_funcs.py_doublefactorial);
   }
 
   Number_T Number_T::isqrt() const {
-    PY_RETURN(py_isqrt);
+    PY_RETURN(py_funcs.py_isqrt);
   }
 
   Number_T Number_T::sqrt() const {
-    PY_RETURN(py_sqrt);
+    PY_RETURN(py_funcs.py_sqrt);
   }
   
   Number_T Number_T::abs() const {
-    PY_RETURN(py_abs);
+    PY_RETURN(py_funcs.py_abs);
   }
 
   Number_T Number_T::mod(const Number_T &b) const {
-    PY_RETURN2(py_mod, b);
+    PY_RETURN2(py_funcs.py_mod, b);
   }
 
   Number_T Number_T::smod(const Number_T &b) const {
-    PY_RETURN2(py_smod, b);
+    PY_RETURN2(py_funcs.py_smod, b);
   }
 
   Number_T Number_T::irem(const Number_T &b) const {
-    PY_RETURN2(py_irem, b);
+    PY_RETURN2(py_funcs.py_irem, b);
   }
 
   Number_T Number_T::iquo(const Number_T &b) const {
-    PY_RETURN2(py_iquo, b);
+    PY_RETURN2(py_funcs.py_iquo, b);
   }
   
   Number_T Number_T::iquo(const Number_T &b, Number_T& r) const {
-    PY_RETURN3(py_iquo2, b, r);
+    PY_RETURN3(py_funcs.py_iquo2, b, r);
   }
 
   int Number_T::int_length() const {
     PyObject* a = Number_T_to_pyobject(*this);
-    int n = py_int_length(a);
+    int n = py_funcs.py_int_length(a);
     Py_DECREF(a);
     if (n == -1)
       py_error("int_length");
@@ -1572,9 +1489,9 @@ void Number_T::archive(archive_node &n) const {
   {
 	  std::string* out;
 	  if (latex) {
-		  out = py_latex(to_pyobject(),level);
+		  out = py_funcs.py_latex(to_pyobject(),level);
 	  } else {
-    	          out = py_repr(to_pyobject(),level);
+    	          out = py_funcs.py_repr(to_pyobject(),level);
           }
           c.s<<*out;
 	  delete out;
@@ -2199,7 +2116,7 @@ void Number_T::archive(archive_node &n) const {
   {
     verbose("real_part(a)");
     PyObject *a = Number_T_to_pyobject(value);
-    PyObject *ans = py_real(a);
+    PyObject *ans = py_funcs.py_real(a);
     if (!ans) py_error("real_part");
     Py_DECREF(a);
     return ans;
@@ -2213,7 +2130,7 @@ void Number_T::archive(archive_node &n) const {
       return 0;
     verbose("imag_part(a)");
     PyObject *a = Number_T_to_pyobject(value);
-    PyObject *ans = py_imag(a);
+    PyObject *ans = py_funcs.py_imag(a);
     if (!ans) py_error("imag_part");
     Py_DECREF(a);
     return ans;
@@ -2489,7 +2406,7 @@ void Number_T::archive(archive_node &n) const {
    *  binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result. */
   const numeric binomial(const numeric &n, const numeric &k) {
     PyObject *nn = Number_T_to_pyobject(n.value), *kk = Number_T_to_pyobject(k.value);
-    PyObject *ans = py_binomial(nn, kk);
+    PyObject *ans = py_funcs.py_binomial(nn, kk);
     if (!ans) py_error("binomial");
     Py_DECREF(nn); Py_DECREF(kk);
     return ans;
@@ -2504,7 +2421,7 @@ void Number_T::archive(archive_node &n) const {
   const numeric bernoulli(const numeric &n)
   {
     PyObject* nn = Number_T_to_pyobject(n.value);
-    PyObject* ans = py_bernoulli(nn);
+    PyObject* ans = py_funcs.py_bernoulli(nn);
     if (!ans) py_error("bernoulli");
     Py_DECREF(nn);
     return ans;
@@ -2597,7 +2514,7 @@ void Number_T::archive(archive_node &n) const {
   {
     verbose("gcd(a,b)");
     PyObject *aa = Number_T_to_pyobject(a.value), *bb = Number_T_to_pyobject(b.value);
-    PyObject *ans = py_gcd(aa, bb);
+    PyObject *ans = py_funcs.py_gcd(aa, bb);
     if (!ans) py_error("gcd");
     Py_DECREF(aa); Py_DECREF(bb);
     return ans;
@@ -2612,7 +2529,7 @@ void Number_T::archive(archive_node &n) const {
   {
     verbose("lcm(a,b)");
     PyObject *aa = Number_T_to_pyobject(a.value), *bb = Number_T_to_pyobject(b.value);
-    PyObject *ans = py_lcm(aa, bb);
+    PyObject *ans = py_funcs.py_lcm(aa, bb);
     if (!ans) py_error("lcm");
     Py_DECREF(aa); Py_DECREF(bb);
     return ans;
@@ -2642,26 +2559,26 @@ void Number_T::archive(archive_node &n) const {
   /** Floating point evaluation of Sage's constants. */
   ex ConstantEvalf(unsigned serial, PyObject* parent)
   { 
-    PyObject* x = py_eval_constant(serial, parent);
+    PyObject* x = py_funcs.py_eval_constant(serial, parent);
     if (!x) py_error("error getting digits of constant");
     return x;
   }
 
     ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent)
 	{
-		PyObject* x = py_eval_unsigned_infinity();
+		PyObject* x = py_funcs.py_eval_unsigned_infinity();
 		return x;
 	}
 
     ex InfinityEvalf(unsigned serial, PyObject* parent)
 	{
-		PyObject* x = py_eval_infinity();
+		PyObject* x = py_funcs.py_eval_infinity();
 		return x;
 	}
 
     ex NegInfinityEvalf(unsigned serial, PyObject* parent)
 	{
-		PyObject* x = py_eval_neg_infinity();
+		PyObject* x = py_funcs.py_eval_neg_infinity();
 		return x;
 	}
 

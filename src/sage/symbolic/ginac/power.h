@@ -23,8 +23,10 @@
 #ifndef __GINAC_POWER_H__
 #define __GINAC_POWER_H__
 
+#include "py_funcs.h"
 #include "basic.h"
 #include "ex.h"
+#include "numeric.h"
 
 namespace GiNaC {
 

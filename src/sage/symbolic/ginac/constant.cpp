@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "py_funcs.h"
 #include "constant.h"
 #include "numeric.h"
 #include "ex.h"
@@ -32,10 +33,6 @@
 #include <iostream>
 
 namespace GiNaC {
-
-extern "C" {
-    constant py_get_constant(const char* name);
-}
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(constant, basic,
   print_func<print_context>(&constant::do_print).
@@ -100,7 +97,7 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 		else if (s == Euler.name)
 			return Euler;
 		else {
-			ans = py_get_constant(s.c_str());
+			ans = py_funcs.py_get_constant(s.c_str());
 			if (PyErr_Occurred()) {
 				throw std::runtime_error("error while unarchiving constant");
 			}

@@ -23,6 +23,7 @@
 #ifndef __GINAC_FDERIVATIVE_H__
 #define __GINAC_FDERIVATIVE_H__
 
+#include "py_funcs.h"
 #include "function.h"
 
 #include <set>

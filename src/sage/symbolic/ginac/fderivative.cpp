@@ -20,21 +20,13 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "py_funcs.h"
 #include "fderivative.h"
 #include "operators.h"
 #include "archive.h"
 #include "utils.h"
 
 #include <iostream>
-
-extern "C" {
-	std::string* py_print_fderivative(unsigned id, PyObject* params,
-		PyObject* args);
-	std::string* py_latex_fderivative(unsigned id, PyObject* params,
-		PyObject* args);
-	PyObject* paramset_to_PyTuple(const GiNaC::paramset &s);
-	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
-}
 
 namespace GiNaC {
 
@@ -114,16 +106,16 @@ void fderivative::print(const print_context & c, unsigned level) const
 void fderivative::do_print(const print_context & c, unsigned level) const
 {
 	//convert paramset to a python list
-	PyObject* params = paramset_to_PyTuple(parameter_set);
+	PyObject* params = py_funcs.paramset_to_PyTuple(parameter_set);
 	//convert arguments to a PyTuple of Expressions
-	PyObject* args = exvector_to_PyTuple(seq);
+	PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 	//check if latex mode
 	//call python function
 	std::string *sout;
 	if (is_a<print_latex>(c)) {
-		sout = py_latex_fderivative(serial, params, args);
+		sout = py_funcs.py_latex_fderivative(serial, params, args);
 	} else {
-		sout = py_print_fderivative(serial, params, args);
+		sout = py_funcs.py_print_fderivative(serial, params, args);
 	}
 	if (!sout) { 
 		throw(std::runtime_error("fderivative::do_print(): python print function raised exception"));

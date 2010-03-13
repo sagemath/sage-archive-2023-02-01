@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "py_funcs.h"
 #include "power.h"
 #include "expairseq.h"
 #include "add.h"
@@ -44,13 +45,6 @@
 #include <limits>
 #include <sstream>
 #include <string>
-
-// ADDED FOR SAGE; this gets us nearly 20% speedup already for (x+y+z)^10.
-extern "C" {
-	PyObject* py_binomial_int(int n, unsigned int k);
-	PyObject* py_rational_power_parts(PyObject* basis, PyObject* exp);
-}
-
 
 namespace GiNaC {
 
@@ -594,7 +588,7 @@ ex power::eval(int level) const
 					if (num_basis->is_rational()) {
 				// call rational_power_parts
 				// for a^b return c,d such that a^b = c*d^b
-				PyObject* restuple = py_rational_power_parts(
+				PyObject* restuple = py_funcs.py_rational_power_parts(
 						num_basis->to_pyobject(), num_exponent->to_pyobject());
 				if(!restuple) {
 					throw(std::runtime_error("power::eval, error in rational_power_parts"));
@@ -1044,7 +1038,7 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 	// i.e. the number of unordered arrangements of m nonnegative integers
 	// which sum up to n.  It is frequently written as C_n(m) and directly
 	// related with binomial coefficients:
-	result.reserve(numeric(py_binomial_int(n+m-1, m-1)).to_int());
+	result.reserve(numeric(py_funcs.py_binomial_int(n+m-1, m-1)).to_int());
 	//result.reserve(binomial(numeric(n+m-1), numeric(m-1)).to_int());
 	intvector k(m-1);
 	intvector k_cum(m-1); // k_cum[l]:=sum(i=0,l,k[l]);
@@ -1089,9 +1083,9 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 			term.push_back(power(b,n-k_cum[m-2]));
 
 
-		numeric f = py_binomial_int(n,k[0]);
+		numeric f = py_funcs.py_binomial_int(n,k[0]);
 		for (l=1; l<m-1; ++l)
-		  f *= py_binomial_int(n-k_cum[l-1], k[l]);
+		  f *= py_funcs.py_binomial_int(n-k_cum[l-1], k[l]);
 
 		term.push_back(f);
 

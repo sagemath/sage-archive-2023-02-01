@@ -39,6 +39,7 @@
 #include "utils.h"
 #include "remember.h"
 #include "symbol.h"
+#include "py_funcs.h"
 
 #include <iostream>
 #include <string>
@@ -46,18 +47,6 @@
 #include <list>
 #include <limits>
 
-extern "C" {
-	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
-	GiNaC::ex pyExpression_to_ex(PyObject* s);
-	PyObject* ex_to_pyExpression(GiNaC::ex e);
-	std::string* py_print_function(unsigned id, PyObject* args);
-	std::string* py_latex_function(unsigned id, PyObject* args);
-	int py_get_ginac_serial();
-	PyObject* py_get_sfunction_from_serial(unsigned id);
-	unsigned py_get_serial_from_sfunction(PyObject* f);
-	std::string* py_dumps(PyObject* o);
-	PyObject* py_loads(PyObject* o);
-}
 namespace GiNaC {
 
 //////////
@@ -1149,13 +1138,13 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 			throw std::runtime_error("function::function archive error: cannot read pickled function");
 		// unpickle
 		PyObject* arg = Py_BuildValue("s#",s.c_str(), s.size());
-		PyObject* sfunc = py_loads(arg);
+		PyObject* sfunc = py_funcs.py_loads(arg);
 		Py_DECREF(arg);
 		if (PyErr_Occurred()) {
 		    throw(std::runtime_error("function::function archive error: caught exception in py_loads"));
 		}
 		// get the serial of the new SFunction
-		unsigned int ser = py_get_serial_from_sfunction(sfunc);
+		unsigned int ser = py_funcs.py_get_serial_from_sfunction(sfunc);
 		if (PyErr_Occurred()) {
 		    throw(std::runtime_error("function::function archive error: cannot get serial from SFunction"));
 		}
@@ -1199,12 +1188,12 @@ void function::archive(archive_node &n) const
 	if (python_func) {
 		n.add_unsigned("python", python_func);
 		// find the corresponding SFunction object
-		PyObject* sfunc = py_get_sfunction_from_serial(serial);
+		PyObject* sfunc = py_funcs.py_get_sfunction_from_serial(serial);
 		if (PyErr_Occurred()) {
 		    throw(std::runtime_error("function::archive cannot get serial from SFunction"));
 		}
 		// call python to pickle it
-		std::string* pickled = py_dumps(sfunc);
+		std::string* pickled = py_funcs.py_dumps(sfunc);
 		if (PyErr_Occurred()) {
 		    throw(std::runtime_error("function::archive py_dumps raised exception"));
 		}
@@ -1228,15 +1217,15 @@ void function::print(const print_context & c, unsigned level) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	// Dynamically dispatch on print_context type
 	const print_context_class_info *pc_info = &c.get_class_info();
-	if (serial >= py_get_ginac_serial()) {
+	if (serial >= py_funcs.py_get_ginac_serial()) {
 		//convert arguments to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 
 		std::string* sout;
 		if (is_a<print_latex>(c)) {
-			sout = py_latex_function(serial, args);
+			sout = py_funcs.py_latex_function(serial, args);
 		} else 
-			sout = py_print_function(serial, args);
+			sout = py_funcs.py_print_function(serial, args);
 
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::print(): python print function raised exception"));
@@ -1396,7 +1385,7 @@ ex function::eval(int level) const
 
 	if (opt.python_func && function_options::eval_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
 				"_eval_", "O", args);
@@ -1408,7 +1397,7 @@ ex function::eval(int level) const
 			return this->hold();
 		}
 		// convert output Expression to an ex
-		eval_result = pyExpression_to_ex(pyresult);
+		eval_result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::eval(): python function (Expression_to_ex) raised exception"));
@@ -1499,7 +1488,7 @@ ex function::evalf(int level, PyObject* parent) const
 	current_serial = serial;
 	if (opt.python_func && function_options::evalf_python_f) { 
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(eseq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(eseq);
 		// create a dictionary {'prec':prec} for the precision argument
 		PyObject* kwds = Py_BuildValue("{s:O}","parent",parent);
 		// call opt.evalf_f with this list
@@ -1512,7 +1501,7 @@ ex function::evalf(int level, PyObject* parent) const
 			throw(std::runtime_error("function::evalf(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::evalf(): python function (pyExpression_to_ex) raised exception"));
@@ -1596,13 +1585,13 @@ ex function::series(const relational & r, int order, unsigned options) const
 	current_serial = serial;
 	if (opt.python_func && function_options::series_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'order': order, 'options':options}
 		PyObject* kwds = Py_BuildValue("{s:i,s:I}","order",order,"options",options);
 		// add variable to expand for as a keyword argument
-		PyDict_SetItemString(kwds, "var", ex_to_pyExpression(r.lhs()));
+		PyDict_SetItemString(kwds, "var", py_funcs.ex_to_pyExpression(r.lhs()));
 		// add the point of expansion as a keyword argument
-		PyDict_SetItemString(kwds, "at", ex_to_pyExpression(r.rhs()));
+		PyDict_SetItemString(kwds, "at", py_funcs.ex_to_pyExpression(r.rhs()));
 		// call opt.series_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
 			PyObject_GetAttrString((PyObject*)opt.series_f,
@@ -1613,7 +1602,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 			throw(std::runtime_error("function::series(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::series(): python function (pyExpression_to_ex) raised exception"));
@@ -1746,7 +1735,7 @@ ex function::conjugate() const
 
 	if (opt.python_func && function_options::conjugate_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
 		PyObject* pyresult = PyObject_CallMethod(
 				(PyObject*)opt.conjugate_f,
@@ -1756,7 +1745,7 @@ ex function::conjugate() const
 			throw(std::runtime_error("function::conjugate(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::conjugate(): python function (pyExpression_to_ex) raised exception"));
@@ -1814,7 +1803,7 @@ ex function::real_part() const
 
 	if (opt.python_func && function_options::real_part_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.real_part_f,
 				"_real_part_", "O", args);
@@ -1823,7 +1812,7 @@ ex function::real_part() const
 			throw(std::runtime_error("function::real_part(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::real_part(): python function (pyExpression_to_ex) raised exception"));
@@ -1880,7 +1869,7 @@ ex function::imag_part() const
 
 	if (opt.python_func && function_options::imag_part_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.imag_part_f,
 				"_imag_part_", "O", args);
@@ -1889,7 +1878,7 @@ ex function::imag_part() const
 			throw(std::runtime_error("function::imag_part(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::imag_part(): python function (pyExpression_to_ex) raised exception"));
@@ -1959,9 +1948,9 @@ ex function::derivative(const symbol & s) const
 
 		if (opt.python_func && function_options::derivative_python_f) {
 			// convert seq to a PyTuple of Expressions
-			PyObject* args = exvector_to_PyTuple(seq);
+			PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 			// create a dictionary {'diff_param': s}
-			PyObject* symb = ex_to_pyExpression(s);
+			PyObject* symb = py_funcs.ex_to_pyExpression(s);
 			PyObject* kwds = Py_BuildValue("{s:O}","diff_param",
 					symb);
 			// call opt.derivative_f with this list
@@ -1976,7 +1965,7 @@ ex function::derivative(const symbol & s) const
 				throw(std::runtime_error("function::derivative(): python function raised exception"));
 			}
 			// convert output Expression to an ex
-			ex result = pyExpression_to_ex(pyresult);
+			ex result = py_funcs.pyExpression_to_ex(pyresult);
 			Py_DECREF(pyresult);
 			if (PyErr_Occurred()) { 
 				throw(std::runtime_error("function::derivative(): python function (pyExpression_to_ex) raised exception"));
@@ -2115,7 +2104,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 	current_serial = serial;
 	if (opt.python_func && function_options::derivative_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'diff_param': diff_param}
 		PyObject* kwds = Py_BuildValue("{s:I}","diff_param",diff_param);
 		// call opt.derivative_f with this list
@@ -2131,7 +2120,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 			return fderivative(serial, diff_param, seq);
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::pderivative(): python function (pyExpression_to_ex) raised exception"));
@@ -2189,10 +2178,10 @@ ex function::power(const ex & power_param) const // power of function
 	current_serial = serial;
 	if (opt.python_func && function_options::power_python_f) {
 		// convert seq to a PyTuple of Expressions
-		PyObject* args = exvector_to_PyTuple(seq);
+		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'power_param': power_param}
 		PyObject* kwds = PyDict_New();
-		PyDict_SetItemString(kwds, "power_param", ex_to_pyExpression(power_param));
+		PyDict_SetItemString(kwds, "power_param", py_funcs.ex_to_pyExpression(power_param));
 		// call opt.power_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
 			PyObject_GetAttrString((PyObject*)opt.power_f,
@@ -2203,7 +2192,7 @@ ex function::power(const ex & power_param) const // power of function
 			throw(std::runtime_error("function::power(): python function raised exception"));
 		}
 		// convert output Expression to an ex
-		ex result = pyExpression_to_ex(pyresult);
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
 		if (PyErr_Occurred()) { 
 			throw(std::runtime_error("function::power(): python function (pyExpression_to_ex) raised exception"));

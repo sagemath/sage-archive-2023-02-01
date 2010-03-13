@@ -39,7 +39,7 @@ mymkdir()
 
 no_version()
 {
-    if [ -z "`echo "$1" | grep -o -`" ]; then
+    if [ -z "`echo "$1" | grep -`" ]; then
         echo "no version"
     fi
 }

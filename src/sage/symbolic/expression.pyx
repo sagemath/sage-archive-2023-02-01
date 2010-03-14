@@ -3759,6 +3759,18 @@ cdef class Expression(CommutativeRingElement):
             Infinity
             sage: t.n()
             +infinity
+
+        Some expressions can't be evaluated numerically::
+
+            sage: n(sin(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
+            sage: a = var('a')
+            sage: (x^2 + 2*x + 2).subs(x=a).n()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
         """
         if prec is None:
             if digits is None:

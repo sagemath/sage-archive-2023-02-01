@@ -5,9 +5,9 @@ Benchmarks
 COMMENTS:
 
 Taken as a whole these benchmarks suggest that by far the fastest math
-software is MAGMA, Mathematica, and SAGE (with appropriate tuning and
+software is MAGMA, Mathematica, and Sage (with appropriate tuning and
 choices -- it can also be very slow !).  Maxima is very slow, at least
-in the form that comes with SAGE (perhaps this is because of using
+in the form that comes with Sage (perhaps this is because of using
 clisp, at least partly).  GP is slow at some thing and very fast at
 others.
 
@@ -263,7 +263,7 @@ class MPolynomialPower(Benchmark):
         s = 'Compute (x_0 + ... + x_%s)^%s over %s'%(
             self.nvars - 1, self.exp, self.base)
         if self.allow_singular:
-            s += ' (use singular for SAGE mult.)'
+            s += ' (use singular for Sage mult.)'
         self.repr_str = s
 
     def sage(self):
@@ -397,7 +397,7 @@ class MPolynomialMult(Benchmark):
         s =  'Compute (x_0 + ... + x_%s) * (x_%s + ... + x_%s) over %s'%(
             self.nvars/2 - 1, self.nvars/2, self.nvars, self.base)
         if self.allow_singular:
-            s += ' (use singular for SAGE mult.)'
+            s += ' (use singular for Sage mult.)'
         self.repr_str = s
 
     def maxima(self):
@@ -545,7 +545,7 @@ class MPolynomialMult2(Benchmark):
             self.nvars/2, self.nvars/2, self.nvars/2+1, self.nvars/2+1,
             self.nvars+1, self.nvars+1, self.base)
         if self.allow_singular:
-            s += ' (use singular for SAGE mult.)'
+            s += ' (use singular for Sage mult.)'
         self.repr_str = s
 
 ##     def gp(self):
@@ -1914,7 +1914,7 @@ def suite1():
     CharPolyTp(389,2).run()
     CharPolyTp(389,2,sign=0,p=3).run()
     CharPolyTp(1000,2,sign=1,p=2).run(systems=['sage','magma'])
-    CharPolyTp(1,100,sign=1,p=5).run(systems=['sage','magma'])   # SAGE's multimodular really sucks here! (GP is way better, even)
+    CharPolyTp(1,100,sign=1,p=5).run(systems=['sage','magma'])   # Sage's multimodular really sucks here! (GP is way better, even)
     CharPolyTp(512,sign=1,p=3).run(systems=['sage','magma','gp'])
     CharPolyTp(512,sign=0,p=3).run(systems=['sage','magma','gp'])
     CharPolyTp(1024,sign=1,p=3).run(systems=['sage','magma','gp'])
@@ -1949,7 +1949,7 @@ def mpoly_all(include_maple=False):
 
     NOTES:
        * maple is depressingly slow on these benchmarks.
-       * Singular (i.e., SAGE) does shockingly well.
+       * Singular (i.e., Sage) does shockingly well.
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
     """
@@ -1988,9 +1988,9 @@ def elliptic_curve():
     EllipticCurvePointMul(2000).run()
     EllipticCurvePointMul(2500).run()      # sage is clearly using the wrong algorithm -- maybe need a balanced rep!?
 
-    # NOTE -- SAGE can also do these using Simon's program, which is
+    # NOTE -- Sage can also do these using Simon's program, which is
     # *way* *way* faster than MAGMA...
     EllipticCurveMW([5,6,7,8,9]).run()
     EllipticCurveMW([50,6,7,8,9]).run()
     EllipticCurveMW([1, -1, 0, -79, 289]).run(trials=1)   # rank 4
-    EllipticCurveMW([0, 0, 1, -79, 342]).run(trials=1)    # rank 5  (SAGE wins)
+    EllipticCurveMW([0, 0, 1, -79, 342]).run(trials=1)    # rank 5  (Sage wins)

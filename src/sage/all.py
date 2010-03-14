@@ -23,17 +23,17 @@ from __future__ import with_statement
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-# Error message that matches the SAGE/IPython defaults
+# Error message that matches the Sage/IPython defaults
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
 exit = quit
 
 import os, sys
 
 if not os.environ.has_key('SAGE_ROOT'):
-    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
+    raise RuntimeError, "To use the Sage libraries, set the environment variable SAGE_ROOT to the Sage build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
 if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "SAGE requires Python 2.5 or newer"
+    print >>sys.stderr, "Sage requires Python 2.5 or newer"
     sys.exit(1)
 
 ###################################################################
@@ -190,8 +190,8 @@ ZZ = IntegerRing()
 # NOTE: QQ, RR, and ZZ are used by the pre-parser, and should not be
 # overwritten by the user, unless they want to change the meaning of
 # int and real in the interpreter (which is a potentially valid thing
-# to do, and doesn't mess up anything else in the SAGE library).
-# E.g., typing "int = ZZ" in the SAGE interpreter makes int literals
+# to do, and doesn't mess up anything else in the Sage library).
+# E.g., typing "int = ZZ" in the Sage interpreter makes int literals
 # acts as Python ints again.
 
 
@@ -216,7 +216,7 @@ _wall_time_ = walltime()
 
 def quit_sage(verbose=True):
     """
-    If you use SAGE in library mode, you should call this function
+    If you use Sage in library mode, you should call this function
     when your application quits.
 
     It makes sure any child processes are also killed, etc.
@@ -226,7 +226,7 @@ def quit_sage(verbose=True):
         t1m = int(t1/60); t1s=t1-t1m*60
         t2 = walltime(_wall_time_)
         t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting SAGE (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
+        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
                t1m,t1s,t2m,t2s)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)

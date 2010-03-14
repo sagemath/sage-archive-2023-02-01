@@ -3782,7 +3782,7 @@ cdef class Expression(CommutativeRingElement):
         elif  is_a_constant(x._gobj):
             res = x.pyobject()
         else:
-            raise TypeError, "cannot evaluate symbolic expresssion numerically"
+            raise TypeError("cannot evaluate symbolic expression numerically")
 
         # Important -- the  we get might not be a valid output for numerical_approx in
         # the case when one gets infinity.

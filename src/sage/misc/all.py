@@ -7,7 +7,8 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   repr_lincomb, tmp_dir, tmp_filename,
                   pad_zeros, attrcall,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, newton_method_sizes)
+                  is_32_bit, is_64_bit, newton_method_sizes, compose,
+                  self_compose, nest)
 
 from misc_c import prod, running_total, balanced_sum
 

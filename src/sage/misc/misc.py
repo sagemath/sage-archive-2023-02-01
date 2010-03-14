@@ -827,6 +827,135 @@ def assert_attribute(x, attr, init=None):
         attr = "_" + z[len(x.__module__)+1:] + attr
     x.__dict__[attr] = init
 
+
+def compose(f, g):
+    """
+    Return the composition of one-variable functions: `f \circ g`
+
+    See also :func:`self_compose()` and :func:`nest()`
+
+    INPUT:
+        - `f` -- a function of one variable
+        - `g` -- another function of one variable
+
+    OUTPUT:
+        A function, such that compose(f,g)(x) = f(g(x))
+
+    EXAMPLES::
+
+        sage: def g(x): return 3*x
+        sage: def f(x): return x + 1
+        sage: h1 = compose(f,g)
+        sage: h2 = compose(g,f)
+        sage: _ = var ('x')
+        sage: h1(x)
+        3*x + 1
+        sage: h2(x)
+        3*x + 3
+
+    ::
+        sage: _ = function('f g')
+        sage: _ = var ('x')
+        sage: compose(f,g)(x)
+        f(g(x))
+
+    """
+    return lambda x: f(g(x))
+
+
+def self_compose(f, n):
+    """
+    Return the function `f` composed with itself `n` times.
+
+    See :func:`nest()` if you want `f(f(...(f(x))...))` for
+    known `x`.
+
+
+    INPUT:
+        - `f` -- a function of one variable
+        - `n` -- a nonnegative integer
+
+    OUTPUT:
+        A function, the result of composing `f` with itself `n` times
+
+    EXAMPLES::
+
+        sage: def f(x): return x^2 + 1
+        sage: g = self_compose(f, 3)
+        sage: x = var('x')
+        sage: g(x)
+        ((x^2 + 1)^2 + 1)^2 + 1
+
+    ::
+
+        sage: def f(x): return x + 1
+        sage: g = self_compose(f, 10000)
+        sage: g(0)
+        10000
+
+    ::
+
+        sage: x = var('x')
+        sage: self_compose(sin, 0)(x)
+        x
+
+    """
+    from sage.rings.all import Integer
+
+    typecheck(n, (int, long, Integer), 'n')
+    if n < 0:
+        raise ValueError, "n must be a nonnegative integer, not %s." % n
+
+    return lambda x: nest(f, n, x)
+
+
+def nest(f, n, x):
+    """
+    Return `f(f(...f(x)...))`, where the composition occurs n times.
+
+    See also :func:`compose()` and :func:`self_compose()`
+
+    INPUT:
+        - `f` -- a function of one variable
+        - `n` -- a nonnegative integer
+        - `x` -- any input for `f`
+
+    OUTPUT:
+        `f(f(...f(x)...))`, where the composition occurs n times
+
+    EXAMPLES::
+
+        sage: def f(x): return x^2 + 1
+        sage: x = var('x')
+        sage: nest(f, 3, x)
+        ((x^2 + 1)^2 + 1)^2 + 1
+
+    ::
+
+        sage: _ = function('f')
+        sage: _ = var('x')
+        sage: nest(f, 10, x)
+        f(f(f(f(f(f(f(f(f(f(x))))))))))
+
+    ::
+
+        sage: _ = function('f')
+        sage: _ = var('x')
+        sage: nest(f, 0, x)
+        x
+
+    """
+    from sage.rings.all import Integer
+
+    typecheck(n, (int, long, Integer), 'n')
+    if n < 0:
+        raise ValueError, "n must be a nonnegative integer, not %s." % n
+
+    for i in xrange(n):
+        x = f(x)
+    return x
+
+
 #################################################################
 # Ranges and [1,2,..,n] notation.
 #################################################################

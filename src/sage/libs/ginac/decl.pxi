@@ -385,3 +385,106 @@ cdef extern from "ginac_wrap.h":
     unsigned factorial_serial "GiNaC::factorial_SERIAL::serial" # factorial function n!
     unsigned binomial_serial "GiNaC::binomial_SERIAL::serial" # binomial coefficients
     unsigned Order_serial "GiNaC::Order_SERIAL::serial" # order term function in truncated power series
+
+    cdef extern from *:
+        ctypedef char* const_char_ptr "const char*"
+        ctypedef GParamSet const_paramset_ref "const GiNaC::paramset&"
+
+    ctypedef struct py_funcs_struct:
+        object (*py_binomial)(object a, object b)
+        object (*py_binomial_int)(int n, unsigned int k) except +
+        object (*py_gcd)(object a ,object b)
+        object (*py_lcm)(object a ,object b)
+        object (*py_real)(object a)
+        object (*py_imag)(object a)
+        object (*py_numer)(object a)
+        object (*py_denom)(object a)
+        object (*py_conjugate)(object a)
+        bint (*py_is_rational)(object a)  except +
+        bint (*py_is_crational)(object a)  except +
+        bint (*py_is_real)(object a)  except +
+        bint (*py_is_integer)(object a)  except +
+        bint (*py_is_equal)(object a, object b)  except +
+        bint (*py_is_even)(object a)  except +
+        bint (*py_is_cinteger)(object a)  except +
+        bint (*py_is_prime)(object n)  except +
+
+        object (*py_integer_from_long)(long int x) except +
+        object (*py_integer_from_python_obj)(object x) except +
+
+        object (*py_float)(object a, object parent) except +
+        object (*py_RDF_from_double)(double x)
+
+
+        object (*py_factorial)(object x) except +
+        object (*py_doublefactorial)(object x) except +
+        object (*py_fibonacci)(object x) except +
+        object (*py_step)(object x) except +
+        object (*py_bernoulli)(object x) except +
+        object (*py_sin)(object x) except +
+        object (*py_cos)(object x) except +
+        object (*py_zeta)(object x) except +
+        object (*py_exp)(object x) except +
+        object (*py_log)(object x) except +
+        object (*py_tan)(object x) except +
+        object (*py_asin)(object x) except +
+        object (*py_acos)(object x) except +
+        object (*py_atan)(object x) except +
+        object (*py_atan2)(object x, object y) except +
+        object (*py_sinh)(object x) except +
+        object (*py_cosh)(object x) except +
+        object (*py_tanh)(object x) except +
+        object (*py_asinh)(object x) except +
+        object (*py_acosh)(object x) except +
+        object (*py_atanh)(object x) except +
+        object (*py_tgamma)(object x) except +
+        object (*py_lgamma)(object x) except +
+        object (*py_isqrt)(object x) except +
+        object (*py_sqrt)(object x) except +
+        object (*py_abs)(object x) except +
+        object (*py_mod)(object x, object y) except +
+        object (*py_smod)(object x, object y) except +
+        object (*py_irem)(object x, object y) except +
+        object (*py_iquo)(object x, object y) except +
+        object (*py_iquo2)(object x, object y) except +
+        object (*py_li)(object x, object n, object parent) except +
+        object (*py_li2)(object x) except +
+        object (*py_psi)(object x) except +
+        object (*py_psi2)(object n, object x) except +
+
+        int    (*py_int_length)(object x) except -1
+
+        object (*py_eval_constant)(unsigned serial, object parent)
+        object (*py_eval_unsigned_infinity)()
+        object (*py_eval_infinity)()
+        object (*py_eval_neg_infinity)()
+
+        int    (*py_get_parent_char)(object o) except -1
+
+        stdstring* (*py_latex)(object o, int level) except +
+        stdstring* (*py_repr)(object o, int level) except +
+
+        stdstring* (*py_dumps)(object o) except +
+        object (*py_loads)(object s) except +
+
+        object exvector_to_PyTuple(GExVector seq)
+        GEx pyExpression_to_ex(object res) except *
+        object ex_to_pyExpression(GEx juice)
+        int py_get_ginac_serial()
+
+        object py_get_sfunction_from_serial(unsigned s) except +
+        unsigned py_get_serial_from_sfunction(object f) except +
+
+        stdstring* py_print_function(unsigned id, object args) except +
+        stdstring* py_latex_function(unsigned id, object args) except +
+
+
+        GConstant py_get_constant(const_char_ptr name) except +
+
+        stdstring* (*py_print_fderivative)(unsigned id, object params, object args) except +
+        stdstring* (*py_latex_fderivative)(unsigned id, object params, object args) except +
+        object (*paramset_to_PyTuple)(const_paramset_ref s)
+
+        object (*py_rational_power_parts)(object basis, object exp)
+
+    py_funcs_struct py_funcs "GiNaC::py_funcs"

@@ -44,14 +44,6 @@ from sage.libs.mpmath import utils as mpmath_utils
 # Symbolic function helpers
 #################################################################
 
-# We declare the functions defined below as extern here, to prevent Cython
-# from generating separate declarations for them which confuse g++
-cdef extern from *:
-    object exvector_to_PyTuple(GExVector seq)
-    GEx pyExpression_to_ex(object res) except *
-    object ex_to_pyExpression(GEx juice)
-    object paramset_to_PyTuple(GParamSet juice)
-    int py_get_ginac_serial()
 
 cdef public object ex_to_pyExpression(GEx juice):
     """
@@ -99,7 +91,7 @@ cdef public GEx pyExpression_to_ex(object res) except *:
         raise TypeError, "function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
     return (<Expression>t)._gobj
 
-cdef public object paramset_to_PyTuple(GParamSet s):
+cdef public object paramset_to_PyTuple(const_paramset_ref s):
     """
     Converts a std::multiset<unsigned> to a PyTuple.
 
@@ -164,17 +156,6 @@ def get_ginac_serial():
 #################################################################
 # Printing helpers
 #################################################################
-
-# We declare the functions defined below as extern here, to prevent Cython
-# from generating separate declarations for them which confuse g++
-cdef extern from *:
-    stdstring* py_repr(object o, int level) except +
-    stdstring* py_latex(object o, int level) except +
-    stdstring* py_latex_variable(char* var_name) except +
-    stdstring* py_print_function(unsigned id, object args) except +
-    stdstring* py_latex_function(unsigned id, object args) except +
-    stdstring* py_print_fderivative(unsigned id, object params, object args) except +
-    stdstring* py_latex_fderivative(unsigned id, object params, object args) except +
 
 ##########################################################################
 # Pynac's precedence levels, as extracted from the raw source code on
@@ -569,12 +550,6 @@ def py_latex_fderivative_for_doctests(id, params, args):
 # Archive helpers
 #################################################################
 
-cdef extern from *:
-    stdstring* py_dumps(object o) except +
-    object py_loads(object s) except +
-    object py_get_sfunction_from_serial(unsigned s) except +
-    unsigned py_get_serial_from_sfunction(Function f) except +
-
 from sage.structure.sage_object import loads, dumps
 cdef public stdstring* py_dumps(object o) except +:
     s = dumps(o, compress=False)
@@ -593,8 +568,8 @@ cdef public object py_loads(object s) except +:
 cdef public object py_get_sfunction_from_serial(unsigned s) except +:
     return get_sfunction_from_serial(s)
 
-cdef public unsigned py_get_serial_from_sfunction(Function f) except +:
-    return f._serial
+cdef public unsigned py_get_serial_from_sfunction(object f) except +:
+    return (<Function>f)._serial
 
 #################################################################
 # Modular helpers
@@ -617,8 +592,6 @@ cdef public int py_get_parent_char(object o) except -1:
 # power helpers
 #################################################################
 
-cdef extern from *:
-    object py_rational_power_parts(object base, object exp) except +
 
 from sage.rings.rational cimport rational_power_parts
 cdef public object py_rational_power_parts(object base, object exp) except +:
@@ -632,74 +605,6 @@ cdef public object py_rational_power_parts(object base, object exp) except +:
 #################################################################
 # Binomial Coefficients
 #################################################################
-
-
-# We declare the functions defined below as extern here, to prevent Cython
-# from generating separate declarations for them which confuse g++.
-cdef extern from *:
-    object py_binomial_int(int n, unsigned int k) except +
-    object py_binomial(object n, object k) except +
-    object py_gcd(object n, object k) except +
-    object py_lcm(object n, object k) except +
-    object py_real(object x) except +
-    object py_imag(object x) except +
-    object py_conjugate(object x) except +
-    bint py_is_rational(object x) except +
-    bint py_is_crational(object x) except +
-    bint py_is_integer(object x) except +
-    bint py_is_equal(object x, object y) except +
-    bint py_is_even(object x) except +
-    bint py_is_cinteger(object x) except +
-    bint py_is_real(object x) except +
-    bint py_is_prime(object x) except +
-    object py_numer(object x) except +
-    object py_denom(object x) except +
-    object py_float(object x, object parent) except +
-    object py_RDF_from_double(double x) except +
-    object py_factorial(object x) except +
-    object py_doublefactorial(object x) except +
-    object py_fibonacci(object x) except +
-    object py_step(object x) except +
-    object py_bernoulli(object x) except +
-    object py_sin(object x) except +
-    object py_cos(object x) except +
-    object py_zeta(object x) except +
-    object py_exp(object x) except +
-    object py_log(object x) except +
-    object py_tan(object x) except +
-    object py_asin(object x) except +
-    object py_acos(object x) except +
-    object py_atan(object x) except +
-    object py_atan2(object x, object y) except +
-    object py_sinh(object x) except +
-    object py_cosh(object x) except +
-    object py_tanh(object x) except +
-    object py_asinh(object x) except +
-    object py_acosh(object x) except +
-    object py_atanh(object x) except +
-    object py_tgamma(object x) except +
-    object py_lgamma(object x) except +
-    object py_isqrt(object x) except +
-    object py_sqrt(object x) except +
-    object py_abs(object x) except +
-    object py_mod(object x, object y) except +
-    object py_smod(object x, object y) except +
-    object py_irem(object x, object y) except +
-    object py_iquo(object x, object y) except +
-    object py_iquo2(object x, object y) except +
-    int py_int_length(object x) except -1
-    object py_li(object x, object n, object prec) except +
-    object py_li2(object x) except +
-    object py_psi(object x) except +
-    object py_psi2(object x, object y) except +
-    object py_eval_constant(unsigned serial, object parent) except +
-    object py_eval_unsigned_infinity() except +
-    object py_eval_infinity() except +
-    object py_eval_neg_infinity() except +
-    object py_integer_from_long(long int) except +
-    object py_integer_from_python_obj(object x) except +
-
-    GConstant py_get_constant(char* name) except +
 
 
 cdef public object py_binomial_int(int n, unsigned int k) except +:
@@ -1683,7 +1588,7 @@ cdef public object py_li2(object x) except +:
 # Constants
 ##################################################################
 
-cdef public GConstant py_get_constant(char* name) except +:
+cdef public GConstant py_get_constant(const_char_ptr name) except +:
     """
     Returns a constant given its name. This is called by
     constant::unarchive in constant.cpp in Pynac and is used for
@@ -1839,7 +1744,107 @@ def init_pynac_I():
     ginac_pyinit_I(pynac_I)
     I = new_Expression_from_GEx(ring.SR, g_I)
 
+
+def init_function_table():
+    """
+    Initializes the function pointer table in Pynac.  This must be
+    called before Pynac is used; otherwise, there will be segfaults.
+    """
+
+    py_funcs.py_binomial_int = &py_binomial_int
+    py_funcs.py_binomial = &py_binomial
+    py_funcs.py_gcd = &py_gcd
+    py_funcs.py_lcm = &py_lcm
+    py_funcs.py_real = &py_real
+    py_funcs.py_imag = &py_imag
+    py_funcs.py_numer = &py_numer
+    py_funcs.py_denom = &py_denom
+    py_funcs.py_conjugate = &py_conjugate
+
+    py_funcs.py_is_rational = &py_is_rational
+    py_funcs.py_is_crational = &py_is_crational
+    py_funcs.py_is_real = &py_is_real
+    py_funcs.py_is_integer = &py_is_integer
+    py_funcs.py_is_equal = &py_is_equal
+    py_funcs.py_is_even = &py_is_even
+    py_funcs.py_is_cinteger = &py_is_cinteger
+    py_funcs.py_is_prime = &py_is_prime
+
+    py_funcs.py_integer_from_long = &py_integer_from_long
+    py_funcs.py_integer_from_python_obj = &py_integer_from_python_obj
+
+    py_funcs.py_float = &py_float
+    py_funcs.py_RDF_from_double = &py_RDF_from_double
+
+    py_funcs.py_factorial = &py_factorial
+    py_funcs.py_doublefactorial = &py_doublefactorial
+    py_funcs.py_fibonacci = &py_fibonacci
+    py_funcs.py_step = &py_step
+    py_funcs.py_bernoulli = &py_bernoulli
+    py_funcs.py_sin = &py_sin
+    py_funcs.py_cos = &py_cos
+    py_funcs.py_zeta = &py_zeta
+    py_funcs.py_exp = &py_exp
+    py_funcs.py_log = &py_log
+    py_funcs.py_tan = &py_tan
+    py_funcs.py_asin = &py_asin
+    py_funcs.py_acos = &py_acos
+    py_funcs.py_atan = &py_atan
+    py_funcs.py_atan2 = &py_atan2
+    py_funcs.py_sinh = &py_sinh
+    py_funcs.py_cosh = &py_cosh
+    py_funcs.py_tanh = &py_tanh
+    py_funcs.py_asinh = &py_asinh
+    py_funcs.py_acosh = &py_acosh
+    py_funcs.py_atanh = &py_atanh
+    py_funcs.py_tgamma = &py_tgamma
+    py_funcs.py_lgamma = &py_lgamma
+    py_funcs.py_isqrt = &py_isqrt
+    py_funcs.py_sqrt = &py_sqrt
+    py_funcs.py_abs = &py_abs
+    py_funcs.py_mod = &py_mod
+    py_funcs.py_smod = &py_smod
+    py_funcs.py_irem = &py_irem
+    py_funcs.py_iquo = &py_iquo
+    py_funcs.py_iquo2 = &py_iquo2
+    py_funcs.py_li = &py_li
+    py_funcs.py_li2 = &py_li2
+    py_funcs.py_psi = &py_psi
+    py_funcs.py_psi2 = &py_psi2
+
+    py_funcs.py_int_length = &py_int_length
+
+    py_funcs.py_eval_constant = &py_eval_constant
+    py_funcs.py_eval_unsigned_infinity = &py_eval_unsigned_infinity
+    py_funcs.py_eval_infinity = &py_eval_infinity
+    py_funcs.py_eval_neg_infinity = &py_eval_neg_infinity
+
+    py_funcs.py_get_parent_char = &py_get_parent_char
+
+    py_funcs.py_latex = &py_latex
+    py_funcs.py_repr = &py_repr
+
+    py_funcs.py_dumps = &py_dumps
+    py_funcs.py_loads = &py_loads
+
+    py_funcs.exvector_to_PyTuple = &exvector_to_PyTuple
+    py_funcs.pyExpression_to_ex = &pyExpression_to_ex
+    py_funcs.ex_to_pyExpression = &ex_to_pyExpression
+    py_funcs.py_print_function = &py_print_function
+    py_funcs.py_latex_function = &py_latex_function
+    py_funcs.py_get_ginac_serial = &py_get_ginac_serial
+    py_funcs.py_get_sfunction_from_serial = &py_get_sfunction_from_serial
+    py_funcs.py_get_serial_from_sfunction = &py_get_serial_from_sfunction
+
+    py_funcs.py_get_constant = &py_get_constant
+    py_funcs.py_print_fderivative =  &py_print_fderivative
+    py_funcs.py_latex_fderivative =  &py_latex_fderivative
+    py_funcs.paramset_to_PyTuple = &paramset_to_PyTuple
+    py_funcs.py_rational_power_parts = &py_rational_power_parts
+
+init_function_table()
 init_pynac_I()
+
 """
 Some tests for the formal square root of -1.
 

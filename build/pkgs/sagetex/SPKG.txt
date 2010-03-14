@@ -49,6 +49,10 @@ contains documentation and an example file. If you have problems or
 suggestions see [[http://groups.google.com/group/sage-support|the
 sage-support group]].
 
+If you want to help develop SageTeX, please clone the bitbucket
+Mercurial repository (see the "Upstream Contact" above) and send me
+patches based on that.
+
 Finally, note that you can actually use SageTeX without Sage! The
 {{{remote-sagetex.py}}} script uses any remote Sage server to do the
 computations for you. If you can't or don't want to install Sage on your
@@ -58,6 +62,12 @@ SageTeX [[http://tug.ctan.org/pkg/sagetex|from CTAN]] instead of
 downloading this spkg.
 
 == Changelog ==
+
+=== sagetex-2.2.4 (Dan Drake, 14 Mar 2010) ===
+
+ * Special spkg for Nicolas Thiery; this includes the sageexample
+   environment and some basic documentation. This spkg won't get
+   distributed with Sage.
 
 === sagetex-2.2.3.p0 (Dan Drake, 2 Mar 2010) ===
 

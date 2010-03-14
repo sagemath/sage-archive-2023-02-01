@@ -132,6 +132,28 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return (make_ComplexIntervalFieldElement0, (self._parent, self.real(), self.imag()))
 
     def str(self, base=10, style=None):
+        """
+        Returns a string representation of self.
+
+        EXAMPLES::
+
+            sage: CIF(1.5).str()
+            '1.5000000000000000?'
+            sage: CIF(1.5, 2.5).str()
+            '1.5000000000000000? + 2.5000000000000000?*I'
+            sage: CIF(1.5, -2.5).str()
+            '1.5000000000000000? - 2.5000000000000000?*I'
+            sage: CIF(0, -2.5).str()
+            '-2.5000000000000000?*I'
+            sage: CIF(1.5).str(base=3)
+            '1.1111111111111111111111111111111112?'
+            sage: CIF(1, pi).str(style='brackets')
+            '[1.0000000000000000 .. 1.0000000000000000] + [3.1415926535897931 .. 3.1415926535897936]*I'
+
+        SEE ALSO:
+
+            RealIntervalFieldElement.str()
+        """
         s = ""
         if not self.real().is_zero():
             s = self.real().str(base=base, style=style)
@@ -148,12 +170,127 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             s = "0"
         return s
 
+    def plot(self, pointsize=10, **kwds):
+        """
+        Plot a complex interval as a rectangle.
+
+        EXAMPLES::
+
+            sage: sum(plot(CIF(RIF(1/k, 1/k), RIF(-k, k))) for k in [1..10])
+
+        Exact and nearly exact points are still visible::
+
+            sage: plot(CIF(pi, 1), color='red') + plot(CIF(1, e), color='purple') + plot(CIF(-1, -1))
+
+        A demonstration that $z \mapsto z^2$ acts chaotically on $|z|=1$::
+
+            sage: z = CIF(0, 2*pi/1000).exp()
+            sage: g = Graphics()
+            sage: for i in range(40):
+            ...       z = z^2
+            ...       g += z.plot(color=(1./(40-i), 0, 1))
+            ...
+            sage: g
+        """
+        from sage.plot.polygon import polygon2d
+        x, y = self.real(), self.imag()
+        x0, y0 = x.lower(), y.lower()
+        x1, y1 = x.upper(), y.upper()
+        g = polygon2d([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
+                thickness=pointsize/4, **kwds)
+        # Nearly empty polygons don't show up.
+        g += self.center().plot(pointsize= pointsize, **kwds)
+        return g
+
     def _latex_(self):
+        """
+        Returns a latex representation of self.
+
+        EXAMPLES::
+
+            sage: latex(CIF(1.5, -2.5))
+            1.5000000000000000? - 2.5000000000000000?i
+            sage: latex(CIF(0, 3e200))
+            3.0000000000000000? \times 10^{200}i
+        """
         import re
         s = self.str().replace('*I', 'i')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
+    def bisection(self):
+        """
+        Returns the bisection of self into four intervals whose union is
+        ``self`` and intersection is ``self.center()``.
+
+        EXAMPLES::
+
+            sage: z = CIF(RIF(2, 3), RIF(-5, -4))
+            sage: z.bisection()
+            (3.? - 5.?*I, 3.? - 5.?*I, 3.? - 5.?*I, 3.? - 5.?*I)
+            sage: for z in z.bisection():
+            ...       print z.real().endpoints(), z.imag().endpoints()
+            (2.00000000000000, 2.50000000000000) (-5.00000000000000, -4.50000000000000)
+            (2.50000000000000, 3.00000000000000) (-5.00000000000000, -4.50000000000000)
+            (2.00000000000000, 2.50000000000000) (-4.50000000000000, -4.00000000000000)
+            (2.50000000000000, 3.00000000000000) (-4.50000000000000, -4.00000000000000)
+
+            sage: z = CIF(RIF(sqrt(2), sqrt(3)), RIF(e, pi))
+            sage: a, b, c, d = z.bisection()
+            sage: a.intersection(b).intersection(c).intersection(d) == CIF(z.center())
+            True
+
+            sage: zz = a.union(b).union(c).union(c)
+            sage: zz.real().endpoints() == z.real().endpoints()
+            True
+            sage: zz.imag().endpoints() == z.imag().endpoints()
+            True
+        """
+        cdef ComplexIntervalFieldElement a00 = self._new()
+        mpfr_set(<mpfr_t> &a00.__re.left, <mpfr_t> &self.__re.left, GMP_RNDN)
+        mpfi_mid(<mpfr_t> &a00.__re.right, self.__re)
+        mpfr_set(<mpfr_t> &a00.__im.left, <mpfr_t> &self.__im.left, GMP_RNDN)
+        mpfi_mid(<mpfr_t> &a00.__im.right, self.__im)
+
+        cdef ComplexIntervalFieldElement a01 = self._new()
+        mpfr_set(<mpfr_t> &a01.__re.left, <mpfr_t> &a00.__re.right, GMP_RNDN)
+        mpfr_set(<mpfr_t> &a01.__re.right, <mpfr_t> &self.__re.right, GMP_RNDN)
+        mpfi_set(a01.__im, a00.__im)
+
+        cdef ComplexIntervalFieldElement a10 = self._new()
+        mpfi_set(a10.__re, a00.__re)
+        mpfi_mid(<mpfr_t> &a10.__im.left, self.__im)
+        mpfr_set(<mpfr_t> &a10.__im.right, <mpfr_t> &self.__im.right, GMP_RNDN)
+
+        cdef ComplexIntervalFieldElement a11 = self._new()
+        mpfi_set(a11.__re, a01.__re)
+        mpfi_set(a11.__im, a10.__im)
+
+        return a00, a01, a10, a11
+
     def is_exact(self):
+        """
+        Returns whether this real interval is exact (i.e. contains exactly one
+        complex value).
+
+        EXAMPLES::
+
+            sage: CIF(3).is_exact()
+            True
+            sage: CIF(0, 2).is_exact()
+            True
+            sage: CIF(-4, 0).sqrt().is_exact()
+            True
+            sage: CIF(-5, 0).sqrt().is_exact()
+            False
+            sage: CIF(0, 2*pi).is_exact()
+            False
+            sage: CIF(e).is_exact()
+            False
+            sage: CIF(1e100).is_exact()
+            True
+            sage: (CIF(1e100) + 1).is_exact()
+            False
+        """
         return mpfr_equal_p(&self.__re.left, &self.__re.right) and \
                mpfr_equal_p(&self.__im.left, &self.__im.right)
 

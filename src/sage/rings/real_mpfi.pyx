@@ -1997,6 +1997,27 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_get_right(<mpfr_t> x.value, self.value)
         return x
 
+    def endpoints(self, rnd=None):
+        """
+        Returns the lower and upper endpoints of self.
+
+        EXAMPLES::
+
+            sage: RIF(1,2).endpoints()
+            (1.00000000000000, 2.00000000000000)
+            sage: RIF(pi).endpoints()
+            (3.14159265358979, 3.14159265358980)
+            sage: a = CIF(RIF(1,2), RIF(3,4))
+            sage: a.real().endpoints()
+            (1.00000000000000, 2.00000000000000)
+
+        As with ``lower()`` and ``upper()``, a rounding mode is accepted::
+
+            sage: RIF(1,2).endpoints('RNDD')[0].parent()
+            Real Field with 53 bits of precision and rounding RNDD
+        """
+        return self.lower(rnd), self.upper(rnd)
+
     def absolute_diameter(self):
         """
         The diameter of this interval (for [a .. b], this is b-a), rounded
@@ -2148,6 +2169,33 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         x = (<RealIntervalField_class>self._parent).__middle_field._new()
         mpfi_mid(<mpfr_t> x.value, self.value)
         return x
+
+    def bisection(self):
+        """
+        Returns the bisection of self into two intervals of half the size
+        whose union is ``self`` and intersection is ``self.center()``.
+
+        EXAMPLES::
+
+            sage: a, b = RIF(1,2).bisection()
+            sage: a.lower(), a.upper()
+            (1.00000000000000, 1.50000000000000)
+            sage: b.lower(), b.upper()
+            (1.50000000000000, 2.00000000000000)
+
+            sage: I = RIF(e, pi)
+            sage: a, b = I.bisection()
+            sage: a.intersection(b) == I.center()
+            True
+            sage: a.union(b).endpoints() == I.endpoints()
+            True
+        """
+        cdef RealIntervalFieldElement left = self._new()
+        cdef RealIntervalFieldElement right = self._new()
+        mpfr_set(<mpfr_t> &left.value.left, <mpfr_t> &self.value.left, GMP_RNDN)
+        mpfi_mid(<mpfr_t> &left.value.right, self.value)
+        mpfi_interv_fr(right.value, <mpfr_t> &left.value.right, <mpfr_t> &self.value.right)
+        return left, right
 
     def alea(self):
         """
@@ -3098,6 +3146,78 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             # Let type errors from _coerce_ propagate...
             other_intv = self._parent(other)
             mpfi_union(x.value, self.value, other_intv.value)
+        return x
+
+    def min(self, _other):
+        """
+        Returns an interval containing the minimum of self and other.
+
+        EXAMPLES::
+
+            sage: RIF(-1, 1).min(0).endpoints()
+            (-1.00000000000000, 0.000000000000000)
+            sage: RIF(-1, 1).min(pi).endpoints()
+            (-1.00000000000000, 1.00000000000000)
+            sage: RIF(-1, 1).min(0).endpoints()
+            (-1.00000000000000, 0.000000000000000)
+            sage: RIF(-1, 1).min(RIF(-100, 100)).endpoints()
+            (-100.000000000000, 1.00000000000000)
+            sage: RIF(-1, 1).min(RIF(-100, 0)).endpoints()
+            (-100.000000000000, 0.000000000000000)
+
+        The generic min does not always do the right thing::
+
+            sage: min(0, RIF(-1, 1))
+            0
+            sage: min(RIF(-1, 1), RIF(-100, 100)).endpoints()
+            (-1.00000000000000, 1.00000000000000)
+        """
+        cdef RealIntervalFieldElement other
+        if isinstance(_other, RealIntervalFieldElement):
+            other = <RealIntervalFieldElement>_other
+        else:
+            other = self._parent(_other)
+        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
+            return self
+        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
+            return other
+        cdef RealIntervalFieldElement x = self._new()
+        mpfr_min(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
+        mpfr_min(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
+        return x
+
+    def max(self, _other):
+        """
+        Returns an interval containing the maximum of self and other.
+
+        EXAMPLES::
+
+            sage: RIF(-1, 1).max(0).endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(-1, 1).max(RIF(2, 3)).endpoints()
+            (2.00000000000000, 3.00000000000000)
+            sage: RIF(-1, 1).max(RIF(-100, 100)).endpoints()
+            (-1.00000000000000, 100.000000000000)
+
+        The generic max does not always do the right thing::
+
+            sage: max(0, RIF(-1, 1))
+            0
+            sage: max(RIF(-1, 1), RIF(-100, 100)).endpoints()
+            (-1.00000000000000, 1.00000000000000)
+        """
+        cdef RealIntervalFieldElement other
+        if isinstance(_other, RealIntervalFieldElement):
+            other = <RealIntervalFieldElement>_other
+        else:
+            other = self._parent(_other)
+        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
+            return other
+        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
+            return self
+        cdef RealIntervalFieldElement x = self._new()
+        mpfr_max(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
+        mpfr_max(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
         return x
 
     ############################

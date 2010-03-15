@@ -18,10 +18,12 @@ class PositiveIntegers(IntegerRangeInfinite):
     we mean `\{1, 2, 3, 4, 5, \dots \}`.
 
     This class implements the set of positive integers, as an
-    enumerated set (see :cls:`InfiniteEnumeratedSets`).
+    enumerated set (see :class:`InfiniteEnumeratedSets
+    <sage.categories.infinite_enumerated_sets.InfiniteEnumeratedSets>`).
 
     This set is an integer range set. The construction is
-    therefore done by IntegerRange (see :cls:`IntegerRange`).
+    therefore done by IntegerRange (see :class:`IntegerRange
+    <sage.sets.integer_range.IntegerRange>`).
 
     EXAMPLES::
 

@@ -2609,24 +2609,35 @@ class Permutation_class(CombinatorialObject):
             i -= 1
         return Permutation_class(self[:i+1])
 
-    def coset_type(self):
-        from sage.combinat.perfect_matching import PerfectMatchings
+    def hyperoctahedral_double_coset_type(self):
         r"""
-        returns the coset type of ``self``, which must be a permutation of even
-        size `2n`. The coset-type determines the double class of the
-        permutation, that is its image in `H_n \ S_2n / H_n`, where `H_n` is the
-        hyperoctahedral group of order `n`. See I. G. Macdonald, Symmetric
-        functions and Hall polynomials, Oxford University Press, second edition,
-        1995 (chapter VII) for more details.
+        Returns the coset type of ``self`` as a
+        :mod:`perfect matching <sage.combinat.perfect_matching>`.
+
+        ``self`` must be a permutation of even size `2n`.  The coset-type
+        determines the double class of the permutation, that is its image in
+        `H_n \backslash S_2n / H_n`, where `H_n` is the hyperoctahedral group of order
+        `n` (see [Mcd]_ for more details). It is returned as an instance of
+        :class:`PerfectMatching <sage.combinat.perfect_matching.PerfectMatching>`.
 
         EXAMPLE::
 
-            sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).coset_type()
+            sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).hyperoctahedral_double_coset_type()
             [3, 1]
-            sage: all([p.coset_type()==p.inverse().coset_type()
+            sage: all([p.hyperoctahedral_double_coset_type() ==
+            ...        p.inverse().hyperoctahedral_double_coset_type()
             ...         for p in Permutations(4)])
             True
+            sage: Permutation([]).hyperoctahedral_double_coset_type()
+            []
+
+        REFERENCES:
+
+            .. [Mcd] I. G. Macdonald, Symmetric functions and Hall
+               polynomials, Oxford University Press, second edition, 1995
+               (chapter VII).
         """
+        from sage.combinat.perfect_matching import PerfectMatchings
         n = len(self)
         if n%2==1:
             raise ValueError, "%s is a permutation of odd size and has no coset-type"%p

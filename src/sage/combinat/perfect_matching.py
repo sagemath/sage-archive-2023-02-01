@@ -1,17 +1,11 @@
 r"""
 Perfect matchings
 
-A perfect matching of a set `S` is a partition into 2-element sets. If `S`is
-the set `{1,..,n}`, it is equivalent to fixpoint-free involutions. These simple
-combinatorial objects appear in different domains:
-
-    - combinatorics of orthogonal polynomials (A. de Medicis et X.Viennot,
-    Moments des q-polynomes de Laguerre et la bijection de Foata-Zeilberger,
-    Adv. Appl. Math., 15 (1994), 262-304)
-
-    - combinatorics of hyperoctahedral group, double coset algebra and zonal
-    polynomials (I. G. Macdonald, Symmetric functions and Hall polynomials,
-    Oxford University Press, second edition, 1995, chapter VII).
+A perfect matching of a set `S` is a partition into 2-element sets. If `S` is
+the set `\{1,...,n\}`, it is equivalent to fixpoint-free involutions. These
+simple combinatorial objects appear in different domains such as combinatoric
+of orthogonal polynomials and of the hyperoctaedral groups (see [MV]_, [McD]_
+and also [CM]_):
 
 AUTHOR:
 
@@ -36,6 +30,21 @@ EXAMPLES:
         sage: PerfectMatchings(4).list()
         [PerfectMatching [(4, 1), (3, 2)], PerfectMatching [(4, 2), (3, 1)], PerfectMatching [(4, 3), (2, 1)]]
 
+REFERENCES:
+
+    .. [MV] combinatorics of orthogonal polynomials (A. de Medicis et
+       X.Viennot, Moments des q-polynomes de Laguerre et la bijection de
+       Foata-Zeilberger, Adv. Appl. Math., 15 (1994), 262-304)
+
+    .. [McD] combinatorics of hyperoctahedral group, double coset algebra and
+       zonal polynomials (I. G. Macdonald, Symmetric functions and Hall
+       polynomials, Oxford University Press, second edition, 1995, chapter
+       VII).
+
+    .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
+       orthogonal Weingarten functions, arXiv:0903.5143.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
@@ -43,7 +52,6 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-"""
 
 #from sage.combinat.permutation import Permutation_Class
 from sage.structure.unique_representation import UniqueRepresentation
@@ -127,14 +135,20 @@ class PerfectMatching(ElementWrapper):
         matching (i.e. a list of pairs with pairwise disjoint elements  or a
         fixpoint-free involution) and raises a ValueError otherwise:
 
-            sage: try:
-            ...    m=PerfectMatching([(1, 2, 3), (4, 5)])
-            ... except ValueError:
-            ...    "A ValueError has been raised."
-            'A ValueError has been raised.'
+            sage: PerfectMatching([(1, 2, 3), (4, 5)])
+            Traceback (most recent call last):
+            ...
+            ValueError: [(1, 2, 3), (4, 5)] is not a valid perfect matching: all elements of the list must be pairs
 
         If you know your datas are in a good format, use directly
         `PerfectMatchings(objects)(data)`.
+
+        TESTS::
+
+             sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')])
+             sage: TestSuite(m).run()
+             sage: m=PerfectMatching([])
+             sage: TestSuite(m).run()
         """
         # we have to extract from the argument p the set of objects of the
         # matching and the list of pairs.
@@ -170,18 +184,6 @@ class PerfectMatching(ElementWrapper):
         # create an object via parent.element_class(...), __init__ is directly
         # executed and we do not have an infinite loop.
         return PerfectMatchings(objects)(data)
-
-    def __init__(self,data,parent):
-        r"""
-        See :meth:`__classcall_private__`
-
-        TESTS::
-
-            sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')])
-            sage: TestSuite(m).run()
-        """
-        self.value=data
-        Element.__init__(self,parent=parent)
 
     def _repr_(self):
         r"""
@@ -272,8 +274,8 @@ class PerfectMatching(ElementWrapper):
         INPUT:
 
              - ``other`` -- a perfect matching of the same set of ``self``.
-             (if the second argument is empty, the method :meth:`an_element` is
-             called on the parent of the first)
+               (if the second argument is empty, the method :meth:`an_element` is
+               called on the parent of the first)
 
         OUTPUT:
 
@@ -320,8 +322,8 @@ class PerfectMatching(ElementWrapper):
         INPUT:
 
              - ``other`` -- a perfect matching of the same set of ``self``.
-             (if the second argument is empty, the method :meth:`an_element` is
-             called on the parent of the first)
+               (if the second argument is empty, the method :meth:`an_element` is
+               called on the parent of the first)
 
         OUTPUT:
 
@@ -348,8 +350,8 @@ class PerfectMatching(ElementWrapper):
         INPUT:
 
              - ``other`` -- a perfect matching of the same set of ``self``.
-             (if the second argument is empty, the method :meth:`an_element` is
-             called on the parent of the first)
+               (if the second argument is empty, the method :meth:`an_element` is
+               called on the parent of the first)
 
         OUTPUT:
 
@@ -378,8 +380,8 @@ class PerfectMatching(ElementWrapper):
         INPUT:
 
             - ``other`` -- a perfect matching of the same set of ``self``.
-            (if the second argument is empty, the fonction an_element is
-            called on the parent of the first)
+              (if the second argument is empty, the method :meth:`an_element` is
+              called on the parent of the first)
 
         OUTPUT:
 
@@ -654,12 +656,10 @@ class PerfectMatching(ElementWrapper):
 
     def Weingarten_function(self,d,other=None):
         r"""
-        Returns the Weingarten function of two pairings. This function is
-        the value of some integrals over the orhtogonal groups `O_N`
+        Returns the Weingarten function of two pairings.
 
-        Reference : Benoit Collins, Sho Matsumoto, On some properties of
-        orthogonal Weingarten functions, arXiv:0903.5143
-        With the convention of this article, the function returns
+        This function is the value of some integrals over the orhtogonal
+        groups `O_N`.  With the convention of [CM]_, the method returns
         `Wg^{O(d)}(other,self)`.
 
         EXAMPLES::
@@ -705,6 +705,8 @@ class PerfectMatchings(UniqueRepresentation,Parent):
 
         sage: PerfectMatchings(5).list()
         []
+        sage: TestSuite(PerfectMatchings(5)).run()
+        sage: TestSuite(PerfectMatchings([])).run()
     """
 
     @staticmethod
@@ -880,10 +882,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         r"""
         Returns the Weingarten matrix corresponding to the set of
         PerfectMatchings ``self``. It is a useful theoretical tool to compute
-        polynomial integral over the orthogonal group `O_N`.
-
-        Reference : Benoit Collins, Sho Matsumoto, On some properties of
-        orthogonal Weingarten functions, arXiv:0903.5143
+        polynomial integral over the orthogonal group `O_N` (see [CM]_).
 
         EXAMPLES::
 

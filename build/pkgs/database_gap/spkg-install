@@ -1,0 +1,61 @@
+#!/bin/sh
+
+touch "$SAGE_LOCAL"/bin/gap_stamp
+
+HERE=`pwd`
+
+cd $SAGE_ROOT/spkg
+${gapver:=$SAGE_ROOT/spkg/standard/newest_version gap}
+GAP0=`$gapver`
+#GAP0=`$SAGE_ROOT/spkg/standard/newest_version gap`
+GAP=`echo $GAP0 | cut -f 1,2,3 -d "."`
+# returns latest gap version - eg, GAP=gap-4.4.12
+echo "********************************************************************"
+echo "Installing optional GAP databases, which may not be open source."
+echo "Installing GAP $GAP packages to $HERE/... "
+echo "Please see SPKG.txt for license details."
+echo "********************************************************************"
+
+cd $HERE
+cd src/
+
+rm -rf "$SAGE_ROOT"/local/lib/$GAP/small
+mv small "$SAGE_ROOT"/local/lib/$GAP/
+
+if [ $? -ne 0 ]; then
+    echo "Error installing small group database."
+    exit 1
+fi
+echo "installed small group database"
+
+rm -rf "$SAGE_ROOT"/local/lib/$GAP/prim
+
+mv prim "$SAGE_ROOT"/local/lib/$GAP/
+
+if [ $? -ne 0 ]; then
+    echo "Error installing prim database."
+    exit 1
+fi
+echo "installed prim database"
+
+rm -rf "$SAGE_ROOT"/local/lib/$GAP/trans
+mv trans "$SAGE_ROOT"/local/lib/$GAP/
+
+if [ $? -ne 0 ]; then
+    echo "Error installing trans database."
+    exit 1
+fi
+
+echo "installed trans database"
+
+rm -rf "$SAGE_ROOT"/local/lib/$GAP/pkg/tomlib
+mv pkg/tomlib "$SAGE_ROOT"/local/lib/$GAP/pkg/
+
+if [ $? -ne 0 ]; then
+    echo "Error installing tomlib database."
+    exit 1
+fi
+
+echo "installed tomlib database"
+
+echo "gap_reset_workspace()" | sage

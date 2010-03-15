@@ -2592,8 +2592,8 @@ class HeegnerPointOnX0N(HeegnerPoint):
 
             sage: y = EllipticCurve('389a').heegner_point(-7,5)
             sage: hash(y)
-            -5236815264926108755       # 64-bit
-            733770669                  # 32-bit
+            -756867903203770682        # 64-bit
+            -274399546                 # 32-bit
         """
         return hash((HeegnerPoint.__hash__(self), self.reduced_quadratic_form()))
 
@@ -2897,8 +2897,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         EXAMPLES::
 
             sage: hash(EllipticCurve('389a').heegner_point(-7,5))
-            -5236815264926108755             # 64-bit
-            733770669                        # 32-bit
+            -756867903203770682              # 64-bit
+            -274399546                       # 32-bit
         """
         return hash((self.__E, self.__x))
 

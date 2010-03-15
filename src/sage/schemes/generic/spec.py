@@ -128,6 +128,21 @@ class Spec(scheme.AffineScheme):
         """
         return cmp(self.__R, X.coordinate_ring())
 
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: hash(Spec(ZZ))
+            -1667718069                 # 32-bit
+            -5659298568736299957        # 64-bit
+
+            sage: hash(Spec(QQ['x','y','z']))
+            -804171295                  # 32-bit
+            -4893002889606114847        # 64-bit
+        """
+        # R is the only defining data, but we'd like to avoid collisions with it.
+        return hash("Spec") ^ hash(self.__R)
+
     def _repr_(self):
         """
         EXAMPLES::

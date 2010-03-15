@@ -292,10 +292,42 @@ class Homset(Set_generic):
         Parent.__init__(self, base = base, category = category.hom_category())
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: Hom(ZZ^2, QQ, category=Sets())._repr_()
+            'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
+        """
         return "Set of Morphisms from %s to %s in %s"%(
             self._domain, self._codomain, self.__category)
 
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: hash(Hom(ZZ, QQ))
+            1586601211              # 32-bit
+            8060925370113826043     # 64-bit
+            sage: hash(Hom(QQ, ZZ))
+            1346950701              # 32-bit
+            -6958821237014866387    # 64-bit
+
+            sage: E = EllipticCurve('37a')
+            sage: H = E(0).parent(); H
+            Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: hash(H)
+            -1145411691             # 32-bit
+            -8446824869798451307    # 64-bit
+        """
+        return hash((self._domain, self._codomain, self.base()))
+
     def __nonzero__(self):
+        """
+        TESTS::
+
+            sage: bool(Hom(ZZ, QQ))
+            True
+        """
         return True
 
     def _generic_convert_map(self, S):

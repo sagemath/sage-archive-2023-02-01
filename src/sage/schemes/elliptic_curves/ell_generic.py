@@ -158,7 +158,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         ainvs = [K(x) for x in ainvs]
         if len(ainvs) == 2:
             ainvs = [K(0),K(0),K(0)] + ainvs
-        self.__ainvs = ainvs
+        self.__ainvs = tuple(ainvs)
         if self.discriminant() == 0:
             raise ArithmeticError, \
                   "Invariants %s define a singular curve."%ainvs
@@ -191,7 +191,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(*E._defining_params_()) == E
             True
         """
-        return (self.__base_ring, self.__ainvs)
+        return (self.__base_ring, list(self.__ainvs))
+
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: E = EllipticCurve('37a')
+            sage: hash(E)
+            -1437250549             # 32-bit
+            -2189969105152029685    # 64-bit
+            sage: hash(E) != hash(E.change_ring(GF(7)))
+            True
+        """
+        return hash((self.__base_ring, self.__ainvs))
 
     def _repr_(self):
         """
@@ -934,7 +947,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             TypeError: 'tuple' object does not support item assignment
 
         """
-        return tuple(self.__ainvs)
+        return self.__ainvs
 
     ainvs = a_invariants
 

@@ -1,1 +1,4 @@
+2010.03.15 - made spkg-install Solaris-compatible
+
 GAP's databases of finite groups and table of marks.
+

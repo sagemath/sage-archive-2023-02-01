@@ -18,7 +18,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
     The enumerated set of non negative integers.
 
     This class implements the set of non negative integers, as an
-    enumerated set (see :cls:``InfiniteEnumeratedSets``).
+    enumerated set (see :cls:`InfiniteEnumeratedSets`).
 
     EXAMPLES::
 

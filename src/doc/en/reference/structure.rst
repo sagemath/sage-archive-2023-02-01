@@ -21,6 +21,8 @@ Basic Structures
    sage/sets/disjoint_set
    sage/sets/disjoint_union_enumerated_sets
    sage/sets/finite_enumerated_set
+   sage/sets/integer_range
+   sage/sets/positive_integers
    sage/sets/non_negative_integers
    sage/sets/primes
 

@@ -17,7 +17,7 @@ Matrix Constructor.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+import types
 import sage.rings.all as rings
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.element import is_Vector
@@ -41,13 +41,15 @@ def matrix(*args, **kwds):
 
     The entries of a matrix can be specified as a flat list of
     elements, a list of lists (i.e., a list of rows), a list of Sage
-    vectors, or a dictionary having positions as keys and matrix
-    entries as values (see the examples). You can create a matrix of
-    zeros by passing an empty list or the integer zero for the entries.
-    To construct a multiple of the identity (`cI`), you can
-    specify square dimensions and pass in `c`. Calling matrix()
-    with a Sage object may return something that makes sense. Calling
-    matrix() with a NumPy array will convert the array to a matrix.
+    vectors, a callable object, or a dictionary having positions as
+    keys and matrix entries as values (see the examples). If you pass
+    in a callable object, then you must specify the number of rows and
+    columns. You can create a matrix of zeros by passing an empty list
+    or the integer zero for the entries.  To construct a multiple of
+    the identity (`cI`), you can specify square dimensions and pass in
+    `c`. Calling matrix() with a Sage object may return something that
+    makes sense. Calling matrix() with a NumPy array will convert the
+    array to a matrix.
 
     The ring, number of rows, and number of columns of the matrix can
     be specified by setting the ring, nrows, or ncols parameters or by
@@ -94,6 +96,17 @@ def matrix(*args, **kwds):
         [1 2 3]
         [4 5 6]
         Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+    ::
+
+        sage: m = matrix(QQ, 3, 3, lambda i, j: i+j); m
+        [0 1 2]
+        [1 2 3]
+        [2 3 4]
+        sage: m = matrix(3, lambda i,j: i-j)
+        [ 0 -1 -2]
+        [ 1  0 -1]
+        [ 2  1  0]
 
     ::
 
@@ -391,6 +404,8 @@ def matrix(*args, **kwds):
         sage: c = matrix(a.numpy('float32')); c
         [1.0 2.0]
         [3.0 4.0]
+        sage: matrix(numpy.array([[5]]))
+        [5]
         sage: v = vector(ZZ, [1, 10, 100])
         sage: m=matrix(ZZ['x'], v); m; m.parent()
         [  1  10 100]
@@ -467,6 +482,9 @@ def matrix(*args, **kwds):
     if len(args) >= 1:
         # check to see if the number of rows is specified
         try:
+            import numpy
+            if isinstance(args[0], numpy.ndarray):
+                raise TypeError
             nrows = int(args[0])
             args.pop(0)
             if kwds.get('nrows', nrows) != nrows:
@@ -479,6 +497,9 @@ def matrix(*args, **kwds):
     if len(args) >= 1:
         # check to see if additionally, the number of columns is specified
         try:
+            import numpy
+            if isinstance(args[0], numpy.ndarray):
+                raise TypeError
             ncols = int(args[0])
             args.pop(0)
             if kwds.get('ncols', ncols) != ncols:
@@ -492,14 +513,24 @@ def matrix(*args, **kwds):
     # Now we've taken care of initial ring, nrows, and ncols arguments.
     # We've also taken care of the Sage object case.
 
-    # Now the rest of the arguments are a list of
-    # rows, a flat list of entries, a dict, a numpy array, or a single
-    # value.
+    # Now the rest of the arguments are a list of rows, a flat list of
+    # entries, a callable, a dict, a numpy array, or a single value.
     if len(args) == 0:
         # If no entries are specified, pass back a zero matrix
         entries = 0
         entry_ring = rings.ZZ
     elif len(args) == 1:
+        if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
+            if ncols is None and nrows is None:
+                raise ValueError, "When passing in a callable, the dimensions of the matrix must be specified"
+            if ncols is None:
+                ncols = nrows
+            else:
+                nrows = ncols
+
+            f = args[0]
+            args[0] = [[f(i,j) for j in range(ncols)] for i in range(nrows)]
+
         if isinstance(args[0], (list, tuple)):
             if len(args[0]) == 0:
                 # no entries are specified, pass back the zero matrix

@@ -1,4 +1,34 @@
-2010.03.15 - made spkg-install Solaris-compatible
+= database_gap =
 
-GAP's databases of finite groups and table of marks.
+== Description ==
+
+The databases of GAP: finite groups and tables of marks
+
+== SPKG Maintainers ==
+
+ * William Stein
+ * Robert Miller
+ * David Joyner
+ * Dmitrii Pasechnik
+
+== Upstream Contact ==
+
+Dmitrii Pasechnik, dimpase@gmail.com
+David Joyner, wdjoyner@gmail.com (on the GAP team, but
+Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
+
+== Dependencies ==
+
+needs GAP (a standard spkg)
+
+== Change log ==
+
+== 4.4.12.p0 (2010.03.17 Dmitrii Pasechnik) ==
+
+ * fixed this file
+
+== 4.4.12.p0 (2010.03.15 Dmitrii Pasechnik) ==
+
+ * made spkg-install Solaris-compatible
+
 

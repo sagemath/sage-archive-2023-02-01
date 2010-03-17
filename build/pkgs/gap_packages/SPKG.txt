@@ -1,3 +1,33 @@
+= gap =
+
+== Description ==
+
+This is a stripped-down version of GAP.  The databases, which are arch
+independent, are in a separate package and doc and tests are removed.
+
+== SPKG Maintainers ==
+
+ * William Stein
+ * Robert Miller
+ * David Joyner
+ * Dmitrii Pasechnik
+
+== Upstream Contact ==
+
+Dmitrii Pasechnik, dimpase@gmail.com
+David Joyner, wdjoyner@gmail.com (on the GAP team, but
+Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
+
+== Dependencies ==
+
+gap_packages needs GAP (a standard spkg)
+
+== Change log ==
+
+= gap_packages-4.4.12.p0 (Dima Pasechnik) =
+
+ * fixed a GNU-ism in spkg-install, that made in break on Solaris 10
+ * started proper version numbering.
 
 = gap_packages-4.4.12_2 (Dima Pasechnik) =
 bumped up design, toric and laguna packages to the latest stable revisions
@@ -31,7 +61,7 @@ sage: gap('LoadPackage("grape")')
 
 All these packages come with documentation in the
 doc or htm subdirectory (e.g., for grape, it would be in
-SAGEHOME/local/lib/gap-4.4.10/pkg/grape/htm). After loading all
+SAGEHOME/local/lib/gap-4.4.12/pkg/grape/htm). After loading all
 the packages, you can type gap_reset_workspace()
 so you don't have to reload them again.
 

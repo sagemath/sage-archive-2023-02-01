@@ -1,9 +1,9 @@
-= gap =
+= gap_packages =
 
 == Description ==
 
-This is a stripped-down version of GAP.  The databases, which are arch
-independent, are in a separate package and doc and tests are removed.
+Several "official" and "undeposited" GAP packages available from
+http://www.gap-system.org/Packages/packages.html
 
 == SPKG Maintainers ==
 

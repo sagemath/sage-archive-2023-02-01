@@ -2119,31 +2119,9 @@ def group_to_LatinSquare(G):
     # Otherwise we must have some kind of Sage permutation group object,
     # such as sage.groups.perm_gps.permgroup.PermutationGroup_generic
     # or maybe sage.groups.perm_gps.permgroup_named.
-    # We should have a cayley_table() function.
 
-    try:
-        C = G.cayley_table()
-    except:
-        # We got some other kind of group object?
-        raise NotImplemented
-
-    L = LatinSquare(C.nrows(), C.ncols())
-
-    k = 0
-    entries = {}
-
-    for r in range(C.nrows()):
-        for c in range(C.ncols()):
-            e_table = C[r, c]
-
-            if entries.has_key(e_table):
-                L[r, c] = entries[e_table]
-            else:
-                entries[e_table] = k
-                L[r, c] = k
-                k += 1
-
-    return L
+    T = G.cayley_table()
+    return matrix(ZZ, T.table())
 
 def alternating_group_bitrade_generators(m):
     """

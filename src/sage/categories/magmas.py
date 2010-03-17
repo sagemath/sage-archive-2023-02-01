@@ -118,6 +118,153 @@ class Magmas(Category):
             if (self.product != self.product_from_element_class_mul) and hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent"):
                 self.element_class._mul_ = self.element_class._mul_parent
 
+        def multiplication_table(self, names='letters', elements=None):
+            r"""
+            Returns a table describing the multiplication operation.
+
+            .. note:: The order of the elements in the row and column
+              headings is equal to the order given by the table's
+              :meth:`~sage.matrix.operation_table.OperationTable.list`
+              method.  The association can also be retrieved with the
+              :meth:`~sage.matrix.operation_table.OperationTable.dict`
+              method.
+
+            INPUTS:
+
+            - ``names`` - the type of names used
+
+              * ``letters`` - lowercase ASCII letters are used
+                for a base 26 representation of the elements'
+                positions in the list given by
+                :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
+                padded to a common width with leading 'a's.
+              * ``digits`` - base 10 representation of the
+                elements' positions in the list given by
+                :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
+                padded to a common width with leading zeros.
+              * ``elements`` - the string representations
+                of the elements themselves.
+              * a list - a list of strings, where the length
+                of the list equals the number of elements.
+            - ``elements`` - default = ``None``.  A list of
+              elements of the set.  This may be used to impose an
+              alternate ordering on the elements, perhaps
+              when this is used in the context of a particular structure.
+              The default is to use whatever ordering the
+              ``S.list``
+              method returns.  Or the ``elements`` can be a subset
+              which is closed under the operation. In particular,
+              this can be used when the base set is infinite.
+
+            OUTPUT:
+            The multiplication table as an object of the class
+            :class:`~sage.matrix.operation_table.OperationTable`
+            which defines several methods for manipulating and
+            displaying the table.  See the documentation there
+            for full details to supplement the documentation
+            here.
+
+            EXAMPLES:
+
+            The default is to represent elements as lowercase
+            ASCII letters.  ::
+
+                sage: G=CyclicPermutationGroup(5)
+                sage: G.multiplication_table()
+                *  a b c d e
+                 +----------
+                a| a b c d e
+                b| b c d e a
+                c| c d e a b
+                d| d e a b c
+                e| e a b c d
+
+            All that is required is that an algebraic structure
+            has a multiplication defined.  A
+            :class:`~sage.categories.examples.finite_semigroups.LeftRegularBand`
+            is an example of a finite semigroup.  The ``names`` argument allows
+            displaying the elements in different ways.  ::
+
+                sage: from sage.categories.examples.finite_semigroups import LeftRegularBand
+                sage: L=LeftRegularBand(('a','b'))
+                sage: T=L.multiplication_table(names='digits')
+                sage: T.column_keys()
+                ('a', 'b', 'ab', 'ba')
+                sage: T
+                *  0 1 2 3
+                 +--------
+                0| 0 2 2 2
+                1| 3 1 3 3
+                2| 2 2 2 2
+                3| 3 3 3 3
+
+            Specifying the elements in an alternative order can provide
+            more insight into how the operation behaves.  ::
+
+                sage: L=LeftRegularBand(('a','b','c'))
+                sage: elts = sorted(L.list())
+                sage: L.multiplication_table(elements=elts)
+                *  a b c d e f g h i j k l m n o
+                 +------------------------------
+                a| a b c d e b b c c c d d e e e
+                b| b b c c c b b c c c c c c c c
+                c| c c c c c c c c c c c c c c c
+                d| d e e d e e e e e e d d e e e
+                e| e e e e e e e e e e e e e e e
+                f| g g h h h f g h i j i j j i j
+                g| g g h h h g g h h h h h h h h
+                h| h h h h h h h h h h h h h h h
+                i| j j j j j i j j i j i j j i j
+                j| j j j j j j j j j j j j j j j
+                k| l m m l m n o o n o k l m n o
+                l| l m m l m m m m m m l l m m m
+                m| m m m m m m m m m m m m m m m
+                n| o o o o o n o o n o n o o n o
+                o| o o o o o o o o o o o o o o o
+
+            The ``elements`` argument can be used to provide
+            a subset of the elements of the structure.  The subset
+            must be closed under the operation.  Elements need only
+            be in a form that can be coerced into the set.  The
+            ``names`` argument can also be used to request that
+            the elements be represented with their usual string
+            representation.  ::
+
+                sage: L=LeftRegularBand(('a','b','c'))
+                sage: elts=['a', 'c', 'ac', 'ca']
+                sage: L.multiplication_table(names='elements', elements=elts)
+                   *   'a'  'c' 'ac' 'ca'
+                    +--------------------
+                 'a'|  'a' 'ac' 'ac' 'ac'
+                 'c'| 'ca'  'c' 'ca' 'ca'
+                'ac'| 'ac' 'ac' 'ac' 'ac'
+                'ca'| 'ca' 'ca' 'ca' 'ca'
+
+            The table returned can be manipulated in various ways.  See
+            the documentation for
+            :class:`~sage.matrix.operation_table.OperationTable` for more
+            comprehensive documentation. ::
+
+                sage: G=AlternatingGroup(3)
+                sage: T=G.multiplication_table()
+                sage: T.column_keys()
+                ((), (1,2,3), (1,3,2))
+                sage: sorted(T.translation().items())
+                [('a', ()), ('b', (1,2,3)), ('c', (1,3,2))]
+                sage: T.change_names(['x', 'y', 'z'])
+                sage: sorted(T.translation().items())
+                [('x', ()), ('y', (1,2,3)), ('z', (1,3,2))]
+                sage: T
+                *  x y z
+                 +------
+                x| x y z
+                y| y z x
+                z| z x y
+            """
+            from sage.matrix.operation_table import OperationTable
+            import operator
+            return OperationTable(self, operation=operator.mul, names=names, elements=elements)
+
     class ElementMethods:
 
         def __mul__(self, right):

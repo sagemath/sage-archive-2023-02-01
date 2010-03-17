@@ -740,62 +740,6 @@ class PermutationGroup_generic(group.Group):
         """
         return self.gens()[i]
 
-    def cayley_table(self, names="x"):
-        """
-        Returns the multiplication table, or Cayley table, of the finite
-        group `G` in the form of a matrix with symbolic coefficients. This
-        function is useful for learning, teaching, and exploring elementary
-        group theory. Of course, `G` must be a group of low order.
-
-        EXAMPLES:
-
-        As the last line below illustrates, the ordering used here in the
-        first row is the same as in ``G.list()``::
-
-            sage: G = PermutationGroup(['(1,2,3)', '(2,3)'])
-            sage: G.cayley_table()
-            [x0 x1 x2 x3 x4 x5]
-            [x1 x0 x3 x2 x5 x4]
-            [x2 x4 x0 x5 x1 x3]
-            [x3 x5 x1 x4 x0 x2]
-            [x4 x2 x5 x0 x3 x1]
-            [x5 x3 x4 x1 x2 x0]
-            sage: G.list()[3]*G.list()[3] == G.list()[4]
-            True
-            sage: G.cayley_table("y")
-            [y0 y1 y2 y3 y4 y5]
-            [y1 y0 y3 y2 y5 y4]
-            [y2 y4 y0 y5 y1 y3]
-            [y3 y5 y1 y4 y0 y2]
-            [y4 y2 y5 y0 y3 y1]
-            [y5 y3 y4 y1 y2 y0]
-            sage: G.cayley_table(names="abcdef")
-            [a b c d e f]
-            [b a d c f e]
-            [c e a f b d]
-            [d f b e a c]
-            [e c f a d b]
-            [f d e b c a]
-        """
-        G = self
-        n = G.order()
-        phi = G._gap_().RegularActionHomomorphism()
-        gens = phi.Image().GeneratorsOfGroup()
-        N = Integer(gens.Length())
-        nm = gens.name()
-        gens = [self._element_class()(gap.eval("%s[%s];"%(nm, i))) for i in range(1,N+1)]
-        H = PermutationGroup(gens)
-        nH = H.order()
-        R,vars = PolynomialRing(RationalField(),names,nH).objgens()
-        multiplication_table_G = sum([(H.list()[i]).matrix()*vars[i] for i in range(nH)])
-        MT = multiplication_table_G.rows()
-        MT.sort()
-        MT.reverse()
-        MS = MatrixSpace(R,n,n)
-        return MS(MT)
-
-    multiplication_table = cayley_table
-
     def identity(self):
         """
         Return the identity element of this group.

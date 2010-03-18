@@ -7,7 +7,7 @@ special method ``_latex_(self)`` that returns a string.
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -34,9 +34,7 @@ SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
 
 import os, shutil, re
-
 import os.path
-
 import random
 
 from misc import tmp_dir, graphics_filename
@@ -97,6 +95,33 @@ def have_pdflatex():
     if _have_pdflatex is None:
         _have_pdflatex = have_program('pdflatex')
     return _have_pdflatex
+
+_have_xelatex = None
+def have_xelatex():
+    """
+    Return True if this computer has the program xelatex.
+
+    The first time it is run, this function caches its result in the
+    variable ``_have_xelatex``, and any subsequent time, it just
+    checks the value of the variable.
+
+    If this computer doesn't have xelatex installed, you may obtain it
+    from http://ctan.org/.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import have_xelatex
+        sage: have_xelatex() # random
+        True
+        sage: sage.misc.latex._have_xelatex is None
+        False
+        sage: sage.misc.latex._have_xelatex == have_xelatex()
+        True
+    """
+    global _have_xelatex
+    if _have_xelatex is None:
+        _have_xelatex = have_program('xelatex')
+    return _have_xelatex
 
 _have_dvipng = None
 def have_dvipng():
@@ -395,7 +420,8 @@ class _Latex_prefs_object(SageObject):
         self._option["vector_delimiters"] = list(delimiters)
         self._option["macros"] = ""
         self._option["preamble"] = ""
-        self._option["pdflatex"] = False
+        self._option["engine"] = "latex"
+        self._option["engine_name"] = "LaTeX"
         self._option["jsmath_avoid"] = []
 
 _Latex_prefs = _Latex_prefs_object()
@@ -426,15 +452,14 @@ def latex_extra_preamble():
                 + "\n".join(sage_latex_macros) + "\n"
                 + _Latex_prefs._option['macros'])
 
-def _run_latex_(filename, debug=False, density=150,
-                       pdflatex=None, png=False, do_in_background=False):
+def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
     """
     This runs LaTeX on the TeX file "filename.tex".  It produces files
-    "filename.dvi" (or "filename.pdf"` if ``pdflatex`` is ``True``)
-    and if ``png`` is True, "filename.png".  If ``png`` is True and
-    dvipng can't convert the dvi file to png (because of postscript
-    specials or other issues), then dvips is called, and the PS file
-    is converted to a png file.
+    "filename.dvi" (or "filename.pdf"` if engine is either ``pdflatex``
+    or ``xelatex'') and if ``png`` is True, "filename.png".  If ``png``
+    is True and dvipng can't convert the dvi file to png (because of
+    postscript specials or other issues), then dvips is called, and the
+    PS file is converted to a png file.
 
     INPUT:
 
@@ -446,8 +471,7 @@ def _run_latex_(filename, debug=False, density=150,
     -  ``density`` - integer (optional, default 150): how big output
        image is.
 
-    -  ``pdflatex`` - bool (optional, default False): whether to use
-       pdflatex.
+    -  ``engine`` - string: latex engine to use.
 
     -  ``png`` - bool (optional, default False): whether to produce a
        png file.
@@ -457,13 +481,13 @@ def _run_latex_(filename, debug=False, density=150,
 
     OUTPUT: string, which could be a string starting with 'Error' (if
     there was a problem), or it could be 'pdf' or 'dvi'.  If
-    ``pdflatex`` is False, then a dvi file is created, but if there
+    engine is latex or None, then a dvi file is created, but if there
     appear to be problems with it (because of PS special commands, for
     example), then a pdf file is created instead.  The function
     returns 'dvi' or 'pdf' to indicate which type of file is created.
     (Detecting problems requires that dvipng be installed; if it is
     not, then the dvi file is not checked for problems and 'dvi' is
-    returned.)  If ``pdflatex`` is True and there are no errors, then
+    returned.)  If engine is pdflatex or xelatex and there are no errors, then
     'pdf' is returned.
 
     .. warning::
@@ -471,7 +495,7 @@ def _run_latex_(filename, debug=False, density=150,
        If ``png`` is True, then when using latex (the default), you
        must have 'dvipng' (or 'dvips' and 'convert') installed on your
        operating system, or this command won't work.  When using
-       pdflatex, you must have 'convert' installed.
+       pdflatex or xelatex, you must have 'convert' installed.
 
     EXAMPLES::
 
@@ -482,22 +506,23 @@ def _run_latex_(filename, debug=False, density=150,
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
-    if pdflatex is None:
-        pdflatex = _Latex_prefs._option["pdflatex"]
-    if not pdflatex and not have_latex():
+    if engine is None:
+        engine = _Latex_prefs._option["engine"]
+
+    if not engine and not have_latex():
         print "Error: LaTeX does not seem to be installed.  Download it from"
         print "ctan.org and try again."
         return "Error"
-    if pdflatex and not have_pdflatex():
-        print "Error: PDFLaTeX does not seem to be installed.  Download it from"
+    if engine and not have_pdflatex() and not have_xelatex():
+        print "Error: %s does not seem to be installed.  Download it from" % _Latex_prefs._option["engine_name"]
         print "ctan.org and try again."
         return "Error"
     # if png output + latex, check to see if dvipng or convert is installed.
     if png:
-        if not pdflatex and not (have_dvipng() or have_convert()):
+        if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
             print ""
             print "Error: neither dvipng nor convert (from the ImageMagick suite)"
-            print "appear to be installed. Displaying LaTeX or PDFLaTeX output"
+            print "appear to be installed. Displaying LaTeX, PDFLaTeX output"
             print "requires at least one of these programs, so please install"
             print "and try again."
             print ""
@@ -505,10 +530,18 @@ def _run_latex_(filename, debug=False, density=150,
             print "http://www.imagemagick.org to download these programs."
             return "Error"
     # if png output + pdflatex, check to see if convert is installed.
-        elif pdflatex and not have_convert():
+        elif engine == "pdflatex" and not have_convert():
             print ""
             print "Error: convert (from the ImageMagick suite) does not"
             print "appear to be installed. Displaying PDFLaTeX output"
+            print "requires this program, so please install and try again."
+            print ""
+            print "Go to http://www.imagemagick.org to download it."
+            return "Error"
+        elif engine == "xelatex" and not have_convert():
+            print ""
+            print "Error: convert (from the ImageMagick suite) does not"
+            print "appear to be installed. Displaying XeLaTeX output"
             print "requires this program, so please install and try again."
             print ""
             print "Go to http://www.imagemagick.org to download it."
@@ -535,15 +568,23 @@ def _run_latex_(filename, debug=False, density=150,
         background = ' &'
     else:
         background = ''
-    if pdflatex:
+
+    if not engine or engine == "latex":
+        command = "latex"
+        suffix = "ps"
+        return_suffix = "dvi"
+    elif engine == "pdflatex":
         command = "pdflatex"
         # 'suffix' is used in the string 'convert' ...
         suffix = "pdf"
         return_suffix = "pdf"
+    elif engine == "xelatex":
+        command = "xelatex"
+        suffix = "pdf"
+        return_suffix = "pdf"
     else:
-        command = "latex"
-        suffix = "ps"
-        return_suffix = "dvi"
+        raise ValueError, "Unsupported LaTeX engine."
+
     # Define the commands to be used:
     lt = 'cd "%s"&& sage-native-execute %s \\\\nonstopmode \\\\input{%s.tex} %s'%(base, command, filename, redirect)
     # dvipng is run with the 'picky' option: this means that if
@@ -559,7 +600,7 @@ def _run_latex_(filename, debug=False, density=150,
 
     e = 1 # it is possible to get through the following commands
           # without running a program, so in that case we force error
-    if pdflatex:
+    if engine == "pdflatex" or engine == "xelatex":
         if png:
             cmd = ' && '.join([lt, convert])
         else:
@@ -567,7 +608,7 @@ def _run_latex_(filename, debug=False, density=150,
         if debug:
             print cmd
         e = os.system(cmd + ' ' + redirect + background)
-    else:  # latex, not pdflatex
+    else:  # latex
         if (png or check_validity):
             if have_dvipng():
                 cmd = ' && '.join([lt, dvipng])
@@ -643,10 +684,11 @@ class Latex:
        on your operating system, or this command won't work.
 
     """
-    def __init__(self, debug=False, slide=False, density=150, pdflatex=None):
+    def __init__(self, debug=False, slide=False, density=150, pdflatex=None, engine=None):
         self.__debug = debug
         self.__slide = slide
         self.__pdflatex = pdflatex
+        self.__engine = engine
         self.__density = density
 
     def __call__(self, x):
@@ -698,7 +740,6 @@ class Latex:
                 operator.eq:' = ', operator.ne:' \\neq ',
                 operator.ge:' \\geq ', operator.gt:' > '}
 
-
     def _latex_preparse(self, s, locals):
         r"""
         Replace instances of '\sage{x}' in s with the LaTeX version of
@@ -730,7 +771,7 @@ class Latex:
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
-             density=None, pdflatex=None, locals={}):
+             density=None, pdflatex=None, engine=None, locals={}):
         """
         INPUT:
 
@@ -747,7 +788,9 @@ class Latex:
 
         -  ``density`` - how big output image is.
 
-        -  ``pdflatex`` - whether to use pdflatex.
+        -  ``pdflatex`` - whether to use pdflatex. This is deprecated. Use ``engine`` option instead.
+
+        -  ``engine`` - latex engine to use. Currently latex, pdflatex, and xelatex are supported.
 
         -  ``locals`` - extra local variables used when
            evaluating Sage code in ``x``.
@@ -756,7 +799,7 @@ class Latex:
 
            When using latex (the default), you must have 'dvipng' (or
            'dvips' and 'convert') installed on your operating system,
-           or this command won't work.  When using pdflatex, you must
+           or this command won't work.  When using pdflatex or xelatex, you must
            have 'convert' installed.
         """
         MACROS = latex_extra_preamble()
@@ -796,13 +839,13 @@ class Latex:
             redirect=' 2>/dev/null 1>/dev/null '
         else:
             redirect=''
-        if pdflatex is None:
-            if self.__pdflatex is None:
-                pdflatex = _Latex_prefs._option["pdflatex"]
+        if engine is None:
+            if self.__engine is None:
+                engine = _Latex_prefs._option["engine"]
             else:
-                pdflatex = bool(self.__pdflatex)
+                engine = self.__engine
         e = _run_latex_(os.path.join(base, filename + ".tex"), debug=debug,
-                               density=density, pdflatex=pdflatex, png=True)
+                               density=density, engine=engine, png=True)
         if e.find("Error") == -1:
             shutil.copy(os.path.join(base, filename + ".png"),
                         os.path.join(orig_base, filename + ".png"))
@@ -1030,11 +1073,18 @@ class Latex:
         preamble instead of replacing it, use
         :meth:`latex.add_to_preamble <Latex.add_to_preamble>`.
 
+        You will almost certainly need to use this when using the
+        XeLaTeX engine; see below or the documentation for
+        :func:`engine` for a suggested preamble.
+
         EXAMPLES::
 
             sage: latex.extra_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
             sage: latex.extra_preamble()
             '\\DeclareMathOperator{\\Ext}{Ext}'
+            sage: latex.extra_preamble("\\"+r"usepackage{fontspec,xunicode,xltxtra}\setmainfont[Mapping=tex-text]{UnBatang}\setmonofont[Mapping=tex-text]{UnDotum}")
+            sage: latex.extra_preamble()
+            '\\usepackage{fontspec,xunicode,xltxtra}\\setmainfont[Mapping=tex-text]{UnBatang}\\setmonofont[Mapping=tex-text]{UnDotum}'
             sage: latex.extra_preamble("")
             sage: latex.extra_preamble()
             ''
@@ -1142,8 +1192,10 @@ class Latex:
         if s not in current:
             _Latex_prefs._option['jsmath_avoid'].append(s)
 
-    def pdflatex(self, t = None):
+    def pdflatex(self, t = None):  # this is deprecated since 4.3.3
         """
+        This is deprecated. Use engine("pdflatex") instead.
+
         Controls whether Sage uses PDFLaTeX or LaTeX when typesetting
         with :func:`view`, in ``%latex`` cells, etc.
 
@@ -1158,15 +1210,72 @@ class Latex:
         EXAMPLES::
 
             sage: latex.pdflatex()
+            doctest:...: DeprecationWarning: Use engine() instead.
             False
             sage: latex.pdflatex(True)
+            doctest:...: DeprecationWarning: Use engine("pdflatex") instead.
             sage: latex.pdflatex()
             True
             sage: latex.pdflatex(False)
+            doctest:...: DeprecationWarning: Use engine("latex") instead.
         """
         if t is None:
-            return _Latex_prefs._option["pdflatex"]
-        _Latex_prefs._option["pdflatex"] = bool(t)
+            from sage.misc.misc import deprecation
+            deprecation('Use engine() instead.')
+            return _Latex_prefs._option["engine"] == "pdflatex"
+        elif t:
+            from sage.misc.misc import deprecation
+            deprecation('Use engine("pdflatex") instead.')
+            self.engine("pdflatex")
+        else:
+            from sage.misc.misc import deprecation
+            deprecation('Use engine("latex") instead.')
+            self.engine("latex")
+
+    def engine(self, e = None):
+        r"""
+        Set Sage to use ``e`` as latex engine when typesetting with
+        :func:`view`, in ``%latex`` cells, etc.
+
+        INPUT:
+
+        - ``e`` -- 'latex', 'pdflatex', 'xelatex' or None
+
+        If  ``e`` is None, return the current engine.
+
+        If using the XeLaTeX engine, it will almost always be necessary
+        to set the proper preamble with :func:`extra_preamble` or
+        :func:`add_to_preamble`. For example::
+
+            latex.extra_preamble(r'''\usepackage{fontspec,xunicode,xltxtra}
+            \setmainfont[Mapping=tex-text]{some font here}
+            \setmonofont[Mapping=tex-text]{another font here}''')
+
+        EXAMPLES::
+
+            sage: latex.engine()
+            'latex'
+            sage: latex.engine("pdflatex")
+            sage: latex.engine()
+            'pdflatex'
+            sage: latex.engine("xelatex")
+            sage: latex.engine()
+            'xelatex'
+        """
+        if e is None:
+            return _Latex_prefs._option["engine"]
+
+        if e == "latex":
+            _Latex_prefs._option["engine"] = "latex"
+            _Latex_prefs._option["engine_name"] = "LaTeX"
+        elif e == "pdflatex":
+            _Latex_prefs._option["engine"] = "pdflatex"
+            _Latex_prefs._option["engine_name"] = "PDFLaTeX"
+        elif e == "xelatex":
+            _Latex_prefs._option["engine"] = e
+            _Latex_prefs._option["engine_name"] = "XeLaTeX"
+        else:
+            raise ValueError, "%s is not a supported LaTeX engine. Use latex, pdflatex, or xelatex" % e
 
 # Note: latex used to be a separate function, which by default was
 # only loaded in command-line mode: in the notebook, all_notebook.py
@@ -1509,7 +1618,7 @@ def jsmath(x, mode='display'):
         x = str(x)
     return html(delimiter + x + delimiter)
 
-def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, viewer = None, tightpage = None, mode='inline', **kwds):
+def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, engine=None, viewer = None, tightpage = None, mode='inline', **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
     and display typeset. If used from the command line, this requires
@@ -1530,7 +1639,10 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
 
     -  ``tiny`` - bool (default: False): use tiny font.
 
-    -  ``pdflatex`` - bool (default: False): use pdflatex.
+    -  ``pdflatex`` - bool (default: False): use pdflatex. This is deprecated.
+       Use 'engine' option instead.
+
+    -  ``engine`` - 'latex', 'pdflatex', or 'xelatex'
 
     -  ``viewer`` -- string or None (default: None): specify a viewer to
        use; currently the only options are None and 'pdf'.
@@ -1559,8 +1671,9 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     adds a horizontal line between objects, and ``sep='\\newpage'``
     inserts a page break between objects.
 
-    If ``pdflatex`` is ``True``, then this produces a pdf file.
-    Otherwise, it produces a dvi file, and if the program dvipng is
+    If ``pdflatex`` is ``True``, then the latex engine is set to
+    pdflatex. If the engine is either pdflatex or xelatex,  it produces
+    a pdf file. Otherwise, it produces a dvi file, and if the program dvipng is
     installed, it checks the dvi file by trying to convert it to a png
     file.  If this conversion fails, the dvi file probably contains
     some postscript special commands or it has other issues which
@@ -1568,8 +1681,8 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     converted to a pdf file, which is then displayed.
 
     Setting ``viewer`` to ``'pdf'`` forces the use of a separate
-    viewer, even in notebook mode. This also sets ``pdflatex`` to
-    ``True``.
+    viewer, even in notebook mode. This also sets the latex engine to be
+    ``pdflatex`` if the current engine is latex.
 
     Setting the option ``tightpage`` to ``True`` tells LaTeX to use
     the package 'preview' with the 'tightpage' option. Then, each
@@ -1627,22 +1740,28 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         if jsMath_okay:
             print JSMath().eval(objects, mode=mode)  # put comma at end of line?
         else:
+            if pdflatex is True:
+                engine = "pdflatex"
+            else:
+                engine = _Latex_prefs._option["engine"]
             base_dir = os.path.abspath("")
             png_file = graphics_filename(ext='png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
-                debug=debug, do_in_background=False, pdflatex=pdflatex)
+                debug=debug, do_in_background=False, engine=engine)
             print '<html><img src="%s"></html>'%png_link  # put comma at end of line?
         return
-    # command line
-    if viewer == "pdf":
-        pdflatex = True
-    if pdflatex is None:
-        pdflatex = _Latex_prefs._option["pdflatex"]
+    # command line or notebook with viewer
+    if pdflatex:
+        engine = "pdflatex"
+    else:
+        engine = _Latex_prefs._option["engine"]
+        if viewer == "pdf" and engine == "latex":
+            engine = "pdflatex"
     tmp = tmp_dir('sage_viewer')
     tex_file = os.path.join(tmp, "sage.tex")
     open(tex_file,'w').write(s)
-    suffix = _run_latex_(tex_file, debug=debug, pdflatex=pdflatex, png=False)
+    suffix = _run_latex_(tex_file, debug=debug, engine=engine, png=False)
     if suffix == "pdf":
         from sage.misc.viewer import pdf_viewer
         viewer = pdf_viewer()
@@ -1656,9 +1775,8 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     os.system('sage-native-execute %s %s'%(viewer, output_file))
     return
 
-
 def png(x, filename, density=150, debug=False,
-        do_in_background=False, tiny=False, pdflatex=True):
+        do_in_background=False, tiny=False, pdflatex=True, engine='pdflatex'):
     """
     Create a png image representation of ``x`` and save to the given
     filename.
@@ -1679,13 +1797,18 @@ def png(x, filename, density=150, debug=False,
 
     -  ``tiny`` - bool (default: False): use 'tiny' font
 
-    -  ``pdflatex`` - bool (default: False): use pdflatex.
+    -  ``pdflatex`` - bool (default: True): use pdflatex. This option is deprecated.
+       Use ``engine`` option instead. See below.
+
+    -  ``engine`` - 'latex', 'pdflatex', or 'xelatex' (default: 'pdflatex')
 
     EXAMPLES::
 
         sage: from sage.misc.latex import png
         sage: png(ZZ[x], SAGE_TMP + "zz.png", do_in_background=False) # random - error if no latex
     """
+    if not pdflatex:
+        engine = "latex"
     import sage.plot.all
     if sage.plot.all.is_Graphics(x):
         x.save(filename)
@@ -1705,7 +1828,7 @@ def png(x, filename, density=150, debug=False,
     # run latex on the file, producing png output to png_file
     e = _run_latex_(tex_file, density=density, debug=debug,
                     png=True, do_in_background=do_in_background,
-                    pdflatex=pdflatex)
+                    engine=engine)
     if e.find("Error") == -1:
         # if no errors, copy png_file to the appropriate place
         shutil.copy(png_file, abs_path_to_png)
@@ -1807,7 +1930,6 @@ def repr_lincomb(symbols, coeffs):
     s = s.replace("+ -","- ")
     return s
 
-
 def print_or_typeset(object):
     r"""
     'view' or 'print' the object depending on the situation.
@@ -1836,7 +1958,6 @@ def print_or_typeset(object):
         view(object)
     else:
         print(object)
-
 
 def pretty_print (object):
     r"""
@@ -1876,7 +1997,6 @@ def pretty_print (object):
             print JSMath().eval(object, mode='inline')
         return
 
-
 def pretty_print_default(enable=True):
     r"""
     Enable or disable default pretty printing. Pretty printing means
@@ -1902,7 +2022,6 @@ def pretty_print_default(enable=True):
         sys.displayhook = pretty_print
     else:
         sys.displayhook = sys.__displayhook__
-
 
 common_varnames = ['alpha',
                    'beta',

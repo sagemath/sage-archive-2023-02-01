@@ -254,6 +254,54 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
+    def is_singular(C):
+        r"""
+        Returns whether the curve is singular or not.
+
+        EXAMPLES:
+
+        Over `\QQ`::
+
+            sage: F = QQ
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^3-Y^2*Z)
+            sage: C.is_singular()
+            True
+
+        Over a finite field::
+
+            sage: F = GF(19)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X^3+Y^3+Z^3)
+            sage: C.is_singular()
+            False
+            sage: D = Curve(X^4-X*Z^3)
+            sage: D.is_singular()
+            True
+            sage: E = Curve(X^5+19*Y^5+Z^5)
+            sage: E.is_singular()
+            True
+            sage: E = Curve(X^5+9*Y^5+Z^5)
+            sage: E.is_singular()
+            False
+
+        Over `\CC`::
+
+            sage: F = CC
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
+            sage: C = Curve(X)
+            sage: C.is_singular()
+            False
+            sage: D = Curve(Y^2*Z-X^3)
+            sage: D.is_singular()
+            True
+            sage: E = Curve(Y^2*Z-X^3+Z^3)
+            sage: E.is_singular()
+            False
+
+        """
+        return C.defining_polynomial().parent().ideal(C.defining_polynomial().gradient()).dimension()> 0
+
 
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
     def rational_points_iterator(self):

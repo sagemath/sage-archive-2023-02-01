@@ -7,11 +7,11 @@ Standard Commutative Rings
    sage/rings/integer_ring
    sage/rings/integer
 
-   sage/rings/integer_mod_ring
-   sage/rings/integer_mod
+   sage/rings/finite_rings/integer_mod_ring
+   sage/rings/finite_rings/integer_mod
 
    sage/rings/rational_field
    sage/rings/rational
 
-   sage/rings/finite_field
-   sage/rings/finite_field_element
+   sage/rings/finite_rings/constructor
+   sage/rings/finite_rings/element_base

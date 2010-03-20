@@ -318,8 +318,11 @@ class Magma(Expect):
             sage: Magma(maxread=1000, logfile=tmp_filename())
             Magma
         """
-        #command = 'magma -b '
-        command = 'magma'
+        # If the -b argument is given to Magma, the opening banner and all other
+        # introductory messages are suppressed. The final "total time" message is
+        # also suppressed.
+        #command = 'sage-native-execute magma -b '
+        command = 'sage-native-execute magma'
         if not user_config:
             command += ' -n'
         Expect.__init__(self,
@@ -2626,7 +2629,7 @@ def magma_console():
         >
         Total time: 2.820 seconds, Total memory usage: 3.95MB
     """
-    console('magma')
+    console('sage-native-execute magma')
 
 def magma_version():
     """

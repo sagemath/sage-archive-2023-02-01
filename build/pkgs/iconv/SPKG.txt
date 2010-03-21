@@ -18,7 +18,7 @@ GPL 3 and LGPL 3. So we can link against the library ok.
 
 == Special Update/Build Instructions ==
 
-  * spkg-install removes ALL files installed by inconv - man pages,
+  * spkg-install removes ALL files installed by iconv - man pages,
     docs, etc etc. If iconv gets updated, check these still
     remove all traces of iconv.
 
@@ -27,6 +27,11 @@ GPL 3 and LGPL 3. So we can link against the library ok.
     breaking the install.
 
 == Changelog ==
+
+=== iconv-1.13.1.p0 (David Kirkby, March 21st 2010) ===
+ * #8567 Ensure iconv only builds on Solaris and Cygwin as
+   having two copies of iconv causes problems on some Linux systems.
+
 
 === iconv-1.13.1 (David Kirkby, February 13th 2010) ===
  * #8191 First release of libiconv, needed for R on Solaris

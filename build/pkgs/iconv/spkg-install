@@ -17,6 +17,16 @@ rm -f $SAGE_LOCAL/include/localcharset.h
 rm -rf  $SAGE_LOCAL/share/doc/libiconv
 rm -f $SAGE_LOCAL/share/man/man1/iconv* $SAGE_LOCAL/share/man/man3/iconv*
 
+# Only build iconv on Solaris and Cygwin
+if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xCYGWIN ] ; then
+  echo "iconv will not be installed, as it is only installed on"
+  echo "Solaris and Cygwin - see:"
+  echo "http://trac.sagemath.org/sage_trac/ticket/8567"
+  exit 0
+fi
+
+echo "Installing iconv as the operating system is Solaris or Cygwin"
+
 
 # Let an environment variable CFLAG64 specify the option to generate 64-bit
 # code. If this is not set, default to -m64.

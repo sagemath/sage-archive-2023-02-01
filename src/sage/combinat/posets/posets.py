@@ -63,7 +63,7 @@ def Poset(data=None, element_labels=None, cover_relations=False):
 
 
     - ``element_labels`` -- (default: None) an optional list or
-       dictionary of objects that label the poset elements.
+      dictionary of objects that label the poset elements.
 
     - ``cover_relations`` - (default: False) If True, then the data is
       assumed to describe a directed acyclic graph whose arrows are

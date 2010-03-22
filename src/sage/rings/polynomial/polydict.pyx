@@ -1283,6 +1283,10 @@ cdef class ETuple:
             sage: e = ETuple([0]*7)
             sage: e.eadd_p(5,4)
             (0, 0, 0, 0, 5, 0, 0)
+
+            sage: ETuple([0,1]).eadd_p(1, 0) == ETuple([1,1])
+            True
+
         """
         cdef size_t index = 0
         cdef size_t rindex = 0
@@ -1313,10 +1317,22 @@ cdef class ETuple:
 
             rindex += 1
 
+        rindex = 0
         if need_to_add:
-            result._data[2*rindex] = pos
-            result._data[2*rindex+1] = other
-            result._nonzero += 1
+            for index from 0 <= index < self._nonzero:
+                if self._data[2*index] > pos:
+                    result._data[2*rindex] = pos
+                    result._data[2*rindex+1] = other
+                    rindex += 1
+                    result._nonzero += 1
+                result._data[2*rindex] = self._data[2*index]
+                result._data[2*rindex+1] = self._data[2*index+1]
+                rindex += 1
+
+            if rindex == index and other:
+                result._data[2*rindex] = pos
+                result._data[2*rindex+1] = other
+                result._nonzero += 1
 
         return result
 

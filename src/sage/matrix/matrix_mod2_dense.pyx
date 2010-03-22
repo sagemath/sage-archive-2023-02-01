@@ -523,6 +523,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A.row(2,from_list=True)
             (0, 1, 1, 1, 0, 0, 0, 1, 1, 1)
+
+            sage: A = Matrix(GF(2),1,0)
+            sage: A.row(0)
+            ()
         """
         if self._nrows == 0:
             raise IndexError("matrix has no rows")
@@ -535,7 +539,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t j
         cdef Vector_mod2_dense z = PY_NEW(Vector_mod2_dense)
         z._init(self._ncols, VectorSpace(self.base_ring(),self._ncols))
-        mzd_submatrix(z._entries, self._entries, i, 0, i+1, self._ncols)
+        if self._ncols:
+            mzd_submatrix(z._entries, self._entries, i, 0, i+1, self._ncols)
         return z
 
     ########################################################################

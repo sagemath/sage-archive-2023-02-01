@@ -87,7 +87,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
         """
         cdef Vector_mod2_dense y = self._new_c()
-        mzd_copy(y._entries, self._entries)
+        if self._degree:
+            mzd_copy(y._entries, self._entries)
         return y
 
     cdef _init(self, Py_ssize_t degree, parent):
@@ -186,6 +187,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: w > v
             True
         """
+        if left._degree == 0:
+            return 0
         return mzd_cmp(left._entries, (<Vector_mod2_dense>right)._entries)
 
     def __len__(self):
@@ -274,7 +277,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (0, 1, 1, 0, 0, 1, 1, 0, 0, 1)
         """
         cdef Vector_mod2_dense z = self._new_c()
-        mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
+        if self._degree:
+            mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
@@ -288,7 +292,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (0, 1, 1, 0, 0, 1, 1, 0, 0, 1)
         """
         cdef Vector_mod2_dense z = self._new_c()
-        mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
+        if self._degree:
+            mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
     cpdef Element _dot_product_(self, Vector right):

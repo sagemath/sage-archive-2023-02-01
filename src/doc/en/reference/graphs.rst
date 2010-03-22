@@ -5,6 +5,8 @@ Graph Theory
    :maxdepth: 2
 
    sage/graphs/cliquer
+   sage/graphs/digraph
+   sage/graphs/generic_graph
    sage/graphs/graph
    sage/graphs/graph_coloring
    sage/graphs/graph_generators

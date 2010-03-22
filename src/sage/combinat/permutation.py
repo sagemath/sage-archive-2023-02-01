@@ -2611,14 +2611,18 @@ class Permutation_class(CombinatorialObject):
 
     def hyperoctahedral_double_coset_type(self):
         r"""
-        Returns the coset type of ``self`` as a
-        :mod:`perfect matching <sage.combinat.perfect_matching>`.
+        Returns the coset-type of ``self`` as a partition.
 
         ``self`` must be a permutation of even size `2n`.  The coset-type
         determines the double class of the permutation, that is its image in
-        `H_n \backslash S_2n / H_n`, where `H_n` is the hyperoctahedral group of order
-        `n` (see [Mcd]_ for more details). It is returned as an instance of
-        :class:`PerfectMatching <sage.combinat.perfect_matching.PerfectMatching>`.
+        `H_n \backslash S_2n / H_n`, where `H_n` is the hyperoctahedral group
+        of order `n`.
+
+        The coset-type is determined as follows. Consider the perfect matching
+        `\{\{1,2\},\{3,4\},\dots,\{2n-1,2n\}\}` and its image by ``self`` and
+        draw them simultaneously as edges of a graph whose vertices are labeled
+        by `1,2,\dots,2n`. The coset-type is the ordered sequence of the
+        semi-lengths of the loops of this graph (see [Mcd]_ for more details).
 
         EXAMPLE::
 
@@ -2630,6 +2634,10 @@ class Permutation_class(CombinatorialObject):
             True
             sage: Permutation([]).hyperoctahedral_double_coset_type()
             []
+            sage: Permutation([3,1,2]).hyperoctahedral_double_coset_type()
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 1, 2] is a permutation of odd size and has no coset-type
 
         REFERENCES:
 
@@ -2640,7 +2648,7 @@ class Permutation_class(CombinatorialObject):
         from sage.combinat.perfect_matching import PerfectMatchings
         n = len(self)
         if n%2==1:
-            raise ValueError, "%s is a permutation of odd size and has no coset-type"%p
+            raise ValueError, "%s is a permutation of odd size and has no coset-type"%self
         S=PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
         return S.loop_type(S.conjugate_by_permutation(self))
 

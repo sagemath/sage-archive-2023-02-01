@@ -141,7 +141,7 @@ class PerfectMatching(ElementWrapper):
             ValueError: [(1, 2, 3), (4, 5)] is not a valid perfect matching: all elements of the list must be pairs
 
         If you know your datas are in a good format, use directly
-        `PerfectMatchings(objects)(data)`.
+        ``PerfectMatchings(objects)(data)``.
 
         TESTS::
 

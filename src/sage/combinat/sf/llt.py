@@ -99,7 +99,7 @@ class LLT_class:
             sage: cmp(L3Q, L4Q)
             -1
             sage: cmp(L3Q, QQ)
-            1
+            -1
             sage: cmp(LLT(QQ,3,2), LLT(QQ,3,3))
             -1
         """

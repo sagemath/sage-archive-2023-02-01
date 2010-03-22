@@ -297,7 +297,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             raise ValueError, "rnd (=%s) must be one of RNDN, RNDZ, RNDU, or RNDD"%rnd
         self.rnd = n
         self.rnd_str = rnd
-        ParentWithGens.__init__(self, self, tuple([]), False)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
 
         # hack, we cannot call the constructor here
         rn = PY_NEW(RealNumber)
@@ -939,6 +940,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
            zero is signed, i.e. there are both +0 and -0; the behavior
            is the same as in the IEEE 754-1985 standard and it is
            generalized to the other functions supported by MPFR.
+
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
         self.init = 0
         if parent is None:

@@ -432,6 +432,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         True
         sage: RIF._middle_field() is RR
         True
+        sage: TestSuite(RIF).run()
     """
 
     def __init__(self, int prec=53, int sci_not=0):
@@ -443,7 +444,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         self.__lower_field = RealField(prec, sci_not, "RNDD")
         self.__middle_field = RealField(prec, sci_not, "RNDN")
         self.__upper_field = RealField(prec, sci_not, "RNDU")
-        ParentWithGens.__init__(self, self, tuple([]), False)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
 
     def _lower_field(self):
         return self.__lower_field

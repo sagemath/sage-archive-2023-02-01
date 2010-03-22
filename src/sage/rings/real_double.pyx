@@ -118,9 +118,17 @@ cdef class RealDoubleField_class(Field):
         True
         sage: b == RR(a)
         True
+
     """
     def __init__(self):
-        Field.__init__(self, self)
+        """
+        TESTS::
+
+            sage: R = RealDoubleField()
+            sage: TestSuite(R).run()
+        """
+        from sage.categories.fields import Fields
+        Field.__init__(self, self, category = Fields())
         self._populate_coercion_lists_(element_constructor=RealDoubleElement,
                                        init_no_parent=True,
                                        convert_method_name='_real_double_')

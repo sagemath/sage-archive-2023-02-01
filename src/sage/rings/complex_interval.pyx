@@ -51,8 +51,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     EXAMPLES:
         sage: I = CIF.gen()
         sage: b = 1.5 + 2.5*I
-        sage: loads(b.dumps()) == b
-        True
+        sage: TestSuite(b).run()
     """
     cdef ComplexIntervalFieldElement _new(self):
         """

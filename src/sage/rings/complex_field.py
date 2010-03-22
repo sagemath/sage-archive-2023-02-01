@@ -171,8 +171,17 @@ class ComplexField_class(field.Field):
         False
     """
     def __init__(self, prec=53):
+        """
+        TESTS::
+
+            sage: C = ComplexField(200)
+            sage: C.category()
+            Category of fields
+            sage: TestSuite(C).run()
+        """
         self._prec = int(prec)
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
 #        self._populate_coercion_lists_()
         self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
 

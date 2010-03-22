@@ -146,6 +146,8 @@ class RationalField(_uniq, number_field_base.NumberField):
             0
             sage: Q.is_field()
             True
+            sage: Q.category()
+            Category of fields
             sage: Q.zeta()
             -1
 
@@ -199,12 +201,14 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         TESTS::
 
+            sage: TestSuite(QQ).run()
             sage: QQ.variable_name()
             'x'
             sage: QQ.variable_names()
             ('x',)
         """
-        ParentWithGens.__init__(self, self)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self, category = Fields())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
 

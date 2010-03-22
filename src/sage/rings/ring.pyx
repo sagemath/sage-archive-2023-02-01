@@ -1036,7 +1036,7 @@ cdef class CommutativeRing(Ring):
             1
             sage: type(R); type(QQ); type(ZZ)
             <type 'sage.rings.ring.CommutativeRing'>
-            <class 'sage.rings.rational_field.RationalField'>
+            <class 'sage.rings.rational_field.RationalField_with_category'>
             <type 'sage.rings.integer_ring.IntegerRing_class'>
 
         All orders in number fields have Krull dimension 1, including

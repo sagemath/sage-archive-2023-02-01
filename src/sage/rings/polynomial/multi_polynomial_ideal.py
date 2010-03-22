@@ -2086,7 +2086,7 @@ class MPolynomialIdeal_singular_repr:
             raise ValueError, "The dimension of the ideal is %s, but it should be 0"%d
 
         import sage.rings.complex_field as CCmod
-        if type(self.base_ring()) == CCmod.ComplexField_class:
+        if isinstance(self.base_ring(), CCmod.ComplexField_class):
           verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()
         if ring is not None: P = P.change_ring(ring)

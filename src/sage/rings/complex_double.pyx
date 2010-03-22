@@ -144,8 +144,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: from sage.rings.complex_double import ComplexDoubleField_class
             sage: CDF == ComplexDoubleField_class()
             True
+            sage: TestSuite(CDF).run(skip = ["_test_prod"])
+
+        .. warning:: due to rounding errors, one can have `x^2 != x*x`::
+
+            sage: x = CDF.an_element()
+            sage: x
+            1.0*I
+            sage: x*x, x**2, x*x == x**2
+            (-1.0, -1.0 + 1.2246...e-16*I, False)
         """
-        ParentWithGens.__init__(self, self, ('I',), normalize=False)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self, ('I',), normalize=False, category = Fields())
         self._populate_coercion_lists_()
 
     def __reduce__(self):

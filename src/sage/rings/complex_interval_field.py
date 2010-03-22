@@ -134,10 +134,14 @@ class ComplexIntervalField_class(field.Field):
         False
         sage: CIF = ComplexIntervalField(53)
 
+        sage: CIF.category()
+        Category of fields
+        sage: TestSuite(CIF).run()
     """
     def __init__(self, prec=53):
         self._prec = int(prec)
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+        from sage.categories.fields import Fields
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
 
     def __reduce__(self):
         """

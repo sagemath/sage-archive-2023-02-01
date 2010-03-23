@@ -1411,11 +1411,11 @@ class Graph(GenericGraph):
           as a Graph object.
         - When no solution exists, returns ``False``
 
-        NOTES:
+        .. NOTE::
 
-        - This algorithm computes the degree-constrained subgraph of minimum weight.
-        - If the graph's edges are weighted, these are taken into account.
-        - This problem can be solved in polynomial time.
+            - This algorithm computes the degree-constrained subgraph of minimum weight.
+            - If the graph's edges are weighted, these are taken into account.
+            - This problem can be solved in polynomial time.
 
         EXAMPLES:
 
@@ -1491,10 +1491,10 @@ class Graph(GenericGraph):
 
         A digraph representing an orientation of the current graph.
 
-        NOTES:
+        .. NOTE::
 
-        - This method assumes the graph is connected.
-        - This algorithm works in O(m).
+            - This method assumes the graph is connected.
+            - This algorithm works in O(m).
 
         EXAMPLE:
 
@@ -2322,10 +2322,10 @@ class Graph(GenericGraph):
         by a list of vertices. A clique is an induced complete subgraph, and a
         maximal clique is one not contained in a larger one.
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         ALGORITHM:
 
@@ -2382,10 +2382,10 @@ class Graph(GenericGraph):
         by a list of vertices. A clique is an induced complete subgraph, and a
         maximum clique is one of maximal order.
 
-        NOTES:
+        .. NOTE::
 
-        - Currently only implemented for undirected graphs. Use to_undirected
-          to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         ALGORITHM:
 
@@ -2421,10 +2421,10 @@ class Graph(GenericGraph):
         """
         Returns the vertex set of a maximal order complete subgraph.
 
-        NOTE:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         ALGORITHM:
 
@@ -2448,10 +2448,10 @@ class Graph(GenericGraph):
         Returns the order of the largest clique of the graph (the clique
         number).
 
-        NOTE:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use ``to_undirected``
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use ``to_undirected``
+            to convert a digraph to an undirected graph.
 
         INPUT:
 
@@ -2493,10 +2493,10 @@ class Graph(GenericGraph):
         Returns a list of the number of maximal cliques containing each
         vertex. (Returns a single value if only one input vertex).
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         INPUT:
 
@@ -2546,10 +2546,10 @@ class Graph(GenericGraph):
         edges between maximal cliques with common members in the original
         graph.
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         INPUT:
 
@@ -2576,10 +2576,10 @@ class Graph(GenericGraph):
         graph. Right and left vertices are connected if the bottom vertex
         belongs to the clique represented by a top vertex.
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         EXAMPLES::
 
@@ -2601,10 +2601,10 @@ class Graph(GenericGraph):
         Returns a maximal independent set, which is a set of vertices which
         induces an empty subgraph. Uses Cliquer [NisOst2003]_.
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         EXAMPLES::
 
@@ -2621,10 +2621,10 @@ class Graph(GenericGraph):
         Returns a list of sizes of the largest maximal cliques containing
         each vertex. (Returns a single value if only one input vertex).
 
-        NOTES:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         INPUT:
 
@@ -2694,10 +2694,10 @@ class Graph(GenericGraph):
         Returns the cliques containing each vertex, represented as a list
         of lists. (Returns a single list if only one input vertex).
 
-        NOTE:
+        .. NOTE::
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+            Currently only implemented for undirected graphs. Use to_undirected
+            to convert a digraph to an undirected graph.
 
         INPUT:
 

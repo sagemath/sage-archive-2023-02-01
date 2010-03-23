@@ -19,6 +19,25 @@ from sage.categories.category import Category, HomCategory
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 
+
+class EmptySetError(ValueError):
+    """
+    Exception raised when some operation can't be performed on the empty set.
+
+    EXAMPLES::
+
+        sage: def first_element(st):
+        ...    if not st: raise EmptySetError, "no elements"
+        ...    else: return st[0]
+        sage: first_element(Set((1,2,3)))
+        1
+        sage: first_element(Set([]))
+        Traceback (most recent call last):
+        ...
+        EmptySetError: no elements
+    """
+    pass
+
 class Sets(Category):
     """
     The category of sets
@@ -271,7 +290,9 @@ class Sets(Category):
             r"""
             Returns a (preferably typical) element of this parent.
 
-            This is used both for illustration and testing purposes.
+            This is used both for illustration and testing purposes. If the
+            set `self` is empty :meth:`an_element` should raise the exception
+            :class:`EmptySetError`.
 
             This default implementation calls :meth:`_an_element_` and
             cache the result. Any parent should implement either
@@ -308,9 +329,16 @@ class Sets(Category):
                 Traceback (most recent call last):
                 ...
                 AssertionError: self.an_element() is not in self
+
+            TESTS::
+
+                sage: FiniteEnumeratedSet([])._test_an_element()
             """
             tester = self._tester(**options)
-            an_element = self.an_element()
+            try:
+                an_element = self.an_element()
+            except EmptySetError:
+                return
             tester.assert_(an_element in self, "self.an_element() is not in self")
 
         def _test_elements(self, tester = None, **options):
@@ -356,7 +384,10 @@ class Sets(Category):
             is_sub_testsuite = (tester is not None)
             tester = self._tester(tester = tester, **options)
             # Or do we want to run the test on some_elements?
-            an_element = self.an_element()
+            try:
+                an_element = self.an_element()
+            except EmptySetError:
+                return
             tester.info("\n  Running the test suite of self.an_element()")
             TestSuite(an_element).run(verbose = tester._verbose, prefix = tester._prefix+"  ",
                                       raise_on_failure = is_sub_testsuite)

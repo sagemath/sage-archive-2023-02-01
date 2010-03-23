@@ -16,7 +16,7 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+from sage.categories.sets_cat import EmptySetError
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity, MinusInfinity, PlusInfinity
@@ -191,12 +191,6 @@ class IntegerRange(UniqueRepresentation, Parent):
     see #8543::
 
         sage: TestSuite(IntegerRange(0, 5, -1)).run()
-        Failure in _test_an_element:
-        Traceback (most recent call last):
-        ...
-        AssertionError: FIXME (#8543): categories doesn't allow empty sets
-        ------------------------------------------------------------
-        The following tests failed: _test_an_element, _test_elements
     """
 
     @staticmethod
@@ -373,7 +367,8 @@ class IntegerRangeFinite(IntegerRange):
             sage: I.an_element()
             -41
         """
-        assert self.cardinality() <> 0, "FIXME (#8543): categories doesn't allow empty sets"
+        if self.cardinality() == 0:
+            raise EmptySetError, "Can't return _an_element_ on empty set"
         p = (self._begin + 2*self._step)
         if p in self:
             return p

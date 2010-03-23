@@ -19,6 +19,7 @@ Finite Enumerated Sets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.sets_cat import EmptySetError
 from sage.rings.integer import Integer
 
 #################################################################
@@ -76,6 +77,10 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         sage: S.first().parent()
         Integer Ring
+
+    TESTS::
+
+        sage: TestSuite(FiniteEnumeratedSet([])).run()
     """
 
     @staticmethod
@@ -157,6 +162,8 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S.an_element()
             1
         """
+        if not self._elements:
+            raise EmptySetError
         return self._elements[0]
 
     def cardinality(self):

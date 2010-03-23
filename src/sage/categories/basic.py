@@ -10,7 +10,7 @@ for sage startup (i.e. to define ZZ, QQ, ...).
 #******************************************************************************
 
 from objects import Objects
-from sets_cat import Sets
+from sets_cat import Sets, EmptySetError
 from partially_ordered_sets import PartiallyOrderedSets
 Posets = PartiallyOrderedSets
 # For backward compatibility; will be deprecated at some point

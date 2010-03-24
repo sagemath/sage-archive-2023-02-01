@@ -1,55 +1,62 @@
-3a4,6
+3a4,7
 > import os
 > SAGE_LIB = os.environ['SAGE_LOCAL']+'/lib'
+> SAGE_INCLUDE = os.environ['SAGE_LOCAL']+'/include'
 > 
-5c8,13
+5c9,16
 < ATLAS_LIB_DIR = '/usr/lib'
 ---
 > ATLAS_LIB_DIR = SAGE_LIB
 > 
 > if os.uname()[0]=="Darwin":
->     libraries = ['m','lapack','blas','gfortran']
+> #    libraries = ['m','lapack','blas','cblas','atlas']
+>     libraries = ['m','lapack','gsl','gslcblas','blas','cblas','atlas']
 > else:
->     libraries = ['m','lapack','cblas','f77blas','atlas','gfortran']
-88c96
+> #    libraries = ['m','lapack','blas','cblas','atlas','gfortran']
+>     libraries = ['m','lapack','gsl','gslcblas','blas','cblas','gfortran','atlas']
+12c23
+< GSL_LIB_DIR = '/usr/lib'       
+---
+> GSL_LIB_DIR = SAGE_LIB 
+15c26
+< GSL_INC_DIR = '/usr/include/gsl'  
+---
+> GSL_INC_DIR = SAGE_INCLUDE
+26a38,39
+> # (can only do this if glpk (optional at this moment)
+> # package in installed 
+30c43
+< GLPK_LIB_DIR = '/usr/lib'       
+---
+> GLPK_LIB_DIR = SAGE_LIB 
+33c46
+< GLPK_INC_DIR = '/usr/include'  
+---
+> GLPK_INC_DIR = SAGE_INCLUDE
+88c101
 < base = Extension('base', libraries = ['m','lapack','blas'],
 ---
 > base = Extension('base', libraries = libraries,
-93c101,104
+93c106
 < blas = Extension('blas', libraries = ['blas'],
 ---
-> random = Extension('random',
->     sources = ['C/random.c', 'C/rngs/rngs.c', 'C/rngs/rvgs.c'])
-> 
 > blas = Extension('blas', libraries = libraries,
-98c109
+98c111
 < lapack = Extension('lapack', libraries = ['lapack','blas'],
 ---
 > lapack = Extension('lapack', libraries = libraries,
-109c120
+109c122
 <     libraries = [ 'blas', 'lapack'],
 ---
 >     libraries = libraries,
-121c132
+121c134
 <     libraries = ['lapack', 'blas'],
 ---
->     libraries = ['m','lapack','gsl','gslcblas','f77blas','gfortran','atlas'],
-142c153,154
+>     libraries = libraries,
+142c155,156
 < misc_solvers = Extension('misc_solvers', libraries = ['lapack', 'blas'],
 ---
 > misc_solvers = Extension('misc_solvers',
->     libraries = ['m','lapack','gsl','gslcblas','f77blas','gfortran','atlas'],
-151c163
-<     version = '1.1.2', 
----
->     version = '0.9', 
-161,164c173,176
-<     author = 'J. Dahl and L. Vandenberghe',
-<     author_email = 'joachim@es.aau.dk, vandenbe@ee.ucla.edu',
-<     url = 'http://abel.ee.ucla.edu/cvxopt',
-<     license = 'GNU GPL version 3',
----
->     author='J. Dahl and L. Vandenberghe',
->     author_email='joachim@es.aau.dk, vandenbe@ee.ucla.edu',
->     url='http://abel.ee.ucla.edu/cvxopt',
->     license='GNU GPL version 3',
+>     libraries = libraries, 
+168a183
+> 

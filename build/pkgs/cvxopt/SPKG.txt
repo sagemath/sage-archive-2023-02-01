@@ -2,6 +2,7 @@ MAINTAINERS:
    * William Stein
    * Josh Kantor
    * Harald Schilly
+   * Dima Pasechnik
 
 ----------------------------
 
@@ -18,6 +19,22 @@ Downloaded from
 == Build Instructions ==
 
 NEW COMMENTS for 1.1.2
+
+== Dima Pasechnik (March 2010) ===
+
+ * modified setup.py to streamline and make it more Sage-like;
+   in particular got rid of f77blas and f95 dependences that
+   are obsolete, since Sage switched to gfortran
+ * rebased Solaris-specific patches from cvxopt-0.9 spkg
+   (only cvxopt.h needed to be patched, while the old
+    native cvxopt random framework is now gone (since cvxopt-1.1
+    at least)
+ * removed Ubuntu/Debian package specifics as irrelevant
+   (none of their patches---they only patch setup.py anyway---
+    survived)
+
+
+== Harald Schilly (initial version, Jan 2010) ===
 
  * removed doc and examples directory
  * modified setup.py and src/python/__init__.py

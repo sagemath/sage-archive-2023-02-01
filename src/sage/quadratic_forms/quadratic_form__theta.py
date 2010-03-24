@@ -1,3 +1,14 @@
+"""
+Theta series of quadratic forms
+
+AUTHORS:
+
+- Jonathan Hanke: initial code, theta series of degree 1
+
+- Gonzalo Tornaria (2009-02-22): fixes and doctests
+
+- Gonzalo Tornaria (2010-03-23): theta series of degree 2
+"""
 
 from copy import deepcopy
 
@@ -10,6 +21,8 @@ from sage.functions.all import sqrt, floor, ceil
 from sage.interfaces.gp import gp
 
 from sage.modular.dims import sturm_bound
+
+from sage.misc.misc import cputime, verbose
 
 
 def theta_series(self, Max=10, var_str='q', safe_flag=True):
@@ -308,5 +321,91 @@ def theta_by_cholesky(self, q_prec):
     ## Return the series, truncated to the desired q-precision
     return PS(theta)
 
+
+def theta_series_degree_2(Q, prec):
+    """
+    Compute the theta series of degree 2 for the quadratic form Q.
+
+    INPUT:
+
+    - ``prec`` - an integer.
+
+    OUTPUT:
+
+    dictionary -- where:
+
+    - keys are GL(2,ZZ)-reduced binary quadratic forms (given as triples
+      of coefficients)
+
+    - values are coefficients
+
+    EXAMPLES::
+
+        sage: Q2 = QuadraticForm(ZZ, 4, [1,1,1,1, 1,0,0, 1,0, 1])
+        sage: S = Q2.theta_series_degree_2(10)
+        sage: S[(0,0,2)]
+        24
+        sage: S[(1,0,1)]
+        144
+        sage: S[(1,1,1)]
+        192
+
+    AUTHORS:
+
+    - Gonzalo Tornaria (2010-03-23)
+
+    REFERENCE:
+
+    - Raum, Ryan, Skoruppa, Tornaria, 'On Formal Siegel Modular Forms'
+      (preprint)
+    """
+    if Q.base_ring() != ZZ:
+        raise TypeError, "The quadratic form must be integral"
+    if not Q.is_positive_definite():
+        raise ValueError, "The quadratic form must be positive definite"
+    try:
+        X = ZZ(prec-1)    # maximum discriminant
+    except:
+        raise TypeError, "prec is not an integer"
+
+    if X < -1:
+        raise ValueError, "prec must be >= 0"
+
+    if X == -1:
+        return {}
+
+    V = ZZ ** Q.dim()
+    H = Q.Hessian_matrix()
+
+    t = cputime()
+    max = int(floor((X+1)/4))
+    v_list = (Q.vectors_by_length(max))        # assume a>0
+    v_list = map(lambda(vs):map(V,vs), v_list) # coerce vectors into V
+    verbose("Computed vectors_by_length" , t)
+
+    # Deal with the singular part
+    coeffs = {(0,0,0):1}
+    for i in range(1,max+1):
+        coeffs[(0,0,i)] = 2 * len(v_list[i])
+
+    # Now deal with the non-singular part
+    a_max = int(floor(sqrt(X/3)))
+    for a in range(1, a_max + 1):
+        t = cputime()
+        c_max = int(floor((a*a + X)/(4*a)))
+        for c in range(a, c_max + 1):
+            for v1 in v_list[a]:
+                v1_H = v1 * H
+                def B_v1(v):
+                    return v1_H * v2
+                for v2 in v_list[c]:
+                    b = abs(B_v1(v2))
+                    if b <= a and 4*a*c-b*b <= X:
+                        qf = (a,b,c)
+                        count = 4 if b == 0 else 2
+                        coeffs[qf] = coeffs.get(qf, ZZ(0)) + count
+        verbose("done a = %d" % a, t)
+
+    return coeffs
 
 

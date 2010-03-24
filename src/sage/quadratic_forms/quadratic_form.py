@@ -181,6 +181,7 @@ class QuadraticForm():
     ## Routines to compute the theta function
     from sage.quadratic_forms.quadratic_form__theta import \
             theta_series, \
+            theta_series_degree_2, \
             theta_by_pari, \
             theta_by_cholesky
 

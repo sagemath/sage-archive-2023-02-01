@@ -87,6 +87,7 @@ organized as follows::
         - CompleteGraph
         - CompleteBipartiteGraph
         - CubeGraph
+        - FibonacciTree
         - GeneralizedPetersenGraph
         - HyperStarGraph
         - KneserGraph
@@ -150,6 +151,8 @@ AUTHORS:
   bubblesort graphs
 
 - Anders Jonsson (2009-10-15): added generalized Petersen graphs
+
+- Harald Schilly and Yann Laigle-Chapuy (2010-03-24): added Fibonacci Tree
 """
 
 ################################################################################
@@ -227,6 +230,7 @@ class GraphGenerators():
                     - CompleteGraph
                     - CompleteBipartiteGraph
                     - CubeGraph
+                    - FibonacciTree
                     - KneserGraph
                     - LCFGraph
                     - OddGraph
@@ -2879,6 +2883,60 @@ class GraphGenerators():
         r.set_pos(p)
 
         return r
+
+    def FibonacciTree(self, n):
+        r"""
+        Returns the graph of the Fibonacci Tree `F_{i}` of order `n`.
+        `F_{i}` is recursively defined as the a tree with a root vertex
+        and two attached child trees `F_{i-1}` and `F_{i-2}`, where
+        `F_{1}` is just one vertex and `F_{0}` is empty.
+
+        INPUT:
+
+        - ``n`` - the recursion depth of the Fibonacci Tree
+
+        EXAMPLES:
+
+            sage: g = graphs.FibonacciTree(3)
+            sage: g.is_tree()
+            True
+            sage: l1 = [ len(graphs.FibonacciTree(_)) + 1 for _ in range(6) ]
+            sage: l2 = list(fibonacci_sequence(2,8))
+            sage: l1 == l2
+            True
+
+        AUTHORS:
+
+        - Harald Schilly and Yann Laigle-Chapuy (2010-03-25)
+        """
+        T = graph.Graph(name="Fibonacci-Tree-%d"%n)
+        if n == 1: T.add_vertex(0)
+        if n < 2: return T
+
+        from sage.combinat.combinat import fibonacci_sequence
+        F = list(fibonacci_sequence(n + 2))
+        s = 1.618 ** (n / 1.618 - 1.618)
+        pos = {}
+
+        def fib(level, node, y):
+            pos[node] = (node, y)
+            if level < 2: return
+            level -= 1
+            y -= s
+            diff = F[level]
+            T.add_edge(node, node - diff)
+            if level == 1: # only one child
+                pos[node - diff] = (node, y)
+                return
+            T.add_edge(node, node + diff)
+            fib(level, node - diff, y)
+            fib(level - 1, node + diff, y)
+
+        T.add_vertices(xrange(sum(F[:-1])))
+        fib(n, F[n + 1] - 1, 0)
+        T.set_pos(pos)
+
+        return T
 
     def GeneralizedPetersenGraph(self, n,k):
         r"""

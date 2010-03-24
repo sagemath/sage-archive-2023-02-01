@@ -437,7 +437,7 @@ class FinitePoset(ParentWithBase):
 
             sage: Q = Poset({5:[2,3], 1:[3,4], 2:[0], 3:[0], 4:[0]})
             sage: Q.hasse_diagram()
-            Digraph on 6 vertices
+            Hasse diagram of a poset containing 6 elements
 
             sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]})
             sage: H = P.hasse_diagram()

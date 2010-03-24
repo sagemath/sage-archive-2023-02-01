@@ -41,6 +41,7 @@ class Modules(Category_module):
          Category of commutative additive groups,
          Category of commutative additive monoids,
          Category of commutative additive semigroups,
+         Category of additive magmas,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]

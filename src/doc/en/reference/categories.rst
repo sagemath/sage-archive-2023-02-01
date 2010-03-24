@@ -30,6 +30,7 @@ Categories
 .. toctree::
    :maxdepth: 2
 
+   sage/categories/additive_magmas
    sage/categories/algebra_ideals
    sage/categories/algebra_modules
    sage/categories/algebras
@@ -83,6 +84,7 @@ Categories
    sage/categories/infinite_enumerated_sets
    sage/categories/integral_domains
    sage/categories/left_modules
+   sage/categories/magmas
    sage/categories/matrix_algebras
    sage/categories/modular_abelian_varieties
    sage/categories/modules

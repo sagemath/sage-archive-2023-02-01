@@ -31,6 +31,7 @@ class FiniteSemigroups(Category):
         sage: FiniteSemigroups().all_super_categories()
         [Category of finite semigroups,
          Category of semigroups,
+         Category of magmas,
          Category of finite enumerated sets,
          Category of enumerated sets,
          Category of sets,

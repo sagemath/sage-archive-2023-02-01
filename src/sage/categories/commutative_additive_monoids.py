@@ -26,7 +26,7 @@ class CommutativeAdditiveMonoids(Category):
         sage: CommutativeAdditiveMonoids().super_categories()
         [Category of commutative additive semigroups]
         sage: CommutativeAdditiveMonoids().all_super_categories()
-        [Category of commutative additive monoids, Category of commutative additive semigroups, Category of sets, Category of sets with partial maps, Category of objects]
+        [Category of commutative additive monoids, Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 

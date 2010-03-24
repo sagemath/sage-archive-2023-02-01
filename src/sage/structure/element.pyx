@@ -280,13 +280,13 @@ cdef class Element(sage_object.SageObject):
             sage: 1.is_idempotent(), 2.is_idempotent()
             (True, False)
 
-        This method is actually provided by the ``Semigroups()`` super
+        This method is actually provided by the ``Magmas()`` super
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
             <bound method EuclideanDomains.element_class.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
-            'sage.categories.semigroups'
+            'sage.categories.magmas'
 
         TESTS::
 

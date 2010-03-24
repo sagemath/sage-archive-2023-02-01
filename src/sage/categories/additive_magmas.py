@@ -1,8 +1,8 @@
 r"""
-CommutativeAdditiveSemigroups
+Additive Magmas
 """
 #*****************************************************************************
-#  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
+#  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -12,26 +12,25 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
-from sage.categories.additive_magmas import AdditiveMagmas
 from sage.structure.sage_object import have_same_parent
 
-class CommutativeAdditiveSemigroups(Category):
+class AdditiveMagmas(Category):
     """
-    The category of additive abelian semigroups, i.e. sets with an
-    associative and abelian operation +.
+    The category of additive magmas, i.e. sets with an binary
+    operation ``+``.
 
     EXAMPLES::
 
-        sage: CommutativeAdditiveSemigroups()
-        Category of commutative additive semigroups
-        sage: CommutativeAdditiveSemigroups().super_categories()
-        [Category of additive magmas]
-        sage: CommutativeAdditiveSemigroups().all_super_categories()
-        [Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+        sage: AdditiveMagmas()
+        Category of additive magmas
+        sage: AdditiveMagmas().super_categories()
+        [Category of sets]
+        sage: AdditiveMagmas().all_super_categories()
+        [Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 
-        sage: C = CommutativeAdditiveSemigroups()
+        sage: C = AdditiveMagmas()
         sage: TestSuite(C).run()
 
     """
@@ -41,43 +40,12 @@ class CommutativeAdditiveSemigroups(Category):
         """
         EXAMPLES::
 
-            sage: CommutativeAdditiveSemigroups().super_categories()
-            [Category of additive magmas]
+            sage: AdditiveMagmas().super_categories()
+            [Category of sets]
         """
-        return [AdditiveMagmas()]
+        return [Sets()]
 
     class ParentMethods:
-        def _test_additive_associativity(self, **options):
-            r"""
-            Test associativity for (not necessarily all) elements of this
-            additive semigroup.
-
-            INPUT:
-
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
-
-            EXAMPLES:
-
-            By default, this method tests only the elements returned by
-            ``self.some_elements()``::
-
-                sage: S = CommutativeAdditiveSemigroups().example()
-                sage: S._test_additive_associativity()
-
-            However, the elements tested can be customized with the
-            ``elements`` keyword argument::
-
-                sage: (a,b,c,d) = S.additive_semigroup_generators()
-                sage: S._test_additive_associativity(elements = (a, b+c, d))
-
-            See the documentation for :class:`TestSuite` for more information.
-            """
-            tester = self._tester(**options)
-            # Better than use all.
-            for x in tester.some_elements():
-                for y in tester.some_elements():
-                    for z in tester.some_elements():
-                        tester.assert_((x + y) + z == x + (y + z))
 
         def summation(self, x, y):
             """
@@ -96,7 +64,7 @@ class CommutativeAdditiveSemigroups(Category):
                 sage: S.summation(a, b)
                 a + b
 
-            A parent in ``CommutativeAdditiveSemigroups()`` must
+            A parent in ``AdditiveMagmas()`` must
             either implement :meth:`.summation` in the parent class or
             ``_add_`` in the element class. By default, the addition
             method on elements ``x._add_(y)`` calls

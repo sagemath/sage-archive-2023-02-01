@@ -31,6 +31,7 @@ class Monoids(Category):
         sage: Monoids().all_super_categories()
         [Category of monoids,
          Category of semigroups,
+         Category of magmas,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]

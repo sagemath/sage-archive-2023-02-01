@@ -17,7 +17,7 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.categories.sets_cat import Sets
+from sage.categories.magmas import Magmas
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element, generic_power
@@ -33,9 +33,9 @@ class Semigroups(Category):
         sage: Semigroups()
         Category of semigroups
         sage: Semigroups().super_categories()
-        [Category of sets]
+        [Category of magmas]
         sage: Semigroups().all_super_categories()
-        [Category of semigroups, Category of sets, Category of sets with partial maps, Category of objects]
+        [Category of semigroups, Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
     TESTS::
 
@@ -52,9 +52,9 @@ class Semigroups(Category):
         EXAMPLES::
 
             sage: Semigroups().super_categories()
-            [Category of sets]
+            [Category of magmas]
         """
-        return [Sets()]
+        return [Magmas()]
 
     def example(self, choice="leftzero", **kwds):
         r"""
@@ -117,58 +117,6 @@ class Semigroups(Category):
                     for z in tester.some_elements():
                         tester.assert_((x * y) * z == x * (y * z))
 
-        def product(self, x, y):
-            """
-            The binary multiplication of the semigroup
-
-            INPUT:
-
-             - ``x``, ``y``: elements of this semigroup
-
-            OUTPUT:
-
-             - an element of the semigroup (the product of ``x`` and ``y``)
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: S.product(x, y)
-                'ab'
-
-            A parent in ``Semigroups()`` must either implement
-            :meth:`.product` in the parent class or ``_mul_`` in the
-            element class. By default, the addition method on elements
-            ``x._mul_(y)`` calls ``S.product(x,y)``, and reciprocally.
-
-
-            As a bonus, ``S.product`` models the binary function from
-            ``S`` to ``S``::
-
-                sage: bin = S.product
-                sage: bin(x,y)
-                'ab'
-
-            Currently, ``S.product`` is just a bound method:
-
-                sage: S.rename("S")
-                sage: bin
-                <bound method FreeSemigroup_with_category.product of S>
-
-            When Sage will support multivariate morphisms, it will be
-            possible, and in fact recommended, to enrich ``S.product``
-            with extra mathematical structure. This will typically be
-            implemented using lazy attributes.
-
-                sage: bin                 # todo: not implemented
-                Generic binary morphism:
-                From: (S x S)
-                To:   S
-            """
-            return x._mul_(y)
-
-        product_from_element_class_mul = product
-
         def prod(self, args):
             r"""
             Returns the product of the list of elements `args` inside `self`.
@@ -185,19 +133,6 @@ class Semigroups(Category):
             """
             assert len(args) > 0, "Cannot compute an empty product in a semigroup"
             return prod(args[1:], args[0])
-
-        def __init_extra__(self):
-            """
-                sage: S = Semigroups().example("free")
-                sage: S('a') * S('b') # indirect doctest
-                'ab'
-                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent
-                True
-            """
-            # This should instead register the multiplication to the coercion model
-            # But this is not yet implemented in the coercion model
-            if (self.product != self.product_from_element_class_mul) and hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent"):
-                self.element_class._mul_ = self.element_class._mul_parent
 
         def cayley_graph(self, side="right", simple=False, elements = None, generators = None, connecting_set = None):
             r"""
@@ -356,84 +291,6 @@ class Semigroups(Category):
 
     class ElementMethods:
 
-        def __mul__(self, right):
-            r"""
-            Product of two elements
-
-            INPUT::
-
-             - ``self``, ``right`` -- two elements
-
-            This calls the `_mul_` method of ``self``, if it is
-            available and the two elements have the same parent.
-
-            Otherwise, the job is delegated to the coercion model.
-
-            Do not override; instead implement a ``_mul_`` method in the
-            element class or a ``product`` method in the parent class.
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x * y
-                'ab'
-            """
-            if have_same_parent(self, right) and hasattr(self, "_mul_"):
-                return self._mul_(right)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(self, right, operator.mul)
-
-        __imul__ = __mul__
-
-        @abstract_method(optional = True)
-        def _mul_(self, right):
-            """
-            Product of two elements
-
-            INPUT::
-
-             - ``self``, ``right`` -- two elements with the same parent
-
-            OUTPUT::
-
-             - an element of the same parent
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x._mul_(y)
-                'ab'
-            """
-
-        def _mul_parent(self, other):
-            r"""
-            Returns the product of the two elements, calculated using
-            the ``product`` method of the parent.
-
-            This is the default implementation of _mul_ if
-            ``product`` is implemented in the parent.
-
-            INPUT::
-
-             - ``other`` -- an element of the parent of ``self``
-
-            OUTPUT::
-
-             - an element of the parent of ``self``
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x._mul_parent(y)
-                'ab'
-
-            """
-            return self.parent().product(self, other)
-
         def _pow_(self, n):
             """
             Returns self to the $n^{th}$ power.
@@ -463,34 +320,6 @@ class Semigroups(Category):
             return generic_power(self, n)
 
         __pow__ = _pow_
-
-        def is_idempotent(self):
-            r"""
-            Test whether ``self`` is idempotent.
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free"); S
-                An example of a semigroup: the free semigroup generated by ('a', 'b', 'c', 'd')
-                sage: a = S('a')
-                sage: a^2
-                'aa'
-                sage: a.is_idempotent()
-                False
-
-            ::
-
-                sage: L = Semigroups().example("leftzero"); L
-                An example of a semigroup: the left zero semigroup
-                sage: x = L('x')
-                sage: x^2
-                'x'
-                sage: x.is_idempotent()
-                True
-
-            """
-            return self * self == self
-
 
     #######################################
     class SubQuotients(Category): # (SubQuotientCategory):

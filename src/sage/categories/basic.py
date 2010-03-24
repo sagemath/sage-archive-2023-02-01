@@ -16,10 +16,12 @@ Posets = PartiallyOrderedSets
 # For backward compatibility; will be deprecated at some point
 OrderedSets = PartiallyOrderedSets
 
+from additive_magmas import AdditiveMagmas
 from commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from commutative_additive_monoids import CommutativeAdditiveMonoids
 from commutative_additive_groups import CommutativeAdditiveGroups
 
+from magmas import Magmas
 from semigroups import Semigroups
 from monoids import Monoids
 from groups import Groups

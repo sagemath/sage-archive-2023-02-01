@@ -320,8 +320,10 @@ class MPolynomialRoundSystem_generic(SageObject):
             (w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
             w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
             a))
+            sage: type(r) == type(copy(r))
+            True
         """
-        return MPolynomialRoundSystem_generic(self._ring, list(self._gens))
+        return self.__class__(self._ring, list(self._gens))
 
     def __cmp__(self, other):
         """
@@ -672,8 +674,10 @@ class MPolynomialSystem_generic(SageObject):
             sage: F,s = sr.polynomial_system()
             sage: copy(F) # indirect doctest
             Polynomial System with 40 Polynomials in 20 Variables
+            sage: type(F) == type(copy(F))
+            True
         """
-        return MPolynomialSystem_generic(self._ring, [r.__copy__() for r in self._rounds])
+        return self.__class__(self._ring, [r.__copy__() for r in self._rounds])
 
     def __cmp__(self, other):
         """

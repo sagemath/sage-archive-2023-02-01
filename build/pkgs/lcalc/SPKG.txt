@@ -6,6 +6,10 @@ Michael Rubinstein's L-function calculator.
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
+=== lcalc-1.23 (Rishikesh, 24th March 2010)  ===
+ * changed spkg-install to change location of header files (#4793)
+ * changed compile flags so that lcalc compiles on OSX (#4793)
+
 === lcalc-1.23 (Rishikesh, 9th March 2010)  ===
  * Changed makefile to compile on solaris (#5396)
  * For lcalc wrapper, changed so that the library is copied(#5396)

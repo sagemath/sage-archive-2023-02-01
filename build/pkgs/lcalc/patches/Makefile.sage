@@ -91,7 +91,7 @@ else
     DYN_OPTION=shared
 endif
 
-LDFLAGS = -L$(LOCATION_PARI_LIBRARY) -lpari
+LDFLAGS = -L$(LOCATION_PARI_LIBRARY) -lpari -lmpir
 
 
 

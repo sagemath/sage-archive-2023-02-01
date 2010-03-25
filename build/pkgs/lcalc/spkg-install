@@ -190,7 +190,15 @@ set -e
 cp lcalc "$SAGE_LOCAL"/bin
 echo "Now copying over lcalc library"
 cp libLfunction.so $SAGE_LOCAL/lib/
-cp ../include/* $SAGE_LOCAL/include
+if `test -d $SAGE_LOCAL/include/lcalc`; then
+    rm -fr $SAGE_LOCAL/include/lcalc
+    mkdir $SAGE_LOCAL/include/lcalc
+    cp ../include/* $SAGE_LOCAL/include/lcalc
+else
+    mkdir $SAGE_LOCAL/include/lcalc
+    cp ../include/* $SAGE_LOCAL/include/lcalc
+fi
+
 
 
 

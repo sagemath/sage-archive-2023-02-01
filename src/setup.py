@@ -852,6 +852,7 @@ code = setup(name = 'sage',
                      'sage.libs.symmetrica',
                      'sage.libs.cremona',
                      'sage.libs.mpmath',
+                     'sage.libs.lcalc',
 
                      'sage.logic',
 

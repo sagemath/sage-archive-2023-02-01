@@ -503,6 +503,17 @@ ext_modules = [
                            'stdc++', 'givaro', 'gmp', 'gmpxx', BLAS, BLAS2],
               language = 'c++'),
 
+
+    Extension('sage.libs.lcalc.lcalc_Lfunction',
+              sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
+              libraries = ['m', 'ntl', 'mpfr', 'gmp', 'gmpxx',
+                           'Lfunction', 'stdc++'],
+              include_dirs = [SAGE_ROOT + "/local/include/lcalc/"],
+              extra_compile_args=["-O3", "-ffast-math"],
+              language = 'c++'),
+
+
+
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],
               libraries = ['ecm', 'gmp'],

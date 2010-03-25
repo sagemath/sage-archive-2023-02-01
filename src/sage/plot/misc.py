@@ -14,7 +14,7 @@
 from functools import wraps
 from copy import copy
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, deprecation
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
@@ -202,12 +202,22 @@ class options(object):
 
         return wrapper
 
-class rename_keyword(object):
-    def __init__(self, **renames):
-        """
-        A decorator which renames keyword arguments.
 
-        EXAMPLES:
+class rename_keyword(object):
+    def __init__(self, deprecated=None, **renames):
+        """
+        A decorator which renames keyword arguments and optionally deprecates the new keyword.
+
+        INPUT:
+
+        - ``deprecated`` - If the option being renamed is deprecated, this is the Sage version where the
+          deprecation initially occurs.
+        - the rest of the arguments is a list of keyword arguments in the form ``renamed_option='existing_option'``.
+          This will have the effect of renaming ``renamed_option`` so that the function only sees ``existing_option``.
+          If both ``renamed_option`` and ``existing_option`` are passed to the function, ``existing_option``
+          will override the ``renamed_option`` value.
+
+        EXAMPLES::
             sage: from sage.plot.misc import rename_keyword
             sage: r = rename_keyword(color='rgbcolor')
             sage: r.renames
@@ -215,12 +225,19 @@ class rename_keyword(object):
             sage: loads(dumps(r)).renames
             {'color': 'rgbcolor'}
 
+        To deprecate an old keyword::
+            sage: r = rename_keyword(deprecated='Sage version 4.2', color='rgbcolor')
+
         """
         self.renames = renames
+        self.deprecated=deprecated
 
     def __call__(self, func):
         """
-        EXAMPLES:
+        Rename keywords.
+
+        EXAMPLES::
+
             sage: from sage.plot.misc import rename_keyword
             sage: r = rename_keyword(color='rgbcolor')
             sage: def f(*args, **kwds): print args, kwds
@@ -233,11 +250,29 @@ class rename_keyword(object):
             () {'rgbcolor': 1}
             sage: f(color=1)
             () {'rgbcolor': 1}
+
+        We can also deprecate the renamed keyword::
+
+            sage: r = rename_keyword(deprecated='Sage version 4.2', deprecated_option='new_option')
+            sage: def f(*args, **kwds): print args, kwds
+            sage: f = r(f)
+            sage: f()
+            () {}
+            sage: f(alpha=1)
+            () {'alpha': 1}
+            sage: f(new_option=1)
+            () {'new_option': 1}
+            sage: f(deprecated_option=1)
+            doctest:...: DeprecationWarning: (Since Sage version 4.2) use the option 'new_option' instead of 'deprecated_option'
+            () {'new_option': 1}
         """
         @wraps(func)
         def wrapper(*args, **kwds):
             for old_name, new_name in self.renames.items():
-                if kwds.has_key(old_name) and not kwds.has_key(new_name):
+                if old_name in kwds and new_name not in kwds:
+                    if self.deprecated is not None:
+                        deprecation("use the option %r instead of %r"%(new_name,old_name),
+                            version=self.deprecated)
                     kwds[new_name] = kwds[old_name]
                     del kwds[old_name]
             return func(*args, **kwds)

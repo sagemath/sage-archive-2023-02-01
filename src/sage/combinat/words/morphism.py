@@ -92,6 +92,7 @@ from sage.rings.integer import Integer
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import Words_all, Words
 from sage.sets.set import Set
+from sage.misc.misc import deprecated_function_alias
 
 class WordMorphism(SageObject):
     r"""
@@ -558,7 +559,21 @@ class WordMorphism(SageObject):
             sage: m('')
             word:
         """
-        if order is Infinity:
+        if order == 1:
+            if isinstance(w, (tuple,str,list)):
+                length = 'finite'
+            elif isinstance(w, FiniteWord_class):
+                #Is it really a good thing to precompute the length?
+                length = sum(self._morph[a].length() * b for (a,b) in w.evaluation_dict().iteritems())
+            elif hasattr(w, '__iter__'):
+                length = Infinity
+                datatype = 'iter'
+            elif w in self._domain.alphabet():
+                return self._morph[w]
+            else:
+                raise TypeError, "Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w
+            return self.codomain()((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
+        elif order is Infinity:
             if isinstance(w, (tuple,str,list,FiniteWord_class)):
                 if len(w) == 0:
                     return self.codomain()()
@@ -574,28 +589,12 @@ class WordMorphism(SageObject):
             else:
                 raise TypeError, "Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w
             return self.fixed_point(letter=letter)
-
-        if not isinstance(order, (int,Integer)) or order < 0 :
-            raise TypeError, "order (%s) must be a positive integer or plus Infinity" % order
+        elif isinstance(order, (int,Integer)) and order > 1:
+            return self(self(w, order-1),datatype=datatype)
         elif order == 0:
             return self._domain(w)
-        elif order == 1:
-            if isinstance(w, (tuple,str,list)):
-                length = 'finite'
-            elif isinstance(w, FiniteWord_class):
-                #Is it really a good thing to precompute the length?
-                length = sum(self._morph[a].length() * b for (a,b) in w.evaluation_dict().iteritems())
-            elif hasattr(w, '__iter__'):
-                length = Infinity
-                datatype = 'iter'
-            elif w in self._domain.alphabet():
-                w = [w]
-                length = 'finite'
-            else:
-                raise TypeError, "Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w
-            return self.codomain()((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
-        elif order > 1:
-            return self(self(w, order-1),datatype=datatype)
+        else:
+            raise TypeError, "order (%s) must be a positive integer or plus Infinity" % order
 
     def __mul__(self, other):
         r"""
@@ -902,6 +901,48 @@ class WordMorphism(SageObject):
             True
         """
         return self.codomain() <= self.domain()
+
+    def image(self, letter):
+        r"""
+        Return the image of a letter
+
+        INPUT:
+
+        - ``letter`` - a letter in the domain alphabet
+
+        OUTPUT:
+
+        word
+
+        ..NOTE::
+
+            The letter is assumed to be in the domain alphabet
+            (no check done). Hence, this method is faster
+            than the ``__call__`` method suitable for words input.
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->ab,b->ac,c->a')
+            sage: m.image('b')
+            word: ac
+
+        ::
+
+            sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
+            sage: s.image(('a',1))
+            word: ('a', 1),('a', 2)
+
+        ::
+
+            sage: s = WordMorphism({0:[1,2], 'a':(2,3,4), ():[9,8,7]})
+            sage: s.image(0)
+            word: 12
+            sage: s.image('a')
+            word: 234
+            sage: s.image(())
+            word: 987
+        """
+        return self._morph[letter]
 
     def images(self):
         r"""
@@ -1242,6 +1283,12 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->bb,b->aac').is_prolongable(letter='a')
             False
 
+        We check that #8595 is fixed::
+
+            sage: s = WordMorphism({('a', 1) : [('a', 1), ('a', 2)], ('a', 2) : [('a', 1)]})
+            sage: s.is_prolongable(('a',1))
+            True
+
         TESTS::
 
             sage: WordMorphism('a->ab,b->b,c->ba').is_prolongable(letter='d')
@@ -1258,17 +1305,16 @@ class WordMorphism(SageObject):
             ...
             TypeError: codomain of self must be an instance of Words
         """
-        if not isinstance(self.codomain(),Words_all):
+        if not isinstance(self.codomain(), Words_all):
             raise TypeError, "codomain of self must be an instance of Words"
-
 
         if letter not in self.domain().alphabet():
             raise TypeError, "letter (=%s) is not in the domain alphabet (=%s)"\
                                 %(letter, self.domain().alphabet())
-        image = self(letter)
+        image = self.image(letter)
         return not image.is_empty() and letter == image[0]
 
-    def letter_iterator(self, letter):
+    def _fixed_point_iterator(self, letter):
         r"""
         Returns an iterator of the letters of the fixed point of ``self``
         starting with ``letter``.
@@ -1290,33 +1336,43 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: m = WordMorphism('a->abc,b->,c->')
-            sage: list(m.letter_iterator('b'))
-            Traceback (most recent call last):
-            ...
-            TypeError: self must be prolongable on b
-            sage: list(m.letter_iterator('a'))
+            sage: list(m._fixed_point_iterator('a'))
             ['a', 'b', 'c']
-            sage: m = WordMorphism('a->aa,b->aac')
-            sage: list(m.letter_iterator('a'))
+
+        The morphism must be prolongable on the letter::
+
+            sage: list(m._fixed_point_iterator('b'))
             Traceback (most recent call last):
             ...
-            TypeError: self (=WordMorphism: a->aa, b->aac) is not a endomorphism
+            IndexError: pop from empty list
+
+        The morphism must be an endomorphism::
+
+            sage: m = WordMorphism('a->ac,b->aac')
+            sage: list(m._fixed_point_iterator('a'))
+            Traceback (most recent call last):
+            ...
+            KeyError: 'c'
+
+        We check that #8595 is fixed::
+
+            sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
+            sage: it = s._fixed_point_iterator(('a',1))
+            sage: it.next()
+            ('a', 1)
         """
-        if not self.is_endomorphism():
-            raise TypeError, "self (=%s) is not a endomorphism"%self
-
-        if not self.is_prolongable(letter=letter):
-            raise TypeError, "self must be prolongable on %s"%letter
-
-        w = list(self(letter))
+        w = list(self.image(letter))
         while True:
-            for a in self(w.pop(0)):
+            for a in self.image(w.pop(0)):
                 yield a
             else:
                 if w:
-                    w.extend(self(w[0]))
+                    w.extend(self.image(w[0]))
                 else:
                     raise StopIteration
+
+    letter_iterator = deprecated_function_alias(_fixed_point_iterator,
+        'Sage Version 4.4')
 
     def fixed_point(self, letter):
         r"""
@@ -1399,13 +1455,13 @@ class WordMorphism(SageObject):
         if not self.is_prolongable(letter=letter):
             raise TypeError, "self must be prolongable on %s"%letter
 
-        image = self(letter)
+        image = self.image(letter)
 
         if image.length() == 1:
             return image
 
         # Construct the word.
-        w = self.codomain()(self.letter_iterator(letter), datatype='iter')
+        w = self.codomain()(self._fixed_point_iterator(letter), datatype='iter')
         return w
 
     def list_fixed_points(self):

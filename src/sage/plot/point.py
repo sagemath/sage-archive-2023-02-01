@@ -87,10 +87,10 @@ class Point(GraphicPrimitive_xydata):
 
             sage: P = point((3,4))
             sage: P[0]._allowed_options()['size']
-            'How big the point is.'
+            'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
-                'size': 'How big the point is.',
+                'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'faceted': 'If True color the edge of the point.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
@@ -341,8 +341,7 @@ def point2d(points, **options):
 
     Since Sage Version 4.4 (ticket #8599), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
-    ``pointsize`` is still supported but could be deprecated in a later
-    version of Sage::
+    ``pointsize`` is still supported::
 
         sage: point((3,4), size=100)
         sage: point((3,4), pointsize=100)

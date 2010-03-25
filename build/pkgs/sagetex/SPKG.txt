@@ -63,6 +63,11 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.2.5 (Dan Drake, 25 Mar 2010) ===
+
+ * Better implementation of the sageexample environment; 3D plots now
+   automatically fall back to using PNG.
+
 === sagetex-2.2.4 (Dan Drake, 14 Mar 2010) ===
 
  * Special spkg for Nicolas Thiery; this includes the sageexample

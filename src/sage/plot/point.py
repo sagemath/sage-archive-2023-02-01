@@ -5,7 +5,7 @@ TESTS::
 
     sage: E = EllipticCurve('37a')
     sage: P = E(0,0)
-    sage: def get_points(n): return sum([point(list(i*P)[:2], pointsize=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
+    sage: def get_points(n): return sum([point(list(i*P)[:2], size=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
     sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
 """
 
@@ -86,11 +86,11 @@ class Point(GraphicPrimitive_xydata):
         EXAMPLES::
 
             sage: P = point((3,4))
-            sage: P[0]._allowed_options()['pointsize']
+            sage: P[0]._allowed_options()['size']
             'How big the point is.'
         """
-        return {'alpha':'How transparent the line is.',
-                'pointsize': 'How big the point is.',
+        return {'alpha':'How transparent the point is.',
+                'size': 'How big the point is.',
                 'faceted': 'If True color the edge of the point.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
@@ -102,7 +102,7 @@ class Point(GraphicPrimitive_xydata):
 
         EXAMPLES::
 
-            sage: A=point((1,1),pointsize=22)
+            sage: A=point((1,1),size=22)
             sage: a=A[0];a
             Point set defined by 1 point(s)
             sage: b=a.plot3d()
@@ -115,9 +115,9 @@ class Point(GraphicPrimitive_xydata):
         if options == None:
             options = dict(self.options())
         options_3d = {}
-        if 'pointsize' in options:
-            options_3d['size'] = options['pointsize']
-            del options['pointsize']
+        if 'size' in options:
+            options_3d['size'] = options['size']
+            del options['size']
         if 'faceted' in options:
             if options['faceted']:
                 raise NotImplementedError, "No 3d faceted points."
@@ -172,7 +172,7 @@ class Point(GraphicPrimitive_xydata):
 
         Note that keywords passed must be valid point3d options::
 
-            sage: A=point((1,1),pointsize=22)
+            sage: A=point((1,1),size=22)
             sage: a=A[0];a
             Point set defined by 1 point(s)
             sage: b=a.plot3d()
@@ -251,7 +251,7 @@ class Point(GraphicPrimitive_xydata):
         We check to make sure that \#2076 is fixed by verifying all
         the points are red::
 
-            sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), pointsize=30)
+            sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), size=30)
         """
         options = self.options()
 
@@ -265,7 +265,7 @@ class Point(GraphicPrimitive_xydata):
 
         a = float(options['alpha'])
         z = int(options.pop('zorder', 0))
-        s = int(options['pointsize'])
+        s = int(options['size'])
         faceted = options['faceted'] #faceted=True colors the edge of point
         scatteroptions={}
         if not faceted: scatteroptions['edgecolors'] = 'none'
@@ -301,11 +301,11 @@ def point(points, **kwds):
         from sage.plot.plot3d.shapes2 import point3d
         return point3d(points, **kwds)
 
-@rename_keyword(color='rgbcolor')
-@options(alpha=1, pointsize=10, faceted=False, rgbcolor=(0,0,1))
+@rename_keyword(color='rgbcolor', pointsize='size')
+@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1))
 def point2d(points, **options):
     r"""
-    A point of size ``pointsize`` defined by point = `(x,y)`.
+    A point of size ``size`` defined by point = `(x,y)`.
     Point takes either a single tuple of coordinates or a list of tuples.
 
     Type ``point2d.options`` to see all options.
@@ -332,12 +332,20 @@ def point2d(points, **options):
 
     Here are some random larger red points, given as a list of tuples::
 
-        sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), pointsize=30)
+        sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30)
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
+
+    Since Sage Version 4.4 (ticket #8599), the size of a 2d point can be
+    given by the argument ``size`` instead of ``pointsize``. The argument
+    ``pointsize`` is still supported but could be deprecated in a later
+    version of Sage::
+
+        sage: point((3,4), size=100)
+        sage: point((3,4), pointsize=100)
     """
     from sage.plot.plot import xydata_from_point_list, Graphics
     xdata, ydata = xydata_from_point_list(points)

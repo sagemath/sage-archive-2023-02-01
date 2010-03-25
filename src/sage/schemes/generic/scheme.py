@@ -19,7 +19,7 @@ AUTHORS:
 #*******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.parent_base import ParentWithBase
+from sage.structure.parent import Parent
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
                             ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
                             Rationals)
@@ -49,7 +49,7 @@ def is_Scheme(x):
 # or _base_morphism, it will determine the others.  If none are set,
 # the base defaults to Spec(Z) with the canonical morphism.
 
-class Scheme(ParentWithBase):
+class Scheme(Parent):
     def __init__(self, X, category = None):
         """
         A scheme.
@@ -81,7 +81,7 @@ class Scheme(ParentWithBase):
         else:
             assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
 
-        ParentWithBase.__init__(self, base, category = category)
+        Parent.__init__(self, base, category = category)
 
     def __cmp__(self, X):
         """

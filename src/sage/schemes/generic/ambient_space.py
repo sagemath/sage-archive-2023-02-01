@@ -12,7 +12,7 @@ Ambient Spaces
 
 from sage.rings.all import Integer, is_CommutativeRing, ZZ
 
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
 
 import algebraic_scheme
 import scheme
@@ -34,7 +34,7 @@ def is_AmbientSpace(x):
     """
     return isinstance(x, AmbientSpace)
 
-class AmbientSpace(scheme.Scheme, ParentWithGens):
+class AmbientSpace(scheme.Scheme, Parent):
     """
     Base class for ambient spaces over a ring.
 
@@ -64,8 +64,7 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
         # scheme.Scheme.__init__(self, R)
         # This should be cleaned up by someone who knows about schemes (not me!)
         from sage.categories.schemes import Schemes
-        from sage.structure.parent_base import ParentWithBase
-        ParentWithBase.__init__(self, R, category = Schemes(self.base_scheme()))
+        Parent.__init__(self, R, category = Schemes(self.base_scheme()))
 
     #######################################################################
     # Derived classes must overload all of the following functions

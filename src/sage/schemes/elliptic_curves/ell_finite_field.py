@@ -1327,12 +1327,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(11), [1,2])
-            sage: E.list()
-            [(0 : 1 : 0),
-            (1 : 2 : 1),
-            ...
-            (10 : 0 : 1)]
-
             sage: for P in E:  print P, P.order()
             (0 : 1 : 0) 1
             (1 : 2 : 1) 4

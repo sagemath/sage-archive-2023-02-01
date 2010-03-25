@@ -406,12 +406,6 @@ cdef class Parent(parent.Parent):
         sage: K.<a> = GF(4)
         sage: K.list()
         [0, a, a + 1, 1]
-        sage: E = EllipticCurve(GF(11), [1,2])
-        sage: E.list()
-        [(0 : 1 : 0),
-        (1 : 2 : 1),
-        ...
-        (10 : 0 : 1)]
     """
 
 

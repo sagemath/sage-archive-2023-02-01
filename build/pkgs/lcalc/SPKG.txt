@@ -1,6 +1,16 @@
 = lcalc =
 
+== Description ==
+
 Michael Rubinstein's L-function calculator.
+
+== License ==
+
+ * LGPL V2+
+
+== SPKG Maintainers ==
+
+ * Rishikesh
 
 == Upstream contact ==
 

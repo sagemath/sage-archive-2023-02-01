@@ -1126,20 +1126,22 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         .. note::
 
-           Users will instead use the simpler interface defined, for
-           example, by ``hecke_matrix()`` (see examples).
+           Users will usually instead use the simpler interface
+           defined, for example, by ``hecke_matrix()`` (see examples),
+           though this function allows one to compute much more
+           general operators.
 
         INPUT:
 
         -  ``codomain`` - space of modular symbols
 
-        -  ``R`` (list) -- a list of lists `[a,b,c,d]` of length 4, which
-           we view as elements of `GL_2(`QQ)`.
+        - ``R`` (list) -- a list of lists `[a,b,c,d]` of length 4,
+          which we view as elements of `GL_2(`QQ)`.
 
 
         OUTPUT:
 
-        (matrix) The matrix of the operator
+         -- (matrix) The matrix of the operator
 
         .. math::
 

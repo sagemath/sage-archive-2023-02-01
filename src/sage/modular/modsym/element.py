@@ -294,12 +294,16 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         """
         Returns a representation of self as a formal sum of Manin symbols.
 
-        (The result is cached for future use.)
-
         EXAMPLE::
 
-            sage: ModularSymbols(37, 4).0.manin_symbol_rep()
+            sage: x = ModularSymbols(37, 4).0
+            sage: x.manin_symbol_rep()
             [X^2,(0,1)]
+
+        The result is cached::
+
+            sage: x.manin_symbol_rep() is x.manin_symbol_rep()
+            True
         """
         try:
             return self.__manin_symbols
@@ -318,12 +322,16 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         Returns a representation of self as a formal sum of modular
         symbols.
 
-        (The result is cached for future use.)
-
         EXAMPLE::
 
-            sage: ModularSymbols(37, 4).0.modular_symbol_rep()
+            sage: x = ModularSymbols(37, 4).0
+            sage: x.modular_symbol_rep()
             X^2*{0, Infinity}
+
+        The result is cached::
+
+            sage: x.modular_symbol_rep() is x.modular_symbol_rep()
+            True
         """
         try:
             return self.__modular_symbols
@@ -333,7 +341,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             if v == 0:
                 return v
             w = [c * x.modular_symbol_rep() for c, x in v]
-            return sum(w)
-        return self.__modular_symbols
+            self.__modular_symbols = sum(w)
+            return self.__modular_symbols
 
 

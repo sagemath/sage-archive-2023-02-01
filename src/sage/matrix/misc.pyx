@@ -382,8 +382,10 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             break
         d   = E.denominator()
         hdE = long(E.height())
-        if True or hdE * self.ncols() * height < prod:
+        if hdE * self.ncols() * height < prod:
+            verbose("Validity of result checked.", level=2, caller_name="multimod echelon")
             break
+        verbose("Validity failed; trying again with more primes.", level=2, caller_name="multimod echelon")
         M = prod * p*p*p
     #end while
     verbose("total time",tm, level=2, caller_name="multimod echelon")

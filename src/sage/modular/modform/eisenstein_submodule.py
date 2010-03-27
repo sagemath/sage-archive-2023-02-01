@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The Eisenstein Subspace
 """
@@ -128,34 +129,24 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         EXAMPLES::
 
             sage: ModularForms(24,2).eisenstein_submodule().parameters()
-            [([1, 1, 1], [1, 1, 1], 2),
-            ([1, 1, 1], [1, 1, 1], 3),
-            ([1, 1, 1], [1, 1, 1], 4),
-            ([1, 1, 1], [1, 1, 1], 6),
-            ([1, 1, 1], [1, 1, 1], 8),
-            ([1, 1, 1], [1, 1, 1], 12),
-            ([1, 1, 1], [1, 1, 1], 24)]
-            sage: EisensteinForms(12,6).parameters()
-            [([1, 1], [1, 1], 1),
-            ([1, 1], [1, 1], 2),
-            ([1, 1], [1, 1], 3),
-            ([1, 1], [1, 1], 4),
-            ([1, 1], [1, 1], 6),
-            ([1, 1], [1, 1], 12)]
-            sage: ModularForms(DirichletGroup(24).0,3).eisenstein_submodule().parameters()
-            [([1, 1, 1], [-1, 1, 1], 1),
-            ([1, 1, 1], [-1, 1, 1], 2),
-            ([1, 1, 1], [-1, 1, 1], 3),
-            ([1, 1, 1], [-1, 1, 1], 6),
-            ([-1, 1, 1], [1, 1, 1], 1),
-            ([-1, 1, 1], [1, 1, 1], 2),
-            ([-1, 1, 1], [1, 1, 1], 3),
-            ([-1, 1, 1], [1, 1, 1], 6)]
+            [(Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, 2),
+            ...
+            Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, 24)]
+            sage: EisensteinForms(12,6).parameters()[-1]
+            (Dirichlet character modulo 12 of conductor 1 mapping 7 |--> 1, 5 |--> 1, Dirichlet character modulo 12 of conductor 1 mapping 7 |--> 1, 5 |--> 1, 12)
+
+            sage: pars = ModularForms(DirichletGroup(24).0,3).eisenstein_submodule().parameters()
+            sage: [(x[0].values_on_gens(),x[1].values_on_gens(),x[2]) for x in pars]
+            [((1, 1, 1), (-1, 1, 1), 1),
+            ((1, 1, 1), (-1, 1, 1), 2),
+            ((1, 1, 1), (-1, 1, 1), 3),
+            ((1, 1, 1), (-1, 1, 1), 6),
+            ((-1, 1, 1), (1, 1, 1), 1),
+            ((-1, 1, 1), (1, 1, 1), 2),
+            ((-1, 1, 1), (1, 1, 1), 3),
+            ((-1, 1, 1), (1, 1, 1), 6)]
             sage: EisensteinForms(DirichletGroup(24).0,1).parameters()
-            [([1, 1, 1], [-1, 1, 1], 1),
-            ([1, 1, 1], [-1, 1, 1], 2),
-            ([1, 1, 1], [-1, 1, 1], 3),
-            ([1, 1, 1], [-1, 1, 1], 6)]
+            [(Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 1), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 2), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 3), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 6)]
         """
         try:
             return self.__parameters
@@ -194,7 +185,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         EXAMPLES::
 
             sage: EisensteinForms(DirichletGroup(33).1,5)._parameters_character()
-            [1, zeta10]
+            Dirichlet character modulo 33 of conductor 11 mapping 23 |--> 1, 13 |--> zeta10
         """
         return self.character()
 

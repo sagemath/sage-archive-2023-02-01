@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Modular Forms with Character
 
@@ -149,7 +150,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         except NotImplementedError:
             d = "(unknown)"
         return "Modular Forms space of dimension %s, character %s and weight %s over %s"%(
-            d, self.character(), self.weight(), self.base_ring())
+            d, self.character()._repr_short_(), self.weight(), self.base_ring())
 
     def cuspidal_submodule(self):
         """

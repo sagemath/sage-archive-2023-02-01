@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Dirichlet characters
 
@@ -19,7 +20,7 @@ EXAMPLES::
     sage: G = DirichletGroup(35)
     sage: x = G.gens()
     sage: e = x[0]*x[1]^2; e
-    [zeta12^3, zeta12^2 - 1]
+    Dirichlet character modulo 35 of conductor 35 mapping 22 |--> zeta12^3, 31 |--> zeta12^2 - 1
     sage: e.order()
     12
 
@@ -30,7 +31,7 @@ This illustrates a canonical coercion.
     sage: e = DirichletGroup(5, QQ).0
     sage: f = DirichletGroup(5,CyclotomicField(4)).0
     sage: e*f
-    [-zeta4]
+    Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4
 
 AUTHORS:
 
@@ -102,7 +103,7 @@ def kronecker_character(d):
     EXAMPLES::
 
         sage: kronecker_character(97*389*997^2)
-        [-1, -1]
+        Dirichlet character modulo 37733 of conductor 37733 mapping 1557 |--> -1, 37346 |--> -1
 
     ::
 
@@ -132,7 +133,7 @@ def kronecker_character_upside_down(d):
     EXAMPLES::
 
         sage: kronecker_character_upside_down(97*389*997^2)
-        [-1, -1, 1]
+        Dirichlet character modulo 37506941597 of conductor 37733 mapping 13533432536 |--> -1, 22369178537 |--> -1, 14266017175 |--> 1
 
     AUTHORS:
 
@@ -196,7 +197,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G
             Group of Dirichlet characters of modulus 13 over Cyclotomic Field of order 12 and degree 4
             sage: e
-            [zeta12]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12
             sage: loads(e.dumps()) == e
             True
 
@@ -204,7 +205,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G, x = DirichletGroup(35).objgens()
             sage: e = x[0]*x[1]; e
-            [zeta12^3, zeta12^2]
+            Dirichlet character modulo 35 of conductor 35 mapping 22 |--> zeta12^3, 31 |--> zeta12^2
             sage: e.order()
             12
             sage: loads(e.dumps()) == e
@@ -273,7 +274,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(60)
             sage: e = prod(G.gens(), G(1))
             sage: e
-            [-1, -1, zeta4]
+            Dirichlet character modulo 60 of conductor 60 mapping 31 |--> -1, 41 |--> -1, 37 |--> zeta4
             sage: e(2)
             0
             sage: e(7)
@@ -375,7 +376,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(13).0
             sage: f = ~e
             sage: f*e
-            [1]
+            Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1
         """
         return DirichletCharacter(self.parent(), -self.element(), check=False)
 
@@ -387,18 +388,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G.<a,b> = DirichletGroup(20)
             sage: a
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: b
-            [1, zeta4]
+            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
             sage: a*b # indirect doctest
-            [-1, zeta4]
+            Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4
 
         Multiplying elements whose parents have different zeta orders works::
 
             sage: a = DirichletGroup(3, QQ, zeta=1, zeta_order=1)(1)
             sage: b = DirichletGroup(3, QQ, zeta=-1, zeta_order=2)([-1])
             sage: a * b # indirect doctest
-            [-1]
+            Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1
         """
         x = self.element() + other.element()
         return DirichletCharacter(self.parent(), x, check=False)
@@ -458,11 +459,24 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G.<a,b> = DirichletGroup(20)
             sage: a^2
-            [1, 1]
+            Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1
             sage: b^2
-            [1, -1]
+            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1
         """
         return DirichletCharacter(self.parent(), n * self.element(), check=False)
+
+    def _repr_short_(self):
+        r"""
+        A short string representation of self, often used in string representations of modular forms
+
+        EXAMPLES::
+
+            sage: chi = DirichletGroup(24).0
+            sage: chi._repr_short_()
+            '[-1, 1, 1]'
+
+        """
+        return str(list(self.values_on_gens()))
 
     def _repr_(self):
         """
@@ -472,9 +486,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G.<a,b> = DirichletGroup(20)
             sage: repr(a) # indirect doctest
-            '[-1, 1]'
+            'Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1'
+
         """
-        return str(list(self.values_on_gens()))
+        mapst = ''
+        for i in range(len(self.values_on_gens())):
+            if i != 0:
+                mapst += ', '
+            mapst += str(self.parent().unit_gens()[i]) + ' |--> ' + str(self.values_on_gens()[i])
+        return 'Dirichlet character modulo %s of conductor %s mapping %s'%(self.modulus(), self.conductor(), mapst)
 
     def _latex_(self):
         """
@@ -484,7 +504,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G.<a,b> = DirichletGroup(20)
             sage: latex(a) # indirect doctest
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
         """
         return self._repr_()
 
@@ -511,9 +531,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: e = DirichletGroup(5).0
             sage: e
-            [zeta4]
+            Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4
             sage: e.bar()
-            [-zeta4]
+            Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4
         """
         return ~self
 
@@ -660,7 +680,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G.<a,b> = DirichletGroup(20)
             sage: c = a*b
             sage: d = c.decomposition(); d
-            [[-1], [zeta4]]
+            [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
             sage: d[0].parent()
             Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
             sage: d[1].parent()
@@ -685,11 +705,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         Conductors that are divisible by various powers of 2 present some problems as the multiplicative group modulo `2^k` is trivial for `k = 1` and non-cyclic for `k \ge 3`::
 
             sage: (DirichletGroup(18).0).decomposition()
-            [[], [zeta6]]
+            [Dirichlet character modulo 2 of conductor 1 mapping , Dirichlet character modulo 9 of conductor 9 mapping 2 |--> zeta6]
             sage: (DirichletGroup(36).0).decomposition()
-            [[-1], [1]]
+            [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1, Dirichlet character modulo 9 of conductor 1 mapping 2 |--> 1]
             sage: (DirichletGroup(72).0).decomposition()
-            [[-1, 1], [1]]
+            [Dirichlet character modulo 8 of conductor 4 mapping 7 |--> -1, 5 |--> 1, Dirichlet character modulo 9 of conductor 1 mapping 2 |--> 1]
         """
         D = self.parent().decomposition()
         vals = [[z] for z in self.values_on_gens()]
@@ -711,9 +731,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G.<a,b> = DirichletGroup(20)
             sage: H.<c> = DirichletGroup(4)
             sage: c.extend(20)
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: a
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: c.extend(20) == a
             True
         """
@@ -731,29 +751,24 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G = DirichletGroup(30); e = G.1
             sage: e.galois_orbit()
-            [[1, zeta4], [1, -zeta4]]
+            [Dirichlet character modulo 30 of conductor 5 mapping 11 |--> 1, 7 |--> zeta4, Dirichlet character modulo 30 of conductor 5 mapping 11 |--> 1, 7 |--> -zeta4]
 
         Another example::
 
             sage: G = DirichletGroup(13)
             sage: G.galois_orbits()
             [
-            [[1]],
-            [[zeta12], [zeta12^3 - zeta12], [-zeta12], [-zeta12^3 + zeta12]],
-            [[zeta12^2], [-zeta12^2 + 1]],
-            [[zeta12^3], [-zeta12^3]],
-            [[zeta12^2 - 1], [-zeta12^2]],
-            [[-1]]
+            [Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1], ... [Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -1]
             ]
             sage: e = G.0
             sage: e
-            [zeta12]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12
             sage: e.galois_orbit()
-            [[zeta12], [zeta12^3 - zeta12], [-zeta12], [-zeta12^3 + zeta12]]
+            [Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12^3 - zeta12, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta12, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta12^3 + zeta12]
             sage: e = G.0^2; e
-            [zeta12^2]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12^2
             sage: e.galois_orbit()
-            [[zeta12^2], [-zeta12^2 + 1]]
+            [Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12^2, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta12^2 + 1]
 
         A non-example::
 
@@ -927,32 +942,33 @@ class DirichletCharacter(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Characters must be from the same Dirichlet Group.
-            sage: all_jacobi_sums = [(DP[i],DP[j],DP[i].jacobi_sum(DP[j])) \
+
+            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j])) \
             ...                       for i in range(p-1) for j in range(p-1)[i:]]
             ...
             sage: for s in all_jacobi_sums:
             ...       print s
-            ([1], [1], 5)
-            ([1], [zeta6], -1)
-            ([1], [zeta6 - 1], -1)
-            ([1], [-1], -1)
-            ([1], [-zeta6], -1)
-            ([1], [-zeta6 + 1], -1)
-            ([zeta6], [zeta6], -zeta6 + 3)
-            ([zeta6], [zeta6 - 1], 2*zeta6 + 1)
-            ([zeta6], [-1], -2*zeta6 - 1)
-            ([zeta6], [-zeta6], zeta6 - 3)
-            ([zeta6], [-zeta6 + 1], 1)
-            ([zeta6 - 1], [zeta6 - 1], -3*zeta6 + 2)
-            ([zeta6 - 1], [-1], 2*zeta6 + 1)
-            ([zeta6 - 1], [-zeta6], -1)
-            ([zeta6 - 1], [-zeta6 + 1], -zeta6 - 2)
-            ([-1], [-1], 1)
-            ([-1], [-zeta6], -2*zeta6 + 3)
-            ([-1], [-zeta6 + 1], 2*zeta6 - 3)
-            ([-zeta6], [-zeta6], 3*zeta6 - 1)
-            ([-zeta6], [-zeta6 + 1], -2*zeta6 + 3)
-            ([-zeta6 + 1], [-zeta6 + 1], zeta6 + 2)
+            ((1,), (1,), 5)
+            ((1,), (zeta6,), -1)
+            ((1,), (zeta6 - 1,), -1)
+            ((1,), (-1,), -1)
+            ((1,), (-zeta6,), -1)
+            ((1,), (-zeta6 + 1,), -1)
+            ((zeta6,), (zeta6,), -zeta6 + 3)
+            ((zeta6,), (zeta6 - 1,), 2*zeta6 + 1)
+            ((zeta6,), (-1,), -2*zeta6 - 1)
+            ((zeta6,), (-zeta6,), zeta6 - 3)
+            ((zeta6,), (-zeta6 + 1,), 1)
+            ((zeta6 - 1,), (zeta6 - 1,), -3*zeta6 + 2)
+            ((zeta6 - 1,), (-1,), 2*zeta6 + 1)
+            ((zeta6 - 1,), (-zeta6,), -1)
+            ((zeta6 - 1,), (-zeta6 + 1,), -zeta6 - 2)
+            ((-1,), (-1,), 1)
+            ((-1,), (-zeta6,), -2*zeta6 + 3)
+            ((-1,), (-zeta6 + 1,), 2*zeta6 - 3)
+            ((-zeta6,), (-zeta6,), 3*zeta6 - 1)
+            ((-zeta6,), (-zeta6 + 1,), -2*zeta6 + 3)
+            ((-zeta6 + 1,), (-zeta6 + 1,), zeta6 + 2)
 
         Let's check that trivial sums are being calculated correctly::
 
@@ -1231,7 +1247,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G.<a,b> = DirichletGroup(20,QQ)
             sage: b.maximize_base_ring()
-            [1, -1]
+            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1
             sage: b.maximize_base_ring().base_ring()
             Cyclotomic Field of order 4 and degree 2
             sage: DirichletGroup(20).base_ring()
@@ -1343,11 +1359,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: e = DirichletGroup(100).0; e
-            [-1, 1]
+            Dirichlet character modulo 100 of conductor 4 mapping 51 |--> -1, 77 |--> 1
             sage: e.conductor()
             4
             sage: f = e.primitive_character(); f
-            [-1]
+            Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1
             sage: f.modulus()
             4
         """
@@ -1367,9 +1383,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.conductor()
             4
             sage: e.restrict(20)
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: e.restrict(4)
-            [-1]
+            Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1
             sage: e.restrict(50)
             Traceback (most recent call last):
             ...
@@ -1613,19 +1629,19 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
     on the generators of `(Z/NZ)^*`::
 
         sage: list(G)
-        [[1, 1], [-1, 1], [1, -1], [-1, -1]]
+        [Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1, Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1, Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
 
     Next we construct the group of Dirichlet character mod 20, but with
     values in Q(zeta_n)::
 
         sage: G = DirichletGroup(20)
-        sage: G.list()
-        [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4], [-1, -zeta4]]
+        sage: G.1
+        Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
 
     We next compute several invariants of G::
 
         sage: G.gens()
-        ([-1, 1], [1, zeta4])
+        (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
         sage: G.unit_gens()
         [11, 17]
         sage: G.zeta()
@@ -1643,7 +1659,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         sage: G = DirichletGroup(5, K, a); G
         Group of Dirichlet characters of modulus 5 over Number Field in a with defining polynomial x^4 + 1
         sage: G.list()
-        [[1], [a^2], [-1], [-a^2]]
+        [Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> a^2, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -a^2]
 
     ::
 
@@ -1678,7 +1694,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         sage: r4 = CyclotomicField(4).ring_of_integers()
         sage: G = DirichletGroup(60, r4)
         sage: G.gens()
-        ([-1, 1, 1], [1, -1, 1], [1, 1, zeta4])
+        (Dirichlet character modulo 60 of conductor 4 mapping 31 |--> -1, 41 |--> 1, 37 |--> 1, Dirichlet character modulo 60 of conductor 3 mapping 31 |--> 1, 41 |--> -1, 37 |--> 1, Dirichlet character modulo 60 of conductor 5 mapping 31 |--> 1, 41 |--> 1, 37 |--> zeta4)
         sage: val = G.gens()[2].values_on_gens()[2] ; val
         zeta4
         sage: parent(val)
@@ -1829,11 +1845,11 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: G = DirichletGroup(13)
             sage: K = G.base_ring()
             sage: G(1)
-            [1]
+            Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1
             sage: G([-1])
-            [-1]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -1
             sage: G([K.0])
-            [zeta12]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta12
             sage: G(0)
             Traceback (most recent call last):
             ...
@@ -1861,9 +1877,9 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: G = DirichletGroup(6)
             sage: G._coerce_in_dirichlet_character(DirichletGroup(3).0)
-            [-1]
+            Dirichlet character modulo 6 of conductor 3 mapping 5 |--> -1
             sage: G._coerce_in_dirichlet_character(DirichletGroup(15).0)
-            [-1]
+            Dirichlet character modulo 6 of conductor 3 mapping 5 |--> -1
             sage: G._coerce_in_dirichlet_character(DirichletGroup(15).1)
             Traceback (most recent call last):
             ...
@@ -2111,12 +2127,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: DirichletGroup(20).galois_orbits()
             [
-            [[1, 1]],
-            [[1, zeta4], [1, -zeta4]],
-            [[1, -1]],
-            [[-1, 1]],
-            [[-1, zeta4], [-1, -zeta4]],
-            [[-1, -1]]
+            [Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1], ... [Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
             ]
             sage: DirichletGroup(17, Integers(6), zeta=Integers(6)(5)).galois_orbits()
             Traceback (most recent call last):
@@ -2164,9 +2175,9 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: G = DirichletGroup(20)
             sage: G.gen(0)
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: G.gen(1)
-            [1, zeta4]
+            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
             sage: G.gen(2)
             Traceback (most recent call last):
             ...
@@ -2193,7 +2204,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: G = DirichletGroup(20)
             sage: G.gens()
-            ([-1, 1], [1, zeta4])
+            (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
         """
         if not (self._gens is None):
             return self._gens
@@ -2281,11 +2292,11 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         EXAMPLES::
 
             sage: DirichletGroup(37).random_element()
-            [zeta36^4]
+            Dirichlet character modulo 37 of conductor 37 mapping 2 |--> zeta36^4
             sage: DirichletGroup(20).random_element()
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
             sage: DirichletGroup(60).random_element()
-            [1, -1, 1]
+            Dirichlet character modulo 60 of conductor 3 mapping 31 |--> 1, 41 |--> -1, 37 |--> 1
         """
         e = self(1)
         for i in range(self.ngens()):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Ambient Spaces of Modular Forms.
 
@@ -10,7 +11,7 @@ quadratic.
 ::
 
     sage: chi = DirichletGroup(25,QQ).0; chi
-    [-1]
+    Dirichlet character modulo 25 of conductor 5 mapping 2 |--> -1
     sage: n = ModularForms(chi,2); n
     Modular Forms space of dimension 6, character [-1] and weight 2 over Rational Field
     sage: type(n)
@@ -705,7 +706,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
             sage: m = ModularForms(Gamma0(22), 2)
             sage: v = m.eisenstein_params(); v
-            [([1], [1], 2), ([1], [1], 11), ([1], [1], 22)]
+            [(Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 2), (Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 11), (Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 22)]
             sage: type(v)
             <class 'sage.structure.sequence.Sequence'>
         """

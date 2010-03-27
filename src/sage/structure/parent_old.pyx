@@ -398,7 +398,8 @@ cdef class Parent(parent.Parent):
         sage: MatrixSpace(GF(3), 1, 1).list()
         [[0], [1], [2]]
         sage: DirichletGroup(3).list()
-        [[1], [-1]]
+        [Dirichlet character modulo 3 of conductor 1 mapping 2 |--> 1,
+        Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1]
         sage: K = GF(7^6,'a')
         sage: K.list()[:10] # long time
         [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]

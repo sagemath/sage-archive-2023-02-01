@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Eisenstein Series
 """
@@ -99,13 +100,13 @@ def __common_minimal_basering(chi, psi):
     EXAMPLES::
 
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1).0, DirichletGroup(1).0)
-        ([1], [1])
+        (Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1, Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1)
 
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(3).0, DirichletGroup(5).0)
-        ([-1], [zeta4])
+        (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4)
 
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(12).0, DirichletGroup(36).0)
-        ([-1, 1], [-1, 1])
+        (Dirichlet character modulo 12 of conductor 4 mapping 7 |--> -1, 5 |--> 1, Dirichlet character modulo 36 of conductor 4 mapping 19 |--> -1, 29 |--> 1)
     """
     chi = chi.minimize_base_ring()
     psi = psi.minimize_base_ring()
@@ -133,15 +134,16 @@ def __find_eisen_chars(character, k):
         sage: sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 4)
         []
 
-        sage: sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 5)
-        [([1, 1], [-1, 1], 1),
-        ([1, 1], [-1, 1], 3),
-        ([1, 1], [-1, 1], 9),
-        ([1, -1], [-1, -1], 1),
-        ([-1, 1], [1, 1], 1),
-        ([-1, 1], [1, 1], 3),
-        ([-1, 1], [1, 1], 9),
-        ([-1, -1], [1, -1], 1)]
+        sage: pars =  sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 5)
+        sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
+        [((1, 1), (-1, 1), 1),
+        ((1, 1), (-1, 1), 3),
+        ((1, 1), (-1, 1), 9),
+        ((1, -1), (-1, -1), 1),
+        ((-1, 1), (1, 1), 1),
+        ((-1, 1), (1, 1), 3),
+        ((-1, 1), (1, 1), 9),
+        ((-1, -1), (1, -1), 1)]
     """
     N = character.modulus()
     if character.is_trivial():
@@ -222,29 +224,31 @@ def __find_eisen_chars_gamma1(N, k):
 
     EXAMPLES::
 
-        sage: sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 4)
-        [([1, 1], [1, 1], 1),
-        ([1, 1], [1, 1], 2),
-        ([1, 1], [1, 1], 3),
-        ([1, 1], [1, 1], 4),
-        ([1, 1], [1, 1], 6),
-        ([1, 1], [1, 1], 12),
-        ([1, 1], [-1, -1], 1),
-        ([-1, -1], [1, 1], 1),
-        ([-1, 1], [1, -1], 1),
-        ([1, -1], [-1, 1], 1)]
+        sage: pars = sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 4)
+        sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
+        [((1, 1), (1, 1), 1),
+        ((1, 1), (1, 1), 2),
+        ((1, 1), (1, 1), 3),
+        ((1, 1), (1, 1), 4),
+        ((1, 1), (1, 1), 6),
+        ((1, 1), (1, 1), 12),
+        ((1, 1), (-1, -1), 1),
+        ((-1, -1), (1, 1), 1),
+        ((-1, 1), (1, -1), 1),
+        ((1, -1), (-1, 1), 1)]
 
-        sage: sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 5)
-        [([1, 1], [-1, 1], 1),
-        ([1, 1], [-1, 1], 3),
-        ([-1, 1], [1, 1], 1),
-        ([-1, 1], [1, 1], 3),
-        ([1, 1], [1, -1], 1),
-        ([1, 1], [1, -1], 2),
-        ([1, 1], [1, -1], 4),
-        ([1, -1], [1, 1], 1),
-        ([1, -1], [1, 1], 2),
-        ([1, -1], [1, 1], 4)]
+        sage: pars =  sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 5)
+        sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
+        [((1, 1), (-1, 1), 1),
+        ((1, 1), (-1, 1), 3),
+        ((-1, 1), (1, 1), 1),
+        ((-1, 1), (1, 1), 3),
+        ((1, 1), (1, -1), 1),
+        ((1, 1), (1, -1), 2),
+        ((1, 1), (1, -1), 4),
+        ((1, -1), (1, 1), 1),
+        ((1, -1), (1, 1), 2),
+        ((1, -1), (1, 1), 4)]
     """
     pairs = []
     s = (-1)**k
@@ -354,28 +358,31 @@ def compute_eisenstein_params(character, k):
         sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30)(1), 3)
         []
 
-        sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30)(1), 4)
-        [([1, 1], [1, 1], 1),
-        ([1, 1], [1, 1], 2),
-        ([1, 1], [1, 1], 3),
-        ([1, 1], [1, 1], 5),
-        ([1, 1], [1, 1], 6),
-        ([1, 1], [1, 1], 10),
-        ([1, 1], [1, 1], 15),
-        ([1, 1], [1, 1], 30)]
+        sage: pars =  sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30)(1), 4)
+        sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
+        [((1, 1), (1, 1), 1),
+        ((1, 1), (1, 1), 2),
+        ((1, 1), (1, 1), 3),
+        ((1, 1), (1, 1), 5),
+        ((1, 1), (1, 1), 6),
+        ((1, 1), (1, 1), 10),
+        ((1, 1), (1, 1), 15),
+        ((1, 1), (1, 1), 30)]
 
-        sage: sage.modular.modform.eis_series.compute_eisenstein_params(15, 1)
-        [([1, 1], [-1, 1], 1),
-         ([1, 1], [-1, 1], 5),
-         ([1, 1], [1, zeta4], 1),
-         ([1, 1], [1, zeta4], 3),
-         ([1, 1], [-1, -1], 1),
-         ([1, 1], [1, -zeta4], 1),
-         ([1, 1], [1, -zeta4], 3),
-         ([-1, 1], [1, -1], 1)]
+        sage: pars = sage.modular.modform.eis_series.compute_eisenstein_params(15, 1)
+        sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
+        [((1, 1), (-1, 1), 1),
+        ((1, 1), (-1, 1), 5),
+        ((1, 1), (1, zeta4), 1),
+        ((1, 1), (1, zeta4), 3),
+        ((1, 1), (-1, -1), 1),
+        ((1, 1), (1, -zeta4), 1),
+        ((1, 1), (1, -zeta4), 3),
+        ((-1, 1), (1, -1), 1)]
 
         sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(15).0, 1)
-        [([1, 1], [-1, 1], 1), ([1, 1], [-1, 1], 5)]
+        [(Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1, Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1, 1),
+        (Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1, Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1, 5)]
     """
     if isinstance(character, (int,long,Integer)):
         N = character

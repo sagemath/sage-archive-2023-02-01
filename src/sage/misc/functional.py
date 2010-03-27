@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Functional notation
 
@@ -313,7 +314,8 @@ def decomposition(x):
         sage: G.<a,b> = DirichletGroup(20)
         sage: c = a*b
         sage: d = c.decomposition(); d
-        [[-1], [zeta4]]
+        [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1,
+        Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
         sage: d[0].parent()
         Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
     """

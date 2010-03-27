@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Overconvergent p-adic modular forms for small primes
 
@@ -515,7 +516,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L)._params()
-            (7, 0, 1/4, Eisenstein Extension ..., 20, [1])
+            (7, 0, 1/4, Eisenstein Extension ..., 20, Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1)
 
         """
         return (self.prime(), self.weight().k(), self.radius(), self.base_ring(), self.prec(), self.weight().chi())
@@ -528,7 +529,8 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L).__reduce__()
-            (<function OverconvergentModularForms at ...>, (7, 0, 1/4, Eisenstein Extension ..., 20, [1]))
+            (<function OverconvergentModularForms at ...>, (7, 0, 1/4, Eisenstein Extension ..., 20, Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
+
         """
         return (OverconvergentModularForms, self._params())
 

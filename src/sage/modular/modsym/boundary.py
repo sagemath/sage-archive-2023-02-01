@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Space of boundary modular symbols.
 
@@ -421,7 +422,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         EXAMPLES::
 
             sage: ModularSymbols(DirichletGroup(7).0, 6).boundary_space().character()
-            [zeta6]
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> zeta6
         """
         return self.__character
 
@@ -602,7 +603,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         return ("Space of Boundary Modular Symbols of weight %s for" + \
                 " %s with sign %s and character %s over %s")%(
                  self.weight(), self.group(), self.sign(),
-                 self.character(), self.base_ring())
+                 self.character()._repr_short_(), self.base_ring())
 
     def _cusp_index(self, cusp):
         """
@@ -1244,7 +1245,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         """
         return ("Boundary Modular Symbols space of level %s, weight %s, character %s " + \
                 "and dimension %s over %s")%(self.level(), self.weight(),
-                    self.character(), self.rank(), self.base_ring())
+                    self.character()._repr_short_(), self.rank(), self.base_ring())
 
 
     def _is_equiv(self, c1, c2):

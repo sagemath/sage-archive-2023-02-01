@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Creation of modular symbols spaces
 
@@ -234,7 +235,8 @@ def ModularSymbols(group  = 1,
     More examples of spaces with character::
 
         sage: e = DirichletGroup(5, RationalField()).gen(); e
-        [-1]
+        Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1
+
         sage: m = ModularSymbols(e, 2); m
         Modular Symbols space of dimension 2 and level 5, weight 2, character [-1], sign 0, over Rational Field
 
@@ -255,7 +257,7 @@ def ModularSymbols(group  = 1,
         sage: G = DirichletGroup(13,GF(4,'a')); G
         Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
-        [a + 1]
+        Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a + 1
         sage: M = ModularSymbols(e,4); M
         Modular Symbols space of dimension 8 and level 13, weight 4, character [a + 1], sign 0, over Finite Field in a of size 2^2
         sage: M.basis()

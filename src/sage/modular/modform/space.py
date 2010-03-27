@@ -308,12 +308,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         EXAMPLES: The trivial character::
 
             sage: ModularForms(Gamma0(11),2).character()
-            [1]
+            Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1
 
         A space of forms with nontrivial character::
 
             sage: ModularForms(DirichletGroup(20).0,3).character()
-            [-1, 1]
+            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
 
         A space of forms with no particular character (hence None is
         returned)::
@@ -326,7 +326,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: ModularForms(Gamma1(1),12).character()
-            [1]
+            Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1
         """
         return self.__character
 
@@ -1471,12 +1471,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
             sage: M = ModularForms(DirichletGroup(11).0, 3)
             sage: M.character()
-            [zeta10]
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
             sage: s = M.cuspidal_submodule()
             sage: s.character()
-            [zeta10]
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
             sage: CuspForms(DirichletGroup(11).0,3).character()
-            [zeta10]
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
         """
         return self.__character
 

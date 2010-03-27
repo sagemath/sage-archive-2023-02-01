@@ -310,9 +310,12 @@ sage: Integers(2005).unit_gens()
 sage: Integers(200000000).unit_gens()
 [174218751, 51562501, 187109377]
 sage: list(DirichletGroup(5))
-[[1], [zeta4], [-1], [-zeta4]]
+[Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1,
+Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4,
+Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
+Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4]
 sage: list(DirichletGroup(5, QQ))
-[[1], [-1]]
+[Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1]
 sage: G = DirichletGroup(200)
 sage: G
 Group of Dirichlet characters of modulus 200 over
@@ -320,12 +323,14 @@ Cyclotomic Field of order 20 and degree 8
 sage: G.exponent()
 20
 sage: G.gens()
-([-1, 1, 1], [1, -1, 1], [1, 1, zeta20])
+(Dirichlet character modulo 200 of conductor 4 mapping 151 |--> -1, 101 |--> 1, 177 |--> 1,
+Dirichlet character modulo 200 of conductor 8 mapping 151 |--> 1, 101 |--> -1, 177 |--> 1,
+Dirichlet character modulo 200 of conductor 25 mapping 151 |--> 1, 101 |--> 1, 177 |--> zeta20)
 sage: K = G.base_ring()
 sage: zeta = K.0
 sage: eps = G([1,-1,zeta^5])
 sage: eps
-[1, -1, zeta20^5]
+Dirichlet character modulo 200 of conductor 40 mapping 151 |--> 1, 101 |--> -1, 177 |--> zeta20^5
 sage: eps(3)
 zeta20^5
 sage: -zeta^15
@@ -339,21 +344,24 @@ sage: kronecker(177,200)
 sage: G = DirichletGroup(20)
 sage: G.galois_orbits()
 [
-[[1, 1]],
-[[1, zeta4], [1, -zeta4]],
-[[1, -1]],
-[[-1, 1]],
-[[-1, zeta4], [-1, -zeta4]],
-[[-1, -1]]
+[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1],
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4,
+Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4],
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4,
+Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
 ]
 sage: G = DirichletGroup(11, QQ); G
 Group of Dirichlet characters of modulus 11 over
 Rational Field
 sage: list(G)
-[[1], [-1]]
+[Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1,
+Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -1]
 sage: eps = G.0      # 0th generator for Dirichlet group
 sage: eps
-[-1]
+Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -1
 sage: G.unit_gens()
 [2]
 sage: eps(2)
@@ -370,8 +378,14 @@ sage: G
 Group of Dirichlet characters of modulus 15 over
 Cyclotomic Field of order 4 and degree 2
 sage: list(G)
-[[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1],
-[-1, -1], [1, -zeta4], [-1, -zeta4]]
+[Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
+Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> zeta4,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> -1, 7 |--> zeta4,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> -1,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> -1, 7 |--> -1,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> -zeta4,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> -1, 7 |--> -zeta4]
 sage: e = G.1
 sage: e(4)
 -1
@@ -386,8 +400,14 @@ sage: G = DirichletGroup(15, GF(5)); G
 Group of Dirichlet characters of modulus 15
       over Finite Field of size 5
 sage: list(G)
-  [[1, 1], [4, 1], [1, 2], [4, 2], [1, 4], [4, 4],
-   [1, 3], [4, 3]]
+[Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
+Dirichlet character modulo 15 of conductor 3 mapping 11 |--> 4, 7 |--> 1,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> 2,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> 4, 7 |--> 2,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> 4,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> 4, 7 |--> 4,
+Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> 3,
+Dirichlet character modulo 15 of conductor 15 mapping 11 |--> 4, 7 |--> 3]
 sage: e = G.1
 sage: e(-1)
 4
@@ -424,17 +444,17 @@ sage: e = E.eisenstein_series()
 sage: for e in E.eisenstein_series():
 ...       print e.parameters()
 ...
-([1], [1], 13)
-([1], [zeta6], 1)
-([zeta6], [1], 1)
-([1], [zeta6 - 1], 1)
-([zeta6 - 1], [1], 1)
-([1], [-1], 1)
-([-1], [1], 1)
-([1], [-zeta6], 1)
-([-zeta6], [1], 1)
-([1], [-zeta6 + 1], 1)
-([-zeta6 + 1], [1], 1)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 13)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6, 1)
+(Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6 - 1, 1)
+(Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6 - 1, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -1, 1)
+(Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -1, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta6, 1)
+(Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta6, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
+(Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta6 + 1, 1)
+(Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -zeta6 + 1, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
 sage: dimension_cusp_forms(Gamma0(2007),2)
 221
 sage: dimension_eis(Gamma0(2007),2)

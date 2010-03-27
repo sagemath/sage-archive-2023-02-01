@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Space of modular symbols (base class)
 
@@ -197,9 +198,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         EXAMPLES::
 
             sage: ModularSymbols(12,8).character()
-            [1, 1]
+            Dirichlet character modulo 12 of conductor 1 mapping 7 |--> 1, 5 |--> 1
             sage: ModularSymbols(DirichletGroup(25).0, 4).character()
-            [zeta20]
+            Dirichlet character modulo 25 of conductor 25 mapping 2 |--> zeta20
         """
         return self.__character
 
@@ -1127,7 +1128,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: eps = f.q_eigenform_character('a'); eps
-            [-a - 1]
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -a - 1
             sage: parent(eps)
             Group of Dirichlet characters of modulus 13 over Number Field in a with defining polynomial x^2 + 3*x + 3
             sage: eps(3)
@@ -1148,7 +1149,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f
             Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 10 and level 76, weight 2, character [-1, -1], sign 1, over Rational Field
             sage: f.q_eigenform_character()
-            [-1, -1]
+            Dirichlet character modulo 76 of conductor 76 mapping 39 |--> -1, 21 |--> -1
             sage: f.q_eigenform_character() is f.character()
             True
 
@@ -1162,7 +1163,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         The modular symbols space does not have to come from a decomposition::
 
             sage: ModularSymbols(Gamma1(16),2,sign=1).cuspidal_submodule().q_eigenform_character('a')
-            [1, -a - 1]
+            Dirichlet character modulo 16 of conductor 16 mapping 15 |--> 1, 5 |--> -a - 1
         """
         eps = self.character()
         if eps is not None:

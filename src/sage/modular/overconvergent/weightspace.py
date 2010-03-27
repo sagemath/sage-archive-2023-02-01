@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The space of `p`-adic weights
 
@@ -544,7 +545,7 @@ class AlgebraicWeight(WeightCharacter):
 
             sage: kappa = pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0^14)
             sage: kappa.chi()
-            [28 + 28*29 + 28*29^2 + ... + O(29^20)]
+            Dirichlet character modulo 29 of conductor 29 mapping 2 |--> 28 + 28*29 + 28*29^2 + ... + O(29^20)
         """
         return self._chi
 
@@ -564,7 +565,7 @@ class AlgebraicWeight(WeightCharacter):
         if self._chi.is_trivial():
             return "%s" % self._k
         else:
-            return "(%s, %s, %s)" % (self._k, self._chi.modulus(), self._chi)
+            return "(%s, %s, %s)" % (self._k, self._chi.modulus(), self._chi._repr_short_())
 
     def teichmuller_type(self):
         r"""

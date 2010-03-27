@@ -218,11 +218,14 @@ cyclotomic field.
     Group of Dirichlet characters of modulus 8 over Cyclotomic
     Field of order 2 and degree 1
     sage: v = G.list(); v
-    [[1, 1], [-1, 1], [1, -1], [-1, -1]]
+    [Dirichlet character modulo 8 of conductor 1 mapping 7 |--> 1, 5 |--> 1,
+    Dirichlet character modulo 8 of conductor 4 mapping 7 |--> -1, 5 |--> 1,
+    Dirichlet character modulo 8 of conductor 8 mapping 7 |--> 1, 5 |--> -1,
+    Dirichlet character modulo 8 of conductor 8 mapping 7 |--> -1, 5 |--> -1]
     sage: eps = G.0; eps
-    [-1, 1]
-    sage: [eps(3), eps(5)]
-    [-1, 1]
+    Dirichlet character modulo 8 of conductor 4 mapping 7 |--> -1, 5 |--> 1
+    sage: eps.values()
+    [0, 1, 0, -1, 0, 1, 0, -1]
 
 Sage both represents Dirichlet characters by giving a "matrix",
 i.e., the list of images of canonical generators of

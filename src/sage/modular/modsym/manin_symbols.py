@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Manin symbols
 
@@ -950,7 +951,7 @@ class ManinSymbolList_character(ManinSymbolList):
             'Manin Symbol List of weight 2 for Gamma1(4) with character [-1]'
         """
         return "Manin Symbol List of weight %s for Gamma1(%s) with character %s"%(
-                    self.weight(), self.level(), self.character())
+                    self.weight(), self.level(), self.character()._repr_short_())
 
     def level(self):
         """
@@ -1173,7 +1174,8 @@ class ManinSymbolList_character(ManinSymbolList):
             sage: m = ManinSymbolList_character(eps,2); m
             Manin Symbol List of weight 2 for Gamma1(4) with character [-1]
             sage: m.character()
-            [-1]
+            Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1
+
         """
         return self.__character
 

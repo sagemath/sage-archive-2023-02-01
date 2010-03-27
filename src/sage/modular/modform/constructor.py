@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Creating Spaces of Modular Forms
 
@@ -220,7 +221,8 @@ def ModularForms(group  = 1,
     More examples of spaces with character::
 
         sage: e = DirichletGroup(5, RationalField()).gen(); e
-        [-1]
+        Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1
+
         sage: m = ModularForms(e, 2); m
         Modular Forms space of dimension 2, character [-1] and weight 2 over Rational Field
         sage: m == loads(dumps(m))

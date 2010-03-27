@@ -279,15 +279,17 @@ les entiers :math:`x` tels que  :math:`\gcd(N,x)>1` vers 0.
 
 ::
 
-    sage: G = DirichletGroup(21)
-    sage: list(G)
-    [[1, 1], [-1, 1], [1, zeta6], [-1, zeta6], [1, zeta6 - 1], [-1, zeta6 - 1],
-     [1, -1], [-1, -1], [1, -zeta6], [-1, -zeta6], [1, -zeta6 + 1],
-     [-1, -zeta6 + 1]]
+    sage: G = DirichletGroup(12)
+    sage: G.list()
+    [Dirichlet character modulo 12 of conductor 1 mapping 7 |--> 1, 5 |--> 1,
+    Dirichlet character modulo 12 of conductor 4 mapping 7 |--> -1, 5 |--> 1,
+    Dirichlet character modulo 12 of conductor 3 mapping 7 |--> 1, 5 |--> -1,
+    Dirichlet character modulo 12 of conductor 12 mapping 7 |--> -1, 5 |--> -1]
     sage: G.gens()
-    ([-1, 1], [1, zeta6])
+    (Dirichlet character modulo 12 of conductor 4 mapping 7 |--> -1, 5 |--> 1,
+    Dirichlet character modulo 12 of conductor 3 mapping 7 |--> 1, 5 |--> -1)
     sage: len(G)
-    12
+    4
 
 Une fois le groupe créé, on crée aussitôt un élément et on calcule avec lui.
 
@@ -295,8 +297,9 @@ Une fois le groupe créé, on crée aussitôt un élément et on calcule avec lu
 
 ::
 
+    sage: G = DirichletGroup(21)
     sage: chi = G.1; chi
-    [1, zeta6]
+    Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6
     sage: chi.values()
     [0, 1, zeta6 - 1, 0, -zeta6, -zeta6 + 1, 0, 0, 1, 0, zeta6, -zeta6, 0, -1,
      0, 0, zeta6 - 1, zeta6, 0, -zeta6 + 1, -1]
@@ -320,17 +323,13 @@ caractères, de même qu'une décomposition en produit direct correspondant
 
 ::
 
-    sage: G.galois_orbits()
-    [
-    [[1, 1]],
-    [[1, zeta6], [1, -zeta6 + 1]],
-    [[1, zeta6 - 1], [1, -zeta6]],
-    [[1, -1]],
-    [[-1, 1]],
-    [[-1, zeta6], [-1, -zeta6 + 1]],
-    [[-1, zeta6 - 1], [-1, -zeta6]],
-    [[-1, -1]]
-    ]
+    sage: chi.galois_orbit()
+    [Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6,
+    Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -zeta6 + 1]
+
+    sage: go = G.galois_orbits()
+    sage: [len(orbit) for orbit in go]
+    [1, 2, 2, 1, 1, 2, 2, 1]
 
     sage: G.decomposition()
     [
@@ -345,10 +344,10 @@ mais à valeur dans  :math:`\QQ(i)`:
 
 ::
 
-    sage: G = DirichletGroup(20)
-    sage: G.list()
-    [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4],
-     [-1, -zeta4]]
+    sage: K.<i> = NumberField(x^2+1)
+    sage: G = DirichletGroup(20,K)
+    sage: G
+    Group of Dirichlet characters of modulus 20 over Number Field in i with defining polynomial x^2 + 1
 
 Nous calculons ensuite différents invariants de ``G``:
 
@@ -357,11 +356,13 @@ Nous calculons ensuite différents invariants de ``G``:
 ::
 
     sage: G.gens()
-    ([-1, 1], [1, zeta4])
+    (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1,
+    Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> i)
+
     sage: G.unit_gens()
     [11, 17]
     sage: G.zeta()
-    zeta4
+    i
     sage: G.zeta_order()
     4
 
@@ -381,8 +382,10 @@ de la racine de l'unité par le troisième argument de la fonction
     sage: G = DirichletGroup(5, K, a); G
     Group of Dirichlet characters of modulus 5 over Number Field in a with
     defining polynomial x^4 + 1
-    sage: G.list()
-    [[1], [a^2], [-1], [-a^2]]
+    sage: chi = G.0; chi
+    Dirichlet character modulo 5 of conductor 5 mapping 2 |--> a^2
+    sage: [(chi^i)(2) for i in range(4)]
+    [1, a^2, -1, -a^2]
 
 Ici, ``NumberField(x^4 + 1, 'a')`` indique à Sage d'utiliser le symbole
 "a" dans l'affichage de ce qu'est ``K`` (un corps de nombre en "a"

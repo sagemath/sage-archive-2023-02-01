@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Ambient spaces of modular symbols.
 
@@ -1096,7 +1097,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         return "Modular Symbols space of dimension %s and weight %s for %s with sign %s and character %s over %s"%(
-                self.dimension(), self.weight(), self.group(), self.sign(), self.character(), self.base_ring())
+                self.dimension(), self.weight(), self.group(), self.sign(), self.character()._repr_short_(), self.base_ring())
 
     def _latex_(self):
         r"""
@@ -1106,11 +1107,17 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: m = ModularSymbols(11,weight=12)
             sage: latex(m) # indirect doctest
-            \mathrm{ModSym}_{12}(\Gamma_0(11),[1];\Bold{Q})
+            \mathrm{ModSym}_{12}(\Gamma_0(11),\left[1\right];\Bold{Q})
+
+            sage: chi = DirichletGroup(7).0
+            sage: m = ModularSymbols(chi)
+            sage: latex(m)
+            \mathrm{ModSym}_{2}(\Gamma_1(7),\left[\zeta_{6}\right];\Bold{Q}(\zeta_{6}))
+
         """
         return "\\mathrm{ModSym}_{%s}(%s,%s;%s)"%(self.weight(),
                                                      latex.latex(self.group()),
-                                                     latex.latex(self.character()),
+                                                     latex.latex(list(self.character().values_on_gens())),
                                                      latex.latex(self.base_ring()))
 
     def _matrix_of_operator_on_modular_symbols(self, codomain, R):
@@ -3356,7 +3363,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
             sage: eps = DirichletGroup(5).gen(0)
             sage: eps     # has order 4
-            [zeta4]
+            Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4
             sage: ModularSymbols(eps, 2).dimension()
             0
             sage: ModularSymbols(eps, 3).dimension()
@@ -3390,7 +3397,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         """
         return ("Modular Symbols space of dimension %s and level %s, weight %s, character %s, sign %s, " + \
                 "over %s")%(self.dimension(), self.level(), self.weight(),
-                    self.character(), self.sign(), self.base_ring())
+                    self.character()._repr_short_(), self.sign(), self.base_ring())
 
 
     def _cuspidal_submodule_dimension_formula(self):

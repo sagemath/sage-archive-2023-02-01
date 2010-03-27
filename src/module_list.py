@@ -482,6 +482,10 @@ ext_modules = [
               include_dirs = [SAGE_ROOT +'/local/include/fplll'],
               depends = [SAGE_ROOT + "/local/include/fplll/fplll.h"]),
 
+    Extension('sage.libs.galrep.wrapper',
+              sources = ['sage/libs/galrep/wrapper.pyx', 'sage/libs/galrep/galrep.c'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               # For this to work on cygwin, linboxwrap *must* be

@@ -176,13 +176,14 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
-        EXAMPLES:
-            sage: a = matrix(QQ,2,range(6))
-            sage: (3/4) * a
-            [   0  3/4  3/2]
-            [ 9/4    3 15/4]
+        EXAMPLES::
+
+            sage: a = matrix(ZZ,2,range(6), sparse=True)
+            sage: 3 * a
+            [ 0  3  6]
+            [ 9 12 15]
         """
-        cdef Py_ssize_t i, j
+        cdef Py_ssize_t i
         cdef mpz_vector* self_row, *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
@@ -192,9 +193,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             self_row = &self._matrix[i]
             M_row = &M._matrix[i]
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
-            #for j from 0 <= j < self._matrix[i].num_nonzero:
-            #    mpz_vector_set_entry(M_row, self_row.positions[j], self_row.entries[j])
-            #    mpz_mul(M_row.entries[j], M_row.entries[j], _x.value)
         return M
 
     cpdef ModuleElement _add_(self, ModuleElement right):

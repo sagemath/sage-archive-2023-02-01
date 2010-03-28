@@ -25,13 +25,13 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-SMALL_GROUPS=`cd $SAGE_ROOT/spkg/optional/; $SAGE_ROOT/spkg/standard/newest_version database_gap`
+SMALL_GROUPS=`echo "SmallGroup(13,1); quit;" | $SAGE_ROOT/sage -gap -b -T | grep "13"`
 if [ "$SMALL_GROUPS" = "" ]; then
-    SMALL_GROUPS=`cd $SAGE_ROOT/spkg/installed/; $SAGE_ROOT/spkg/standard/newest_version database_gap`
-    if [ "$SMALL_GROUPS" = "" ]; then
-        echo "Failed to find SmallGroups library.  Please install the database_gap spkg"
-        exit 1
-    fi
+   echo "It seems that GAP's SmallGroups library is missing."
+   echo "One way to install it is by doing"
+   echo "    sage: install_package('database_gap')"
+   echo "in a Sage session."
+   exit 1
 fi
 
 # test whether we are on an intel mac

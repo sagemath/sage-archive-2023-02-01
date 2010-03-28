@@ -1,4 +1,4 @@
-= p_group_cohomology-1.2 =
+= p_group_cohomology-1.2.p0 =
 
 == Description ==
 
@@ -59,7 +59,7 @@ Foundation Grant No. DMS-0821725.
 
 == Dependencies ==
 
-- The SmallGroups library needs to be installed.
+- The SmallGroups library needs to be installed in GAP.
 - For p-groups with a prime p>2, we require Singular at least in version 3-1-0.
 
 == Special Update/Build Instructions ==
@@ -103,12 +103,17 @@ is 1 (do "export SAGE_CHECK=1" on the command line before installation).
 
 == Changelog ==
 
-  * 1.0: First public version (July 2009)
-  * 1.0.1: Licensing GPL 2 or later (July 2009)
-  * 1.0.2: Fixing a computation time regression and two
-    minor bugs (July 2009). Changing Simon King's email address
-  * 1.1: Yoneda cocomplex, Restricted Massey powers and general Massey products (August 2009).
-  * 1.2: Modified printing for cocycles, minor bug fixes and code improvements.
+  * 1.2.p0 (Dima Pasechnik and Simon King, March 2010):
+    Adding .hgignore (ignoring src/db and mtxoriginal).
+    Adding a robuster test for the existence of the SmallGroups library.
+  * 1.2 (Simon King, October 2009):
+    Modified printing for cocycles, minor bug fixes and code improvements.
     The data base at sage.math has moved.
-    New: Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and
-    Simon King (October 2009).
+    New: Persistent Group Cohomology (bar codes), based on ideas of Graham
+    Ellis and Simon King.
+  * 1.1 (Simon King August 2009):
+    Yoneda cocomplex, Restricted Massey powers and general Massey products.
+  * 1.0.2 (Simon King, July 2009): Fixing a computation time regression and two
+    minor bugs. Changing Simon King's email address
+  * 1.0.1 (Simon King, July 2009): Licensing GPL 2 or later
+  * 1.0 (Simon King and David Green July 2009): First public version

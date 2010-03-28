@@ -1951,8 +1951,20 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             [0, 1, 0, 1, 0, -1, 0]
             sage: [e(d) for d in [0..6]]
             [0, 1, 0, 1, 0, -1, 0]
+
+        We test that the sign issue at #8620 is fixed::
+
+            sage: M = Newforms(Gamma1(13),names = 'a')[0].modular_symbols(sign=0)
+            sage: M.diamond_bracket_operator(4)
+            Hecke module morphism defined by the matrix
+            [ 0  0  1 -1]
+            [-1 -1  0  1]
+            [-1 -1  0  0]
+            [ 0 -1  1 -1]
+            Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
         """
-        S = self.__heilbronn_operator(self, [[-d,0, 0,d]], 1)
+        S = self.__heilbronn_operator(self, [[d,0, 0,d]], 1)
         S.name("Diamond bracket operator <%s> on %s"%(d,self))
         return S
 

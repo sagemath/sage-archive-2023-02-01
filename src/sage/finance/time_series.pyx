@@ -68,25 +68,36 @@ cdef class TimeSeries:
         """
         self._values = NULL
 
-    def __init__(self, values):
+    def __init__(self, values, bint initialize=True):
         """
         Initialize new time series.
 
         INPUT:
-            values -- integer (number of values) or an iterable of floats
+
+            - values -- integer (number of values) or an iterable of
+              floats
+
+            - initialize -- bool (default: True); if False, do not
+              bother to zero out the entries of the new time series.
+              For large series that you are going to just fill in,
+              this can be way faster.
 
         EXAMPLES:
-        This implicitly calls init.
+
+        This implicitly calls init.::
+
             sage: finance.TimeSeries([pi, 3, 18.2])
             [3.1416, 3.0000, 18.2000]
 
-        Conversion from a numpy 1d array, which is very fast.
+        Conversion from a numpy 1d array, which is very fast.::
+
             sage: v = finance.TimeSeries([1..5])
             sage: w = v.numpy()
             sage: finance.TimeSeries(w)
             [1.0000, 2.0000, 3.0000, 4.0000, 5.0000]
 
-        Conversion from an n-dimensional numpy array also works:
+        Conversion from an n-dimensional numpy array also works::
+
             sage: import numpy
             sage: v = numpy.array([[1,2], [3,4]], dtype=float); v
             array([[ 1.,  2.],
@@ -98,13 +109,18 @@ cdef class TimeSeries:
             sage: u = numpy.array([[1,2],[3,4]])
             sage: finance.TimeSeries(u)
             [1.0000, 2.0000, 3.0000, 4.0000]
+
+        For speed purposes we don't initialize (so value is garbage)::
+
+            sage: t = finance.TimeSeries(10, initialize=False)
         """
         cdef Vector_real_double_dense z
         cdef cnumpy.ndarray np
         cdef double *np_data
         cdef unsigned int j
         if isinstance(values, (int, long, Integer)):
-            values = [0.0]*values
+            self._length = values
+            values = None
         elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
             if PY_TYPE_CHECK(values, Vector_real_double_dense):
                 np  = values._vector_numpy
@@ -130,13 +146,19 @@ cdef class TimeSeries:
             return
         else:
             values = [float(x) for x in values]
-        self._length = len(values)
+            self._length = len(values)
+
         self._values = <double*> sage_malloc(sizeof(double) * self._length)
         if self._values == NULL:
             raise MemoryError
+        if not initialize: return
         cdef Py_ssize_t i
-        for i from 0 <= i < self._length:
-            self._values[i] = values[i]
+        if values is not None:
+            for i from 0 <= i < self._length:
+                self._values[i] = values[i]
+        else:
+            for i from 0 <= i < self._length:
+                self._values[i] = 0
 
     def __reduce__(self):
         """
@@ -265,14 +287,13 @@ cdef class TimeSeries:
         """
         if prec is None: prec = digits
         format = '%.' + str(prec) + 'f'
-        v = self.list()
-        if len(v) > max_print:
-            v0 = v[:max_print//2]
-            v1 = v[-max_print//2:]
+        if len(self) > max_print:
+            v0 = self[:max_print//2]
+            v1 = self[-max_print//2:]
             return '[' + ', '.join([format%x for x in v0]) + ' ... ' + \
                          ', '.join([format%x for x in v1]) + ']'
         else:
-            return '[' + ', '.join([format%x for x in v]) + ']'
+            return '[' + ', '.join([format%x for x in self]) + ']'
 
     def __len__(self):
         """
@@ -363,13 +384,14 @@ cdef class TimeSeries:
                 memcpy(t._values, self._values + start, sizeof(double)*t._length)
             return t
         else:
-            if i < 0:
-                i += self._length
-                if i < 0:
+            j = i
+            if j < 0:
+                j += self._length
+                if j < 0:
                     raise IndexError, "TimeSeries index out of range"
-            elif i >= self._length:
+            elif j >= self._length:
                 raise IndexError, "TimeSeries index out of range"
-            return self._values[i]
+            return self._values[j]
 
     def __setitem__(self, Py_ssize_t i, double x):
         """
@@ -643,11 +665,8 @@ cdef class TimeSeries:
             sage: v.list()
             [1.0, -4.0, 3.0, -2.5, -4.0, 3.0]
         """
-        v = [0.0]*self._length
         cdef Py_ssize_t i
-        for i from 0 <= i < self._length:
-            v[i] = self._values[i]
-        return v
+        return [self._values[i] for i in range(self._length)]
 
     def log(self):
         """
@@ -666,12 +685,13 @@ cdef class TimeSeries:
             [2.7183, 0.0183, 20.0855, 0.0821, 0.0183, 20.0855]
             sage: v.exp().log()
             [1.0000, -4.0000, 3.0000, -2.5000, -4.0000, 3.0000]
+
+        Log of 0 gives -inf:
+
+            sage: finance.TimeSeries([1,0,3]).log()
+            [0.0000, -inf, 1.0986]
         """
         cdef Py_ssize_t i
-        for i from 0 <= i < self._length:
-            if self._values[i] <= 0:
-                raise ValueError, "every entry of self must be positive."
-
         cdef TimeSeries t = new_time_series(self._length)
         for i from 0 <= i < self._length:
             t._values[i] = log(self._values[i])
@@ -800,6 +820,23 @@ cdef class TimeSeries:
         for i from 0 <= i < n:
             t._values[i] = self._values[i*k]
         return t
+
+    cpdef rescale(self, double s):
+        """
+        Change self by multiplying every value in the series by s.
+
+        INPUT:
+            s -- float
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([5,4,1.3,2,8,10,3,-5]); v
+            [5.0000, 4.0000, 1.3000, 2.0000, 8.0000, 10.0000, 3.0000, -5.0000]
+            sage: v.rescale(0.5)
+            sage: v
+            [2.5000, 2.0000, 0.6500, 1.0000, 4.0000, 5.0000, 1.5000, -2.5000]
+        """
+        for i from 0 <= i < self._length:
+            self._values[i] = self._values[i] * s
 
     def scale(self, double s):
         """
@@ -1067,7 +1104,7 @@ cdef class TimeSeries:
             t._values[i] = s
         return t
 
-    def sum(self):
+    cpdef double sum(self):
         """
         Return the sum of all the entries of self.  If self has
         length 0, returns 0.
@@ -1555,7 +1592,6 @@ cdef class TimeSeries:
         """
         if self._length == 0:
             raise ValueError, "min() arg is an empty sequence"
-            return 0.0, -1
         cdef Py_ssize_t i, j
         cdef double s = self._values[0]
         j = 0
@@ -1589,7 +1625,7 @@ cdef class TimeSeries:
         """
         if self._length == 0:
             raise ValueError, "max() arg is an empty sequence"
-        cdef Py_ssize_t i, j
+        cdef Py_ssize_t i, j = 0
         cdef double s = self._values[0]
         for i from 1 <= i < self._length:
             if self._values[i] > s:
@@ -1743,7 +1779,6 @@ cdef class TimeSeries:
             bins -- positive integer (default: 50)
             normalize -- (default: True) whether to normalize so the total
                          area in the bars of the histogram is 1.
-            **kwds -- passed to the bar_chart function
         OUTPUT:
             a histogram plot
 
@@ -1751,7 +1786,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1..50])
             sage: v.plot_histogram(bins=10)
         """
-        from sage.plot.all import bar_chart, polygon
+        from sage.plot.all import polygon
         counts, intervals = self.histogram(bins, normalize=normalize)
         s = 0
         for i, (x0,x1) in enumerate(intervals):
@@ -2239,7 +2274,7 @@ cdef new_time_series(Py_ssize_t length):
 
 def unpickle_time_series_v1(v, Py_ssize_t n):
     """
-    Version 0 unpickle method.
+    Version 1 unpickle method.
 
     INPUT:
         v -- a raw char buffer

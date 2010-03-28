@@ -1359,15 +1359,20 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.stats.hmm.chmm',
-              sources = ['sage/stats/hmm/chmm.pyx'],
-              libraries = ['ghmm'],
-              include_dirs=numpy_include_dirs),
+    Extension('sage.stats.hmm.util',
+              sources = ['sage/stats/hmm/util.pyx']),
+
+    Extension('sage.stats.hmm.distributions',
+              sources = ['sage/stats/hmm/distributions.pyx']),
 
     Extension('sage.stats.hmm.hmm',
-              sources = ['sage/stats/hmm/hmm.pyx'],
-              libraries = ['ghmm'],
-              include_dirs=numpy_include_dirs),
+              sources = ['sage/stats/hmm/hmm.pyx']),
+
+    Extension('sage.stats.hmm.chmm',
+              sources = ['sage/stats/hmm/chmm.pyx']),
+
+    Extension('sage.stats.intlist',
+              sources = ['sage/stats/intlist.pyx']),
 
     ################################
     ##

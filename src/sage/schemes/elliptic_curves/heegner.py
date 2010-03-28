@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Heegner points on elliptic curves over the rational numbers
 
@@ -68,9 +69,9 @@ Here we find that the Heegner point generates a subgroup of index 3::
     0.0498083972980648
     sage: z.height()
     0.448275575682583
-    sage: E.gens()
-    [(1 : 1 : 1)]
-    sage: -3*E.gens()[0]
+    sage: P = E(1,1); P # a generator
+    (1 : 1 : 1)
+    sage: -3*P
     (0 : 1 : 1)
     sage: E.tamagawa_product()
     3
@@ -1406,14 +1407,19 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             sage: K3 = heegner_points(389,-52,3).ring_class_field()
             sage: K1 = heegner_points(389,-52,1).ring_class_field()
             sage: G = K3.galois_group(K1)
-            sage: [g.alpha() for g in G]
+            sage: orb = sorted([g.alpha() for g in G]); orb # random (the sign depends on the database being installed or not)
             [1, 1/2*sqrt_minus_52 + 1, -1/2*sqrt_minus_52, 1/2*sqrt_minus_52 - 1]
+            sage: [x^2 for x in orb] # this is just for testing
+            [1, sqrt_minus_52 - 12, -13, -sqrt_minus_52 - 12]
 
             sage: K5 = heegner_points(389,-52,5).ring_class_field()
             sage: K1 = heegner_points(389,-52,1).ring_class_field()
             sage: G = K5.galois_group(K1)
-            sage: sorted([g.alpha() for g in G])
+            sage: orb = sorted([g.alpha() for g in G]); orb # random (the sign depends on the database being installed or not)
             [1, -1/2*sqrt_minus_52, 1/2*sqrt_minus_52 + 1, 1/2*sqrt_minus_52 - 1, 1/2*sqrt_minus_52 - 2, -1/2*sqrt_minus_52 - 2]
+            sage: [x^2 for x in orb] # just for testing
+            [1, -13, sqrt_minus_52 - 12, -sqrt_minus_52 - 12, -2*sqrt_minus_52 - 9, 2*sqrt_minus_52 - 9]
+
         """
         if self.__alpha is None:
             raise ValueError, "alpha data not defined"
@@ -3573,17 +3579,16 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             Heegner point of discriminant -8 on elliptic curve of conductor 57
             sage: P._trace_numerical_conductor_1()
             (1.00000000000000 + 4.49...e-16*I : 1.77...e-16 - 4.49...e-16*I : 1.00000000000000)
-            sage: E.gens()
-            [(2 : 1 : 1)]
+            sage: P = E(2,1) # a generator
             sage: E([1,0]).height()
             0.150298370947295
-            sage: E.gens()[0].height()
+            sage: P.height()
             0.0375745927368238
             sage: E.heegner_index(-8)
             2.0000?
             sage: E.torsion_order()
             1
-            sage: 2*E.gens()[0]
+            sage: 2*P
             (1 : 0 : 1)
         """
         if self.conductor() != 1:
@@ -6208,8 +6213,12 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96897922913431e-15*I : 1.00000000000000)
         sage: P.index()
         6
-        sage: 6*E.gens()[0]
+        sage: g = E((0,-1,1)) # a generator
+        sage: E.regulator() == E.regulator_of_points([g])
+        True
+        sage: 6*g
         (6 : -15 : 1)
+
     """
     return self.heegner_point(D,c,check=check).kolyvagin_point()
 

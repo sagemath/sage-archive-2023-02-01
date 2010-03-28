@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Points on elliptic curves
 
@@ -1664,18 +1665,18 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.height(precision=500)
             25.8603170675461907438688407407351103230988729038444162155771710417835725129551130570889813281792157278507639909972112856019190236125362914195452321720
 
-	An example to show that the bug at \#8319 is fixed (correct height when the curve is not minimal)::
+        An example to show that the bug at \#8319 is fixed (correct height when the curve is not minimal)::
 
-	    sage: E = EllipticCurve([-5580472329446114952805505804593498080000,-157339733785368110382973689903536054787700497223306368000000])
-	    sage: xP = 204885147732879546487576840131729064308289385547094673627174585676211859152978311600/23625501907057948132262217188983681204856907657753178415430361
-	    sage: P = E.lift_x(xP)
-	    sage: P.height()
-	    157.432598516754
-	    sage: Q = 2*P
-	    sage: Q.height() # long time (4s)
-	    629.730394067016
-	    sage: Q.height()-4*P.height() # long time
-	    0.000000000000000
+            sage: E = EllipticCurve([-5580472329446114952805505804593498080000,-157339733785368110382973689903536054787700497223306368000000])
+            sage: xP = 204885147732879546487576840131729064308289385547094673627174585676211859152978311600/23625501907057948132262217188983681204856907657753178415430361
+            sage: P = E.lift_x(xP)
+            sage: P.height()
+            157.432598516754
+            sage: Q = 2*P
+            sage: Q.height() # long time (4s)
+            629.730394067016
+            sage: Q.height()-4*P.height() # long time
+            0.000000000000000
 
         Unfortunately, canonical height is not yet implemented in general::
 
@@ -1693,10 +1694,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             precision = rings.RealField().precision()
 
         try:
-	    E = self.curve()
-	    Emin = E.minimal_model()
-	    iso = E.isomorphism_to(Emin)
-	    P = iso(self)
+            E = self.curve()
+            Emin = E.minimal_model()
+            iso = E.isomorphism_to(Emin)
+            P = iso(self)
             h = Emin.pari_curve(prec=precision).ellheight([P[0], P[1]],precision=precision)
             return rings.RealField(precision)(h)
         except:
@@ -1706,33 +1707,35 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         r"""
         Returns the elliptic logarithm of this elliptic curve point.
 
-        An embedding of the base field into `\RR` (with arbitrary
-        precision) may be given; otherwise the first real embedding is
-        used (with the specified precision), if there are any;
-        otherwise a NotImplementedError is raised, since we have not
-        yet implemented the complex elliptic logarithm.
+        An embedding of the base field into `\RR` or `\CC` (with
+        arbitrary precision) may be given; otherwise the first real
+        embedding is used (with the specified precision) if any, else
+        the first complex embedding.
 
         INPUT:
 
-        - ``embedding``: an embedding of the base field into RR
+        - ``embedding``: an embedding of the base field into `\RR` or `\CC`
 
         - ``precision``: a positive integer (default 100) setting the
           number of bits of precision for the computation
 
-        - ``algorithm``: either 'pari' (default) to use Pari's
-          ``ellpointtoz{}``, or 'sage' for a native implementation
-          (currently not very accurate)
+        - ``algorithm``: either 'pari' (default for real embeddings)
+          to use Pari's ``ellpointtoz{}``, or 'sage' for a native
+          implementation.  Ignored for complex embeddings.
 
         ALGORITHM:
 
-        See [Co2] Cohen H., A Course in Computational Algebraic
-        Number Theory GTM 138, Springer 1996.
+        See [Co2] Cohen H., A Course in Computational Algebraic Number
+        Theory GTM 138, Springer 1996 for the case of real embeddings,
+        and Cremona, J.E. and Thongjunthug , T. 2010 for the complex
+        case.
 
         AUTHORS:
 
         - Michael Mardaus (2008-07),
         - Tobias Nagel (2008-07) -- original version from [Co2].
         - John Cremona (2008-07) -- revision following eclib code.
+        - John Cremona (2010-03) -- implementation for complex embeddings.
 
         EXAMPLES::
 
@@ -1793,85 +1796,112 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.0002563872588652022535319893252866642741168388008346370015005142128009610936373
             sage: P.elliptic_logarithm(precision=257)
             0.00025638725886520225353198932528666427411683880083463700150051421280096109363730
+
+        Examples over number fields::
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: embs = K.embeddings(CC)
+            sage: E = EllipticCurve([0,1,0,a,a])
+            sage: Ls = [E.period_lattice(e) for e in embs]
+            sage: [L.real_flag for L in Ls]
+            [0, 0, -1]
+            sage: P = E.torsion_points()[0]
+            sage: [L.elliptic_logarithm(P) for L in Ls]
+            [-1.73964256006716 - 1.07861534489191*I, -0.363756518406398 - 1.50699412135253*I, 1.90726488608927]
+
+            sage: E = EllipticCurve([-a^2 - a - 1, a^2 + a])
+            sage: Ls = [E.period_lattice(e) for e in embs]
+            sage: pts = [E(2*a^2 - a - 1 , -2*a^2 - 2*a + 6 ), E(-2/3*a^2 - 1/3 , -4/3*a - 2/3 ), E(5/4*a^2 - 1/2*a , -a^2 - 1/4*a + 9/4 ), E(2*a^2 + 3*a + 4 , -7*a^2 - 10*a - 12 )]
+            sage: [[L.elliptic_logarithm(P) for P in pts] for L in Ls]
+            [[0.250819591818930 - 0.411963479992219*I, -0.290994550611374 - 1.37239400324105*I, -0.693473752205595 - 2.45028458830342*I, -0.151659609775291 - 1.48985406505459*I], [1.33444787667954 - 1.50889756650544*I, 0.792633734249234 - 0.548467043256610*I, 0.390154532655013 + 0.529423541805758*I, 0.931968675085317 - 0.431006981443071*I], [1.14758249500109 + 0.853389664016075*I, 2.59823462472518 + 0.853389664016075*I, 1.75372176444709, 0.303069634723001]]
+
+        ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,0,0,9*i-10,21-i])
+            sage: emb = K.embeddings(CC)[1]
+            sage: L = E.period_lattice(emb)
+            sage: P = E(2-i,4+2*i)
+            sage: L.elliptic_logarithm(P,prec=100)
+            0.70448375537782208460499649302 - 0.79246725643650979858266018068*I
+
         """
         from sage.rings.number_field.number_field import refine_embedding
+        from sage.rings.all import RealField, ComplexField, is_RealField, QQ
 
-        emb = embedding
+        # Check the trivial case:
+
+        C = ComplexField(precision)
+        if self.is_zero():
+            return C.zero()
 
         # find a suitable embedding if none was supplied:
+
         E = self.curve()
         K = E.base_field()
+        rational = (K is QQ)
+        emb = embedding
+
         if emb is None:
-            try:
-                emb = K.embeddings(rings.RealField(precision))[0]
-            except IndexError:
-                raise NotImplementedError, "elliptic logarithm not yet implemented for complex embeddings."
+            emb = K.embeddings(RealField(precision))
+            if len(emb)>0:
+                emb = emb[0]
+            else:
+                emb = K.embeddings(ComplexField(precision))[0]
         else:
-        # Check if we have been given a complex embedding
-            if not rings.is_RealField(emb.codomain()):
-                raise NotImplementedError, "elliptic logarithm not yet implemented for complex embeddings."
-            else:
-                # Get the precision of the supplied embedding
-                prec = emb.codomain().precision()
-                # if the precision parameter is greater, refine the embedding:
-                if precision > prec:
-                    emb = refine_embedding(emb,precision)
+            # Get the precision of the supplied embedding
+            prec = emb.codomain().precision()
+            # if the precision parameter is greater, refine the embedding:
+            if precision > prec:
+                emb = refine_embedding(emb,precision)
 
-        # From now on emb() is a real embedding of K into RealField(precision)
-        RR = rings.RealField(precision)
-        # Check the trivial case: we do not put this earlier since we
-        # want to return zero to the correct precision.
-        if self.is_zero():
-            return rings.ComplexField(precision)(0)
+        L = E.period_lattice(emb)
 
-        #Initialize
+        if algorithm == 'sage' or not is_RealField(emb.codomain):
+            return L.elliptic_logarithm(self,precision)
 
-        if algorithm == 'pari':
-            from sage.libs.pari.all import pari
-            from sage.libs.pari.gen import prec_words_to_bits
-            if K is rings.QQ:
-                # if the base field of E is QQ, work with exact coefficients
-                E_work = E
-                pt_pari = [pari(self[0]), pari(self[1])]
-            else:
-                # if the base field is not QQ, use the embedding to
-                # get real coefficients
-                ai = [emb(a) for a in E.a_invariants()]
-                E_work = EllipticCurve(ai) # defined over RR
-                pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
-            working_prec = precision
-            E_pari = E_work.pari_curve(prec=working_prec)
-            log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
-            while prec_words_to_bits(log_pari.precision()) < precision:
-                # result is not precise enough, re-compute with double
-                # precision. if the base field is not QQ, this
-                # requires modifying the precision of the embedding,
-                # the curve, and the point
-                working_prec = 2*working_prec
-                if not K is rings.QQ:
-                    emb = refine_embedding(emb, working_prec)
-                    ai = [emb(a) for a in E.a_invariants()]
-                    E_work = EllipticCurve(ai) # defined over RR
-                    pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
-                E_pari = E_work.pari_curve(prec=working_prec)
-                log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
-
-            # normalization step
-            C = rings.ComplexField(precision)
-            r, i = C(log_pari)
-            wR, wI = E.period_lattice(emb).basis(prec=precision)
-            k = (r/wR).floor()
-            if k:
-                r -= k*wR
-            if self.is_on_identity_component(emb):
-                return C(r)
-            # Now there are two components and P is on the non-identity one
-            return C(r)+C(wI/2)
-
-        if algorithm <> 'sage':
+        if algorithm <> 'pari':
             raise ValueError, "algorithm must be either 'pari' or 'sage'"
 
-        return self.curve().period_lattice(emb).elliptic_logarithm(self,precision)
+        # From now on emb() is a real embedding of K into
+        # RealField(precision).  We interface with the pari library.
+
+        x, y = self.xy()
+        if rational:        # work with exact coordinates
+            E_work = E
+            pt_pari = [pari(x), pari(y)]
+        else:               # use the embedding to get real coordinates
+            ai = [emb(a) for a in E.a_invariants()]
+            E_work = EllipticCurve(ai) # defined over RR
+            pt_pari = [pari(emb(x)), pari(emb(y))]
+        working_prec = precision
+        E_pari = E_work.pari_curve(prec=working_prec)
+        log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
+
+        while prec_words_to_bits(log_pari.precision()) < precision:
+            # result is not precise enough, re-compute with double
+            # precision. if the base field is not QQ, this
+            # requires modifying the precision of the embedding,
+            # the curve, and the point
+            working_prec = 2*working_prec
+            if not rational:
+                emb = refine_embedding(emb, working_prec)
+                ai = [emb(a) for a in E.a_invariants()]
+                E_work = EllipticCurve(ai) # defined over RR
+                pt_pari = [pari(emb(x)), pari(emb(y))]
+            E_pari = E_work.pari_curve(prec=working_prec)
+            log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
+
+        # normalization step
+        r, i = C(log_pari)
+        wR, wI = L.basis(prec=precision)
+        k = (r/wR).floor()
+        if k:
+            r -= k*wR
+        if self.is_on_identity_component(emb):
+            return C(r)
+        # Now there are two components and P is on the non-identity one
+        return C(r)+C(wI/2)
 
     def padic_elliptic_logarithm(self, p, absprec=20):
         r"""

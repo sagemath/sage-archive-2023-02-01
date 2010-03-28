@@ -55,27 +55,19 @@ we could do the following.
      [ 1.]
      [ 1.]]
     sage: print(A)
-    SIZE: (5,5)
-        (0, 0)  2.0000e+00
-        (1, 0)  3.0000e+00
-        (0, 1)  3.0000e+00
-        (2, 1) -1.0000e+00
-        (4, 1)  4.0000e+00
-        (1, 2)  4.0000e+00
-        (2, 2) -3.0000e+00
-        (3, 2)  1.0000e+00
-        (4, 2)  2.0000e+00
-        (2, 3)  2.0000e+00
-        (1, 4)  6.0000e+00
-        (4, 4)  1.0000e+00
+    [ 2.00e+00  3.00e+00     0         0         0    ]
+    [ 3.00e+00     0      4.00e+00     0      6.00e+00]
+    [    0     -1.00e+00 -3.00e+00  2.00e+00     0    ]
+    [    0         0      1.00e+00     0         0    ]
+    [    0      4.00e+00  2.00e+00     0      1.00e+00]
     sage: C=m(B)
     sage: umfpack.linsolve(A,C)
     sage: print(C)
-       5.7895e-01
-       -5.2632e-02
-       1.0000e+00
-       1.9737e+00
-       -7.8947e-01
+    [ 5.79e-01]
+    [-5.26e-02]
+    [ 1.00e+00]
+    [ 1.97e+00]
+    [-7.89e-01]
 
 Note the solution is stored in :math:`B` afterward. also note the
 m(B), this turns our numpy array into a format cvxopt understands.
@@ -95,10 +87,10 @@ We could compute the approximate minimum degree ordering by doing
     sage: A=spmatrix([10,3,5,-2,5,2],[0,2,1,2,2,3],[0,0,1,1,2,3])
     sage: P=amd.order(A)
     sage: print(P)
-    1
-    0
-    2
-    3
+    [ 1]
+    [ 0]
+    [ 2]
+    [ 3]
 
 For a simple linear programming example, if we want to solve
 
@@ -135,6 +127,5 @@ For a simple linear programming example, if we want to solve
 ::
 
     sage: print sol['x']      # ... below since can get -00 or +00 depending on architecture
-       1.0000e...00
-       1.0000e+00
-
+    [ 1.00e+00]
+    [ 1.00e+00]

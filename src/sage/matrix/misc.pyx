@@ -381,7 +381,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             verbose("Not checking validity of result (since proof=False).", level=2, caller_name="multimod echelon")
             break
         d   = E.denominator()
-        hdE = long(E.height())
+        hdE = long((d*E).height())
         if hdE * self.ncols() * height < prod:
             verbose("Validity of result checked.", level=2, caller_name="multimod echelon")
             break

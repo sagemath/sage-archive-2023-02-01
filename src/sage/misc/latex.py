@@ -1526,12 +1526,12 @@ class JSMath:
         if isinstance(x, LatexExpr):
             # already a latex expression, so the output of
             # latex(blah).  so treat as a string.
-            x = "\\hbox{%s}"%str(x)
+            x = "\\hbox{%s}"%str(x.replace('\\texttt','\\hbox'))
             # add spaces around < and > to help jsMath to parse them
             x = x.replace('<', ' < ')
             x = x.replace('>', ' > ')
         elif has_latex_attr(x):
-            x = LatexExpr(x._latex_())
+            x = LatexExpr(x._latex_().replace('\\texttt','\\hbox'))
         else:
             try:
                 f = latex_table[type(x)]

@@ -82,6 +82,7 @@ import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
 
 import ambient
+import ambient_R
 import cuspidal_submodule
 import eisenstein_submodule
 import space
@@ -181,7 +182,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m = ModularForms(DirichletGroup(13).0^2,2); m
             Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
             sage: m.change_ring(CyclotomicField(12))
-            Modular Forms space of dimension 3, character [zeta12^2] and weight 2 over Cyclotomic Field of order 12 and degree 4
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 12 and degree 4
 
         It must be possible to change the ring of the underlying Dirichlet character::
 
@@ -192,30 +193,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         if self.base_ring() == base_ring:
             return self
-        return ModularFormsAmbient_eps(character = self.character(),
-                                       weight    = self.weight(),
-                                       base_ring = base_ring)
-
-    def base_extend(self, R):
-        """
-        Return space with same defining parameters as this ambient space of
-        modular symbols, but with scalars extended to a different base ring.
-        This differs from change_ring in that it is always possible to coerce
-        elements of the original space to elements of the new one.
-
-        EXAMPLES::
-
-            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
-            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
-            sage: m.base_extend(CyclotomicField(12))
-            Modular Forms space of dimension 3, character [zeta12^2] and weight 2 over Cyclotomic Field of order 12 and degree 4
-        """
-        if not R.has_coerce_map_from(self.base_ring()):
-            raise TypeError, "No coercion map from '%s' to '%s' defined." % (self.base_ring(), R)
-        else:
-            return ModularFormsAmbient_eps(character = self.character().base_extend(R),
-                                            weight = self.weight(),
-                                            base_ring = R)
+        return ambient_R.ModularFormsAmbient_R(self, base_ring = base_ring)
 
     def modular_symbols(self, sign=0):
         """

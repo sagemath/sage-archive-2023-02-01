@@ -36,7 +36,7 @@ def is_Gamma1(x):
 
         sage: from sage.modular.arithgroup.all import is_Gamma1
         sage: is_Gamma1(SL2Z)
-        True
+        False
         sage: is_Gamma1(Gamma1(13))
         True
         sage: is_Gamma1(Gamma0(6))
@@ -44,8 +44,9 @@ def is_Gamma1(x):
         sage: is_Gamma1(GammaH(12, []))
         False
     """
-    from congroup_sl2z import is_SL2Z
-    return (isinstance(x, Gamma1_class) or is_SL2Z(x))
+    #from congroup_sl2z import is_SL2Z
+    #return (isinstance(x, Gamma1_class) or is_SL2Z(x))
+    return isinstance(x, Gamma1_class)
 
 _gamma1_cache = {}
 def Gamma1_constructor(N):
@@ -471,7 +472,10 @@ class Gamma1_class(GammaH_class):
             return GammaH_class.dimension_cusp_forms(self, k)
 
         N = self.level()
-        eps = DirichletGroup(N)(eps)
+        if eps.base_ring().characteristic() != 0:
+            raise ValueError
+
+        eps = DirichletGroup(N, eps.base_ring())(eps)
 
         if eps.is_trivial():
             return Gamma0(N).dimension_cusp_forms(k)

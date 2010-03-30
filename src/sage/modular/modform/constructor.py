@@ -239,6 +239,11 @@ def ModularForms(group  = 1,
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
 
+    This came up in another bug (related to trac #8630)::
+
+        sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+        sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))
+        Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 15 and degree 8
 
     We create some weight 1 spaces. The first example works fine, since we can prove purely by Riemann surface theory that there are no weight 1 cusp forms::
 
@@ -330,7 +335,7 @@ def ModularForms(group  = 1,
                                 prec = prec)
         M = ambient_eps.ModularFormsAmbient_eps(eps, weight)
         if base_ring != eps.base_ring():
-            M = ambient_R.ModularFormsAmbient_R(M, base_ring)
+            M = M.base_extend(base_ring) # ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     if M is None:
         raise NotImplementedError, \
@@ -382,16 +387,23 @@ def EisensteinForms(group  = 1,
 
 
 
-def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
-    """
+def Newforms(group, weight=2, base_ring=None, names=None):
+    r"""
+    Returns a list of the newforms of the given weight and level (or weight,
+    level and character). These are calculated as
+    `\operatorname{Gal}(\overline{F} / F)`-orbits, where `F` is the given base
+    field.
+
     INPUT:
 
 
-    -  ``group`` - the congruence subgroup of the newform
+    -  ``group`` - the congruence subgroup of the newform, or a Nebentypus
+       character
 
     -  ``weight`` - the weight of the newform (default 2)
 
-    -  ``base_ring`` - the base ring
+    -  ``base_ring`` - the base ring (defaults to `\QQ` for spaces without
+       character, or the base ring of the character otherwise)
 
     -  ``names`` - if the newform has coefficients in a
        number field, a generator name must be specified
@@ -405,6 +417,25 @@ def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
         [q - q^2 - 2*q^3 - q^4 - q^5 + O(q^6),
          q + a1*q^2 + (a1 + 1)*q^3 + (-2*a1 - 1)*q^4 + q^5 + O(q^6),
          q + a2*q^2 + (-a2 + 1)*q^3 + q^4 - q^5 + O(q^6)]
+
+    A more complicated example involving both a nontrivial character, and a
+    base field that is not minimal for that character:
+
+        sage: K.<i> = QuadraticField(-1)
+        sage: chi = DirichletGroup(5, K).gen(0)
+        sage: len(Newforms(chi, 7, names='a'))
+        1
+        sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
+        sage: N = Newforms(chi, 7, base_ring = L); len(N)
+        2
+        sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
+        True
+
+    We test that #8630 is fixed::
+
+        sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+        sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))
+        Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
     """
     return CuspForms(group, weight, base_ring).newforms(names)
 

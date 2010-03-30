@@ -232,9 +232,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def change_ring(self, R):
         """
-        Change the base ring of this space of modular forms.
-
-        TODO: Write this function.
+        Change the base ring of this space of modular forms. To be implemented in derived classes.
 
         EXAMPLES::
 
@@ -402,16 +400,37 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def base_extend(self, base_ring):
         """
-        Return the base extension of self to base_ring.
+        Return the base extension of self to base_ring. This first checks
+        whether there is a canonical coercion defined, and if so it calls the
+        change_ring method.
 
-        EXAMPLES::
+        EXAMPLE::
 
-            sage: M = ModularForms(11,2) ; M
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
-            sage: M.base_extend(CyclotomicField(5))
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Cyclotomic Field of order 5 and degree 4
+            sage: N = ModularForms(6, 4)
+            sage: N.base_extend(CyclotomicField(7))
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Cyclotomic Field of order 7 and degree 6
+
+            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
+            sage: m.base_extend(CyclotomicField(12))
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 12 and degree 4
+
+            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+            sage: S3 = CuspForms(chi, 2)
+            sage: S9 = S3.base_extend(CyclotomicField(9))
+            sage: S9
+            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+            sage: S9.has_coerce_map_from(S3) # not implemented
+            True
+            sage: S9.base_extend(CyclotomicField(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: No coercion defined
         """
-        return sage.modular.modform.constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
+        if not base_ring.has_coerce_map_from(self.base_ring()):
+            raise ValueError, "No coercion defined"
+        else:
+            return self.change_ring(base_ring)
 
     def echelon_form(self):
         r"""
@@ -935,29 +954,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         V = self.free_module() + right.free_module()
         return ModularFormsSubmodule(self.ambient_module(), V)
 
-# Removed since we already have a perfectly good intersection method and I'm not convinced overloading "and" is a very good
-# idea -- David Loeffler, 2009-04-30
-#
-#    def __and__(self, right):
-#        """
-#        Return intersect of self and right.
-#
-#        EXAMPLES::
-#
-#            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
-#
-#        ::
-#
-#            sage: N.__and__(S)
-#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-#
-#        ::
-#
-#            sage: S.__and__(N)
-#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-#        """
-#        return self.intersect(right)
-#
     def _has_natural_inclusion_map_to(self, right):
         """
         Return true if there is a natural inclusion map from modular forms

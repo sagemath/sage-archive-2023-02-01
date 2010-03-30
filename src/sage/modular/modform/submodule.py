@@ -57,18 +57,6 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
         """
         return "Modular Forms subspace of dimension %s of %s"%(self.dimension(), self.ambient_module())
 
-    def change_ring(self, base_ring):
-        """
-        Return the base change of this subspace of modular forms to base_ring.
-
-        EXAMPLES:
-            sage: M = ModularForms(6,4) ; M.cuspidal_subspace().change_ring(GF(3))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Base change only currently implemented for ambient spaces.
-        """
-        raise NotImplementedError, "Base change only currently implemented for ambient spaces."
-
     def _compute_coefficients(self, element, X):
         """
         Compute all coefficients of the modular form element in self for

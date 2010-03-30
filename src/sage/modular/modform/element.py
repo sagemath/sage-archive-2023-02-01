@@ -151,7 +151,7 @@ class ModularForm_abstract(ModuleElement):
         """
         if not isinstance(other, ModularForm_abstract):
             raise TypeError, "Second argument must be a modular form."
-        if self.parent().ambient_space() != other.parent().ambient_space():
+        if self.parent().ambient() != other.parent().ambient():
             raise ArithmeticError, "Modular forms must be in the same ambient space."
 
     def __call__(self, x, prec=None):
@@ -607,6 +607,9 @@ class Newform(ModularForm_abstract):
 
             sage: sage.modular.modform.element.Newform(CuspForms(11,2), ModularSymbols(11,2,sign=1).cuspidal_subspace(), 'a')
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+
+            sage: f = Newforms(DirichletGroup(5).0, 7,names='a')[0]; f[2].trace(f.base_ring().base_field())
+            -5*zeta4 - 5
         """
         if check:
             if not space.is_ModularFormsSpace(parent):
@@ -622,8 +625,9 @@ class Newform(ModularForm_abstract):
             if not component.is_simple():
                 raise ValueError, "component must be simple"
         extension_field = component.eigenvalue(1,name=names).parent()
-        if extension_field.degree() != 1 and rings.is_NumberField(extension_field):
-            extension_field = extension_field.change_names(names)
+        if extension_field != parent.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
+            assert extension_field.base_field() == parent.base_ring()
+            extension_field = parent.base_ring().extension(extension_field.relative_polynomial(), names=names)
         self.__name = names
         ModuleElement.__init__(self, parent.base_extend(extension_field))
         self.__modsym_space = component

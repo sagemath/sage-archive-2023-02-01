@@ -126,6 +126,9 @@ def canonical_parameters(group, weight, sign, base_ring):
             eps = group
         G = eps.parent()
         group = (eps, G)
+        if base_ring is None: base_ring = eps.base_ring()
+
+    if base_ring is None: base_ring = rational_field.RationalField()
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -159,7 +162,7 @@ def ModularSymbols_clear_cache():
 def ModularSymbols(group  = 1,
                    weight = 2,
                    sign   = 0,
-                   base_ring = rational_field.RationalField(),
+                   base_ring = None,
                    use_cache = True):
     r"""
     Create an ambient space of modular symbols.
@@ -167,18 +170,18 @@ def ModularSymbols(group  = 1,
     INPUT:
 
 
-    -  ``group`` - A congruence subgroup or a Dirichlet
-       character eps.
+    - ``group`` - A congruence subgroup or a Dirichlet character eps.
 
 
-    weight - int, the weight, which must be = 2.
+    - ``weight`` - int, the weight, which must be = 2.
 
-    sign - int, The sign of the involution on modular symbols induced
-    by complex conjugation. The default is 0, which means"no sign",
-    i.e., take the whole space.
+    - ``sign`` - int, The sign of the involution on modular symbols induced by
+      complex conjugation. The default is 0, which means"no sign", i.e., take
+      the whole space.
 
-    base_ring - the base ring. This is ignored if group is a Dirichlet
-    character.
+    - ``base_ring`` - the base ring. Defaults to `\QQ` if no character is
+      given, or to the minimal extension of `\QQ` containing the values of the
+      character.
 
     EXAMPLES: First we create some spaces with trivial character::
 
@@ -231,6 +234,11 @@ def ModularSymbols(group  = 1,
         x^4 + (-zeta6 - 1)*x^3 - 8*zeta6*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
         (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
+
+    We create a space with character over a larger base ring than the values of the character::
+
+        sage: ModularSymbols(e, 2, base_ring = CyclotomicField(24))
+        Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta24^4], sign 0, over Cyclotomic Field of order 24 and degree 8
 
     More examples of spaces with character::
 
@@ -313,7 +321,7 @@ def ModularSymbols(group  = 1,
 
     elif isinstance(group, tuple):
         eps = group[0]
-        M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign)
+        M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign, base_ring)
 
     if M is None:
         raise NotImplementedError, "computation of requested space of modular symbols not defined or implemented"

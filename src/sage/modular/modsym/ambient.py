@@ -482,6 +482,48 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 
+
+    def change_ring(self, R):
+        r"""
+        Change the base ring to R.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(Gamma1(13), 2).change_ring(GF(17))
+            Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Finite Field of size 17
+            sage: M = ModularSymbols(DirichletGroup(5).0, 7); MM=M.change_ring(CyclotomicField(8)); MM
+            Modular Symbols space of dimension 6 and level 5, weight 7, character [zeta8^2], sign 0, over Cyclotomic Field of order 8 and degree 4
+            sage: MM.change_ring(CyclotomicField(4)) == M
+            True
+            sage: M.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot coerce element of order 4 into self
+        """
+        if self.character() is None:
+            return modsym.ModularSymbols(self.group(), self.weight(), self.sign(), R)
+        else:
+            return modsym.ModularSymbols(self.character(), self.weight(), self.sign(), R)
+
+    def base_extend(self, R):
+        r"""
+        Canonically change the base ring to R.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(DirichletGroup(5).0, 7); MM = M.base_extend(CyclotomicField(8)); MM
+            Modular Symbols space of dimension 6 and level 5, weight 7, character [zeta8^2], sign 0, over Cyclotomic Field of order 8 and degree 4
+            sage: MM.base_extend(CyclotomicField(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: No coercion defined
+        """
+        if not R.has_coerce_map_from(self.base_ring()):
+            raise ValueError, "No coercion defined"
+        else:
+            return self.change_ring(R)
+
+
     def _action_on_modular_symbols(self, g):
         r"""
         Returns the matrix of the action of a 2x2 matrix on this space.
@@ -3346,9 +3388,10 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
 
 
 class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
-    def __init__(self, eps, weight, sign=0):
+    def __init__(self, eps, weight, sign, base_ring):
         """
-        Space of modular symbols with given weight, character, and sign.
+        Space of modular symbols with given weight, character, base ring and
+        sign.
 
         INPUT:
 
@@ -3359,6 +3402,9 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         -  ``weight`` - int, the weight = 2
 
         -  ``sign`` - int, either -1, 0, or 1
+
+        - ``base_ring`` - the base ring. It must be possible to change the ring
+          of the character to this base ring (not always canonically).
 
 
         EXAMPLES::
@@ -3395,8 +3441,8 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
                 weight = weight,
                 group = arithgroup.Gamma1(level),
                 sign = sign,
-                base_ring = eps.base_ring(),
-                character = eps)
+                base_ring = base_ring,
+                character = eps.change_ring(base_ring))
 
     def _repr_(self):
         r"""

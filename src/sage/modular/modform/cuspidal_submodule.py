@@ -175,6 +175,29 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         self.__modular_symbols[sign] = S
         return S
 
+
+    def change_ring(self, R):
+        r"""
+        Change the base ring of self to R, when this makes sense. This differs
+        from :meth:`~base_extend` in that there may not be a canonical map from
+        self to the new space, as in the first example below. If this space has
+        a character then this may fail when the character cannot be defined
+        over R, as in the second example.
+
+        EXAMPLES::
+
+            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+            sage: S9 = CuspForms(chi, 2, base_ring = CyclotomicField(9)); S9
+            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+            sage: S9.change_ring(CyclotomicField(3))
+            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 3 and degree 2
+            sage: S9.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Space cannot be defined over Rational Field
+        """
+        return self.ambient_module().change_ring(R).cuspidal_submodule()
+
 class CuspidalSubmodule_R(CuspidalSubmodule):
     """
     Cuspidal submodule over a non-minimal base ring.

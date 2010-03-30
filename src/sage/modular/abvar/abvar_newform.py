@@ -108,7 +108,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         try:
             return self.__named_newforms[names]
         except KeyError:
-            self.__named_newforms[names] = Newform(self.__f.parent(), self.__f.modular_symbols(1), names=names, check=False)
+            self.__named_newforms[names] = Newform(self.__f.parent().change_ring(QQ), self.__f.modular_symbols(1), names=names, check=False)
             return self.__named_newforms[names]
 
     def label(self):

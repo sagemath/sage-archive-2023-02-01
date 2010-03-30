@@ -12,13 +12,15 @@ Modular Forms over a Non-minimal Base Ring
 
 import ambient
 from cuspidal_submodule import CuspidalSubmodule_R
+from sage.rings.all import ZZ
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
     def __init__(self, M, base_ring):
         """
         Ambient space of modular forms over a ring other than QQ.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularForms(23,2,base_ring=GF(7)) ## indirect doctest
             sage: M
             Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(23) of weight 2 over Finite Field of size 7
@@ -26,16 +28,52 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             True
         """
         self.__M = M
-        ambient.ModularFormsAmbient.__init__(self, M.group(), M.weight(), base_ring)
+        if M.character() is not None:
+            self.__R_character = M.character().change_ring(base_ring)
+        else:
+            self.__R_character = None
+        ambient.ModularFormsAmbient.__init__(self, M.group(), M.weight(), base_ring, M.character())
+
+    def modular_symbols(self,sign=0):
+        r"""
+        Return the space of modular symbols attached to this space, with the given sign (default 0).
+
+        TESTS::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: chi = DirichletGroup(5, base_ring = K).0
+            sage: L.<c> = K.extension(x^2 - 402*i)
+            sage: M = ModularForms(chi, 7, base_ring = L)
+            sage: symbs = M.modular_symbols()
+            sage: symbs.character() == chi
+            True
+            sage: symbs.base_ring() == L
+            True
+        """
+        sign = ZZ(sign)
+        try:
+            return self.__modular_symbols[sign]
+        except AttributeError:
+            self.__modular_symbols = {}
+        except KeyError:
+            pass
+        M = self.__M.modular_symbols(sign).change_ring(self.base_ring())
+        self.__modular_symbols[sign] = M
+        return M
 
     def _repr_(self):
         """
         String representation for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularForms(23,2,base_ring=GF(7)) ## indirect doctest
             sage: M._repr_()
             'Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(23) of weight 2 over Finite Field of size 7'
+
+            sage: chi = DirichletGroup(109).0 ** 36
+            sage: ModularForms(chi, 2, base_ring = chi.base_ring())
+            Modular Forms space of dimension 9, character [zeta3] and weight 2 over Cyclotomic Field of order 108 and degree 36
         """
         s = str(self.__M)
         i = s.find('over')
@@ -74,3 +112,23 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_R_with_category'>
         """
         return CuspidalSubmodule_R(self)
+
+
+    def change_ring(self, R):
+        r"""
+        Return this ring with the base ring changed to the ring R.
+
+        EXAMPLE::
+
+            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+            sage: M9 = ModularForms(chi, 2, base_ring = CyclotomicField(9))
+            sage: M9.change_ring(CyclotomicField(15))
+            Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 15 and degree 8
+            sage: M9.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Space cannot be defined over Rational Field
+        """
+        if not R.has_coerce_map_from(self.__M.base_ring()):
+            raise ValueError, "Space cannot be defined over %s" % R
+        return ModularFormsAmbient_R(self.__M, R)

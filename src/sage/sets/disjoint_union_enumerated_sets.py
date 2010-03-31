@@ -37,7 +37,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     disjoint; otherwise, a multiset is created.
 
     The argument ``family`` can be a list, a tuple, a dictionary, or a
-    family. If is is not a family it is first converted into a family
+    family. If it is not a family it is first converted into a family
     (see :func:`sage.sets.family.Family`).
 
     Experimental options:
@@ -224,7 +224,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
 
     def _is_a(self, x):
         """
-        Check if a sage object belongs to self. This methods is a helper for
+        Check if a Sage object belongs to self. This methods is a helper for
         :meth:`__contains__` and the constructor :meth:`_element_constructor_`.
 
         EXAMPLES::

@@ -419,7 +419,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
          q + a2*q^2 + (-a2 + 1)*q^3 + q^4 - q^5 + O(q^6)]
 
     A more complicated example involving both a nontrivial character, and a
-    base field that is not minimal for that character:
+    base field that is not minimal for that character::
 
         sage: K.<i> = QuadraticField(-1)
         sage: chi = DirichletGroup(5, K).gen(0)

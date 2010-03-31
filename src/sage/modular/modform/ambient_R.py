@@ -116,7 +116,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
 
     def change_ring(self, R):
         r"""
-        Return this ring with the base ring changed to the ring R.
+        Return this modular forms space with the base ring changed to the ring R.
 
         EXAMPLE::
 

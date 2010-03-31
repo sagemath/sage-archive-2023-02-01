@@ -1030,12 +1030,18 @@ class WordMorphism(SageObject):
             True
             sage: WordMorphism({0:[0],1:[1]}).is_identity()
             True
+
+        We check that #8618 is fixed::
+
+            sage: t = WordMorphism({'a1':['a2'], 'a2':['a1']})
+            sage: (t*t).is_identity()
+            True
         """
         if self.domain() != self.codomain():
             return False
 
         for letter in self.domain().alphabet():
-            img = self(letter)
+            img = self.image(letter)
             if img.length() != 1:
                 return False
             elif img[0] != letter:

@@ -6,6 +6,18 @@ if [ -z "$SAGE_LOCAL" ] ; then
    exit 1
 fi
 
+
+# Only build iconv on Solaris and Cygwin
+if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xCYGWIN ] ; then
+  echo "iconv will not be installed, as we only need to build it on"
+  echo "Solaris and Cygwin - see:"
+  echo "http://trac.sagemath.org/sage_trac/ticket/8567"
+  exit 0
+fi
+
+echo "Installing iconv as the operating system is Solaris or Cygwin"
+
+
 echo "Removing old iconv files if they exist"
 # If iconv is updated, please double-check these are still necessary
 # and that there are no extra files added.
@@ -16,16 +28,6 @@ rm -f $SAGE_LOCAL/include/iconv.h  $SAGE_LOCAL/include/libcharset.h
 rm -f $SAGE_LOCAL/include/localcharset.h
 rm -rf  $SAGE_LOCAL/share/doc/libiconv
 rm -f $SAGE_LOCAL/share/man/man1/iconv* $SAGE_LOCAL/share/man/man3/iconv*
-
-# Only build iconv on Solaris and Cygwin
-if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xCYGWIN ] ; then
-  echo "iconv will not be installed, as it is only installed on"
-  echo "Solaris and Cygwin - see:"
-  echo "http://trac.sagemath.org/sage_trac/ticket/8567"
-  exit 0
-fi
-
-echo "Installing iconv as the operating system is Solaris or Cygwin"
 
 
 # Let an environment variable CFLAG64 specify the option to generate 64-bit

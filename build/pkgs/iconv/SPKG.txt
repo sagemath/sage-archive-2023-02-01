@@ -28,6 +28,11 @@ GPL 3 and LGPL 3. So we can link against the library ok.
 
 == Changelog ==
 
+=== iconv-1.13.1.p1 (William Stein, March 31st 2010) ===
+ * Really ensure iconv spkg only does something on Solaris and Cygwin.
+   In particular, don't delete old versions thus breaking everybody's
+   upgrades.
+
 === iconv-1.13.1.p0 (David Kirkby, March 21st 2010) ===
  * #8567 Ensure iconv only builds on Solaris and Cygwin as
    having two copies of iconv causes problems on some Linux systems.

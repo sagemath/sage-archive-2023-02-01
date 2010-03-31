@@ -34,7 +34,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.words.word_options import word_options
 from itertools import islice, izip, groupby
-from sage.rings.all import Integers, ZZ
+from sage.rings.all import Integers, ZZ, Infinity
 
 class Word_class(SageObject):
     def parent(self):
@@ -147,7 +147,56 @@ class Word_class(SageObject):
         """
         return self._len
 
-    __len__ = length
+    def __len__(self):
+        r"""
+        Return the length of self (as a python integer).
+
+        ..NOTE::
+
+            For infinite words or words of unknown length, use length method
+            instead.
+
+        OUTPUT:
+
+            positive integer
+
+        EXAMPLES::
+
+            sage: len(Word(lambda n:n, length=1000))
+            1000
+            sage: len(Word(iter('a'*200), length='finite'))
+            200
+
+        We make sure #8574 is fixed::
+
+            sage: s = WordMorphism('0->000,1->%s'%('1'*100))
+            sage: len(s('1'))
+            100
+
+        For infinite word::
+
+            sage: len(Word(lambda n:n))
+            Traceback (most recent call last):
+            ...
+            TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
+            sage: len(Word(iter('a'*200)))
+            Traceback (most recent call last):
+            ...
+            TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
+
+        For word of unknown length::
+
+            sage: len(Word(iter('a'*200), length='unknown'))
+            Traceback (most recent call last):
+            ...
+            TypeError: Python len method can not return a non integer value (=None): use length method instead.
+        """
+        L = self.length()
+        if L is None or L is Infinity:
+            msg = "Python len method can not return a non integer value (=%s): "%L
+            msg += "use length method instead."
+            raise TypeError, msg
+        return int(L)
 
     def __cmp__(self, other):
         r"""

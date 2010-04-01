@@ -28,6 +28,9 @@ GPL 3 and LGPL 3. So we can link against the library ok.
 
 == Changelog ==
 
+=== iconv-1.13.1.p2 (John Palmieri, March 31st 2010) ===
+ * spkg-check: only run 'make check' on Solaris and Cygwin.
+
 === iconv-1.13.1.p1 (William Stein, March 31st 2010) ===
  * Really ensure iconv spkg only does something on Solaris and Cygwin.
    In particular, don't delete old versions thus breaking everybody's

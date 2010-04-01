@@ -5,6 +5,14 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# Only test iconv on Solaris and Cygwin
+if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xCYGWIN ] ; then
+  echo "'make check' for iconv will not be run, since iconv is"
+  echo "only installed on Solaris and Cygwin - see:"
+  echo "http://trac.sagemath.org/sage_trac/ticket/8567"
+  exit 0
+fi
+
 if [ "x`uname`" = xSunOS ] ; then
    echo "If you see 3 core dumps, do not be too alarmed. See"
    echo "http://trac.sagemath.org/sage_trac/ticket/8270"

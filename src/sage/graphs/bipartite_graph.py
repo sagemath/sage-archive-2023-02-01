@@ -452,7 +452,7 @@ class BipartiteGraph(Graph):
         vertices.  Vertices that already exist in the graph will not be added
         again.
 
-        INPUTS::
+        INPUTS:
 
           - ``vertices`` - sequence of vertices to add.
 
@@ -527,7 +527,8 @@ class BipartiteGraph(Graph):
                     new_right.add(vv)
 
         # check that we're not trying to add vertices to the wrong sets
-        if (new_left & self.right) or (new_right & self.left):
+        # or that a vertex is to be placed in both
+        if (new_left & self.right) or (new_right & self.left) or (new_right & new_left):
             raise RuntimeError('Cannot add duplicate vertex to other partition.')
 
         # add vertices
@@ -544,10 +545,8 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-
-        - ``in_order`` - (default ``False``) If ``True``, this deletes the ith vertex
+        - ``in_order`` - (default ``False``) If ``True``, this deletes the `i`th vertex
            in the sorted list of vertices, i.e.  ``G.vertices()[i]``
-
 
         EXAMPLES::
 

@@ -536,6 +536,11 @@ class Function_arctan2(GinacFunction):
             sage: x,y = var('x,y')
             sage: arctan2(y,x).operator()
             arctan2
+
+        Check if #8565 is fixed::
+
+            sage: atan2(-pi,0)
+            -1/2*pi
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2'))

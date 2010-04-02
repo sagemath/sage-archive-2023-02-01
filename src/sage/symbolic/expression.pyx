@@ -1276,13 +1276,15 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(-5)._is_negative()
             True
 
-        We can't deduce much for _is_negative()::
+        Check if we can correctly deduce negativity of mul objects::
 
             sage: t0 = SR.symbol("t0", domain='positive')
             sage: t0._is_negative()
             False
             sage: (-t0)._is_negative()
-            False
+            True
+            sage: (-pi)._is_negative()
+            True
         """
         return self._gobj.info(info_negative)
 

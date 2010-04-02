@@ -623,6 +623,11 @@ class Function_arctan2(GinacFunction):
 
             sage: atan2(-pi,0)
             -1/2*pi
+
+        Check if #8564 is fixed::
+
+            sage: arctan2(x,x)._sympy_()
+            atan2(x, x)
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2'))

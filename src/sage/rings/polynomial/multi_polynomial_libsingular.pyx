@@ -1728,6 +1728,25 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             4580
             sage: f(5,3,10)
             4580
+
+        See #8502::
+
+            sage: x = polygen(QQ)
+            sage: K.<t> = NumberField(x^2+47)
+            sage: R.<X,Y,Z> = K[]
+            sage: f = X+Y+Z
+            sage: a = f(t,t,t); a
+            3*t
+            sage: a.parent() is K
+            True
+
+            sage: R.<X,Y,Z> = QQ[]
+            sage: f = X+Y+Z
+            sage: a = f(2,3,4); a
+            9
+            sage: a.parent() is QQ
+            True
+
         """
         if len(kwds) > 0:
             f = self.subs(**kwds)
@@ -1759,11 +1778,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *res
         singular_polynomial_call(&res, self._poly, _ring, x, MPolynomial_libsingular_get_element)
 
-        if p_IsConstant(res, _ring) and all([e in parent._base for e in x]):
-            # I am sure there must be a better way to do this...
-            return parent._base(new_MP(parent, res))
-        else:
-            return new_MP(parent, res)
+        if res == NULL:
+            return parent._base._zero_element
+        if p_LmIsConstant(res, _ring):
+            return si2sa( p_GetCoeff(res, _ring), _ring, (<MPolynomialRing_libsingular>self._parent)._base )
+        return new_MP(parent, res)
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html

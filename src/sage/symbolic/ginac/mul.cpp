@@ -409,6 +409,40 @@ bool mul::info(unsigned inf) const
 			}
 			return false;
 		}
+		case info_flags::negative: {
+			bool neg = false;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::positive))
+					continue;
+				else if (factor.info(info_flags::negative))
+					neg = !neg;
+				else
+					return false;
+			}
+			if (overall_coeff.info(info_flags::negative))
+				neg = !neg;
+			return neg;
+		}
+		case info_flags::negint: {
+			bool neg = false;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::posint))
+					continue;
+				else if (factor.info(info_flags::negint))
+					neg = !neg;
+				else
+					return false;
+			}
+			if (overall_coeff.info(info_flags::negint))
+				neg = !neg;
+			else if (!overall_coeff.info(info_flags::posint))
+				return false;
+			return neg;
+		}
 	}
 	return inherited::info(inf);
 }

@@ -631,6 +631,7 @@ class SympyConverter(Converter):
                 "arcsin": "asin",
                 "arccos": "acos",
                 "arctan": "atan",
+                "arctan2": "atan2",
                 "arccot": "acot",
                 "arcsinh": "asinh",
                 "arccosh": "acosh",

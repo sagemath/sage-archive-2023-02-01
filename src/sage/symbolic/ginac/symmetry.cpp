@@ -189,7 +189,8 @@ unsigned symmetry::calchash() const
 
 	if (type == none) {
 		v = rotate_left(v);
-		v ^= *(indices.begin());
+		if (!indices.empty())
+			v ^= *(indices.begin());
 	} else {
 		for (exvector::const_iterator i=children.begin(); i!=children.end(); ++i)
 		{

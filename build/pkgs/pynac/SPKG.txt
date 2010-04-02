@@ -32,6 +32,10 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.12 (Burcin Erocal, April 2, 2010) ===
+ * Apply upstream patches to fix "division by zero" error on atan2(-pi,0)
+ * Apply upstream patches to fix incorrect use of STL iterators.
+
 === pynac-0.1.11 (Burcin Erocal, January 19, 2010) ===
  * Fix unarchiving overloaded functions.
  * Move numeric evaluation of log higher in eval.

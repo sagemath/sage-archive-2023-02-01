@@ -20,10 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <algorithm>
-#include <iostream>
-#include <stdexcept>
-
 #include "ncmul.h"
 #include "ex.h"
 #include "add.h"
@@ -33,6 +29,10 @@
 #include "archive.h"
 #include "indexed.h"
 #include "utils.h"
+
+#include <algorithm>
+#include <iostream>
+#include <stdexcept>
 
 namespace GiNaC {
 

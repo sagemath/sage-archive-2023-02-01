@@ -21,10 +21,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <numeric>
-#include <stdexcept>
-#include <limits>
-
 #include "pseries.h"
 #include "add.h"
 #include "inifcns.h" // for Order function
@@ -37,6 +33,10 @@
 #include "integral.h"
 #include "archive.h"
 #include "utils.h"
+
+#include <numeric>
+#include <stdexcept>
+#include <limits>
 
 namespace GiNaC {
 

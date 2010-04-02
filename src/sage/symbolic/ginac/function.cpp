@@ -24,12 +24,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <string>
-#include <stdexcept>
-#include <list>
-#include <limits>
-
 #include "function.h"
 #include "operators.h"
 #include "fderivative.h"
@@ -45,6 +39,12 @@
 #include "utils.h"
 #include "remember.h"
 #include "symbol.h"
+
+#include <iostream>
+#include <string>
+#include <stdexcept>
+#include <list>
+#include <limits>
 
 extern "C" {
 	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);

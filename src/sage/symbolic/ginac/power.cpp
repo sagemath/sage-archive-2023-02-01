@@ -20,22 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
-// ADDED FOR SAGE; this gets us nearly 20% speedup already for (x+y+z)^10.
-#include "Python.h"
-extern "C" {
-	PyObject* py_binomial_int(int n, unsigned int k);
-	PyObject* py_rational_power_parts(PyObject* basis, PyObject* exp);
-}
-
-
-#include <vector>
-#include <iostream>
-#include <stdexcept>
-#include <limits>
-#include <sstream>
-#include <string>
-
 #include "power.h"
 #include "expairseq.h"
 #include "add.h"
@@ -54,6 +38,19 @@ extern "C" {
 #include "relational.h"
 #include "compiler.h"
 #include "function.h"
+
+#include <vector>
+#include <stdexcept>
+#include <limits>
+#include <sstream>
+#include <string>
+
+// ADDED FOR SAGE; this gets us nearly 20% speedup already for (x+y+z)^10.
+extern "C" {
+	PyObject* py_binomial_int(int n, unsigned int k);
+	PyObject* py_rational_power_parts(PyObject* basis, PyObject* exp);
+}
+
 
 namespace GiNaC {
 

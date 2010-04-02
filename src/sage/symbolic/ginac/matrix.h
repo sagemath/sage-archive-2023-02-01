@@ -23,10 +23,11 @@
 #ifndef __GINAC_MATRIX_H__
 #define __GINAC_MATRIX_H__
 
-#include <vector>
-#include <string>
 #include "basic.h"
 #include "ex.h"
+
+#include <vector>
+#include <string>
 
 namespace GiNaC {
 

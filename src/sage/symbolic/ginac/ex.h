@@ -23,15 +23,14 @@
 #ifndef __GINAC_EX_H__
 #define __GINAC_EX_H__
 
+#include "basic.h"
+#include "ptr.h"
+
 #include <iosfwd>
 #include <iterator>
 #include <functional>
 #include <stack>
 
-#include "basic.h"
-#include "ptr.h"
-
-#include "Python.h"
 
 namespace GiNaC {
 

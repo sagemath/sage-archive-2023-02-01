@@ -23,6 +23,8 @@
 #ifndef __GINAC_BASIC_H__
 #define __GINAC_BASIC_H__
 
+#include "Python.h"
+
 #include <cstddef> // for size_t
 #include <vector>
 #include <set>
@@ -35,7 +37,6 @@
 #include "assertion.h"
 #include "registrar.h"
 
-#include "Python.h"
 
 namespace GiNaC {
 

@@ -20,13 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <algorithm>
-#include <map>
-#include <stdexcept>
-
 #include "matrix.h"
 #include "numeric.h"
 #include "lst.h"
@@ -39,6 +32,13 @@
 #include "normal.h"
 #include "archive.h"
 #include "utils.h"
+
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <map>
+#include <stdexcept>
 
 namespace GiNaC {
 

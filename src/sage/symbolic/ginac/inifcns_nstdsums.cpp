@@ -64,11 +64,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <sstream>
-#include <stdexcept>
-#include <vector>
-//#include <cln/cln.h>
-
 #include "inifcns.h"
 
 #include "add.h"
@@ -83,6 +78,11 @@
 #include "symbol.h"
 #include "utils.h"
 #include "wildcard.h"
+
+#include <sstream>
+#include <stdexcept>
+#include <vector>
+//#include <cln/cln.h>
 
 
 namespace GiNaC {

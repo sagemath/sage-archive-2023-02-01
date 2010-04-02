@@ -20,12 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <sstream>
-#include <iostream>
-#include <stdexcept>
-#include <limits>
-#include <string>
-
 #include "add.h"
 #include "mul.h"
 #include "archive.h"
@@ -35,6 +29,12 @@
 #include "clifford.h"
 #include "ncmul.h"
 #include "constant.h"
+
+#include <sstream>
+#include <iostream>
+#include <stdexcept>
+#include <limits>
+#include <string>
 
 namespace GiNaC {
 

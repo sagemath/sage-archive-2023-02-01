@@ -23,9 +23,9 @@
 #ifndef __GINAC_FDERIVATIVE_H__
 #define __GINAC_FDERIVATIVE_H__
 
-#include <set>
-
 #include "function.h"
+
+#include <set>
 
 namespace GiNaC {
 

@@ -48,18 +48,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "config.h"
-
-#include <vector>
-#include <stdexcept>
-#include <string>
-#include <sstream>
-#include <limits>
-
-namespace math {
-#include <math.h>
-}
-
 #include "numeric.h"
 #include "constant.h"
 #include "ex.h"
@@ -67,6 +55,14 @@ namespace math {
 #include "archive.h"
 #include "tostring.h"
 #include "utils.h"
+
+#include <vector>
+#include <stdexcept>
+#include <string>
+#include <sstream>
+#include <limits>
+
+#include <cmath>
 
 extern "C" {
 	PyObject* py_binomial(PyObject* a, PyObject* b);
@@ -390,10 +386,10 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     }
     switch (base.t) {
     case DOUBLE:
-      return math::pow(base.v._double, exp.v._double);
+      return std::pow(base.v._double, exp.v._double);
     case LONG:
       // TODO: change to use GMP!
-      return math::pow((double)base.v._long, (double)exp.v._long);
+      return std::pow((double)base.v._long, (double)exp.v._long);
     case PYOBJECT:
       if PyInt_Check(base.v._pyobject) {
 	  PyObject* o = Integer(PyInt_AsLong(base.v._pyobject));

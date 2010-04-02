@@ -20,10 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-
 #include "tensor.h"
 #include "idx.h"
 #include "indexed.h"
@@ -35,6 +31,10 @@
 #include "matrix.h"
 #include "archive.h"
 #include "utils.h"
+
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 
 namespace GiNaC {
 

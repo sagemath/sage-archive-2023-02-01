@@ -23,9 +23,9 @@
 #ifndef __GINAC_CLIFFORD_H__
 #define __GINAC_CLIFFORD_H__
 
+#include "symbol.h"
 #include "indexed.h"
 #include "tensor.h"
-#include "symbol.h"
 #include "idx.h"
 
 #include <set>

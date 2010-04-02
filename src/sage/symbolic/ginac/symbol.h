@@ -23,10 +23,11 @@
 #ifndef __GINAC_SYMBOL_H__
 #define __GINAC_SYMBOL_H__
 
-#include <string>
 #include "basic.h"
 #include "ex.h"
 #include "ptr.h"
+
+#include <string>
 
 namespace GiNaC {
 

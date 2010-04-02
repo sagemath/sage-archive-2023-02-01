@@ -20,16 +20,16 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <string>
-#include <stdexcept>
-#include <iostream>
-
 #include "constant.h"
 #include "numeric.h"
 #include "ex.h"
 #include "archive.h"
 #include "utils.h"
 #include "inifcns.h"
+
+#include <string>
+#include <stdexcept>
+#include <iostream>
 
 namespace GiNaC {
 

@@ -27,13 +27,13 @@
 #ifndef __GINAC_FUNCTION_H__
 #define __GINAC_FUNCTION_H__
 
+#include "exprseq.h"
+
 #include <string>
 #include <vector>
 
 // CINT needs <algorithm> to work properly with <vector>
 #include <algorithm>
-
-#include "exprseq.h"
 
 // the following lines have been generated for max. 14 parameters
 #define DECLARE_FUNCTION_1P(NAME) \

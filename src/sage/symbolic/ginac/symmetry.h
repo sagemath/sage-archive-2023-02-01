@@ -23,9 +23,9 @@
 #ifndef __GINAC_SYMMETRY_H__
 #define __GINAC_SYMMETRY_H__
 
-#include <set>
-
 #include "ex.h"
+
+#include <set>
 
 namespace GiNaC {
 

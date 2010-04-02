@@ -23,14 +23,14 @@
 #ifndef __GINAC_EXPAIRSEQ_H__
 #define __GINAC_EXPAIRSEQ_H__
 
+#include "expair.h"
+#include "indexed.h"
+
 #include <vector>
 #include <list>
 #include <memory>
 // CINT needs <algorithm> to work properly with <vector> and <list>
 #include <algorithm>
-
-#include "expair.h"
-#include "indexed.h"
 
 namespace GiNaC {
 

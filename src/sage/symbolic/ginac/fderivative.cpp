@@ -20,12 +20,12 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-
 #include "fderivative.h"
 #include "operators.h"
 #include "archive.h"
 #include "utils.h"
+
+#include <iostream>
 
 extern "C" {
 	std::string* py_print_fderivative(unsigned id, PyObject* params,

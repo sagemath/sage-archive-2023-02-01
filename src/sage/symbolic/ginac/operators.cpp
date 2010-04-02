@@ -20,10 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <iomanip>
-
-#include "operators.h"
 #include "numeric.h"
 #include "add.h"
 #include "mul.h"
@@ -32,6 +28,11 @@
 #include "relational.h"
 #include "print.h"
 #include "utils.h"
+
+#include "operators.h"
+
+#include <iostream>
+#include <iomanip>
 
 namespace GiNaC {
 

@@ -23,9 +23,9 @@
 #ifndef __GINAC_LST_H__
 #define __GINAC_LST_H__
 
-#include <list>
-
 #include "container.h"
+
+#include <list>
 
 namespace GiNaC {
 

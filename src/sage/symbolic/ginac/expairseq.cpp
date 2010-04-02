@@ -20,12 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <stdexcept>
-#include <iterator>
-
 #include "expairseq.h"
 #include "lst.h"
 #include "add.h"
@@ -38,6 +32,12 @@
 #include "utils.h"
 #include "indexed.h"
 #include "constant.h"
+
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <stdexcept>
+#include <iterator>
 
 #if EXPAIRSEQ_USE_HASHTAB
 #include <cmath>

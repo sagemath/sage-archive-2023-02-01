@@ -52,7 +52,6 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
-#include "Python.h"
 
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);

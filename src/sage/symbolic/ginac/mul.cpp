@@ -20,13 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-#include <limits>
-#include <cmath>
-#include <sstream>
-
 #include "mul.h"
 #include "add.h"
 #include "operators.h"
@@ -40,6 +33,13 @@
 #include "constant.h"
 #include "function.h"
 #include "inifcns.h"
+
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+#include <limits>
+#include <cmath>
+#include <sstream>
 
 namespace GiNaC {
 

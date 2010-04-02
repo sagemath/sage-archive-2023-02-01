@@ -23,10 +23,11 @@
 #ifndef __GINAC_INDEXED_H__
 #define __GINAC_INDEXED_H__
 
-#include <map>
 
 #include "exprseq.h"
 #include "wildcard.h"
+
+#include <map>
 
 namespace GiNaC {
 

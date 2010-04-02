@@ -20,11 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <limits>
-
 #include "indexed.h"
 #include "idx.h"
 #include "add.h"
@@ -41,6 +36,11 @@
 #include "integral.h"
 #include "matrix.h"
 #include "inifcns.h"
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <limits>
 
 namespace GiNaC {
 

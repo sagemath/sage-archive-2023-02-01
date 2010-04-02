@@ -23,9 +23,10 @@
 #ifndef __GINAC_CONSTANT_H__
 #define __GINAC_CONSTANT_H__
 
-#include <string>
 #include "basic.h"
 #include "ex.h"
+
+#include <string>
 
 namespace GiNaC {
 

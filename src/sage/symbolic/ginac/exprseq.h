@@ -23,9 +23,9 @@
 #ifndef __GINAC_EXPRSEQ_H__
 #define __GINAC_EXPRSEQ_H__
 
-#include <vector>
-
 #include "container.h"
+
+#include <vector>
 
 namespace GiNaC {
 

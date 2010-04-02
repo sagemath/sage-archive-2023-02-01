@@ -21,11 +21,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <vector>
-#include <stdexcept>
-#include <sstream>
-#include <string>
-
 #include "inifcns.h"
 #include "ex.h"
 #include "constant.h"
@@ -36,6 +31,11 @@
 #include "symbol.h"
 #include "pseries.h"
 #include "utils.h"
+
+#include <vector>
+#include <stdexcept>
+#include <sstream>
+#include <string>
 
 namespace GiNaC {
 

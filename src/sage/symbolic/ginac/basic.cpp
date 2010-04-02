@@ -20,12 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <iostream>
-#include <stdexcept>
-#ifdef DO_GINAC_ASSERT
-#  include <typeinfo>
-#endif
-
 #include "basic.h"
 #include "ex.h"
 #include "numeric.h"
@@ -40,6 +34,12 @@
 #include "archive.h"
 #include "utils.h"
 #include "inifcns.h"
+
+#include <iostream>
+#include <stdexcept>
+#ifdef DO_GINAC_ASSERT
+#  include <typeinfo>
+#endif
 
 namespace GiNaC {
 

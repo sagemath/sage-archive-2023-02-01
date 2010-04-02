@@ -21,11 +21,11 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
-
 #include "function.h"
 #include "utils.h"
 #include "remember.h"
+
+#include <stdexcept>
 
 namespace GiNaC {
 

@@ -23,17 +23,17 @@
 #ifndef __GINAC_CONTAINER_H__
 #define __GINAC_CONTAINER_H__
 
+#include "ex.h"
+#include "print.h"
+#include "archive.h"
+#include "assertion.h"
+
 #include <iterator>
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
 #include <list>
 #include <memory>
-
-#include "ex.h"
-#include "print.h"
-#include "archive.h"
-#include "assertion.h"
 
 namespace GiNaC {
 

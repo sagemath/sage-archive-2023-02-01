@@ -23,9 +23,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <algorithm>
-#include <map>
-
 #include "normal.h"
 #include "basic.h"
 #include "ex.h"
@@ -44,6 +41,9 @@
 #include "pseries.h"
 #include "symbol.h"
 #include "utils.h"
+
+#include <algorithm>
+#include <map>
 
 namespace GiNaC {
 

@@ -32,6 +32,10 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.20.1.p0 (William Stein, 3 April 2010) ===
+ * Artificially bump version number to force rebuild, due to Maxima being broken without
+   doing so on upgrade.
+
 === maxima-5.20.1 (Karl-Dieter Crisman, 21st December 2009) ===
  * Upgrade to the latest upstream release
  * Removed patches - the solver is now in Maxima, and topoly.lisp is no longer used

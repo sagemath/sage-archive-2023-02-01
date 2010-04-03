@@ -92,7 +92,7 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     else:
         cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % F.ainvs()
 
-    gp('DEBUGLEVEL=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
+    gp('DEBUGLEVEL_ell=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
         verbose, lim1, lim3, limtriv, maxprob, limbigprime))
 
     if verbose >= 2:

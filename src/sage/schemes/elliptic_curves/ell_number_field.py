@@ -214,26 +214,40 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a> = NumberField(x^2 + 7, 'a')
             sage: E = EllipticCurve(K, [0,0,0,1,a]); E
             Elliptic Curve defined by y^2  = x^3 + x + a over Number Field in a with defining polynomial x^2 + 7
+
             sage: v = E.simon_two_descent(verbose=1); v
+            courbe elliptique : Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
+            points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            #S(E/K)[2]    = 2
+            #E(K)/2E(K)   = 2
+            #III(E/K)[2]  = 1
+            rang(E/K)     = 1
+            listpointsmwr = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
+
+            sage: v = E.simon_two_descent(verbose=2); v
+            K = bnfinit(y^2 + 7);
+            a = Mod(y,K.pol);
+            bnfellrank(K, [0,0,0,1,a]);
             courbe elliptique : Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
             A = 0
             B = Mod(1, y^2 + 7)
             C = Mod(y, y^2 + 7)
             LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             #LS2gen = 2
-             Recherche de points triviaux sur la courbe
+            Recherche de points triviaux sur la courbe
             points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-             symbole de Hilbert (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) = -1
-             zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-             symbole de Hilbert (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) = 0
-             sol de Legendre = [1, 0, 1]~
-             zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-             quartique : (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
-             reduite: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
-             non ELS en [2, [0, 1]~, 1, 1, [1, 1]~]
+            symbole de Hilbert (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) = -1
+            zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+            symbole de Hilbert (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) = 0
+            sol de Legendre = [1, 0, 1]~
+            zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+            quartique : (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
+            reduite: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
+            non ELS en [2, [0, 1]~, 1, 1, [1, 1]~]
             zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-             vient du point trivial [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
+            vient du point trivial [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
             m1 = 1
             m2 = 1
             #S(E/K)[2]    = 2
@@ -241,6 +255,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             #III(E/K)[2]  = 1
             rang(E/K)     = 1
             listpointsmwr = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            v =  [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
 
         A curve with 2-torsion::

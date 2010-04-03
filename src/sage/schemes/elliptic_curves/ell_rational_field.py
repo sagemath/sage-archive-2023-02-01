@@ -1512,7 +1512,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('5077a1')
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (3, 3, [(1 : 0 : 1), (2 : -1 : 1), (0 : 2 : 1)])
+            (3, 3, [(1 : 0 : 1), (0 : 2 : 1), (2 : -1 : 1)])
 
         In this example Simon's program does not find any points, though it
         does correctly compute the rank of the 2-Selmer group.
@@ -1532,11 +1532,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (4, 4, [(6 : -5 : 1), (4 : 3 : 1), (5 : -3 : 1), (8 : -15 : 1)])
+            (4, 4, [(4 : 3 : 1), (5 : -2 : 1), (6 : -1 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (5, 5, [(5 : 8 : 1), (10 : 23 : 1), (3 : 11 : 1), (4 : -10 : 1), (0 : 18 : 1)])
+            (5, 5, [(5 : 8 : 1), (3 : 11 : 1), (17/4 : 69/8 : 1), (33/4 : -131/8 : 1), (33 : 183 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s

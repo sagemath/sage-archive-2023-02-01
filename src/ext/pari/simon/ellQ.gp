@@ -1,5 +1,5 @@
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\\       Copyright (C) 2007 Denis Simon
+\\       Copyright (C) 2008 Denis Simon
 \\
 \\ Distributed under the terms of the GNU General Public License (GPL)
 \\
@@ -20,7 +20,7 @@
 \\ www.math.unicaen.fr/~simon/ellQ.gp
 \\
 \\  *********************************************
-\\  *          VERSION 13/11/2007               *
+\\  *          VERSION 29/04/2008               *
 \\  *********************************************
 \\
 \\ Programme de calcul du rang des courbes elliptiques sur Q.
@@ -83,10 +83,10 @@
 \\ Variables globales usuelles
 \\
 
-  DEBUGLEVEL_ell = 2; \\ pour avoir plus ou moins de details
+  DEBUGLEVEL_ell = 1; \\ pour avoir plus ou moins de details
   LIM1 = 5;       \\ limite des points triviaux sur les quartiques
   LIM3 = 50;      \\ limite des points sur les quartiques ELS
-  LIMTRIV = 10;   \\ limite des points triviaux sur la courbe elliptique
+  LIMTRIV = 50;   \\ limite des points triviaux sur la courbe elliptique
 
 \\
 \\  Variables globales techniques
@@ -224,6 +224,95 @@ sqrtrat(a) =
 \\ Fonctions propres a ellQ.gp
 \\
 
+if( DEBUGLEVEL_ell >= 4, print("ellhalf"));
+{
+ellhalf(ell,P)=
+\\ renvoie tous les points Q sur ell tels que 2Q = P.
+local(pol2,ratroots,half,x2,y2,P2);
+
+  if(#ell < 13, ell=ellinit(ell,1));
+
+  pol2 = Pol([4,ell.b2,2*ell.b4,ell.b6]); \\ polynome de 2-division
+
+  if( P == [0],
+    ratroots = polratroots(pol2);
+    half = vector(#ratroots,i,[ratroots[i],ellordinate(ell,ratroots[i])[1]]);
+    half = concat( [[0]], half);
+    return(half)
+  );
+
+  x2=Pol([1,0,-ell.b4,-2*ell.b6,-ell.b8]); \\ x(2P) = x2/pol2
+
+  half = [];
+  ratroots = polratroots(x2-P[1]*pol2);
+  if( #ratroots == 0, return(half));
+  for( i = 1, #ratroots,
+    y2 = ellordinate(ell,ratroots[i]);
+    for( j = 1, #y2,
+      P2 = [ratroots[i],y2[j]];
+      if( ellpow(ell,P2,2) == P, half = concat(half,[P2]))
+    )
+  );
+  return(half);
+}
+if( DEBUGLEVEL_ell >= 4, print("elltors2"));
+{
+elltors2(ell)=
+\\ Calcule le sous-groupe de 2-torsion de la courbe elliptique ell.
+local(pol2,ratroots,tors2);
+
+if( DEBUGLEVEL_ell >= 4, print("calcul de la 2-torsion"));
+  if(#ell < 13, ell=ellinit(ell,1));
+  tors2 = ellhalf(ell,[0]);
+  if( #tors2 == 1,
+    tors2 = [1, [], []],
+  if( #tors2 == 2,
+    tors2 = [2, [2], [tors2[2]]]
+  , tors2 = [4, [2,2], [tors2[2],tors2[3]]]
+  ));
+if( DEBUGLEVEL_ell >= 4, print("E[2] = ",tors2));
+  return(tors2);
+}
+if( DEBUGLEVEL_ell >= 4, print("elltorseven"));
+{
+elltorseven(ell)=
+\\ Calcule le 2-Sylow sous-groupe de torsion de la courbe elliptique ell.
+local(torseven,P2);
+
+if( DEBUGLEVEL_ell >= 4, print("calcul de la 2^n-torsion"));
+  if(#ell < 13, ell=ellinit(ell,1));
+  torseven = elltors2(ell);
+
+  while( torseven[1] != 1,
+    P2 = ellhalf(ell,torseven[3][1]);
+    if( #P2 > 0,
+       torseven[1] *= 2;
+       torseven[2][1] *= 2;
+       torseven[3][1] = P2[1];
+       next
+    );
+    if( #torseven[3] == 1, break());
+
+    P2 = ellhalf(ell,torseven[3][2]);
+    if( #P2 > 0,
+       torseven[1] *= 2;
+       torseven[2][2] *= 2;
+       torseven[3][2] = P2[1];
+       next
+    );
+    P2 = ellhalf(ell,elladd(ell,torseven[3][1],torseven[3][2]));
+    if( #P2 > 0,
+       torseven[1] *= 2;
+       torseven[2][1] *= 2;
+       torseven[3][1] = P2[1];
+       next
+    );
+    break()
+  );
+
+if( DEBUGLEVEL_ell >= 4, print("E[2^n] = ",torseven));
+  return(torseven);
+}
 if( DEBUGLEVEL_ell >= 4, print("polratroots"));
 {
 polratroots(pol) =
@@ -237,7 +326,7 @@ local(f,ans);
 }
 if( DEBUGLEVEL_ell >= 4, print("ratpoint"));
 {
-ratpoint(pol,lim,singlepoint=1,tryhard=0) =
+ratpoint(pol,lim=1,singlepoint=1,tryhard=0) =
 \\ Recherche de points sur y^2=pol(x).
 \\ Les coeff de pol sont entiers.
 \\ Si singlepoint >= 1, cherche un seul point, sinon plusieurs.
@@ -286,24 +375,27 @@ if( DEBUGLEVEL_ell >= 4, print("fin de ratpoint"));
         tab5[xx+1,zz+1] = !issquare([xx^4,xx^3*zz,xx^2*zz^2,xx*zz^3,zz^4]*pol5)))
   );
 
+  lead = pollead(pol);
+  pol0 = polcoeff(pol,0);
+
   if( odd,
     vecz = vector(lim,i,i^2);
-    vecx = vector(lim,i,i)
   ,
-\\ si le degre de pol est pair, il faut que le coeff constant soit
-\\ un carre mod xx. Idem pour le dominant mod zz.
+\\ si le degre de pol est pair, il faut que le coeff dominant soit
+\\ un carre mod zz.
     vecz = vector(lim);
-    vecx = vector(lim);
-    lead = pollead(pol);
-    pol0 = polcoeff(pol,0);
-    zz = 0; xx = 0;
+    zz = 0;
     for( i = 1, lim,
-      xx++; while( !issquare(Mod(pol0,xx)),xx++); vecx[i] = xx;
       zz++; while( !issquare(Mod(lead,zz)),zz++); vecz[i] = zz
   ));
+\\ le coeff constant doit etre un carre mod xx.
+  vecx = vector(lim);
+  xx = 0;
+  for( i = 1, lim,
+    xx++; while( !issquare(Mod(pol0,xx)),xx++); vecx[i] = xx);
 
-if( DEBUGLEVEL_ell >= 4, print("xmax = ",xx));
-if( DEBUGLEVEL_ell >= 4, print("zmax = ",zz));
+if( DEBUGLEVEL_ell >= 4, print("xmax = ",vecx[lim]));
+if( DEBUGLEVEL_ell >= 4, print("zmax = ",vecz[lim]));
 
 if( DEBUGLEVEL_ell >= 5, print("vecx = ",vecx));
 if( DEBUGLEVEL_ell >= 5, print("vecz = ",vecz));
@@ -313,6 +405,7 @@ if( DEBUGLEVEL_ell >= 5, print("vecz = ",vecz));
     for( ix = max(1,somme-lim), min(lim,somme-1),
       xx = vecx[ix]; iz = somme-ix; zz = vecz[iz];
       if( gcd(zz,xx) > 1, next);
+      if( odd && !issquare(lead*Mod(xx,zz)), next);
       for( eps = 1, 2, if( eps == 2, zz = -zz);
       if( deg4 &&
         (tab16[xx%16+1,zz%16+1] || tab9[xx%9+1,zz%9+1] || tab5[xx%5+1,zz%5+1])
@@ -331,11 +424,11 @@ if( DEBUGLEVEL_ell >= 4, print("sortie de ratpoint "));
   );
 
 \\
-\\ Try another strategy when pol has a nontrivial content
+\\ Essaye une autre strategie quand pol a un content non trivial
 \\
 
   if( !odd && tryhard,
-if( DEBUGLEVEL_ell >= 4, print(" Try hard *************"));
+if( DEBUGLEVEL_ell >= 4, print(" Autre strategie dans ratpoint **********"));
     K = content(pol);
     if( K != 1,
       pol /= K;
@@ -347,8 +440,8 @@ if( DEBUGLEVEL_ell >= 4, print(" Try hard *************"));
         e = factK[,2]%2;
         ind = #e; while( !e[ind], ind--);
         p = factK[ind,1];
-        if( valuation( pollead(pol), p) >= 1
-         && valuation( pollead(pol), p) <= 2,
+        if( valuation( pollead(pol), p) == 1 ||
+            ( valuation( pollead(pol), p) >= 2 && valuation( polcoeff(pol,poldegree(pol)-1), p) == 0),
 if( DEBUGLEVEL_ell >= 4, print(" utilise une racine de pol mod p = ",p));
           sol = ratpoint(K/p^2*subst(polrecip(pol),variable(pol),p*variable(pol)),lim,singlepoint,1);
           if( #sol > 0,
@@ -365,7 +458,7 @@ if( DEBUGLEVEL_ell >= 4, print(" utilise une racine de pol mod p = ",p));
           r = -centerlift(polcoeff(factpol[i],0));
           if( valuation(subst(pol,variable(pol),r),p) > 2, next);
           M = [p,r;0,1];
-          U = redquartique(subst(pol,variable(pol),p*variable(pol)+r));
+          U = redquartique(subst(K*pol,variable(pol),p*variable(pol)+r));
           if( content(U[1]) != p, next);
           sol = ratpoint(K/p^2*U[1],lim,singlepoint,1);
           if( #sol > 0,
@@ -572,8 +665,10 @@ if( DEBUGLEVEL_ell >= 4, print(" precision = ",prec));
     if( !test, default(realprecision, prec *= 2))
   );
 
+\\ On n'utilise plus
 \\  q = Vec(sum( i = 1, d, norm(x-r[i])));
-  q = Vec(sum( i = 1, d, norm(x-r[i]) / normderiv[i]^(1/(d-2)))); \\ uses Cremona-Stoll normalization
+\\ mais la normalisation de Cremona-Stoll
+  q = Vec(sum( i = 1, d, norm(x-r[i]) / normderiv[i]^(1/(d-2))));
   M = QfbReduce([q[1],q[2]/2;q[2]/2,q[3]]);
   pol = subst(pol,variable(pol),Pol(M[1,])/Pol(M[2,]))*Pol(M[2,])^poldegree(pol);
 
@@ -601,10 +696,26 @@ local(deg,xx,z,qd,Qd,reduc);
 
   return(delta*subst(Pol(reduc),x,xx)^2);
 }
+if( DEBUGLEVEL_ell >= 4, print("ellsort"));
+{
+ellsort(listpts) =
+\\ tri des points listpts sur une courbe elliptique
+\\ suivant la hauteur naive.
+local(n,v,aux,ord);
+
+  v = vector(n = #listpts);
+  for( i = 1, n,
+    if( listpts[i] == [0], v[i] = [0,0,0]; next);
+    aux = denominator(listpts[i][2])/denominator(listpts[i][1]);
+    v[i] = vecsort(abs([listpts[i][1]*aux^2, listpts[i][2]*aux^3,aux]),,4);
+  );
+  ord = vecsort(v,,3);
+  return(vector(n,i,listpts[ord[i]]));
+}
 if( DEBUGLEVEL_ell >= 4, print("ellredgen"));
 {
 ellredgen(ell,listgen,K=1) =
-\\ reduction des generateurs de listgen en utilisant hauteur naive
+\\ reduction des generateurs de listgen
 \\ sur la courbe ell = [a1,a2,a3,a4,a6]
 \\ ou K*y^2 = x^3 + a2*x^2 + a4*x + a6 (lorsque a1 = a3 = 0);
 local(d,sqrtK,urst,M,U,limgoodrelations,listgen2);
@@ -683,10 +794,13 @@ if( DEBUGLEVEL_ell >= 4, print("changement de base = ",U));
     listgen = listgen2
   );
 
+  listgen = ellsort(listgen);
+if( DEBUGLEVEL_ell >= 4, print("generateurs tries = ",listgen));
+
   listgen = ellchangepointinverse(listgen,urst);
   if( K != 1,
     for( i = 1, d,
-      for( j = 1, d,
+      for( j = 1, 2,
         listgen[i][j] /= K^j)));
 
 \\ on ne garde que les points (x,y) avec y >= 0
@@ -779,7 +893,7 @@ if( DEBUGLEVEL_ell >= 3, print("#KS2gen = ",#KS2gen));
 if( DEBUGLEVEL_ell >= 3, print("KS2gen = ",KS2gen));
 
   LS2genunit = ext.tufu;
-  LS2genunit = concat(lift(nfbasistoalg(ext,LS2gen[1])),LS2genunit);
+  LS2genunit = concat(LS2gen[1],LS2genunit);
 
   LS2genunit = subst(LS2genunit,x,ttheta);
   LS2genunit = LS2genunit*Mod(1,polrel);
@@ -1023,12 +1137,12 @@ if( DEBUGLEVEL_ell >= 4, print("ellrank"));
 ellrank(ell,help=[]) =
 \\ Algorithme de la 2-descente sur la courbe elliptique ell.
 \\ help est une liste de points connus sur ell.
-local(urst,urst1,den,tors,eqtheta,bnf,rang,time1);
+local(urst,urst1,den,eqell,tors2,bnf,rang,time1);
 
 if( DEBUGLEVEL_ell >= 3, print("entree dans ellrank"));
   if( #ell < 13, ell = ellinit(ell,1));
 
-\\ removes the coefficients a1 and a3
+\\ supprime les coefficients a1 et a3
   urst = [1,0,0,0];
   if( ell.a1 != 0 || ell.a3 != 0,
     urst1 = [1,0,-ell.a1/2,-ell.a3/2];
@@ -1036,7 +1150,7 @@ if( DEBUGLEVEL_ell >= 3, print("entree dans ellrank"));
     urst = ellcomposeurst(urst,urst1)
   );
 
-\\ removes denominators
+\\ supprime les denominateurs
   while( (den = denominator([ell.a2,ell.a4,ell.a6])) > 1,
     den = factor(den); den[,2] = vectorv(#den[,2],i,1);
     den = factorback(den);
@@ -1046,31 +1160,36 @@ if( DEBUGLEVEL_ell >= 3, print("entree dans ellrank"));
   );
 
   help = ellchangepoint(help,urst);
+  eqell = Pol([1,ell.a2,ell.a4,ell.a6]);
+if( DEBUGLEVEL_ell >= 1, print("courbe elliptique : Y^2 = ",eqell));
 
 \\ choix de l'algorithme suivant la 2-torsion
-  eqtheta = Pol([1,ell.a2,ell.a4,ell.a6]);
-if( DEBUGLEVEL_ell >= 1, print("courbe elliptique : Y^2 = ",eqtheta));
-  f = polratroots(eqtheta);
 
-  if( #f == 0,                                  \\ cas 1: 2-torsion triviale
+  tors2 = ellhalf(ell,[0]);
+if( DEBUGLEVEL_ell >= 1, print("E[2] = ",tors2));
+
+  if( #tors2 == 1,                              \\ cas 1: 2-torsion triviale
 if( DEBUGLEVEL_ell >= 3, print1("bnfinit "));
-if( DEBUGLEVEL_ell >= 2, gettime());
-    bnf = bnfinit(eqtheta,1);
-if( DEBUGLEVEL_ell >= 2, time1 = gettime());
+if( DEBUGLEVEL_ell >= 4, gettime());
+    bnf = bnfinit(eqell,1);
+if( DEBUGLEVEL_ell >= 4, time1 = gettime());
 if( DEBUGLEVEL_ell >= 3, print("ok"));
     rang = ell2descent_gen(ell,bnf,1,help);
-if( DEBUGLEVEL_ell >= 2, print("temps dans bnfinit = ",time1));
-if( DEBUGLEVEL_ell >= 2, print("temps pour le reste = ",gettime()));
+if( DEBUGLEVEL_ell >= 4, print("temps dans bnfinit = ",time1));
+if( DEBUGLEVEL_ell >= 4, print("temps pour le reste = ",gettime()));
   ,
-  if( #f >= 1,                                  \\ cas 2: 2-torsion >= Z/2Z
-    if( f[1] != 0,
-      urst1 = [1,f[1],0,0];
+  if( #tors2 >= 2,                              \\ cas 2: 2-torsion >= Z/2Z
+    if( ell.a6 != 0,
+      urst1 = [1,tors2[2][1],0,0];
       ell = ellchangecurve(ell,urst1);
       urst = ellcomposeurst(urst,urst1)
     );
-    rang = ell2descent_viaisog(ell)
+    eqell = Pol([1,ell.a2,ell.a4,ell.a6]);
+if( DEBUGLEVEL_ell >= 1, print("courbe elliptique : Y^2 = ",eqell));
+
+    rang = ell2descent_viaisog(ell,help)
   ,                                             \\ cas 3: 2-torsion = Z/2Z*Z/2Z
-\\    rang = ell2descent_complete(f[1],f[2],f[3])
+\\    rang = ell2descent_complete(tors2[2][1],tors2[3][2],tors2[4][3])
   ));
 
   rang[3] = ellchangepointinverse(rang[3],urst);
@@ -1212,9 +1331,9 @@ if( DEBUGLEVEL_ell >= 1,
 , print("rang        = ",rang));
   if( rang, print("points = ",listepoints));
 );
-  ell = ellinit([0,-(e1+e2+e3),0,e1*e2+e2*e3+e3*e1,e1*e2*e2],1);
-  listepoints = ellredgen(ell,listepoints);
-  listepoints = concat(elltors(ell,#ell<19)[3],listepoints);
+  ell = ellinit([0,-(e1+e2+e3),0,e1*e2+e2*e3+e3*e1,-e1*e2*e3]);
+  if( ELLREDGENFLAG, listepoints = ellredgen(ell,listepoints));
+  listepoints = concat(ellsort(elltorseven(ell)[3]),listepoints);
 
 return([rang,selmer,listepoints]);
 }
@@ -1293,7 +1412,7 @@ if( DEBUGLEVEL_ell >= 4, print("fin de ellcount"));
 }
 if( DEBUGLEVEL_ell >= 4, print("ell2descent_viaisog"));
 {
-ell2descent_viaisog(ell) =
+ell2descent_viaisog(ell,help=[]) =
 \\ Calcul du rang des courbes elliptiques avec 2-torsion
 \\ par la methode des 2-isogenies.
 \\
@@ -1318,9 +1437,7 @@ if( DEBUGLEVEL_ell >= 2, print("Algorithme de la 2-descente par isogenies"));
   P = Pol([1,ell.a2,ell.a4]);
   Pfact = factor(P)[,1];
   tors = #Pfact;
-  if( #Pfact > 1,
-    listpointstriv=[[0,0],[-polcoeff(Pfact[1],0),0],[-polcoeff(Pfact[2],0),0]]
-  , listpointstriv = [[0,0]]);
+  listpointstriv = concat(help,elltorseven(ell)[3]);
 
   apinit = -2*ell.a2; bpinit = ell.a2^2-4*ell.a4;
 
@@ -1366,10 +1483,7 @@ if( DEBUGLEVEL_ell >= 2,
   print("K(a^2-4b,2)gen     = ",KS2gen));
 
   P = Pol([1,apinit,bpinit]);
-  Pfact = factor(P)[,1];
-  if( #Pfact > 1,
-    listpointstriv = [[0,0],[-polcoeff(Pfact[1],0),0],[-polcoeff(Pfact[2],0),0]]
-  , listpointstriv = [[0,0]]);
+  listpointstriv = elltorseven([0,apinit,0,bpinit,0])[3];
 
 if( DEBUGLEVEL_ell >= 3, print(" Recherche de points triviaux sur la courbe"));
   P *= x;
@@ -1408,7 +1522,7 @@ if( DEBUGLEVEL_ell >= 1,
   if( certain && certainp, print1(" "), print1("<"));
   print("= ",1<<(n2+np2-n1-np1));
 
-  print("#E(K)[2]            = ",1<<tors);
+  print("#E(Q)[2]            = ",1<<tors);
 );
   rang = n1+np1-2;
 if( DEBUGLEVEL_ell >= 1,
@@ -1474,8 +1588,8 @@ if( DEBUGLEVEL_ell >= 1,
 
 \\ fin de strange
 
-  pointgen = ellredgen(ell,pointgen);
-  pointgen = concat(elltors(ell,#ell<19)[3],pointgen);
+  if( ELLREDGENFLAG, pointgen = ellredgen(ell,pointgen));
+  pointgen = concat(ellsort(elltorseven(ell)[3]),pointgen);
 if( DEBUGLEVEL_ell >= 1, print("points = ",pointgen));
 if( DEBUGLEVEL_ell >= 3, print("fin de ell2descent_viaisog"));
   return([rang,n2+np2-2+tors,pointgen]);

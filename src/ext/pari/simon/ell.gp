@@ -20,7 +20,7 @@
 \\ www.math.unicaen.fr/~simon/ell.gp
 \\
 \\  *********************************************
-\\  *          VERSION 13/11/2007               *
+\\  *          VERSION 25/03/2009               *
 \\  *********************************************
 \\
 \\ Programme de calcul du rang des courbes elliptiques
@@ -127,12 +127,43 @@ mysubst(polsu,subsx) =
     return(simplify(subst(lift(polsu),variable(lift(polsu)),subsx)) )
   , return(simplify(lift(polsu))));
 }
+if( DEBUGLEVEL_ell >= 4, print("nfsign"));
+{
+nfsign(nf,a,i) =
+\\ return the sign of the algebraic number a in the i-th real embedding.
+local(nf_roots,ay,def);
+
+  if( a == 0, return(0));
+
+  a = lift(a);
+  if( type(a) != "t_POL",
+    return(sign(a)));
+
+  nf_roots = nf.roots;
+  def = default(realprecision);
+
+  ay = 0;
+  while( ay == 0 || precision(ay) < 10,
+
+    ay = subst(a,variable(a),nf_roots[i]);
+
+    if( ay == 0 || precision(ay) < 10,
+if( DEBUGLEVEL_ell >= 3,
+  print(" **** Warning: doubling the real precision in nfsign **** ",
+        2*default(realprecision)));
+      default(realprecision,2*default(realprecision));
+      nf_roots = real(polroots(nf.pol))
+    )
+  );
+  default(realprecision,def);
+
+  return(sign(ay));
+}
 if( DEBUGLEVEL_ell >= 4, print("degre"));
 {
 degre(idegre) =
-local(ideg,jdeg);
+local(ideg = idegre, jdeg = 0);
 
-  ideg = idegre; jdeg = 0;
   while( ideg >>= 1, jdeg++);
   return(jdeg);
 }
@@ -144,7 +175,7 @@ if( DEBUGLEVEL_ell >= 4, print("nfsqrt"));
 {
 nfsqrt( nf, a) =
 \\ si a est un carre, renvoie [sqrt(a)], sinon [].
-local(alift,ta,res,pfact,r1,py);
+local(alift,ta,res,pfact);
 
 if( DEBUGLEVEL_ell >= 5, print("entree dans nfsqrt ",a));
   if( a==0 || a==1,
@@ -166,14 +197,14 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nfsqrt"));
   if( ta == "t_POL", a = Mod(a,nf.pol));
 
 \\ tous les plgements reels doivent etre >0
-\\
-  r1 = nf.sign[1];
-  for( i = 1, r1,
-    py = mysubst(alift,nf.roots[i]);
-    if( sign(py) < 0,
+
+  for( i = 1, nf.r1,
+    if( nfsign(nf,a,i) < 0,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfsqrt"));
       return([])));
+
 \\ factorisation sur K du polynome X^2-a :
+
   if( variable(nf.pol) == x,
     py = subst(nf.pol,x,y);
     pfact = lift(factornf(x^2-mysubst(alift,Mod(y,py)),py)[1,1])
@@ -190,6 +221,7 @@ if( DEBUGLEVEL_ell >= 4, print("sqrtrat"));
 sqrtrat(a) =
   sqrtint(numerator(a))/sqrtint(denominator(a));
 }
+
 
 \\
 \\ Fonctions propres a ell.gp
@@ -213,11 +245,11 @@ if( DEBUGLEVEL_ell >= 5, print("entree dans nfmodid2"));
 \\ ideal doit etre sous la forme primedec
   if( #nf.zk == 1,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfmodid2"));
-    return(a*Mod(1,ideal[1])));
+    return(a*Mod(1,ideal.p)));
   a = mynfeltmod(nf,a,nfbasistoalg(nf,ideal[2]));
-  if( gcd(denominator(content(lift(a))),ideal[1]) == 1,
+  if( gcd(denominator(content(lift(a))),ideal.p) == 1,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfmodid2"));
-    return(a*Mod(1,ideal[1])));
+    return(a*Mod(1,ideal.p)));
 if( DEBUGLEVEL_ell >= 5, print("fin de nfmodid2"));
   return(a);
 }
@@ -241,8 +273,8 @@ mynfhilbertp(nf,a,b,p) =
 local(alpha,beta,sig,aux,aux2,rep);
 
 if( DEBUGLEVEL_ell >= 5, print("entree dans mynfhilbertp ",p));
-  if( a==0 || b==0, print("0 argument in mynfhilbertp"));
-  if( p[1] == 2,
+  if( a == 0 || b == 0, print("0 argument in mynfhilbertp"));
+  if( p.p == 2,
 if( DEBUGLEVEL_ell >= 5, print("fin de mynfhilbertp"));
     return(nfhilb2(nf,a,b,p)));
   if( type(a) != "t_POLMOD", a = Mod(a,nf.pol));
@@ -275,7 +307,7 @@ if( DEBUGLEVEL_ell >= 5, print("entree dans ideallistfactor"));
     for( j = 1, #S1, k = #Slist;
       for( k = 1, #Slist,
         if( Slist[k] == S1[j], test = 0; break));
-      if( test, Slist=concat(Slist,[S1[j]]), test = 1);
+      if( test, Slist = concat(Slist,[S1[j]]), test = 1);
      ));
 if( DEBUGLEVEL_ell >= 5, print("fin de ideallistfactor"));
   return(Slist);
@@ -287,28 +319,27 @@ mynfhilbert(nf,a,b) =
 \\ =1 si l'equation X^2-aY^2-bZ^2=0 a une solution non triviale,
 \\ =-1 sinon,
 \\ a et b doivent etre non nuls.
-local(al,bl,r1,i,S);
+local(al,bl,S);
 
 if( DEBUGLEVEL_ell >= 4, print("entree dans mynfhilbert ",[a,b]));
   if( a == 0 || b == 0, error("mynfhilbert : argument = 0"));
   al = lift(a); bl = lift(b);
 
-\\ solutions locales aux places infinies reelles
+\\ solutions locales aux places reelles
 
-  r1 = nf.sign[1];
-  for( i = 1, r1,
-    if( sign(mysubst(al,nf.roots[i])) < 0,
-      if( sign(mysubst(bl,nf.roots[i])) < 0,
+  for( i = 1, nf.r1,
+    if( nfsign(nf,al,i) < 0 && nfsign(nf,bl,i) < 0,
 if( DEBUGLEVEL_ell >= 3, print("mynfhilbert non soluble a l'infini"));
 if( DEBUGLEVEL_ell >= 4, print("fin de mynfhilbert"));
-        return(-1))));
+      return(-1))
+  );
 
   if( type(a) != "t_POLMOD", a = Mod(a,nf.pol));
   if( type(b) != "t_POLMOD", b = Mod(b,nf.pol));
 
 \\  solutions locales aux places finies (celles qui divisent 2ab)
 
-  S = ideallistfactor (nf,[2,a,b]);
+  S = ideallistfactor(nf,[2,a,b]);
   forstep ( i = #S, 2, -1,
 \\ d'apres la formule du produit on peut eviter un premier
     if( mynfhilbertp(nf,a,b, S[i]) == -1,
@@ -336,7 +367,7 @@ if( DEBUGLEVEL_ell >= 5, print("entree dans initp"));
   pp=[ p, nfbasistoalg(nf,p[2]), idval, 0, repres(nf,p) ];
   if( idval,
     pp[4] = idealstar(nf,idealpow(nf,p,1+2*idval)),
-    pp[4] = p[1]^p[4]\2 );
+    pp[4] = p.p^p.f\2 );
 if( DEBUGLEVEL_ell >= 5, print("fin de initp"));
   return(pp);
 }
@@ -412,7 +443,7 @@ if( DEBUGLEVEL_ell >= 5, print("entree dans repres"));
   for( i = 1, #mat,
     if( mat[i,i] != 1, fond = concat(fond,nf.zk[i])));
   f = #fond;
-  pp = p[1];
+  pp = p.p;
   rep = vector(pp^f,i,0);
   rep[1] = 0;
   ppi = 1;
@@ -449,13 +480,13 @@ if( DEBUGLEVEL_ell >= 5, print("pherm = ",pherm));
     if( f > q, aaa = nfbasistoalg(nf,p[2])^((q+1)>>1), aaa = 0);
 if( DEBUGLEVEL_ell >= 4, print("fin de nfissquarep"));
     return(aaa));
-  if( f, aaa = a*nfbasistoalg(nf,p[5]/p[1])^f, aaa = a);
+  if( f, aaa = a*nfbasistoalg(nf,p[5]/p.p)^f, aaa = a);
   if( pherm[1,1] != 2,
 \\ cas ou p ne divise pas 2
 \\ algorithme de Shanks
     n = nfrandintmodid(nf,pherm);
     while( nfpsquareodd(nf,n,p), n = nfrandintmodid(nf,pherm));
-    pp = Mod(1,p[1]);
+    pp = Mod(1,p.p);
     n *= pp;
     qq = idealnorm(nf,pherm)\2;
     e = 1; while( !(qq%2), e++; qq \= 2);
@@ -499,13 +530,17 @@ if( DEBUGLEVEL_ell >= 4, print("fin de nfissquarep"));
     for( i = 1, #zlog,
       expo = zlog[i];
       if( expo,
-        if( !expo%2, expo = expo>>1, aux = zinit[2][i]; expo = expo*((aux+1)>>1)%aux);
-        if( expo == 1,
-          xx *= nfbasistoalg(nf,(zinit[2][3][i]))
-        , xx *= nfbasistoalg(nf,(zinit[2][3][i]))^expo);
+        if( !expo%2,
+          expo = expo>>1
+        , aux = zinit[2][i];
+          expo = expo*((aux+1)>>1)%aux
+        );
+        xx *= nfbasistoalg(nf,zinit[2][3][i])^expo
       )
     );
-    if( f, xx *= nfbasistoalg(nf,p[2])^(f>>1); id = idealpow(nf,p,q));
+    if( f,
+      xx *= nfbasistoalg(nf,p[2])^(f>>1);
+      id = idealpow(nf,p,q));
     xx = mynfeltreduce(nf,xx,id);
   );
 if( DEBUGLEVEL_ell >= 4, print("fin de nfissquarep ",xx));
@@ -526,11 +561,11 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquareodd"));
   if( v%2,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquareodd"));
     return(0));
-  ap = a*(1/nfbasistoalg(nf,p[2])^v);
+  ap = a/nfbasistoalg(nf,p[2])^v;
 
   norme = idealnorm(nf,p)\2;
-  den = denominator(content(lift(ap)))%p[1];
-  if(sign(den), ap*=Mod(1,p[1]));
+  den = denominator(content(lift(ap)))%p.p;
+  if(sign(den), ap*=Mod(1,p.p));
   ap = ap^norme-1;
   if( ap == 0,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquareodd"));
@@ -554,7 +589,7 @@ if( DEBUGLEVEL_ell >= 5, print("entree dans nfpsquare ",[a,p,zinit]));
 if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquare"));
     return(1));
 
-  if( (p[1]%2),
+  if( p.p != 2,
 if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquare"));
     return(nfpsquareodd(nf,a,p)));
 
@@ -563,7 +598,7 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquare"));
 if( DEBUGLEVEL_ell >= 5, print("fin de nfpsquare"));
     return(0));
   if( valap,
-    zlog = ideallog(nf,a*(nfbasistoalg(nf,p[5])/p[1])^valap,zinit)
+    zlog = ideallog(nf,a*(nfbasistoalg(nf,p[5])/p.p)^valap,zinit)
   ,
     zlog = ideallog(nf,a,zinit));
   for( i = 1, #zinit[2][2],
@@ -644,14 +679,14 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(-1));
     q = mu+nu-lambda;
-    if( q>2*v,
+    if( q > 2*v,
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(-1));
     if( nfpsquareq(nf,gx*nfbasistoalg(nf,p[5]/2)^lambda,p,q),
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(1))
   ,
-    if( lambda>= 2*nu,
+    if( lambda >= 2*nu,
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(0));
     if( lambda%2,
@@ -739,7 +774,7 @@ if( DEBUGLEVEL_ell >= 4, print("nfqpsolublebig"));
 nfqpsolublebig( nf, pol, p,ap=0,b=1) =
 local(deg,i,xx,z,Px,j,cont,pi,pol2,Roots);
 
-if( DEBUGLEVEL_ell >= 4, print("entree dans nfqpsolublebig avec ",p[1]));
+if( DEBUGLEVEL_ell >= 4, print("entree dans nfqpsolublebig avec ",p.p));
   deg = poldegree(pol);
 
   if( nfpsquareodd(nf,polcoeff(pol,0),p),
@@ -753,7 +788,7 @@ if( DEBUGLEVEL_ell >= 4, print("fin de nfqpsolublebig"));
   cont = idealval(nf,polcoeff(pol,0),p);
   for( i = 1, deg,
     if( cont, cont = min(cont,idealval(nf,polcoeff(pol,i),p))));
-  if( cont, pi = nfbasistoalg(nf,p[5]/p[1]));
+  if( cont, pi = nfbasistoalg(nf,p[5]/p.p));
   if( cont > 1, pol *= pi^(2*(cont\2)));
 
 \\ On essaye des valeurs de x au hasard
@@ -790,9 +825,7 @@ nfpolrootsmod(nf,pol,p) =
 \\ p est un ideal premier de nf, sous la forme idealprimedec
 local(factlist,sol);
 
-  factlist = nffactormod(nf,pol,p);
-\\ CETTE LIGNE NE DOIT PAS RESTER TRES LONGTEMPS
-  if( type(factlist) == "t_VEC", factlist = factlist[1], factlist = factlist[,1]);
+  factlist = nffactormod(nf,pol,p)[,1];
   sol = [];
   for( i = 1, #factlist,
     if( poldegree(factlist[i]) == 1,
@@ -823,7 +856,7 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nfqpsoluble"));
 if( DEBUGLEVEL_ell >= 4, print("nflocallysoluble"));
 {
 nflocallysoluble( nf, pol, r=0,a=1,b=1) =
-local(pol0,plist,add,ff,p,r1,Delta,vecpol,ar,er,Deltar,vecpolr,Sturmr);
+local(pol0,plist,add,ff,p,Delta,vecpol,vecpolr,Sturmr);
 
 if( DEBUGLEVEL_ell >= 4, print("entree dans nflocallysoluble ",[pol,r,a,b]));
   pol0 = pol;
@@ -844,28 +877,24 @@ if( DEBUGLEVEL_ell >= 4, print("liste de premiers = ",ff));
       for( i = 1, #plist,
         p =  plist[i];
 if( DEBUGLEVEL_ell >= 3, print("p = ",p));
-        if( p[1] < LIMBIGPRIME,
+        if( p.p < LIMBIGPRIME,
           if( !nfqpsoluble(nf,pol,initp(nf,p)),
 if( DEBUGLEVEL_ell >= 2, print(" non ELS en ",p));
 if( DEBUGLEVEL_ell >= 4, print("fin de nflocallysoluble"));
             return(0)),
           if( !nfqpsolublebig(nf,pol,p,r/a,b),
-if( DEBUGLEVEL_ell >= 2, print(" non ELS en ",p[1]," ( = grand premier  )"));
+if( DEBUGLEVEL_ell >= 2, print(" non ELS en ",p.p," ( = grand premier  )"));
 if( DEBUGLEVEL_ell >= 4, print("fin de nflocallysoluble"));
             return(0))));
 );
 \\ places reelles
-  r1 = nf.sign[1];
-  if( r1,
+  if( nf.r1,
     Delta = poldisc(pol); vecpol = Vec(pol);
-    for( i = 1, r1,
-      ar = mysubst(pollead(pol),nf.roots[i]);
-      if( ar > 0, next);
-      er = mysubst(polcoeff(pol,0),nf.roots[i]);
-      if( er > 0, next);
-      Deltar = mysubst(Delta,nf.roots[i]);
-      if( Deltar < 0, next);
-      vecpolr = vector(poldegree(pol)+1,j,mysubst(vecpol[j],nf.roots[i]));
+    for( i = 1, nf.r1,
+      if( nfsign(nf,pollead(pol),i) > 0, next);
+      if( nfsign(nf,polcoeff(pol,0),i) > 0, next);
+      if( nfsign(nf,Delta,i) < 0, next);
+      vecpolr = vector(#vecpol,j,mysubst(vecpol[j],nf.roots[i]));
       Sturmr = polsturm(Pol(vecpolr));
       if( Sturmr == 0,
 if( DEBUGLEVEL_ell >= 2, print(" non ELS a l'infini"));
@@ -1005,11 +1034,12 @@ if( DEBUGLEVEL_ell >= 1, print("points triviaux sur E(K) = ");
   oddclass = 0;
   while( !oddclass,
     KS2gen = bnfsunit(bnf,idealfactor(bnf,KS2prod)[,1]~);
-    oddclass = (KS2gen[5][1]%2);
+    oddclass = KS2gen[5][1]%2;
     if( !oddclass,
       KS2prod = idealmul(bnf,KS2prod,(KS2gen[5][3][1])));
  );
   KS2gen = KS2gen[1];
+\\  A CHANGER : KS2gen = matbasistoalg(bnf,KS2gen);
   for( i = 1, #KS2gen,
     KS2gen[i] = nfbasistoalg(bnf, KS2gen[i]));
   KS2gen = concat(Mod(lift(bnf.tufu),bnf.pol),KS2gen);
@@ -1042,6 +1072,7 @@ if( DEBUGLEVEL_ell >= 1,
     if( !oddclass,
       KS2prod = idealmul(bnf,KS2prod,(KS2gen[5][3][1]))));
   KS2gen = KS2gen[1];
+\\ A CHANGER KS2gen = matbasistoalg(bnf,KS2gen);
   for( i = 1, #KS2gen,
     KS2gen[i] = nfbasistoalg(bnf, KS2gen[i]));
   KS2gen = concat(Mod(lift(bnf.tufu),bnf.pol),KS2gen);
@@ -1170,10 +1201,11 @@ local(l,fact2,i);
 
 if( DEBUGLEVEL_ell >= 4, print("entree dans nfchinremain"));
   l = #fact[,1];
-  fact2 = vector(l,i,0);
-  for( i = 1, l,
-    fact2[i] = idealdiv(nf,b,idealpow(nf,fact[i,1],fact[i,2])));
+  fact2 = vector(l,i,idealdiv(nf,b,idealpow(nf,fact[i,1],fact[i,2])));
+\\  for( i = 1, l,
+\\    fact2[i] = idealdiv(nf,b,idealpow(nf,fact[i,1],fact[i,2])));
   fact2 = idealaddtoone(nf,fact2);
+\\ A CHANGER : fact2 = matbasistoalg(nf,fact2);
   for( i = 1, l,
     fact2[i] = nfbasistoalg(nf,fact2[i]));
 if( DEBUGLEVEL_ell >= 4, print("fin de nfchinremain"));
@@ -1212,15 +1244,17 @@ if( DEBUGLEVEL_ell >= 4, print(" done"));
 if( DEBUGLEVEL_ell >= 4, print("bbbnf.clgp = ",bbbnf.clgp));
   for( i = 1, #bbbnf.clgp[2],
     if( bbbnf.clgp[2][i]%2 == 0,
-      SL0 = idealmul(bbbnf,SL0,bbbnf.clgp[3][i])));
+      SL0 = idealmul(bbbnf,SL0,bbbnf.clgp[3][i][1,1])));
   SL1 = idealmul(bbbnf,SL0,rnfeltup(rrrnf,bleg));
   SL = idealfactor(bbbnf,SL1)[,1]~;
   sunL = bnfsunit(bbbnf,SL);
-  fondsunL = concat(bbbnf.futu,nfbasistoalg(bbbnf,sunL[1]));
+\\ A CHANGER : fondsunL = concat(bbbnf.futu,matbasistoalg(bbbnf,sunL[1]));
+  fondsunL = concat(bbbnf.futu,vector(#sunL[1],i,nfbasistoalg(bbbnf,sunL[1][i])));
   normfondsunL = norm(rnfeltabstorel( rrrnf,fondsunL));
   SK = idealfactor(bnf,idealnorm(bbbnf,SL1))[,1]~;
   sunK = bnfsunit(bnf,SK);
-  fondsunK = concat(bnf.futu,nfbasistoalg(bnf,sunK[1]));
+\\ A CHANGER :  fondsunK = concat(bnf.futu,matbasistoalg(bnf,sunK[1]));
+  fondsunK = concat(bnf.futu,vector(#sunK[1],i,nfbasistoalg(bnf,sunK[1][i])));
   vecbleg = bnfissunit(bnf,sunK,bleg);
   matnorm = matrix(#fondsunK,#normfondsunL,i,j,0);
   for( i = 1, #normfondsunL,
@@ -1527,7 +1561,9 @@ if( DEBUGLEVEL_ell >= 3, print("#KS2gen = ",#KS2gen[1]));
 if( DEBUGLEVEL_ell >= 3, print("KS2gen = ",KS2gen[1]));
 
   LS2genunit = lift(Lrnf.futu);
-  LS2genunit = concat(LS2genunit,lift(nfbasistoalg(Lrnf,LS2gen[1])));
+\\ A CHANGER : LS2genunit = concat(LS2genunit,lift(matbasistoalg(Lrnf,LS2gen[1])));
+  LS2genunit = concat(LS2genunit,vector(#LS2gen[1],i,lift(nfbasistoalg(Lrnf,LS2gen[1][i]))));
+
 
   LS2genunit = subst(LS2genunit,x,ttheta);
   LS2genunit = LS2genunit*Mod(1,polrel);
@@ -1848,6 +1884,8 @@ if( DEBUGLEVEL_ell >= 1,
   );
 if( DEBUGLEVEL_ell >= 1, print("listpointsmwr = ",listpointsmwr));
   for( i = 1, #listpointsmwr,
+    if( #listpointsmwr[i] == 3,
+      listpointsmwr[i] = vecextract(listpointsmwr[i],3));
     if( !ellisoncurve(ellnf,listpointsmwr[i]),
       error("bnfell2descent : MAUVAIS POINT ")));
 if( DEBUGLEVEL_ell >= 4, print("fin de bnfell2descent_gen"));
@@ -1862,7 +1900,7 @@ bnfellrank(bnf,ell,help=[],bigflag=1,flag3=1) =
 \\ attention bnf a un polynome en y.
 \\ si bigflag !=0, on reduit les quartiques
 \\ si flag3 != 0, on utilise bnfqfsolve2
-local(urst,urst1,den,eqtheta,rnfeq,bbnf,ext,rang);
+local(urst,urst1,den,factden,eqtheta,rnfeq,bbnf,ext,rang);
 
 if( DEBUGLEVEL_ell >= 3, print("entree dans bnfellrank"));
   if( #ell <= 5, ell = ellinit(ell,1));
@@ -1877,8 +1915,11 @@ if( DEBUGLEVEL_ell >= 3, print("entree dans bnfellrank"));
 
 \\ removes denominators
   while( (den = idealinv(bnf,idealadd(bnf,idealadd(bnf,1,ell.a2),idealadd(bnf,ell.a4,ell.a6))))[1,1] > 1,
-    den = idealfactor(bnf,den); den[,2] = vectorv(#den[,2],i,1);
-    den = factorback(den,bnf)[1,1];
+    factden = idealfactor(bnf,den)[,1];
+    den = 1;
+    for( i = 1, #factden,
+      den = idealmul(bnf,den,factden[i]));
+    den = den[1,1];
     urst1 = [1/den,0,0,0];
     ell = ellchangecurve(ell,urst1);
     urst = ellcomposeurst(urst,urst1);
@@ -1952,6 +1993,7 @@ if( DEBUGLEVEL_ell >= 2, print("Algorithme de la 2-descente complete"));
       KS2prod = idealmul(bnf,KS2prod,(KS2gen[5][3][1])));
   );
   KS2gen = KS2gen[1];
+\\ A CHANGER : KS2gen = matbasistoalg(bnf,KS2gen);
   for( i = 1, #KS2gen,
     KS2gen[i] = nfbasistoalg(bnf, KS2gen[i]));
   KS2gen = concat(Mod(lift(bnf.tufu),bnf.pol),KS2gen);

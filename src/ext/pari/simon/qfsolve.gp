@@ -1,5 +1,5 @@
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\\       Copyright (C) 2005 Denis Simon
+\\       Copyright (C) 2007 Denis Simon
 \\
 \\ Distributed under the terms of the GNU General Public License (GPL)
 \\
@@ -20,7 +20,7 @@
 \\ www.math.unicaen.fr/~simon/qfsolve.gp
 \\
 \\  *********************************************
-\\  *          VERSION 25/10/2005               *
+\\  *          VERSION 02/10/2009               *
 \\  *********************************************
 \\
 \\ Programme de resolution des equations quadratiques
@@ -54,55 +54,84 @@
 \\
 
 \\
-global(DEBUGLEVEL);
-DEBUGLEVEL = 0;
+DEBUGLEVEL_qfsolve = 0;
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\
 \\  DEBUT DES SOURCES                \\
 \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-{QfbReduce(M)=
-\\ M=[a,b;b;c] est a coefficients entiers.
+{QfbReduce(M) =
+\\ M = [a,b;b;c] est a coefficients entiers.
 \\ Reduction de la forme quadratique binaire
-\\   qf=(a,b,c)=a*X^2+2*b*X*Y+c*Y^2
+\\   qf = (a,b,c)=a*X^2+2*b*X*Y+c*Y^2
 \\ Renvoit la matrice de reduction de det = +1.
 
 local(a,b,c,H,test,di,q,r,nexta,nextb,nextc,aux);
 
-if( DEBUGLEVEL >= 5, print("entree dans QfbReduce avec ",M));
+if( DEBUGLEVEL_qfsolve >= 5, print("entree dans QfbReduce avec ",M));
 
   a = M[1,1]; b = M[1,2]; c = M[2,2];
 
   H = matid(2); test = 1;
-  while(test && a,
+  while( test && a,
     di = divrem(b,a); q = di[1]; r = di[2];
     if( 2*r > abs(a), r -= abs(a); q += sign(a));
     H[,2] -= q*H[,1];
     nextc = a; nextb = -r; nexta= (nextb-b)*q+c;
 
-    if( test = abs(nexta)<abs(a),
+    if( test = abs(nexta) < abs(a),
       c = nextc; b = nextb; a = nexta;
-      aux = H[,1]; H[,1] = -H[,2]; H[,2] = aux;
+      aux = H[,1]; H[,1] = -H[,2]; H[,2] = aux
     )
   );
 
-if( DEBUGLEVEL >= 5, print("sortie de QfbReduce avec ",H));
-return(H)
+if( DEBUGLEVEL_qfsolve >= 5, print("sortie de QfbReduce avec ",H));
+return(H);
 }
-{IndefiniteLLL(G,c=1,base=0)=
-\\ following Cohen's book p. 86
-\\ but without b and bstar: works on G
-\\ returns [H~*G*H,H] where det(H)=1 and H~*G*H is reduced.
-\\ Exit with a norm 0 vector if one such is found.
-\\ If base==1 and norm 0 is obtained, returns [H~*G*H,H,sol] where
-\\   sol is a norm 0 vector and is the 1st column of H.
+{IndefiniteLLL(G,c=1,base=0) =
+\\ Performs first a LLL reduction on a positive definite
+\\ quadratic form QD bounding the indefinite G.
+\\ Then finishes the reduction with IndefiniteLLL2.
 
-local(n,H,M,A,aux,sol,k,nextk,swap,q,di,HM,au1,aux2,Mkk1,bk1new,Mkk1new,newG);
+local(n,M,QD,M1,S,red);
 
   n = length(G);
-if( DEBUGLEVEL >= 3, print("LLL dim ",n," avec G=",log(vecmax(abs(G)))/log(10)));
-if( DEBUGLEVEL >= 4, print("LLL avec ");printp(G));
+  M = matid(n);
+  QD = G;
+  for( i = 1, n-1,
+    if( !QD[i,i],
+return(IndefiniteLLL2(G,c,base))
+    );
+    M1 = matid(n);
+    M1[i,] = -QD[i,]/QD[i,i];
+    M1[i,i] = 1;
+    M = M*M1;
+    QD = M1~*QD*M1
+  );
+  M = M^(-1);
+  QD = M~*abs(QD)*M;
+  S = qflllgram(QD/content(QD));
+  red = IndefiniteLLL2(S~*G*S,c,base);
+  if( type(red) == "t_COL",
+return(S*red));
+  if( length(red) == 3,
+return([red[1],S*red[2],S*red[3]]));
+return([red[1],S*red[2]]);
+}
+{IndefiniteLLL2(G,c=1,base=0) =
+\\ following Cohen's book p. 86
+\\ but without b and bstar: works on G
+\\ returns [H~*G*H,H] where det(H) = 1 and H~*G*H is reduced.
+\\ Exit with a norm 0 vector if one such is found.
+\\ If base == 1 and norm 0 is obtained, returns [H~*G*H,H,sol] where
+\\   sol is a norm 0 vector and is the 1st column of H.
+
+local(n,H,M,A,aux,sol,k,nextk,swap,q,di,HM,aux1,aux2,Mkk1,bk1new,Mkk1new,newG);
+
+  n = length(G);
+if( DEBUGLEVEL_qfsolve >= 3, print("LLL dim ",n," avec G=",log(vecmax(abs(G)))/log(10)));
+if( DEBUGLEVEL_qfsolve >= 4, print("LLL avec ");printp(G));
 
  if( n <= 1, return([G,matid(n)]));
 
@@ -111,7 +140,7 @@ if( DEBUGLEVEL >= 4, print("LLL avec ");printp(G));
 \\ compute Gram-Schmidt
 
   for( i = 1, n,
-    if( !(A[i,i] = G[i,i]) ,
+    if( !(A[i,i] = G[i,i]),
       if( base,
         aux = H[,1]; H[,1] = H[,i]; H[,i] = -aux;
         return([H~*G*H,H,H[,1]])
@@ -137,7 +166,7 @@ if( DEBUGLEVEL >= 4, print("LLL avec ");printp(G));
 
     swap = 1;
     while( swap,
-      swap=0;
+      swap = 0;
 
 \\ red(k,k-1);
       if( q = round(M[k,k-1]),
@@ -195,9 +224,9 @@ if( DEBUGLEVEL >= 4, print("LLL avec ");printp(G));
 
         M[k,k-1] = Mkk1new;
 
-if( DEBUGLEVEL >=4, newG=H~*G*H;print(vector(n,i,matdet(vecextract(newG,1<<i-1,1<<i-1)))));
+if( DEBUGLEVEL_qfsolve >=4, newG=H~*G*H;print(vector(n,i,matdet(vecextract(newG,1<<i-1,1<<i-1)))));
 
-        if( k !=2, k--)
+        if( k != 2, k--)
       )
     );
 
@@ -214,9 +243,9 @@ if( DEBUGLEVEL >=4, newG=H~*G*H;print(vector(n,i,matdet(vecextract(newG,1<<i-1,1
     );
     k++
   );
-return([H~*G*H,H])
+return([H~*G*H,H]);
 }
-{kermodp(M,p)=
+{kermodp(M,p) =
 \\ Compute the kernel of M mod p.
 \\ returns [d,U], where
 \\ d = dim (ker M mod p)
@@ -229,9 +258,9 @@ local(n,U,d);
   d = length(U);
   U = completebasis(U);
   U = matrix(n,n,i,j,U[i,n+1-j]);
-return([d,U])
+return([d,U]);
 }
-{Qfparam(G,sol,fl=3)=
+{Qfparam(G,sol,fl=3) =
 \\ G est une matrice symetrique 3*3, et sol une solution de sol~*G*sol=0.
 \\ Renvoit une parametrisation des solutions avec de bons invariants,
 \\ sous la forme d'une matrice 3*3, dont chaque ligne contient
@@ -241,9 +270,9 @@ return([d,U])
 
 local(U,G1,G2);
 
-if( DEBUGLEVEL >= 5, print("entree dans Qfparam"));
+if( DEBUGLEVEL_qfsolve >= 5, print("entree dans Qfparam"));
   sol /= content(sol);
-\\ construction de U telle que U[,3] est sol, et det(U)=+-1
+\\ construction de U telle que U[,3] est sol, et det(U) = +-1
   U = completebasis(sol,1);
   G1 = U~*G*U; \\ G1 a un 0 en bas a droite.
   G2 = [-2*G1[1,3],-2*G1[2,3],0;
@@ -258,10 +287,10 @@ if( DEBUGLEVEL >= 5, print("entree dans Qfparam"));
          U[2,1]^2,2*U[2,1]*U[2,2],U[2,2]^2];
     sol = sol*U
   );
-if( DEBUGLEVEL >= 5, print("sortie de Qfparam"));
-return(sol)
+if( DEBUGLEVEL_qfsolve >= 5, print("sortie de Qfparam"));
+return(sol);
 }
-{LLLgoon3(G,c=1)=
+{LLLgoon3(G,c=1) =
 \\ reduction LLL de la forme quadratique G (matrice de Gram)
 \\ en dim 3 seulement avec detG = -1 et sign(G) = [1,2];
 
@@ -280,9 +309,9 @@ local(red,U1,G2,bez,U2,G3,cc,U3);
   U3 = [1,0,0;  cc,1,0;
         round(-(G3[1,1]+cc*(2*G3[1,2]+G3[2,2]*cc))/2/G3[1,3]),
         round(-(G3[1,2]+cc*G3[2,2])/G3[1,3]),1];
-return([U3~*G3*U3,red[2]*U1*U2*U3])
+return([U3~*G3*U3,red[2]*U1*U2*U3]);
 }
-{completebasis(v,redflag=0)=
+{completebasis(v,redflag=0) =
 \\ Donne une matrice unimodulaire dont la derniere colonne est v.
 \\ Si redflag <> 0, alors en plus on reduit le reste.
 
@@ -292,9 +321,9 @@ local(U,n,re);
   n = length(v~);
   if( n==1 || !redflag, return(U));
   re = qflll(vecextract(U,1<<n-1,1<<(n-1)-1));
-return( U*matdiagonalblock([re,Mat(1)]))
+return( U*matdiagonalblock([re,Mat(1)]));
 }
-{LLLgoon(G,c=1)=
+{LLLgoon(G,c=1) =
 \\ reduction LLL de la forme quadratique G (matrice de Gram)
 \\ ou l'on continue meme si on trouve un vecteur isotrope
 
@@ -305,7 +334,7 @@ local(red,U1,G2,U2,G3,n,U3,G4,U,V,B,U4,G5,U5,G6);
   if( length(red) == 2, return(red));
 \\ sinon :
   U1 = red[2];
-  G2 = red[1]; \\ On a G2[1,1]=0
+  G2 = red[1]; \\ On a G2[1,1] = 0
   U2 = mathnf(Mat(G2[1,]),4)[2];
   G3 = U2~*G2*U2;
 \\ la matrice de G3 a des 0 sur toute la 1ere ligne,
@@ -331,9 +360,9 @@ local(red,U1,G2,U2,G3,n,U3,G4,U,V,B,U4,G5,U5,G6);
   red = LLLgoon(matrix(n-2,n-2,i,j,G5[i+1,j+1]),c);
   U5 = matdiagonalblock([Mat(1),red[2],Mat(1)]);
   G6 = U5~*G5*U5;
-return([G6,U1*U2*U3*U4*U5])
+return([G6,U1*U2*U3*U4*U5]);
 }
-{QfWittinvariant(G,p)=
+{QfWittinvariant(G,p) =
 \\ calcule l'invariant c (=invariant de Witt) d'une forme quadratique,
 \\ p-adique (reel si p = -1)
 
@@ -348,16 +377,16 @@ local(n,det,diag,c);
   c = prod( i = 1, n,
         prod( j = i+1, n,
           hilbert( diag[i], diag[j], p)));
-return(c)
+return(c);
 }
-{Qflisteinvariants(G,fa=[])=
+{Qflisteinvariants(G,fa=[]) =
 \\ G est une forme quadratique, ou une matrice symetrique,
 \\ ou un vecteur contenant des formes quadratiques de meme discriminant.
 \\ fa = factor(-abs(2*matdet(G)))[,1] est facultatif.
 
 local(l,sol,n,det);
 
-if( DEBUGLEVEL >= 4, print("entree dans Qflisteinvariants",G));
+if( DEBUGLEVEL_qfsolve >= 4, print("entree dans Qflisteinvariants",G));
   if( type(G) != "t_VEC", G = [G]);
   l = length(G);
   for( j = 1, l,
@@ -371,7 +400,7 @@ if( DEBUGLEVEL >= 4, print("entree dans Qflisteinvariants",G));
 \\ En dimension 2, chaque invariant est un unique symbole de Hilbert.
     det = -matdet(G[1]);
     sol = matrix(length(fa),l,i,j,hilbert(G[j][1,1],det,fa[i])<0);
-if( DEBUGLEVEL >= 4, print("sortie de Qflisteinvariants"));
+if( DEBUGLEVEL_qfsolve >= 4, print("sortie de Qflisteinvariants"));
     return([fa,sol])
   );
 
@@ -380,14 +409,14 @@ if( DEBUGLEVEL >= 4, print("sortie de Qflisteinvariants"));
     n = length(G[j]);
 \\ En dimension n, on calcule un produit de n symboles de Hilbert.
     det = vector(n+1, i, matdet(matrix(i-1,i-1,k,m,G[j][k,m])));
-    for(i = 1, length(fa),
+    for( i = 1, length(fa),
       sol[i,j] = prod( k = 1, n-1, hilbert(-det[k],det[k+1],fa[i]))*hilbert(det[n],det[n+1],fa[i]) < 0;
     )
   );
-if( DEBUGLEVEL >= 4, print("sortie de Qflisteinvariants"));
-return([fa,sol])
+if( DEBUGLEVEL_qfsolve >= 4, print("sortie de Qflisteinvariants"));
+return([fa,sol]);
 }
-{Qfsolvemodp(G,p)=
+{Qfsolvemodp(G,p) =
 \\ p a prime number.
 \\ finds a solution mod p for the quadatic form G
 \\ such that det(G) !=0 mod p and dim G = n>=3;
@@ -413,13 +442,13 @@ local(n,vdet,G2,sol,x1,x2,x3,N1,N2,N3,s,r);
     if( issquare( N2 = -vdet[3]/vdet[1]),         s = sqrt(N2); sol = s*x2+x3; break);
     if( issquare( N3 = -vdet[2]*vdet[3]/vdet[1]), s = sqrt(N3); sol = s*x1+x3; break);
     r = 1;
-    while ( !issquare( s = (1-N1*r^2)/N3), r = random(p));
+    while( !issquare( s = (1-N1*r^2)/N3), r = random(p));
     s = sqrt(s); sol = x1+r*x2+s*x3; break
   );
   sol = vectorv(n, j, if( j <= 3, sol[j]));
-return(sol)
+return(sol);
 }
-{Qfminim(G,factdetG=0)=
+{Qfminim(G,factdetG=0) =
 \\ Minimisation de la forme quadratique entiere non degeneree G,
 \\   de dimension n >=2. On suppose que G est symetrique a coefficients entiers.
 \\ Renvoit [G',U,factd] avec U \in GLn(Q) telle que G'=U~*G*U*constante est entiere
@@ -439,8 +468,8 @@ local(n,U,factd,detG,i,vp,Ker,dimKer,Ker2,dimKer2,sol,aux,p,di,m);
   i = 1;
   while(i <= length(factdetG[,1]),
     p = factdetG[i,1];
-    if (p == -1, i++; next);
-if( DEBUGLEVEL >= 4, print("p=",p,"^",factdetG[i,2]));
+    if( p == -1, i++; next);
+if( DEBUGLEVEL_qfsolve >= 4, print("p=",p,"^",factdetG[i,2]));
     vp = factdetG[i,2];
     if( vp == 0, i++; next);
 \\ Le cas vp=1 n'est minimisable que si n est impair.
@@ -450,7 +479,7 @@ if( DEBUGLEVEL >= 4, print("p=",p,"^",factdetG[i,2]));
     );
     Ker = kermodp(G,p); dimKer = Ker[1]; Ker = Ker[2];
 \\ Rem: on a toujours dimKer <= vp
-if( DEBUGLEVEL >= 4, print("dimKer = ",dimKer));
+if( DEBUGLEVEL_qfsolve >= 4, print("dimKer = ",dimKer));
 \\ cas trivial: G est divisible par p.
     if( dimKer == n,
       G /= p;
@@ -462,7 +491,7 @@ if( DEBUGLEVEL >= 4, print("dimKer = ",dimKer));
 \\ 1er cas: la dimension du noyau est plus petite que la valuation
 \\ alors le noyau mod p contient un noyau mod p^2
     if( dimKer < vp,
-if( DEBUGLEVEL >= 4, print("cas 1"));
+if( DEBUGLEVEL_qfsolve >= 4, print("cas 1"));
       Ker2 = kermodp(matrix(dimKer,dimKer,j,k,G[j,k]/p),p);
       dimKer2 = Ker2[1]; Ker2 = Ker2[2];
       for( j = 1, dimKer2, Ker2[,j] /= p);
@@ -470,8 +499,8 @@ if( DEBUGLEVEL >= 4, print("cas 1"));
       G = Ker2~*G*Ker2;
       U = U*Ker2;
       factdetG[i,2] -= 2*dimKer2;
-if( DEBUGLEVEL >= 4, print("fin cas 1"));
-      next;
+if( DEBUGLEVEL_qfsolve >= 4, print("fin cas 1"));
+      next
     );
 
 \\ Maintenant, vp = dimKer
@@ -480,26 +509,26 @@ if( DEBUGLEVEL >= 4, print("fin cas 1"));
        (dimKer == 2 && issquare(di=Mod((G[1,2]^2-G[1,1]*G[2,2])/p^2,p))),
 \\ on cherche dans le noyau un elt de norme p^2...
       if( dimKer > 2,
-if( DEBUGLEVEL >= 4, print("cas 2.1"));
+if( DEBUGLEVEL_qfsolve >= 4, print("cas 2.1"));
         dimKer = 3;
         sol = Qfsolvemodp(matrix(3,3,j,k,G[j,k]/p),p)
       ,
-if( DEBUGLEVEL >= 4, print("cas 2.2"));
+if( DEBUGLEVEL_qfsolve >= 4, print("cas 2.2"));
         if( G[1,1]%p^2 == 0,
-          sol = [1,0]~;
-        , sol = [-G[1,2]/p+sqrt(di),Mod(G[1,1]/p,p)]~;
+          sol = [1,0]~
+        , sol = [-G[1,2]/p+sqrt(di),Mod(G[1,1]/p,p)]~
         )
       );
       sol = centerlift(sol); sol /= content(sol);
-if( DEBUGLEVEL >= 4, print("sol=",sol));
+if( DEBUGLEVEL_qfsolve >= 4, print("sol=",sol));
       Ker = vectorv(n, j, if( j<= dimKer, sol[j], 0)); \\ on complete avec des 0
       Ker = completebasis(Ker,1);
       Ker[,n] /= p;
       G = Ker~*G*Ker;
       U = U*Ker;
       factdetG[i,2] -= 2;
-if( DEBUGLEVEL >= 4, print("fin cas 2"));
-      next;
+if( DEBUGLEVEL_qfsolve >= 4, print("fin cas 2"));
+      next
     );
 
 \\ Maintenant, vp = dimKer <= 2
@@ -513,49 +542,49 @@ if( DEBUGLEVEL >= 4, print("fin cas 2"));
      || ( vp == 2 && n%2 == 1 && n >= 5)
      || ( vp == 2 && n%2 == 0 && !issquare(Mod((-1)^m*matdet(G)/p^2,p)))
     ,
-if( DEBUGLEVEL >= 4, print("cas 3"));
+if( DEBUGLEVEL_qfsolve >= 4, print("cas 3"));
       Ker = matid(n);
       for( j = dimKer+1, n, Ker[j,j] = p);
       G = Ker~*G*Ker/p;
       U = U*Ker;
       factdetG[i,2] -= 2*dimKer-n;
-if( DEBUGLEVEL >= 4, print("fin cas 3"));
-      next;
+if( DEBUGLEVEL_qfsolve >= 4, print("fin cas 3"));
+      next
     );
 
 \\ On n'a pas pu minimiser.
 \\ Si n == 3 ou n == 4 cela demontre la non-solubilite locale en p.
     if( n == 3 || n == 4,
-if( DEBUGLEVEL >= 1, print("pas de solution locale en ",p));
+if( DEBUGLEVEL_qfsolve >= 1, print("pas de solution locale en ",p));
       return(p));
 
-if( DEBUGLEVEL >= 4, print("plus de minimisation possible"));
+if( DEBUGLEVEL_qfsolve >= 4, print("plus de minimisation possible"));
     factd = concat(factd~,Mat([p,vp])~)~;
-    i++;
+    i++
   );
 \\print("Un=",log(vecmax(abs(U))));
   aux = qflll(U);
 \\print("Ur=",log(vecmax(abs(U*aux))));
-return([aux~*G*aux,U*aux,factd])
+return([aux~*G*aux,U*aux,factd]);
 }
-{mymat(qfb)=qfb=Vec(qfb);[qfb[1],qfb[2]/2;qfb[2]/2,qfb[3]]
+{mymat(qfb) = qfb = Vec(qfb);[qfb[1],qfb[2]/2;qfb[2]/2,qfb[3]];
 }
-{Qfbsqrtgauss(G,factdetG)=
+{Qfbsqrtgauss(G,factdetG) =
 \\ pour l'instant, ca ne marche que pour detG sans facteur carre
 \\ sauf en 2, ou la valuation est 2 ou 3.
 \\ factdetG contient la factorisation de 2*abs(disc G)
 local(a,b,c,d,m,n,p,aux,Q1,M);
-if( DEBUGLEVEL >=3, print("entree dans Qfbsqrtgauss avec",G,factdetG));
+if( DEBUGLEVEL_qfsolve >=3, print("entree dans Qfbsqrtgauss avec",G,factdetG));
   G = Vec(G);
   a = G[1]; b = G[2]/2; c = G[3]; d = a*c-b^2;
 
 \\ 1ere etape: on resout m^2 = a (d), m*n = -b (d), n^2 = c (d)
   m = n = Mod(1,1);
-factdetG[1,2]-=3;
+  factdetG[1,2] -= 3;
   for( i = 1, length(factdetG[,1]),
-    if(!factdetG[i,2],next);
+    if( !factdetG[i,2], next);
     p = factdetG[i,1];
-    if(gcd(a,p)==1,
+    if( gcd(a,p) == 1,
       aux = sqrt(Mod(a,p));
       m = chinese(m,aux);
       n = chinese(n,-b/aux)
@@ -566,9 +595,9 @@ factdetG[1,2]-=3;
     )
   );
   m = centerlift(m);  n = centerlift(n);
-if( DEBUGLEVEL >=4, print("m=",m);print("n=",n));
+if( DEBUGLEVEL_qfsolve >=4, print("m=",m); print("n=",n));
 
-\\ 2eme etape: on construit Q1 de det -1 tq Q1(x,y,0)=G(x,y)
+\\ 2eme etape: on construit Q1 de det -1 tq Q1(x,y,0) = G(x,y)
   Q1 = [(n^2-c)/d, (m*n+b)/d, n ;
         (m*n+b)/d, (m^2-a)/d, m ;
         n,         m,         d ];
@@ -576,17 +605,17 @@ if( DEBUGLEVEL >=4, print("m=",m);print("n=",n));
 
 \\ 3eme etape: on reduit Q1 jusqu'a [0,0,-1;0,1,0;-1,0,0]
   M = LLLgoon3(Q1)[2][3,];
-  if(M[1]<0,M=-M);
-if( DEBUGLEVEL >=3, print("fin de Qfbsqrtgauss "));
+  if( M[1] < 0, M = -M);
+if( DEBUGLEVEL_qfsolve >=3, print("fin de Qfbsqrtgauss "));
   if( M[1]%2,
     return(Qfb(M[1],2*M[2],2*M[3]))
-  , return(Qfb(M[3],-2*M[2],2*M[1])))
+  , return(Qfb(M[3],-2*M[2],2*M[1])));
 }
-{class2(D,factdetG,Winvariants,U2)=
+{class2(D,factdetG,Winvariants,U2) =
 \\ On suit l'algorithme de Shanks/Bosma-Stevenhagen
 \\ pour construire tout le 2-groupe de classes
 \\ seulement pour D discriminant fondamental.
-\\ lorsque D=1(4), on travaille avec 4D.
+\\ lorsque D = 1(4), on travaille avec 4D.
 \\ Si on connait la factorisation de abs(2*D),
 \\ on peut la donner dans factdetG, et dans ce cas le reste
 \\ de l'algorithme est polynomial.
@@ -595,53 +624,53 @@ if( DEBUGLEVEL >=3, print("fin de Qfbsqrtgauss "));
 
 local(factD,n,rang,m,listgen,vD,p,vp,aux,invgen,im,Ker,Kerim,listgen2,G2,struct,E,compteur,red);
 
-if( DEBUGLEVEL >= 1, print("Construction du 2-groupe de classe de discriminant ",D));
+if( DEBUGLEVEL_qfsolve >= 1, print("Construction du 2-groupe de classe de discriminant ",D));
   if( D%4 == 2 || D%4 == 3, print("Discriminant not congruent to 0,1 mod 4");return(0));
 
-  if(D==-4, return([[1],[Qfb(1,0,1)]]));
+  if( D==-4, return([[1],[Qfb(1,0,1)]]));
 
-  if(!factdetG, factdetG = factor(2*abs(D)));
+  if( !factdetG, factdetG = factor(2*abs(D)));
   factD = concat([-1],factdetG[,1]~);
-  if( D%4 == 1, D*=4; factdetG[1,2]+=2);
+  if( D%4 == 1, D *= 4; factdetG[1,2] += 2);
 
-  n = length(factD);  rang = n-3;
+  n = length(factD); rang = n-3;
   if(D>0, m = rang+1, m = rang);
-if( DEBUGLEVEL >= 3, print("factD = ",factD));
-  listgen = vector(m);
+if( DEBUGLEVEL_qfsolve >= 3, print("factD = ",factD));
+  listgen = vector(max(0,m));
 
   if( vD = valuation(D,2),
-    E = Qfb(1,0,-D/4);
+    E = Qfb(1,0,-D/4)
   , E = Qfb(1,1,(1-D)/4)
   );
-if( DEBUGLEVEL >= 3, print("E = ",E));
+if( DEBUGLEVEL_qfsolve >= 3, print("E = ",E));
 
-  if( type(Winvariants)=="t_COL" && (Winvariants == 0 || length(matinverseimage(U2*Mod(1,2),Winvariants))>0), return([[1],[E]]));
+  if( type(Winvariants) == "t_COL" && (Winvariants == 0 || length(matinverseimage(U2*Mod(1,2),Winvariants))>0), return([[1],[E]]));
 
   for( i = 1, m, \\ on  ne regarde pas factD[1]=-1, ni factD[2]=2
     p = factD[i+2];
     vp = valuation(D,p);
     aux = p^vp;
-    if (vD,
+    if( vD,
       listgen[i] = Qfb(aux,0,-D/4/aux)
-    , listgen[i] = Qfb(aux,aux,(aux-D/aux)/4));
+    , listgen[i] = Qfb(aux,aux,(aux-D/aux)/4))
   );
   if( vD == 2 && D%16 != 4,
-    m++;rang++; listgen = concat(listgen,[Qfb(2,2,(4-D)/8)]));
+    m++; rang++; listgen = concat(listgen,[Qfb(2,2,(4-D)/8)]));
   if( vD == 3,
-    m++;rang++; listgen = concat(listgen,[Qfb(2^(vD-2),0,-D/2^vD)]));
+    m++; rang++; listgen = concat(listgen,[Qfb(2^(vD-2),0,-D/2^vD)]));
 
-if( DEBUGLEVEL >= 3, print("listgen = ",listgen));
-if( DEBUGLEVEL >= 2, print("rang = ",rang));
+if( DEBUGLEVEL_qfsolve >= 3, print("listgen = ",listgen));
+if( DEBUGLEVEL_qfsolve >= 2, print("rang = ",rang));
 
   if( !rang, return([[1],[E]]));
 
  invgen = Qflisteinvariants(listgen,factD)[2]*Mod(1,2);
-if( DEBUGLEVEL >= 3, printp("invgen = ",lift(invgen)));
+if( DEBUGLEVEL_qfsolve >= 3, printp("invgen = ",lift(invgen)));
 
   struct = vector(m,i,2);
   im = lift(matinverseimage(invgen,matimage(invgen)));
   while( (length(im) < rang)
-  || (type(Winvariants) == "t_COL" && length(matinverseimage(concat(invgen,U2),Winvariants)==0)),
+  || (type(Winvariants) == "t_COL" && length(matinverseimage(concat(invgen,U2),Winvariants) == 0)),
     Ker = lift(matker(invgen));
     Kerim = concat(Ker,im);
     listgen2 = vector(m);
@@ -658,19 +687,19 @@ if( DEBUGLEVEL >= 3, printp("invgen = ",lift(invgen)));
     listgen = listgen2;
     invgen = invgen*Kerim;
 
-if( DEBUGLEVEL >= 4, print("listgen = ",listgen));
-if( DEBUGLEVEL >= 4, printp("invgen = ",lift(invgen)));
+if( DEBUGLEVEL_qfsolve >= 4, print("listgen = ",listgen));
+if( DEBUGLEVEL_qfsolve >= 4, printp("invgen = ",lift(invgen)));
 
     for( i = 1, length(Ker),
       G2 = Qfbsqrtgauss(listgen[i],factdetG);
-      struct[i]<<=1;
+      struct[i] <<= 1;
       listgen[i] = G2;
       invgen[,i] = Qflisteinvariants(G2,factD)[2][,1]*Mod(1,2)
     );
 
-if( DEBUGLEVEL >= 3, print("listgen = ",listgen));
-if( DEBUGLEVEL >= 3, printp("invgen = ",lift(invgen)));
-if( DEBUGLEVEL >= 3, print("struct = ",struct));
+if( DEBUGLEVEL_qfsolve >= 3, print("listgen = ",listgen));
+if( DEBUGLEVEL_qfsolve >= 3, printp("invgen = ",lift(invgen)));
+if( DEBUGLEVEL_qfsolve >= 3, print("struct = ",struct));
 
     im = lift(matinverseimage(invgen,matimage(invgen)))
   );
@@ -690,12 +719,12 @@ if( DEBUGLEVEL >= 3, print("struct = ",struct));
 \\ listgen = vector(rang,i,listgen[m-rang+i]);
   struct = vector(rang,i,struct[m-rang+i]);
 
-if( DEBUGLEVEL >= 2, print("listgen = ",listgen));
-if( DEBUGLEVEL >= 2, print("struct = ",struct));
+if( DEBUGLEVEL_qfsolve >= 2, print("listgen = ",listgen));
+if( DEBUGLEVEL_qfsolve >= 2, print("struct = ",struct));
 
-return([struct,listgen])
+return([struct,listgen]);
 }
-{Qfsolve(G,factD)=
+{Qfsolve(G,factD) =
 \\ Resolution de la forme quadratique X^tGX=0 de dimension n >= 3.
 \\ On suppose que G est entiere et primitive.
 \\ La solution peut etre un vectorv ou une matrice.
@@ -705,33 +734,33 @@ return([struct,listgen])
 \\ Si on connait la factorisation de -abs(2*matdet(G)),
 \\ on peut la passer par le parametre factD pour gagner du temps.
 
-local(n,M,signG,d,Min,U,codim,aux,G1,detG1,M1,subspace1,G2,subspace2,M2,solG2,Winvariants,dQ,factd,U2,clgp2,V,detG2,dimseti,solG1,sol);
+local(n,M,signG,d,Min,U,codim,aux,G1,detG1,M1,subspace1,G2,subspace2,M2,solG2,Winvariants,dQ,factd,U2,clgp2,V,detG2,dimseti,solG1,sol,Q);
 
-if( DEBUGLEVEL >= 1, print("entree dans Qfsolve"));
+if( DEBUGLEVEL_qfsolve >= 1, print("entree dans Qfsolve"));
 \\
 \\ 1ere reduction des coefficients de G
 \\
 
   n = length(G);
   M = IndefiniteLLL(G);
-  if(type(M) == "t_COL",
-if( DEBUGLEVEL >= 1, print("solution triviale",M));
+  if( type(M) == "t_COL",
+if( DEBUGLEVEL_qfsolve >= 1, print("solution ",M));
     return(M));
   G = M[1]; M = M[2];
 
 \\ Solubilite reelle
   signG = qfsign(G);
   if( signG[1] == 0 || signG[2] == 0,
-if( DEBUGLEVEL >= 1, print("pas de solution reelle"));
+if( DEBUGLEVEL_qfsolve >= 1, print("pas de solution reelle"));
     return(-1));
   if( signG[1] < signG[2], G = -G; signG = signG*[0,1;1,0]);
 
 \\ Factorisation du determinant
   d = matdet(G);
   if( !factD,
-if( DEBUGLEVEL >= 1, print("factorisation du determinant"));
+if( DEBUGLEVEL_qfsolve >= 1, print("factorisation du determinant"));
     factD = factor(-abs(2*d));
-if( DEBUGLEVEL >= 1, print(factD));
+if( DEBUGLEVEL_qfsolve >= 1, print(factD))
   );
   factD[1,2] = 0;
   factD[2,2] --;
@@ -740,18 +769,18 @@ if( DEBUGLEVEL >= 1, print(factD));
 \\ Minimisation et solubilite locale.
 \\
 
-if( DEBUGLEVEL >= 1, print("minimisation du determinant"));
+if( DEBUGLEVEL_qfsolve >= 1, print("minimisation du determinant"));
   Min = Qfminim(G,factD);
-  if (type(Min) == "t_INT",
-if( DEBUGLEVEL >= 1, print("pas de solution locale en ",Min));
+  if( type(Min) == "t_INT",
+if( DEBUGLEVEL_qfsolve >= 1, print("pas de solution locale en ",Min));
     return(Min));
 
   M = M*Min[2];
   G = Min[1];
 \\  Min[3] contient la factorisation de abs(matdet(G));
 
-if( DEBUGLEVEL >= 4, print("G minime = ",G));
-if( DEBUGLEVEL >= 4, print("d=",d));
+if( DEBUGLEVEL_qfsolve >= 4, print("G minime = ",G));
+if( DEBUGLEVEL_qfsolve >= 4, print("d=",d));
 
 \\ Maintenant, on sait qu'il y a des solutions locales
 \\ (sauf peut-etre en 2 si n==4),
@@ -762,10 +791,10 @@ if( DEBUGLEVEL >= 4, print("d=",d));
 \\ Reduction de G et recherche de solution triviales
 \\ par exemple quand det G=+-1, il y en a toujours.
 
-if( DEBUGLEVEL >= 1, print("reduction"));
+if( DEBUGLEVEL_qfsolve >= 1, print("reduction"));
   U = IndefiniteLLL(G);
   if(type(U) == "t_COL",
-if( DEBUGLEVEL >= 1, print("solution ",M*U));
+if( DEBUGLEVEL_qfsolve >= 1, print("solution ",M*U));
     return(M*U));
   G = U[1]; M = M*U[2];
 
@@ -775,7 +804,7 @@ if( DEBUGLEVEL >= 1, print("solution ",M*U));
 \\
 
   if( n >= 6 && n%2 == 0 && matsize(Min[3])[1] != 0,
-if( DEBUGLEVEL >= 1, print("On passe en dimension ",n+1));
+if( DEBUGLEVEL_qfsolve >= 1, print("On passe en dimension ",n+1));
     codim = 1; n++;
 \\ On calcule le plus grand diviseur carre de d.
     aux = prod( i = 1, matsize(Min[3])[1], if( Min[3][i,1] == 2, Min[3][i,1], 1));
@@ -793,7 +822,7 @@ if( DEBUGLEVEL >= 1, print("On passe en dimension ",n+1));
     Min = Qfminim(G1,factD);
     G1 = Min[1];
     M1 = Min[2];
-    subspace1 = matrix(n,n-1,i,j,i==j)
+    subspace1 = matrix(n,n-1,i,j, i == j)
   , codim = 0;
     G1 = G;
     subspace1 = M1 = matid(n)
@@ -805,24 +834,24 @@ if( DEBUGLEVEL >= 1, print("On passe en dimension ",n+1));
 \\
 
   if( matsize(Min[3])[1] == 0, \\ if( abs(d) == 1,
-if( DEBUGLEVEL >= 2, print(" detG2 = 1"));
+if( DEBUGLEVEL_qfsolve >= 2, print(" detG2 = 1"));
      G2 = G1;
      subspace2 = M2 = matid(n);
      solG2 = LLLgoon(G2,1)
   ,
-if( DEBUGLEVEL >= 1, print("On passe en dimension ",n+2));
+if( DEBUGLEVEL_qfsolve >= 1, print("On passe en dimension ",n+2));
     codim += 2;
     subspace2 = matrix( n+2, n, i, j, i == j);
     d = prod( i = 1, matsize(Min[3])[1],Min[3][i,1]);    \\ d = abs(matdet(G1));
     if( signG[2]%2 == 1, d = -d);                        \\ d = matdet(G1);
     if( Min[3][1,1] == 2, factD = [-1], factD = [-1,2]); \\ si d est pair ...
     factD = concat(factD, Min[3][,1]~);
-if( DEBUGLEVEL >= 4, print("factD=",factD));
+if( DEBUGLEVEL_qfsolve >= 4, print("factD=",factD));
 
 \\ Solubilite locale en 2 (c'est le seul cas qui restait a traiter !!)
     if( n == 4 && d%8 == 1,
       if( QfWittinvariant(G,2) == 1,
-if( DEBUGLEVEL >= 1, print("pas de solution locale en 2"));
+if( DEBUGLEVEL_qfsolve >= 1, print("pas de solution locale en 2"));
         return(2)));
 
 \\
@@ -839,9 +868,9 @@ if( DEBUGLEVEL >= 1, print("pas de solution locale en 2"));
     if( n >= 5, dQ *= 8);
 
 \\ invariants p-adiques
-\\ pour p=2, on ne choisit pas.
+\\ pour p = 2, on ne choisit pas.
     if( n == 4,
-if( DEBUGLEVEL >= 1, print("calcul des invariants locaux de G1"));
+if( DEBUGLEVEL_qfsolve >= 1, print("calcul des invariants locaux de G1"));
       aux = Qflisteinvariants(-G1,factD)[2][,1];
       for( i = 3, length(factD), Winvariants[i] = aux[i])
     ,
@@ -850,7 +879,7 @@ if( DEBUGLEVEL >= 1, print("calcul des invariants locaux de G1"));
     );
     Winvariants[2] = sum( i = 1, length(factD), Winvariants[i])%2;
 
-if( DEBUGLEVEL >= 1,
+if( DEBUGLEVEL_qfsolve >= 1,
   print("Recherche d'un forme binaire de discriminant = ",dQ);
   print("et d'invariants de Witt = ",Winvariants));
 
@@ -866,16 +895,16 @@ if( DEBUGLEVEL >= 1,
     factd[1,2]++;
     U2 = matrix(length(factD), n == 4, i,j, hilbert(2,dQ,factD[i])<0);
     clgp2 = class2(dQ,factd,Winvariants,U2);
-if( DEBUGLEVEL >= 4, print("clgp2=",clgp2));
+if( DEBUGLEVEL_qfsolve >= 4, print("clgp2=",clgp2));
 
     clgp2 = clgp2[2];
     U = Qflisteinvariants(clgp2,factD)[2];
     if( n == 4, U = concat(U,U2));
-if( DEBUGLEVEL >= 4, printp("U=",U));
+if( DEBUGLEVEL_qfsolve >= 4, printp("U=",U));
 
     V = lift(matinverseimage(U*Mod(1,2),Winvariants*Mod(1,2)));
     if( !length(V), next);
-if( DEBUGLEVEL >= 4, print("V=",V));
+if( DEBUGLEVEL_qfsolve >= 4, print("V=",V));
 
     if( dQ%2 == 1, Q = qfbprimeform(4*dQ,1), Q = qfbprimeform(dQ,1));
     for( i = 1, length(clgp2),
@@ -883,35 +912,35 @@ if( DEBUGLEVEL >= 4, print("V=",V));
     Q = mymat(Q);
     if( norml2(V) > 1, aux = QfbReduce(Q); Q = aux~*Q*aux);
     if( n == 4 && V[length(V)], Q*=  2);
-if( DEBUGLEVEL >= 2, print("Q=",Q));
-if( DEBUGLEVEL >= 3, print("invariants de Witt de Q=",Qflisteinvariants(Q,factD)));
+if( DEBUGLEVEL_qfsolve >= 2, print("Q=",Q));
+if( DEBUGLEVEL_qfsolve >= 3, print("invariants de Witt de Q=",Qflisteinvariants(Q,factD)));
 
 \\
 \\ Construction d'une forme de dim=n+2 potentiellement unimodulaire
 \\
 
     G2 = matdiagonalblock([G1,-Q]);
-if( DEBUGLEVEL >= 4, print("G2=",G2));
+if( DEBUGLEVEL_qfsolve >= 4, print("G2=",G2));
 
-if( DEBUGLEVEL >= 2, print("minimisation de la forme quadratique de dimension ",length(G2)));
+if( DEBUGLEVEL_qfsolve >= 2, print("minimisation de la forme quadratique de dimension ",length(G2)));
 \\ Minimisation de G2
     detG2 = matdet(G2);
     factd = matrix(length(factD)-1,2);
     for( i = 1, length(factD)-1,
       factd[i,2] = valuation(detG2, factd[i,1] = factD[i+1]));
-if( DEBUGLEVEL >= 3, print("det(G2)=",factd));
+if( DEBUGLEVEL_qfsolve >= 3, print("det(G2) = ",factd));
     Min = Qfminim(G2,factd);
     M2 = Min[2]; G2 = Min[1];
 if( abs(matdet(G2)) > 2, print("******* ERREUR dans Qfsolve: det(G2) <> +-1 *******",matdet(G2));return(0));
-if( DEBUGLEVEL >= 4, print("G2=",G2));
+if( DEBUGLEVEL_qfsolve >= 4, print("G2=",G2));
 
 \\ Maintenant det(G2) = +-1
 
 \\ On construit un seti pour G2 (Sous-Espace Totalement Isotrope)
-if( DEBUGLEVEL >= 2, print("recherche d'un espace de solutions pour G2"));
+if( DEBUGLEVEL_qfsolve >= 2, print("recherche d'un espace de solutions pour G2"));
     solG2 = LLLgoon(G2,1);
     if( matrix(codim+1,codim+1,i,j,solG2[1][i,j]) != 0,
-if( DEBUGLEVEL >= 2, print(" pas assez de solutions dans G2"));return(0));
+if( DEBUGLEVEL_qfsolve >= 2, print(" pas assez de solutions dans G2"));return(0))
   );
 
 \\ G2 doit avoir un espace de solutions de dimension > codim
@@ -921,26 +950,26 @@ if( DEBUGLEVEL >= 2, print(" pas assez de solutions dans G2"));return(0));
 print("dimseti = ",dimseti," <= codim = ",codim);
 print("************* ERREUR : pas assez de solutions pour G2"); return(0));
   solG2 = matrix(length(G2),dimseti,i,j,solG2[2][i,j]);
-if( DEBUGLEVEL >= 3, print("solG2=",solG2));
+if( DEBUGLEVEL_qfsolve >= 3, print("solG2=",solG2));
 
 \\ La solution de G1 se trouve a la fois dans solG2 et dans subspace2
-if( DEBUGLEVEL >= 1, print("Reconstruction de la solution de G1"));
+if( DEBUGLEVEL_qfsolve >= 1, print("Reconstruction de la solution de G1"));
   solG1 = matintersect(subspace2,M2*solG2);
   solG1 = subspace2~*solG1;
-if( DEBUGLEVEL >= 3, print("solG1 = ",solG1));
+if( DEBUGLEVEL_qfsolve >= 3, print("solG1 = ",solG1));
 
 \\ La solution de G se trouve a la fois dans solG et dans subspace1
-if( DEBUGLEVEL >= 1, print("Reconstruction de la solution de G"));
+if( DEBUGLEVEL_qfsolve >= 1, print("Reconstruction de la solution de G"));
   sol = matintersect(subspace1,M1*solG1);
   sol = subspace1~*sol;
   sol = M*sol;
   sol /= content(sol);
   if( length(sol) == 1, sol = sol[,1]);
-if( DEBUGLEVEL >= 3, print("sol = ",sol));
-if( DEBUGLEVEL >= 1, print("fin de Qfsolve"));
+if( DEBUGLEVEL_qfsolve >= 3, print("sol = ",sol));
+if( DEBUGLEVEL_qfsolve >= 1, print("fin de Qfsolve"));
   return(sol);
 }
-{matdiagonalblock(v)=
+{matdiagonalblock(v) =
 local(lv,lt,M);
   lv = length(v);
   lt = sum( i = 1, lv, length(v[i]));
@@ -950,9 +979,9 @@ local(lv,lt,M);
     for( j = 1, length(v[i]),
       for( k = 1, length(v[i]),
         M[lt+j,lt+k] = v[i][j,k]));
-    lt += length(v[i]);
+    lt += length(v[i])
   );
-return(M)
+return(M);
 }
 
 

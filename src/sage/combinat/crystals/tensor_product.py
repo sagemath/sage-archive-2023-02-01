@@ -306,7 +306,7 @@ class CrystalOfWords(Crystal):
     tableaux of different tensor product structures in column-reading (and hence different shapes)
     to be considered elements in the same crystal.
     """
-    def __call__(self, *crystalElements):
+    def _element_constructor_(self, *crystalElements):
         """
         EXAMPLES::
 
@@ -822,9 +822,9 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
             for i in range(type[1]):
                 if module_generator[i] == type[1]:
                     module_generator[i] = -type[1]
-        return self(*[self.letters(x) for x in module_generator])
+        return self(list=[self.letters(x) for x in module_generator])
 
-    def __call__(self, *args, **options):
+    def _element_constructor_(self, *args, **options):
         """
         Returns a CrystalOfTableauxElement
 
@@ -841,19 +841,43 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
 class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
     def __init__(self, parent, *args, **options):
         """
+        There are several ways to input tableaux, by rows,
+        by columns, as the list of column elements, or as a sequence of numbers
+        in column reading.
+
         EXAMPLES::
 
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(rows=[[1,2],[3,4]])
+            sage: t
+            [[1, 2], [3, 4]]
             sage: TestSuite(t).run()
+
+            sage: t = T(columns=[[3,1],[4,2]])
+            sage: t
+            [[1, 2], [3, 4]]
+            sage: TestSuite(t).run()
+
+            sage: t = T(list=[3,1,4,2])
+            sage: t
+            [[1, 2], [3, 4]]
+
+            sage: t = T(3,1,4,2)
+            sage: t
+            [[1, 2], [3, 4]]
+
+        Currently inputting the empty tableau as an empty sequence is broken due to a bug in
+        the generic __call__ method (see trac ticket #8648)
+
+        EXAMPLES::
+
+            sage: T = CrystalOfTableaux(['A',3], shape=[])
+            sage: t = T()
+            sage: t._list
+            [0]
         """
         if len(args) == 1:
-            if isinstance(args[0], CrystalOfTableauxElement):
-                if args[0].parent() == parent:
-                    return args[0]
-                else:
-                    raise ValueError, "Inconsistent parent"
-            elif isinstance(args[0], Tableau_class):
+            if isinstance(args[0], Tableau_class):
                 options['rows'] = args[0]
         if options.has_key('list'):
             list = options['list']
@@ -937,12 +961,15 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             [[-3], [3]]
             sage: t=T(rows=[[3],[-3]]).to_tableau(); t
             [[3], [-3]]
+            sage: T = CrystalOfTableaux(['B',2], shape = [1,1])
+            sage: t = T(rows=[[0],[0]]).to_tableau(); t
+            [[0], [0]]
         """
         if self._list == []:
             return Tableau([])
         tab = [ [self[0].value] ]
         for i in range(1,len(self)):
-            if self[i-1] <= self[i]:
+            if self[i-1] < self[i] or (self[i-1].value != 0 and self[i-1] == self[i]):
                 tab.append([self[i].value])
             else:
                 l = len(tab)-1

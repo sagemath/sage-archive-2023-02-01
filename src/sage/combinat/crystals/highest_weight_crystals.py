@@ -151,7 +151,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords, ClassicalCryst
         """
         dominant_weight = self._highest_weight
         tensor = sum(( [self.column_crystal[i]]*dominant_weight.coefficient(i) for i in dominant_weight.support()), [])
-        return self(*[B.module_generators[0] for B in tensor])
+        return self._element_constructor_(*[B.module_generators[0] for B in tensor])
 
 class FiniteDimensionalHighestWeightCrystal_TypeE6(FiniteDimensionalHighestWeightCrystal_TypeE):
     r"""

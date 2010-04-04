@@ -302,7 +302,7 @@ def dir_with_other_class(self, cls):
 
     Check that objects without dicts are well handled
 
-        sage: F = GF(9,'a')
+        sage: F.<x0,x1> = BooleanPolynomialRing()
         sage: hasattr(F, '__dict__')
         False
         sage: sage.structure.parent.dir_with_other_class(F, B)

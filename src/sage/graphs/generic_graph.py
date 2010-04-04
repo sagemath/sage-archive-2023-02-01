@@ -3353,6 +3353,148 @@ class GenericGraph(GenericGraph_pyx):
             return tuple(answer)
 
 
+    def multiway_cut(self, vertices, value_only = False, use_edge_labels = False, **kwds):
+        r"""
+        Returns a minimum edge multiway cut corresponding to the
+        given set of vertices
+        ( cf. http://www.d.kth.se/~viggo/wwwcompendium/node92.html )
+        represented by a list of edges.
+
+        A multiway cut for a vertex set `S` in a graph or a digraph
+        `G` if a set `C` of edges such that any two vertices `u,v`
+        in `S` are disconnected when removing from `G` the edges from
+        `C`.
+
+        Such a cut is said to be minimum when its cardinality
+        (or weight) is minimum.
+
+        INPUT:
+
+        - ``vertices`` (iterable)-- the set of vertices
+
+        - ``value_only`` (boolean)
+
+            - When set to ``True``, only the value of a minimum
+              multiway cut is returned.
+
+            - When set to ``False`` (default), the list of edges
+              is returned
+
+        - ``use_edge_labels`` (boolean)
+            - When set to ``True``, computes a weighted minimum cut
+              where each edge has a weight defined by its label. ( if
+              an edge has no label, `1` is assumed )
+
+            - when set to ``False`` (default), each edge has weight `1`.
+
+        - ``**kwds`` -- arguments to be passed down to the ``solve``
+          function of ``MixedIntegerLinearProgram``. See the documentation
+          of ``MixedIntegerLinearProgram.solve`` for more information.
+
+        EXAMPLES:
+
+        Of course, a multiway cut between two vertices correspond
+        to a minimum edge cut ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.edge_cut(0,3) == g.multiway_cut([0,3], value_only = True) # optional - requires GLPK, CBC or CPLEX
+            True
+
+        As Petersen's graph is `3`-regular, a minimum multiway cut
+        between three vertices contains at most `2\times 3` edges
+        (which could correspond to the neighborhood of 2
+        vertices)::
+
+            sage: g.multiway_cut([0,3,9], value_only = True) == 2*3          # optional - requires GLPK, CBC or CPLEX
+            True
+
+        In this case, though, the vertices are an independent set.
+        If we pick instead vertices `0,9,` and `7`, we can save `4`
+        edges in the multiway cut ::
+
+            sage: g.multiway_cut([0,7,9], value_only = True) == 2*3 - 1      # optional - requires GLPK, CBC or CPLEX
+            True
+
+        This example, though, does not work in the directed case anymore,
+        as it is not possible in Petersen's graph to mutualise edges ::
+
+            sage: g = DiGraph(g)
+            sage: g.multiway_cut([0,7,9], value_only = True) == 3*3           # optional - requires GLPK, CBC or CPLEX
+            True
+
+        Of course, a multiway cut between the whole vertex set
+        contains all the edges of the graph::
+
+            sage: C = g.multiway_cut(g.vertices())                            # optional - requires GLPK, CBC or CPLEX
+            sage: set(C) == set(g.edges())                                    # optional - requires GLPK, CBC or CPLEX
+            True
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        from itertools import combinations, chain
+
+        p = MixedIntegerLinearProgram(maximization = False)
+
+        # height[c][v] represents the height of vertex v for commodity c
+        height = p.new_variable(dim = 2)
+
+        # cut[e] represents whether e is in the cut
+        cut = p.new_variable()
+
+        # Reorder
+        R = lambda x,y : (x,y) if x<y else (y,x)
+
+        # Weight function
+        if use_edge_labels:
+            w = lambda l : l if l is not None else 1
+        else:
+            w = lambda l : 1
+
+        if self.is_directed():
+
+            p.set_objective(  sum([ w(l) * cut[u,v] for u,v,l in self.edge_iterator() ]) )
+
+            for s,t in chain( combinations(vertices,2), map(lambda (x,y) : (y,x), combinations(vertices,2))) :
+                # For each commodity, the source is at height 0
+                # and the destination is at height 1
+                p.add_constraint( height[(s,t)][s], min = 0, max = 0)
+                p.add_constraint( height[(s,t)][t], min = 1, max = 1)
+
+                # given a commodity (s,t), the height of two adjacent vertices u,v
+                # can differ of at most the value of the edge between them
+                for u,v in self.edges(labels = False):
+                    p.add_constraint( height[(s,t)][u] - height[(s,t)][v] - cut[u,v], max = 0)
+
+        else:
+
+            p.set_objective(  sum([ w(l) * cut[R(u,v)] for u,v,l in self.edge_iterator() ]) )
+
+            for s,t in combinations(vertices,2):
+                # For each commodity, the source is at height 0
+                # and the destination is at height 1
+                p.add_constraint( height[(s,t)][s], min = 0, max = 0)
+                p.add_constraint( height[(s,t)][t], min = 1, max = 1)
+
+                # given a commodity (s,t), the height of two adjacent vertices u,v
+                # can differ of at most the value of the edge between them
+                for u,v in self.edges(labels = False):
+                    p.add_constraint( height[(s,t)][u] - height[(s,t)][v] - cut[R(u,v)], max = 0)
+                    p.add_constraint( height[(s,t)][v] - height[(s,t)][u] - cut[R(u,v)], max = 0)
+
+
+        p.set_binary(cut)
+        if value_only:
+            return p.solve(objective_only = True, **kwds)
+
+        p.solve(**kwds)
+
+        cut = p.get_values(cut)
+
+        if self.is_directed():
+            return filter(lambda (u,v,l) : cut[u,v] > .5, self.edge_iterator())
+
+        else:
+            return filter(lambda (u,v,l) : cut[R(u,v)] > .5, self.edge_iterator())
+
     def vertex_cover(self, algorithm="Cliquer", value_only=False, solver=None, verbose=0):
         r"""
         Returns a minimum vertex cover of self represented

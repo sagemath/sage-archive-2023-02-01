@@ -5585,6 +5585,168 @@ class GenericGraph(GenericGraph_pyx):
         for e in edges:
             self.add_edge(e)
 
+    def subdivide_edge(self, *args):
+        """
+        Subdivides an edge `k` times.
+
+        INPUT:
+
+        The following forms are all accepted to subdivide `8` times
+        the edge between vertices `1` and `2` labeled with
+        ``"my_label"``.
+
+        - ``G.subdivide_edge( 1, 2, 8 )``
+        - ``G.subdivide_edge( (1, 2), 8 )``
+        - ``G.subdivide_edge( (1, 2, "my_label"), 8 )``
+
+        .. NOTE::
+
+            * If the given edge is labelled with `l`, all the edges
+              created by the subdivision will have the same label.
+
+            * If no label is given, the label used will be the one
+              returned by the method :meth:`edge_label` on the pair
+              ``u,v``
+
+        EXAMPLE:
+
+        Subdividing `5` times an edge in a path of length
+        `3` makes it a path of length `8`::
+
+            sage: g = graphs.PathGraph(3)
+            sage: edge = g.edges()[0]
+            sage: g.subdivide_edge(edge, 5)
+            sage: g.is_isomorphic(graphs.PathGraph(8))
+            True
+
+        Subdividing a labelled edge in two ways ::
+
+            sage: g = Graph()
+            sage: g.add_edge(0,1,"label1")
+            sage: g.add_edge(1,2,"label2")
+            sage: print sorted(g.edges())
+            [(0, 1, 'label1'), (1, 2, 'label2')]
+
+        Specifying the label::
+
+            sage: g.subdivide_edge(0,1,"label1", 3)
+            sage: print sorted(g.edges())
+            [(0, 3, 'label1'), (1, 2, 'label2'), (1, 5, 'label1'), (3, 4, 'label1'), (4, 5, 'label1')]
+
+        The lazy way::
+
+            sage: g.subdivide_edge(1,2,"label2", 5)
+            sage: print sorted(g.edges())
+            [(0, 3, 'label1'), (1, 5, 'label1'), (1, 6, 'label2'), (2, 10, 'label2'), (3, 4, 'label1'), (4, 5, 'label1'), (6, 7, 'label2'), (7, 8, 'label2'), (8, 9, 'label2'), (9, 10, 'label2')]
+
+        If too many arguments are given, an exception is raised ::
+
+            sage: g.subdivide_edge(0,1,1,1,1,1,1,1,1,1,1)
+            Traceback (most recent call last):
+            ...
+            ValueError: This method takes at most 4 arguments !
+
+        The same goes when the given edge does not exist::
+
+            sage: g.subdivide_edge(0,1,"fake_label",5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The given edge does not exist.
+
+        .. SEEALSO::
+
+        - :meth:`subdivide_edges` -- subdivides multiples edges at a time
+
+        """
+
+        if len(args) == 2:
+            edge, k = args
+
+            if len(edge) == 2:
+                u,v = edge
+                l = self.edge_label(u,v)
+            elif len(edge) == 3:
+                u,v,l = edge
+
+        elif len(args) == 3:
+            u, v, k = args
+            l = self.edge_label(u,v)
+
+        elif len(args) == 4:
+            u, v, l, k = args
+
+        else:
+            raise ValueError("This method takes at most 4 arguments !")
+
+        if not self.has_edge(u,v,l):
+            raise ValueError("The given edge does not exist.")
+
+        for i in xrange(k):
+            self.add_vertex()
+
+        self.delete_edge(u,v,l)
+
+        edges = []
+        for uu in self.vertices()[-k:] + [v]:
+            edges.append((u,uu,l))
+            u = uu
+
+        self.add_edges(edges)
+
+    def subdivide_edges(self, edges, k):
+        """
+        Subdivides k times edges from an iterable container.
+
+        For more information on the behaviour of this method, please
+        refer to the documentation of :meth:`subdivide_edge`.
+
+        INPUT:
+
+        - ``edges`` -- a list of edges
+
+        - ``k`` (integer) -- common length of the subdivisions
+
+
+        .. NOTE::
+
+            If a given edge is labelled with `l`, all the edges
+            created by its subdivision will have the same label.
+
+        EXAMPLE:
+
+        If we are given the disjoint union of several paths::
+
+            sage: paths = [2,5,9]
+            sage: paths = map(graphs.PathGraph, paths)
+            sage: g = Graph()
+            sage: for P in paths:
+            ...     g = g + P
+
+        ... subdividing edges in each of them will only change their
+        lengths::
+
+            sage: edges = [P.edges()[0] for P in g.connected_components_subgraphs()]
+            sage: k = 6
+            sage: g.subdivide_edges(edges, k)
+
+        Let us check this by creating the graph we expect to have built
+        through subdivision::
+
+            sage: paths2 = [2+k, 5+k, 9+k]
+            sage: paths2 = map(graphs.PathGraph, paths2)
+            sage: g2 = Graph()
+            sage: for P in paths2:
+            ...     g2 = g2 + P
+            sage: g.is_isomorphic(g2)
+            True
+
+        .. SEEALSO::
+
+        - :meth:`subdivide_edge` -- subdivides one edge
+        """
+        for e in edges:
+            self.subdivide_edge(e, k)
+
     def delete_edge(self, u, v=None, label=None):
         r"""
         Delete the edge from u to v, returning silently if vertices or edge

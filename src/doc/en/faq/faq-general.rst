@@ -80,7 +80,7 @@ list of direct contributors can be found on the
 and the history of changes can be found in the high-level
 `changelog <http://www.sagemath.org/mirror/src/changelog.txt>`_. Refer
 to the
-`acknowledgement page <http://www.sagemath.org/development-ack.html>`_
+`acknowledgment page <http://www.sagemath.org/development-ack.html>`_
 of the Sage website for an up-to-date list of financial and
 infrastructure supporters, mirror network hosting providers, and
 indirect contributors.

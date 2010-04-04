@@ -126,6 +126,18 @@ commands. You can then run that Sage script like so::
 This will take care of loading the necessary environment variables and
 default imports for you.
 
+How can I reload a Python script in a Sage session?
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You can load a Python script in a Sage session with the command **load**. For example, we could use Sage to import a file called simple.py with::
+
+    sage: load("simple.py")
+
+and repeat this command every time that we change the fiel simple.py. However, if we type::
+
+    sage: attach("simple.py")
+
+every change applied to the file simple.py will be automatically updated in Sage.
 
 Can I use Sage with Python 3.x?
 """""""""""""""""""""""""""""""

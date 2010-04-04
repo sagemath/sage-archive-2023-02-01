@@ -3144,6 +3144,11 @@ class Polyhedron(SageObject):
             sage: [len(x) for x in c5_20_fl.level_sets()] # not tested - very long time
             [1, 20, 190, 580, 680, 272, 1]
             sage: polytopes.n_cube(2).face_lattice().plot()
+            sage: for lset in polytopes.cross_polytope(2).face_lattice().level_sets(): print lset[0]
+            (None, (0, 1, 2, 3))
+            ((1,), (2, 3))
+            ((1, 2), (3,))
+            ((0, 1, 2, 3), None)
 
         REFERENCES:
 
@@ -3155,7 +3160,7 @@ class Polyhedron(SageObject):
         except AttributeError:
             pass
         # dictionary of the form: (vertices,faces):(upper cover keys)
-        f_l_dict = {(None,None):[(tuple([x]),tuple(self._vertex_face_indexset([x])))
+        f_l_dict = {(None,tuple(range(self.n_Hrepresentation()))):[(tuple([x]),tuple(self._vertex_face_indexset([x])))
                                  for x in range(self.n_Vrepresentation())]}
         todolist = f_l_dict.values()[0][:]
         while todolist != []:
@@ -3169,7 +3174,7 @@ class Polyhedron(SageObject):
             minimals = []
             if candidates == []:
                 f_l_dict[todo].append((tuple(range(self.n_Vrepresentation())),
-                                       tuple(range(self.n_Hrepresentation()))))
+                                      None))
             while candidates != []:
                 c = candidates[0]
                 closure = self._v_closure(list(todo[0])+[c])

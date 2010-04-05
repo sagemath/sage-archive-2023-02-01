@@ -187,6 +187,13 @@ class DefiniteIntegral(BuiltinFunction):
             integrate(sin(x)/x^2, x, 1, 2)
             sage: h.n() # indirect doctest
             0.4723991772689525...
+
+        TESTS:
+
+        Check if #3863 is fixed::
+
+            sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
+            0.154572952320790
         """
         from sage.gsl.integration import numerical_integral
         # The gsl routine returns a tuple, which also contains the error.

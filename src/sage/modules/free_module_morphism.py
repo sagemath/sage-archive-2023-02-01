@@ -319,7 +319,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
             sage: X = QQ**2
             sage: V = X.span([[2, 0], [0, 8]], ZZ)
-            sage: W = (QQ**1).span([[1/6]], ZZ)
+            sage: W = (QQ**1).span([[1/12]], ZZ)
             sage: f = V.hom([W([1/3]), W([1/2])], W)
             sage: f.lift([1/3])
             (8, -16)
@@ -330,16 +330,47 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: f.lift([1/12])
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1/12]) is not in free module
+            ValueError: element is not in the image
+            sage: f.lift([1/24])
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= [1/24]) is not in free module
 
+        This works for vector spaces, too::
+
+            sage: V = VectorSpace(GF(3), 2)
+            sage: W = VectorSpace(GF(3), 3)
+            sage: f = V.hom([W.1, W.1 - W.0])
+            sage: f.lift(W.1)
+            (1, 0)
+            sage: f.lift(W.2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not in the image
+            sage: w = W((17, -2, 0))
+            sage: f(f.lift(w)) == w
+            True
         """
         from free_module_element import vector
         x = self.codomain()(x)
         A = self.matrix()
-        H, U = A.hermite_form(transformation=True,include_zero_rows=False)
-        Y = H.solve_left(vector(self.codomain().coordinates(x)))
-        C = Y*U
-        t = self.domain().linear_combination_of_basis(C)
+        R = self.base_ring()
+        if R.is_field():
+            try:
+                C = A.solve_left(x)
+            except ValueError:
+                raise ValueError, "element is not in the image"
+        else:
+            # see inverse_image for similar code but with comments
+            if not hasattr(A, 'hermite_form'):
+                raise NotImplementedError, "base ring (%s) must have hermite_form algorithm in order to compute inverse image"%R
+            H, U = A.hermite_form(transformation=True,include_zero_rows=False)
+            Y = H.solve_left(vector(self.codomain().coordinates(x)))
+            C = Y*U
+        try:
+            t = self.domain().linear_combination_of_basis(C)
+        except TypeError:
+            raise ValueError, "element is not in the image"
         assert self(t) == x
         return t
 

@@ -3995,6 +3995,10 @@ class FreeModule_ambient(FreeModule_generic):
         Return the linear combination of the basis for self obtained from
         the elements of the list v.
 
+        INPUTS:
+
+        - ``v`` - list
+
         EXAMPLES::
 
             sage: V = span([[1,2,3], [4,5,6]], ZZ)
@@ -4005,6 +4009,14 @@ class FreeModule_ambient(FreeModule_generic):
             [0 3 6]
             sage: V.linear_combination_of_basis([1,1])
             (1, 5, 9)
+
+        This should raise an error if the resulting element is not in self::
+
+            sage: W = span([[2,4]], ZZ)
+            sage: W.linear_combination_of_basis([1/2])
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= [1, 2]) is not in free module
         """
         return self(v)
 
@@ -5394,6 +5406,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Return the linear combination of the basis for self obtained from
         the coordinates of v.
 
+        INPUTS:
+
+        - ``v`` - list
+
         EXAMPLES::
 
             sage: V = span([[1,2,3], [4,5,6]], ZZ); V
@@ -5403,9 +5419,19 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [0 3 6]
             sage: V.linear_combination_of_basis([1,1])
             (1, 5, 9)
+
+        This should raise an error if the resulting element is not in self::
+
+            sage: W = (QQ**2).span([[2, 0], [0, 8]], ZZ)
+            sage: W.linear_combination_of_basis([1, -1/2])
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= [2, -4]) is not in free module
         """
+        R = self.base_ring()
+        check = (not R.is_field()) and any([a not in R for a in list(v)])
         return self(self.basis_matrix().linear_combination_of_rows(v),
-                    check=False, copy=False, coerce=False)
+                    check=check, copy=False, coerce=False)
 
 
 class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):

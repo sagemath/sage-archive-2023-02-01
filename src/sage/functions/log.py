@@ -297,6 +297,17 @@ class Function_polylog(GinacFunction):
 
             sage: latex(polylog(5, x))
             {\rm Li}_{5}(x)
+
+        TESTS:
+
+        Check if #8459 is fixed::
+
+            sage: t = maxima(polylog(5,x)).sage(); t
+            polylog(5, x)
+            sage: t.operator() == polylog
+            True
+            sage: t.subs(x=.5).n()
+            0.508400579242269
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 

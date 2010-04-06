@@ -6484,11 +6484,13 @@ cdef class Expression(CommutativeRingElement):
            all roots be explicit rather than implicit. Not used
            when solving inequality.
 
-        -  ``to_poly_solve`` - bool (default: False); use Maxima's
-           ``to_poly_solver`` package to search for more possible
+        -  ``to_poly_solve`` - bool (default: False) or string; use
+           Maxima's ``to_poly_solver`` package to search for more possible
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
-	   and is not used when solving inequality.
+	   and is not used when solving inequality. Setting ``to_poly_solve``
+           to 'force' (string) omits Maxima's solve command (usefull when
+           some solution of trigonometric equations are lost).
 
         EXAMPLES::
 
@@ -6635,6 +6637,21 @@ cdef class Expression(CommutativeRingElement):
             []
             sage: forget()
 
+        Trac #8390 fixed::
+
+            sage: solve(sin(x)==1/2,x)
+            [x == 1/6*pi]
+
+        ::
+
+            sage: solve(sin(x)==1/2,x,to_poly_solve=True)
+            [x == 1/6*pi]
+
+        ::
+
+            sage: solve(sin(x)==1/2,x,to_poly_solve='force')
+            [x == 5/6*pi + 2*pi*z87, x == 1/6*pi + 2*pi*z85]
+
         """
         import operator
         cdef Expression ex
@@ -6673,7 +6690,10 @@ cdef class Expression(CommutativeRingElement):
         if explicit_solutions:
             P.eval('solveexplicit: true') # switches Maxima to looking for only explicit solutions
         try:
-            s = m.solve(x).str()
+            if to_poly_solve != 'force':
+                s = m.solve(x).str()
+            else: # omit Maxima's solve command
+                s = str([])
         except TypeError, mess: # if Maxima's solve has an error, we catch it
             if "Error executing code in Maxima" in str(mess):
                 s = str([])
@@ -6842,7 +6862,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z86 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z84 + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            [t == 1/450*I*pi*z99 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z97 + 1/900*log(-3/4*sqrt(41) + 25/4)]
             sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 

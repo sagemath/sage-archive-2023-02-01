@@ -271,6 +271,22 @@ cdef class SymbolicRing(CommutativeRing):
 
         return new_Expression_from_GEx(self, exp)
 
+    def _force_pyobject(self, x):
+        """
+        Wrap the given Python object in a symbolic expression even if it
+        cannot be coerced to the Symbolic Ring.
+
+        EXAMPLES::
+
+            sage: t = SR._force_pyobject([3,4,5]); t
+            [3, 4, 5]
+            sage: type(t)
+            <type 'sage.symbolic.expression.Expression'>
+        """
+        cdef GEx exp
+        GEx_construct_pyobject(exp, x)
+        return new_Expression_from_GEx(self, exp)
+
     def wild(self, unsigned int n=0):
         """
         Return the n-th wild-card for pattern matching and substitution.

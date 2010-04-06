@@ -58,6 +58,7 @@ cp -p $PKGDIR/$STD/libdist_filelist $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/newest_version $TMP/$PKGDIR/$STD/
 cp -pr $PKGDIR/base $TMP/$PKGDIR/
 cp -p $PKGDIR/install $TMP/$PKGDIR/
+cp -p $PKGDIR/pipestatus $TMP/$PKGDIR/
 cp -p $PKGDIR/update $TMP/$PKGDIR/
 cp -p $PKGDIR/gen_html $TMP/$PKGDIR/
 cp -p $PKGDIR/README.txt $TMP/$PKGDIR/

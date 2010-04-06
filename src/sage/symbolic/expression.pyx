@@ -7409,7 +7409,7 @@ cdef class Expression(CommutativeRingElement):
            incompatible with ``to_poly_solve=True`` and does not make
 	   any sense when solving inequality.
 
-        -  ``solution_dict`` - bool (default: False); if True,
+        -  ``solution_dict`` - bool (default: False); if True or non-zero,
            return a list of dictionaries containing solutions. Not used
            when solving inequality.
 
@@ -7705,7 +7705,9 @@ cdef class Expression(CommutativeRingElement):
                             del ret_multiplicities[ix]
                         continue
 
-        if solution_dict is True:
+        # if solution_dict is True:
+        # Relaxed form suggested by Mike Hansen (#8553):
+        if solution_dict:
             X=[dict([[sol.left(),sol.right()]]) for sol in X]
 
         if multiplicities:

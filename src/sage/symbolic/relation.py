@@ -474,8 +474,11 @@ def solve(f, *args, **kwds):
 
     -  ``*args`` - variables to solve for.
 
-    -  ``solution_dict`` - bool (default: False); if True,
-       return a list of dictionaries containing the solutions.
+    -  ``solution_dict`` - bool (default: False); if True or non-zero,
+       return a list of dictionaries containing the solutions. If there
+       are no solutions, return an empty list (rather than a list containing
+       an empty dictionary). Likewise, if there's only a single solution,
+       return a list containing one dictionary with that solution.
 
     EXAMPLES::
 
@@ -536,7 +539,7 @@ def solve(f, *args, **kwds):
         ...
         TypeError: 5 is not a valid variable.
 
-    If we ask for a dictionary for the solutions, we get it::
+    If we ask for dictionaries containing the solutions, we get them::
 
         sage: solve([x^2-1],x,solution_dict=True)
         [{x: -1}, {x: 1}]
@@ -602,17 +605,45 @@ def solve(f, *args, **kwds):
         sage: solve(x^2>8,x)
         [[x < -2*sqrt(2)], [x > 2*sqrt(2)]]
 
-    TESTS::
-
-        sage: solve([sin(x)==x,y^2==x],x,y)
-        [sin(x) == x, y^2 == x]
-
     Use use_grobner if no solution is obtained from to_poly_solve::
 
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])
        [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(5)*sqrt(11) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(5)*sqrt(11) + 123/68]]
 
+    TESTS::
+
+        sage: solve([sin(x)==x,y^2==x],x,y)
+        [sin(x) == x, y^2 == x]
+        sage: solve(0==1,x)
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'bool' has no len()
+
+        Test if the empty list is returned, too, when (a list of)
+        dictionaries (is) are requested (#8553)::
+
+        sage: solve([0==1],x)
+        []
+        sage: solve([0==1],x,solution_dict=True)
+        []
+        sage: solve([x==1,x==-1],x)
+        []
+        sage: solve([x==1,x==-1],x,solution_dict=True)
+        []
+        sage: solve((x==1,x==-1),x,solution_dict=0)
+        []
+
+        Relaxed form, suggested by Mike Hansen (#8553)::
+
+        sage: solve([x^2-1],x,solution_dict=-1)
+        [{x: -1}, {x: 1}]
+        sage: solve([x^2-1],x,solution_dict=1)
+        [{x: -1}, {x: 1}]
+        sage: solve((x==1,x==-1),x,solution_dict=-1)
+        []
+        sage: solve((x==1,x==-1),x,solution_dict=1)
+        []
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -670,7 +701,11 @@ def solve(f, *args, **kwds):
                 s = []
 
         sol_list = string_to_list_of_solutions(repr(s))
-        if 'solution_dict' in kwds and kwds['solution_dict']==True:
+
+        # Relaxed form suggested by Mike Hansen (#8553):
+        if kwds.get('solution_dict', False):
+            if len(sol_list)==0: # fixes IndexError on empty solution list (#8553)
+                return []
             if isinstance(sol_list[0], list):
                 sol_dict=[dict([[eq.left(),eq.right()] for eq in solution])
                         for solution in sol_list]
@@ -698,8 +733,12 @@ def solve_mod(eqns, modulus, solution_dict = False):
 
     -  ``modulus`` - an integer
 
-    -  ``solution_dict`` - (default: False) if True,  return a list of
-       dictionaries containing the solutions.
+    -  ``solution_dict`` - bool (default: False); if True or non-zero,
+       return a list of dictionaries containing the solutions. If there
+       are no solutions, return an empty list (rather than a list containing
+       an empty dictionary). Likewise, if there's only a single solution,
+       return a list containing one dictionary with that solution.
+
 
     EXAMPLES::
 
@@ -725,7 +764,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
         sage: d[y]
         8610183
 
-    We solve an simple equation modulo 2::
+    We solve a simple equation modulo 2::
 
         sage: x,y = var('x,y')
         sage: solve_mod([x == y], 2)
@@ -751,7 +790,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
         eqns = [eqns]
     modulus = Integer(modulus)
     if modulus < 1:
-         raise ValueError, "the modulus must be a positive integer"
+        raise ValueError, "the modulus must be a positive integer"
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
     vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
     n = len(vars)
@@ -765,7 +804,9 @@ def solve_mod(eqns, modulus, solution_dict = False):
         solution_mat = matrix(Integers(modulus), solution)
         ans.append(tuple(c.dot_product(crt_basis) for c in solution_mat.columns()))
 
-    if solution_dict == True:
+    # if solution_dict == True:
+    # Relaxed form suggested by Mike Hansen (#8553):
+    if solution_dict:
         sol_dict = [dict(zip(vars, solution)) for solution in ans]
         return sol_dict
     else:
@@ -805,7 +846,7 @@ def solve_mod_enumerate(eqns, modulus):
         sage: solve_mod([x^5 + y^5 == z^5], 3)
         [(0, 0, 0), (0, 1, 1), (0, 2, 2), (1, 0, 1), (1, 1, 2), (1, 2, 0), (2, 0, 2), (2, 1, 0), (2, 2, 1)]
 
-    We solve an simple equation modulo 2::
+    We solve a simple equation modulo 2::
 
         sage: x,y = var('x,y')
         sage: solve_mod([x == y], 2)
@@ -830,7 +871,7 @@ def solve_mod_enumerate(eqns, modulus):
         eqns = [eqns]
     modulus = Integer(modulus)
     if modulus < 1:
-         raise ValueError, "the modulus must be a positive integer"
+        raise ValueError, "the modulus must be a positive integer"
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
     vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
     n = len(vars)

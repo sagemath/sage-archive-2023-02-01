@@ -93,7 +93,7 @@ usage_advanced() {
     echo "                      -verbose  -- print debuging output during the test"
     echo "                      -optional -- also test all #optional examples"
     echo "                      -only-optional -- only run doctests with #optional <nonempty subset of tags>"
-    echo "                      -rand[=seed] -- randomize order of tests"
+    echo "                      -randorder[=seed] -- randomize order of tests"
     echo "  -tnew ...     -- like -t above, but only tests files modified since last commit"
     echo "  -tp <N> ...   -- like -t above, but tests in parallel using N threads"
     echo "                   with 0 interpreted as minimum(8, cpu_count())"

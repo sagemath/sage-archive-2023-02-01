@@ -29,6 +29,9 @@ Permission granted for unlimited use, provided that the Quest Center at Cold Spr
 
 == Changelog ==
 
+=== gdmodule-0.56.p5 (Mike Hansen, October 27th, 2009) ===
+ * Make gdmodule work on Cygwin.
+
 === gdmodule-0.56.p5 (Michael Abshoff) ===
  * add .hgignore, SPKG.txt
  * clean up patches directory

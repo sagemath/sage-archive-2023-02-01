@@ -1,0 +1,52 @@
+--- ../src/_gdmodule.c	2005-03-11 12:06:26.000000000 +0700
++++ _gdmodule.c	2006-11-23 06:27:38.000000000 +0700
+@@ -124,12 +124,12 @@
+ ******************************************************************/
+ 
+ #include <Python.h>
+-#include <gd.h>
+-#include <gdfonts.h>
+-#include <gdfontl.h>
+-#include <gdfontmb.h>
+-#include <gdfontt.h>
+-#include <gdfontg.h>
++#include "gd.h"
++#include "gdfonts.h"
++#include "gdfontl.h"
++#include "gdfontmb.h"
++#include "gdfontt.h"
++#include "gdfontg.h"
+ #include <string.h>
+ #include <errno.h>
+ 
+@@ -346,12 +346,12 @@
+     return write_file(self, args, 'p');
+ }
+ 
+-
++#ifdef HAVE_LIBJPEG
+ static PyObject *image_writejpeg(imageobject *self, PyObject *args)
+ {
+     return write_file(self, args, 'j');
+ }
+-
++#endif
+ 
+ static PyObject *image_writegd(imageobject *self, PyObject *args)
+ {
+@@ -1420,13 +1420,13 @@
+     "writePng(f)\n"
+     "write the image to f as a PNG, where f is either an open file object or a\n"
+     "file name."},
+-
++#ifdef HAVE_LIBJPEG
+  {"writeJpeg",    (PyCFunction)image_writejpeg,    1,
+     "writeJpeg(f,quality)\n"
+     "write the image to f as a JPEG, where f is either an open file object or a\n"
+     "file name.  quality is an optional integer value giving the JPEG quality from\n"
+     "0 to 95%; leave out for default quality."},
+-
++#endif
+  {"writeWbmp",    (PyCFunction)image_writewbmp,    1,
+     "writeWbmp(f,fg)\n"
+     "write the image to f as a WBMP, where f is either an open file object or a\n"

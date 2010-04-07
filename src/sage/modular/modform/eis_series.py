@@ -24,10 +24,9 @@ from eis_series_cython import eisenstein_series_poly
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
     r"""
-    Return the `q`-expansion of the normalized weight `k` Eisenstein
-    series to precision prec in the ring `K`.  (The normalization
-    chosen here is the one that forces the coefficient of `q` to be
-    1.)
+    Return the `q`-expansion of the normalized weight `k` Eisenstein series on
+    `{\rm SL}_2(\ZZ)` to precision prec in the ring `K`.  (The normalization
+    chosen here is the one that forces the coefficient of `q` to be 1.)
 
     INPUT:
 
@@ -35,9 +34,15 @@ def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
 
     - ``prec`` - (default: 10) a nonnegative integer
 
-    - ``K`` - (default: QQ) a ring in which -(2*k)/B_k is invertible
+    - ``K`` - (default: `\QQ`) a ring in which the denominator of `B_k / 2k` is invertible
 
     - ``var`` - (default: 'q') variable name to use for q-expansion
+
+    ALGORITHM:
+
+        We know `E_k = \text{constant} + \sum_n \sigma_{k-1}(n) q^n`. So we
+        compute all the `\sigma_{k-1}(n)` simultaneously, using the fact that
+        `\sigma` is multiplicative.
 
     EXAMPLES::
 
@@ -60,17 +65,19 @@ def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
     - Craig Citro (2007-06-01): rewrote for massive speedup
 
     - Martin Raum (2009-08-02): port to cython for speedup
+
+    - David Loeffler (2010-04-07): work around an integer overflow when k is large
     """
     ## we use this to prevent computation if it would fail anyway.
     if k <= 0 or k % 2 == 1 :
         raise ValueError, "k must be positive and even"
 
+    a0 = - bernoulli(k) / (2*k)
+    a0den = a0.denominator()
     try:
-        a0 = - bernoulli(k) / (2*k)
-        a0den = a0.denominator()
         a0fac = K(1/a0den)
     except ZeroDivisionError:
-        raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the %r"%(a0inv, K)
+        raise ValueError, "The denominator of -B_k/(2*k) (=%s) must be invertible in the ring %s"%(a0den, K)
 
 
     R = PowerSeriesRing(K, var)

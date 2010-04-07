@@ -13,30 +13,26 @@ from sage.libs.flint.fmpz_poly cimport Fmpz_poly
 
 cpdef eisenstein_series_poly(int k, int prec = 10) :
     r"""
-    Return the q-expansion up to precision 'prec' of the
-    weight 'k' Eisenstein series as a list.
+    Return the q-expansion up to precision ``prec`` of the weight `k`
+    Eisenstein series, as a FLINT :class:`~sage.libs.flint.fmpz_poly.Fmpz_poly`
+    object, normalised so the coefficients are integers with no common factor.
 
-    Here's a rough description of how the algorithm works: we know
-    `E_k = const + \sum_n sigma(n,k-1) q^n`. Now, we basically just
-    compute all the `\sigma(n,k-1)` simultaneously, as `\sigma` is
-    multiplicative.
+    Used internally by the functions
+    :func:`~sage.modular.modform.eis_series.eisenstein_series_qexp` and
+    :func:`~sage.modular.modform.vm_basis.victor_miller_basis`; see the
+    docstring of the former for further details.
 
     EXAMPLES :
 
-
-    AUTHORS:
-
-    - William Stein: original implementation
-
-    - Craig Citro (2007-06-01): rewrote for massive speedup
-
-    - Martin Raum (2009-08-02): port to cython for speedup
+        sage: from sage.modular.modform.eis_series_cython import eisenstein_series_poly
+        sage: eisenstein_series_poly(12, prec=5)
+        5  691 65520 134250480 11606736960 274945048560
     """
     cdef mpz_t *val = <mpz_t *>malloc(prec * sizeof(mpz_t))
     cdef mpz_t one, mult, term, last, term_m1, last_m1
     cdef unsigned long int expt
     cdef long ind, ppow, int_p
-    cdef int i, a0den
+    cdef int i
     cdef Fmpz_poly res = PY_NEW(Fmpz_poly)
 
     if k%2 or k < 2:
@@ -61,8 +57,6 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
 
     expt = <unsigned long int>(k - 1)
     a0 = - bernoulli(k) / (2*k)
-    a0den = a0.denominator()
-    #if a0 < 0 : a0den = -a0den
 
     for p in primes(1,prec) :
         int_p = int(p)
@@ -92,11 +86,11 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
     mpz_clear(term_m1)
     mpz_clear(last_m1)
 
-
     fmpz_poly_set_coeff_mpz(res.poly, prec-1, val[prec-1])
     for i from 1 <= i < prec - 1 :
         fmpz_poly_set_coeff_mpz(res.poly, i, val[i])
-    res *= a0den
-    fmpz_poly_set_coeff_mpz(res.poly, 0, (<Integer>Integer(a0den * a0)).value)
+
+    fmpz_poly_scalar_mul_mpz(res.poly, res.poly, (<Integer>(a0.denominator())).value)
+    fmpz_poly_set_coeff_mpz(res.poly, 0, (<Integer>(a0.numerator())).value)
 
     return res

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Examples of simplicial complexes
 
@@ -6,36 +7,40 @@ AUTHORS:
 - John H. Palmieri (2009-04)
 
 This file constructs some examples of simplicial complexes.  There are
-two main types: surfaces and examples related to graph theory.
+two main types: manifolds and examples related to graph theory.
 
-For surfaces (and other manifolds), there are functions defining the
-2-sphere, the n-sphere for any n, the torus, the real projective
-plane, the Klein bottle, and surfaces of arbitrary genus, all as
-simplicial complexes.
+For manifolds, there are functions defining the `n`-sphere for any
+`n`, the torus, `n`-dimensional real projective space for any `n`, the
+complex projective plane, surfaces of arbitrary genus, and some other
+manifolds, all as simplicial complexes.
 
 Aside from surfaces, this file also provides some functions for
 constructing some other simplicial complexes: the simplicial complex
-of not-i-connected graphs on n vertices, the matching complex on n
-vertices, and the chessboard complex for an n by i chessboard.  These
-provide examples of large simplicial complexes; for example,
-not_i_connected_graphs(7,2) has over a million simplices.
+of not-`i`-connected graphs on `n` vertices, the matching complex on n
+vertices, and the chessboard complex for an `n` by `i` chessboard.
+These provide examples of large simplicial complexes; for example,
+``simplicial_complexes.NotIConnectedGraphs(7,2)`` has over a million
+simplices.
 
 All of these examples are accessible by typing
-"simplicial_complexes.NAME", where "NAME" is the name of the example;
-you can get a list by typing "simplicial_complexes." and hitting the
+"simplicial_complexes.NAME", where "NAME" is the name of the example.
+You can get a list by typing "simplicial_complexes." and hitting the
 TAB key::
 
-    Sphere
-    Simplex
-    Torus
-    RealProjectivePlane
-    KleinBottle
-    SurfaceOfGenus
-    MooreSpace
-    NotIConnectedGraphs
-    MatchingComplex
-    ChessboardComplex
-    RandomComplex
+   simplicial_complexes.ChessboardComplex
+   simplicial_complexes.ComplexProjectivePlane
+   simplicial_complexes.KleinBottle
+   simplicial_complexes.MatchingComplex
+   simplicial_complexes.MooreSpace
+   simplicial_complexes.NotIConnectedGraphs
+   simplicial_complexes.PoincareHomologyThreeSphere
+   simplicial_complexes.RandomComplex
+   simplicial_complexes.RealProjectivePlane
+   simplicial_complexes.RealProjectiveSpace
+   simplicial_complexes.Simplex
+   simplicial_complexes.Sphere
+   simplicial_complexes.SurfaceOfGenus
+   simplicial_complexes.Torus
 
 See the documentation for ``simplicial_complexes`` and for each
 particular type of example for full details.
@@ -88,17 +93,20 @@ class SimplicialComplexExamples():
     Here are the available examples; you can also type
     "simplicial_complexes."  and hit tab to get a list::
 
-        Sphere
-        Simplex
-        Torus
-        RealProjectivePlane
+        ChessboardComplex
+        ComplexProjectivePlane
         KleinBottle
-        SurfaceOfGenus
+        MatchingComplex
         MooreSpace
         NotIConnectedGraphs
-        MatchingComplex
-        ChessboardComplex
+        PoincareHomologyThreeSphere
         RandomComplex
+        RealProjectivePlane
+        RealProjectiveSpace
+        Simplex
+        Sphere
+        SurfaceOfGenus
+        Torus
 
     EXAMPLES::
 
@@ -317,6 +325,253 @@ class SimplicialComplexExamples():
             facets.append(["A0", Ai, Aiplus])
         return SimplicialComplex(vertices, facets)
 
+    def ComplexProjectivePlane(self):
+        """
+        A minimal triangulation of the complex projective plane.
+
+        This was constructed by Kühnel and Banchoff.
+
+        REFERENCES:
+
+        - W. Kühnel and T. F. Banchoff, "The 9-vertex complex
+          projective plane", Math. Intelligencer 5 (1983), no. 3,
+          11-22.
+
+        EXAMPLES::
+
+            sage: C = simplicial_complexes.ComplexProjectivePlane()
+            sage: C.f_vector()
+            [1, 9, 36, 84, 90, 36]
+            sage: C.homology(2)
+            Z
+            sage: C.homology(4)
+            Z
+        """
+        return SimplicialComplex(
+            [[1, 2, 4, 5, 6], [2, 3, 5, 6, 4], [3, 1, 6, 4, 5],
+             [1, 2, 4, 5, 9], [2, 3, 5, 6, 7], [3, 1, 6, 4, 8],
+             [2, 3, 6, 4, 9], [3, 1, 4, 5, 7], [1, 2, 5, 6, 8],
+             [3, 1, 5, 6, 9], [1, 2, 6, 4, 7], [2, 3, 4, 5, 8],
+             [4, 5, 7, 8, 9], [5, 6, 8, 9, 7], [6, 4, 9, 7, 8],
+             [4, 5, 7, 8, 3], [5, 6, 8, 9, 1], [6, 4, 9, 7, 2],
+             [5, 6, 9, 7, 3], [6, 4, 7, 8, 1], [4, 5, 8, 9, 2],
+             [6, 4, 8, 9, 3], [4, 5, 9, 7, 1], [5, 6, 7, 8, 2],
+             [7, 8, 1, 2, 3], [8, 9, 2, 3, 1], [9, 7, 3, 1, 2],
+             [7, 8, 1, 2, 6], [8, 9, 2, 3, 4], [9, 7, 3, 1, 5],
+             [8, 9, 3, 1, 6], [9, 7, 1, 2, 4], [7, 8, 2, 3, 5],
+             [9, 7, 2, 3, 6], [7, 8, 3, 1, 4], [8, 9, 1, 2, 5]])
+
+    def PoincareHomologyThreeSphere(self):
+        """
+        A triangulation of the Poincare homology 3-sphere.
+
+        This is a manifold whose integral homology is identical to the
+        ordinary 3-sphere, but it is not simply connected.  The
+        triangulation given here has 16 vertices and is due to Björner
+        and Lutz.
+
+        REFERENCES:
+
+        - Anders Björner and Frank H. Lutz, "Simplicial manifolds,
+          bistellar flips and a 16-vertex triangulation of the
+          Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
+          no. 2, 275-289.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_complexes.Sphere(3)
+            sage: Sigma3 = simplicial_complexes.PoincareHomologyThreeSphere()
+            sage: S3.homology() == Sigma3.homology()
+            True
+        """
+        return SimplicialComplex(
+            [[1, 2, 4, 9], [1, 2, 4, 15], [1, 2, 6, 14], [1, 2, 6, 15],
+             [1, 2, 9, 14], [1, 3, 4, 12], [1, 3, 4, 15], [1, 3, 7, 10],
+             [1, 3, 7, 12], [1, 3, 10, 15], [1, 4, 9, 12], [1, 5, 6, 13],
+             [1, 5, 6, 14], [1, 5, 8, 11], [1, 5, 8, 13], [1, 5, 11, 14],
+             [1, 6, 13, 15], [1, 7, 8, 10], [1, 7, 8, 11], [1, 7, 11, 12],
+             [1, 8, 10, 13], [1, 9, 11, 12], [1, 9, 11, 14], [1, 10, 13, 15],
+             [2, 3, 5, 10], [2, 3, 5, 11], [2, 3, 7, 10], [2, 3, 7, 13],
+             [2, 3, 11, 13], [2, 4, 9, 13], [2, 4, 11, 13], [2, 4, 11, 15],
+             [2, 5, 8, 11], [2, 5, 8, 12], [2, 5, 10, 12], [2, 6, 10, 12],
+             [2, 6, 10, 14], [2, 6, 12, 15], [2, 7, 9, 13], [2, 7, 9, 14],
+             [2, 7, 10, 14], [2, 8, 11, 15], [2, 8, 12, 15], [3, 4, 5, 14],
+             [3, 4, 5, 15], [3, 4, 12, 14], [3, 5, 10, 15], [3, 5, 11, 14],
+             [3, 7, 12, 13], [3, 11, 13, 14], [3, 12, 13, 14], [4, 5, 6, 7],
+             [4, 5, 6, 14], [4, 5, 7, 15], [4, 6, 7, 11], [4, 6, 10, 11],
+             [4, 6, 10, 14], [4, 7, 11, 15], [4, 8, 9, 12], [4, 8, 9, 13],
+             [4, 8, 10, 13], [4, 8, 10, 14], [4, 8, 12, 14], [4, 10, 11, 13],
+             [5, 6, 7, 13], [5, 7, 9, 13], [5, 7, 9, 15], [5, 8, 9, 12],
+             [5, 8, 9, 13], [5, 9, 10, 12], [5, 9, 10, 15], [6, 7, 11, 12],
+             [6, 7, 12, 13], [6, 10, 11, 12], [6, 12, 13, 15], [7, 8, 10, 14],
+             [7, 8, 11, 15], [7, 8, 14, 15], [7, 9, 14, 15], [8, 12, 14, 15],
+             [9, 10, 11, 12], [9, 10, 11, 16], [9, 10, 15, 16], [9, 11, 14, 16],
+             [9, 14, 15, 16], [10, 11, 13, 16], [10, 13, 15, 16],
+             [11, 13, 14, 16], [12, 13, 14, 15], [13, 14, 15, 16]])
+
+    def RealProjectiveSpace(self, n):
+        r"""
+        A triangulation of `\Bold{R}P^n` for any `n \geq 0`.
+
+        INPUT:
+
+        - ``n`` - integer, the dimension of the real projective space
+          to construct
+
+        The first few cases are pretty trivial:
+
+        - `\Bold{R}P^0` is a point.
+
+        - `\Bold{R}P^1` is a circle, triangulated as the boundary of a
+          single 2-simplex.
+
+        - `\Bold{R}P^2` is the real projective plane, here given its
+          minimal triangulation with 6 vertices, 15 edges, and 10
+          triangles.
+
+        - `\Bold{R}P^3`: any triangulation has at least 11 vertices by
+          a result of Walkup; this function returns a
+          triangulation with 11 vertices, as given by Lutz.
+
+        - `\Bold{R}P^4`: any triangulation has at least 16 vertices by
+          a result of Walkup; this function returns a triangulation
+          with 16 vertices as given by Lutz; see also Datta, Example
+          3.12.
+
+        - `\Bold{R}P^n`: Lutz has found a triangulation of
+          `\Bold{R}P^5` with 24 vertices, but it does not seem to have
+          been published.  Kühnel has described a triangulation of
+          `\Bold{R}P^n`, in general, with `2^{n+1}-1` vertices; see
+          also Datta, Example 3.21.  This triangulation is presumably
+          not minimal, but it seems to be the best in the published
+          literature as of this writing.  So this function returns it
+          when `n > 4`.
+
+        ALGORITHM: For `n < 4`, these are constructed explicitly by
+        listing the facets.  For `n = 4`, this is constructed by
+        specifying 16 vertices, two facets, and a certain subgroup `G`
+        of the symmetric group `S_{16}`.  Then the set of all facets
+        is the `G`-orbit of the two given facets.
+
+        For `n > 4`, the construction is as follows: let `S` denote
+        the simplicial complex structure on the `n`-sphere given by
+        the first barycentric subdivision of the boundary of an
+        `(n+1)`-simplex.  This has a simplicial antipodal action: if
+        `V` denotes the vertices in the boundary of the simplex, then
+        the vertices in its barycentric subdivision `S` correspond to
+        nonempty proper subsets `U` of `V`, and the antipodal action
+        sends any subset `U` to its complement.  One can show that
+        modding out by this action results in a triangulation for
+        `\Bold{R}P^n`.  To find the facets in this triangulation, find
+        the facets in `S`.  These are indentified in pairs to form
+        `\Bold{R}P^n`, so choose a representative from each pair: for
+        each facet in `S`, replace any vertex in `S` containing 0 with
+        its complement.
+
+        Of course these complexes increase in size pretty quickly as
+        `n` increases.
+
+        REFERENCES:
+
+        - Basudeb Datta, "Minimal triangulations of manifolds",
+          J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
+
+        - W. Kühnel, "Minimal triangulations of Kummer varieties",
+          Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
+
+        - Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
+          Combinatorial Manifolds", preprint (2005),
+          arXiv:math/0506372.
+
+        - David W. Walkup, "The lower bound conjecture for 3- and
+          4-manifolds", Acta Math. 125 (1970), 75-107.
+
+        EXAMPLES::
+
+            sage: P3 = simplicial_complexes.RealProjectiveSpace(3)
+            sage: P3.f_vector()
+            [1, 11, 51, 80, 40]
+            sage: P3.homology()
+            {0: 0, 1: C2, 2: 0, 3: Z}
+            sage: P4 = simplicial_complexes.RealProjectiveSpace(4)
+            sage: P4.f_vector()
+            [1, 16, 120, 330, 375, 150]
+            sage: P4.homology()
+            {0: 0, 1: C2, 2: 0, 3: C2, 4: 0}
+            sage: P5 = simplicial_complexes.RealProjectiveSpace(5) # long time: 45 seconds
+            sage: P5.f_vector()  # long time
+            [1, 63, 903, 4200, 8400, 7560, 2520]
+            sage: P5.homology()  # long time
+            {0: 0, 1: C2, 2: 0, 3: C2, 4: 0, 5: Z}
+            sage: simplicial_complexes.RealProjectiveSpace(2).dimension()
+            2
+            sage: P3.dimension()
+            3
+            sage: P4.dimension()
+            4
+            sage: P5.dimension() # long time
+            5
+        """
+        if n == 0:
+            return self.Simplex(0)
+        if n == 1:
+            return self.Sphere(1)
+        if n == 2:
+            return self.RealProjectivePlane()
+        if n == 3:
+            # Minimal triangulation found by Walkup and given
+            # explicitly by Lutz
+            return SimplicialComplex(
+                [[1, 2, 3, 7], [1, 4, 7, 9], [2, 3, 4, 8], [2, 5, 8, 10],
+                 [3, 6, 7, 10], [1, 2, 3, 11], [1, 4, 7, 10], [2, 3, 4, 11],
+                 [2, 5, 9, 10], [3, 6, 8, 9], [1, 2, 6, 9], [1, 4, 8, 9],
+                 [2, 3, 7, 8], [2, 6, 9, 10], [3, 6, 9, 10], [1, 2, 6, 11],
+                 [1, 4, 8, 10], [2, 4, 6, 10], [3, 4, 5, 9], [4, 5, 6, 7],
+                 [1, 2, 7, 9], [1, 5, 6, 8], [2, 4, 6, 11], [3, 4, 5, 11],
+                 [4, 5, 6, 11], [1, 3, 5, 10], [1, 5, 6, 11], [2, 4, 8, 10],
+                 [3, 4, 8, 9], [4, 5, 7, 9], [1, 3, 5, 11], [1, 5, 8, 10],
+                 [2, 5, 7, 8], [3, 5, 9, 10], [4, 6, 7, 10], [1, 3, 7, 10],
+                 [1, 6, 8, 9], [2, 5, 7, 9], [3, 6, 7, 8], [5, 6, 7, 8]])
+        if n == 4:
+            # The facets in RP^4 are constructed by specifying two
+            # simplices on 16 vertices, and then finding their orbit
+            # under a certain subgroup of the permutation group on 16
+            # letters.  See the description in Example 3.12 in Datta.
+            #
+            # Define the group:
+            from sage.groups.perm_gps.permgroup import PermutationGroup
+            g1 = '(2,7)(4,10)(5,6)(11,12)'
+            g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
+            G = PermutationGroup([g1, g2])
+            # Define the two simplices:
+            t1 = (1, 2, 4, 5, 11)
+            t2 = (1, 2, 4, 11, 13)
+            # Apply the group elements to the simplices:
+            facets = []
+            for g in G:
+                d = g.dict()
+                for t in [t1, t2]:
+                    new = tuple([d[j] for j in t])
+                    if new not in facets:
+                        facets.append(new)
+            return SimplicialComplex(facets)
+        if n >= 5:
+            # Use the construction given by Datta in Example 3.21.
+            V = set(range(0, n+2))
+            S = simplicial_complexes.Sphere(n).barycentric_subdivision()
+            X = S.facets()
+            facets = set([])
+            for f in X:
+                new = []
+                for v in f:
+                    if 0 in v:
+                        new.append(tuple(V.difference(v)))
+                    else:
+                        new.append(v)
+                facets.add(tuple(new))
+            return SimplicialComplex(list(facets))
+
+    ###############################################################
     # examples from graph theory:
 
     def NotIConnectedGraphs(self, n, i):

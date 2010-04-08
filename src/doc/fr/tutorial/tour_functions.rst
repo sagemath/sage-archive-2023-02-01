@@ -111,9 +111,9 @@ Examinons maintenant quelques problèmes fréquents.
 
     sage: def h(x):
     ...       if x < 2:
-    ...	     return 0
+    ...	          return 0
     ...       else:
-    ...	     return x-2
+    ...	          return x-2
 
 Problème : ``plot(h(x), 0, 4)`` trace la droite `y = x - 2`, et non pas la
 fonction affine par morceaux définie par ``h``. Pourquoi ? Lors de l'exécution,
@@ -138,6 +138,11 @@ Solution : Il ne faut pas utiliser ``plot(h(x), 0, 4)``, mais plutôt
 
 ::
 
+    sage: def h(x):
+    ...       if x < 2:
+    ...	          return 0
+    ...       else:
+    ...	          return x-2
     sage: plot(h, 0, 4)
 
 \5. Constante plutôt que fonction ::

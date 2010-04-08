@@ -52,9 +52,8 @@ cdef class HMM_Util:
             sage: u.normalize_probability_TimeSeries(T,0,4)
             sage: T
             [0.0606, 0.1818, 0.4242, 0.3333]
-            sage: T.sum()
-            1.0                   # 32-bit
-            0.99999999999999978   # 64-bit
+            sage: abs(T.sum()-1) < 1e-8    # might not exactly equal 1 due to rounding
+            True
         """
         # One single bounds check only
         if i < 0 or j < 0 or i > T._length or j > T._length:

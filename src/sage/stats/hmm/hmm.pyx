@@ -36,7 +36,6 @@ cdef extern from "math.h":
     double log(double)
 
 from sage.finance.time_series cimport TimeSeries
-from sage.stats.intlist cimport IntList
 from sage.matrix.all import is_Matrix, matrix
 from sage.misc.randstate cimport current_randstate, randstate
 
@@ -151,14 +150,17 @@ cdef class HiddenMarkovModel:
         Return number samples from this HMM of given length.
 
         INPUT:
-            length -- positive integer
-            number -- (default: None) if given, compute list of this many sample sequences
+
+            - ``length`` -- positive integer
+            - ``number`` -- (default: None) if given, compute list of this many sample sequences
 
         OUTPUT:
-            if number is not given, return a single TimeSeries.
-            if number is given, return a list of TimeSeries.
 
-        EXAMPLES:
+            - if number is not given, return a single TimeSeries.
+            - if number is given, return a list of TimeSeries.
+
+        EXAMPLES::
+
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
             sage: print a.sample(10, 3)
@@ -170,7 +172,8 @@ cdef class HiddenMarkovModel:
             sage: list(a.sample(1000)).count(0)
             88
 
-        If the emission symbols are set
+        If the emission symbols are set::
+
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.1,0.9]], [[1,0],[0,1]], [0,1], ['up', 'down'])
             sage: a.sample(10)
@@ -181,6 +184,44 @@ cdef class HiddenMarkovModel:
 
         cdef Py_ssize_t i
         return [self.generate_sequence(length)[0] for i in range(number)]
+
+
+    #########################################################
+    # Some internal funcitons used for various general
+    # HMM algorithms.
+    #########################################################
+    cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
+        """
+        Used internally to compute the scaled quantity gamma_t(j)
+        appearing in the Baum-Welch reestimation algorithm.
+
+        The quantity gamma_t(j) is the (scaled!) probability of being
+        in state j at time t, given the observation sequence.
+
+        INPUT:
+
+            - ``alpha`` -- TimeSeries as output by the scaled forward algorithm
+            - ``beta`` -- TimeSeries as output by the scaled backward algorithm
+
+        OUTPUT:
+
+            - TimeSeries gamma such that gamma[t*N+j] is gamma_t(j).
+        """
+        cdef int j, N = self.N
+        cdef Py_ssize_t t, T = alpha._length//N
+        cdef TimeSeries gamma = TimeSeries(alpha._length, initialize=False)
+        cdef double denominator
+        _sig_on
+        for t in range(T):
+            denominator = 0
+            for j in range(N):
+                gamma._values[t*N + j] = alpha._values[t*N + j] * beta._values[t*N + j]
+                denominator += gamma._values[t*N + j]
+            for j in range(N):
+                gamma._values[t*N + j] /= denominator
+        _sig_off
+        return gamma
+
 
 cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
     """
@@ -230,27 +271,27 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT::
 
-           - A -- a list of lists or a square N x N matrix, whose
+           - ``A`` -- a list of lists or a square N x N matrix, whose
              (i,j) entry gives the probability of transitioning from
              state i to state j.
 
-           - B -- a list of N lists or a matrix with N rows, such that
+           - ``B`` -- a list of N lists or a matrix with N rows, such that
              B[i,k] gives the probability of emitting symbol k while
              in state i.
 
-           - pi -- the probabilities of starting in each initial
+           - ``pi`` -- the probabilities of starting in each initial
              state, i.e,. pi[i] is the probability of starting in
              state i.
 
-           - emission_symbols -- None or list (default: None); if
+           - ``emission_symbols`` -- None or list (default: None); if
              None, the emission_symbols are the ints [0..N-1], where N
              is the number of states.  Otherwise, they are the entries
              of the list emissions_symbols, which must all be hashable.
 
-           - normalize --bool (default: True); if given, input is
+           - ``normalize`` --bool (default: True); if given, input is
              normalized to define valid probability distributions,
              e.g., the entries of A are made nonnegative and the rows
-             sum to 1.
+             sum to 1, and the probabilities in pi are normalized.
 
         EXAMPLES::
 
@@ -274,7 +315,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         if self._emission_symbols is not None:
             self._emission_symbols_dict = dict([(y,x) for x,y in enumerate(emission_symbols)])
 
-        # TODO : normalization
         if not is_Matrix(B):
             B = matrix(B)
         if B.nrows() != self.N:
@@ -292,7 +332,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         """
         Used in pickling.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [0,1], ['a','b'])
             sage: loads(dumps(m)) == m
             True
@@ -419,9 +460,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- sequence of observations
+            - ``obs`` -- sequence of observations
 
-            - scale -- boolean (default: True); if True, use rescaling
+            - ``scale`` -- boolean (default: True); if True, use rescaling
               to overoid loss of precision due to the very limited
               dynamic range of floats.  You should leave this as True
               unless the obs sequence is very small.
@@ -467,11 +508,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- an integer list of observation states.
+            - ``obs`` -- an integer list of observation states.
 
         OUTPUT:
 
-            - float -- the log of the probability that the model produced this sequence
+            - ``float`` -- the log of the probability that the model produced this sequence
 
         EXAMPLES::
 
@@ -522,11 +563,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- an integer list of observation states.
+            - ``obs`` -- an integer list of observation states.
 
         OUTPUT:
 
-            - float -- the log of the probability that the model produced this sequence
+            - ``float`` -- the log of the probability that the model produced this sequence
 
         EXAMPLES::
 
@@ -611,7 +652,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - length -- positive integer
+            - ``length`` -- positive integer
 
         OUTPUT:
 
@@ -712,9 +753,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - q -- a nonnegative integer, which specifies a state
-
-            - r -- a real number between 0 and 1
+            - ``q`` -- a nonnegative integer, which specifies a state
+            - ``r`` -- a real number between 0 and 1
 
         OUTPUT:
 
@@ -726,7 +766,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: set_random_seed(0)
             sage: m.generate_sequence(10)  # indirect test
             ([0, 1, 0, 0, 0, 0, 1, 0, 1, 1], [1, 0, 1, 1, 1, 1, 0, 0, 0, 0])
-
         """
         cdef Py_ssize_t j
         cdef double a, accum = 0
@@ -752,17 +791,17 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - seq -- sequence of emitted ints or symbols
+            - ``seq`` -- sequence of emitted ints or symbols
 
-            - log_scale -- bool (default: True) whether to scale the
+            - ``log_scale`` -- bool (default: True) whether to scale the
               sequence in order to avoid numerical overflow.
 
         OUTPUT:
 
-            - list -- "the" most probable sequence of hidden states, i.e.,
+            - ``list`` -- "the" most probable sequence of hidden states, i.e.,
               the Viterbi path.
 
-            - float -- log of probability that the observed sequence
+            - ``float`` -- log of probability that the observed sequence
               was produced by the Viterbi sequence of states.
 
         EXAMPLES::
@@ -797,7 +836,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- IntList
+            - ``obs`` -- IntList
 
         OUTPUT:
 
@@ -970,8 +1009,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- IntList
-            - scale -- series that is *changed* in place, so that
+            - ``obs`` -- IntList
+            - ``scale`` -- series that is *changed* in place, so that
               after calling this function, scale[t] is value that is
               used to scale each of the `\beta_t(i)`.
 
@@ -1008,7 +1047,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- IntList
+            - ``obs`` -- IntList
 
         OUTPUT:
 
@@ -1062,38 +1101,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         # Termination
         return alpha, scale, log_probability
 
-    cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
-        """
-        Used internally to compute the scaled quantity gamma_t(j)
-        appearing in the Baum-Welch reestimation algorithm.
-
-        The quantity gamma_t(j) is the (scaled!) probability of being
-        in state j at time t, given the observation sequence.
-
-        INPUT:
-
-            - alpha -- TimeSeries as output by the scaled forward algorithm
-            - beta -- TimeSeries as output by the scaled backward algorithm
-
-        OUTPUT:
-
-            - TimeSeries gamma such that gamma[t*N+j] is gamma_t(j).
-        """
-        cdef int j, N = self.N
-        cdef Py_ssize_t t, T = alpha._length//N
-        cdef TimeSeries gamma = TimeSeries(alpha._length, initialize=False)
-        cdef double denominator
-        _sig_on
-        for t in range(T):
-            denominator = 0
-            for j in range(N):
-                gamma._values[t*N + j] = alpha._values[t*N + j] * beta._values[t*N + j]
-                denominator += gamma._values[t*N + j]
-            for j in range(N):
-                gamma._values[t*N + j] /= denominator
-        _sig_off
-        return gamma
-
     cdef TimeSeries _baum_welch_xi(self, TimeSeries alpha, TimeSeries beta, IntList obs):
         """
         Used internally to compute the scaled quantity xi_t(i,j)
@@ -1101,9 +1108,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - alpha -- TimeSeries as output by the scaled forward algorithm
-            - beta -- TimeSeries as output by the scaled backward algorithm
-            - obs -- IntList of observations
+            - ``alpha`` -- TimeSeries as output by the scaled forward algorithm
+            - ``beta`` -- TimeSeries as output by the scaled backward algorithm
+            - ``obs ``-- IntList of observations
 
         OUTPUT:
 
@@ -1134,17 +1141,17 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-            - obs -- list of emissions
+            - ``obs`` -- list of emissions
 
-            - max_iter -- integer (default: 100) maximum number
+            - ``max_iter`` -- integer (default: 100) maximum number
               of Baum-Welch steps to take
 
-            - log_likehood_cutoff -- positive float (default: 1e-4);
+            - ``log_likehood_cutoff`` -- positive float (default: 1e-4);
               the minimal improvement in likelihood with respect to
               the last iteration required to continue. Relative value
               to log likelihood.
 
-            - fix_emissions -- bool (default: False); if True, do not
+            - ``fix_emissions`` -- bool (default: False); if True, do not
               change emissions when updating
 
         OUTPUT:

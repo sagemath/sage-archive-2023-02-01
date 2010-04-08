@@ -7,8 +7,11 @@
 
 
 from sage.finance.time_series cimport TimeSeries
+from sage.stats.intlist cimport IntList
 
 cdef class HiddenMarkovModel:
     cdef int N
     cdef TimeSeries A, pi
+
+    cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta)
 

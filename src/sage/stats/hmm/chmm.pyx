@@ -44,8 +44,21 @@ cdef HMM_Util util = HMM_Util()
 from sage.misc.randstate cimport current_randstate, randstate
 
 
-# DELETE THIS FUNCTION WHEN MOVE Gaussian stuff to distributions.pyx!!!
+# TODO: DELETE THIS FUNCTION WHEN MOVE Gaussian stuff to distributions.pyx!!! (next version)
 cdef double random_normal(double mean, double std, randstate rstate):
+    """
+    Return a number chosen randomly with given mean and standard deviation.
+
+    INPUT:
+
+        - ``mean`` -- double
+        - ``std`` -- double, standard deviation
+        - ``rstate`` -- a randstate object
+
+    OUTPUT:
+
+        - a double
+    """
     # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
     # This the box muller algorithm.
     # Client code can get the current random state from:
@@ -260,7 +273,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         if i < 0 or i >= self.N:
             raise IndexError, 'index out of range'
 
-        # TODO: change to be a normal distribution class
+        # TODO: change to be a normal distribution class (next version)
         return self.B[2*i], self.B[2*i+1]
 
     def __reduce__(self):
@@ -388,7 +401,8 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     cdef probability_init(self):
         """
         Used internally to compute caching information that makes
-        certain computations in the Baum-Welch algorithm faster.
+        certain computations in the Baum-Welch algorithm faster.  This
+        function has no input or output.
         """
         self.prob = TimeSeries(2*self.N)
         cdef int i
@@ -732,26 +746,20 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         # Termination
         return alpha, scale, log_probability
 
-    cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
-        # TODO: factor out to hmm.pyx
-        cdef int j, N = self.N
-        cdef Py_ssize_t t, T = alpha._length//N
-        cdef TimeSeries gamma = TimeSeries(alpha._length, initialize=False)
-        cdef double denominator
-        for t in range(T):
-            denominator = 0
-            for j in range(N):
-                gamma._values[t*N + j] = alpha._values[t*N + j] * beta._values[t*N + j]
-                denominator += gamma._values[t*N + j]
-            for j in range(N):
-                gamma._values[t*N + j] /= denominator
-        return gamma
-
     cdef TimeSeries _baum_welch_xi(self, TimeSeries alpha, TimeSeries beta, TimeSeries obs):
-        # TODO: factor out to hmm.pyx
         """
-        Return 3-dimensional array of xi values.
-        We have x[t,i,j] = x[t*N*N + i*N + j].
+        Used internally to compute the scaled quantity xi_t(i,j)
+        appearing in the Baum-Welch reestimation algorithm.
+
+        INPUT:
+
+            - alpha -- TimeSeries as output by the scaled forward algorithm
+            - beta -- TimeSeries as output by the scaled backward algorithm
+            - obs -- TimeSeries of observations
+
+        OUTPUT:
+
+            - TimeSeries xi such that xi[t*N*N + i*N + j] = xi_t(i,j).
         """
         cdef int i, j, N = self.N
         cdef double sum
@@ -943,10 +951,14 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
     Gaussian mixture Hidden Markov Model.
 
     INPUT:
-        - A  -- matrix; the N x N transition matrix
-        - B -- list of pairs (mu,sigma) that define the distributions
-        - pi -- initial state probabilities
 
+        - ``A``  -- matrix; the N x N transition matrix
+        - ``B`` -- list of pairs (mu,sigma) that define the distributions
+        - ``pi`` -- initial state probabilities
+        - ``normalize`` --bool (default: True); if given, input is
+          normalized to define valid probability distributions,
+          e.g., the entries of A are made nonnegative and the rows
+          sum to 1, and the probabilities in pi are normalized.
 
     EXAMPLES::
 
@@ -997,6 +1009,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
     def __init__(self, A, B, pi=None, bint normalize=True):
         """
+        Initialize a Gaussian mixture hidden Markov model.
+
         EXAMPLES::
 
             sage: hmm.GaussianMixtureHiddenMarkovModel([[.9,.1],[.4,.6]], [[(.4,(0,1)), (.6,(1,0.1))],[(1,(0,1))]], [.7,.3])
@@ -1038,7 +1052,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         """
         Used in pickling.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(.4,(0,1)), (.6,(1,0.1))]], [1])
             sage: loads(dumps(m)) == m
             True
@@ -1168,27 +1183,6 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         """
         cdef GaussianMixtureDistribution G = self.mixture[state]
         return G.prob(observation)
-
-    # TODO: factor out to hmm.pyx
-    cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
-        """
-        Returns gamma and gamma_all, where gamma_all contains the
-        (double-precision float) numbers gamma_t(j,m), and gamma
-        contains just the gamma_t(j).
-        """
-        cdef int j, N = self.N
-        cdef Py_ssize_t t, T = alpha._length//N
-        cdef TimeSeries gamma = TimeSeries(alpha._length, initialize=False)
-        cdef double denominator
-        for t in range(T):
-            denominator = 0
-            for j in range(N):
-                gamma._values[t*N + j] = alpha._values[t*N + j] * beta._values[t*N + j]
-                denominator += gamma._values[t*N + j]
-            for j in range(N):
-                gamma._values[t*N + j] /= denominator
-
-        return gamma
 
     cdef TimeSeries _baum_welch_mixed_gamma(self, TimeSeries alpha, TimeSeries beta,
                                             TimeSeries obs, int j):

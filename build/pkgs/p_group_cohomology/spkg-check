@@ -86,7 +86,8 @@ def recursive_doctests(M):
     """
     from sage.all import tmp_filename
     import os
-    from sage.all import SAGE_TMP
+    from sage.all import tmp_dir
+    SAGE_TMP = tmp_dir() # Sorry, that's not the usual meaning of SAGE_TMP...
     currdir = os.popen('pwd').read().split('\n')[0]
     os.chdir(SAGE_TMP)
     L = package_tree(M)
@@ -119,8 +120,12 @@ if __name__ == '__main__':
     wt = walltime()
     print "Testing the components of the package pGroupCohomology..."
     O,NO = recursive_doctests(pGroupCohomology)
+    #from sage.all import SAGE_ROOT
+    from sage.all import tmp_filename
+    ErrorLog = tmp_filename() #SAGE_ROOT+'/test.log'
+    ErrorLog = ErrorLog.replace('//','/')
     if O or NO:
-        RES = open('test.log','w')
+        RES = open(ErrorLog,'w')
     else:
         RES = None
     if O:
@@ -144,6 +149,7 @@ if __name__ == '__main__':
 
     if RES is not None:
         RES.close()
-        print "Please see the file 'test.log' in the current directory"
+        #print "Please see the file '%s' in the current directory"%ErrorLog
+        print file(ErrorLog).read()
     print "Total time: %.2f minutes\n"%(walltime(wt)/60)
 

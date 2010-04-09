@@ -1,14 +1,15 @@
-= p_group_cohomology-1.2.p0 =
+= p_group_cohomology-2.0 =
 
 == Description ==
 
-Modular Cohomology Rings of Finite p-Groups
+Modular Cohomology Rings of Finite Groups
 
 The documentation of the package is provided at
 http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
+Copyright (C) 2010 Simon A. King  <simon.king@nuigalway.ie>
 Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
                    David J. Green <david.green@uni-jena.de>
 
@@ -57,6 +58,12 @@ on which we could build test the SPKG and on which some huge computations
 could be completed, and acknowledge the support by National Science
 Foundation Grant No. DMS-0821725.
 
+We thank Mathieu Dutour Sikitic for hints on how to use GAP
+more efficiently.
+
+We owe Peter Symonds the idea of using the Poincare series in a
+rather efficient completeness criterion.
+
 == Dependencies ==
 
 - The SmallGroups library needs to be installed in GAP.
@@ -73,7 +80,7 @@ src into the Mercurial repository.
 The package includes a modified version of the Aachen C-MeatAxe. Since the
 changes are major, we included the modified sources into the Mercurial
 repository. A MeatAxe version that comes closest to what we started with
-is provided in the folder mtxoriginal.
+is provided in the folder mtxoriginal, that is not under revision control.
 
 == Testing ==
 
@@ -84,25 +91,22 @@ But it is of course equipped with extensive doc tests in the Cython code.
 Note that internet access is required for these tests, as it is attempted to
 download cohomology rings from a public data base in the web.
 
-The scripts ``spkg-check`` and ``spkg-check-quickly`` walk through all public
-methods of all classes in all modules of our package and perform the respective
-doc test. ``spkg-check-quickly`` runs over many doc tests at once, which is
-faster, but makes it sometimes difficult to find out which doc test actually
-failed. Moreover, since the same Singular sub-process is used for all tests,
-errors might occur by creating too many temporary variables in the Singular
-interface (this only occurs on some machines).
-
-Therefore, we recommend to use ``spkg-check`` for testing. It tells exactly
-which doc test failed, and it launches a clean Singular process for any
-example.
-
-Both test suites also check whether there is any method without a doc test. The
-test suites must be executed in a Sage shell. Note that spkg-check is executed
-right after installation of the package, if the environment variable SAGE_CHECK
-is 1 (do "export SAGE_CHECK=1" on the command line before installation).
+The script ``spkg-check`` walks through all public methods of all classes
+in all modules of our package and perform the respective doc test. Note
+that spkg-check is executed  right after installation of the package, if
+the environment variable SAGE_CHECK is yes (do "export SAGE_CHECK=yes" on
+the command line before installation). Should a test fail, details are
+displayed on screen and can also be find in SAGEROOT/install.log.
 
 == Changelog ==
 
+  * 2.0 (Simon King, April 2010): The package can now compute modular
+    cohomology rings for *any* finite groups (not just for p-groups).
+    This is implemented in a new module pGroupCohomology.modular_cohomology,
+    that builds on top of the old pGroupCohomology.cohomology module.
+    While developing this extension, many rough edges of the old code
+    have been smoothened as well. The build process now uses environment
+    variables such as $MAKE or $MKDIR, in order to increase portability.
   * 1.2.p0 (Dima Pasechnik and Simon King, March 2010):
     Adding .hgignore (ignoring src/db and mtxoriginal).
     Adding a robuster test for the existence of the SmallGroups library.

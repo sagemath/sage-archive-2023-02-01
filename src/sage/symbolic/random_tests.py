@@ -15,12 +15,17 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 # For creating expressions with the full power of Pynac's simple expression
 # subset (with no quantifiers/operators; that is, no derivatives, integrals,
 # etc.)
-
 full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
-full_functions = [(1.0, f, f.number_of_arguments()) for f in sage.symbolic.pynac.symbol_table['functions'].values() if f.number_of_arguments() > 0 and 'elliptic' not in str(f) and 'dickman_rho' not in str(f)]
-full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime, mertens, brun]]
-full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1), (0.2, full_functions)]
+full_functions = [(1.0, f, f.number_of_arguments())
+        for f in sage.symbolic.pynac.symbol_table['functions'].values()
+            if hasattr(f, 'number_of_arguments') and
+                f.number_of_arguments() > 0 ]
+full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in
+        [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime,
+            mertens, brun]]
+full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1),
+        (0.2, full_functions)]
 
 def normalize_prob_list(pl, extra=()):
     r"""
@@ -202,12 +207,12 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        sinh(sinh((-0.314177274493 + 0.144437996366*I)/csc(-v1^2*e/v3) + erf((-0.708874026302 - 0.954135400334*I)*v3) + 0.0275857401668 - 0.479027260657*I))^(-cosh(-polylog((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/cosh((-0.436810529675 + 0.736945423566*I)*arccot(pi)))))
+        sinh(elliptic_kc(-1/csc(-((2.62756608636 + 1.20798164491*I)*v3 + (2.62756608636 + 1.20798164491*I)*e)*pi*v1) + erf((-0.708874026302 - 0.954135400334*I)*v3) - elliptic_pi(0.520184609653 - 0.734276246499*I, v3, pi)))^(-elliptic_f((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/arccoth(v2*arccot(0.812302592816 - 0.302973871736*I))))
         sage: random_expr(5, verbose=True)
-        About to apply <built-in function add> to [v1, v1]
-        About to apply <built-in function mul> to [v1, -1/2]
-        About to apply <built-in function mul> to [2*v1, -1/2*v1]
-        -v1^2
+        About to apply <built-in function mul> to [v1, v1]
+        About to apply <built-in function add> to [v1^2, v1]
+        About to apply <built-in function neg> to [v1^2 + v1]
+        -v1^2 - v1
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

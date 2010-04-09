@@ -35,7 +35,7 @@ from sage.categories.morphism cimport Morphism
 
 from sage.rings.all import RR, CC
 
-cdef dict pynac_symbol_registry = {}
+pynac_symbol_registry = {}
 
 cdef class SymbolicRing(CommutativeRing):
     """

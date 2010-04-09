@@ -394,11 +394,10 @@ import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 from sage.functions.other import real, imag
 from sage.symbolic.function import BuiltinFunction
-from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
+from sage.calculus.calculus import maxima
 
 def meval(x):
-    from sage.calculus.calculus import symbolic_expression_from_maxima_element
-    return symbolic_expression_from_maxima_element(maxima(x), maxima)
+    return maxima(x).sage()
 
 _done = False
 def _init():
@@ -513,7 +512,7 @@ class MaximaFunction(BuiltinFunction):
         if self.name() in repr(s):
             return None
         else:
-            return  symbolic_expression_from_maxima_element(s)
+            return s.sage()
 
 from sage.misc.cachefunc import cached_function
 

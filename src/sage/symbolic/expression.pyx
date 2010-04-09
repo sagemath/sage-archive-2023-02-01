@@ -6580,9 +6580,9 @@ cdef class Expression(CommutativeRingElement):
             [x == 1/2*pi]
             sage: solve(cos(x)==0,x,to_poly_solve=True)
             [x == 1/2*pi]
-            sage: from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
+            sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
-            sage: symbolic_expression_from_maxima_element(sol)
+            sage: sol.sage()
             [[x == -1/2*pi + 2*pi*z57], [x == 1/2*pi + 2*pi*z59]]
 
         If a returned unsolved expression has a denominator, but the
@@ -6590,9 +6590,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
             [sin(x) == 1/2/cos(x)]
-            sage: from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
+            sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
-            sage: symbolic_expression_from_maxima_element(sol)
+            sage: sol.sage()
             [[x == 1/4*pi + pi*z73]]
 
         Some basic inequalities can be also solved::
@@ -6740,14 +6740,20 @@ cdef class Expression(CommutativeRingElement):
                     X = []
 
             for eq in X:
-                if repr(x) in map(repr, eq.rhs().variables()) or repr(x) in repr(eq.lhs()): # If the RHS of one solution also has the variable, or if the LHS is not the variable, try another way to get solutions
-                    from sage.calculus.calculus import symbolic_expression_from_maxima_element
+                # If the RHS of one solution also has the variable, or if
+                # the LHS is not the variable, try another way to get solutions
+                if repr(x) in map(repr, eq.rhs().variables()) or \
+                        repr(x) in repr(eq.lhs()):
                     try:
-                        Y = symbolic_expression_from_maxima_element((eq._maxima_()).to_poly_solve(x)) # try to solve it using to_poly_solve
+                        # try to solve it using to_poly_solve
+                        Y = eq._maxima_().to_poly_solve(x).sage()
                         X.remove(eq)
-                        X.extend([y[0] for y in Y]) # replace with the new solutions
+                        # replace with the new solutions
+                        X.extend([y[0] for y in Y])
                     except TypeError, mess:
-                        if "Error executing code in Maxima" in str(mess) or "unable to make sense of Maxima expression" in str(mess):
+                        if "Error executing code in Maxima" in str(mess) or \
+                                "unable to make sense of Maxima expression" in\
+                                str(mess):
                             if explicit_solutions:
                                 X.remove(eq) # this removes an implicit solution
                             else:

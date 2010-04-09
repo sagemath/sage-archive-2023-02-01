@@ -3,6 +3,7 @@ Other functions
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
+from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, CC, RR, \
@@ -48,6 +49,14 @@ class Function_erf(BuiltinFunction):
             Traceback (most recent call last):
             ...
             TypeError: unable to simplify to complex approximation
+
+        TESTS:
+
+        Check if conversion from maxima elements work::
+
+            sage: merf = maxima(erf(x)).sage().operator()
+            sage: merf == erf
+            True
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
 
@@ -685,6 +694,10 @@ def gamma(a, *args, **kwds):
         raise TypeError, "Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1)
     return incomplete_gamma(a,args[0],**kwds)
 
+# We have to add the wrapper function manually to the symbol_table when we have
+# two functions with different number of arguments and the same name
+symbol_table['functions']['gamma'] = gamma
+
 class Function_psi1(GinacFunction):
     def __init__(self):
         r"""
@@ -831,6 +844,9 @@ def psi(x, *args, **kwds):
         raise TypeError, "Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1)
     return psi2(x,args[0],**kwds)
 
+# We have to add the wrapper function manually to the symbol_table when we have
+# two functions with different number of arguments and the same name
+symbol_table['functions']['psi'] = psi
 
 class Function_factorial(GinacFunction):
     def __init__(self):
@@ -1111,9 +1127,9 @@ def sqrt(x, *args, **kwds):
             pass
         return _do_sqrt(x, *args, **kwds)
 
-# register sqrt in pynac symbol_table for conversion back from maxima
-from sage.symbolic.pynac import register_symbol#, symbol_table
-register_symbol(sqrt, dict(maxima='sqrt', mathematica='Sqrt', maple='sqrt'))
+# register sqrt in pynac symbol_table for conversion back from other systems
+register_symbol(sqrt, dict(mathematica='Sqrt'))
+symbol_table['functions']['sqrt'] = sqrt
 
 Function_sqrt = type('deprecated_sqrt', (),
         {'__call__': staticmethod(sqrt),

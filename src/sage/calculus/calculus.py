@@ -292,34 +292,13 @@ Doubly ensure that Trac #7479 is working::
     x |--> 1/2
 """
 
-import weakref
 import re
-from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                            is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
-                            is_RealNumber, is_ComplexNumber, RR, is_NumberFieldElement,
-                            Integer, Rational, CC, QQ, CDF, ZZ,
-                            PolynomialRing, ComplexField, RealDoubleElement,
-                            algdep, Integer, RealNumber, RealIntervalField)
-
+from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement, algdep
 from sage.rings.real_mpfr import create_RealNumber
 
-from sage.structure.element import RingElement, is_Element
-from sage.structure.parent_base import ParentWithBase
-
-import operator
 from sage.misc.latex import latex, latex_variable_name
-from sage.misc.misc import uniq as unique
-from sage.structure.sage_object import SageObject
-
 from sage.interfaces.maxima import Maxima
-
-import sage.numerical.optimize
-
 from sage.misc.parser import Parser
-
-import math
-
-import sage.ext.fast_eval as fast_float
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
@@ -327,8 +306,7 @@ from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory, function
 from sage.symbolic.integration.integral import indefinite_integral, \
         definite_integral
-
-arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
+import sage.symbolic.pynac
 
 maxima = Maxima(init_code = ['display2d:false', 'domain: complex', 'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
                 script_subdirectory=None)
@@ -1024,6 +1002,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         else:
             raise NotImplementedError, "sympy does not support one-sided limits"
 
+    return l.sage()
     return ex.parent()(l)
 
 lim = limit
@@ -1434,9 +1413,7 @@ register_symbol(infinity, dict(maxima='inf'))
 register_symbol(minus_infinity, dict(maxima='minf'))
 
 from sage.misc.multireplace import multiple_replace
-
 import re
-
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
@@ -1452,7 +1429,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     return the corresponding Sage symbolic expression.
 
     INPUT:
-
 
     -  ``x`` - a string
 
@@ -1476,7 +1452,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: a.sage()
         x != 0
     """
-    syms = dict(_syms)
+    syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
     if len(x) == 0:
         raise RuntimeError, "invalid symbolic expression -- ''"
@@ -1554,11 +1530,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         is_simplified = False
 
 
-# External access used by restore
-from sage.symbolic.pynac import symbol_table
-_syms = syms_cur = symbol_table.get('maxima', {})
-syms_default = dict(syms_cur)
-
 # Comma format options for Maxima
 def mapped_opts(v):
     """
@@ -1567,9 +1538,7 @@ def mapped_opts(v):
 
     INPUT:
 
-
     -  ``v`` - an object
-
 
     OUTPUT: a string.
 
@@ -1603,7 +1572,23 @@ def maxima_options(**kwds):
 
 # Parser for symbolic ring elements
 
+# We keep two dictionaries syms_cur and syms_default to keep the current symbol
+# table and the state of the table at startup respectively. These are used by
+# the restore() function (see sage.misc.reset).
+#
+# The dictionary _syms is used as a lookup table for the system function
+# registry by _find_func() below. It gets updated by
+# symbolic_expression_from_string() before calling the parser.
+from sage.symbolic.pynac import symbol_table
+_syms = syms_cur = symbol_table.get('functions', {})
+syms_default = dict(syms_cur)
+
+# This dictionary is used to pass a lookup table other than the system registry
+# to the parser. A global variable is necessary since the parser calls the
+# _find_var() and _find_func() functions below without extra arguments.
 _augmented_syms = {}
+
+from sage.symbolic.ring import pynac_symbol_registry
 
 def _find_var(name):
     """
@@ -1619,9 +1604,18 @@ def _find_var(name):
         I
     """
     try:
-        return (_augmented_syms or _syms)[name]
+        res = _augmented_syms.get(name)
+        if res is None:
+            return pynac_symbol_registry[name]
+        # _augmented_syms might contain entries pointing to functions if
+        # previous computations polluted the maxima workspace
+        if not isinstance(res, Function):
+            return res
     except KeyError:
         pass
+
+    # try to find the name in the global namespace
+    # needed for identifiers like 'e', etc.
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):
@@ -1646,9 +1640,9 @@ def _find_func(name):
         0
     """
     try:
-        func = _syms.get(name)
+        func = _augmented_syms.get(name)
         if func is None:
-            func = _augmented_syms[name]
+            func = _syms[name]
         if not isinstance(func, Expression):
             return func
     except KeyError:
@@ -1673,7 +1667,6 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
 
     INPUT:
 
-
     -  ``s`` - a string
 
     -  ``syms`` - (default: None) dictionary of
@@ -1689,8 +1682,8 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         sage: sage.calculus.calculus.symbolic_expression_from_string('[sin(0)*x^2,3*spam+e^pi]',syms={'spam':y},accept_sequence=True)
         [0, 3*y + e^pi]
     """
-    # from sage.functions.constants import I # can't import this at the top, but need it now
-    # _syms['i'] = _syms['I'] = I
+    global _syms
+    _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     if syms is None:
         return parse_func(s)
@@ -1701,23 +1694,3 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
             return parse_func(s)
         finally:
             _augmented_syms = {}
-
-def symbolic_expression_from_maxima_element(x, maxima=maxima):
-    """
-    Given an element of the calculus copy of the Maxima interface,
-    create the corresponding Sage symbolic expression.
-
-    EXAMPLES::
-
-        sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
-        sage: sage.calculus.calculus.symbolic_expression_from_maxima_element(a)
-        x^(pi + sqrt(y)) - sin(e)
-        sage: var('x, y')
-        (x, y)
-        sage: v = sage.calculus.calculus.maxima.vandermonde_matrix([x, y, 1/2])
-        sage: sage.calculus.calculus.symbolic_expression_from_maxima_element(v)
-        [  1   x x^2]
-        [  1   y y^2]
-        [  1 1/2 1/4]
-    """
-    return symbolic_expression_from_maxima_string(x.name(), maxima=maxima)

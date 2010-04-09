@@ -174,7 +174,7 @@ class _Coordinates(object):
             [3, -1, 4]
         """
         from sage.symbolic.expression import is_Expression
-        from sage.calculus.calculus import is_RealNumber
+        from sage.rings.real_mpfr import is_RealNumber
         from sage.rings.integer import is_Integer
         if params is not None and (is_Expression(func) or is_RealNumber(func) or is_Integer(func)):
             return self.transform(**{

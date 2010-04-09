@@ -1769,10 +1769,28 @@ class MaximaElement(ExpectElement):
             sqrt(2) + sqrt(3) + 2.5
             sage: type(d)
             <type 'sage.symbolic.expression.Expression'>
+
+            sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
+            sage: a._sage_()
+            x^(pi + sqrt(y)) - sin(e)
+            sage: var('x, y')
+            (x, y)
+            sage: v = sage.calculus.calculus.maxima.vandermonde_matrix([x, y, 1/2])
+            sage: v._sage_()
+            [  1   x x^2]
+            [  1   y y^2]
+            [  1 1/2 1/4]
+
+        Check if #7661 is fixed::
+
+            sage: var('delta')
+            delta
+            sage: (2*delta).simplify()
+            2*delta
         """
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string
-        #return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
-        return symbolic_expression_from_maxima_string(repr(self))
+        import sage.calculus.calculus as calculus
+        return calculus.symbolic_expression_from_maxima_string(self.name(),
+                maxima=self.parent())
 
     def _symbolic_(self, R):
         """

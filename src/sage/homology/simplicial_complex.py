@@ -1007,6 +1007,77 @@ class SimplicialComplex(GenericCellComplex):
         dims = [face.dimension() for face in self._facets]
         return max(dims) == min(dims)
 
+    def h_vector(self):
+        r"""
+        The `h`-vector of this simplicial complex.
+
+        If the complex has dimension `d` and `(f_{-1}, f_0, f_1, ...,
+        f_d)` is its `f`-vector (with `f_{-1} = 1`, representing the
+        empy simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
+        h_{d+1})` is defined by
+
+        .. math::
+
+           \sum_{i=0}^{d+1} h_i x^{d+1-i} = \sum_{i=0}^{d+1} f_{i-1} (x-1)^{d+1-i}.
+
+        Alternatively,
+
+        .. math::
+
+           h_j = \sum_{i=-1}^{j-1} (-1)^{j-i-1} \binom{d-i}{j-i-1} f_i.
+
+        EXAMPLES:
+
+        The `f`- and `h`-vectors of the boundary of an octahedron are
+        computed in Wikipedia's page on simplicial complexes,
+        http://en.wikipedia.org/wiki/Simplicial_complex::
+
+            sage: square = SimplicialComplex([[0,1], [1,2], [2,3], [0,3]])
+            sage: S0 = SimplicialComplex([[0], [1]])
+            sage: octa = square.join(S0) # boundary of an octahedron
+            sage: octa.f_vector()
+            [1, 6, 12, 8]
+            sage: octa.h_vector()
+            [1, 3, 3, 1]
+        """
+        from sage.rings.arith import binomial
+        d = self.dimension()
+        f = self.f_vector()  # indexed starting at 0, since it's a Python list
+        h = []
+        for j in range(0, d+2):
+            s = 0
+            for i in range(-1, j):
+                s += (-1)**(j-i-1) * binomial(d-i, j-i-1) * f[i+1]
+            h.append(s)
+        return h
+
+    def g_vector(self):
+        r"""
+        The `g`-vector of this simplicial complex.
+
+        If the `h`-vector of the complex is `(h_0, h_1, ..., h_d,
+        h_{d+1})` -- see :meth:`h_vector` -- then its `g`-vector
+        `(g_0, g_1, ..., g_{[(d+1)/2]})` is defined by `g_0 = 1` and
+        `g_i = h_i - h_{i-1}` for `i > 0`.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_complexes.Sphere(3).barycentric_subdivision()
+            sage: S3.f_vector()
+            [1, 30, 150, 240, 120]
+            sage: S3.h_vector()
+            [1, 26, 66, 26, 1]
+            sage: S3.g_vector()
+            [1, 25, 40]
+        """
+        from sage.functions.other import floor
+        d = self.dimension()
+        h = self.h_vector()
+        g = [1]
+        for i in range(1, floor((d+1)/2) + 1):
+            g.append(h[i] - h[i-1])
+        return g
+
     def product(self, right, rename_vertices=True):
         """
         The product of this simplicial complex with another one.

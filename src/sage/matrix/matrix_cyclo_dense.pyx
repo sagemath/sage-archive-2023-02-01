@@ -580,12 +580,25 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
             sage: K.<zeta6>=CyclotomicField(6); matrix(K,1,2) * matrix(K,2,[0, 1, 0, -2*zeta6, 0, 0, 1, -2*zeta6 + 1])
             [0 0 0 0]
+
+        TESTS:
+
+        This is from trac #8666::
+
+            sage: K.<zeta4> = CyclotomicField(4)
+            sage: m = matrix(K, [125])
+            sage: n = matrix(K, [186])
+            sage: m*n
+            [23250]
+            sage: (-m)*n
+            [-23250]
         """
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
 
-        # conservative but correct estimate
-        bound = A.height() * B.height() * self._ncols
+        # conservative but correct estimate: 2 is there to account for the
+        # sign of the entries
+        bound = 1 + 2 * A.height() * B.height() * self._ncols
 
         n = self._base_ring._n()
         p = previous_prime(MAX_MODULUS)

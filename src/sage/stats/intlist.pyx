@@ -329,6 +329,8 @@ cdef class IntList:
 
             sage: a = stats.IntList([2^30,2^30]); a
             [1073741824, 1073741824]
+            sage: a.sum()
+            -2147483648
         """
         cdef Py_ssize_t i
         cdef int s=0

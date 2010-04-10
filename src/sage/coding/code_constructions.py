@@ -28,7 +28,7 @@ Here's a constructive definition of a cyclic code of length
    code.
 
 #. For each polynomial `p(x)\in F[x]`, compute
-   `p(x)g(x)\ ({\rm mod}\ x^n-1). ` Denote the answer by
+   `p(x)g(x)\ ({\rm mod}\ x^n-1)`. Denote the answer by
    `c_0+c_1x+...+c_{n-1}x^{n-1}`.
 
 #. `{\bf c} =(c_0,c_1,...,c_{n-1})` is a codeword in

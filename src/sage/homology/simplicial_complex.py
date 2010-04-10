@@ -1115,6 +1115,64 @@ class SimplicialComplex(GenericCellComplex):
             g.append(h[i] - h[i-1])
         return g
 
+    def is_pseudomanifold(self):
+        """
+        Return True if self is a pseudomanifold.
+
+        A pseudomanifold is a simplicial complex with the following properties:
+
+        - it is pure of some dimension `d` (all of its facets are `d`-dimensional)
+        - every `(d-1)`-dimensional simplex is the face of exactly two facets
+        - for every two facets `S` and `T`, there is a sequence of
+          facets
+
+          .. math::
+
+            S = f_0, f_1, ..., f_n = T
+
+          such that for each `i`, `f_i` and `f_{i-1}` intersect in a
+          `(d-1)`-simplex.
+
+        By convention, `S^0` is the only 0-dimensional pseudomanifold.
+
+        EXAMPLES::
+
+            sage: S0 = simplicial_complexes.Sphere(0)
+            sage: S0.is_pseudomanifold()
+            True
+            sage: (S0.wedge(S0)).is_pseudomanifold()
+            False
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: (S1.wedge(S1)).is_pseudomanifold()
+            False
+            sage: (S1.wedge(S2)).is_pseudomanifold()
+            False
+            sage: S2.is_pseudomanifold()
+            True
+            sage: T = simplicial_complexes.Torus()
+            sage: T.suspension(4).is_pseudomanifold()
+            True
+        """
+        if not self.is_pure():
+            return False
+        d = self.dimension()
+        if d == 0:
+            return len(self.facets()) == 2
+        F = self.facets()
+        X = self.n_faces(d-1)
+        # is each (d-1)-simplex is the face of exactly two facets?
+        for s in X:
+            if len([a for a in [s.is_face(f) for f in F] if a]) != 2:
+                return False
+        # construct a graph with one vertex for each facet, one edge
+        # when two facets intersect in a (d-1)-simplex, and see
+        # whether that graph is connected.
+        V = [f.set() for f in self.facets()]
+        E = (lambda a,b: len(a.intersection(b)) == d)
+        g = Graph([V,E])
+        return g.is_connected()
+
     def product(self, right, rename_vertices=True):
         """
         The product of this simplicial complex with another one.
@@ -1249,7 +1307,7 @@ class SimplicialComplex(GenericCellComplex):
                          rename_vertices = True)
 
     def suspension(self, n=1):
-        """
+        r"""
         The suspension of this simplicial complex.
 
         :param n: positive integer -- suspend this many times.
@@ -1263,22 +1321,67 @@ class SimplicialComplex(GenericCellComplex):
         is, the suspension is the join of the original complex with a
         two-point simplicial complex.
 
+        If the simplicial complex `M` happens to be a pseudomanifold
+        (see :meth:`is_pseudomanifold`), then this instead constructs
+        Datta's one-point suspension (see p. 434 in the cited
+        article): choose a vertex `u` in `M` and choose a new vertex
+        `w` to add.  Denote the join of simplices by "`*`".  The
+        facets in the one-point suspension are of the two forms
+
+        - `u * \alpha` where `\alpha` is a facet of `M` not containing
+          `u`
+
+        - `w * \beta` where `\beta` is any facet of `M`.
+
+        REFERENCES:
+
+        - Basudeb Datta, "Minimal triangulations of manifolds",
+          J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
+
         EXAMPLES::
 
-            sage: S = SimplicialComplex(1, [[0], [1]])
-            sage: S.suspension()
-            Simplicial complex with vertex set ('L0', 'L1', 'R0', 'R1') and 4 facets
-            sage: S3 = S.suspension(3)  # the 3-sphere
+            sage: S0 = SimplicialComplex(1, [[0], [1]])
+            sage: S0.suspension() == simplicial_complexes.Sphere(1)
+            True
+            sage: S3 = S0.suspension(3)  # the 3-sphere
             sage: S3.homology()
             {0: 0, 1: 0, 2: 0, 3: Z}
+
+        For pseudomanifolds, the complex constructed here will be
+        smaller than that obtained by taking the join with the
+        0-sphere: the join adds two vertices, while this construction
+        only adds one. ::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: T.join(S0).vertices()      # 9 vertices
+            ('L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R0', 'R1')
+            sage: T.suspension().vertices()  # 8 vertices
+            (0, 1, 2, 3, 4, 5, 6, 7)
         """
         if n<0:
             raise ValueError, "n must be non-negative."
         if n==0:
             return self
         if n==1:
-            return self.join(SimplicialComplex(["0", "1"], [["0"], ["1"]]),
-                             rename_vertices = True)
+            if self.is_pseudomanifold():
+                # Use one-point compactification of Datta. The
+                # construction is a bit slower, but the resulting
+                # complex is smaller.
+                V = self.vertices()
+                u = V[0]
+                w = 0
+                while w in V:
+                    w += 1
+                w = Simplex([w])
+                new_facets = []
+                for f in self.facets():
+                    if u not in f:
+                        new_facets.append(f.join(Simplex([u]), rename_vertices=False))
+                    new_facets.append(f.join(w, rename_vertices=False))
+                return SimplicialComplex(new_facets)
+            else:
+                return self.join(SimplicialComplex(["0", "1"], [["0"], ["1"]]),
+                                 rename_vertices = True)
         return self.suspension().suspension(int(n-1))
 
     def disjoint_union(self, right, rename_vertices=True):

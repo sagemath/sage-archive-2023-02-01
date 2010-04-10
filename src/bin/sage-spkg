@@ -182,18 +182,19 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
     cd optional
 
+    FOUND_VERSION=''
     if [ -n "`no_version "$PKG_NAME"`" ]; then
         echo "Searching for latest version of $PKG_NAME"
         PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
         if [ $? -eq 0 ]; then
             echo "Found package $PKG_NAME"
+	    FOUND_VERSION='1'
         else
             echo "$PKG_NAME"
             exit 1
         fi
     fi
 
-    # sage-download_package "$PKG_NAME"
     # See trac ticket #7544. One should be able to install a package using
     # sage -i <package-name> where <package-name> can be any of the
     # following values:
@@ -207,7 +208,17 @@ if [ ! -f "$PKG_SRC" ]; then
     # 4. /path/to/<package>-x.y.z.spkg, i.e. the package is found somewhere
     #    in your file system and you're giving an absolute or relative path
     #    to the package.
-    sage-download_package "$1"
+    #
+    # See trac ticket #8043. If no version was specified but a version
+    # was found above, then $PKG_NAME now contains the version number.
+    # Download this, since it's a known Sage package.  Otherwise,
+    # download the package specified by $1, since it either already
+    # contains the version number or is a URL.
+    if [ "x$FOUND_VERSION" = "x" ]; then
+	sage-download_package "$1"
+    else
+	sage-download_package "$PKG_NAME"
+    fi
     if [ ! -f "$PKG_NAME.spkg" ]; then
 	    echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
 	    exit 1

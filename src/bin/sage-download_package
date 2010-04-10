@@ -73,6 +73,7 @@ def download_file(file, repository='optional'):
          file = os.path.split(file)[-1]
          # It's hopefully at the package server somewhere.
          url = "%s/%s/%s"%(PKG_SERVER, repository, file)
+     already_exists = os.path.exists(file)
 
      # Now do the actual download, printing nice ...'s as the download proceeds.
      print url, "-->", file
@@ -84,6 +85,15 @@ def download_file(file, repository='optional'):
      except IOError:
          print "]"
          return False
+     except KeyboardInterrupt:
+         print "]"
+         print "Keyboard interrupt:",
+         if not already_exists and os.path.exists(file):
+              print "removing partially downloaded file"
+              os.remove(file)
+         else:
+              print "exiting"
+         sys.exit(1)
      print "]"
      return True
 

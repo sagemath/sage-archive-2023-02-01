@@ -689,10 +689,10 @@ install() {
        echo "Calling sage-spkg on $PKG"
        case $PKG in
 	   /*)
-	       sage-spkg $OPT "$PKG" 2>&1 | tee -a ../install.log
+	       sage-spkg $OPT "$PKG" 2>&1 | (trap "" SIGINT; tee -a ../install.log)
 	   ;;
 	   *)
-	       sage-spkg $OPT "$CUR/$PKG" 2>&1 | tee -a ../install.log
+	       sage-spkg $OPT "$CUR/$PKG" 2>&1 | (trap "" SIGINT; tee -a ../install.log)
 	   ;;
        esac
 

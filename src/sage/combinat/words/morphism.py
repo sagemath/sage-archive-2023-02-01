@@ -899,6 +899,13 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('a->a,b->aa,c->aaa',codomain = Wabc)
             sage: m.is_endomorphism()
             True
+
+        We check that #8674 is fixed::
+
+            sage: P = WordPaths('abcd')
+            sage: m = WordMorphism('a->adab,b->ab,c->cbcd,d->cd', codomain=P)
+            sage: m.is_endomorphism()
+            True
         """
         return self.codomain() <= self.domain()
 

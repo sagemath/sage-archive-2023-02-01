@@ -816,7 +816,7 @@ class Words_over_Alphabet(Words_all):
             sage: Words('abc') < Words('ab')
             False
         """
-        if not isinstance(other,Words_all):
+        if not isinstance(other, Words_all):
             return NotImplemented
         return self <= other and self != other
 
@@ -849,13 +849,18 @@ class Words_over_Alphabet(Words_all):
             True
             sage: Words('abc') <= Words('ab')
             False
+
+        We check that #8674 is fixed::
+
+            sage: WordPaths('abcd') <= Words('abcd')
+            True
+            sage: Words('abcd') <= WordPaths('abcd')
+            True
         """
-        if not isinstance(other,Words_all):
-            return NotImplemented
-        if isinstance(other, type(self)):
+        if isinstance(other, Words_all):
             return self.alphabet() <= other.alphabet()
         else:
-            return False
+            return NotImplemented
 
     def __ge__(self, other):
         r"""
@@ -869,13 +874,18 @@ class Words_over_Alphabet(Words_all):
             False
             sage: Words('abc') >= Words('ab')
             True
+
+        We check that #8674 is fixed::
+
+            sage: WordPaths('abcd') >= Words('abcd')
+            True
+            sage: Words('abcd') >= WordPaths('abcd')
+            True
         """
-        if not isinstance(other,Words_all):
-            return NotImplemented
-        if isinstance(self, type(other)):
+        if isinstance(other, Words_all):
             return self.alphabet() >= other.alphabet()
         else:
-            return False
+            return NotImplemented
 
     def size_of_alphabet(self):
         r"""

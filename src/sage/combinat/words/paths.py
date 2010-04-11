@@ -86,6 +86,13 @@ P also herits many functions from Words::
      Path: ssr,
      Path: sss]
 
+When the number of given steps is half the size of alphabet, the
+opposite of vectors are used::
+
+    sage: P = WordPaths('abcd', [(1,0), (0,1)])
+    sage: sorted(P.letters_to_steps().items())
+    [('a', (1, 0)), ('b', (0, 1)), ('c', (-1, 0)), ('d', (0, -1))]
+
 Some built-in combinatorial classes of paths::
 
     sage: P = WordPaths('abAB', steps='square_grid'); P
@@ -211,6 +218,11 @@ def WordPaths(alphabet, steps=None):
         according to their order in steps. The vectors can be a tuple or
         anything that can be passed to vector function.
 
+      - an iterable ordered container of k vectors where k is half the
+        size of alphabet. The vectors and their opposites are associated
+        to the letters according to their order in steps (given vectors
+        first, opposite vectors after).
+
       - ``None``: In this case, the type of steps are guessed from the
         length of alphabet.
 
@@ -249,6 +261,15 @@ def WordPaths(alphabet, steps=None):
 
         sage: WordPaths('ab', steps=[(1,2,2),(-1,4,2)])
         Word Paths over 2 steps
+
+    When the number of given steps is half the size of alphabet, the
+    opposite of vectors are used::
+
+        sage: P = WordPaths('abcd', [(1,0), (0,1)])
+        sage: P
+        Word Paths over 4 steps
+        sage: sorted(P.letters_to_steps().items())
+        [('a', (1, 0)), ('b', (0, 1)), ('c', (-1, 0)), ('d', (0, -1))]
 
     When no steps are given, default classes are returned::
 
@@ -343,7 +364,8 @@ class WordPaths_all(Words_over_OrderedAlphabet):
 
         - ``alphabet`` - an ordered alphabet
 
-        - ``steps`` - an iterable (of same length as alphabet) of ordered vectors
+        - ``steps`` - an iterable (of same length as alphabet or half the
+          length of alphabet) of ordered vectors
 
         EXAMPLES::
 
@@ -354,6 +376,14 @@ class WordPaths_all(Words_over_OrderedAlphabet):
             sage: P == loads(dumps(P))
             True
 
+        If size of alphabet is twice the number of steps, then opposite
+        vectors are used for the second part of the alphabet.
+
+            sage: WordPaths('abcd',[(2,1),(2,4)])
+            Word Paths over 4 steps
+            sage: _.letters_to_steps()
+            {'a': (2, 1), 'c': (-2, -1), 'b': (2, 4), 'd': (-2, -4)}
+
         TESTS::
 
             sage: from sage.combinat.words.paths import WordPaths_all
@@ -361,7 +391,7 @@ class WordPaths_all(Words_over_OrderedAlphabet):
             sage: WordPaths_all('abA', d)
             Traceback (most recent call last):
             ...
-            TypeError: size of steps (=4) and alphabet (=3) must be equal
+            TypeError: size of steps (=4) must equal the size of alphabet (=3) or half the size of alphabet.
 
             sage: d = ((1,1), 1)
             sage: WordPaths_all('ab', d)
@@ -382,12 +412,13 @@ class WordPaths_all(Words_over_OrderedAlphabet):
         super(WordPaths_all, self).__init__(alphabet)
 
         #Checking the size of alphabet and steps
-        if len(steps) != alphabet.cardinality():
-            raise TypeError,"size of steps (=%s) and alphabet (=%s) must be \
-equal"%(len(steps),alphabet.cardinality())
+        ls = len(steps)
+        la = alphabet.cardinality()
+        if la != ls and la != 2*ls:
+            raise TypeError,"size of steps (=%s) must equal the size \
+of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality())
 
         #Construction of the steps
-
         from sage.structure.element import Vector
         if all(map(lambda x: isinstance(x, Vector), steps)):
             vsteps = steps
@@ -400,6 +431,11 @@ equal"%(len(steps),alphabet.cardinality())
             s = sum(vsteps)
         except (TypeError, AttributeError):
             raise ValueError, "Can't make summable vectors from steps"
+
+        #Complete vsteps with the opposite vectors if needed
+        if la == 2 * ls:
+            vsteps += [-v for v in vsteps]
+
         self._steps = dict(zip(alphabet, vsteps))
         self._vector_space = s.parent()
 
@@ -1071,7 +1107,11 @@ class FiniteWordPath_all(SageObject):
 
     def start_point(self):
         r"""
-        Returns the starting point of the path.
+        Return the starting point of self.
+
+        OUTPUT:
+
+            vector
 
         EXAMPLES::
 

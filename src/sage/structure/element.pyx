@@ -2448,7 +2448,23 @@ cdef class FieldElement(CommutativeRingElement):
 
 
     def quo_rem(self, right):
-        if not isinstance(right, FieldElement) or not (right._parent is self._parent):
+        r"""
+        Return the quotient and remainder obtained by dividing `self` by
+        `other`. Since this element lives in a field, the remainder is always
+        zero and the quotient is `self/right`.
+
+        TESTS:
+
+        Test if #8671 is fixed::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = R.quo(y^2 + 1)
+            sage: S.is_field = lambda : False
+            sage: F = Frac(S); u = F.one_element()
+            sage: u.quo_rem(u)
+            (1, 0)
+        """
+        if not isinstance(right, FieldElement) or not (parent(right) is self._parent):
             right = self.parent()(right)
         return self/right, 0
 

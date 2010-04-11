@@ -87,6 +87,14 @@ cdef class FractionFieldElement(FieldElement):
         sage: f= 2/(t^2+2*t); g =t^9/(t^18 + t^10 + t^2);f+g
         (2*t^15 + 2*t^14 + 2*t^13 + 2*t^12 + 2*t^11 + 2*t^10 + 2*t^9 + t^7 + t^6 + t^5 + t^4 + t^3 + t^2 + t + 1)/(t^17 + t^9 + t)
 
+    Test if #8671 is fixed::
+
+        sage: P.<n> = QQ[]
+        sage: F = P.fraction_field()
+        sage: P.one_element()//F.one_element()
+        1
+        sage: F.one_element().quo_rem(F.one_element())
+        (1, 0)
     """
     cdef object __numerator
     cdef object __denominator

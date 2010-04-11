@@ -115,7 +115,7 @@ exp = Function_exp()
 
 class Function_log(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The natural logarithm of x.  See `log?` for
         more information about its behavior.
 
@@ -145,6 +145,8 @@ class Function_log(GinacFunction):
 
             sage: latex(x.log())
             \log\left(x\right)
+            sage: latex(log(1/4))
+            \log\left(\frac{1}{4}\right)
             sage: loads(dumps(ln(x)+1))
             log(x) + 1
 

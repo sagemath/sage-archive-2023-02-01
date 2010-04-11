@@ -227,7 +227,7 @@ cdef public stdstring* py_latex(object o, int level) except +:
     """
     from sage.misc.latex import latex
     s = latex(o)
-    if level > 0:
+    if level >= 20:
         if ' ' in s or '/' in s or '+' in s or '-' in s or '*' in s or '^' in s or '\\frac' in s:
             s = '\\left(%s\\right)'%s
     return string_from_pystr(s)

@@ -475,6 +475,11 @@ class Function_gamma(GinacFunction):
             NaN
             sage: CDF(-1).gamma()
             Infinity
+
+        Check if #8297 is fixed::
+
+            sage: latex(gamma(1/4))
+            \Gamma\left(\frac{1}{4}\right)
         """
         GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
                 ginac_name='tgamma',

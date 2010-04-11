@@ -294,9 +294,6 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _constructor(self, *args, **kwds):
-        return AffineSpace(*args, **kwds)
-
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomset_affine_coordinates(*args, **kwds)
 
@@ -399,16 +396,64 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def __pow__(self, m):
         """
+        Return the cartesian power of self.
+
+        INPUT:
+
+        - ``m`` -- integer
+
+        OUTPUT:
+
+        - affine ambient space
+
         EXAMPLES::
 
             sage: A = AffineSpace(1, QQ, 'x')
-            sage: A^5
+            sage: A5 = A^5; A5
             Affine Space of dimension 5 over Rational Field
+            sage: A5.variable_names()
+            ('x0', 'x1', 'x2', 'x3', 'x4')
+            sage: A2 = AffineSpace(2, QQ, "x, y")
+            sage: A4 = A2^2; A4
+            Affine Space of dimension 4 over Rational Field
+            sage: A4.variable_names()
+            ('x0', 'x1', 'x2', 'x3')
+
+        As you see, custom variable names are not preserved by power operator,
+        since there is no natural way to make new ones in general.
         """
         mm = int(m)
         if mm != m:
             raise ValueError, "m must be an integer"
-        return self._constructor(self.dimension_relative() * mm, self._base_ring, names=self.variable_names() * mm)
+        return AffineSpace(self.dimension_relative() * mm, self.base_ring())
+
+    def change_ring(self, R):
+        r"""
+        Return an affine space over ring `R` and otherwise the same as self.
+
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        OUTPUT:
+
+        - affine space over ``R``
+
+        .. NOTE::
+
+            There is no need to have any relation between `R` and the base ring
+            of  self, if you want to have such a relation, use
+            ``self.base_extend(R)`` instead.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: AQ = A.change_ring(QQ); AQ
+            Affine Space of dimension 3 over Rational Field
+            sage: AQ.change_ring(GF(5))
+            Affine Space of dimension 3 over Finite Field of size 5
+        """
+        return AffineSpace(self.dimension_relative(), R, self.variable_names())
 
     def coordinate_ring(self):
         """

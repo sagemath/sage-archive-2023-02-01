@@ -482,7 +482,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: S.base_extend(ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: No natural map from the base ring (=Finite Field of size 11) to S (=Integer Ring)
+            ValueError: no natural map from the base ring (=Finite Field of size 11) to R (=Integer Ring)!
         """
         A = self.ambient_space().base_extend(R)
         return A.subscheme(self.__polys)

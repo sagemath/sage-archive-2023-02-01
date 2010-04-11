@@ -357,9 +357,6 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _constructor(self, *args, **kwds):
-        return ProjectiveSpace(*args, **kwds)
-
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomset_projective_coordinates_ring(*args, **kwds)
 
@@ -421,6 +418,35 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         if v is None:
             v = self.gens()
         return '\\left(%s\\right)'%(" : ".join([str(latex(f)) for f in v]))
+
+    def change_ring(self, R):
+        r"""
+        Return a projective space over ring `R` and otherwise the same as self.
+
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        OUTPUT:
+
+        - projective space over ``R``
+
+        .. NOTE::
+
+            There is no need to have any relation between `R` and the base ring
+            of  self, if you want to have such a relation, use
+            ``self.base_extend(R)`` instead.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: PQ = P.change_ring(QQ); PQ
+            Projective Space of dimension 2 over Rational Field
+            sage: PQ.change_ring(GF(5))
+            Projective Space of dimension 2 over Finite Field of size 5
+        """
+        return ProjectiveSpace(self.dimension_relative(), R,
+                               self.variable_names())
 
     def is_projective(self):
         """

@@ -13,13 +13,8 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-cimport sage.rings.integer
 from sage.rings.integer cimport Integer
-import sage.rings.integer
-from sage.rings.integer import Integer
-cimport sage.rings.rational
 from sage.rings.rational cimport Rational
-import sage.rings.rational
 from sage.rings.rational import Rational
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
@@ -277,7 +272,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return Ct
         else:
             return Cnil
-    elif pyobj==None:
+    elif pyobj is None:
         return Cnil
     elif isinstance(pyobj,int):
         return ecl_make_integer(pyobj)
@@ -630,9 +625,7 @@ cdef class EclObject:
             NotImplementedError: EclObjects can only be compared for equality
             sage: EclObject("<")(a,b)
             <ECL: T>
-
         """
-
         if   op == 2: # "=="
             if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
                 return False
@@ -650,18 +643,18 @@ cdef class EclObject:
         #inappropriate for an *interface*.
         raise NotImplementedError,"EclObjects can only be compared for equality"
 
-        if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-            raise TypeError,"Can only compare EclObjects"
-        if op == 0: # "<"
-            pass
-        elif op == 1: # "<="
-            pass
-        elif op == 4: # ">"
-            pass
-        elif op == 5: # ">="
-            pass
-        else:
-            raise ValueError,"richcmp received operation code %d"%op
+        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        #    raise TypeError,"Can only compare EclObjects"
+        #if op == 0: # "<"
+        #    pass
+        #elif op == 1: # "<="
+        #    pass
+        #elif op == 4: # ">"
+        #    pass
+        #elif op == 5: # ">="
+        #    pass
+        #else:
+        #    raise ValueError,"richcmp received operation code %d"%op
 
     def eval(self):
         r"""
@@ -993,8 +986,7 @@ cdef class EclObject:
 
 #input: a cl-object. Output: EclObject wrapping that.
 cdef EclObject ecl_wrap(cl_object o):
-    cdef EclObject obj
-    obj = EclObject()
+    cdef EclObject obj = EclObject.__new__(EclObject)
     obj.set_obj(o)
     return obj
 

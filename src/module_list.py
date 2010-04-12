@@ -398,7 +398,7 @@ ext_modules = [
     ################################
 
     Extension('sage.libs.ecl',
-              sources = ["sage/libs/ecl/ecl.pyx"],
+              sources = ["sage/libs/ecl.pyx"],
               libraries = ["ecl"],
               include_dirs = [SAGE_ROOT+'/local/include/ecl/'],
               depends = [SAGE_ROOT + '/local/include/ecl/ecl.h']),

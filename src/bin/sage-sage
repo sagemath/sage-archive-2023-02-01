@@ -751,7 +751,7 @@ if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
    for PKG in "$@"
    do
       echo "Creating Sage package $PKG with no compression"
-      sage-pkg-nocompress "$PKG"
+      sage-pkg --nocompress "$PKG"
       if [ $? -ne 0 ]; then
          exit 1
       fi

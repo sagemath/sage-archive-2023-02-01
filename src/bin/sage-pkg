@@ -1,71 +1,130 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <directory>"
-    echo "Create a Sage package from the contents of the directory."
-    exit 1
-fi
+import os, sys
+from subprocess import Popen, PIPE, check_call, CalledProcessError
 
-if [ ! -d $1 ]; then
-    echo "$0: No directory $1"
-    exit 1
-fi
+def tar_file(dir, no_compress=False):
+    """
+    Create tar file from ``dir``.  If ``no_compress`` is True, don't
+    compress; otherwise, compress using bzip2.
 
-if [ `uname` == "Darwin" ]; then
-   # workaround OS X issue -- see trac #2522
-   COPYFILE_DISABLE=true
-   export COPYFILE_DISABLE
-fi
+    If on a Mac, set the environment variable ``COPYFILE_DISABLE`` to
+    True and use the subprocess module to call tar (to use the new
+    environment variable).  Otherwise, use the tarfile module to
+    create the tar file.
+    """
+    if sys.platform == 'darwin':
+        # workaround OS X issue -- see trac #2522
+        COPYFILE_DISABLE = True
+        os.environ['COPYFILE_DISABLE'] = 'true'
+        if no_compress:
+            cmd = "tar -cf %s.spkg %s" % (dir, dir)
+        else:
+            cmd = "tar -cf - %s | bzip2 > %s.spkg" % (dir, dir)
+        try:
+            check_call(cmd, shell=True)
+        except CalledProcessError:
+            print "Package creation failed."
+            sys.exit(1)
+    else:
+        import tarfile
+        if no_compress:
+            mode = "w"
+        else:
+            mode = "w:bz2"
+        try:
+            tar = tarfile.open("%s.spkg" % dir, mode=mode)
+            tar.add(dir, exclude=lambda f: f == ".DS_Store")
+            tar.close()
+        except tarfile.TarError:
+            print "Package creation failed."
+            sys.exit(1)
 
-DIR=`basename $1`
-tar -cf - $DIR | bzip2 > $DIR.spkg
+def main():
+    import re
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-n", "--no-compress", "--no_compress", "--nocompress",
+                      dest="no_compress", action="store_true",
+                      help="don't compress the spkg file")
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.print_usage()
+        sys.exit(1)
 
-if [ $? -ne 0 ]; then
-   echo "Package creation failed."
-   exit 1
-fi
+    path = args[0]
+    if not os.path.isdir(path):
+        print "No directory %s" % path
+        sys.exit(1)
+    dir = os.path.basename(path.rstrip("/"))
+    file = dir + ".spkg"
+    s = dir.split("-", 1)
+    try:
+        name = s[0]
+        version = s[1]
+    except IndexError:
+        name = dir
+        version = ""
 
-FILE="$DIR.spkg"
-NAME=`echo $DIR | sed s/'-[^-]*$'/""/`
-VERSION=`perl -e "@a = split(/-/,\"$DIR\"); print @a[-1] . \"\n\";"`
-SIZE=`du -h $FILE  | sed s/"\s.*$"//`
+    if len(version) == 0:
+        print "Warning: no version number detected"
+    else:
+        m = re.match(r"[0-9]+[-.0-9a-zA-Z]*(\.p[0-9]+)?$", version)
+        if not m:
+            print "Warning: version number (%s) not of the expected form." % version
+            print """The version number should start with a number and contain only numbers,
+letters, periods, and hyphens.  It may optionally end with a string of
+the form 'pNUM' where NUM is a non-negative integer.
 
-# check SPKG.txt
-ls $DIR/SPKG.txt 2> /dev/null
-if [ $? -ne 0 ]; then
-  SPKGTXT="File is missing"
-else
-  SPKGTXT="Good"
-fi
+Proceeding anyway..."""
 
-#check hp repro
-CUR=`pwd`
-cd $DIR
-DIFF=`sage -hg diff`
-if [ "$DIFF" != "" ]; then
-  HGREPO="Unchecked in changes"
-else
-  HGREPO="Good"
-fi
-cd $CUR
+    tar_file(dir, no_compress = options.no_compress)
 
-echo
-echo "Created package $FILE"
-echo
-echo "    NAME:" $NAME
-echo " VERSION:" $VERSION
-echo "    SIZE:" $SIZE
-echo " HG REPO:" $HGREPO
-echo "SPKG.txt:" $SPKGTXT
-echo
-echo "Please test this package using"
-echo
-echo "   sage -f $FILE"
-echo
-echo "immediately.   Also, note that you can use "
-echo
-echo "   sage -pkg_nc $DIR"
-echo
-echo "to make an uncompressed version of the package (useful if the"
-echo "package is full of compressed data)."
-echo
+    size = os.path.getsize(file)
+    if size < 1024 * 1024:
+        size = "%sK" % (size / 1024)
+    else:
+        size = "%0.1fM" % (size / (1024 * 1024.0))
+
+    if os.path.exists(os.path.join(dir, "SPKG.txt")):
+        spkg_txt = "Good"
+    else:
+        spkg_txt = "File is missing"
+
+    p = Popen("cd %s; sage --hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
+    if len(p.stderr.read()) != 0:
+        hgrepo_txt = "Error reading repository"
+    elif len(p.stdout.read()) != 0:
+        hgrepo_txt = "Unchecked in changes"
+    else:
+        hgrepo_txt = "Good"
+
+    print """
+Created package %(file)s.
+
+    NAME: %(name)s
+ VERSION: %(version)s
+    SIZE: %(size)s
+ HG REPO: %(hgrepo)s
+SPKG.txt: %(spkg)s
+
+Please test this package using
+
+   sage -f %(file)s
+
+immediately.""" % {'file': file, 'name': name, 'version': version, 'size': size,
+       'hgrepo': hgrepo_txt, 'spkg': spkg_txt},
+    if options.no_compress:
+        print ""
+        print ""
+    else:
+        print """ Also, note that you can use
+
+   sage -pkg_nc %(dir)s
+
+to make an uncompressed version of the package (useful if the
+package is full of compressed data).
+""" % {'dir': dir}
+
+if __name__ == "__main__":
+    main()

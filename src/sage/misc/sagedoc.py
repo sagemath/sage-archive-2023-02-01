@@ -890,7 +890,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
 
         sage: len(search_doc('tree', interact=False).splitlines()) > 2000
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 100
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 200
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

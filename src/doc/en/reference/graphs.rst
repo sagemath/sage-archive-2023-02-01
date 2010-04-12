@@ -4,15 +4,17 @@ Graph Theory
 .. toctree::
    :maxdepth: 2
 
-   sage/graphs/cliquer
+   sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/generic_graph
-   sage/graphs/graph
+
+   sage/graphs/cliquer
    sage/graphs/graph_coloring
-   sage/graphs/graph_generators
    sage/graphs/graph_database
+   sage/graphs/graph_generators
+   sage/graphs/graph_latex
    sage/graphs/graph_list
+
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
-   sage/graphs/graph_latex

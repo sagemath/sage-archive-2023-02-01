@@ -52,4 +52,10 @@ sage: for N in range(1,26):
 23 True
 24 True
 25 True
+
+We check that bug #8541 (traced to a linear algebra problem) is fixed::
+
+    sage: f = CuspForms(DirichletGroup(5).0,5).0
+    sage: f[15]
+    30*zeta4 - 210
 """

@@ -1916,8 +1916,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the number of spanning trees in a graph. In the case of a
         digraph, couts the number of spanning out-trees rooted in
-        ``root_vertex``.
-        Default is to set first vertex as root.
+        ``root_vertex``. Default is to set first vertex as root.
 
         This computation uses Kirchhoff's Matrix Tree Theorem [1] to calculate
         the number of spanning trees. For complete graphs on `n` vertices the
@@ -1972,7 +1971,6 @@ class GenericGraph(GenericGraph_pyx):
             1
             sage: D.spanning_trees_count(2)
             2
-
         """
         if self.is_directed() == False:
             M=self.kirchhoff_matrix()
@@ -7963,14 +7961,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()==w(10)
             True
 
-
         REFERENCE:
 
-        .. [GYLL93] I Gutman, YN Yeh, SL Lee, YL Luo (1993),
-          Some recent results in the theory of the Wiener number.
-          INDIAN JOURNAL OF CHEMISTRY SECTION A
-          PUBLICATIONS & INFORMATION DIRECTORATE, CSIR
-
+        .. [GYLL93] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+          results in the theory of the Wiener number. *Indian Journal of
+          Chemistry*, 32A:651--661, 1993.
         """
 
         return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
@@ -8022,7 +8017,8 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Searches
 
-    def breadth_first_search(self, start, ignore_direction=False, distance=None, neighbors=None):
+    def breadth_first_search(self, start, ignore_direction=False,
+                             distance=None, neighbors=None):
         """
         Returns an iterator over the vertices in a breadth-first ordering.
 
@@ -8047,6 +8043,15 @@ class GenericGraph(GenericGraph_pyx):
           the ``neighbors`` function defaults to the
           :meth:`.successors` function of the graph.
 
+        .. SEEALSO::
+
+        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+          -- breadth-first search for fast compiled graphs.
+
+        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+          -- depth-first search for fast compiled graphs.
+
+        - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
 
@@ -8137,7 +8142,8 @@ class GenericGraph(GenericGraph_pyx):
                             queue.append((w, d+1))
                             yield w
 
-    def depth_first_search(self, start, ignore_direction=False, distance=None, neighbors=None):
+    def depth_first_search(self, start, ignore_direction=False,
+                           distance=None, neighbors=None):
         """
         Returns an iterator over the vertices in a depth-first ordering.
 
@@ -8162,6 +8168,15 @@ class GenericGraph(GenericGraph_pyx):
           the ``neighbors`` function defaults to the
           :meth:`.successors` function of the graph.
 
+        .. SEEALSO::
+
+        - :meth:`breadth_first_search`
+
+        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+          -- breadth-first search for fast compiled graphs.
+
+        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+          -- depth-first search for fast compiled graphs.
 
         EXAMPLES::
 

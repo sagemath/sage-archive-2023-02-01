@@ -1,11 +1,10 @@
 """
-
 Fast compiled graphs
 
 This implements the base class for sparse and dense graphs in Sage. It is not
 intended for use on its own.
 
-Data Structure
+Data structure
 --------------
 
 The class ``CGraph`` contains the following variables::
@@ -26,9 +25,8 @@ same length as the bitset.
 For more about active vertices, see the documentation for the ``realloc``
 method.
 
-Methods
--------
-
+Classes and methods
+-------------------
 """
 #*******************************************************************************
 #        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
@@ -1484,53 +1482,171 @@ class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
-
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""
-        Returns a depth-first search from vertex v.
+        Returns a depth-first search from vertex ``v``.
 
         INPUT:
 
-        - ``reverse`` -- considers the reversed graph (
-          the out_neighbors become in_neighbors ).
+        - ``v`` -- a vertex from which to start the depth-first search.
 
-          The default value is ``False``.
+        - ``reverse`` -- boolean (default: ``False``). This is only relevant
+          to digraphs. If this is a digraph, consider the reversed graph in
+          which the out-neighbors become the in-neighbors and vice versa.
 
-        - ``ignore_direction`` -- consider the undirected graph.
+        - ``ignore_direction`` -- boolean (default: ``False``). This is only
+          relevant to digraphs. If this is a digraph, ignore all orientations
+          and consider the graph as undirected.
 
-          The default value is ``False``.
+        ALGORITHM:
 
-        EXAMPLE::
+        Below is a general template for depth-first search.
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+        - **Input:** A directed or undirected graph `G = (V, E)` of order
+          `n > 0`. A vertex `s` from which to start the search. The vertices
+          are numbered from 1 to `n = |V|`, i.e. `V = \{1, 2, \dots, n\}`.
+
+        - **Output:** A list `D` of distances of all vertices from `s`. A
+          tree `T` rooted at `s`.
+
+        #. `S \leftarrow [s]`  # a stack of nodes to visit
+        #. `D \leftarrow [\infty, \infty, \dots, \infty]`  # `n` copies of `\infty`
+        #. `D[s] \leftarrow 0`
+        #. `T \leftarrow [\,]`
+        #. while `\text{length}(S) > 0` do
+
+           #. `v \leftarrow \text{pop}(S)`
+           #. for each `w \in \text{adj}(v)` do  # for digraphs, use out-neighbor set `\text{oadj}(v)`
+
+              #. if `D[w] = \infty` then
+
+                 #. `D[w] \leftarrow D[v] + 1`
+                 #. `\text{push}(S, w)`
+                 #. `\text{append}(T, vw)`
+        #. return `(D, T)`
+
+        .. SEEALSO::
+
+        - :meth:`breadth_first_search` -- breadth-first search for fast
+          compiled graphs.
+
+        - :meth:`breadth_first_search <sage.graphs.generic_graph.GenericGraph.breadth_first_search>`
+          -- breadth-first search for generic graphs.
+
+        - :meth:`depth_first_search <sage.graphs.generic_graph.GenericGraph.depth_first_search>`
+          -- depth-first search for generic graphs.
+
+        EXAMPLES:
+
+        Traversing the Petersen graph using depth-first search::
+
+            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(G.depth_first_search(0))
             [0, 5, 8, 6, 9, 7, 2, 3, 4, 1]
+
+        Visiting German cities using depth-first search::
+
+            sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
+            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ...   "Kassel": ["Frankfurt","Munchen"],
+            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ...   "Augsburg": ["Munchen","Karlsruhe"],
+            ...   "Karlsruhe": ["Mannheim","Augsburg"],
+            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ...   "Stuttgart": ["Nurnberg"],
+            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            sage: list(G.depth_first_search("Frankfurt"))
+            ['Frankfurt', 'Wurzburg', 'Nurnberg', 'Munchen', 'Kassel', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Stuttgart', 'Erfurt']
         """
-        return Search_iterator(self, v, direction=-1, reverse=reverse, ignore_direction=ignore_direction)
+        return Search_iterator(self,
+                               v,
+                               direction=-1,
+                               reverse=reverse,
+                               ignore_direction=ignore_direction)
 
     def breadth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""
-        Returns a breadth-first search from vertex v.
+        Returns a breadth-first search from vertex ``v``.
 
         INPUT:
 
-        - ``reverse`` -- considers the reversed graph (
-          the out_neighbors become in_neighbors ).
+        - ``v`` -- a vertex from which to start the breadth-first search.
 
-          The default value is ``False``.
+        - ``reverse`` -- boolean (default: ``False``). This is only relevant
+          to digraphs. If this is a digraph, consider the reversed graph in
+          which the out-neighbors become the in-neighbors and vice versa.
 
-        - ``ignore_direction`` -- consider the undirected graph.
+        - ``ignore_direction`` -- boolean (default: ``False``). This is only
+          relevant to digraphs. If this is a digraph, ignore all orientations
+          and consider the graph as undirected.
 
-          The default value is ``False``.
+        ALGORITHM:
 
+        Below is a general template for breadth-first search.
 
-        EXAMPLE::
+        - **Input:** A directed or undirected graph `G = (V, E)` of order
+          `n > 0`. A vertex `s` from which to start the search. The vertices
+          are numbered from 1 to `n = |V|`, i.e. `V = \{1, 2, \dots, n\}`.
 
-            sage: G = Graph(graphs.PetersenGraph(), implementation='c_graph')
+        - **Output:** A list `D` of distances of all vertices from `s`. A
+          tree `T` rooted at `s`.
+
+        #. `Q \leftarrow [s]`  # a queue of nodes to visit
+        #. `D \leftarrow [\infty, \infty, \dots, \infty]`  # `n` copies of `\infty`
+        #. `D[s] \leftarrow 0`
+        #. `T \leftarrow [\,]`
+        #. while `\text{length}(Q) > 0` do
+
+           #. `v \leftarrow \text{dequeue}(Q)`
+           #. for each `w \in \text{adj}(v)` do  # for digraphs, use out-neighbor set `\text{oadj}(v)`
+
+              #. if `D[w] = \infty` then
+
+                 #. `D[w] \leftarrow D[v] + 1`
+                 #. `\text{enqueue}(Q, w)`
+                 #. `\text{append}(T, vw)`
+        #. return `(D, T)`
+
+        .. SEEALSO::
+
+        - :meth:`breadth_first_search <sage.graphs.generic_graph.GenericGraph.breadth_first_search>`
+          -- breadth-first search for generic graphs.
+
+        - :meth:`depth_first_search <sage.graphs.generic_graph.GenericGraph.depth_first_search>`
+          -- depth-first search for generic graphs.
+
+        - :meth:`depth_first_search` -- depth-first search for fast compiled
+          graphs.
+
+        EXAMPLES:
+
+        Breadth-first search of the Petersen graph starting at vertex 0::
+
+            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+
+        Visiting German cities using breadth-first search::
+
+            sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
+            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ...   "Kassel": ["Frankfurt","Munchen"],
+            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ...   "Augsburg": ["Munchen","Karlsruhe"],
+            ...   "Karlsruhe": ["Mannheim","Augsburg"],
+            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ...   "Stuttgart": ["Nurnberg"],
+            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            sage: list(G.breadth_first_search("Frankfurt"))
+            ['Frankfurt', 'Mannheim', 'Kassel', 'Wurzburg', 'Karlsruhe', 'Munchen', 'Erfurt', 'Nurnberg', 'Augsburg', 'Stuttgart']
         """
-        return Search_iterator(self, v, direction=0, reverse=reverse, ignore_direction=ignore_direction)
+        return Search_iterator(self,
+                               v,
+                               direction=0,
+                               reverse=reverse,
+                               ignore_direction=ignore_direction)
 
     def is_connected(self):
         r"""
@@ -1622,9 +1738,42 @@ class CGraphBackend(GenericGraphBackend):
         cdef set b = set(self.depth_first_search(v, reverse=True))
         return list(a & b)
 
-
-
 cdef class Search_iterator:
+    r"""
+    An iterator for traversing a (di)graph.
+
+    This class is commonly used to perform a depth-first or breadth-first
+    search. The class does not build all at once in memory the whole list of
+    visited vertices. The class maintains the following variables:
+
+    - ``graph`` -- a graph whose vertices are to be iterated over.
+
+    - ``direction`` -- integer; this determines the position at which
+      vertices to be visited are removed from the list ``stack``. For
+      breadth-first search (BFS), element removal occurs at the start of the
+      list, as signified by the value ``direction=0``. This is because in
+      implementations of BFS, the list of vertices to visit are usually
+      maintained by a queue, so element insertion and removal follow a
+      first-in first-out (FIFO) protocol. For depth-first search (DFS),
+      element removal occurs at the end of the list, as signified by the value
+      ``direction=-1``. The reason is that DFS is usually implemented using
+      a stack to maintain the list of vertices to visit. Hence, element
+      insertion and removal follow a last-in first-out (LIFO) protocol.
+
+    - ``stack`` -- a list of vertices to visit.
+
+    - ``seen`` -- a list of vertices that are already visited.
+
+    - ``test_out`` -- boolean; whether we want to consider the out-neighbors
+      of the graph to be traversed. For undirected graphs, we consider both
+      the in- and out-neighbors. However, for digraphs we only traverse along
+      out-neighbors.
+
+    - ``test_in`` -- boolean; whether we want to consider the in-neighbors of
+      the graph to be traversed. For undirected graphs, we consider both
+      the in- and out-neighbors.
+    """
+
     cdef graph
     cdef int direction
     cdef list stack
@@ -1632,14 +1781,48 @@ cdef class Search_iterator:
     cdef bool test_out
     cdef bool test_in
 
-    def __init__(self, graph, v, direction=0, reverse=False, ignore_direction=False):
+    def __init__(self, graph, v, direction=0, reverse=False,
+                 ignore_direction=False):
+        r"""
+        Initialize an iterator for traversing a (di)graph.
+
+        INPUT:
+
+        - ``graph`` -- a graph to be traversed.
+
+        - ``v`` -- a vertex in ``graph`` from which to start the traversal.
+
+        - ``direction`` -- integer (default: ``0``). This determines the
+          position at which vertices to be visited are removed from the list
+          ``stack`` of vertices to visit. For breadth-first search (BFS),
+          element removal occurs at the start of the list, as signified by the
+          value ``direction=0``. This is because in implementations of BFS,
+          the list of vertices to visit are usually maintained by a queue, so
+          element insertion and removal follow a first-in first-out (FIFO)
+          protocol. For depth-first search (DFS), element removal occurs at
+          the end of the list, as signified by the value ``direction=-1``. The
+          reason is that DFS is usually implemented using a stack to maintain
+          the list of vertices to visit. Hence, element insertion and removal
+          follow a last-in first-out (LIFO) protocol.
+
+        - ``reverse`` -- boolean (default: ``False``). This is only relevant
+          to digraphs. If ``graph`` is a digraph, consider the reversed graph
+          in which the out-neighbors become the in-neighbors and vice versa.
+
+        - ``ignore_direction`` -- boolean (default: ``False``). This is only
+          relevant to digraphs. If ``graph`` is a digraph, ignore all
+          orientations and consider the graph as undirected.
+        """
         self.graph = graph
         self.direction = direction
 
-        bitset_init(self.seen,(<CGraph>self.graph._cg).active_vertices.size)
-        bitset_set_first_n(self.seen,0)
+        bitset_init(self.seen, (<CGraph>self.graph._cg).active_vertices.size)
+        bitset_set_first_n(self.seen, 0)
 
-        self.stack = [get_vertex(v, self.graph.vertex_ints, self.graph.vertex_labels, self.graph._cg)]
+        self.stack = [get_vertex(v,
+                                 self.graph.vertex_ints,
+                                 self.graph.vertex_labels,
+                                 self.graph._cg)]
 
         if not self.graph.directed:
             ignore_direction = False
@@ -1648,18 +1831,27 @@ cdef class Search_iterator:
         self.test_in = reverse or ignore_direction
 
     def __iter__(self):
+        r"""
+        Return an iterator object over a traversal of a graph.
+        """
         return self
 
     def __next__(self):
+        r"""
+        Return the next vertex in a traversal of a graph.
+        """
         cdef int v_int
         cdef int w_int
 
         while self.stack:
             v_int = self.stack.pop(self.direction)
 
-            if bitset_not_in(self.seen,v_int):
-                value = vertex_label(v_int, self.graph.vertex_ints, self.graph.vertex_labels, self.graph._cg)
-                bitset_add(self.seen,v_int)
+            if bitset_not_in(self.seen, v_int):
+                value = vertex_label(v_int,
+                                     self.graph.vertex_ints,
+                                     self.graph.vertex_labels,
+                                     self.graph._cg)
+                bitset_add(self.seen, v_int)
 
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
@@ -1672,7 +1864,3 @@ cdef class Search_iterator:
             raise StopIteration
 
         return value
-
-
-
-

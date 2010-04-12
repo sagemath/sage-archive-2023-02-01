@@ -964,6 +964,15 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         -x/sqrt(-x^2 + 1)
         sage: limit(g, x=1, dir='below')
         -Infinity
+
+    TESTS::
+
+        sage: limit(1/x,x=0)
+        Infinity
+        sage: limit(1/x,x=0,dir='above')
+        +Infinity
+        sage: limit(1/x,x=0,dir='below')
+        -Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1406,11 +1415,6 @@ _inverse_laplace = function_factory('ilt',
 
 symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
             'li[2]':'polylog2', 'li[3]':'polylog3'}
-
-from sage.symbolic.pynac import register_symbol
-from sage.rings.infinity import infinity, minus_infinity
-register_symbol(infinity, dict(maxima='inf'))
-register_symbol(minus_infinity, dict(maxima='minf'))
 
 from sage.misc.multireplace import multiple_replace
 import re

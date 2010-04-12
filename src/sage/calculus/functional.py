@@ -311,7 +311,7 @@ def limit(f, dir=None, taylor=False, **argv):
         sage: lim(exp(x), x=-oo)
         0
         sage: lim(1/x, x=0)
-        +Infinity
+        Infinity
         sage: limit(sqrt(x^2+x+1)+x, taylor=True, x=-oo)
         -1/2
         sage: limit((tan(sin(x)) - sin(tan(x)))/x^7, taylor=True, x=0)

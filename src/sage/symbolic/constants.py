@@ -197,11 +197,20 @@ floating point rings::
     13.271347940197249310098819199575813940871106820003074817832971189555
     sage: RDF(a)
     13.2713479402
+
+Test if #8237 is fixed::
+
+    sage: maxima('infinity').sage()
+    Infinity
+    sage: maxima('inf').sage()
+    +Infinity
+    sage: maxima('minf').sage()
+    -Infinity
 """
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008-2010 Burcin Erocal <burcin@erocal.org>
 #                     2009 Mike Hansen <mhansen@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
@@ -217,6 +226,11 @@ constants_name_table = {}
 constants_name_table[repr(infinity)] = infinity
 constants_name_table[repr(unsigned_infinity)] = unsigned_infinity
 constants_name_table[repr(minus_infinity)] = minus_infinity
+
+import sage.symbolic.pynac
+sage.symbolic.pynac.register_symbol(infinity, {'maxima':'inf'})
+sage.symbolic.pynac.register_symbol(minus_infinity, {'maxima':'minf'})
+sage.symbolic.pynac.register_symbol(unsigned_infinity, {'maxima':'infinity'})
 
 def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
     """

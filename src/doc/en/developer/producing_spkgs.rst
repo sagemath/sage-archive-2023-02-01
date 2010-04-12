@@ -50,16 +50,46 @@ can be found under ``SAGE_ROOT/spkg/standard/``. The URL
 http://www.sagemath.org/download-packages.html lists standard spkg's
 available for download.
 
-Here is how to make your own spkg. First, create a directory,
-e.g. ``mypackage-0.1``. The name of the directory should be a
-lower-case string with no dashes, followed by a dash, followed by a
-version number.
+
+Naming your spkg
+----------------
+
+Each Sage spkg has a name of the following form:
+
+::
+
+   BASENAME-VERSION.spkg
+
+``BASENAME`` is the name of the package; it may contain lower-case
+letters, numbers, and underscores, but no hyphens.  ``VERSION`` is the
+version number; it should start with a number and may contain numbers,
+letters, dots, and hyphens; it may end in a string of the form
+"pNUM", where "NUM" is a non-negative integer.  If your spkg is a
+"vanilla" (unmodified) version of some piece of software, say version
+5.3 of "my-python-package", then ``BASENAME`` would be
+"my_python_package" -- note the change from hyphens to underscores,
+because ``BASENAME`` should not contain any hyphens -- and ``VERSION``
+would be "5.3".  If you need to modify the software to use it with
+Sage (as described below and in the chapter
+:ref:`chapter-patching-spkgs`), then ``VERSION`` would be "5.3.p0",
+the "p0" indicating a patch-level of 0.  If someone adds more patches,
+later, this would become "p1", then "p2", etc.
+
+The string ``VERSION`` must be present.  If you are using a piece
+software with no obvious version number, use a date: you can see
+several such names among the standard Sage packages:
+http://www.sagemath.org/packages/standard/.
+
+To give your spkg a name like this, create a directory called
+``BASENAME-VERSION`` and put your files in that directory -- the
+next section describes the directory structure.
 
 
 Directory structure
 -------------------
 
-Put your files in the directory ``mypackage-0.1``.  If you are porting
+Put your files in a directory with a name like ``mypackage-0.1``, as
+described above.  If you are porting
 another software package, then the directory should contain a
 subdirectory ``src/``, containing an unaltered copy of the package.
 Every file not in ``src/`` should be under version control, i.e. checked

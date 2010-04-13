@@ -22,6 +22,9 @@
 
 == Changelog ==
 
+=== r-2.10.1.p1 (Karl-Dieter Crisman, April 12th 2010) ===
+ * Re-enable Aqua support on OSX
+
 === r-2.10.1.p0 (David Kirkby, February 16th 2010) ===
  * Several items all covered by #8285
  * Added the undocumented option "--without-ICU" on Solaris,
@@ -32,7 +35,7 @@
  * Ensure SAGE64 will add the -m64 option on any platform,
    not just OS X as before.
  * Removed all references to the option --with-iconv=no,
-   as R needs iconv now - it is no longer optioonal - see
+   as R needs iconv now - it is no longer optional - see
    http://trac.sagemath.org/sage_trac/ticket/8191
  * Implement a test for X on Solaris, as the previous test in
    spkg-install would always fail on Solaris, as Solaris
@@ -99,7 +102,7 @@
  * clean up, clean up, clean up
 
 === r-2.6.1.p8 (Michael Abshoff, Jan. 17th. 2008) ===
- * bump version due to python now builf with ucs4
+ * bump version due to python now built with ucs4
 
 === r-2.6.1.p7 ===
  * Updated the rpy package using trac #1427

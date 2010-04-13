@@ -247,6 +247,6 @@ class Truthtable:
              [['man', 'monkey', 'human'], [False, False, False, True], [False, False, True, True], [False, True, False, True], [False, True, True, True], [True, False, False, False], [True, False, True, False], [True, True, False, False], [True, True, True, True]]
 
         """
-	t = self.__table[:]
-	t.insert(0, self.__vars_order)
-	return t
+        t = self.__table[:]
+        t.insert(0, self.__vars_order)
+        return t

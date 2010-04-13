@@ -729,7 +729,7 @@ class RootLatticeRealizationElement(object):
         In particular, it as 6 elements for the symmetric group `S_3`::
 
             sage: L = RootSystem(["A", 2]).ambient_lattice()
-            sage: sorted(L.rho().orbit())		# the output order is not specified
+            sage: sorted(L.rho().orbit())               # the output order is not specified
             [(1, 2, 0), (1, 0, 2), (2, 1, 0), (2, 0, 1), (0, 1, 2), (0, 2, 1)]
 
             sage: L = RootSystem(["A", 3]).weight_lattice()

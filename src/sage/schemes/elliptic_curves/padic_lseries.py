@@ -726,7 +726,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         Checks if the precision can be changed (trac 5846)::
 
             sage: L.series(3,prec=4)
-	    O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
             sage: L.series(3,prec=6)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + (1 + O(3^2))*T^5 + O(T^6)
 

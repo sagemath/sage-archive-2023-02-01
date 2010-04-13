@@ -101,7 +101,7 @@ class ConstantFunction(SageObject):
             False
             sage: ConstantFunction(1) == 1
             False
-            sage: ConstantFunction(True) == ConstantFunction(1)	# argl!
+            sage: ConstantFunction(True) == ConstantFunction(1)  # argl!
             True
         """
         return self.__class__ is other.__class__ and self._value == other._value

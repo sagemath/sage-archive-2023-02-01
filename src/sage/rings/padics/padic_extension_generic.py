@@ -241,7 +241,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode = self._modified_print_mode(print_mode)
         K = self.ground_ring().fraction_field(print_mode)
         #the print options will be set due to the ground ring.
-	if self.is_lazy():
+        if self.is_lazy():
             return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
         else:
             return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
@@ -275,7 +275,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode = self._modified_print_mode(print_mode)
         K = self.ground_ring().integer_ring(print_mode)
         #the print options will be set due to the ground ring.
-	if self.is_lazy():
+        if self.is_lazy():
             return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
         else:
             return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())

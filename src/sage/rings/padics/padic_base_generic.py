@@ -253,10 +253,10 @@ class pAdicBaseGeneric(pAdicGeneric):
             sage: R.has_root_of_unity(11)
             False
         """
-	if (self.prime() == 2):
-	    return n.divides(2)
+        if (self.prime() == 2):
+            return n.divides(2)
         else:
-	    return n.divides(self.prime() - 1)
+            return n.divides(self.prime() - 1)
 
     def zeta(self, n=None):
         r"""

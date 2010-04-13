@@ -722,7 +722,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
             TESTS::
 
-                sage: B.zero()	      # This actually failed at some point!!! See #8890
+                sage: B.zero()      # This actually failed at some point!!! See #8890
                 0
             """
             return self.parent().sum_of_terms( (f(m), c) for m,c in self )

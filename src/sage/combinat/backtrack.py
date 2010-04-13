@@ -191,7 +191,7 @@ class SearchForest(CombinatorialClass):
         r"""
         TESTS::
 
-            sage: SearchForest((1,), lambda x: [x+1])	# Todo: improve!
+            sage: SearchForest((1,), lambda x: [x+1])   # Todo: improve!
             An enumerated set
         """
         return "An enumerated set"

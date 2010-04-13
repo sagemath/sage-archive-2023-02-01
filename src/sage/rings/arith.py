@@ -2616,29 +2616,28 @@ def crt(a,b,m=None,n=None):
     If the moduli are not coprime, a solution may not exist::
 
         sage: crt(4,8,8,12)
-	20
-	sage: crt(4,6,8,12)
-	Traceback (most recent call last):
-	...
-	ValueError: No solution to crt problem since gcd(8,12) does not divide 4-6
+        20
+        sage: crt(4,6,8,12)
+        Traceback (most recent call last):
+        ...
+        ValueError: No solution to crt problem since gcd(8,12) does not divide 4-6
 
-	sage: x = polygen(QQ)
-	sage: crt(2,3,x-1,x+1)
-	-1/2*x + 5/2
-	sage: crt(2,x,x^2-1,x^2+1)
-	-1/2*x^3 + x^2 + 1/2*x + 1
-	sage: crt(2,x,x^2-1,x^3-1)
-	Traceback (most recent call last):
-	...
-	ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
-
+        sage: x = polygen(QQ)
+        sage: crt(2,3,x-1,x+1)
+        -1/2*x + 5/2
+        sage: crt(2,x,x^2-1,x^2+1)
+        -1/2*x^3 + x^2 + 1/2*x + 1
+        sage: crt(2,x,x^2-1,x^3-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
     """
     if isinstance(a, list):
         return CRT_list(a, b)
     g, alpha, beta = XGCD(m, n)
     q, r = (b - a).quo_rem(g)
     if r != 0:
-	raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
+        raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
     return (a + q*alpha*m) % lcm(m, n)
 
 CRT = crt

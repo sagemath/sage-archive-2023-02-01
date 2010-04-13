@@ -58,7 +58,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         else:
             return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
-    def _multiply(self, left, right):	# TODO: factor out this code for all bases (as is done for coercions)
+    def _multiply(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
         """
         TESTS::
 

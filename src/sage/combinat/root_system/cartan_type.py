@@ -7,7 +7,7 @@ groups, Lie algebras, Lie groups, crystals, etc. up to an
 isomorphism. *Cartan types* are a standard set of names for those
 Dynkin diagrams.
 
-	http://en.wikipedia.org/wiki/Dynkin_diagram
+        http://en.wikipedia.org/wiki/Dynkin_diagram
 
 Let us consider for example, the Cartan type `A_4`::
 
@@ -122,9 +122,9 @@ If desired, other node labelling conventions can be achieved. For
 example the Kac labelling for type 'E_6` can be obtained via::
 
     sage: E6.relabel({1:1,2:6,3:2,4:3,5:4,6:5}).dynkin_diagram()
-	    O 6
-	    |
-	    |
+            O 6
+            |
+            |
     O---O---O---O---O
     1   2   3   4   5
     E6 relabelled by {1: 1, 2: 6, 3: 2, 4: 3, 5: 4, 6: 5}
@@ -633,24 +633,24 @@ class CartanType_abstract(object):
             [0, 1, 2, 3]
             sage: CartanType(['D', 4]).index_set()
             [1, 2, 3, 4]
-	    sage: CartanType(['A', 7, 2]).index_set()
-	    [0, 1, 2, 3, 4]
-	    sage: CartanType(['A', 7, 2]).index_set()
-	    [0, 1, 2, 3, 4]
-	    sage: CartanType(['A', 6, 2]).index_set()
-	    [0, 1, 2, 3]
-	    sage: CartanType(['D', 6, 2]).index_set()
-	    [0, 1, 2, 3, 4, 5]
-	    sage: CartanType(['E', 6, 1]).index_set()
-	    [0, 1, 2, 3, 4, 5, 6]
-	    sage: CartanType(['E', 6, 2]).index_set()
-	    [0, 1, 2, 3, 4]
-	    sage: CartanType(['A', 2, 2]).index_set()
-	    [0, 1]
-	    sage: CartanType(['G', 2, 1]).index_set()
-	    [0, 1, 2]
-	    sage: CartanType(['F', 4, 1]).index_set()
-	    [0, 1, 2, 3, 4]
+            sage: CartanType(['A', 7, 2]).index_set()
+            [0, 1, 2, 3, 4]
+            sage: CartanType(['A', 7, 2]).index_set()
+            [0, 1, 2, 3, 4]
+            sage: CartanType(['A', 6, 2]).index_set()
+            [0, 1, 2, 3]
+            sage: CartanType(['D', 6, 2]).index_set()
+            [0, 1, 2, 3, 4, 5]
+            sage: CartanType(['E', 6, 1]).index_set()
+            [0, 1, 2, 3, 4, 5, 6]
+            sage: CartanType(['E', 6, 2]).index_set()
+            [0, 1, 2, 3, 4]
+            sage: CartanType(['A', 2, 2]).index_set()
+            [0, 1]
+            sage: CartanType(['G', 2, 1]).index_set()
+            [0, 1, 2]
+            sage: CartanType(['F', 4, 1]).index_set()
+            [0, 1, 2, 3, 4]
         """
 
     @abstract_method(optional = True)
@@ -1143,27 +1143,27 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             ['B', 3]
 
             sage: CartanType(['A', 2, 2]).classical()
-	    ['C', 1]
+            ['C', 1]
             sage: CartanType(['BC', 1, 2]).classical()
-	    ['C', 1]
+            ['C', 1]
             sage: CartanType(['A', 4, 2]).classical()
-	    ['C', 2]
+            ['C', 2]
             sage: CartanType(['BC', 2, 2]).classical()
-	    ['C', 2]
+            ['C', 2]
             sage: CartanType(['A', 10, 2]).classical()
-	    ['C', 5]
+            ['C', 5]
             sage: CartanType(['BC', 5, 2]).classical()
-	    ['C', 5]
+            ['C', 5]
 
-	    sage: CartanType(['D', 5, 2]).classical()
-	    ['B', 4]
-	    sage: CartanType(['E', 6, 1]).classical()
-	    ['E', 6]
-	    sage: CartanType(['G', 2, 1]).classical()
-	    ['G', 2]
-	    sage: CartanType(['E', 6, 2]).classical() # todo: double check
-	    ['F', 4]^*
-	    sage: CartanType(['D', 4, 3]).classical() # todo: double check
+            sage: CartanType(['D', 5, 2]).classical()
+            ['B', 4]
+            sage: CartanType(['E', 6, 1]).classical()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).classical()
+            ['G', 2]
+            sage: CartanType(['E', 6, 2]).classical() # todo: double check
+            ['F', 4]^*
+            sage: CartanType(['D', 4, 3]).classical() # todo: double check
             ['G', 2]^* relabelled by {1: 2, 2: 1}
 
         We check that :meth:`classical`, :meth:`.dynkin_diagram`, and
@@ -1733,11 +1733,11 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         """
         EXAMPLES::
 
-	    sage: CartanType(['A', 4, 1]).rank()
+            sage: CartanType(['A', 4, 1]).rank()
             5
             sage: CartanType(['B', 4, 1]).rank()
             5
-	    sage: CartanType(['C', 3, 1]).rank()
+            sage: CartanType(['C', 3, 1]).rank()
             4
             sage: CartanType(['D', 4, 1]).rank()
             5
@@ -1822,12 +1822,12 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
             ['C', 3]
             sage: CartanType(['D', 4, 1]).classical()
             ['D', 4]
-	    sage: CartanType(['E', 6, 1]).classical()
-	    ['E', 6]
-	    sage: CartanType(['F', 4, 1]).classical()
-	    ['F', 4]
-	    sage: CartanType(['G', 2, 1]).classical()
-	    ['G', 2]
+            sage: CartanType(['E', 6, 1]).classical()
+            ['E', 6]
+            sage: CartanType(['F', 4, 1]).classical()
+            ['F', 4]
+            sage: CartanType(['G', 2, 1]).classical()
+            ['G', 2]
         """
         return CartanType([self.letter,self.n])
 

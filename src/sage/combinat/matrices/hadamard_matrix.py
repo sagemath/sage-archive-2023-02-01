@@ -211,7 +211,7 @@ def hadamard_matrix_www(url_file, comments=False):
             if s[i][j]=="+":
                 r.append(1)
             else:
-	        r.append(-1)
+                r.append(-1)
         rws.append(r)
     f.close()
     if comments==True:

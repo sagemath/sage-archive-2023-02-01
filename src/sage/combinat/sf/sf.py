@@ -49,7 +49,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     basis. Here is the p representation::
 
         sage: p = Sym.powersum()
-        sage: p			# todo: not implemented (do we want this to be printed as Sym.p()?)
+        sage: p                 # todo: not implemented (do we want this to be printed as Sym.p()?)
         Sym on the p basis
 
     Elements of p are linear combinations of such compositions::
@@ -135,21 +135,21 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     therefore determined by its values on the generators; those are
     primitive::
 
-        sage: p[1].coproduct()		# todo: not implemented
+        sage: p[1].coproduct()          # todo: not implemented
         p[] # p[1] + p[1] # p[]
-        sage: p[2].coproduct()		# todo: not implemented
+        sage: p[2].coproduct()          # todo: not implemented
         p[] # p[2] + p[2] # p[]
 
     The coproduct being cocommutative on the generators is cocommutative everywhere::
-        sage: p[2, 1].coproduct()	# todo: not implemented
+        sage: p[2, 1].coproduct()       # todo: not implemented
         p[] # p[2, 1] + p[1] # p[2] + p[2, 1] # p[] + p[2] # p[1]
 
     The antipode is an anti-algebra morphism (Todo: explain what it
     is); on the p basis, it sends the generators to their opposite:
 
-        sage: p[3].antipode()		# todo: not implemented
+        sage: p[3].antipode()           # todo: not implemented
         -p[3]
-        sage: p[1,3,2].antipode()	# todo: not implemented
+        sage: p[1,3,2].antipode()       # todo: not implemented
         -p[2, 3, 1]
 
     ..topic: Other concrete representations
@@ -162,7 +162,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: h = Sym.complete()
         sage: e = Sym.elementary()
         sage: m = Sym.monomial()
-        sage: f = Sym.forgotten() 	# todo: not implemented
+        sage: f = Sym.forgotten()       # todo: not implemented
 
     To change from one basis to another, one simply does:
 
@@ -179,14 +179,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Jack polynomials can be obtained as::
 
         sage: Sym = SymmetricFunctions(QQ['t'])
-        sage: Jack = Sym.jack_polynomials()		# todo: not implemented
+        sage: Jack = Sym.jack_polynomials()             # todo: not implemented
         sage: P = Jack.P(); J = Jack.J(); Q = Jack.Q()  # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
     t can be specialized as follow::
 
         sage: Sym = SymmetricFunctions(QQ)
-        sage: Jack = Sym.jack_polynomials(t = 1)	# todo: not implemented
+        sage: Jack = Sym.jack_polynomials(t = 1)        # todo: not implemented
         sage: P = Jack.P(); J = Jack.J(); Q = Jack.Q()  # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
@@ -196,7 +196,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Similarly one can get Hall-Littlewood, Macdonald polynomials, etc::
 
         sage: Sym = SymmetricFunctions(QQ['q','t'])
-        sage: Mcd = Sym.macdonald_polynomials()		# todo: not implemented
+        sage: Mcd = Sym.macdonald_polynomials()         # todo: not implemented
         sage: P = Mcd.P(); J = Mcd.J(); Q = Mcd.Q()     # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
@@ -235,7 +235,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return "Symmetric Functions over %s"%self.base_ring()
 
     # For Jason: all the functions below should call directly the corresponding classes:
-    # 		return Schur(self))
+    #           return Schur(self))
     # Then, SymmetricFunctionAlgebra will just be a backward compatibility alias
     def schur(self):
         r"""
@@ -448,7 +448,7 @@ class SymmetricaConversionOnBasis:
         """
             sage: Sym = SymmetricFunctions(QQ[x])
             sage: p = Sym.p(); s = Sym.s()
-            sage: p[1] + s[1]				# indirect doctest
+            sage: p[1] + s[1]                           # indirect doctest
             2*p[1]
         """
         R = self._codomain.base_ring()

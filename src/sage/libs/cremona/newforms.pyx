@@ -57,7 +57,7 @@ cdef class ECModularSymbol:
             sage: E = EllipticCurve('858k2')
             sage: ECModularSymbol(E)
             Traceback (most recent call last):                     # 32-bit
-	    ...                                                    # 32-bit
+            ...                                                    # 32-bit
             OverflowError: long int too large to convert to int    # 32-bit
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field         # 64-bit
         """

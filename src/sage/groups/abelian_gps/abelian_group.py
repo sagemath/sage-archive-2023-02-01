@@ -207,12 +207,12 @@ def word_problem(words, g, verbose = False):
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: w = word_problem([a*b,a*c], b*c); w #random
         [[a*b, 1], [a*c, 1]]
-	sage: prod([x^i for x,i in w]) == b*c
-	True
+        sage: prod([x^i for x,i in w]) == b*c
+        True
         sage: w = word_problem([a*c,c],a); w #random
         [[a*c, 1], [c, -1]]
-	sage: prod([x^i for x,i in w]) == a
-	True
+        sage: prod([x^i for x,i in w]) == a
+        True
         sage: word_problem([a*c,c],a,verbose=True) #random
         a = (a*c)^1*(c)^-1
         [[a*c, 1], [c, -1]]
@@ -227,8 +227,8 @@ def word_problem(words, g, verbose = False):
         sage: b5 = a^2*b^4*c^2*d^4*e^5
         sage: w = word_problem([b1,b2,b3,b4,b5],e); w #random
         [[a^3*b*c*d^2*e^5, 1], [a^2*b*c^2*d^3*e^3, 1], [a^3*b^3*d^4*e^4, 3], [a^2*b^4*c^2*d^4*e^5, 1]]
-	sage: prod([x^i for x,i in w]) == e
-	True
+        sage: prod([x^i for x,i in w]) == e
+        True
         sage: word_problem([a,b,c,d,e],e)
         [[e, 1]]
         sage: word_problem([a,b,c,d,e],b)

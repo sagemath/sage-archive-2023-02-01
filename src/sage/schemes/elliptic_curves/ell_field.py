@@ -919,7 +919,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         r"""
         Returns the Hasse invariant of this elliptic curve.
 
-	OUTPUT:
+        OUTPUT:
 
         The Hasse invariant of this elliptic curve, as an element of
         the base field.  This is only defined over fields of positive
@@ -943,51 +943,46 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E.hasse_invariant()
             2
 
-	Some examples over larger fields::
+        Some examples over larger fields::
 
-	    sage: EllipticCurve(GF(101),[0,0,0,0,1]).hasse_invariant()
-	    0
-	    sage: EllipticCurve(GF(101),[0,0,0,1,1]).hasse_invariant()
-	    98
-	    sage: EllipticCurve(GF(103),[0,0,0,0,1]).hasse_invariant()
-	    20
-	    sage: EllipticCurve(GF(103),[0,0,0,1,1]).hasse_invariant()
-	    17
-	    sage: F.<a> = GF(107^2)
-	    sage: EllipticCurve(F,[0,0,0,a,1]).hasse_invariant()
-	    62*a + 75
-	    sage: EllipticCurve(F,[0,0,0,0,a]).hasse_invariant()
-	    0
+            sage: EllipticCurve(GF(101),[0,0,0,0,1]).hasse_invariant()
+            0
+            sage: EllipticCurve(GF(101),[0,0,0,1,1]).hasse_invariant()
+            98
+            sage: EllipticCurve(GF(103),[0,0,0,0,1]).hasse_invariant()
+            20
+            sage: EllipticCurve(GF(103),[0,0,0,1,1]).hasse_invariant()
+            17
+            sage: F.<a> = GF(107^2)
+            sage: EllipticCurve(F,[0,0,0,a,1]).hasse_invariant()
+            62*a + 75
+            sage: EllipticCurve(F,[0,0,0,0,a]).hasse_invariant()
+            0
 
-	Over fields of characteristic zero, the Hasse invariant is
-	underfined::
+        Over fields of characteristic zero, the Hasse invariant is
+        undefined::
 
             sage: E = EllipticCurve([0,0,0,0,1])
             sage: E.hasse_invariant()
             Traceback (most recent call last):
             ...
             ValueError: Hasse invariant only defined in positive characteristic
-
-
         """
-
         k = self.base_field()
         p = k.characteristic()
         if p == 0:
-           raise ValueError('Hasse invariant only defined in positive characteristic')
+            raise ValueError('Hasse invariant only defined in positive characteristic')
         elif p == 2:
-           return self.a1()
+            return self.a1()
         elif p == 3:
-           return self.b2()
+            return self.b2()
         elif p == 5:
-	   return self.c4()
+            return self.c4()
         elif p == 7:
-	   return -self.c6()
+            return -self.c6()
         else:
-           R = k['x']
-           x = R.gen()
-           E = self.short_weierstrass_model()
-           f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
-           return f.coeffs()[p-1]
-
-
+            R = k['x']
+            x = R.gen()
+            E = self.short_weierstrass_model()
+            f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
+            return f.coeffs()[p-1]

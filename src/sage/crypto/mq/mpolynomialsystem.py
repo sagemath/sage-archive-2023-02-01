@@ -663,10 +663,10 @@ class MPolynomialSystem_generic(SageObject):
 
     def __copy__(self):
         """
-	Return a copy of this system.
+        Return a copy of this system.
 
         While this is not a deep copy, only mutable members of this
-	system are copied.
+        system are copied.
 
         EXAMPLE::
 

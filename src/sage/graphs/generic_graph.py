@@ -7355,8 +7355,8 @@ class GenericGraph(GenericGraph_pyx):
         reorder = lambda u,v : (min(u,v),max(u,v))
 
         for u,v in g.edge_iterator(labels=False):
-	    p.add_constraint( one[ reorder(u,v) ] - 2*d[u] , max = 0 )
-	    p.add_constraint( one[ reorder(u,v) ] - 2*d[v] , max = 0 )
+            p.add_constraint( one[ reorder(u,v) ] - 2*d[u] , max = 0 )
+            p.add_constraint( one[ reorder(u,v) ] - 2*d[v] , max = 0 )
 
         p.add_constraint( sum([d[v] for v in g]), max = 1)
 

@@ -255,13 +255,13 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     If the argument is a vector, it doesn't change the base ring. This
     fixes trac #6643::
 
-	sage: K.<sqrt3> = QuadraticField(3)
-	sage: u = vector(K, (1/2, sqrt3/2) )
-	sage: vector(u).base_ring()
-	Number Field in sqrt3 with defining polynomial x^2 - 3
-	sage: v = vector(K, (0, 1) )
-	sage: vector(v).base_ring()
-	Number Field in sqrt3 with defining polynomial x^2 - 3
+        sage: K.<sqrt3> = QuadraticField(3)
+        sage: u = vector(K, (1/2, sqrt3/2) )
+        sage: vector(u).base_ring()
+        Number Field in sqrt3 with defining polynomial x^2 - 3
+        sage: v = vector(K, (0, 1) )
+        sage: vector(v).base_ring()
+        Number Field in sqrt3 with defining polynomial x^2 - 3
     """
     if hasattr(arg0, '_vector_'):
         return arg0._vector_(arg1)
@@ -1414,7 +1414,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: u.cross_product(v) + v.cross_product(u)
             (0, 0, 0, 0, 0, 0, 0)
 
-	The degree seven cross product is distributive across addition. ::
+        The degree seven cross product is distributive across addition. ::
 
             sage: v = vector([-12, -8/9, 42, 89, -37, 60/99, 73])
             sage: u = vector([31, -42/7, 97, 80, 30/55, -32, 64])
@@ -1474,8 +1474,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return vector([l[1]*r[3] - l[3]*r[1] + l[2]*r[6] - l[6]*r[2] + l[4]*r[5] - l[5]*r[4],
                            l[2]*r[4] - l[4]*r[2] + l[3]*r[0] - l[0]*r[3] + l[5]*r[6] - l[6]*r[5],
                            l[3]*r[5] - l[5]*r[3] + l[4]*r[1] - l[1]*r[4] + l[6]*r[0] - l[0]*r[6],
-		           l[4]*r[6] - l[6]*r[4] + l[5]*r[2] - l[2]*r[5] + l[0]*r[1] - l[1]*r[0],
-	   	           l[5]*r[0] - l[0]*r[5] + l[6]*r[3] - l[3]*r[6] + l[1]*r[2] - l[2]*r[1],
+                           l[4]*r[6] - l[6]*r[4] + l[5]*r[2] - l[2]*r[5] + l[0]*r[1] - l[1]*r[0],
+                           l[5]*r[0] - l[0]*r[5] + l[6]*r[3] - l[3]*r[6] + l[1]*r[2] - l[2]*r[1],
                            l[6]*r[1] - l[1]*r[6] + l[0]*r[4] - l[4]*r[0] + l[2]*r[3] - l[3]*r[2],
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 

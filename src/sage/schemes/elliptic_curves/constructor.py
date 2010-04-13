@@ -512,7 +512,7 @@ def EllipticCurve_from_plane_curve(C, P):
         sage: E.label() # optional - magma
         '32a1'
 
-	"""
+        """
     from sage.interfaces.all import magma
     if C.genus()!=1:
         raise TypeError, "The curve C must have genus 1"

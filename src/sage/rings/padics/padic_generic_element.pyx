@@ -442,14 +442,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             integer -- the additive order of self
 
-	EXAMPLES::
+        EXAMPLES::
 
-		sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
-		1
-		sage: a.additive_order(4)
-		+Infinity
-		sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
-		1
+                sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
+                1
+                sage: a.additive_order(4)
+                +Infinity
+                sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
+                1
         """
         if self.is_zero(prec):
             return Integer(1)

@@ -47,7 +47,7 @@ class Primes(Set_generic, UniqueRepresentation):
         sage: 100 in P
         False
 
-        sage: len(P) 		# note: this used to be a TypeError
+        sage: len(P)          # note: this used to be a TypeError
         Traceback (most recent call last):
         ...
         NotImplementedError: infinite list

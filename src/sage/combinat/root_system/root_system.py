@@ -15,7 +15,7 @@ Documentation
 -------------
 
  - :mod:`sage.combinat.root_system`                 This current overview
- - :class:`CartanType`	                            An introduction to Cartan types
+ - :class:`CartanType`                              An introduction to Cartan types
  - :class:`RootSystem`                              An introduction to root systems
 
 See also

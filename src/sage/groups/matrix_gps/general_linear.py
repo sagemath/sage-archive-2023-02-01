@@ -89,7 +89,7 @@ def GL(n, R, var='a'):
         sage: H = GL(2,F)
         sage: H.order()
         48
-        sage: H == G			# Do we really want this equality?
+        sage: H == G           # Do we really want this equality?
         False
         sage: H.as_matrix_group() == G
         True

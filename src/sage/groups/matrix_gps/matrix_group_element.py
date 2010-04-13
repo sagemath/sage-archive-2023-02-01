@@ -241,7 +241,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: G = MatrixGroup(gens)
             sage: g = G([1,1, 0,1])
             sage: h = G([1,1, 0,1])
-            sage: g*h		# indirect doctest
+            sage: g*h         # indirect doctest
             [1 2]
             [0 1]
         """

@@ -490,7 +490,7 @@ class FiniteFamily(AbstractFamily):
 
     The order of the elements can be specified using the ``keys`` optional argument::
 
-	sage: f = FiniteFamily({"a": "aa", "b": "bb", "c" : "cc" }, keys = ["c", "a", "b"])
+        sage: f = FiniteFamily({"a": "aa", "b": "bb", "c" : "cc" }, keys = ["c", "a", "b"])
         sage: list(f)
         ['cc', 'aa', 'bb']
 

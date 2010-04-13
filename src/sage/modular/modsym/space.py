@@ -2195,52 +2195,52 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         EXAMPLES:
 
-	First we consider the fairly straightforward level 37 case,
-	where the torsion subgroup of the optimal quotients (which are
-	all elliptic curves) are all cuspidal::
+        First we consider the fairly straightforward level 37 case,
+        where the torsion subgroup of the optimal quotients (which are
+        all elliptic curves) are all cuspidal::
 
-	    sage: M = ModularSymbols(37).cuspidal_subspace().new_subspace()
-	    sage: D = M.decomposition()
-	    sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
-	    [((), 0), ((3,), 2)]
-	    sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([37])]
-	    [([], 0), ([3], 2)]
+            sage: M = ModularSymbols(37).cuspidal_subspace().new_subspace()
+            sage: D = M.decomposition()
+            sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
+            [((), 0), ((3,), 2)]
+            sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([37])]
+            [([], 0), ([3], 2)]
 
-	Next we consider level 54, where the rational cuspidal
-	subgroups of the quotients are also cuspidal::
+        Next we consider level 54, where the rational cuspidal
+        subgroups of the quotients are also cuspidal::
 
-	    sage: M = ModularSymbols(54).cuspidal_subspace().new_subspace()
-	    sage: D = M.decomposition()
-	    sage: [A.abvarquo_rational_cuspidal_subgroup().invariants() for A in D]
-	    [(3,), (3,)]
-	    sage: [E.torsion_subgroup().invariants() for E in cremona_optimal_curves([54])]
-	    [[3], [3]]
+            sage: M = ModularSymbols(54).cuspidal_subspace().new_subspace()
+            sage: D = M.decomposition()
+            sage: [A.abvarquo_rational_cuspidal_subgroup().invariants() for A in D]
+            [(3,), (3,)]
+            sage: [E.torsion_subgroup().invariants() for E in cremona_optimal_curves([54])]
+            [[3], [3]]
 
-	Level 66 is interested, since not all torsion of the quotient
-	is rational.  In fact, for each elliptic curve quotient, the
-	`\QQ`-rational subgroup of the image of the cuspidal subgroup
-	in the quotient is a nontrivial subgroup of `E(\QQ)_{tor}`.
-	Thus not all torsion in the quotient is cuspidal!
+        Level 66 is interesting, since not all torsion of the quotient
+        is rational. In fact, for each elliptic curve quotient, the
+        `\QQ`-rational subgroup of the image of the cuspidal subgroup
+        in the quotient is a nontrivial subgroup of `E(\QQ)_{tor}`.
+        Thus not all torsion in the quotient is cuspidal!
 
-	    sage: M = ModularSymbols(66).cuspidal_subspace().new_subspace()
-	    sage: D = M.decomposition()
-	    sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
-	    [((3,), -4), ((2,), 4), ((), 0)]
-	    sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([66])]
-	    [([6], -4), ([4], 4), ([10], 0)]
-	    sage: [A.abelian_variety().rational_cuspidal_subgroup().invariants() for A in D]
-	    [[6], [4], [10]]
+            sage: M = ModularSymbols(66).cuspidal_subspace().new_subspace()
+            sage: D = M.decomposition()
+            sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
+            [((3,), -4), ((2,), 4), ((), 0)]
+            sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([66])]
+            [([6], -4), ([4], 4), ([10], 0)]
+            sage: [A.abelian_variety().rational_cuspidal_subgroup().invariants() for A in D]
+            [[6], [4], [10]]
 
-	In this example, the abelian varieties involved all having
-	dimension bigger than 1 (unlike above).  We find that all torsion
-	in the quotient in each of these cases is cuspidal::
+        In this example, the abelian varieties involved all having
+        dimension bigger than 1 (unlike above).  We find that all torsion
+        in the quotient in each of these cases is cuspidal::
 
-	    sage: M = ModularSymbols(125).cuspidal_subspace().new_subspace()
-	    sage: D = M.decomposition()
-	    sage: [A.abvarquo_rational_cuspidal_subgroup().invariants() for A in D]
-	    [(), (5,), (5,)]
-	    sage: [A.abelian_variety().rational_torsion_subgroup().multiple_of_order() for A in D]
-	    [1, 5, 5]
+            sage: M = ModularSymbols(125).cuspidal_subspace().new_subspace()
+            sage: D = M.decomposition()
+            sage: [A.abvarquo_rational_cuspidal_subgroup().invariants() for A in D]
+            [(), (5,), (5,)]
+            sage: [A.abelian_variety().rational_torsion_subgroup().multiple_of_order() for A in D]
+            [1, 5, 5]
         """
         try: return self.__abvarquo_rational_cuspidal_subgroup
         except AttributeError: pass
@@ -2312,31 +2312,31 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         EXAMPLES::
 
-	We compute the matrix of the element of the Galois group
-	associated to 5 and 31 for level 32.  In the first case the
-	Galois action is trivial, and in the second it is
-	nontrivial.::
+        We compute the matrix of the element of the Galois group
+        associated to 5 and 31 for level 32.  In the first case the
+        Galois action is trivial, and in the second it is
+        nontrivial.::
 
             sage: M = ModularSymbols(32)
-	    sage: P = [c for c in Gamma0(32).cusps() if not c.is_infinity()]
-	    sage: M._matrix_of_galois_action(5, P)
-	    [1 0 0 0 0 0 0]
-	    [0 1 0 0 0 0 0]
-	    [0 0 1 0 0 0 0]
-	    [0 0 0 1 0 0 0]
-	    [0 0 0 0 1 0 0]
-	    [0 0 0 0 0 1 0]
-	    [0 0 0 0 0 0 1]
-	    sage: z = M._matrix_of_galois_action(31, P); z
-	    [1 0 0 0 0 0 0]
-	    [0 1 0 0 0 0 0]
-	    [0 0 0 0 1 0 0]
-	    [0 0 0 0 0 0 1]
-	    [0 0 1 0 0 0 0]
-	    [0 0 0 0 0 1 0]
-	    [0 0 0 1 0 0 0]
-	    sage: z.charpoly().factor()
-	    (x + 1)^2 * (x - 1)^5
+            sage: P = [c for c in Gamma0(32).cusps() if not c.is_infinity()]
+            sage: M._matrix_of_galois_action(5, P)
+            [1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0]
+            [0 0 1 0 0 0 0]
+            [0 0 0 1 0 0 0]
+            [0 0 0 0 1 0 0]
+            [0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 1]
+            sage: z = M._matrix_of_galois_action(31, P); z
+            [1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0]
+            [0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 1]
+            [0 0 1 0 0 0 0]
+            [0 0 0 0 0 1 0]
+            [0 0 0 1 0 0 0]
+            sage: z.charpoly().factor()
+            (x + 1)^2 * (x - 1)^5
         """
         N = self.level()
         from sage.matrix.constructor import matrix

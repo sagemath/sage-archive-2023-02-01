@@ -3041,8 +3041,8 @@ class NumberField_generic(number_field_base.NumberField):
         if subfields_have_embeddings:
             poly_vals = []
             for r, _, _, k in C:
-	        r = R(r)
-	        k = ZZ(k) # essential
+                r = R(r)
+                k = ZZ(k) # essential
                 embedding = other.coerce_embedding()(b) + k*self.coerce_embedding()(a)
                 poly_vals.append(sage.rings.complex_double.CDF(r(embedding)).abs())
             i = poly_vals.index(min(poly_vals))

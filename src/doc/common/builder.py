@@ -716,7 +716,6 @@ def get_builder(name):
         print "of documents, or 'sage -docbuild --help' for more help."
         sys.exit(1)
 
-
 def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns

@@ -20,7 +20,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         r"""
         Returns the quotient of ``self`` by ``right``.
 
-	INPUT:
+        INPUT:
 
         - ``self`` -- a `p`-adic element.
 
@@ -31,7 +31,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = Zp(7, 4, 'capped-rel', 'series'); R(3)/R(5)
             2 + 4*7 + 5*7^2 + 2*7^3 + O(7^4)
-	    sage: R(2/3) / R(1/3) #indirect doctest
+            sage: R(2/3) / R(1/3) #indirect doctest
             2 + O(7^4)
             sage: R(49) / R(7)
             7 + O(7^5)
@@ -264,15 +264,15 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         - local ring element -- the square root of ``self``
 
-	EXAMPLES::
+        EXAMPLES::
 
- 	    sage: R = Zp(13, 10, 'capped-rel', 'series')
- 	    sage: a = sqrt(R(-1)); a * a
- 	    12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
- 	    sage: sqrt(R(4))
- 	    2 + O(13^10)
- 	    sage: sqrt(R(4/9)) * 3
-	    2 + O(13^10)
+            sage: R = Zp(13, 10, 'capped-rel', 'series')
+            sage: a = sqrt(R(-1)); a * a
+            12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
+            sage: sqrt(R(4))
+            2 + O(13^10)
+            sage: sqrt(R(4/9)) * 3
+            2 + O(13^10)
         """
         return self.square_root(extend, all)
 

@@ -146,7 +146,7 @@ def JackPolynomialsQp(R, t=None):
         1
         sage: a.scalar(P([1,1]))
         0
-        sage: P(Qp([2]))			# todo: missing auto normalization
+        sage: P(Qp([2]))                        # todo: missing auto normalization
         ((2*t-2)/(2*t+2))*JackP[1, 1] + JackP[2]
         sage: P._normalize(P(Qp([2])))
         ((t-1)/(t+1))*JackP[1, 1] + JackP[2]

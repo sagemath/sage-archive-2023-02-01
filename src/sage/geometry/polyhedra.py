@@ -2150,7 +2150,7 @@ class Polyhedron(SageObject):
             sage: from sage.geometry.polyhedra import polytopes
             sage: p = polytopes.n_simplex(3)
             sage: p.vertex_incidences()
-	    [[0, [0, 1, 3]], [1, [0, 2, 3]], [2, [1, 2, 3]], [3, [0, 1, 2]]]
+            [[0, [0, 1, 3]], [1, [0, 2, 3]], [2, [1, 2, 3]], [3, [0, 1, 2]]]
             sage: v0 = p.Vrepresentation(0)
             sage: v0.index() == 0
             True

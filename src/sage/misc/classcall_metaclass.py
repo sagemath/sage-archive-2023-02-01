@@ -225,7 +225,7 @@ class ClasscallMetaclass(NestedClassMetaclass):
         user interface has a single handle for the class::
 
             sage: x = Partition([3,2,2])
-            sage: isinstance(x, Partition)		# todo: not implemented
+            sage: isinstance(x, Partition)          # todo: not implemented
 
         instead of::
 

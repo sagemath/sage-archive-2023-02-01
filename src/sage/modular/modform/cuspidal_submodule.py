@@ -121,8 +121,8 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
 
         EXAMPLES::
 
-	    sage: CuspForms(4,10).is_cuspidal()
-	    True
+            sage: CuspForms(4,10).is_cuspidal()
+            True
         """
         return True
 

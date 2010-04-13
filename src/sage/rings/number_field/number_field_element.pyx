@@ -711,7 +711,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: abs(a)
             1.25992104989487
             sage: abs(a)^3
-	    2.00000000000000
+            2.00000000000000
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
         """
@@ -741,10 +741,10 @@ cdef class NumberFieldElement(FieldElement):
             sage: abs(z)
             1.00000000000000
             sage: abs(z^2 + 17*z - 3)
-	    16.0604426799931
+            16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
-	    2.57128159065824
+            2.57128159065824
             sage: a.abs(prec=100)
             2.5712815906582353554531872087
             sage: a.abs(prec=100,i=1)
@@ -888,7 +888,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embeddings()
- 	    [-0.629960524947437 - 1.09112363597172*I, -0.629960524947437 + 1.09112363597172*I, 1.25992104989487]
+            [-0.629960524947437 - 1.09112363597172*I, -0.629960524947437 + 1.09112363597172*I, 1.25992104989487]
             sage: a.complex_embeddings(10)
             [-0.63 - 1.1*I, -0.63 + 1.1*I, 1.3]
             sage: a.complex_embeddings(100)
@@ -906,7 +906,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embedding()
-	    -0.629960524947437 - 1.09112363597172*I
+            -0.629960524947437 - 1.09112363597172*I
             sage: a.complex_embedding(10)
             -0.63 - 1.1*I
             sage: a.complex_embedding(100)
@@ -946,7 +946,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^2 + 1)
             sage: abs(CDF(a))
-	    1.0
+            1.0
         """
         return CDF(CC(self))
 
@@ -956,7 +956,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: k.<a> = NumberField(x^2 + 1)
             sage: complex(a)
-	    1j
+            1j
             sage: a.__complex__()
             1j
         """

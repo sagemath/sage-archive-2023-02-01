@@ -2444,15 +2444,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         INPUT:
 
-        - ``extend`` - bool (default: True); ignored if self is in
-	  QQbar, or positive in AA. If self is negative in AA, do the
-	  following: if True, return a square root of self in QQbar,
-	  otherwise raise a ValueError.
+        - ``extend`` - bool (default: True); ignored if self is in QQbar, or
+          positive in AA. If self is negative in AA, do the following: if True,
+          return a square root of self in QQbar, otherwise raise a ValueError.
 
-        - ``all`` - bool (default: False); if True, return a list of
-	  all square roots.  If False, return just one square root, or
-	  raise an ValueError if self is a negative element of AA and
-	  extend=False.
+        - ``all`` - bool (default: False); if True, return a list of all square
+          roots.  If False, return just one square root, or raise an ValueError
+          if self is a negative element of AA and extend=False.
 
         OUTPUT:
 
@@ -2485,7 +2483,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         is defined, it gives the same answer regardless. After all, how many
         ways can you square-root zero?
 
-	::
+        ::
 
             sage: AA(-2).sqrt()
             1.414213562373095?*I
@@ -2500,7 +2498,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
 
         """
-	# deal with 0 first:
+        # deal with 0 first:
 
         if self.is_zero():
             if all:
@@ -2508,20 +2506,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             else:
                 return self
 
-	# raise an error if appropriate:
+        # raise an error if appropriate:
 
         if self.parent() is AA and self<0 and not extend:
-	    if not all:
+            if not all:
                 raise ValueError, "%s is not a square in AA, being negative. Use extend = True for a square root in QQbar."%self
-	    else:
-		return []
+            else:
+                return []
 
-	root = self.__pow__(~ZZ(2))
+        root = self.__pow__(~ZZ(2))
 
-	if all:
-	    return [root, -root]
-	else:
-	    return root
+        if all:
+            return [root, -root]
+        else:
+           return root
 
     def nth_root(self, n):
         r"""

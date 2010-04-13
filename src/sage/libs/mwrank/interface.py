@@ -18,6 +18,11 @@ and call methods that are implemented using this module.
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import IntegerRing
 
+# Need to permit tabs in order to doctest verbose output.
+"""
+SAGE_DOCTEST_ALLOW_TABS
+"""
+
 def set_precision(n):
     r"""
     Set the global NTL real number precision.  This has a massive

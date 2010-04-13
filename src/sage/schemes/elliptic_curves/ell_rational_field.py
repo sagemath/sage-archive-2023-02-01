@@ -3909,7 +3909,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         .. note::
 
-	   The curves returned are all standard minimal models.
+            The curves returned are all standard minimal models.
 
         .. warning::
 

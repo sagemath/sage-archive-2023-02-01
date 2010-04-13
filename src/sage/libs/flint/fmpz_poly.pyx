@@ -316,7 +316,6 @@ cdef class Fmpz_poly(SageObject):
         fmpz_poly_divrem(Q.poly, R.poly, self.poly, other.poly)
         return Q, R
 
-
     def left_shift(self, unsigned long n) :
         """
         Left shift self by n.

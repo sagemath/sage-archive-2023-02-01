@@ -190,7 +190,7 @@ class LocalGeneric(CommutativeRing):
 
         - boolean -- whether ``self``'s representation is atomic, i.e., ``False``
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: R = Zp(5, 5, 'fixed-mod'); R.is_atomic_repr()
             False
@@ -216,22 +216,22 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def residue_characteristic(self):
- 	r"""
-	Returns the characteristic of ``self``'s residue field.
+        r"""
+        Returns the characteristic of ``self``'s residue field.
 
- 	INPUT:
+        INPUT:
 
         - ``self`` -- a p-adic ring.
 
- 	OUTPUT:
+        OUTPUT:
 
         - integer -- the characteristic of the residue field.
 
-	EXAMPLES::
+        EXAMPLES::
 
- 	    sage: R = Zp(3, 5, 'capped-rel'); R.residue_characteristic()
- 	    3
- 	"""
+            sage: R = Zp(3, 5, 'capped-rel'); R.residue_characteristic()
+            3
+        """
         return self.residue_class_field().characteristic()
 
     def defining_polynomial(self, var = 'x'):
@@ -333,10 +333,10 @@ class LocalGeneric(CommutativeRing):
 
         - integer -- the ramification index of this ring: 1 unless overridden.
 
-	EXAMPLES::
+        EXAMPLES::
 
- 	    sage: R = Zp(3, 5, 'capped-rel'); R.ramification_index()
- 	    1
+            sage: R = Zp(3, 5, 'capped-rel'); R.ramification_index()
+            1
         """
         if K is None or K is self:
             return Integer(1)
@@ -356,10 +356,10 @@ class LocalGeneric(CommutativeRing):
 
         - integer -- the ramification index of this ring: 1 unless overridden.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: R = Zp(3, 5, 'capped-rel'); R.e()
-	    1
+            1
         """
         return self.ramification_index(K)
 
@@ -378,8 +378,8 @@ class LocalGeneric(CommutativeRing):
 
         EXAMPLES::
 
- 	    sage: R = Zp(3, 5, 'capped-rel'); R.inertia_degree()
- 	    1
+            sage: R = Zp(3, 5, 'capped-rel'); R.inertia_degree()
+            1
         """
         return Integer(1)
 
@@ -398,8 +398,8 @@ class LocalGeneric(CommutativeRing):
 
         EXAMPLES::
 
-	    sage: R = Zp(3, 5, 'capped-rel'); R.residue_class_degree()
-	    1
+            sage: R = Zp(3, 5, 'capped-rel'); R.residue_class_degree()
+            1
         """
         return self.inertia_degree(K)
 
@@ -418,8 +418,8 @@ class LocalGeneric(CommutativeRing):
 
         EXAMPLES::
 
-	    sage: R = Zp(3, 5, 'capped-rel'); R.f()
-	    1
+            sage: R = Zp(3, 5, 'capped-rel'); R.f()
+            1
         """
         return self.inertia_degree(K)
 

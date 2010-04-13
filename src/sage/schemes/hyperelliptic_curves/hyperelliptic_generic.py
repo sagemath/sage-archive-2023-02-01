@@ -459,12 +459,12 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
-	    sage: H.local_coord(H(1,6),prec=5)
-	    (1 + t + O(t^5), 6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5))
-	    sage: H.local_coord(H(4,0),prec=5)
-	    (4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7), t + O(t^7))
-	    sage: H.local_coord(H(0,1,0),prec=5)
-	    (t^-2 + 23*t^2 - 18*t^4 - 569*t^6 + O(t^7), t^-5 + 46*t^-1 - 36*t - 609*t^3 + 1656*t^5 + O(t^6))
+            sage: H.local_coord(H(1,6),prec=5)
+            (1 + t + O(t^5), 6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5))
+            sage: H.local_coord(H(4,0),prec=5)
+            (4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7), t + O(t^7))
+            sage: H.local_coord(H(0,1,0),prec=5)
+            (t^-2 + 23*t^2 - 18*t^4 - 569*t^6 + O(t^7), t^-5 + 46*t^-1 - 36*t - 609*t^3 + 1656*t^5 + O(t^6))
 
         AUTHOR:
             - Jennifer Balakrishnan (2007-12)

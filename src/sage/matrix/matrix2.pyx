@@ -4409,14 +4409,14 @@ cdef class Matrix(matrix1.Matrix):
         """
         Return the echelon form of self.
 
-	.. note::
+        .. note::
 
-	    This row reduction does not use division if the
-	    matrix is not over a field (e.g., if the matrix is over
-	    the integers).  If you want to calculate the echelon form
-	    using division, then use :meth:`rref`, which assumes that
-	    the matrix entries are in a field (specifically, the field
-	    of fractions of the base ring of the matrix).
+            This row reduction does not use division if the
+            matrix is not over a field (e.g., if the matrix is over
+            the integers).  If you want to calculate the echelon form
+            using division, then use :meth:`rref`, which assumes that
+            the matrix entries are in a field (specifically, the field
+            of fractions of the base ring of the matrix).
 
         INPUT:
 

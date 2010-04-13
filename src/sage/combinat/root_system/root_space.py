@@ -107,23 +107,23 @@ class RootSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationEle
         return sum( (sum( (lambdacheck[i]*s for i,s in cartan_matrix.column(j)), zero) * c for j,c in self), zero)
 
     def is_positive_root(self):
-	"""
-	Checks whether an element in the root space lies in the
-	nonnegative cone spanned by the simple roots.
+        """
+        Checks whether an element in the root space lies in the
+        nonnegative cone spanned by the simple roots.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: R=RootSystem(['A',3,1]).root_space()
-	    sage: B=R.basis()
-	    sage: w=B[0]+B[3]
-	    sage: w.is_positive_root()
-	    True
-	    sage: w=B[1]-B[2]
-	    sage: w.is_positive_root()
-	    False
-	"""
-	for c in self.coefficients():
-	    if c < 0:
-		return False
-	return True
+            sage: R=RootSystem(['A',3,1]).root_space()
+            sage: B=R.basis()
+            sage: w=B[0]+B[3]
+            sage: w.is_positive_root()
+            True
+            sage: w=B[1]-B[2]
+            sage: w.is_positive_root()
+            False
+        """
+        for c in self.coefficients():
+            if c < 0:
+                return False
+        return True
 

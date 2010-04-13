@@ -178,9 +178,9 @@ class CoxeterGroups(Category):
             this returns the corresponding product of simple
             reflections `s_{i_1} s_{i_2} \cdots s_{i_k}`.
 
-	    Note: the main use case is for constructing elements from
-	    reduced words, hence the name of this method. But actually
-	    the input word need *not* be reduced.
+            Note: the main use case is for constructing elements from
+            reduced words, hence the name of this method. But actually
+            the input word need *not* be reduced.
 
             EXAMPLES::
 

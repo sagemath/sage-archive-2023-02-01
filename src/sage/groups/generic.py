@@ -626,7 +626,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         i0=0
         nextsigma = 0
         for i in xrange(reset_bound):
-	            #random walk, we need an efficient hash
+                    #random walk, we need an efficient hash
             s=hash_function(x) % partition_size
             (x,ax,bx) = (mult(M[s],x), ax+m[s], bx+n[s])
             if mut:

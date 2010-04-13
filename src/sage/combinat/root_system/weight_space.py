@@ -117,22 +117,22 @@ class WeightSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationE
             return sum( (self[i]*c for (i,c) in lambdacheck), zero)
 
     def is_dominant(self):
-	"""
-	Checks whether an element in the weight space lies in the positive cone spanned
-	by the basis elements (fundamental weights).
+        """
+        Checks whether an element in the weight space lies in the positive cone spanned
+        by the basis elements (fundamental weights).
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: W=RootSystem(['A',3]).weight_space()
-	    sage: Lambda=W.basis()
-	    sage: w=Lambda[1]+Lambda[3]
-	    sage: w.is_dominant()
-	    True
-	    sage: w=Lambda[1]-Lambda[2]
-	    sage: w.is_dominant()
-	    False
-	"""
-	for c in self.coefficients():
-	    if c < 0:
-		return False
-	return True
+            sage: W=RootSystem(['A',3]).weight_space()
+            sage: Lambda=W.basis()
+            sage: w=Lambda[1]+Lambda[3]
+            sage: w.is_dominant()
+            True
+            sage: w=Lambda[1]-Lambda[2]
+            sage: w.is_dominant()
+            False
+        """
+        for c in self.coefficients():
+            if c < 0:
+                return False
+        return True

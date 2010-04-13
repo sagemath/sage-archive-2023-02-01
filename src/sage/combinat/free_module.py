@@ -1439,18 +1439,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         return self.sum(self.term(index, coeff) for (index, coeff) in terms)
 
     def monomial_or_zero_if_none(self, i):
-	"""
-	EXAMPLES::
+        """
+        EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
             sage: F.monomial_or_zero_if_none('a')
             B['a']
-	    sage: F.monomial_or_zero_if_none(None)
-	    0
+            sage: F.monomial_or_zero_if_none(None)
+            0
         """
-	if i == None:
-	    return self.zero()
-	return self.monomial(i)
+        if i == None:
+            return self.zero()
+        return self.monomial(i)
 
     @cached_method
     def zero(self):

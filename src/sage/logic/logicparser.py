@@ -38,9 +38,9 @@ def parse(s):
     """
     toks, vars_order = tokenize(s)
     tree = tree_parse(toks)
-	#special case of tree == single variable
+        #special case of tree == single variable
     if(type(tree) is StringType and len([tree]) == 1):
-		return ['&', tree, tree], vars_order
+                return ['&', tree, tree], vars_order
     return tree, vars_order
 
 def tokenize(s):

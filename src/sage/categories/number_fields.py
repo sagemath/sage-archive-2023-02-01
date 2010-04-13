@@ -103,7 +103,7 @@ class NumberFields(Category):
             sage: C(NumberField(x^2+1,'a'))
             Number Field in a with defining polynomial x^2 + 1
 
-            sage: C(UnitGroup(NumberField(x^2+1,'a')))	# indirect doctest
+            sage: C(UnitGroup(NumberField(x^2+1,'a')))  # indirect doctest
             Number Field in a with defining polynomial x^2 + 1
 
             sage: C(ZZ)

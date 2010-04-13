@@ -40,7 +40,7 @@ def Subquotients(self):
 
     .. math::
 
-    	l: A \mapsto B'  \text{ and }  r: B' \mapsto A
+        l: A \mapsto B'  \text{ and }  r: B' \mapsto A
 
     called respectively the *lifting map* and *retract map* such that
     `r \circ l` is the identity of `A`. What exactly *structure

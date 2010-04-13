@@ -861,7 +861,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-	    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices.
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices.
             sage: P.is_simple()
             True
 

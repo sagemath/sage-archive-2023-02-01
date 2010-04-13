@@ -24,6 +24,11 @@ import sys
 
 include '../../ext/interrupt.pxi'
 
+# Need to permit tabs in order to doctest verbose output.
+"""
+SAGE_DOCTEST_ALLOW_TABS
+"""
+
 cdef extern from "stdlib.h":
     void free(void *ptr)
 

@@ -1628,10 +1628,10 @@ def tostr(s, length = 3, out_type = float):
     EXAMPLES::
 
         sage: from sage.plot.plot3d.tachyon import tostr
-	sage: tostr((1,1,1))
-	' 1.0 1.0 1.0 '
-	sage: tostr('2 3 2')
-	'2 3 2'
+        sage: tostr((1,1,1))
+        ' 1.0 1.0 1.0 '
+        sage: tostr('2 3 2')
+        '2 3 2'
     """
     if isinstance(s, str):
         return s

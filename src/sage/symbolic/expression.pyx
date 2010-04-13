@@ -135,6 +135,10 @@ from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity
 
+"""
+SAGE_DOCTEST_ALLOW_TABS
+"""
+
 def is_Expression(x):
     """
     Returns True if *x* is a symbolic Expression.

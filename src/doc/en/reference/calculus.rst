@@ -7,6 +7,7 @@ Symbolic Calculus
    sage/symbolic/expression
    sage/symbolic/relation
    sage/calculus/calculus
+   sage/symbolic/units
    sage/symbolic/ring
    sage/calculus/functional
    sage/calculus/test_sympy

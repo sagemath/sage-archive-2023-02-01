@@ -8,14 +8,14 @@
 ###############################################################################
 
 """
-Units
+Units of measurement
 
 This is the units package. It contains information about many units
 and conversions between them.
 
 TUTORIAL:
 
-To create a unit::
+To return a unit::
 
     sage: units.length.meter
     meter
@@ -597,7 +597,7 @@ unit_docs = {
         'pound_force':'Equivalent to a pound weight.\nApproximately equal to 4.44822 newtons.',
         'pound_weight':'Defined to be the magnitude of the force exerted on one pound of mass by a 9.80665 meter/second^2 gravitational field.\nApproximately equal to 4.44822 newtons.',
         'poundal':'Defined to be pound*foot/second^2.\nApproximately equal to 0.13825 newtons.',
-        'ton_force':'Defined to be the magnitude of the force exerted on one ton of mass (2000 pounds) by a 9.80665 meter/second^2 gravitational field.\nApproximately equal to 8896.4432 newtons.'},
+        'ton_force':'Defined to be 2000 pounds of force.\nApproximately equal to 8896.4432 newtons.'},
 
 'frequency_docs':
         {'hertz':'SI derived unit of frequency.\nDefined to be one complete cycle per second.'},
@@ -682,7 +682,7 @@ unit_docs = {
         {'lumen':'SI derived unit of luminous flux.\nDefined to be candela*steradian.'},
 
 'luminous_intensity_docs':
-        {'candela':'SI base unit of luminous intensity.\nDefined to be the luminous intensity, in a given direction, of a source that emits monochromatic radiation of frequency 540*10^12 hertz and that has a radiant intensity in that direction of 1\xe2\x81\x84683 watt per steradian.',
+        {'candela':'SI base unit of luminous intensity.\nDefined to be the luminous intensity, in a given direction, of a source that emits monochromatic radiation of frequency 540*10^12 hertz and that has a radiant intensity in that direction of 1/683 watt per steradian.',
         'candle':'Equivalent to candela.',
         'hefnerkerze':'Old German unit defined to be a 8 millimeter wick burning amyl acetate with a flame height of 40 millimeters.\nApproximately equal to 0.9034 candelas.'},
 
@@ -739,7 +739,7 @@ unit_docs = {
         'short_hundredweight':'Equivalent to cental.\nEqual to 100 pounds.\nApproximately equal to 45.36 kilograms.',
         'short_ton':'Equivalent to ton.\nEqual to 2000 pounds.\nApproximately equal to 907.18 kilograms.',
         'slug':'Defined to be a mass that is accelerated 1 ft/s^2 when 1 pound_force is exerted on it.\nApproximately equal to 14.5939 kilograms.',
-        'solar_mass':'Defined to be the mass of the Sun.\nAbout 332,950 times the size of the Earth or 1,048 times the mass of Jupiter.\nApproximately equal to 1.98892*10^30 kilograms.',
+        'solar_mass':'Defined to be the mass of the Sun.\nAbout 332,950 times the mass of the Earth or 1,048 times the mass of Jupiter.\nApproximately equal to 1.98892*10^30 kilograms.',
         'stone':'Defined to be 14 pounds.\nApproximately equal to 6.35 kilograms.',
         'talent':'Ancient Greek unit of mass.\nEqual to 6000 drachmae.\nApproximately equal to 25.754 kilograms.',
         'ton':'Equal to 2000 pounds.\nApproximately equal to 907.18 kilograms.',
@@ -1030,14 +1030,14 @@ class Units:
         EXAMPLES::
 
             sage: units.power
-            Collection power of units: cheval_vapeur horsepower watt
+            Collection of units of power: cheval_vapeur horsepower watt
     """
     def __init__(self, data, name=''):
         """
         EXAMPLES::
 
             sage: sage.symbolic.units.Units(sage.symbolic.units.unitdict, 'all units')
-            Collection all units of units: acceleration ... volume
+            Collection of units of all units: acceleration ... volume
         """
         self.__name = name
         self.__data = data
@@ -1112,7 +1112,7 @@ class Units:
         EXAMPLES::
 
             sage: units.area
-            Collection area of units: acre are barn hectare rood section square_chain square_meter township
+            Collection of units of area: acre are barn hectare rood section square_chain square_meter township
             sage: units.area.barn
             barn
 
@@ -1146,10 +1146,10 @@ class Units:
             sage: units.__repr__()
             'Collection of units: acceleration ... volume'
             sage: units.area.__repr__()
-            'Collection area of units: acre are barn hectare rood section square_chain square_meter township'
+            'Collection of units of area: acre are barn hectare rood section square_chain square_meter township'
         """
-        name = self.__name + ' ' if self.__name else ''
-        return "Collection %sof units: %s"%(name, ' '.join(sorted([str(x) for x in self.__data])))
+        name = ' of ' + self.__name if self.__name else ''
+        return "Collection of units{0}: {1}".format(name, ' '.join(sorted([str(x) for x in self.__data])))
 
 units = Units(unitdict, '')
 

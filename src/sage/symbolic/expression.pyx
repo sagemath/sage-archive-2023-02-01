@@ -6221,7 +6221,9 @@ cdef class Expression(CommutativeRingElement):
     ###################################################################
     def convert(self, target=None):
         """
-        Calls the convert function in the units package.
+        Calls the convert function in the units package. For symbolic
+        variables that are not units, this function just returns the
+        variable.
 
         INPUT:
 
@@ -6232,12 +6234,18 @@ cdef class Expression(CommutativeRingElement):
 
             - `symbolic expression`
 
-		EXAMPLES::
+        EXAMPLES::
 
             sage: units.length.foot.convert()
-		    381/1250*meter
+            381/1250*meter
             sage: units.mass.kilogram.convert(units.mass.pound)
-			100000000/45359237*pound
+            100000000/45359237*pound
+
+        We don't get anything new by converting an ordinary symbolic variable::
+
+            sage: a = var('a')
+            sage: a - a.convert()
+            0
 
         Raises ValueError if self and target are not convertible::
 
@@ -6250,7 +6258,8 @@ cdef class Expression(CommutativeRingElement):
             ...
             ValueError: Incompatible units
 
-        Recognizes derived unit relationships to base units and other derived units::
+        Recognizes derived unit relationships to base units and other
+        derived units::
 
             sage: (units.length.foot/units.time.second^2).convert(units.acceleration.galileo)
             762/25*galileo
@@ -6261,28 +6270,29 @@ cdef class Expression(CommutativeRingElement):
             sage: (units.charge.coulomb).convert(units.current.ampere*units.time.second)
             ampere*second
             sage: (units.pressure.pascal*units.si_prefixes.kilo).convert(units.pressure.pounds_per_square_inch)
-			1290320000000/8896443230521*pounds_per_square_inch
+            1290320000000/8896443230521*pounds_per_square_inch
 
         For decimal answers multiply by 1.0::
 
             sage: (units.pressure.pascal*units.si_prefixes.kilo).convert(units.pressure.pounds_per_square_inch)*1.0
-			0.145037737730209*pounds_per_square_inch
+            0.145037737730209*pounds_per_square_inch
 
-		Converting temperatures works as well::
+        Converting temperatures works as well::
 
-			sage: s = 68*units.temperature.fahrenheit
-			sage: s.convert(units.temperature.celsius)
-			20*celsius
-			sage: s.convert()
-			293.150000000000*kelvin
+            sage: s = 68*units.temperature.fahrenheit
+            sage: s.convert(units.temperature.celsius)
+            20*celsius
+            sage: s.convert()
+            293.150000000000*kelvin
 
-		Trying to multiply temperatures by another unit then converting raises a ValueError::
+        Trying to multiply temperatures by another unit then converting
+        raises a ValueError::
 
-			sage: wrong = 50*units.temperature.celsius*units.length.foot
-			sage: wrong.convert()
-			Traceback (most recent call last):
-			...
-			ValueError: Cannot convert
+            sage: wrong = 50*units.temperature.celsius*units.length.foot
+            sage: wrong.convert()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert
         """
         import units
         return units.convert(self, target)

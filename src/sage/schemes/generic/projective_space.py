@@ -289,36 +289,36 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
                                self.variable_names(), self.dimension_relative()+1)
             return self._coordinate_ring
 
-    def _validate(self, v):
+    def _validate(self, polynomials):
         """
-        Return a valid tuple of polynomial functions on self given by
-        `v`.  Raise an error if `v` does not consist of valid
-        functions (in particular, if they are not homogeneous).
+        If ``polynomials`` is a tuple of valid polynomial functions on self,
+        return ``polynomials``, otherwise raise TypeError.
+
+        Since this is a projective space, polynomials must be homogeneous.
+
+        INPUT:
+
+        - ``polynomials`` -- tuple of polynomials in the coordinate ring of
+            self
+
+        OUTPUT:
+
+        - tuple of polynomials in the coordinate ring of self
 
         EXAMPLES::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
-            sage: P._validate([x*y-z^2, 1])
-            (x*y - z^2, 1)
-            sage: P._validate([x, y, 1/3*z])
+            sage: P._validate((x*y - z^2, x))
+            (x*y - z^2, x)
+            sage: P._validate((x*y - z, x))
             Traceback (most recent call last):
             ...
-            ValueError: The arguments [x, y, 1/3*z] are not valid polynomial functions on this projective space
-            sage: P._validate([x*y-z])
-            Traceback (most recent call last):
-            ...
-            TypeError: The polynomial(s) [x*y - z] must be homogeneous
+            TypeError: x*y - z is not a homogeneous polynomial!
         """
-        R = self.coordinate_ring()
-        try:
-            tup = tuple([ R(g) for g in v ])
-        except:
-            raise ValueError, "The arguments %s are not valid polynomial functions on this projective space"%v
-        for g in tup:
-            if not g.is_homogeneous():
-                raise TypeError, \
-                      "The polynomial(s) %s must be homogeneous"%v
-        return tup
+        for f in polynomials:
+            if not f.is_homogeneous():
+                raise TypeError("%s is not a homogeneous polynomial!" % f)
+        return polynomials
 
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_projective_space(*args, **kwds)

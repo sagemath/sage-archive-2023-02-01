@@ -150,6 +150,32 @@ class AmbientSpace(scheme.Scheme, Parent):
         """
         raise NotImplementedError
 
+    def _validate(self, polynomials):
+        """
+        If ``polynomials`` is a tuple of valid polynomial functions on self,
+        return ``polynomials``, otherwise raise TypeError.
+
+        INPUT:
+
+        - ``polynomials`` -- tuple of polynomials in the coordinate ring of
+            self
+
+        OUTPUT:
+
+        - tuple of polynomials in the coordinate ring of self
+
+        TESTS::
+
+            sage: from sage.schemes.generic.ambient_space import AmbientSpace
+            sage: A = AmbientSpace(3, ZZ)
+            sage: A._validate((x + 1, 1))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ambient spaces must override "_validate" method!
+        """
+        raise NotImplementedError('ambient spaces must override "_validate" '
+                                  'method!')
+
     def change_ring(self, R):
         r"""
         Return an ambient space over ring `R` and otherwise the same as self.

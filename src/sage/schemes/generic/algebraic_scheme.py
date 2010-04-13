@@ -23,17 +23,14 @@ from sage.rings.all import (
     is_RationalField,
     ZZ)
 
+from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
-
 import ambient_space
-
 import affine_space
-
 import projective_space
-
 import morphism
-
 import scheme
+
 
 def is_AlgebraicScheme(x):
     """
@@ -407,14 +404,32 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     INPUT:
 
+    -  ``A`` - ambient space (e.g. affine or projective `n`-space)
 
-    -  ``A`` - ambient space (affine or projective n-space
-       over a ring)
+    -  ``polynomials`` - single polynomial, ideal or iterable of defining
+        polynomials; in any case polynomials must belong to the coordinate
+        ring of the ambient space and define valid polynomial functions (e.g.
+        they should be homogeneous in the case of a projective space)
 
-    -  ``polys`` - ideal or tuple of defining polynomials
+    OUTPUT:
+
+    - algebraic scheme
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+        sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+        sage: P.subscheme([x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
+        sage: AlgebraicScheme_subscheme(P, [x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
     """
-    def __init__(self, A, polys):
+    def __init__(self, A, polynomials):
         """
+        See ``AlgebraicScheme_subscheme`` for documentation.
+
         TESTS::
 
             sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
@@ -428,14 +443,25 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         AlgebraicScheme.__init__(self, A)
         self._base_ring = A.base_ring()
-        if is_Ideal(polys):
-            self.__I = polys
-            polys = polys.gens()
-        if not isinstance(polys, (list, tuple)):
-            polys = (polys, )
-        else:
-            polys = tuple(polys)
-        self.__polys = A._validate(polys)  # now polys is a tuple of defining polynomials.
+        R = A.coordinate_ring()
+        if is_Ideal(polynomials):
+            I = polynomials
+            polynomials = I.gens()
+            if I.ring() is R: # Otherwise we will recompute I later after
+                self.__I = I  # converting generators to the correct ring
+        if isinstance(polynomials, tuple) or is_iterator(polynomials):
+            polynomials = list(polynomials)
+        elif not isinstance(polynomials, list):
+            # Looks like we got a single polynomial
+            polynomials = [polynomials]
+        for n, f in enumerate(polynomials):
+            try:
+                polynomials[n] = R(f)
+            except TypeError:
+                raise TypeError("%s cannot be converted to a polynomial in "
+                                "the coordinate ring of this %s!" % (f, A))
+        polynomials = tuple(polynomials)
+        self.__polys = A._validate(polynomials)
 
     def _check_satisfies_equations(self, v):
         """

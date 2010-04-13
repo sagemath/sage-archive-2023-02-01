@@ -6,6 +6,11 @@
 # Python's doctest functionality.  In particular, this allows for
 # sage: prompts, preparsing, optional doctests, random behavior, etc.
 #
+# This also searches for TAB characters.  If any are found in .py,
+# .pyx, .spyx, or .sage files, then doctesting fails unless the string
+# "SAGE_DOCTEST_ALLOW_TABS" is also present somewhere (anywhere!) in
+# the file.
+#
 # Return value in process exit code:
 # 0: all tests passed
 # 1: file not found
@@ -678,6 +683,17 @@ def test_file(file, library_code):
         s, numfail = post_process(out, file, f)
         s += err
 
+        # search for tabs.  if found, the doctest fails, unless the string
+        # "SAGE_DOCTEST_ALLOW_TABS" is also present somewhere in the file.
+        ext = os.path.splitext(file)[1]
+        if ext in [".py", ".pyx", ".sage", ".spyx"]:
+            ff = open(file)
+            source = ff.read()
+            ff.close()
+            if (source.find("SAGE_DOCTEST_ALLOW_TABS") == -1
+                and source.find("\t") != -1):
+                numfail += 1
+                s = "*"*70 + "\n" + "Error: TAB character found.\n" + s
         if e == 255:
             # The doctesting code raised an exception
             if not verbose:

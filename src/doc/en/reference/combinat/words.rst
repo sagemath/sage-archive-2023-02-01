@@ -6,6 +6,7 @@ Words
 
    ../sage/combinat/words/alphabet
    ../sage/combinat/words/abstract_word
+   ../sage/combinat/words/nfactor_enumerable_word
    ../sage/combinat/words/finite_word
    ../sage/combinat/words/infinite_word
    ../sage/combinat/words/word

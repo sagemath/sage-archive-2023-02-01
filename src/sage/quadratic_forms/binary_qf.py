@@ -1,7 +1,7 @@
 r"""
 Binary Quadratic Forms with integer coefficients.
 
-The form `a x^2 + b x y + d y^2` is stored as a triple (a, b, c) of integers.
+The form `a x^2 + b x y + c y^2` is stored as a triple (a, b, c) of integers.
 
 EXAMPLES::
 
@@ -61,7 +61,9 @@ class BinaryQF(SageObject):
 
     INPUT:
 
-        - `v` -- a list or tuple of 3 entries:  [a,b,c]
+    - `v` -- a list or tuple of 3 entries:  [a,b,c], or a quadratic homogeneous
+      polynomial in two variables with integer coefficients
+
 
     OUTPUT:
         the binary quadratic form a*x^2 + b*x*y + c*y^2.
@@ -71,30 +73,60 @@ class BinaryQF(SageObject):
         sage: b = BinaryQF([1,2,3])
         sage: b.discriminant()
         -8
+        sage: R.<x, y> = ZZ[]
+        sage: BinaryQF(x^2 + 2*x*y + 3*y^2) == b
+        True
     """
     # Initializes the form with a 3-element list
     def __init__(self, abc):
         r"""
         Creates the binary quadratic form `ax^2 + bxy + cy^2` from the
-        triple [a,b,c] over `\ZZ`.
+        triple [a,b,c] over `\ZZ` or from a polynomial.
 
         INPUT:
 
-            - ``abc`` -- 3-tuple of integers
+        - ``abc`` -- 3-tuple of integers, or a quadratic homogeneous polynomial
+          in two variables with integer coefficients
 
         EXAMPLES::
 
             sage: Q = BinaryQF([1,2,3]); Q
-            x^2 + 2*x*y  + 3*y^2
+            x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([1,2])
             Traceback (most recent call last):
             ...
-            ValueError: Binary quadratic form must be given by a list of three coefficients
+            TypeError: Binary quadratic form must be given by a list of three coefficients
+
+            sage: R.<x, y> = ZZ[]
+            sage: f = x^2 + 2*x*y + 3*y^2
+            sage: BinaryQF(f)
+            x^2 + 2*x*y + 3*y^2
+            sage: BinaryQF(f + x)
+            Traceback (most recent call last):
+            ...
+            TypeError: Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial
+
+        TESTS::
+
+            sage: BinaryQF(0)
+            0
         """
-        if len(abc) != 3:
-            # Check we have three coefficients
-            raise ValueError, "Binary quadratic form must be given by a list of three coefficients"
-        self._a, self._b, self._c = [ZZ(x) for x in abc]
+        if isinstance(abc, (list, tuple)):
+            if len(abc) != 3:
+                # Check we have three coefficients
+                raise TypeError, "Binary quadratic form must be given by a list of three coefficients"
+            self._a, self._b, self._c = [ZZ(x) for x in abc]
+        else:
+            f = abc
+            from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+            if f.is_zero():
+                self._a, self._b, self._c = [ZZ(0), ZZ(0), ZZ(0)]
+            elif (is_MPolynomial(f) and f.is_homogeneous() and f.base_ring() == ZZ
+                    and f.degree() == 2 and f.parent().ngens() == 2):
+                x, y = f.parent().gens()
+                self._a, self._b, self._c = [f.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
+            else:
+                raise TypeError, "Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial"
 
     def _pari_init_(self):
         """
@@ -180,16 +212,31 @@ class BinaryQF(SageObject):
         Evaluate this quadratic form at a point.
 
         INPUT:
-            args -- x and y values, often as a pair x, y or a list [x, y]
+
+        - args -- x and y values, as a pair x, y or a list, tuple, or
+          vector
 
         EXAMPLES::
 
 
-            sage: Q = BinaryQF([2,3,4])
+            sage: Q = BinaryQF([2, 3, 4])
             sage: Q(1, 2)
             24
+
+        TESTS::
+
+            sage: Q = BinaryQF([2, 3, 4])
+            sage: Q([1, 2])
+            24
+            sage: Q((1, 2))
+            24
+            sage: Q(vector([1, 2]))
+            24
         """
-        return self.polynomial()(*args)
+        if len(args) == 1:
+            args = args[0]
+        x, y = args
+        return (self._a * x + self._b * y) * x + self._c * y**2
 
     def __cmp__(self, right):
         """
@@ -316,7 +363,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([1,2,3])
             sage: Q.polynomial()
             x^2 + 2*x*y + 3*y^2
@@ -329,9 +375,7 @@ class BinaryQF(SageObject):
             sage: Q.polynomial()
             0
         """
-        M = ZZ['x,y']
-        (x,y) = M.gens()
-        return self._a * x**2  + self._b* x*y + self._c * y**2
+        return self(ZZ['x, y'].gens())
 
     @cached_method
     def discriminant(self):
@@ -544,6 +588,49 @@ class BinaryQF(SageObject):
         Q1 = R(self.polynomial()(x,1))
         return [z  for z in Q1.complex_roots()  if z.imag() > 0][0]
 
+    def matrix_action_left(self, M):
+        """
+        Return the binary quadratic form resulting from the left action
+        of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
+
+        Here the action of the matrix ``M = matrix([[a, b], [c, d]])``
+        on the form `Q(x, y)` produces the form `Q(ax+by, cx+dy)`.
+
+        EXAMPLES::
+
+            sage: Q = BinaryQF([2, 1, 3]); Q
+            2*x^2 + x*y + 3*y^2
+            sage: M = matrix(ZZ, [[1, 2], [3, 5]])
+            sage: Q.matrix_action_left(M)
+            32*x^2 + 109*x*y + 93*y^2
+        """
+        v, w = M.columns()
+        a1 = self(v)
+        c1 = self(w)
+        b1 = self(v + w) - a1 - c1
+        return BinaryQF([a1, b1, c1])
+
+    def matrix_action_right(self, M):
+        """
+        Return the binary quadratic form resulting from the right action
+        of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
+
+        Here the action of the matrix ``M = matrix([[a, b], [c, d]])``
+        on the form `Q(x, y)` produces the form `Q(ax+cy, bx+dy)`.
+
+        EXAMPLES::
+
+            sage: Q = BinaryQF([2, 1, 3]); Q
+            2*x^2 + x*y + 3*y^2
+            sage: M = matrix(ZZ, [[1, 2], [3, 5]])
+            sage: Q.matrix_action_right(M)
+            16*x^2 + 83*x*y + 108*y^2
+        """
+        v, w = M.rows()
+        a1 = self(v)
+        c1 = self(w)
+        b1 = self(v + w) - a1 - c1
+        return BinaryQF([a1, b1, c1])
 
 def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""

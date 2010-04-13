@@ -33,3 +33,4 @@ Miscellaneous
    sage/misc/nested_class
    sage/misc/nested_class_test
    sage/misc/classcall_metaclass
+   sage/misc/randstate

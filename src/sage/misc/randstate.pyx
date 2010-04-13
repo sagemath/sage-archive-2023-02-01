@@ -2,155 +2,156 @@ r"""
 Random Number States
 
 AUTHORS:
-    -- Carl Witty (2008-03): new file
+
+- Carl Witty (2008-03): new file
 
 This module manages all the available pseudo-random number generators
 in Sage.  (For the rest of the documentation in this module, we will
-drop the ``pseudo''.)
+drop the "pseudo".)
 
 The goal is to allow algorithms using random numbers to be
-reproducible from one run of \sage to the next, and (to the extent
+reproducible from one run of Sage to the next, and (to the extent
 possible) from one machine to the next (even across different
 operating systems and architectures).
 
 There are two parts to the API.  First we will describe the
 command-line-oriented API, for setting random number generator seeds.
-Then we will describe the library API, for people writing \sage
+Then we will describe the library API, for people writing Sage
 library code that uses random numbers.
 
 We'll start with the simplest usage: setting fixed random number seeds
-and showing that these lead to reproducible results.
+and showing that these lead to reproducible results. ::
 
-sage: K.<x> = QQ[]
-sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-sage: rgp = Gp()
-sage: def gap_randstring(n):
-...       current_randstate().set_seed_gap()
-...       return gap(n).SCRRandomString()
-sage: def rtest():
-...       current_randstate().set_seed_gp(rgp)
-...       return (ZZ.random_element(1000), RR.random_element(),
-...               K.random_element(), G.random_element(),
-...               gap_randstring(5),
-...               rgp.random(), ntl.ZZ_random(99999),
-...               random())
+    sage: K.<x> = QQ[]
+    sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
+    sage: rgp = Gp()
+    sage: def gap_randstring(n):
+    ...       current_randstate().set_seed_gap()
+    ...       return gap(n).SCRRandomString()
+    sage: def rtest():
+    ...       current_randstate().set_seed_gp(rgp)
+    ...       return (ZZ.random_element(1000), RR.random_element(),
+    ...               K.random_element(), G.random_element(),
+    ...               gap_randstring(5),
+    ...               rgp.random(), ntl.ZZ_random(99999),
+    ...               random())
 
 The above test shows the results of six different random number
 generators, in three different processes.  The random elements from
 ZZ, RR, and K all derive from a single GMP-based random number
 generator.  The random element from G comes from a GAP subprocess.
-The random ``string'' (5-element binary list) is also from a GAP
-subprocess, using the ``classical'' GAP random generator.
+The random "string" (5-element binary list) is also from a GAP
+subprocess, using the "classical" GAP random generator.
 The random number from rgp is from a Pari/gp subprocess.  NTL's
 ZZ_random uses a separate NTL random number generator in the main
-\sage process.  And random() is from a Python \class{random.Random}
+Sage process.  And random() is from a Python :class:`random.Random`
 object.
 
 Here we see that setting the random number seed really does make the
-results of these random number generators reproducible.
+results of these random number generators reproducible. ::
 
-sage: set_random_seed(0)
-sage: rtest()
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
-sage: set_random_seed(1)
-sage: rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
-sage: set_random_seed(2)
-sage: rtest()
-(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
-sage: set_random_seed(0)
-sage: rtest()
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
-sage: set_random_seed(1)
-sage: rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
-sage: set_random_seed(2)
-sage: rtest()
-(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
+    sage: set_random_seed(0)
+    sage: rtest()
+    (303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
+    sage: set_random_seed(1)
+    sage: rtest()
+    (978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
+    sage: set_random_seed(2)
+    sage: rtest()
+    (207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
+    sage: set_random_seed(0)
+    sage: rtest()
+    (303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
+    sage: set_random_seed(1)
+    sage: rtest()
+    (978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
+    sage: set_random_seed(2)
+    sage: rtest()
+    (207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
 
 Once we've set the random number seed, we can check what seed was used.
 (This is not the current random number state; it does not change when
-random numbers are generated.)
+random numbers are generated.)  ::
 
-sage: set_random_seed(12345)
-sage: initial_seed()
-12345L
-sage: rtest()
-(720, 0.0216737401150802, x^2 - x, (), [ 1, 0, 0, 0, 0 ], 1506569166, 14005, 0.92053315995181839)
-sage: initial_seed()
-12345L
+    sage: set_random_seed(12345)
+    sage: initial_seed()
+    12345L
+    sage: rtest()
+    (720, 0.0216737401150802, x^2 - x, (), [ 1, 0, 0, 0, 0 ], 1506569166, 14005, 0.92053315995181839)
+    sage: initial_seed()
+    12345L
 
-If \code{set_random_seed()} is called with no argument, then a new
+If :func:`set_random_seed` is called with no argument, then a new
 seed is automatically selected.  On operating systems that support it,
-the new seed comes from \function{os.urandom}; this is intended to be
+the new seed comes from :func:`os.urandom`; this is intended to be
 a truly random (not pseudo-random), cryptographically secure number.
 (Whether it is actually cryptographically secure depends on operating
-system details that are outside the control of \sage.)
+system details that are outside the control of Sage.)
 
-If \function{os.urandom} is not supported, then the new seed comes
+If :func:`os.urandom` is not supported, then the new seed comes
 from the current time, which is definitely not cryptographically
-secure.
+secure. ::
 
-sage: set_random_seed()
-sage: r = rtest()
-sage: r         # random
-(909, -0.407373370020575, 6/7*x^2 + 1, (1,2,3)(4,5), 985329107, 21461, 0.30047071049504859)
+    sage: set_random_seed()
+    sage: r = rtest()
+    sage: r         # random
+    (909, -0.407373370020575, 6/7*x^2 + 1, (1,2,3)(4,5), 985329107, 21461, 0.30047071049504859)
 
-After setting a new random number seed with \code{set_random_seed()},
-we can use \function{initial_seed} to see what seed was automatically
-selected, and call \function{set_random_seed} to restart the same
-random number sequence.
+After setting a new random number seed with :func:`set_random_seed`,
+we can use :func:`initial_seed` to see what seed was automatically
+selected, and call :func:`set_random_seed` to restart the same
+random number sequence. ::
 
-sage: s = initial_seed()
-sage: s         # random
-336237747258024892084418842839280045662L
-sage: set_random_seed(s)
-sage: r2 = rtest()
-sage: r == r2
-True
+    sage: s = initial_seed()
+    sage: s         # random
+    336237747258024892084418842839280045662L
+    sage: set_random_seed(s)
+    sage: r2 = rtest()
+    sage: r == r2
+    True
 
-Whenever \sage starts, \code{set_random_seed()} is called just before
-command line interaction starts; so every \sage run starts with a
+Whenever Sage starts, :func:`set_random_seed` is called just before
+command line interaction starts; so every Sage run starts with a
 different random number seed.  This seed can be recovered with
-\code{initial_seed()} (as long as the user has not set a different
-seed with \function{set_random_seed}), so that the results of this run
+:func:`initial_seed()` (as long as the user has not set a different
+seed with :func:`set_random_seed`), so that the results of this run
 can be reproduced in another run; or this automatically selected seed
-can be overridden with, for instance, \code{set_random_seed(0)}.
+can be overridden with, for instance, ``set_random_seed(0)``.
 
 We can demonstrate this startup behavior by running a new instance of
-\sage as a subprocess.
+Sage as a subprocess.  ::
 
-sage: subsage = Sage()
-sage: s = ZZ(subsage('initial_seed()'))
-sage: r = ZZ(subsage('ZZ.random_element(2^200)'))
-sage: s         # random
-161165040149656168853863459174502758403
-sage: r         # random
-1273828861620427462924151488498075119241254209468761367941442
-sage: set_random_seed(s)
-sage: r == ZZ.random_element(2^200)
-True
+    sage: subsage = Sage()
+    sage: s = ZZ(subsage('initial_seed()'))
+    sage: r = ZZ(subsage('ZZ.random_element(2^200)'))
+    sage: s         # random
+    161165040149656168853863459174502758403
+    sage: r         # random
+    1273828861620427462924151488498075119241254209468761367941442
+    sage: set_random_seed(s)
+    sage: r == ZZ.random_element(2^200)
+    True
 
 Note that wrappers of all the random number generation methods from
-Python's \module{random} module are available at the \sage command
-line, and these wrappers are properly affected by set_random_seed().
+Python's :mod:`random` module are available at the Sage command
+line, and these wrappers are properly affected by set_random_seed(). ::
 
-sage: set_random_seed(0)
-sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
-(0.111439293741037, 539332L, 8.26785106378383, 1.3893337539828183)
-sage: set_random_seed(1)
-sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
-(0.82940228518742587, 624859L, 5.77894484361117, -0.42013668263087578)
-sage: set_random_seed(0)
-sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
-(0.111439293741037, 539332L, 8.26785106378383, 1.3893337539828183)
+    sage: set_random_seed(0)
+    sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
+    (0.111439293741037, 539332L, 8.26785106378383, 1.3893337539828183)
+    sage: set_random_seed(1)
+    sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
+    (0.82940228518742587, 624859L, 5.77894484361117, -0.42013668263087578)
+    sage: set_random_seed(0)
+    sage: random(), getrandbits(20), uniform(5.0, 10.0), normalvariate(0, 1)
+    (0.111439293741037, 539332L, 8.26785106378383, 1.3893337539828183)
 
 That pretty much covers what you need to know for command-line use of
-this module.  Now let's move to what authors of \sage library code
+this module.  Now let's move to what authors of Sage library code
 need to know about the module.
 
 First, we'll cover doctesting.  Every docstring now has an implicit
-\code{set_random_seed(0)} prepended.  Any uses of \code{# random} that
+``set_random_seed(0)`` prepended.  Any uses of ``# random`` that
 are based on random numbers under the control of this module should be
 removed, and the reproducible answers inserted instead.
 
@@ -159,251 +160,243 @@ of maintaining doctests; for instance, in a long docstring that has
 many doctests that depend on random numbers, a change near the beginning
 (for instance, adding a new doctest) may invalidate all later doctests
 in the docstring.  To reduce this downside, you may add calls to
-\code{set_random_seed(0)} throughout the docstring (in the extreme case,
+``set_random_seed(0)`` throughout the docstring (in the extreme case,
 before every doctest).
 
-Second, the \code{# random} in the doctest served as a signal to the
+Second, the ``# random`` in the doctest served as a signal to the
 reader of the docstring that the result was unpredictable and that it
 would not be surprising to get a different result when trying out the
 examples in the doctest.  If a doctest specifically refers to
-\code{ZZ.random_element()} (for instance), this is presumably enough
-of a signal to render this function of \code{# random} unnecessary.
+``ZZ.random_element()`` (for instance), this is presumably enough
+of a signal to render this function of ``# random`` unnecessary.
 However, some doctests are not obviously (from the name) random, but
 do depend on random numbers internally, such as the
-\method{composition_series} method of a \class{PermutationGroup}.  In
+``composition_series`` method of a ``PermutationGroup``.  In
 these cases, the convention is to insert the following text at the
-beginning of the EXAMPLES section.
+beginning of the EXAMPLES section. ::
 
-\begin{verbatim}
+     These computations use pseudo-random numbers, so we set the
+     seed for reproducible testing.
 
-        These computations use pseudo-random numbers, so we set the
-        seed for reproducible testing.
-            sage: set_random_seed(0)
+         sage: set_random_seed(0)
 
-\end{verbatim}
-
-Note that this call to \code{set_random_seed(0)} is redundant, since
-\code{set_random_seed(0)} is automatically inserted at the beginning
+Note that this call to ``set_random_seed(0)`` is redundant, since
+``set_random_seed(0)`` is automatically inserted at the beginning
 of every docstring; but it makes the example reproducible for somebody
 who just types the lines from the doctest and doesn't know about the
-automatic \code{set_random_seed(0)}.
+automatic ``set_random_seed(0)``.
 
 Next, let's cover setting the random seed from library code.  The
 first rule is that library code should never call
-\function{set_random_seed}; this function is only for command-line
+:func:`set_random_seed`; this function is only for command-line
 use.  Instead, if the library code wants to use a different random
-seed, it should use \code{with seed(s):}; this will use the new seed
-within the scope of the \code{with}, but will revert to the previous seed
-once the \code{with} is completed.  (Or the library can use
-\code{with seed():} to get a seed automatically selected using
-\code{os.urandom()} or the current time, in the same way as described for
-\code{set_random_seed()} above.)
+seed, it should use ``with seed(s):``; this will use the new seed
+within the scope of the ``with``, but will revert to the previous seed
+once the ``with`` is completed.  (Or the library can use
+``with seed():`` to get a seed automatically selected using
+:func:`os.urandom()` or the current time, in the same way as described for
+:func:`set_random_seed` above.)
 
-Ideally, using \code{with seed(s):} should not affect the outer random
-number sequence at all; we will call this property ``isolation.''  We
+Ideally, using ``with seed(s):`` should not affect the outer random
+number sequence at all; we will call this property "isolation."  We
 achieve isolation for most, but not all, of the random number generators
-in \sage (we fail for generators, such as NTL, that do not provide an API
+in Sage (we fail for generators, such as NTL, that do not provide an API
 to retrieve the current random number state).
 
 We'll demonstrate isolation.  First, we show the sequence of random numbers
-that you get without intervening \code{with seed}.
+that you get without intervening ``with seed``. ::
 
-sage: set_random_seed(0)
-sage: r1 = rtest(); r1
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
-sage: r2 = rtest(); r2
-(105, -0.581229341007821, -x^2 - x - 6, (1,3), [ 1, 0, 0, 1, 1 ], 697338742, 1271, 0.001767155077382232)
+    sage: set_random_seed(0)
+    sage: r1 = rtest(); r1
+    (303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2,3)(4,5), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
+    sage: r2 = rtest(); r2
+    (105, -0.581229341007821, -x^2 - x - 6, (1,3), [ 1, 0, 0, 1, 1 ], 697338742, 1271, 0.001767155077382232)
 
-We get slightly different results with an intervening \code{with seed}.
+We get slightly different results with an intervening ``with seed``. ::
 
-sage: set_random_seed(0)
-sage: r1 == rtest()
-True
-sage: with seed(1): rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
-sage: r2m = rtest(); r2m
-(105, -0.581229341007821, -x^2 - x - 6, (1,3), [ 1, 0, 0, 1, 1 ], 697338742, 19769, 0.001767155077382232)
-sage: r2m == r2
-False
+    sage: set_random_seed(0)
+    sage: r1 == rtest()
+    True
+    sage: with seed(1): rtest()
+    (978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
+    sage: r2m = rtest(); r2m
+    (105, -0.581229341007821, -x^2 - x - 6, (1,3), [ 1, 0, 0, 1, 1 ], 697338742, 19769, 0.001767155077382232)
+    sage: r2m == r2
+    False
 
-We can see that \var{r2} and \var{r2m} are the same except for the
-call to \function{ntl.ZZ_random}, which produces different results
-with and without the \code{with seed}.
+We can see that ``r2`` and ``r2m`` are the same except for the
+call to :func:`ntl.ZZ_random`, which produces different results
+with and without the ``with seed``.
 
 However, we do still get a partial form of isolation, even in this
-case, as we see in this example:
+case, as we see in this example::
 
-sage: set_random_seed(0)
-sage: r1 == rtest()
-True
-sage: with seed(1): (rtest(), rtest())
-((978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362), (138, -0.247578366457583, 2*x - 24, (), [ 1, 1, 1, 0, 1 ], 1077419109, 10234, 0.0033332230808060803))
-sage: r2m == rtest()
-True
+    sage: set_random_seed(0)
+    sage: r1 == rtest()
+    True
+    sage: with seed(1): (rtest(), rtest())
+    ((978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362), (138, -0.247578366457583, 2*x - 24, (), [ 1, 1, 1, 0, 1 ], 1077419109, 10234, 0.0033332230808060803))
+    sage: r2m == rtest()
+    True
 
-The NTL results after the \code{with seed} don't depend on how many
-NTL random numbers were generated inside the \code{with seed}.
+The NTL results after the ``with seed`` don't depend on how many
+NTL random numbers were generated inside the ``with seed``.
+Unfortunately, Cython does not yet support the ``with`` statement.
+Instead, you must use the equivalent ``try``/``finally`` statement::
 
-Unfortunately, Cython does not yet support the \code{with} statement.
-Instead, you must use the equivalent \code{try}/\code{finally} statement:
+    sage: set_random_seed(0)
+    sage: r1 == rtest()
+    True
+    sage: ctx = seed(1)
+    sage: try:
+    ...       ctx.__enter__()
+    ...       rtest()
+    ... finally:
+    ...       ctx.__exit__(None, None, None)
+    <sage.misc.randstate.randstate object at 0x...>
+    (978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
+    False
+    sage: r2m == rtest()
+    True
 
-sage: set_random_seed(0)
-sage: r1 == rtest()
-True
-sage: ctx = seed(1)
-sage: try:
-...       ctx.__enter__()
-...       rtest()
-... finally:
-...       ctx.__exit__(None, None, None)
-<sage.misc.randstate.randstate object at 0x...>
-(978, 0.184109262667515, -3*x^2 - 1/12, (4,5), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
-False
-sage: r2m == rtest()
-True
-
-(In general, the above code is not exactly equivalent to the \code{with}
+(In general, the above code is not exactly equivalent to the ``with``
 statement, because if an exception happens in the body, the real
-\code{with} statement will pass the exception information as parameters to
-the \method{__exit__} method.  However, our \method{__exit__} method
+``with`` statement will pass the exception information as parameters to
+the ``__exit__`` method.  However, our ``__exit__`` method
 ignores the exception information anyway, so the above is equivalent in
 our case.)
 
 Now we come to the last part of the documentation: actually generating
 random numbers in library code.  First, the easy case: if you generate
-random numbers only by calling other \sage library code (such as
-\method{random_element} methods on parents), you don't need to do
+random numbers only by calling other Sage library code (such as
+``random_element`` methods on parents), you don't need to do
 anything special; the other code presumably already interacts with
 this module correctly.
 
 Otherwise, it depends on what random number generator you want to use.
 
-\begin{description}
-\item[gmp_randstate_t] If you want to use some random number generator
-that takes a \code{gmp_randstate_t} (like \code{mpz_urandomm} or
-\code{mpfr_urandomb}), then use code like the following:
-\begin{verbatim}
-from sage.misc.randstate cimport randstate, current_randstate
-...
+- ``gmp_randstate_t`` - If you want to use some random number
+  generator that takes a ``gmp_randstate_t`` (like ``mpz_urandomm`` or
+  ``mpfr_urandomb``), then use code like the following::
+
+    from sage.misc.randstate cimport randstate, current_randstate
+    ...
 
     cdef randstate rstate = current_randstate()
-\end{verbatim}
-then a \code{gmp_randstate_t} is available as \code{rstate.gmp_state}.
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  then a ``gmp_randstate_t`` is available as ``rstate.gmp_state``.
 
-\item[Python] If you want to use the random number generators from the
-\module{random} module, you have two choices.  The slightly easier choice
-is to import functions from \module{sage.misc.prandom}; for instance,
-you can simply replace \code{from random import randrange} with
-\code{from sage.misc.prandom import randrange}.  However, this is
-slightly less efficient, because the wrappers in \module{sage.misc.prandom}
-look up the current \class{randstate} on each call.  If you're generating
-many random numbers in a row, it's faster to instead do
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+  Fetch the current :class:`randstate` with ``current_randstate()`` in
+  every function that wants to use it; don't cache it globally or in a
+  class.  (Such caching would break ``set_random_seed``).
+
+- ``Python`` - If you want to use the random number generators from
+  the :mod:`random` module, you have two choices.  The slightly
+  easier choice is to import functions from
+  :mod:`sage.misc.prandom`; for instance, you can simply replace
+  ``from random import randrange`` with ``from sage.misc.prandom
+  import randrange``.  However, this is slightly less efficient,
+  because the wrappers in :mod:`sage.misc.prandom` look up the
+  current :class:`randstate` on each call.  If you're generating many
+  random numbers in a row, it's faster to instead do ::
+
+    from sage.misc.randstate import current_randstate ...
 
     randrange = current_randstate().python_random().randrange
-\end{verbatim}
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache the
-\class{randstate}, the \class{Random} object returned by
-\method{python_random}, or the bound methods on that \class{Random}
-object globally or in a class.  (Such caching would break
-\method{set_random_seed}).
+  Fetch the current :class:`randstate` with
+  :func:`current_randstate()` in every function that wants to use it;
+  don't cache the :class:`randstate`, the :class:`Random` object
+  returned by ``python_random``, or the bound methods on that
+  :class:`Random` object globally or in a class.  (Such caching would
+  break ``set_random_seed``).
 
-\item[GAP] If you are calling code in GAP that uses random numbers,
-call \method{set_seed_gap} at the beginning of your function, like this:
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+- ``GAP`` - If you are calling code in GAP that uses random numbers,
+  call ``set_seed_gap`` at the beginning of your function, like this::
+
+    from sage.misc.randstate import current_randstate
+    ...
 
     current_randstate().set_seed_gap()
-\end{verbatim}
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  Fetch the current :class:`randstate` with
+  :func:`current_randstate()` in every function that wants to use it;
+  don't cache it globally or in a class.  (Such caching would break
+  ``set_random_seed``).
 
-\item[Pari] If you are calling code in the Pari library that uses
-random numbers, call \method{set_seed_pari} at the beginning of your
-function, like this:
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+- ``Pari`` - If you are calling code in the Pari library that uses
+  random numbers, call ``set_seed_pari`` at the beginning of your
+  function, like this::
+
+    from sage.misc.randstate import current_randstate
+    ...
 
     current_randstate().set_seed_pari()
-\end{verbatim}
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  Fetch the current :class:`randstate` with
+  :func:`current_randstate()` in every function that wants to use it;
+  don't cache it globally or in a class.  (Such caching would break
+  ``set_random_seed``).
 
-\item[Pari/gp] If you are calling code in a Pari/gp subprocess that
-uses random numbers, call \method{set_seed_gp} at the beginning of
-your function, like this:
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+- ``Pari/gp`` - If you are calling code in a Pari/gp subprocess that
+  uses random numbers, call ``set_seed_gp`` at the beginning of your
+  function, like this::
+
+    from sage.misc.randstate import current_randstate
+    ...
 
     current_randstate().set_seed_gp()
-\end{verbatim}
-This will set the seed in the gp process in sage.interfaces.gp.gp.
-If you have a different gp process, say in the variable \var{my_gp}, then
-call \code{set_seed_gp(my_gp)} instead.
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  This will set the seed in the gp process in sage.interfaces.gp.gp.
+  If you have a different gp process, say in the variable ``my_gp``, then
+  call ``set_seed_gp(my_gp)`` instead.
 
-\item[NTL] If you are calling code in the NTL library that uses
-random numbers, call \method{set_seed_ntl} at the beginning of your
-function, like this:
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+  Fetch the current :class:`randstate` with :func:`current_randstate()` in
+  every function that wants to use it; don't cache it globally or
+  in a class.  (Such caching would break ``set_random_seed``).
+
+- ``NTL`` - If you are calling code in the NTL library that uses
+  random numbers, call ``set_seed_ntl`` at the beginning of your
+  function, like this::
+
+    from sage.misc.randstate import current_randstate ...
 
     current_randstate().set_seed_ntl(False)
-\end{verbatim}
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  Fetch the current :class:`randstate` with
+  :func:`current_randstate()` in every function that wants to use it;
+  don't cache it globally or in a class.  (Such caching would break
+  ``set_random_seed``).
 
-\item[libc] If you are writing code that calls the libc function
-\code{random()}: don't!  The \code{random()} function does not give
-reproducible results across different operating systems, so we can't
-make portable doctests for the results.  Instead, do:
-\begin{verbatim}
-from sage.misc.randstate cimport random
-\end{verbatim}
-The \function{random} function in \module{sage.misc.randstate} gives a
-31-bit random number, but it uses the \code{gmp_randstate_t} in the
-current \class{randstate}, so it is portable.  (This range was chosen
-for two reasons: it matches the range of random() on 32-bit and 64-bit
-Linux, although not Solaris; and it's the largest range of nonnegative
-numbers that fits in a 32-bit signed integer.)
+- ``libc`` - If you are writing code that calls the libc function
+  :func:`random()`: don't!  The :func:`random()` function does not
+  give reproducible results across different operating systems, so we
+  can't make portable doctests for the results.  Instead, do::
 
-However, you may still need to set the libc random number state; for
-instance, if you are wrapping a library that uses \code{random()}
-internally and you don't want to change the library.  In that case,
-call \method{set_seed_libc} at the beginning of your function, like this:
-\begin{verbatim}
-from sage.misc.randstate import current_randstate
-...
+    from sage.misc.randstate cimport random
+
+  The :func:`random` function in :mod:`sage.misc.randstate` gives a
+  31-bit random number, but it uses the ``gmp_randstate_t`` in the
+  current :class:`randstate`, so it is portable.  (This range was
+  chosen for two reasons: it matches the range of random() on 32-bit
+  and 64-bit Linux, although not Solaris; and it's the largest range
+  of nonnegative numbers that fits in a 32-bit signed integer.)
+
+  However, you may still need to set the libc random number state; for
+  instance, if you are wrapping a library that uses :func:`random()`
+  internally and you don't want to change the library.  In that case,
+  call ``set_seed_libc`` at the beginning of your function, like this::
+
+    from sage.misc.randstate import current_randstate
+    ...
 
     current_randstate().set_seed_libc(False)
-\end{verbatim}
 
-Fetch the current \class{randstate} with \code{current_randstate()} in
-every function that wants to use it; don't cache it globally or
-in a class.  (Such caching would break \method{set_random_seed}).
+  Fetch the current :class:`randstate` with
+  :func:`current_randstate()` in every function that wants to use it;
+  don't cache it globally or in a class.  (Such caching would break
+  ``set_random_seed``).
 
-\end{description}
 """
 
 cdef extern from "mpz_pylong.h":
@@ -445,7 +438,8 @@ cpdef randstate current_randstate():
     r"""
     Return the current random number state.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: current_randstate()
         <sage.misc.randstate.randstate object at 0x...>
         sage: current_randstate().python_random().random()
@@ -464,20 +458,21 @@ randstate_stack = []
 cdef class randstate:
      r"""
      The randstate class.  This class keeps track of random number
-     states and seeds.  Type \code{sage.misc.randstate?} for much more
-     information on random numbers in \sage.
+     states and seeds.  Type ``sage.misc.randstate?`` for much more
+     information on random numbers in Sage.
      """
 
      def __init__(self, seed=None):
          r"""
-         Initialize a new \class{randstate} object with the given seed
+         Initialize a new :class:`randstate` object with the given seed
          (which must be coercible to a Python long).
 
          If no seed is given, then a seed is automatically selected
-         using \function{os.urandom} if it is available, or the current
+         using :func:`os.urandom` if it is available, or the current
          time otherwise.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import randstate
              sage: r = randstate(54321); r
              <sage.misc.randstate.randstate object at 0x...>
@@ -488,9 +483,9 @@ cdef class randstate:
              sage: r.seed()     # random
              305866218880103397618377824640007711767L
 
-         Note that creating a \class{randstate} with a seed of 0
+         Note that creating a :class:`randstate` with a seed of 0
          is vastly faster than any other seed (over a thousand times
-         faster in my test).
+         faster in my test). ::
 
              sage: timeit('randstate(0)') # random
              625 loops, best of 3: 1.38 us per loop
@@ -525,7 +520,8 @@ cdef class randstate:
          the current state; it does not change when you get random
          numbers.)
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import randstate
              sage: r = randstate(314159)
              sage: r.seed()
@@ -539,15 +535,16 @@ cdef class randstate:
 
      def python_random(self):
          r"""
-         Return a \class{random.Random} object.  The first time it is
-         called on a given \class{randstate}, a new \class{random.Random}
-         is created (seeded from the \emph{current} \class{randstate});
+         Return a :class:`random.Random` object.  The first time it is
+         called on a given :class:`randstate`, a new :class:`random.Random`
+         is created (seeded from the *current* :class:`randstate`);
          the same object is returned on subsequent calls.
 
-         It is expected that \method{python_random} will only be
-         called on the current \class{randstate}.
+         It is expected that ``python_random`` will only be
+         called on the current :class:`randstate`.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(5)
              sage: rnd = current_randstate().python_random()
              sage: rnd.random()
@@ -570,7 +567,8 @@ cdef class randstate:
          When called on the current randstate, returns a 128-bit Integer
          suitable for seeding another random number generator.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(1414)
              sage: current_randstate().ZZ_seed()
              48314508034782595865062786044921182484
@@ -583,7 +581,8 @@ cdef class randstate:
          When called on the current randstate, returns a 128-bit
          Python long suitable for seeding another random number generator.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(1618)
              sage: current_randstate().long_seed()
              256056279774514099508607350947089272595L
@@ -593,17 +592,18 @@ cdef class randstate:
 
      cpdef set_seed_libc(self, bint force):
          r"""
-         Checks to see if \code{self} was the most recent randstate
+         Checks to see if ``self`` was the most recent randstate
          to seed the libc random number generator.  If not, seeds the
          libc random number generator.  (Do not use the libc random
          number generator if you have a choice; its randomness is poor,
          and the random number sequences it produces are not portable
          across operating systems.)
 
-         If the argument \var{force} is \code{True}, seeds the generator
+         If the argument ``force`` is ``True``, seeds the generator
          unconditionally.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import _doctest_libc_random
              sage: set_random_seed(0xBAD)
              sage: current_randstate().set_seed_libc(False)
@@ -617,17 +617,19 @@ cdef class randstate:
 
      cpdef set_seed_ntl(self, bint force):
          r"""
-         Checks to see if \code{self} was the most recent randstate
+         Checks to see if ``self`` was the most recent randstate
          to seed the NTL random number generator.  If not, seeds
-         the generator.  If the argument \var{force} is \code{True},
+         the generator.  If the argument ``force`` is ``True``,
          seeds the generator unconditionally.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(2008)
 
-         This call is actually redundant; \function{ntl.ZZ_random} will
+         This call is actually redundant; :func:`ntl.ZZ_random` will
          seed the generator itself.  However, we put the call in
-         to make the coverage tester happy.
+         to make the coverage tester happy. ::
+
              sage: current_randstate().set_seed_ntl(False)
              sage: ntl.ZZ_random(10^40)
              9121810031060285085432621721962973171231
@@ -641,11 +643,12 @@ cdef class randstate:
 
      def set_seed_gap(self):
          r"""
-         Checks to see if \code{self} was the most recent randstate
+         Checks to see if ``self`` was the most recent randstate
          to seed the GAP random number generator.  If not, seeds
          the generator.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(99900000999)
              sage: current_randstate().set_seed_gap()
              sage: gap.Random(1, 10^50)
@@ -696,12 +699,13 @@ cdef class randstate:
 
      def set_seed_gp(self, gp=None):
          r"""
-         Checks to see if \code{self} was the most recent randstate
+         Checks to see if ``self`` was the most recent randstate
          to seed the random number generator in the given instance
          of gp.  (If no instance is given, uses the one in
          sage.interfaces.gp.gp.)  If not, seeds the generator.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(987654321)
              sage: current_randstate().set_seed_gp()
              sage: gp.random()
@@ -738,11 +742,12 @@ cdef class randstate:
 
      def set_seed_pari(self):
          r"""
-         Checks to see if \code{self} was the most recent randstate to
+         Checks to see if ``self`` was the most recent randstate to
          seed the Pari random number generator.  If not, seeds the
          generator.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(5551212)
              sage: current_randstate().set_seed_pari()
              sage: pari.pari_rand31()
@@ -772,12 +777,14 @@ cdef class randstate:
          it is equivalent (but probably faster) to call
          sage.misc.randstate.random().
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(1207)
              sage: current_randstate().c_random()
              2008037228
 
-         We verify the equivalence mentioned above.
+         We verify the equivalence mentioned above. ::
+
              sage: from sage.misc.randstate import random
              sage: set_random_seed(1207)
              sage: random()
@@ -789,7 +796,8 @@ cdef class randstate:
          r"""
          Returns a random floating-point number between 0 and 1.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: set_random_seed(2718281828)
              sage: current_randstate().c_rand_double()
              0.22437207488974298
@@ -802,7 +810,8 @@ cdef class randstate:
          r"""
          Free up the memory from the gmp_randstate_t in a randstate.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import randstate
              sage: foo = randstate()
              sage: foo = None
@@ -817,7 +826,8 @@ cdef class randstate:
 
          For this purpose, we usually use the seed alias for randstate.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import randstate
              sage: seed is randstate
              True
@@ -847,7 +857,8 @@ cdef class randstate:
 
          For this purpose, we usually use the seed alias for randstate.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: from sage.misc.randstate import randstate
              sage: seed is randstate
              True
@@ -871,15 +882,15 @@ cdef class randstate:
 
 cpdef set_random_seed(seed=None):
     r"""
-    Set the current random number seed from the given \var{seed}
+    Set the current random number seed from the given ``seed``
     (which must be coercible to a Python long).
 
     If no seed is given, then a seed is automatically selected
-    using \function{os.urandom} if it is available, or the current
+    using :func:`os.urandom` if it is available, or the current
     time otherwise.
 
-    Type \code{sage.misc.randstate?} for much more
-    information on random numbers in \sage.
+    Type ``sage.misc.randstate?`` for much more
+    information on random numbers in Sage.
 
     This function is only intended for command line use.  Never call
     this from library code; instead, use "with seed(s):".
@@ -887,7 +898,8 @@ cpdef set_random_seed(seed=None):
     Note that setting the random number seed to 0 is much faster than
     using any other number.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: set_random_seed(5)
         sage: initial_seed()
         5L
@@ -903,9 +915,10 @@ seed = randstate
 cpdef int random():
     r"""
     Returns a 31-bit random number.  Intended as a drop-in replacement for
-    the libc \code{random()} function.
+    the libc :func:`random()` function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: set_random_seed(31)
         sage: from sage.misc.randstate import random
         sage: random()
@@ -917,15 +930,16 @@ def initial_seed():
     r"""
     Returns the initial seed used to create the current randstate.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: set_random_seed(42)
         sage: initial_seed()
         42L
 
     If you set a random seed (by failing to specify the seed), this is how
-    you retrieve the seed actually chosen by \sage.  This can also be
-    used to retrieve the seed chosen for a new \sage run (if the user
-    has not used set_random_seed()).
+    you retrieve the seed actually chosen by Sage.  This can also be
+    used to retrieve the seed chosen for a new Sage run (if the user
+    has not used set_random_seed()). ::
 
         sage: set_random_seed()
         sage: initial_seed()          # random
@@ -938,7 +952,8 @@ def benchmark_libc():
     This function was used to test whether moving from libc to GMP's
     Mersenne Twister for random numbers would be a significant slowdown.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.randstate import benchmark_libc, benchmark_mt
         sage: timeit('benchmark_libc()')  # random
         125 loops, best of 3: 1.95 ms per loop
@@ -955,7 +970,8 @@ def benchmark_mt():
     This function was used to test whether moving from libc to GMP's
     Mersenne Twister for random numbers would be a significant slowdown.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.randstate import benchmark_libc, benchmark_mt
         sage: timeit('benchmark_libc()')  # random
         125 loops, best of 3: 1.95 ms per loop
@@ -969,13 +985,14 @@ def benchmark_mt():
 
 cpdef int _doctest_libc_random():
     r"""
-    Returns the result of \code{random()} from libc.
+    Returns the result of :func:`random()` from libc.
 
-    Only for use in doctests; this should not actually be used in \sage,
+    Only for use in doctests; this should not actually be used in Sage,
     since the resulting random number stream is not portable across
     operating systems.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.randstate import _doctest_libc_random
         sage: _doctest_libc_random()     # random
         910236436

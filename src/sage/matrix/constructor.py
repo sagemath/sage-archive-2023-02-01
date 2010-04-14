@@ -103,7 +103,7 @@ def matrix(*args, **kwds):
         [0 1 2]
         [1 2 3]
         [2 3 4]
-        sage: m = matrix(3, lambda i,j: i-j)
+        sage: m = matrix(3, lambda i,j: i-j); m
         [ 0 -1 -2]
         [ 1  0 -1]
         [ 2  1  0]

@@ -1426,7 +1426,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         - [Sturm] J. Sturm, On the congruence of modular forms, Number theory
           (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
 
-        NOTE::
+        NOTE:
 
         Kevin Buzzard pointed out to me (William Stein) in Fall 2002 that
         the above bound is fine for Gamma1 with character, as one sees by

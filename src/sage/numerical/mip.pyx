@@ -4,7 +4,7 @@ Mixed integer linear programming
 
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
-from copy import copy
+from copy import deepcopy
 
 class MixedIntegerLinearProgram:
     r"""
@@ -612,7 +612,7 @@ class MixedIntegerLinearProgram:
         # and do not care about any function being optimal.
 
         if obj != None:
-            f = obj.f
+            f = obj.dict()
         else:
             return None
 
@@ -624,14 +624,25 @@ class MixedIntegerLinearProgram:
 
     def add_constraint(self, linear_function, max=None, min=None, name=None):
         r"""
-        Adds a constraint to the ``MixedIntegerLinearProgram``.
+        Adds a constraint to self.
 
         INPUT:
 
-        - ``consraint`` -- A linear function.
+        - ``linear_function`` -- Two different types of arguments are possible:
+
+            - A linear function. In this case, arguments ``min`` or ``max``
+              have to be specified.
+
+            - A linear constraint of the form ``A <= B``, ``A >= B``,
+              ``A <= B <= C``, ``A >= B >= C`` or ``A == B``. In this
+              case, arguments ``min`` and ``max`` will be ignored.
+
         - ``max`` -- An upper bound on the constraint (set to ``None``
-          by default).
-        - ``min`` -- A lower bound on the constraint.
+          by default). This must be a numerical value.
+
+        - ``min`` -- A lower bound on the constraint.  This must be a
+          numerical value
+
         - ``name`` -- A name for the constraint.
 
         EXAMPLE:
@@ -647,7 +658,7 @@ class MixedIntegerLinearProgram:
               x is Real (min = 0, max = None)
               y is Real (min = 0, max = None)
 
-        This linear program can be solved as follows::
+        It can be solved as follows::
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable()
@@ -657,38 +668,80 @@ class MixedIntegerLinearProgram:
             sage: p.solve()     # optional - requires Glpk or COIN-OR/CBC
             6.6666666666666661
 
+        There are two different ways to add the constraint
+        ``x[5] + 3*x[7] <= x[6] + 3`` to self.
+
+        The first one consists in giving ``add_constraint`` this
+        very expression::
+
+            sage: p.add_constraint( x[5] + 3*x[7] <= x[6] + 3 )
+
+        The second (slightly more efficient) one is to use the
+        arguments ``min`` or ``max``, which can only be numerical
+        values::
+
+            sage: p.add_constraint( x[5] + 3*x[7] - x[6], max = 3 )
+
+        One can also define double-bounds or equality using symbols
+        ``<=``, ``>=`` and ``==``::
+
+            sage: p.add_constraint( x[5] + 3*x[7] == x[6] + 3 )
+            sage: p.add_constraint( x[5] + 3*x[7] <= x[6] + 3 <= x[8] + 27 )
+
+        The previous program can be rewritten::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[1] + 5*x[2])
+            sage: p.add_constraint(x[1] + 0.2*x[2] <= 4)
+            sage: p.add_constraint(1.5*x[1] + 3*x[2] <= 4)
+            sage: p.solve()     # optional - requires Glpk or COIN-OR/CBC
+            6.6666666666666661
+
+
         TESTS::
 
             sage: p=MixedIntegerLinearProgram()
             sage: p.add_constraint(sum([]),min=2)
         """
-
-
-        if linear_function==0:
+        if linear_function is None or linear_function is 0:
             return None
 
-        f = linear_function.f
+        if isinstance(linear_function, LinearFunction):
 
-        self._constraints_name.append(name)
+            f = linear_function.dict()
 
-        constant_coefficient = f.pop(-1,0)
+            self._constraints_name.append(name)
 
-        # We do not want to ignore the constant coefficient
-        max = (max-constant_coefficient) if max != None else None
-        min = (min-constant_coefficient) if min != None else None
+            constant_coefficient = f.get(-1,0)
 
+            # We do not want to ignore the constant coefficient
+            max = (max - constant_coefficient) if max != None else None
+            min = (min - constant_coefficient) if min != None else None
 
-        c=len(self._constraints_bounds_min)
+            c = len(self._constraints_bounds_min)
 
-        for (v,coeff) in f.iteritems():
-            self._constraints_matrix_i.append(c)
-            self._constraints_matrix_j.append(v)
-            self._constraints_matrix_values.append(coeff)
+            for (v,coeff) in f.iteritems():
+                if v!=-1:
+                    self._constraints_matrix_i.append(c)
+                    self._constraints_matrix_j.append(v)
+                    self._constraints_matrix_values.append(coeff)
 
-        self._constraints_bounds_max.append(max)
-        self._constraints_bounds_min.append(min)
+            self._constraints_bounds_max.append(max)
+            self._constraints_bounds_min.append(min)
 
+        elif isinstance(linear_function,LinearConstraint):
+            functions = linear_function.constraints
 
+            if linear_function.equality:
+                self.add_constraint(functions[0] - functions[1], min=0, max=0, name=name)
+
+            elif len(functions) == 2:
+                self.add_constraint(functions[0] - functions[1], max=0, name=name)
+
+            else:
+                self.add_constraint(functions[0] - functions[1], max=0, name=name)
+                self.add_constraint(functions[1] - functions[2], max=0, name=name)
 
     def set_binary(self, e):
         r"""
@@ -1284,15 +1337,15 @@ class MIPVariable:
             sage: v._update_variables_name()
         """
 
-        if prefix==None:
-            prefix=self._name
+        if prefix == None:
+            prefix = self._name
 
-        if self._dim==1:
+        if self._dim == 1:
             for (k,v) in self._dict.iteritems():
-                self._p._variables_name[self._p._variables[v]]=prefix+"["+str(k)+"]"
+                self._p._variables_name[self._p._variables[v]]=prefix + "[" + str(k) + "]"
         else:
             for v in self._dict.itervalues():
-                v._update_variables_name(prefix=prefix+"["+str(k)+"]")
+                v._update_variables_name(prefix=prefix + "[" + str(k) + "]")
 
 
 
@@ -1311,7 +1364,7 @@ class MIPVariable:
             sage: v
             MIPVariable of dimension 3.
         """
-        return "MIPVariable of dimension "+str(self._dim)+"."
+        return "MIPVariable of dimension " + str(self._dim) + "."
 
     def keys(self):
         r"""
@@ -1377,19 +1430,49 @@ class LinearFunction:
 
     def __init__(self,f):
         r"""
-        Constructor taking a dictionary as its argument.
+        Constructor taking a dictionary or a numerical value as its argument.
 
         A linear function is represented as a dictionary. The
-        value are the coefficient of the variable represented
-        by the keys ( which are integers ).
+        values are the coefficient of the variable represented
+        by the keys ( which are integers ). The key ``-1``
+        corresponds to the constant term.
 
-        EXAMPLE::
+        EXAMPLES:
+
+        With a dictionary::
 
             sage: from sage.numerical.mip import LinearFunction
             sage: LinearFunction({0 : 1, 3 : -8})
             x_0 -8 x_3
+
+        Using the constructor with a numerical value::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction(25)
+            25
         """
-        self.f = f
+        if isinstance(f, dict):
+            self._f = f
+        else:
+            self._f = {-1:f}
+
+    def dict(self):
+        r"""
+        Returns the dictionary corresponding to the Linear Function.
+
+        A linear function is represented as a dictionary. The
+        value are the coefficient of the variable represented
+        by the keys ( which are integers ). The key ``-1``
+        corresponds to the constant term.
+
+        EXAMPLE:
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: lf = LinearFunction({0 : 1, 3 : -8})
+            sage: lf.dict()
+            {0: 1, 3: -8}
+        """
+        return self._f
 
     def __add__(self,b):
         r"""
@@ -1401,14 +1484,14 @@ class LinearFunction:
             sage: LinearFunction({0 : 1, 3 : -8}) + LinearFunction({2 : 5, 3 : 2}) - 16
             -16 +x_0 +5 x_2 -6 x_3
         """
-        if isinstance(b,LinearFunction):
-            e = copy(self.f)
-            for (id,coeff) in b.f.iteritems():
-                e[id] = self.f.get(id,0) + coeff
+        if isinstance(b, LinearFunction):
+            e = deepcopy(self._f)
+            for (id,coeff) in b.dict().iteritems():
+                e[id] = self._f.get(id,0) + coeff
             return LinearFunction(e)
         else:
-            el = copy(self)
-            el.f[-1] = el.f.get(-1,0) + b
+            el = deepcopy(self)
+            el.dict()[-1] = el.dict().get(-1,0) + b
             return el
 
     def __neg__(self):
@@ -1421,7 +1504,7 @@ class LinearFunction:
             sage: -LinearFunction({0 : 1, 3 : -8})
             -1 x_0 +8 x_3
         """
-        return LinearFunction(dict([(id,-coeff) for (id, coeff) in self.f.iteritems()]))
+        return LinearFunction(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
 
     def __sub__(self,b):
         r"""
@@ -1435,14 +1518,14 @@ class LinearFunction:
             sage: LinearFunction({0 : 1, 3 : -8}) - LinearFunction({2 : 5, 3 : 2}) - 16
             -16 +x_0 -5 x_2 -10 x_3
         """
-        if isinstance(b,LinearFunction):
-            e = copy(self.f)
-            for (id,coeff) in b.f.iteritems():
-                e[id] = self.f.get(id,0) - coeff
+        if isinstance(b, LinearFunction):
+            e = deepcopy(self._f)
+            for (id,coeff) in b.dict().iteritems():
+                e[id] = self._f.get(id,0) - coeff
             return LinearFunction(e)
         else:
-            el = copy(self)
-            el.f[-1] = self.f.get(-1,0) - b
+            el = deepcopy(self)
+            el.dict()[-1] = self._f.get(-1,0) - b
             return el
 
     def __radd__(self,b):
@@ -1485,7 +1568,7 @@ class LinearFunction:
             sage: LinearFunction({2 : 5, 3 : 2}) * 3
             15 x_2 +6 x_3
         """
-        return LinearFunction(dict([(id,b*coeff) for (id, coeff) in self.f.iteritems()]))
+        return LinearFunction(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
     def __rmul__(self,b):
         r"""
@@ -1497,7 +1580,6 @@ class LinearFunction:
             sage: 3 * LinearFunction({2 : 5, 3 : 2})
             15 x_2 +6 x_3
         """
-
         return self.__mul__(b)
 
     def __repr__(self):
@@ -1510,8 +1592,7 @@ class LinearFunction:
             sage: LinearFunction({2 : 5, 3 : 2})
             5 x_2 +2 x_3
         """
-
-        cdef dict d = copy(self.f)
+        cdef dict d = deepcopy(self._f)
         cdef bool first = True
         t = ""
 
@@ -1525,7 +1606,239 @@ class LinearFunction:
         for id,coeff in l:
             if coeff!=0:
                 if not first:
-                    t+=" "
-                t += ("+" if (not first and coeff>=0) else "")+(str(coeff)+" " if coeff!=1 else "")+"x_"+str(id)
+                    t += " "
+                t += ("+" if (not first and coeff >= 0) else "") + (str(coeff) + " " if coeff != 1 else "") + "x_" + str(id)
                 first = False
         return t
+
+    def __le__(self,other):
+        r"""
+        Defines the <= operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) <= LinearFunction({2 : 3, 9 : 2})
+            5 x_2 +2 x_3 <= 3 x_2 +2 x_9
+        """
+        return LinearConstraint(self).__le__(other)
+
+    def __lt__(self,other):
+        r"""
+        Defines the < operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) < LinearFunction({2 : 3, 9 : 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+        """
+        return LinearConstraint(self).__lt__(other)
+
+    def __gt__(self,other):
+        r"""
+        Defines the > operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) > LinearFunction({2 : 3, 9 : 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+        """
+        return LinearConstraint(self).__gt__(other)
+
+
+    def __ge__(self,other):
+        r"""
+        Defines the >= operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) >= LinearFunction({2 : 3, 9 : 2})
+            3 x_2 +2 x_9 <= 5 x_2 +2 x_3
+        """
+        return LinearConstraint(self).__ge__(other)
+
+    def __hash__(self):
+        r"""
+        Defining a ``__hash__`` function
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: d = {}
+            sage: d[LinearFunction({2 : 5, 3 : 2})] = 3
+        """
+        return id(self)
+
+    def __eq__(self,other):
+        r"""
+        Defines the == operator
+
+        EXAMPLE::
+
+            sage: from sage.numerical.mip import LinearFunction
+            sage: LinearFunction({2 : 5, 3 : 2}) == LinearFunction({2 : 3, 9 : 2})
+            5 x_2 +2 x_3 = 3 x_2 +2 x_9
+        """
+        return LinearConstraint(self).__eq__(other)
+
+
+class LinearConstraint:
+    """
+    A class to represent formal Linear Constraints.
+
+    A Linear Constraint being an inequality between
+    two linear functions, this class lets the user
+    write ``LinearFunction1 <= LinearFunction2``
+    to define the corresponding constraint, which
+    can potentially involve several layers of such
+    inequalities (``(A <= B <= C``), or even equalities
+    like ``A == B``.
+
+    This class has no reason to be instanciated by the
+    user, and is meant to be used by instances of
+    MixedIntegerLinearProgram.
+
+    INPUT:
+
+    - ``c`` -- A ``LinearFunction``
+
+    EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram()
+        sage: b = p.new_variable()
+        sage: b[2]+2*b[3] <= b[8]-5
+        x_0 +2 x_1 <= -5 +x_2
+    """
+
+    def __init__(self, c):
+        r"""
+        Constructor for ``LinearConstraint``
+
+        INPUT:
+
+        - ``c`` -- A ``LinearFunction``
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: b[2]+2*b[3] <= b[8]-5
+            x_0 +2 x_1 <= -5 +x_2
+        """
+        self.equality = False
+        self.constraints = []
+        if isinstance(c, LinearFunction):
+            self.constraints.append(c)
+        else:
+            self.constraints.append(LinearFunction(c))
+
+    def __repr__(self):
+        r"""
+        Returns a description of the constraint
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: print b[3] <= b[8] + 9
+            x_0 <= 9 +x_1
+        """
+        if self.equality:
+            return str(self.constraints[0]) + " = " + str(self.constraints[1])
+        else:
+            first = True
+            s = ""
+            for c in self.constraints:
+                s += (" <= " if not first else "") + c.__repr__()
+                first = False
+            return s
+
+    def __eq__(self,other):
+        r"""
+        Defines the == operator
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: print b[3] == b[8] + 9
+            x_0 = 9 +x_1
+        """
+        if not isinstance(other, LinearConstraint):
+            other = LinearConstraint(other)
+
+        if len(self.constraints) == 1 and len(other.constraints) == 1:
+            self.constraints.extend(other.constraints)
+            self.equality = True
+            return self
+        else:
+            raise ValueError("Impossible to mix equality and inequality in the same equation")
+
+    def __le__(self,other):
+        r"""
+        Defines the <= operator
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: print b[3] <= b[8] + 9
+            x_0 <= 9 +x_1
+        """
+
+        if not isinstance(other, LinearConstraint):
+            other = LinearConstraint(other)
+
+        if self.equality or other.equality:
+            raise ValueError("Impossible to mix equality and inequality in the same equation")
+
+        self.constraints.extend(other.constraints)
+        return self
+
+    def __lt__(self, other):
+        r"""
+        Prevents the use of the stricts operators ``<,>``
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: print b[3] < b[8] + 9
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+            sage: print b[3] > b[8] + 9
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+        """
+        raise ValueError("The strict operators are not defined. Use <= and >= instead.")
+
+    __gt__ = __lt__
+
+    def __ge__(self,other):
+        r"""
+        Defines the >= operator
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: print b[3] >= b[8] + 9
+            9 +x_1 <= x_0
+        """
+        if not isinstance(other, LinearConstraint):
+            other = LinearConstraint(other)
+
+        if self.equality or other.equality:
+            raise ValueError("Impossible to mix equality and inequality in the same equation")
+
+        self.constraints = other.constraints + self.constraints
+        return self

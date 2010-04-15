@@ -45,7 +45,7 @@ two lines.
 
     sage: V = P2.subscheme([x+y+z, x+y-z]); V
     Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-     x + y + z
+     x + y + z,
      x + y - z
     sage: V.dimension()
     0
@@ -474,8 +474,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             sage: A.<x,y,z> = ProjectiveSpace(2, QQ)
             sage: X = A.subscheme([x*z^2, y^2*z, x*y^2]); X
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-              x*z^2
-              y^2*z
+              x*z^2,
+              y^2*z,
               x*y^2
             sage: X.defining_polynomials ()
             (x*z^2, y^2*z, x*y^2)
@@ -492,8 +492,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             sage: X.structure_morphism()
             Scheme morphism:
               From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-              x*z^2
-              y^2*z
+              x*z^2,
+              y^2*z,
               x*y^2
               To:   Spectrum of Rational Field
               Defn: Structure map

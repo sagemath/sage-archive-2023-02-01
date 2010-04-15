@@ -580,8 +580,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: X = A.subscheme([x, y^2, x*y^2]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x
-              y^2
+              x,
+              y^2,
               x*y^2
 
         ::
@@ -601,8 +601,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: X.structure_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x
-              y^2
+              x,
+              y^2,
               x*y^2
               To:   Spectrum of Rational Field
               Defn: Structure map

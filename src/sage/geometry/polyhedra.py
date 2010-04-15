@@ -604,8 +604,16 @@ class Hrepresentation(PolyhedronRepresentation):
             [0, 0, 3]
             sage: [ ineq * v for v in triangle.vertex_generator() ]
             [0, 0, 3]
+
+        If you pass a vector, it is assumed to be the coordinate vector of a point::
+
+            sage: ineq.eval( vector(ZZ, [3,2]) )
+            -4
         """
-        return Vobj.evaluated_on(self)
+        try:
+            return Vobj.evaluated_on(self)
+        except AttributeError:
+            return self.A() * Vobj + self.b()
 
     def incident(self):
         """
@@ -666,7 +674,6 @@ class Inequality(Hrepresentation):
             True
         """
         return True
-    is_inequality.__doc__ = Hrepresentation.is_inequality.__doc__
 
     def _repr_(self):
         """
@@ -698,6 +705,12 @@ class Inequality(Hrepresentation):
             sage: [i1.contains(q) for q in p2.vertex_generator()]
             [True, False, True, True, False, False, True, False]
         """
+        try:
+            if Vobj.is_vector(): # assume we were passed a point
+                return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+        except AttributeError:
+            pass
+
         if Vobj.is_line():
             return self.polyhedron()._is_zero( self.eval(Vobj) )
         else:
@@ -718,7 +731,20 @@ class Inequality(Hrepresentation):
             sage: p2 = 3*polytopes.n_cube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
             [True, False, True, True, False, False, True, False]
+
+        If you pass a vector, it is assumed to be the coordinate vector of a point::
+
+            sage: P = Polyhedron(vertices=[[1,1],[1,-1],[-1,1],[-1,-1]])
+            sage: p = vector(ZZ, [1,0] )
+            sage: [ ieq.interior_contains(p) for ieq in P.inequality_generator() ]
+            [True, True, True, False]
         """
+        try:
+            if Vobj.is_vector(): # assume we were passed a point
+                return self.polyhedron()._is_positive( self.eval(Vobj) )
+        except AttributeError:
+            pass
+
         if Vobj.is_line():
             return self.polyhedron()._is_zero( self.eval(Vobj) )
         elif Vobj.is_vertex():
@@ -758,8 +784,6 @@ class Equation(Hrepresentation):
             True
         """
         return True
-
-    is_equation.__doc__ = Hrepresentation.is_equation.__doc__
 
     def _repr_(self):
         """
@@ -1041,7 +1065,6 @@ class Vertex(Vrepresentation):
             True
         """
         return True
-    is_vertex.__doc__ = Vrepresentation.is_vertex.__doc__
 
     def _repr_(self):
         """
@@ -1109,7 +1132,6 @@ class Ray(Vrepresentation):
             True
         """
         return True
-    is_ray.__doc__ = Vrepresentation.is_ray.__doc__
 
     def _repr_(self):
         """
@@ -1171,8 +1193,6 @@ class Line(Vrepresentation):
             True
         """
         return True
-
-    is_line.__doc__ = Vrepresentation.is_line.__doc__
 
     def _repr_(self):
         """
@@ -1359,6 +1379,24 @@ class Polyhedron(SageObject):
         sage: q.Hrepresentation()
         [An inequality (1, 0, 0) x + 0 >= 0,
          An inequality (0, 1, 0) x + 0 >= 0]
+
+    Finally, a more complicated example. Take `\mathbb{R}_{\geq 0}^6` with
+    coordinates `a, b, \dots, f` and
+
+      * The inequality `e+b \geq c+d`
+      * The inequality `e+c \geq b+d`
+      * The equation `a+b+c+d+e+f = 31`
+
+    ::
+
+        sage: positive_coords = Polyhedron(ieqs=[[0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])
+        sage: P = Polyhedron(ieqs=positive_coords.inequalities() + [[0,0,1,-1,-1,1,0], [0,0,-1,1,-1,1,0]], eqns=[[-31,1,1,1,1,1,1]])
+        sage: P
+        A 5-dimensional polyhedron in QQ^6 defined as the convex hull of 7 vertices.
+        sage: P.dim()
+        5
+        sage: P.Vrepresentation()
+        [A vertex at (0, 31/2, 31/2, 0, 0, 0), A vertex at (0, 31/2, 0, 0, 31/2, 0), A vertex at (0, 0, 0, 0, 31, 0), A vertex at (0, 0, 31/2, 0, 31/2, 0), A vertex at (0, 0, 0, 31/2, 31/2, 0), A vertex at (31, 0, 0, 0, 0, 0), A vertex at (0, 0, 0, 0, 0, 31)]
 
     NOTES:
 
@@ -3404,6 +3442,61 @@ class Polyhedron(SageObject):
         raise ValueError, "lrs did not return a volume"
 
 
+    def contains(self, point):
+        """
+        Returns whether the polyhedron contains the given
+        ``point``. See also ``Polyhedron.interior_contains(point)``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[1,1],[1,-1],[0,0]])
+            sage: P.contains( [1,0] )
+            True
+            sage: P.contains( P.center() )  # true for any convex set
+            True
+        """
+        p = vector(self.field(), point)
+
+        for H in self.Hrep_generator():
+            if not H.contains(p):
+                return False
+        return True
+
+
+    def interior_contains(self, point):
+        """
+        Returns whether the interior of the polyhedron contains the
+        given ``point``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0],[1,1],[1,-1]])
+            sage: P.contains( [1,0] )
+            True
+            sage: P.interior_contains( [1,0] )
+            False
+
+        If the polyhedron is of strictly smaller dimension than the
+        ambient space, its interior is empty::
+
+            sage: P = Polyhedron(vertices=[[0,1],[0,-1]])
+            sage: P.contains( [0,0] )
+            True
+            sage: P.interior_contains( [0,0] )
+            False
+        """
+        p = vector(self.field(), point)
+
+        for H in self.Hrep_generator():
+            if not H.interior_contains(p):
+                return False
+        return True
+
+
+
+
+
+
 #############################################################
 def cyclic_sort_vertices_2d(Vlist):
     """
@@ -3696,7 +3789,7 @@ class Projection(SageObject):
 
     def identity(self):
         """
-        Returns the identity projection.
+        Returns the identity projection of the polyhedron.
 
         EXAMPLES::
 
@@ -3708,7 +3801,6 @@ class Projection(SageObject):
             3
         """
         return self.__call__(projection_func_identity)
-    identity.__doc__ = projection_func_identity.__doc__
 
 
     def stereographic(self, projection_point=None):

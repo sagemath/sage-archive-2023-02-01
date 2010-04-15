@@ -169,12 +169,12 @@ class ContourPlot(GraphicPrimitive):
             else:
                 subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
 
-        linewidths = options['linewidths']
+        linewidths = options.get('linewidths',None)
         if isinstance(linewidths, (int, Integer)):
             linewidths = int(linewidths)
         elif isinstance(linewidths, (list, tuple)):
             linewidths = tuple(int(x) for x in linewidths)
-        linestyles = options['linestyles']
+        linestyles = options.get('linestyles',None)
         if contours is None:
             CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
                                  linewidths=linewidths, linestyles=linestyles)
@@ -188,7 +188,7 @@ class ContourPlot(GraphicPrimitive):
                 label_options['inline']=False
             subplot.clabel(CS, **label_options)
 
-@suboptions('label', fontsize=9, colors=None, inline=None, inline_spacing=3, fmt="%1.2f")
+@suboptions('label', fontsize=9, colors='blue', inline=None, inline_spacing=3, fmt="%1.2f")
 @options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False)
 def contour_plot(f, xrange, yrange, **options):
     r"""
@@ -370,8 +370,7 @@ def contour_plot(f, xrange, yrange, **options):
         ...    fill=False, cmap='hsv', labels=True, label_inline=False)
         sage: P
 
-    If fill is True (the default), then we may have to color the
-    labels so that we can see them::
+    We can change the color of the labels if so desired::
 
         sage: contour_plot(f, (-2,2), (-2,2), labels=True, label_colors='red')
 
@@ -644,15 +643,16 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange, dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, labels=False, **options)))
+    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
+                                dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, labels=False, **options)))
 
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
         linestyles = [borderstyle] if borderstyle else None
         linewidths = [borderwidth] if borderwidth else None
-        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(
-                                                                       linestyles=linestyles, linewidths=linewidths,
-                                                                       contours=[0], cmap=[bordercol], fill=False, labels=False, **options)))
+        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
+                                    dict(linestyles=linestyles, linewidths=linewidths,
+                                         contours=[0], cmap=[bordercol], fill=False, labels=False, **options)))
 
     return g
 

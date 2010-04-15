@@ -19,18 +19,15 @@ from sage.rings.all import ComplexField, RealField, Integer
 from sage.rings.all import (bernoulli, CyclotomicField, prime_range,
                             is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
+from sage.rings.power_series_ring import PowerSeriesRing
+from eis_series_cython import eisenstein_series_poly
 
-def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
+def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
     r"""
     Return the `q`-expansion of the normalized weight `k` Eisenstein
     series to precision prec in the ring `K`.  (The normalization
     chosen here is the one that forces the coefficient of `q` to be
     1.)
-
-    Here's a rough description of how the algorithm works: we know
-    `E_k = const + \sum_n sigma(n,k-1) q^n`. Now, we basically just
-    compute all the `\sigma(n,k-1)` simultaneously, as `\sigma` is
-    multiplicative.
 
     INPUT:
 
@@ -61,54 +58,29 @@ def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
     - William Stein: original implementation
 
     - Craig Citro (2007-06-01): rewrote for massive speedup
-    """
-    k = Integer(k)
-    if k%2 or k < 2:
-        raise ValueError, "k (=%s) must be an even positive integer"%k
-    prec = int(prec)
-    if prec < 0:
-        raise ValueError, "prec (=%s) must be an even nonnegative integer"%prec
-    if (prec == 0):
-        R = K[[var]]
-        return R(0).add_bigoh(0)
 
-    one = Integer(1)
-    val = [one] * prec
-    expt = k - one
+    - Martin Raum (2009-08-02): port to cython for speedup
+    """
+    ## we use this to prevent computation if it would fail anyway.
+    if k <= 0 or k % 2 == 1 :
+        raise ValueError, "k must be positive and even"
 
     try:
-        a0inv = - (2*k) / bernoulli(k)
-        a0 = K(1/a0inv)
+        a0 = - bernoulli(k) / (2*k)
+        a0den = a0.denominator()
+        a0fac = K(1/a0den)
     except ZeroDivisionError:
         raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the %r"%(a0inv, K)
 
-    for p in prime_range(1,prec):
 
-        int_p = int(p)
-
-        ppow = int_p
-        mult = p**expt
-        term = mult*mult
-        last = mult
-
-        while (ppow < prec):
-            ind = ppow
-            while (ind < prec):
-                val[ind] = (val[ind]*(term-one)).divide_knowing_divisible_by(last - one)
-                ind += ppow
-            ppow *= int_p
-            last = term
-            term *= mult
-
-    val[0] = a0
-    R = K[[var]]
-    if R == QQ:
-        return R(val, prec=prec, check=False)
+    R = PowerSeriesRing(K, var)
+    if K is QQ :
+        return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=False)
     else:
         # this is a temporary fix due to a change in the
         # polynomial constructor over finite fields; this
         # is a notable speed regression, to be fixed soon.
-        return R(val, prec=prec, check=True)
+        return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=True)
 
 ######################################################################
 

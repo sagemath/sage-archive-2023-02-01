@@ -848,6 +848,13 @@ ext_modules = [
     Extension('sage.modular.arithgroup.congroup_pyx',
               sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
 
+    Extension('sage.modular.modform.eis_series_cython',
+              sources = ['sage/modular/modform/eis_series_cython.pyx'],
+              libraries = ["gmp", "flint"],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],

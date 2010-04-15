@@ -665,7 +665,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 1  1 -1  1  4]
             [-1  2 -2 -1  4]
 
-        Get The 2 x 2 submatrix of M, starting at row index and column
+        Get the 2 x 2 submatrix of M, starting at row index and column
         index 1
 
         ::
@@ -683,10 +683,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Get the second column of M::
 
-            sage: M[1:,0]
+            sage: M[:,1]
+            [-2]
+            [ 8]
             [ 1]
-            [ 1]
-            [-1]
+            [ 2]
 
         Get the first row of M::
 
@@ -3451,7 +3452,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cpdef RingElement x
         x = self._base_ring(left)
         cdef Matrix ans
-        ans = self._parent.zero_matrix()
+        ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
                 ans.set_unsafe(r, c, x._mul_(<RingElement>self.get_unsafe(r, c)))
@@ -3494,7 +3495,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cpdef RingElement x
         x = self._base_ring(right)
         cdef Matrix ans
-        ans = self._parent.zero_matrix()
+        ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
                 ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_(x))

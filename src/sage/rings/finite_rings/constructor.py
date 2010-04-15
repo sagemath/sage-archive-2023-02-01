@@ -188,10 +188,11 @@ class FiniteFieldFactory(UniqueFactory):
     -  ``modulus`` - (optional) either a defining polynomial for the
        field, i.e., generator of the field will be a root of this
        polynomial; or a string:
-           'conway': force the use of a Conway polynomial, will
+
+          - 'conway': force the use of a Conway polynomial, will
             raise a RuntimeError if none is found in the database;
-           'random': use a random irreducible polynomial;
-           'default':a Conway polynomial is used if found. Otherwise
+          - 'random': use a random irreducible polynomial;
+          - 'default': a Conway polynomial is used if found. Otherwise
             a sparse polynomial is used for binary fields and a
             random polynomial is used for other characteristics.
 

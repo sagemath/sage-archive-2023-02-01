@@ -3,6 +3,7 @@ Monomial symmetric functions
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#                     2010 Anne Schilling <anne at math.ucdavis.edu> (addition)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,6 +20,7 @@ Monomial symmetric functions
 import classical, sfa, dual
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
+from sage.combinat.partition import Partition, Partitions
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, R):
@@ -95,27 +97,63 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                         z_elt[ m ] = left_c * right_c * d[m]
         return z_elt
 
-
-    class Element(classical.SymmetricFunctionAlgebra_classical.Element):
-      def expand(self, n, alphabet='x'):
+    def from_polynomial(self, f, check=True):
         """
-        Expands the symmetric function as a symmetric polynomial in n
-        variables.
+        This function converts a symmetric polynomial `f` in a polynomial ring in finitely
+        many variables to a symmetric function in the monomial
+        basis of the ring of symmetric functions over the same base ring.
 
         EXAMPLES::
 
+            sage: P = PolynomialRing(QQ, 'x', 3)
+            sage: x = P.gens()
+            sage: f = x[0] + x[1] + x[2]
             sage: m = SFAMonomial(QQ)
-            sage: m([2,1]).expand(3)
-            x0^2*x1 + x0*x1^2 + x0^2*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
-            sage: m([1,1,1]).expand(2)
-            0
-            sage: m([2,1]).expand(3,alphabet='z')
-            z0^2*z1 + z0*z1^2 + z0^2*z2 + z1^2*z2 + z0*z2^2 + z1*z2^2
-            sage: m([2,1]).expand(3,alphabet='x,y,z')
-            x^2*y + x*y^2 + x^2*z + y^2*z + x*z^2 + y*z^2
+            sage: m.from_polynomial(f)
+            m[1]
+            sage: f = x[0]**2+x[1]**2+x[2]**2
+            sage: m.from_polynomial(f)
+            m[2]
+            sage: f=x[0]^2+x[1]
+            sage: m.from_polynomial(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: x0^2 + x1 is not a symmetric polynomial
+            sage: f = (m[2,1]+m[1,1]).expand(3)
+            sage: m.from_polynomial(f)
+            m[1, 1] + m[2, 1]
+            sage: f = (2*m[2,1]+m[1,1]+3*m[3]).expand(3)
+            sage: m.from_polynomial(f)
+            m[1, 1] + 2*m[2, 1] + 3*m[3]
         """
-        condition = lambda part: len(part) > n
-        return self._expand(condition, n, alphabet)
+        assert self.base_ring() == f.base_ring()
+        d = dict([(e,c) for e,c in f.dict().iteritems() if tuple(sorted(e)) == tuple(reversed(e))])
+        out = self.sum(d[la]*self(Partition(la)) for la in d.keys())
+        if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
+            raise ValueError, "%s is not a symmetric polynomial"%f
+        return out
+
+
+    class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+        def expand(self, n, alphabet='x'):
+            """
+            Expands the symmetric function as a symmetric polynomial in n
+            variables.
+
+            EXAMPLES::
+
+                sage: m = SFAMonomial(QQ)
+                sage: m([2,1]).expand(3)
+                x0^2*x1 + x0*x1^2 + x0^2*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
+                sage: m([1,1,1]).expand(2)
+                0
+                sage: m([2,1]).expand(3,alphabet='z')
+                z0^2*z1 + z0*z1^2 + z0^2*z2 + z1^2*z2 + z0*z2^2 + z1*z2^2
+                sage: m([2,1]).expand(3,alphabet='x,y,z')
+                x^2*y + x*y^2 + x^2*z + y^2*z + x*z^2 + y*z^2
+            """
+            condition = lambda part: len(part) > n
+            return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

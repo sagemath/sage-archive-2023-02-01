@@ -4023,6 +4023,103 @@ cdef class Matrix(matrix1.Matrix):
     # Generic Echelon Form
     ###################################################################################
 
+
+    def rref(self, *args, **kwds):
+        """
+        Return the reduced row echelon form of the matrix, considered
+        as a matrix over a field.
+
+        If the matrix is over a ring, then an equivalent matrix is
+        constructed over the fraction field, and then row reduced.
+
+        All arguments are passed on to :meth:``echelon_form``.
+
+        .. note::
+
+            Because the matrix is viewed as a matrix over a field,
+            every leading coefficient of the returned matrix will be
+            one and will be the only nonzero entry in its column.
+
+        EXAMPLES::
+
+            sage: A=matrix(3,range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.rref()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+
+
+        Note that there is a difference between :meth:`rref` and
+        :meth:`echelon_form` when the matrix is not over a field (in
+        this case, the integers instead of the rational numbers)::
+
+            sage: A.base_ring()
+            Integer Ring
+            sage: A.echelon_form()
+            [ 3  0 -3]
+            [ 0  1  2]
+            [ 0  0  0]
+
+            sage: B=random_matrix(QQ,3,num_bound=10); B
+            [ -4  -3   6]
+            [  5  -5 9/2]
+            [3/2  -4  -7]
+            sage: B.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        In this case, since ``B`` is a matrix over a field (the
+        rational numbers), :meth:`rref` and :meth:`echelon_form` are
+        exactly the same::
+
+            sage: B.echelon_form()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B.echelon_form() is B.rref()
+            True
+
+        Since :meth:`echelon_form` is not implemented for every ring,
+        sometimes behavior varies, as here::
+
+            sage: R.<x>=ZZ[]
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1])
+            sage: C.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: C.base_ring()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: C.echelon_form()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Univariate Polynomial Ring in x over Integer Ring'.
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1/2])
+            sage: C.echelon_form()
+            [                               2                                x                              x^2]
+            [                               0                                1            15*x^2 - 3/2*x - 31/2]
+            [                               0                                0 5/2*x^3 - 15/4*x^2 - 9/4*x + 7/2]
+            sage: C.rref()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1/x,3,2,1/2])
+            sage: C.echelon_form()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        R=self.base_ring()
+        if R.is_field():
+            return self.echelon_form()
+        else:
+            F=R.fraction_field()
+            return self.change_ring(F).echelon_form()
+
     def _echelonize_ring(self, **kwds):
         r"""
         Echelonize self in place, where the base ring of self is assumed to
@@ -4206,6 +4303,15 @@ cdef class Matrix(matrix1.Matrix):
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
         Return the echelon form of self.
+
+	.. note::
+
+	    This row reduction does not use division if the
+	    matrix is not over a field (e.g., if the matrix is over
+	    the integers).  If you want to calculate the echelon form
+	    using division, then use :meth:`rref`, which assumes that
+	    the matrix entries are in a field (specifically, the field
+	    of fractions of the base ring of the matrix).
 
         INPUT:
 

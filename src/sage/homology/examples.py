@@ -8,11 +8,10 @@ AUTHORS:
 This file constructs some examples of simplicial complexes.  There are
 two main types: surfaces and examples related to graph theory.
 
-For surfaces, this file introduces a class, SimplicialSurface, which
-is based on SimplicialComplex but also includes a ``connected_sum``
-method.  It also has routines for defining the 2-sphere, the n-sphere
-for any n, the torus, the real projective plane, the Klein bottle, and
-surfaces of arbitrary genus, all as simplicial complexes.
+For surfaces (and other manifolds), there are functions defining the
+2-sphere, the n-sphere for any n, the torus, the real projective
+plane, the Klein bottle, and surfaces of arbitrary genus, all as
+simplicial complexes.
 
 Aside from surfaces, this file also provides some functions for
 constructing some other simplicial complexes: the simplicial complex
@@ -29,7 +28,7 @@ TAB key::
     Sphere
     Simplex
     Torus
-    ProjectivePlane
+    RealProjectivePlane
     KleinBottle
     SurfaceOfGenus
     MooreSpace
@@ -47,160 +46,6 @@ from sage.sets.set import Set
 from sage.misc.functional import is_even
 from sage.combinat.subset import Subsets
 import sage.misc.prandom as random
-
-def rename_vertex(n, keep, left = True):
-    """
-    Rename a vertex: the three vertices from the list 'keep' get
-    relabeled 0, 1, 2, in order.  Any other vertex (e.g. 4) gets
-    renamed to by prepending an 'L' or an 'R' (thus to either 'L4' or
-    'R4'), depending on whether the argument left is True or False.
-
-    INPUT:
-
-    -  ``n`` - a 'vertex': either an integer or a string
-
-    -  ``keep`` - a list of three vertices
-
-    -  ``left`` - boolean (optional, default True)
-
-    This is used by the ``connected_sum`` method for simplicial
-    surfaces.
-
-    EXAMPLES::
-
-        sage: from sage.homology.examples import rename_vertex
-        sage: rename_vertex(6, [5, 6, 7])
-        1
-        sage: rename_vertex(3, [5, 6, 7])
-        'L3'
-        sage: rename_vertex(3, [5, 6, 7], left=False)
-        'R3'
-    """
-    lookup = dict(zip(keep, [0,1,2]))
-    try:
-        return lookup[n]
-    except:
-        if left:
-            return "L" + str(n)
-        else:
-            return "R" + str(n)
-
-class SimplicialSurface(SimplicialComplex):
-    """
-    A simplicial surface is a simplicial complex structure on a
-    surface without boundary.  (The only difference between this and a
-    SimplicialComplex is that there is a connected sum operation
-    defined for these surfaces.)
-
-    This can either take one argument, a simplicial complex, or two
-    arguments, the usual arguments to define a simplicial complex.  It
-    does almost no error checking to see whether the resulting complex
-    actually represents a surface.
-
-    INPUT:
-
-    -  ``complex`` - either a SimplicialComplex or a vertex set
-       suitable for defining a simplicial complex.
-
-    - ``faces`` - (optional, default []).  If the argument complex is
-       a simplicial complex, then the faces argument is ignored.  If
-       complex is a vertex set, then faces is treated as the list of
-       maximal faces to define the simplicial complex.
-
-    OUTPUT: a simplicial complex representing a surface.
-
-    EXAMPLES::
-
-        sage: from sage.homology.examples import SimplicialSurface
-        sage: sphere = SimplicialSurface(3, [[1,2,3], [0,2,3], [0,1,3], [0,1,2]])
-        sage: sphere
-        Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-        sage: sphere == loads(dumps(sphere))
-        True
-        """
-
-    def __init__(self, complex, faces=[]):
-        """
-        See ``SimplicialSurface`` for full documentation.
-
-        EXAMPLES::
-
-            sage: from sage.homology.examples import SimplicialSurface
-            sage: sphere = SimplicialSurface(3, [[1,2,3], [0,2,3], [0,1,3], [0,1,2]])
-            sage: sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-        """
-        if isinstance(complex, SimplicialComplex):
-            S = complex
-        else:
-            S = SimplicialComplex(complex, faces)
-        if (not S.is_pure()) or (S.dimension() != 2):
-            raise ValueError, "This does not appear to be a surface."
-        else:
-            SimplicialComplex.__init__(self, S._vertex_set, S._facets)
-
-    def connected_sum(self, other):
-        """
-        The connected sum of this simplicial surface with another one.
-
-        The connected sum of two surfaces is defined as follows:
-        remove a 2-simplex from each, producing a boundary for each
-        surface consisting of three edges, and then glue the two
-        surfaces together along this triangular boundary.
-
-        INPUT:
-
-        -  ``other`` - the other simplicial surface.
-
-        OUTPUT: the connected sum (self # other) as a simplicial surface
-
-        Algorithm: a facet is chosen from each surface, and removed.
-        The vertices of these two facets are relabeled to (0,1,2).  Of
-        the remaining vertices, the ones from the left-hand factor are
-        renamed by prepending an "L", and similarly the remaining
-        vertices in the right-hand factor are renamed by prepending an
-        "R".
-
-        EXAMPLES::
-
-            sage: from sage.homology.examples import SimplicialSurface
-            sage: S = SimplicialSurface(3, [[1,2,3], [0,2,3], [0,1,3], [0,1,2]])
-            sage: S     # S is the sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-            sage: S.connected_sum(S)
-            Simplicial complex with vertex set (0, 1, 2, 'L0', 'R0') and 6 facets
-            sage: P = SimplicialSurface(5, [[0,1,2], [0,2,3], [0,1,5], [0,4,5], [0,3,4], [1,2,4], [1,3,4], [1,3,5], [2,3,5], [2,4,5]])
-            sage: P     # P is the projective plane
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
-            sage: P.connected_sum(P)    # the Klein bottle
-            Simplicial complex with 9 vertices and 18 facets
-
-        The notation '+' may be used for connected sum, also::
-
-            sage: P + P    # the Klein bottle
-            Simplicial complex with 9 vertices and 18 facets
-            sage: (P + P).homology()
-            {0: 0, 1: Z x C2, 2: 0}
-        """
-        # first find a 2-simplex to remove from each surface
-        keep_left = self._facets[0]
-        keep_right = other._facets[0]
-        # construct the set of vertices:
-        left = set(self.vertices()).difference(set(keep_left))
-        right = set(other.vertices()).difference(set(keep_right))
-        vertex_set = ([0,1,2] + ["L" + str(v) for v in left]
-                      + ["R" + str(v) for v in right])
-        # construct the set of facets:
-        left = set(self._facets).difference(set([keep_left]))
-        right = set(other._facets).difference(set([keep_right]))
-        facet_set = ([[rename_vertex(v, keep=list(keep_left))
-                       for v in face] for face in left]
-                     + [[rename_vertex(v, keep=list(keep_right), left=False)
-                         for v in face] for face in right])
-        # return the new surface
-        return SimplicialSurface(vertex_set, facet_set)
-
-    __add__ = connected_sum
 
 def matching(A, B):
     """
@@ -233,6 +78,9 @@ def matching(A, B):
                     answer.append(new)
     return answer
 
+# for backwards compatibility:
+SimplicialSurface = SimplicialComplex
+
 class SimplicialComplexExamples():
     """
     Some examples of simplicial complexes.
@@ -243,7 +91,7 @@ class SimplicialComplexExamples():
         Sphere
         Simplex
         Torus
-        ProjectivePlane
+        RealProjectivePlane
         KleinBottle
         SurfaceOfGenus
         MooreSpace
@@ -293,11 +141,7 @@ class SimplicialComplexExamples():
         S = Simplex(n+1)
         facets = S.faces()
         S = SimplicialComplex(n+1, facets)
-        if n == 2:
-            return(SimplicialSurface(S))
-        else:
-            return S
-
+        return S
 
     def Simplex(self, n):
         """
@@ -330,33 +174,40 @@ class SimplicialComplexExamples():
             sage: simplicial_complexes.Torus().homology(1)
             Z x Z
         """
-        return SimplicialSurface(6, [[0,1,2], [1,2,4], [1,3,4], [1,3,6],
+        return SimplicialComplex(6, [[0,1,2], [1,2,4], [1,3,4], [1,3,6],
                                      [0,1,5], [1,5,6], [2,3,5], [2,4,5],
                                      [2,3,6], [0,2,6], [0,3,4], [0,3,5],
                                      [4,5,6], [0,4,6]])
 
-    def ProjectivePlane(self):
+    def RealProjectivePlane(self):
         """
         A minimal triangulation of the real projective plane.
 
         EXAMPLES::
 
-            sage: P = simplicial_complexes.ProjectivePlane()
-            sage: P.cohomology()
-            {0: 0, 1: 0, 2: C2}
-            sage: P.cohomology(base_ring=GF(2))
-            {0: Vector space of dimension 0 over Finite Field of size 2,
-            1: Vector space of dimension 1 over Finite Field of size 2,
-            2: Vector space of dimension 1 over Finite Field of size 2}
+            sage: P = simplicial_complexes.RealProjectivePlane()
+            sage: Q = simplicial_complexes.ProjectivePlane()
+            sage: P == Q
+            True
+            sage: P.cohomology(1)
+            0
+            sage: P.cohomology(2)
+            C2
+            sage: P.cohomology(1, base_ring=GF(2))
+            Vector space of dimension 1 over Finite Field of size 2
+            sage: P.cohomology(2, base_ring=GF(2))
+            Vector space of dimension 1 over Finite Field of size 2
         """
-        return SimplicialSurface(5, [[0,1,2], [0,2,3], [0,1,5], [0,4,5],
+        return SimplicialComplex(5, [[0,1,2], [0,2,3], [0,1,5], [0,4,5],
                                      [0,3,4], [1,2,4], [1,3,4], [1,3,5],
                                      [2,3,5], [2,4,5]])
+
+    ProjectivePlane = RealProjectivePlane
 
     def KleinBottle(self):
         """
         A triangulation of the Klein bottle, formed by taking the
-        connected sum of a projective plane with itself.  (This is not
+        connected sum of a real projective plane with itself.  (This is not
         a minimal triangulation.)
 
         EXAMPLES::
@@ -364,7 +215,7 @@ class SimplicialComplexExamples():
             sage: simplicial_complexes.KleinBottle()
             Simplicial complex with 9 vertices and 18 facets
         """
-        P = simplicial_complexes.ProjectivePlane()
+        P = simplicial_complexes.RealProjectivePlane()
         return P.connected_sum(P)
 
     def SurfaceOfGenus(self, g, orientable=True):
@@ -385,7 +236,7 @@ class SimplicialComplexExamples():
 
         In the non-orientable case, raise an error if `g` is zero.  If
         `g` is positive, return a `g`-fold connected sum of a
-        projective plane with itself.
+        real projective plane with itself.
 
         EXAMPLES::
 
@@ -402,7 +253,7 @@ class SimplicialComplexExamples():
         if orientable:
             T = simplicial_complexes.Torus()
         else:
-            T = simplicial_complexes.ProjectivePlane()
+            T = simplicial_complexes.RealProjectivePlane()
         S = T
         for i in range(g-1):
             S = S.connected_sum(T)
@@ -420,7 +271,7 @@ class SimplicialComplexExamples():
         and 2, such that its reduced homology is isomorphic to
         `\\ZZ/q\\ZZ` in dimension 1, zero otherwise.
 
-        If `q=2`, this is the projective plane.  If `q>2`, then
+        If `q=2`, this is the real projective plane.  If `q>2`, then
         construct it as follows: start with a triangle with vertices
         1, 2, 3.  We take a `3q`-gon forming a `q`-fold cover of the
         triangle, and we form the resulting complex as an
@@ -435,17 +286,17 @@ class SimplicialComplexExamples():
 
         EXAMPLES::
 
-            sage: simplicial_complexes.MooreSpace(3).homology()
-            {0: 0, 1: C3, 2: 0}
-            sage: simplicial_complexes.MooreSpace(4).suspension().homology()
-            {0: 0, 1: 0, 2: C4, 3: 0}
+            sage: simplicial_complexes.MooreSpace(3).homology()[1]
+            C3
+            sage: simplicial_complexes.MooreSpace(4).suspension().homology()[2]
+            C4
             sage: simplicial_complexes.MooreSpace(8)
             Simplicial complex with 19 vertices and 54 facets
         """
         if q <= 1:
             raise ValueError, "The mod q Moore space is only defined if q is at least 2"
         if q == 2:
-            return projective_plane()
+            return simplicial_complexes.RealProjectivePlane()
         vertices = [1, 2, 3]
         facets = []
         for i in range(q):

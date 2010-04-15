@@ -14,7 +14,7 @@ from sage.modular.dirichlet import DirichletGroup
 import constructor
 
 from theta import theta2_qexp, theta_qexp
-
+from copy import copy
 
 def half_integral_weight_modform_basis(chi, k, prec):
     r"""
@@ -142,7 +142,7 @@ def half_integral_weight_modform_basis(chi, k, prec):
     T3  = theta_qexp(prec)
     n   = len(S)
     MS  = MatrixSpace(M.base_ring(), 2*n, prec)
-    A   = MS.zero_matrix()
+    A   = copy(MS.zero_matrix())
 
     for i in range(n):
         T2f = T2*S[i]

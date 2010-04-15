@@ -181,7 +181,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 
             INPUT:
              - self: a parent `X` in ModulesWithBasis(R), with basis `x` indexed by `I`
-             - codomain: the codomain `Y` of f: defaults to `f.codomain if the later is defined
+             - codomain: the codomain `Y` of f: defaults to `f.codomain` if the later is defined
              - zero: the zero of the codomain; defaults to codomain.zero() or 0 if codomain is not specified
              - position: a non negative integer; defaults to 0
              - on_basis: a function `f` which accepts elements of `I`

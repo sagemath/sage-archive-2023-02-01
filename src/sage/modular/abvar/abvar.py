@@ -45,6 +45,8 @@ from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
 from sage.misc.misc             import prod
 
+from copy import copy
+
 import homology
 import homspace
 import lseries
@@ -4672,7 +4674,7 @@ def modsym_lattices(M, factors):
     X, _ = X._clear_denom()
     for i, R in enumerate(rows):
         A = X.matrix_from_rows(R)
-        A = A.saturation()
+        A = copy(A.saturation())
         A.echelonize()
         D.append(tuple(list(factors[i]) + [A.row_module()]))
     return Sequence(D, cr=True)

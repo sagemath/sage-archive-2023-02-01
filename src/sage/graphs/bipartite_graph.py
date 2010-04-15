@@ -28,7 +28,8 @@ class BipartiteGraph(Graph):
     Bipartite graph.
 
     INPUT:
-        data -- can be any of the following:
+
+    - ``data`` -- can be any of the following:
             1.  Empty or None (creates an empty graph).
             2.  An arbitrary graph (finds a bipartition).
             3.  A graph and a bipartition.
@@ -46,7 +47,8 @@ class BipartiteGraph(Graph):
 
     EXAMPLES:
 
-    1.  No inputs or None for the input creates an empty graph.
+    1.  No inputs or None for the input creates an empty graph::
+
         sage: B = BipartiteGraph()
         sage: type(B)
         <class 'sage.graphs.bipartite_graph.BipartiteGraph'>
@@ -55,7 +57,8 @@ class BipartiteGraph(Graph):
         sage: B == BipartiteGraph(None)
         True
 
-    2. From a graph: without any more information, finds a bipartition.
+    2. From a graph: without any more information, finds a bipartition::
+
         sage: B = BipartiteGraph( graphs.CycleGraph(4) )
         sage: B = BipartiteGraph( graphs.CycleGraph(5) )
         Traceback (most recent call last):
@@ -65,12 +68,24 @@ class BipartiteGraph(Graph):
         sage: B = BipartiteGraph(G)
         sage: B == G
         True
+        sage: B.left
+        [0, 1, 2, 3]
+        sage: B.right
+        [4, 5, 6]
+        sage: B = BipartiteGraph({0:[5,6], 1:[4,5], 2:[4,6], 3:[4,5,6]})
+        sage: B == G
+        True
+        sage: B.left
+        [0, 1, 2, 3]
+        sage: B.right
+        [4, 5, 6]
 
     3. From a graph and a partition. Note that if the input graph is not
     bipartite, then Sage will raise an error. However, if one specifies check =
     False, the offending edges are simply deleted (along with those vertices
     not appearing in either list).  We also lump creating one bipartite graph
-    from another into this category.
+    from another into this category::
+
         sage: P = graphs.PetersenGraph()
         sage: partition = [range(5), range(5,10)]
         sage: B = BipartiteGraph(P, partition)
@@ -83,6 +98,8 @@ class BipartiteGraph(Graph):
         [0, 1, 2, 3, 4]
         sage: B.show()
 
+    ::
+
         sage: G = Graph({0:[5,6], 1:[4,5], 2:[4,6], 3:[4,5,6]})
         sage: B = BipartiteGraph(G)
         sage: B2 = BipartiteGraph(B)
@@ -94,6 +111,8 @@ class BipartiteGraph(Graph):
         sage: B3 == B2
         True
 
+    ::
+
         sage: G = Graph({0:[], 1:[], 2:[]})
         sage: part = (range(2), [2])
         sage: B = BipartiteGraph(G, part)
@@ -101,7 +120,8 @@ class BipartiteGraph(Graph):
         sage: B == B2
         True
 
-    4. From a reduced adjacency matrix.
+    4. From a reduced adjacency matrix::
+
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0), \
                           (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
@@ -126,6 +146,8 @@ class BipartiteGraph(Graph):
          (5, 9, None),
          (6, 10, None)]
 
+    ::
+
         sage: M = Matrix([(1, 1, 2, 0, 0), (0, 2, 1, 1, 1), (0, 1, 2, 1, 1)])
         sage: B = BipartiteGraph(M, multiedges=True, sparse=True)
         sage: B.edges()
@@ -144,6 +166,8 @@ class BipartiteGraph(Graph):
          (4, 6, None),
          (4, 7, None)]
 
+    ::
+
          sage: F.<a> = GF(4)
          sage: MS = MatrixSpace(F, 2, 3)
          sage: M = MS.matrix([[0, 1, a+1], [a, 1, 1]])
@@ -153,7 +177,8 @@ class BipartiteGraph(Graph):
          sage: B.weighted()
          True
 
-    5. From an alist file.
+    5. From an alist file::
+
          sage: file_name = SAGE_TMP + 'deleteme.alist.txt'
          sage: fi = open(file_name, 'w')
          sage: fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
@@ -165,7 +190,8 @@ class BipartiteGraph(Graph):
          sage: B == H
          True
 
-    6. From a NetworkX bipartite graph.
+    6. From a NetworkX bipartite graph::
+
         sage: import networkx
         sage: G = graphs.OctahedralGraph()
         sage: N = networkx.cliques.make_clique_bipartite(G.networkx_graph())
@@ -274,11 +300,12 @@ class BipartiteGraph(Graph):
                             self.right.append(v)
                         else:
                             raise TypeError("NetworkX node_type defies bipartite assumption (is not 'Top' or 'Bottom')")
-                else:
-                    try:
-                        self.left, self.right = self.bipartite_sets()
-                    except:
-                        raise TypeError("Input graph is not bipartite!")
+            # make sure we found a bipartition
+            if not (hasattr(self, 'left') and hasattr(self, 'right')):
+                try:
+                    self.left, self.right = self.bipartite_sets()
+                except:
+                    raise TypeError("Input graph is not bipartite!")
 
     def __repr__(self):
         r"""

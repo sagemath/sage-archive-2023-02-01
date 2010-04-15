@@ -10,23 +10,23 @@ way which is incompatible with the pickling of such classes (pickling by name)::
     sage: A.B.__name__
     'B'
 
-instead of the a priori more natural `A.B`.
+instead of the a priori more natural ``"A.B"``.
 
 Furthermore, upon pickling (here in save_global) *and* unpickling (in
-load_global) a class with name "A.B" in a module mod, the standard
-cPickle module searches for "A.B" in mod.__dict__ instead of looking
-up "A" and then "B" in the result.
+load_global) a class with name ``"A.B"`` in a module ``mod``, the standard
+cPickle module searches for ``"A.B"`` in ``mod.__dict__`` instead of looking
+up ``"A"`` and then ``"B"`` in the result.
 
 See: http://groups.google.com/group/sage-devel/browse_thread/thread/6c7055f4a580b7ae/
 
 This module provides two utilities to workaround this issue:
 
  - :func:`nested_pickle` "fixes" recursively the name of the
-   subclasses of a class and inserts their fullname 'A.B' in
-   mod.__dict__
+   subclasses of a class and inserts their fullname ``"A.B"`` in
+   ``mod.__dict__``
 
- - :class:`NestedClassMetaclass` is a metaclass ensuring that nested_pickle is
-   called on a class upon creation.
+ - :class:`NestedClassMetaclass` is a metaclass ensuring that
+   :func:`nested_pickle` is called on a class upon creation.
 
 See also :mod:`sage.misc.nested_class_test`.
 
@@ -64,10 +64,16 @@ All of this is not perfect. In the following scenario::
     ...       A2 = A1.A2
     ...
 
-The name for A1.A2 could potentially be set to B1.A2. But that will work anyway.
+The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will work anyway.
 """
 
 import sys
+
+__all__ = ['modify_for_nested_pickle', 'nested_pickle',
+           'NestedClassMetaclass', 'MainClass'
+           # Comment out to silence Sphinx warning about nested classes.
+           #, 'SubClass', 'CopiedClass', 'A1'
+           ]
 
 def modify_for_nested_pickle(cls, name_prefix, module):
     r"""
@@ -127,15 +133,15 @@ def nested_pickle(cls):
         sage: nested_pickle(A)
         <class '__main__.A'>
 
-    then the name of class B will be modified to 'A.B', and the 'A.B'
-    attribute of the module will be set to class B::
+    then the name of class ``"B"`` will be modified to ``"A.B"``, and the ``"A.B"``
+    attribute of the module will be set to class ``"B"``::
 
         sage: A.B.__name__
         'A.B'
         sage: getattr(module, 'A.B', 'Not found')
         <class __main__.A.B at ...>
 
-    In Python 2.6, decorators work with classes; then @nested_pickle
+    In Python 2.6, decorators work with classes; then ``@nested_pickle``
     should work as a decorator::
 
         sage: @nested_pickle    # todo: not implemented
@@ -237,9 +243,11 @@ class SubClass(MainClass):
 
     EXAMPLES::
 
-        sage: from sage.misc.nested_class import *
+        sage: from sage.misc.nested_class import SubClass
         sage: loads(dumps(SubClass.NestedClass()))
         <sage.misc.nested_class.MainClass.NestedClass object at 0x...>
+        sage: loads(dumps(SubClass()))
+        <sage.misc.nested_class.SubClass object at 0x...>
     """
     pass
 
@@ -251,13 +259,11 @@ class CopiedClass(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.nested_class import *
+        sage: from sage.misc.nested_class import CopiedClass
         sage: loads(dumps(CopiedClass.NestedClass()))
         <sage.misc.nested_class.MainClass.NestedClass object at 0x...>
         sage: loads(dumps(CopiedClass.NestedSubClass()))
         <sage.misc.nested_class.MainClass.NestedClass.NestedSubClass object at 0x...>
-        sage: loads(dumps(SubClass()))
-        <sage.misc.nested_class.SubClass object at 0x...>
     """
     NestedClass = MainClass.NestedClass
     NestedSubClass = MainClass.NestedClass.NestedSubClass
@@ -271,3 +277,4 @@ class A1:
     class A2:
         class A3:
             pass
+

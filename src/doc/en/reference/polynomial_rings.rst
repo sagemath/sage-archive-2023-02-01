@@ -13,21 +13,13 @@ Polynomial Rings
 
    polynomial_rings_multivar
 
-   sage/rings/polynomial/laurent_polynomial_ring
-   sage/rings/polynomial/laurent_polynomial
+   polynomial_rings_infinite
+
+   polynomial_rings_laurent
 
    sage/rings/polynomial/pbori
 
-   sage/rings/polynomial/symmetric_ideal
-   sage/rings/polynomial/symmetric_reduction
-
-   sage/rings/polynomial/infinite_polynomial_ring
-   sage/rings/polynomial/infinite_polynomial_element
-
-   sage/rings/polynomial/toy_buchberger
-   sage/rings/polynomial/toy_variety
-   sage/rings/polynomial/toy_d_basis
-
+   polynomial_rings_toy_implementations
 
    sage/rings/polynomial/convolution
    sage/rings/polynomial/cyclotomic

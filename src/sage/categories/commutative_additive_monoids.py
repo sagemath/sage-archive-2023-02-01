@@ -85,6 +85,7 @@ class CommutativeAdditiveMonoids(Category):
 
             It is recommended to override this method because the
             coercion from the integers:
+
              - is not always meaningful (except for `0`),
              - often uses self.zero() otherwise.
 

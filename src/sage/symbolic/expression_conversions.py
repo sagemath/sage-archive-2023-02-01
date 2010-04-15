@@ -1273,7 +1273,7 @@ class FastCallableConverter(Converter):
             sage: (x+y+x^2)._fast_callable_(etb)
             add(add(ipow(v_0, 2), v_0), v_1)
 
-        TESTS::
+        TESTS:
 
         Check if rational functions with numerator 1 can be converted. #8056::
 

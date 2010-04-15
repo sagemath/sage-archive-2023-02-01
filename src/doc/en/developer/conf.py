@@ -23,6 +23,8 @@ project = u"Sage Developer's Guide"
 html_title = project + " v"+release
 name = 'developer'
 
+html_short_title = u"Developer's Guide v" + release
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = name
 

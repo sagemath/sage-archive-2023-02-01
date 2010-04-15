@@ -1,5 +1,5 @@
 
-from plot3d            import plot3d
+from plot3d            import plot3d, cylindrical_plot3d, spherical_plot3d, Spherical, Cylindrical
 from parametric_plot3d import parametric_plot3d
 from plot_field3d      import plot_vector_field3d
 from implicit_plot3d   import implicit_plot3d

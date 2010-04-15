@@ -113,9 +113,31 @@ class LowerChristoffelWord(FiniteWord_list):
         word: 01
     """
 
-    def __init__(self, p, q, alphabet=(0,1)):
+    def __init__(self, p, q, alphabet=(0,1), algorithm='cf'):
         r"""
+        INPUT:
+
+        - ``p`` - integer coprime with ``q``.
+        - ``q`` - integer coprime with ``p``.
+        - ``alphabet`` - sequence of two elements (optional, default: (0, 1)).
+        - ``algorithm`` - construction method (optional, default: 'cf').
+          It can be one of the following:
+
+          - ``'linear'`` - linear algorithm in the length of the word.
+          - ``'cf'`` - fast method using continued fraction.
+
         TESTS::
+
+            sage: words.ChristoffelWord(9, 4, algorithm='linear')
+            word: 0110110110111
+            sage: words.ChristoffelWord(9, 4, algorithm='cf')
+            word: 0110110110111
+            sage: words.ChristoffelWord(4, 9, algorithm='linear')
+            word: 0001001001001
+            sage: words.ChristoffelWord(4, 9, algorithm='cf')
+            word: 0001001001001
+
+        ::
 
             sage: words.LowerChristoffelWord(4,8)
             Traceback (most recent call last):
@@ -139,16 +161,42 @@ class LowerChristoffelWord(FiniteWord_list):
         if gcd(p,q) != 1:
             raise ValueError, "%s and %s are not relatively prime" % (p, q)
         # Compute the Christoffel word
-        w = []
-        u = 0
-        if (p, q) == (0, 1):
-            w = [alphabet[0]]
+        if algorithm == 'linear':
+            w = []
+            u = 0
+            if (p, q) == (0, 1):
+                w = [alphabet[0]]
+            else:
+                for i in range(p + q):
+                    v = (u+p) % (p+q)
+                    new_letter = alphabet[0] if u < v else alphabet[1]
+                    w.append(new_letter)
+                    u = v
+        elif algorithm == 'cf':
+            if (p, q) == (0, 1):
+                w = [alphabet[0]]
+            elif (p, q) == (1, 0):
+                w = [alphabet[1]]
+            else:
+                from sage.rings.all import QQ, CFF
+                cf = CFF(QQ((p, q)))
+                u = [alphabet[0]]
+                v = [alphabet[1]]
+                #do not consider the first zero if p < q
+                start = 1 if p < q else 0
+                for i in range(start, len(cf)-1):
+                    if i % 2 == 0:
+                        u = u + v * cf[i]
+                    else:
+                        v = u * cf[i] + v
+                i = len(cf)-1
+                if i % 2 == 0:
+                    u = u + v * (cf[i]-1)
+                else:
+                    v = u * (cf[i]-1) + v
+                w = u + v
         else:
-            for i in range(p + q):
-                v = (u+p) % (p+q)
-                new_letter = alphabet[0] if u < v else alphabet[1]
-                w.append(new_letter)
-                u = v
+            raise ValueError, 'Unknown algorithm (=%s)'%algorithm
         super(LowerChristoffelWord, self).__init__(Words(alphabet), w)
         self.__p = p
         self.__q = q
@@ -248,17 +296,56 @@ class ChristoffelWord_Lower(LowerChristoffelWord):
 
 class WordGenerator(object):
     r"""
-    A class consisting of constructors for several famous words.
+    Constructor of several famous words.
+
+    EXAMPLES::
+
+        sage: words.ThueMorseWord()
+        word: 0110100110010110100101100110100110010110...
+
+    ::
+
+        sage: words.FibonacciWord()
+        word: 0100101001001010010100100101001001010010...
+
+    ::
+
+        sage: words.ChristoffelWord(5, 8)
+        word: 0010010100101
+
+    ::
+
+        sage: words.RandomWord(10, 4)    # not tested random
+        word: 1311131221
+
+    ::
+
+        sage: words.CodingOfRotationWord(alpha=0.618, beta=0.618)
+        word: 1010110101101101011010110110101101101011...
+
+    ::
+
+        sage: tm = WordMorphism('a->ab,b->ba')
+        sage: fib = WordMorphism('a->ab,b->a')
+        sage: tmword = words.ThueMorseWord([0, 1])
+        sage: from itertools import repeat
+        sage: words.s_adic(tmword, repeat('a'), {0:tm, 1:fib})
+        word: abbaababbaabbaabbaababbaababbaabbaababba...
+
+    .. NOTE::
+
+        To see a list of all word constructors, type ``words.`` and then
+        hit the TAB key. The documentation for each constructor
+        includes information about each word, which provides a useful
+        reference.
 
     TESTS::
 
         sage: from sage.combinat.words.word_generators import WordGenerator
-        sage: MyWordBank = WordGenerator()
-        sage: type(loads(dumps(MyWordBank)))
+        sage: words2 = WordGenerator()
+        sage: type(loads(dumps(words2)))
         <class 'sage.combinat.words.word_generators.WordGenerator'>
-
     """
-
     def ThueMorseWord(self, alphabet=(0, 1), base=2):
         r"""
         Returns the (Generalized) Thue-Morse word over the given alphabet.

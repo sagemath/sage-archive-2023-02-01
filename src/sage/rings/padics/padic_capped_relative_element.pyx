@@ -60,7 +60,7 @@ from sage.rings.padics.precision_error import PrecisionError
 
 cdef PariInstance P = sage.libs.pari.all.pari
 
-cdef long maxordp = (1L << (sizeof(long) * 8 - 2))
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # 1073741823 or 4611686018427387903 on 32/64 bit.
 cdef long minusmaxordp = -maxordp
 
@@ -2240,8 +2240,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             0
             sage: b = (a << 4); b.valuation()
             4
-            sage: b = (a << 1073741823); b.valuation()
-            1073741823
+            sage: b = (a << 1073741822); b.valuation()
+            1073741822
 
         """
         self._normalize()

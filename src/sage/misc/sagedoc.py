@@ -194,8 +194,8 @@ def process_dollars(s):
 
     More precisely, do a regular expression search.  Replace a plain
     dollar sign ($) by a backtick (`).  Replace an escaped dollar sign
-    (\$) by a dollar sign ($).  Don't change a dollar sign preceded or
-    followed by a backtick (`$ or $`), because of strings like
+    (\\$) by a dollar sign ($).  Don't change a dollar sign preceded or
+    followed by a backtick (\`$ or \$`), because of strings like
     "``$HOME``".  Don't make any changes on lines starting with more
     spaces than the first nonempty line in ``s``, because those are
     indented and hence part of a block of code or examples.
@@ -211,7 +211,7 @@ def process_dollars(s):
         sage: process_dollars('some math: $x=y$')
         'some math: `x=y`'
 
-    Replace \$ with $, and don't do anything when backticks are involved::
+    Replace \\$ with $, and don't do anything when backticks are involved::
 
         sage: process_dollars(r'a ``$REAL`` dollar sign: \$')
         'a ``$REAL`` dollar sign: $'
@@ -228,7 +228,7 @@ def process_dollars(s):
         sage: process_dollars(r'f(n) = 0 \text{ if $n$ is prime}')
         'f(n) = 0 \\text{ if $n$ is prime}'
 
-    This is not perfect:
+    This is not perfect::
 
         sage: process_dollars(r'$f(n) = 0 \text{ if $n$ is prime}$')
         '`f(n) = 0 \\text{ if $n$ is prime}$'
@@ -283,7 +283,7 @@ def process_dollars(s):
 
 def process_mathtt(s, embedded=False):
     r"""nodetex
-    Replace \mathtt{BLAH} with either \verb|BLAH| (in the notebook) or
+    Replace \\mathtt{BLAH} with either \\verb|BLAH| (in the notebook) or
     BLAH (from the command line).
 
     INPUT:

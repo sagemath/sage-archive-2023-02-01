@@ -185,7 +185,8 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     commands may be run at the same time.
     """
     print "Execute %s commands (using %s threads)"%(len(command_list), min(len(command_list),nthreads))
-    from processing import Pool
+    from multiprocessing import Pool
+    import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
     p = Pool(nthreads)
     for r in p.imap(apply_pair, command_list):
         if r:
@@ -320,7 +321,8 @@ class sage_build_ext(build_ext):
             # If there were any extensions that needed to be
             # rebuilt, dispatch them using pyprocessing.
             if extensions_to_compile:
-               from processing import Pool
+               from multiprocessing import Pool
+               import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
                p = Pool(min(ncpus, len(extensions_to_compile)))
                for r in p.imap(self.build_extension, extensions_to_compile):
                    pass

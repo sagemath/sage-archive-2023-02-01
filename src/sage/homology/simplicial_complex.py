@@ -20,12 +20,14 @@ object, as described above, but it also gives rise to a topological
 space `|K|` (its *geometric realization*) as follows: first, the
 points of `V` should be in general position in euclidean space.  Next,
 if `\{v\}` is in `K`, then the vertex `v` is in `|K|`.  If `\{v, w\}`
-is in `K`, then the line segment from `v` to `w` is in `|K|` If `\{u,
+is in `K`, then the line segment from `v` to `w` is in `|K|`. If `\{u,
 v, w\}` is in `K`, then the triangle with vertices `u`, `v`, and `w`
 is in `|K|`.  In general, `|K|` is the union of the convex hulls of
 simplices of `K`.  Frequently, one abuses notation and uses `K` to
 denote both the simplicial complex and the associated topological
 space.
+
+.. image:: ../../media/homology/simplices.png
 
 For any simplicial complex `K` and any commutative ring `R` there is
 an associated chain complex, with differential of degree `-1`.  The
@@ -46,6 +48,14 @@ faces.
    The elements of the vertex set are not automatically contained in
    the simplicial complex: each one is only included if and only if it
    is a vertex of at least one of the specified facets.
+
+.. note::
+
+   This class derives from
+   :class:`~sage.homology.cell_complex.GenericCellComplex`, and so
+   inherits its methods.  Some of those methods are not listed here;
+   see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
+   page instead.
 
 EXAMPLES::
 
@@ -90,10 +100,10 @@ simplicial complex::
 #  make compatible with GAP (see http://linalg.org/gap.html)
 #  compare to and make compatible with polymake
 #  see Macaulay: http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.1/share/doc/Macaulay2/SimplicialComplexes/html/___Simplicial__Complex.html; compare performance and make compatible
-#  define morphisms: they are determined by where each vertex goes
 #  should + have any meaning?
 #  cohomology: compute cup products (and Massey products?)
 
+from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -103,12 +113,10 @@ from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import normalize_names
 from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
-from sage.homology.chain_complex import ChainComplex, HomologyGroup
+from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
-from sage.misc.flatten import flatten
-from sage.rings.all import GF
 
-def lattice_paths(t1,t2):
+def lattice_paths(t1, t2, length=None):
     """
     Given lists (or tuples or ...) ``t1`` and ``t2``, think of them as
     labelings for vertices: ``t1`` labeling points on the x-axis,
@@ -120,12 +128,21 @@ def lattice_paths(t1,t2):
 
     :param t1: labeling for vertices
     :param t2: labeling for vertices
+    :param length: if not None, then an integer, the length of the desired path.
+    :type length: integer or None; optional, default None
     :type t1: tuple, list, other iterable
     :type t2: tuple, list, other iterable
     :return: list of lists of vertices making up the paths as described above
     :rtype: list of lists
 
-    This is used when triangulating the product of simplices.
+    This is used when triangulating the product of simplices.  The
+    optional argument ``length`` is used for `\Delta`-complexes, to
+    specify all simplices in a product: in the triangulation of a
+    product of two simplices, there is a `d`-simplex for every path of
+    length `d+1` in the lattice.  The path must start at the bottom
+    left and end at the upper right, and it must use at least one
+    point in each row and in each column, so if ``length`` is too
+    small, there will be no paths.
 
     EXAMPLES::
 
@@ -144,18 +161,101 @@ def lattice_paths(t1,t2):
          [('a', 0), ('a', 3), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('c', 0), ('c', 3), ('c', 5)]]
+        sage: lattice_paths(range(3), range(3), length=2)
+        []
+        sage: lattice_paths(range(3), range(3), length=3)
+        [[(0, 0), (1, 1), (2, 2)]]
+        sage: lattice_paths(range(3), range(3), length=4)
+        [[(0, 0), (1, 1), (1, 2), (2, 2)],
+         [(0, 0), (0, 1), (1, 2), (2, 2)],
+         [(0, 0), (1, 1), (2, 1), (2, 2)],
+         [(0, 0), (1, 0), (2, 1), (2, 2)],
+         [(0, 0), (0, 1), (1, 1), (2, 2)],
+         [(0, 0), (1, 0), (1, 1), (2, 2)]]
     """
-    if len(t1) == 0 or len(t2) == 0:
-        return [[]]
-    elif len(t1) == 1:
-        return [[(t1[0], w) for w in t2]]
-    elif len(t2) == 1:
-        return [[(v, t2[0]) for v in t1]]
+    if length is None:
+        # 0 x n (or k x 0) rectangle:
+        if len(t1) == 0 or len(t2) == 0:
+            return [[]]
+        # 1 x n (or k x 1) rectangle:
+        elif len(t1) == 1:
+            return [[(t1[0], w) for w in t2]]
+        elif len(t2) == 1:
+            return [[(v, t2[0]) for v in t1]]
+        else:
+            # recursive: paths in rectangle with either one fewer row
+            # or column, plus the upper right corner
+            return ([path + [(t1[-1], t2[-1])] for path
+                     in lattice_paths(t1[:-1], t2)] +
+                    [path + [(t1[-1], t2[-1])] for path
+                     in lattice_paths(t1, t2[:-1])])
     else:
-        return ([path + [(t1[-1], t2[-1])] for path
-                in lattice_paths(t1[:-1], t2)] +
-                [path + [(t1[-1], t2[-1])] for path
-                in lattice_paths(t1, t2[:-1])])
+        if length > len(t1) + len(t2) - 1:
+            return []
+        # as above, except make sure that lengths are correct.  if
+        # not, return an empty list.
+        #
+        # 0 x n (or k x 0) rectangle:
+        elif len(t1) == 0 or len(t2) == 0:
+            if length == 0:
+                return [[]]
+            else:
+                return []
+        # 1 x n (or k x 1) rectangle:
+        elif len(t1) == 1:
+            if length == len(t2):
+                return [[(t1[0], w) for w in t2]]
+            else:
+                return []
+        elif len(t2) == 1:
+            if length == len(t1):
+                return [[(v, t2[0]) for v in t1]]
+            else:
+                return []
+        else:
+            # recursive: paths of length one fewer in rectangle with
+            # either one fewer row, one fewer column, or one fewer of
+            # each, and then plus the upper right corner
+            return ([path + [(t1[-1], t2[-1])] for path
+                     in lattice_paths(t1[:-1], t2, length=length-1)] +
+                    [path + [(t1[-1], t2[-1])] for path
+                     in lattice_paths(t1, t2[:-1], length=length-1)] +
+                    [path + [(t1[-1], t2[-1])] for path
+                     in lattice_paths(t1[:-1], t2[:-1], length=length-1)])
+
+def rename_vertex(n, keep, left = True):
+    """
+    Rename a vertex: the vertices from the list 'keep' get
+    relabeled 0, 1, 2, ..., in order.  Any other vertex (e.g. 4) gets
+    renamed to by prepending an 'L' or an 'R' (thus to either 'L4' or
+    'R4'), depending on whether the argument left is True or False.
+
+    :param n: a 'vertex': either an integer or a string
+    :param keep: a list of three vertices
+    :param left: if True, rename for use in left factor
+    :type left: boolean; optional, default True
+
+    This is used by the ``connected_sum`` method for simplicial
+    complexes.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_complex import rename_vertex
+        sage: rename_vertex(6, [5, 6, 7])
+        1
+        sage: rename_vertex(3, [5, 6, 7, 8, 9])
+        'L3'
+        sage: rename_vertex(3, [5, 6, 7], left=False)
+        'R3'
+    """
+    lookup = dict(zip(keep, range(len(keep))))
+    try:
+        return lookup[n]
+    except:
+        if left:
+            return "L" + str(n)
+        else:
+            return "R" + str(n)
 
 class Simplex(SageObject):
     """
@@ -173,7 +273,9 @@ class Simplex(SageObject):
     ``X`` may be a non-negative integer `n`, in which case the
     simplicial complex will have `n+1` vertices `(0, 1, ..., n)`, or
     it may be anything which may be converted to a tuple, in which
-    case the vertices will be that tuple.
+    case the vertices will be that tuple.  In the second case, each
+    vertex must be hashable, so it should be a number, a string, or a
+    tuple, for instance, but not a list.
 
     .. warning::
 
@@ -182,7 +284,6 @@ class Simplex(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex import Simplex
         sage: Simplex(4)
         (0, 1, 2, 3, 4)
         sage: Simplex([3, 4, 1])
@@ -191,6 +292,15 @@ class Simplex(SageObject):
         (3, 'a', 'vertex')
         sage: X == loads(dumps(X))
         True
+
+    Vertices may be tuples but not lists::
+
+        sage: Simplex([(1,2), (3,4)])
+        ((1, 2), (3, 4))
+        sage: Simplex([[1,2], [3,4]])
+        Traceback (most recent call last):
+        ...
+        TypeError: unhashable type: 'list'
     """
 
     def __init__(self, X):
@@ -199,7 +309,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(2)
             (0, 1, 2)
             sage: Simplex(('a', 'b', 'c'))
@@ -218,7 +327,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(3).tuple()
             (0, 1, 2, 3)
 
@@ -238,7 +346,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(3).set()
             frozenset([0, 1, 2, 3])
         """
@@ -250,7 +357,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(3).is_face(Simplex(5))
             True
             sage: Simplex(5).is_face(Simplex(2))
@@ -266,7 +372,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: 3 in Simplex(5)
             True
             sage: 3 in Simplex(2)
@@ -280,7 +385,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(5)[2]
             2
             sage: Simplex(['a', 'b', 'c'])[1]
@@ -294,7 +398,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: [v**2 for v in Simplex(3)]
             [0, 1, 4, 9]
         """
@@ -309,7 +412,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex((1,2,3)) + Simplex((5,6))
             (1, 2, 3, 5, 6)
         """
@@ -325,7 +427,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: S = Simplex(4)
             sage: S.face(0)
             (1, 2, 3, 4)
@@ -343,7 +444,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: S = Simplex(4)
             sage: S.faces()
             [(1, 2, 3, 4), (0, 2, 3, 4), (0, 1, 3, 4), (0, 1, 2, 4), (0, 1, 2, 3)]
@@ -358,7 +458,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(5).dimension() == 5
             True
             sage: Simplex(5).face(1).dimension()
@@ -372,7 +471,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: [Simplex(n).is_empty() for n in range(-1,4)]
             [True, False, False, False, False]
         """
@@ -399,7 +497,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(2).join(Simplex(3))
             ('L0', 'L1', 'L2', 'R0', 'R1', 'R2', 'R3')
             sage: Simplex(['a', 'b']).join(Simplex(['x', 'y', 'z']))
@@ -414,7 +511,7 @@ class Simplex(SageObject):
             vertex_set = self.__tuple + right.__tuple
         return Simplex(vertex_set)
 
-    def product(self, other, rename_vertices=False):
+    def product(self, other, rename_vertices=True):
         """
         The product of this simplex with another one, as a list of simplices.
 
@@ -453,10 +550,11 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: len(Simplex(2).product(Simplex(2)))
             6
             sage: Simplex(1).product(Simplex(1))
+            [('L0R0', 'L0R1', 'L1R1'), ('L0R0', 'L1R0', 'L1R1')]
+            sage: Simplex(1).product(Simplex(1), rename_vertices=False)
             [((0, 0), (0, 1), (1, 1)), ((0, 0), (1, 0), (1, 1))]
 
         REFERENCES:
@@ -484,16 +582,20 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex([0,1,2]) == Simplex([0,2,1])
             True
             sage: Simplex([0,1,2]) == Simplex(['a','b','c'])
             False
+            sage: Simplex([1]) < Simplex([2])
+            True
+            sage: Simplex([1]) > Simplex([2])
+            False
         """
-        if not isinstance(other, Simplex) or self.__set != other.__set:
+        if not isinstance(other, Simplex):
             return -1
-        else:
+        if self.__set == other.__set:
             return 0
+        return cmp(sorted(tuple(self.__set)), sorted(tuple(other.__set)))
 
     def __hash__(self):
         """
@@ -503,7 +605,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex([1,2,0]).__hash__() == Simplex(2).__hash__()
             True
             sage: Simplex([1,2,0,1,1,2]).__hash__() == Simplex(2).__hash__()
@@ -517,7 +618,6 @@ class Simplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: S = Simplex(5)
             sage: S._repr_()
             '(0, 1, 2, 3, 4, 5)'
@@ -525,12 +625,11 @@ class Simplex(SageObject):
         return self.__tuple.__repr__()
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: Simplex(3)._latex_()
             \left(0,
             1,
@@ -540,8 +639,8 @@ class Simplex(SageObject):
         return latex(self.__tuple)
 
 
-class SimplicialComplex(SageObject):
-    """
+class SimplicialComplex(GenericCellComplex):
+    r"""
     Define a simplicial complex.
 
     :param vertex_set: set of vertices
@@ -563,7 +662,8 @@ class SimplicialComplex(SageObject):
 
     ``maximal_faces`` should be a list or tuple or set (indeed,
     anything which may be converted to a set) whose elements are lists
-    (or tuples, etc.) of vertices.
+    (or tuples, etc.) of vertices.  Maximal faces are also known as
+    'facets'.
 
     If ``vertex_check`` is True, check to see that each given maximal
     face is a subset of the vertex set. Raise an error for any bad
@@ -603,6 +703,19 @@ class SimplicialComplex(SageObject):
         sage: S = SimplicialComplex(['a', 'b', 'c'], (('a', 'b'), ('a', 'c'), ('b', 'c')))
         sage: S
         Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
+
+    You can also omit the ``vertex_set`` argument -- if the first
+    argument is a list of lists (or anything similar -- something
+    which looks like it should be ``maximal_faces``), then it is used
+    for ``maximal_faces``, and the set of vertices is deduced from the
+    vertices used therein::
+
+        sage: SimplicialComplex([[0,2], [0,3], [0,6]])
+        Simplicial complex with vertex set (0, 2, 3, 6) and facets {(0, 6), (0, 2), (0, 3)}
+
+    TESTS::
+
+        sage: S = SimplicialComplex(['a', 'b', 'c'], (('a', 'b'), ('a', 'c'), ('b', 'c')))
         sage: S == loads(dumps(S))
         True
         """
@@ -618,24 +731,23 @@ class SimplicialComplex(SageObject):
             sage: SimplicialComplex(['a', 'b', 'c'], (('a', 'b'), ('a', 'c'), ('b', 'c')))
             Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
         """
+        from sage.misc.misc import union
         # process kwds
-        if 'sort_facets' in kwds:
-            sort_facets = kwds['sort_facets']
-        else:
-            sort_facets = True
-        if 'vertex_check' in kwds:
-            vertex_check = kwds['vertex_check']
-        else:
-            vertex_check = True
-        if 'maximality_check' in kwds:
-            maximality_check = kwds['maximality_check']
-        else:
-            maximality_check = True
-        if 'name_check' in kwds:
-            name_check = kwds['name_check']
-        else:
-            name_check = False
+        sort_facets = kwds.get('sort_facets', True)
+        vertex_check = kwds.get('vertex_check', True)
+        maximality_check = kwds.get('maximality_check', True)
+        name_check = kwds.get('name_check', False)
         # done with kwds
+        #
+        # if there are no maximal faces, perhaps the vertex_set was
+        # omitted.  Check to see if it is a list (or tuple) of lists
+        # (or tuples or simplices) , and if so, use that for
+        # 'maximal_faces', and use the union of all of the vertices for
+        # 'vertex_set'.
+        if maximal_faces == []:
+            if isinstance(vertex_set, (list, tuple)) and isinstance(vertex_set[0], (list, tuple, Simplex)):
+                maximal_faces = vertex_set
+                vertex_set = reduce(union, vertex_set)
         if sort_facets:
             try:  # vertex_set is an iterable
                 vertices = Simplex(sorted(vertex_set))
@@ -698,7 +810,7 @@ class SimplicialComplex(SageObject):
         # self._gen_dict: dictionary of names for the polynomial
         # generators of the Stanley-Reisner ring
         self._gen_dict = gen_dict
-        # self._complex: dictionary indexed by dimension d, base_ring,
+        # self._complex: dictionary indexed by dimension d, subcomplex,
         # etc.: differential from dim d to dim d-1 in the associated
         # chain complex.  thus to get the differential in the cochain
         # complex from dim d-1 to dim d, take the transpose of this
@@ -713,6 +825,16 @@ class SimplicialComplex(SageObject):
         self.__enlarged = {}
         # initialize self._graph to None.
         self._graph = None
+        # in self._numeric, record whether vertices are integers or
+        # something else.  if something else, in
+        # self._numeric_translation, store a tuple of pairs for
+        # translating them back and forth.
+        numeric = all([isinstance(v, (int, Integer, long)) for v in vertices])
+        d = None
+        if not numeric:
+            d = zip(vertices, range(len(tuple(vertices))))
+        self._numeric = numeric
+        self._numeric_translation = d
 
     def __cmp__(self,right):
         """
@@ -804,7 +926,8 @@ class SimplicialComplex(SageObject):
             Faces = {}
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
-            for i in range(-1,self.dimension()+1):
+            dimension = max([face.dimension() for face in self._facets])
+            for i in range(-1,dimension+1):
                 Faces[i] = set([])
                 sub_facets[i] = set([])
             for f in self._facets:
@@ -817,8 +940,8 @@ class SimplicialComplex(SageObject):
                     sub_facets[dim].add(g)
             # bad_faces is the set of faces in the subcomplex in the
             # current dimension
-            bad_faces = sub_facets[self.dimension()]
-            for dim in range(self.dimension(), -1, -1):
+            bad_faces = sub_facets[dimension]
+            for dim in range(dimension, -1, -1):
                 # bad_bdries = boundaries of bad_faces: things to be
                 # discarded in dim-1
                 bad_bdries = sub_facets[dim-1]
@@ -830,24 +953,11 @@ class SimplicialComplex(SageObject):
             self._faces[subcomplex] = Faces
         return self._faces[subcomplex]
 
-    def _flattened_faces(self):
-        """
-        The faces of this simplicial complex, as a list.  (Flattened
-        from the dictionary returned by the ``faces`` method.)
-
-        EXAMPLES::
-
-            sage: Y = SimplicialComplex(5, [[1,2], [1,4]])
-            sage: Y.faces()
-            {0: set([(4,), (2,), (1,)]), 1: set([(1, 2), (1, 4)]), -1: set([()])}
-            sage: Y._flattened_faces()
-            [(4,), (2,), (1,), (1, 2), (1, 4), ()]
-        """
-        return flatten([list(f) for f in self.faces().values()])
+    cells = faces
 
     def n_faces(self, n, subcomplex=None):
         """
-        The set of faces of dimension n of this simplicial complex.
+        The set of simplices of dimension n of this simplicial complex.
         If the optional argument ``subcomplex`` is present, then
         return the ``n``-dimensional faces which are *not* in the
         subcomplex.
@@ -869,87 +979,11 @@ class SimplicialComplex(SageObject):
             sage: K = SimplicialComplex(S, [[1,2,3], [2,3,4]])
             sage: Z.n_faces(2, subcomplex=K)
             set([(1, 3, 4), (1, 2, 4)])
-            """
+        """
         if n in self.faces(subcomplex):
             return self.faces(subcomplex)[n]
         else:
             return set([])
-
-    def f_vector(self):
-        """
-        The `f`-vector of this simplicial complex: a list whose
-        `n^{th}` item is the number of `(n-1)`-faces.  Note that, like
-        all lists in Sage, this is indexed starting at 0: the 0th
-        element in this list is the number of -1 faces.
-
-        EXAMPLES::
-
-            sage: S = Set(range(1,5))
-            sage: Z = SimplicialComplex(S, S.subsets()); Z
-            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
-            sage: Z.f_vector()
-            [1, 4, 6, 4, 1]
-            sage: Y = SimplicialComplex(5, [[1,2], [1,4]])
-            sage: Y.f_vector()[2]
-            2
-        """
-        return [self._f_dict()[n] for n in range(-1, self.dimension()+1)]
-
-    def _f_dict(self):
-        """
-        The `f`-vector of this simplicial complex as a dictionary: the
-        item associated to an integer `n` is the number of the
-        `n`-faces.
-
-        EXAMPLES::
-
-            sage: S = Set(range(1,5))
-            sage: Z = SimplicialComplex(S, S.subsets()); Z
-            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
-            sage: [Z._f_dict()[n] for n in range(-1, 4)]
-            [1, 4, 6, 4, 1]
-            sage: Y = SimplicialComplex(5, [[1,2], [1,4]])
-            sage: Y._f_dict()[1]
-            2
-        """
-        answer = {}
-        answer[-1] = 1
-        for n in range(self.dimension() + 1):
-            answer[n] = len(self.n_faces(n))
-        return answer
-
-    def euler_characteristic(self):
-        r"""
-        The Euler characteristic of this simplicial complex: the
-        alternating sum over `n \geq 0` of the number of
-        `n`-simplices.
-
-        EXAMPLES::
-
-            sage: Y = SimplicialComplex(5, [[1,2], [1,4]])
-            sage: Y.euler_characteristic()
-            1
-            sage: X = SimplicialComplex(3, [[0,1], [0,2], [1,2]])
-            sage: X.euler_characteristic()
-            0
-        """
-        return sum([(-1)**n * len(self.n_faces(n)) for n in range(self.dimension() + 1)])
-
-    def dimension(self):
-        """
-        The dimension of this simplicial complex: the maximum
-        dimension of its faces.
-
-        EXAMPLES::
-
-            sage: U = SimplicialComplex(5, [[1,2], [1, 3, 4]])
-            sage: U.dimension()
-            2
-            sage: X = SimplicialComplex(3, [[0,1], [0,2], [1,2]])
-            sage: X.dimension()
-            1
-        """
-        return max([face.dimension() for face in self._facets])
 
     def is_pure(self):
         """
@@ -1084,6 +1118,7 @@ class SimplicialComplex(SageObject):
                 facets.append(f.join(g, rename_vertices))
         return SimplicialComplex(vertex_set, facets)
 
+    # Use * to mean 'join':
     __mul__ = join
 
     def cone(self):
@@ -1117,7 +1152,7 @@ class SimplicialComplex(SageObject):
         new vertices `S_0` and `S_1` and simplices of the form `[S_0,
         v_0, ..., v_k]` and `[S_1, v_0, ..., v_k]` for every simplex
         `[v_0, ..., v_k]` in the original simplicial complex.  That
-        is, the cone is the join of the original complex with a
+        is, the suspension is the join of the original complex with a
         two-point simplicial complex.
 
         EXAMPLES::
@@ -1138,9 +1173,98 @@ class SimplicialComplex(SageObject):
                              rename_vertices = True)
         return self.suspension().suspension(int(n-1))
 
-    def chain_complex(self, dimensions=None, base_ring=ZZ, subcomplex=None,
-                      augmented=False, cochain=False, verbose=False,
-                      check_diffs=False):
+    def disjoint_union(self, right, rename_vertices=True):
+        """
+        The disjoint union of this simplicial complex with another one.
+
+        :param right: the other simplicial complex (the right-hand factor)
+
+        :param rename_vertices: If this is True, the vertices in the
+           disjoint union will be renamed by the formula: vertex "v"
+           in the left-hand factor --> vertex "Lv" in the disjoint
+           union, vertex "w" in the right-hand factor --> vertex "Rw"
+           in the disjoint union.  If this is false, this tries to
+           construct the disjoint union without renaming the vertices;
+           this will cause problems if the two factors have any
+           vertices with names in common.
+
+        :type rename_vertices: boolean; optional, default True
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: S1.disjoint_union(S2).homology()
+            {0: Z, 1: Z, 2: Z}
+        """
+        if rename_vertices:
+            vertex_set = (["L" + str(v) for v in self.vertices()]
+                          + ["R" + str(w) for w in right.vertices()])
+        else:
+            vertex_set = tuple(self._vertex_set) + tuple(right.vertices())
+        facets = []
+        for f in self._facets:
+            facets.append(tuple(["L" + str(v) for v in f]))
+        for f in right._facets:
+            facets.append(tuple(["R" + str(v) for v in f]))
+        return SimplicialComplex(vertex_set, facets)
+
+    def wedge(self, right, rename_vertices=True):
+        """
+        The wedge (one-point union) of this simplicial complex with
+        another one.
+
+        :param right: the other simplicial complex (the right-hand factor)
+
+        :param rename_vertices: If this is True, the vertices in the
+           wedge will be renamed by the formula: first vertex in each
+           are glued together and called "0".  Otherwise, each vertex
+           "v" in the left-hand factor --> vertex "Lv" in the wedge,
+           vertex "w" in the right-hand factor --> vertex "Rw" in the
+           wedge.  If this is false, this tries to construct the wedge
+           without renaming the vertices; this will cause problems if
+           the two factors have any vertices with names in common.
+
+        :type rename_vertices: boolean; optional, default True
+
+        .. note::
+
+            This operation is not well-defined if ``self`` or
+            ``other`` is not path-connected.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: S1.wedge(S2).homology()
+            {0: 0, 1: Z, 2: Z}
+        """
+        left_vertices = list(self.vertices())
+        left_0 = left_vertices.pop(0)
+        right_vertices = list(right.vertices())
+        right_0 = right_vertices.pop(0)
+        left_dict = {left_0: 0}
+        right_dict = {right_0: 0}
+        if rename_vertices:
+            vertex_set = ([0] + ["L" + str(v) for v in left_vertices]
+                          + ["R" + str(w) for w in right_vertices])
+            for v in left_vertices:
+                left_dict[v] = "L" + str(v)
+            for v in right_vertices:
+                right_dict[v] = "R" + str(v)
+        else:
+            vertex_set = (0,) + tuple(left_vertices) + tuple(right_vertices)
+        if rename_vertices:
+            facets = []
+            for f in self._facets:
+                facets.append(tuple([left_dict[v] for v in f]))
+            for f in right._facets:
+                facets.append(tuple([right_dict[v] for v in f]))
+        else:
+            facets = self._facets + right._facets
+        return SimplicialComplex(vertex_set, facets)
+
+    def chain_complex(self, **kwds):
         """
         The chain complex associated to this simplicial complex.
 
@@ -1185,6 +1309,14 @@ class SimplicialComplex(SageObject):
             sage: circle.chain_complex(base_ring=QQ, augmented=True)
             Chain complex with at most 3 nonzero terms over Rational Field
         """
+        augmented = kwds.get('augmented', False)
+        cochain = kwds.get('cochain', False)
+        verbose = kwds.get('verbose', False)
+        check_diffs = kwds.get('check_diffs', False)
+        base_ring = kwds.get('base_ring', ZZ)
+        dimensions = kwds.get('dimensions', None)
+        subcomplex = kwds.get('subcomplex', None)
+
         # initialize subcomplex
         if subcomplex is None:
             subcomplex = SimplicialComplex(self.vertices())
@@ -1283,15 +1415,11 @@ class SimplicialComplex(SageObject):
             differentials[n-1] = matrix(base_ring, 0, len(current))
         # finally, return the chain complex
         if cochain:
-            return ChainComplex(data=differentials, base_ring=base_ring,
-                                degree=1, check_products=check_diffs)
+            return ChainComplex(data=differentials, degree=1, **kwds)
         else:
-            return ChainComplex(data=differentials, base_ring=base_ring,
-                                degree=-1, check_products=check_diffs)
+            return ChainComplex(data=differentials, degree=-1, **kwds)
 
-    def homology(self, dim=None, base_ring=ZZ, subcomplex=None,
-                 cohomology=False, enlarge=True, algorithm='auto',
-                 verbose=False):
+    def _homology_(self, dim=None, **kwds):
         """
         The reduced homology of this simplicial complex.
 
@@ -1323,13 +1451,17 @@ class SimplicialComplex(SageObject):
 
         :type enlarge: boolean; optional, default True
 
-        :param algorithm: This only has an effect if working over the
-           integers.  If 'dhsw', then preprocess each boundary matrix
-           using the Dumas, Heckenbach, Saunders, and Welker
-           elimination algorithm.  If 'pari', then compute elementary
-           divisors using Pari.  If 'linbox', then use LinBox.  If
-           'auto', then use 'dhsw' for large matrices and Pari for
-           small ones.
+        :param algorithm: The options are 'auto', 'dhsw', 'pari' or
+           'no_chomp'.  If 'auto', first try CHomP, then use the
+           Dumas, Heckenbach, Saunders, and Welker elimination
+           algorithm for large matrices, Pari for small ones.  If
+           'no_chomp', then don't try CHomP, but behave the same
+           otherwise.  If 'pari', then compute elementary divisors
+           using Pari.  If 'dhsw', then use the DHSW algorithm to
+           compute elementary divisors.  (As of this writing, CHomP is
+           by far the fastest option, followed by the 'auto' or
+           'no_chomp' setting of using DHSW for large matrices and
+           Pari for small ones.)
 
         :type algorithm: string; optional, default 'auto'
 
@@ -1349,31 +1481,38 @@ class SimplicialComplex(SageObject):
         EXAMPLES::
 
             sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
-            sage: circle.homology()
+            sage: circle._homology_()
             {0: 0, 1: Z}
             sage: sphere = SimplicialComplex(3, [[0,1,2,3]])
             sage: sphere.remove_face([0,1,2,3])
             sage: sphere
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-            sage: sphere.homology()
+            sage: sphere._homology_()
             {0: 0, 1: 0, 2: Z}
 
         Another way to get a two-sphere: take a two-point space and take its
         three-fold join with itself::
 
             sage: S = SimplicialComplex(1, [[0], [1]])
-            sage: (S*S*S).homology(dim=2, cohomology=True)
+            sage: (S*S*S)._homology_(dim=2, cohomology=True)
             Z
 
         Relative homology::
 
             sage: T = SimplicialComplex(2, [[0,1,2]])
             sage: U = SimplicialComplex(2, [[0,1], [1,2], [0,2]])
-            sage: T.homology(subcomplex=U)
+            sage: T._homology_(subcomplex=U)
             {0: 0, 1: 0, 2: Z}
         """
-        if not (base_ring.is_field() or base_ring == ZZ):
-            raise NotImplementedError, "Can't compute homology if the base ring is not the integers or a field."
+        from sage.modules.all import VectorSpace
+        from sage.homology.chain_complex import HomologyGroup
+
+        base_ring = kwds.get('base_ring', ZZ)
+        cohomology = kwds.get('cohomology', False)
+        enlarge = kwds.get('enlarge', True)
+        verbose = kwds.get('verbose', False)
+        subcomplex = kwds.get('subcomplex', None)
+
         if dim is not None:
             if isinstance(dim, (list, tuple)):
                 low = min(dim) - 1
@@ -1384,6 +1523,7 @@ class SimplicialComplex(SageObject):
             dims = range(low, high)
         else:
             dims = None
+
         if verbose:
             print "starting calculation of the homology of this",
             print "%s-dimensional simplicial complex" % self.dimension()
@@ -1410,13 +1550,15 @@ class SimplicialComplex(SageObject):
                 L = subcomplex
         if verbose:
             print "Computing the chain complex..."
-        C = self.chain_complex(base_ring=base_ring, subcomplex=L,
-                               dimensions=dims, augmented=True,
-                               cochain=cohomology, verbose=verbose)
+        kwds['subcomplex']=L
+        C = self.chain_complex(dimensions=dims, augmented=True,
+                               cochain=cohomology, **kwds)
         if verbose:
             print " Done computing the chain complex. "
             print "Now computing homology..."
-        answer = C.homology(algorithm=algorithm, verbose=verbose)
+        if 'subcomplex' in kwds:
+            del kwds['subcomplex']
+        answer = C.homology(**kwds)
         if isinstance(answer, dict):
             if cohomology:
                 too_big = self.dimension() + 1
@@ -1435,125 +1577,11 @@ class SimplicialComplex(SageObject):
                         temp[n] = answer[n]
                     answer = temp
                 else:  # just a single dimension
-                    answer = answer[dim]
+                    if base_ring == ZZ:
+                        answer = answer.get(dim, HomologyGroup(0))
+                    else:
+                        answer = answer.get(dim, VectorSpace(base_ring, 0))
         return answer
-
-    def cohomology(self, dim=None, base_ring=ZZ, subcomplex=None,
-                   enlarge=True, algorithm='auto', verbose=False):
-        """
-        The reduced cohomology of this simplicial complex.
-
-        :param dim: If None, then return the cohomology in every
-           dimension.  If ``dim`` is an integer or list, return the
-           cohomology in the given dimensions.  (Actually, if ``dim`` is
-           a list, return the cohomology in the range from ``min(dim)``
-           to ``max(dim)``.)
-
-        :type dim: integer or list of integers or None; optional,
-                   default None
-
-        :param base_ring: commutative ring. Must be ZZ or a field.
-
-        :type base_ring: optional, default ZZ
-
-        :param subcomplex: a subcomplex of this simplicial complex.
-           Compute cohomology relative to this subcomplex.
-
-        :type subcomplex: optional, default None
-
-        :param enlarge: If True, find a new subcomplex homotopy
-           equivalent to, and probably larger than, the given one.
-
-        :type enlarge: boolean; optional, default True
-
-        :param algorithm: This only has an effect if working over the
-           integers.  If 'dhsw', then preprocess each boundary matrix
-           using the Dumas, Heckenbach, Saunders, and Welker
-           elimination algorithm.  If 'pari', then compute elementary
-           divisors using Pari.  If 'linbox', then use LinBox.  If
-           'auto', then use 'dhsw' for large matrices and Pari for
-           small ones.
-
-        :type algorithm: string; optional, default 'auto'
-
-        :param verbose: If True, print some messages as the cohomology
-           is computed.
-
-        :type verbose: boolean; optional, default False
-
-        EXAMPLES::
-
-            sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
-            sage: circle.cohomology()
-            {0: 0, 1: Z}
-            sage: P2 = SimplicialComplex(5, [[0,1,2], [0,2,3], [0,1,5], [0,4,5], [0,3,4], [1,2,4], [1,3,4], [1,3,5], [2,3,5], [2,4,5]])   # projective plane
-            sage: P2.cohomology()
-            {0: 0, 1: 0, 2: C2}
-            sage: P2.cohomology(base_ring=GF(2))
-            {0: Vector space of dimension 0 over Finite Field of size 2,
-            1: Vector space of dimension 1 over Finite Field of size 2,
-            2: Vector space of dimension 1 over Finite Field of size 2}
-            sage: P2.cohomology(base_ring=GF(3))
-            {0: Vector space of dimension 0 over Finite Field of size 3,
-            1: Vector space of dimension 0 over Finite Field of size 3,
-            2: Vector space of dimension 0 over Finite Field of size 3}
-
-        Relative cohomology::
-
-            sage: T = SimplicialComplex(1, [[0,1]])
-            sage: U = SimplicialComplex(1, [[0], [1]])
-            sage: T.cohomology(subcomplex=U)
-            {0: 0, 1: Z}
-        """
-        return self.homology(dim=dim, base_ring=base_ring,
-                             subcomplex=subcomplex,
-                             cohomology=True, enlarge=enlarge,
-                             algorithm=algorithm, verbose=verbose)
-
-    def betti(self, dim=None, subcomplex=None):
-        """
-        The Betti numbers of this simplicial complex as a dictionary
-        (or a single Betti number, if only one dimension is given):
-        the ith Betti number is the rank of the ith homology group.
-
-        :param dim: If None, then return every Betti number, as a
-           dictionary with keys the non-negative integers.  If ``dim``
-           is an integer or list, return the Betti number for each
-           given dimension.  (Actually, if ``dim`` is a list, return
-           the Betti numbers, as a dictionary, in the range from
-           ``min(dim)`` to ``max(dim)``.  If ``dim`` is a number,
-           return the Betti number in that dimension.)
-
-        :type dim: integer or list of integers or None; optional,
-           default None
-
-        :param subcomplex: a subcomplex of this simplicial complex.
-           Compute the Betti numbers of the homology relative to this
-           subcomplex.
-
-        :type subcomplex: optional, default None
-
-        EXAMPLES: Build the two-sphere as a three-fold join of a
-        two-point space with itself::
-
-            sage: S = SimplicialComplex(1, [[0], [1]])
-            sage: (S*S*S).betti()
-            {0: 1, 1: 0, 2: 1}
-            sage: (S*S*S).betti([1,2])
-            {1: 0, 2: 1}
-            sage: (S*S*S).betti(2)
-            1
-        """
-        dict = {}
-        H = self.homology(dim, base_ring=QQ, subcomplex=subcomplex)
-        try:
-            for n in H.keys():
-                dict[n] = H[n].dimension()
-                if n == 0:
-                    dict[n] += 1
-            return dict
-        except AttributeError:
-            return H.dimension()
 
     def add_face(self, face):
         """
@@ -1687,6 +1715,70 @@ class SimplicialComplex(SageObject):
                     self._graph.delete_vertex(face[0])
             return None
 
+    def connected_sum(self, other):
+        """
+        The connected sum of this simplicial complex with another one.
+
+        :param other: another simplicial complex
+        :return: the connected sum ``self # other``
+
+        .. warning::
+
+           This does not check that self and other are manifolds, only
+           that their facets all have the same dimension.  Since a
+           (more or less) random facet is chosen from each complex and
+           then glued together, this method may return random
+           results if applied to non-manifolds, depending on which
+           facet is chosen.
+
+        Algorithm: a facet is chosen from each surface, and removed.
+        The vertices of these two facets are relabeled to
+        ``(0,1,...,dim)``.  Of the remaining vertices, the ones from
+        the left-hand factor are renamed by prepending an "L", and
+        similarly the remaining vertices in the right-hand factor are
+        renamed by prepending an "R".
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S1.connected_sum(S1.connected_sum(S1)).homology()
+            {0: 0, 1: Z}
+            sage: P = simplicial_complexes.RealProjectivePlane(); P
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
+            sage: P.connected_sum(P)    # the Klein bottle
+            Simplicial complex with 9 vertices and 18 facets
+
+        The notation '+' may be used for connected sum, also::
+
+            sage: P + P    # the Klein bottle
+            Simplicial complex with 9 vertices and 18 facets
+            sage: (P + P).homology()[1]
+            Z x C2
+        """
+        if not (self.is_pure() and other.is_pure() and
+                self.dimension() == other.dimension()):
+            raise ValueError, "Complexes are not pure of the same dimension."
+        # first find a top-dimensional simplex to remove from each surface
+        keep_left = self._facets[0]
+        keep_right = other._facets[0]
+        dim = self.dimension()
+        # construct the set of vertices:
+        left = set(self.vertices()).difference(set(keep_left))
+        right = set(other.vertices()).difference(set(keep_right))
+        vertex_set = (range(dim+1) + ["L" + str(v) for v in left]
+                      + ["R" + str(v) for v in right])
+        # construct the set of facets:
+        left = set(self._facets).difference(set([keep_left]))
+        right = set(other._facets).difference(set([keep_right]))
+        facet_set = ([[rename_vertex(v, keep=list(keep_left))
+                       for v in face] for face in left]
+                     + [[rename_vertex(v, keep=list(keep_right), left=False)
+                         for v in face] for face in right])
+        # return the new surface
+        return SimplicialComplex(vertex_set, facet_set)
+
+    __add__ = connected_sum
+
     def link(self, simplex):
         """
         The link of a simplex in this simplicial complex.
@@ -1700,7 +1792,6 @@ class SimplicialComplex(SageObject):
         EXAMPLES::
 
             sage: X = SimplicialComplex(4, [[0,1,2], [1,2,3]])
-            sage: from sage.homology.simplicial_complex import Simplex
             sage: X.link(Simplex([0]))
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 2)}
             sage: X.link([1,2])
@@ -1998,32 +2089,6 @@ class SimplicialComplex(SageObject):
         nonfaces = self.minimal_nonfaces()
         return SimplicialComplex(self.vertices(), [self._complement(f) for f in nonfaces])
 
-    def face_poset(self):
-        """
-        The face poset of this simplicial complex, the poset of
-        nonempty faces, ordered by inclusion.
-
-        EXAMPLES::
-
-            sage: P = SimplicialComplex(3, [[0, 1], [1,2], [2,3]]).face_poset(); P
-            Finite poset containing 7 elements
-            sage: P.list()
-            [(3,), (2,), (2, 3), (1,), (0,), (1, 2), (0, 1)]
-        """
-        from sage.combinat.posets.posets import Poset
-        covers = {}
-        # The code for posets seems to work better if the elements are
-        # from the class tuple instead of Simplex; thus each face is
-        # converted to a tuple here.
-        for simplex in self._flattened_faces():
-            if not simplex.is_empty():
-                covers[tuple(simplex)] = []
-        for simplex in self._flattened_faces():
-            for face in simplex.faces():
-                if not face.is_empty():
-                    covers[tuple(face)].append(tuple(simplex))
-        return Poset(covers)
-
     def barycentric_subdivision(self):
         """
         The barycentric subdivision of this simplicial complex.
@@ -2096,6 +2161,41 @@ class SimplicialComplex(SageObject):
                     d[v] = []
             self._graph = Graph(d)
         return self._graph
+
+    def delta_complex(self, sort_simplices=False):
+        r"""
+        Returns ``self`` as a `\Delta`-complex.  The `\Delta`-complex
+        is essentially identical to the simplicial complex: it has
+        same simplices with the same boundaries.
+
+        :param sort_simplices: if True, sort the list of simplices in
+          each dimension
+        :type sort_simplices: boolean; optional, default False
+
+        EXAMPLES::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: Td = T.delta_complex()
+            sage: Td
+            Delta complex with 7 vertices and 43 simplices
+            sage: T.homology() == Td.homology()
+            True
+        """
+        from delta_complex import DeltaComplex
+        data = {}
+        dim = self.dimension()
+        n_cells = self.n_cells(dim)
+        if sort_simplices:
+            n_cells.sort()
+        for n in range(dim, -1, -1):
+            bdries = self.n_cells(n-1)
+            if sort_simplices:
+                bdries.sort()
+            data[n] = []
+            for f in n_cells:
+                data[n].append([bdries.index(f.face(i)) for i in range(n+1)])
+            n_cells = bdries
+        return DeltaComplex(data)
 
     def is_flag_complex(self):
         """
@@ -2247,7 +2347,7 @@ class SimplicialComplex(SageObject):
             sage: T = simplicial_complexes.Torus(); T
             Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
 
-        Inside the torus, define a subcomplex consisting of a loop:
+        Inside the torus, define a subcomplex consisting of a loop::
 
             sage: S = SimplicialComplex(T.vertices(), [[0,1], [1,2], [0,2]])
             sage: S.homology()
@@ -2257,8 +2357,8 @@ class SimplicialComplex(SageObject):
             Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 8 facets
             sage: L.facets()
             {(0, 1, 5), (1, 3, 6), (1, 2), (1, 2, 4), (1, 3, 4), (0, 2), (1, 5, 6), (0, 1)}
-            sage: L.homology()
-            {0: 0, 1: Z, 2: 0}
+            sage: L.homology()[1]
+            Z
         """
         if subcomplex in self.__enlarged:
             return self.__enlarged[subcomplex]
@@ -2326,7 +2426,46 @@ class SimplicialComplex(SageObject):
         from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
         return SimplicialComplexHomset(self, other)
 
+    def _chomp_repr_(self):
+        r"""
+        String representation of self suitable for use by the CHomP
+        program.  This lists each facet on its own line, and makes
+        sure vertices are listed as numbers.
 
+        EXAMPLES::
+
+            sage: S = SimplicialComplex([(0,1,2), (2,3,5)])
+            sage: print S._chomp_repr_()
+            (2, 3, 5)
+            (0, 1, 2)
+
+        A simplicial complex whose vertices are tuples, not integers::
+
+        ::
+
+            sage: S = SimplicialComplex([[(0,1), (1,2), (3,4)]])
+            sage: S._chomp_repr_()
+            '(0, 1, 2)\n'
+        """
+        s = ""
+        if not self._numeric:
+            d = dict(self._numeric_translation)
+        for f in self.facets():
+            if self._numeric:
+                s += str(f)
+            else:
+                f_str = "("
+                for a in f:
+                    f_str += str(d[a])
+                    f_str += ", "
+                f_str = f_str.replace("'", "")
+                f_str = f_str.replace('"', "")
+                s += f_str.rstrip(", ") + ")"
+            s += "\n"
+        return s
+
+    # this function overrides the standard one for GenericCellComplex,
+    # because it lists the maximal faces, not the total number of faces.
     def _repr_(self):
         """
         Print representation. If there are only a few vertices or

@@ -249,14 +249,27 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         (1, -4)
         sage: rational_power_parts(9/1000, 1/2)
         (3/10, 1/10)
+
+    TESTS:
+
+    Check if #8540 is fixed::
+
+        sage: rational_power_parts(3/4, -1/2)
+        (2, 3)
+        sage: t = (3/4)^(-1/2); t
+        2/3*sqrt(3)
+        sage: t^2
+        4/3
     """
+    b_negative=False
     if b < 0:
+        b_negative = True
         b = -b
         a = ~a
     if isinstance(a, Rational):
         c1, d1 = rational_power_parts(a.numerator(), b)
         c2, d2 = rational_power_parts(a.denominator(), b)
-        return c1/c2, d1/d2
+        return (c1/c2, d1/d2) if not b_negative else (c1/c2, d2/d1)
     elif not isinstance(a, Integer):
         a = Integer(a)
     c = integer_rational_power(a, b)
@@ -274,7 +287,7 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         d *= p**(e % denom)
     if a < 0 and numer & 1:
         d = -d
-    return c, d
+    return (c, d) if not b_negative else (c, ~d)
 
 
 cdef class Rational(sage.structure.element.FieldElement):

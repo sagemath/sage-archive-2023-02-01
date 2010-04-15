@@ -1,4 +1,11 @@
+r"""
+Generic graphs
 
+This module implements the base class for graphs and digraphs.
+
+Class and methods
+-----------------
+"""
 
 from sage.plot.misc import options
 from sage.misc.prandom import random
@@ -4038,7 +4045,7 @@ class GenericGraph(GenericGraph_pyx):
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
 
-    def edge_connectivity(self,value_only=True,use_edge_labels=True, vertices=False):
+    def edge_connectivity(self,value_only=True,use_edge_labels=False, vertices=False):
         r"""
         Returns the edge connectivity of the graph
         ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
@@ -4069,7 +4076,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLE:
 
-        A basic application on the PappusGraph()
+        A basic application on the PappusGraph::
 
            sage: g = graphs.PappusGraph()
            sage: g.edge_connectivity() # optional - requires Glpk or COIN-OR/CBC
@@ -4106,10 +4113,33 @@ class GenericGraph(GenericGraph_pyx):
            sage: tree.add_edges(g.min_spanning_tree())
            sage: for u,v in tree.edge_iterator(labels=None):
            ...        tree.set_edge_label(u,v,random())
-           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                 # optional - requires Glpk or COIN-OR/CBC
-           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False)        # optional - requires Glpk or COIN-OR/CBC
-           sage: l == minimum                                                         # optional - requires Glpk or COIN-OR/CBC
+           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                                       # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)        # optional - requires Glpk or COIN-OR/CBC
+           sage: l == minimum                                                                               # optional - requires Glpk or COIN-OR/CBC
            True
+
+        When ``value_only = True``, this function is optimized for small
+        connexity values and does not need to build a linear program.
+
+        It is the case for connected graphs which are not
+        connected ::
+
+           sage: g = 2 * graphs.PetersenGraph()
+           sage: g.edge_connectivity()
+           0.0
+
+        Or if they are just 1-connected ::
+
+           sage: g = graphs.PathGraph(10)
+           sage: g.edge_connectivity()
+           1.0
+
+        For directed graphs, the strong connexity is tested
+        through the dedicated function ::
+
+           sage: g = digraphs.ButterflyGraph(3)
+           sage: g.edge_connectivity()
+           0.0
         """
         g=self
 
@@ -4120,6 +4150,24 @@ class GenericGraph(GenericGraph_pyx):
             weight=lambda x: 1 if x==None else x
         else:
             weight=lambda x: 1
+
+
+        # Better methods for small connectivity tests,
+        # when one is not interested in cuts...
+        if value_only and not use_edge_labels:
+
+            if self.is_directed():
+                if not self.is_strongly_connected():
+                    return 0.0
+
+            else:
+                if not self.is_connected():
+                    return 0.0
+
+                h = self.strong_orientation()
+                if not h.is_strongly_connected():
+                    return 1.0
+
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -4160,7 +4208,7 @@ class GenericGraph(GenericGraph_pyx):
         p.set_binary(in_set)
         p.set_binary(in_cut)
 
-        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
+        p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l) in g.edge_iterator()]))
 
         if value_only:
             return p.solve(objective_only=True)
@@ -4236,6 +4284,30 @@ class GenericGraph(GenericGraph_pyx):
            sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False) # optional - requires Glpk or COIN-OR/CBC
            sage: tree.degree(cut_vertex) > 1                                      # optional - requires Glpk or COIN-OR/CBC
            True
+
+        When ``value_only = True``, this function is optimized for small
+        connexity values and does not need to build a linear program.
+
+        It is the case for connected graphs which are not
+        connected ::
+
+           sage: g = 2 * graphs.PetersenGraph()
+           sage: g.vertex_connectivity()
+           0.0
+
+        Or if they are just 1-connected ::
+
+           sage: g = graphs.PathGraph(10)
+           sage: g.vertex_connectivity()
+           1.0
+
+        For directed graphs, the strong connexity is tested
+        through the dedicated function ::
+
+           sage: g = digraphs.ButterflyGraph(3)
+           sage: g.vertex_connectivity()
+           0.0
+
         """
         g=self
 
@@ -4244,6 +4316,19 @@ class GenericGraph(GenericGraph_pyx):
 
         if sets:
             value_only=False
+
+        if value_only:
+            if self.is_directed():
+                if not self.is_strongly_connected():
+                    return 0.0
+
+            else:
+                if not self.is_connected():
+                    return 0.0
+
+                if len(self.blocks_and_cut_vertices()[0]) > 1:
+                    return 1.0
+
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -6763,6 +6848,44 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.shortest_path_length(u, v)
 
+    def distance_all_pairs(self):
+        r"""
+        Returns the distances between all pairs of vertices.
+
+        OUTPUT:
+
+        A doubly indexed dictionary
+
+        EXAMPLE:
+
+        The Petersen Graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: print g.distance_all_pairs()
+            {0: {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}, 1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 2, 5: 2, 6: 1, 7: 2, 8: 2, 9: 2}, 2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 2, 5: 2, 6: 2, 7: 1, 8: 2, 9: 2}, 3: {0: 2, 1: 2, 2: 1, 3: 0, 4: 1, 5: 2, 6: 2, 7: 2, 8: 1, 9: 2}, 4: {0: 1, 1: 2, 2: 2, 3: 1, 4: 0, 5: 2, 6: 2, 7: 2, 8: 2, 9: 1}, 5: {0: 1, 1: 2, 2: 2, 3: 2, 4: 2, 5: 0, 6: 2, 7: 1, 8: 1, 9: 2}, 6: {0: 2, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2, 6: 0, 7: 2, 8: 1, 9: 1}, 7: {0: 2, 1: 2, 2: 1, 3: 2, 4: 2, 5: 1, 6: 2, 7: 0, 8: 2, 9: 1}, 8: {0: 2, 1: 2, 2: 2, 3: 1, 4: 2, 5: 1, 6: 1, 7: 2, 8: 0, 9: 2}, 9: {0: 2, 1: 2, 2: 2, 3: 2, 4: 1, 5: 2, 6: 1, 7: 1, 8: 2, 9: 0}}
+
+        Testing on Random Graphs::
+
+            sage: g = graphs.RandomGNP(20,.3)
+            sage: distances = g.distance_all_pairs()
+            sage: all([g.distance(0,v) == distances[0][v] for v in g])
+            True
+        """
+
+        from sage.rings.infinity import Infinity
+        distances = dict([(v, self.shortest_path_lengths(v)) for v in self])
+
+        # setting the necessary +Infinity
+        cc = self.connected_components()
+        for cc1 in cc:
+            for cc2 in cc:
+                if cc1 != cc2:
+                    for u in cc1:
+                        for v in cc2:
+                            distances[u][v] = Infinity
+
+        return distances
+
     def eccentricity(self, v=None, dist_dict=None, with_labels=False):
         """
         Return the eccentricity of vertex (or vertices) v.
@@ -7080,11 +7203,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             dstring = "distances " + str(sorted(distances))
         D.name("Distance graph for %s in " % dstring + self.name())
+
         # Create the appropriate edges
-        # Using shortest_path_all_pairs() here is much slower, see Trac 7533
+        d = self.distance_all_pairs()
         for u in self.vertex_iterator():
             for v in self.vertex_iterator():
-                if self.distance(u,v) in distances:
+                if d[u][v] in distances:
                     D.add_edge(u,v)
         return D
 
@@ -7477,7 +7601,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_paths(0)
-            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 4: [0, 19, 3, 4], 5: [0, 19, 3, 4, 5], 6: [0, 1, 2, 6], 7: [0, 1, 8, 7], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 12: [0, 10, 11, 12], 13: [0, 10, 9, 13], 14: [0, 1, 8, 7, 14], 15: [0, 10, 11, 12, 16, 15], 16: [0, 10, 11, 12, 16], 17: [0, 19, 18, 17], 18: [0, 19, 18], 19: [0, 19]}
+            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 4: [0, 19, 3, 4], 5: [0, 1, 2, 6, 5], 6: [0, 1, 2, 6], 7: [0, 1, 8, 7], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 12: [0, 10, 11, 12], 13: [0, 10, 9, 13], 14: [0, 1, 8, 7, 14], 15: [0, 19, 18, 17, 16, 15], 16: [0, 19, 18, 17, 16], 17: [0, 19, 18, 17], 18: [0, 19, 18], 19: [0, 19]}
+
+        All these paths are obviously induced graphs::
+
+            sage: all([D.subgraph(p).is_isomorphic(graphs.PathGraph(len(p)) )for p in D.shortest_paths(0).values()])
+            True
+
+        ::
+
             sage: D.shortest_paths(0, cutoff=2)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
@@ -7489,7 +7621,10 @@ class GenericGraph(GenericGraph_pyx):
         if by_weight:
             return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
         else:
-            return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
+            try:
+                return self._backend.shortest_path_all_vertices(u, cutoff)
+            except AttributeError:
+                return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
 
     def shortest_path_lengths(self, u, by_weight=False, weight_sums=None):
         """
@@ -7681,8 +7816,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
 
-        distances=self.shortest_path_all_pairs(default_weight=ZZ(1))[0]
-        return sum([sum(v.itervalues()) for v in distances.itervalues()])/2
+        return sum([sum(v.itervalues()) for v in self.distance_all_pairs().itervalues()])/2
 
     def average_distance(self):
         r"""
@@ -7712,7 +7846,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
 
-        return self.wiener_index()/((self.order()*(self.order()-1))/2)
+        return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
 
     def szeged_index(self):
         r"""
@@ -7747,7 +7881,7 @@ class GenericGraph(GenericGraph_pyx):
           Applied Mathematics Letters, 9 (5), pp. 45-49.
 
         """
-        distances=self.shortest_path_all_pairs()[0]
+        distances=self.distance_all_pairs()
         s=0
         for (u,v) in self.edges(labels=None):
             du=distances[u]
@@ -7760,9 +7894,6 @@ class GenericGraph(GenericGraph_pyx):
                     n2+=1
             s+=(n1*n2)
         return s
-
-
-
 
     ### Searches
 

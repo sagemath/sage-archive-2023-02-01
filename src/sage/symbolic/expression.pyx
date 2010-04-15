@@ -580,6 +580,14 @@ cdef class Expression(CommutativeRingElement):
             \frac{2}{{\left(x + 1\right)}}
             sage: latex(1/2/(x+1))
             \frac{1}{2 \, {\left(x + 1\right)}}
+
+        Check if rational function coefficients without a `numerator()` method
+        are printed correctly. #8491::
+
+            sage: latex(6.5/x)
+            \frac{6.50000000000000}{x}
+            sage: latex(Mod(2,7)/x)
+            \frac{2}{x}
         """
         return self._parent._latex_element_(self)
 
@@ -2312,7 +2320,17 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: (Mod(2,7)*x^2 + Mod(2,7))^7
-            (2*x^2 + 2)^7
+            128*(x^2 + 1)^7
+
+        The coefficient in the result above is 128, because::
+
+            sage: t = Mod(2,7); gcd(t, t)^7
+            128
+            sage: gcd(t,t).parent()
+            Integer Ring
+
+        ::
+
             sage: k = GF(7)
             sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
             x^35 + x^14 + 2
@@ -3151,8 +3169,9 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs({a:b, b:c})
             (x + y)^3 + b^2 + c^2
 
-        TESTS:
-            # no arguments return the same expression
+        TESTS::
+
+            sage: # no arguments return the same expression
             sage: t.subs()
             (x + y)^3 + a^2 + b^2
 
@@ -3740,6 +3759,18 @@ cdef class Expression(CommutativeRingElement):
             Infinity
             sage: t.n()
             +infinity
+
+        Some expressions can't be evaluated numerically::
+
+            sage: n(sin(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
+            sage: a = var('a')
+            sage: (x^2 + 2*x + 2).subs(x=a).n()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
         """
         if prec is None:
             if digits is None:
@@ -3763,7 +3794,7 @@ cdef class Expression(CommutativeRingElement):
         elif  is_a_constant(x._gobj):
             res = x.pyobject()
         else:
-            raise TypeError, "cannot evaluate symbolic expresssion numerically"
+            raise TypeError("cannot evaluate symbolic expression numerically")
 
         # Important -- the  we get might not be a valid output for numerical_approx in
         # the case when one gets infinity.
@@ -5906,7 +5937,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x*log(9)).simplify_log('all')
             log(9^x)
 
-        TESTS::
+        TESTS:
 
         This shows that the issue at trac #7344 is fixed::
 
@@ -5977,7 +6008,7 @@ cdef class Expression(CommutativeRingElement):
 
         ALIAS: :meth:`log_expand` and :meth:`expand_log` are the same
 
-        EXAMPLES::
+        EXAMPLES:
 
         By default powers and products (and quotients) are expanded,
         but not quotients of integers::
@@ -6726,7 +6757,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a.solve(t)
             []
             sage: b = a.simplify_radical(); b
-            (-576000.0*e^(900*t) + 46080.0*e^(1800*t) + 737280.0)*e^(-2400*t)
+            -23040*(25.0*e^(900*t) - 2.0*e^(1800*t) - 32.0)*e^(-2400*t)
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)

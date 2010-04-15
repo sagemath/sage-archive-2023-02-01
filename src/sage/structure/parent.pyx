@@ -189,8 +189,8 @@ def getattr_from_other_class(self, cls, name):
     not triple check this specs and make this implementation
     rock-solid.
 
-    Caveat: this is pretty hacky, does not handle caching. There is no
-    guarantee of robustness with super calls and lazy attributes, ...
+    Caveat: this is pretty hacky, does not handle caching, there is no
+    guarantee of robustness with super calls and descriptors, ...
 
     EXAMPLES::
 
@@ -220,9 +220,39 @@ def getattr_from_other_class(self, cls, name):
         sage: getattr_from_other_class(QQ[x].one(), A, "lazy_attribute")
         '1'
 
+    In general, descriptors are not yet well supported, because they
+    often do not accept to be cheated with the type of their instance::
+
+
+        sage: A.__weakref__.__get__(1)
+        Traceback (most recent call last):
+        ...
+        TypeError: descriptor '__weakref__' for 'A' objects doesn't apply to 'sage.rings.integer.Integer' object
+
+    When this occurs, an ``AttributeError`` is raised::
+
+        sage: getattr_from_other_class(1, A, "__weakref__")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute '__weakref__'
+
+    This was caught by #8296 for which we do a couple more tests::
+
+        sage: "__weakref__" in dir(A)
+        True
+        sage: "__weakref__" in dir(1)
+        True
+        sage: 1.__weakref__
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute '__weakref__'
+        sage: import IPython
+        sage: _ip = IPython.ipapi.get()
+        sage: _ip.IP.magic_psearch('n.__weakref__') # not tested: only works with an interactive shell running
+
     Caveat: When __call__ is not defined for instances, using
-    A.__call__ gives the method __call__ of the class. We use a
-    workaround but there is no guarantee for robustness.
+    ``A.__call__`` yields the method ``__call__`` of the class. We use
+    a workaround but there is no guarantee for robustness.
 
         sage: getattr_from_other_class(1, A, "__call__")
         Traceback (most recent call last):
@@ -237,16 +267,15 @@ def getattr_from_other_class(self, cls, name):
         raise_attribute_error(self, name)
     if isinstance(attribute, methodwrapper):
         raise_attribute_error(self, name)
-    if isinstance(attribute, lazy_attribute):
+    if hasattr(attribute, "__get__"):
         # Conditionally defined lazy_attributes don't work well with fake subclasses
         # (a TypeError is raised if the lazy attribute is not defined)
         # For the moment, we ignore that when this occurs
+        # Other descriptors (including __weakref__) also break.
         try:
             return attribute.__get__(self, cls)
         except TypeError:
             raise_attribute_error(self, name)
-    if hasattr(attribute, "__get__"):
-        return attribute.__get__(self, cls)
     else:
         return attribute
 

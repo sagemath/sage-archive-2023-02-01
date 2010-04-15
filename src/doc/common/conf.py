@@ -6,13 +6,14 @@ SAGE_DOC = os.path.join(SAGE_ROOT, 'devel/sage/doc')
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sage_autodoc']
 
 if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
@@ -284,22 +285,75 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
         else:
             break
 
-def skip_NestedClass(app, what, name, obj, skip, options):
+skip_picklability_check_modules = [
+    #'sage.misc.nested_class_test', # for test only
+    'sage.misc.latex',
+    'sage.misc.explain_pickle',
+    '__builtin__',
+]
+
+def check_nested_class_picklability(app, what, name, obj, skip, options):
     """
-    Don't include the docstring for any class/function/object in
-    sage.misc.misc whose ``name`` contains "MainClass.NestedClass".
-    (This is to avoid some Sphinx warnings when processing
-    sage.misc.misc.)  Otherwise, abide by Sphinx's decision.
+    Print a warning if pickling is broken for nested classes.
     """
-    skip_nested = str(obj).find("sage.misc.misc") != -1 and name.find("MainClass.NestedClass") != -1
-    return skip or skip_nested
+    import types
+    if hasattr(obj, '__dict__') and hasattr(obj, '__module__'):
+        # Check picklability of nested classes.  Adapted from
+        # sage.misc.nested_class.modify_for_nested_pickle.
+        module = sys.modules[obj.__module__]
+        for (nm, v) in obj.__dict__.iteritems():
+            if (isinstance(v, (type, types.ClassType)) and
+                v.__name__ == nm and
+                v.__module__ == module.__name__ and
+                getattr(module, nm, None) is not v and
+                v.__module__ not in skip_picklability_check_modules):
+                # OK, probably this is an *unpicklable* nested class.
+                app.warn('Pickling of nested class %r is probably broken. '
+                         'Please set __metaclass__ of the parent class to '
+                         'sage.misc.nested_class.NestedClassMetaclass.' % (
+                        v.__module__ + '.' + name + '.' + nm))
+
+def skip_member(app, what, name, obj, skip, options):
+    """
+    To suppress Sphinx warnings / errors, we
+
+    - Don't include [aliases of] builtins.
+
+    - Don't include the docstring for any nested class which has been
+      inserted into its module by
+      :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
+      class will be properly documented inside its surrounding class.
+
+    - Don't include
+      sagenb.notebook.twist.userchild_download_worksheets.zip.
+
+    - Optionally, check whether pickling is broken for nested classes.
+
+    Otherwise, we abide by Sphinx's decision.  Note: The object
+    ``obj`` is excluded (included) if this handler returns True
+    (False).
+    """
+    if 'SAGE_CHECK_NESTED' in os.environ:
+        check_nested_class_picklability(app, what, name, obj, skip, options)
+
+    if getattr(obj, '__module__', None) == '__builtin__':
+        return True
+
+    if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
+        obj.__name__.split('.')[-1] != name):
+        return True
+
+    if name.find("userchild_download_worksheets.zip") != -1:
+        return True
+
+    return skip
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
     See sage.misc.sagedoc.process_dollars for more information
     """
-    if len(docstringlines) > 0:
+    if len(docstringlines) > 0 and name.find("process_dollars") == -1:
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")
@@ -311,7 +365,8 @@ def process_mathtt(app, what, name, obj, options, docstringlines):
     Replace \mathtt{BLAH} with \verb|BLAH| if using jsMath.
     See sage.misc.sagedoc.process_mathtt for more information
     """
-    if len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ:
+    if (len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ
+        and name.find("process_mathtt") == -1):
         from sage.misc.sagedoc import process_mathtt as sagedoc_mathtt
         s = sagedoc_mathtt("\n".join(docstringlines), True)
         lines = s.split("\n")
@@ -327,4 +382,4 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
     app.connect('autodoc-process-docstring', process_mathtt)
-    app.connect('autodoc-skip-member', skip_NestedClass)
+    app.connect('autodoc-skip-member', skip_member)

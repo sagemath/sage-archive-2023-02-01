@@ -11,6 +11,7 @@ include "../ext/python_ref.pxi"
 from sage.rings.all import polygen, QQ,ZZ
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport ModuleElement, Element
+from sage.structure.mutability cimport Mutability
 
 cimport matrix_dense
 import matrix_dense
@@ -298,6 +299,10 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             True
             sage: n is m
             False
+            sage: m.is_mutable()
+            True
+            sage: n.is_mutable()
+            True
         """
         cdef Matrix_integer_2x2 x
         x = self._new_c()
@@ -305,6 +310,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_set(x.b, self.b)
         mpz_set(x.c ,self.c)
         mpz_set(x.d, self.d)
+        x._mutability = Mutability(False)
         if self.subdivisions is not None:
             x.subdivide(*self.get_subdivisions())
         return x

@@ -2210,6 +2210,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             [1, 19, 71, 89, 91, 109, 161, 179, 181, 199, 251, 269, 271, 289, 341, 359]
             sage: R(0).sqrt(all=True)
             [0, 60, 120, 180, 240, 300]
+            sage: GF(107)(0).sqrt(all=True)
+            [0]
 
         ::
 
@@ -2252,7 +2254,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                 else:
                     return self._new_c(i)
             elif self.ivalue == 0:
-                return self
+                return [self] if all else self
             elif not extend:
                 raise ValueError, "self must be a square"
         # Now we use a heuristic to guess whether or not it will

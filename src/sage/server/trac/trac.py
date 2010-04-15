@@ -36,8 +36,9 @@ def trac_create_instance(directory = 'sage_trac', easy_setup = False):
 
             trac-admin <directory> add <username> TRAC_ADMIN
     """
+    from sage.misc.sage_ostools import have_program
 
-    if os.system('which trac-admin 2>/dev/null 1>/dev/null') != 0:
+    if not have_program('trac-admin'):
         print "You must install the optional trac package."
         print "Try something like install_package('trac-0.11.5'),"
         print "but note that the package name may have a different"

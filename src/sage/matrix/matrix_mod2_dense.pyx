@@ -281,8 +281,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B = random_matrix(GF(2),3,3)
             sage: A < B
             True
-            sage: A = MatrixSpace(GF(2),3,3)(1)
-            sage: B = MatrixSpace(GF(2),3,3)(1)
+            sage: A = MatrixSpace(GF(2),3,3).one()
+            sage: B = copy(MatrixSpace(GF(2),3,3).one())
             sage: B[0,1] = 1
             sage: A < B
             True

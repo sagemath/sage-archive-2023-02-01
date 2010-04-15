@@ -28,8 +28,9 @@ EXAMPLE::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing
+from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
 from sage.misc.all import latex
+from sage.functions.all import log
 
 import sage.schemes.plane_curves.projective_curve as plane_curve
 from sage.schemes.generic.all import ProjectiveSpace
@@ -285,3 +286,194 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
+
+    def local_coordinates_at_nonweierstrass(self, P, prec = 20, name = 't'):
+        """
+        For a non-Weierstrass point P = (a,b) on the hyperelliptic
+        curve y^2 = f(x), returns (x(t), y(t)) such that (y(t))^2 = f(x(t)),
+        where t = x - a is the local parameter.
+
+        INPUT:
+
+        - P = (a,b) a non-Weierstrass point on self
+        - prec: desired precision of the local coordinates
+        - name: gen of the power series ring (default: 't')
+
+        OUTPUT:
+        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x - a
+        is the local parameter at P
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+            sage: P = H(1,6)
+            sage: x,y = H.local_coordinates_at_nonweierstrass(P,prec=5)
+            sage: x
+            1 + t + O(t^5)
+            sage: y
+            6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5)
+            sage: Q = H(-2,12)
+            sage: x,y = H.local_coordinates_at_nonweierstrass(Q,prec=5)
+            sage: x
+            -2 + t + O(t^5)
+            sage: y
+            12 - 19/2*t - 19/32*t^2 + 61/256*t^3 - 5965/24576*t^4 + O(t^5)
+
+        AUTHOR:
+            - Jennifer Balakrishnan (2007-12)
+        """
+        d = P[1]
+        if d == 0:
+            raise TypeError, "P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P
+        pol = self.hyperelliptic_polynomials()[0]
+        L = PowerSeriesRing(self.base_ring(), name)
+        t = L.gen()
+        L.set_default_prec(prec)
+        K = PowerSeriesRing(L, 'x')
+        pol = K(pol)
+        x = K.gen()
+        b = P[0]
+        f = pol(t+b)
+        for i in range((RR(log(prec)/log(2))).ceil()):
+            d = (d + f/d)/2
+        return t+b+O(t**(prec)), d + O(t**(prec))
+
+    def local_coordinates_at_weierstrass(self, P,  prec = 20, name = 't'):
+        """
+        For a finite Weierstrass point on the hyperelliptic
+        curve y^2 = f(x), returns (x(t), y(t)) such that
+        (y(t))^2 = f(x(t)), where t = y is the local parameter.
+
+        INPUT:
+            - P a finite Weierstrass point on self
+            - prec: desired precision of the local coordinates
+            - name: gen of the power series ring (default: 't')
+
+        OUTPUT:
+
+        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = y
+        is the local parameter at P
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+            sage: A = H(4,0)
+            sage: x,y = H.local_coordinates_at_weierstrass(A,prec =5)
+            sage: x
+            4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7)
+            sage: y
+            t + O(t^7)
+            sage: B = H(-5,0)
+            sage: x,y = H.local_coordinates_at_weierstrass(B,prec = 5)
+            sage: x
+            -5 + 1/1260*t^2 + 887/2000376000*t^4  + 643759/1587898468800000*t^6 + O(t^7)
+            sage: y
+            t + O(t^7)
+
+        AUTHOR:
+            - Jennifer Balakrishnan (2007-12)
+        """
+        if P[1] != 0:
+            raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
+        pol = self.hyperelliptic_polynomials()[0]
+        L = PowerSeriesRing(self.base_ring(), name)
+        t = L.gen()
+        L.set_default_prec(prec+2)
+        K = PowerSeriesRing(L, 'x')
+        pol = K(pol)
+        x = K.gen()
+        b = P[0]
+        g = pol/(x-b)
+        c = b+1/g(b)*t**2
+        f = pol - t**2
+        fprime = f.derivative()
+        for i in range((RR(log(prec+2)/log(2))).ceil()):
+            c = c-f(c)/fprime(c)
+        return c + O(t**(prec+2)),t+O(t**(prec+2))
+
+    def local_coordinates_at_infinity(self, prec = 20, name = 't'):
+        """
+        For the genus g hyperelliptic curve y^2 = f(x), returns (x(t), y(t)) such that
+        (y(t))^2 = f(x(t)), where t = x^g/y is the local parameter at infinity
+
+        INPUT:
+            - prec: desired precision of the local coordinates
+            - name: gen of the power series ring (default: 't')
+
+        OUTPUT:
+        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x^g/y
+        is the local parameter at infinity
+
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-5*x^2+1)
+            sage: x,y = H.local_coordinates_at_infinity(10)
+            sage: x
+            t^-2 + 5*t^4 - t^8 - 50*t^10 + O(t^12)
+            sage: y
+            t^-5 + 10*t - 2*t^5 - 75*t^7 + 50*t^11 + O(t^12)
+
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^3-x+1)
+            sage: x,y = H.local_coordinates_at_infinity(10)
+            sage: x
+            t^-2 + t^2 - t^4 - t^6 + 3*t^8 + O(t^12)
+            sage: y
+            t^-3 + t - t^3 - t^5 + 3*t^7 - 10*t^11 + O(t^12)
+
+
+        AUTHOR:
+            - Jennifer Balakrishnan (2007-12)
+        """
+        g = self.genus()
+        pol = self.hyperelliptic_polynomials()[0]
+        K = LaurentSeriesRing(self.base_ring(), name)
+        t = K.gen()
+        K.set_default_prec(prec+2)
+        L = PolynomialRing(self.base_ring(),'x')
+        x = L.gen()
+        i = 0
+        w = (x**g/t)**2-pol
+        wprime = w.derivative(x)
+        x = t**-2
+        for i in range((RR(log(prec+2)/log(2))).ceil()):
+            x = x-w(x)/wprime(x)
+        y = x**g/t
+        return x+O(t**(prec+2)) , y+O(t**(prec+2))
+
+
+    def local_coord(self, P, prec = 20, name = 't'):
+        """
+        Calls the appropriate local_coordinates function
+
+        INPUT:
+            - P a point on self
+            - prec: desired precision of the local coordinates
+            - name: gen of the power series ring (default: 't')
+
+        OUTPUT:
+        (x(t),y(t)) such that y(t)^2 = f(x(t)), where t
+        is the local parameter at P
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+	    sage: H.local_coord(H(1,6),prec=5)
+	    (1 + t + O(t^5), 6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5))
+	    sage: H.local_coord(H(4,0),prec=5)
+	    (4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7), t + O(t^7))
+	    sage: H.local_coord(H(0,1,0),prec=5)
+	    (t^-2 + 23*t^2 - 18*t^4 - 569*t^6 + O(t^7), t^-5 + 46*t^-1 - 36*t - 609*t^3 + 1656*t^5 + O(t^6))
+
+        AUTHOR:
+            - Jennifer Balakrishnan (2007-12)
+
+
+        """
+        if P[1] == 0:
+            return self.local_coordinates_at_weierstrass(P, prec, name)
+        elif P[2] == 0:
+            return self.local_coordinates_at_infinity(prec, name)
+        else:
+            return self.local_coordinates_at_nonweierstrass(P, prec, name)

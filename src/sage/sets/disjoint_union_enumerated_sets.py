@@ -370,7 +370,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         EXAMPLES:
 
         For finite disjoint unions, the cardinality is computed by
-        summing the sizes of the enumerated sets:
+        summing the sizes of the enumerated sets::
 
             sage: U = DisjointUnionEnumeratedSets(Family([0,1,2,3], Permutations))
             sage: U.cardinality()

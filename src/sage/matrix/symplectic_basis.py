@@ -72,7 +72,7 @@ def _inplace_move_to_positive_pivot(G, row, col, B, pivot):
         [-16   0   0  -4]
         [  0   0   0   0]
         [ -2   4   0   0]
-        sage: B = E.parent()(1); G = E.__copy__()
+        sage: B = copy(E.parent().one()); G = copy(E)
         sage: _inplace_move_to_positive_pivot(G, 0, 3, B, 0)
         sage: E[0, 3] == G[0, 1]
         True
@@ -263,7 +263,7 @@ def symplectic_basis_over_field(M):
     for i in range(n):
         if not E[i, i].is_zero():
             raise ValueError, "Can only find symplectic bases for alternating matrices"
-    B = E.parent()(1)
+    B = E.parent().one().__copy__()
 
     zeroes = []
     es = []
@@ -465,7 +465,7 @@ def symplectic_basis_over_ZZ(M):
     for i in range(n):
         if not E[i, i].is_zero():
             raise ValueError, "Can only find symplectic bases for alternating matrices"
-    B = E.parent()(1)
+    B = E.parent().one().__copy__()
 
     zeroes = []
     ps = []

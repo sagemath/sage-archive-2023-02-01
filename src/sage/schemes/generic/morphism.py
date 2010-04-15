@@ -406,7 +406,8 @@ class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient affine space.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: RA.<x,y> = QQ[]
         sage: A2 = AffineSpace(RA)
         sage: RP.<u,v,w> = QQ[]

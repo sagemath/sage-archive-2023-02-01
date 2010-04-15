@@ -24,6 +24,8 @@ project = u'Three Lectures about Explicit Methods in\nNumber Theory Using Sage'
 html_title = project + " v"+release
 copyright = "2008, William Stein"
 
+html_short_title = u'Bordeaux Lectures v' + release
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = name
 

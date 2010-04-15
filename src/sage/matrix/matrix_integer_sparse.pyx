@@ -176,13 +176,14 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
-        EXAMPLES:
-            sage: a = matrix(QQ,2,range(6))
-            sage: (3/4) * a
-            [   0  3/4  3/2]
-            [ 9/4    3 15/4]
+        EXAMPLES::
+
+            sage: a = matrix(ZZ,2,range(6), sparse=True)
+            sage: 3 * a
+            [ 0  3  6]
+            [ 9 12 15]
         """
-        cdef Py_ssize_t i, j
+        cdef Py_ssize_t i
         cdef mpz_vector* self_row, *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
@@ -192,9 +193,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             self_row = &self._matrix[i]
             M_row = &M._matrix[i]
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
-            #for j from 0 <= j < self._matrix[i].num_nonzero:
-            #    mpz_vector_set_entry(M_row, self_row.positions[j], self_row.entries[j])
-            #    mpz_mul(M_row.entries[j], M_row.entries[j], _x.value)
         return M
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -318,6 +316,25 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         return nzc
 
     def _mod_int(self, modulus):
+        """
+        Helper function in reducing matrices mod n.
+
+        INPUT:
+
+        - `modulus` - a number
+
+        OUTPUT:
+
+        This matrix, over `ZZ/nZZ`.
+
+        TESTS::
+
+            sage: M = Matrix(ZZ, sparse=True)
+            sage: B = M._mod_int(7)
+            sage: B.parent()
+            Full MatrixSpace of 0 by 0 sparse matrices over Ring of integers modulo 7
+
+        """
         return self._mod_int_c(modulus)
 
     cdef _mod_int_c(self, mod_int p):
@@ -326,7 +343,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         cdef mpz_vector* self_row
         cdef c_vector_modint* res_row
         res = Matrix_modn_sparse.__new__(Matrix_modn_sparse, matrix_space.MatrixSpace(
-            IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+            IntegerModRing(p), self._nrows, self._ncols, sparse=True), None, None, None)
         for i from 0 <= i < self._nrows:
             self_row = &(self._matrix[i])
             res_row = &(res.rows[i])

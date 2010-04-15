@@ -42,6 +42,7 @@ import random
 from misc import tmp_dir, graphics_filename
 import sage_eval
 from sage.misc.misc import SAGE_DOC
+from sage.misc.sage_ostools import have_program
 
 _have_latex = None
 def have_latex():
@@ -67,7 +68,7 @@ def have_latex():
     """
     global _have_latex
     if _have_latex is None:
-        _have_latex = not bool(os.system('which latex >/dev/null'))
+        _have_latex = have_program('latex')
     return _have_latex
 
 _have_pdflatex = None
@@ -94,7 +95,7 @@ def have_pdflatex():
     """
     global _have_pdflatex
     if _have_pdflatex is None:
-        _have_pdflatex = not bool(os.system('which pdflatex >/dev/null'))
+        _have_pdflatex = have_program('pdflatex')
     return _have_pdflatex
 
 _have_dvipng = None
@@ -121,7 +122,7 @@ def have_dvipng():
     """
     global _have_dvipng
     if _have_dvipng is None:
-        _have_dvipng = not bool(os.system('which dvipng >/dev/null'))
+        _have_dvipng = have_program('dvipng')
     return _have_dvipng
 
 _have_convert = None
@@ -149,7 +150,7 @@ def have_convert():
     """
     global _have_convert
     if _have_convert is None:
-        _have_convert = not bool(os.system('which convert >/dev/null'))
+        _have_convert = have_program('convert')
     return _have_convert
 
 def list_function(x):

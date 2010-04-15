@@ -357,13 +357,16 @@ class ChainComplex(SageObject):
         {0: [1], 1: []}
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
+        sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
+        sage: mat.nrows(), mat.ncols()
+        (0, 3)
 
     Defining the base ring implicitly::
 
         sage: ChainComplex([matrix(QQ, 3, 1), matrix(ZZ, 4, 3)])
-        Chain complex with at most 2 nonzero terms over Rational Field
+        Chain complex with at most 3 nonzero terms over Rational Field
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1), matrix(ZZ, 4, 3)])
-        Chain complex with at most 2 nonzero terms over Finite Field in a of size 5^3
+        Chain complex with at most 3 nonzero terms over Finite Field in a of size 5^3
 
     If the matrices are defined over incompatible rings, an error results::
 
@@ -381,8 +384,7 @@ class ChainComplex(SageObject):
         TypeError: Unable to coerce 0 (<type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>) to Rational
     """
 
-    def __init__(self, data=None, base_ring=None, grading_group=ZZ, degree=1,
-                 check_products=True):
+    def __init__(self, data=None, **kwds):
         """
         See ``ChainComplex`` for full documentation.
 
@@ -394,6 +396,11 @@ class ChainComplex(SageObject):
             sage: D
             Chain complex with at most 2 nonzero terms over Integer Ring
         """
+        check_products = kwds.get('check_products', True) or kwds.get('check_diffs')
+        base_ring = kwds.get('base_ring', None)
+        grading_group = kwds.get('grading_group', ZZ)
+        degree = kwds.get('degree', 1)
+
         try:
             deg = grading_group(degree)
         except:
@@ -428,12 +435,12 @@ class ChainComplex(SageObject):
             # 'dict' is the dictionary of matrices.  check to see that
             # each entry is in fact a matrix, and that the codomain of
             # one matches up with the domain of the next.  if the
-            # differential in degree n is nonzero, then make sure that
-            # the differential in degree n+degree is present (although
-            # it of course may be zero).  If it's not present, add a
-            # zero matrix of the appropriate shape.  This way, if
-            # self._data does not have a key for n, then the complex
-            # is zero in degree n.
+            # number of rows in the differential in degree n is
+            # nonzero, then make sure that the differential in degree
+            # n+degree is present (although it of course may be zero).
+            # If it's not present, add a zero matrix of the
+            # appropriate shape.  This way, if self._data does not
+            # have a key for n, then the complex is zero in degree n.
             for n in temp_dict.keys():
                 if not n in grading_group:
                     raise ValueError, "One of the dictionary keys does not appear to be an element of the grading group."
@@ -456,7 +463,7 @@ class ChainComplex(SageObject):
                         if not prod.is_zero():
                             raise ValueError, "The differentials d_{%s} and d_{%s} are not compatible: their composition is not zero." % (n, n+degree)
                 else:
-                    if not mat.is_zero():
+                    if not mat.nrows() == 0:
                         if n+2*degree in temp_dict:
                             new_data[n+degree] = matrix(base_ring, temp_dict[n+2*degree].ncols(), mat.nrows())
                         else:
@@ -517,6 +524,39 @@ class ChainComplex(SageObject):
             return matrix(self._base_ring, self._diff[dim+deg].ncols(), 0)
         return matrix(self._base_ring, 0, 0)
 
+    def dual(self):
+        """
+        The dual chain complex to ``self``.
+
+        Since all modules in ``self`` are free of finite rank, the
+        dual in dimension `n` is isomorphic to the original chain
+        complex in dimension `n`, and the corresponding boundary
+        matrix is the transpose of the matrix in the original complex.
+        This converts a chain complex to a cochain complex and vice
+        versa.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({2: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C._degree
+            1
+            sage: C.differential(2)
+            [3 0 0]
+            [0 0 0]
+            sage: C.dual()._degree
+            -1
+            sage: C.dual().differential(3)
+            [3 0]
+            [0 0]
+            [0 0]
+        """
+        data = {}
+        deg = self._degree
+        for d in self.differential():
+            data[(d+deg)] = self.differential()[d].transpose()
+
+        return ChainComplex(data, degree=-deg)
+
     def free_module(self):
         """
         The free module underlying this chain complex.
@@ -566,8 +606,7 @@ class ChainComplex(SageObject):
             return 0
         return -1
 
-    def homology(self, dim=None, base_ring=None, verbose=False,
-                 algorithm='auto'):
+    def homology(self, dim=None, **kwds):
         """
         The homology of the chain complex in the given dimension.
 
@@ -583,22 +622,59 @@ class ChainComplex(SageObject):
            base ring for the chain complex).  Must be either the
            integers `\\ZZ` or a field.
 
+        -  ``generators`` - boolean (optional, default False).  If
+           True, return generators for the homology groups along with
+           the groups.  NOTE: this is only implemented if the CHomP
+           package is available.
+
         -  ``verbose`` - boolean (optional, default False).  If True,
            print some messages as the homology is computed.
 
-        -  ``algorithm`` - string (optional, default 'auto').  This
-           only has an effect if working over the integers.  If
-           'dhsw', then preprocess each boundary matrix using the
-           Dumas, Heckenbach, Saunders, and Welker elimination
-           algorithm, and then compute elementary divisors using Pari.
-           If 'pari', then just compute elementary divisors using
-           Pari.  If 'linbox', then use LinBox if available (likely
-           it's not).  If 'auto', then use 'dhsw' for large matrices
-           and 'pari' for small ones.
+        -  ``algorithm`` - string (optional, default 'auto').  The
+           options are 'auto', 'dhsw', 'pari' or 'no_chomp'.  See
+           below for descriptions.
 
         OUTPUT: if dim is specified, the homology in dimension dim.
         Otherwise, the homology in every dimension as a dictionary
         indexed by dimension.
+
+        ALGORITHM:
+
+        If ``algorithm`` is set to 'auto' (the default), then use
+        CHomP if available.  (CHomP is available at the web page
+        http://chomp.rutgers.edu/.  It is also an experimental package
+        for Sage.)
+
+        CHomP computes homology, not cohomology, and only works over
+        the integers or finite prime fields.  Therefore if any of
+        these conditions fails, or if CHomP is not present, or if
+        ``algorithm`` is set to 'no_chomp', go to plan B: if ``self``
+        has a ``_homology`` method -- each simplicial complex has
+        this, for example -- then call that.  Such a method implements
+        specialized algorithms for the particular type of cell
+        complex.
+
+        Otherwise, move on to plan C: compute the chain complex of
+        ``self`` and compute its homology groups.  To do this: over a
+        field, just compute ranks and nullities, thus obtaining
+        dimensions of the homology groups as vector spaces.  Over the
+        integers, compute Smith normal form of the boundary matrices
+        defining the chain complex according to the value of
+        ``algorithm``.  If ``algorithm`` is 'auto' or 'no_chomp', then
+        for each relatively small matrix, use the standard Sage
+        method, which calls the Pari package.  For any large matrix,
+        reduce it using the Dumas, Heckenbach, Saunders, and Welker
+        elimination algorithm: see
+        :func:`sage.homology.chain_complex.dhsw_snf` for details.
+
+        Finally, ``algorithm`` may also be 'pari' or 'dhsw', which
+        forces the named algorithm to be used regardless of the size
+        of the matrices and regardless of whether CHomP is available.
+
+        As of this writing, CHomP is by far the fastest option,
+        followed by the 'auto' or 'no_chomp' setting of using the
+        Dumas, Heckenbach, Saunders, and Welker elimination algorithm
+        for large matrices and Pari for small ones.
 
         .. warning::
 
@@ -615,9 +691,19 @@ class ChainComplex(SageObject):
             sage: D = ChainComplex({0: identity_matrix(ZZ, 4), 4: identity_matrix(ZZ, 30)})
             sage: D.homology()
             {0: 0, 1: 0, 4: 0, 5: 0}
+
+        Generators (only available via CHomP): generators are given as
+        a list of cycles, each of which is an element in the
+        appropriate free module, and hence is represented as a vector::
+
+            sage: C.homology(1, generators=True)  # optional: need CHomP
+            (Z x C3, [(1, 0), (0, 1)])
         """
-        if algorithm not in ['dhsw', 'pari', 'linbox', 'auto']:
-            raise NotImplementedError, "algorithm not recognized"
+        from sage.interfaces.chomp import have_chomp, homchain
+
+        algorithm = kwds.get('algorithm', 'auto')
+        verbose = kwds.get('verbose', False)
+        base_ring = kwds.get('base_ring', None)
         if base_ring is None or base_ring == self._base_ring:
             change_ring = False
             base_ring = self._base_ring
@@ -625,6 +711,45 @@ class ChainComplex(SageObject):
             change_ring = True
         if (not base_ring.is_field()) and (base_ring != ZZ):
             raise NotImplementedError, "Can't compute homology if the base ring is not the integers or a field."
+
+        # try to use CHomP if working over Z or F_p, p a prime.
+        if (algorithm == 'auto' and (base_ring == ZZ or
+            (base_ring.is_prime_field() and base_ring != QQ))):
+            # compute all of homology, then pick off requested dimensions
+            H = None
+            if have_chomp('homchain'):
+                H = homchain(self, **kwds)
+                # now pick off the requested dimensions
+                if H:
+                    if dim is not None:
+                        field = base_ring.is_prime_field()
+                        answer = {}
+                        if isinstance(dim, (list, tuple)):
+                            for d in dim:
+                                if d in H:
+                                    answer[d] = H[d]
+                                else:
+                                    if field:
+                                        answer[d] = VectorSpace(base_ring, 0)
+                                    else:
+                                        answer[d] = HomologyGroup(0)
+                        else:
+                            if dim in H:
+                                answer = H[dim]
+                            else:
+                                if field:
+                                    answer = VectorSpace(base_ring, 0)
+                                else:
+                                    answer = HomologyGroup(0)
+                    else:
+                        answer = H
+                    return answer
+                else:
+                    if verbose:
+                        print "ran CHomP, but no output."
+
+        if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp']:
+            raise NotImplementedError, "algorithm not recognized"
         # if dim is None, return all of the homology groups
         if dim is None:
             answer = {}
@@ -694,7 +819,7 @@ class ChainComplex(SageObject):
                     if d_in.ncols() == 0:
                         all_divs = [0] * nullity
                     else:
-                        if algorithm == 'auto':
+                        if algorithm == 'auto' or algorithm == 'no_chomp':
                             if ((d_in.ncols() > 300 and d_in.nrows() > 300)
                                 or (min(d_in.ncols(), d_in.nrows()) > 100 and
                                     d_in.ncols() + d_in.nrows() > 600)):
@@ -740,7 +865,7 @@ class ChainComplex(SageObject):
             print "  Homology is %s" % answer
         return answer
 
-    def betti(self, dim=None, base_ring=None):
+    def betti(self, dim=None, **kwds):
         """
         The Betti number of the homology of the chain complex in this
         dimension.
@@ -775,12 +900,15 @@ class ChainComplex(SageObject):
             sage: C.betti()
             {0: 2, 1: 1}
         """
+        base_ring = kwds.get('base_ring', None)
+
         if base_ring is None:
             base_ring = self._base_ring
         if base_ring == ZZ:
             base_ring = QQ
         if base_ring.is_field():
-            H = self.homology(dim, base_ring = base_ring)
+            kwds['base_ring'] = base_ring
+            H = self.homology(dim=dim, **kwds)
             if isinstance(H, dict):
                 return dict([i, H[i].dimension()] for i in H)
             else:
@@ -824,8 +952,10 @@ class ChainComplex(SageObject):
             sage: C.torsion_list(11)
             [(3, [1])]
             sage: C = ChainComplex([matrix(ZZ, 1, 1, [2]), matrix(ZZ, 1, 1), matrix(1, 1, [3])])
-            sage: C.homology()
-            {0: 0, 1: C2, 2: 0, 3: C3}
+            sage: C.homology(1)
+            C2
+            sage: C.homology(3)
+            C3
             sage: C.torsion_list(5)
             [(2, [1]), (3, [3])]
         """
@@ -841,7 +971,7 @@ class ChainComplex(SageObject):
                     temp_diff = {}
                     D = self._degree
                     for i in torsion_free:
-                        temp_diff[i] = mod_p_betti[i] - torsion_free[i]
+                        temp_diff[i] = mod_p_betti.get(i, 0) - torsion_free[i]
                     for i in temp_diff:
                         if temp_diff[i] > 0:
                             if i+D in diff_dict:
@@ -890,6 +1020,93 @@ class ChainComplex(SageObject):
         """
         from sage.homology.chain_complex_homspace import ChainComplexHomspace
         return ChainComplexHomspace(self, other)
+
+    def _flip_(self):
+        """
+        Flip chain complex upside down (degree `n` gets changed to
+        degree `-n`), thus turning a chain complex into a cochain
+        complex without changing the homology (except for flipping it,
+        too).
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({2: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C._degree
+            1
+            sage: C.differential(2)
+            [3 0 0]
+            [0 0 0]
+            sage: C._flip_()._degree
+            -1
+            sage: C._flip_().differential(-2)
+            [3 0 0]
+            [0 0 0]
+        """
+        data = {}
+        deg = self._degree
+        for d in self.differential():
+            data[-d] = self.differential()[d]
+        return ChainComplex(data, degree=-deg)
+
+    def _chomp_repr_(self):
+        r"""
+        String representation of self suitable for use by the CHomP
+        program.
+
+        Since CHomP can only handle chain complexes, not cochain
+        complexes, and since it likes its complexes to start in degree
+        0, flip the complex over if necessary, and shift it to start
+        in degree 0.  Note also that CHomP only works over the
+        integers or a finite prime field.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({-2: matrix(ZZ, 1, 3, [3, 0, 0])}, degree=-1)
+            sage: C._chomp_repr_()
+            'chain complex\n\nmax dimension = 1\n\ndimension 0\n   boundary a1 = 0\n\ndimension 1\n   boundary a1 = + 3 * a1 \n   boundary a2 = 0\n   boundary a3 = 0\n\n'
+            sage: C = ChainComplex({-2: matrix(ZZ, 1, 3, [3, 0, 0])}, degree=1)
+            sage: C._chomp_repr_()
+            'chain complex\n\nmax dimension = 1\n\ndimension 0\n   boundary a1 = 0\n\ndimension 1\n   boundary a1 = + 3 * a1 \n   boundary a2 = 0\n   boundary a3 = 0\n\n'
+        """
+        if (self._grading_group != ZZ or
+            (self._degree != 1 and self._degree != -1)):
+            raise ValueError, "CHomP only works on Z-graded chain complexes with differential of degree 1 or -1."
+        base_ring = self._base_ring
+        if (base_ring == QQ) or (base_ring != ZZ and not (base_ring.is_prime_field())):
+            raise ValueError, "CHomP doesn't compute over the rationals, only over Z or F_p."
+        if self._degree == -1:
+            diffs = self.differential()
+        else:
+            diffs = self._flip_().differential()
+
+        maxdim = max(diffs)
+        mindim = min(diffs)
+        # will shift chain complex by subtracting mindim from
+        # dimensions, so its bottom dimension is zero.
+        s = "chain complex\n\nmax dimension = %s\n\n" % (maxdim - mindim,)
+
+        for i in range(0, maxdim - mindim + 1):
+            s += "dimension %s\n" % i
+            mat = diffs.get(i + mindim, matrix(base_ring, 0, 0))
+            for idx in range(mat.ncols()):
+                s += "   boundary a%s = " % (idx + 1)
+                # construct list of bdries
+                col = mat.column(idx)
+                if col.nonzero_positions():
+                    for j in col.nonzero_positions():
+                        entry = col[j]
+                        if entry > 0:
+                            sgn = "+"
+                        else:
+                            sgn = "-"
+                            entry = -entry
+                        s += "%s %s * a%s " % (sgn, entry, j+1)
+                else:
+                    s += "0"
+                s += "\n"
+            s += "\n"
+
+        return s
 
     def _repr_(self):
         """

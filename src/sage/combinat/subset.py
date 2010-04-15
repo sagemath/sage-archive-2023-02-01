@@ -36,6 +36,7 @@ import sage.misc.prandom as rnd
 import __builtin__
 import itertools
 from combinat import CombinatorialClass, CombinatorialObject
+from sage.sets.set import Set_generic
 
 
 def Subsets(s, k=None, submultiset=False):
@@ -123,6 +124,10 @@ class Subsets_s(CombinatorialClass):
 
             sage: S = Subsets([1,2,3])
             sage: S == loads(dumps(S))
+            True
+            sage: s = Subsets(Set([1]))
+            sage: e = s.first()
+            sage: isinstance(e, s.element_class)
             True
         """
         self.s = Set(s)
@@ -295,6 +300,8 @@ class Subsets_s(CombinatorialClass):
                 else:
                     return Set([lset[i] for i in choose_nk.from_rank(r, n, k)])
 
+    element_class = Set_generic
+
 
 class Subsets_sk(CombinatorialClass):
     def __init__(self, s, k):
@@ -303,6 +310,10 @@ class Subsets_sk(CombinatorialClass):
 
             sage: S = Subsets(3,2)
             sage: S == loads(dumps(S))
+            True
+            sage: s = Subsets(Set([1]))
+            sage: e = s.first()
+            sage: isinstance(e, s.element_class)
             True
         """
         self.s = Set(s)
@@ -505,6 +516,8 @@ class Subsets_sk(CombinatorialClass):
             return None
         else:
             return Set([lset[i] for i in choose_nk.from_rank(r, n, self.k)])
+
+    element_class = Set_generic
 
 
 class SubMultiset_s(CombinatorialClass):

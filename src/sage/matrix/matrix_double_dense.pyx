@@ -504,9 +504,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: b[0,0] = 3
             sage: a[0,0] # note that a hasn't changed
             1.0
+
+        ::
+
+            sage: copy(MatrixSpace(RDF,0,0,sparse=False).zero_matrix())
+            []
         """
         if self._nrows == 0 or self._ncols == 0:
-            return self.new_matrix(self._nrows, self._ncols)
+            # Create a brand new empy matrix. This is needed to prevent a
+            # recursive loop: a copy of zero_matrix is asked otherwise.
+            return self.__class__(self.parent(), [], self._nrows, self._ncols)
 
         cdef Matrix_double_dense A
         A = self._new(self._nrows, self._ncols)

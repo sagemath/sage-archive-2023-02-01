@@ -202,7 +202,7 @@ As matrix and many other sage objects, words have a parent::
 from itertools import tee, islice, ifilter, ifilterfalse, imap, izip, \
                       starmap, count, dropwhile, chain, cycle, groupby
 from sage.structure.sage_object import SageObject
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set
 from sage.rings.all import Integer, Integers, Infinity, ZZ
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
@@ -343,7 +343,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
         sage: Word(5)
         Traceback (most recent call last):
         ...
-        ValueError: Cannot guess a datatype; please specify one
+        ValueError: Cannot guess a datatype from data (=5); please specify one
 
     ::
 
@@ -537,10 +537,14 @@ class Word_class(SageObject):
 
     def __cmp__(self, other):
         r"""
-        Compares two words lexicographically according to Python's built-in
-        ordering. Provides for all normal comparison operators.
+        Compares two words lexicographically according to the ordering
+        defined by the parent of self. This corresponds to Python's built-in
+        ordering when no parent nor alphabet was used to defined the word.
 
-        NOTE:
+        Provides for all normal comparison operators.
+
+        .. NOTE::
+
             This function will not terminate if self and other are equal
             infinite words!
 
@@ -596,6 +600,122 @@ class Word_class(SageObject):
                     r = cmp_fcn(cs, co)
                     if r != 0:
                         return r
+
+    def __eq__(self, other):
+        r"""
+        Returns True if self is equal to other and False otherwise.
+
+        INPUT:
+
+        - ``other`` - a word
+
+        OUTPUT:
+
+            boolean
+
+        .. NOTE:
+
+            This function will not terminate if self and other are equal
+            infinite words!
+
+        EXAMPLES::
+
+            sage: Word('abc') == Word(['a','b','c'])
+            True
+            sage: Words([0,1])([0,1,0,1]) == Words([0,1])([0,1,0,1])
+            True
+            sage: Words([0,1])([0,1,0,1]) == Words([0,1])([0,1,0,0])
+            False
+
+        It works even when parents are not the same::
+
+            sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
+            True
+            sage: Words('abc')('abab') == Words([0,9])([0,0,9])
+            False
+            sage: Word('ababa') == Words('abcd')('ababa')
+            True
+
+        Or when one word is finite while the other is infinite::
+
+            sage: Word(range(20)) == Word(lambda n:n)
+            False
+            sage: Word(lambda n:n) == Word(range(20))
+            False
+
+        Beware the following does not halt!::
+
+            sage: from itertools import count
+            sage: Word(lambda n:n) == Word(count()) #not tested
+
+        TESTS::
+
+            sage: Word(count())[:20] == Word(range(20))
+            True
+            sage: Word(range(20)) == Word(count())[:20]
+            True
+            sage: Word(range(20)) == Word(lambda n:n)[:20]
+            True
+            sage: Word(range(20)) == Word(lambda n:n,length=20)
+            True
+        """
+        if not isinstance(other, Word_class):
+            return NotImplemented
+        self_it, other_it = iter(self), iter(other)
+        while True:
+            try:
+                cs = self_it.next()
+            except StopIteration:
+                try:
+                    co = other_it.next()
+                except StopIteration:
+                    # If both self_it and other_it are exhausted then
+                    # self == other. Return 0.
+                    return True
+                else:
+                    # If self_it is exhausted, but not other_it, then
+                    # self is a proper prefix of other: return -1
+                    return False
+            else:
+                try:
+                    co = other_it.next()
+                except StopIteration:
+                    # If self_it is not exhausted but other_it is, then
+                    # other is a proper prefix of self: return 1.
+                    return False
+                else:
+                    if cs != co:
+                        return False
+
+    def __ne__(self, other):
+        r"""
+        Returns True if self is not equal to other and False otherwise.
+
+        INPUT:
+
+        - ``other`` - a word
+
+        OUTPUT:
+
+            boolean
+
+        .. NOTE:
+
+            This function will not terminate if self and other are equal
+            infinite words!
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: z = Word(range(10))
+            sage: w != z
+            False
+            sage: u = Word(range(12))
+            sage: u != w
+            True
+        """
+        #print '__ne__', self, other, type(self), type(other)
+        return not self.__eq__(other)
 
     def _longest_common_prefix_iterator(self, other):
         r"""
@@ -1108,7 +1228,98 @@ class Word_class(SageObject):
             for a in w[-d:]:
                 yield a
 
-    def iterated_right_palindromic_closure(self, f=None):
+    def _iterated_right_palindromic_closure_recursive_iterator(self, f=None):
+        r"""
+        Returns an iterator over the iterated (`f`-)palindromic closure of self.
+
+        INPUT:
+
+        -  ``f`` - involution (default: None) on the alphabet of self. It must
+           be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            iterator -- the iterated (`f`-)palindromic closure of self
+
+        ALGORITHM:
+
+            For the case of palindromes only, it has been shown in [2] that
+            the iterated right palindromic closure of a given word `w`,
+            denoted by `IRPC(w)`, may be obtained as follows.
+            Let `w` be any word and `x` be a letter. Then
+
+            #. If `x` does not occur in `w`,
+               `IRPC(wx) = IRPC(w) \cdot x \cdot IRPC(w)`
+            #. Otherwise, write `w = w_1xw_2` such that `x` does not
+               occur in `w_2`. Then `IRPC(wx) = IRPC(w) \cdot IRPC(w_1)^{-1}
+               \cdot IRPC(w)`
+
+            This formula is directly generalized to the case of `f`-palindromes.
+            See [1] for more details.
+
+        EXAMPLES::
+
+            sage: w = Word('abc')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: abacaba
+
+        ::
+
+            sage: w = Word('aaa')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: aaa
+
+        ::
+
+            sage: w = Word('abbab')
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: ababaabababaababa
+
+        An infinite word::
+
+            sage: t = words.ThueMorseWord('ab')
+            sage: it = t._iterated_right_palindromic_closure_recursive_iterator()
+            sage: Word(it)
+            word: ababaabababaababaabababaababaabababaabab...
+
+        TESTS:
+
+        The empty word::
+
+            sage: w = Word()
+            sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
+            sage: it.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        REFERENCES:
+
+        -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
+            in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
+        -   [2] J. Justin, Episturmian morphisms and a Galois theorem on
+            continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
+            207-215.
+        """
+        parent = self.parent()
+        ipcw = self[:0]
+        lengths = []
+        for i, letter in enumerate(self):
+            lengths.append(ipcw.length())
+            w = self[:i]
+            pos = w.rfind(parent([letter]))
+            if pos == -1:
+                to_append = parent([letter]).palindromic_closure(f=f) + ipcw
+            else:
+                to_append = ipcw[lengths[pos]:]
+            ipcw += to_append
+            for a in to_append:
+                yield a
+
+    def iterated_right_palindromic_closure(self, f=None, algorithm='recursive'):
         r"""
         Returns the iterated (`f`-)palindromic closure of self.
 
@@ -1116,6 +1327,16 @@ class Word_class(SageObject):
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
            be callable on letters as well as words (e.g. WordMorphism).
+
+        -  ``algorithm`` - string (default: ``'recursive'``) specifying which
+           algorithm to be used when computing the iterated palindromic closure.
+           It must be one of the two following values:
+
+           - ``'definition'`` - computed using the definition
+           - ``'recursive'`` - computation based on an efficient formula
+             that recursively computes the iterated right palindromic closure
+             without having to recompute the longest `f`-palindromic suffix
+             at each iteration [2].
 
         OUTPUT:
 
@@ -1127,15 +1348,19 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word: abacaba
 
+        ::
+
             sage: w = Word('aaa')
             sage: w.iterated_right_palindromic_closure()
             word: aaa
+
+        ::
 
             sage: w = Word('abbab')
             sage: w.iterated_right_palindromic_closure()
             word: ababaabababaababa
 
-        An right f-palindromic closure::
+        A right `f`-palindromic closure::
 
             sage: f = WordMorphism('a->b,b->a')
             sage: w = Word('abbab')
@@ -1147,6 +1372,22 @@ class Word_class(SageObject):
             sage: t = words.ThueMorseWord('ab')
             sage: t.iterated_right_palindromic_closure()
             word: ababaabababaababaabababaababaabababaabab...
+
+        There are two implementations computing the iterated right
+        `f`-palindromic closure, the latter being much more efficient::
+
+            sage: w = Word('abaab')
+            sage: u = w.iterated_right_palindromic_closure(algorithm='definition')
+            sage: v = w.iterated_right_palindromic_closure(algorithm='recursive')
+            sage: u
+            word: abaabaababaabaaba
+            sage: u == v
+            True
+            sage: w = words.RandomWord(8)
+            sage: u = w.iterated_right_palindromic_closure(algorithm='definition')
+            sage: v = w.iterated_right_palindromic_closure(algorithm='recursive')
+            sage: u == v
+            True
 
         TESTS:
 
@@ -1165,8 +1406,11 @@ class Word_class(SageObject):
 
         REFERENCES:
 
-        -   A. de Luca, A. De Luca, Pseudopalindrome closure operators
+        -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
+        -   [2] J. Justin, Episturmian morphisms and a Galois theorem on
+            continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
+            207-215.
         """
         if isinstance(self, FiniteWord_class):
             length = "finite"
@@ -1174,7 +1418,12 @@ class Word_class(SageObject):
             length = None
         else:
             length = "unknown"
-        it = self._iterated_right_palindromic_closure_iterator(f=f)
+        if algorithm == 'definition':
+            it = self._iterated_right_palindromic_closure_iterator(f=f)
+        elif algorithm == 'recursive':
+            it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
+        else:
+            raise ValueError, "algorithm (=%s) must be either 'definition' or 'recursive'"
         return self._parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
@@ -1652,7 +1901,26 @@ class FiniteWord_class(Word_class):
             sage: z = Word('12223', alphabet = '123')
             sage: z + y                   #todo: not implemented
             word: 1222353587
+
+        TESTS:
+
+        The empty word is not considered by concatenation::
+
+            sage: type(Word([]) * Word('abcd'))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word())
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word([]))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word('abcd') * Word(()))
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(Word([1,2,3]) * Word(''))
+            <class 'sage.combinat.words.word.FiniteWord_list'>
         """
+        if self.is_empty():
+            return other
+        if isinstance(other, Word_class) and other.is_empty():
+            return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
         return self._parent(f, length=length, datatype='callable', caching=True)
@@ -2511,6 +2779,135 @@ exponent %s: the length of the word (%s) times the exponent \
                 g.add_edge(u,v,a)
         return g
 
+    def reduced_rauzy_graph(self, n):
+        r"""
+        Returns the reduced Rauzy graph of order `n` of self.
+
+        INPUT:
+
+        - ``n`` - non negative integer. Every vertex of a reduced
+          Rauzy graph of order `n` is a factor of length `n` of self.
+
+        OUTPUT:
+
+        Looped multi-digraph
+
+        DEFINITION:
+
+        For infinite periodic words (resp. for finite words of type `u^i
+        u[0:j]`), the reduced Rauzy graph of order `n` (resp. for `n`
+        smaller or equal to `(i-1)|u|+j`) is the directed graph whose
+        unique vertex is the prefix `p` of length `n` of self and which has
+        an only edge which is a loop on `p` labelled by `w[n+1:|w|] p`
+        where `w` is the unique return word to `p`.
+
+        In other cases, it is the directed graph defined as followed.  Let
+        `G_n` be the Rauzy graph of order `n` of self. The vertices are the
+        vertices of `G_n` that are either special or not prolongable to the
+        right or to the left. For each couple (`u`, `v`) of such vertices
+        and each directed path in `G_n` from `u` to `v` that contains no
+        other vertices that are special, there is an edge from `u` to `v`
+        in the reduced Rauzy graph of order `n` whose label is the label of
+        the path in `G_n`.
+
+        .. NOTE::
+
+            In the case of infinite recurrent non periodic words, this
+            definition correspond to the following one that can be found in
+            [1] and [2]  where a simple path is a path that begins with a
+            special factor, ends with a special factor and contains no
+            other vertices that are special:
+
+            The reduced Rauzy graph of factors of length `n` is obtained
+            from `G_n` by replacing each simple path `P=v_1 v_2 ...
+            v_{\ell}` with an edge `v_1 v_{\ell}` whose label is the
+            concatenation of the labels of the edges of `P`.
+
+        EXAMPLES::
+
+            sage: w = Word(range(10)); w
+            word: 0123456789
+            sage: g = w.reduced_rauzy_graph(3); g
+            Looped multi-digraph on 2 vertices
+            sage: g.vertices()
+            [word: 012, word: 789]
+            sage: g.edges()
+            [(word: 012, word: 789, word: 3456789)]
+
+        For the Fibonacci word::
+
+            sage: f = words.FibonacciWord()[:100]
+            sage: g = f.reduced_rauzy_graph(8);g
+            Looped multi-digraph on 2 vertices
+            sage: g.vertices()
+            [word: 01001010, word: 01010010]
+            sage: g.edges()
+            [(word: 01001010, word: 01010010, word: 010), (word: 01010010, word: 01001010, word: 01010), (word: 01010010, word: 01001010, word: 10)]
+
+        For periodic words::
+
+            sage: from itertools import cycle
+            sage: w = Word(cycle('abcd'))[:100]
+            sage: g = w.reduced_rauzy_graph(3)
+            sage: g.edges()
+            [(word: abc, word: abc, word: dabc)]
+
+        ::
+
+            sage: w = Word('111')
+            sage: for i in range(5) : w.reduced_rauzy_graph(i)
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
+            Looped multi-digraph on 0 vertices
+
+        For ultimately periodic words::
+
+            sage: sigma = WordMorphism('a->abcd,b->cd,c->cd,d->cd')
+            sage: w = sigma.fixed_point('a')[:100]; w
+            word: abcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd...
+            sage: g = w.reduced_rauzy_graph(5)
+            sage: g.vertices()
+            [word: abcdc, word: cdcdc]
+            sage: g.edges()
+            [(word: abcdc, word: cdcdc, word: dc), (word: cdcdc, word: cdcdc, word: dc)]
+
+        AUTHOR:
+
+        Julien Leroy (March 2010): initial version
+
+        REFERENCES:
+
+        - [1] M. Bucci et al.  A. De Luca, A. Glen, L. Q. Zamboni, A
+          connection between palindromic and factor complexity using
+          return words," Advances in Applied Mathematics 42 (2009) 60-74.
+
+        - [2] L'ubomira Balkova, Edita Pelantova, and Wolfgang Steiner.
+          Sequences with constant number of return words. Monatsh. Math,
+          155 (2008) 251-263.
+        """
+        from sage.graphs.all import DiGraph
+        from copy import copy
+        g = copy(self.rauzy_graph(n))
+        # Otherwise it changes the rauzy_graph function.
+        l = [v for v in g if g.in_degree(v)==1 and g.out_degree(v)==1]
+        if g.num_verts() !=0 and len(l)==g.num_verts():
+            # In this case, the Rauzy graph is simply a cycle.
+            g = DiGraph()
+            g.allow_loops(True)
+            g.add_vertex(self[:n])
+            g.add_edge(self[:n],self[:n],self[n:n+len(l)])
+        else:
+            g.allow_loops(True)
+            g.allow_multiple_edges(True)
+            for v in l:
+                [i] = g.neighbors_in(v)
+                [o] = g.neighbors_out(v)
+                g.add_edge(i,o,g.edge_label(i,v)[0]*g.edge_label(v,o)[0])
+                g.delete_vertex(v)
+        return g
+
     def commutes_with(self, other):
         r"""
         Returns True if self commutes with other, and False otherwise.
@@ -2794,7 +3191,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('aababb').is_palindrome(f)
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            KeyError: 'b'
 
         TESTS:
 
@@ -3427,7 +3824,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            KeyError: 'b'
 
         REFERENCES:
 
@@ -4206,6 +4603,116 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self._pos_in(other, 0)
 
+    def find(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the first occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
+
+        INPUT:
+
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position from which to start the search.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position at which the search must stop. If None, then
+           the search is performed up to the end of the string.
+
+        OUTPUT:
+
+            non negative integer or -1
+
+        EXAMPLES::
+
+            sage: w = Word([0,1,0,0,1])
+            sage: w.find(Word([0,1]))
+            0
+            sage: w.find(Word([0,1]), start=1)
+            3
+            sage: w.find(Word([0,1]), start=1, end=5)
+            3
+            sage: w.find(Word([0,1]), start=1, end=4) == -1
+            True
+            sage: w.find(Word([1,1])) == -1
+            True
+
+        Instances of Word_str handle string inputs as well::
+
+            sage: w = Word('abac')
+            sage: w.find('a')
+            0
+            sage: w.find(Word('a'))
+            0
+        """
+        w = self[start:end]
+        if isinstance(sub, FiniteWord_class):
+            p = sub.first_pos_in(w)
+            if p is None:
+                return -1
+            else:
+                return p + start
+        else:
+            L = len(sub)
+            if start is None:
+                i = len(self) - L
+            else:
+                i = start - L
+            while i >= end:
+                if self[i:i+L] == sub: return i
+                i -= 1
+            return -1
+
+    def rfind(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the last occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
+
+        INPUT:
+
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position at which the search must stop.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position from which to start the search. If None, then
+           the search is performed up to the end of the string.
+
+        OUTPUT:
+
+            non negative integer or -1
+
+        EXAMPLES::
+
+            sage: w = Word([0,1,0,0,1])
+            sage: w.rfind(Word([0,1]))
+            3
+            sage: w.rfind(Word([0,1]), end=4)
+            0
+            sage: w.rfind(Word([0,1]), end=5)
+            3
+            sage: w.rfind(Word([0,0]), start=2, end=5)
+            2
+            sage: w.rfind(Word([0,0]), start=3, end=5) == -1
+            True
+
+        Instances of Word_str handle string inputs as well::
+
+            sage: w = Word('abac')
+            sage: w.rfind('a')
+            2
+            sage: w.rfind(Word('a'))
+            2
+        """
+        L = len(sub)
+        if end is None:
+            i = len(self) - L
+        else:
+            i = end - L
+        while i >= start:
+            if self[i:i+L] == sub: return i
+            i -= 1
+        return -1
+
     ###########################################################################
     ##### DEPRECATION WARNINGS ################################################
     ##### Added July 2009 #####################################################
@@ -4695,85 +5202,134 @@ exponent %s: the length of the word (%s) times the exponent \
         else:
             return Partition(p)
 
-    def overlap_partition(self, other, delay=0, p=None):
+    def overlap_partition(self, other, delay=0, p=None, involution=None) :
         r"""
-        Returns the partition of the alphabet induced by the equivalence
+        Returns the partition of the alphabet induced by the overlap of
+        self and other with the given delay.
+
+        The partition of the alphabet is given by the equivalence
         relation obtained from the symmetric, reflexive and transitive
-        closure of `R_{self,other,delay}\cup p` defined below.
+        closure of the set of pairs of letters
+        `R_{u,v,d} = \{ (u_k, v_{k-d}) : 0 \leq k < n, 0\leq k-d < m \}`
+        where `u = u_0 u_1 \cdots u_{n-1}`, `v = v_0v_1\cdots v_{m-1}` are
+        two words on the alphabet `A` and `d` is an integer.
 
-        Let `u = u_0 u_1 \cdots u_{n-1}`, `v = v_0v_1\cdots v_{m-1}` be two
-        words on the alphabet `A` where `u_i, v_j \in A` are letters and
-        let `d` be an integer. We define a relation
-        `R_{u,v,d}\subseteq A \times A` by
-        `R_{u,v,d} = \{ (u_k, v_{k-d}) : 0 \leq k < n, 0\leq k-d < m \}`.
-        The equivalence relation obtained from `R` is inspired from [1].
-
-        EXAMPLE:
-
-            Let `A = \{\tt{a}, \tt{b}, \tt{c}, \tt{d}, \tt{e}, \tt{f}, \tt{h},
-            \tt{l}, \tt{v} \}`,
-            `s=\tt{cheval}, t=\tt{abcdef} \in A^*` and `d=3`.
-            Then `0 \leq k < 6` and `0\leq k-3 < 6` implies that
-            `3\leq k \leq 5`. Then,
-            `R_{s,t,d} = \{ (s_3, t_0), (s_4, t_1), (s_5, t_2) \} = \{ (\tt{v},
-            \tt{a}), (\tt{a}, \tt{b}), (\tt{l}, \tt{c}) \}`.
-            These three couples correspond to the pairs of letters one above
-            the other in the following overlap :
-
-                    `\tt{cheval}`
-                       `\tt{abcdef}`
-
-            The symmetric, reflexive and transitive closure of `R_{s,t,d}`
-            defines the following partition of the alphabet `A`:
-            `\{\{\tt{a}, \tt{b}, \tt{v}\}, \{\tt{c}, \tt{l}\}, \{\tt{d}\},
-            \{\tt{e}\}, \{\tt{f}\}, \{\tt{h}\}\}`.
+        The equivalence relation defined by `R` is inspired from [1].
 
         INPUT:
 
         -  ``other`` - word on the same alphabet as self
         -  ``delay`` - integer
-        -  ``p`` - Set (default: None), a partition of the alphabet
+        -  ``p`` - disjoint sets data structure (optional, default: None),
+           a partition of the alphabet into disjoint sets to start with.
+           If None, each letter start in distinct equivalence classes.
+        -  ``involution`` - callable (optional, default: None), an
+           involution on the alphabet. If involution is not None, the relation
+           `R_{u,v,d} \cup R_{involution(u),involution(v),d}` is considered.
 
         OUTPUT:
 
-        -  ``p`` - Set, a set partition of the alphabet of self and other.
+        -  disjoint set data structure
 
-        EXAMPLES:
+        EXAMPLES::
 
-        The above example::
+            sage: W = Words(list('abc')+range(6))
+            sage: u = W('abc')
+            sage: v = W(range(5))
+            sage: u.overlap_partition(v)
+            {{0, 'a'}, {1, 'b'}, {2, 'c'}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, 2)
+            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, -1)
+            {{0}, {1, 'a'}, {2, 'b'}, {3, 'c'}, {4}, {5}}
 
-            sage: W = Words('abcdefhlv')
-            sage: cheval = W('cheval')
-            sage: abcdef = W('abcdef')
-            sage: p = cheval.overlap_partition(abcdef,3); p
-            {{'f'}, {'e'}, {'d'}, {'a', 'b', 'v'}, {'c', 'l'}, {'h'}}
+        You can re-use the same disjoint set and do more than one overlap::
 
-        The same example with delay 2 ::
+            sage: p = u.overlap_partition(v, 2)
+            sage: p
+            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            sage: u.overlap_partition(v, 1, p)
+            {{'a'}, {0, 1, 'b', 'c'}, {2}, {3}, {4}, {5}}
 
-            sage: cheval.overlap_partition(abcdef,2,p)
-            {{'f'}, {'a', 'c', 'b', 'e', 'd', 'v', 'l'}, {'h'}}
+        The function  ``overlap_partition`` can be used to study equations
+        on words. For example, if a word `w` overlaps itself with delay `d`, then
+        `d` is a period of `w`::
 
-        ::
+            sage: W = Words(range(20))
+            sage: w = W(range(14)); w
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+            sage: d = 5
+            sage: p = w.overlap_partition(w, d)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 56789567895678
+            sage: w2.minimal_period() == d
+            True
+
+        If a word is equal to its reversal, then it is a palindrome::
+
+            sage: W = Words(range(20))
+            sage: w = W(range(17)); w
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+            sage: p = w.overlap_partition(w.reversal(), 0)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 01234567876543210
+            sage: w2.parent()
+            Words over Ordered Alphabet [0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19]
+            sage: w2.is_palindrome()
+            True
+
+        If the reversal of a word `w` is factor of its square `w^2`, then
+        `w` is symmetric, i.e. the product of two palindromes::
+
+            sage: W = Words(range(10))
+            sage: w = W(range(10)); w
+            word: 0123456789
+            sage: p = (w*w).overlap_partition(w.reversal(), 4)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: w2 = m(w); w2
+            word: 0110456654
+            sage: w2.is_symmetric()
+            True
+
+        If the image of the reversal of a word `w` under an involution `f`
+        is factor of its square `w^2`, then `w` is `f`-symmetric::
+
+            sage: W = Words([-11,-9,..,11])
+            sage: w = W([1,3,..,11])
+            sage: w
+            word: 1,3,5,7,9,11
+            sage: inv = lambda x:-x
+            sage: f = WordMorphism(dict( (a, inv(a)) for a in W.alphabet()))
+            sage: p = (w*w).overlap_partition(f(w).reversal(), 2, involution=f)
+            sage: m = WordMorphism(p.element_to_root_dict())
+            sage: m(w)
+            word: 1,-1,5,7,-7,-5
+            sage: m(w).is_symmetric(f)
+            True
+
+        TESTS::
 
             sage: W = Words('abcdef')
             sage: w = W('abc')
             sage: y = W('def')
             sage: w.overlap_partition(y, -3)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, -2)
-            {{'a', 'f'}, {'e'}, {'d'}, {'c'}, {'b'}}
+            {{'a', 'f'}, {'b'}, {'c'}, {'d'}, {'e'}}
             sage: w.overlap_partition(y, -1)
-            {{'a', 'e'}, {'d'}, {'c'}, {'b', 'f'}}
+            {{'a', 'e'}, {'b', 'f'}, {'c'}, {'d'}}
             sage: w.overlap_partition(y, 0)
-            {{'b', 'e'}, {'a', 'd'}, {'c', 'f'}}
+            {{'a', 'd'}, {'b', 'e'}, {'c', 'f'}}
             sage: w.overlap_partition(y, 1)
-            {{'c', 'e'}, {'f'}, {'b', 'd'}, {'a'}}
+            {{'a'}, {'b', 'd'}, {'c', 'e'}, {'f'}}
             sage: w.overlap_partition(y, 2)
-            {{'f'}, {'e'}, {'b'}, {'a'}, {'c', 'd'}}
+            {{'a'}, {'b'}, {'c', 'd'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, 3)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
             sage: w.overlap_partition(y, 4)
-            {{'f'}, {'e'}, {'d'}, {'b'}, {'a'}, {'c'}}
+            {{'a'}, {'b'}, {'c'}, {'d'}, {'e'}, {'f'}}
 
         ::
 
@@ -4785,17 +5341,24 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.overlap_partition(w, 1)
             {{0, 1}}
 
-        TESTS::
+        ::
 
             sage: empty = Word()
             sage: empty.overlap_partition(empty, 'yo')
             Traceback (most recent call last):
             ...
-            TypeError: delay (type given: <type 'str'>) must be an integer
+            TypeError: delay (=yo) must be an integer
             sage: empty.overlap_partition(empty,2,'yo')
             Traceback (most recent call last):
             ...
-            TypeError: p(=yo) is not a Set
+            TypeError: p(=yo) is not a DisjointSet
+
+        The involution input can be any callable::
+
+            sage: w = Words([-5,..,5])([-5..5])
+            sage: inv = lambda x:-x
+            sage: w.overlap_partition(w, 2, involution=inv)
+            {{-4, -2, 0, 2, 4}, {-5, -3, -1, 1, 3, 5}}
 
         REFERENCES:
 
@@ -4804,39 +5367,38 @@ exponent %s: the length of the word (%s) times the exponent \
             109 pages.
         """
         if not isinstance(delay, (int, Integer)):
-            raise TypeError, \
-                  "delay (type given: %s) must be an integer"%type(delay)
+            raise TypeError, "delay (=%s) must be an integer"%delay
         elif delay < 0:
             return other.overlap_partition(self, -delay, p)
 
-        alphabet = self.parent().alphabet()
-
+        from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
             if self.parent().size_of_alphabet() is Infinity:
-                raise ValueError, 'cannot construct the default set partition of an infinite alphabet'
-            else:
-                R = [[x] for x in alphabet]
+                raise ValueError, "The alphabet of the parent must be finite"
+            from sage.sets.disjoint_set import DisjointSet
+            p = DisjointSet(self.parent().alphabet())
+        elif not isinstance(p, DisjointSet_class):
+            raise TypeError, "p(=%s) is not a DisjointSet" % p
+
+        #Join the classes of each pair of letters that are one above the other
+        from itertools import islice, izip
+        from sage.combinat.words.morphism import WordMorphism
+        S = izip(islice(self, delay, None), other)
+        if involution is None:
+            for (a,b) in S:
+                p.union(a, b)
+        elif isinstance(involution, WordMorphism):
+            for (a,b) in S:
+                p.union(a, b)
+                # take the first letter of the word
+                p.union(involution(a)[0], involution(b)[0])
+        elif callable(involution):
+            for (a,b) in S:
+                p.union(a, b)
+                p.union(involution(a), involution(b))
         else:
-            if not is_Set(p):
-                raise TypeError, "p(=%s) is not a Set" % p
-            if Set(alphabet.list()) != reduce(lambda x,y:x.union(y), p):
-                raise TypeError, "p(=%s) is not a partition of the alphabet" % p
-            R = map(list,p)
-
-        d, n, m = delay, self.length(), other.length()
-        S = [(self[k], other[k-d]) for k in range(max(0,d), min(n,m+d))]
-
-        for (a,b) in S:
-            index_a, index_b = -1, -1
-            for (i, r) in enumerate(R):
-                if index_a < 0 and a in r: index_a = i
-                if index_b < 0 and b in r: index_b = i
-                if index_a >= 0 and index_b >= 0: break
-            if index_a != index_b:
-                set_a = R.pop(max(index_a, index_b))
-                set_b = R.pop(min(index_a, index_b))
-                R += [set_a + set_b]
-        return Set(map(Set, R))
+            raise TypeError, "involution (=%s) must be callable"%involution
+        return p
 
     # TODO: requires a parent with a cmp_letters method
     def standard_permutation(self):
@@ -6128,6 +6690,17 @@ class InfiniteWord_class(Word_class):
 
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
+    Finite word represented by a Python list.
+
+    For any word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(range(10))
+        sage: w.iterated_right_palindromic_closure()
+        word: 0102010301020104010201030102010501020103...
+
     TESTS::
 
         sage: w = Word([0,1,1,0])
@@ -6138,6 +6711,17 @@ class FiniteWord_list(WordDatatype_list, FiniteWord_class):
 
 class FiniteWord_str(WordDatatype_str, FiniteWord_class):
     r"""
+    Finite word represented by a Python str.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word('abcdef')
+        sage: w.is_square()
+        False
+
     TESTS::
 
         sage: w = Word('abba')
@@ -6148,6 +6732,17 @@ class FiniteWord_str(WordDatatype_str, FiniteWord_class):
 
 class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     r"""
+    Finite word represented by a Python tuple.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(())
+        sage: w.is_empty()
+        True
+
     TESTS::
 
         sage: w = Word((0,1,1,0))
@@ -6157,37 +6752,350 @@ class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     pass
 
 class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_class):
+    r"""
+    Finite word represented by an iterator (with caching).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(iter('abcdef'))
+        sage: w.conjugate(2)
+        word: cdefab
+
+    TESTS::
+
+        sage: w = Word(iter(range(10)))
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
+    r"""
+    Finite word represented by an iterator.
+
+    For such word `w`, type  ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(iter(range(10)), caching=False)
+        sage: w
+        word: 0123456789
+        sage: w.finite_differences()
+        word: 111111111
+
+    TESTS::
+
+        sage: w = Word(iter(range(10)), caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_iter'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, FiniteWord_class):
+    r"""
+    Finite word represented by a callable (with caching).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: f = lambda n : n % 3
+        sage: w = Word(f, length=32)
+        sage: w
+        word: 01201201201201201201201201201201
+        sage: w.border()
+        word: 01201201201201201201201201201
+
+    TESTS::
+
+        sage: w = Word(lambda n:n, length=10)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+
+    Pickle also works for concatenation of words::
+
+        sage: w = Word(range(10)) * Word('abcdef')
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+
+    Pickle also works for power of words::
+
+        sage: w = Word(range(10)) ^ 2
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
     pass
 
 class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
+    r"""
+    Finite word represented by a callable.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: f = lambda n : 3 if n > 8 else 6
+        sage: w = Word(f, length=30, caching=False)
+        sage: w
+        word: 666666666333333333333333333333
+        sage: w.is_symmetric()
+        True
+
+    TESTS::
+
+        sage: w = Word(lambda n:n, length=10, caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_callable'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_callable'>
+    """
     pass
 
 ##### Infinite Words #####
 
 class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWord_class):
+    r"""
+    Infinite word represented by an iterable (with caching).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: from itertools import cycle
+        sage: w = Word(cycle([9,8,4]))
+        sage: w
+        word: 9849849849849849849849849849849849849849...
+        sage: prefix = w[:23]
+        sage: prefix
+        word: 98498498498498498498498
+        sage: prefix.minimal_period()
+        3
+
+    TESTS::
+
+        sage: from itertools import count
+        sage: w = Word(count())
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+
+    Pickle is not supported for infinite word defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
+    r"""
+    Infinite word represented by an iterable.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: from itertools import chain, cycle
+        sage: w = Word(chain('letsgo', cycle('forever')), caching=False)
+        sage: w
+        word: letsgoforeverforeverforeverforeverforeve...
+        sage: prefix = w[:100]
+        sage: prefix
+        word: letsgoforeverforeverforeverforeverforeve...
+        sage: prefix.is_lyndon()
+        False
+
+    TESTS::
+
+        sage: from itertools import count
+        sage: w = Word(count(), caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_iter'>
+
+    Pickle is not supported for infinite word defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, InfiniteWord_class):
+    r"""
+    Infinite word represented by a callable (with caching).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(lambda n:n)
+        sage: factor = w[4:13]
+        sage: factor
+        word: 4,5,6,7,8,9,10,11,12
+
+    TESTS::
+
+        sage: w = Word(lambda n:n)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_callable_with_caching'>
+        sage: z = loads(dumps(w))
+        sage: z
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: type(z)
+        <class 'sage.combinat.words.word.InfiniteWord_callable_with_caching'>
+    """
     pass
 
 class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
+    r"""
+    Infinite word represented by a callable.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(lambda n:n, caching=False)
+        sage: w
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: w.iterated_right_palindromic_closure()
+        word: 0102010301020104010201030102010501020103...
+
+    TESTS::
+
+        sage: w = Word(lambda n:n, caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.InfiniteWord_callable'>
+        sage: z = loads(dumps(w))
+        sage: z
+        word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
+        sage: type(z)
+        <class 'sage.combinat.words.word.InfiniteWord_callable'>
+    """
     pass
 
 ##### Words of unknown length #####
 
 class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
+    r"""
+    Word of unknown length (finite or infinite) represented by an
+    iterable (with caching).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(iter([1,2,3]*1000), length='unknown')
+        sage: w
+        word: 1231231231231231231231231231231231231231...
+        sage: w.finite_differences(mod=2)
+        word: 1101101101101101101101101101101101101101...
+
+    TESTS::
+
+        sage: w = Word(iter('abcd'*100), length='unknown')
+        sage: type(w)
+        <class 'sage.combinat.words.word.Word_iter_with_caching'>
+        sage: w
+        word: abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd...
+
+    Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 class Word_iter(WordDatatype_iter, Word_class):
+    r"""
+    Word of unknown length (finite or infinite) represented by an
+    iterable.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = Word(iter([1,1,4,9]*1000), length='unknown', caching=False)
+        sage: w
+        word: 1149114911491149114911491149114911491149...
+        sage: w.delta()
+        word: 2112112112112112112112112112112112112112...
+
+    TESTS::
+
+        sage: w = Word(iter('abcd'*100), length='unknown', caching=False)
+        sage: type(w)
+        <class 'sage.combinat.words.word.Word_iter'>
+        sage: w
+        word: abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd...
+
+    Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+    """
     pass
 
 #######################################################################

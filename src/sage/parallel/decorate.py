@@ -9,7 +9,7 @@ from sage.rings.all import Integer
 
 from reference import parallel_iter as p_iter_reference
 from use_fork import p_iter_fork
-import multiprocessing
+import multiprocessing_sage
 
 def normalize_input(a):
     """
@@ -66,7 +66,7 @@ class Parallel:
         if p_iter == 'fork':
             self.p_iter = p_iter_fork(ncpus, **kwds)
         elif p_iter == 'multiprocessing':
-            self.p_iter = multiprocessing.pyprocessing(ncpus)
+            self.p_iter = multiprocessing_sage.pyprocessing(ncpus)
         elif p_iter == 'reference':
             self.p_iter = p_iter_reference
         elif isinstance(p_iter, str):

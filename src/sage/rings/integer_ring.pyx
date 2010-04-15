@@ -35,7 +35,7 @@ integers, when it makes sense.
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -118,9 +118,37 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         0
         sage: Z.is_field()
         False
-
         sage: Z.category()
         Category of euclidean domains
+        sage: Z(2^(2^5) + 1)
+        4294967297
+
+    One can give strings to create integers. Strings starting with
+    ``0x`` are interpreted as hexadecimal, and strings starting with
+    ``0`` are interpreted as octal::
+
+        sage: parent('37')
+        <type 'str'>
+        sage: parent(Z('37'))
+        Integer Ring
+        sage: Z('0x10')
+        16
+        sage: Z('0x1a')
+        26
+        sage: Z('020')
+        16
+
+    As an inverse to :meth:`~sage.rings.integer.Integer.digits`,
+    lists of digits are accepted, provided that you give a base. The
+    lists are interpreted in little-endian order, so that entry ``i`` of
+    the list is the coefficient of ``base^i``::
+
+        sage: Z([3, 7], 10)
+        73
+        sage: Z([3, 7], 9)
+        66
+        sage: Z([], 10)
+        0
 
     We next illustrate basic arithmetic in `\ZZ`::
 
@@ -423,6 +451,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         TESTS::
 
+            sage: 5r + True
+            6
+            sage: 5 + True
+            6
+
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -436,13 +469,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         ::
 
-            sage: f(10000000000000000000000r) # random
+            sage: a = 10000000000000000000000r
+            sage: type(a)
+            <type 'long'>
+            sage: f(a) # random
             5
         """
         if S is int:
             return sage.rings.integer.int_to_Z()
         elif S is long:
             return sage.rings.integer.long_to_Z()
+        elif S is bool:
+            return True
         else:
             None
 

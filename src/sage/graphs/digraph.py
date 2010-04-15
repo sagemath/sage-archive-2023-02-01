@@ -1,4 +1,12 @@
+r"""
+Directed graphs
 
+This module implements functions and operations involving directed
+graphs.
+
+Class and methods
+-----------------
+"""
 
 from sage.rings.integer import Integer
 from sage.misc.misc import deprecated_function_alias
@@ -293,6 +301,16 @@ class DiGraph(GenericGraph):
             sage: a = matrix(2,2,[3,2,0,1])
             sage: DiGraph(a,sparse=True).adjacency_matrix() == a
             True
+
+        The positions are copied when the DiGraph is built from
+        another DiGraph or from a Graph ::
+
+            sage: g = DiGraph(graphs.PetersenGraph())
+            sage: h = DiGraph(g)
+            sage: g.get_pos() == h.get_pos()
+            True
+            sage: g.get_pos() == graphs.PetersenGraph().get_pos()
+            True
         """
         from sage.all import walltime
         msg = ''
@@ -435,6 +453,8 @@ class DiGraph(GenericGraph):
             if weighted is None: weighted = data.weighted()
             num_verts = data.num_verts()
             verts = data.vertex_iterator()
+            if data.get_pos() is not None:
+                pos = data.get_pos().copy()
         elif format == 'rule':
             f = data[1]
             if loops is None: loops = any(f(v,v) for v in data[0])
@@ -1308,6 +1328,615 @@ class DiGraph(GenericGraph):
         H.name("Reverse of (%s)"%name)
         return H
 
+    ### Paths and cycles iterators
+
+    def _all_paths_iterator(self, vertex, ending_vertices=None,
+                            simple=False, max_length=None, trivial=False):
+        r"""
+        Returns an iterator over the paths of self starting with the
+        given vertex.
+
+        INPUT:
+
+        -  ``vertex`` - the starting vertex of the paths.
+        -  ``ending_vertices`` - iterable (default: None) on
+           the allowed ending vertices of the paths. If None,
+           then all vertices are allowed.
+        -  ``simple`` - boolean (default: False). If set to True,
+           then only simple paths are considered. A path is simple
+           if no vertex occurs twice in it except possibly the first
+           and last ones.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated paths. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty paths are also enumerated.
+
+        OUTPUT:
+
+            iterator
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: pi = g._all_paths_iterator('a')
+            sage: for _ in range(5): print pi.next()
+            ['a', 'a']
+            ['a', 'b']
+            ['a', 'a', 'a']
+            ['a', 'a', 'b']
+            ['a', 'b', 'c']
+
+        ::
+
+            sage: pi = g._all_paths_iterator('b')
+            sage: for _ in range(5): print pi.next()
+            ['b', 'c']
+            ['b', 'c', 'd']
+            ['b', 'c', 'd', 'c']
+            ['b', 'c', 'd', 'c', 'd']
+            ['b', 'c', 'd', 'c', 'd', 'c']
+
+        One may wish to enumerate simple paths, i.e. paths such that no vertex
+        occurs twice in it except possibly the first and last one. The result
+        is always finite but may be long to be computed::
+
+            sage: pi = g._all_paths_iterator('a', simple=True)
+            sage: list(pi)
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            sage: pi = g._all_paths_iterator('d', simple=True)
+            sage: list(pi)
+            [['d', 'c'], ['d', 'c', 'd']]
+
+        It is possible to specify the allowed ending vertices::
+
+            sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
+            sage: for _ in range(5): print pi.next()
+            ['a', 'b', 'c']
+            ['a', 'a', 'b', 'c']
+            ['a', 'a', 'a', 'b', 'c']
+            ['a', 'b', 'c', 'd', 'c']
+            ['a', 'a', 'a', 'a', 'b', 'c']
+            sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
+            sage: for _ in range(5): print pi.next()
+            ['a', 'a']
+            ['a', 'b']
+            ['a', 'a', 'a']
+            ['a', 'a', 'b']
+            ['a', 'a', 'a', 'a']
+
+        One can bound the length of the paths::
+
+            sage: pi = g._all_paths_iterator('d', max_length=3)
+            sage: list(pi)
+            [['d', 'c'], ['d', 'c', 'd'], ['d', 'c', 'd', 'c']]
+
+        Or include the trivial empty path::
+
+            sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
+            sage: list(pi)
+            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'a'], ['a', 'a', 'b'], ['a', 'b', 'c'], ['a', 'a', 'a', 'a'], ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+        """
+        if ending_vertices is None:
+            ending_vertices = self
+        # First enumerate the empty path
+        if trivial:
+            yield [vertex]
+        queue = [[vertex]]
+        if max_length is None:
+            from sage.rings.infinity import Infinity
+            max_length = Infinity
+        while queue:
+            path = queue.pop(0)
+            if len(path) > 1 and path[-1] in ending_vertices:
+                yield path
+            # Makes sure that the current path is not too long
+            # and checks that the path is simple
+            if len(path) <= max_length and (not simple or path.count(path[-1]) == 1):
+                for neighbor in self.neighbor_out_iterator(path[-1]):
+                    queue.append(path + [neighbor])
+
+    def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
+                           simple=False, max_length=None, trivial=False):
+        r"""
+        Returns an iterator over the paths of self. The paths are
+        enumerated in increasing length order.
+
+        INPUT:
+
+        -  ``starting_vertices`` - iterable (default: None) on the
+           vertices from which the paths must start. If None, then all
+           vertices of the graph can be starting points.
+        -  ``ending_vertices`` - iterable (default: None) on
+           the allowed ending vertices of the paths. If None,
+           then all vertices are allowed.
+        -  ``simple`` - boolean (default: False). If set to True,
+           then only simple paths are considered. A path is simple
+           if no vertex occurs twice in it except if the starting
+           and ending ones are equal.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated paths. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty paths are also enumerated.
+
+        OUTPUT:
+
+            iterator
+
+        AUTHOR:
+
+            Alexandre Blondin Masse
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: pi = g.all_paths_iterator()
+            sage: for _ in range(7): print pi.next()
+            ['a', 'a']
+            ['a', 'b']
+            ['b', 'c']
+            ['c', 'd']
+            ['d', 'c']
+            ['a', 'a', 'a']
+            ['a', 'a', 'b']
+
+        It is possible to precise the allowed starting and/or ending vertices::
+
+            sage: pi = g.all_paths_iterator(starting_vertices=['a'])
+            sage: for _ in range(5): print pi.next()
+            ['a', 'a']
+            ['a', 'b']
+            ['a', 'a', 'a']
+            ['a', 'a', 'b']
+            ['a', 'b', 'c']
+            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b'])
+            sage: for _ in range(5): print pi.next()
+            ['a', 'b']
+            ['a', 'a', 'b']
+            ['a', 'a', 'a', 'b']
+            ['a', 'a', 'a', 'a', 'b']
+            ['a', 'a', 'a', 'a', 'a', 'b']
+
+        One may prefer to enumerate only simple paths (see
+        ``all_simple_paths(...)``)::
+
+            sage: pi = g.all_paths_iterator(simple=True)
+            sage: list(pi)
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+
+        Or simply bound the length of the enumerated paths::
+
+            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
+            sage: list(pi)
+            [['a', 'b'], ['a', 'a', 'b'], ['a', 'b', 'c'], ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'], ['a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c'], ['a', 'a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'a', 'b', 'c'], ['a', 'a', 'b', 'c', 'd', 'c'], ['a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'a', 'a', 'b', 'c'], ['a', 'a', 'a', 'b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c', 'd', 'c']]
+
+        By default, empty paths are not enumerated, but it may be
+        parametrized::
+
+            sage: pi = g.all_paths_iterator(simple=True, trivial=True)
+            sage: list(pi)
+            [['a'], ['b'], ['c'], ['d'], ['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            sage: pi = g.all_paths_iterator(simple=True, trivial=False)
+            sage: list(pi)
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+        """
+        if starting_vertices is None:
+            starting_vertices = self
+        # We create one paths iterator per vertex
+        # This is necessary if we want to iterate over paths
+        # with increasing length
+        vertex_iterators = dict([(v, self._all_paths_iterator(v, ending_vertices=ending_vertices, simple=simple, max_length=max_length, trivial=trivial)) for v in starting_vertices])
+        paths = []
+        for vi in vertex_iterators.values():
+            try:
+                path = vi.next()
+                paths.append((len(path), path))
+            except(StopIteration):
+                pass
+        # Since we always extract a shortest path, using a heap
+        # can speed up the algorithm
+        from heapq import heapify, heappop, heappush
+        heapify(paths)
+        while paths:
+            # We choose the shortest available path
+            _, shortest_path = heappop(paths)
+            yield shortest_path
+            # We update the path iterator to its next available path if it exists
+            try:
+                path = vertex_iterators[shortest_path[0]].next()
+                heappush(paths, (len(path), path))
+            except(StopIteration):
+                pass
+
+    def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
+                         max_length=None, trivial=False):
+        r"""
+        Returns a list of all the simple paths of self starting
+        with one of the given vertices. A path is simple if no vertex
+        occurs twice in it except possibly the starting and ending one.
+        The paths are enumerated in increasing length order.
+
+        INPUT:
+
+        -  ``starting_vertices`` - list (default: None) of vertices
+           from which the paths must start. If None, then all
+           vertices of the graph can be starting points.
+        -  ``ending_vertices`` - iterable (default: None) on
+           the allowed ending vertices of the paths. If None,
+           then all vertices are allowed.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated paths. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty paths are also enumerated.
+
+        OUTPUT:
+
+            list
+
+        .. NOTE::
+
+            Although the number of simple paths of a finite graph
+            is always finite, computing all its paths may take a very
+            long time.
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: g.all_simple_paths()
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+
+        One may compute all paths having specific starting and/or
+        ending vertices::
+
+            sage: g.all_simple_paths(starting_vertices=['a'])
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['c'])
+            [['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['b', 'c'])
+            [['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c']]
+
+        It is also possible to bound the length of the paths::
+
+            sage: g.all_simple_paths(max_length=2)
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd']]
+
+        By default, empty paths are not enumerated, but this can
+        be parametrized::
+
+            sage: g.all_simple_paths(starting_vertices=['a'], trivial=True)
+            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+        """
+        return list(self.all_paths_iterator(starting_vertices=starting_vertices, ending_vertices=ending_vertices, simple=True, max_length=max_length, trivial=trivial))
+
+    def _all_cycles_iterator_vertex(self, vertex, starting_vertices=None, simple=False,
+                                    rooted=False, max_length=None, trivial=False,
+                                    remove_acyclic_edges=True):
+        r"""
+        Returns an iterator over the cycles of self starting with the
+        given vertex.
+
+        INPUT:
+
+        -  ``vertex`` - the starting vertex of the cycle.
+        -  ``starting_vertices`` - iterable (default: None) on
+           vertices from which the cycles must start. If None,
+           then all vertices of the graph can be starting points.
+           This argument is necessary if ``rooted`` is set to True.
+        -  ``simple`` - boolean (default: False). If set to True,
+           then only simple cycles are considered. A cycle is simple
+           if the only vertex occuring twice in it is the starting
+           and ending one.
+        -  ``rooted`` - boolean (default: False). If set to False,
+           then cycles differing only by their starting vertex are
+           considered the same  (e.g. ``['a', 'b', 'c', 'a']`` and
+           ``['b', 'c', 'a', 'b']``). Otherwise, all cycles are enumerated.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated cycles. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty cycles are also enumerated.
+        -  ``remove_acyclic_edges`` - boolean (default: True) which
+           precises if the acyclic edges must be removed from the graph.
+           Used to avoid recomputing it for each vertex.
+
+        OUTPUT:
+
+            iterator
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: it = g._all_cycles_iterator_vertex('a', simple=False, max_length=None)
+            sage: for i in range(5): print it.next()
+            ['a', 'a']
+            ['a', 'a', 'a']
+            ['a', 'a', 'a', 'a']
+            ['a', 'a', 'a', 'a', 'a']
+            ['a', 'a', 'a', 'a', 'a', 'a']
+            sage: it = g._all_cycles_iterator_vertex('c', simple=False, max_length=None)
+            sage: for i in range(5): print it.next()
+            ['c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c']
+
+            sage: it = g._all_cycles_iterator_vertex('d', simple=False, max_length=None)
+            sage: for i in range(5): print it.next()
+            ['d', 'c', 'd']
+            ['d', 'c', 'd', 'c', 'd']
+            ['d', 'c', 'd', 'c', 'd', 'c', 'd']
+            ['d', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd']
+            ['d', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd']
+
+        It is possible to set a maximum length so that the number of cycles is
+        finite::
+
+            sage: it = g._all_cycles_iterator_vertex('d', simple=False, max_length=6)
+            sage: list(it)
+            [['d', 'c', 'd'], ['d', 'c', 'd', 'c', 'd'], ['d', 'c', 'd', 'c', 'd', 'c', 'd']]
+
+        When ``simple`` is set to True, the number of cycles is finite since no vertex
+        but the first one can occur more than once::
+
+            sage: it = g._all_cycles_iterator_vertex('d', simple=True, max_length=None)
+            sage: list(it)
+            [['d', 'c', 'd']]
+
+        By default, the empty cycle is not enumerated::
+
+            sage: it = g._all_cycles_iterator_vertex('d', simple=True, trivial=True)
+            sage: list(it)
+            [['d'], ['d', 'c', 'd']]
+        """
+        if starting_vertices is None:
+            starting_vertices = [vertex]
+        # First enumerate the empty cycle
+        if trivial:
+            yield [vertex]
+        # First we remove vertices and edges that are not part of any cycle
+        if remove_acyclic_edges:
+            sccs = self.strongly_connected_components()
+            d = {}
+            for id, component in enumerate(sccs):
+                for v in component:
+                    d[v] = id
+            h = self.copy()
+            h.delete_edges([(u,v) for (u,v) in h.edge_iterator(labels=False) if d[u] != d[v]])
+        else:
+            h = self
+        queue = [[vertex]]
+        if max_length is None:
+            from sage.rings.infinity import Infinity
+            max_length = Infinity
+        while queue:
+            path = queue.pop(0)
+            # Checks if a cycle has been found
+            if len(path) > 1 and path[0] == path[-1]:
+                yield path
+            # Makes sure that the current cycle is not too long
+            # Also if a cycle has been encountered and only simple cycles are allowed,
+            # Then it discards the current path
+            if len(path) <= max_length and (not simple or path.count(path[-1]) == 1):
+                for neighbor in h.neighbor_out_iterator(path[-1]):
+                    # If cycles are not rooted, makes sure to keep only the minimum
+                    # cycle according to the lexicographic order
+                    if rooted or neighbor not in starting_vertices or path[0] <= neighbor:
+                        queue.append(path + [neighbor])
+
+    def all_cycles_iterator(self, starting_vertices=None, simple=False,
+                            rooted=False, max_length=None, trivial=False):
+        r"""
+        Returns an iterator over all the cycles of self starting
+        with one of the given vertices. The cycles are enumerated
+        in increasing length order.
+
+        INPUT:
+
+        -  ``starting_vertices`` - iterable (default: None) on vertices
+           from which the cycles must start. If None, then all
+           vertices of the graph can be starting points.
+        -  ``simple`` - boolean (default: False). If set to True,
+           then only simple cycles are considered. A cycle is simple
+           if the only vertex occuring twice in it is the starting
+           and ending one.
+        -  ``rooted`` - boolean (default: False). If set to False,
+           then cycles differing only by their starting vertex are
+           considered the same  (e.g. ``['a', 'b', 'c', 'a']`` and
+           ``['b', 'c', 'a', 'b']``). Otherwise, all cycles are enumerated.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated cycles. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty cycles are also enumerated.
+
+        OUTPUT:
+
+            iterator
+
+        .. NOTE::
+
+            See also ``all_simple_cycles(...)``.
+
+        AUTHOR:
+
+            Alexandre Blondin Masse
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: it = g.all_cycles_iterator()
+            sage: for _ in range(7): print it.next()
+            ['a', 'a']
+            ['a', 'a', 'a']
+            ['c', 'd', 'c']
+            ['a', 'a', 'a', 'a']
+            ['a', 'a', 'a', 'a', 'a']
+            ['c', 'd', 'c', 'd', 'c']
+            ['a', 'a', 'a', 'a', 'a', 'a']
+
+        There are no cycles in the empty graph and in acyclic graphs::
+
+            sage: g = DiGraph()
+            sage: it = g.all_cycles_iterator()
+            sage: list(it)
+            []
+            sage: g = DiGraph({0:[1]})
+            sage: it = g.all_cycles_iterator()
+            sage: list(it)
+            []
+
+        It is possible to restrict the starting vertices of the cycles::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: it = g.all_cycles_iterator(starting_vertices=['b', 'c'])
+            sage: for _ in range(3): print it.next()
+            ['c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c']
+            ['c', 'd', 'c', 'd', 'c', 'd', 'c']
+
+        Also, one can bound the length of the cycles::
+
+            sage: it = g.all_cycles_iterator(max_length=3)
+            sage: list(it)
+            [['a', 'a'], ['a', 'a', 'a'], ['c', 'd', 'c'], ['a', 'a', 'a', 'a']]
+
+        By default, cycles differing only by their starting point are not all
+        enumerated, but this may be parametrized::
+
+            sage: it = g.all_cycles_iterator(max_length=3, rooted=False)
+            sage: list(it)
+            [['a', 'a'], ['a', 'a', 'a'], ['c', 'd', 'c'], ['a', 'a', 'a', 'a']]
+            sage: it = g.all_cycles_iterator(max_length=3, rooted=True)
+            sage: list(it)
+            [['a', 'a'], ['a', 'a', 'a'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'a', 'a', 'a']]
+
+        One may prefer to enumerate simple cycles, i.e. cycles such that the only
+        vertex occuring twice in it is the starting and ending one (see also
+        ``all_simple_cycles(...)``::
+
+            sage: it = g.all_cycles_iterator(simple=True)
+            sage: list(it)
+            [['a', 'a'], ['c', 'd', 'c']]
+            sage: g = digraphs.Circuit(4)
+            sage: list(g.all_cycles_iterator(simple=True))
+            [[0, 1, 2, 3, 0]]
+        """
+        if starting_vertices is None:
+            starting_vertices = self
+        # Since a cycle is always included in a given strongly connected component,
+        # we may remove edges from the graph
+        sccs = self.strongly_connected_components()
+        d = {}
+        for id, component in enumerate(sccs):
+            for v in component:
+                d[v] = id
+        h = self.copy()
+        h.delete_edges([(u,v) for (u,v) in h.edge_iterator(labels=False) if d[u] != d[v]])
+        # We create one cycles iterator per vertex
+        # This is necessary if we want to iterate over cycles
+        # with increasing length
+        vertex_iterators = dict([(v, h._all_cycles_iterator_vertex(v, starting_vertices=starting_vertices, simple=simple, rooted=rooted, max_length=max_length, trivial=trivial, remove_acyclic_edges=False)) for v in starting_vertices])
+        cycles = []
+        for vi in vertex_iterators.values():
+            try:
+                cycle = vi.next()
+                cycles.append((len(cycle), cycle))
+            except(StopIteration):
+                pass
+        # Since we always extract a shortest path, using a heap
+        # can speed up the algorithm
+        from heapq import heapify, heappop, heappush
+        heapify(cycles)
+        while cycles:
+            # We choose the shortest available cycle
+            _, shortest_cycle = heappop(cycles)
+            yield shortest_cycle
+            # We update the cycle iterator to its next available cycle if it exists
+            try:
+                cycle = vertex_iterators[shortest_cycle[0]].next()
+                heappush(cycles, (len(cycle), cycle))
+            except(StopIteration):
+                pass
+
+    def all_simple_cycles(self, starting_vertices=None, rooted=False,
+                          max_length=None, trivial=False):
+        r"""
+        Returns a list of all simple cycles of self.
+
+        INPUT:
+
+        -  ``starting_vertices`` - iterable (default: None) on vertices
+           from which the cycles must start. If None, then all
+           vertices of the graph can be starting points.
+        -  ``rooted`` - boolean (default: False). If set to False,
+           then equivalent cycles are merged into one single cycle
+           (the one starting with minimum vertex).
+           Two cycles are called equivalent if they differ only from
+           their starting vertex (e.g. ``['a', 'b', 'c', 'a']`` and
+           ``['b', 'c', 'a', 'b']``). Otherwise, all cycles are enumerated.
+        -  ``max_length`` - non negative integer (default: None).
+           The maximum length of the enumerated cycles. If set to None,
+           then all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True,
+           then the empty cycles are also enumerated.
+
+        OUTPUT:
+
+            list
+
+        .. NOTE::
+
+            Although the number of simple cycles of a finite graph
+            is always finite, computing all its cycle may take a very
+            long time.
+
+        EXAMPLES::
+
+            sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
+            sage: g.all_simple_cycles()
+            [['a', 'a'], ['c', 'd', 'c']]
+
+        The directed version of the Petersen graph::
+
+            sage: g = graphs.PetersenGraph().to_directed()
+            sage: g.all_simple_cycles(max_length=4)
+            [[0, 1, 0], [0, 4, 0], [0, 5, 0], [1, 2, 1], [1, 6, 1], [2, 3, 2], [2, 7, 2], [3, 8, 3], [3, 4, 3], [4, 9, 4], [5, 8, 5], [5, 7, 5], [6, 8, 6], [6, 9, 6], [7, 9, 7]]
+            sage: g.all_simple_cycles(max_length=6)
+            [[0, 1, 0], [0, 4, 0], [0, 5, 0], [1, 2, 1], [1, 6, 1], [2, 3, 2], [2, 7, 2], [3, 8, 3], [3, 4, 3], [4, 9, 4], [5, 8, 5], [5, 7, 5], [6, 8, 6], [6, 9, 6], [7, 9, 7], [0, 1, 2, 3, 4, 0], [0, 1, 2, 7, 5, 0], [0, 1, 6, 8, 5, 0], [0, 1, 6, 9, 4, 0], [0, 4, 9, 6, 1, 0], [0, 4, 9, 7, 5, 0], [0, 4, 3, 8, 5, 0], [0, 4, 3, 2, 1, 0], [0, 5, 8, 3, 4, 0], [0, 5, 8, 6, 1, 0], [0, 5, 7, 9, 4, 0], [0, 5, 7, 2, 1, 0], [1, 2, 3, 8, 6, 1], [1, 2, 7, 9, 6, 1], [1, 6, 8, 3, 2, 1], [1, 6, 9, 7, 2, 1], [2, 3, 8, 5, 7, 2], [2, 3, 4, 9, 7, 2], [2, 7, 9, 4, 3, 2], [2, 7, 5, 8, 3, 2], [3, 8, 6, 9, 4, 3], [3, 4, 9, 6, 8, 3], [5, 8, 6, 9, 7, 5], [5, 7, 9, 6, 8, 5], [0, 1, 2, 3, 8, 5, 0], [0, 1, 2, 7, 9, 4, 0], [0, 1, 6, 8, 3, 4, 0], [0, 1, 6, 9, 7, 5, 0], [0, 4, 9, 6, 8, 5, 0], [0, 4, 9, 7, 2, 1, 0], [0, 4, 3, 8, 6, 1, 0], [0, 4, 3, 2, 7, 5, 0], [0, 5, 8, 3, 2, 1, 0], [0, 5, 8, 6, 9, 4, 0], [0, 5, 7, 9, 6, 1, 0], [0, 5, 7, 2, 3, 4, 0], [1, 2, 3, 4, 9, 6, 1], [1, 2, 7, 5, 8, 6, 1], [1, 6, 8, 5, 7, 2, 1], [1, 6, 9, 4, 3, 2, 1], [2, 3, 8, 6, 9, 7, 2], [2, 7, 9, 6, 8, 3, 2], [3, 8, 5, 7, 9, 4, 3], [3, 4, 9, 7, 5, 8, 3]]
+
+        The complete graph (without loops) on `4` vertices::
+
+            sage: g = graphs.CompleteGraph(4).to_directed()
+            sage: g.all_simple_cycles()
+            [[0, 1, 0], [0, 2, 0], [0, 3, 0], [1, 2, 1], [1, 3, 1], [2, 3, 2], [0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 1, 0], [0, 2, 3, 0], [0, 3, 1, 0], [0, 3, 2, 0], [1, 2, 3, 1], [1, 3, 2, 1], [0, 1, 2, 3, 0], [0, 1, 3, 2, 0], [0, 2, 1, 3, 0], [0, 2, 3, 1, 0], [0, 3, 1, 2, 0], [0, 3, 2, 1, 0]]
+
+        If the graph contains a large number of cycles, one can bound
+        the length of the cycles, or simply restrict the possible
+        starting vertices of the cycles::
+
+            sage: g = graphs.CompleteGraph(20).to_directed()
+            sage: g.all_simple_cycles(max_length=2)
+            [[0, 1, 0], [0, 2, 0], [0, 3, 0], [0, 4, 0], [0, 5, 0], [0, 6, 0], [0, 7, 0], [0, 8, 0], [0, 9, 0], [0, 10, 0], [0, 11, 0], [0, 12, 0], [0, 13, 0], [0, 14, 0], [0, 15, 0], [0, 16, 0], [0, 17, 0], [0, 18, 0], [0, 19, 0], [1, 2, 1], [1, 3, 1], [1, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1], [1, 8, 1], [1, 9, 1], [1, 10, 1], [1, 11, 1], [1, 12, 1], [1, 13, 1], [1, 14, 1], [1, 15, 1], [1, 16, 1], [1, 17, 1], [1, 18, 1], [1, 19, 1], [2, 3, 2], [2, 4, 2], [2, 5, 2], [2, 6, 2], [2, 7, 2], [2, 8, 2], [2, 9, 2], [2, 10, 2], [2, 11, 2], [2, 12, 2], [2, 13, 2], [2, 14, 2], [2, 15, 2], [2, 16, 2], [2, 17, 2], [2, 18, 2], [2, 19, 2], [3, 4, 3], [3, 5, 3], [3, 6, 3], [3, 7, 3], [3, 8, 3], [3, 9, 3], [3, 10, 3], [3, 11, 3], [3, 12, 3], [3, 13, 3], [3, 14, 3], [3, 15, 3], [3, 16, 3], [3, 17, 3], [3, 18, 3], [3, 19, 3], [4, 5, 4], [4, 6, 4], [4, 7, 4], [4, 8, 4], [4, 9, 4], [4, 10, 4], [4, 11, 4], [4, 12, 4], [4, 13, 4], [4, 14, 4], [4, 15, 4], [4, 16, 4], [4, 17, 4], [4, 18, 4], [4, 19, 4], [5, 6, 5], [5, 7, 5], [5, 8, 5], [5, 9, 5], [5, 10, 5], [5, 11, 5], [5, 12, 5], [5, 13, 5], [5, 14, 5], [5, 15, 5], [5, 16, 5], [5, 17, 5], [5, 18, 5], [5, 19, 5], [6, 7, 6], [6, 8, 6], [6, 9, 6], [6, 10, 6], [6, 11, 6], [6, 12, 6], [6, 13, 6], [6, 14, 6], [6, 15, 6], [6, 16, 6], [6, 17, 6], [6, 18, 6], [6, 19, 6], [7, 8, 7], [7, 9, 7], [7, 10, 7], [7, 11, 7], [7, 12, 7], [7, 13, 7], [7, 14, 7], [7, 15, 7], [7, 16, 7], [7, 17, 7], [7, 18, 7], [7, 19, 7], [8, 9, 8], [8, 10, 8], [8, 11, 8], [8, 12, 8], [8, 13, 8], [8, 14, 8], [8, 15, 8], [8, 16, 8], [8, 17, 8], [8, 18, 8], [8, 19, 8], [9, 10, 9], [9, 11, 9], [9, 12, 9], [9, 13, 9], [9, 14, 9], [9, 15, 9], [9, 16, 9], [9, 17, 9], [9, 18, 9], [9, 19, 9], [10, 11, 10], [10, 12, 10], [10, 13, 10], [10, 14, 10], [10, 15, 10], [10, 16, 10], [10, 17, 10], [10, 18, 10], [10, 19, 10], [11, 12, 11], [11, 13, 11], [11, 14, 11], [11, 15, 11], [11, 16, 11], [11, 17, 11], [11, 18, 11], [11, 19, 11], [12, 13, 12], [12, 14, 12], [12, 15, 12], [12, 16, 12], [12, 17, 12], [12, 18, 12], [12, 19, 12], [13, 14, 13], [13, 15, 13], [13, 16, 13], [13, 17, 13], [13, 18, 13], [13, 19, 13], [14, 15, 14], [14, 16, 14], [14, 17, 14], [14, 18, 14], [14, 19, 14], [15, 16, 15], [15, 17, 15], [15, 18, 15], [15, 19, 15], [16, 17, 16], [16, 18, 16], [16, 19, 16], [17, 18, 17], [17, 19, 17], [18, 19, 18]]
+            sage: g = graphs.CompleteGraph(20).to_directed()
+            sage: g.all_simple_cycles(max_length=2, starting_vertices=[0])
+            [[0, 1, 0], [0, 2, 0], [0, 3, 0], [0, 4, 0], [0, 5, 0], [0, 6, 0], [0, 7, 0], [0, 8, 0], [0, 9, 0], [0, 10, 0], [0, 11, 0], [0, 12, 0], [0, 13, 0], [0, 14, 0], [0, 15, 0], [0, 16, 0], [0, 17, 0], [0, 18, 0], [0, 19, 0]]
+
+        One may prefer to distinguish equivalent cycles having distinct
+        starting vertices (compare the following examples)::
+
+            sage: g = graphs.CompleteGraph(4).to_directed()
+            sage: g.all_simple_cycles(max_length=2, rooted=False)
+            [[0, 1, 0], [0, 2, 0], [0, 3, 0], [1, 2, 1], [1, 3, 1], [2, 3, 2]]
+            sage: g.all_simple_cycles(max_length=2, rooted=True)
+            [[0, 1, 0], [0, 2, 0], [0, 3, 0], [1, 0, 1], [1, 2, 1], [1, 3, 1], [2, 0, 2], [2, 1, 2], [2, 3, 2], [3, 0, 3], [3, 1, 3], [3, 2, 3]]
+        """
+        return list(self.all_cycles_iterator(starting_vertices=starting_vertices, simple=True, rooted=rooted, max_length=max_length, trivial=trivial))
+
     ### Directed Acyclic Graphs (DAGs)
 
     def topological_sort(self):
@@ -1438,14 +2067,120 @@ class DiGraph(GenericGraph):
             [[0, 1, 2, 3], [4, 5, 6]]
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.strongly_connected_components()
-            [[3], [2], [1], [0], [6], [5], [4]]
+            [[0], [1], [2], [3], [4], [5], [6]]
             sage: D.add_edge([2,0])
             sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [6], [5], [4]]
+            [[0, 1, 2], [3], [4], [5], [6]]
+        """
+
+        try:
+            vertices = set(self.vertices())
+            scc = []
+            while vertices:
+                tmp = self.strongly_connected_component_containing_vertex(vertices.__iter__().next())
+                vertices.difference_update(set(tmp))
+                scc.append(tmp)
+            return scc
+
+        except ValueError:
+            import networkx
+            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+
+
+    def strongly_connected_component_containing_vertex(self, v):
+        """
+        Returns the set of vertices whose strongly connected component is the same as v's.
+
+        INPUT:
+
+        - ``v`` -- a vertex
+
+        EXAMPLE:
+
+        In the symmetric digraph of a graph, the strongly connected components are the connected
+        components::
+
+            sage: g = graphs.PetersenGraph()
+            sage: d = DiGraph(g)
+            sage: d.strongly_connected_component_containing_vertex(0)
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+
+        if self.order()==1:
+            return [v]
+
+        try:
+            return self._backend.strongly_connected_component_containing_vertex(v)
+
+        except AttributeError:
+            raise ValueError("This function is only defined for C graphs.")
+
+    def strongly_connected_components_subgraphs(self):
+        r"""
+        Returns the strongly connected components as a list of subgraphs.
+
+        EXAMPLE:
+
+        In the symmetric digraph of a graph, the strongly connected components are the connected
+        components::
+
+            sage: g = graphs.PetersenGraph()
+            sage: d = DiGraph(g)
+            sage: d.strongly_connected_components_subgraphs()
+            [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        import networkx
-        return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+        return map(self.subgraph, self.strongly_connected_components())
+
+
+    def strongly_connected_components_digraph(self):
+        r"""
+        Returns the digraph of the strongly connected components
+
+        The digraph of the strongly connected components of a graph `G` has
+        a vertex per strongly connected component included in `G`. There
+        is an edge from a component `C_1` to a component `C_2` if there is
+        an edge from one to the other in `G`.
+
+        EXAMPLE:
+
+        Such a digraph is always acyclic ::
+
+            sage: g = digraphs.RandomDirectedGNP(15,.1)
+            sage: scc_digraph = g.strongly_connected_components_digraph()
+            sage: scc_digraph.is_directed_acyclic()
+            True
+
+        The vertices of the digraph of strongly connected components are
+        exactly the strongly connected components::
+
+            sage: g = digraphs.ButterflyGraph(2)
+            sage: scc_digraph = g.strongly_connected_components_digraph()
+            sage: g.is_directed_acyclic()
+            True
+            sage: all([ Set(scc) in scc_digraph.vertices() for scc in g.strongly_connected_components()])
+            True
+        """
+
+        from sage.sets.set import Set
+
+        scc = self.strongly_connected_components()
+        scc_set = map(Set,scc)
+
+        d = {}
+        for i,c in enumerate(scc):
+            for v in c:
+                d[v] = i
+
+        g = DiGraph()
+        g.add_vertices(scc_set)
+        g.allow_multiple_edges(False)
+
+        g.add_edges( (scc_set[d[u]], scc_set[d[u]]) for u,v in self.edges(labels=False) )
+
+        return g
+
+
 
     def is_strongly_connected(self):
         r"""

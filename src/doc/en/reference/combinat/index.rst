@@ -40,6 +40,9 @@ Combinatorics
    tableaux
    symmetric_functions
    root_systems
+
+   ../sage/combinat/kazhdan_lusztig
+
    crystals
    posets
    designs

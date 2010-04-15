@@ -341,12 +341,23 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MS(g)
             [1 1]
             [0 1]
-        """
-        if entries is None:
-            entries = 0
 
-        if entries == 0 and hasattr(self, '__zero_matrix'):
-            return self.zero_matrix()
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
+            sage: mat = MS(); mat
+            [0 0]
+            [0 0]
+            sage: mat.is_mutable()
+            True
+            sage: mat2 = mat.change_ring(QQ); mat2.is_mutable()
+            True
+        """
+        if entries is None or entries == 0:
+            if self.__is_sparse: # faster to create a new one than copy.
+                return self.__matrix_class(self, {}, coerce=coerce, copy=copy)
+            else:
+                return self.zero_matrix().__copy__()
 
         if isinstance(entries, (list, tuple)) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
@@ -884,7 +895,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [0 0], [0 0], [1 0], [0 1]
             ]
         """
-        v = [self.zero_matrix() for _ in range(self.dimension())]
+        v = [self.zero_matrix().__copy__() for _ in range(self.dimension())]
         one = self.base_ring()(1)
         i = 0
         for r in range(self.__nrows):
@@ -919,10 +930,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return (self.__nrows, self.__ncols)
 
+    from sage.misc.cachefunc import cached_method
+    @cached_method
     def identity_matrix(self):
         """
-        Create an identity matrix in self. (Must be a space of square
-        matrices).
+        Returns the identity matrix in ``self``.
+
+        ``self`` must be a space of square
+        matrices. The returned matrix is immutable. Please use ``copy`` if
+        you want a modified copy.
 
         EXAMPLES::
 
@@ -938,13 +954,23 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             Traceback (most recent call last):
             ...
             TypeError: self must be a space of square matrices
+
+        TESTS::
+
+            sage: MS1.one()[1,2] = 3
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         if self.__nrows != self.__ncols:
             raise TypeError, "self must be a space of square matrices"
-        A = self(0)
+        A = self.zero_matrix().__copy__()
         for i in xrange(self.__nrows):
             A[i,i] = 1
+        A.set_immutable()
         return A
+
+    one = identity_matrix
 
     def is_dense(self):
         """
@@ -1005,20 +1031,44 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return self.__basis[n]
         r = n // self.__ncols
         c = n - (r * self.__ncols)
-        z = self.zero_matrix()
+        z = self.zero_matrix().__copy__()
         z[r,c] = 1
         return z
 
+    @cached_method
     def zero_matrix(self):
         """
-        Return the zero matrix.
+        Returns the zero matrix in ``self``.
+
+        ``self`` must be a space of square matrices. The returned matrix is
+        immutable. Please use ``copy`` if you want a modified copy.
+
+        EXAMPLES::
+
+            sage: z = MatrixSpace(GF(7),2,4).zero_matrix(); z
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: z.is_mutable()
+            False
+
+        TESTS::
+
+            sage: MM = MatrixSpace(RDF,1,1,sparse=False); mat = MM.zero_matrix()
+            sage: copy(mat)
+            [0.0]
+            sage: MM = MatrixSpace(RDF,0,0,sparse=False); mat = MM.zero_matrix()
+            sage: copy(mat)
+            []
+            sage: mat.is_mutable()
+            False
+            sage: MM.zero().is_mutable()
+            False
         """
-        try:
-            z = self.__zero_matrix
-        except AttributeError:
-            z = self(0)
-            self.__zero_matrix = z
-        return z.__copy__()
+        res = self.__matrix_class(self, 0, coerce=False, copy=False)
+        res.set_immutable()
+        return res
+
+    zero = zero_matrix
 
     def ngens(self):
         """
@@ -1056,7 +1106,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
-            return self.identity_matrix()
+            return self.identity_matrix().__copy__()
         if matrix.is_Matrix(x):
             if x.parent() is self:
                 if x.is_immutable():
@@ -1224,7 +1274,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [      2       1 2*a + 1]
             [      a       2       2]
         """
-        Z = self.zero_matrix()
+        Z = self.zero_matrix().__copy__()
         if density is None:
             Z.randomize(density=float(1), nonzero=kwds.pop('nonzero', False), \
                 *args, **kwds)

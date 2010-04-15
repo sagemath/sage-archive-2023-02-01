@@ -631,19 +631,27 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
     Returns an int representing the arbitrary hashable vertex u (whether or not
     u is actually in the graph), or -1 if a new association must be made for u
     to be a vertex.
+
+    TESTS:
+
+        We check that the bug described in #8406 is gone::
+
+        sage: G=Graph()
+        sage: R.<a>=GF(3**3)
+        sage: S.<x>=R[]
+        sage: G.add_vertex(a**2)
+        sage: G.add_vertex(x)
+        sage: G.vertices()
+        [a^2, x]
+
     """
-    cdef int u_int
     if u in vertex_ints:
         return vertex_ints[u]
-    try:
-        u_int = u
-    except TypeError:
+    if not isinstance(u,(int,long,Integer)) or\
+            u < 0 or u >= G.active_vertices.size or\
+            u in vertex_labels:
         return -1
-    if u_int < 0 or u_int >= G.active_vertices.size:
-        return -1
-    if u_int in vertex_labels:
-        return -1
-    return u_int
+    return u
 
 cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
                       CGraph G):
@@ -1389,6 +1397,94 @@ class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
+    def shortest_path_all_vertices(self, v, cutoff = None):
+        r"""
+        Returns for each vertex `u` a shortest  `v-u` path.
+
+        INPUT:
+
+        - ``v`` -- a vertex
+        - ``cutoff`` -- maximal distance. Longer paths will not be returned
+
+        OUTPUT:
+
+        A list which associates to each vertex `u` the shortest path between
+        `u` and `v` if there is one.
+
+        NOTE:
+
+        - The weight of edges is not taken into account.
+
+        ALGORITHM:
+
+        This is just a breadth-first search.
+
+        EXAMPLES:
+
+        On the Petersen Graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: paths = g._backend.shortest_path_all_vertices(0)
+            sage: all([ len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v) for v in g])
+            True
+
+        On a disconnected graph ::
+
+            sage: g = 2*graphs.RandomGNP(20,.3)
+            sage: paths = g._backend.shortest_path_all_vertices(0)
+            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            True
+        """
+        cdef list current_layer
+        cdef list next_layer
+        cdef bitset_t seen
+        cdef int v_int
+        cdef int u_int
+        cdef dict distances_int
+        cdef dict distance
+        cdef int d
+
+        distances = {}
+        d = 0
+
+        v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+
+        bitset_init(seen,(<CGraph>self._cg).active_vertices.size)
+        bitset_set_first_n(seen,0)
+        bitset_add(seen,v_int)
+
+
+        current_layer = [(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)]
+        next_layer = []
+        distances[v] = [v]
+
+        while current_layer:
+            if cutoff is not None and d >= cutoff:
+                break
+
+            while current_layer:
+                v_int, u_int = current_layer.pop()
+
+                if bitset_not_in(seen,v_int):
+                    bitset_add(seen,v_int)
+                    distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = distances[vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)] + [vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)]
+                    next_layer.extend([(u_int,v_int) for u_int in self._cg.out_neighbors(v_int)])
+
+            current_layer = next_layer
+            next_layer = []
+            d += 1
+
+        # If the graph is not connected, vertices which have not been
+        # seen should be associated to the empty path
+
+        #for 0 <= v_int < (<CGraph>self._cg).active_vertices.size:
+        #    if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
+        #        distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
+
+        bitset_free(seen)
+        return distances
+
+
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""
         Returns a depth-first search from vertex v.
@@ -1496,6 +1592,36 @@ class CGraphBackend(GenericGraphBackend):
 
         return (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v))) and \
             (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v, reverse=True)))
+
+    def strongly_connected_component_containing_vertex(self, v):
+        r"""
+        Returns the strongly connected component containing the given vertex
+
+        INPUT:
+
+        - ``v`` -- a vertex
+
+        EXAMPLE:
+
+        The digraph obtained from the PetersenGraph has an unique
+        strongly connected component ::
+
+            sage: g = DiGraph(graphs.PetersenGraph())
+            sage: g.strongly_connected_component_containing_vertex(0)
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        In the Butterfly DiGraph, each vertex is a strongly connected
+        component::
+
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: all([[v] == g.strongly_connected_component_containing_vertex(v) for v in g])
+            True
+        """
+        cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef set a = set(self.depth_first_search(v))
+        cdef set b = set(self.depth_first_search(v, reverse=True))
+        return list(a & b)
+
 
 
 cdef class Search_iterator:

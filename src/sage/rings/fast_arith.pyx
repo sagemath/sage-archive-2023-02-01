@@ -45,6 +45,9 @@ include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
 include "../libs/pari/decl.pxi"
 
+cdef extern from "pari/pari.h":
+    cdef long NEXT_PRIME_VIADIFF(long, unsigned char*)
+
 from sage.rings.integer_ring import ZZ
 from sage.libs.pari.gen import pari
 from sage.libs.pari.gen cimport gen as pari_gen
@@ -53,7 +56,7 @@ from sage.rings.integer cimport Integer
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ(mpz_t value, long *g)
 
-cpdef prime_range(start, stop=None, algorithm="pari_primes"):
+cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False):
     r"""
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
@@ -80,6 +83,9 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes"):
 
              - "pari_isprime": Uses a mod 2 wheel and PARI's isprime function by calling
                              the primes iterator.
+
+        - ``py_ints`` -- boolean (default False), return Python ints rather than Sage Integers (faster)
+
 
     EXAMPLES:
         sage: prime_range(10)
@@ -110,38 +116,53 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes"):
     TESTS:
         sage: len(prime_range(25000,2500000))
         180310
+        sage: prime_range(2500000)[-1].is_prime()
+        True
 
     AUTHORS:
       - William Stein (original version)
       - Craig Citro (rewrote for massive speedup)
       - Kevin Stueve (added primes iterator option) 2010-10-16
+      - Robert Bradshaw (speedup using Pari prime table, py_ints option)
     """
-    cdef Integer tmp
-    cdef Py_ssize_t ind, n, m
-    cdef pari_gen v
+    cdef Integer z
+    cdef long c_start, c_stop, p
+    cdef unsigned char* pari_prime_ptr
     if algorithm == "pari_primes":
         if stop is None:
             # In this case, "start" is really stop
-            v = <pari_gen>pari.primes_up_to_n(int(start-1))
-            m = 0
+            c_start = 1
+            c_stop = start
         else:
-            if stop <= start:
+            c_start = start
+            c_stop = stop
+            if c_stop <= c_start:
                 return []
-            v = <pari_gen>pari.primes_up_to_n(int(stop-1))
-            m = int(ZZ(pari(start-1).primepi()))
-        n = lg(v.g) - 1
+            if c_start < 1:
+                c_start = 1
+        if maxprime() < c_stop:
+            pari.init_primes(c_stop)
+        pari_prime_ptr = <unsigned char*>diffptr
+        p = 0
+        res = []
+        while p < c_start:
+            NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
+        while p < c_stop:
+            if py_ints:
+                res.append(p)
+            else:
+                z = <Integer>PY_NEW(Integer)
+                mpz_set_ui(z.value, p)
+                res.append(z)
+            NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
 
-        res = [0] * (n-m)
-        for ind from m <= ind < n:
-            tmp = PY_NEW(Integer)
-            t_INT_to_ZZ(tmp.value, <GEN>(v.g[ind+1]))
-            res[ind-m] = tmp
     elif algorithm == "pari_isprime":
         from sage.rings.arith import primes
         res = list(primes(start, stop))
     else:
         raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")
     return res
+
 cdef class arith_int:
     cdef public int abs_int(self, int x) except -1:
         if x < 0:

@@ -18,24 +18,43 @@ import os
 
 def top():
     """
-    Return the top output line that contains this running Sage
+    Return the 'top' or 'prstat' line that contains this running Sage
     process.
 
-    EXAMPLES:
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
         sage: top()              # random output
         '72373 python       0.0%  0:01.36   1    14+  1197   39M+   34M+   55M+  130M+'
+
+    NOTES:
+
+    The external command 'top' (http://www.unixtop.org/) is called on
+    Linux, and most other operating systems. The output format of
+    'top' is not consistent across all platforms and all versions of
+    'top'. If the :func:`top` function does not work in Sage, you may
+    need to install 'top'.
+
+    The external command 'prstat' is called on the Solaris and
+    OpenSolaris systems. That is part of Solaris, and will not need to
+    be installed. The columns used in the 'prstat' output are::
+
+        PID USERNAME  SIZE   RSS STATE  PRI NICE      TIME  CPU PROCESS/NLWP
     """
     U = os.uname()[0].lower()
     pid = os.getpid()
 
     if U == 'linux':
-        cmd = 'top -b -n 1 -p %s'%pid
+        cmd = 'top -b -n 1 -p %s' % pid
     elif U == 'darwin':
-        cmd = 'top -l 1 |grep "^ *%s "'%pid
+        cmd = 'top -l 1 |grep "^ *%s "' % pid
     elif U == 'sunos':
-        cmd = 'top -b -n 65635 |grep "^ *%s "'%pid
+        cmd = '/usr/bin/prstat -n 100000 1 1  | grep "^ *%s "' % pid
     else:
-        raise NotImplementedError, "top not implemented on platform %s"%U
+        raise NotImplementedError("top not implemented on platform %s" % U)
 
     r = os.popen(cmd).read()
     r = r.strip()
@@ -50,14 +69,19 @@ def get_memory_usage(t=None):
 
     INPUT:
 
-    -  ``t`` - None or output of previous call; (only used
-       on Linux)
+    - ``t`` - a float (default: None); output of an earlier call
 
     OUTPUT:
 
     - ``Linux`` - Returns float number (in megabytes)
 
-    - ``OS X`` - Returns float number (in megabytes) that matches VSIZE column of top
+    - ``OS X`` - Returns float number (in megabytes) that matches
+      VSIZE column of 'top'
+
+    - ``Solaris or OpenSolaris`` - Returns float number (in megabytes)
+      that matches RSS column of 'prstat'. Depending on the memory
+      usage, 'prstat' will output the data in KB, MB or GB. In each
+      case, the value returned by this function will always be in MB.
 
     - ``other`` - not implemented for any other operating systems
 
@@ -69,6 +93,15 @@ def get_memory_usage(t=None):
         sage: get_memory_usage(t)          # amount of memory more than when we defined t.
         0.0
 
+    NOTES:
+
+    - Currently, :func:`get_memory_usage` calls 'prstat' on Solaris
+      and OpenSolaris to get the data it requires. In the long term, a
+      better solution would be to use Solaris system calls.
+
+    - In some instances, 'top' may be used on OS X. This may break if
+      the memory usage is greater than 9999 MB. However, normally
+      'top' is not used on OS X.
     """
     U = os.uname()[0].lower()
     if U == 'linux':
@@ -81,15 +114,18 @@ def get_memory_usage(t=None):
             # darwin_utilities is not supported on some versions of OS X.
             m = float(top().split()[-1].strip('M+'))
     elif U == 'sunos':
-        # An evil and ugly workaround some Solaris race condition.
-        while True:
-             try:
-                  m = float(top().split()[-5].strip('M'))
-                  break
-             except:
-                  pass
+        # Sun's 'prstat' command appends K, M or G depending on whether
+        # the memory usage is in KB. MB or GB. So we need to strip off
+        # the letter, and convert to a consistent unit of MB.
+        memory_in_KB_MB_or_GB = top().split()[3]
+        if memory_in_KB_MB_or_GB.endswith("K"):
+            m = float(memory_in_KB_MB_or_GB.strip("K")) / 1024
+        elif memory_in_KB_MB_or_GB.endswith("M"):
+            m = float(memory_in_KB_MB_or_GB.strip("M"))
+        elif memory_in_KB_MB_or_GB.endswith("G"):
+            m = float(memory_in_KB_MB_or_GB.strip("G")) * 1024
     else:
-        raise NotImplementedError, "memory usage not implemented on platform %s"%U
+        raise NotImplementedError("memory usage not implemented on platform %s" % U)
 
     if t is None:
         return m

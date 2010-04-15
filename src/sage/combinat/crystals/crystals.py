@@ -450,10 +450,10 @@ class Crystal(UniqueRepresentation, Parent):
 
         References:
 
-        M. Demazure, ``Desingularisation des varietes de Schubert'',
+        M. Demazure, "Desingularisation des varietes de Schubert",
         Ann. E. N. S., Vol. 6, (1974), p. 163-172
 
-        Sarah Mason, ``An Explicit Construction of Type A Demazure Atoms'',
+        Sarah Mason, "An Explicit Construction of Type A Demazure Atoms",
         Journal of Algebraic Combinatorics, Vol. 29, (2009), No. 3, p.295-313
         (arXiv:0707.4267)
 
@@ -1053,10 +1053,10 @@ class CrystalElement(Element):
 
         References:
 
-        Peter Littelmann, ``Crystal graphs and Young tableaux'',
+        Peter Littelmann, "Crystal graphs and Young tableaux",
         J. Algebra 175 (1995), no. 1, 65--87.
 
-        Masaki Kashiwara, ``The crystal base and Littelmann's refined Demazure character formula'',
+        Masaki Kashiwara, "The crystal base and Littelmann's refined Demazure character formula",
         Duke Math. J. 71 (1993), no. 3, 839--858.
 
         EXAMPLES::
@@ -1103,7 +1103,7 @@ class CrystalElement(Element):
         """
         if index_set is None:
             index_set = self.index_set()
-        return all(self.e(i) == None for i in index_set)
+        return all(self.e(i) is None for i in index_set)
 
     def to_highest_weight(self, list = [], index_set = None):
         r"""

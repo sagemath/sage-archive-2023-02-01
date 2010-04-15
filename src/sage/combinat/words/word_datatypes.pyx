@@ -52,7 +52,7 @@ cdef class WordDatatype(SageObject):
 
 cdef class WordDatatype_list(WordDatatype):
     r"""
-    Datatype class for words defined by tuples.
+    Datatype class for words defined by lists.
     """
     cdef public list _data
 
@@ -119,6 +119,60 @@ cdef class WordDatatype_list(WordDatatype):
         """
         return iter(self._data)
 
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_list.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+            boolean or NotImplemented
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: w == w
+            True
+            sage: z = Word(range(20))
+            sage: w == z
+            False
+            sage: z == w
+            False
+
+        It works even if the parents are not the same::
+
+            sage: Words([0,1])([0,1,1]) == Words([0,1,2])([0,1,1])
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDlistrichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_list):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_list):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
+
     def __len__(self):
         r"""
         Return the length of the word.
@@ -173,6 +227,38 @@ cdef class WordDatatype_list(WordDatatype):
             return self._parent.__call__(self._data.__getitem__(key))
         else:
             return self._data[key]
+
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by a list
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word(range(10))
+            sage: w * w
+            word: 01234567890123456789
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+        """
+        if isinstance(other, WordDatatype_list):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_list, self).__mul__(other)
+
+    __add__ = __mul__
 
     def count(self, a):
         r"""
@@ -243,6 +329,62 @@ cdef class WordDatatype_str(WordDatatype):
         """
         return iter(self._data)
 
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_str.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+            boolean or NotImplemented
+
+        EXAMPLES::
+
+            sage: w = Word('abcde')
+            sage: w == w
+            True
+            sage: z = Word('epoisudfafgh')
+            sage: w == z
+            False
+            sage: z == w
+            False
+
+        It works even if the parents are not the same::
+
+            sage: Words('ab')('ababa') == Words('abcd')('ababa')
+            True
+            sage: Words('ab')('ababa') == Word('ababa')
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDstrrichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_str):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_str):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
+
     def __contains__(self, a):
         r"""
         Test whether ``a`` is a letter of ``self``.
@@ -300,22 +442,24 @@ cdef class WordDatatype_str(WordDatatype):
             return w in self._data
         raise ValueError
 
-    cpdef find(self, letter, start=None, stop=None):
-        """
-        Return the position of the first occurrence of ``letter`` in
-        ``self``.
+    cpdef find(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the first occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
 
         INPUT:
 
-        -  ``letter`` - the letter to search for
-        - ``start`` - [default: 0] the position in which to start searching
-        - ``stop`` - [default: None] the position in which to stop searching
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position from which to start the search.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position at which the search must stop. If None, then
+           the search is performed up to the end of the string.
 
         OUTPUT:
 
-        - nonnegative integer if the ``letter`` occurs in the word
-        - ``-1`` if ``letter`` does not occur in the word. (This is the same
-          behaviour as Python's :class:`str`.)
+           non negative integer or -1
 
         EXAMPLES::
 
@@ -326,30 +470,34 @@ cdef class WordDatatype_str(WordDatatype):
             5
             sage: w.find("a", 4, 5)
             -1
-
         """
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self._data)
-        return self._data.find(letter, start, stop)
+        if end is None:
+            end = len(self._data)
+        if isinstance(sub, WordDatatype_str):
+            return self._data.find(sub._data, start, end)
+        elif isinstance(sub, str):
+            return self._data.find(sub, start, end)
+        else:
+            return super(WordDatatype_str, self).find(sub, start, end)
 
-    def rfind(self, letter, start=None, stop=None):
-        """
-        Similar to :method:`find`, but searches through the word in
-        reverse.
+    def rfind(self, sub, start=0, end=None):
+        r"""
+        Returns the index of the last occurrence of sub in self,
+        such that sub is contained within self[start:end].
+        Returns -1 on failure.
 
         INPUT:
 
-        - ``letter`` - the letter to search for
-        - ``start`` - [default: None] the position in which to start searching
-        - ``stop`` - [default: None] the position in which to stop searching
+        -  ``sub`` - string or word to search for.
+        -  ``start`` - non negative integer (default: 0) specifying
+           the position at which the search must stop.
+        -  ``end`` - non negative integer (default: None) specifying
+           the position from which to start the search. If None, then
+           the search is performed up to the end of the string.
 
         OUTPUT:
 
-        - nonnegative integer if the ``letter`` occurs in the word
-        - ``-1`` if ``letter`` does not occur in the word. (This is the same
-          behaviour as Python's :class:`str`.)
+            non negative integer or -1
 
         EXAMPLES::
 
@@ -360,15 +508,15 @@ cdef class WordDatatype_str(WordDatatype):
             6
             sage: w.rfind("a", 4, 5)
             -1
-
         """
-        if len(letter) != 1:
-           return False
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self._data)
-        return self._data.rfind(letter, start, stop)
+        if end is None:
+            end = len(self._data)
+        if isinstance(sub, WordDatatype_str):
+            return self._data.rfind(sub._data, start, end)
+        elif isinstance(sub, str):
+            return self._data.rfind(sub, start, end)
+        else:
+            return super(WordDatatype_str, self).rfind(sub, start, end)
 
     def __len__(self):
         r"""
@@ -422,6 +570,38 @@ cdef class WordDatatype_str(WordDatatype):
         if isinstance(key, slice):
             return self._parent(self._data[key])
         return self._data[key]
+
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by an str
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word('abcdef')
+            sage: w * w
+            word: abcdefabcdef
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+        """
+        if isinstance(other, WordDatatype_str):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_str, self).__mul__(other)
+
+    __add__ = __mul__
 
     def count(self, letter):
         r"""
@@ -765,6 +945,62 @@ cdef class WordDatatype_tuple(WordDatatype):
         """
         return iter(self._data)
 
+    def __richcmp__(self, other, int op):
+        r"""
+        Equality test for self and other if other is an instance of
+        WordDatype_tuple.
+
+        INPUT:
+
+        - ``other`` - a word
+        - ``op`` - integer: 0, 1, 2, 3, 4 or 5
+
+        OUTPUT:
+
+            boolean or NotImplemented
+
+        EXAMPLES::
+
+            sage: Word((1,2,3)) == Word((1,2,3))
+            True
+            sage: Word((1,2,3)) == Word(())
+            False
+            sage: Word((1,2,3)) == Word((1,2,3,4))
+            False
+            sage: Word((1,2,3)) == Word((1,2,3,'a'))
+            False
+
+        It works even if the parents are not the same::
+
+            sage: Words([1,2])((1,1,1,2)) == Words([1,2,3])((1,1,1,2))
+            True
+            sage: Words([1,2])((1,1,1,2)) == Word((1,1,1,2))
+            True
+
+        REFERENCES:
+
+        http://docs.cython.org/docs/special_methods.html
+        """
+        #print 'WDtuplerichcmp',self, other, op
+        if op == 2: # ==
+            if isinstance(other, WordDatatype_tuple):
+                return self._data == other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return FiniteWord_class.__eq__(self,other)
+        elif op == 3: # !=
+            if isinstance(other, WordDatatype_tuple):
+                return self._data != other._data
+            else:
+                # Otherwise, force FiniteWord_class.__eq__ to do it
+                # (if we don't force it, then __cmp__ is called before)
+                from sage.combinat.words.word import FiniteWord_class
+                return not FiniteWord_class.__eq__(self,other)
+        else:
+            return NotImplemented
+
     def __len__(self):
         r"""
         Return the length of the word.
@@ -843,3 +1079,38 @@ cdef class WordDatatype_tuple(WordDatatype):
         if isinstance(key, slice):
             return self._parent(self._data[key])
         return self._data[key]
+
+    def __mul__(self, other):
+        r"""
+        Return the concatenation of self and other.
+
+        INPUT:
+
+        - ``other`` - word represented by a tuple
+
+        OUPUT:
+
+        word
+
+        EXAMPLES::
+
+            sage: w = Word((1,2,3,4))
+            sage: w * w
+            word: 12341234
+
+        The type of the concatenation is preserved::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+            sage: type(w * w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+            sage: type(w + w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+        """
+        if isinstance(other, WordDatatype_tuple):
+            return self._parent.__call__(self._data + other._data)
+        else:
+            return super(WordDatatype_tuple, self).__mul__(other)
+
+    __add__ = __mul__
+

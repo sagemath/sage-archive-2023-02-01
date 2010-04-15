@@ -1434,6 +1434,197 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             raise TypeError, "the path must be closed to compute its area"
         return NotImplemented
 
+    def height(self):
+        r"""
+        Returns the height of self.
+
+        The height of a `2d`-path is merely the difference
+        between the highest and the lowest `y`-coordinate of each
+        points traced by it.
+
+        OUTPUT:
+
+            non negative real number
+
+        EXAMPLES::
+
+            sage: Freeman = WordPaths('abAB')
+            sage: Freeman('aababaabbbAA').height()
+            5
+
+        The function is well-defined if self is not simple or close::
+
+            sage: Freeman('aabAAB').height()
+            1
+            sage: Freeman('abbABa').height()
+            2
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,0),(1,1)])
+            sage: p = Paths('abbaa')
+            sage: p.height()
+            2
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.height()
+            2
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.height()
+            2.59807621135332
+        """
+        return self.ymax() - self.ymin()
+
+    def width(self):
+        r"""
+        Returns the width of self.
+
+        The height of a `2d`-path is merely the difference
+        between the rightmost and the leftmost `x`-coordinate of each
+        points traced by it.
+
+        OUTPUT:
+
+            non negative real number
+
+        EXAMPLES::
+
+            sage: Freeman = WordPaths('abAB')
+            sage: Freeman('aababaabbbAA').width()
+            5
+
+        The function is well-defined if self is not simple or close::
+
+            sage: Freeman('aabAAB').width()
+            2
+            sage: Freeman('abbABa').width()
+            1
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,0),(1,1)])
+            sage: p = Paths('abbaa')
+            sage: p.width()
+            5
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.width()
+            6
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.width()
+            4.50000000000000
+        """
+        return self.xmax() - self.xmin()
+
+    def xmin(self):
+        r"""
+        Returns the minimum of the x-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: P = WordPaths('0123')
+            sage: p = P('0101013332')
+            sage: p.xmin()
+            0
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,0),(-1,1)])
+            sage: p = Paths('abbba')
+            sage: p.xmin()
+            -2
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.xmin()
+            0
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.xmin()
+            0.000000000000000
+        """
+        return min(x for (x,_) in self.points())
+
+    def ymin(self):
+        r"""
+        Returns the minimum of the y-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: P = WordPaths('0123')
+            sage: p = P('0101013332')
+            sage: p.ymin()
+            0
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,-1),(-1,1)])
+            sage: p = Paths('ababa')
+            sage: p.ymin()
+            -1
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.ymin()
+            0
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.ymin()
+            0.000000000000000
+        """
+        return min(y for (_,y) in self.points())
+
+    def xmax(self):
+        r"""
+        Returns the maximum of the x-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: P = WordPaths('0123')
+            sage: p = P('0101013332')
+            sage: p.xmax()
+            3
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,-1),(-1,1)])
+            sage: p = Paths('ababa')
+            sage: p.xmax()
+            1
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.xmax()
+            6
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.xmax()
+            4.50000000000000
+        """
+        return max(x for (x,_) in self.points())
+
+    def ymax(self):
+        r"""
+        Returns the maximum of the y-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: P = WordPaths('0123')
+            sage: p = P('0101013332')
+            sage: p.ymax()
+            3
+
+        This works for any `2d`-paths::
+
+            sage: Paths = WordPaths('ab', steps=[(1,-1),(-1,1)])
+            sage: p = Paths('ababa')
+            sage: p.ymax()
+            0
+            sage: DyckPaths = WordPaths('ab', steps='dyck')
+            sage: p = DyckPaths('abaabb')
+            sage: p.ymax()
+            2
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.ymax()
+            2.59807621135332
+        """
+        return max(y for (_,y) in self.points())
+
+
 class FiniteWordPath_3d(FiniteWordPath_all):
     def plot(self, pathoptions=dict(rgbcolor='red',arrow_head=True,thickness=3),
             startpoint=True, startoptions=dict(rgbcolor='red',size=10)):
@@ -1655,7 +1846,78 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
         return ' -- '.join(map(str,self.points()))
 
 class FiniteWordPath_triangle_grid(FiniteWordPath_2d):
-    pass
+    # Triangle grid paths are implemented with quadratic fields,
+    # and the ordering of such elements is currently problematic:
+    #
+    #     sage: Q.<sqrt3> = QuadraticField(3)
+    #     sage: sqrt3 > 0
+    #     True
+    #     sage: 0 < sqrt3
+    #     False
+    #     sage: max(2*sqrt3, sqrt3/10)
+    #     1/10*sqrt3
+    #
+    # Therefore, the functions xmin(), xmax(), ymin() and ymax() are
+    # redefined here with conversion to RR in order to avoid this problem
+    def xmin(self):
+        r"""
+        Returns the minimum of the x-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.xmin()
+            0.000000000000000
+            sage: w = WordPaths('abcABC', steps='triangle')('ABAcacacababababcbcbAC')
+            sage: w.xmin()
+            -3.00000000000000
+        """
+        return min(RR(x) for (x,_) in self.points())
+
+    def ymin(self):
+        r"""
+        Returns the minimum of the y-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.ymin()
+            0.000000000000000
+            sage: w = WordPaths('abcABC', steps='triangle')('ABAcacacababababcbcbAC')
+            sage: w.ymin()
+            -0.866025403784439
+        """
+        return min(RR(y) for (_,y) in self.points())
+
+    def xmax(self):
+        r"""
+        Returns the maximum of the x-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.xmax()
+            4.50000000000000
+            sage: w = WordPaths('abcABC', steps='triangle')('ABAcacacababababcbcbAC')
+            sage: w.xmax()
+            4.00000000000000
+        """
+        return max(RR(x) for (x,_) in self.points())
+
+    def ymax(self):
+        r"""
+        Returns the maximum of the y-coordinates of the path.
+
+        EXAMPLES::
+
+            sage: w = WordPaths('abcABC', steps='triangle')('ababcaaBC')
+            sage: w.ymax()
+            2.59807621135332
+            sage: w = WordPaths('abcABC', steps='triangle')('ABAcacacababababcbcbAC')
+            sage: w.ymax()
+            8.66025403784439
+        """
+        return max(RR(y) for (_,y) in self.points())
 
 #TODO: faire une verification du mot pour etre sur hexagonal grid
 class FiniteWordPath_hexagonal_grid(FiniteWordPath_triangle_grid):

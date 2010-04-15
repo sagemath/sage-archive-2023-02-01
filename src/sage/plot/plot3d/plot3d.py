@@ -47,6 +47,8 @@ AUTHORS:
 - Robert Bradshaw (2007-08): initial version of this file
 
 - William Stein (2007-12, 2008-01): improving 3d plotting
+
+- Oscar Lazo, William Cauchois, Jason Grout (2009-2010): Adding coordinate transformations
 """
 
 
@@ -78,6 +80,306 @@ from texture import Texture, is_Texture
 
 from sage.ext.fast_eval import fast_float_arg, fast_float
 
+from sage.functions.trig import cos, sin
+
+class _Coordinates(object):
+    """
+    This abstract class encapsulates a new coordinate system for plotting.
+    Sub-classes must implement the :meth:`transform` method which, given
+    symbolic variables to use, generates a 3-tuple of functions in terms of
+    those variables that can be used to find the cartesian (X, Y, and Z)
+    coordinates for any point in this space.
+    """
+    def __init__(self, dep_var, indep_vars):
+        """
+        INPUT:
+
+         - ``dep_var`` - The dependent variable (the function value will be
+           substituted for this).
+
+         - ``indep_vars`` - A list of independent variables (the parameters will be
+           substituted for these).
+
+        TESTS:
+
+        Because the base :class:`_Coordinates` class automatically checks the
+        initializing variables with the transform method, :class:`_Coordinates`
+        cannot be instantiated by itself.  We test a subclass.
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates as arb
+            sage: x,y,z=var('x,y,z')
+            sage: arb((x+z,y*z,z), z, (x,y))
+            Arbitrary Coordinates coordinate transform (z in terms of x, y)
+        """
+        import inspect
+        all_vars=inspect.getargspec(self.transform).args[1:]
+        if set(all_vars) != set(indep_vars + [dep_var]):
+            raise ValueError, 'variables were specified incorrectly for this coordinate system; incorrect variables were %s'%list(set(all_vars).symmetric_difference(set(indep_vars+[dep_var])))
+        self.dep_var = dep_var
+        self.indep_vars = indep_vars
+
+    @property
+    def _name(self):
+        """
+        A default name for a coordinate system.  Override this in a
+        subclass to set a different name.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates as arb
+            sage: x,y,z=var('x,y,z')
+            sage: c=arb((x+z,y*z,z), z, (x,y))
+            sage: c._name
+            'Arbitrary Coordinates'
+        """
+        return self.__class__.__name__
+
+    def transform(self, **kwds):
+        """
+        Return the transformation for this coordinate system in terms of the
+        specified variables (which should be keywords).
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates as arb
+            sage: x,y,z=var('x,y,z')
+            sage: c=arb((x+z,y*z,z), z, (x,y))
+            sage: c.transform(x=1,y=2,z=3)
+            (4, 6, 3)
+        """
+        raise NotImplementedError
+
+    def to_cartesian(self, func, params=None):
+        """
+        Returns a 3-tuple of functions, parameterized over ``params``, that
+        represents the cartesian coordinates of the value of ``func``.
+
+        INPUT:
+
+         - ``func`` - A function in this coordinate space. Corresponds to the
+           independent variable.
+
+         - ``params`` - The parameters of func. Corresponds to the dependent
+           variables.
+
+        EXAMPLE::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
+            sage: x, y, z = var('x y z')
+            sage: T = _ArbitraryCoordinates((x + y, x - y, z), z,[x,y])
+            sage: f(x, y) = 2*x+y
+            sage: T.to_cartesian(f, [x, y])
+            (x + y, x - y, 2*x + y)
+            sage: [h(1,2) for h in T.to_cartesian(lambda x,y: 2*x+y)]
+            [3, -1, 4]
+        """
+        from sage.symbolic.expression import is_Expression
+        from sage.calculus.calculus import is_RealNumber
+        from sage.rings.integer import is_Integer
+        if params is not None and (is_Expression(func) or is_RealNumber(func) or is_Integer(func)):
+            return self.transform(**{
+                self.dep_var: func,
+                self.indep_vars[0]: params[0],
+                self.indep_vars[1]: params[1]
+            })
+        else:
+            # func might be a lambda or a Python callable; this makes it slightly
+            # more complex.
+            import sage.symbolic.ring
+            dep_var_dummy = sage.symbolic.ring.var(self.dep_var)
+            indep_var_dummies = sage.symbolic.ring.var(','.join(self.indep_vars))
+            transformation = self.transform(**{
+                self.dep_var: dep_var_dummy,
+                self.indep_vars[0]: indep_var_dummies[0],
+                self.indep_vars[1]: indep_var_dummies[1]
+            })
+            def subs_func(t):
+                return lambda x,y: t.subs({
+                    dep_var_dummy: func(x, y),
+                    indep_var_dummies[0]: x,
+                    indep_var_dummies[1]: y
+                })
+            return map(subs_func, transformation)
+
+    def __repr__(self):
+        """
+        Print out a coordinate system
+
+        ::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates as arb
+            sage: x,y,z=var('x,y,z')
+            sage: c=arb((x+z,y*z,z), z, (x,y))
+            sage: c
+            Arbitrary Coordinates coordinate transform (z in terms of x, y)
+            sage: c.__dict__['_name'] = 'My Special Coordinates'
+            sage: c
+            My Special Coordinates coordinate transform (z in terms of x, y)
+        """
+        return '%s coordinate transform (%s in terms of %s)' % \
+          (self._name, self.dep_var, ', '.join(self.indep_vars))
+
+class _ArbitraryCoordinates(_Coordinates):
+    """
+    An arbitrary coordinate system.
+    """
+    _name = "Arbitrary Coordinates"
+
+    def __init__(self, custom_trans, dep_var, indep_vars):
+        """
+        Initialize an arbitrary coordinate system.
+
+        INPUT:
+
+         - ``custom_trans`` - A 3-tuple of transformation
+           functions.
+
+         - ``dep_var`` - The dependent (function) variable.
+
+         - ``indep_vars`` - a list of the two other independent
+           variables.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
+            sage: x, y, z = var('x y z')
+            sage: T = _ArbitraryCoordinates((x + y, x - y, z), z,[x,y])
+            sage: f(x, y) = 2*x + y
+            sage: T.to_cartesian(f, [x, y])
+            (x + y, x - y, 2*x + y)
+            sage: [h(1,2) for h in T.to_cartesian(lambda x,y: 2*x+y)]
+            [3, -1, 4]
+        """
+        self.dep_var = str(dep_var)
+        self.indep_vars = [str(i) for i in indep_vars]
+        self.custom_trans = tuple(custom_trans)
+
+    def transform(self, **kwds):
+        """
+        EXAMPLE::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
+            sage: x, y, z = var('x y z')
+            sage: T = _ArbitraryCoordinates((x + y, x - y, z), x,[y,z])
+
+            sage: T.transform(x=z,y=1)
+            (z + 1, z - 1, z)
+        """
+        return tuple(t.subs(**kwds) for t in self.custom_trans)
+
+class Spherical(_Coordinates):
+    """
+    A spherical coordinate system for use with ``plot3d(transformation=...)``
+    where the position of a point is specified by three numbers:
+
+     - the *radial distance* (``radius``) from the origin
+
+     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+
+     - the *inclination angle* (``inclination``) from the positive `z`-axis
+
+    These three variables must be specified in the constructor.
+
+    EXAMPLES:
+
+    Construct a spherical transformation for a function for the radius
+    in terms of the azimuth and inclination::
+
+        sage: T = Spherical('radius', ['azimuth', 'inclination'])
+
+    If we construct some concrete variables, we can get a
+    transformation in terms of those variables::
+
+        sage: r, phi, theta = var('r phi theta')
+        sage: T.transform(radius=r, azimuth=theta, inclination=phi)
+        (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
+
+    We can plot with this transform.  Remember that the independent
+    variable is the radius, and the dependent variables are the
+    azimuth and the inclination (in that order)::
+
+        sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
+
+    We next graph the function where the inclination angle is constant::
+
+        sage: S=Spherical('inclination', ['radius', 'azimuth'])
+        sage: r,theta=var('r,theta')
+        sage: plot3d(3, (r,0,3), (theta, 0, 2*pi), transformation=S)
+
+    See also :func:`spherical_plot3d` for more examples of plotting in spherical
+    coordinates.
+    """
+
+    def transform(self, radius=None, azimuth=None, inclination=None):
+        """
+        A spherical coordinates transform.
+
+        EXAMPLE::
+
+            sage: T = Spherical('radius', ['azimuth', 'inclination'])
+            sage: T.transform(radius=var('r'), azimuth=var('theta'), inclination=var('phi'))
+            (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
+        """
+        return (radius * sin(inclination) * cos(azimuth),
+                radius * sin(inclination) * sin(azimuth),
+                radius * cos(inclination))
+
+class Cylindrical(_Coordinates):
+    """
+    A cylindrical coordinate system for use with ``plot3d(transformation=...)``
+    where the position of a point is specified by three numbers:
+
+     - the *radial distance* (``radius``) from the `z`-axis
+
+     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+
+     - the *height* or *altitude* (``height``) above the `xy`-plane
+
+    These three variables must be specified in the constructor.
+
+    EXAMPLES:
+
+    Construct a cylindrical transformation for a function for ``height`` in terms of
+    ``radius`` and ``azimuth``::
+
+        sage: T = Cylindrical('height', ['radius', 'azimuth'])
+
+    If we construct some concrete variables, we can get a transformation::
+
+        sage: r, theta, z = var('r theta z')
+        sage: T.transform(radius=r, azimuth=theta, height=z)
+        (r*cos(theta), r*sin(theta), z)
+
+    We can plot with this transform.  Remember that the independent
+    variable is the height, and the dependent variables are the
+    radius and the azimuth (in that order)::
+
+        sage: plot3d(9-r^2, (r, 0, 3), (theta, 0, pi), transformation=T)
+
+    We next graph the function where the radius is constant::
+
+        sage: S=Cylindrical('radius', ['azimuth', 'height'])
+        sage: theta,z=var('theta, z')
+        sage: plot3d(3, (theta,0,2*pi), (z, -2, 2), transformation=S)
+
+    See also :func:`cylindrical_plot3d` for more examples of plotting in cylindrical
+    coordinates.
+    """
+
+    def transform(self, radius=None, azimuth=None, height=None):
+        """
+        A cylindrical coordinates transform.
+
+        EXAMPLE::
+
+            sage: T = Cylindrical('height', ['azimuth', 'radius'])
+            sage: T.transform(radius=var('r'), azimuth=var('theta'), height=var('z'))
+            (r*cos(theta), r*sin(theta), z)
+        """
+        return (radius * cos(azimuth),
+                radius * sin(azimuth),
+                height)
+
 class TrivialTriangleFactory:
     def triangle(self, a, b, c, color = None):
         return [a,b,c]
@@ -85,7 +387,7 @@ class TrivialTriangleFactory:
         return [a,b,c]
 
 import parametric_plot3d
-def plot3d(f, urange, vrange, adaptive=False, **kwds):
+def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     """
     INPUT:
 
@@ -100,7 +402,9 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
        (v, v_min, v_max)
 
     -  ``adaptive`` - (default: False) whether to use
-       adaptive refinement to draw the plot (slower, but may look better)
+       adaptive refinement to draw the plot (slower, but may look better).
+       This option does NOT work in conjuction with a transformation
+       (see below).
 
     -  ``mesh`` - bool (default: False) whether to display
        mesh grid lines
@@ -110,6 +414,19 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
 
     -  ``plot_points`` - (default: "automatic") initial number of sample
        points in each direction; an integer or a pair of integers
+
+
+    - ``transformation`` - (default: None) a transformation to
+      apply. May be a 3 or 4-tuple (x_func, y_func, z_func,
+      independent_vars) where the first 3 items indicate a
+      transformation to cartesian coordinates (from your coordinate
+      system) in terms of u, v, and the function variable fvar (for
+      which the value of f will be substituted). If a 3-tuple is
+      specified, the independent variables are chosen from the range
+      variables.  If a 4-tuple is specified, the 4th element is a list
+      of independent variables.  ``transformation`` may also be a
+      predefined coordinate system transformation like Spherical or
+      Cylindrical.
 
     .. note::
 
@@ -172,9 +489,54 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         sage: x, y = var('x y')
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
 
-    TESTS: Listing the same plot variable twice gives an error.
+    An example of a transformation::
 
-    ::
+        sage: r, phi, z = var('r phi z')
+        sage: trans=(r*cos(phi),r*sin(phi),z)
+        sage: plot3d(cos(r),(r,0,17*pi/2),(phi,0,2*pi),transformation=trans,opacity=0.87).show(aspect_ratio=(1,1,2),frame=False)
+
+    Many more examples of transformations::
+
+        sage: u, v, w = var('u v w')
+        sage: rectangular=(u,v,w)
+        sage: spherical=(w*cos(u)*sin(v),w*sin(u)*sin(v),w*cos(v))
+        sage: cylindric_radial=(w*cos(u),w*sin(u),v)
+        sage: cylindric_axial=(v*cos(u),v*sin(u),w)
+        sage: parabolic_cylindrical=(w*v,(v^2-w^2)/2,u)
+
+    Plot a constant function of each of these to get an idea of what it does::
+
+        sage: A = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=rectangular,plot_points=[100,100])
+        sage: B = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=spherical,plot_points=[100,100])
+        sage: C = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=cylindric_radial,plot_points=[100,100])
+        sage: D = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
+        sage: E = plot3d(2,(u,-pi,pi),(v,-pi,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
+        sage: @interact
+        ... def _(which_plot=[A,B,C,D,E]):
+        ...       show(which_plot)
+        <html>...
+
+    Now plot a function::
+
+        sage: g=3+sin(4*u)/2+cos(4*v)/2
+        sage: F = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=rectangular,plot_points=[100,100])
+        sage: G = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=spherical,plot_points=[100,100])
+        sage: H = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=cylindric_radial,plot_points=[100,100])
+        sage: I = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
+        sage: J = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
+        sage: @interact
+        ... def _(which_plot=[F, G, H, I, J]):
+        ...       show(which_plot)
+        <html>...
+
+    TESTS:
+
+    Make sure the transformation plots work::
+
+        sage: show(A + B + C + D + E)
+        sage: show(F + G + H + I + J)
+
+    Listing the same plot variable twice gives an error::
 
         sage: x, y = var('x y')
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (x,-2,2))
@@ -182,7 +544,42 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         ...
         ValueError: range variables should be distinct, but there are duplicates
     """
-    if adaptive:
+    if transformation is not None:
+        params=None
+        from sage.symbolic.callable import is_CallableSymbolicExpression
+        # First, determine the parameters for f (from the first item of urange
+        # and vrange, preferably).
+        if len(urange) == 3 and len(vrange) == 3:
+            params = (urange[0], vrange[0])
+        elif is_CallableSymbolicExpression(f):
+            params = f.variables()
+
+        if isinstance(transformation, (tuple, list)):
+            if len(transformation)==3:
+                if params is None:
+                    raise ValueError, "must specify independent variable names in the ranges when using generic transformation"
+                indep_vars = params
+            elif len(transformation)==4:
+                indep_vars = transformation[3]
+                transformation = transformation[0:3]
+            else:
+                raise ValueError, "unknown transformation type"
+            # find out which variable is the function variable by
+            # eliminating the parameter variables.
+            all_vars = set(sum([list(s.variables()) for s in transformation],[]))
+            dep_var=all_vars - set(indep_vars)
+            if len(dep_var)==1:
+                dep_var = dep_var.pop()
+                transformation = _ArbitraryCoordinates(transformation, dep_var, indep_vars)
+            else:
+                raise ValueError, "unable to determine the function variable in the transform"
+
+        if isinstance(transformation, _Coordinates):
+            R = transformation.to_cartesian(f, params)
+            return parametric_plot3d.parametric_plot3d(R, urange, vrange, **kwds)
+        else:
+            raise ValueError, 'unknown transformation type'
+    elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
         u=fast_float_arg(0)
@@ -287,6 +684,107 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     P._set_extra_kwds(kwds)
     return P
 
+def spherical_plot3d(f, urange, vrange, **kwds):
+    """
+    Plots a function in spherical coordinates.  This function is
+    equivalent to::
+
+        sage: r,u,v=var('r,u,v')
+        sage: f=u*v; urange=(u,0,pi); vrange=(v,0,pi)
+        sage: T = (r*cos(u)*sin(v), r*sin(u)*sin(v), r*cos(v), [u,v])
+        sage: plot3d(f, urange, vrange, transformation=T)
+
+    or equivalently::
+
+        sage: T = Spherical('radius', ['azimuth', 'inclination'])
+        sage: f=lambda u,v: u*v; urange=(u,0,pi); vrange=(v,0,pi)
+        sage: plot3d(f, urange, vrange, transformation=T)
+
+    INPUT:
+
+    - ``f`` - a symbolic expression or function of two variables.
+
+    - ``urange`` - a 3-tuple (u, u_min, u_max), the domain of the azimuth variable.
+
+    - ``vrange`` - a 3-tuple (v, v_min, v_max), the domain of the inclination variable.
+
+    EXAMPLES:
+
+    A sphere of radius 2::
+
+        sage: x,y=var('x,y')
+        sage: spherical_plot3d(2,(x,0,2*pi),(y,0,pi))
+
+    A drop of water::
+
+        sage: x,y=var('x,y')
+        sage: spherical_plot3d(e^-y,(x,0,2*pi),(y,0,pi),opacity=0.5).show(frame=False)
+
+    An object similar to a heart::
+
+        sage: x,y=var('x,y')
+        sage: spherical_plot3d((2+cos(2*x))*(y+1),(x,0,2*pi),(y,0,pi),rgbcolor=(1,.1,.1))
+
+    Some random figures:
+
+    ::
+
+        sage: x,y=var('x,y')
+        sage: spherical_plot3d(1+sin(5*x)/5,(x,0,2*pi),(y,0,pi),rgbcolor=(1,0.5,0),plot_points=(80,80),opacity=0.7)
+
+    ::
+
+        sage: x,y=var('x,y')
+        sage: spherical_plot3d(1+2*cos(2*y),(x,0,3*pi/2),(y,0,pi)).show(aspect_ratio=(1,1,1))
+    """
+    return plot3d(f, urange, vrange, transformation=Spherical('radius', ['azimuth', 'inclination']), **kwds)
+
+def cylindrical_plot3d(f, urange, vrange, **kwds):
+    """
+    Plots a function in cylindrical coordinates.  This function is
+    equivalent to::
+
+        sage: r,u,v=var('r,u,v')
+        sage: f=u*v; urange=(u,0,pi); vrange=(v,0,pi)
+        sage: T = (r*cos(u), r*sin(u), v, [u,v])
+        sage: plot3d(f, urange, vrange, transformation=T)
+
+    or equivalently::
+
+        sage: T = Cylindrical('radius', ['azimuth', 'height'])
+        sage: f=lambda u,v: u*v; urange=(u,0,pi); vrange=(v,0,pi)
+        sage: plot3d(f, urange, vrange, transformation=T)
+
+
+    INPUT:
+
+    - ``f`` - a symbolic expression or function of two variables,
+      representing the radius from the `z`-axis.
+
+    - ``urange`` - a 3-tuple (u, u_min, u_max), the domain of the
+      azimuth variable.
+
+    - ``vrange`` - a 3-tuple (v, v_min, v_max), the domain of the
+      elevation (`z`) variable.
+
+    EXAMPLES:
+
+    A portion of a cylinder of radius 2::
+
+        sage: theta,z=var('theta,z')
+        sage: cylindrical_plot3d(2,(theta,0,3*pi/2),(z,-2,2))
+
+    Some random figures:
+
+    ::
+
+        sage: cylindrical_plot3d(cosh(z),(theta,0,2*pi),(z,-2,2))
+
+    ::
+
+        sage: cylindrical_plot3d(e^(-z^2)*(cos(4*theta)+2)+1,(theta,0,2*pi),(z,-2,2),plot_points=[80,80]).show(aspect_ratio=(1,1,1))
+    """
+    return plot3d(f, urange, vrange, transformation=Cylindrical('radius', ['azimuth', 'height']), **kwds)
 
 def axes(scale=1, radius=None, **kwds):
     if radius is None:

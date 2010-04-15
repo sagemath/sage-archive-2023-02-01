@@ -27,6 +27,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.integer_ring import ZZ
 from sage.misc.misc_c import running_total
 from matrix import is_Matrix
+from copy import copy
 
 import sage.categories.pushout
 
@@ -782,7 +783,7 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, \
     """
     if ncols is None:
         ncols = nrows
-    A = matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix()
+    A = copy(matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix())
     if density is None:
         A.randomize(density=float(1), nonzero=False, *args, **kwds)
     else:

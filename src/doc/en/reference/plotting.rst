@@ -23,3 +23,4 @@
    sage/plot/primitive
    sage/plot/scatter_plot
    sage/plot/text
+   sage/plot/colors

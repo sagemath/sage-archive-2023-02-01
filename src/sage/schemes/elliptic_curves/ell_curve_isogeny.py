@@ -957,6 +957,11 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi(-P)
             (4 : 4 : 1)
 
+            sage: E = EllipticCurve(GF(17), [0,-1,0,-3,-1])
+            sage: Q = E((16,0))
+            sage: tau = E.isogeny([Q],E)
+            sage: tau(Q)
+            (0 : 1 : 0)
 
         """
         E1 = self.__E1
@@ -1841,11 +1846,9 @@ class EllipticCurveIsogeny(Morphism):
             (0, 0)
 
         """
-        E2 = self.__E2
-
         # first check if the point is in the kernel
         if ( self.__kernel_2tor.has_key(xP) or self.__kernel_non2tor.has_key(xP) ) :
-            return E2(0)
+            return self.__intermediate_codomain(0)
 
         outP = self.__compute_via_velu(xP,yP)
 
@@ -2435,12 +2438,10 @@ class EllipticCurveIsogeny(Morphism):
 
         """
 
-        E2 = self.__E2
-
         # first check if this is a kernel point
         # to avoid a divide by 0 error later
         if(0 == self.__inner_kernel_polynomial(x=xP)):
-            return E2(0)
+            return self.__intermediate_codomain(0)
 
         (xP_out, yP_out) = self.__compute_via_kohel(xP,yP)
 

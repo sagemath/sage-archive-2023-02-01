@@ -919,7 +919,9 @@ def setup_parser():
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
-
+    standard.add_option("--check-nested", dest="check_nested",
+                        action="store_true",
+                        help="check picklability of nested classes in DOCUMENT 'reference'")
     standard.add_option("-N", "--no-colors", dest="color", default=True,
                         action="store_false",
                         help="do not color output; does not affect children")
@@ -1020,6 +1022,9 @@ if __name__ == '__main__':
     # Process selected options.
     if options.jsmath:
         os.environ['SAGE_DOC_JSMATH'] = "True"
+
+    if options.check_nested:
+        os.environ['SAGE_CHECK_NESTED'] = 'True'
 
     if options.sphinx_opts:
         ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "

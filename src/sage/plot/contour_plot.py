@@ -184,13 +184,13 @@ class ContourPlot(GraphicPrimitive):
         else:
             CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
                             linewidths=linewidths, linestyles=linestyles)
-        if options['labels']:
+        if options.get('labels', False):
             label_options = options['label_options']
             label_options['fontsize'] = int(label_options['fontsize'])
             if fill and label_options is None:
                 label_options['inline']=False
             subplot.clabel(CS, **label_options)
-        if options['colorbar']:
+        if options.get('colorbar', False):
             colorbar_options = options['colorbar_options']
             from matplotlib import colorbar
             cax,kwds=colorbar.make_axes(subplot,**colorbar_options)
@@ -410,11 +410,29 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: f(x,y)=x^2-y^2
         sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True,colorbar_orientation='horizontal')
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],colorbar=True)
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],colorbar=True,colorbar_spacing='uniform')
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[0,2,3,6],colorbar=True,colorbar_format='%.3f')
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), labels=True,label_colors='red',contours=[0,2,3,6],colorbar=True)
+
+    ::
+
         sage: contour_plot(f, (x,-3,3), (y,-3,3), cmap='winter', contours=20, fill=False, colorbar=True)
 
     This should plot concentric circles centered at the origin::
@@ -687,7 +705,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
-                                dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, labels=False, **options)))
+                                dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, **options)))
 
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
@@ -695,7 +713,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         linewidths = [borderwidth] if borderwidth else None
         g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
                                     dict(linestyles=linestyles, linewidths=linewidths,
-                                         contours=[0], cmap=[bordercol], fill=False, labels=False, **options)))
+                                         contours=[0], cmap=[bordercol], fill=False, **options)))
 
     return g
 

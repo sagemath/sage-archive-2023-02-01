@@ -165,12 +165,12 @@ def direct_product_permgroups(P):
         sage: D==G1
         True
         sage: direct_product_permgroups([])
-        Symmetric group of order 1! as a permutation group
+        Symmetric group of order 0! as a permutation group
     """
     from permgroup_named import SymmetricGroup
     n = len(P)
     if n == 0:
-        return SymmetricGroup(1)
+        return SymmetricGroup(0)
     if n == 1:
         return P[0]
     G = [H._gap_init_() for H in P]
@@ -293,8 +293,7 @@ class PermutationGroup_generic(group.Group):
         sage: n = G.order(); n
         120
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-        sage: loads(G.dumps()) == G
-        True
+        sage: TestSuite(G).run()
     """
     def __init__(self, gens=None, gap_group=None, canonicalize=True):
         r"""
@@ -326,8 +325,12 @@ class PermutationGroup_generic(group.Group):
             Permutation Group with generators [()]
             sage: A4.category()
             Category of finite permutation groups
-            sage: loads(A4.dumps()) == A4
-            True
+            sage: TestSuite(A4).run()
+
+        TESTS::
+
+            sage: TestSuite(PermutationGroup([[]])).run()
+            sage: TestSuite(PermutationGroup([])).run()
         """
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
         super(PermutationGroup_generic, self).__init__(category = FinitePermutationGroups())
@@ -341,10 +344,10 @@ class PermutationGroup_generic(group.Group):
             return
 
         gens = [self._element_class()(x, check=False).list() for x in gens]
-        self._deg = max([1]+[max(g) for g in gens])
-        gens = [self._element_class()(x, self, check=False) for x in gens]
+        self._deg = max([0]+[max(g) for g in gens])
         if not gens:  # length 0
              gens = [()]
+        gens = [self._element_class()(x, self, check=False) for x in gens]
         if canonicalize:
              gens = list(set(gens))
              gens.sort()
@@ -791,7 +794,17 @@ class PermutationGroup_generic(group.Group):
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: G.degree()
             5
+
+        TODO: the name of this function is not good; this function
+        should be deprecated in term of degree::
+
+            sage: P = PermutationGroup([[1,2,3,4]])
+            sage: P.largest_moved_point()
+            4
+            sage: P.cardinality()
+            1
         """
+        # This seems unndeeded since __init__ systematically sets self._deg
         try:
             return self._deg
         except AttributeError:

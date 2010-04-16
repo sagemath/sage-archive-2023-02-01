@@ -122,20 +122,34 @@ class PermutationGroup_symalt(PermutationGroup_unique):
             True
             sage: S1 is S3
             True
+
+        TESTS::
+
+            sage: SymmetricGroup(0)
+            Symmetric group of order 0! as a permutation group
+            sage: SymmetricGroup(1)
+            Symmetric group of order 1! as a permutation group
+            sage: SymmetricGroup(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n (=-1) must be an integer >= 0 or a list
         """
         if not isinstance(n, (tuple,list)):
             try:
                 n = Integer(n)
-                n = range(1, n+1)
             except TypeError:
-                raise ValueError, "n (=%s) must be an integer >= 1 or a list (but n has type %s)"%(n,type(n))
+                raise ValueError, "n (=%s) must be an integer >= 0 or a list (but n has type %s)"%(n,type(n))
+            else:
+                if n < 0:
+                    raise ValueError, "n (=%s) must be an integer >= 0 or a list"%n
+                n = range(1, n+1)
 
         try:
             v = tuple(Integer(z) for z in n)
         except TypeError:
             raise ValueError, "each entry of list must be an integer"
 
-        if min(v) < 1:
+        if v and min(v) < 1: # for SymmetricGroup(0), v is empty
             raise ValueError, "each element of list must be positive"
 
         return super(PermutationGroup_symalt, cls).__classcall__(cls, v)
@@ -230,6 +244,10 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: G.category()
             Join of Category of finite permutation groups and Category of finite weyl groups
             sage: TestSuite(G).run()
+
+        TESTS::
+
+            sage: TestSuite(SymmetricGroup(0)).run()
         """
         from sage.categories.finite_weyl_groups import FiniteWeylGroups
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
@@ -240,16 +258,13 @@ class SymmetricGroup(PermutationGroup_symalt):
         super(PermutationGroup_generic,self).__init__(category = Category.join([FinitePermutationGroups(), FiniteWeylGroups()]))
 
         self._set = _set
-        self._deg = max(self._set)
+        self._deg = max(self._set+(0,))  # _set cat be empty
         n = len(self._set)
 
         #Create the generators for the symmetric group
-        if n == 1:
-            gens = [ [] ]
-        else:
-            gens = [ tuple(self._set) ]
-            if n > 2:
-                gens.append( tuple(self._set[:2]) )
+        gens = [ tuple(self._set) ]
+        if n > 2:
+            gens.append( tuple(self._set[:2]) )
         self._gens = [PermutationGroupElement(g, self, check=False) for g in gens]
 
         self._gap_string = '%s(%s)'%(self._gap_name, n)
@@ -562,8 +577,7 @@ class DiCyclicGroup(PermutationGroup_unique):
             sage: G = DiCyclicGroup(3*8)
             sage: G.order()
             96
-            sage: loads(G.dumps()) == G
-            True
+            sage: TestSuite(G).run()
         """
         n = Integer(n)
         if n < 2:
@@ -708,8 +722,7 @@ class QuaternionGroup(DiCyclicGroup):
         TESTS::
 
             sage: Q = QuaternionGroup()
-            sage: Q == loads(dumps(Q))
-            True
+            sage: TestSuite(Q).run()
         """
         DiCyclicGroup.__init__(self, 2)
 
@@ -754,8 +767,6 @@ class DihedralGroup(PermutationGroup_unique):
             10
             sage: G
             Dihedral group of order 10 as a permutation group
-            sage: loads(G.dumps()) == G
-            True
             sage: G.gens()
             [(1,2,3,4,5), (1,5)(2,4)]
 
@@ -766,6 +777,7 @@ class DihedralGroup(PermutationGroup_unique):
 
         TESTS::
 
+            sage: TestSuite(G).run()
             sage: G.category()
             Category of finite permutation groups
             sage: TestSuite(G).run()

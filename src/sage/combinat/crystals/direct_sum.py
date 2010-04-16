@@ -62,6 +62,23 @@ class DirectSumOfCrystals(Crystal, DisjointUnionEnumeratedSets):
         sage: b.weight()
         (1, 0, 0)
     """
+
+    """
+    Required, because ``DirectSumOfCrystals`` takes the same arguments
+    as :cls:`DisjointUnionEnumeratedSets` (which see for details).
+
+    TESTS::
+
+        sage: C = CrystalOfLetters(['A',2])
+        sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+        sage: B
+        Direct sum of the crystals Family (The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2])
+
+        sage: TestSuite(C).run()
+    """
+    __classcall_private__ = staticmethod(DisjointUnionEnumeratedSets.__classcall_private__)
+
+
     def __init__(self, crystals, **options):
         """
         TESTS::

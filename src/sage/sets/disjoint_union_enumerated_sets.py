@@ -4,6 +4,7 @@ Disjoint union of enumerated sets
 AUTHORS:
 
 - Florent Hivert (2009-07/09): initial implementation.
+- Florent Hivert (2010-03): classcall related stuff.
 """
 #*****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
@@ -112,9 +113,13 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: U4.unrank(18)
         [2, 3, 1, 4]
 
-    Beware that some of the operations assume in that case that
-    infinitely many of the enumerated sets are non empty.
+    .. warning ::
 
+        Beware that some of the operations assume in that case that infinitely
+        many of the enumerated sets are non empty.
+
+
+    .. rubric:: Experimental options
 
     We demonstrate the ``keepkey`` option::
 
@@ -150,6 +155,45 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     last one). One could add options to specify alternative enumeration
     orders (anti-diagonal, round robin, ...) to handle this case.
 
+
+    .. rubric:: Inheriting from ``DisjointUnionEnumeratedSets``
+
+    There are two different use cases for inheriting from
+    :class:`DisjointUnionEnumeratedSets`: writing a parent which
+    happens to be a disjoint union of some known parents, or writing
+    generic disjoint unions for some particular classes of
+    :class:`sage.categories.enumerated_sets.EnumeratedSets`.
+
+      - In the first use case, the input of the ``__init__`` method is
+        most likely different from that of
+        :class:`DisjointUnionEnumeratedSets`. Then, one simply
+        writes the ``__init__`` method as usual::
+
+            sage: class MyUnion(DisjointUnionEnumeratedSets):
+            ...     def __init__(self):
+            ...         DisjointUnionEnumeratedSets.__init__(self,
+            ...              Family([1,2], Permutations))
+            sage: pp = MyUnion()
+            sage: pp.list()
+            [[1], [1, 2], [2, 1]]
+
+        In case the :meth:`__init__` method takes optional arguments,
+        or does some normalization on them, a specific method
+        ``__classcall_private__`` is required (see the
+        documentation of :class:`UniqueRepresentation`).
+
+      - In the second use case, the input of the ``__init__`` method
+        is the same as that of :class:`DisjointUnionEnumeratedSets`;
+        one therefore wants to inherit the :meth:`__classcall_private__`
+        method as well, which can be achieved as follows::
+
+            sage: class UnionOfSpecialSets(DisjointUnionEnumeratedSets):
+            ...    __classcall_private__ = staticmethod(DisjointUnionEnumeratedSets.__classcall_private__)
+            ...
+            sage: psp = UnionOfSpecialSets(Family([1,2], Permutations))
+            sage: psp.list()
+            [[1], [1, 2], [2, 1]]
+
     TESTS::
 
         sage: TestSuite(U1).run()
@@ -160,10 +204,22 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         The default implementation of __contains__ can loop forever. Please overload it.
         sage: TestSuite(Ukeep).run()
         sage: TestSuite(UNoFacade).run()
+
+    The following three lines are required for the pickling tests,
+    because the classes ``MyUnion`` and ``UnionOfSpecialSets`` have
+    been defined interactively::
+
+        sage: import __main__
+        sage: __main__.MyUnion = MyUnion
+        sage: __main__.UnionOfSpecialSets = UnionOfSpecialSets
+
+        sage: TestSuite(pp).run()
+        sage: TestSuite(psp).run()
+
     """
 
     @staticmethod
-    def __classcall__(cls, fam, facade=True, keepkey=False): # was *args, **options):
+    def __classcall_private__(cls, fam, facade=True, keepkey=False): # was *args, **options):
         """
         Normalization of arguments; see :cls:`UniqueRepresentation`.
 
@@ -191,7 +247,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         return super(DisjointUnionEnumeratedSets, cls).__classcall__(
             cls, Family(fam), facade = facade, keepkey = keepkey)
 
-    def __init__(self, family, facade, keepkey):
+    def __init__(self, family, facade=True, keepkey=False):
         """
         TESTS::
 
@@ -370,13 +426,13 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         EXAMPLES:
 
         For finite disjoint unions, the cardinality is computed by
-        summing the sizes of the enumerated sets::
+        summing the cardinalities of the enumerated sets::
 
             sage: U = DisjointUnionEnumeratedSets(Family([0,1,2,3], Permutations))
             sage: U.cardinality()
             10
 
-        For infinity disjoint unions, this makes the assumption that
+        For infinite disjoint unions, this makes the assumption that
         the result is infinite::
 
             sage: U = DisjointUnionEnumeratedSets(
@@ -384,13 +440,15 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: U.cardinality()
             +Infinity
 
-        Warning: as pointed out in the main documentation, it is
-        possible to construct examples where this is incorrect::
+        .. warning::
 
-            sage: U = DisjointUnionEnumeratedSets(
-            ...           Family(NonNegativeIntegers(), lambda x: []))
-            sage: U.cardinality()  # Should be 0!
-            +Infinity
+            as pointed out in the main documentation, it is
+            possible to construct examples where this is incorrect::
+
+                sage: U = DisjointUnionEnumeratedSets(
+                ...           Family(NonNegativeIntegers(), lambda x: []))
+                sage: U.cardinality()  # Should be 0!
+                +Infinity
 
         """
         if self._family.cardinality() == Infinity:

@@ -468,8 +468,45 @@ class UniqueRepresentation:
             True
             sage: x == 3
             False
+
+        TESTS::
+
+            sage: class bla(UniqueRepresentation, SageObject):
+            ...        def __init__(self, i): pass
+            sage: b1 = bla(1); b2 = bla(2)
+            sage: b1 == b1
+            True
+            sage: b1 == b2
+            False
         """
         return self is other
+
+    # Should be cythoned
+    def __ne__(self, other):
+        """
+        Test if ``self`` and ``other` are different by comparing their
+        identity.
+
+        See also :class:`UniqueRepresentation` for a discussion.
+
+        EXAMPLES::
+
+            sage: x = UniqueRepresentation()
+            sage: y = UniqueRepresentation()
+            sage: x != y
+            False
+
+        TESTS::
+
+            sage: class bla(UniqueRepresentation, SageObject):
+            ...        def __init__(self, i): pass
+            sage: b1 = bla(1); b2 = bla(2)
+            sage: b1 != b1
+            False
+            sage: b1 != b2
+            True
+        """
+        return self is not other
 
     # Should be cythoned
     def __hash__(self):

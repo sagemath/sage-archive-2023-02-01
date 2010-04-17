@@ -108,7 +108,15 @@ def GL(n, R, var='a'):
     return GeneralLinearGroup_generic(n, R)
 
 class GeneralLinearGroup_generic(UniqueRepresentation, MatrixGroup_gap):
+    """
+    TESTS::
 
+        sage: G6 = GL(6, QQ)
+        sage: G6 == G6
+        True
+        sage: G6 != G6  # check that #8695 is fixed.
+        False
+    """
     def _gap_init_(self):
         """
         EXAMPLES::

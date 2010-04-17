@@ -60,7 +60,7 @@ class TestSuite(object):
 
         sage: S._test_associativity()
 
-    Debugging tip: in case of failure of some test, use `%pdb on` to
+    Debugging tip: in case of failure of some test, use ``%pdb on`` to
     turn on automatic debugging on error. Run the failing test
     independtly: the debugger will stop right where the first
     assertion fails. Then, introspection can be used to analyse what
@@ -87,7 +87,7 @@ class TestSuite(object):
     (replacing the current ``loads(dumps(x))`` tests).
 
     Finally, running ``TestSuite`` on a standard Python object does
-    some basic sanity checks:
+    some basic sanity checks::
 
         sage: TestSuite(int(1)).run(verbose = True)
         running ._test_pickling() . . . pass
@@ -317,13 +317,18 @@ def instance_tester(instance, tester = None, **options):
         AssertionError: 1 != 0
 
     The available assertion testing facilities are the same as in
-    :class:`unittest.TestCase`, which see (actually, by a slight
+    :class:`unittest.TestCase` [UNITTEST]_, which see (actually, by a slight
     abuse, tester is currently an instance of this class).
 
     TESTS::
 
         sage: instance_tester(ZZ, tester = tester) is tester
         True
+
+    REFERENCES:
+
+    .. [UNITTEST] unittest -- Unit testing framework --
+       http://docs.python.org/library/unittest.html
     """
     if tester is None:
         return InstanceTester(instance, **options)
@@ -373,6 +378,8 @@ class InstanceTester(unittest.TestCase):
         Trivial implementation of :meth:`unittest.TestCase.runTest` to
         please the super class :class:`TestCase`. That's the price to
         pay for abusively inheriting from it.
+
+        EXAMPLES::
 
             sage: from sage.misc.sage_unittest import InstanceTester
             sage: tester = InstanceTester(ZZ, verbose = True)
@@ -425,7 +432,7 @@ class InstanceTester(unittest.TestCase):
         the tests should be run. This is only meaningful for container
         objects like parents.
 
-        By default, this calls :meth:`.some_elements`::
+        By default, this calls :meth:`.some_elements` on the instance::
 
             sage: from sage.misc.sage_unittest import InstanceTester
             sage: class MyParent(Parent):

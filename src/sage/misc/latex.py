@@ -395,14 +395,7 @@ def has_latex_attr(x):
         sage: has_latex_attr(T)
         False
     """
-    if hasattr(x, '_latex_'):
-        try:
-            x._latex_()
-            return True
-        except TypeError:
-            return False
-    else:
-        return False
+    return hasattr(x, '_latex_') and not isinstance(x, type)
 
 from sage.structure.sage_object import SageObject
 
@@ -1350,6 +1343,20 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         '\\documentclass{article}...\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
         sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
         '\\documentclass{article}...\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
+
+    TESTS:
+
+    This makes sure that latex is called only once on an object:
+
+        sage: class blah():
+        ...       def _latex_(x):
+        ...           print "coucou"
+        ...           return "x"
+        sage: latex(blah())
+        coucou
+        x
+        sage: s = sage.misc.latex._latex_file_(blah())
+        coucou
     """
     MACROS = latex_extra_preamble()
 
@@ -1376,9 +1383,9 @@ def _latex_file_(objects, title='SAGE', debug=False, \
             x = objects[i]
             L = latex(x)
             if not '\\begin{verbatim}' in L:
-                s += '%s%s%s'%(math_left, latex(x), math_right)
+                s += '%s%s%s'%(math_left, L, math_right)
             else:
-                s += '%s'%latex(x)
+                s += '%s'%L
             if i < len(objects)-1:
                 s += '\n\n%s\n\n'%sep
     else:

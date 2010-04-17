@@ -3,3 +3,4 @@
 cd src/tests/
 for file in test_*; do
     python $file
+done

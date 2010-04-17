@@ -149,12 +149,12 @@ class Word_class(SageObject):
 
     def __len__(self):
         r"""
-        Return the length of self (as a python integer).
+        Returns the length of self (as a python integer).
 
         ..NOTE::
 
-            For infinite words or words of unknown length, use length method
-            instead.
+            For infinite words or words of unknown length,
+            use `length()` method instead.
 
         OUTPUT:
 
@@ -173,7 +173,7 @@ class Word_class(SageObject):
             sage: len(s('1'))
             100
 
-        For infinite word::
+        For infinite words::
 
             sage: len(Word(lambda n:n))
             Traceback (most recent call last):
@@ -184,7 +184,7 @@ class Word_class(SageObject):
             ...
             TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
 
-        For word of unknown length::
+        For words of unknown length::
 
             sage: len(Word(iter('a'*200), length='unknown'))
             Traceback (most recent call last):

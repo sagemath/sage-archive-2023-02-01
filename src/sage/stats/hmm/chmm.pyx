@@ -1270,9 +1270,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             sage: m.log_likelihood(v)
             -8.31408655939536...
             sage: m.baum_welch(v)
-            (2.18905068682301..., 15)
+            (2.1890506868230..., 15)
             sage: m.log_likelihood(v)
-            2.18905068682301...
+            2.1890506868230...
             sage: m
             Gaussian Mixture Hidden Markov Model with 2 States
             Transition matrix:

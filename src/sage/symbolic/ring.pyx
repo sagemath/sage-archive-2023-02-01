@@ -364,7 +364,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return Integer(0)
 
-    cpdef _an_element_(self):
+    def _an_element_(self):
         """
         Return an element of the symbolic ring, which is used by the
         coercion model.

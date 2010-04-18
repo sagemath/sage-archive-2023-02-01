@@ -2070,7 +2070,7 @@ cdef class Parent(category_object.CategoryObject):
             self.__an_element = self._an_element_()
         return self.__an_element
 
-    cpdef _an_element_(self):
+    def _an_element_(self):
         """
         Returns an element of self. Want it in sufficient generality
         that poorly-written functions won't work when they're not

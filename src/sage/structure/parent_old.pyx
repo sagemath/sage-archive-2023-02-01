@@ -505,7 +505,7 @@ cdef class Parent(parent.Parent):
         else:
             return parent.Parent._get_action_(self, other, op, self_on_left)
 
-    cpdef _an_element_(self):
+    def _an_element_(self):
         if self._element_constructor is None:
             return self._an_element_c()
         else:

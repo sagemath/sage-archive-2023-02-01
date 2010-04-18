@@ -453,7 +453,7 @@ class Word_nfactor_enumerable(Word_class):
                 g.delete_vertex(v)
         return g
 
-    def _left_special_factors_iterator(self, n=None):
+    def left_special_factors_iterator(self, n=None):
         r"""
         Returns an iterator over the left special factors (of length n).
 
@@ -466,20 +466,20 @@ class Word_nfactor_enumerable(Word_class):
         -  ``n`` - integer (optional, default: None). If None, it returns
            an iterator over all left special factors.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: sorted(w._left_special_factors_iterator(3))
+            sage: sorted(w.left_special_factors_iterator(3))
             [word: 000, word: 010]
-            sage: sorted(w._left_special_factors_iterator(4))
+            sage: sorted(w.left_special_factors_iterator(4))
             [word: 0000, word: 0101]
-            sage: sorted(w._left_special_factors_iterator(5))
+            sage: sorted(w.left_special_factors_iterator(5))
             [word: 00000, word: 01010]
         """
         if n is None:
             for i in range(self.length()):
-                for w in self._left_special_factors_iterator(i):
+                for w in self.left_special_factors_iterator(i):
                     yield w
         else:
             g = self.rauzy_graph(n)
@@ -505,6 +505,12 @@ class Word_nfactor_enumerable(Word_class):
 
         A list of words.
 
+        .. WARNING::
+
+            This may not halt for infinite words having an infinite number
+            of such factors. Use the iterator version of this function
+            instead.
+
         EXAMPLES::
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
@@ -516,9 +522,9 @@ class Word_nfactor_enumerable(Word_class):
             3 [word: 000, word: 010]
             4 [word: 0000, word: 1010]
         """
-        return list(self._left_special_factors_iterator(n))
+        return list(self.left_special_factors_iterator(n))
 
-    def _right_special_factors_iterator(self, n=None):
+    def right_special_factors_iterator(self, n=None):
         r"""
         Returns an iterator over the right special factors (of length n).
 
@@ -531,20 +537,20 @@ class Word_nfactor_enumerable(Word_class):
         -  ``n`` - integer (optional, default: None). If None, it returns
            an iterator over all right special factors.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: alpha, beta, x = 0.61, 0.54, 0.3
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: sorted(w._right_special_factors_iterator(3))
+            sage: sorted(w.right_special_factors_iterator(3))
             [word: 010, word: 101]
-            sage: sorted(w._right_special_factors_iterator(4))
+            sage: sorted(w.right_special_factors_iterator(4))
             [word: 0101, word: 1010]
-            sage: sorted(w._right_special_factors_iterator(5))
+            sage: sorted(w.right_special_factors_iterator(5))
             [word: 00101, word: 11010]
         """
         if n is None:
             for i in range(self.length()):
-                for w in self._right_special_factors_iterator(i):
+                for w in self.right_special_factors_iterator(i):
                     yield w
         else:
             g = self.rauzy_graph(n)
@@ -570,6 +576,12 @@ class Word_nfactor_enumerable(Word_class):
 
         A list of words.
 
+        .. WARNING::
+
+            This may not halt for infinite words having an infinite number
+            of such factors. Use the iterator version of this function
+            instead.
+
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
@@ -580,9 +592,9 @@ class Word_nfactor_enumerable(Word_class):
             3 [word: 001, word: 010, word: 101, word: 110]
             4 [word: 0110, word: 1001]
         """
-        return list(self._right_special_factors_iterator(n))
+        return list(self.right_special_factors_iterator(n))
 
-    def _bispecial_factors_iterator(self, n=None):
+    def bispecial_factors_iterator(self, n=None):
         r"""
         Returns an iterator over the bispecial factors (of length n).
 
@@ -594,11 +606,11 @@ class Word_nfactor_enumerable(Word_class):
         -  ``n`` - integer (optional, default: None). If None, it returns
            an iterator over all bispecial factors.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in w._bispecial_factors_iterator(i):
+            ...     for u in w.bispecial_factors_iterator(i):
             ...         print i,u
             0 word:
             1 word: 1
@@ -615,7 +627,7 @@ class Word_nfactor_enumerable(Word_class):
 
         ::
 
-            sage: for u in w._bispecial_factors_iterator(): u
+            sage: for u in w.bispecial_factors_iterator(): u
             word:
             word: 1
             word: 0
@@ -631,7 +643,7 @@ class Word_nfactor_enumerable(Word_class):
         """
         if n is None:
             for i in range(self.length()):
-                for w in self._bispecial_factors_iterator(i):
+                for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
             g = self.rauzy_graph(n)
@@ -657,6 +669,12 @@ class Word_nfactor_enumerable(Word_class):
 
         A list of words.
 
+        .. WARNING::
+
+            This may not halt for infinite words having an infinite number
+            of such factors. Use the iterator version of this function
+            instead.
+
         EXAMPLES::
 
             sage: w = words.FibonacciWord()[:30]
@@ -678,7 +696,7 @@ class Word_nfactor_enumerable(Word_class):
             8 [word: 10010110]
             9 []
         """
-        return list(self._bispecial_factors_iterator(n))
+        return list(self.bispecial_factors_iterator(n))
 
     def number_of_left_special_factors(self, n):
         r"""

@@ -22,6 +22,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -434,6 +435,25 @@ class AbstractFamily(Parent):
     # temporary; tested by TestSuite.
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
+    @cached_method
+    def inverse_family(self):
+        """
+        Returns the inverse family, with keys and values
+        exchanged. This presumes that there are no duplicate values in
+        ``self``.
+
+        This default implementation is not lazy and therefore will
+        only work with not too big finite families. It is also cached
+        for the same reason.
+
+            sage: Family({3: 'a', 4: 'b', 7: 'd'}).inverse_family()
+            Finite family {'a': 3, 'b': 4, 'd': 7}
+
+            sage: Family((3,4,7)).inverse_family()
+            Finite family {3: 0, 4: 1, 7: 2}
+
+        """
+        return Family( dict( (self[k], k) for k in self.keys()) )
 
 class FiniteFamily(AbstractFamily):
     r"""
@@ -526,23 +546,16 @@ class FiniteFamily(AbstractFamily):
 
     def has_key(self, k):
         """
+        Returns whether ``k`` is a key of ``self``
 
         EXAMPLES::
 
             sage: Family({"a":1, "b":2, "c":3}).has_key("a")
             True
+            sage: Family({"a":1, "b":2, "c":3}).has_key("d")
+            False
         """
         return self._dictionary.has_key(k)
-
-    def inverse_family(self):
-        """
-        Returns the inverse family, with keys and values switched. This
-        presumes that there are no duplicate values in self.
-        """
-        revdict = {}
-        for k in self.keys():
-            revdict[self[k]] = k
-        return Family(revdict)
 
     def __eq__(self, other):
         """

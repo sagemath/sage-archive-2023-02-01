@@ -15,7 +15,7 @@ def library_interact(f):
 
     EXAMPLES::
 
-        sage: @interacts.decorator.library_interact
+        sage: @interacts.library.library_interact
         ... def f(n=5): print n
         ...
         sage: f()  # an interact appears
@@ -42,7 +42,7 @@ def demo(n=tuple(range(10)), m=tuple(range(10))):
 
     EXAMPLES::
 
-        sage: interacts.decorator.demo()
+        sage: interacts.library.demo()
         <html>...</html>
     """
     print n+m

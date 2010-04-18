@@ -13,18 +13,17 @@
 ##  * make sphinx warnings show up as errors
 ##
 
-import os, sys, getopt, shutil, urllib
+import os, sys, shutil, urllib
+from optparse import OptionParser, OptionGroup
 
 import sage
 import sage.misc
 import sage.misc.hg as hg
-
 ##
 ## various globals
 ##
 SAGE_ROOT = os.environ['SAGE_ROOT']
 SAGE_COMMAND = os.path.join(SAGE_ROOT, 'sage')
-NUM_THREADS = 2
 SAGE_TRAC = 'http://trac.sagemath.org'
 TRAC_TICKET_PATH = '/sage_trac/ticket/'
 
@@ -35,7 +34,7 @@ DOCTEST_DIRS_RELATIVE = ['devel/sage/doc/common',
                          'devel/sage/sage' ]
 DOCTEST_DIRS = [ os.path.join(SAGE_ROOT, x) for x in DOCTEST_DIRS_RELATIVE ]
 
-
+DOCTEST_OPTIONS = ['none', 'files', 'directory', 'long']
 
 repository_ls = [ hg.hg_sage, hg.hg_scripts, hg.hg_extcode, hg.hg_examples ]
 repositories = { 'sage': hg.hg_sage,
@@ -44,7 +43,62 @@ repositories = { 'sage': hg.hg_sage,
                  'bin': hg.hg_scripts,
                  'extcode': hg.hg_extcode,
                  'examples': hg.hg_examples }
-DEFAULT_REPOSITORY = repositories['sage']
+parser = OptionParser("""sage -merge [options] [ticket-number]
+
+Tries to automate the process of merging tickets in release management.
+See http://wiki.sagemath.org/devel/ReleaseManagement for more info.
+
+Example usage:
+
+sage -merge -c or sage -merge --candidates
+
+    * List all candidates for merging, i.e. all trac tickets with positive review.
+
+sage -merge <ticket_number> <options>
+
+    * Download patches from trac for the given ticket number, merge them, run tests, and report the results.
+
+sage -merge -a <options> or sage -merge --all <options>
+
+    * For each ticket on trac with a positive review, download the patches, apply them, and run doctests. At the end, report which tickets passed, which failed, and which didn't have any files to doctest (as is commonly the case with tickets for new spkg's).
+""")
+
+behavior = OptionGroup(parser, 'Behavior',
+                       'Behavior after merging. Default is to pop after merging')
+
+behavior.add_option('-l', '--leave-in-queue', action='store_const',
+                    const='leave', dest='behavior',
+                    help='Leaves the patches in mercurial queue. Conflicts with --finish.')
+behavior.add_option('-f', '--finish', action='store_const',
+                    const='finish', dest='behavior',
+                    help='Performs qfinish, commiting the patches. '
+                    'Conflicts with --leave-in-queue.')
+
+parser.add_option_group(behavior)
+
+
+parser.add_option('-a', '--all', action='store_true',
+                  help='For each ticket on trac with a positive review, '
+                  'download, apply, and test each. At the end, report which '
+                  'pass, fail, and have no files to doctest')
+parser.add_option('-c', '--candidates', action='store_true',
+                  help='List all candidates for merging, i.e., all trac '
+                  'tickets with positive review')
+parser.add_option('-v', '--verbose', action='store_true',
+                  help='Display the results of each test')
+parser.add_option('-n', '--num-threads', action='store', type='int', default=2,
+                  help='Number of threads to work with')
+parser.add_option('-r', '--repository',
+                  choices = repositories.keys(), default='sage',
+                  help='Which repository to apply to. Choices: %r' % repositories.keys())
+parser.add_option('-t', '--test', default='files',
+                  help='What things to doctest. Choices: %r or any prefix of a choice.' % DOCTEST_OPTIONS)
+parser.add_option('-o', '--overwrite', action='store_true', default=False,
+                  help='Whether to overwrite files when downloading.')
+parser.add_option('-d', '--directory', default='',
+                  help='Directory to store patches in.')
+
+parser.set_defaults(behavior='pop')
 
 def all_patches(n):
     """
@@ -124,7 +178,7 @@ def get_all_patches(patch_ls, directory=None, overwrite=False):
 
     return patch_files, directory
 
-def do_patch_queue_editing(order,comments):
+def do_patch_queue_editing(order, comments, default_repo):
     import sage.misc.misc as misc
     tmp_file = os.path.normpath(misc.tmp_filename())
     f = open(tmp_file, 'w')
@@ -162,7 +216,7 @@ def do_patch_queue_editing(order,comments):
             r, patchname = patchname.split('|')
             repo = repositories[r]
         else:
-            repo = DEFAULT_REPOSITORY
+            repo = default_repo
 
         if not patchname in order:
             raise ValueError, "%s not a patchname in %s" % (patchname, order)
@@ -176,12 +230,12 @@ def do_patch_queue_editing(order,comments):
     return new_order, with_repos
 
 
-def apply_patches(patch_ls, patch_directory, order=None, dry_run=True, behavior='pop'):
+def apply_patches(patch_ls, patch_directory, default_repo, order=None, dry_run=True, behavior='pop'):
     """
     Applies a list of patches to sage.
     """
     if order is None:
-        order = [ (x, DEFAULT_REPOSITORY) for x in patch_ls ]
+        order = [ (x, default_repo) for x in patch_ls ]
     else:
         for i in range(len(order)):
             item = order[i]
@@ -192,7 +246,7 @@ def apply_patches(patch_ls, patch_directory, order=None, dry_run=True, behavior=
                 repository = item[1]
                 item = item[0]
             else:
-                repository = DEFAULT_REPOSITORY
+                repository = default_repo
 
             if isinstance(item, str):
                 if not item in patch_ls:
@@ -290,12 +344,6 @@ def clear_queue(applied_patches, repos):
 ## Utility functions
 #################################################################
 
-def usage_message():
-    print
-    print "Usage: sage -merge <ticket_number>"
-    print "For more advanced usage, see the file %s/local/bin/sage-apply-ticket."%SAGE_ROOT
-    print
-
 
 def print_section(s, surrounding_lines=True):
     """
@@ -343,8 +391,9 @@ def get_touched_files_for_patches(patches, directory):
     return touched_files
 
 def get_patches_with_users_help(n,
-                  directory=None,
-                  overwrite=False):
+                                default_repo,
+                                directory=None,
+                                overwrite=False):
 
 
     ## get the patches from the ticket
@@ -360,7 +409,8 @@ def get_patches_with_users_help(n,
     old_patch_url_ls = patch_url_ls
 
     print "Please edit the queue before I apply"
-    patch_url_ls, order = do_patch_queue_editing(patch_url_ls,patch_comments)
+    patch_url_ls, order = do_patch_queue_editing(patch_url_ls, patch_comments,
+                                                 default_repo)
 
     if len(patch_url_ls) == 0:
         raise ValueError, "no patches to merge"
@@ -372,7 +422,7 @@ def get_patches_with_users_help(n,
 
     return patches, directory, order
 
-def collect_patches_for_run():
+def collect_patches_for_run(default_repo):
     ticket_ls = all_tickets(report='11')
 
     ticket_bundle = []
@@ -380,7 +430,7 @@ def collect_patches_for_run():
     for number, title in ticket_ls:
         try:
             print_section('Fetching ticket number %s'%number)
-            patches, directory, order = get_patches_with_users_help(number)
+            patches, directory, order = get_patches_with_users_help(number, default_repo)
             ticket_bundle.append((number,title,patches,directory, order))
         except:
             print "failed"
@@ -401,10 +451,12 @@ def log_ticket(ticket,message,log={},init=False,return_log=False):
 #################################################################
 
 def merge_and_run(n,
+                  default_repo,
                   directory=None,
                   overwrite=False,
                   behavior='pop',
-                  verbose=False):
+                  verbose=False,
+                  num_threads=2):
     """
     Merge patches from ticket n and test the sage library.
     Returns True when everything finishes cleanly, and raises
@@ -413,12 +465,15 @@ def merge_and_run(n,
 
     print_section("Merging patches from ticket number %s."%n)
 
-    patches, directory, order = get_patches_with_users_help(n,directory,overwrite)
+    patches, directory, order = get_patches_with_users_help(n, default_repo,
+                                                            directory, overwrite)
 
-    return apply_and_test(n,patches,directory,behavior,verbose=verbose,order=order)
+    return apply_and_test(n, patches, directory, behavior, default_repo,
+                          verbose=verbose, order=order, num_threads=2)
 
 
-def apply_and_test(n,patches,directory,behavior,verbose=False,archive=False,order=None):
+def apply_and_test(n, patches, directory, behavior, default_repo, verbose=False,
+                   archive=False, order=None, num_threads=2):
 
     start_dir = os.getcwd()
     os.chdir(SAGE_ROOT)
@@ -429,6 +484,7 @@ def apply_and_test(n,patches,directory,behavior,verbose=False,archive=False,orde
     ## apply the patches to the various repos
     applied_patches, repos_used, order = apply_patches(patches,
                                                        directory,
+                                                       default_repo,
                                                        dry_run=False,
                                                        behavior=behavior,
                                                        order=order)
@@ -441,7 +497,8 @@ def apply_and_test(n,patches,directory,behavior,verbose=False,archive=False,orde
                           repos_used,
                           order,
                           tmp_file,
-                          verbose=verbose)
+                          verbose=verbose,
+                          num_threads=num_threads)
     except:
         error = 'unexpected exception'
 
@@ -486,7 +543,8 @@ def run_tests(patches,
               repos_used,
               order,
               tmp_file,
-              verbose=False):
+              verbose=False,
+              num_threads=2):
 
     print_section('Rebuilding Sage')
 
@@ -552,7 +610,7 @@ def run_tests(patches,
         ## we can produce better error messages.
 
         files_to_test = ' '.join(list(set(files_to_test)))
-        test_command = '%s -tp %s -long %s' % (SAGE_COMMAND, NUM_THREADS, files_to_test)
+        test_command = '%s -tp %s -long %s' % (SAGE_COMMAND, num_threads, files_to_test)
         print test_command
         print
 
@@ -613,7 +671,7 @@ def all_tickets(report='11'):
     f.close()
     return tickets
 
-def test_all_tickets(behavior, verbose=False):
+def test_all_tickets(behavior, default_repo, verbose=False):
     ticket_ls = all_tickets(report='11')
     working_tickets = []
     untested_tickets = []
@@ -621,20 +679,21 @@ def test_all_tickets(behavior, verbose=False):
 
     os.system('tar -cf %s/tmp/mergelog.tar COPYING.txt'%SAGE_ROOT) #I'd like to make an empty tar, but tar cowardly refuses
 
-    ticket_bundle = collect_patches_for_run()
+    ticket_bundle = collect_patches_for_run(default_repo)
     for number,title,patches,directory,order in ticket_bundle:
         print_section('Testing ticket number %s'%number)
         try:
-            apply_and_test(number,patches,directory,behavior,verbose=verbose,archive=True,order=order)
-            print "Ticket #%s passed!"%number
+            apply_and_test(number, patches, directory, behavior, default_repo,
+                           verbose=verbose, archive=True, order=order)
+            print "Ticket #%s passed!" % number
             working_tickets.append(number)
         except:
             exception, msg, traceback = sys.exc_info()
             if msg == 'no tickets to merge':
-                print "Ticket #%s had no attached files."%number
+                print "Ticket #%s had no attached files." % number
                 untested_tickets.append(number)
             else:
-                print "Ticket #%s failed with %s: %s"%(number, exception.__name__, msg)
+                print "Ticket #%s failed with %s: %s" % (number, exception.__name__, msg)
                 failed_tickets.append(number)
 
 
@@ -666,85 +725,36 @@ def test_all_tickets(behavior, verbose=False):
 
 if __name__ == '__main__':
 
-    overwrite = False
+    num = 0
     directory = None
-    leave_or_finish_set = False
-    behavior = 'pop'
     test_type = 'files'
-    test_options = [ 'none', 'files', 'directory', 'long' ]
-    verbose = False
 
     if len(sys.argv) < 2:
-        usage_message()
+        parser.print_help()
         sys.exit(1)
 
-    args, extra_args = getopt.getopt(sys.argv[2:], 'd:oflt:r:n:v',
-                                     ['directory=', 'overwrite',
-                                      'finish', 'leave-in-queue', 'test=',
-                                      'repository=',
-                                      'num-threads=','verbose'])
+    (options, args) = parser.parse_args()
 
-    for arg, opt in args:
-        if arg in ['-d', '--directory']:
-            directory = os.path.abspath(opt)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            continue
+    if options.directory:
+        directory = os.path.abspath(opt)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-        if arg in ['-o', '--overwrite']:
-            overwrite = True
-            continue
+    # Returns the first known doctest option that the argument is a prefix of.
+    test_type = reduce(lambda x,y: x or y,
+              [option for option in DOCTEST_OPTIONS if option.startswith(options.test)],
+              False)
 
-        if arg in ['-f', '--finish']:
-            if leave_or_finish_set:
-                print "Error: cannot combine options --finish and --leave-in-queue"
-                sys.exit(1)
-            behavior = 'finish'
-            leave_or_finish_set = True
-            continue
+    if not test_type:
+        print ("Error: test type %s must be (a prefix of) one of %s" %
+               (options.test, DOCTEST_OPTIONS))
+        sys.exit(1)
 
-        if arg in ['-l', '--leave-in-queue']:
-            if leave_or_finish_set:
-                print "Error: cannot combine options --finish and --leave-in-queue"
-                sys.exit(1)
-            behavior = 'leave'
-            leave_or_finish_set = True
-            continue
-
-        if arg in ['-t', '--test']:
-            for known in test_options:
-                if known.startswith(opt):
-                    test_type = known
-                    break
-            else:
-                print "Error: test type %s must be (a prefix of) one of %s" % (opt, test_options)
-                sys.exit(1)
-            continue
-
-        if arg in ['-r', '--repository']:
-            opt = opt.lower()
-            if not repositories.has_key(opt):
-                print "Error: repository %s must be one of %s" % (opt, repos.keys())
-                sys.exit(1)
-            DEFAULT_REPOSITORY = repositories[opt]
-            continue
-
-        if arg in ['-n', '--num-threads']:
-            try:
-                num = int(opt)
-            except ValueError:
-                print "Error: %s is not a valid number of threads"%opt
-                sys.exit(1)
-            NUM_THREADS = num
-            continue
-
-        if arg in ['-v', '--verbose']:
-            verbose = True
-
+    default_repo=repositories[options.repository]
 
     ## make sure we got a ticket number to test, unless we were called with
     ## -c, in which case we print and exit.
-    if sys.argv[1] in ['-c', '--candidates']:
+    if options.candidates:
         ls = all_tickets(report='11')
         ls.sort()
         print_section('Tickets with positive review')
@@ -752,20 +762,27 @@ if __name__ == '__main__':
             print "#%4s: %s"%(number, title)
         print
         sys.exit(0)
-    elif sys.argv[1] in ['-a', '--all']:
-        test_all_tickets(behavior=behavior,verbose=verbose)
+    elif options.all:
+        test_all_tickets(behavior=options.behavior,
+                         default_repo=default_repo,
+                         verbose=options.verbose)
         sys.exit(0)
     else:
         try:
-            num = int(sys.argv[1])
+            num = args[0]
         except:
-            print "Error: could not convert %s to a ticket number."%sys.argv[1]
+            print "Error: could not convert %s to a ticket number."%args[0]
             sys.exit(1)
 
     try:
         # we don't need the return value from merge_and_run here
-        merge_and_run(num, overwrite=overwrite, directory=directory,
-                      behavior=behavior,verbose=verbose)
+        merge_and_run(num,
+                      default_repo=default_repo,
+                      overwrite=options.overwrite,
+                      directory=directory,
+                      behavior=options.behavior,
+                      verbose=options.verbose,
+                      num_threads = options.num_threads)
     except:
         exc, msg, traceback = sys.exc_info()
         print "Building failed with %s: %s"%(exc.__name__, msg)

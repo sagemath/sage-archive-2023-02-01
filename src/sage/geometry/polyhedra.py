@@ -3144,11 +3144,9 @@ class Polyhedron(SageObject):
             sage: [len(x) for x in c5_20_fl.level_sets()] # not tested - very long time
             [1, 20, 190, 580, 680, 272, 1]
             sage: polytopes.n_cube(2).face_lattice().plot()
-            sage: for lset in polytopes.cross_polytope(2).face_lattice().level_sets(): print lset[0]
-            (None, (0, 1, 2, 3))
-            ((1,), (2, 3))
-            ((1, 2), (3,))
-            ((0, 1, 2, 3), None)
+            sage: level_sets = polytopes.cross_polytope(2).face_lattice().level_sets()
+            sage: print level_sets[0], level_sets[-1]
+            [(None, (0, 1, 2, 3))] [((0, 1, 2, 3), None)]
 
         REFERENCES:
 

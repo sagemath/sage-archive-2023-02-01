@@ -3279,12 +3279,14 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``"Cliquer") indicating
+        - ``algorithm`` -- string (default: ``"Cliquer"``) indicating
           which algorithm is performed. It can be one of those two values.
+
           - ``"Cliquer"`` will compute a minimum vertex cover
-              using the algorithm Cliquer.
-            - ``"MILP"`` will compute a minimum vertex cover through a mixed
-              integer linear program (requires packages GLPK or CBC).
+            using the algorithm Cliquer.
+          - ``"MILP"`` will compute a minimum vertex cover through a mixed
+            integer linear program (requires packages GLPK or CBC).
+
         - ``value_only`` -- boolean (default: False). If set to True,
           only the size of a minimum vertex cover is returned. Otherwise,
           a minimum vertex cover is returned as a list of vertices.

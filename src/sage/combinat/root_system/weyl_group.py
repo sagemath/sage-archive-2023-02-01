@@ -69,7 +69,7 @@ def WeylGroup(x, prefix=None):
     a weight lattice and its corresponding Weyl group::
 
         sage: G = WeylGroup(['F',4])
-        sage: L = G.lattice()
+        sage: L = G.domain()
 
     or alternatively and equivalently::
 
@@ -118,7 +118,7 @@ def WeylGroup(x, prefix=None):
 
     ::
 
-        sage: L = G.lattice()
+        sage: L = G.domain()
         sage: fw = L.fundamental_weights(); fw
         Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
         sage: rho = sum(fw); rho
@@ -150,28 +150,28 @@ def WeylGroup(x, prefix=None):
 
 class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens):
     @staticmethod
-    def __classcall__(cls, lattice, prefix=None):
-        return super(WeylGroup_gens, cls).__classcall__(cls, lattice, prefix)
+    def __classcall__(cls, domain, prefix=None):
+        return super(WeylGroup_gens, cls).__classcall__(cls, domain, prefix)
 
-    def __init__(self, lattice, prefix):
+    def __init__(self, domain, prefix):
         """
         EXAMPLES::
 
             sage: G = WeylGroup(['B',3])
             sage: TestSuite(G).run()
         """
-        self._lattice = lattice
+        self._domain = domain
         if self.cartan_type().is_affine():
             category = AffineWeylGroups()
         elif self.cartan_type().is_finite():
             category = FiniteWeylGroups()
         else:
             category = WeylGroups()
-        self.n = lattice.dimension() # Really needed?
+        self.n = domain.dimension() # Really needed?
         # MatrixGroup_gens takes plain matrices as input. So we can't do:
         #MatrixGroup_gens.__init__(self, list(self.simple_reflections()))
         self._prefix = prefix
-        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.lattice().simple_reflection(i)) for i in self.index_set()], category = category)
+        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.domain().simple_reflection(i)) for i in self.index_set()], category = category)
 
     @cached_method
     def cartan_type(self):
@@ -184,7 +184,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             sage: G.cartan_type()
             ['F', 4]
         """
-        return self.lattice().cartan_type()
+        return self.domain().cartan_type()
 
     @cached_method
     def index_set(self):
@@ -205,7 +205,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
     # Should be implemented in (morphisms of) modules with basis
     def morphism_matrix(self, f):
         return matrix(QQ, [f(b).to_vector()
-                           for b in self.lattice().basis()]).transpose()
+                           for b in self.domain().basis()]).transpose()
 
     def from_morphism(self, f):
         return self._element_constructor_(self.morphism_matrix(f))
@@ -259,7 +259,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             True
 
         """
-        return self.lattice().simple_reflections().map(self.from_morphism)
+        return self.domain().simple_reflections().map(self.from_morphism)
 
     def reflections(self):
         """
@@ -274,17 +274,17 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
             sage: W = WeylGroup("B2",prefix="s")
             sage: refdict = W.reflections(); refdict
-            {s1*s2*s1: (1, 0), s2*s1*s2: (1, 1), s1: (1, -1), s2: (0, 1)}
+            Finite family {s1: (1, -1), s2*s1*s2: (1, 1), s1*s2*s1: (1, 0), s2: (0, 1)}
             sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
         """
         ret = {}
         try:
-            for alp in self.lattice().positive_roots():
-                r = self.__call__(Matrix([self.lattice().reflection(alp)(x).to_vector() for x in self.lattice().basis()]))
+            for alp in self.domain().positive_roots():
+                r = self.__call__(Matrix([self.domain().reflection(alp)(x).to_vector() for x in self.domain().basis()]))
                 ret[r] = alp
-            return ret
+            return Family(ret)
         except:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
@@ -321,7 +321,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
         """
         return "Weyl Group of type %s (as a matrix group acting on the %s)"%(self.cartan_type(),
-                                                                           self._lattice._name_string(capitalize=False,
+                                                                           self._domain._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
 
@@ -464,20 +464,20 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
     unit = one # For backward compatibility
 
-    def lattice(self):
+    def domain(self):
         """
-        Returns the ambient lattice of self's type.
+        Returns the ambient domain of self's type.
 
         EXAMPLES::
 
             sage: G = WeylGroup(['F',4])
-            sage: G.lattice()
+            sage: G.domain()
             Ambient space of the Root system of type ['F', 4]
 	    sage: G = WeylGroup(['A',3,1])
-	    sage: G.lattice()
+	    sage: G.domain()
 	    Root space over the Rational Field of the Root system of type ['A', 3, 1]
         """
-        return self._lattice
+        return self._domain
 
     def simple_reflection(self, i):
         """
@@ -578,7 +578,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         TODO: extract parabolic subgroup method
         """
         assert(self.cartan_type().is_affine())
-        return ClassicalWeylSubgroup(self._lattice, prefix=self._prefix)
+        return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
 
     def bruhat_graph(self, x, y):
         """
@@ -587,8 +587,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         edges the pairs u, v such that u = r.v where r is a reflection, that
         is, a conjugate of a simple reflection.
 
-        Returns the Bruhat graph as a directed graph, with an edge x --> y
-        if and only if x < y in the Bruhat order, and u = r.v.
+        Returns the Bruhat graph as a directed graph, with an edge u --> v
+        if and only if u < v in the Bruhat order, and u = r.v.
 
         See:
 
@@ -596,7 +596,6 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         rational smoothness of Schubert varieties. Algebraic groups and their
         generalizations: classical methods (University Park, PA, 1991), 53--61,
         Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
-
 
         EXAMPLES:
 
@@ -655,7 +654,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
 
         Note: won't be needed, once the lattice will be a parabolic sub root system
         """
-        return self.lattice().cartan_type().classical()
+        return self.domain().cartan_type().classical()
 
     def simple_reflections(self):
         """
@@ -671,7 +670,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
 
         Note: won't be needed, once the lattice will be a parabolic sub root system
         """
-        return Family(dict((i, self.from_morphism(self.lattice().simple_reflection(i))) for i in self.index_set()))
+        return Family(dict((i, self.from_morphism(self.domain().simple_reflection(i))) for i in self.index_set()))
 
     def __repr__(self):
         """
@@ -686,8 +685,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: RootSystem(['C',4,1]).coweight_lattice().weyl_group().classical()
             Parabolic Subgroup of the Weyl Group of type ['C', 4, 1]^* (as a matrix group acting on the coweight lattice)
         """
-        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)"%(self.lattice().cartan_type(),
-                                                                           self._lattice._name_string(capitalize=False,
+        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)"%(self.domain().cartan_type(),
+                                                                           self._domain._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
     def weyl_group(self, prefix="hereditary"):
@@ -705,7 +704,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         """
         if prefix == "hereditary":
             prefix = self._prefix
-        return self.lattice().weyl_group(prefix)
+        return self.domain().weyl_group(prefix)
 
     def _test_is_finite(self, **options):
         """
@@ -740,7 +739,7 @@ class WeylGroupElement(MatrixGroupElement):
     def __hash__(self):
         return hash(self.__matrix)
 
-    def lattice(self):
+    def domain(self):
         """
         Returns the ambient lattice associated with self.
 
@@ -748,10 +747,10 @@ class WeylGroupElement(MatrixGroupElement):
 
             sage: W = WeylGroup(['A',2])
             sage: s1 = W.simple_reflection(1)
-            sage: s1.lattice()
+            sage: s1.domain()
             Ambient space of the Root system of type ['A', 2]
         """
-        return self._parent.lattice()
+        return self._parent.domain()
 
     def __repr__(self):
         """
@@ -889,26 +888,26 @@ class WeylGroupElement(MatrixGroupElement):
         EXAMPLES::
             sage: W = WeylGroup(['A',2])
             sage: s = W.simple_reflections()
-            sage: v = W.lattice()([1,0,0])
+            sage: v = W.domain()([1,0,0])
             sage: s[1].action(v)
             (0, 1, 0)
 
             sage: W = WeylGroup(RootSystem(['A',2]).root_lattice())
             sage: s = W.simple_reflections()
-            sage: alpha = W.lattice().simple_roots()
+            sage: alpha = W.domain().simple_roots()
             sage: s[1].action(alpha[1])
             -alpha[1]
 
             sage: W=WeylGroup(['A',2,1])
-            sage: alpha = W.lattice().simple_roots()
+            sage: alpha = W.domain().simple_roots()
             sage: s = W.simple_reflections()
             sage: s[1].action(alpha[1])
             -alpha[1]
             sage: s[1].action(alpha[0])
             alpha[0] + alpha[1]
         """
-        assert(v in self.lattice())
-        return self.lattice().from_vector(self.__matrix*v.to_vector())
+        assert(v in self.domain())
+        return self.domain().from_vector(self.__matrix*v.to_vector())
 
 
     ##########################################################################
@@ -928,31 +927,31 @@ class WeylGroupElement(MatrixGroupElement):
 
             sage: W = WeylGroup(['A',3])
             sage: s = W.simple_reflections()
-            sage: [W.unit().has_descent(i) for i in W.lattice().index_set()]
+            sage: [W.unit().has_descent(i) for i in W.domain().index_set()]
             [False, False, False]
-            sage: [s[1].has_descent(i) for i in W.lattice().index_set()]
+            sage: [s[1].has_descent(i) for i in W.domain().index_set()]
             [True, False, False]
-            sage: [s[2].has_descent(i) for i in W.lattice().index_set()]
+            sage: [s[2].has_descent(i) for i in W.domain().index_set()]
             [False, True, False]
-            sage: [s[3].has_descent(i) for i in W.lattice().index_set()]
+            sage: [s[3].has_descent(i) for i in W.domain().index_set()]
             [False, False, True]
-            sage: [s[3].has_descent(i, True) for i in W.lattice().index_set()]
+            sage: [s[3].has_descent(i, True) for i in W.domain().index_set()]
             [True, True, False]
             sage: W = WeylGroup(['A',3,1])
             sage: s = W.simple_reflections()
-            sage: [W.one().has_descent(i) for i in W.lattice().index_set()]
+            sage: [W.one().has_descent(i) for i in W.domain().index_set()]
             [False, False, False, False]
-            sage: [s[0].has_descent(i) for i in W.lattice().index_set()]
+            sage: [s[0].has_descent(i) for i in W.domain().index_set()]
             [True, False, False, False]
             sage: w = s[0] * s[1]
-            sage: [w.has_descent(i) for i in W.lattice().index_set()]
+            sage: [w.has_descent(i) for i in W.domain().index_set()]
             [False, True, False, False]
-            sage: [w.has_descent(i, side = "left") for i in W.lattice().index_set()]
+            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
             [True, False, False, False]
             sage: w = s[0] * s[2]
-            sage: [w.has_descent(i) for i in W.lattice().index_set()]
+            sage: [w.has_descent(i) for i in W.domain().index_set()]
             [True, False, True, False]
-            sage: [w.has_descent(i, side = "left") for i in W.lattice().index_set()]
+            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
             [True, False, True, False]
 
             sage: W = WeylGroup(['A',3])
@@ -966,7 +965,7 @@ class WeylGroupElement(MatrixGroupElement):
 #            return s > 0
 #        else:
 #            return s < 0
-        L = self.lattice()
+        L = self.domain()
         # Choose the method depending on the side and the availability of rho and is_positive_root
         if not hasattr(L.element_class, "is_positive_root"):
             use_rho = True
@@ -1001,12 +1000,11 @@ class WeylGroupElement(MatrixGroupElement):
 
         This assumes types A,B,C,D on the ambient lattice
 
-
         This further assume that the basis is indexed by 0,1,...
         and returns a permutation of (5,4,2,3,1) (beuargl), as a tuple
         """
         W = self.parent()
-        e = W.lattice().basis()
+        e = W.domain().basis()
         return tuple( c*(j+1)
                       for i in e.keys()
                       for (j,c) in self.action(e[i]) )

@@ -524,6 +524,26 @@ class FiniteFamily(AbstractFamily):
         """
         return [ self._dictionary[key] for key in self._keys ]
 
+    def has_key(self, k):
+        """
+
+        EXAMPLES::
+
+            sage: Family({"a":1, "b":2, "c":3}).has_key("a")
+            True
+        """
+        return self._dictionary.has_key(k)
+
+    def inverse_family(self):
+        """
+        Returns the inverse family, with keys and values switched. This
+        presumes that there are no duplicate values in self.
+        """
+        revdict = {}
+        for k in self.keys():
+            revdict[self[k]] = k
+        return Family(revdict)
+
     def __eq__(self, other):
         """
         EXAMPLES::

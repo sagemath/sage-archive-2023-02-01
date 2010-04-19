@@ -632,14 +632,21 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         No attempt is made to determine if an eigenvalue has multiplicity
         greater than one, so all the eigenspaces returned have dimension one.
 
+        The SciPy routines used for these computations produce eigenvectors
+        normalized to have length 1, but on different hardware they may vary
+        by a sign. So for doctests we have normalized output by creating an
+        eigenspace with a canonical basis.
+
         EXAMPLES::
 
             sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
             sage: spectrum = m.eigenspaces_left()
-            sage: spectrum[0]
-            (2.0, Vector space of degree 4 and dimension 1 over Real Double Field
-            User basis matrix:
-            [0.5 0.5 0.5 0.5])
+            sage: spectrum[0][0]
+            2.0
+            sage: (RDF^4).subspace(spectrum[0][1].basis())
+            Vector space of degree 4 and dimension 1 over Real Double Field
+            Basis matrix:
+            [1.0 1.0 1.0 1.0]
 
             sage: e, V = spectrum[2]
             sage: v = V.basis()[0]
@@ -688,6 +695,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         No attempt is made to determine if an eigenvalue has multiplicity
         greater than one, so all the eigenspaces returned have dimension one.
 
+        The SciPy routines used for these computations produce eigenvectors
+        normalized to have length 1, but on different hardware they may vary
+        by a sign. So for doctests we have normalized output by creating an
+        eigenspace with a canonical basis.
+
+
         EXAMPLES::
 
             sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
@@ -697,10 +710,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ -4.0 -12.0   6.0 -32.0]
             [  0.0  -2.0  -1.0   1.0]
             sage: spectrum = m.eigenspaces_right()
-            sage: spectrum[0]
-            (2.0, Vector space of degree 4 and dimension 1 over Real Double Field
-            User basis matrix:
-            [ 0.258198889747 -0.516397779494  0.774596669241  0.258198889747])
+            sage: spectrum[0][0]
+            2.0
+            sage: (RDF^4).subspace(spectrum[0][1].basis())
+            Vector space of degree 4 and dimension 1 over Real Double Field
+            Basis matrix:
+            [ 1.0 -2.0  3.0  1.0]
 
             sage: e, V = spectrum[2]
             sage: v = V.basis()[0]
@@ -782,6 +797,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         eigenvalues or zero eigenvalues should be addressed in the
         calling routine.
 
+        The SciPy routines used for these computations produce eigenvectors
+        normalized to have length 1, but on different hardware they may vary
+        by a sign. So for doctests we have normalized output by forcing their
+        eigenvectors to have their first non-zero entry equal to one.
+
         EXAMPLES::
 
             sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
@@ -791,14 +811,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ -1.0 -10.0 -10.0 -17.0]
             [ -2.0   7.0   6.0  13.0]
             sage: spectrum = m.left_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ...     spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]
-            (2.0, [(0.5, 0.5, 0.5, 0.5)], 1)
+            (2.0, [(1.0, 1.0, 1.0, 1.0)], 1)
             sage: spectrum[1]
-            (1.0, [(-0.615457454897, -0.492365963917, -0.492365963917, -0.369274472938)], 1)
+            (1.0, [(1.0, 0.8, 0.8, 0.6)], 1)
             sage: spectrum[2]
-            (-2.0, [(-0.800640769025, -0.32025630761, -0.480384461415, -0.160128153805)], 1)
+            (-2.0, [(1.0, 0.4, 0.6, 0.2)], 1)
             sage: spectrum[3]
-            (-1.0, [(0.316227766017, 0.316227766017, 0.632455532034, 0.632455532034)], 1)
+            (-1.0, [(1.0, 1.0, 2.0, 2.0)], 1)
         """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
@@ -835,6 +857,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         eigenvalues or zero eigenvalues should be addressed in the
         calling routine.
 
+        The SciPy routines used for these computations produce eigenvectors
+        normalized to have length 1, but on different hardware they may vary
+        by a sign. So for doctests we have normalized output by forcing their
+        eigenvectors to have their first non-zero entry equal to one.
+
         EXAMPLES::
 
             sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
@@ -844,15 +871,17 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ -4.0 -12.0   6.0 -32.0]
             [  0.0  -2.0  -1.0   1.0]
             sage: spectrum = m.right_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ...     spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]
-            (2.0, [(0.258198889747, -0.516397779494, 0.774596669241, 0.258198889747)], 1)
+            (2.0, [(1.0, -2.0, 3.0, 1.0)], 1)
             sage: spectrum[1]
-            (1.0, [(-0.547722557505, 0.36514837167, -0.73029674334, -0.182574185835)], 1)
+            (1.0, [(1.0, -0.666666666667, 1.33333333333, 0.333333333333)], 1)
             sage: spectrum[2]
-            (-2.0, [(0.693375245282, -0.138675049056, 0.693375245282, 0.138675049056)], 1)
+            (-2.0, [(1.0, -0.2, 1.0, 0.2)], 1)
             sage: spectrum[3]
-            (-1.0, [(0.426401432711, -0.213200716356, 0.852802865422, 0.213200716356)], 1)
-            """
+            (-1.0, [(1.0, -0.5, 2.0, 0.5)], 1)
+        """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self._nrows == 0:

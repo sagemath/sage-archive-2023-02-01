@@ -16,9 +16,11 @@ You can construct the following permutation groups:
 
 -- DiCyclicGroup, nonabelian groups of order `4m` with a unique element of order 2
 
--- TransitiveGroup, $i^{th}$ transitive group of degree $n$
+-- TransitiveGroup, $n^{th}$ transitive group of degree $d$
                       from the GAP tables of transitive groups (requires
                       the "optional" package database_gap)
+
+-- TransitiveGroups(d), TransitiveGroups(), set of all of the above
 
 -- MathieuGroup(degree), Mathieu group of degree 9, 10, 11, 12, 21, 22, 23, or 24.
 
@@ -72,12 +74,20 @@ from sage.rings.all      import Integer
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.arith import factor
+from sage.rings.integer_ring import ZZ
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.family import Family
 
 class PermutationGroup_unique(UniqueRepresentation, PermutationGroup_generic):
 
@@ -868,20 +878,55 @@ class TransitiveGroup(PermutationGroup_unique):
 
         EXAMPLES::
 
-            sage: G = TransitiveGroup(1,1); G
+            sage: TransitiveGroup(0,1)
+            Transitive group number 1 of degree 0
+            sage: TransitiveGroup(1,1)
             Transitive group number 1 of degree 1
             sage: G = TransitiveGroup(5, 2); G         # requires optional database_gap
             Transitive group number 2 of degree 5
             sage: G.gens()                             # requires optional database_gap
             [(1,2,3,4,5), (1,4)(2,3)]
 
-            sage: G.category()
+            sage: G.category()                         # requires optional database_gap
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+
+        .. warning:: this follows GAP's naming convention of indexing
+          the transitive groups starting from ``1``::
+
+            sage: TransitiveGroup(5,0)
+            Traceback (most recent call last):
+            ...
+              assert n > 0
+            AssertionError
+
+        .. warning:: only transitive groups of "small" degree are
+          available in GAP's database::
+
+            sage: TransitiveGroup(31,1)                # requires optional database_gap
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+
+        TESTS::
+
+            sage: TestSuite(TransitiveGroup(0,1)).run()
+            sage: TestSuite(TransitiveGroup(1,1)).run()
+            sage: TestSuite(TransitiveGroup(5,2)).run()# requires optional database_gap
+
+            sage: TransitiveGroup(1,5)
+            Traceback (most recent call last):
+            ...
+            AssertionError: n should be in {1,..,1}
         """
-        id = 'Group([()])' if d == 1 else 'TransitiveGroup(%s,%s)'%(d,n)
+        d = ZZ(d)
+        n = ZZ(n)
+        assert d >= 0
+        assert n > 0
+        max_n = TransitiveGroups(d).cardinality()
+        assert n <= max_n, "n should be in {1,..,%s}"%max_n
+        gap_group = 'Group([()])' if d in [0,1] else 'TransitiveGroup(%s,%s)'%(d,n)
         try:
-            PermutationGroup_generic.__init__(self, gap_group=id)
+            PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
             from sage.misc.misc import verbose
             verbose("Warning: Computing with TransitiveGroups requires the optional database_gap package. Please install it.", level=0)
@@ -896,6 +941,262 @@ class TransitiveGroup(PermutationGroup_unique):
             Transitive group number 1 of degree 1
         """
         return "Transitive group number %s of degree %s"%(self._n, self._d)
+
+def TransitiveGroups(d=None):
+    """
+    INPUT:
+
+     - ``d`` -- an integer (optional)
+
+    Returns the set of all transitive groups of a given degree
+    ``d``. If ``d`` is not specified, it returns the set of all
+    transitive groups.
+
+    Warning: TransitiveGroups requires the optional GAP database
+    package. Please install it with ``sage -i database_gap``.
+
+    EXAMPLES::
+
+        sage: TransitiveGroups(3)
+        Transitive Groups of degree 3
+        sage: TransitiveGroups(7)
+        Transitive Groups of degree 7
+        sage: TransitiveGroups(8)
+        Transitive Groups of degree 8
+
+        sage: TransitiveGroups()
+        Transitive Groups
+
+    .. warning:: in practice, the database currently only contains
+      transitive groups up to degree 30::
+
+        sage: TransitiveGroups(31).cardinality() # requires optional database_gap
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+
+    """
+    if d == None:
+        return TransitiveGroupsAll()
+    else:
+        d == Integer(d)
+        assert d >= 0, "A transitive group acts on a non negative integer number of positions"
+        return TransitiveGroupsOfDegree(d)
+
+class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
+    """
+    The infinite set of all transitive groups.
+
+    EXAMPLES::
+
+        sage: L = TransitiveGroups(); L
+        Transitive Groups
+        sage: L.category()
+        Category of infinite enumerated sets
+        sage: L.cardinality()
+        +Infinity
+
+        sage: p = L.__iter__()            # requires optional database_gap
+        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()) # requires optional database_gap
+        (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
+
+    TESTS::
+
+        sage: TestSuite(TransitiveGroups()).run() # requires optional database_gap # long time
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: S = TransitiveGroups() # requires optional database_gap
+            sage: S.category() # requires optional database_gap
+            Category of infinite enumerated sets
+        """
+        DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: TransitiveGroups(i)) )
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: TransitiveGroups() # requires optional database_gap # indirect doctest
+            Transitive Groups
+        """
+        return "Transitive Groups"
+
+    def __contains__(self, G):
+        r"""
+        EXAMPLES::
+
+            sage: TransitiveGroup(5,2) in TransitiveGroups() # requires optional database_gap
+            True
+            sage: TransitiveGroup(6,5) in TransitiveGroups() # requires optional database_gap
+            True
+            sage: 1 in TransitiveGroups() # requires optional database_gap
+            False
+        """
+        return isinstance(G,TransitiveGroup)
+
+    def _an_element_(self):
+        """
+        Returns an element of ``self``.
+
+        EXAMPLES::
+
+            sage: TransitiveGroups(5).an_element() # requires optional database_gap # indirect doctest
+            Transitive group number 1 of degree 5
+        """
+        return TransitiveGroup(7,3)
+
+class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
+    """
+    The set of all transitive groups of a given (small) degree.
+
+    EXAMPLES::
+
+        sage: S = TransitiveGroups(4); S       # requires optional database_gap
+        Transitive Groups of degree 4
+        sage: list(S)                          # requires optional database_gap
+        [Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4, Transitive group number 4 of degree 4, Transitive group number 5 of degree 4]
+
+        sage: TransitiveGroups(5).an_element() # requires optional database_gap
+        Transitive group number 1 of degree 5
+
+    We write the cardinality of all transitive groups of degree 5::
+
+        sage: for G in TransitiveGroups(5):    # requires optional database_gap
+        ...       print G.cardinality()
+        5
+        10
+        20
+        60
+        120
+
+    TESTS::
+
+        sage: TestSuite(TransitiveGroups(3)).run() # requires optional database_gap
+
+
+    """
+    def __init__(self, n):
+        """
+        TESTS::
+
+            sage: S = TransitiveGroups(4) # requires optional database_gap
+            sage: S.category() # requires optional database_gap
+            Category of finite enumerated sets
+        """
+        self._degree = n
+        Parent.__init__(self, category = FiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: TransitiveGroups(6) # requires optional database_gap
+            Transitive Groups of degree 6
+        """
+        return "Transitive Groups of degree %s"%(self._degree)
+
+    def __contains__(self, G):
+        r"""
+        EXAMPLES::
+
+            sage: TransitiveGroup(6,5) in TransitiveGroups(4) # requires optional database_gap
+            False
+            sage: TransitiveGroup(4,3) in TransitiveGroups(4) # requires optional database_gap
+            True
+            sage: 1 in TransitiveGroups(4) # requires optional database_gap
+            False
+        """
+        if isinstance(G,TransitiveGroup):
+            return G._d == self._degree
+        else:
+            False
+
+    def __getitem__(self, n):
+        r"""
+        INPUT:
+
+         - ``n`` -- a positive integer
+
+        Returns the `n`-th transitive group of a given degree.
+
+        EXAMPLES::
+
+            sage: TransitiveGroups(5)[3]          # requires optional database_gap#
+            Transitive group number 3 of degree 5
+
+        .. warning:: this follows GAP's naming convention of indexing
+        the transitive groups starting from ``1``::
+
+            sage: TransitiveGroups(5)[0]
+            Traceback (most recent call last):
+            ...
+                assert n > 0
+            AssertionError
+        """
+        return TransitiveGroup(self._degree, n)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: list(TransitiveGroups(5)) # indirect doctest # requires optional database_gap
+            [Transitive group number 1 of degree 5, Transitive group number 2 of degree 5, Transitive group number 3 of degree 5, Transitive group number 4 of degree 5, Transitive group number 5 of degree 5]
+        """
+        for n in xrange(1, self.cardinality() + 1):
+            yield self[n]
+
+    _an_element_ = EnumeratedSets.ParentMethods._an_element_
+
+    @cached_method
+    def cardinality(self):
+        r"""
+        Returns the cardinality of ``self``, that is the number of
+        transitive groups of a given degree.
+
+        EXAMPLES::
+
+            sage: TransitiveGroups(0).cardinality()                      # requires optional database_gap
+            1
+            sage: TransitiveGroups(2).cardinality()                      # requires optional database_gap
+            1
+            sage: TransitiveGroups(7).cardinality()                      # requires optional database_gap
+            7
+            sage: TransitiveGroups(12).cardinality()                     # requires optional database_gap
+            301
+            sage: [TransitiveGroups(i).cardinality() for i in range(11)] # requires optional database_gap
+            [1, 1, 1, 2, 5, 5, 16, 7, 50, 34, 45]
+
+        .. warning:: The database_gap contains all transitive groups
+          up to degree 30::
+
+            sage: TransitiveGroups(31).cardinality()                     # requires optional database_gap
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+
+        TESTS::
+
+            sage: type(TransitiveGroups(12).cardinality())               # requires optional database_gap
+            <type 'sage.rings.integer.Integer'>
+            sage: type(TransitiveGroups(0).cardinality())
+            <type 'sage.rings.integer.Integer'>
+        """
+        # gap.NrTransitiveGroups(0) fails, so Sage needs to handle this
+
+        # While we are at it, and since Sage also handles the
+        # transitive group of degree 1, we may as well handle 1
+        if self._degree <= 1:
+            return ZZ(1)
+        else:
+            try:
+                return Integer(gap.NrTransitiveGroups(gap(self._degree)))
+            except RuntimeError:
+                from sage.misc.misc import verbose
+                verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
+            except TypeError:
+                raise NotImplementedError, "Only the transitive groups of order less than 30 are available in GAP's database"
 
 class PermutationGroup_plg(PermutationGroup_unique):
     def base_ring(self):

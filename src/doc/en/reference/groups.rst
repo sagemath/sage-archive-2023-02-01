@@ -13,6 +13,7 @@ Groups
    sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/abelian_gps/dual_abelian_group
    sage/groups/perm_gps/permgroup
+   sage/groups/perm_gps/permgroup_named
    sage/groups/perm_gps/permgroup_element
    sage/groups/perm_gps/permgroup_morphism
    sage/groups/perm_gps/cubegroup

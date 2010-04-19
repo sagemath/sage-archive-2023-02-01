@@ -34,6 +34,7 @@ from ecm import ECM, ecm
 from povray import povray
 from lie import lie, lie_console, LiE
 from r import r, r_console, R, r_version, is_RElement
+from read_data import read_data
 
 # signal handling
 from get_sigs import *

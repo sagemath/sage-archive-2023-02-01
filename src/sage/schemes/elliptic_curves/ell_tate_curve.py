@@ -282,11 +282,15 @@ class TateCurve(SageObject):
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.E2(prec=10)
             4 + 2*5^2 + 2*5^3 + 5^4 + 2*5^5 + 5^7 + 5^8 + 2*5^9 + O(5^10)
+
+            sage: T = EllipticCurve('14').tate_curve(7)
+            sage: T.E2(30)
+            2 + 4*7 + 7^2 + 3*7^3 + 6*7^4 + 5*7^5 + 2*7^6 + 7^7 + 5*7^8 + 6*7^9 + 5*7^10 + 2*7^11 + 6*7^12 + 4*7^13 + 3*7^15 + 5*7^16 + 4*7^17 + 4*7^18 + 2*7^20 + 7^21 + 5*7^22 + 4*7^23 + 4*7^24 + 3*7^25 + 6*7^26 + 3*7^27 + 6*7^28 + O(7^30)
         """
 
-        qE = self._q
         p = self._p
         Csq = self._Csquare(prec=prec)
+        qE = self._q
         n = qE.valuation()
         R = Qp(p,prec)
 

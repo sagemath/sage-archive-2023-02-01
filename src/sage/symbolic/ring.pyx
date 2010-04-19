@@ -441,7 +441,7 @@ cdef class SymbolicRing(CommutativeRing):
             t0
 
             sage: SR.symbol() # temporary variable
-            symbol160
+            symbol...
         """
         cdef GSymbol symb
         cdef Expression e

@@ -159,8 +159,9 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
 
     ::
 
-        sage: w  = Word('abc')
-        sage: w is Word(w)
+        sage: W = Words()
+        sage: w  = W('abc')
+        sage: w is W(w)
         True
         sage: w is Word(w, alphabet='abc')
         False

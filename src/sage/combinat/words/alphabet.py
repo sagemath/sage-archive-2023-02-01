@@ -240,6 +240,76 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         """
         return other.list() == self.filter(lambda a: a in other).list()
 
+    def __eq__(self, other):
+        r"""
+        Equality test for self and other.
+
+        INPUT:
+
+        - ``other`` - finite alphabet
+
+        OUTPUT:
+
+            bool
+
+        ..NOTE::
+
+            The ordering is taken into consideration.
+
+        EXAMPLES::
+
+            sage: Alphabet('abcd') == Alphabet('abcd')
+            True
+            sage: Alphabet('abcd') == Alphabet('abce')
+            False
+            sage: Alphabet('abcd') == Alphabet('dabc')
+            False
+            sage: Alphabet('abcd') == Alphabet([1,2])
+            False
+            sage: Alphabet('abcd') == 2
+            False
+        """
+        if isinstance(other, OrderedAlphabet_Finite):
+            return list(self) == list(other)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        r"""
+        Returns ``True`` if the elements of ``other`` appear among the
+        elements of ``self`` in the same respective order, and ``False``
+        otherwise.
+
+        INPUT:
+
+        - ``other`` - finite alphabet
+
+        OUTPUT:
+
+            bool
+
+        ..NOTE::
+
+            The ordering of the alphabet is taken into consideration.
+
+        EXAMPLES::
+
+            sage: Alphabet('abcd') != Alphabet('abcd')
+            False
+            sage: Alphabet('abcd') != Alphabet('abce')
+            True
+            sage: Alphabet('abcd') != Alphabet('dabc')
+            True
+            sage: Alphabet('abcd') != Alphabet([1,2])
+            True
+            sage: Alphabet('abcd') != 2
+            True
+        """
+        if isinstance(other, OrderedAlphabet_Finite):
+            return not self.__eq__(other)
+        else:
+            return NotImplemented
+
     def rank(self, letter):
         r"""
         Returns the index of ``letter`` in ``self``.

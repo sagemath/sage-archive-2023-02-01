@@ -125,6 +125,11 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         NotImplementedError: infinite list
         sage: Words_all().cardinality()
         +Infinity
+
+    We would like the instance of this class to be unique::
+
+        sage: Words() is Words()   # todo: not implemented
+        True
     """
     @lazy_attribute
     def _element_classes(self):
@@ -399,9 +404,9 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         Construction of a word from a word when the parents are the same::
 
-            sage: l = range(8)
-            sage: w = Word(l)
-            sage: z = Word(w)
+            sage: W = Words()
+            sage: w = W(range(8))
+            sage: z = W(w)
             sage: w is z
             True
 
@@ -430,7 +435,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             <class 'sage.combinat.words.word.FiniteWord_str'>
             sage: z = Word(w, datatype='list')
             sage: type(z)
-            <class 'sage.combinat.words.word.FiniteWord_str'>
+            <class 'sage.combinat.words.word.FiniteWord_list'>
             sage: y = Word(w, alphabet='abc', datatype='list')
             sage: type(y)
             <class 'sage.combinat.words.word.FiniteWord_list'>
@@ -480,7 +485,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             # then return `data` (no matter what the parameter length,
             # datatype and length are).
             ###########################
-            if data.parent() == self:
+            if data.parent() is self:
                 return data
             ###########################
             # Otherwise, if self is not the parent of `data`, then we
@@ -631,6 +636,71 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         """
         from sage.combinat.words.abstract_word import Word_class
         return isinstance(x, Word_class)
+
+    def __eq__(self, other):
+        r"""
+        Returns True if self is equal to other and False otherwise.
+
+        EXAMPLES::
+
+            sage: Words('ab') == Words()
+            False
+            sage: Words() == Words('ab')
+            False
+            sage: Words('ab') == Words('ab')
+            True
+            sage: Words('ab') == Words('ba')
+            False
+            sage: Words('ab') == Words('abc')
+            False
+            sage: Words('abc') == Words('ab')
+            False
+
+        ::
+
+            sage: WordPaths('abcd') == Words('abcd')
+            True
+            sage: Words('abcd') == WordPaths('abcd')
+            True
+            sage: Words('bacd') == WordPaths('abcd')
+            False
+            sage: WordPaths('bacd') == WordPaths('abcd')
+            False
+        """
+        if isinstance(other, Words_all):
+            return self.alphabet() == other.alphabet()
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        r"""
+        Returns True if self is not equal to other and False otherwise.
+
+        TESTS::
+
+            sage: Words('ab') != Words('ab')
+            False
+            sage: Words('ab') != Words('abc')
+            True
+            sage: Words('abc') != Words('ab')
+            True
+
+        ::
+
+            sage: WordPaths('abcd') != Words('abcd')
+            False
+            sage: Words('abcd') != WordPaths('abcd')
+            False
+
+        ::
+
+            Words('ab') != 2
+            True
+        """
+        if isinstance(other, Words_all):
+            return not self.__eq__(other)
+        else:
+            return NotImplemented
 
     class _python_object_alphabet(UniqueRepresentation):
         r"""

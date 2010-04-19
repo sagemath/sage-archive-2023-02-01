@@ -92,12 +92,13 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
 
     def _compute_q_expansion_basis(self, prec):
         r"""
-        Compute a basis of q-expansions of self to the given precision.
-        This raises a NotImplementedError.
+        Compute a basis of q-expansions of self to the given precision. Not
+        implemented in this abstract base class.
 
         EXAMPLE::
 
-            sage: ModularForms(GammaH(11,[2]), 2).basis() # indirect doctest
+            sage: M = CuspForms(GammaH(11,[2]), 2)
+            sage: sage.modular.modform.cuspidal_submodule.CuspidalSubmodule._compute_q_expansion_basis(M, 6)
             Traceback (most recent call last):
             ...
             NotImplementedError: q-expansion basis not implemented for "Cuspidal subspace of ..."
@@ -281,7 +282,7 @@ class CuspidalSubmodule_g0_Q(CuspidalSubmodule_modsym_qexp):
     Space of cusp forms for `\Gamma_0(N)` over `\QQ`.
     """
 
-class CuspidalSubmodule_g1_Q(CuspidalSubmodule_modsym_qexp):
+class CuspidalSubmodule_gH_Q(CuspidalSubmodule_modsym_qexp):
     r"""
     Space of cusp forms for `\Gamma_1(N)` over `\QQ`.
     """
@@ -298,6 +299,12 @@ class CuspidalSubmodule_g1_Q(CuspidalSubmodule_modsym_qexp):
             [  0 -16  32]
             [  1 -10  18]
             [  0  -4   8]
+
+            sage: CuspForms(GammaH(15, [4]), 3)._compute_hecke_matrix(17)
+            [ 18  22 -30 -60]
+            [  4   0   6 -18]
+            [  6   0   2 -20]
+            [  6  12 -24 -20]
         """
         # compute the associated modular symbols space
         symbs = self.modular_symbols(sign=1)
@@ -335,6 +342,10 @@ class CuspidalSubmodule_g1_Q(CuspidalSubmodule_modsym_qexp):
         pivs = bigmat.pivots()
         return bigmat.matrix_from_rows_and_columns(range(d), [ r+x for x in pivs ])
 
+class CuspidalSubmodule_g1_Q(CuspidalSubmodule_gH_Q):
+    r"""
+    Space of cusp forms for `\Gamma_1(N)` over `\QQ`.
+    """
 
 class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
     """

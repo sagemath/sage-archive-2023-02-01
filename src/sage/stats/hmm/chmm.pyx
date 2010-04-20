@@ -81,9 +81,11 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     Gaussian emissions Hidden Markov Model.
 
     INPUT:
-        - A  -- matrix; the N x N transition matrix
-        - B -- list of pairs (mu,sigma) that define the distributions
-        - pi -- initial state probabilities
+
+        - ``A`` -- matrix; the N x N transition matrix
+        - ``B`` -- list of pairs (mu,sigma) that define the distributions
+        - ``pi`` -- initial state probabilities
+        - ``normalize`` --bool (default: True)
 
     EXAMPLES::
 
@@ -953,8 +955,11 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
     INPUT:
 
         - ``A``  -- matrix; the N x N transition matrix
+
         - ``B`` -- list of pairs (mu,sigma) that define the distributions
+
         - ``pi`` -- initial state probabilities
+
         - ``normalize`` --bool (default: True); if given, input is
           normalized to define valid probability distributions,
           e.g., the entries of A are made nonnegative and the rows

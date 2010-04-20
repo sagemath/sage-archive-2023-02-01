@@ -228,6 +228,30 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
     A discrete Hidden Markov model implemented using double precision
     floating point arithmetic.
 
+    INPUT::
+
+       - ``A`` -- a list of lists or a square N x N matrix, whose
+         (i,j) entry gives the probability of transitioning from
+         state i to state j.
+
+       - ``B`` -- a list of N lists or a matrix with N rows, such that
+         B[i,k] gives the probability of emitting symbol k while
+         in state i.
+
+       - ``pi`` -- the probabilities of starting in each initial
+         state, i.e,. pi[i] is the probability of starting in
+         state i.
+
+       - ``emission_symbols`` -- None or list (default: None); if
+         None, the emission_symbols are the ints [0..N-1], where N
+         is the number of states.  Otherwise, they are the entries
+         of the list emissions_symbols, which must all be hashable.
+
+       - ``normalize`` --bool (default: True); if given, input is
+         normalized to define valid probability distributions,
+         e.g., the entries of A are made nonnegative and the rows
+         sum to 1, and the probabilities in pi are normalized.
+
     EXAMPLES::
 
         sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.1,0.9],[0.5,0.5]], [.5,.5]); m
@@ -257,6 +281,12 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         sage: m.graph().plot()
+
+    A 3-state model that happens to always outputs 'b'::
+
+        sage: m = hmm.DiscreteHiddenMarkovModel([[1/3]*3]*3, [[0,1,0]]*3, [1/3]*3, ['a','b','c'])
+        sage: m.sample(10)
+        ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
     """
     cdef TimeSeries B
     cdef int n_out
@@ -268,30 +298,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         matrix A, emission probabilities given by B, initial state
         probabilities pi, and given emission symbols (which default
         to the first few nonnegative integers).
-
-        INPUT::
-
-           - ``A`` -- a list of lists or a square N x N matrix, whose
-             (i,j) entry gives the probability of transitioning from
-             state i to state j.
-
-           - ``B`` -- a list of N lists or a matrix with N rows, such that
-             B[i,k] gives the probability of emitting symbol k while
-             in state i.
-
-           - ``pi`` -- the probabilities of starting in each initial
-             state, i.e,. pi[i] is the probability of starting in
-             state i.
-
-           - ``emission_symbols`` -- None or list (default: None); if
-             None, the emission_symbols are the ints [0..N-1], where N
-             is the number of states.  Otherwise, they are the entries
-             of the list emissions_symbols, which must all be hashable.
-
-           - ``normalize`` --bool (default: True); if given, input is
-             normalized to define valid probability distributions,
-             e.g., the entries of A are made nonnegative and the rows
-             sum to 1, and the probabilities in pi are normalized.
 
         EXAMPLES::
 
@@ -773,7 +779,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         # that this should get factored out into a call to something
         # defined in distributions.pyx.
         for j in range(self.n_out):
-            a = self.B._values[q*self.N+j]
+            a = self.B._values[q*self.n_out + j]
             if r < a + accum:
                 return j
             else:

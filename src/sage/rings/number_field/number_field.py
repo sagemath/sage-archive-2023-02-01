@@ -2651,6 +2651,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.S_units([])[0].multiplicative_order()
             6
 
+        An example in a relative extension (see trac #8722)::
+
+            sage: L.<a,b> = NumberField([x^2 + 1, x^2 - 5])
+            sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
+            sage: W = L.S_units([p]); [x.norm() for x in W]
+            [9, 1, 1]
         """
         return self._S_class_group_and_units(tuple(S), proof=proof)[0]
 
@@ -2689,7 +2695,7 @@ class NumberField_generic(number_field_base.NumberField):
         from sage.interfaces.gp import gp
         from sage.rings.number_field.number_field_ideal import \
             convert_to_idealprimedec_form, convert_from_idealprimedec_form
-        deg = self.degree()
+        deg = self.absolute_degree()
         ###############################################################
         # The following line computes S-class gp and S-units in Pari, #
         # assuming the Generalized Riemann Hypothesis + other         #
@@ -2701,7 +2707,7 @@ class NumberField_generic(number_field_base.NumberField):
         units = []
 
         result = D_gp.bnfsunit(S_gp)
-        x = self.gen()
+        x = self.absolute_generator()
         for unit in result[1]:
             sage_unit = QQ(unit.polcoeff(0))
             for i in xrange(1, unit.poldegree()+1):

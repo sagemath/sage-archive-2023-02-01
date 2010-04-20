@@ -447,11 +447,29 @@ cdef class Matrix(matrix0.Matrix):
             sage: import numpy
             sage: sorted(numpy.typecodes.items())
             [('All', '?bhilqpBHILQPfdgFDGSUVO'), ('AllFloat', 'fdgFDG'), ('AllInteger', 'bBhHiIlLqQpP'), ('Character', 'c'), ('Complex', 'FDG'), ('Float', 'fdg'), ('Integer', 'bhilqp'), ('UnsignedInteger', 'BHILQP')]
+
+        Alternatively, numpy automatically calls this function (via
+        the magic :meth:`__array__` method) to convert Sage matrices
+        to numpy arrays::
+
+            sage: import numpy
+            sage: b=numpy.array(a); b
+            array([[ 0,  1,  2,  3],
+                   [ 4,  5,  6,  7],
+                   [ 8,  9, 10, 11]])
+            sage: b.dtype
+            dtype('int64')
+            sage: b.shape
+            (3, 4)
         """
         import numpy
         A = numpy.matrix(self.list(), dtype=dtype)
         return numpy.resize(A,(self.nrows(), self.ncols()))
 
+    # Define the magic "__array__" function so that numpy.array(m) can convert
+    # a matrix m to a numpy array.
+    # See http://docs.scipy.org/doc/numpy/user/c-info.how-to-extend.html#converting-an-arbitrary-sequence-object
+    __array__=numpy
 
     ###################################################
     # Construction functions

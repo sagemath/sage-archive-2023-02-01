@@ -912,6 +912,8 @@ cdef class ComplexDoubleElement(FieldElement):
             +infinity + +infinity*I
             sage: CC(CDF(oo,oo))
             +infinity + +infinity*I
+            sage: CDF(0)
+            0.0
         """
         if self._complex.dat[0]:
             # real part is nonzero
@@ -921,7 +923,7 @@ cdef class ComplexDoubleElement(FieldElement):
             if self._complex.dat[1]:   # imag is nonzero
                 s = ''
             else:
-                return '0'             # imag is zero
+                return double_to_str(self._complex.dat[0]) # imag is zero
 
         cdef double y = self._complex.dat[1]
         if y:

@@ -445,6 +445,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             '3.243f6a8885a30 + 2.b7e151628aed2*I'
             sage: a.str(base=36)
             '3.53i5ab8p5fc + 2.puw5nggjf8f*I'
+            sage: CC(0)
+            0.000000000000000
         """
 
         s = ""
@@ -460,7 +462,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                     s = s+" + "
             s = s+"%s*I"%y.str(base, truncate=truncate)
         if len(s) == 0:
-            s = "0"
+            s = self.real().str(base, truncate=truncate)
         return s
 
     def _latex_(self):

@@ -2682,6 +2682,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._S_class_group_and_units(())
             ([-1], [(Fractional ideal (2, a + 1), 2, 2)])
 
+            sage: K.<a> = NumberField(polygen(QQ))
+            sage: K._S_class_group_and_units( (K.ideal(5),) )
+            ([5, -1], [])
         """
         from sage.interfaces.gp import gp
         from sage.rings.number_field.number_field_ideal import \
@@ -2730,7 +2733,7 @@ class NumberField_generic(number_field_base.NumberField):
         return units, clgp_gens
 
     def selmer_group(self, S, m, proof=True):
-        """
+        r"""
         Compute the Selmer group `K(S,m)`, which is defined to be the subgroup of
         `K^\times/(K^\times)^m` consisting of elements `a` such that
         `K(\sqrt[m]{a})/K` is unramified at all primes of `K` lying above a

@@ -127,6 +127,15 @@ ext_modules = [
     Extension('sage.calculus.var',
               sources = ['sage/calculus/var.pyx']),
 
+    Extension('sage.calculus.riemann',
+              sources = ['sage/calculus/riemann.pyx'],
+              include_dirs = numpy_include_dirs),
+
+    Extension('sage.calculus.interpolators',
+              sources = ['sage/calculus/interpolators.pyx'],
+              include_dirs = numpy_include_dirs),
+
+
     ################################
     ##
     ## sage.categories

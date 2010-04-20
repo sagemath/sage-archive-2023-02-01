@@ -14,6 +14,10 @@ from desolvers import (desolve, desolve_laplace, desolve_system,
 
 from var import (var, function, clear_vars)
 
+from riemann import Riemann_Map
+
+from interpolators import polygon_spline, complex_cubic_spline
+
 def symbolic_expression(x):
     """
     Create a symbolic expression from x.

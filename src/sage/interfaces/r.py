@@ -183,6 +183,10 @@ Or you get a dictionary to be able to access all the information.
       sage: d['_r_class']
       'table'
 
+It is also possible to access the plotting capabilities of R
+through Sage.  For more information see the documentation of
+r.plot() or r.png().
+
 AUTHORS:
     -- Mike Hansen (2007-11-01)
     -- William Stein (2008-04-19)
@@ -320,26 +324,35 @@ class R(Expect):
         """
         Creates an R PNG device.
 
-        Note that when using the R pexpect interface in the notebook, you need
-        to call r.dev_off() in the same cell as you opened the device on in order
-        to get the plot to appear.
+        This should primarily be used to save an R graphic to a custom file.  Note
+        that when using this in the notebook, one must plot in the same cell that
+        one creates the device.  See r.plot() documentation for more information
+        about plotting via R in Sage.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: filename = tmp_filename() + '.png'
-            sage: r.png(file='"%s"'%filename)  #optional requires R png support
+            sage: r.png(filename='"%s"'%filename)
             NULL
-            sage: x = r([1,2,3]) #optional
-            sage: y = r([4,5,6]) #optional
-            sage: r.plot(x,y)    #optional
-            NULL
-            sage: r.dev_off()    #optional
-                null device
-                          1
-            sage: import os; os.unlink(filename) #optional
+            sage: x = r([1,2,3])
+            sage: y = r([4,5,6])
+            sage: r.plot(x,y) # This saves to filename, but is not viewable from command line
+            null device
+                      1
+            sage: import os; os.unlink(filename) # We remove the file for doctesting
+
+        We want to make sure that we actually can view R graphics, which happens
+        differently on different platforms::
+
+            sage: s = r.eval('capabilities("png")') # Should be on Linux and Solaris
+            sage: t = r.eval('capabilities("aqua")') # Should be on all supported Mac versions
+            sage: "TRUE" in s+t
+            True
         """
         #Check to see if R has PNG support
         s = self.eval('capabilities("png")')
-        if "TRUE" not in s:
+        t = r.eval('capabilities("aqua")')
+        if "TRUE" not in s+t:
             raise RuntimeError, "R was not compiled with PNG support"
 
         from sage.server.support import EMBEDDED_MODE
@@ -926,25 +939,69 @@ class R(Expect):
     def plot(self, *args, **kwds):
         """
         The R plot function.  Type r.help('plot') for much more extensive
-        documentation about this function.  See the examples below for how
-        to use it to write output to a FILE.
+        documentation about this function.  See also below for a brief
+        introduction to more plotting with R.
+
+        If one simply wants to view an R graphic, using this function is
+        is sufficient (because it calls dev.off() to turn off the device).
+
+        However, if one wants to save the graphic to a specific file, it
+        should be used as in the example below to write the output.
 
         EXAMPLES:
-            sage: filename = tmp_filename() + '.png' #optional requires PNG support
-            sage: r.png(file='"%s"'%filename) #optional
+
+        This example saves a plot to the standard R output, usually
+        a filename like ``Rplot001.png`` - from the command line, in
+        the current directory, and in the cell directory in the notebook::
+
+            sage: r.plot("1:10")
+            null device
+                      1
+
+        To save to a specific file name, one should use :meth:`png` to set
+        the output device to that file.  If this is done in the notebook, it
+        must be done in the same cell as the plot itself::
+
+            sage: filename = tmp_filename() + '.png'
+            sage: r.png(filename='"%s"'%filename) # Note the double quotes in single quotes!
             NULL
-            sage: x = r([1,2,3]) #optional
-            sage: y = r([4,5,6]) #optional
-            sage: r.plot(x,y)    #optional
+            sage: x = r([1,2,3])
+            sage: y = r([4,5,6])
+            sage: r.plot(x,y)
+            null device
+                      1
+            sage: import os; os.unlink(filename) # For doctesting, we remove the file
+
+        Please note that for more extensive use of R's plotting capabilities (such as the
+        lattices package), it is advisable to either use an interactive plotting device
+        or to use the notebook.  The following examples are not tested, because they
+        differ depending on operating system.
+
+            sage: r.X11() # not tested - opens interactive device on systems with X11 support
+            sage: r.quartz() # not tested - opens interactive device on OSX
+            sage: r.hist("rnorm(100)") # not tested - makes a plot
+            sage: r.library("lattice") # not tested - loads R lattice plotting package
+            sage: r.histogram(x = "~ wt | cyl", data="mtcars") # not tested - makes a lattice plot
+            sage: r.dev_off() # not tested, turns off the interactive viewer
+
+        In the notebook, one can use r.png() to open the device, but would need to use
+        the following since R lattice graphics do not automatically print away from the
+        command line.
+
+            sage: filename = tmp_filename() + '.png' # Not needed in notebook, used for doctesting
+            sage: r.png(filename='"%s"'%filename) # filename not needed in notebook, used for doctesting
             NULL
-            sage: r.dev_off()    #optional
-                null device
-                          1
-            sage: import os; os.unlink(filename) #optional
+            sage: r.library("lattice")
+            sage: r("print(histogram(~wt | cyl, data=mtcars))") # plot should appear
+            sage: import os; os.unlink(filename) # We remove the file for doctesting, not needed in notebook
         """
         # We have to define this to override the plot function defined in the
         # superclass.
-        return RFunction(self, 'plot')(*args, **kwds)
+        from sage.server.support import EMBEDDED_MODE
+        if EMBEDDED_MODE:
+            self.setwd('"%s"'%os.path.abspath('.'))
+        RFunction(self, 'plot')(*args, **kwds)
+        return RFunction(self, 'dev.off')()
 
     def _strip_prompt(self, code):
         """
@@ -1043,6 +1100,30 @@ class R(Expect):
             print
         """
         return RFunction(self, s, r_name=True)
+
+    def chdir(self, dir):
+        """
+        Changes the working directory to ``dir``
+
+        INPUT:
+
+            - ``dir`` -- the directory to change to.
+
+        EXAMPLES::
+
+            sage: import tempfile
+            sage: tmpdir = tempfile.mkdtemp()
+            sage: r.chdir(tmpdir)
+
+        On Linux, we could use ``tmpdir == sageobj(r.getwd())``
+        to test this, but Mac prepends ``/private/`` to such
+        directories, so we check that the directory name string
+        is in the working directory string instead::
+
+            sage: tmpdir in sageobj(r.getwd())
+            True
+        """
+        self.execute('setwd(%r)' % dir)
 
 
 # patterns for _sage_()

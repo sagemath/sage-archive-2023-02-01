@@ -206,18 +206,23 @@ class options(object):
 class rename_keyword(object):
     def __init__(self, deprecated=None, **renames):
         """
-        A decorator which renames keyword arguments and optionally deprecates the new keyword.
+        A decorator which renames keyword arguments and optionally
+        deprecates the new keyword.
 
         INPUT:
 
-        - ``deprecated`` - If the option being renamed is deprecated, this is the Sage version where the
-          deprecation initially occurs.
-        - the rest of the arguments is a list of keyword arguments in the form ``renamed_option='existing_option'``.
-          This will have the effect of renaming ``renamed_option`` so that the function only sees ``existing_option``.
-          If both ``renamed_option`` and ``existing_option`` are passed to the function, ``existing_option``
+        - ``deprecated`` - If the option being renamed is deprecated, this
+          is the Sage version where the deprecation initially occurs.
+
+        - the rest of the arguments is a list of keyword arguments in the
+          form ``renamed_option='existing_option'``.  This will have the
+          effect of renaming ``renamed_option`` so that the function only
+          sees ``existing_option``.  If both ``renamed_option`` and
+          ``existing_option`` are passed to the function, ``existing_option``
           will override the ``renamed_option`` value.
 
         EXAMPLES::
+
             sage: from sage.plot.misc import rename_keyword
             sage: r = rename_keyword(color='rgbcolor')
             sage: r.renames
@@ -226,8 +231,8 @@ class rename_keyword(object):
             {'color': 'rgbcolor'}
 
         To deprecate an old keyword::
-            sage: r = rename_keyword(deprecated='Sage version 4.2', color='rgbcolor')
 
+            sage: r = rename_keyword(deprecated='Sage version 4.2', color='rgbcolor')
         """
         self.renames = renames
         self.deprecated=deprecated

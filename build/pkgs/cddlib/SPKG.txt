@@ -43,6 +43,9 @@ From clean upstream sources:
 
 == Changelog ==
 
+=== cddlib-094f.p6 (Volker Braun, 20th April 2010) ===
+ * use Sage's gmp/mpir libraries, not /usr/local in Automake.am
+
 === cddlib-094f.p5 (David Kirkby, 25th February 2010) ===
  * #8363 Remove pointless check for mpir, which is breaking on Solaris.
    mpir is built long before cddlib (50 packages earlier), so its

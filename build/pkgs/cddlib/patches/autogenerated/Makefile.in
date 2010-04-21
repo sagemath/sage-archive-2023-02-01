@@ -153,6 +153,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -702,7 +703,7 @@ uninstall-am:
 # where is gmp?
 #---------------------------------------------
 # export gmpdir := $(PWD)/../gmp-4.1
-export gmpdir := /usr/local
+export gmpdir := $(SAGE_LOCAL)
 #---------------------------------------------
 # where is gmp lib?
 export gmplibdir = $(gmpdir)/lib

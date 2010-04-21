@@ -4,7 +4,7 @@
 # where is gmp?
 #---------------------------------------------
 # export gmpdir := $(PWD)/../gmp-4.1
-export gmpdir := /usr/local
+export gmpdir := $(SAGE_LOCAL)
 #---------------------------------------------
 # where is gmp lib?
 export gmplibdir = $(gmpdir)/lib

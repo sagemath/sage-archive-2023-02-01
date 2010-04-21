@@ -709,6 +709,7 @@ class GraphLatex(SageObject):
         # specifying colors just for some edges.
         e_color = {}
         for f in self._graph.edges():
+            f = f[0:2]
             c = default_edge_color
             if edge_color.has_key( f ):
                 c = edge_color[ f ]
@@ -785,6 +786,7 @@ class GraphLatex(SageObject):
             s = s+'%\n%\n'
         # add the definition of the colors for edges
         for f in self._graph.edges():
+            f = f[0:2]
             color_names[ f ] = 'col_' + prefix + str(index_of_vertex[ f[0] ])+'-'+prefix + str(index_of_vertex[ f[1] ] )
             s = s+'\definecolor{'+color_names[ f ]+'}{rgb}'
             s = s+'{'+str(round( e_color[f][0],4))+','
@@ -830,6 +832,7 @@ class GraphLatex(SageObject):
 
         # Put edges
         for e in self._graph.edges():
+            e = e[0:2]
             # First change the color
             s = s+ edge_color_command + '{'+color_names[ e ]+'}\n'
             # then put the edge

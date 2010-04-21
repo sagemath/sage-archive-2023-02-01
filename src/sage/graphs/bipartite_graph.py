@@ -202,7 +202,7 @@ class BipartiteGraph(Graph):
 
         sage: import networkx
         sage: G = graphs.OctahedralGraph()
-        sage: N = networkx.cliques.make_clique_bipartite(G.networkx_graph())
+        sage: N = networkx.make_clique_bipartite(G.networkx_graph())
         sage: B = BipartiteGraph(N)
 
     """
@@ -305,7 +305,7 @@ class BipartiteGraph(Graph):
         else:
             import networkx
             Graph.__init__(self, arg1, *args, **kwds)
-            if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
+            if isinstance(arg1, (networkx.MultiGraph, networkx.Graph)):
                 if hasattr(arg1, 'node_type'):
                     # Assume the graph is bipartite
                     self.left = set()
@@ -559,12 +559,12 @@ class BipartiteGraph(Graph):
             sage: B.left
             set([2])
             sage: B.edges()
-            [(1, 2, None), (2, 3, None)]
+            [(1, 2, {}), (2, 3, {})]
             sage: B.delete_vertex(3)
             sage: B.right
             set([1])
             sage: B.edges()
-            [(1, 2, None)]
+            [(1, 2, {})]
             sage: B.delete_vertex(0)
             Traceback (most recent call last):
             ...
@@ -622,7 +622,7 @@ class BipartiteGraph(Graph):
             sage: B.right
             set([1])
             sage: B.edges()
-            [(1, 2, None)]
+            [(1, 2, {})]
             sage: B.delete_vertices([0])
             Traceback (most recent call last):
             ...

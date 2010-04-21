@@ -88,16 +88,16 @@ example,
     sage: isinstance(N, networkx.graph.Graph)
     True
 
-The NetworkX graph is essentially a dictionary of dictionaries::
+The NetworkX graph is essentially a dictionary of dictionaries of dictionaries::
 
     sage: N.adj
-    {0: {1: None, 4: None, 5: None}, 1: {0: None, 2: None, 6: None}, 2: {1: None, 3: None, 7: None}, 3: {8: None, 2: None, 4: None}, 4: {0: None, 9: None, 3: None}, 5: {0: None, 8: None, 7: None}, 6: {8: None, 1: None, 9: None}, 7: {9: None, 2: None, 5: None}, 8: {3: None, 5: None, 6: None}, 9: {4: None, 6: None, 7: None}}
+    {0: {1: {}, 4: {}, 5: {}}, 1: {0: {}, 2: {}, 6: {}}, 2: {1: {}, 3: {}, 7: {}}, 3: {8: {}, 2: {}, 4: {}}, 4: {0: {}, 9: {}, 3: {}}, 5: {0: {}, 8: {}, 7: {}}, 6: {8: {}, 1: {}, 9: {}}, 7: {9: {}, 2: {}, 5: {}}, 8: {3: {}, 5: {}, 6: {}}, 9: {4: {}, 6: {}, 7: {}}}
 
 Each dictionary key is a vertex label, and each key in the
 following dictionary is a neighbor of that vertex. In undirected
 graphs, there is redundancy: for example, the dictionary containing
-the entry ``1: {2: None}`` implies it must contain
-``{2: {1: None}``. The innermost entry of ``None`` is
+the entry ``1: {2: {}}`` implies it must contain
+``{2: {1: {}}``. The innermost entry of ``{}`` is
 related to edge labeling (see section :ref:`Graph:labels`).
 
 Supported formats
@@ -728,10 +728,10 @@ class Graph(GenericGraph):
             ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
 
 
-    #. A NetworkX XGraph::
+    #. A NetworkX MultiGraph::
 
           sage: import networkx
-          sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
+          sage: g = networkx.MultiGraph({0:[1,2,3], 2:[4]})
           sage: Graph(g)
           Graph on 5 vertices
 
@@ -829,10 +829,10 @@ class Graph(GenericGraph):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
             import networkx
-            if isinstance(data, (networkx.DiGraph, networkx.XDiGraph)):
+            if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 data = data.to_undirected()
                 format = 'NX'
-            elif isinstance(data, (networkx.Graph, networkx.XGraph)):
+            elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
@@ -841,7 +841,7 @@ class Graph(GenericGraph):
             data = 0
         if format is None:
             import networkx
-            data = networkx.XGraph(data)
+            data = networkx.MultiGraph(data)
             format = 'NX'
 
         # At this point, format has been set.
@@ -1038,9 +1038,9 @@ class Graph(GenericGraph):
                 else:
                     weighted = True
                     if multiedges is None:
-                        multiedges = data.multiedges
+                        multiedges = True
                     if loops is None:
-                        loops = data.selfloops
+                        loops = True
             num_verts = data.order()
             verts = data.nodes()
             data = data.adj
@@ -1066,7 +1066,10 @@ class Graph(GenericGraph):
                 self.allow_loops(loops)
                 self.allow_multiple_edges(multiedges)
             else:
-                self._backend = NetworkXGraphBackend(networkx.XGraph())
+                if multiedges:
+                    self._backend = NetworkXGraphBackend(networkx.MultiGraph())
+                else:
+                    self._backend = NetworkXGraphBackend(networkx.Graph())
                 self._weighted = weighted
                 self.allow_loops(loops)
                 self.allow_multiple_edges(multiedges)
@@ -1321,7 +1324,7 @@ class Graph(GenericGraph):
 
             sage: g=graphs.CycleGraph(5);
             sage: g.eulerian_circuit()
-            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 0, None)]
+            [(0, 1, {}), (1, 2, {}), (2, 3, {}), (3, 4, {}), (4, 0, {})]
             sage: g.eulerian_circuit(labels=False)
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
             sage: g = graphs.CompleteGraph(7)
@@ -2183,7 +2186,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: (graphs.ChvatalGraph()).centrality_closeness()
-            {0: 0.61111111111111116, 1: 0.61111111111111116, 2: 0.61111111111111116, 3: 0.61111111111111116, 4: 0.61111111111111116, 5: 0.61111111111111116, 6: 0.61111111111111116, 7: 0.61111111111111116, 8: 0.61111111111111116, 9: 0.61111111111111116, 10: 0.61111111111111116, 11: 0.61111111111111116}
+            {0: 0.61111111111111..., 1: 0.61111111111111..., 2: 0.61111111111111..., 3: 0.61111111111111..., 4: 0.61111111111111..., 5: 0.61111111111111..., 6: 0.61111111111111..., 7: 0.61111111111111..., 8: 0.61111111111111..., 9: 0.61111111111111..., 10: 0.61111111111111..., 11: 0.61111111111111...}
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: D.show(figsize=[2,2])
             sage: D = D.to_undirected()
@@ -2352,11 +2355,11 @@ class Graph(GenericGraph):
             [[0, 1], [0, 4], [0, 5], [2, 1], [2, 3], [2, 7], [3, 4], [3, 8], [6, 1], [6, 8], [6, 9], [7, 5], [7, 9], [8, 5], [9, 4]]
             sage: C = Graph('DJ{')
             sage: C.cliques_maximal()
-            [[4, 1, 2, 3], [4, 0]]
+            [[4, 0], [4, 1, 2, 3]]
 
         """
-        import networkx.cliques
-        return networkx.cliques.find_cliques(self.networkx_graph(copy=False))
+        import networkx
+        return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
 
     def cliques(self):
         """
@@ -2368,7 +2371,7 @@ class Graph(GenericGraph):
             sage: C = Graph('DJ{')
             sage: C.cliques()
             doctest:...: DeprecationWarning: The function 'cliques' has been deprecated. Use 'cliques_maximal' or 'cliques_maximum'.
-            [[4, 1, 2, 3], [4, 0]]
+            [[4, 0], [4, 1, 2, 3]]
 
         """
         from sage.misc.misc import deprecation
@@ -2483,8 +2486,8 @@ class Graph(GenericGraph):
             from sage.graphs.cliquer import clique_number
             return clique_number(self)
         elif algorithm=="networkx":
-            import networkx.cliques
-            return networkx.cliques.graph_clique_number(self.networkx_graph(copy=False),cliques)
+            import networkx
+            return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -2517,7 +2520,7 @@ class Graph(GenericGraph):
             [1, 1, 1, 1, 2]
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 1, 2, 3], [4, 0]]
+            [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_number_of(cliques=E)
             [1, 1, 1, 1, 2]
             sage: F = graphs.Grid2dGraph(2,3)
@@ -2537,8 +2540,8 @@ class Graph(GenericGraph):
             sage: G.cliques_number_of()
             [2, 2, 1, 1]
         """
-        import networkx.cliques
-        return networkx.cliques.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques, with_labels)
+        import networkx
+        return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques, with_labels)
 
     def cliques_get_max_clique_graph(self, name=''):
         """
@@ -2566,8 +2569,8 @@ class Graph(GenericGraph):
             Graph on 2 vertices
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
-        import networkx.cliques
-        return Graph(networkx.cliques.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.xgraph.XGraph()))
+        import networkx
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.MultiGraph()))
 
     def cliques_get_clique_bipartite(self, **kwds):
         """
@@ -2592,9 +2595,9 @@ class Graph(GenericGraph):
             Bipartite graph on 6 vertices
             sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
-        import networkx.cliques
         from bipartite_graph import BipartiteGraph
-        return BipartiteGraph(networkx.cliques.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
+        import networkx
+        return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 
     def independent_set(self):
         """
@@ -2652,7 +2655,7 @@ class Graph(GenericGraph):
             [2, 4, 4, 4, 4]
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 1, 2, 3], [4, 0]]
+            [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
             [2, 4, 4, 4, 4]
             sage: F = graphs.Grid2dGraph(2,3)
@@ -2684,8 +2687,8 @@ class Graph(GenericGraph):
                 self.subgraph(self.neighbors(v)).plot()
             return value
         elif algorithm=="networkx":
-            import networkx.cliques
-            return networkx.cliques.node_clique_number(self.networkx_graph(copy=False), vertices, with_labels, cliques)
+            import networkx
+            return networkx.node_clique_number(self.networkx_graph(copy=False), vertices, with_labels, cliques)
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -2714,32 +2717,32 @@ class Graph(GenericGraph):
 
             sage: C = Graph('DJ{')
             sage: C.cliques_containing_vertex()
-            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3], [4, 0]]]
+            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 0], [4, 1, 2, 3]]]
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 1, 2, 3], [4, 0]]
+            [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_containing_vertex(cliques=E)
-            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3], [4, 0]]]
+            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 0], [4, 1, 2, 3]]]
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex(with_labels=True)
             sage: for v in sorted(X.iterkeys()):
             ...    print v, X[v]
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
-            (0, 1) [[(0, 1), (0, 0)], [(0, 1), (1, 1)], [(0, 1), (0, 2)]]
+            (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
             (0, 2) [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]
             (1, 0) [[(1, 0), (0, 0)], [(1, 0), (1, 1)]]
             (1, 1) [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]]
-            (1, 2) [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]
+            (1, 2) [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]
             sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            [[[(0, 1), (0, 0)], [(0, 1), (1, 1)], [(0, 1), (0, 2)]], [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]]
+            [[[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
             [[[0, 1, 2], [0, 1, 3]], [[0, 1, 2], [0, 1, 3]], [[0, 1, 2]], [[0, 1, 3]]]
 
         """
-        import networkx.cliques
-        return networkx.cliques.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques, with_labels)
+        import networkx
+        return networkx.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques, with_labels)
 
     def clique_complex(self):
         """
@@ -2806,11 +2809,11 @@ class Graph(GenericGraph):
             4
             sage: weight = lambda e: 1/( (e[0]+1)*(e[1]+1) )
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            [(3, 4, {}), (2, 4, {}), (1, 4, {}), (0, 4, {})]
             sage: g.min_spanning_tree(algorithm='Prim edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (3, 4, None), (1, 3, None), (0, 4, None)]
+            [(2, 4, {}), (3, 4, {}), (1, 4, {}), (0, 4, {})]
             sage: g.min_spanning_tree(algorithm='Prim fringe', starting_vertex=2, weight_function=weight)
-            [(4, 2), (3, 4), (1, 4), (0, 4)]
+            [(2, 4), (4, 3), (4, 1), (4, 0)]
         """
         if self.is_connected()==False:
             return False
@@ -2819,7 +2822,7 @@ class Graph(GenericGraph):
             # Kruskal's algorithm
             edges=[]
             sorted_edges_iterator=iter(sorted(self.edges(), key=weight_function))
-            union_find = dict([(v,None) for v in self.vertex_iterator()])
+            union_find = dict()
             while len(edges) < self.order()-1:
                 # get next edge
                 e=sorted_edges_iterator.next()
@@ -2829,7 +2832,7 @@ class Graph(GenericGraph):
                     children=[]
 
                     # Find the component a vertex lives in.
-                    while union_find[v] != None:
+                    while union_find.has_key(v):
                         children.append(v)
                         v=union_find[v]
 
@@ -2861,21 +2864,23 @@ class Graph(GenericGraph):
             # initialize fringe_list with v's neighbors.  fringe_list
             # contains fringe_vertex: (vertex_in_tree, weight) for each
             # fringe vertex
-            fringe_list=dict([u,(v,weight_function((v,u)))] for u in self[v])
+
+            fringe_list=dict([u,(weight_function((v,u)),v)] for u in self[v])
+
+            cmp_fun = lambda x: fringe_list[x]
 
             for i in xrange(self.order()-1):
                 # Find the smallest-weight fringe vertex
-                v=min(fringe_list,key=lambda x: fringe_list[x][1])
-                edges.append((v,fringe_list[v][0]))
-                tree.add(v)
-                fringe_list.pop(v)
+                u=min(fringe_list,key=cmp_fun)
+                edges.append((fringe_list[u][1],u))
+                tree.add(u)
+                fringe_list.pop(u)
 
                 # Update fringe list
-                for neighbor in [u for u in self[v] if u not in tree]:
-                    w=weight_function((v,neighbor))
-                    if neighbor not in fringe_list or \
-                           (neighbor in fringe_list and fringe_list[neighbor][1]>w):
-                        fringe_list[neighbor]=(v,weight_function((v,neighbor)))
+                for neighbor in [v for v in self[u] if v not in tree]:
+                    w=weight_function((u,neighbor))
+                    if neighbor not in fringe_list or fringe_list[neighbor][0]>w:
+                        fringe_list[neighbor]=(w,u)
             return edges
 
         elif algorithm=='Prim edge':
@@ -2887,28 +2892,33 @@ class Graph(GenericGraph):
             tree=set([v])
             edges=[]
 
-            for i in xrange(self.order()-1):
+            for _ in xrange(self.order()-1):
                 # Find a minimum-weight edge connecting a vertex in
                 # the tree to something outside the tree.  Remove the
                 # edges between tree vertices for efficiency.
-
-                for i in xrange(len(sorted_edges)):
-                    e=sorted_edges[i]
+                i=0
+                while True:
+                    e = sorted_edges[i]
                     v0,v1=e[0],e[1]
                     if v0 in tree:
-                        if v1 not in tree:
-                            edges.append(e)
-                            sorted_edges[i:i+1]=[]
-                            tree.add(v1)
-                            break
-                        else:
-                            sorted_edges[i:i+1]=[]
-                    elif v1 in tree:
+                        del sorted_edges[i]
+                        if v1 in tree: continue
                         edges.append(e)
-                        sorted_edges[i:i+1]=[]
+                        tree.add(v1)
+                        break
+                    elif v1 in tree:
+                        del sorted_edges[i]
+                        edges.append(e)
                         tree.add(v0)
                         break
+                    else:
+                        i += 1
             return edges
+
+        elif algorithm=="networkx":
+            import networkx
+            G = networkx.Graph([(u,v,dict(weight=weight_function((u,v)))) for u,v,l in self.edge_iterator()])
+            return list(networkx.mst(G))
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
 
@@ -3159,6 +3169,10 @@ class Graph(GenericGraph):
             classes_b.append([(u,v) for ((uu,u),(vv,v),t) in c])
 
         return classes_b
+
+    def max_weight_matching(self):
+        import networkx
+        return networkx.max_weight_matching(self.networkx_graph(copy=False))
 
 
 def compare_edges(x, y):

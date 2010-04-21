@@ -18,7 +18,7 @@ cdef extern from "limits.h":
 
 include "../ext/stdsage.pxi"
 
-from networkx import XGraph
+# from networkx import MultiGraph
 
 from sage.graphs.graph import Graph
 from sage.graphs.base.sparse_graph cimport SparseGraph
@@ -136,7 +136,7 @@ cdef class TreeIterator:
         cdef int vertex2
         cdef object G
 
-#        from networkx import XGraph
+#        from networkx import MultiGraph
 #        G = Graph(self.vertices)
 #        cdef object XG = G._backend._nxg
 #

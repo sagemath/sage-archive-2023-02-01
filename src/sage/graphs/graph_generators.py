@@ -3424,9 +3424,9 @@ class GraphGenerators():
             return graphs.CompleteGraph(n)
         import networkx
         if fast:
-            G = networkx.fast_gnp_random_graph(n, p, seed)
+            G = networkx.fast_gnp_random_graph(n, p, seed=seed)
         else:
-            G = networkx.gnp_random_graph(n, p, seed)
+            G = networkx.gnp_random_graph(n, p, seed=seed)
         return graph.Graph(G)
 
     def RandomBarabasiAlbert(self, n, m, seed=None):
@@ -3453,7 +3453,7 @@ class GraphGenerators():
         ::
 
             sage: graphs.RandomBarabasiAlbert(6,2).edges(labels=False)
-            [(0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (2, 4), (2, 5), (3, 5)]
+            [(0, 2), (0, 3), (0, 4), (1, 2), (2, 3), (2, 4), (2, 5), (3, 5)]
 
         We plot a random graph on 12 nodes with m = 3.
 
@@ -3466,7 +3466,7 @@ class GraphGenerators():
 
             sage: g = []
             sage: j = []
-            sage: for i in range(9):
+            sage: for i in range(1,10):
             ...    k = graphs.RandomBarabasiAlbert(i+3, 3)
             ...    g.append(k)
             ...
@@ -3483,7 +3483,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.barabasi_albert_graph(n,m,seed))
+        return graph.Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
     def RandomBipartite(self, n1,n2, p):
         r"""
@@ -3586,9 +3586,9 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         if dense:
-            return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed))
+            return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed=seed))
         else:
-            return graph.Graph(networkx.gnm_random_graph(n, m, seed))
+            return graph.Graph(networkx.gnm_random_graph(n, m, seed=seed))
 
     def RandomNewmanWattsStrogatz(self, n, k, p, seed=None):
         """
@@ -3637,7 +3637,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed))
+        return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed=seed))
 
     def RandomHolmeKim(self, n, m, p, seed=None):
         """
@@ -3695,7 +3695,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed))
+        return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
     def RandomInterval(self,n):
         """
@@ -3788,7 +3788,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.random_lobster(n, p, q, seed))
+        return graph.Graph(networkx.random_lobster(n, p, q, seed=seed))
 
     def RandomTreePowerlaw(self, n, gamma=3, tries=100, seed=None):
         """
@@ -3831,7 +3831,7 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         try:
-            return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed, tries))
+            return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed=seed, tries=tries))
         except:
             return False
 
@@ -3857,12 +3857,8 @@ class GraphGenerators():
 
         ::
 
-            sage: graphs.RandomRegular(3, 8)
-            False
-            sage: graphs.RandomRegular(3, 8)
-            False
             sage: graphs.RandomRegular(3, 8).edges(labels=False)
-            [(0, 1), (0, 4), (0, 5), (1, 6), (1, 7), (2, 3), (2, 4), (2, 7), (3, 4), (3, 5), (5, 6), (6, 7)]
+            [(0, 1), (0, 4), (0, 7), (1, 5), (1, 7), (2, 3), (2, 5), (2, 6), (3, 4), (3, 6), (4, 5), (6, 7)]
 
         ::
 
@@ -3884,7 +3880,7 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         try:
-            N = networkx.random_regular_graph(d, n, seed)
+            N = networkx.random_regular_graph(d, n, seed=seed)
             if N is False: return False
             return graph.Graph(N, sparse=True)
         except:
@@ -3920,7 +3916,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.random_shell_graph(constructor, seed))
+        return graph.Graph(networkx.random_shell_graph(constructor, seed=seed))
 
     def WorldMap(self):
         """
@@ -4527,7 +4523,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True, sparse=True)
+        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
 
     def DegreeSequenceTree(self, deg_sequence):
         """
@@ -4586,7 +4582,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed), loops=True)
+        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)
 
 ################################################################################
 #   Graph Iterators

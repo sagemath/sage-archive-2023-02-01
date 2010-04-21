@@ -257,7 +257,7 @@ class DiGraph(GenericGraph):
     #. A NetworkX XDiGraph::
 
             sage: import networkx
-            sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
+            sage: g = networkx.MultiDiGraph({0:[1,2,3], 2:[4]})
             sage: DiGraph(g)
             Digraph on 5 vertices
 
@@ -347,10 +347,10 @@ class DiGraph(GenericGraph):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
             import networkx
-            if isinstance(data, (networkx.Graph, networkx.XGraph)):
+            if isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 data = data.to_directed()
                 format = 'NX'
-            elif isinstance(data, (networkx.DiGraph, networkx.XDiGraph)):
+            elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 format = 'NX'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
@@ -359,7 +359,7 @@ class DiGraph(GenericGraph):
             data = 0
         if format is None:
             import networkx
-            data = networkx.XDiGraph(data)
+            data = networkx.MultiDiGraph(data)
             format = 'NX'
 
         # At this point, format has been set.
@@ -540,7 +540,7 @@ class DiGraph(GenericGraph):
                 self.allow_loops(loops)
                 self.allow_multiple_edges(multiedges)
             else:
-                self._backend = NetworkXGraphBackend(networkx.XDiGraph())
+                self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
                 self._weighted = weighted
                 self.allow_loops(loops)
                 self.allow_multiple_edges(multiedges)

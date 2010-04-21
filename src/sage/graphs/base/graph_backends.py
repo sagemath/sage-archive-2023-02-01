@@ -469,6 +469,114 @@ class GenericGraphBackend(SageObject):
         """
         raise NotImplementedError()
 
+class NetworkXGraphDeprecated(SageObject):
+    """
+    Class for unpickling old networkx.XGraph formats
+
+    DOCTEST:
+        sage: import sage.graphs.base.graph_backends
+    """
+
+    def __init__(self):
+        """
+        Issue deprecation warnings for the old networkx XGraph formats
+        """
+        import warnings
+        from sage.misc.misc import deprecation
+        warnings.warn("Your graph object is saved in an old format since networkx\
+                    was updated to 1.0.1. You can re-save your graph by typing\
+                    graph.save(filename) to make this warning go away.",
+                    DeprecationWarning, stacklevel=2)
+        deprecation("Your graph object is saved in an old format since networkx\
+                    was updated to 1.0.1. You can re-save your graph by typing\
+                    graph.save(filename) to make this warning go away.")
+
+    def mutate(self):
+        """
+        Change the old networkx XGraph format into the new one.
+
+        OUTPUT:
+
+        - The networkx.Graph or networkx.MultiGraph corresponding to the
+          unpickled data.
+        """
+        import networkx
+        new_adj = {}
+
+        for node1, edges in self.adj.iteritems():
+            new_adj[node1] = {}
+            for node2, weights in edges.iteritems():
+                new_adj[node1][node2] = {}
+                if weights is not None:
+                    try:
+                        for weight in weights:
+                            new_adj[node1][node2][weight] = {}
+                    except TypeError:
+                        new_adj[node1][node2]['weight'] = weight
+
+        if self.multiedges:
+            G = networkx.MultiGraph(new_adj)
+        else:
+            G = networkx.Graph(new_adj)
+
+        return G
+
+class NetworkXDiGraphDeprecated(SageObject):
+    """
+    Class for unpickling old networkx.XDiGraph formats
+
+    DOCTEST:
+        sage: import sage.graphs.base.graph_backends
+    """
+
+    def __init__(self):
+        """
+        Issue deprecation warnings for the old networkx XDiGraph formats
+        """
+        import warnings
+        from sage.misc.misc import deprecation
+        warnings.warn("Your digraph object is saved in an old format since networkx\
+                    was updated to 1.0.1. You can re-save your digraph by typing\
+                    digraph.save(filename) to make this warning go away.",
+                    DeprecationWarning, stacklevel=2)
+        deprecation("Your digraph object is saved in an old format since networkx\
+                    was updated to 1.0.1. You can re-save your digraph by typing\
+                    digraph.save(filename) to make this warning go away.")
+
+    def mutate(self):
+        """
+        Change the old networkx XDiGraph format into the new one.
+
+        OUTPUT:
+
+        - The networkx.DiGraph or networkx.MultiDiGraph corresponding to the
+          unpickled data.
+        """
+        import networkx
+        new_adj = {}
+
+        for node1, edges in self.adj.iteritems():
+            new_adj[node1] = {}
+            for node2, weights in edges.iteritems():
+                new_adj[node1][node2] = {}
+                if weights is not None:
+                    try:
+                        for weight in weights:
+                            new_adj[node1][node2][weight] = {}
+                    except TypeError:
+                        new_adj[node1][node2]['weight'] = weight
+
+        if self.multiedges:
+            G = networkx.MultiDiGraph(new_adj)
+        else:
+            G = networkx.DiGraph(new_adj)
+
+        return G
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('networkx.xgraph','XGraph', NetworkXGraphDeprecated)
+register_unpickle_override('networkx.xdigraph','XDiGraph', NetworkXDiGraphDeprecated)
+
 class NetworkXGraphBackend(GenericGraphBackend):
     """
     A wrapper for NetworkX as the backend of a graph.
@@ -491,8 +599,13 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         if N is None:
             import networkx
-            N = networkx.XGraph()
+            N = networkx.MultiGraph()
         self._nxg = N
+
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
 
     def add_edge(self, u, v, l, directed):
         """
@@ -508,7 +621,16 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_edge(1,2,'a',True)
          """
-        self._nxg.add_edge(u, v, l)
+
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        if l:
+            self._nxg.add_edge(u, v, weight=l)
+        else:
+            self._nxg.add_edge(u, v)
 
     def add_edges(self, edges, directed):
         """
@@ -526,7 +648,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         for e in edges:
             try:
                 u,v,l = e
-            except:
+            except ValueError:
                 u,v = e
                 l = None
             self.add_edge(u,v,l,directed)
@@ -542,6 +664,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertex(0)
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         if name is None: # then find an integer to use as a key
             i = 0
             while self.has_vertex(i):
@@ -560,8 +687,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertices([1,2,3])
         """
-        for v in vertices:
-            self.add_vertex(v)
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        self._nxg.add_nodes_from(vertices)
 
     def degree(self, v, directed):
         """
@@ -579,6 +710,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.degree(1, False)
             0
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.degree(v)
 
     def del_edge(self, u, v, l, directed):
@@ -594,7 +730,24 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.del_edge(1,2,'a',True)
         """
-        self._nxg.delete_edge(u, v, l)
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        import networkx
+        try:
+            if self._nxg.is_multigraph():
+                for k,d in self._nxg.edge[u][v].iteritems():
+                    if d.get('weight',None) == l:
+                        self._nxg.remove_edge(u,v,k)
+                        break
+            else:
+                if l is None or self._nxg.edge[u][v].get('weight',None) == l:
+                    self._nxg.remove_edge(u,v)
+        except (KeyError, networkx.NetworkXError):
+            pass
+
 
     def del_vertex(self, v):
         """
@@ -608,9 +761,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.del_vertex(0)
             Traceback (most recent call last):
             ...
-            NetworkXError: node 0 not in graph
+            NetworkXError: The node 0 is not in the graph.
         """
-        self._nxg.delete_node(v)
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        self._nxg.remove_node(v)
 
     def del_vertices(self, vertices):
         """
@@ -624,10 +782,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.del_vertices([1,2,3])
             Traceback (most recent call last):
             ...
-            NetworkXError: node 1 not in graph
+            NetworkXError: The node 1 is not in the graph.
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         for v in vertices:
-            self.del_vertex(v)
+            self._nxg.remove_node(v)
 
     def get_edge_label(self, u, v):
         """
@@ -644,9 +807,23 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.get_edge_label(1,2)
             Traceback (most recent call last):
             ...
-            NetworkXError: Edge (1,2) requested via get_edge does not exist.
+            NetworkXError: Edge (1,2) requested via get_edge_label does not exist.
         """
-        return self._nxg.get_edge(u, v)
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        try:
+            E = self._nxg.edge[u][v]
+        except KeyError:
+            from networkx import NetworkXError
+            raise NetworkXError("Edge (%s,%s) requested via get_edge_label does not exist."%(u,v))
+
+        if self._nxg.is_multigraph():
+            return [ e.get('weight',None) for e in E.itervalues() ]
+        else:
+            return E.get('weight',None)
 
     def has_edge(self, u, v, l):
         """
@@ -664,7 +841,19 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.has_edge(1,2,'a')
             False
         """
-        return self._nxg.has_edge(u, v, l)
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        if not self._nxg.has_edge(u, v):
+            return False
+        if l is None:
+            return True
+        if self._nxg.is_multigraph():
+            return any( e.get('weight',None) == l for e in self._nxg.adj[u][v].itervalues() )
+        else:
+            return any( e == l for e in self._nxg.adj[u][v].itervalues() )
 
     def has_vertex(self, v):
         """
@@ -681,6 +870,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.has_vertex(0)
             False
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.has_node(v)
 
     def iterator_edges(self, vertices, labels):
@@ -701,13 +895,32 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.iterator_edges([],True)
             <generator object iterator_edges at ...>
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         if labels:
-            filter = lambda u,v,l: (u,v,l)
+            for u,v,d in self._nxg.edges_iter(data=True):
+                if u in vertices or v in vertices:
+                    yield (u,v,d.get('weight',None))
         else:
-            filter = lambda u,v,l: (u,v)
-        for u,v,l in self._nxg.edges_iter():
-            if u in vertices or v in vertices:
-                yield filter(u,v,l)
+            for u,v in self._nxg.edges_iter():
+                if u in vertices or v in vertices:
+                    yield (u,v)
+
+    def _iterator_in_edges_with_labels(self, vertices):
+        """
+        Iterate over the incoming edges incident to a sequence of vertices.
+        Special case, only for internal use.
+        """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        for u,v,d in self._nxg.in_edges_iter(vertices,data=True):
+            yield (u,v,d.get('weight',None))
 
     def iterator_in_edges(self, vertices, labels):
         """
@@ -723,15 +936,33 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
-            sage: G.iterator_in_edges([],True)
-            <generator object iterator_in_edges at ...>
+            sage: i = G.iterator_in_edges([],True)
         """
-        if labels:
-            for e in self._nxg.in_edges_iter(vertices):
-                yield e
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        if self._nxg.is_directed():
+            if labels:
+                return self._iterator_in_edges_with_labels(vertices)
+            else:
+                return self._nxg.in_edges_iter(vertices)
         else:
-            for u,v,l in self._nxg.in_edges_iter(vertices):
-                yield (u,v)
+            return self.iterator_edges(vertices,labels)
+
+    def _iterator_out_edges_with_labels(self, vertices):
+        """
+        Iterate over the outbound edges incident to a sequence of vertices.
+        Special case, only for internal use.
+        """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        for u,v,d in self._nxg.out_edges_iter(vertices,data=True):
+            yield (u,v,d.get('weight',None))
 
     def iterator_out_edges(self, vertices, labels):
         """
@@ -747,15 +978,20 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
-            sage: G.iterator_out_edges([],True)
-            <generator object iterator_out_edges at ...>
+            sage: i = G.iterator_out_edges([],True)
         """
-        if labels:
-            for e in self._nxg.out_edges_iter(vertices):
-                yield e
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        if self._nxg.is_directed():
+            if labels:
+                return self._iterator_out_edges_with_labels(vertices)
+            else:
+                return self._nxg.out_edges_iter(vertices)
         else:
-            for u,v,l in self._nxg.out_edges_iter(vertices):
-                yield (u,v)
+            return self.iterator_edges(vertices,labels)
 
     def iterator_nbrs(self, v):
         """
@@ -769,9 +1005,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
+            sage: G.add_vertex(0)
             sage: G.iterator_nbrs(0)
-            <generator object neighbors_iter at ...>
+            <dictionary-keyiterator object at ...>
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.neighbors_iter(v)
 
     def iterator_in_nbrs(self, v):
@@ -790,8 +1032,13 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.iterator_in_nbrs(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'XGraph' object has no attribute 'predecessors_iter'
+            AttributeError: 'MultiGraph' object has no attribute 'predecessors_iter'
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.predecessors_iter(v)
 
     def iterator_out_nbrs(self, v):
@@ -810,8 +1057,13 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.iterator_out_nbrs(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'XGraph' object has no attribute 'successors_iter'
+            AttributeError: 'MultiGraph' object has no attribute 'successors_iter'
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.successors_iter(v)
 
     def iterator_verts(self, verts):
@@ -827,9 +1079,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_verts(0)
-            <listiterator object at ...>
+            <generator object bunch_iter at ...>
         """
-        return iter(self._nxg.prepare_nbunch(verts))
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        return self._nxg.nbunch_iter(verts)
 
     def loops(self, new):
         """
@@ -845,11 +1102,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             True
         """
         if new is None:
-            return self._nxg.selfloops
+            return self._loops
         if new:
-            self._nxg.allow_selfloops()
+            self._loops = True
         else:
-            self._nxg.ban_selfloops()
+            self._loops = False
 
     def multiple_edges(self, new):
         """
@@ -864,12 +1121,26 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.multiple_edges(None)
             True
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        from networkx import Graph,MultiGraph,DiGraph,MultiDiGraph
         if new is None:
-            return self._nxg.multiedges
+            return self._nxg.is_multigraph()
+        if new == self._nxg.is_multigraph():
+            return
         if new:
-            self._nxg.allow_multiedges()
+            if self._nxg.is_directed():
+                self._nxg = MultiDiGraph(self._nxg)
+            else:
+                self._nxg = MultiGraph(self._nxg)
         else:
-            self._nxg.ban_multiedges()
+            if self._nxg.is_directed():
+                self._nxg = DiGraph(self._nxg)
+            else:
+                self._nxg = Graph(self._nxg)
 
     def name(self, new):
         """
@@ -884,6 +1155,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.name(None)
             'A NetworkX Graph'
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         if new is None:
             return self._nxg.name
         self._nxg.name = new
@@ -902,6 +1178,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.num_edges(False)
             0
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.size()
 
     def num_verts(self):
@@ -913,6 +1194,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G.num_verts()
             0
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         return self._nxg.order()
 
     def relabel(self, perm, directed):
@@ -926,36 +1212,46 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.relabel([],False)
         """
-        if directed:
-            oldsucc = self._nxg.succ
-            oldpred = self._nxg.pred
-            newsucc = {}
-            newpred = {}
-            for v in oldsucc.iterkeys():
-                oldtempsucc = oldsucc[v]
-                newtempsucc = {}
-                for w in oldtempsucc.iterkeys():
-                    newtempsucc[perm[w]] = oldtempsucc[w]
-                newsucc[perm[v]] = newtempsucc
-            for v in oldpred.iterkeys():
-                oldtemppred = oldpred[v]
-                newtemppred = {}
-                for w in oldtemppred.iterkeys():
-                    newtemppred[perm[w]] = oldtemppred[w]
-                newpred[perm[v]] = newtemppred
-            self._nxg.adj = newsucc
-            self._nxg.succ = self._nxg.adj
-            self._nxg.pred = newpred
-        else:
-            oldd = self._nxg.adj
-            newd = {}
-            for v in oldd.iterkeys():
-                oldtempd = oldd[v]
-                newtempd = {}
-                for w in oldtempd.iterkeys():
-                    newtempd[perm[w]] = oldtempd[w]
-                newd[perm[v]] = newtempd
-            self._nxg.adj = newd
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
+        from networkx import relabel_nodes
+        name = self._nxg.name
+        self._nxg = relabel_nodes(self._nxg,perm)
+        self._nxg.name = name
+
+#         if directed:
+#             oldsucc = self._nxg.succ
+#             oldpred = self._nxg.pred
+#             newsucc = {}
+#             newpred = {}
+#             for v in oldsucc.iterkeys():
+#                 oldtempsucc = oldsucc[v]
+#                 newtempsucc = {}
+#                 for w in oldtempsucc.iterkeys():
+#                     newtempsucc[perm[w]] = oldtempsucc[w]
+#                 newsucc[perm[v]] = newtempsucc
+#             for v in oldpred.iterkeys():
+#                 oldtemppred = oldpred[v]
+#                 newtemppred = {}
+#                 for w in oldtemppred.iterkeys():
+#                     newtemppred[perm[w]] = oldtemppred[w]
+#                 newpred[perm[v]] = newtemppred
+#             self._nxg.adj = newsucc
+#             self._nxg.succ = self._nxg.adj
+#             self._nxg.pred = newpred
+#         else:
+#             oldd = self._nxg.adj
+#             newd = {}
+#             for v in oldd.iterkeys():
+#                 oldtempd = oldd[v]
+#                 newtempd = {}
+#                 for w in oldtempd.iterkeys():
+#                     newtempd[perm[w]] = oldtempd[w]
+#                 newd[perm[v]] = newtempd
+#             self._nxg.adj = newd
 
     def set_edge_label(self, u, v, l, directed):
         """
@@ -970,26 +1266,20 @@ class NetworkXGraphBackend(GenericGraphBackend):
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.set_edge_label(1,2,'a',True)
         """
+        try:
+            assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
+        except AssertionError:
+            self._nxg = self._nxg.mutate()
+
         if not self.has_edge(u, v, None):
             return
         if self.multiple_edges(None):
-            if directed:
-                self._nxg.succ[u][v] = [l]
-                self._nxg.pred[v][u] = [l]
-            else:
-                self._nxg.adj[u][v] = [l]
-                self._nxg.adj[v][u] = [l]
+            self._nxg[u][v].clear()
+            self._nxg[u][v][0] = dict(weight=l)
+            if directed is False:
+                self._nxg[v][u].clear()
+                self._nxg[v][u][0] = dict(weight=l)
         else:
-            if directed:
-                self._nxg.succ[u][v] = l
-                self._nxg.pred[v][u] = l
-            else:
-                self._nxg.adj[u][v] = l
-                self._nxg.adj[v][u] = l
-
-
-
-
-
-
-
+            self._nxg[u][v]['weight'] = l
+            if directed is False:
+                self._nxg[v][u]['weight'] = l

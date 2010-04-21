@@ -469,7 +469,7 @@ class FinitePoset(ParentWithBase):
                         self._elements[element], element)
             else:
                 return self._element_type(self, \
-                        self._elements[element], self.size()+element)
+                        self._elements[element], self.cardinality()+element)
         else:
             raise ValueError, "__call__ accepts a poset element or an integer; you passed %s"%type(element)
 
@@ -535,7 +535,7 @@ class FinitePoset(ParentWithBase):
             sage: B.linear_extension()
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
-        return map(self._vertex_to_element,range(self.size()))
+        return map(self._vertex_to_element,range(self.cardinality()))
 
     def linear_extensions(self):
         """
@@ -1109,16 +1109,19 @@ class FinitePoset(ParentWithBase):
         """
         return [x for x in self.lower_covers_iterator(y)]
 
-    def size(self):
+    def cardinality(self):
         """
         Returns the number of elements in the poset.
 
         EXAMPLES::
 
-            sage: Poset([[1,2,3],[4],[4],[4],[]]).size()
+            sage: Poset([[1,2,3],[4],[4],[4],[]]).cardinality()
             5
         """
         return self._hasse_diagram.order()
+
+    from sage.misc.misc import deprecated_function_alias
+    size = deprecated_function_alias(cardinality, 'Sage Version 4.4 (2010-05)')
 
     def mobius_function(self,x,y):
         r"""

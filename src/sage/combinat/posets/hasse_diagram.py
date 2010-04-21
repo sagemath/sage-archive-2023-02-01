@@ -688,16 +688,19 @@ class HasseDiagram(DiGraph):
         for x in self.neighbor_in_iterator(element):
             yield x
 
-    def size(self):
+    def cardinality(self):
         """
         Returns the number of elements in the poset.
 
         EXAMPLES::
 
-            sage: Poset([[1,2,3],[4],[4],[4],[]]).size()
+            sage: Poset([[1,2,3],[4],[4],[4],[]]).cardinality()
             5
         """
         return self.order()
+
+    from sage.misc.misc import deprecated_function_alias
+    size = deprecated_function_alias(cardinality, 'Sage Version 4.4 (2010-05)')
 
     def mobius_function(self,i,j): # dumb algorithm
         r"""
@@ -978,7 +981,7 @@ class HasseDiagram(DiGraph):
         """
         if hasattr(self,'_meet'):
             return self._meet
-        n = self.size()
+        n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         for i in range(n): le[i,i] = 1
@@ -1074,7 +1077,7 @@ class HasseDiagram(DiGraph):
             ValueError: No join for x=...
         """
         if hasattr(self,'_join'): return self._join
-        n = self.size()
+        n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         for i in range(n): le[i,i] = 1
@@ -1195,7 +1198,7 @@ class HasseDiagram(DiGraph):
             mt = self.meet_matrix()
         except ValueError:
             return False
-        n = self.size()
+        n = self.cardinality()
         c = [-1 for x in range(n)]
         for x in range(n):
             for y in range(x,n):
@@ -1225,7 +1228,7 @@ class HasseDiagram(DiGraph):
         """
         jn = self.join_matrix()
         mt = self.meet_matrix()
-        n = self.size()
+        n = self.cardinality()
         c = [None for x in range(n)]
         for x in range(n):
             for y in range(x,n):
@@ -1265,7 +1268,7 @@ class HasseDiagram(DiGraph):
             [[], [0], [1], [2], [3], [4]]
         """
         S = [[]]
-        self._antichains_rec([],0,range(1,self.size()),S)
+        self._antichains_rec([],0,range(1,self.cardinality()),S)
         return S
 
     def _antichains_rec(self,A,x,T,S):

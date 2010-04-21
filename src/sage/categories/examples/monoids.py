@@ -50,9 +50,12 @@ class FreeMonoid(FreeSemigroup):
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
+          running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
+        running ._test_elements_eq() . . . pass
+        running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass

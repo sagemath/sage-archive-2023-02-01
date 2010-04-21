@@ -75,6 +75,9 @@ class CommutativeAdditiveMonoids(Category):
             tester.assert_(zero.parent() == self)
             for x in tester.some_elements():
                 tester.assert_(x + zero == x)
+            # Check that zero is immutable by asking its hash:
+            tester.assertEqual(type(zero.__hash__()), int)
+            tester.assertEqual(zero.__hash__(), zero.__hash__())
 
         @cached_method
         def zero(self):

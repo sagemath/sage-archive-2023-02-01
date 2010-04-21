@@ -475,6 +475,43 @@ cdef class Element(sage_object.SageObject):
             # occurs on a dummy attribute of Sets().ElementMethods
             tester.assert_(hasattr(self, "_dummy_attribute"))
 
+    def _test_eq(self, **options):
+        """
+        Test that ``self`` is equal to ``self`` and different to ``None``.
+
+        See also: :class:`TestSuite`.
+
+        TESTS::
+
+            sage: from sage.structure.element import Element
+            sage: O = Element(Parent())
+            sage: O._test_eq()
+
+        Let us now write a broken class method::
+
+            sage: class CCls(Element):
+            ...       def __eq__(self, other):
+            ...           return True
+            sage: CCls(Parent())._test_eq()
+            Traceback (most recent call last):
+            ...
+            AssertionError: Generic element of a structure == None
+
+        Let us now break inequality::
+
+            sage: class CCls(Element):
+            ...       def __ne__(self, other):
+            ...           return True
+            sage: CCls(Parent())._test_eq()
+            Traceback (most recent call last):
+            ...
+            AssertionError: broken non-equality: Generic element of a structure != itself
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self, self)
+        tester.assertNotEqual(self, None)
+        tester.assertFalse(self != self, "broken non-equality: %s != itself"%self)
+        tester.assertTrue(self != None, "broken non-equality: %s is not != None"%self)
 
     def parent(self, x=None):
         """

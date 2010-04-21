@@ -376,6 +376,21 @@ class FastCrystalElement(CrystalElement):
                self.parent() == other.parent() and \
                self.value == other.value
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: C = FastCrystal(['A',2],shape=[2,1])
+            sage: D = FastCrystal(['B',2],shape=[2,1])
+            sage: C(0) != C(0)
+            False
+            sage: C(1) != C(0)
+            True
+            sage: C(0) != D(0)
+            True
+        """
+        return not self == other
+
 
     def __cmp__(self, other):
         """

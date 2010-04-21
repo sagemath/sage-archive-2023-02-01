@@ -98,6 +98,8 @@ class FiniteEnumeratedSets(Category):
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
+                sage: C._list_from_iterator()
+                [1, 2, 3]
                 sage: C.list() # indirect doctest
                 [1, 2, 3]
             """

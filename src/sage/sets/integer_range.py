@@ -250,6 +250,23 @@ class IntegerRange(UniqueRepresentation, Parent):
         """
         return "Integer progression from %s to %s with increment %s"%(self._begin,self._end,self._step)
 
+    def _element_constructor_(self, el):
+        """
+        TESTS::
+
+            sage: S = IntegerRange(1, 10, 2)
+            sage: S(1)
+            1
+            sage: S(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in Integer progression from 1 to 10 with increment 2
+        """
+        if el in self:
+            return el
+        else:
+            raise ValueError, "%s not in %s"%(el, self)
+
     element_class = Integer
 
 

@@ -176,3 +176,19 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         return Integer(len(self._elements))
 
+    def _element_constructor_(self, el):
+        """
+        TESTS::
+
+            sage: S = FiniteEnumeratedSet([1,2,3])
+            sage: S(1)
+            1
+            sage: S(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in {1, 2, 3}
+        """
+        if el in self:
+            return el
+        else:
+            raise ValueError, "%s not in %s"%(el, self)

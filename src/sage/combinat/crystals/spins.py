@@ -38,7 +38,7 @@ internal_repn and signature of the crystal element.
 
 ## TODO: proper latex'ing of spins
 
-from sage.structure.element import Element
+from sage.combinat.crystals.letters import Letter
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
@@ -253,7 +253,7 @@ class GenericCrystalOfSpins(ClassicalCrystal):
         """
         return self._digraph
 
-    def cmp_elements(self, x,y):
+    def lt_elements(self, x,y):
         r"""
         Returns True if and only if there is a path from x to y in the
         crystal graph.
@@ -267,98 +267,56 @@ class GenericCrystalOfSpins(ClassicalCrystal):
             sage: C = CrystalOfSpins(['B',3])
             sage: x = C([1,1,1])
             sage: y = C([-1,-1,-1])
-            sage: C.cmp_elements(x,y)
-            -1
-            sage: C.cmp_elements(y,x)
-            1
-            sage: C.cmp_elements(x,x)
-            0
+            sage: C.lt_elements(x,y)
+            True
+            sage: C.lt_elements(y,x)
+            False
+            sage: C.lt_elements(x,x)
+            False
         """
         assert x.parent() == self and y.parent() == self
-        if   self._digraph_closure.has_edge(x,y):
-            return -1
-        elif self._digraph_closure.has_edge(y,x):
-            return 1
-        else:
-            return 0
+        if self._digraph_closure.has_edge(x,y):
+            return True
+        return False
 
-class Spin(Element):
-    def __init__(self, parent, value):
+class Spin(Letter):
+    """
+    EXAMPLES::
+
+        sage: C = CrystalOfSpins(['B',3])
+        sage: c = C([1,1,1])
+        sage: TestSuite(c).run()
+
+        sage: C([1,1,1]).parent()
+        The crystal of spins for type ['B', 3]
+
+        sage: c = C([1,1,1])
+        sage: c.__repr__()
+        '[1, 1, 1]'
+
+        sage: D = CrystalOfSpins(['B',4])
+        sage: a = C([1,1,1])
+        sage: b = C([-1,-1,-1])
+        sage: c = D([1,1,1,1])
+        sage: a == a
+        True
+        sage: a == b
+        False
+        sage: b == c
+        False
+    """
+
+    def __hash__(self):
         """
         EXAMPLES::
 
             sage: C = CrystalOfSpins(['B',3])
             sage: c = C([1,1,1])
-            sage: TestSuite(c).run()
+            sage: type(hash(c))
+            <type 'int'>
         """
-        self._parent = parent
-        self.value = value
 
-    def parent(self):
-        """
-        Returns the parent of self.
-
-        EXAMPLES::
-
-            sage: C = CrystalOfSpins(['B',3])
-            sage: C([1,1,1]).parent()
-            The crystal of spins for type ['B', 3]
-        """
-        return self._parent  # Should be inherited from Element!
-
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: C = CrystalOfSpins(['B',3])
-            sage: c = C([1,1,1])
-            sage: c.__repr__()
-            '[1, 1, 1]'
-        """
-        return repr(self.value)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: C = CrystalOfSpins(['B',3])
-            sage: D = CrystalOfSpins(['B',4])
-            sage: a = C([1,1,1])
-            sage: b = C([-1,-1,-1])
-            sage: c = D([1,1,1,1])
-            sage: a == a
-            True
-            sage: a == b
-            False
-            sage: b == c
-            False
-        """
-        return self.__class__ is other.__class__ and \
-               self.parent() == other.parent() and \
-               self.value == other.value
-
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: C = CrystalOfSpins(['B',3])
-            sage: c1 = C([1,1,1])
-            sage: c2 = C([-1,-1,-1])
-            sage: c1 < c2
-            True
-            sage: c2 < c1
-            False
-            sage: c2 > c1
-            True
-            sage: c1 <= c1
-            True
-        """
-        if type(self) is not type(other):
-            return cmp(type(self), type(other))
-        if self.parent() != other.parent():
-            return cmp(self.parent(), other.parent())
-        return self.parent().cmp_elements(self, other)
+        return hash(tuple(self.value))
 
     def signature(self):
         """

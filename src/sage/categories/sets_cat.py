@@ -92,9 +92,12 @@ class Sets(Category):
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
+          running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
+        running ._test_elements_eq() . . . pass
+        running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -339,7 +342,25 @@ class Sets(Category):
                 an_element = self.an_element()
             except EmptySetError:
                 return
-            tester.assert_(an_element in self, "self.an_element() is not in self")
+            tester.assertTrue(an_element in self, "self.an_element() is not in self")
+
+            try:
+                element_parent = an_element.parent()
+            except AttributeError:
+                tester.info("\n  self.an_element doesn't have any parent")
+                element_parent = None
+
+            if element_parent is self:
+                tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
+            else: # Allows self(an_element) to fails for facade parent.
+                try:
+                    rebuilt_element = self(an_element)
+                except NotImplementedError:
+                    tester.info("\n  The set doesn't seems to implement __call__; skipping test of construction idempotency")
+                    pass
+                else:
+                    tester.assertEqual(rebuilt_element, an_element, "element construction is not idempotent")
+
 
         def _test_elements(self, tester = None, **options):
             """
@@ -354,6 +375,7 @@ class Sets(Category):
                 <BLANKLINE>
                   Running the test suite of self.an_element()
                   running ._test_category() . . . pass
+                  running ._test_eq() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
                 <BLANKLINE>
@@ -391,7 +413,122 @@ class Sets(Category):
             tester.info("\n  Running the test suite of self.an_element()")
             TestSuite(an_element).run(verbose = tester._verbose, prefix = tester._prefix+"  ",
                                       raise_on_failure = is_sub_testsuite)
-            tester.info(tester._prefix+"  ", newline = False)
+            tester.info(tester._prefix+" ", newline = False)
+
+
+
+        def _test_elements_eq(self, **options):
+            """
+            Runs generic tests on the equality of elements.
+
+            In particular, this tests that ``==`` is reflexive,
+            symmetric, and transitive on some_elements of ``self``
+            together with ``0`` and ``None``. This also tests the
+            consistency with inequality tests with ``!=``.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements_eq()
+
+            Let us test the consistency of a broken equality or inequality::
+
+                sage: P = Sets().example("wrapper")
+                sage: P._test_elements_eq()
+                sage: ne = P.element_class.__ne__
+                sage: eq = P.element_class.__eq__
+
+            We first try a broken inequality::
+
+                sage: P.element_class.__ne__ = lambda x, y: False
+                sage: P._test_elements_eq()
+                Traceback (most recent call last):
+                ...
+                AssertionError: __eq__ and __ne__ inconsistency:
+                  47 == 53 returns False  but  47 != 53 returns False
+
+                sage: P.element_class.__ne__ = lambda x, y: not(x == y)
+
+            We then try a non-reflexive equality::
+
+                sage: P.element_class.__eq__ = (lambda x, y:
+                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                sage: P._test_elements_eq()
+                Traceback (most recent call last):
+                ...
+                AssertionError: non reflexive equality: 47 != 47
+
+            What about a non symmetric equality::
+
+                sage: def non_sym_eq(x, y):
+                ...      if not y in P:                      return False
+                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
+                ...      else:                               return eq(x, y)
+                sage: P.element_class.__eq__ = non_sym_eq
+                sage: P._test_elements_eq()
+                Traceback (most recent call last):
+                ...
+                AssertionError: non symmetric equality: 53 != 47 but 47 == 53
+
+            And finally a non transitive equality::
+
+                sage: def non_sym_eq(x, y):
+                ...      if not y in P:                      return False
+                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
+                ...      elif eq(x, P(53)) and eq(y, P(47)): return True
+                ...      elif eq(x, P(47)) and eq(y, P(59)): return True
+                ...      elif eq(x, P(59)) and eq(y, P(47)): return True
+                ...      else:                               return eq(x, y)
+                sage: P.element_class.__eq__ = non_sym_eq
+                sage: P._test_elements_eq()
+                Traceback (most recent call last):
+                ...
+                AssertionError: non transitive equality:
+                  53 == 47 and 47 == 59 but 53 != 59
+
+            We restore ``P.element_class`` in a proper state for further tests::
+
+                sage: P.element_class.__ne__ = ne
+                sage: P.element_class.__eq__ = eq
+            """
+            tester = self._tester(**options)
+            elements = list(self.some_elements())+[None, 0]
+            # Note: we can't expect that all those elements are hashable
+
+            equal_eli_elj = {}
+            def print_compare(x, y):
+                if x == y:
+                    return "%s == %s"%(x, y)
+                else:
+                    return "%s != %s"%(x, y)
+            for i, eli in enumerate(elements):
+                for j, elj in enumerate(elements):
+                    equal_eli_elj[i,j] = (eli == elj)
+                    tester.assertNotEqual(equal_eli_elj[i,j], eli != elj,
+                        "__eq__ and __ne__ inconsistency:\n"
+                        "  %s == %s returns %s  but  %s != %s returns %s"%(
+                            eli, elj, (eli == elj), eli, elj, (eli != elj)))
+                    if i == j:
+                        tester.assertTrue(equal_eli_elj[i,i],
+                            "non reflexive equality: %s != %s"%(eli, eli))
+                    if i > j: # (j, i) is already computed
+                        tester.assertEqual(equal_eli_elj[i,j], equal_eli_elj[j,i],
+                            "non symmetric equality: %s but %s"%(
+                                print_compare(eli, elj), print_compare(elj, eli)))
+            # check for transitivity
+            nbel = len(elements)
+            for i in range(nbel):
+                for j in range(nbel):
+                    if not equal_eli_elj[i,j]: continue
+                    for k in range(nbel):
+                        if not equal_eli_elj[j,k]: continue
+                        tester.assertTrue(equal_eli_elj[i,k],
+                                          "non transitive equality:\n  %s and %s but %s"%(
+                                print_compare(elements[i], elements[j]),
+                                print_compare(elements[j], elements[k]),
+                                print_compare(elements[i], elements[k])))
 
         def some_elements(self):
             """
@@ -427,7 +564,7 @@ class Sets(Category):
 
             Let us now write a broken :meth:`.some_elements` method::
 
-                sage: from sage.categories.examples.sets_cat import PrimeNumbers
+                sage: from sage.categories.examples.sets_cat import *
                 sage: class CCls(PrimeNumbers):
                 ...       def some_elements(self):
                 ...           return [self(17), 32]
@@ -443,7 +580,8 @@ class Sets(Category):
             #tester.assert_(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
-                tester.assert_(x in self, "the object %s in self.some_elements() is not in self"%(x,))
+                tester.assertTrue(x in self,
+                    "the object %s in self.some_elements() is not in self"%(x,))
 
     class ElementMethods:
         ##def equal(x,y):

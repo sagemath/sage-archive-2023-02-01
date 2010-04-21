@@ -219,7 +219,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: TestSuite(Sym).run()
             Failure ...
-            The following tests failed: _test_additive_associativity, _test_an_element, _test_associativity, _test_elements, _test_not_implemented_methods, _test_one, _test_prod, _test_some_elements, _test_zero
+            The following tests failed: _test_additive_associativity, _test_an_element, _test_associativity, _test_elements, _test_elements_eq, _test_not_implemented_methods, _test_one, _test_prod, _test_some_elements, _test_zero
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring

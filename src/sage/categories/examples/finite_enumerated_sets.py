@@ -12,12 +12,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.rings.integer import Integer
 
 class Example(UniqueRepresentation, Parent):
     r"""
     An example of a finite enumerated set: `\{1,2,3\}`
 
     This class provides a minimal implementation of a finite enumerated set.
+
+    See :class:`FiniteEnumeratedSet` for a full featured implementation.
 
     EXAMPLES::
 
@@ -33,15 +36,22 @@ class Example(UniqueRepresentation, Parent):
     return consistent results::
 
         sage: TestSuite(C).run(verbose = True)
-        running ._test_an_element() . . . pass
+        running ._test_an_element() . . .
+          The set doesn't seems to implement __call__; skipping test of construction idempotency
+         pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
+        running ._test_elements_eq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
         running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
+        running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -58,6 +68,7 @@ class Example(UniqueRepresentation, Parent):
             Category of finite enumerated sets
             sage: TestSuite(C).run()
         """
+        self._set = map(Integer, [1,2,3])
         Parent.__init__(self, category = FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -79,7 +90,7 @@ class Example(UniqueRepresentation, Parent):
             sage: 0 in C
             False
         """
-        return o in [1,2,3]
+        return o in self._set
 
     def __iter__(self):
         """
@@ -89,11 +100,7 @@ class Example(UniqueRepresentation, Parent):
             [1, 2, 3]
 
         """
-        return iter([1,2,3])
+        return iter(self._set)
 
     # temporarily needed because parent overloads it.
     an_element = EnumeratedSets.ParentMethods._an_element_
-
-    class Element(ElementWrapper):
-        pass
-

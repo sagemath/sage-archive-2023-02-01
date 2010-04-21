@@ -579,6 +579,43 @@ cdef class Parent(category_object.CategoryObject):
             tester.assert_(hasattr(self, "_test_an_element"),
                            "category of self improperly initialized"%self)
 
+    def _test_eq(self, **options):
+        """
+        Test that ``self`` is equal to ``self`` and different to ``None``.
+
+        See also: :class:`TestSuite`.
+
+        TESTS::
+
+            sage: O = Parent()
+            sage: O._test_eq()
+
+        Let us now write a broken class method::
+
+            sage: class CCls(Parent):
+            ...       def __eq__(self, other):
+            ...           return True
+            sage: CCls()._test_eq()
+            Traceback (most recent call last):
+            ...
+            AssertionError: <class '__main__.CCls'> == None
+
+        Let us now break inequality::
+
+            sage: class CCls(Parent):
+            ...       def __ne__(self, other):
+            ...           return True
+            sage: CCls()._test_eq()
+            Traceback (most recent call last):
+            ...
+            AssertionError: broken non-equality: <class '__main__.CCls'> != itself
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self, self)
+        tester.assertNotEqual(self, None)
+        tester.assertFalse(self != self, "broken non-equality: %s != itself"%self)
+        tester.assertTrue(self != None, "broken non-equality: %s is not != None"%self)
+
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
             if warn:
@@ -617,9 +654,12 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
+              running ._test_eq() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
               pass
+            running ._test_elements_eq() . . . pass
+            running ._test_eq() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -645,18 +685,21 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: [s for s in dir(ZZ) if s[:6] == "_test_"]
-            ['_test_additive_associativity',
-             '_test_an_element',
-             '_test_associativity',
-             '_test_category',
-             '_test_elements',
-             '_test_not_implemented_methods',
-             '_test_one',
-             '_test_pickling',
-             '_test_prod',
-             '_test_some_elements',
-             '_test_zero']
+            sage: for s in dir(ZZ):
+            ...       if s[:6] == "_test_": print s
+            _test_additive_associativity
+            _test_an_element
+            _test_associativity
+            _test_category
+            _test_elements
+            _test_elements_eq
+            _test_eq
+            _test_not_implemented_methods
+            _test_one
+            _test_pickling
+            _test_prod
+            _test_some_elements
+            _test_zero
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]

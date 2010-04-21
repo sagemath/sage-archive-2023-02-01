@@ -47,9 +47,12 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
+          running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
+        running ._test_elements_eq() . . . pass
+        running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -175,6 +178,14 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
             result = ' + '.join( ("%s*%s"%(d[a],a) if d[a] != 1 else a) for a in d.keys() if d[a] != 0)
             return '0' if result == '' else result
 
-        __repr__ = _repr_ # FIXME: remove once element_wrapper-improvement-nt.patch is in Sage
+        def __hash__(self):
+            """
+            EXAMPLES::
+
+                sage: F = CommutativeAdditiveSemigroups().example()
+                sage: type(hash(F.an_element()))
+                <type 'int'>
+            """
+            return hash(tuple(self.value.items()))
 
 Example = FreeCommutativeAdditiveSemigroup

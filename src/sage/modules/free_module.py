@@ -180,6 +180,7 @@ from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.misc.cachefunc import cached_method
 
 ###############################################################################
 #
@@ -1791,6 +1792,27 @@ class FreeModule_generic(module.Module):
         # it is is used by __call__ to make a new copy of the 0 element.
 
         return self._element_class(self, 0)
+
+    @cached_method
+    def zero(self):
+        """
+        Returns the zero vector in this free module.
+
+        EXAMPLES::
+
+            sage: M = FreeModule(ZZ, 2)
+            sage: M.zero()
+            (0, 0)
+            sage: M.span([[1,1]]).zero()
+            (0, 0)
+            sage: M.zero_submodule().zero()
+            (0, 0)
+            sage: M.zero_submodule().zero().is_mutable()
+            False
+        """
+        res = self._element_class(self, 0)
+        res.set_immutable()
+        return res
 
     def _magma_init_(self, magma):
         """

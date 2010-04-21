@@ -290,7 +290,7 @@ cdef class SetMorphism(Morphism):
         """
         INPUT:
          - ``self``  -- SetMorphism
-         - ``right`` -- Element (TODO: fix to object)
+         - ``right`` -- any object
          - ``op``    -- integer
 
         EXAMPLES::
@@ -307,10 +307,14 @@ cdef class SetMorphism(Morphism):
             (False, True, False, False, False, False)
             sage: f == i, f != i, f < i, f > i, f <= i, f >= i
             (False, True, False, False, False, False)
+            sage: f == 0, f == int(0), f == None
+            (False, False, False)
+            sage: f != 0, f != int(0), f != None
+            (True, True, True)
         """
         if op == Py_EQ or op == Py_LE or op == Py_GE:
-            return self._eq_c_impl(right)
+            return isinstance(right, Element) and self._eq_c_impl(right)
         elif op == Py_NE:
-            return not self._eq_c_impl(right)
+            return not (isinstance(right, Element) and self._eq_c_impl(right))
         else:
             return False

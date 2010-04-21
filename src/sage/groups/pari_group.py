@@ -25,7 +25,7 @@ class PariGroup(group.Group):
             sage: TestSuite(G).run()
             Failure in
             ...
-            The following tests failed: _test_an_element, _test_associativity, _test_elements, _test_enumerated_set_contains, _test_enumerated_set_iter_cardinality, _test_enumerated_set_iter_list, _test_inverse, _test_one, _test_prod, _test_some_elements
+            The following tests failed: _test_an_element, _test_associativity, _test_elements, _test_elements_eq, _test_enumerated_set_contains, _test_enumerated_set_iter_cardinality, _test_enumerated_set_iter_list, _test_inverse, _test_one, _test_prod, _test_some_elements
         """
         if not isinstance(x, pari_gen):
             raise TypeError, "x (=%s) must be a PARI gen"%x

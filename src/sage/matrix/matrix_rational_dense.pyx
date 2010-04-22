@@ -1311,7 +1311,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise TypeError, "R must be a ring"
         from matrix_modn_dense import MAX_MODULUS
         if R == self._base_ring:
-            return self
+            if self._mutability._is_immutable:
+                return self
+            return self.__copy__()
         elif is_IntegerRing(R):
             A, d = self._clear_denom()
             if d != 1:

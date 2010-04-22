@@ -950,7 +950,8 @@ ext_modules = [
               include_dirs = numpy_include_dirs),
 
     Extension('sage.plot.plot3d.base',
-              sources = ['sage/plot/plot3d/base.pyx']),
+              sources = ['sage/plot/plot3d/base.pyx'],
+              extra_compile_args=["-std=c99"]),
 
     Extension('sage.plot.plot3d.implicit_surface',
               sources = ['sage/plot/plot3d/implicit_surface.pyx'],
@@ -958,7 +959,8 @@ ext_modules = [
               include_dirs = numpy_include_dirs),
 
     Extension('sage.plot.plot3d.index_face_set',
-              sources = ['sage/plot/plot3d/index_face_set.pyx']),
+              sources = ['sage/plot/plot3d/index_face_set.pyx'],
+              extra_compile_args=["-std=c99"]),
 
     Extension('sage.plot.plot3d.parametric_surface',
               sources = ['sage/plot/plot3d/parametric_surface.pyx']),
@@ -1369,7 +1371,8 @@ ext_modules = [
               sources = ['sage/stats/hmm/hmm.pyx']),
 
     Extension('sage.stats.hmm.chmm',
-              sources = ['sage/stats/hmm/chmm.pyx']),
+              sources = ['sage/stats/hmm/chmm.pyx'],
+              extra_compile_args=["-std=c99"]),
 
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),

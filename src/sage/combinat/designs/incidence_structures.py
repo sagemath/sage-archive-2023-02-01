@@ -126,6 +126,20 @@ class IncidenceStructure(object):
         self.name = name
         self._incidence_matrix = inc_mat
 
+    def __iter__(self):
+        """
+        Iterator over the blocks.
+
+        EXAMPLE::
+
+            sage: sts = sage.combinat.designs.block_design.steiner_triple_system(9)
+            sage: list(sts)
+            [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
+        """
+
+        return iter(self.blcks)
+
+
     def __repr__(self):
         """
         A print method.
@@ -324,11 +338,8 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        bs = []
-        for b in self.blocks():
-            bs.append(len(b))
-        self._block_sizes = bs
-        return bs
+        self._block_sizes = map(len,self.blocks())
+        return self._block_sizes
 
     def _gap_(self):
         """

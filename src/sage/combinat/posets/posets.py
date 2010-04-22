@@ -338,6 +338,10 @@ class FinitePoset(ParentWithBase):
             sage: [[p2 == p1 for p1 in Posets(3)] for p2 in Posets(3)]
             [[True, False, False, False, False], [False, True, False, False, False], [False, False, True, False, False], [False, False, False, True, False], [False, False, False, False, True]]
         """
+        # This drastically improve the most common case which is used
+        # for example when comparing two poset elements.
+        if self is other:
+            return True
         if isinstance(other, type(self)):
             if len(self._elements) == len(other._elements) and self._elements == other._elements:
                 return self._hasse_diagram == other._hasse_diagram

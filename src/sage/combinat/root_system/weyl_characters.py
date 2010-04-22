@@ -535,7 +535,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False, style="lattice
 
     In the coroot style the Lie group or Lie algebra is treated as
     semisimple, so you lose the distinction between GL(n) and
-    SL(n); you also some information about representations of E6
+    SL(n); you also lose some information about representations of E6
     and E7 for the same reason. The coroot style gives you output
     that is comparable to that in Tables of Dimensions, Indices
     and Branching Rules for Representations of Simple Lie Algebras
@@ -1099,10 +1099,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
       of G.
 
     You may use a predefined rule by specifying rule = one of"levi",
-    "automorphic", "symmetric", "extended", "triality" or
-    "miscellaneous". The use of these rules will be explained next.
-    After the examples we will explain how to write your own branching
-    rules for cases that we have omitted.
+    "automorphic", "symmetric", "extended", "orthogonal_sum", "tensor",
+    "triality" or  "miscellaneous". The use of these rules will be
+    explained next. After the examples we will explain how to write
+    your own branching rules for cases that we have omitted.
 
     To explain the predefined rules we survey the most important
     branching rules. These may be classified into several cases, and
@@ -1157,10 +1157,11 @@ def branch_weyl_character(chi, R, S, rule="default"):
         ['D',r] => ['D',r]
         E6 => E6
 
-    SYMMETRIC TYPE. Related to the automorphic type, when either
-    the Dynkin diagram or the extended diagram has a symmetry
-    there is a branching rule to the subalgebra (or subgroup) of
-    invariants under the automorphism. Use rule="symmetric".
+    SYMMETRIC TYPE. Related to the automorphic type, when G admits
+    an outer automorphism (usually of degree 2) we may consider
+    the branching rule to the isotropy subgroup H. In many cases
+    the Dynkin diagram of H can be obtained by folding the Dynkin
+    diagram of G. For such isotropy subgroups use rule="symmetric".
     The last branching rule, D4=>G2 is not to a maximal subgroup
     since D4=>B3=>G2, but it is included for convenience. ::
 
@@ -1192,12 +1193,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
     (e.g. B2xB3 -> D6) cannot be explained this way but for
     uniformity is implemented under rule="extended".
 
-    Using rule="extended" you can get any branching rule
-    SO(n) => SO(a) x SO(b) x SO(c) x ... where n = a+b+c+ ...
-    Sp(2n) => Sp(2a) x Sp(2b) x Sp(2c) x ... where n = a+b+c+ ...
-    where O(a) = ['D',r] (a=2r) or ['B',r] (a=2r+1)
-    and Sp(2r)=['C',r].
-
     The following rules are implemented as special cases of rule="extended". ::
 
         E6 => A5xA1, A2xA2xA2
@@ -1208,6 +1203,17 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     Note that E8 has only a limited number of representations of reasonably low
     degree.
+
+    ORTHOGONAL_SUM:
+
+    Using rule="orthogonal_sum" you can get any branching rule
+    SO(n) => SO(a) x SO(b) x SO(c) x ... where n = a+b+c+ ...
+    Sp(2n) => Sp(2a) x Sp(2b) x Sp(2c) x ... where n = a+b+c+ ...
+    where O(a) = ['D',r] (a=2r) or ['B',r] (a=2r+1)
+    and Sp(2r)=['C',r]. In some cases these are also of
+    extended type, as in the case ``D3xD3->D6`` discussed above.
+    But in other cases, for example ``B3xB3->D7``, they are not
+    of extended type.
 
     TENSOR: There are branching rules:
     ::
@@ -1828,8 +1834,8 @@ def get_branching_rule(Rtype, Stype, rule):
             return lambda x : [(x[4]-3*x[5])/2,(x[0]+x[1]+x[2]+x[3])/2,(-x[0]-x[1]+x[2]+x[3])/2,(-x[0]+x[1]-x[2]+x[3])/2]
         else:
             raise ValueError, "Rule not found"
-    elif rule == "extended":
-        if not s == r:
+    elif rule == "extended" or rule == "orthogonal_sum":
+        if rule == "extended" and not s == r:
             raise ValueError, """Ranks should be equal for rule="extended" """
         if Stype.is_compound():
             if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in stypes):
@@ -1850,6 +1856,8 @@ def get_branching_rule(Rtype, Stype, rule):
             elif Rtype[0] == 'C':
                 if all(t[0] == Rtype[0] for t in stypes):
                     return lambda x : x
+            if rule == "orthogonal_sum":
+                raise ValueError, "Rule not found"
             elif Rtype[0] == 'E':
                 if r == 6:
                     if stypes[0][0] == 'A' and stypes[0][1] == 5: # need doctest
@@ -2540,8 +2548,10 @@ class WeightRing(Algebra):
             x = args[0]
         else:
             x = args
-        if x == 0:
+
+        if x == 0 and not x in self._space:
             return WeightRingElement(self, {})
+
         if x in ZZ:
             mdict = {self._origin: x}
             return WeightRingElement(self, mdict)

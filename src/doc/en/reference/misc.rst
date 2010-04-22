@@ -22,6 +22,7 @@ Miscellaneous
    sage/misc/latex_macros
    other/sagetex
    sage/misc/lazy_attribute
+   sage/misc/lazy_format
    sage/misc/lazy_import
    sage/misc/log
    sage/misc/persist

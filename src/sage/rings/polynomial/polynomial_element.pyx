@@ -4981,8 +4981,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t = (x^2-x+1)^3 * (3*x-1)^2
             sage: t.radical()
             3*x^3 - 4*x^2 + 4*x - 1
+
+        If self has a factor of multiplicity divisible by the characteristic (see Trac 8736)::
+
+            sage: P.<x> = GF(2)[]
+            sage: (x^3 + x^2).radical()
+            x^2 + x
         """
-        return self // self.gcd(self.derivative())
+        P = self.parent()
+        p = P.base_ring().characteristic()
+        if p == 0 or p > self.degree():
+            return self // self.gcd(self.derivative())
+        else:  # The above method is not always correct (see Trac 8736)
+            factors = self.factor()
+            result = P(1)
+            for f, e in factors:
+                result *= f
+            return result
 
     def norm(self, p):
         r"""

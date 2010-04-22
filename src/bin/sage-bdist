@@ -109,13 +109,18 @@ if [ "$UNAME" = "Darwin" ]; then
 
     # Go back to the right directory for later copying
     cd "$CUR"/tmp/
-    if [ "$SAGE_APP_DMG" = "yes" ]; then
+    if [ "$SAGE_APP_DMG" != "no" ]; then
         echo "Creating dmg"
+        echo "(If you don't wish to create a disk image please set SAGE_APP_DMG=no)"
         DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH; export DYLD_LIBRARY_PATH
         hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
     else
         echo 'If you wish to create a disk image please set'
         echo 'SAGE_APP_DMG=yes'
+        echo '(or to anything else but the current SAGE_APP_DMG=no,'
+        echo ' or completely unset SAGE_APP_DMG)'
+        echo "Creating tar.gz"
+        tar zcvf "$TARGET".tar.gz "$TARGET"
     fi
 else
     echo "Creating tar.gz"

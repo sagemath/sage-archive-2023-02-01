@@ -939,6 +939,121 @@ class WordGenerator(object):
             else:
                 s1, s0 = s1*cf.next() + s0, s1
 
+    def KolakoskiWord(self, alphabet=(1,2)):
+        r"""
+        Returns the Kolakoski word over the given alphabet and
+        starting with the first letter of the alphabet.
+
+        Let `A = \{a,b\}` be an alphabet. The Kolakoski word `K_{a,b}`
+        over `A` and starting with `a` is the unique infinite word `w`
+        such that `w = \Delta(w)`, where `\Delta(w)` is the word
+        encoding the runs of `w` (see ``delta()`` method on words for
+        more details).
+
+        Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
+        words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
+        that are fixed by `\Delta`.
+
+        INPUT:
+
+        -  ``alphabet`` - (default: (1,2)) any container that is suitable to
+           build an instance of OrderedAlphabet (list, tuple, str, ...)
+
+        OUTPUT:
+
+        infinite word
+
+        EXAMPLES:
+
+        The usual Kolakoski word::
+
+            sage: w = words.KolakoskiWord()
+            sage: w
+            word: 1221121221221121122121121221121121221221...
+            sage: w.delta()
+            word: 1221121221221121122121121221121121221221...
+
+        It is naturally generalized to any two integers alphabet::
+
+            sage: w = words.KolakoskiWord(alphabet = (2,5))
+            sage: w
+            word: 2255222225555522552255225555522222555552...
+            sage: w.delta()
+            word: 2255222225555522552255225555522222555552...
+
+        TESTS::
+
+            sage: for i in range(1,10):
+            ...       for j in range(1,10):
+            ...           if i != j:
+            ...               w = words.KolakoskiWord(alphabet=(i,j))
+            ...               assert w[:50] == w.delta()[:50]
+
+        REFERENCES:
+
+        [1] William Kolakoski, proposal 5304, American Mathematical Monthly
+            72 (1965), 674; for a partial solution, see "Self Generating Runs,"
+            by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
+        """
+        return Words(alphabet)(self._KolakoskiWord_iterator(alphabet[0], alphabet[1]),
+                datatype = 'iter')
+
+    def _KolakoskiWord_iterator(self, a=1, b=2):
+        r"""
+        Returns an iterator over the Kolakoski word over ``{a,b}``
+        and starting with ``a``.
+
+        Let `A = \{a,b\}` be an alphabet. The Kolakoski word `K_{a,b}`
+        over `A` and starting with `a` is the unique infinite word `w`
+        such that `w = \Delta(w)`, where `\Delta(w)` is the word
+        encoding the runs of `w` (see ``delta()`` method on words for
+        more details).
+
+        Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
+        words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
+        that are fixed by `\Delta`.
+
+        INPUT:
+
+        -  ``a`` - positive integer (default: 1), the first letter occurring
+           in the returned Kolakoski word.
+        -  ``b`` - positive integer (default: 2), the second and last letter
+           occuring in the returned Kolakoski word.
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES:
+
+        The first ten letters of `K_{3,5}`::
+
+            sage: iter = words._KolakoskiWord_iterator(3, 5)
+            sage: Word(iter)[:10]
+            word: 3335553335
+
+        See ``words.KolakoskiWord()`` for more documentation.
+        """
+        # First, we need to treat the basis case
+        w = [a] * a
+        for _ in range(a):
+            yield a
+        if a == 1:
+            w.extend([b] * b)
+            for _ in range(b):
+                yield b
+            current_run = 2
+        else:
+            current_run = 1
+        bar = lambda x : a if x == b else b
+        # Now we are ready to go in the recursive part
+        while True:
+            current_letter = bar(w[-1])
+            for _ in range(w[current_run]):
+                yield current_letter
+                w.append(current_letter)
+            current_run += 1
+
     def LowerMechanicalWord(self, alpha, rho=0, alphabet=None):
         r"""
         Returns the lower mechanical word with slope `\alpha` and

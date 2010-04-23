@@ -688,8 +688,8 @@ cdef class TimeSeries:
 
         Log of 0 gives -inf:
 
-            sage: finance.TimeSeries([1,0,3]).log()
-            [0.0000, -inf, 1.0986]
+            sage: finance.TimeSeries([1,0,3]).log()[1]
+            -inf
         """
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length)

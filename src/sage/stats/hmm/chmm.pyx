@@ -1292,7 +1292,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[.9,.1],[.4,.6]], [[(.4,(0,1)), (.6,(1,0.1))],[(1,(0,1))]], [.7,.3])
             sage: set_random_seed(0); v = m.sample(10)
             sage: m.baum_welch(v, fix_emissions=True)
-            (-7.5865685899788922, 36)
+            (-7.58656858997889..., 36)
             sage: m.emission_parameters()
             [0.4*N(0.0,1.0) + 0.6*N(1.0,0.1), 1.0*N(0.0,1.0)]
         """

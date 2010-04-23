@@ -1129,7 +1129,7 @@ class FGP_Module_class(Module):
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (2, 0, 0)
             sage: phi = Q.hom([0,V.0,V.1]); phi
-            Morphism from module over Integer Ring with invariants (2, 0, 0) to module with invariants (0, 0, 0) that sends the generators to [(0, 0, 0), (0, 0, 1), (0, 1, 0)]
+            Morphism from module over Integer Ring with invariants (2, 0, 0) to module with invariants (0, 0, 0) that sends the generators to [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
             sage: phi.domain()
             Finitely generated module V/W over Integer Ring with invariants (2, 0, 0)
             sage: phi.codomain()
@@ -1137,7 +1137,7 @@ class FGP_Module_class(Module):
             sage: phi(Q.0)
             (0, 0, 0)
             sage: phi(Q.1)
-            (0, 0, 1)
+            (1, 0, 0)
             sage: phi(Q.2) == V.1
             True
 

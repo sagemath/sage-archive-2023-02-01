@@ -1,3 +1,4 @@
+
 """
 Miscellaneous arithmetic functions
 """
@@ -2533,16 +2534,33 @@ euler_phi = Euler_Phi()
 
 def crt(a,b,m=None,n=None):
     r"""
-    Use the Chinese Remainder Theorem to find some `x` such that
-    `x=a \bmod m` and `x=b \bmod n`. Note that `x` is only well-defined
-    modulo `m*n`.
+    Returns a solution to a Chinese Remainder Theorem problem.
+
+    INPUT:
+
+    - ``a``, ``b`` - two residues (elements of some ring for which
+      extended gcd is available), or two lists, one of residues and
+      one of moduli.
+
+    - ``m``, ``n`` - two moduli, or None.
+
+    OUTPUT:
+
+    If ``m``, ``n`` are not None, returns a solution `x` to the
+    simultaneous congruences `x\equiv a \bmod m` and `x\equiv b \bmod
+    n`, if one exists; which is if and only if `a\equiv
+    b\pmod{\gcd(m,n)}` by the Chinese Remainder Theorem. The solution
+    `x` is only well-defined modulo lcm`(m,n)`.
+
+    If ``a`` and ``b`` are lists, returns a simultaneous solution to
+    the congruences `x\equiv a_i\pmod{b_i}`, if one exists.
 
     EXAMPLES::
 
         sage: crt(2, 1, 3, 5)
-        -4
+        11
         sage: crt(13,20,100,301)
-        -2087
+        28013
 
     You can also use upper case::
 
@@ -2584,14 +2602,33 @@ def crt(a,b,m=None,n=None):
         sage: k.mod(h)
         3
 
+    If the moduli are not coprime, a solution may not exist::
+
+        sage: crt(4,8,8,12)
+	20
+	sage: crt(4,6,8,12)
+	Traceback (most recent call last):
+	...
+	ValueError: No solution to crt problem since gcd(8,12) does not divide 4-6
+
+	sage: x = polygen(QQ)
+	sage: crt(2,3,x-1,x+1)
+	-1/2*x + 5/2
+	sage: crt(2,x,x^2-1,x^2+1)
+	-1/2*x^3 + x^2 + 1/2*x + 1
+	sage: crt(2,x,x^2-1,x^3-1)
+	Traceback (most recent call last):
+	...
+	ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
 
     """
     if isinstance(a,list):
         return CRT_list(a,b)
     g, alpha, beta = XGCD(m,n)
-    if g != 1:
-        raise ValueError, "arguments a and b must be coprime"
-    return a+(b-a)*alpha*m
+    q,r = (b-a).quo_rem(g)
+    if r!=0:
+	raise ValueError, "No solution to crt problem since gcd(%s,%s) does not divide %s-%s"%(m,n,a,b)
+    return (a+q*alpha*m) % lcm(m,n)
 
 CRT = crt
 

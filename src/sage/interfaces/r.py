@@ -972,10 +972,11 @@ class R(Expect):
                       1
             sage: import os; os.unlink(filename) # For doctesting, we remove the file
 
-        Please note that for more extensive use of R's plotting capabilities (such as the
-        lattices package), it is advisable to either use an interactive plotting device
-        or to use the notebook.  The following examples are not tested, because they
-        differ depending on operating system.
+        Please note that for more extensive use of R's plotting
+        capabilities (such as the lattices package), it is advisable
+        to either use an interactive plotting device or to use the
+        notebook.  The following examples are not tested, because they
+        differ depending on operating system::
 
             sage: r.X11() # not tested - opens interactive device on systems with X11 support
             sage: r.quartz() # not tested - opens interactive device on OSX
@@ -984,9 +985,9 @@ class R(Expect):
             sage: r.histogram(x = "~ wt | cyl", data="mtcars") # not tested - makes a lattice plot
             sage: r.dev_off() # not tested, turns off the interactive viewer
 
-        In the notebook, one can use r.png() to open the device, but would need to use
-        the following since R lattice graphics do not automatically print away from the
-        command line.
+        In the notebook, one can use r.png() to open the device, but
+        would need to use the following since R lattice graphics do
+        not automatically print away from the command line::
 
             sage: filename = tmp_filename() + '.png' # Not needed in notebook, used for doctesting
             sage: r.png(filename='"%s"'%filename) # filename not needed in notebook, used for doctesting

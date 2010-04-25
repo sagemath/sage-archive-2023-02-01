@@ -4,6 +4,7 @@ Adaptive refinement code for 3d surface plotting
 AUTHOR:
     -- Tom Boothby -- Algorithm design, code
     -- Joshua Kantor -- Algorithm design
+    -- Marshall Hampton -- Docstrings and doctests
 
 TODO:
     -- Parametrizations (cylindrical, spherical)
@@ -25,23 +26,88 @@ from math import sqrt
 from random import random
 
 class Triangle:
+    """
+    A graphical triangle class.
+    """
     def __init__(self,a,b,c,color=0):
+        """
+        a, b, c : triples (x,y,z) representing corners on a triangle in 3-space.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import Triangle
+            sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,0])
+            sage: tri._a
+            [0, 0, 0]
+            sage: tri.__init__([0,0,1],[-1,2,3],[0,2,0])
+            sage: tri._a
+            [0, 0, 1]
+        """
         self._a = a
         self._b = b
         self._c = c
         self._color = color
 
     def __repr__(self):
+        """
+        Returns a string description of an instance of the Triangle class of the form
+        a b c color
+        where a, b, and c are corner coordinates and color is the color.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import Triangle
+            sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,0])
+            sage: print tri.__repr__()
+            [0, 0, 0] [-1, 2, 3] [0, 2, 0] 0
+        """
         return "%s %s %s %s"%(self._a, self._b, self._c, self._color)
 
     def set_color(self, color):
+        """
+        This method will reset the color of the triangle.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import Triangle
+            sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,1])
+            sage: tri._color
+            0
+            sage: tri.set_color(1)
+            sage: tri._color
+            1
+        """
         self._color = color
 
     def get_vertices(self):
+        """
+        Returns a tuple of vertex coordinates of the triangle.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import Triangle
+            sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,1])
+            sage: tri.get_vertices()
+            ([0, 0, 0], [-1, 2, 3], [0, 2, 1])
+        """
         return (self._a, self._b, self._c)
 
 class SmoothTriangle(Triangle):
+    """
+    A class for smoothed triangles.
+    """
     def __init__(self,a,b,c,da,db,dc,color=0):
+        """
+        a, b, c : triples (x,y,z) representing corners on a triangle in 3-space
+        da, db, dc : triples (dx,dy,dz) representing the normal vector at each point a,b,c
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import SmoothTriangle
+            sage: t = SmoothTriangle([1,2,3],[2,3,4],[0,0,0],[0,0,1],[0,1,0],[1,0,0])
+            sage: t._a
+            [1, 2, 3]
+        """
         self._a = a
         self._b = b
         self._c = c
@@ -51,9 +117,32 @@ class SmoothTriangle(Triangle):
         self._color = color
 
     def __repr__(self):
+        """
+        Returns a string representation of the SmoothTriangle of the form
+        a b c da db dc color
+        where a, b, and c are the triangle corner coordinates,
+        da, db, dc are normals at each corner, and color is the color.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import SmoothTriangle
+            sage: t = SmoothTriangle([1,2,3],[2,3,4],[0,0,0],[0,0,1],[0,1,0],[1,0,0])
+            sage: print t.__repr__()
+            [1, 2, 3] [2, 3, 4] [0, 0, 0] 0 [0, 0, 1] [0, 1, 0] [1, 0, 0]
+        """
         return "%s %s %s %s %s %s %s"%(self._a, self._b, self._c, self._color, self._da, self._db, self._dc)
 
     def get_normals(self):
+        """
+        Returns the normals to vertices a, b, and c.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import SmoothTriangle
+            sage: t = SmoothTriangle([1,2,3],[2,3,4],[0,0,0],[0,0,1],[0,1,0],[2,0,0])
+            sage: t.get_normals()
+            ([0, 0, 1], [0, 1, 0], [2, 0, 0])
+        """
         return (self._da, self._db, self._dc)
 
 
@@ -65,6 +154,14 @@ class TriangleFactory:
 
         Returns:
           a Triangle object with the specified coordinates
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TriangleFactory
+            sage: factory = TriangleFactory()
+            sage: tri = factory.triangle([0,0,0],[0,0,1],[1,1,0])
+            sage: tri.get_vertices()
+            ([0, 0, 0], [0, 0, 1], [1, 1, 0])
         """
         if color is None:
             return Triangle(a,b,c)
@@ -79,6 +176,14 @@ class TriangleFactory:
 
         Returns:
           a SmoothTriangle object with the specified coordinates and normals
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TriangleFactory
+            sage: factory = TriangleFactory()
+            sage: sm_tri = factory.smooth_triangle([0,0,0],[0,0,1],[1,1,0],[0,0,1],[0,2,0],[1,0,0])
+            sage: sm_tri.get_normals()
+            ([0, 0, 1], [0, 2, 0], [1, 0, 0])
         """
         if color is None:
             return SmoothTriangle(a,b,c,da,db,dc)
@@ -94,21 +199,51 @@ class TriangleFactory:
         Returns:
           a list of single parameters which can be passed into the set_color method of the
                   Triangle or SmoothTriangle objects generated by this factory.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TriangleFactory
+            sage: factory = TriangleFactory()
+            sage: factory.get_colors([1,2,3])
+            [1, 2, 3]
         """
         return list
 
 
 
 class TrianglePlot:
-    #Recursively plots a function of two variables by building squares of 4 triangles, checking at
-    # every stage whether or not each square should be split into four more squares.  This way,
-    # more planar areas get fewer triangles, and areas with higher curvature get more triangles
+    """
+    Recursively plots a function of two variables by building squares of 4 triangles, checking at
+    every stage whether or not each square should be split into four more squares.  This way,
+    more planar areas get fewer triangles, and areas with higher curvature get more triangles
+    """
 
     def str(self):
-        return "".join([o.str() for o in self._objects])
+        """
+        Returns a string listing the objects in the instance of the TrianglePlot class.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^3+y*x-1, (-1, 3), (-2, 100), max_depth = 4)
+            sage: len(t.str())
+            68980
+        """
+        return "".join([str(o) for o in self._objects])
 
     def __init__(self, triangle_factory, f, (min_x, max_x), (min_y, max_y), g = None,
                               min_depth=4, max_depth=8, num_colors = None, max_bend=.3):
+        """
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^2+y^2, (0, 1), (0, 1))
+            sage: t._f(1,1)
+            2
+        """
         self._triangle_factory = triangle_factory
         self._f = f
         self._g = g
@@ -161,6 +296,20 @@ class TrianglePlot:
 
 
     def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
+        """
+        Recursive triangulation function for plotting.
+        First six inputs are scalars, next 5 are 2-dimensional lists, and the depth argument
+        keeps track of the depth of recursion.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^2 + y^2, (-1,1), (-1, 1), max_depth=3)
+            sage: q = t.plot_block(0,.5,1,0,.5,1,[0,1],[0,1],[0,1],[0,1],[0,1],2)
+            sage: q.left
+            [[(0, 0, 0)], [(0, 0.500000000000000, 0.250000000000000)], [(0, 1, 0)]]
+        """
 
         if depth < self._max_depth:
             # recursion is still an option -- step in one last level if we're within tolerance
@@ -295,13 +444,22 @@ class TrianglePlot:
         return PlotBlock(left, left_c, top, top_c, right, right_c, bottom, bottom_c)
 
     def interface(self, n, p, p_c, q, q_c):
+        """
+        Takes a pair of lists of points, and compares the (n)th coordinate, and
+        "zips" the lists together into one.  The "centers", supplied in p_c and
+        q_c are matched up such that the lists describe triangles whose sides
+        are "perfectly" aligned.  This algorithm assumes that p and q start and
+        end at the same point, and are sorted smallest to largest.
 
-        # Takes a pair of lists of points, and compares the (n)th coordinate, and
-        # "zips" the lists together into one.  The "centers", supplied in p_c and
-        # q_c are matched up such that the lists describe triangles whose sides
-        # are "perfectly" aligned.  This algorithm assumes that p and q start and
-        # end at the same point, and are sorted smallest to largest.
+        TESTS::
 
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^2 - y*x, (0, -2), (0, 2), max_depth=3)
+            sage: t.interface(1, [[(-1/4, 0, 1/16)], [(-1/4, 1/4, 1/8)]], [[(-1/8, 1/8, 1/32)]], [[(-1/4, 0, 1/16)], [(-1/4, 1/4, 1/8)]], [[(-3/8, 1/8, 3/16)]])
+            sage: t._objects[-1]
+            (-1/4, 0, 1/16) (-1/4, 1/4, 1/8) (-3/8, 1/8, 3/16) 0
+        """
         m   = [p[0]] # a sorted union of p and q
         mpc = [p_c[0]] # centers from p_c corresponding to m
         mqc = [q_c[0]] # centers from q_c corresponding to m
@@ -334,10 +492,20 @@ class TrianglePlot:
 
 
     def triangulate(self, p, c):
+        """
+        Pass in a list of edge points (p) and center points (c).
+        Triangles will be rendered between consecutive edge points and the
+        center point with the same index number as the earlier edge point.
 
-        # Pass in a list of edge points (p) and center points (c).
-        # Triangles will be rendered between consecutive edge points and the
-        # center point with the same index number as the earlier edge point.
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^2 - y*x, (0, -2), (0, 2))
+            sage: t.triangulate([[[1,0,0],[0,0,1]],[[0,1,1],[1,1,1]]],[[[0,3,1]]])
+            sage: t._objects[-1].get_vertices()
+            ([1, 0, 0], [0, 1, 1], [0, 3, 1])
+        """
 
         if self._g is None:
             for i in range(0,len(p)-1):
@@ -348,25 +516,68 @@ class TrianglePlot:
 
 
     def extrema(self, list):
+        """
+        If the num_colors option has been set, this expands the TrianglePlot's _min and _max
+        attributes to include the minimum and maximum of the argument list.
 
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+            sage: tf = TriangleFactory()
+            sage: t = TrianglePlot(tf, lambda x,y: x^2+y^2, (0, 1), (0, 1), num_colors = 3)
+            sage: t._min, t._max
+            (0, 2)
+            sage: t.extrema([-1,2,3,4])
+            sage: t._min, t._max
+            (-1, 4)
+        """
         if self._num_colors is not None:
             self._min = min(list+[self._min])
             self._max = max(list+[self._max])
 
 
 def crossunit(u,v):
+    """
+    This function computes triangle normal unit vectors by taking the
+    cross-products of the midpoint-to-corner vectors.  It always goes
+    around clockwise so we're guaranteed to have a positive value near
+    1 when neighboring triangles are parallel.  However -- crossunit
+    doesn't really return a unit vector.  It returns the length of the
+    vector to avoid numerical instability when the length is nearly zero
+    -- rather than divide by nearly zero, we multiply the other side of
+    the inequality by nearly zero -- in general, this should work a bit
+    better because of the density of floating-point numbers near zero.
+
+    TESTS::
+
+        sage: from sage.plot.plot3d.tri_plot import crossunit
+        sage: crossunit([0,-1,0],[0,0,1])
+        (-1, 0, 0, 1.0)
+    """
     p = (u[1]*v[2] - v[1]*u[2], u[0]*v[2] - v[0]*u[2], u[0]*v[1] - u[1]*v[0])
     l = sqrt(p[0]**2 + p[1]**2 + p[2]**2)
     return (p[0], p[1], p[2], l)
 
 
 class PlotBlock:
-   def __init__(self, left, left_c, top, top_c, right, right_c, bottom, bottom_c):
-       self.left = left
-       self.left_c = left_c
-       self.top = top
-       self.top_c = top_c
-       self.right = right
-       self.right_c = right_c
-       self.bottom = bottom
-       self.bottom_c = bottom_c
+    """
+    A container class to hold information about spatial blocks.
+    """
+    def __init__(self, left, left_c, top, top_c, right, right_c, bottom, bottom_c):
+        """
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.tri_plot import PlotBlock
+            sage: pb = PlotBlock([0,0,0],[0,1,0],[0,0,1],[0,0,.5],[1,0,0],[1,1,0],[-2,-2,0],[0,0,0])
+            sage: pb.left
+            [0, 0, 0]
+        """
+        self.left = left
+        self.left_c = left_c
+        self.top = top
+        self.top_c = top_c
+        self.right = right
+        self.right_c = right_c
+        self.bottom = bottom
+        self.bottom_c = bottom_c

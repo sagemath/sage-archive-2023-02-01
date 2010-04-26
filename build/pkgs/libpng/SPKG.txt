@@ -36,6 +36,10 @@ This spkg provides dependencies for
 
 == Changelog ==
 
+=== libpng-1.2.35.p1 (Jaap Spies, Feb 1th, 2010) ===
+ * Remove duplicate copy of libpng from spkg
+ * #8767: Use CPPFLAGS instead of CFLAGS for include paths
+
 === libpng-1.2.35.p0 (Jaap Spies, Feb 1th, 2010) ===
  *
 

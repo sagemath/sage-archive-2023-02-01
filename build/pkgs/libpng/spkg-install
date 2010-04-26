@@ -12,12 +12,15 @@ cd src
 
 # Need to detect zlib
 if [ "x$SAGE64" = xyes ]; then
-    CFLAGS="-m64 $CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
+    CFLAGS="-m64 $CFLAGS -fPIC -g"
     LDFLAGS="-m64"; export LDFLAGS
 else
-    CFLAGS="$CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
+    CFLAGS="$CFLAGS -fPIC -g"
 fi
 export CFLAGS
+
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+export CPPFLAGS
 
 
 ./configure --prefix="$SAGE_LOCAL" --enable-shared=yes

@@ -29,6 +29,10 @@ else
 fi
 
 cp patches/mpn_mulmid-tune.c patches/mul-tune.c patches/mulmid-tune.c src/tune
+if [ $? -ne 0 ]; then
+	echo "Error patching."
+	exit 1
+fi
 
 cd src
 
@@ -43,13 +47,26 @@ if [ $? -ne 0 ]; then
 fi
 tune/tune > src/tuning.c
 
+if [ $? -ne 0 ]; then
+	echo "Error running tune program."
+	exit 1
+fi
+
 
 # run test suite (quick version)
 make check
 
+if [ $? -ne 0 ]; then
+	echo "Error running test suite."
+	exit 1
+fi
 
 make
 
+if [ $? -ne 0 ]; then
+	echo "Error building."
+	exit 1
+fi
 
 # UNIX
 if [ $UNAME != "Darwin" ]; then

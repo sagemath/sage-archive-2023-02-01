@@ -25,8 +25,9 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
 == Changelog ==
 
 
-=== zn_poly-0.9.p4 (Willem Jan Palenstijn, April 26th, 2010) ===
+=== zn_poly-0.9.p4 (Willem Jan Palenstijn, William Stein, April 26th, 2010) ===
  * Ticket #8711: Fix build error on gcc 4.5, and check if make tune succeeded.
+ * Added more checks for errors in spkg-install.
 
 === zn_poly-0.9.p3 (Jaap Spies, February 21th, 2010) ===
  * Ticket #8178: if SAGE64=yes we set CFLAGS appropriate. In patches/makemakefile.py we add $(LDFLAGS)

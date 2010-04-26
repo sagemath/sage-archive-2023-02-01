@@ -28,6 +28,8 @@ else
    LDFLAGS=""; export LDFLAGS
 fi
 
+cp patches/mpn_mulmid-tune.c patches/mul-tune.c patches/mulmid-tune.c src/tune
+
 cd src
 
 ./configure --gmp-prefix="$SAGE_LOCAL" --ntl-prefix="$SAGE_LOCAL" \
@@ -35,6 +37,10 @@ cd src
 
 # optionally run tuning program, only takes 1 minute or so
 make tune
+if [ $? -ne 0 ]; then
+	echo "Error building zn_poly tuning program."
+	exit 1
+fi
 tune/tune > src/tuning.c
 
 

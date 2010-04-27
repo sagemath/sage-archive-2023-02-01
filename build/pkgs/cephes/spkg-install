@@ -2,6 +2,11 @@
 
 CUR=`pwd`
 
+function patch {
+    cd "$CUR"
+    cp patches/complex.h src/
+}
+
 function make_complex_h {
     cd "$CUR"
     cp src/complex.h "$SAGE_LOCAL"/include
@@ -67,5 +72,5 @@ function build {
     make_c9x_complex
 }
 
-
+patch
 build

@@ -13,7 +13,7 @@ cdef extern from "planarity/graph.h":
         int N
     ctypedef BM_graph * graphP
 
-    cdef int OK, EMBEDFLAGS_PLANAR, NONPLANAR, NOTOK
+    cdef int OK, EMBEDFLAGS_PLANAR, NONEMBEDDABLE, NOTOK
 
     cdef graphP gp_New()
     cdef void gp_Free(graphP *pGraph)
@@ -92,7 +92,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         status = gp_AddEdge(theGraph, u, 0, v, 0)
         if status == NOTOK:
             raise RuntimeError("gp_AddEdge status is not ok.")
-        elif status == NONPLANAR:
+        elif status == NONEMBEDDABLE:
             # We now know that the graph is nonplanar.
             if not kuratowski:
                 return False
@@ -108,7 +108,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
 
     if status == NOTOK:
         raise RuntimeError("not ok.")
-    elif status == NONPLANAR:
+    elif status == NONEMBEDDABLE:
         # Kuratowski subgraph isolator
         g_dict = {}
         from sage.graphs.graph import Graph

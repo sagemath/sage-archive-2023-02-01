@@ -2183,7 +2183,7 @@ ex function::power(const ex & power_param) const // power of function
 	
 	// No derivative defined? Then return abstract derivative object
 	if (opt.power_f == NULL)
-		return (new power::power(*this, power_param))->setflag(status_flags::dynallocated |
+		return (new GiNaC::power(*this, power_param))->setflag(status_flags::dynallocated |
 	                                               status_flags::evaluated);
 
 	current_serial = serial;

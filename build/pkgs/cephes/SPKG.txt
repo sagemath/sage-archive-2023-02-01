@@ -1,0 +1,27 @@
+= Cephes  =
+
+== Description ==
+
+Cephes Mathematical Library. Latest Linux distribution, dated
+6/4/00. Special functions and other goodies in C, including long
+double precision routines for 68K, 386, and sparc processors. This is
+the most complete distribution package of the function library (but
+not the most up-to-date one). It includes these sections-- double: all
+functions in 64-bit double precision; single: all available functions
+in 32-bit single precision; long double: all available functions in
+80-bit extended precision; 128bit: all available functions in 128-bit
+long double precision; qlib: all functions in q-type extended (44 to
+106 decimal) precision, includes a C++ class for the binary floating
+point arithmetic and a q-type calculator program; c9x-complex: new C
+language standard C9X data type for complex variables, header
+complex.h for GNU C and functions in float complex, double complex,
+and long double complex precisions.
+
+Website: http://www.moshier.net/
+
+Download: http://www.moshier.net/cephes-math-28.tar.gz
+
+== Changelog ==
+
+=== cephes-2.8 (Mike Hansen, April 26th, 2010) ===
+ * Initial version

@@ -34,6 +34,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.4.p1 (Mike Hansen, May 26th, 2010) ===
+ * Added a patch to make PolyBoRi build on Cygwin (#7337)
+
 === polybori-0.6.4 (Burcin Erocal and Alexander Dreyer, March 12th, 2010) ===
  * upgraded to current upstream release
  * removed obsolete patches (SConstruct, cpu_stats.c)

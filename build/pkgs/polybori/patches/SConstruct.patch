@@ -1,9 +1,9 @@
---- /tmp/polybori/SConstruct	2009-10-28 10:47:24.893003797 +0000
-+++ SConstruct	2009-10-28 10:56:12.568030415 +0000
-@@ -147,7 +147,13 @@
- opts.Add('CXXFLAGS', "C++ compiler flags",
-          "-std=c++98 -ftemplate-depth-100",
-          converter = Split)
+--- ../src/polybori-0.6.4/SConstruct	2010-01-29 01:02:02.000000000 -0800
++++ SConstruct	2010-04-27 00:22:46.000000000 -0700
+@@ -164,7 +164,14 @@
+     else:
+         print "Flags", flag, "not in default environment!"        
+     
 -opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 +#The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
 +# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
@@ -12,10 +12,29 @@
 +         opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
 +#End modifications
 +
++#opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
  opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
-@@ -511,8 +517,11 @@
+@@ -348,7 +355,7 @@
+ if not env.GetOption('clean'):
+     conf = Configure(env)
+     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
+-        env.Append(LIBS=["gd"])
++        env.Append(LIBS=["gd", "png12", "z"])
+         env.Append(CPPDEFINES=["HAVE_GD"])
+ 
+     if env['FORCE_HASH_MAP']:
+@@ -401,7 +408,7 @@
+                 print "Tutorial will not be installed"
+     external_m4ri = conf.CheckLib('m4ri')
+     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
+-        env.Append(LIBS=["gd"])
++        env.Append(LIBS=["gd", "png12", "z"])
+         env.Append(CPPDEFINES=["HAVE_GD"])
+     if external_m4ri:
+        env['LIBS'] += ['m4ri']
+@@ -530,8 +537,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -29,7 +48,7 @@
  
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
-@@ -1232,6 +1241,11 @@
+@@ -1248,6 +1258,11 @@
      env.AlwaysBuild(ipboribin)   
      env.Alias('install', ipboribin)
  

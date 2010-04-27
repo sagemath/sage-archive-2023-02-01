@@ -355,7 +355,7 @@ external_m4ri = False
 if not env.GetOption('clean'):
     conf = Configure(env)
     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
-        env.Append(LIBS=["gd"])
+        env.Append(LIBS=["gd", "png12", "z"])
         env.Append(CPPDEFINES=["HAVE_GD"])
 
     if env['FORCE_HASH_MAP']:
@@ -408,7 +408,7 @@ if not env.GetOption('clean'):
                 print "Tutorial will not be installed"
     external_m4ri = conf.CheckLib('m4ri')
     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
-        env.Append(LIBS=["gd"])
+        env.Append(LIBS=["gd", "png12", "z"])
         env.Append(CPPDEFINES=["HAVE_GD"])
     if external_m4ri:
        env['LIBS'] += ['m4ri']

@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+if [ $UNAME = "CYGWIN" ]; then
+    cp patches/expr "$SAGE_LOCAL/bin"
+fi
 
 # Critical to get rid of old versions, since they will break the install, since
 # at some point one of the libraries accidently links against what's in SAGE_LOCAL,

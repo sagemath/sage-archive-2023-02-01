@@ -1,8 +1,17 @@
 = gd =
 
+GD is an open source code library for the dynamic creation of images
+by programmers. GD creates PNG, JPEG and GIF images, among other
+formats. GD is commonly used to generate charts, graphics, thumbnails,
+and most anything else, on the fly. While not restricted to use on the
+web, the most common applications of GD involve web site development.
+
 * Get it from http://www.libgd.org/
 
 == Changelog ==
+
+=== gd-2.0.35.p5 (Mike Hansen, April 26th, 2010) ===
+ * Add a version of expr that makes the build work on Cygwin.
 
 === gd-2.0.35.p4 (Jaap Spies, Jan 28th, 2010) ===
  * This is #8113 If SAGE64=yes add -m64 to CFLAGS an LDFLAGS.

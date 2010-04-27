@@ -506,6 +506,14 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
       graph, and this is not the easiest way. By Vizing's theorem, a graph
       has a chromatic index equal to `\Delta` or to `\Delta + 1`.
 
+    .. NOTE::
+
+       In a few cases, it is possible to find very quickly the chromatic
+       index of a graph, while it remains a tedious job to compute
+       a corresponding coloring. For this reason, ``value_only = True``
+       can sometimes be much faster, and it is a bad idea to compute
+       the whole coloring if you do not need it !
+
     EXAMPLE::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
@@ -525,7 +533,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
 
     if g.is_clique():
         if value_only:
-            return g.order() if g.order() % 2 == 0 else g.order() + 1
+            return g.order()-1 if g.order() % 2 == 0 else g.order()
         vertices = g.vertices()
         r = round_robin(g.order())
         classes = [[] for v in g]
@@ -537,6 +545,9 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
             return dict(zip(rainbow(len(classes)), classes))
         else:
             return classes
+
+    if value_only and g.is_overfull():
+        return max(g.degree())+1
 
     p = MixedIntegerLinearProgram(maximization=True)
     color = p.new_variable(dim=2)

@@ -1824,6 +1824,45 @@ class GenericGraph(GenericGraph_pyx):
                 return False
         return True
 
+    def is_overfull(self):
+        r"""
+        Tests whether the current graph is overfull.
+
+        A graph `G` on `n` vertices and `m` edges is said to
+        be overfull if :
+
+            - `n` is odd
+
+            - It satisfies `2m > (n-1)\Delta(G)`, where
+              `\Delta(G)` denotes the maximal degree of
+              a vertex in `G`
+
+        An overfull graph must have a chromatic index of `\Delta(G)+1`.
+
+        EXAMPLE:
+
+        A complete graph is overfull if and only if its number
+        of vertices is odd::
+
+            sage: graphs.CompleteGraph(6).is_overfull()
+            False
+            sage: graphs.CompleteGraph(7).is_overfull()
+            True
+
+        The Petersen Graph, though, is not overfull while
+        its chromatic index is `\Delta+1`::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_overfull()
+            False
+            sage: from sage.graphs.graph_coloring import edge_coloring
+            sage: max(g.degree()) + 1 ==  edge_coloring(g, value_only=True) # optional - requires GLPK CBC or CPLEX
+            True
+        """
+
+        return (self.order() % 2 == 1) and \
+            (2*self.size() > max(self.degree())*(self.order()-1))
+
     def order(self):
         """
         Returns the number of vertices. Note that len(G) returns the number

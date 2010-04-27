@@ -1,4 +1,4 @@
-#!/bin/sh
+B1;2000;0c#!/bin/sh
 ###########################################
 ## PARI
 ###########################################
@@ -163,7 +163,11 @@ build()
        echo "The changes are much smaller than needed on OS X"
        cp  "$TOP"/patches/paripriv-Solaris.h $SAGE_LOCAL/include/pari/paripriv.h
        set +e
+    elif [ "$UNAME" = "CYGWIN" ]; then
+       # We need to the same thing on Cygwin that we have to do on Solaris
+       cp  "$TOP"/patches/paripriv-Solaris.h $SAGE_LOCAL/include/pari/paripriv.h
     fi
+
     echo "Installing extra Galois groups data."
     make install-data
     if [ $? -ne 0 ]; then

@@ -65,6 +65,9 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.5.p1 (Mike Hansen, May 25th 2010) ===
+ * Do the same fix for Cygwin that we do on Solaris.
+
 === pari-2.3.5.p0 (Georg S. Weber, May 2nd, 2010 ===
  * restore resp. correct the file patches/get_dlld
    (there seems to have been a copy'n'paste issue w.r.t. pari-2.3.3.p8)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CUR = `pwd`
+CUR=`pwd`
 
 function make_complex_h {
     cd "$CUR"

@@ -23,6 +23,11 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.12.p2 (Dima Pasechnik, 2010-4-27) ===
+ * removed everything in src/bin/ (Windows/Cygwin-less related stuff,
+   i.e. not needed if full-blown Cygwin is used),
+   and GAP 4 PPC (a MacOS 9 executable) in src/
+
 === gap-4.4.12.p1 (Dima Pasechnik, 2010-1-25) ===
  * See ticket #8076 for full details.
  * Added .hgignore.

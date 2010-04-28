@@ -32,6 +32,11 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+cp patches/linalg.cpp patches/matrix.h src/
+if [ $? -ne 0 ]; then
+    echo "Patch to fix gcc 4.5.0 issues did not copy correctly"
+    exit 1
+fi
 
 cd src/
 

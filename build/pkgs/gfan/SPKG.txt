@@ -39,6 +39,10 @@ most of the space.
 
 == Changelog ==
 
+=== gfan-0.4plus.p1 (William Stein, Willem Jan Palenstijn, April 28, 2010) ===
+ * #8770: Work around gcc 4.5.0 bug in matrix.h by removing an assert
+ * #8770: Fix syntax error in linalg.cpp that gcc 4.5.0 complains about
+
 === gfan-0.4plus (Alex Ghitza, David Kirkby, January 6, 2010) ===
  * Upgrade to version 0.4plus
  * Clarify license (trac #3043)

@@ -92,7 +92,7 @@ Finally we illustrate the Chinese remainder theorem.
 ::
 
     sage: x = crt(2, 1, 3, 5); x
-    -4
+    11
     sage: x % 3  # x mod 3 = 2
     2
     sage: x % 5  # x mod 5 = 1

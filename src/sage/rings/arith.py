@@ -2542,24 +2542,35 @@ def crt(a,b,m=None,n=None):
       extended gcd is available), or two lists, one of residues and
       one of moduli.
 
-    - ``m``, ``n`` - two moduli, or None.
+    - ``m``, ``n`` - (default: ``None``) two moduli, or ``None``.
 
     OUTPUT:
 
-    If ``m``, ``n`` are not None, returns a solution `x` to the
+    If ``m``, ``n`` are not ``None``, returns a solution `x` to the
     simultaneous congruences `x\equiv a \bmod m` and `x\equiv b \bmod
-    n`, if one exists; which is if and only if `a\equiv
-    b\pmod{\gcd(m,n)}` by the Chinese Remainder Theorem. The solution
-    `x` is only well-defined modulo lcm`(m,n)`.
+    n`, if one exists. By the Chinese Remainder Theorem, a solution to the
+    simultaneous congruences exists if and only if
+    `a\equiv b\pmod{\gcd(m,n)}`. The solution `x` is only well-defined modulo
+    `\text{lcm}(m,n)`.
 
     If ``a`` and ``b`` are lists, returns a simultaneous solution to
     the congruences `x\equiv a_i\pmod{b_i}`, if one exists.
 
-    EXAMPLES::
+    .. SEEALSO::
+
+        - :func:`CRT_list`
+
+    EXAMPLES:
+
+    Using ``crt`` by giving it pairs of residues and moduli::
 
         sage: crt(2, 1, 3, 5)
         11
-        sage: crt(13,20,100,301)
+        sage: crt(13, 20, 100, 301)
+        28013
+        sage: crt([2, 1], [3, 5])
+        11
+        sage: crt([13, 20], [100, 301])
         28013
 
     You can also use upper case::
@@ -2622,13 +2633,13 @@ def crt(a,b,m=None,n=None):
 	ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
 
     """
-    if isinstance(a,list):
-        return CRT_list(a,b)
-    g, alpha, beta = XGCD(m,n)
-    q,r = (b-a).quo_rem(g)
-    if r!=0:
-	raise ValueError, "No solution to crt problem since gcd(%s,%s) does not divide %s-%s"%(m,n,a,b)
-    return (a+q*alpha*m) % lcm(m,n)
+    if isinstance(a, list):
+        return CRT_list(a, b)
+    g, alpha, beta = XGCD(m, n)
+    q, r = (b - a).quo_rem(g)
+    if r != 0:
+	raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
+    return (a + q*alpha*m) % lcm(m, n)
 
 CRT = crt
 
@@ -2636,6 +2647,10 @@ def CRT_list(v, moduli):
     r""" Given a list ``v`` of elements and a list of corresponding
     ``moduli``, find a single element that reduces to each element of
     ``v`` modulo the corresponding moduli.
+
+    .. SEEALSO::
+
+        - :func:`crt`
 
     EXAMPLES::
 

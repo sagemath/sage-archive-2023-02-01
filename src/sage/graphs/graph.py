@@ -69,6 +69,8 @@ AUTHORS:
                              and everything that uses Linear Programming
                              and class numerical.MIP
 
+- Nicolas M. Thiery (2010-02): graph layout code refactoring, dot2tex/graphviz interface
+
 
 Graph Format
 ------------
@@ -2244,53 +2246,30 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def write_to_eps(self, filename, iterations=50):
+    def write_to_eps(self, filename, **options):
         r"""
-        Writes a plot of the graph to filename in eps format.
+        Writes a plot of the graph to ``filename`` in ``eps`` format.
 
-        It is relatively simple to include this file in a latex document:
+        INPUT:
 
-        INPUT: filename
-
-
-        -  ``iterations`` - how many iterations of the spring
-           layout algorithm to go through, if applicable
-
-
-        ``usepackagegraphics`` must appear before the beginning of the
-        document, and ``includegraphics filename.eps`` will include it in your latex
-        doc. Note: you cannot use pdflatex to print the resulting document,
-        use TeX and Ghostscript or something similar instead.
+         - ``filename`` -- a string
+         - ``**options`` -- same layout options as :meth:`.layout`
 
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: P.write_to_eps(tmp_dir() + 'sage.eps')
+
+        It is relatively simple to include this file in a LaTeX
+        document.  ``\usepackagegraphics`` must appear in the
+        preamble, and ``\includegraphics{filename.eps}`` will include
+        the file. To compile the document to ``pdf`` with ``pdflatex``
+        the file needs first to be converted to ``pdf``, for example
+        with ``ps2pdf filename.eps filename.pdf``.
         """
         from sage.graphs.print_graphs import print_graph_eps
-        if self._pos is None:
-            pos = generic_graph_pyx.spring_layout_fast(self, iterations=iterations)
-        else:
-            pos = self._pos
-            keys = pos.keys()
-            for v in self.vertices():
-                if v not in keys:
-                    pos = generic_graph_pyx.spring_layout_fast(self, iterations=iterations)
-                    break
-        xmin = 0.0
-        ymin = 0.0
-        xmax = -1.0
-        ymax = -1.0
-        for v in pos:
-            x,y = pos[v]
-            if (x > xmax):
-                xmax = x
-            if (x < xmin):
-                xmin = x
-            if (y > ymax):
-                ymax = y
-            if (y < ymin):
-                ymin = y
+        pos = self.layout(**options)
+        [xmin, xmax, ymin, ymax] = self._layout_bounding_box(pos)
         for v in pos:
             pos[v] = (1.8*(pos[v][0] - xmin)/(xmax - xmin) - 0.9, 1.8*(pos[v][1] - ymin)/(ymax - ymin) - 0.9)
         if filename[-4:] != '.eps':
@@ -2299,23 +2278,6 @@ class Graph(GenericGraph):
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
 
-    def graphviz_string(self):
-       r"""
-       Returns a representation in the DOT language, ready to render in
-       graphviz.
-
-       REFERENCES:
-
-       - http://www.graphviz.org/doc/info/lang.html
-
-       EXAMPLES::
-
-           sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
-           sage: s = G.graphviz_string()
-           sage: s
-           'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
-       """
-       return self._graphviz_string_helper("graph", "--") # edge_string is "--" for undirected graphs
 
     ### Cliques
 

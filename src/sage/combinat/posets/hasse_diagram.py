@@ -106,38 +106,11 @@ class HasseDiagram(DiGraph):
                     return False
             return True
 
-    def level_sets(self):
-        """
-        Returns a list l such that l[i+1] is the set of minimal elements of
-        the poset obtained by removing the elements in l[0], l[1], ...,
-        l[i].
-
-        EXAMPLES::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: [len(x) for x in H.level_sets()]
-            [1, 2, 1]
-
-        ::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2], 1:[3], 2:[4], 3:[4]})
-            sage: [len(x) for x in H.level_sets()]
-            [1, 2, 1, 1]
-        """
-        from copy import copy
-        G = copy(self)
-        Levels = []
-        while G.vertices() != []:
-            indegs = G.in_degree(labels=True)
-            new_level = [x for x in indegs if indegs[x]==0]
-            Levels.append(new_level)
-            G.delete_vertices(new_level)
-        return Levels
+    # Could this be achieved by adding some options to
+    # GenericGraph.plot, and just overriding graphics_array_defaults?
 
     def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',**kwds):
+            label_font_size=12,label_font_color='black', layout = "acyclic", **kwds):
         """
         Returns a Graphics object corresponding to the Hasse diagram.
 
@@ -161,24 +134,11 @@ class HasseDiagram(DiGraph):
         if element_labels is None:
             element_labels = range(self.num_verts())
 
-        # Compute dictionary of heights.
-        if self._pos is None:
-            # Determine heights of vertices based on levels.
-            levels = self.level_sets()
-            sort_fcn = lambda x,y: cmp(element_labels[x], element_labels[y])
-            levels = [sorted(z,sort_fcn) for z in levels]
-            heights = dict([[i, [element_labels[j] for j in levels[i]]] for i in range(len(levels))])
-
-        else:
-            heights = None
-
         # Create the underlying graph.
-        graph = self.to_undirected()
+        graph = DiGraph(self)
         graph.relabel(element_labels)
 
-        G = graph.plot(heights=heights, **kwds)
-
-        return G
+        return graph.plot(layout = layout, **kwds)
 
     def show(self, label_elements=True, element_labels=None,
             label_font_size=12,label_font_color='black',

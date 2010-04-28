@@ -14,7 +14,8 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
-from generic_graph_pyx import GenericGraph_pyx
+from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
+from sage.graphs.dot2tex_utils import assert_have_dot2tex
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -43,12 +44,12 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 0 vertices
         """
         self._latex_opts = None
-        from sage.graphs.graph_latex import have_tkz_graph
-        from sage.misc.latex import latex
-        if have_tkz_graph():
-            latex.add_to_preamble('\\usepackage{tkz-graph}')
-            latex.add_to_preamble('\\usepackage{tkz-berge}')
-            latex.add_to_jsmath_avoid_list('\\begin{tikzpicture}')
+        # FIXME: this has nothing to do here. Ideally, we would want
+        # this to be run just once, just before the creation of a full
+        # latex file including a graph.
+        # There should be a Sage-wide strategy for handling this.
+        from sage.graphs.graph_latex import setup_latex_preamble
+        setup_latex_preamble()
 
     def __add__(self, other_graph):
         """
@@ -179,6 +180,8 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: graphs are mutable, and thus not hashable
         """
+        if getattr(self, "_immutable", False):
+            return hash((tuple(self.vertices()), tuple(self.edges())))
         raise TypeError, "graphs are mutable, and thus not hashable"
 
     def __mul__(self, n):
@@ -295,7 +298,7 @@ class GenericGraph(GenericGraph_pyx):
         s += '0'*(total_length-len(s))
         return s
 
-    def _latex_(self, **options):
+    def _latex_(self):
         r""" Returns a string to render the graph using
         `\mbox{\rm{\LaTeX}}`.
 
@@ -865,19 +868,19 @@ class GenericGraph(GenericGraph_pyx):
             [-1 -1  3 -1]
             [-1  0 -1  2]
 
-	A weighted directed graph with loops, changing the variable ``indegree`` ::
+        A weighted directed graph with loops, changing the variable ``indegree`` ::
 
-	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
+            sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
             sage: G.laplacian_matrix()
-	    [ 4 -3]
-	    [-4  3]
+            [ 4 -3]
+            [-4  3]
 
 ::
 
-	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
+            sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
             sage: G.laplacian_matrix(indegree=False)
-	    [ 3 -3]
-	    [-4  4]
+            [ 3 -3]
+            [-4  4]
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import IntegerRing
@@ -1527,7 +1530,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.name(new)
 
-    def get_pos(self):
+    def get_pos(self, dim = 2):
         """
         Returns the position dictionary, a dictionary specifying the
         coordinates of each vertex.
@@ -1550,15 +1553,21 @@ class GenericGraph(GenericGraph_pyx):
              ...
              9: (..., ...)}
         """
-        return self._pos
+        if dim == 2:
+            return self._pos
+        elif dim == 3:
+            return getattr(self, "_pos3d", None)
+        else:
+            raise ValueError("dim must be 2 or 3")
 
-    def check_pos_validity(self, pos=None):
+    def check_pos_validity(self, pos=None, dim = 2):
         r"""
-        Checks whether pos specifies two coordinates for every vertex (and no more vertices).
+        Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
 
         INPUT:
 
-            - pos - a position dictionary for a set of vertices
+            - ``pos`` - a position dictionary for a set of vertices
+            - ``dim`` - 2 or 3 (default: 3
 
         OUTPUT:
 
@@ -1575,7 +1584,7 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if pos is None:
-            pos = getattr(self, '_pos', None)
+            pos = self.get_pos(dim = dim)
         if pos is None:
             return False
         if len(pos) != self.order():
@@ -1583,11 +1592,11 @@ class GenericGraph(GenericGraph_pyx):
         for v in pos:
             if not self.has_vertex(v):
                 return False
-            if len(pos[v]) != 2:
+            if len(pos[v]) != dim:
                 return False
         return True
 
-    def set_pos(self, pos):
+    def set_pos(self, pos, dim = 2):
         """
         Sets the position dictionary, a dictionary specifying the
         coordinates of each vertex.
@@ -1609,7 +1618,12 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: string indices must be integers, not str
         """
-        self._pos = pos
+        if dim == 2:
+            self._pos = pos
+        elif dim == 3:
+            self._pos3d = pos
+        else:
+            raise ValueError("dim must be 2 or 3")
 
     def weighted(self, new=None):
         """
@@ -2367,13 +2381,35 @@ class GenericGraph(GenericGraph_pyx):
                 self.set_planar_positions()
         return result
 
-    def set_planar_positions(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False):
+    # TODO: rename into _layout_planar
+    def set_planar_positions(self, test = False, **layout_options):
         """
-        Uses Schnyder's algorithm to determine positions for a planar
-        embedding of self, raising an error if self is not planar.
+        Compute a planar layout for self using Schnyder's algorithm,
+        and save it as default layout.
+
+        EXAMPLES::
+
+            sage: g = graphs.CycleGraph(7)
+            sage: g.set_planar_positions(test=True)
+            True
+
+        This method is deprecated. Please use instead:
+
+            sage: g.layout(layout = "planar", save_pos = True)
+            {0: [1, 1], 1: [2, 2], 2: [3, 2], 3: [1, 4], 4: [5, 1], 5: [0, 5], 6: [1, 0]}
+        """
+        self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
+        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
+            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
+        else:
+            return
+
+    def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
+        """
+        Uses Schnyder's algorithm to compute a planar layout for self,
+        raising an error if self is not planar.
 
         INPUT:
-
 
         -  ``set_embedding`` - if True, sets the combinatorial
            embedding used (see self.get_embedding())
@@ -2383,8 +2419,7 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``external_face`` - ignored
 
-        -  ``test`` - if True, perform sanity tests along the
-           way
+        -  ``test`` - if True, perform sanity tests along the way
 
         -  ``circular`` - ignored
 
@@ -2482,7 +2517,6 @@ class GenericGraph(GenericGraph_pyx):
 
         # Compute the coordinates and store in position dictionary (attr self._pos)
         _compute_coordinates( G, tree_nodes )
-        self._pos = G._pos
 
         # Delete all the edges added to the graph
         #G.delete_edges( extra_edges )
@@ -2491,10 +2525,7 @@ class GenericGraph(GenericGraph_pyx):
         if embedding_copy is not None:
             self._embedding = embedding_copy
 
-        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
-            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
-        else:
-            return
+        return G._pos
 
     def is_drawn_free_of_edge_crossings(self):
         """
@@ -5127,10 +5158,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.networkx_graph().adj           # random output order
             {1: {2: 'label'}, 2: {1: 'label'}}
 
-        The following syntax is supported, but note you must use the
-        label keyword.
-
-        ::
+        The following syntax is supported, but note that you must use
+        the ``label`` keyword::
 
             sage: G = Graph()
             sage: G.add_edge((1,2), label='label')
@@ -8365,8 +8394,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
-        -  ``vertices`` - a list of indices for the vertices of
+        -  ``vertices`` -- a list of indices for the vertices of
            the cycle to be added.
 
 
@@ -9074,14 +9102,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: opts = g.latex_options()
             sage: opts
-            LaTeX options for Petersen graph: {'tkz_style': 'Normal'}
+            LaTeX options for Petersen graph: {}
             sage: opts.set_option('tkz_style', 'Classic')
             sage: opts
             LaTeX options for Petersen graph: {'tkz_style': 'Classic'}
         """
-        from sage.graphs.graph_latex import GraphLatex
-        if self._latex_opts == None:
-             self._latex_opts = GraphLatex(self)
+        if self._latex_opts is None:
+            from sage.graphs.graph_latex import GraphLatex
+            self._latex_opts = GraphLatex(self)
         return self._latex_opts
 
     def set_latex_options(self, **kwds):
@@ -9111,6 +9139,446 @@ class GenericGraph(GenericGraph_pyx):
         """
         opts = self.latex_options()
         opts.set_options(**kwds)
+
+
+    def layout(self, layout = None, pos = None, dim = 2, save_pos = False, **options):
+        """
+        Returns a layout for the vertices of this graph.
+
+        INPUT:
+
+         - layout -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree"
+
+         - pos -- a dictionary of positions or None (the default)
+
+         - save_pos -- a boolean
+
+         - layout options -- (see below)
+
+        If ``layout=algorithm`` is specified, this algorithm is used
+        to compute the positions.
+
+        Otherwise, if ``pos`` is specified, use the given positions.
+
+        Otherwise, try to fetch previously computed and saved positions.
+
+        Otherwise use the default layout (usually the spring layout)
+
+        If ``save_pos = True``, the layout is saved for later use.
+
+        EXAMPLES::
+
+            sage: g = digraphs.ButterflyGraph(1)
+            sage: g.layout()
+            {('1', 1): [..., ...],
+             ('0', 0): [..., ...],
+             ('1', 0): [..., ...],
+             ('0', 1): [..., ...]}
+
+            sage: 1+1
+            2
+            sage: x = g.layout(layout = "acyclic_dummy", save_pos = True)
+            sage: x =  {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
+
+            {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
+
+
+            sage: g.layout(dim = 3)
+            {('1', 1): [..., ..., ...],
+             ('0', 0): [..., ..., ...],
+             ('1', 0): [..., ..., ...],
+             ('0', 1): [..., ..., ...]}
+
+        Here is the list of all the available layout options::
+
+            sage: from sage.graphs.graph_plot import layout_options
+            sage: list(sorted(layout_options.iteritems()))
+            [('by_component', 'Whether to do the spring layout by connected component -- a boolean.'),
+             ('dim', 'The dimension of the layout -- 2 or 3.'),
+             ('heights', 'A dictionary mapping heights to the list of vertices at this height.'),
+             ('iterations', 'The number of times to execute the spring layout algorithm.'),
+             ('layout', 'A layout algorithm -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree".'),
+             ('prog', 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".'),
+             ('save_pos', 'Whether or not to save the computed position for the graph.'),
+             ('spring', 'Use spring layout to finalize the current layout.'),
+             ('tree_orientation', 'The direction of tree branches -- "up" or "down".'),
+             ('tree_root', 'A vertex designation for drawing trees.')]
+
+        Some of them only apply to certain layout algorithms. For
+        details, see :meth:`.layout_acyclic`, :meth:`.layout_planar`,
+        :meth:`.layout_circular`, :meth:`.layout_spring`, ...
+
+        ..warning: unknown optional arguments are silently ignored
+
+        ..warning: ``graphviz`` and ``dot2tex`` are currently required
+        to obtain a nice 'acyclic' layout. See
+        :meth:`.layout_graphviz` for installation instructions.
+
+        A subclass may implement another layout algorithm `blah`, by
+        implementing a method :meth:`.layout_blah`. It may override
+        the default layout by overriding :meth:`.layout_default`, and
+        similarly override the predefined layouts.
+
+        TODO: use this feature for all the predefined graphs classes
+        (like for the Petersen graph, ...), rather than systematically
+        building the layout at construction time.
+        """
+        if layout is None:
+            if pos is None:
+                pos = self.get_pos(dim = dim)
+            if pos is None:
+                layout = 'default'
+
+        if hasattr(self, "layout_%s"%layout):
+            pos = getattr(self, "layout_%s"%layout)(dim = dim, **options)
+        elif layout is not None:
+            raise ValueError, "unknown layout algorithm: %s"%layout
+
+        if len(pos) < self.order():
+            pos = self.layout_extend_randomly(pos, dim = dim)
+
+        if save_pos:
+            self.set_pos(pos, dim = dim)
+        return pos
+
+
+    def layout_spring(self, heights = None, by_component = True, **options):
+        """
+        Computes a spring layout for this graph
+
+        INPUT:
+
+         - ``iterations`` -- a positive integer
+         - ``dim`` -- 2 or 3 (default: 2)
+
+        OUTPUT: a dictionary mapping vertices to positions
+
+        Returns a layout computed by randomly arranging the vertices
+        along the given heights
+
+        EXAMPLES::
+
+            sage: g = graphs.LadderGraph(3) #TODO!!!!
+            sage: g.layout_ranked(heights = dict( (i,[i, i+3]) for i in range(3) ))
+            {0: [..., 0],
+             1: [..., 1],
+             2: [..., 2],
+             3: [..., 0],
+             4: [..., 1],
+             5: [..., 2]}
+            sage: g = graphs.LadderGraph(7)
+            sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
+        """
+        return spring_layout_fast(self, by_component = by_component, **options)
+
+    layout_default = layout_spring
+
+#     if not isinstance(graph.get_pos(), dict):
+#         if graph.is_planar():
+#             graph.set_planar_positions()
+#         else:
+#             import sage.graphs.generic_graph_pyx as ggp
+#             graph.set_pos(ggp.spring_layout_fast_split(graph, iterations=1000))
+
+    def layout_ranked(self, heights = None, dim = 2, spring = False, **options):
+        """
+        Computes a ranked layout for this graph
+
+        INPUT:
+
+         - heights -- a dictionary mapping heights to the list of vertices at this height
+
+        OUTPUT: a dictionary mapping vertices to positions
+
+        Returns a layout computed by randomly arranging the vertices
+        along the given heights
+
+        EXAMPLES::
+
+            sage: g = graphs.LadderGraph(3)
+            sage: g.layout_ranked(heights = dict( (i,[i, i+3]) for i in range(3) ))
+            {0: [..., 0],
+             1: [..., 1],
+             2: [..., 2],
+             3: [..., 0],
+             4: [..., 1],
+             5: [..., 2]}
+            sage: g = graphs.LadderGraph(7)
+            sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
+        """
+        assert heights is not None
+
+        from sage.misc.randstate import current_randstate
+        random = current_randstate().python_random().random
+
+        if self.order() == 0:
+            return {}
+
+        pos = {}
+        mmax = max([len(ccc) for ccc in heights.values()])
+        ymin = min(heights.keys())
+        ymax = max(heights.keys())
+        dist = ((ymax-ymin)/(mmax+1.0))
+        for height in heights:
+            num_xs = len(heights[height])
+            if num_xs == 0:
+                continue
+            j = (mmax - num_xs)/2.0
+            for k in range(num_xs):
+                pos[heights[height][k]] = [ dist*(j+k+1) + random()*(dist*0.03) for i in range(dim-1) ] + [height]
+        if spring:
+            # This does not work that well in 2d, since the vertices on
+            # the same level are unlikely to cross. It is also hard to
+            # set a good equilibrium distance (parameter k in
+            # run_spring). If k<1, the layout gets squished
+            # horizontally.  If k>1, then two adjacent vertices in
+            # consecutive levels tend to be further away than desired.
+            newpos = spring_layout_fast(self,
+                                        vpos = pos,
+                                        dim = dim,
+                                        height = True,
+                                        **options)
+            # spring_layout_fast actually *does* touch the last coordinates
+            # (conversion to floats + translation)
+            # We restore back the original height.
+            for x in self.vertices():
+                newpos[x][dim-1] = pos[x][dim-1]
+            pos = newpos
+        return pos
+
+    def layout_extend_randomly(self, pos, dim = 2):
+        """
+        Extends randomly a partial layout
+
+        INPUT:
+
+         - ``pos``: a dictionary mapping vertices to positions
+
+        OUTPUT: a dictionary mapping vertices to positions
+
+        The vertices not referenced in ``pos`` are assigned random
+        positions within the box delimited by the other vertices.
+
+        EXAMPLES::
+
+            sage: H = digraphs.ButterflyGraph(1)
+            sage: H.layout_extend_randomly({('0',0): (0,0), ('1',1): (1,1)})
+            {('1', 1): (1, 1),
+             ('0', 0): (0, 0),
+             ('1', 0): [0..., 0...],
+             ('0', 1): [0..., 0...]}
+        """
+        assert dim == 2 # 3d not yet implemented
+        from sage.misc.randstate import current_randstate
+        random = current_randstate().python_random().random
+
+        xmin, xmax,ymin, ymax = self._layout_bounding_box(pos)
+
+        dx = xmax - xmin
+        dy = ymax - ymin
+        # Check each vertex position is in pos, add position
+        # randomly within the plot range if none is defined
+        for v in self:
+            if not v in pos:
+                pos[v] = [xmin + dx*random(), ymin + dy*random()]
+        return pos
+
+
+    def layout_circular(self, dim = 2, **options):
+        """
+        Computes a circular layout for this graph
+
+        OUTPUT: a dictionary mapping vertices to positions
+
+        EXAMPLES::
+
+            sage: G = graphs.CirculantGraph(7,[1,3])
+            sage: G.layout_circular()
+            {0: [6.12...e-17, 1.0],
+             1: [-0.78...,  0.62...],
+             2: [-0.97..., -0.22...],
+             3: [-0.43..., -0.90...],
+             4: [0.43...,  -0.90...],
+             5: [0.97...,  -0.22...],
+             6: [0.78...,   0.62...]}
+            sage: G.plot(layout = "circular")
+        """
+        assert dim == 2, "3D circular layout not implemented"
+        from math import sin, cos, pi
+        verts = self.vertices()
+        n = len(verts)
+        pos = {}
+        for i in range(n):
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
+            pos[verts[i]] = [x,y]
+        return pos
+
+    def layout_tree(self, tree_orientation = "down", tree_root = None, dim = 2, **options):
+        """
+        Computes an ordered tree layout for this graph, which should
+        be a tree (no non oriented cycles).
+
+        INPUT:
+
+         - ``tree_root`` -- a vertex
+         - ``tree_orientation`` -- "up" or "down"
+
+        OUTPUT: a dictionary mapping vertices to positions
+
+        EXAMPLES::
+
+            sage: G = graphs.BalancedTree(2,2)
+            sage: G.layout_tree(tree_root = 0)
+            {0: [1.0..., 2],
+             1: [0.8..., 1],
+             2: [1.2..., 1],
+             3: [0.4..., 0],
+             4: [0.8..., 0],
+             5: [1.2..., 0],
+             6: [1.6..., 0]}
+            sage: G = graphs.BalancedTree(2,4)
+            sage: G.plot(layout="tree", tree_root = 0, tree_orientation = "up")
+        """
+        assert dim == 2, "3D tree layout not implemented"
+        if not self.is_tree():
+            raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+        n = self.order()
+        vertices = self.vertices()
+        if tree_root is None:
+            from sage.misc.prandom import randrange
+            root = vertices[randrange(n)]
+        else:
+            root = tree_root
+        # BFS search for heights
+        seen = [root]
+        queue = [root]
+        heights = [-1]*n
+        heights[vertices.index(root)] = 0
+        while queue:
+            u = queue.pop(0)
+            for v in self.neighbors(u):
+                if v not in seen:
+                    seen.append(v)
+                    queue.append(v)
+                    heights[vertices.index(v)] = heights[vertices.index(u)] + 1
+        if tree_orientation == 'down':
+            maxx = max(heights)
+            heights = [maxx-heights[i] for i in xrange(n)]
+        heights_dict = {}
+        for v in vertices:
+            if not heights_dict.has_key(heights[vertices.index(v)]):
+                heights_dict[heights[vertices.index(v)]] = [v]
+            else:
+                heights_dict[heights[vertices.index(v)]].append(v)
+
+        return self.layout_ranked(heights_dict)
+
+    def layout_graphviz(self, dim = 2, prog = 'dot', **options):
+        """
+        Calls ``graphviz`` to compute a layout of the vertices of this graph.
+
+        INPUT:
+
+         - ``prog`` -- one of "dot", "neato", "twopi", "circo", or "fdp"
+
+        EXAMPLES::
+
+            sage: g = digraphs.ButterflyGraph(2)
+            sage: g.layout_graphviz() # optional - requires dot2tex and graphviz
+            {('00', 0): [...,...],
+             ('00', 1): [...,...],
+             ('00', 2): [...,...],
+             ('01', 0): [...,...],
+             ('01', 1): [...,...],
+             ('01', 2): [...,...],
+             ('10', 0): [...,...],
+             ('10', 1): [...,...],
+             ('10', 2): [...,...],
+             ('11', 0): [...,...],
+             ('11', 1): [...,...],
+             ('11', 2): [...,...]}
+            sage: g.plot(layout = "graphviz") # optional - requires dot2tex and graphviz
+
+        Note: the actual coordinates are not deterministic
+
+        By default, an acyclic layout is computed using ``graphviz``'s
+        ``dot`` layout program. One may specify an alternative layout
+        program::
+
+            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz", prog = "neato") # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - requires dot2tex and graphviz
+            sage: g = graphs.BalancedTree(5,2)
+            sage: g.plot(layout = "graphviz", prog = "circo") # optional - requires dot2tex and graphviz
+
+        TODO: put here some cool examples showcasing graphviz features.
+
+        This requires ``graphviz`` and the ``dot2tex`` spkg. Here are
+        some installation tips:
+
+         - Install graphviz >= 2.14 so that the programs dot, neato, ...
+           are in your path. The graphviz suite can be download from
+           http://graphviz.org.
+
+         - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
+           and install it with ``sage -i dot2tex-2.8.?.spkg``
+
+        TODO: use the graphviz functionality of Networkx 1.0 once it
+        will be merged into Sage.
+        """
+        assert_have_dot2tex()
+        assert dim == 2, "3D graphviz layout not implemented"
+
+        key = self._keys_for_vertices()
+        key_to_vertex = dict( (key(v), v) for v in self )
+
+        import dot2tex
+        positions = dot2tex.dot2tex(self.graphviz_string(), format = "positions", prog = prog)
+
+        return dict( (key_to_vertex[key], pos) for (key, pos) in positions.iteritems() )
+
+    def _layout_bounding_box(self, pos):
+        """
+        INPUT:
+
+         - pos -- a dictionary of positions
+
+        Returns a bounding box around the specified positions
+
+        EXAMPLES::
+
+            sage: Graph()._layout_bounding_box( {} )
+            [-1, 1, -1, 1]
+            sage: Graph()._layout_bounding_box( {0: [3,5], 1: [2,7], 2: [-4,2] } )
+            [-4, 3, 2, 7]
+            sage: Graph()._layout_bounding_box( {0: [3,5], 1: [3.00000000001,4.999999999999999] } )
+            [2, 4.00000000001000, 4.00000000000000, 6]
+        """
+        xs = [pos[v][0] for v in pos]
+        ys = [pos[v][1] for v in pos]
+        if len(xs) == 0:
+            xmin = -1
+            xmax =  1
+            ymin = -1
+            ymax =  1
+        else:
+            xmin = min(xs)
+            xmax = max(xs)
+            ymin = min(ys)
+            ymax = max(ys)
+
+        if xmax - xmin < 0.00000001:
+            xmax += 1
+            xmin -= 1
+
+        if ymax - ymin < 0.00000001:
+            ymax += 1
+            ymin -= 1
+
+        return [xmin, xmax, ymin, ymax]
+
 
 
     @options(vertex_size=200, vertex_labels=True, layout=None,
@@ -9442,7 +9910,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
-                     pos3d=None, iterations=50, color_by_label=False,
+                     pos3d=None, color_by_label=False,
                      engine='jmol', **kwds):
         r"""
         Plot a graph in three dimensions.    See also the
@@ -9473,8 +9941,7 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``pos3d`` - a position dictionary for the vertices
 
-        -  ``iterations`` - how many iterations of the spring
-           layout algorithm to go through, if applicable
+        -  ``layout``, ``iterations``, ... - layout options; see :meth:`.layout`
 
         -  ``engine`` - which renderer to use. Options:
 
@@ -9550,6 +10017,12 @@ class GenericGraph(GenericGraph_pyx):
             NotImplementedError: 3D plotting of multiple edges or loops not implemented.
 
         """
+        import graph_plot
+        layout_options = dict( (key,kwds[key]) for key in kwds.keys() if key     in graph_plot.layout_options )
+        kwds           = dict( (key,kwds[key]) for key in kwds.keys() if key not in graph_plot.layout_options )
+        if pos3d is None:
+            pos3d = self.layout(dim=3, **layout_options)
+
         if self.has_multiple_edges() or self.has_loops():
             raise NotImplementedError("3D plotting of multiple edges or loops not implemented.")
         if engine == 'jmol':
@@ -9560,8 +10033,6 @@ class GenericGraph(GenericGraph_pyx):
 
             if vertex_colors is None:
                 vertex_colors = { (1,0,0) : verts }
-            if pos3d is None:
-                pos3d = generic_graph_pyx.spring_layout_fast(self, dim=3, iterations=iterations)
 
             if color_by_label:
                 if edge_colors is  None:
@@ -9600,7 +10071,7 @@ class GenericGraph(GenericGraph_pyx):
 
         elif engine == 'tachyon':
             TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
-                                            vertex_size=vertex_size, pos3d=pos3d, iterations=iterations, **kwds)
+                                            vertex_size=vertex_size, pos3d=pos3d, **kwds)
             edges = self.edges()
 
             if color_by_label:
@@ -9635,7 +10106,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def show3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
-                     pos3d=None, iterations=50, color_by_label=False,
+                     pos3d=None, color_by_label=False,
                      engine='jmol', **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
@@ -9712,80 +10183,301 @@ class GenericGraph(GenericGraph_pyx):
         """
         self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
                     edge_colors=edge_colors, vertex_size=vertex_size, engine=engine,
-                    edge_size=edge_size, iterations=iterations, edge_size2=edge_size2,
+                    edge_size=edge_size, edge_size2=edge_size2,
                     color_by_label=color_by_label, **kwds).show()
 
-    def _graphviz_string_helper(self, graph_string, edge_string):
-        r"""
-        Returns a representation in the DOT language, ready to render in
-        graphviz.
+    def _keys_for_vertices(self):
+        """
+        Returns a function mapping each vertex to a unique and hopefuly readable string
+        """
+        from sage.graphs.dot2tex_utils import key, key_with_hash
+        if len(set(key(v) for v in self)) < len(self.vertices()):
+            # There was a collision in the keys; we include a hash to be safe.
+            return key_with_hash
+        else:
+            return key
 
-        Use ``graphviz_string`` instead.
+    ### String representation to be used by other programs
+
+    @options(labels="string",
+            vertex_labels=True,edge_labels=False,
+            edge_color=None,edge_colors=None,
+            color_by_label=False)
+    def graphviz_string(self, **options):
+        r"""
+        Returns a representation in the dot language.
+
+        The dot language is a text based format for graphs. It is used
+        by the software suite graphviz. The specifications of the
+        language are available on the web (see the reference [dot_spec]_).
 
         INPUT:
 
+        - ``labels`` - "string" or "latex" (default: "string"). If labels is
+          string latex command are not interepreted. This option stands for both
+          vertex labels and edge labels.
 
-        -   graph_string: a string, "graph" for
-           undirected graphs or "digraph" for directed graphs.
+        - ``vertex_labels`` - boolean (default: True) whether to add the labels
+          on vertices.
 
-        -```` - edge_string: a string, "-" for undirected
-           graphs or "-" for directed graphs.
+        - ``edge_labels`` - boolean (default: False) whether to add
+          the labels on edges.
+
+        - ``edge_color`` - (default: None) specify a default color for the
+          edges.
+
+        - ``edge_colors`` - (default: None) a dictionary which keys
+          are colors and values are list of edges. The list of edges need not to
+          be complete in which case the default color is used.
+
+        - ``color_by_label`` - boolean (default: False): whether to
+          color each edge with a different color according to its
+          label. This overwrites the options ``edge_color`` and ``edge_colors``.
 
 
-        .. warning::
+        EXAMPLES::
 
-           Internal function, not for external use!
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
+            sage: print G.graphviz_string(edge_labels=True)
+            graph {
+              "0" [label="0"];
+              "1" [label="1"];
+              "2" [label="2"];
+              "3" [label="3"];
+            <BLANKLINE>
+              "0" -- "1";
+              "0" -- "2";
+              "1" -- "2";
+              "2" -- "3" [label="foo"];
+            }
+
+        A variant, with the labels in latex, for post-processing with ``dot2tex``::
+
+            sage: print G.graphviz_string(edge_labels=True,labels = "latex")
+            graph {
+              node [shape="plaintext"];
+              "0" [label=" ", texlbl="$0$"];
+              "1" [label=" ", texlbl="$1$"];
+              "2" [label=" ", texlbl="$2$"];
+              "3" [label=" ", texlbl="$3$"];
+            <BLANKLINE>
+              "0" -- "1";
+              "0" -- "2";
+              "1" -- "2";
+              "2" -- "3" [label=" ", texlbl="$\texttt{foo}$"];
+            }
+
+        Same, with a digraph and a color for edges::
+
+            sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}} ,sparse=True)
+            sage: print G.graphviz_string(edge_color="red")
+            digraph {
+              "0" [label="0"];
+              "1" [label="1"];
+              "2" [label="2"];
+              "3" [label="3"];
+            <BLANKLINE>
+              edge [color="red"];
+              "0" -> "1";
+              "0" -> "2";
+              "1" -> "2";
+              "2" -> "3";
+            }
+
+        A digraph using latex labels for vertices and edges::
+
+            sage: f(x) = -1/x
+            sage: g(x) = 1/(x+1)
+            sage: G = DiGraph()
+            sage: G.add_edges([(i,f(i),f) for i in (1,2,1/2,1/4)])
+            sage: G.add_edges([(i,g(i),g) for i in (1,2,1/2,1/4)])
+            sage: print G.graphviz_string(labels="latex",edge_labels=True)
+            digraph {
+              node [shape="plaintext"];
+              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
+              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
+              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
+              "1" [label=" ", texlbl="$1$"];
+              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
+              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
+              "-4" [label=" ", texlbl="$-4$"];
+              "2" [label=" ", texlbl="$2$"];
+              "-2" [label=" ", texlbl="$-2$"];
+              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
+              "-1" [label=" ", texlbl="$-1$"];
+            <BLANKLINE>
+              "1/2" -> "-2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1/2" -> "2/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1" -> "1/2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              "1/4" -> "-4" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1/4" -> "4/5" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              "2" -> "-1/2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "2" -> "1/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+            }
+
+        TESTS:
+
+        The following digraph has tuples as vertices::
+
+            sage: print digraphs.ButterflyGraph(1).graphviz_string()
+            digraph {
+              "1,1" [label="('1', 1)"];
+              "0,0" [label="('0', 0)"];
+              "1,0" [label="('1', 0)"];
+              "0,1" [label="('0', 1)"];
+            <BLANKLINE>
+              "0,0" -> "1,1";
+              "0,0" -> "0,1";
+              "1,0" -> "1,1";
+              "1,0" -> "0,1";
+            }
+
+        The following digraph has vertices with newlines in their
+        string representations::
+
+            sage: m1 = matrix(3,3)
+            sage: m2 = matrix(3,3, 1)
+            sage: m1.set_immutable()
+            sage: m2.set_immutable()
+            sage: g = DiGraph({ m1: [m2] })
+            sage: print g.graphviz_string()
+            digraph {
+              "000000000" [label="[0 0 0]\n\
+              [0 0 0]\n\
+              [0 0 0]"];
+              "100010001" [label="[1 0 0]\n\
+              [0 1 0]\n\
+              [0 0 1]"];
+            <BLANKLINE>
+              "000000000" -> "100010001";
+            }
 
         REFERENCES:
 
-        - http://www.graphviz.org/doc/info/lang.html
+        .. [dot_spec] http://www.graphviz.org/doc/info/lang.html
 
-        EXAMPLES::
-
-            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
-            sage: s = G.graphviz_string() # indirect doctest
-            sage: s
-            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
         """
+        import re
+        from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
+
+        if self.is_directed():
+            graph_string = "digraph"
+            edge_string = "->"
+        else:
+            graph_string = "graph"
+            edge_string = "--"
+
+        if options['color_by_label']:
+            edges_by_color = self._color_by_label('hex')
+            not_colored_edges = []
+        elif options['edge_colors'] is not None:
+            if not isinstance(options['edge_colors'],dict):
+                raise ValueError, "incorrect format for edge_colors"
+            not_colored_edges = set(self.edges(labels=True))
+            edges_by_color = {}
+            for color,l in options['edge_colors'].iteritems():
+                edges_by_color[color] = []
+                for t in l:
+                    if len(t) == 2:
+                        if self.has_multiple_edges():
+                            for label in self.edge_label(t[0],t[1]):
+                                not_colored_edges.remove((t[0],t[1],label))
+                                edges_by_color[color].append((t[0],t[1],label))
+                        else:
+                            label = self.edge_label(t[0],t[1])
+                            not_colored_edges.remove((t[0],t[1],label))
+                            edges_by_color[color].append((t[0],t[1],label))
+                    elif len(t) == 3:
+                        t = tuple(t)
+                        if t not in not_colored_edges:
+                            raise ValueError, "%s is not an edge" %str(t)
+                        not_colored_edges.remove(t)
+                        edges_by_color[color].append(t)
+                    else:
+                        raise ValueError, "%s is not a valid format for edge" %str(t)
+        else:
+            edges_by_color = []
+            not_colored_edges = self.edge_iterator(labels=True)
+
+        if options['edge_color'] is not None:
+            default_color = options['edge_color']
+        else:
+            default_color = None
+
+        key = self._keys_for_vertices()
+
         s = '%s {\n' % graph_string
+        if (options['vertex_labels'] and
+            options['labels'] == "latex"): # not a perfect option name
+            s += '  node [shape="plaintext"];\n'
         for v in self.vertex_iterator():
-            s+= '"%s";'%v
-        s+= '\n'
-        for u, v, label in self.edge_iterator():
-            if label is None:
-                s+= '"%s"%s"%s";' % (u, edge_string, v)
+            if not options['vertex_labels']:
+                node_options = ""
+            elif options['labels'] == "latex":
+                node_options = " [label=\" \", texlbl=\"$%s$\"]"%quoted_latex(v)
             else:
-                s+= '"%s"%s"%s"[label="%s"];' % (u, edge_string, v, label)
-        s+= "\n}"
+                node_options = " [label=\"%s\"]" %quoted_str(v)
+
+            s += '  "%s"%s;\n'%(key(v),node_options)
+
+        s += "\n"
+
+        if not_colored_edges and default_color is not None:
+            s += '  edge [color="%s"];\n' %default_color
+        for u,v,label in not_colored_edges:
+            if options['edge_labels'] is False or label is None:
+                s += '  "%s" %s "%s";\n' % (key(u), edge_string, key(v))
+            elif options['labels'] == "latex":
+                s += '  "%s" %s "%s" [label=" ", texlbl="$%s$"];\n' % (key(u), edge_string, key(v), quoted_latex(label))
+            else:
+                s += '  "%s" %s "%s" [label="%s"];\n' % (key(u), edge_string, key(v), label)
+
+        for color in edges_by_color:
+            s += '  edge [color="%s"];\n' %color
+            for u,v,label in edges_by_color[color]:
+                if options['edge_labels'] is False or label is None:
+                    s += '  "%s" %s "%s";\n' % (key(u), edge_string, key(v))
+                elif options['labels'] == "latex":
+                    s += '  "%s" %s "%s" [label=" ", texlbl="$%s$"];\n' % (key(u), edge_string, key(v), quoted_latex(label))
+                else:
+                    s += '  "%s" %s "%s" [label="%s"];\n' % (key(u), edge_string, key(v), label)
+
+        s += "}"
+
         return s
 
-    def graphviz_string(self):
+    def graphviz_to_file_named(self, filename, **options):
         r"""
-        Returns a representation in the DOT language, ready to render in
-        graphviz.
+        Write a representation in the dot in a file.
+
+        The dot language is a plaintext format for graph structures. See the
+        documentation of :meth:`.graphviz_string` for available options.
+
+        INPUT:
+
+        ``filename`` - the name of the file to write in
+
+        ``options`` - options for the graphviz string
 
         EXAMPLES::
 
             sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
-            sage: s = G.graphviz_string()
-            sage: s
-            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
+            sage: G.graphviz_to_file_named(os.environ['SAGE_TESTDIR']+'/temp_graphviz',edge_labels=True)
+            sage: print open(os.environ['SAGE_TESTDIR']+'/temp_graphviz').read()
+            graph {
+              "0" [label="0"];
+              "1" [label="1"];
+              "2" [label="2"];
+              "3" [label="3"];
+            <BLANKLINE>
+              "0" -- "1";
+              "0" -- "2";
+              "1" -- "2";
+              "2" -- "3" [label="foo"];
+            }
         """
-        raise NotImplementedError, "GenericGraph subclasses must override graphviz_string()"
-
-    def graphviz_to_file_named(self, filename):
-        r"""
-        Write a representation in the DOT language to the named file, ready
-        to render in graphviz.
-
-        EXAMPLES::
-
-            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
-            sage: G.graphviz_to_file_named(os.environ['SAGE_TESTDIR']+'/temp_graphviz')
-            sage: open(os.environ['SAGE_TESTDIR']+'/temp_graphviz').read()
-            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
-        """
-        return open(filename, 'wt').write(self.graphviz_string())
+        return open(filename, 'wt').write(self.graphviz_string(**options))
 
     ### Spectrum
 
@@ -11071,22 +11763,27 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,
                         vertex_size=0.06,
                         pos3d=None,
-                        iterations=50, **kwds):
+                        **kwds):
     """
     Helper function for plotting graphs in 3d with Tachyon. Returns a
     plot containing only the vertices, as well as the 3d position
     dictionary used for the plot.
 
+    INPUT:
+     - `pos3d` - a 3D layout of the vertices
+     - various rendering options
+
     EXAMPLES::
 
         sage: G = graphs.TetrahedralGraph()
         sage: from sage.graphs.generic_graph import tachyon_vertex_plot
-        sage: T,p = tachyon_vertex_plot(G)
+        sage: T,p = tachyon_vertex_plot(G, pos3d = G.layout(dim=3))
         sage: type(T)
         <class 'sage.plot.plot3d.tachyon.Tachyon'>
         sage: type(p)
         <type 'dict'>
     """
+    assert pos3d is not None
     from math import sqrt
     from sage.plot.plot3d.tachyon import Tachyon
 
@@ -11096,8 +11793,6 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
 
     if vertex_colors is None:
         vertex_colors = { (1,0,0) : verts }
-    if pos3d is None:
-        pos3d = generic_graph_pyx.spring_layout_fast(g, dim=3, iterations=iterations)
     try:
         for v in verts:
             c[0] += pos3d[v][0]

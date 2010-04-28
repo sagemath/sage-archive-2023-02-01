@@ -8,6 +8,7 @@ AUTHORS:
 
 - Robert Beezer (2009-05-20): :class:`~sage.graphs.graph_latex.GraphLatex` class
 - Fidel Barerra Cruz (2009-05-20): ``tkz-graph`` commands to render a graph
+- Nicolas M. Thiery (2010-02): dot2tex/graphviz interface
 
 LaTeX Versions of Graphs
 -------------------------------------
@@ -25,7 +26,9 @@ Customizing the output is accomplished in several ways.  Suppose ``g`` is a grap
 
 The range of possible options are carefully documented at :meth:`sage.graphs.graph_latex.GraphLatex.set_option`.
 
-EXAMPLES::
+EXAMPLES:
+
+An example using the tkz_graph format::
 
     sage: g = graphs.PetersenGraph()
     sage: g.set_latex_options(tkz_style = 'Classic')
@@ -48,6 +51,15 @@ EXAMPLES::
     ...
     \end{tikzpicture}
 
+An example using the optional dot2tex module::
+
+    sage: g = graphs.PetersenGraph()
+    sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - requires dot2tex
+    sage: latex(g) # optional - requires dot2tex
+    \begin{tikzpicture}[>=latex,line join=bevel,]
+    ...
+    \end{tikzpicture}
+
 GraphLatex class and functions
 ------------------------------
 """
@@ -67,26 +79,22 @@ GraphLatex class and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
+from sage.misc.cachefunc import cached_function
+from sage.misc.latex import latex
 
-
-_checked_tkz_graph = False
 def check_tkz_graph():
     r"""
     Checks if the proper `\mbox{\rm\LaTeX}`
     packages for the ``tikzpicture`` environment are
-    installed in the user's environment.
+    installed in the user's environment, and issue
+    a warning otherwise.
 
-    If the requisite packages are not found on the
-    first call to this function, warnings are printed.
-    Thereafter, the function caches its result in the
-    variable ``_have_tkz_graph``, and any subsequent
-    time, it just checks the value of the variable,
-    without printing any warnings.
+    The warning is only issued on the first call to this function. So
+    any doctest that illustrates the use of the tkz-graph packages
+    should call this once as having random output to exhaust the
+    warnings before testing output.
 
-    So any doctest that illustrates the use of the
-    tkz-graph packages should call this once as having
-    random output to exhaust the warnings before testing
-    output.
+    See also :meth:`sage.misc.latex.check_file`
 
     TESTS::
 
@@ -94,73 +102,57 @@ def check_tkz_graph():
         sage: check_tkz_graph()  # random - depends on TeX installation
         sage: check_tkz_graph()  # at least the second time, so no output
     """
-    global _checked_tkz_graph
-    if not _checked_tkz_graph:
-        from subprocess import call, PIPE
-        try:
-            retcode = call("kpsewhich" + " tkz-graph.sty", shell=True, stdout=PIPE, stderr=PIPE)
-            have_tkzgraph = (retcode == 0)
-        except OSError:
-            have_tkzgraph = False
-        if not have_tkzgraph:
-            print """
-Warning: tkz-graph.sty is not part of this computer's TeX
-installation.  This package is required to render graphs in LaTeX.
+    latex.check_file("tikz.sty", """This package is required to render graphs in LaTeX.
+Visit '...'.
+""")
+    latex.check_file("tkz-graph.sty", """This package is required to render graphs in LaTeX.
 Visit 'http://altermundus.com/pages/graph.html'.
-"""
-
-        try:
-            retcode = call("kpsewhich" + " tkz-berge.sty", shell=True, stdout=PIPE, stderr=PIPE)
-            have_tkzberge = (retcode == 0)
-        except OSError:
-            have_tkzberge = False
-        if not have_tkzberge:
-            print """
-Warning: tkz-berge.sty is not part of this computer's TeX
-installation.  This package is required to render graphs in LaTeX.
+""")
+    latex.check_file("tkz-berge.sty", """This package is required to render graphs in LaTeX.
 Visit 'http://altermundus.com/pages/graph.html'.
-"""
-    _checked_tkz_graph = True
+""")
 
-
-_have_tkz_graph = None
 def have_tkz_graph():
     r"""
     Returns ``True`` if the proper `\mbox{\rm\LaTeX}` packages
     for the ``tikzpicture`` environment are installed in the
-    user's environment.
+    user's environment, namely tikz, tkz-graph and tkz-berge.
 
-    The first time it is run, this function caches its result in the
-    variable ``_have_tkz_graph``, and any subsequent time, it just
-    checks the value of the variable.
+    The result is cached.
+
+    See also :meth:`sage.misc.latex.has_file`
 
     TESTS::
 
-        sage: from sage.graphs.graph_latex import have_tkz_graph, _have_tkz_graph
+        sage: from sage.graphs.graph_latex import have_tkz_graph
         sage: have_tkz_graph()  # random - depends on TeX installation
-        sage: _have_tkz_graph is None
-        False
-        sage: _have_tkz_graph == have_tkz_graph()
+        sage: have_tkz_graph() in [True, False]
         True
     """
-    global _have_tkz_graph
-    if _have_tkz_graph is None:
-        from subprocess import call, PIPE
+    return latex.has_file("tikz.sty") and latex.has_file("tkz-graph.sty") and latex.has_file("tkz-berge.sty")
 
-        try:
-            retcode = call("kpsewhich" + " tkz-graph.sty", shell=True, stdout=PIPE, stderr=PIPE)
-            have_tkzgraph = (retcode == 0)
-        except OSError:
-            have_tkzgraph = False
-        try:
-            retcode = call("kpsewhich" + " tkz-berge.sty", shell=True, stdout=PIPE, stderr=PIPE)
-            have_tkzberge = (retcode == 0)
-        except OSError:
-            have_tkzberge = False
+@cached_function
+def setup_latex_preamble():
+    """
+    Adds appropriate ``\usepackage{...}`` instructions to the latex
+    preamble for the packages that are needed for processing graphs
+    (``tikz``, ``tkz-graph``, ``tkz-berge``), if the later are
+    available in the ``LaTeX`` installation.
 
-        _have_tkz_graph = have_tkzgraph and have_tkzberge
-    return _have_tkz_graph
+    See also :meth:`sage.misc.latex.add_package_to_preamble_if_available`.
 
+    EXAMPLES::
+
+        sage: sage.graphs.graph_latex.setup_latex_preamble()
+
+    TESTS::
+
+        sage: ("\\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
+        True
+    """
+    latex.add_package_to_preamble_if_available("tikz")
+    latex.add_package_to_preamble_if_available("tkz-graph")
+    latex.add_package_to_preamble_if_available("tkz-berge")
 
 class GraphLatex(SageObject):
     r"""
@@ -179,24 +171,36 @@ class GraphLatex(SageObject):
         sage: from sage.graphs.graph_latex import GraphLatex
         sage: opts = GraphLatex(graphs.PetersenGraph())
         sage: opts
-        LaTeX options for Petersen graph: {'tkz_style': 'Normal'}
+        LaTeX options for Petersen graph: {}
         sage: g = graphs.PetersenGraph()
         sage: opts = g.latex_options()
         sage: g == loads(dumps(g))
         True
     """
 
-    #  These are the "allowed" options for a graph, private to the class
+    #  These are the "allowed" options for a graph, private to the class,
+    #  along with their default value and description
     #  This allows intelligent errors when non-existent options are referenced
     #  Additionally, for each new option added here:
-    #    1.  Set default value in GraphLatex.__init__
-    #    2.  Document values in GraphLatex.set_option() docstring
-    #    3.  Describe also in docstring for the sage.graphs.graph_latex module
+    #    1.  Document values in GraphLatex.set_option() docstring
+    #    2.  Describe also in docstring for the sage.graphs.graph_latex module
     #
-    __graphlatex_options = ('tkz_style',)
+    # TODO: use some standard option handling mechanism
+    # This dictionary could also contain type information (list of admissible values)
+    # and a description
+    # See e.g. @option
+    __graphlatex_options = {
+            'tkz_style': 'Normal',
+            'format': 'tkz_graph',
+            'layout': 'acyclic',
+            'prog': 'dot',
+            'edge_color': None,
+            'edge_colors': None,
+            'edge_labels': False,
+            'color_by_label': False,
+            }
 
-
-    def __init__(self, graph):
+    def __init__(self, graph, **options):
         r"""
         Returns a GraphLatex object, which holds all the parameters needed for
         creating a `\mbox{\rm\LaTeX}` string that will be rendered as a picture of the graph.
@@ -207,13 +211,11 @@ class GraphLatex(SageObject):
 
             sage: from sage.graphs.graph_latex import GraphLatex
             sage: GraphLatex(graphs.PetersenGraph())
-            LaTeX options for Petersen graph: {'tkz_style': 'Normal'}
+            LaTeX options for Petersen graph: {}
         """
         self._graph = graph
         self._options = {}
-        # default values are set here as the object is initialized
-        self._options['tkz_style'] = 'Normal'
-
+        self.set_options(**options)
 
     def __eq__(self, other):
         r"""
@@ -257,7 +259,6 @@ class GraphLatex(SageObject):
         """
         return "LaTeX options for %s: %s"%(self._graph, self._options)
 
-
     def set_option(self, option_name, option_value = None):
         r"""
         Sets, modifies, clears a legitimate `\mbox{\rm\LaTeX}`
@@ -265,34 +266,64 @@ class GraphLatex(SageObject):
 
         INPUTS:
 
-        - option_name - a string for a latex option contained
-          in the list :data:`__graphlatex_options`.  A ``ValueError``
-          is raised if the option is not allowed.
-        - option_value - a value for the option.  If omitted, or set to
-          ``None``, the option is totally removed (i.e. cleared).  The value
-          is not checked here for correctness, but rather it is checked where
-          it is employed.
+        - ``option_name`` - a string for a latex option contained in
+          the list :data:`__graphlatex_options`. A ``ValueError`` is
+          raised if the option is not allowed.
 
-        Possible option names, and associated values are given below.
-        For precise details consult the documentation for the
-        ``tkz-graph`` package.
+        - ``option_value`` - a value for the option.  If omitted, or
+          set to ``None``, the option is totally removed
+          (i.e. cleared).  The value is not checked here for
+          correctness, but rather it is checked where it is employed.
 
-        - tkz_style - a pre-defined ``tkz-graph`` style such as "Art"
+        The output can be either handled internaly by ``Sage``, or
+        delegated to the external software ``dot2tex`` and
+        ``graphviz``. This is controlled by the option 'format':
+
+         - format -- 'dot2tex' or 'tkz_graph' (default: 'tkz_graph').
+           (TODO: find a better name)
+
+        Note: If format is 'dot2tex', then all the LaTeX generation
+        will be delegated to `dot2tex` (which must be installed).
+
+        For ``tkz_graph``, the possible option names, and associated
+        values are given below. For precise details consult the
+        documentation for the ``tkz-graph`` package:
+
+        - ``tkz_style`` -- a pre-defined ``tkz-graph`` style such as "Art"
           or "Normal".  Currently, the recognized styles are "Shade",
           "Art", "Normal", "Dijkstra", "Welsh", "Classic", and
           "Simple".  Any other value will not give an error, but if
           you run ``latex`` on the graph, then an unrecognized style
-          will be treated as "Normal".
+          will be treated as "Normal" (only for tkz_graph format).
+
+        - ``layout`` -- the layout used for coordinates of the vertices
+
+        For the 'dot2tex' format, the possible option names and
+        associated values are given below:
+
+        - ``prog`` -- the program used for the layout. It must be a
+          string corresponding to one of the software of the graphviz
+          suite: 'dot', 'neato', 'twopi', 'circo' or 'fdp'.
+
+        - ``edge_label`` -- a boolean (default: False). Whether to
+          display the labels on edges.
+
+        - ``edge_colors`` -- a color. Can be used to set a global
+          color to the edge of the graph.
+
+        - color_by_label - a boolean (default: False). Colors the
+          edges according to their labels (only for dot2tex format)
+
 
         EXAMPLES:
 
-        Set, then modify, then clear the ``tkz_style`` option, and finally show
-        an error for an unrecognized option name. ::
+        Set, then modify, then clear the ``tkz_style`` option, and
+        finally show an error for an unrecognized option name::
 
             sage: g = graphs.PetersenGraph()
             sage: opts = g.latex_options()
             sage: opts
-            LaTeX options for Petersen graph: {'tkz_style': 'Normal'}
+            LaTeX options for Petersen graph: {}
             sage: opts.set_option('tkz_style', 'foo')
             sage: opts
             LaTeX options for Petersen graph: {'tkz_style': 'foo'}
@@ -306,6 +337,17 @@ class GraphLatex(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: bad_name is not a LaTeX option for a graph.
+
+        See :meth:`Graph.layout_graphviz` for installation
+        instructions for ``graphviz`` and ``dot2tex``. Further more,
+        pgf >= 2.00 should be available inside LaTeX's tree for LaTeX
+        compilation (e.g. when using ``view``). In case your LaTeX
+        distribution does not provide it, here are short instructions:
+
+           - download pgf from http://sourceforge.net/projects/pgf/
+           - unpack it in ``/usr/share/texmf/tex/generic`` (depends on your system)
+           - clean out remaining pgf files from older version
+           - run texhash
         """
         if not(option_name in GraphLatex.__graphlatex_options):
             raise ValueError( "%s is not a LaTeX option for a graph." % option_name )
@@ -314,7 +356,6 @@ class GraphLatex(SageObject):
                 del self._options[option_name]
         else:
             self._options[option_name] = option_value
-
 
     def set_options(self, **kwds):
         r"""
@@ -340,7 +381,6 @@ class GraphLatex(SageObject):
             for name, value in kwds.items():
                 self.set_option(name, value)
 
-
     def get_option(self, option_name):
         r"""
         Returns the current value of the named option.
@@ -354,7 +394,7 @@ class GraphLatex(SageObject):
         If the name is not present in
         :data:`sage.graphs.graph_latex.__graphlatex_options` it is an
         error to ask for it.  If an option has not been set then the
-        returned value is ``None``.  Otherwise, the value of the
+        default value is returned. Otherwise, the value of the
         option is returned.
 
         EXAMPLES::
@@ -365,7 +405,7 @@ class GraphLatex(SageObject):
             sage: opts.get_option('tkz_style')
             'Art'
             sage: opts.set_option('tkz_style')
-            sage: opts.get_option('tkz_style') == None
+            sage: opts.get_option('tkz_style') == "Normal"
             True
             sage: opts.get_option('bad_name')
             Traceback (most recent call last):
@@ -378,8 +418,7 @@ class GraphLatex(SageObject):
             if option_name in self._options:
                 return self._options[option_name]
             else:
-                return None
-
+                return GraphLatex.__graphlatex_options[option_name]
 
     def latex(self):
         r"""
@@ -444,8 +483,56 @@ class GraphLatex(SageObject):
         """
         # Possibly use options in the future to select
         # the use of different latex packages here
-        return self.tkz_picture()
+        format = self.get_option('format')
+        if format  == "tkz_graph":
+            return self.tkz_picture()
+        elif format == "dot2tex":
+            return self.dot2tex_picture()
+        else:
+            raise ValueError, "unknown format: %s"%format
 
+    def dot2tex_picture(self):
+        r"""
+        Calls dot2tex to construct a string of `\mbox{\rm\LaTeX}` commands
+        representing a graph as a ``tikzpicture``.
+
+        EXAMPLES::
+
+            sage: g = digraphs.ButterflyGraph(1)
+            sage: print g.latex_options().dot2tex_picture()  # optional - requires dot2tex and graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
+              \node ('0'+1) at (60bp,9bp) [draw,draw=none] {$\left(\text{0}, 1\right)$};
+              \node ('0'+0) at (14bp,63bp) [draw,draw=none] {$\left(\text{0}, 0\right)$};
+              \node ('1'+0) at (60bp,63bp) [draw,draw=none] {$\left(\text{1}, 0\right)$};
+              \node ('1'+1) at (14bp,9bp) [draw,draw=none] {$\left(\text{1}, 1\right)$};
+              \draw [->] ('1'+0) ..controls (60bp,47bp) and (60bp,37bp)  .. ('0'+1);
+              \draw [->] ('0'+0) ..controls (29bp,46bp) and (38bp,35bp)  .. ('0'+1);
+              \draw [->] ('0'+0) ..controls (14bp,47bp) and (14bp,37bp)  .. ('1'+1);
+              \draw [->] ('1'+0) ..controls (45bp,46bp) and (36bp,35bp)  .. ('1'+1);
+            %
+            \end{tikzpicture}
+
+
+        Note: there is a lot of overlap between what tkz_picture and
+        dot2tex do. It would be best to merge them! dot2tex probably
+        can work without graphviz if layout information is provided.
+        """
+        from sage.graphs.dot2tex_utils import assert_have_dot2tex
+        assert_have_dot2tex()
+
+        options = self.__graphlatex_options.copy()
+        options.update(self._options)
+        dotdata = self._graph.graphviz_string(labels="latex", **options)
+        import dot2tex
+        return dot2tex.dot2tex(
+                dotdata,
+                format = 'tikz',
+                autosize = True,
+                crop = True,
+                figonly = 'True',
+                prog=self.get_option('prog'))
+        # usepdflatex = True, debug = True)
 
     def tkz_picture(self):
         r"""
@@ -632,7 +719,7 @@ class GraphLatex(SageObject):
         # They will migrate to the __init__ method once the infrastructure
         # here is stable
         #~~~~~~~~~~~
-        layout=''
+        layout = None
         bb=[ 5, 5 ]
         units='cm'
         prefix='a'
@@ -724,14 +811,9 @@ class GraphLatex(SageObject):
             index_of_vertex[u]=i
             i = i+1
 
-        # If the attribute position has not been specified, use the one from the plot function
-        if not self._graph.check_pos_validity() or layout in [ 'circular', 'spring', 'tree' ]:
-            if not layout in [ 'circular', 'spring', 'tree' ]:
-                layout = 'spring'
-            tmp=self._graph.plot( save_pos=True, layout=layout)
+        pos = copy.deepcopy(self._graph.layout(layout = layout, labels = "latex"))
 
-        pos=copy.deepcopy(self._graph.get_pos())
-
+        # TODO: Could use self._graph._layout_bounding_box(pos)
         trans = lambda x,y: [x[0]-y[0],x[1]-y[1]]
         # Adjusting the image bounding box to have (0,0) as a corner
         # And identifying the spread in the x and y directions (i.e. xmax, ymax)

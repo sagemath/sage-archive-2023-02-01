@@ -41,6 +41,7 @@ from misc import tmp_dir, graphics_filename
 import sage_eval
 from sage.misc.misc import SAGE_DOC
 from sage.misc.sage_ostools import have_program
+from sage.misc.cachefunc import cached_method
 
 _have_latex = None
 def have_latex():
@@ -1009,6 +1010,60 @@ class Latex:
             if right is not None:
                 _Latex_prefs._option['vector_delimiters'][1] = right
 
+    @cached_method
+    def has_file(self, file_name):
+        """
+        INPUT:
+         - ``file_name`` -- a string
+
+        Tests whether the local LaTeX installation includes ``file_name``.
+
+        EXAMPLES::
+
+            sage: latex.has_file("article.cls")
+            True
+            sage: latex.has_file("some_inexistent_file.sty")
+            False
+        """
+        assert isinstance(file_name, str)
+        from subprocess import call, PIPE
+        try:
+            retcode = call("kpsewhich %s"%file_name, shell=True, stdout=PIPE, stderr=PIPE)
+            return (retcode == 0)
+        except OSError:
+            return False
+
+    @cached_method
+    def check_file(self, file_name, more_info = ""):
+        """
+        INPUT:
+         - ``file_name`` -- a string
+         - ``more_info`` -- a string (default: "")
+
+        Emit a warning if the local LaTeX installation does not
+        include ``file_name``. The string ``more_info`` is appended
+        to the warning message. The warning is only emitted the first
+        time this method is called.
+
+        EXAMPLES::
+
+            sage: latex.check_file("article.cls")
+            sage: latex.check_file("some_inexistent_file.sty")
+            Warning: `some_inexistent_file.sty` is not part of this computer's TeX installation.
+            sage: latex.check_file("some_inexistent_file.sty")
+            sage: latex.check_file("some_inexistent_file.sty", "This file is required for blah. It can be downloaded from: http://blah.org/")
+            Warning: `some_inexistent_file.sty` is not part of this computer's TeX installation.
+            This file is required for blah. It can be downloaded from: http://blah.org/
+
+        """
+        assert isinstance(file_name, str)
+        if not self.has_file(file_name):
+            print """
+Warning: `%s` is not part of this computer's TeX installation."""%file_name
+        if more_info:
+            print more_info
+
+
     def extra_macros(self, macros=None):
         r"""nodetex
         String containing extra LaTeX macros to use with %latex,
@@ -1132,6 +1187,30 @@ class Latex:
         current = latex.extra_preamble()
         if current.find(s) == -1:
             _Latex_prefs._option['preamble'] += s
+
+    def add_package_to_preamble_if_available(self, package_name):
+        r"""
+        INPUT:
+
+         - ``package_name`` -- a string
+
+        Adds a ``\usepackage{package_name}`` instruction to the latex
+        preamble if not yet present there, and if ``package_name.sty``
+        is available in the LaTeX installation.
+
+        See also :meth:`.add_to_preamble` and :meth:`.has_file`.
+
+        TESTS::
+
+            sage: latex.add_package_to_preamble_if_available("xypic")
+            sage: latex.add_package_to_preamble_if_available("nonexistent_package")
+            sage: latex.extra_preamble()
+            '\\usepackage{xypic}\n'
+            sage: latex.extra_preamble('')
+        """
+        assert isinstance(package_name, str)
+        if self.has_file(package_name+".sty"):
+            self.add_to_preamble("\\usepackage{%s}\n"%package_name)
 
     def jsmath_avoid_list(self, L=None):
         r"""nodetex

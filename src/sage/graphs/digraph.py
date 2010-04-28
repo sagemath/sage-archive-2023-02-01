@@ -12,6 +12,7 @@ from sage.rings.integer import Integer
 from sage.misc.misc import deprecated_function_alias
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 class DiGraph(GenericGraph):
     """
@@ -312,7 +313,6 @@ class DiGraph(GenericGraph):
             sage: g.get_pos() == graphs.PetersenGraph().get_pos()
             True
         """
-        from sage.all import walltime
         msg = ''
         GenericGraph.__init__(self)
         multiedges = kwds.get('multiedges', None)
@@ -2037,23 +2037,117 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def graphviz_string(self):
-       r"""
-       Returns a representation in the DOT language, ready to render in
-       graphviz.
+    def layout_acyclic(self, **options):
+        """
+        Computes a ranked layout so that all edges point upward. To
+        this end, the heights of the vertices are set according to the
+        level set decomposition of the graph (see :meth:`.level_sets`).
 
-       REFERENCES:
+        This is achieved by calling ``graphviz`` and ``dot2tex`` if
+        available (see :meth:`.layout_acyclic_graphviz`), and using a
+        random horizontal placement of the vertices otherwise (see
+        :meth:`.layout_acyclic_dummy`).
 
-       - http://www.graphviz.org/doc/info/lang.html
+        Non acyclic graphs are partially supported by ``graphviz``,
+        which then chooses some edges to point down.
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}} ,sparse=True)
-           sage: s = G.graphviz_string(); s
-           'digraph {\n"0";"1";"2";"3";\n"0"->"1";"0"->"2";"1"->"2";"2"->"3"[label="foo"];\n}'
-       """
-       return self._graphviz_string_helper("digraph", "->") # edge_string is "->" for directed graphs
+            sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
+            sage: H.layout_acyclic()
+            {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
 
+        """
+        if have_dot2tex():
+            return self.layout_graphviz(**options)
+        else:
+            return self.layout_acyclic_dummy(**options)
+
+    def layout_acyclic_dummy(self, heights = None, **options):
+        """
+        Computes a (dummy) ranked layout of an acyclic graph so that
+        all edges point upward. To this end, the heights of the
+        vertices are set according to the level set decomposition of
+        the graph (see :meth:`.level_sets`).
+
+        EXAMPLES::
+
+            sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
+            sage: H.layout_acyclic_dummy()
+            {0: [..., 0], 1: [..., 1], 2: [..., 2], 3: [..., 3], 5: [..., 0], 6: [..., 1]}
+
+            sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[1],5:[1,6],6:[2,3]})
+            sage: H.layout_acyclic_dummy()
+            Traceback (most recent call last):
+            ...
+            AssertionError: `self` should be an acyclic graph
+        """
+        if heights is None:
+            assert self.is_directed_acyclic(), "`self` should be an acyclic graph"
+            levels = self.level_sets()
+            levels = [sorted(z) for z in levels]
+            heights = dict([[i, levels[i]] for i in range(len(levels))])
+        return self.layout_ranked(heights = heights, **options)
+
+    def level_sets(self):
+        """
+        OUTPUT:
+
+         - a list of non empty lists of vertices of this graph
+
+        Returns the level set decomposition of the graph. This a list
+        `l` such that the level `l[i]` contains all the vertices
+        having all their predecessors in the levels `l[j]` for `j<i`,
+        and at least one in level `l[i-1]` (unless `i=0`).
+
+        The level decomposition contains exactly the vertices not
+        occuring in any cycle of the graph. In particular, the graph
+        is acyclic if and only if the decomposition forms a set
+        partition of its vertices, and we recover the usual level set
+        decomposition of the corresponding poset.
+
+        EXAMPLES::
+
+            sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
+            sage: H.level_sets()
+            [[0, 5], [1, 6], [2], [3]]
+
+            sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[1],5:[1,6],6:[2,3]})
+            sage: H.level_sets()
+            [[0, 5], [6], [2]]
+
+        This routine is mostly used for Hasse diagrams of posets::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
+            sage: [len(x) for x in H.level_sets()]
+            [1, 2, 1]
+
+        ::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2], 1:[3], 2:[4], 3:[4]})
+            sage: [len(x) for x in H.level_sets()]
+            [1, 2, 1, 1]
+
+        Complexity: `O(n+m)` in time and `O(n)` in memory (besides the
+        storage of the graph itself), where `n` and `m` are
+        respectively the number of vertices and edges (assuming that
+        appending to a list is constant time, which it is not quite).
+        """
+        in_degrees = self.in_degree(labels=True)
+        level = [x for x in in_degrees if in_degrees[x]==0]
+        Levels = []
+        while len(level) != 0:
+            Levels.append(level)
+            new_level = []
+            for x in level:
+                for y in self.neighbors_out(x):
+                    in_degrees[y] -= 1
+                    if in_degrees[y] == 0:
+                        new_level.append(y)
+            level = new_level
+        return Levels
 
     def strongly_connected_components(self):
         """

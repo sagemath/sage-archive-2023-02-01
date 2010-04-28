@@ -75,7 +75,7 @@ def graph_to_js(g):
     return string
 
 def graph_editor(graph=None, graph_name=None,
-                 replace_input=True):
+                 replace_input=True, **layout_options):
     """
     Opens a graph editor in the Sage notebook.
 
@@ -108,12 +108,7 @@ def graph_editor(graph=None, graph_name=None,
     if not EMBEDDED_MODE:
         return "This graph editor only runs in the Sage notebook."
 
-    if not isinstance(graph.get_pos(), dict):
-        if graph.is_planar():
-            graph.set_planar_positions()
-        else:
-            import sage.graphs.generic_graph_pyx as ggp
-            graph.set_pos(ggp.spring_layout_fast_split(graph, iterations=1000))
+    graph.layout(save_pos = True, **layout_options)
 
     if graph_name is None:
         graph_name = ''

@@ -19,6 +19,7 @@ Elements of posets, lattices, semilattices, etc.
 from sage.structure.element import Element
 
 class PosetElement(Element):
+
     def __init__(self, poset, element, vertex):
         r"""
         Establishes the parent-child relationship between ``poset``
@@ -50,7 +51,7 @@ class PosetElement(Element):
             self.element = element
         self.vertex = vertex
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
@@ -58,6 +59,10 @@ class PosetElement(Element):
             '0'
         """
         return "%s" %str(self.element)
+
+    def _latex_(self):
+        from sage.misc.latex import latex
+        return latex(self.element)
 
     def __eq__(self,other):
         """

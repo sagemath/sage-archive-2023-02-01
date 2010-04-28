@@ -14,15 +14,28 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.misc.randstate import current_randstate
 from sage.structure.sage_object import SageObject
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.plot.misc import options
 from math import sqrt, cos, sin, atan, pi
 
-graphplot_options = {'pos': 'The position dictionary of vertices',
-                    'layout': 'A specified layout style-- one of "spring", "circular", "tree".',
+layout_options =   {
+                    'layout': 'A layout algorithm -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree".',
+                    'iterations': 'The number of times to execute the spring layout algorithm.',
+                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
+                    'spring': 'Use spring layout to finalize the current layout.',
+                    'tree_root': 'A vertex designation for drawing trees.',
+                    'tree_orientation': 'The direction of tree branches -- "up" or "down".',
+                    'save_pos': 'Whether or not to save the computed position for the graph.',
+                    'dim': 'The dimension of the layout -- 2 or 3.',
+                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
+                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
+                    }
+
+graphplot_options = layout_options.copy()
+graphplot_options.update(
+                   {'pos': 'The position dictionary of vertices',
                     'vertex_labels': 'Whether or not to draw vertex labels.',
                     'vertex_colors': 'Dictionary of vertex coloring.',
                     'vertex_size': 'The size to draw the vertices.',
@@ -32,16 +45,11 @@ graphplot_options = {'pos': 'The position dictionary of vertices',
                     'edge_colors': 'Dictionary of edge coloring.',
                     'color_by_label': 'Whether or not to color the edges by their label values.',
                     'partition': 'A partition of the vertex set.  (Draws each cell of vertices in a different color).',
-                    'iterations': 'The number of times to execute the spring layout algorithm.',
                     'loop_size': 'The radius of the smallest loop.',
                     'dist': 'The distance between multiedges.',
                     'max_dist': 'The max distance range to allow multiedges.',
-                    'heights': 'Dictionary specifying height (y positions) for vertices.',
                     'talk': 'Whether to display the vertices in talk mode (larger and white)',
-                    'tree_root': 'A vertex designation for drawing trees.',
-                    'tree_orientation': 'The direction of tree branches-- "up" or "down".',
-                    'save_pos': 'Whether or not to save the computed position for the graph.',
-                    'graph_border': 'Whether or not to draw a frame around the graph.'}
+                    'graph_border': 'Whether or not to draw a frame around the graph.'})
 
 class GraphPlot(SageObject):
     def __init__(self, graph, options):
@@ -128,101 +136,7 @@ class GraphPlot(SageObject):
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
         """
-        random = current_randstate().python_random().random
-
-        # Check layouts first to override pos
-        if 'layout' in self._options and self._options['layout'] is not None:
-            if self._options['layout'] == 'spring':
-                self._pos = generic_graph_pyx.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
-            elif self._options['layout'] == 'circular':
-                #from math import sin, cos, pi
-                n = len(self._nodelist)
-                pos = {}
-                verts = self._graph.vertices()
-                for i in range(n):
-                    x = float(cos((pi/2) + ((2*pi)/n)*i))
-                    y = float(sin((pi/2) + ((2*pi)/n)*i))
-                    pos[verts[i]] = [x,y]
-                self._pos = pos
-            elif self._options['layout'] == 'tree':
-                n = len(self._nodelist)
-
-                if not 'tree_root' in self._options:
-                    from sage.misc.prandom import randrange
-                    root = self._nodelist[randrange(n)]
-                else:
-                    root = self._options['tree_root']
-
-                if not 'tree_orientation' in self._options:
-                    orientation = 'down'
-                else:
-                    orientation = self._options['tree_orientation']
-
-                self._pos = self.layout_tree(root,orientation)
-
-        # No layout-- obtain position dict for all nodes
-        elif 'pos' in self._options:
-            self._pos = self._options['pos']
-        else:
-            self._pos = self._graph.get_pos()
-
-        # Set/adjust pos dict for heights
-        if self._options['heights'] is not None and self._graph.order() > 0:
-            pos = {}
-            mmax = max([len(ccc) for ccc in self._options['heights'].values()])
-            ymin = min(self._options['heights'].keys())
-            ymax = max(self._options['heights'].keys())
-            dist = ((ymax-ymin)/(mmax+1.0))
-            for height in self._options['heights']:
-                num_xs = len(self._options['heights'][height])
-                if num_xs == 0:
-                    continue
-                j = (mmax - num_xs)/2.0
-                for k in range(num_xs):
-                    pos[self._options['heights'][height][k]] = [dist*(j+k+1) + random()*(dist*0.03), height]
-                self._pos = pos
-
-        if not self._pos:
-            self._pos = generic_graph_pyx.spring_layout_fast(self._graph, iterations=self._options['iterations'], height=(self._options['heights'] is not None))
-
-        # Collect max/min values to add positions if necessary
-        if not self._pos:
-            self._pos = {}
-            xmin = -1
-            xmax = 1
-            ymin = -1
-            ymax = 1
-        else:
-            xs = [self._pos[v][0] for v in self._pos]
-            ys = [self._pos[v][1] for v in self._pos]
-            xmin = min(xs)
-            xmax = max(xs)
-            ymin = min(ys)
-            ymax = max(ys)
-
-        if xmax - xmin < 0.00000001:
-            xmax += 1
-            xmin -= 1
-
-        if ymax - ymin < 0.00000001:
-            ymax += 1
-            ymin -= 1
-
-        dx = xmax - xmin
-        dy = ymax - ymin
-        # Check each vertex position is in pos, add position
-        # randomly within the plot range if none is defined
-        for v in self._nodelist:
-            if not v in self._pos:
-                self._pos[v] = [xmin + dx*random(), ymin + dy*random()]
-
-        # Save positions to graph if requested in options
-        if 'save_pos' in self._options and self._options['save_pos']:
-            self._graph.set_pos(self._pos)
-        self.xmin = xmin
-        self.xmax = xmax
-        self.ymin = ymin
-        self.ymax = ymax
+        self._pos = self._graph.layout(**self._options)
 
     def set_vertices(self, **vertex_options):
         """
@@ -621,30 +535,35 @@ class GraphPlot(SageObject):
                 upwards (resp. downwards). Ignored unless layout='tree'.
             save_pos -- save position computed during plotting
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.graph_plot import graphplot_options
             sage: list(sorted(graphplot_options.iteritems()))
-            [('color_by_label', 'Whether or not to color the edges by their label values.'),
-            ('dist', 'The distance between multiedges.'),
-            ('edge_colors', 'Dictionary of edge coloring.'),
-            ('edge_labels', 'Whether or not to draw edge labels.'),
-            ('edge_style', 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".'),
-            ('graph_border', 'Whether or not to draw a frame around the graph.'),
-            ('heights', 'Dictionary specifying height (y positions) for vertices.'),
-            ('iterations', 'The number of times to execute the spring layout algorithm.'),
-            ('layout', 'A specified layout style-- one of "spring", "circular", "tree".'),
-            ('loop_size', 'The radius of the smallest loop.'),
-            ('max_dist', 'The max distance range to allow multiedges.'),
-            ('partition', 'A partition of the vertex set.  (Draws each cell of vertices in a different color).'),
-            ('pos', 'The position dictionary of vertices'),
-            ('save_pos', 'Whether or not to save the computed position for the graph.'),
-            ('talk', 'Whether to display the vertices in talk mode (larger and white)'),
-            ('tree_orientation', 'The direction of tree branches-- "up" or "down".'),
-            ('tree_root', 'A vertex designation for drawing trees.'),
-            ('vertex_colors', 'Dictionary of vertex coloring.'),
-            ('vertex_labels', 'Whether or not to draw vertex labels.'),
-            ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
-            ('vertex_size', 'The size to draw the vertices.')]
+            [('by_component', 'Whether to do the spring layout by connected component -- a boolean.'),
+             ('color_by_label', 'Whether or not to color the edges by their label values.'),
+             ('dim', 'The dimension of the layout -- 2 or 3.'),
+             ('dist', 'The distance between multiedges.'),
+             ('edge_colors', 'Dictionary of edge coloring.'),
+             ('edge_labels', 'Whether or not to draw edge labels.'),
+             ('edge_style', 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".'),
+             ('graph_border', 'Whether or not to draw a frame around the graph.'),
+             ('heights', 'A dictionary mapping heights to the list of vertices at this height.'),
+             ('iterations', 'The number of times to execute the spring layout algorithm.'),
+             ('layout', 'A layout algorithm -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree".'),
+             ('loop_size', 'The radius of the smallest loop.'),
+             ('max_dist', 'The max distance range to allow multiedges.'),
+             ('partition', 'A partition of the vertex set.  (Draws each cell of vertices in a different color).'),
+             ('pos', 'The position dictionary of vertices'),
+             ('prog', 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".'),
+             ('save_pos', 'Whether or not to save the computed position for the graph.'),
+             ('spring', 'Use spring layout to finalize the current layout.'),
+             ('talk', 'Whether to display the vertices in talk mode (larger and white)'),
+             ('tree_orientation', 'The direction of tree branches -- "up" or "down".'),
+             ('tree_root', 'A vertex designation for drawing trees.'),
+             ('vertex_colors', 'Dictionary of vertex coloring.'),
+             ('vertex_labels', 'Whether or not to draw vertex labels.'),
+             ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
+             ('vertex_size', 'The size to draw the vertices.')]
 
             sage: from math import sin, cos, pi
             sage: P = graphs.PetersenGraph()
@@ -759,7 +678,7 @@ class GraphPlot(SageObject):
             else:
                 for item in comp:
                     G += item
-        G.set_axes_range(self.xmin, self.xmax, self.ymin, self.ymax)
+        G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
             xmax = G.xmax()

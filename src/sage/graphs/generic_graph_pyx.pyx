@@ -25,7 +25,7 @@ cdef extern from *:
 cdef class GenericGraph_pyx(SageObject):
     pass
 
-def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
+def spring_layout_fast_split(G, **options):
     """
     Graphs each component of G separately, placing them adjacent to
     each other. This is done because on a disconnected graph, the
@@ -38,7 +38,8 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
         horizontal distance may end up being "squished" due to
         the several adjacent components.
 
-    EXAMPLE:
+    EXAMPLES:
+
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
@@ -53,7 +54,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
     left = 0
     buffer = 1/sqrt(len(G))
     for g in Gs:
-        cur_pos = spring_layout_fast(g, iterations, dim, vpos, height)
+        cur_pos = spring_layout_fast(g, **options)
         xmin = min([x[0] for x in cur_pos.values()])
         xmax = max([x[0] for x in cur_pos.values()])
         if len(g) > 1:
@@ -64,7 +65,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
         left += xmax - xmin + buffer
     return pos
 
-def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False):
+def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
     """
     Spring force model layout
 
@@ -75,14 +76,42 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     function alone, especially if we require a function call (let alone
     an object creation) every time we want to add a pair of doubles.
 
-    EXAMPLE:
+    INPUT:
+
+     - ``by_component`` - a boolean
+
+    EXAMPLES::
+
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
         {0: [..., ...], ..., 502: [..., ...]}
 
+    With ``split=True``, each component of G is layed out separately,
+    placing them adjacent to each other. This is done because on a
+    disconnected graph, the spring layout will push components further
+    and further from each other without bound, resulting in very tight
+    clumps for each component.
+
+    NOTE:
+
+        If the axis are scaled to fit the plot in a square, the
+        horizontal distance may end up being "squished" due to
+        the several adjacent components.
+
+        sage: G = graphs.DodecahedralGraph()
+        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
+        sage: spring_layout_fast(G, by_component = True)
+        {0: [..., ...], ..., 502: [..., ...]}
     """
+
+    if by_component:
+        return spring_layout_fast_split(G, iterations=iterations, dim = dim,
+                                        vpos = vpos, rescale = rescale, height = height,
+                                        **options)
+
     G = G.to_undirected()
     vlist = G.vertices() # this defines a consistent order
 
@@ -204,6 +233,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     cdef int cur_iter, cur_edge
     cdef int i, j, x
 
+    # k -- the equilibrium distance between two adjacent nodes
     cdef double t = 1, dt = t/(1e-20 + iterations), k = sqrt(1.0/n)
     cdef double square_dist, force, scale
     cdef double* disp_i

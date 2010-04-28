@@ -4921,14 +4921,13 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word([1,0,0,1]).is_square()
             False
-            sage: W = Words('123')
-            sage: W('1212').is_square()
+            sage: Word('1212').is_square()
             True
-            sage: W('1213').is_square()
+            sage: Word('1213').is_square()
             False
-            sage: W('12123').is_square()
+            sage: Word('12123').is_square()
             False
-            sage: W().is_square()
+            sage: Word().is_square()
             True
         """
         if self.length() % 2 != 0:
@@ -4944,33 +4943,31 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: W = Words('123')
-            sage: W('12312').is_square_free()
+            sage: Word('12312').is_square_free()
             True
-            sage: W('31212').is_square_free()
+            sage: Word('31212').is_square_free()
             False
-            sage: W().is_square_free()
+            sage: Word().is_square_free()
             True
 
-        TESTS::
+        TESTS:
 
-            sage: W = Words('123')
-            sage: W('11').is_square_free() # trac 8490
+        We make sure that #8490 is fixed::
+
+            sage: Word('11').is_square_free()
             False
-            sage: W('211').is_square_free() # trac 8490
+            sage: Word('211').is_square_free()
             False
-            sage: W('3211').is_square_free() # trac 8490
+            sage: Word('3211').is_square_free()
             False
         """
-        l = self.length()
-        if l < 2:
+        L = self.length()
+        if L < 2:
             return True
-        suff = self
-        for i in xrange(0, l-1):
-            for ll in xrange(2, l-i+1, 2):
-                if suff[:ll].is_square():
+        for start in xrange(0, L-1):
+            for end in xrange(start+2, L+1, 2):
+                if self[start:end].is_square():
                     return False
-            suff = suff[1:]
         return True
 
     def is_cube(self):
@@ -4979,14 +4976,13 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: W = Words('012')
-            sage: W('012012012').is_cube()
+            sage: Word('012012012').is_cube()
             True
-            sage: W('01010101').is_cube()
+            sage: Word('01010101').is_cube()
             False
-            sage: W().is_cube()
+            sage: Word().is_cube()
             True
-            sage: W('012012').is_cube()
+            sage: Word('012012').is_cube()
             False
         """
         if self.length() % 3 != 0:
@@ -5000,23 +4996,31 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: W = Words('123')
-            sage: W('12312').is_cube_free()
+            sage: Word('12312').is_cube_free()
             True
-            sage: W('32221').is_cube_free()
+            sage: Word('32221').is_cube_free()
             False
-            sage: W().is_cube_free()
+            sage: Word().is_cube_free()
             True
+
+        TESTS:
+
+        We make sure that #8490 is fixed::
+
+            sage: Word('111').is_cube_free()
+            False
+            sage: Word('2111').is_cube_free()
+            False
+            sage: Word('32111').is_cube_free()
+            False
         """
-        l = self.length()
-        if l < 3:
+        L = self.length()
+        if L < 3:
             return True
-        suff = self
-        for i in xrange(0, l - 3):
-            for ll in xrange(3, l-i+1, 3):
-                if suff[:ll].is_cube():
+        for start in xrange(0, L - 2):
+            for end in xrange(start+3, L+1, 3):
+                if self[start:end].is_cube():
                     return False
-            suff = suff[1:]
         return True
 
 #######################################################################

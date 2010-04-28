@@ -23,6 +23,10 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.12.p3 (Willem Jan Palenstijn, 2010-4-28) ===
+ * #8773: Fix some problems with strict aliasing (gcc 4.5)
+ * Don't pre-apply saveload.patch to src/ directory.
+
 === gap-4.4.12.p2 (Dima Pasechnik, 2010-4-27) ===
  * removed everything in src/bin/ (Windows/Cygwin-less related stuff,
    i.e. not needed if full-blown Cygwin is used),

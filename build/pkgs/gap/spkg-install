@@ -20,6 +20,11 @@ TARGET="gap-4.4.12"  #NOTE: Be sure to also update patches/gap*
 # Indicate that Gap has somehow been updated, which invalidates all workspaces.
 touch "$SAGE_LOCAL/bin/gap_stamp"
 
+
+# Apply patches
+cp patches/gap.c patches/saveload.c patches/streams.c src/src/
+cp patches/sysfiles.h patches/sysfiles.c src/src/
+
 build()
 {
     CUR=`pwd`

@@ -400,8 +400,8 @@ class Graph(GenericGraph):
     r"""
     Undirected graph.
 
-    A graph is a set of vertices connected by edges
-    (cf. http://en.wikipedia.org/wiki/Graph_(mathematics) ).
+    A graph is a set of vertices connected by edges. See also the
+    `Wikipedia article on graphs <http://en.wikipedia.org/wiki/Graph_(mathematics)>`_.
 
     One can very easily create a graph in Sage by typing::
 
@@ -1479,10 +1479,11 @@ class Graph(GenericGraph):
 
     def strong_orientation(self):
         r"""
-        Returns a strongly connected orientation of the current graph.
-        ( cf. http://en.wikipedia.org/wiki/Strongly_connected_component )
+        Returns a strongly connected orientation of the current graph. See
+        also the
+        `Wikipedia article on strongly connected component <http://en.wikipedia.org/wiki/Strongly_connected_component>`_.
 
-        An orientation of a an undirected graph is a digraph obtained by
+        An orientation of an undirected graph is a digraph obtained by
         giving an unique direction to each of its edges. An orientation
         is said to be strong if there is a directed path between each
         pair of vertices.
@@ -1931,8 +1932,8 @@ class Graph(GenericGraph):
         once the vertices of each `S_h` have been merged to create
         a new graph `G'`, this new graph contains `H` as a subgraph.
 
-        For more information of minor theory, see
-        http://en.wikipedia.org/wiki/Minor_(graph_theory)
+        For more information, see the
+        `Wikipedia article on graph minor <http://en.wikipedia.org/wiki/Minor_%28graph_theory%29>`_.
 
         INPUT:
 
@@ -3013,10 +3014,9 @@ class Graph(GenericGraph):
 
         Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
         with the same set of vertices, and such that the maximal flow
-        between any two vertices is the same in `G` as in `T`.
-        (see http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree)
-        Note that, in general, a graph admits more than one Gomory-Hu
-        tree.
+        between any two vertices is the same in `G` as in `T`. See the
+        `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
+        Note that, in general, a graph admits more than one Gomory-Hu tree.
 
         OUTPUT:
 

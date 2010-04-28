@@ -3069,7 +3069,9 @@ class GenericGraph(GenericGraph_pyx):
         A minimum edge cut between two vertices `s` and `t` of self
         is a set `A` of edges of minimum weight such that the graph
         obtained by removing `A` from self is disconnected.
-        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+
+        `Wikipedia article on cuts
+        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
 
         INPUT:
 
@@ -3194,7 +3196,9 @@ class GenericGraph(GenericGraph_pyx):
         A vertex cut between two non adjacent vertices is a set `U`
         of vertices of self such that the graph obtained by removing
         `U` from self is disconnected.
-        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+
+        `Wikipedia article on cuts
+        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_
 
 
         INPUT:
@@ -3306,7 +3310,9 @@ class GenericGraph(GenericGraph_pyx):
         vertices such that each edge is incident to at least
         one element of `S`, and such that `S` is of minimum
         cardinality.
-        ( cf. http://en.wikipedia.org/wiki/Vertex_cover )
+
+        `Wikipedia article on vertex cover
+        <http://en.wikipedia.org/wiki/Vertex_cover>`_.
 
         Equivalently, a vertex cover is defined as the
         complement of an independent set.
@@ -3396,8 +3402,8 @@ class GenericGraph(GenericGraph_pyx):
         Equivalently, a minimum feedback arc set of a DiGraph is a set
         `S` of arcs such that the digraph `G-S` is acyclic.
 
-        For more informations, see
-        ( http://en.wikipedia.org/wiki/Feedback_arc_set )
+        `Wikipedia article on feedback arc sets
+        <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
 
         INPUT :
 
@@ -3510,8 +3516,8 @@ class GenericGraph(GenericGraph_pyx):
         Equivalently, a minimum feedback vertex set of a DiGraph is a set
         `S` of vertices such that the digraph `G-S` is acyclic.
 
-        For more informations, see
-        ( http://en.wikipedia.org/wiki/Feedback_vertex_set )
+        `Wikipedia article on Feedback vertex sets
+        <http://en.wikipedia.org/wiki/Feedback_vertex_set>`_.
 
         INPUT :
 
@@ -3617,7 +3623,9 @@ class GenericGraph(GenericGraph_pyx):
     def max_cut(self,value_only=True,use_edge_labels=True, vertices=False):
         r"""
         Returns a maximum edge cut of the graph
-        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+
+        `Wikipedia article on cuts
+        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
 
         INPUT:
 
@@ -3751,8 +3759,11 @@ class GenericGraph(GenericGraph_pyx):
     def flow(self,x,y,value_only=True,integer=False, use_edge_labels=True,vertex_bound=False):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
-        ( cf. http://en.wikipedia.org/wiki/Max_flow_problem )
         represented by an optimal valuation of the edges.
+
+        `Wikipedia article on flows
+        <http://en.wikipedia.org/wiki/Max_flow_problem>`_.
+
 
         As an optimization problem, is can be expressed this way :
 
@@ -4012,8 +4023,11 @@ class GenericGraph(GenericGraph_pyx):
     def matching(self,value_only=False, use_edge_labels=True):
         r"""
         Returns a maximum weighted matching of the graph
-        ( cf. http://en.wikipedia.org/wiki/Matching )
         represented by the list of its edges.
+
+        `Wikipedia article on matchings
+        <http://en.wikipedia.org/wiki/Matching>`_.
+
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
         a maximum matching is a subset `S` of the edges of `G` of
@@ -4078,8 +4092,10 @@ class GenericGraph(GenericGraph_pyx):
     def dominating_set(self, independent=False, value_only=False,log=0):
         r"""
         Returns a minimum dominating set of the graph
-        ( cf. http://en.wikipedia.org/wiki/Dominating_set )
         represented by the list of its vertices.
+
+        `Wikipedia article on dominating sets
+        <http://en.wikipedia.org/wiki/Dominating_set>`_.
 
         A minimum dominating set `S` of a graph `G` is
         a set of its vertices of minimal cardinality such
@@ -4164,7 +4180,9 @@ class GenericGraph(GenericGraph_pyx):
     def edge_connectivity(self,value_only=True,use_edge_labels=False, vertices=False):
         r"""
         Returns the edge connectivity of the graph
-        ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
+
+        `Wikipedia article on connectivity
+        <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
         INPUT:
 
@@ -4356,7 +4374,9 @@ class GenericGraph(GenericGraph_pyx):
     def vertex_connectivity(self,value_only=True, sets=False):
         r"""
         Returns the vertex connectivity of the graph
-        ( cf. http://en.wikipedia.org/wiki/Connectivity_(graph_theory) )
+
+        `Wikipedia article on connectivity
+        <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
 
         INPUT:
@@ -8311,8 +8331,8 @@ class GenericGraph(GenericGraph_pyx):
         A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth
         First Search used for the recognition of Chordal Graphs.
 
-        More information on this page :
-        http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search
+        `Wikipedia article on Lex-BFS
+        <http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search>`_
 
         INPUT:
 

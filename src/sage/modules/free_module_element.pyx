@@ -121,6 +121,14 @@ from sage.misc.derivative import multi_derivative
 #from sage.matrix.matrix cimport Matrix
 
 def is_FreeModuleElement(x):
+    """
+    EXAMPLES::
+
+        sage: sage.modules.free_module_element.is_FreeModuleElement(0)
+        False
+        sage: sage.modules.free_module_element.is_FreeModuleElement(vector([1,2,3]))
+        True
+    """
     return isinstance(x, FreeModuleElement)
 
 def vector(arg0, arg1=None, arg2=None, sparse=None):
@@ -311,6 +319,30 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 free_module_element = vector
 
 def prepare(v, R):
+    """
+    Find a common ring (using R as universe) that contains every
+    element of v, and replace v with the sequence of elements in v
+    coerced to this ring.  For more details, see the
+    sage.structure.sequence.Sequence object.
+
+    INPUT:
+
+        - v -- list or tuple
+        - R -- ring or None
+
+    EXAMPLES::
+
+        sage: sage.modules.free_module_element.prepare([1,2/3,5],None)
+        ([1, 2/3, 5], Rational Field)
+        sage: sage.modules.free_module_element.prepare([1,2/3,5],RR)
+        ([1.00000000000000, 0.666666666666667, 5.00000000000000], Real Field with 53 bits of precision)
+        sage: sage.modules.free_module_element.prepare([1,2/3,'10',5],None)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find a common ring for all elements
+        sage: sage.modules.free_module_element.prepare([1,2/3,'10',5],RR)
+        ([1.00000000000000, 0.666666666666667, 10.0000000000000, 5.00000000000000], Real Field with 53 bits of precision)
+    """
     v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):
@@ -340,6 +372,13 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     An element of a generic free module.
     """
     def __init__(self, parent):
+        """
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement'>
+        """
         self._parent = parent
         self._degree = parent.degree()
         self._is_mutable = 1
@@ -391,6 +430,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return '%s![%s]' % (R.name(), v)
 
     def __hash__(self):
+        """
+        Return hash of this vector.  Only mutable vectors are hashable.
+
+        EXAMPLES::
+            sage: v = vector([1,2/3,pi])
+            sage: v.__hash__()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
+            sage: v.set_immutable()
+            sage: v.__hash__()
+            761055766                      # 32-bit
+            2525866853680768700            # 64-bit
+        """
         if self._is_mutable:
             raise TypeError, "mutable vectors are unhashable"
         return hash(tuple(self))
@@ -486,7 +539,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                                       [sib(e, 2) for e in self])
 
     def transpose(self):
-        r"""Return self as a column matrix.
+        r"""
+        Return self as a column matrix.
 
         EXAMPLES::
 
@@ -513,6 +567,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self._matrix_().transpose()
 
     def _hash(self):
+        """
+        Return hash of an immutable form of self (works even if self
+        is mutable).
+
+        EXAMPLES::
+            sage: v = vector([1,2/3,pi])
+            sage: v.__hash__()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
+            sage: v._hash()
+            761055766                      # 32-bit
+            2525866853680768700            # 64-bit
+        """
         return hash(tuple(list(self)))
 
     def __copy__(self):
@@ -651,6 +719,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return sage.rings.arith.LCM(v)
 
     def iteritems(self):
+        """
+        Return iterator over self.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi])
+            sage: v.iteritems()
+            <dictionary-itemiterator object at ...>
+            sage: list(v.iteritems())
+            [(0, 1), (1, 2/3), (2, pi)]
+        """
         return self.dict(copy=False).iteritems()
 
     def __abs__(self):
@@ -741,12 +820,43 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return 0
 
     def __getitem__(self, i):
+        """
+        Return i-th entry of self.
+
+        EXAMPLES::
+
+        This just raises NotImplementedError since this is an abstract
+        base class, and __getitem__ has to be overloaded in the
+        derived class::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: v.__getitem__(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def __invert__(self):
+        """
+        Invert v, which makes no sense, and is hence is not implemented.
+
+        EXAMPLES::
+
+            sage: vector([1,2/3,pi]).__invert__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: len(sage.modules.free_module_element.FreeModuleElement(QQ^2010))
+            2010
+        """
         return self.parent().degree()
 
     def __mod__(self, p):
@@ -774,20 +884,41 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.change_ring(self.base_ring().quotient_ring(p))
 
     def list(self, copy=True):
-        d = self.degree()
-        v = [0]*d
-        for i in range(d):
-            v[i] = self[i]
-        return v
+        """
+        Return list of elements of self.
+
+        INPUT:
+
+            - copy -- bool, whether returned list is a copy that is
+              safe to change
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,8], sparse=True)
+            sage: v.list()
+            [1, 2/3, 8]
+        """
+        cdef Py_ssize_t i
+        return [self[i] for i in range(self.degree())]
 
     def list_from_positions(self, positions):
-        cdef Py_ssize_t j
-        v = [0]*len(positions)
-        j = 0
-        for i in positions:
-            v[j] = self[i]
-            j = j + 1
-        return v
+        """
+        Return list of elements chosen from this vector using the
+        given positions of this vector.
+
+        INPUT:
+
+            - positions -- iterable of ints
+
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi])
+            sage: v.list_from_positions([0,0,0,2,1])
+            [1, 1, 1, pi, 2/3]
+        """
+        cdef Py_ssize_t i
+        return [self[i] for i in positions]
 
     def lift(self):
         """
@@ -803,9 +934,32 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.change_ring(self.base_ring().cover_ring())
 
     def __pos__(self):
+        """
+        Always returns self, since +self == self.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,8])
+            sage: v.__pos__()
+            (1, 2/3, 8)
+            sage: +v
+            (1, 2/3, 8)
+        """
         return self
 
     def __pow__(self, n, dummy):
+        """
+        Raises a NotImplementedError, since powering doesn't make
+        sense for vectors.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,8])
+            sage: v^2
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def _repr_(self):
@@ -871,6 +1025,25 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return "Vector[row](%s)"%(str(self.list()))
 
     def __setitem__(self, i, x):
+        """
+        Set the i-th entry of self to x.  This is not implemented,
+        since self is an abstract base class.
+
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: v[0] = 5
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        For derived classes, this works::
+
+            sage: v = vector([1,2/3,8])
+            sage: v[0] = 5
+            sage: v
+            (5, 2/3, 8)
+        """
         raise NotImplementedError
 
     def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
@@ -927,6 +1100,13 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
 
     def __richcmp__(left, right, int op):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,8])   # indirect test
+            sage: v == v
+            True
+        """
         cdef int ld, rd
         if not isinstance(left, FreeModuleElement) or not isinstance(right, FreeModuleElement):
             # use the generic compare
@@ -943,13 +1123,36 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return (<Element>left)._richcmp(right, op)
 
 
-    cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
+    cdef int _cmp_same_ambient_c(left, FreeModuleElement right) except -2:
         return cmp(left.list(copy=False), right.list(copy=False))
 
     def degree(self):
+        """
+        Return the degree of this vector, which is simply the number
+        of entries.
+
+        EXAMPLES::
+
+            sage: sage.modules.free_module_element.FreeModuleElement(QQ^389).degree()
+            389
+            sage: vector([1,2/3,8]).degree()
+            3
+        """
         return self._degree
 
     def denominator(self):
+        """
+        Return the least common multiple of the denominators of the
+        entries of self.
+
+        EXAMPLES::
+
+            sage: v = vector([1/2,2/5,3/14])
+            sage: v.denominator()
+            70
+            sage: 2*5*7
+            70
+        """
         R = self.base_ring()
         if self.degree() == 0: return 1
         x = self.list()
@@ -959,10 +1162,36 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return d
 
     def dict(self, copy=True):
+        """
+        Return dictionary of nonzero entries of self.
+
+        INPUT:
+
+            - ``copy`` -- bool (default: True)
+
+        OUTPUT:
+
+            - Python dictionary
+
+        EXAMPLES::
+
+            sage: v = vector([0,0,0,0,1/2,0,3/14])
+            sage: v.dict()
+            {4: 1/2, 6: 3/14}
+
+        In some cases when copy=False, we get back a dangerous reference::
+
+            sage: v = vector({0:5, 2:3/7}, sparse=True)
+            sage: v.dict(copy=False)
+            {0: 5, 2: 3/7}
+            sage: v.dict(copy=False)[0] = 18
+            sage: v
+            (18, 0, 3/7)
+        """
         e = {}
         for i in xrange(self.degree()):
             c = self[i]
-            if c != 0:
+            if c:
                 e[i] = c
         return e
 
@@ -1290,19 +1519,48 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self._pairwise_product_(right)
 
     def element(self):
+        """
+        Simply returns self.  This is useful, since for many objects,
+        self.element() returns a vector corresponding to self.
+
+        EXAMPLES::
+
+            sage: v = vector([1/2,2/5,0]); v
+            (1/2, 2/5, 0)
+            sage: v.element()
+            (1/2, 2/5, 0)
+        """
         return self
 
-    def get(self, i):
+    def get(self, Py_ssize_t i):
         """
-        get is meant to be more efficient than getitem, because it does not
+        The get method is in some cases more efficient (and more
+        dangerous) than __getitem__, because it is not guaranteed to
         do any error checking.
+
+        EXAMPLES::
+
+            sage: vector([1/2,2/5,0]).get(0)
+            1/2
+            sage: vector([1/2,2/5,0]).get(3)
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
         """
         return self[i]
 
-    def set(self, i, x):
+    def set(self, Py_ssize_t i, x):
         """
-        set is meant to be more efficient than setitem, because it does not
-        do any error checking or coercion. Use with care.
+        The set method is meant to be more efficient than __setitem__,
+        because it need not be guaranteed to do any error checking or
+        coercion. Use with great, great care.
+
+        EXAMPLES::
+
+            sage: v = vector([1/2,2/5,0]); v
+            (1/2, 2/5, 0)
+            sage: v.set(2, -15/17); v
+            (1/2, 2/5, -15/17)
         """
         self[i] = x
 
@@ -1354,18 +1612,50 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return A.linear_combination_of_rows(v).dot_product(w)
 
     def is_dense(self):
+        """
+        Return True if this is a dense vector, which is just a
+        statement about the data structure, not the number of nonzero
+        entries.
+
+        EXAMPLES::
+
+            sage: vector([1/2,2/5,0]).is_dense()
+            True
+            sage: vector([1/2,2/5,0],sparse=True).is_dense()
+            False
+        """
         return self.is_dense_c()
 
     cdef bint is_dense_c(self):
         return self.parent().is_dense()
 
     def is_sparse(self):
+        """
+        Return True if this is a sparse vector, which is just a
+        statement about the data structure, not the number of nonzero
+        entries.
+
+        EXAMPLES::
+
+            sage: vector([1/2,2/5,0]).is_sparse()
+            False
+            sage: vector([1/2,2/5,0],sparse=True).is_sparse()
+            True
+        """
         return self.is_sparse_c()
 
     cdef bint is_sparse_c(self):
         return self.parent().is_sparse()
 
     def is_vector(self):
+        """
+        Return True, since this is a vector.
+
+        EXAMPLES::
+
+            sage: vector([1/2,2/5,0]).is_vector()
+            True
+        """
         return True
 
     def _mathematica_init_(self):
@@ -1398,6 +1688,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def nonzero_positions(self):
         """
         Return the sorted list of integers i such that self[i] != 0.
+
+        EXAMPLES::
+
+            sage: vector([-1,0,3,0,0,0,0.01]).nonzero_positions()
+            [0, 2, 6]
         """
         z = self.base_ring()(0)
         v = self.list()
@@ -1408,6 +1703,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         Return the integers i such that self[i] != 0.
         This is the same as the ``nonzero_positions`` function.
+
+        EXAMPLES::
+
+            sage: vector([-1,0,3,0,0,0,0.01]).support()
+            [0, 2, 6]
         """
         return self.nonzero_positions()
 
@@ -1435,12 +1735,38 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):
+        """
+        Return dense version of self.  If self is dense, just return
+        self; otherwise, create and return correspond dense vector.
+
+        EXAMPLES::
+
+            sage: vector([-1,0,3,0,0,0]).dense_vector().is_dense()
+            True
+            sage: vector([-1,0,3,0,0,0],sparse=True).dense_vector().is_dense()
+            True
+            sage: vector([-1,0,3,0,0,0],sparse=True).dense_vector()
+            (-1, 0, 3, 0, 0, 0)
+        """
         if self.is_dense():
             return self
         else:
             return self.parent().ambient_module().dense_module()(self.list())
 
     def sparse_vector(self):
+        """
+        Return sparse version of self.  If self is sparse, just return
+        self; otherwise, create and return correspond sparse vector.
+
+        EXAMPLES::
+
+            sage: vector([-1,0,3,0,0,0]).sparse_vector().is_sparse()
+            True
+            sage: vector([-1,0,3,0,0,0]).sparse_vector().is_sparse()
+            True
+            sage: vector([-1,0,3,0,0,0]).sparse_vector()
+            (-1, 0, 3, 0, 0, 0)
+        """
         if self.is_sparse():
             return self
         else:
@@ -1728,6 +2054,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 # Generic dense element
 #############################################
 def make_FreeModuleElement_generic_dense(parent, entries, degree):
+    """
+    EXAMPLES::
+
+        sage: sage.modules.free_module_element.make_FreeModuleElement_generic_dense(QQ^3, [1,2,-3/7], 3)
+        (1, 2, -3/7)
+    """
     # If you think you want to change this function, don't.
     # Instead make a new version with a name like
     #    make_FreeModuleElement_generic_dense_v1
@@ -1740,6 +2072,20 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     return v
 
 def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
+    """
+    EXAMPLES::
+
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, True); v
+        (1, 2, -3/7)
+        sage: v[0] = 10; v
+        (10, 2, -3/7)
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, False); v
+        (1, 2, -3/7)
+        sage: v[0] = 10
+        Traceback (most recent call last):
+        ...
+        ValueError: vector is immutable; please change a copy instead (use copy())
+    """
     # If you think you want to change this function, don't.
     # Instead make a new version with a name like
     #    make_FreeModuleElement_generic_dense_v2
@@ -1785,12 +2131,49 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return 0
 
     def _hash(self):
+        """
+        Return hash of an immutable form of self (works even if self
+        is mutable).
+
+            sage: v = vector([-1,0,3,pi])
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            sage: v._hash()
+            ?                                     # 32-bit
+            1664698900231364249                   # 64-bit
+        """
         return hash(tuple(list(self)))
 
     def __copy__(self):
+        """
+        Return a copy of this generic dense vector.
+
+        EXAMPLES::
+
+            sage: v = vector([-1,0,3,pi])
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            sage: v.__copy__()
+            (-1, 0, 3, pi)
+            sage: v.__copy__() is v
+            False
+
+            sage: copy(v)
+            (-1, 0, 3, pi)
+            sage: copy(v) == v
+            True
+            sage: copy(v) is v
+            False
+        """
         return self._new_c(list(self._entries))
 
     def __init__(self, parent, entries, coerce=True, copy=True):
+        """
+        EXAMPLES::
+
+            sage: type(vector([-1,0,3,pi]))   # indirect doctest
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+        """
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
         if entries == 0:
@@ -1816,6 +2199,12 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     cpdef ModuleElement _add_(left, ModuleElement right):
         """
         Add left and right.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi]); w = vector([-2/3,pi^2,1])
+            sage: v._add_(w)
+            (1/3, pi^2 + 2/3, pi + 1)
         """
         cdef Py_ssize_t i, n
         n = PyList_Size(left._entries)
@@ -1861,6 +2250,15 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return self._new_c(v)
 
     cpdef ModuleElement _lmul_(self, RingElement right):
+        """
+        EXAMPLES::
+
+            sage: v = vector([-1,0,3,pi])
+            sage: v._lmul_(2/3)
+            (-2/3, 0, 2, 2/3*pi)
+            sage: v * (2/3)
+            (-2/3, 0, 2, 2/3*pi)
+        """
         if right._parent is self._parent._base:
             v = [(<RingElement>x)._mul_(right) for x in self._entries]
         else:
@@ -1906,6 +2304,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return left._new_c(v)
 
     def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: v = vector([-1,0,3,pi])
+            sage: v.__reduce__()
+            (<built-in function make_FreeModuleElement_generic_dense_v1>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
+        """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, Py_ssize_t i):
@@ -1940,6 +2345,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     def __setitem__(self, Py_ssize_t i, value):
         """
         Set entry i of self to value.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi])
+            sage: v[1] = 19+pi
+            sage: v
+            (1, pi + 19, pi)
         """
         if not self._is_mutable:
             raise ValueError, "vector is immutable; please change a copy instead (use copy())"
@@ -1981,6 +2393,29 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 n = n + 1
 
     def list(self, copy=True):
+        """
+        Return list of elements of self.
+
+        INPUT:
+
+            - copy -- bool, return list of underlying entries
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi])
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            sage: a = v.list(); a
+            [1, 2/3, pi]
+            sage: a[0] = 20; v
+            (1, 2/3, pi)
+            sage: a = v.list(copy=False); a
+            [1, 2/3, pi]
+            sage: a[0] = 20; v
+            (20, 2/3, pi)
+            sage: v
+            (20, 2/3, pi)
+        """
         if copy:
             return list(self._entries)
         else:
@@ -2047,11 +2482,22 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 def _sparse_dot_product(v, w):
     """
     v and w are dictionaries with integer keys.
+
+    EXAMPLES::
+
+        sage: sage.modules.free_module_element._sparse_dot_product({0:5,1:7,2:3}, {0:-1, 2:2})
+        1
     """
     x = set(v.keys()).intersection(set(w.keys()))
     return sum([v[k]*w[k] for k in x])
 
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
+    """
+    EXAMPLES::
+
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_sparse(QQ^3, {2:5/2}, 3); v
+        (0, 0, 5/2)
+    """
     cdef FreeModuleElement_generic_sparse v
     v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
     v._entries = entries
@@ -2060,6 +2506,14 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     return v
 
 def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
+    """
+    EXAMPLES::
+
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_sparse_v1(QQ^3, {2:5/2}, 3, False); v
+        (0, 0, 5/2)
+        sage: v.is_mutable()
+        False
+    """
     cdef FreeModuleElement_generic_sparse v
     v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
     v._entries = entries
@@ -2112,12 +2566,27 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return 1
 
     def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.__copy__()
+            (1, 2/3, pi)
+        """
         return self._new_c(dict(self._entries))
 
     def __init__(self, parent,
                  entries=0,
                  coerce=True,
                  copy=True):
+        """
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement_generic_sparse(VectorSpace(QQ,3,sparse=True), {1:5/4}); v
+            (0, 5/4, 0)
+            sage: v.is_sparse()
+            True
+        """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
         FreeModuleElement.__init__(self, parent)
@@ -2150,6 +2619,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     cpdef ModuleElement _add_(left, ModuleElement right):
         """
         Add left and right.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v._add_(v)
+            (2, 4/3, 2*pi)
         """
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
@@ -2165,6 +2640,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return left._new_c(e)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v._sub_(v)
+            (0, 0, 0)
+        """
         cdef object v, e
         e = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
@@ -2179,6 +2661,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return left._new_c(e)
 
     cpdef ModuleElement _lmul_(self, RingElement right):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v._lmul_(SR(3))
+            (3, 2, 3*pi)
+        """
         cdef object v
         v = PyDict_New()
         if right:
@@ -2189,6 +2678,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return self._new_c(v)
 
     cpdef ModuleElement _rmul_(self, RingElement left):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v._rmul_(SR(3))
+            (3, 2, 3*pi)
+        """
         cdef object v
         v = PyDict_New()
         if left:
@@ -2219,6 +2715,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return z
 
     cpdef element_Vector _pairwise_product_(left, element_Vector right):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True); w = vector([-2/3,pi^2,1],sparse=True)
+            sage: v._pairwise_product_(w)
+            (-2/3, 2/3*pi^2, pi)
+        """
         # Component wise vector * vector multiplication.
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
@@ -2246,9 +2749,27 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return cmp(a,b)
 
     def iteritems(self):
+        """
+        Return iterator over the entries of self.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.iteritems()
+            <dictionary-itemiterator object at ...>
+            sage: list(v.iteritems())
+            [(0, 1), (1, 2/3), (2, pi)]
+        """
         return self._entries.iteritems()
 
     def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.__reduce__()
+            (<built-in function make_FreeModuleElement_generic_sparse_v1>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
+        """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, i):
@@ -2283,8 +2804,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def get(self, i):
         """
-        Like __getitem__ but with no type or bounds checking. Returns 0
+        Like __getitem__ but with no guaranteed type or bounds checking. Returns 0
         if access is out of bounds.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.get(1)
+            2/3
+            sage: v.get(10)
+            0
         """
         i = int(i)
         if self._entries.has_key(i):
@@ -2294,7 +2823,25 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def set(self, i, x):
         """
-        Like __setitem__ but with no type or bounds checking.
+        Like __setitem__ but with no guaranteed type or bounds checking.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.set(1, pi^3)
+            sage: v
+            (1, pi^3, pi)
+
+        No bounds checking::
+
+            sage: v.set(10, pi)
+
+        This lack of bounds checking causes trouble later::
+
+            sage: v
+            Traceback (most recent call last):
+            ...
+            IndexError: list assignment index out of range
         """
         if not self._is_mutable:
             raise ValueError, "vector is immutable; please change a copy instead (use copy())"
@@ -2334,8 +2881,18 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         self.set(i, self._parent.base_ring()(value))
 
     def denominator(self):
+        """
+        Return the least common multiple of the denominators of the
+        entries of self.
+
+        EXAMPLES::
+
+            sage: v = vector([1/2,2/5,3/14], sparse=True)
+            sage: v.denominator()
+            70
+        """
         R = self.base_ring()
-        x = self.entries()
+        x = self._entries
         if len(x) == 0:
             return 1
         Z = x.iteritems()
@@ -2345,12 +2902,44 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return d
 
     def dict(self, copy=True):
+        """
+        Return dictionary of nonzero entries of self.
+
+        INPUT:
+
+            - ``copy`` -- bool (default: True)
+
+        OUTPUT:
+
+            - Python dictionary
+
+        EXAMPLES::
+
+            sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
+            sage: v.dict()
+            {4: 1/2, 6: 3/14}
+        """
         if copy:
             return dict(self._entries)
         else:
             return self._entries
 
     def list(self, copy=True):
+        """
+        Return list of elements of self.
+
+        INPUT:
+
+            - copy -- bool, return list of underlying entries
+
+        EXAMPLES::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            sage: a = v.list(); a
+            [1, 2/3, pi]
+        """
         cdef Py_ssize_t n
         n = self._parent.degree()
         z = self._parent.base_ring()(0)

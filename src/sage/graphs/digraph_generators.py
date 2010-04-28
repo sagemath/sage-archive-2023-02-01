@@ -287,9 +287,9 @@ class DiGraphGenerators():
         In this digraph, there is an arc `w_1w_2` if `w_2`
         can be obtained from `w_1` by removing the leftmost
         letter and adding a new letter at its right end.
-
-        `Wikipedia article on the De Bruijn graph
-        <http://en.wikipedia.org/wiki/De_Bruijn_graph>`_
+        For more information, see the
+        `Wikipedia article on De Bruijn graph
+        <http://en.wikipedia.org/wiki/De_Bruijn_graph>`_.
 
         INPUT:
 

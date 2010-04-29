@@ -68,7 +68,11 @@ to get the original complex value of ``i``.
 There is one subtlety in defining complex numbers: as mentioned above,
 the symbol ``i`` represents a square root of `-1`, but it is a
 *formal* or *symbolic* square root of `-1`.  Calling ``CC(i)`` or
-``CC.0`` returns the *complex* square root of `-1`. ::
+``CC.0`` returns the *complex* square root of `-1`.
+Arithmetic involving different kinds of numbers is possible by
+so-called coercion, see :ref:`section-coercion`.
+
+::
 
     sage: i = CC(i)       # floating point complex number
     sage: i == CC.0
@@ -110,7 +114,8 @@ but the integers don't)::
 
 The decimal number ``1.2`` is considered to be in ``QQ``: decimal numbers
 which happen to also be rational can be "coerced" into the rational
-numbers.  The numbers `\pi` and `\sqrt{2}` are not rational, though::
+numbers (see :ref:`section-coercion`).  The numbers `\pi` and `\sqrt{2}`
+are not rational, though::
 
     sage: 1.2 in QQ
     True

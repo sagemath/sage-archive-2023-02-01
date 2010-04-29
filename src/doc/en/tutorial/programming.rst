@@ -693,15 +693,18 @@ Use bool for symbolic inequalities:
 
 When comparing objects of different types in Sage, in most cases
 Sage tries to find a canonical coercion of both objects to a common
-parent. If successful, the comparison is performed between the
-coerced objects; if not successful the objects are considered not
-equal. For testing whether two variables reference the same object
-use ``is``. For example:
+parent (see :ref:`section-coercion` for more details). If successful,
+the comparison is performed between the coerced objects; if not successful,
+the objects are considered not equal. For testing whether two variables
+reference the same object use ``is``. As we see in this example,
+the Python int ``1`` is unique, but the Sage Integer ``1`` is not:
 
 ::
 
     sage: 1 is 2/2
     False
+    sage: int(1) is int(2)/int(2)
+    True
     sage: 1 is 1
     False
     sage: 1 == 2/2

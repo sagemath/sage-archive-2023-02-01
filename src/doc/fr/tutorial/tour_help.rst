@@ -103,6 +103,8 @@ disponibles en Sage.
 
 .. _section-functions:
 
+.. _section-functions:
+
 Fonctions, indentation et itération
 ===================================
 

@@ -329,7 +329,7 @@ class multiples:
 
         self.P=copy(P)
         self.Q=copy(P0)
-        assert self.P != None and self.Q!=None
+        assert self.P is not None and self.Q is not None
         self.i = 0
         self.bound = n
         self.indexed = indexed
@@ -1406,10 +1406,10 @@ def order_from_bounds(P, bounds, d=None, operation='+',
 
     # Now use the order_from_multiple() function to finish the job:
 
-    return order_from_multiple(P, m, operation=operation)
+    return order_from_multiple(P, m, operation=operation, check=False)
 
 def merge_points(P1,P2, operation='+',
-                         identity=None, inverse=None, op=None):
+                         identity=None, inverse=None, op=None, check=True):
     r"""
     Returns a group element whose order is the lcm of the given elements.
 
@@ -1475,8 +1475,9 @@ def merge_points(P1,P2, operation='+',
         if op==None:
             raise ValueError, "operation and identity must be specified"
 
-    assert multiple(g1,n1,operation=operation) == identity
-    assert multiple(g2,n2,operation=operation) == identity
+    if check:
+        assert multiple(g1,n1,operation=operation) == identity
+        assert multiple(g2,n2,operation=operation) == identity
 
     # trivial cases
     if n1.divides(n2):

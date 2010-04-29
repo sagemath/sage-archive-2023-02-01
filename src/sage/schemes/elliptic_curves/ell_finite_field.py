@@ -1587,7 +1587,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                             print "Subgroup order now ",n1*n2,"=",n1,"*",n2
                     else:     # we must merge P2 and Q:
                         oldn2=n2 # holds old value
-                        P2,n2=generic.merge_points((P2,n2),(Q,m),operation='+');
+                        P2,n2=generic.merge_points((P2,n2),(Q,m),operation='+', check=debug)
                         if debug: assert P2.order()==n2
                         P2._order=n2
                         if debug:
@@ -1603,8 +1603,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     if debug: assert P3.order()==n2
                     P3._order=n2
                     if debug: print "storing generator ",P3," of ",n2,"-torsion"
-                m = generic.order_from_multiple(Q,N,plist,operation='+')
-                P1,n1=generic.merge_points((P1,n1),(Q,m))
+                m = generic.order_from_multiple(Q,N,plist,operation='+', check=debug)
+                P1,n1=generic.merge_points((P1,n1),(Q,m), check=debug)
                 if debug: assert P1.order()==n1
                 P1._order=n1
                 if debug:
@@ -1630,7 +1630,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         if debug: assert P2.order()==m
                         P2._order=m
                         if debug: print "Second  P2 component =",P2
-                        P2,n2=generic.merge_points((P2,n2),(P3,m))
+                        P2,n2=generic.merge_points((P2,n2),(P3,m), check=debug)
                         if debug: assert P2.order()==n2
                         P2._order=n2
                         if debug: print "Combined P2 component =",P2

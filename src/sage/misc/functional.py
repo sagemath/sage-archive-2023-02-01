@@ -1062,11 +1062,18 @@ def norm(x):
     """
     Returns the norm of x.
 
+    For matrices and vectors, this returns the L2-norm.
+    For complex numbers, it returns the field norm.
+
     EXAMPLES::
 
         sage: z = 1+2*I
         sage: norm(z)
         5
+        sage: norm(vector([z]))
+        sqrt(5)
+        sage: norm(matrix([[z]]))
+        2.2360679775
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))

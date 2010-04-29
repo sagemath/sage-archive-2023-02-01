@@ -2279,7 +2279,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the Cremona-Prickett-Siksek height bound. This is a
         floating point number B such that if P is a rational point on
-        the curve, then `|h(P) - \hat{h}(P)| \leq B`, where `h(P)` is
+        the curve, then `h(P) \le \hat{h}(P) + B`, where `h(P)` is
         the naive logarithmic height of `P` and `\hat{h}(P)` is the
         canonical height.
 

@@ -350,6 +350,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: ZZ.range(0,2^83,2^80)
             [0, 1208925819614629174706176, 2417851639229258349412352, 3626777458843887524118528, 4835703278458516698824704, 6044629098073145873530880, 7253554917687775048237056, 8462480737302404222943232]
+
+        Make sure #8818 is fixed::
+
+            sage: ZZ.range(1r, 10r)
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
         if end is None:
             end = start
@@ -364,7 +369,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if not PY_TYPE_CHECK(start, integer.Integer):
             start = integer.Integer(start)
         if not PY_TYPE_CHECK(end, integer.Integer):
-            start = integer.Integer(end)
+            end = integer.Integer(end)
         cdef integer.Integer a = <Integer>start
         cdef integer.Integer b = <Integer>end
 

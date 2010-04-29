@@ -67,6 +67,7 @@ cdef class PSpline:
     in the complex plane.
 
     EXAMPLES:
+
     A simple ``square``::
 
         sage: pts = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
@@ -101,7 +102,7 @@ cdef class PSpline:
         INPUT:
 
         - ``t`` -- double, the parameter value for the parameterized curve,
-        between 0 and 2*pi.
+          between 0 and 2*pi.
 
         OUTPUT:
 
@@ -134,7 +135,7 @@ cdef class PSpline:
         INPUT:
 
         - ``t`` -- double, the parameter value for the parameterized curve,
-        between 0 and 2*pi.
+          between 0 and 2*pi.
 
         OUTPUT:
 
@@ -197,6 +198,7 @@ cdef class CCSpline:
     in the complex plane.
 
     EXAMPLES:
+
     A simple ``square``::
 
         sage: pts = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
@@ -252,7 +254,7 @@ cdef class CCSpline:
         INPUT:
 
         - ``t`` -- double, the parameter value for the parameterized curve,
-        between 0 and 2*pi.
+          between 0 and 2*pi.
 
         OUTPUT:
 
@@ -285,7 +287,7 @@ cdef class CCSpline:
         INPUT:
 
         - ``t`` -- double, the parameter value for the parameterized curve,
-        between 0 and 2*pi.
+          between 0 and 2*pi.
 
         OUTPUT:
 

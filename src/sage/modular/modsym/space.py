@@ -2193,7 +2193,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         We assume that self is defined over QQ and has weight 2.  If
         the sign of self is not 0, then the power of 2 may be wrong.
 
-        EXAMPLES::
+        EXAMPLES:
 
 	First we consider the fairly straightforward level 37 case,
 	where the torsion subgroup of the optimal quotients (which are

@@ -9,10 +9,15 @@ systems to better understand the surface (and especially calculate correct
 surface normals).
 
 AUTHORS:
-    -- Robert Bradshaw (2007-08-26): initial version
 
-EXAMPLES:
+- Robert Bradshaw (2007-08-26): initial version
+
+EXAMPLES::
+
     sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
+    sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
+    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
+    sage: show(P)
     sage: S = MobiusStrip(1,.2)
     sage: S.is_enclosed()
     False
@@ -72,7 +77,11 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
 cdef class ParametricSurface(IndexFaceSet):
 
     """
-    EXAMPLES:
+    Base class that initializes the ParametricSurface
+    graphics type
+
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
         sage: def f(x,y): return cos(x)*sin(y), sin(x)*sin(y), cos(y)+log(tan(y/2))+0.2*x
         sage: S = ParametricSurface(f, (srange(0,12.4,0.1), srange(0.1,2,0.1)))
@@ -82,6 +91,9 @@ cdef class ParametricSurface(IndexFaceSet):
         2214
 
     The Hessenberg surface:
+
+    ::
+
         sage: def f(u,v):
         ...       a = 1
         ...       from math import cos, sin, sinh, cosh
@@ -99,13 +111,26 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def __init__(self, f=None, domain=None, **kwds):
         """
+        Create the graphics primitive ParametricSurface.  This sets options,
+        the function to be plotted, and the plotting array as attributes.
+
         INPUT:
-               f -- The defining function. Either a tuple of three functions,
-                    or a single function who returns a tuple, taking two python
-                    floats as input.
-                    To subclass, pass None for f and override eval_c or eval instead.
-          domain -- A tuple of two lists, defining the grid of u,v values.
-                    If None, this will be calculate automatically.
+
+        -  ``f`` - (default: None) The defining function. Either a tuple of
+           three functions, or a single function which returns a tuple, taking
+           two python floats as input. To subclass, pass None for f and override
+           eval_c or eval instead.
+
+        -  ``domain`` - (default: None) A tuple of two lists, defining the
+           grid of `u`,`v` values. If None, this will be calculate automatically.
+
+        EXAMPLES:
+
+        ::
+
+            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+            sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
+            sage: S = ParametricSurface(f, (srange(0,12.4,0.1), srange(0.1,2,0.1)))
         """
         if isinstance(f, list):
             f = tuple(f)
@@ -114,11 +139,25 @@ cdef class ParametricSurface(IndexFaceSet):
         IndexFaceSet.__init__(self, [], [], **kwds)
 
     def default_render_params(self):
+        """
+        Returns an instance of RenderParams suitable for plotting this object.
+
+        TEST::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: type(MobiusStrip(3,3).default_render_params())
+            <class 'sage.plot.plot3d.base.RenderParams'>
+        """
         return RenderParams(ds=.075, crease_threshold=.35)
 
     def x3d_geometry(self):
         """
-        TESTS:
+        Returns XML-like representation of the coordinates of all points
+        in a triangulation of the object along with an indexing of those
+        points.
+
+        TESTS::
+
             sage: _ = var('x,y')
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.x3d_str()
@@ -129,30 +168,81 @@ cdef class ParametricSurface(IndexFaceSet):
         return IndexFaceSet.x3d_geometry(self)
 
     def tachyon_repr(self, render_params):
+        """
+        Returns representation of the object suitable for plotting
+        using Tachyon ray tracer.
+
+        TESTS::
+
+            sage: _ = var('x,y')
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.tachyon_repr(P.default_render_params())
+            sage: s[:2]
+            ['TRI V0 -2 -2 0 V1 -2 -1.89744 0.399737 V2 -1.89744 -1.89744 0', 'texture229']
+        """
         self.triangulate(render_params)
         return IndexFaceSet.tachyon_repr(self, render_params)
 
     def obj_repr(self, render_params):
+        """
+        Returns complete representation of object with name, texture, and
+        lists of vertices, faces, and back-faces.
+
+        TESTS::
+
+            sage: _ = var('x,y')
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.obj_repr(P.default_render_params())
+            sage: s[:2]+s[2][:3]+s[3][:3]
+            ['g obj_1', 'usemtl texture230', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
+        """
         self.triangulate(render_params)
         return IndexFaceSet.obj_repr(self, render_params)
 
     def jmol_repr(self, render_params):
+        """
+        Returns representation of the object suitable for plotting
+        using Jmol.
+
+        TESTS::
+
+            sage: _ = var('x,y')
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.jmol_repr(P.testing_render_params())
+            sage: s[:10]
+            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+        """
         self.triangulate(render_params)
         return IndexFaceSet.jmol_repr(self, render_params)
 
     def json_repr(self, render_params):
+        """
+        Returns representation of the object in JSON format as
+        a list with one element, which is a string of a dictionary
+        listing vertices and faces.
+
+        TESTS::
+
+            sage: _ = var('x,y')
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.json_repr(P.default_render_params())
+            sage: s[0][:100]
+            '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
+        """
         self.triangulate(render_params)
         return IndexFaceSet.json_repr(self, render_params)
 
     def is_enclosed(self):
         """
-        Whether or not it is necessary to render the back sides of the polygons
-        (assuming, of course, that they have the correct orientation).
+        Returns a boolean telling whether or not it is necessary to
+        render the back sides of the polygons (assuming, of course,
+        that they have the correct orientation).
 
         This is calculated in by verifying the opposite edges
         of the rendered domain either line up or are pinched together.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(1).is_enclosed()
             True
@@ -166,12 +256,61 @@ cdef class ParametricSurface(IndexFaceSet):
         return self.enclosed
 
     def dual(self):
+        """
+        Returns an IndexFaceSet which is the dual of the ParametricSurface
+        object as a triangulated surface.
+
+        EXAMPLES:
+
+        As one might expect, this gives an icosahedron::
+
+            sage: D = dodecahedron()
+            sage: D.dual()
+
+        But any enclosed surface should work::
+
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: T =  Torus(1, .2)
+            sage: T.dual()
+            sage: T.is_enclosed()
+            True
+
+        Surfaces which are not enclosed, though, should raise an exception::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: M = MobiusStrip(3,1)
+            sage: M.is_enclosed()
+            False
+            sage: M.dual()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This is only implemented for enclosed surfaces
+
+        """
         # This doesn't completely make sense...
         if self.fcount == 0:
             self.triangulate()
+        if not self.is_enclosed():
+            raise NotImplementedError, "This is only implemented for enclosed surfaces"
         return IndexFaceSet.dual(self)
 
     def bounding_box(self):
+        """
+        Returns the lower and upper corners of a 3d bounding box for self.
+        This is used for rendering and self should fit entirely within this
+        box.
+
+        Specifically, the first point returned should have x, y, and z
+        coordinates should be the respective infimum over all points in self,
+        and the second point is the supremum.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: M = MobiusStrip(7,3,2)
+            sage: M.bounding_box()
+            ((-10.0, -7.5390734925047846, -2.9940801852848145), (10.0, 7.5390734925047846, 2.9940801852848145))
+        """
         # We must triangulate before computing the bounding box; otherwise
         # we'll get an empty bounding box, as the bounding box is computed
         # using the triangulation, and before triangulating the triangulation
@@ -181,13 +320,22 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def triangulate(self, render_params=None):
         r"""
-        Call self.eval() for all (u,v) in urange \times vrange
+        Calls self.eval_grid() for all `(u,v)` in `urange \times vrange`
         to construct this surface.
 
         The most complicated part of this code is identifying shared
         vertices and shrinking trivial edges. This is not done so much
         to save memory, rather it is needed so normals of the triangles
         can be calculated correctly.
+
+        TESTS::  # These are indirect doctests
+
+            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
+            sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
+            sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
+            sage: P.show()
+            sage: S = MobiusStrip(1,.2)
+            sage: S.show()
         """
         if render_params is None:
             render_params = self.default_render_params()
@@ -251,7 +399,7 @@ cdef class ParametricSurface(IndexFaceSet):
                 else:
                     face.vertices[3] = self._faces[ix-1].vertices[2]
 
-                # This is the newly-seen vertex, identify if its a triangle
+                # This is the newly-seen vertex, identify if it's a triangle
                 face.vertices[2] = (i+1)*(m+1)+j+1
                 smash_edge(self.vs, face, 1, 2) or smash_edge(self.vs, face, 3, 2)
 
@@ -308,13 +456,24 @@ cdef class ParametricSurface(IndexFaceSet):
 
 
     def get_grid(self, ds):
+        """
+        TEST::
+
+            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+            sage: def f(x,y): return x+y,x-y,x*y
+            sage: P = ParametricSurface(f)
+            sage: P.get_grid(.1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: You must override the get_grid method.
+        """
         if self.render_grid is None:
             raise NotImplementedError, "You must override the get_grid method."
         return self.render_grid
 
     cdef int eval_grid(self, urange, vrange) except -1:
         r"""
-        This fills in the points self.vs for all u \in urange, v \in vrange.
+        This fills in the points self.vs for all `u \in urange, v \in vrange`.
         We assume enough memory has been allocated.
 
         We branch outside the loops for efficiency. The options for self.f are:
@@ -428,26 +587,107 @@ cdef class ParametricSurface(IndexFaceSet):
                     res.x, res.y, res.z = self.f(uu, vv)
                     ix += 1
 
+    # One of the following two methods should be overridden in
+    # derived classes.
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
         # can't do a cpdef because of the point_c* argument
         res.x, res.y, res.z = self.eval(u, v)
 
     def eval(self, double u, double v):
+        """
+        TEST::
+
+            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+            sage: def f(x,y): return x+y,x-y,x*y
+            sage: P = ParametricSurface(f,(srange(0,1,0.1),srange(0,1,0.1)))
+            sage: P.eval(0,0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 
 class MobiusStrip(ParametricSurface):
+    """
+    Base class for the MobiusStrip graphics type
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+        sage: M = MobiusStrip(3,3)
+        sage: M.show()
+    """
     def __init__(self, r, width, twists=1, **kwds):
+        """
+        Create the graphics primitive MobiusStrip.  This sets the the basic
+        parameters of the object.
+
+        INPUT:
+
+        -  ``r`` - A number which can be coerced to a float, serving roughly
+           as the radius of the object.
+
+        -  ``width`` - A number which can be coerced to a float, which gives the
+           width of the object.
+
+        -  ``twists`` - (default: 1) An integer, giving the number of twists in the
+           object (where one twist is the 'traditional' M\"obius strip).
+
+        EXAMPLES:
+
+        ::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: M = MobiusStrip(3,3); M # Same width and radius, roughly
+            sage: N = MobiusStrip(7,3,2); N # two twists, lots of open area in the middle
+            sage: O = MobiusStrip(5,1,plot_points=200,color='red'); O # keywords get passed to plot3d
+
+        """
         ParametricSurface.__init__(self, **kwds)
         self.r = float(r)
         self.width = float(width)
         self.twists = int(twists)
+
     def get_grid(self, ds):
+        """
+        Returns appropriate `u` and `v` ranges for this MobiusStrip instance.
+        This is intended for internal use in creating an actual plot.
+
+        INPUT:
+
+        -  ``ds`` - A number, typically coming from a RenderParams object,
+           which helps determine the increment for the `v` range for the
+           MobiusStrip object.
+
+        EXAMPLE::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: N = MobiusStrip(7,3,2) # two twists
+            sage: N.get_grid(N.default_render_params().ds)
+            ([-1, 1], [0.0, 0.125663706144, 0.251327412287, 0.376991118431, ... 0])
+
+        """
         twoPi = RDF.pi()*2
-        res = max(min(twoPi*(self.r+self.twists*self.width)/ds, 10), 6*self.twists, 50)
+        # Previous code, which doesn't seem to use any of the parameters
+        # TODO: figure out how to use it properly.
+        # res = max(min(twoPi*(self.r+self.twists*self.width)/ds, 10), 6*self.twists, 50)
+        res = max(6*self.twists, 50)
         return [-1,1],[twoPi*k/res for k in range(res)] + [0]
+
     def eval(self, u, v):
+        """
+        Returns tuple for `x,y,z` coordinates for the given ``u`` and ``v``
+        for this MobiusStrip instance.
+
+        EXAMPLE::
+
+            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+            sage: N = MobiusStrip(7,3,2) # two twists
+            sage: N.eval(-1,0)
+            (4.0, 0.0, -0.0)
+        """
         return ( (self.r + u*self.width*cos(self.twists*v/2)) * cos(v),
                  (self.r + u*self.width*cos(self.twists*v/2)) * sin(v),
                  u*self.width*sin(self.twists*v/2) )

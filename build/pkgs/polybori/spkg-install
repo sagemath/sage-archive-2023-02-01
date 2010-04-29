@@ -96,5 +96,5 @@ install_polybori
 echo "Done installing PolyBoRi."
 
 echo "Removing dynamic libraries..."
-#remove_dylib
+remove_dylib
 echo "Done removing dynamic libraries."

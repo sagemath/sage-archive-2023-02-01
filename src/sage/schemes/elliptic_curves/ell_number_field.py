@@ -1080,11 +1080,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
            sage: EK.reduction(K.ideal(1+i))
            Traceback (most recent call last):
            ...
-           AttributeError: The curve must have good reduction at the place.
+           ValueError: The curve must have good reduction at the place.
            sage: EK.reduction(K.ideal(2))
            Traceback (most recent call last):
            ...
-           AttributeError: The ideal must be prime.
+           ValueError: The ideal must be prime.
        """
        K = self.base_field()
        OK = K.ring_of_integers()
@@ -1093,10 +1093,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
        except TypeError:
            raise TypeError, "The parameter must be an ideal of the base field of the elliptic curve"
        if not place.is_prime():
-           raise AttributeError, "The ideal must be prime."
+           raise ValueError, "The ideal must be prime."
        disc = self.discriminant()
        if not K.ideal(disc).valuation(place) == 0:
-           raise AttributeError, "The curve must have good reduction at the place."
+           raise ValueError, "The curve must have good reduction at the place."
        Fv = OK.residue_field(place)
        return self.change_ring(Fv)
 

@@ -1730,6 +1730,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             (0 : -7/2*a - 1/2 : 1)
             sage: Q.height()
             0.0511114082399688
+            sage: Q.height(precision=100)
+            0.051111408239968840235886099755
 
         An example to show that the bug at \#5252 is fixed::
 
@@ -1764,16 +1766,26 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if precision is None:
             precision = rings.RealField().precision()
 
+        try:
+            height = self.__height
+            if height.prec() >= precision:
+                return rings.RealField(precision)(height)
+        except AttributeError:
+            pass
+
         if self.curve().base_ring() is rings.QQ:
             E = self.curve()
             Emin = E.minimal_model()
             iso = E.isomorphism_to(Emin)
             P = iso(self)
             h = Emin.pari_curve(prec=precision).ellheight([P[0], P[1]],precision=precision)
-            return rings.RealField(precision)(h)
+            height = rings.RealField(precision)(h)
         else:
-            return (self.nonarchimedian_local_height(prec=precision)
+            height = (self.nonarchimedian_local_height(prec=precision)
                         + self.archimedian_local_height(prec=precision))
+
+        self.__height = height
+        return height
 
 
     def archimedian_local_height(self, v=None, prec=None):

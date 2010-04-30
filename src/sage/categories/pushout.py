@@ -90,12 +90,55 @@ class CompositConstructionFunctor(ConstructionFunctor):
                 self.all.append(c)
         Functor.__init__(self, self.all[0].domain(), self.all[-1].codomain())
 
-    def __call__(self, R):
+    def _apply_functor_to_morphism(self, f):
+        """
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: R.<a,b> = QQ[]
+            sage: f = R.hom([a+b, a-b])
+            sage: F(f) # indirect doctest
+            Ring endomorphism of Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+              Defn: Induced from base ring by
+                    Ring endomorphism of Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+                      Defn: Induced from base ring by
+                            Ring endomorphism of Univariate Polynomial Ring in x over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+                              Defn: Induced from base ring by
+                                    Ring endomorphism of Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+                                      Defn: a |--> a + b
+                                            b |--> a - b
+
+        """
+        for c in self.all:
+            f = c(f)
+        return f
+
+    def _apply_functor(self, R):
+        """
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: R.<a,b> = QQ[]
+            sage: F(R) # indirect doctest
+            Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+
+        """
         for c in self.all:
             R = c(R)
         return R
 
     def __cmp__(self, other):
+        """
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F == loads(dumps(F)) # indirect doctest
+            True
+
+        """
         if isinstance(other, CompositConstructionFunctor):
             return cmp(self.all, other.all)
         else:
@@ -121,6 +164,15 @@ class CompositConstructionFunctor(ConstructionFunctor):
         return CompositConstructionFunctor(*all)
 
     def __str__(self):
+        """
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositConstructionFunctor
+            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F     # indirect doctest
+            Poly[y](FractionField(Poly[x](FractionField(...))))
+
+        """
         s = "..."
         for c in self.all:
             s = "%s(%s)" % (c,s)
@@ -154,7 +206,7 @@ class IdentityConstructionFunctor(ConstructionFunctor):
 
     def __init__(self):
         Functor.__init__(self, Sets(), Sets())
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R
     def __mul__(self, other):
         if isinstance(self, IdentityConstructionFunctor):
@@ -175,7 +227,7 @@ class PolynomialFunctor(ConstructionFunctor):
         self.var = var
         self.multi_variate = multi_variate
 
-    def __call__(self, R):
+    def _apply_functor(self, R):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(R, self.var)
 
@@ -220,7 +272,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         self.vars = vars
         self.term_order = term_order
 
-    def __call__(self, R):
+    def _apply_functor(self, R):
         """
         EXAMPLES:
             sage: R.<x,y,z> = QQ[]
@@ -437,7 +489,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         self._order = order
         self._imple = implementation
 
-    def __call__(self, R):
+    def _apply_functor_to_morphism(self, f):
+        raise NotImplementedError
+
+    def _apply_functor(self, R):
         """
         TEST::
 
@@ -688,11 +743,17 @@ class MatrixFunctor(ConstructionFunctor):
 #            Functor.__init__(self, Rings(), RingModules()) # takes a base ring
 #        else:
 #            Functor.__init__(self, Rings(), MatrixAlgebras()) # takes a base ring
-        Functor.__init__(self, Rings(), Rings())
+        # We must distinguish two cases:
+        # If nrows=ncols, the result is a ring. Otherwise,
+        # it is just a commutative additive group.
+        if nrows==ncols:
+            Functor.__init__(self, Rings(), Rings())
+        else:
+            Functor.__init__(self,Rings(), CommutativeAdditiveGroups())
         self.nrows = nrows
         self.ncols = ncols
         self.is_sparse = is_sparse
-    def __call__(self, R):
+    def _apply_functor(self, R):
         from sage.matrix.matrix_space import MatrixSpace
         return MatrixSpace(R, self.nrows, self.ncols, sparse=self.is_sparse)
     def __cmp__(self, other):
@@ -714,13 +775,13 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
-    def __call__(self, R):
+    def _apply_functor(self, R):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, is_LaurentPolynomialRing
         if self.multi_variate and is_LaurentPolynomialRing(R):
             return LaurentPolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
         else:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            return PolynomialRing(R, self.var)
+            return LaurentPolynomialRing(R, self.var)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
@@ -739,11 +800,14 @@ class VectorFunctor(ConstructionFunctor):
 
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):
 #        Functor.__init__(self, Rings(), FreeModules()) # takes a base ring
-        Functor.__init__(self, Objects(), Objects())
+        #This is a bad choice, since the input must be a commutative ring, and
+        #the output belongs to the category of commutative additive groups
+        #Functor.__init__(self, Objects(), Objects())
+        Functor.__init__(self,CommutativeRings(),CommutativeAdditiveGroups())
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
-    def __call__(self, R):
+    def _apply_functor(self, R):
         from sage.modules.free_module import FreeModule
         return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
     def __cmp__(self, other):
@@ -762,9 +826,13 @@ class SubspaceFunctor(ConstructionFunctor):
     rank = 11 # ranking of functor, not rank of module
     def __init__(self, basis):
 #        Functor.__init__(self, FreeModules(), FreeModules()) # takes a base ring
-        Functor.__init__(self, Objects(), Objects())
+        #Functor.__init__(self, Objects(), Objects())
+        ## It seems that the category of commutative additive groups
+        ## currently is the smallest base ring free category that
+        ## contains in- and output
+        Functor.__init__(self, CommutativeAdditiveGroups(),CommutativeAdditiveGroups())
         self.basis = basis
-    def __call__(self, ambient):
+    def _apply_functor(self, ambient):
         return ambient.span_of_basis(self.basis)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
@@ -784,7 +852,7 @@ class FractionField(ConstructionFunctor):
 
     def __init__(self):
         Functor.__init__(self, Rings(), Fields())
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R.fraction_field()
 
 
@@ -795,7 +863,7 @@ class LocalizationFunctor(ConstructionFunctor):
     def __init__(self, t):
         Functor.__init__(self, Rings(), Rings())
         self.t = t
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R.localize(t)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
@@ -813,7 +881,7 @@ class CompletionFunctor(ConstructionFunctor):
         self.p = p
         self.prec = prec
         self.extras = extras
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R.completion(self.p, self.prec, self.extras)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
@@ -842,7 +910,7 @@ class QuotientFunctor(ConstructionFunctor):
         Functor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
         self.as_field = as_field
-    def __call__(self, R):
+    def _apply_functor(self, R):
         I = self.I
         if I.ring() != R:
             I.base_extend(R)
@@ -879,7 +947,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.name = name
         self.elt = elt
         self.embedding = embedding
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R.extension(self.poly, self.name, embedding=self.embedding)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
@@ -895,7 +963,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
 
     def __init__(self):
         Functor.__init__(self, Rings(), Rings())
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return R.algebraic_closure()
     def merge(self, other):
         # Algebraic Closure subsumes Algebraic Extension
@@ -927,7 +995,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
         """
         return "PermutationGroupFunctor%s"%self.gens()
 
-    def __call__(self, R):
+    def _apply_functor(self, R):
         """
         EXAMPLES::
 
@@ -973,7 +1041,7 @@ def BlackBoxConstructionFunctor(ConstructionFunctor):
         if not callable(box):
             raise TypeError, "input must be callable"
         self.box = box
-    def __call__(self, R):
+    def _apply_functor(self, R):
         return box(R)
     def __cmp__(self, other):
         return self.box == other.box

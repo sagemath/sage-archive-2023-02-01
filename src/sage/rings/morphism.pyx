@@ -1086,6 +1086,265 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         return x._im_gens_(self.codomain(), self.im_gens())
 
+cdef class RingHomomorphism_from_base(RingHomomorphism):
+    """
+    A ring homomorphism determined by a ring homomorphism of the base ring.
+
+    AUTHOR:
+
+    - Simon King (initial version, 2010-04-30)
+
+    EXAMPLE:
+
+    We define two polynomial rings and a ring homomorphism.
+    ::
+
+        sage: R.<x,y> = QQ[]
+        sage: S.<z> = QQ[]
+        sage: f = R.hom([2*z,3*z],S)
+
+    Now we construct polynomial rings based on ``R`` and ``S``, and let ``f`` act
+    on the coefficients::
+
+        sage: PR.<t> = R[]
+        sage: PS = S['t']
+        sage: Pf = PR.hom(f,PS)
+        sage: Pf
+        Ring morphism:
+          From: Univariate Polynomial Ring in t over Multivariate Polynomial Ring in x, y over Rational Field
+          To:   Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Rational Field
+          Defn: Induced from base ring by
+                Ring morphism:
+                  From: Multivariate Polynomial Ring in x, y over Rational Field
+                  To:   Univariate Polynomial Ring in z over Rational Field
+                  Defn: x |--> 2*z
+                        y |--> 3*z
+        sage: p = (x - 4*y + 1/13)*t^2 + (1/2*x^2 - 1/3*y^2)*t + 2*y^2 + x
+        sage: Pf(p)
+        (-10*z + 1/13)*t^2 - z^2*t + 18*z^2 + 2*z
+
+    Similarly, we can construct the induced homomorphism on a matrix ring over our polynomial rings::
+
+        sage: MR = MatrixSpace(R,2,2)
+        sage: MS = MatrixSpace(S,2,2)
+        sage: M = MR([x^2 + 1/7*x*y - y^2, - 1/2*y^2 + 2*y + 1/6, 4*x^2 - 14*x, 1/2*y^2 + 13/4*x - 2/11*y])
+        sage: Mf = MR.hom(f,MS)
+        sage: Mf
+        Ring morphism:
+          From: Full MatrixSpace of 2 by 2 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field
+          To:   Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in z over Rational Field
+          Defn: Induced from base ring by
+                Ring morphism:
+                  From: Multivariate Polynomial Ring in x, y over Rational Field
+                  To:   Univariate Polynomial Ring in z over Rational Field
+                  Defn: x |--> 2*z
+                        y |--> 3*z
+        sage: Mf(M)
+        [           -29/7*z^2 -9/2*z^2 + 6*z + 1/6]
+        [       16*z^2 - 28*z   9/2*z^2 + 131/22*z]
+
+    The construction of induced homomorphisms is recursive, and so we have::
+
+        sage: MPR = MatrixSpace(PR, 2)
+        sage: MPS = MatrixSpace(PS, 2)
+        sage: M = MPR([(- x + y)*t^2 + 58*t - 3*x^2 + x*y, (- 1/7*x*y - 1/40*x)*t^2 + (5*x^2 + y^2)*t + 2*y, (- 1/3*y + 1)*t^2 + 1/3*x*y + y^2 + 5/2*y + 1/4, (x + 6*y + 1)*t^2])
+        sage: MPf = MPR.hom(f,MPS); MPf
+        Ring morphism:
+          From: Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in t over Multivariate Polynomial Ring in x, y over Rational Field
+          To:   Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Rational Field
+          Defn: Induced from base ring by
+                Ring morphism:
+                  From: Univariate Polynomial Ring in t over Multivariate Polynomial Ring in x, y over Rational Field
+                  To:   Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Rational Field
+                  Defn: Induced from base ring by
+                        Ring morphism:
+                          From: Multivariate Polynomial Ring in x, y over Rational Field
+                          To:   Univariate Polynomial Ring in z over Rational Field
+                          Defn: x |--> 2*z
+                                y |--> 3*z
+        sage: MPf(M)
+        [                    z*t^2 + 58*t - 6*z^2 (-6/7*z^2 - 1/20*z)*t^2 + 29*z^2*t + 6*z]
+        [    (-z + 1)*t^2 + 11*z^2 + 15/2*z + 1/4                           (20*z + 1)*t^2]
+
+
+    """
+    def __init__(self, parent, underlying):
+        """
+        TEST::
+
+            sage: from sage.rings.morphism import RingHomomorphism_from_base
+            sage: R.<x> = ZZ[]
+            sage: f = R.hom([2*x],R)
+            sage: P = MatrixSpace(R,2).Hom(MatrixSpace(R,2))
+            sage: g = RingHomomorphism_from_base(P,f)
+            sage: g
+            Ring endomorphism of Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
+              Defn: Induced from base ring by
+                    Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring
+                      Defn: x |--> 2*x
+
+        Note that an induced homomorphism only makes sense if domain and codomain are constructed in a
+        compatible way. So, the following results in an error::
+
+            sage: P = MatrixSpace(R,2).Hom(R['t'])
+            sage: g = RingHomomorphism_from_base(P,f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Domain and codomain must have the same functorial construction over their base rings
+
+        """
+        RingHomomorphism.__init__(self, parent)
+        if not is_RingHomomorphism(underlying):
+            raise TypeError, "Homomorphism of the base ring expected"
+        if underlying.domain() != parent.domain().base():
+            raise ValueError, "The given homomorphism has to have the domain %s"%parent.domain().base()
+        if underlying.codomain() != parent.codomain().base():
+            raise ValueError, "The given homomorphism has to have the codomain %s"%parent.codomain().base()
+        if parent.domain().construction()[0] != parent.codomain().construction()[0]:
+            raise ValueError, "Domain and codomain must have the same functorial construction over their base rings"
+        self.__underlying = underlying
+
+    def underlying_map(self):
+        """
+        Return the underlying homomorphism of the base ring.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<z> = QQ[]
+            sage: f = R.hom([2*z,3*z],S)
+            sage: MR = MatrixSpace(R,2)
+            sage: MS = MatrixSpace(S,2)
+            sage: g = MR.hom(f,MS)
+            sage: g.underlying_map() == f
+            True
+
+        """
+        return self.__underlying
+
+    cdef _update_slots(self, _slots):
+        self.__underlying = _slots['__underlying']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef _extra_slots(self, _slots):
+        _slots['__underlying'] = self.__underlying
+        return RingHomomorphism._extra_slots(self, _slots)
+
+    def __richcmp__(left, right, int op):
+        """
+        Used internally by the cmp method.
+
+        TESTS::
+
+            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
+            sage: S.<z> = R[]
+            sage: fS = S.hom(f,S); gS = S.hom(g,S)
+            sage: cmp(fS,gS)   # indirect doctest
+            1
+            sage: cmp(gS,fS)   # indirect doctest
+            -1
+
+        """
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(self, Element other) except -2:
+        """
+        EXAMPLE:
+
+        A multivariate polynomial ring over a single variate quotient over QQ.
+
+            sage: R.<x> = QQ[]
+            sage: Q.<a> = R.quotient(x^2 + x + 1)
+            sage: f1 = R.hom([a])
+            sage: f2 = R.hom([a + a^2 + a + 1])
+            sage: PR.<s,t> = R[]
+            sage: PQ = Q['s','t']
+            sage: f1P = PR.hom(f1,PQ)
+            sage: f2P = PR.hom(f2,PQ)
+            sage: f1P == f2P
+            True
+
+        TEST::
+
+            sage: f1P == loads(dumps(f1P))
+            True
+
+        EXAMPLE:
+
+        A matrix ring over a multivariate quotient over a finite field.
+
+        ::
+
+            sage: R.<x,y> = GF(7)[]
+            sage: Q.<a,b> = R.quotient([x^2 + x + 1, y^2 + y + 1])
+            sage: f1 = R.hom([a, b])
+            sage: f2 = R.hom([a + a^2 + a + 1, b + b^2 + b + 1])
+            sage: MR = MatrixSpace(R,2)
+            sage: MQ = MatrixSpace(Q,2)
+            sage: f1M = MR.hom(f1,MQ)
+            sage: f2M = MR.hom(f2,MQ)
+            sage: f1M == f2M
+            True
+
+        TEST::
+
+            sage: f1M == loads(dumps(f1M))
+            True
+
+        """
+        if not PY_TYPE_CHECK(other, RingHomomorphism_from_base):
+            return cmp(type(self), type(other))
+        return cmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying)
+
+    def _repr_defn(self):
+        """
+        Used in constructing string representation of self.
+
+        EXAMPLE:
+
+        We use a matrix ring over univariate polynomial ring over the fraction field
+        over a multivariate polynomial ring.
+
+        ::
+
+            sage: R1.<x,y> = ZZ[]
+            sage: f = R1.hom([x+y,x-y])
+            sage: R2 = MatrixSpace(FractionField(R1)['t'],2)
+            sage: g = R2.hom(f,R2)
+            sage: g         #indirect doctest
+            Ring endomorphism of Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in t over Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+              Defn: Induced from base ring by
+                    Ring endomorphism of Univariate Polynomial Ring in t over Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+                      Defn: Induced from base ring by
+                            Ring endomorphism of Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+                              Defn: x |--> x + y
+                                    y |--> x - y
+
+        """
+        U = repr(self.__underlying).split('\n')
+        return 'Induced from base ring by\n'+'\n'.join(U)
+
+    cpdef Element _call_(self, x):
+        """
+        Evaluate this homomorphism at x.
+
+        EXAMPLES::
+
+        """
+        P = self.codomain()
+        try:
+            return P(dict([(a, self.__underlying(b)) for a,b in x.dict().items()]))
+        except:
+            pass
+        try:
+            return P([self.__underlying(b) for b in x])
+        except:
+            pass
+        try:
+            return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
+        except:
+            raise TypeError, "invalid argument %s"%repr(x)
+
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
     A homomorphism induced by quotienting a ring out by an ideal.

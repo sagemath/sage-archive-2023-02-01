@@ -47,12 +47,33 @@ class RingHomset_generic(HomsetWithBase):
             raise TypeError
         if x.parent() is self:
             return x
+        # Case 1: the parent fits
         if x.parent() == self:
             if isinstance(x, morphism.RingHomomorphism_im_gens):
                 return morphism.RingHomomorphism_im_gens(self, x.im_gens())
             elif isinstance(x, morphism.RingHomomorphism_cover):
                 return morphism.RingHomomorphism_cover(self)
-        raise TypeError
+            elif isinstance(x, morphism.RingHomomorphism_from_base):
+                return morphism.RingHomomorphism_from_base(self, x.underlying_map())
+        # Case 2: unique extension via fraction field
+        try:
+            if isinstance(x, morphism.RingHomomorphism_im_gens) and x.domain().fraction_field().has_coerce_map_from(self.domain()):
+                return morphism.RingHomomorphism_im_gens(self, x.im_gens())
+        except:
+            pass
+        # Case 3: the homomorphism can be extended by coercion
+        try:
+            return x.extend_codomain(self.codomain()).extend_domain(self.domain())
+        except:
+            pass
+        # Last resort, case 4: the homomorphism is induced from the base ring
+        if self.domain()==self.domain().base() or self.codomain()==self.codomain().base():
+            raise TypeError
+        try:
+            x = self.domain().base().Hom(self.codomain().base())(x)
+            return morphism.RingHomomorphism_from_base(self, x)
+        except:
+            raise TypeError
 
     def __call__(self, im_gens, check=True):
         """
@@ -70,7 +91,7 @@ class RingHomset_generic(HomsetWithBase):
             sage: H == loads(dumps(H))
             True
         """
-        if isinstance(im_gens, (morphism.RingHomomorphism_im_gens,  morphism.RingHomomorphism_cover) ):
+        if isinstance(im_gens, (morphism.RingHomomorphism_im_gens,  morphism.RingHomomorphism_cover, morphism.RingHomomorphism_from_base) ):
             return self._coerce_impl(im_gens)
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)

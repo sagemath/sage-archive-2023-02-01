@@ -19,6 +19,9 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
 cdef class RingHomomorphism_im_gens(RingHomomorphism):
     cdef __im_gens
 
+cdef class RingHomomorphism_from_base(RingHomomorphism):
+    cdef __underlying
+
 cdef class RingHomomorphism_cover(RingHomomorphism):
     pass
 

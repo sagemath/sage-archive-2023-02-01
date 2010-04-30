@@ -21,6 +21,10 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
+=== givaro-3.2.13rc1.p1 (Willem Jan Palenstijn, Apr 30th, 2010) ===
+ * #8788: Avoid local static object with destructor to prevent double frees
+   on some platforms.
+
 === givaro-3.2.13rc1.p0 (Jaap Spies, Jan 25th, 2010) ===
  * If $SAGE64="yes" add -m64 to CFLAGS. This works on Open Solaris x64 64 bit.
    It used to work only on OSX and may work on other 64 bit systems.

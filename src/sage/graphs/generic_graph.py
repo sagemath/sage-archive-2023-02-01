@@ -10209,7 +10209,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The dot language is a text based format for graphs. It is used
         by the software suite graphviz. The specifications of the
-        language are available on the web (see the reference [dot_spec]_).
+        language are available on the web (see the reference [dotspec]_).
 
         INPUT:
 
@@ -10355,7 +10355,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCES:
 
-        .. [dot_spec] http://www.graphviz.org/doc/info/lang.html
+        .. [dotspec] http://www.graphviz.org/doc/info/lang.html
 
         """
         import re

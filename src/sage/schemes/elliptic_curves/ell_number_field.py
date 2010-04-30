@@ -1920,6 +1920,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
+    
+    def height_function(self):
+        """
+        
+        """
+        if not hasattr(self, '_height_function'):
+            from height import EllipticCurveCanonicalHeight
+            self._height_function = EllipticCurveCanonicalHeight(self)
+        return self._height_function
 
     def is_isogenous(self, other, proof=True, maxnorm=100):
         """

@@ -196,6 +196,16 @@ class Function_ceil(BuiltinFunction):
 
     #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
+        """
+        TESTS::
+
+            sage: ceil(SR(10^50 + 10^(-50)))
+            100000000000000000000000000000000000000000000000001
+            sage: ceil(SR(10^50 - 10^(-50)))
+            100000000000000000000000000000000000000000000000000
+            sage: ceil(int(10^50))
+            100000000000000000000000000000000000000000000000000
+        """
         try:
             return x.ceil()
         except AttributeError:
@@ -327,6 +337,16 @@ class Function_floor(BuiltinFunction):
 
     #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
+        """
+        TESTS::
+
+            sage: floor(SR(10^50 + 10^(-50)))
+            100000000000000000000000000000000000000000000000000
+            sage: floor(SR(10^50 - 10^(-50)))
+            99999999999999999999999999999999999999999999999999
+            sage: floor(int(10^50))
+            100000000000000000000000000000000000000000000000000
+        """
         try:
             return x.floor()
         except AttributeError:

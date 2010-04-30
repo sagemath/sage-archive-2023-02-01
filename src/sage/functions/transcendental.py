@@ -408,6 +408,19 @@ def Li(x, eps_rel=None, err_bound=False):
 
 import math
 def _one_over_log(t):
+    """
+    Internal function for quick computation of log integrals.
+
+    TESTS::
+
+        sage: from sage.functions.transcendental import _one_over_log
+        sage: _one_over_log(e)
+        1.0
+        sage: _one_over_log(2)
+        1.4426950408889634
+        sage: Li(100)
+        29.080977804
+    """
     return 1/math.log(t)
 
 from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -465,6 +478,16 @@ class DickmanRho(BuiltinFunction):
       Mathematics of Computation, Vol. 53, No. 187 (1989).
     """
     def __init__(self):
+        """
+        TESTS::
+
+            sage: dickman_rho(x)
+            dickman_rho(x)
+            sage: dickman_rho(3)
+            0.0486083882911316
+            sage: dickman_rho(pi)
+            0.0359690758968463
+        """
       self._cur_prec = 0
       BuiltinFunction.__init__(self, "dickman_rho", 1)
 

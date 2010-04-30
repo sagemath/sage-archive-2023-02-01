@@ -321,6 +321,31 @@ from sage.calculus.calculus import maxima
 
 _done = False
 def _init():
+    """
+    Internal function which checks if Maxima has loaded
+    "orthopoly" package.  All functions using this in this
+    file should call this function first.
+
+    TEST:
+
+    The global starts ``False``::
+
+        sage: sage.functions.orthogonal_polys._done
+        False
+
+    Then after using one of these functions, it changes::
+
+        sage: from sage.functions.orthogonal_polys import chebyshev_T
+        sage: chebyshev_T(2,x)
+        2*(x - 1)^2 + 4*x - 3
+        sage: sage.functions.orthogonal_polys._done
+        True
+
+    Note that because here we use a Pynac variable ``x``,
+    the representation of the function is different from
+    in its actual doctest, where a polynomial indeterminate
+    ``x`` is used.
+    """
     global _done
     if _done:
         return

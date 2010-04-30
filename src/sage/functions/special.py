@@ -396,17 +396,48 @@ from sage.functions.other import real, imag
 from sage.symbolic.function import BuiltinFunction
 from sage.calculus.calculus import maxima
 
-def meval(x):
-    return maxima(x).sage()
-
 _done = False
 def _init():
+    """
+    Internal function which checks if Maxima has loaded
+    "orthopoly" package.  All functions using this in this
+    file should call this function first.
+
+    TEST:
+
+    The global starts ``False``::
+
+        sage: sage.functions.special._done
+        False
+
+    Then after using one of these functions, it changes::
+
+        sage: from sage.functions.special import airy_ai
+        sage: airy_ai(1.0)
+        0.135292416313
+        sage: sage.functions.special._done
+        True
+    """
     global _done
     if _done:
         return
     maxima.eval('load("orthopoly");')
     maxima.eval('orthopoly_returns_intervals:false;')
     _done = True
+
+def meval(x):
+    """
+    Returns ``x`` evaluated in Maxima, then returned to Sage.
+    This is used to evaluate several of these special functions.
+
+    TEST::
+
+        sage: from sage.functions.special import airy_ai
+        sage: airy_bi(1.0)
+        1.20742359495
+    """
+    return maxima(x).sage()
+
 
 class MaximaFunction(BuiltinFunction):
     """
@@ -528,13 +559,26 @@ def maxima_function(name):
        This function is cached so that duplicate copies of the same
        function are not created.
 
+    EXAMPLES::
 
+        sage: n(bessel_J(3,10,"maxima"))
+        0.0583793793051...
+        sage: spherical_hankel2(2,i)
+        -e
     """
     # The superclass of MaximaFunction, BuiltinFunction, assumes that there
     # will be only one symbolic function with the same name and class.
     # We create a new class for each Maxima function wrapped.
     class NewMaximaFunction(MaximaFunction):
         def __init__(self):
+            """
+            TESTS::
+
+                sage: n(bessel_J(3,10,"maxima"))
+                0.0583793793051...
+                sage: spherical_hankel2(2,x)
+                (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
+            """
             MaximaFunction.__init__(self, name)
 
     return NewMaximaFunction()
@@ -906,6 +950,18 @@ class Bessel():
         sage: g.plot(0,10)
     """
     def __init__(self, nu, typ = "J", algorithm = "pari", prec = 53):
+        """
+        Initializes new instance of the Bessel class.
+
+        TESTS::
+
+            sage: Bessel(1,'I')
+            I_{1}
+            sage: Bessel(1,'Z')
+            Traceback (most recent call last):
+            ...
+            ValueError: typ must be one of I, J, K, Y
+        """
         self._order = nu
         self._system = algorithm
         if not (typ in ['I', 'J', 'K', 'Y']):
@@ -917,24 +973,88 @@ class Bessel():
         self._prec = int(prec)
 
     def __str__(self):
+        """
+        TEST::
+
+            sage: a = Bessel(1,'I')
+            sage: str(a)
+            'I-Bessel function of order 1'
+        """
         return self.type()+"-Bessel function of order "+str(self.order())
 
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: Bessel(1,'I')
+            I_{1}
+        """
         return self.type()+"_{"+str(self.order())+"}"
 
     def type(self):
+        """
+        TEST::
+
+            sage: a = Bessel(3,'K')
+            sage: a.type()
+            'K'
+        """
         return self._type
 
     def prec(self):
+        """
+        TESTS::
+
+            sage: a = Bessel(3,'K')
+            sage: a.prec()
+            53
+            sage: B = Bessel(20,prec=100); B
+            J_{20}
+            sage: B.prec()
+            100
+        """
         return self._prec
 
     def order(self):
+        """
+        TEST::
+
+            sage: a = Bessel(3,'K')
+            sage: a.order()
+            3
+        """
         return self._order
 
     def system(self):
+        """
+        TESTS::
+
+            sage: Bessel(20,algorithm='maxima').system()
+            'maxima'
+            sage: Bessel(20,prec=100).system()
+            'pari'
+        """
         return self._system
 
     def __call__(self,z):
+        """
+        Implements evaluation of all the Bessel functions directly
+        from the Bessel class.
+
+        TESTS::
+
+            sage: Bessel(3,'K')(5.0)
+            0.00829176841523093
+            sage: Bessel(20,algorithm='maxima')(5.0)
+            2.77033005213e-11
+            sage: Bessel(20,prec=100)(5.0101010101010101)
+            2.8809188227195382093062257967e-11
+            sage: B = Bessel(2,'Y',algorithm='scipy',prec=50)
+            sage: B(2.0)
+            Traceback (most recent call last):
+            ...
+            ValueError: for the scipy algorithm the precision must be 53
+        """
         nu = self.order()
         t = self.type()
         s = self.system()
@@ -949,6 +1069,23 @@ class Bessel():
             return bessel_Y(nu,z,algorithm=s,prec=p)
 
     def plot(self,a,b):
+        """
+        Enables easy plotting of all the Bessel functions directly
+        from the Bessel class.
+
+        TESTS::
+
+            sage: plot(Bessel(2),3,4)
+            sage: Bessel(2).plot(3,4)
+            sage: P = Bessel(2,'I').plot(1,5)
+            sage: P += Bessel(2,'J').plot(1,5)
+            sage: P += Bessel(2,'K').plot(1,5)
+            sage: P += Bessel(2,'Y',algorithm='maxima').plot(1,5) # default algorithm Pari not available for this one
+            sage: show(P)
+        """
+        # TODO: make this part of standard plotting
+        # Namely, the following doesn't work.
+        # sage: plot(Bessel_J(2),3,4,color='red')
         nu = self.order()
         s = self.system()
         t = self.type()
@@ -1082,7 +1219,7 @@ def spherical_hankel1(n, var):
 def spherical_hankel2(n,x):
     r"""
     Returns the spherical Hankel function of the second kind for
-    integers n -1, written as a string. Reference: AS 10.1.17 page
+    integers `n > -1`, written as a string. Reference: AS 10.1.17 page
     439.
 
     EXAMPLES::

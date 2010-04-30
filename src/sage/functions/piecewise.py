@@ -149,6 +149,16 @@ class PiecewisePolynomial:
 
         We assume that these definitions are consistent (ie, no checking is
         done).
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.list()
+            [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
+            sage: f.length()
+            2
         """
         self._length = len(list_of_pairs)
         self._intervals = [x[0] for x in list_of_pairs]
@@ -164,6 +174,17 @@ class PiecewisePolynomial:
         self._list = [[self._intervals[i], self._functions[i]] for i in range(self._length)]
 
     def list(self):
+        """
+        Returns the pieces of this function as a list of functions.
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.list()
+            [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
+        """
         return self._list
 
     def length(self):
@@ -1610,5 +1631,16 @@ class PiecewisePolynomial:
     def __eq__(self,other):
         """
         Implements Boolean == operator.
+
+        EXAMPLES::
+
+            sage: f1 = x^0
+            sage: f2 = 1-x
+            sage: f3 = 2*x
+            sage: f4 = 10-x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: g = Piecewise([[(0,1),1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f==g
+            True
         """
         return self.list()==other.list()

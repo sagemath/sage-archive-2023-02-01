@@ -4,9 +4,10 @@ Graph Theory
 .. toctree::
    :maxdepth: 2
 
+   sage/graphs/generic_graph
    sage/graphs/graph
    sage/graphs/digraph
-   sage/graphs/generic_graph
+   sage/graphs/bipartite_graph
 
    sage/graphs/cliquer
    sage/graphs/graph_coloring

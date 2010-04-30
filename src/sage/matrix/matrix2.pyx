@@ -6673,6 +6673,10 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: RDF number
 
+        .. SEEALSO::
+
+            - :func:`sage.misc.functional.norm`
+
         EXAMPLES::
 
             sage: A = matrix(ZZ, [[1,2,4,3],[-1,0,3,-10]])

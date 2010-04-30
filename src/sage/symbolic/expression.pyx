@@ -4579,7 +4579,29 @@ cdef class Expression(CommutativeRingElement):
     def norm(self):
         r"""
         The complex norm of this symbolic expression, i.e.,
-        the expression times its complex conjugate.
+        the expression times its complex conjugate. If `c = a + bi` is a
+        complex number, then the norm of `c` is defined as the product of
+        `c` and its complex conjugate
+
+        .. MATH::
+
+            \text{norm}(c)
+            =
+            \text{norm}(a + bi)
+            =
+            c \cdot \overline{c}
+            =
+            a^2 + b^2.
+
+        The norm of a complex number is different from its absolute value.
+        The absolute value of a complex number is defined to be the square
+        root of its norm. A typical use of the complex norm is in the
+        integral domain `\ZZ[i]` of Gaussian integers, where the norm of
+        each Gaussian integer `c = a + bi` is defined as its complex norm.
+
+        .. SEEALSO::
+
+            - :func:`sage.misc.functional.norm`
 
         EXAMPLES::
 

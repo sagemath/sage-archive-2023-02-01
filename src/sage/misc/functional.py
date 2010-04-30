@@ -1059,25 +1059,105 @@ def ngens(x):
     return x.ngens()
 
 def norm(x):
-    """
-    Returns the norm of x.
+    r"""
+    Returns the norm of ``x``.
 
-    For matrices and vectors, this returns the L2-norm.
-    For complex numbers, it returns the field norm.
+    For matrices and vectors, this returns the L2-norm. The L2-norm of a
+    vector `\textbf{v} = (v_1, v_2, \dots, v_n)`, also called the Euclidean
+    norm, is defined as
 
-    EXAMPLES::
+    .. MATH::
 
-        sage: z = 1+2*I
-        sage: norm(z)
-        5
+        |\textbf{v}|
+        =
+        \sqrt{\sum_{i=1}^n |v_i|^2}
+
+    where `|v_i|` is the complex modulus of `v_i`. The Euclidean norm is often
+    used for determining the distance between two points in two- or
+    three-dimensional space.
+
+    For complex numbers, the function returns the field norm. If
+    `c = a + bi` is a complex number, then the norm of `c` is defined as the
+    product of `c` and its complex conjugate
+
+    .. MATH::
+
+        \text{norm}(c)
+        =
+        \text{norm}(a + bi)
+        =
+        c \cdot \overline{c}
+        =
+        a^2 + b^2.
+
+    The norm of a complex number is different from its absolute value.
+    The absolute value of a complex number is defined to be the square
+    root of its norm. A typical use of the complex norm is in the
+    integral domain `\ZZ[i]` of Gaussian integers, where the norm of
+    each Gaussian integer `c = a + bi` is defined as its complex norm.
+
+    .. SEEALSO::
+
+        - :meth:`sage.matrix.matrix2.Matrix.norm`
+
+        - :meth:`sage.modules.free_module_element.FreeModuleElement.norm`
+
+        - :meth:`sage.rings.complex_double.ComplexDoubleElement.norm`
+
+        - :meth:`sage.rings.complex_number.ComplexNumber.norm`
+
+        - :meth:`sage.symbolic.expression.Expression.norm`
+
+    EXAMPLES:
+
+    The norm of vectors::
+
+        sage: z = 1 + 2*I
         sage: norm(vector([z]))
         sqrt(5)
+        sage: v = vector([-1,2,3])
+        sage: norm(v)
+        sqrt(14)
+        sage: _ = var("a b c d")
+        sage: v = vector([a, b, c, d])
+        sage: norm(v)
+        sqrt(abs(a)^2 + abs(b)^2 + abs(c)^2 + abs(d)^2)
+
+    The norm of matrices::
+
+        sage: z = 1 + 2*I
         sage: norm(matrix([[z]]))
         2.2360679775
+        sage: M = matrix(ZZ, [[1,2,4,3], [-1,0,3,-10]])
+        sage: norm(M)
+        10.6903311292
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))
         5.00000000000000
+
+    The norm of complex numbers::
+
+        sage: z = 2 - 3*I
+        sage: norm(z)
+        13
+        sage: a = randint(-10^10, 100^10)
+        sage: b = randint(-10^10, 100^10)
+        sage: z = a + b*I
+        sage: bool(norm(z) == a^2 + b^2)
+        True
+
+    The complex norm of symbolic expressions::
+
+        sage: a, b, c = var("a, b, c")
+        sage: z = a + b*I
+        sage: bool(norm(z).simplify() == a^2 + b^2)
+        True
+        sage: norm(a + b).simplify()
+        a^2 + 2*a*b + b^2
+        sage: v = vector([a, b, c])
+        sage: bool(norm(v).simplify_full() == sqrt(a^2 + b^2 + c^2))
+        True
     """
     return x.norm()
 

@@ -1112,8 +1112,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
     def abs(self):
         """
-        This function returns the magnitude of the complex number
-        `z`, `|z|`.
+        This function returns the magnitude `|z|` of the complex number
+        `z`.
+
+        .. SEEALSO::
+
+            - :meth:`norm`
 
         EXAMPLES::
 
@@ -1142,8 +1146,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
     def abs2(self):
         """
-        This function returns the squared magnitude of the complex number
-        `z`, `|z|^2`.
+        This function returns the squared magnitude `|z|^2` of the complex
+        number `z`, otherwise known as the complex norm.
+
+        .. SEEALSO::
+
+            - :meth:`norm`
 
         EXAMPLES::
 
@@ -1153,9 +1161,37 @@ cdef class ComplexDoubleElement(FieldElement):
         return RealDoubleElement(gsl_complex_abs2(self._complex))
 
     def norm(self):
-        """
-        This function returns the squared magnitude of the complex number
-        `z`, `|z|^2`.
+        r"""
+        This function returns the squared magnitude `|z|^2` of the complex
+        number `z`, otherwise known as the complex norm. If `c = a + bi`
+        is a complex number, then the norm of `c` is defined as the product of
+        `c` and its complex conjugate
+
+        .. MATH::
+
+            \text{norm}(c)
+            =
+            \text{norm}(a + bi)
+            =
+            c \cdot \overline{c}
+            =
+            a^2 + b^2.
+
+        The norm of a complex number is different from its absolute value.
+        The absolute value of a complex number is defined to be the square
+        root of its norm. A typical use of the complex norm is in the
+        integral domain `\ZZ[i]` of Gaussian integers, where the norm of
+        each Gaussian integer `c = a + bi` is defined as its complex norm.
+
+        .. SEEALSO::
+
+            - :meth:`abs`
+
+            - :meth:`abs2`
+
+            - :func:`sage.misc.functional.norm`
+
+            - :meth:`sage.rings.complex_number.ComplexNumber.norm`
 
         EXAMPLES::
 

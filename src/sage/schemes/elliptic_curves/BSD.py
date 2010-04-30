@@ -303,12 +303,14 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
         sage: EllipticCurve('11a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
+        ...
         True for p not in {2, 5} by Kolyvagin.
         True for p=5 by Mazur
         []
 
         sage: EllipticCurve('14a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
+        ...
         True for p not in {2, 3} by Kolyvagin.
         Remaining primes:
         p = 3: reducible, not surjective, good ordinary, divides a Tamagawa number
@@ -335,6 +337,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E = EllipticCurve('19a')
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
+        ...
         True for p not in {2, 3} by Kolyvagin.
         True for p=3 by Mazur
         []
@@ -376,6 +379,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E = EllipticCurve('681b')
         sage: E.prove_BSD(verbosity=2)               # long time
         p = 2: True by 2-descent
+        ...
         True for p not in {2, 3} by Kolyvagin.
         ALERT: p = 3 left in Kolyvagin bound
             0 <= ord_p(#Sha) <= 2
@@ -417,6 +421,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
         sage: EllipticCurve('438e1').prove_BSD(verbosity=1)
         p = 2: True by 2-descent
+        ...
         True for p not in {2} by Kolyvagin.
         []
 
@@ -744,7 +749,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
             for D in BSD.heegner_index_upper_bound:
                 M = BSD.heegner_index_upper_bound[D]
                 ord_p_bound = 0
-                while p**(ord_p_bound+1) <= M:
+                while p**(ord_p_bound+1) <= M**2:
                     ord_p_bound += 1
                 break
             if verbosity > 0:

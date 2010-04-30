@@ -75,6 +75,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets
 from copy import copy
 from sage.misc.sage_itertools import unique_merge
+from sage.misc.lazy_format import LazyFormat
 
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0
@@ -569,15 +570,15 @@ cdef class Parent(category_object.CategoryObject):
         if not is_extension_type(self.__class__):
             # For usual Python classes, that should be done with
             # standard inheritance
-            tester.assert_(isinstance(self, category.parent_class),
-                           "category of self improperly initialized"%self)
+            tester.assertTrue(isinstance(self, category.parent_class),
+                LazyFormat("category of self improperly initialized")%self)
         else:
             # For extension types we just check that inheritance
             # occurs on one specific method.
             # _test_an_element from Sets().ParentMethods is a good
             # candidate because it's unlikely to be overriden in self.
-            tester.assert_(hasattr(self, "_test_an_element"),
-                           "category of self improperly initialized"%self)
+            tester.assertTrue(hasattr(self, "_test_an_element"),
+                LazyFormat("category of self improperly initialized")%self)
 
     def _test_eq(self, **options):
         """
@@ -613,8 +614,10 @@ cdef class Parent(category_object.CategoryObject):
         tester = self._tester(**options)
         tester.assertEqual(self, self)
         tester.assertNotEqual(self, None)
-        tester.assertFalse(self != self, "broken non-equality: %s != itself"%self)
-        tester.assertTrue(self != None, "broken non-equality: %s is not != None"%self)
+        tester.assertFalse(self != self,
+                   LazyFormat("broken non-equality: %s != itself")%self)
+        tester.assertTrue(self != None,
+                   LazyFormat("broken non-equality: %s is not != None")%self)
 
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:

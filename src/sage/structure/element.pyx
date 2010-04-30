@@ -188,6 +188,7 @@ from types import MethodType
 from sage.categories.category   import Category
 from sage.structure.parent      cimport Parent
 from sage.structure.parent      import is_extension_type
+from sage.misc.lazy_format      import LazyFormat
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -510,8 +511,10 @@ cdef class Element(sage_object.SageObject):
         tester = self._tester(**options)
         tester.assertEqual(self, self)
         tester.assertNotEqual(self, None)
-        tester.assertFalse(self != self, "broken non-equality: %s != itself"%self)
-        tester.assertTrue(self != None, "broken non-equality: %s is not != None"%self)
+        tester.assertFalse(self != self,
+                           LazyFormat("broken non-equality: %s != itself")%self)
+        tester.assertTrue(self != None,
+                          LazyFormat("broken non-equality: %s is not != None")%self)
 
     def parent(self, x=None):
         """

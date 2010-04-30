@@ -16,6 +16,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_format import LazyFormat
 from sage.categories.category import Category, HomCategory
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -510,22 +511,22 @@ class Sets(Category):
             equal_eli_elj = {}
             def print_compare(x, y):
                 if x == y:
-                    return "%s == %s"%(x, y)
+                    return LazyFormat("%s == %s")%(x, y)
                 else:
-                    return "%s != %s"%(x, y)
+                    return LazyFormat("%s != %s")%(x, y)
             for i, eli in enumerate(elements):
                 for j, elj in enumerate(elements):
                     equal_eli_elj[i,j] = (eli == elj)
                     tester.assertNotEqual(equal_eli_elj[i,j], eli != elj,
-                        "__eq__ and __ne__ inconsistency:\n"
-                        "  %s == %s returns %s  but  %s != %s returns %s"%(
-                            eli, elj, (eli == elj), eli, elj, (eli != elj)))
+                        LazyFormat("__eq__ and __ne__ inconsistency:\n"
+                            "  %s == %s returns %s  but  %s != %s returns %s")%(
+                                eli, elj, (eli == elj), eli, elj, (eli != elj)))
                     if i == j:
                         tester.assertTrue(equal_eli_elj[i,i],
-                            "non reflexive equality: %s != %s"%(eli, eli))
+                            LazyFormat("non reflexive equality: %s != %s")%(eli,eli))
                     if i > j: # (j, i) is already computed
                         tester.assertEqual(equal_eli_elj[i,j], equal_eli_elj[j,i],
-                            "non symmetric equality: %s but %s"%(
+                            LazyFormat("non symmetric equality: %s but %s")%(
                                 print_compare(eli, elj), print_compare(elj, eli)))
             # check for transitivity
             nbel = len(elements)
@@ -535,7 +536,8 @@ class Sets(Category):
                     for k in range(nbel):
                         if not equal_eli_elj[j,k]: continue
                         tester.assertTrue(equal_eli_elj[i,k],
-                                          "non transitive equality:\n  %s and %s but %s"%(
+                            LazyFormat("non transitive equality:\n"
+                                       "%s and %s but %s")%(
                                 print_compare(elements[i], elements[j]),
                                 print_compare(elements[j], elements[k]),
                                 print_compare(elements[i], elements[k])))
@@ -590,8 +592,8 @@ class Sets(Category):
             #tester.assert_(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
-                tester.assertTrue(x in self,
-                    "the object %s in self.some_elements() is not in self"%(x,))
+                tester.assertTrue(x in self, LazyFormat(
+                    "the object %s in self.some_elements() is not in self")%(x,))
 
         # Functorial constructions
 

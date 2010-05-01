@@ -138,6 +138,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (0, 0, 1)
             sage: VS((0,0,GF(2)(1)))
             (0, 0, 1)
+            sage: VS((-1,-2,-3))
+            (1, 0, 1)
         """
         cdef Py_ssize_t i
         cdef int xi
@@ -147,7 +149,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             for i from 0 <= i < self._degree:
                 if PY_TYPE_CHECK(x[i],IntegerMod_int) or PY_TYPE_CHECK(x[i],int) or PY_TYPE_CHECK(x[i],Integer):
                     xi = x[i]
-                    mzd_write_bit(self._entries, 0, i, xi%2)
+                    # the if/else statement is because some in some compilers, (-1)%2 is -1
+                    mzd_write_bit(self._entries, 0, i, 0 if xi%2==0 else 1)
                 else:
                     mzd_write_bit(self._entries, 0, i, x[i]%2)
             return

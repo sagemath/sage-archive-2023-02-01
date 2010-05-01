@@ -954,6 +954,7 @@ class R(Expect):
         a filename like ``Rplot001.png`` - from the command line, in
         the current directory, and in the cell directory in the notebook::
 
+            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this
             sage: r.plot("1:10")
             null device
                       1

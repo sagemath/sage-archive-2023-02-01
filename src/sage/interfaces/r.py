@@ -329,24 +329,27 @@ class R(Expect):
         one creates the device.  See r.plot() documentation for more information
         about plotting via R in Sage.
 
+        These examples won't work on the many platforms where R still gets
+        built without graphics support.
+
         EXAMPLES::
 
             sage: filename = tmp_filename() + '.png'
-            sage: r.png(filename='"%s"'%filename)
+            sage: r.png(filename='"%s"'%filename)             # optional -- rgraphics
             NULL
             sage: x = r([1,2,3])
             sage: y = r([4,5,6])
-            sage: r.plot(x,y) # This saves to filename, but is not viewable from command line
+            sage: r.plot(x,y) # This saves to filename, but is not viewable from command line; optional -- rgraphics
             null device
                       1
-            sage: import os; os.unlink(filename) # We remove the file for doctesting
+            sage: import os; os.unlink(filename) # We remove the file for doctesting; optional -- rgraphics
 
         We want to make sure that we actually can view R graphics, which happens
         differently on different platforms::
 
             sage: s = r.eval('capabilities("png")') # Should be on Linux and Solaris
             sage: t = r.eval('capabilities("aqua")') # Should be on all supported Mac versions
-            sage: "TRUE" in s+t
+            sage: "TRUE" in s+t                      # optional -- rgraphics
             True
         """
         #Check to see if R has PNG support
@@ -954,8 +957,8 @@ class R(Expect):
         a filename like ``Rplot001.png`` - from the command line, in
         the current directory, and in the cell directory in the notebook::
 
-            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this
-            sage: r.plot("1:10")
+            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this;
+            sage: r.plot("1:10")                # optional -- rgraphics
             null device
                       1
 
@@ -964,14 +967,14 @@ class R(Expect):
         must be done in the same cell as the plot itself::
 
             sage: filename = tmp_filename() + '.png'
-            sage: r.png(filename='"%s"'%filename) # Note the double quotes in single quotes!
+            sage: r.png(filename='"%s"'%filename) # Note the double quotes in single quotes!; optional -- rgraphics
             NULL
             sage: x = r([1,2,3])
             sage: y = r([4,5,6])
-            sage: r.plot(x,y)
+            sage: r.plot(x,y)         # optional -- rgraphics
             null device
                       1
-            sage: import os; os.unlink(filename) # For doctesting, we remove the file
+            sage: import os; os.unlink(filename) # For doctesting, we remove the file; optional -- rgraphics
 
         Please note that for more extensive use of R's plotting
         capabilities (such as the lattices package), it is advisable
@@ -991,11 +994,11 @@ class R(Expect):
         not automatically print away from the command line::
 
             sage: filename = tmp_filename() + '.png' # Not needed in notebook, used for doctesting
-            sage: r.png(filename='"%s"'%filename) # filename not needed in notebook, used for doctesting
+            sage: r.png(filename='"%s"'%filename) # filename not needed in notebook, used for doctesting; optional -- rgraphics
             NULL
             sage: r.library("lattice")
-            sage: r("print(histogram(~wt | cyl, data=mtcars))") # plot should appear
-            sage: import os; os.unlink(filename) # We remove the file for doctesting, not needed in notebook
+            sage: r("print(histogram(~wt | cyl, data=mtcars))") # plot should appear; optional -- rgraphics
+            sage: import os; os.unlink(filename) # We remove the file for doctesting, not needed in notebook;  optional -- rgraphics
         """
         # We have to define this to override the plot function defined in the
         # superclass.

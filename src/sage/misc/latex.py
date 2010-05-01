@@ -1020,7 +1020,7 @@ class Latex:
 
         EXAMPLES::
 
-            sage: latex.has_file("article.cls")
+            sage: latex.has_file("article.cls")      # optional - latex
             True
             sage: latex.has_file("some_inexistent_file.sty")
             False
@@ -1047,7 +1047,7 @@ class Latex:
 
         EXAMPLES::
 
-            sage: latex.check_file("article.cls")
+            sage: latex.check_file("article.cls")       # optional - latex
             sage: latex.check_file("some_inexistent_file.sty")
             Warning: `some_inexistent_file.sty` is not part of this computer's TeX installation.
             sage: latex.check_file("some_inexistent_file.sty")
@@ -1204,7 +1204,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
 
             sage: latex.add_package_to_preamble_if_available("xypic")
             sage: latex.add_package_to_preamble_if_available("nonexistent_package")
-            sage: latex.extra_preamble()
+            sage: latex.extra_preamble()       # optional - latex
             '\\usepackage{xypic}\n'
             sage: latex.extra_preamble('')
         """

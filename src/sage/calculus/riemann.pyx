@@ -488,13 +488,13 @@ cdef class Riemann_Map:
             sage: m.riemann_map(0.25 + sqrt(-0.5))  # long time
             (0.137514137885...+0.876696023004...j)
             sage: m.riemann_map(1.3*I)  # long time
-            (-1.5610293963...+0.989694535737...j)
+            (-1.561029396...+0.989694535737...j)
             sage: I = CDF.gen()  # long time
             sage: m.riemann_map(0.4)  # long time
-            (0.733242677182...+3.5076771462...j)
+            (0.733242677182...+3.50767714...j)
             sage: import numpy as np  # long time
             sage: m.riemann_map(np.complex(-3, 0.0001))  # long time
-            (1.40575713549...+1.05106...j)
+            (1.405757135...+1.05106...j)
         """
         pt1 = np.complex(pt)
         cdef np.ndarray[double complex, ndim=1] q_vector = 1 / (
@@ -564,7 +564,7 @@ cdef class Riemann_Map:
             sage: m.inverse_riemann_map(0.5 + sqrt(-0.5))  # long time
             (0.406880548363...+0.361470279816...j)
             sage: m.inverse_riemann_map(0.95)  # long time
-            (0.486319431795...-4.900190524...j)
+            (0.486319431795...-4.90019052...j)
             sage: m.inverse_riemann_map(0.25 - 0.3*I)  # long time
             (0.165324498558...-0.180936785500...j)
             sage: import numpy as np  # long time

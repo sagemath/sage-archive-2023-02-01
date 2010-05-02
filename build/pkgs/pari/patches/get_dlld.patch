@@ -5,7 +5,7 @@
      case "$osname" in
        aix)     DLLDFLAGS='-r' ;;
 -      darwin)  DLLD=; DLLDFLAGS='-dylib -flat_namespace -undefined suppress' ;;
-+      darwin)  DLLD=; DLLDFLAGS='-flat_namespace -undefined suppress' ;;
++      darwin)  DLLD=gcc; DLLDFLAGS='-flat_namespace -undefined suppress' ;;
        freebsd) DLLDFLAGS='-Bshareable -x' ;;
        hpux)    DLLDFLAGS='-b' ;;
        irix)    DLLDFLAGS='-shared -elf -no_unresolved -all' ;;

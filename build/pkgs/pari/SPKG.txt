@@ -65,6 +65,12 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.3.5.p0 (Georg S. Weber, May 2nd, 2010 ===
+ * restore resp. correct the file patches/get_dlld
+   (there seems to have been a copy'n'paste issue w.r.t. pari-2.3.3.p8)
+   so that pari is buildable (again) as a dynamical library on Mac OS
+   (fixes trac ticket #8837, see there for more details)
+
 === pari-2.3.5 (Mike Hansen, March 5th, 2010 ===
  * Update to PARI 2.3.5
  * Removed the alglin2.c patch since it was included upstream.

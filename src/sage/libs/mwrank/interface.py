@@ -1,33 +1,42 @@
 r"""
-Cremona's MWRANK Library
+Sage interface to Cremona's eclib library (also known as mwrank)
 
-This is the Sage interface to John Cremona's MWRANK C++ library for
+This is the Sage interface to John Cremona's eclib C++ library for
 arithmetic on elliptic curves.  The classes defined in this module
-give Sage interpreter-level to access much of the functionality of
-MWRANK.  For most purposes it is not necessary to directly use these
-classes; instead, one can create an \class{EllipticCurve} and call
-methods that are implemented using this module.
+give Sage interpreter-level to access some of the functionality of
+eclib.  For most purposes it is not necessary to directly use these
+classes; instead, one can create an ``EllipticCurve`` and call methods
+that are implemented using this module.
 
-\note{This interface is a direct library-level interface to mwrank.}
+.. note::
+
+   This interface is a direct library-level interface to eclib,
+   including the two-descent program mwrank.
 """
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import IntegerRing
 
 def set_precision(n):
-    """
+    r"""
     Set the global NTL real number precision.  This has a massive
-    effect on the speed of mwrank calculations.  The default is n=15,
-    but it might have to be increased if a computation fails.  In this
-    case, one must recreate the mwrank curve from scratch after
-    resetting this precision.
-
-    NOTE -- this change is global and affects all of Sage.
+    effect on the speed of mwrank calculations.  The default (used if
+    this function is not called) is n=15, but it might have to be
+    increased if a computation fails.  In this case, one must recreate
+    the mwrank curve from scratch after resetting this precision.
 
     INPUT:
-        n -- long
 
-    EXAMPLES:
+    - `n` (long) -- real precision used for floating point
+      computations in the library, in decimal digits.
+
+    .. note::
+
+       This change is global and affects all of Sage.
+
+
+    EXAMPLES::
+
         sage: mwrank_set_precision(20)
     """
     # don't want to load mwrank every time Sage starts up, so we do
@@ -37,46 +46,54 @@ def set_precision(n):
 
 class mwrank_EllipticCurve(SageObject):
     r"""
-    The \class{mwrank_EllipticCurve} class represents an MWRANK
-    elliptic curve.
+    The :class:`mwrank_EllipticCurve` class represents an elliptic
+    curve using the Curvedata class from eclib, called here an 'mwrank
+    elliptic curve'.
     """
     def __init__(self, ainvs, verbose=False):
         r"""
         Create the mwrank elliptic curve with invariants
-        \code{a_invs}, which is a list of $\leq 5$ \emph{integers}  $a_1$,
-        $a_2$, $a_3$, $a_4$, and $a_6$.
+        ``a_invs``, which is a list of `\leq 5` \emph{integers}  `a_1`,
+        `a_2`, `a_3`, `a_4`, and `a_`$.
 
         If strictly less than 5 invariants are given, then the first
-        ones are set to 0, so, e.g., \code{[3,4]} means $a_1=a_2=a_3=0$ and
-        $a_4=3$, $a_6=4$.
+        ones are set to 0, so, e.g., ``[3,4] means `a_1=a_2=a_3=0` and
+        `a_4=3`, `a_6=4`.
 
         INPUT:
-            ainvs  --  a list of <= 5 integers
-            verbose -- if True, then all Selmer group computations
-                       will be verbose. (default: False).
+
+        - `ainvs` (list or tuple) -- a list of <= 5 integers, the
+          coefficients of a nonsingular Weierstrass equation.
+
+        - `verbose` (bool, default False) -- verbosity flag.  If True,
+          then all Selmer group computations will be verbose.
 
         EXAMPLES:
-        We create the elliptic curve $y^2 + y = x^3 + x^2 - 2x$.
+
+        We create the elliptic curve `y^2 + y = x^3 + x^2 - 2x`::
 
             sage: e = mwrank_EllipticCurve([0, 1, 1, -2, 0])
             sage: e.ainvs()
             [0, 1, 1, -2, 0]
 
-        This example illustrates that omitted $a$-invariants default to $0$:
+        This example illustrates that omitted $a$-invariants default to $0$::
+
             sage: e = mwrank_EllipticCurve([3, -4])
             sage: e
             y^2 = x^3 + 3*x - 4
             sage: e.ainvs()
             [0, 0, 0, 3, -4]
 
-        The entries of the input list are coerced to \class{int}.
-        If this is impossible then an error is raised:
+        The entries of the input list are coerced to :class:`int`.
+        If this is impossible then an error is raised::
+
             sage: e = mwrank_EllipticCurve([3, -4.8]); e
             Traceback (most recent call last):
             ...
             TypeError: ainvs must be a list of integers.
 
-        When you enter a singular model you get an exception:
+        When you enter a singular model you get an exception::
+
             sage: e = mwrank_EllipticCurve([0, 0])
             Traceback (most recent call last):
             ...
@@ -111,6 +128,17 @@ class mwrank_EllipticCurve(SageObject):
         self.__saturate = -2  # not yet saturated
 
     def __reduce__(self):
+        r"""
+        Standard Python function used in pickling.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: E.__reduce__()
+            (<class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>, ([0, 0, 1, -7, 6], False))
+
+
+        """
         return mwrank_EllipticCurve, (self.__ainvs, self.__verbose)
 
 
@@ -118,22 +146,111 @@ class mwrank_EllipticCurve(SageObject):
         """
         Set the verbosity of printing of output by the 2-descent and
         other functions.
+
         INPUT:
-            verbosity -- bool; if True print lots of output
+
+        - `verbose` (int) -- if positive, print lots of output when
+          doing 2-descent.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.saturate() # no output
+            sage: E.gens()
+            [[0, -1, 1]]
+
+            sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.set_verbose(1)
+            sage: E.saturate() ## produces the following output
+
+        ::
+
+            Basic pair: I=48, J=-432
+            disc=255744
+            2-adic index bound = 2
+            By Lemma 5.1(a), 2-adic index = 1
+            2-adic index = 1
+            One (I,J) pair
+            Looking for quartics with I = 48, J = -432
+            Looking for Type 2 quartics:
+            Trying positive a from 1 up to 1 (square a first...)
+            (1,0,-6,4,1)	--trivial
+            Trying positive a from 1 up to 1 (...then non-square a)
+            Finished looking for Type 2 quartics.
+            Looking for Type 1 quartics:
+            Trying positive a from 1 up to 2 (square a first...)
+            (1,0,0,4,4)	--nontrivial...(x:y:z) = (1 : 1 : 0)
+            Point = [0:0:1]
+            height = 0.051111408239968840235886099756942021609538202280854
+            Rank of B=im(eps) increases to 1 (The previous point is on the egg)
+            Exiting search for Type 1 quartics after finding one which is globally soluble.
+            Mordell rank contribution from B=im(eps) = 1
+            Selmer  rank contribution from B=im(eps) = 1
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
+            Searching for points (bound = 8)...done:
+            found points of rank 1
+            and regulator 0.051111408239968840235886099756942021609538202280854
+            Processing points found during 2-descent...done:
+            now regulator = 0.051111408239968840235886099756942021609538202280854
+            Saturating (bound = -1)...done:
+            points were already saturated.
         """
         self.__verbose = verbose
 
 
     def _curve_data(self):
+        r"""
+        Returns the underlying _Curvedata class for this mwrank elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-1,0])
+            sage: E._curve_data()
+            [0,0,1,-1,0]
+            b2 = 0	 b4 = -2	 b6 = 1	 b8 = -1
+            c4 = 48		c6 = -216
+            disc = 37	(# real components = 2)
+            #torsion not yet computed
+        """
         return self.__curve
 
     def ainvs(self):
+        r"""
+        Returns the `a`-invariants of this mwrank elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-1,0])
+            sage: E.ainvs()
+            [0, 0, 1, -1, 0]
+        """
         return self.__ainvs
 
     def isogeny_class(self, verbose=False):
+        r"""
+        Returns the isogeny class of this mwrank elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
+            sage: E.isogeny_class()
+            ([[0, -1, 1, 0, 0], [0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580]], [[0, 5, 0], [5, 0, 5], [0, 5, 0]])
+        """
         return self.__curve.isogeny_class(verbose)
 
     def __repr__(self):
+        r"""
+        Returns the string representation of this mwrank elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
+            sage: E.__repr__()
+            'y^2+ y = x^3 - x^2 '
+        """
         a = self.ainvs()
         s = "y^2"
         if a[0] == -1:
@@ -182,18 +299,31 @@ class mwrank_EllipticCurve(SageObject):
         Compute 2-descent data for this curve.
 
         INPUT:
-            verbose     -- (default: True) print what mwrank is doing
-            selmer_only -- (default: False) selmer_only switch
-            first_limit -- (default: 20) firstlim is bound on |x|+|z|
-            second_limit-- (default: 5)  secondlim is bound on log max {|x|,|z| },
-                                         i.e. logarithmic
-            n_aux       -- (default: -1) n_aux only relevant for general
-                           2-descent when 2-torsion trivial; n_aux=-1 causes default
-                           to be used (depends on method)
-            second_descent -- (default: True) second_descent only relevant for
-                           descent via 2-isogeny
+
+        - ``verbose`` (bool, default True) --  print what mwrank is doing
+
+        - ``selmer_only`` (bool, default False) -- selmer_only switch
+
+        - ``first_limit`` (int, default 20) -- bound on `|x|+|z|` in
+          quartic point search
+
+        - ``second_limit`` (int, default 8) -- bound on `\log
+          `max(|x|,|z|)`, i.e. logarithmic
+
+        - ``n_aux`` (int, default -1) -- (only relevant for general
+          2-descent when 2-torsion trivial) number of primes used for
+          quartic search.  n_aux=-1 causes default (8) to be used.
+          Increase for curves of higher rank.
+
+        - ``second_descent`` (bool, default True) -- (only relevant
+          for curves with 2-torsion, where mwrank uses descent via
+          2-isogeny) flag determining whether or not to do second
+          descent.  Default strongloy recommended.
+
+
         OUTPUT:
-            Nothing -- nothing is returned
+
+        Nothing -- nothing is returned
 
         TESTS (see #7992)::
 
@@ -225,6 +355,15 @@ class mwrank_EllipticCurve(SageObject):
             raise RuntimeError, "A 2-descent did not complete successfully."
 
     def __two_descent_data(self):
+        r"""
+        Returns the 2-descent data for this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
+            sage: E._mwrank_EllipticCurve__two_descent_data()
+            <sage.libs.mwrank.mwrank._two_descent object at ...>
+        """
         try:
             return self.__descent
         except AttributeError:
@@ -236,7 +375,15 @@ class mwrank_EllipticCurve(SageObject):
         Return the conductor of this curve, computed using Cremona's
         implementation of Tate's algorithm.
 
-        NOTE: This is independent of PARI's.
+        .. note::
+
+           This is independent of PARI's.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([1, 1, 0, -6958, -224588])
+            sage: E.conductor()
+            2310
         """
         return self.__curve.conductor()
 
@@ -247,7 +394,7 @@ class mwrank_EllipticCurve(SageObject):
         In general this may only be a lower bound for the rank; an
         upper bound may be obtained using the function rank_bound().
         To test whether the value has been proved to be correct, use
-        the method \method{certain}.
+        the method :meth:`certain`.
 
         EXAMPLES::
 
@@ -307,7 +454,7 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank_bound()
             2
 
-        In this case the value returned by \method{rank} is only a
+        In this case the value returned by :meth:`rank` is only a
         lower bound in general (though in this is correct)::
 
             sage: E.rank()
@@ -346,7 +493,7 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank_bound()
             2
 
-        For the curve 571A, also with rank 0 and $\Sha$ of order 4,
+        For the curve 571A, also with rank 0 and Sha of order 4,
         but with no 2-torsion, the selmer rank is strictly greater
         than the rank::
 
@@ -369,13 +516,14 @@ class mwrank_EllipticCurve(SageObject):
         return self.__two_descent_data().getselmer()
 
     def regulator(self):
-        """
+        r"""
         Return the regulator of the saturated Mordell-Weil group.
+
+        EXAMPLES::
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.regulator()
             0.05111140823996884
-
         """
         self.saturate()
         if not self.certain():
@@ -389,9 +537,24 @@ class mwrank_EllipticCurve(SageObject):
         primes up to bound.
 
         INPUT:
-            bound -- int (default: -1)   -1 saturate at *all* primes,
-                                          0 -- do not saturate
-                                          n -- saturate at least at all primes <= n.
+
+        - `bound` (int, default -1) -- Use `-1` (the default) to
+          saturate at *all* primes, `0` for no saturation, or `n` (a
+          positive integer) to saturate at all primes up to `n`.
+
+        EXAMPLES:
+
+        Since the 2-descent automatically saturates at primes up to
+        20, it is not easy to come up with an example where saturation
+        has any effect::
+
+            sage: E = mwrank_EllipticCurve([0, 0, 0, -1002231243161, 0])
+            sage: E.gens()
+            [[-1001107, -4004428, 1]]
+            sage: E.saturate()
+            sage: E.gens()
+            [[-1001107, -4004428, 1]]
+
         """
         bound = int(bound)
         if self.__saturate < bound:
@@ -401,24 +564,32 @@ class mwrank_EllipticCurve(SageObject):
     def gens(self):
         """
         Return a list of the generators for the Mordell-Weil group.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.gens()
+            [[0, -1, 1]]
         """
         self.saturate()
-        return eval(self.__two_descent_data().getbasis().replace(":",","))
+        from sage.misc.all import preparse
+        from sage.rings.all import Integer
+        return eval(preparse(self.__two_descent_data().getbasis().replace(":",",")))
 
     def certain(self):
         r"""
-        True if the last \method{two_descent} call provably correctly
-        computed the rank.  If \method{two_descent} hasn't been
-        called, then it is first called by \method{certain}
+        True if the last :meth:`two_descent` call provably correctly
+        computed the rank.  If :meth:`two_descent` hasn't been
+        called, then it is first called by :meth:`certain`
         using the default parameters.
 
         The result is true if and only if the results of the methods
-        \method{rank} and \method{rank_bound} are equal.
+        :meth:`rank` and :meth:`rank_bound` are equal.
 
         EXAMPLES:
 
-        A $2$-descent does not determine $E(\Q)$ with certainty
-        for the curve $y^2 + y = x^3 - x^2 - 120x - 2183$.
+        A 2-descent does not determine `E(\QQ)` with certainty
+        for the curve `y^2 + y = x^3 - x^2 - 120x - 2183`.::
 
             sage: E = mwrank_EllipticCurve([0, -1, 1, -120, -2183])
             sage: E.two_descent(False)
@@ -433,8 +604,8 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.rank_bound()
             2
 
-        In fact the rank of $E$is actually 0 (as one could see by
-        computing the L-function), but $\Sha$ has order 4 and the
+        In fact the rank of `E` is actually 0 (as one could see by
+        computing the L-function), but Sha has order 4 and the
         $2$-torsion is trivial, so mwrank cannot conclusively
         determine the rank in this case.
         """
@@ -446,46 +617,198 @@ class mwrank_EllipticCurve(SageObject):
     def CPS_height_bound(self):
         r"""
         Return the Cremona-Prickett-Siksek height bound.  This is a
-        floating point number $B$ such that if $P$ is a point on the curve,
-        then the naive logarithmic height of $P$ is off from the
-        canonical height by at most $B$.
+        floating point number $B$ such that if $P$ is a point on the
+        curve, then the naive logarithmic height $h(P)$ is less than
+        $B+\hat{h}(P)$, where $\hat{h}(P)$ is the canonical height of
+        $P$.
 
-        \begin{notice}
-        We assume the model is minimal!
-        \end{notice}
+        .. warning::
+
+           We assume the model is minimal!
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0, 0, 0, -1002231243161, 0])
+            sage: E.CPS_height_bound()
+            14.163198527061496
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: E.CPS_height_bound()
+            0.0
         """
         return self.__curve.cps_bound()
 
     def silverman_bound(self):
         r"""
-        Return the Silverman height bound.  This is a number $B$ such
-        that if $P$ is a point on the curve, then the naive
-        logarithmic height of $P$ is off from the canonical height by
-        at most $B$.
+        Return the Silverman height bound.  This is a floating point
+        number $B$ such that if $P$ is a point on the curve, then the
+        naive logarithmic height $h(P)$ is less than $B+\hat{h}(P)$,
+        where $\hat{h}(P)$ is the canonical height of $P$.
 
-        \begin{notice}
-        We assume the model is minimal!
-        \end{notice}
+        .. warning::
+
+           We assume the model is minimal!
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0, 0, 0, -1002231243161, 0])
+            sage: E.silverman_bound()
+            18.295452104682472
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: E.silverman_bound()
+            6.2848333699724028
         """
         return self.__curve.silverman_bound()
 
 
 class mwrank_MordellWeil(SageObject):
     r"""
-    The \class{mwrank_MordellWeil} class represents a subgroup of a
+    The :class:`mwrank_MordellWeil` class represents a subgroup of a
     Mordell-Weil group.  Use this class to saturate a specified list
-    of points on an \class{mwrank_EllipticCurve}, or to search for
+    of points on an :class:`mwrank_EllipticCurve`, or to search for
     points up to some bound.
     """
     def __init__(self, curve, verbose=True, pp=1, maxr=999):
         r"""
-        Create a \class{mwrank_MordellWeil} instance.
+        Constructor for the :class:`mwrank_MordellWeil` class.
 
         INPUT:
-            curve -- \class{mwrank_EllipticCurve} instance
-            verbose -- bool
-            pp -- int
-            maxr -- int
+
+        - `curve` (:class:`mwrank_EllipticCurve`) -- the underlying
+          elliptic curve.
+
+        - `verbose` (bool, default False) -- verbosity flag (controls
+          amount of output produced in point searches)
+
+        - `pp` (int, default 1) -- process points flag (if nonzero,
+          the points found are processed, so that at all times only a
+          `\ZZ`-basis for the subgroup generated by the points found
+          so far is stored; if zero, no processing is done and all
+          points found are stored).
+
+        - `maxr` (int, default 999) -- maximum rank (quit point
+          searching once the points found generate a subgroup of this
+          rank; useful if an upper bound for the rank is already
+          known).
+
+        EXAMPLE::
+
+            sage: E = mwrank_EllipticCurve([1,0,1,4,-6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ
+            Subgroup of Mordell Weil group: []
+            sage: EQ.search(2) # output below
+
+        The previous command produces the following output::
+
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [1:-1:1]	 is torsion point, order 2
+            P1 = [2:2:1]	 is torsion point, order 3
+            P1 = [9:23:1]	 is torsion point, order 6
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.search(2)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+
+        Example to illustrate the verbose parameter::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E, verbose=False)
+            sage: EQ.search(1) #  no output
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+
+            sage: EQ = mwrank_MordellWeil(E, verbose=True)
+            sage: EQ.search(1) #  output below
+
+        The previous command produces the following output::
+
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [-3:0:1]	  is generator number 1
+            saturating up to 20...Checking 2-saturation
+            Points have successfully been 2-saturated (max q used = 7)
+            Checking 3-saturation
+            Points have successfully been 3-saturated (max q used = 7)
+            Checking 5-saturation
+            Points have successfully been 5-saturated (max q used = 23)
+            Checking 7-saturation
+            Points have successfully been 7-saturated (max q used = 41)
+            Checking 11-saturation
+            Points have successfully been 11-saturated (max q used = 17)
+            Checking 13-saturation
+            Points have successfully been 13-saturated (max q used = 43)
+            Checking 17-saturation
+            Points have successfully been 17-saturated (max q used = 31)
+            Checking 19-saturation
+            Points have successfully been 19-saturated (max q used = 37)
+            done
+            P2 = [-2:3:1]	  is generator number 2
+            saturating up to 20...Checking 2-saturation
+            possible kernel vector = [1,1]
+            This point may be in 2E(Q): [14:-52:1]
+            ...and it is!
+            Replacing old generator #1 with new generator [1:-1:1]
+            Points have successfully been 2-saturated (max q used = 7)
+            Index gain = 2^1
+            Checking 3-saturation
+            Points have successfully been 3-saturated (max q used = 13)
+            Checking 5-saturation
+            Points have successfully been 5-saturated (max q used = 67)
+            Checking 7-saturation
+            Points have successfully been 7-saturated (max q used = 53)
+            Checking 11-saturation
+            Points have successfully been 11-saturated (max q used = 73)
+            Checking 13-saturation
+            Points have successfully been 13-saturated (max q used = 103)
+            Checking 17-saturation
+            Points have successfully been 17-saturated (max q used = 113)
+            Checking 19-saturation
+            Points have successfully been 19-saturated (max q used = 47)
+            done (index = 2).
+            Gained index 2, new generators = [ [1:-1:1] [-2:3:1] ]
+            P3 = [-14:25:8]	  is generator number 3
+            saturating up to 20...Checking 2-saturation
+            Points have successfully been 2-saturated (max q used = 11)
+            Checking 3-saturation
+            Points have successfully been 3-saturated (max q used = 13)
+            Checking 5-saturation
+            Points have successfully been 5-saturated (max q used = 71)
+            Checking 7-saturation
+            Points have successfully been 7-saturated (max q used = 101)
+            Checking 11-saturation
+            Points have successfully been 11-saturated (max q used = 127)
+            Checking 13-saturation
+            Points have successfully been 13-saturated (max q used = 151)
+            Checking 17-saturation
+            Points have successfully been 17-saturated (max q used = 139)
+            Checking 19-saturation
+            Points have successfully been 19-saturated (max q used = 179)
+            done (index = 1).
+            P4 = [-1:3:1]	 = -1*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [0:2:1]	 = 2*P1 + 0*P2 + 1*P3 (mod torsion)
+            P4 = [2:13:8]	 = -3*P1 + 1*P2 + -1*P3 (mod torsion)
+            P4 = [1:0:1]	 = -1*P1 + 0*P2 + 0*P3 (mod torsion)
+            P4 = [2:0:1]	 = -1*P1 + 1*P2 + 0*P3 (mod torsion)
+            P4 = [18:7:8]	 = -2*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [3:3:1]	 = 1*P1 + 0*P2 + 1*P3 (mod torsion)
+            P4 = [4:6:1]	 = 0*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [36:69:64]	 = 1*P1 + -2*P2 + 0*P3 (mod torsion)
+            P4 = [68:-25:64]	 = -2*P1 + -1*P2 + -2*P3 (mod torsion)
+            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+
+        Example to illustrate the `process points` parameter::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E, verbose=False, pp=1)
+            sage: EQ.search(1); EQ # generators only
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+            sage: EQ = mwrank_MordellWeil(E, verbose=False, pp=0)
+            sage: EQ.search(1); EQ # all points found
+            Subgroup of Mordell Weil group: [[-3:0:1], [-2:3:1], [-14:25:8], [-1:3:1], [0:2:1], [2:13:8], [1:0:1], [2:0:1], [18:7:8], [3:3:1], [4:6:1], [36:69:64], [68:-25:64], [12:35:27]]
+
         """
         if not isinstance(curve, mwrank_EllipticCurve):
             raise TypeError, "curve (=%s) must be an mwrank_EllipticCurve"%curve
@@ -501,9 +824,36 @@ class mwrank_MordellWeil(SageObject):
         self.__mw = _mw(curve._curve_data(), verb, pp, maxr)
 
     def __reduce__(self):
+        r"""
+        Standard Python function used in pickling.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.__reduce__()
+            (<class 'sage.libs.mwrank.interface.mwrank_MordellWeil'>, (y^2+ y = x^3 - 7*x + 6, True, 1, 999))
+        """
         return mwrank_MordellWeil, (self.__curve, self.__verbose, self.__pp, self.__maxr)
 
     def __repr__(self):
+        r"""
+        String representation of this Mordell-Weil subgroup.
+
+        OUTPUT:
+
+        (string) String representation of this Mordell-Weil subgroup.
+
+        EXAMPLE::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E, verbose=False)
+            sage: EQ.__repr__()
+            'Subgroup of Mordell Weil group: []'
+            sage: EQ.search(1)
+            sage: EQ.__repr__()
+            'Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]'
+        """
         return "Subgroup of Mordell Weil group: %s"%self.__mw
 
     def process(self, v, sat=0):
@@ -511,15 +861,79 @@ class mwrank_MordellWeil(SageObject):
         This function allows one to add points to a mwrank_MordellWeil object.
 
         Process points in the list v, with saturation at primes up to
-        sat.  If sat = 0 (the default), then saturate at all primes.
+        sat.  If sat = 0 (the default), do no saturation.
 
         INPUT:
 
-            v -- a point (3-tuple of ints), or a
-                 list of 3-tuples of integers, which define points on the curve.
+        - `v` (list of 3-tuples or lists of ints or Integers) -- a
+          list of triples of integers, which define points on the
+          curve.
 
-            sat -- int, saturate at primes up to sat, or at all primes if sat=0.
+        - `sat` (int, default 0) --saturate at primes up to sat, or at
+          all primes if sat=0.
 
+        OUTPUT:
+
+        None.  But note that if the verbose flag is set, then there
+        will be some output as a side-effect.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: E.gens()
+            [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.process([[1, -1, 1], [-2, 3, 1], [-14, 25, 8]])
+
+        Output of previous command::
+
+            P1 = [1:-1:1]	  is generator number 1
+            P2 = [-2:3:1]	  is generator number 2
+            P3 = [-14:25:8]	  is generator number 3
+
+        ::
+
+            sage: EQ.points()
+            [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
+
+        Example to illustrate the saturation parameter::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=20)
+            sage: EQ.points()
+            [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
+
+        Here the processing was followed by saturation at primes up to
+        20.  Now we prevent this initial saturation::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=0)
+            sage: EQ.points()
+            [[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
+            sage: EQ.regulator()
+            375.42919921875
+            sage: EQ.saturate(2)  # points were not 2-saturated
+            (False, '2', '[ ]')
+            sage: EQ.points()
+            [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
+            sage: EQ.regulator()
+            93.8572998046875
+            sage: EQ.saturate(3)  # points were not 3-saturated
+            (False, '3', '[ ]')
+            sage: EQ.points()
+            [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
+            sage: EQ.regulator()
+            10.4285888671875
+            sage: EQ.saturate(5)  # points were not 5-saturated
+            (False, '5', '[ ]')
+            sage: EQ.points()
+            [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
+            sage: EQ.regulator()
+            0.4171435534954071
+            sage: EQ.saturate()   # points are now saturated
+            (True, '1', '[ ]')
         """
         if not isinstance(v, list):
             raise TypeError, "v (=%s) must be a list"%v
@@ -533,52 +947,210 @@ class mwrank_MordellWeil(SageObject):
         """
         Return the regulator of the points in this subgroup of
         the Mordell-Weil group.
+
+        .. note::
+
+           ``eclib`` can compute the regulator to arbitrary precision,
+           but the interface currently returns the output as a float.
+
+        OUTPUT:
+
+        (float) the regulator of the points in this subgroup.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
+            sage: E.regulator()
+            1.0
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: E.regulator()
+            0.41714355875838399
         """
         return self.__mw.regulator()
 
     def rank(self):
         """
         Return the rank of this subgroup of the Mordell-Weil group.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
+            sage: E.rank()
+            0
+
+        OUTPUT:
+
+        (int) The rank of this subgroup of the Mordell-Weil group.
+
+        A rank 3 example::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.rank()
+            0
+            sage: EQ.regulator()
+            1.0
+
+        The preceding output is correct, since we have not yet tried
+        to find any points on the curve either by searching or
+        2-descent::
+
+            sage: EQ
+            Subgroup of Mordell Weil group: []
+
+        Now we do a very small search::
+
+            sage: EQ.search(1)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+            sage: EQ.rank()
+            3
+            sage: EQ.regulator()
+            0.4171435534954071
+
+        We do in fact now have a full Mordell-Weil basis.
+
         """
-        return self.__mw.getrank()
+        return self.__mw.rank()
 
     def saturate(self, max_prime=-1, odd_primes_only=False):
         r"""
         Saturate this subgroup of the Mordell-Weil group.
 
         INPUT:
-            max_prime (int) -- (default: 97), saturation is performed
-                               for all primes up to max_prime
 
-            odd_primes_only (bool) -- only do saturation at odd primes
+        - ``max_prime`` (int, default -1) -- saturation is performed for
+          all primes up to `max_prime`. If `-1` (default) then an
+          upper bound is computed for the primes at which the subgroup
+          may not be saturated, and this is used; however, if the
+          computed bound is greater than a value set by the eclib
+          library (currently 97) then no saturation will be attempted
+          at primes above this.
+
+        - ``odd_primes_only`` (bool, default False) -- only do
+          saturation at odd primes.  (If the points have been found
+          via 2-descent they should alreday be 2-saturated.)
 
         OUTPUT:
-            ok (bool) -- True if and only if the saturation
-                         is provably correct at \emph{all} primes.
-            index (int) -- The index of the group generated by
-                           points in their saturation
-            saturation (list) -- list of points that form
-                                 a basis for the saturation
 
-        \begin{notice}
-        We emphasize that if this function returns True as the first
-        return argument, then the points it found are saturated at
-        \emph{all} primes, i.e., saturating at the primes up to
-        \code{max_prime} are sufficient to saturate at all primes.
-        Note that the function might not have needed to saturate at
-        all primes up to \code{max_prime}.
-        It has worked out what prime you need to saturate up to,
-        and that prime is $\leq $ \code{max_prime}.
+        (3-tuple) (``ok``, ``index``, ``unsatlist``) where:
 
-        \end{notice}
+        - ``ok`` (bool) is True if and only if the saturation was
+          provably successful at all primes attempted.  If the default
+          was used for ``max_prime`` and no warning was output about
+          the computed saturation bound being too high, then True
+          indicates that the subgroup is saturated at `\emph{all}`
+          primes.
 
-        \begin{notice}
-        Currently (July 2005), this does not remember the result of
-        calling search.  So calling search up to height 20 then
-        calling saturate results in another search up to height 18.
-        \end{notice}
+        - ``index`` (int) is the index of the group generated by the
+          original points in their saturation.
 
+        - ``unsatlist`` (list of ints) -- list of primes at which
+          saturation could not be proved or achieved.  Increasing the
+          decimal precision should correct this, since it happens when
+          a linear combination of the points appears to be a multiple
+          of `p` but cannot be divided by `p`.  (Note that ``eclib``
+          uses floating points methods based on elliptic logarithms to
+          divide points.)
 
+        .. note::
+
+           We emphasize that if this function returns True as the
+           first return argument, and if the default was used for the
+           parameter ``sat_bnd``, then the points in the basis after
+           calling this function are saturated at `\emph{all}` primes,
+           i.e., saturating at the primes up to ``max_prime`` are
+           sufficient to saturate at all primes.  Note that the
+           function might not have needed to saturate at all primes up
+           to ``max_prime``.  It has worked out what prime you need to
+           saturate up to, and that prime is `\leq` ``max_prime``.
+
+        .. note::
+
+           Currently (May 2010), this does not remember the result of
+           calling search.  So calling search up to height 20 then
+           calling saturate results in another search up to height 18.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+
+        We initialise with three points which happen to be 2, 3 and 5
+        times the generators of this rank 3 curve.  To prevent
+        automatic saturation at this stage we set the parameter
+        ``sat`` to 0 (which is in fact the default)::
+
+            sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=0)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1547:-2967:343], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
+            sage: EQ.regulator()
+            375.42919921875
+
+        Now we saturate at `p=2`, and gain index 2::
+
+            sage: EQ.saturate(2)  # points were not 2-saturated
+            (False, '2', '[ ]')
+            sage: EQ
+            Subgroup of Mordell Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
+            sage: EQ.regulator()
+            93.8572998046875
+
+        Now we saturate at `p=3`, and gain index 3::
+
+            sage: EQ.saturate(3)  # points were not 3-saturated
+            (False, '3', '[ ]')
+            sage: EQ
+            Subgroup of Mordell Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
+            sage: EQ.regulator()
+            10.4285888671875
+
+        Now we saturate at `p=5`, and gain index 5::
+
+            sage: EQ.saturate(5)  # points were not 5-saturated
+            (False, '5', '[ ]')
+            sage: EQ
+            Subgroup of Mordell Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
+            sage: EQ.regulator()
+            0.4171435534954071
+
+        Finally we finish the saturation.  The output here shows that
+        the points are now provably saturated at all primes::
+
+            sage: EQ.saturate()   # points are now saturated
+            (True, '1', '[ ]')
+
+        Of course, the ``process`` function would have done all this
+        automatically for us::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=5)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
+            sage: EQ.regulator()
+            0.4171435534954071
+
+        But we would still need to use the ``saturate`` function to
+        verify that full saturation has been done::
+
+            sage: EQ.saturate()
+            (True, '1', '[ ]')
+
+        The preceding command produces the following output as a
+        side-effect.  It proves that the inde of the points in their
+        saturation is at most 3, then proves saturation at 2 and at 3,
+        by reducing the poits modulo all primes of good reduction up
+        to 11, respectively 13::
+
+            saturating basis...Saturation index bound = 3
+            Checking saturation at [ 2 3 ]
+            Checking 2-saturation
+            Points were proved 2-saturated (max q used = 11)
+            Checking 3-saturation
+            Points were proved 3-saturated (max q used = 13)
+            done
         """
         ok, index, unsat = self.__mw.saturate(int(max_prime), odd_primes_only)
         return bool(ok), str(index), unsat
@@ -589,14 +1161,47 @@ class mwrank_MordellWeil(SageObject):
         Mordell-Weil group.
 
         INPUT:
-            height_limit -- float (default: 18) search up to
-                            this logarithmic height.
-                   On 32-bit machines, h_lim MUST be < 21.48 else
-                   $\exp(h_lim)>2^31$ and overflows.
+
+        - ``height_limit`` (float, default: 18) -- search up to this
+          logarithmic height.
+
+        .. note::
+
+          On 32-bit machines, this MUST be < 21.48 else
+          $\exp(h_lim)>2^31$ and overflows.  On 64-bit machines it
+          must be at most 43.668.  However, this bound is a logarithic
+          bound and increasing it by just 1 increases the running time
+          by (roughly) `\exp(1.5)=4.5`, so searching up to even 20
+          takes a very long time.
+
+        .. note::
+
+           The search is carried out with a quadratic sieve, using
+           code adapted from a version of Michael Stoll's
+           ``ratpoints`` program.  It would be preferable to use a
+           newer version of ``ratpoints``.
+
+        EXAMPLES:
+
+        A rank 3 example, where a very small search is sufficient to
+        find a Mordell-Weil basis::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.search(1)
+            sage: EQ
+            Subgroup of Mordell Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
+
+        In the next example, a serach bound of 12 is needed to find a
+        non-torsin point::
+
+            sage: E = mwrank_EllipticCurve([0, -1, 0, -18392, -1186248]) #1056g4
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.search(11); EQ
+            Subgroup of Mordell Weil group: []
+            sage: EQ.search(12); EQ
+            Subgroup of Mordell Weil group: [[4413270:10381877:27000]]
         """
-        # On 64-bit machines, h_lim must be < 43.668, but
-        #           it's unlikely (in 2005) that you would ever
-        #          search higher than 21.
         height_limit = float(height_limit)
         if height_limit >= 21.4:
             raise ValueError, "The height limit must be < 21.4."
@@ -621,7 +1226,24 @@ class mwrank_MordellWeil(SageObject):
         """
         Return a list of the generating points in this Mordell-Weil
         group.
+
+        OUTPUT:
+
+        (list) a list of lists of length 3, each holding the
+        primitive integer coordinates `[x,y,z]` of a generating
+        point.
+
+        EXAMPLES::
+
+            sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
+            sage: EQ = mwrank_MordellWeil(E)
+            sage: EQ.search(1)
+            sage: EQ.points()
+            [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
+
         """
-        return eval(self.__mw.getbasis().replace(":",","))
+        from sage.misc.all import preparse
+        from sage.rings.all import Integer
+        return eval(preparse(self.__mw.getbasis().replace(":",",")))
 
 

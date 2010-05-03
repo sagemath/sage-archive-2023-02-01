@@ -106,12 +106,12 @@ def install_package(package=None, force=False):
     .. seealso:: :func:`optional_packages`, :func:`upgrade`
     """
     global __installed_packages
-    if os.uname()[0][:6] == 'CYGWIN':
+    if os.uname()[0][:6] == 'CYGWIN' and package is not None:
         print "install_package may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
         print "instances of sage and use 'sage -i' instead or"
         print "use the force option to install_package."
-        return
+
     if package is None:
         if __installed_packages is None:
             X = os.popen('sage -f').read().split('\n')
@@ -308,7 +308,7 @@ def upgrade():
         print "Upgrade may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
         print "instances of Sage and use 'sage -upgrade' instead."
-        return
+        return []
     os.system('sage -upgrade')
     __installed_packages = None
     print "You should quit and restart Sage now."

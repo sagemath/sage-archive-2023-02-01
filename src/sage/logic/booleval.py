@@ -1,10 +1,14 @@
 r"""
-Module associated with logicparser to do evaluations of boolean formulas.
+Evaluate Boolean Formulas
+
+Perform boolean evaluation of boolean formulas.
 
 AUTHORS:
-    -- Chris Gorecki
 
-EXAMPLES:
+- Chris Gorecki
+
+EXAMPLES::
+
     sage: import sage.logic.booleval as booleval
     sage: t = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
     sage: d = {'a' : True, 'b' : False, 'c' : True}
@@ -13,27 +17,35 @@ EXAMPLES:
     sage: d['a'] = False
     sage: booleval.eval_formula(t, d)
     False
+
+
+Classes and functions
+=====================
 """
 
-from types import *
 import logicparser
 
+# dictionary containing variable keys and boolean values
 __vars = {}
 
-def eval_formula(tree, vars):
+def eval_formula(tree, vdict):
     r"""
     Evaluates the tree using the boolean values contained in dictionary
     and returns a single boolean value.
 
     INPUT:
-        tree -- a list of three elements corresponding to a branch of a
-                parse tree.
-        vars -- a dictionary containing variable keys and boolean values.
+
+    - ``tree`` -- a list of three elements corresponding to a branch of a
+      parse tree.
+
+    - ``vdict`` -- a dictionary containing variable keys and boolean values.
 
     OUTPUT:
-        Returns the boolean evaluation of a boolean formula.
 
-    EXAMPLES:
+    - Returns the boolean evaluation of a boolean formula.
+
+    EXAMPLES::
+
         sage: import sage.logic.booleval as booleval
         sage: t = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
         sage: d = {'a' : True, 'b' : False, 'c' : True}
@@ -44,7 +56,7 @@ def eval_formula(tree, vars):
         False
     """
     global __vars
-    __vars = vars
+    __vars = vdict
     b = logicparser.apply_func(tree, eval_f)
     return b
 
@@ -53,13 +65,16 @@ def eval_f(tree):
     This function can be applied to a parse tree to evaluate it.
 
     INPUT:
-        tree -- a list of three elements corresponding to a branch of a
-                parse tree.
+
+    - ``tree`` -- a list of three elements corresponding to a branch of a
+      parse tree.
 
     OUTPUT:
-         Returns a boolean evaluation of the tree.
 
-    EXAMPLES:
+    - Returns a boolean evaluation of the tree.
+
+    EXAMPLES::
+
          sage: import sage.logic.booleval as booleval
          sage: booleval.eval_f(['&', True, False])
          False
@@ -72,17 +87,22 @@ def eval_f(tree):
 
 def eval_op(op, lv, rv):
     r"""
-    This function evaluates lv and rv according to the operator op.
+    This function evaluates ``lv`` and ``rv`` according to the operator ``op``.
 
     INPUT:
-        op -- a string/char representing a boolean operator.
-        lv -- a boolean or variable.
-        rv -- a boolean or variable.
+
+    - ``op`` -- a string or character representing a boolean operator.
+
+    - ``lv`` -- a boolean or variable.
+
+    - ``rv`` -- a boolean or variable.
 
     OUTPUT:
-        Returns the evaluation of lv op rv.
 
-    EXAMPLES:
+    - Returns the evaluation of ``lv op rv``.
+
+    EXAMPLES::
+
         sage: import sage.logic.booleval as booleval
         sage: booleval.eval_op('&', True, False)
         False
@@ -92,31 +112,31 @@ def eval_op(op, lv, rv):
         True
     """
     lval = rval = None
-    if(lv == False):
+    if lv == False:
         lval = False
-    elif(lv == True):
+    elif lv == True:
         lval = True
-    elif(lv != None):
+    elif lv is not None:
         lval = __vars[lv]
 
-    if(rv == False):
+    if rv == False:
         rval = False
-    elif(rv == True):
+    elif rv == True:
         rval = True
-    elif(rv != None):
+    elif rv is not None:
         rval = __vars[rv]
 
-    if(op == '~'):
+    if op == '~':
         return not lval
-    elif(op == '&'):
+    elif op == '&':
         return lval and rval
-    elif(op == '|'):
+    elif op == '|':
         return lval or rval
-    elif(op == '^'):
+    elif op == '^':
         return lval ^ rval
-    elif(op == '->'):
+    elif op == '->':
         return (not lval) or rval
-    elif(op == '<->'):
+    elif op == '<->':
         return (not lval or rval) and (not rval or lval)
-    else:  #one variable
+    else:  # one variable
         return __vars[op]

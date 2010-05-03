@@ -796,7 +796,10 @@ class LatticePolytopeClass(SageObject):
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                     self, self.vertices(), err)
             result = stdout.read()
-            p.terminate()
+            try:
+                p.terminate()
+            except OSError:
+                pass
         if len(result) == 0 or result.find("!") != -1:
             raise ValueError, ("Error executing \"%s\" for the given polytope!"
                 + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
@@ -3046,7 +3049,10 @@ def _palp(command, polytopes, reduce_dimension=False):
         raise RuntimeError, ("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err)
     os.remove(input_file_name)
-    p.terminate()
+    try:
+        p.terminate()
+    except OSError:
+        pass
     return output_file_name
 
 def _read_nef_x_partitions(data):

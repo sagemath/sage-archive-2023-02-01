@@ -1932,6 +1932,8 @@ class CGraphBackend(GenericGraphBackend):
         cdef float edge_label
         cdef int side
         cdef float f_tmp
+        cdef object v_obj
+        cdef object w_obj
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -1993,7 +1995,9 @@ class CGraphBackend(GenericGraphBackend):
                     # If the neighbor is new, adds its non-found neighbors to
                     # the queue.
                     if w not in dist_current:
-                        edge_label = self.get_edge_label(v, w) if side == 1 else self.get_edge_label(w, v)
+                        v_obj = vertex_label(v, self.vertex_ints, self.vertex_labels, self._cg)
+                        w_obj = vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg)
+                        edge_label = self.get_edge_label(v_obj, w_obj) if side == 1 else self.get_edge_label(w_obj, v_obj)
                         heappush(queue, (distance + edge_label, side, v, w))
 
         # No meeting point has been found

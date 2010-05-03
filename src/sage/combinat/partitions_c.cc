@@ -86,7 +86,7 @@
 
 #define USE_DD_QD 0
 
-#if defined(__sun)
+#if defined(__sun) || defined(__CYGWIN__)
 extern "C" long double fabsl (long double);
 extern "C" long double sinl (long double);
 extern "C" long double cosl (long double);
@@ -94,9 +94,6 @@ extern "C" long double sqrtl (long double);
 extern "C" long double coshl (long double);
 extern "C" long double sinhl (long double);
 #endif
-
-
-
 
 #include <stdio.h>
 #include <cfloat>
@@ -154,7 +151,7 @@ const unsigned int min_precision = DBL_MANT_DIG;                            // T
 const unsigned int double_precision = DBL_MANT_DIG;                         // The assumed precision of a double.
 
 
-#ifdef __sparc
+#if defined(__sparc) || defined(__CYGWIN__)
 // On sparc solaris long double is bad/broken/different, etc.  E.g.,
 // LDBL_MANT_DIG is 113 rather than 106, which causes all kinds of trouble.
 // So we only use double_precision.

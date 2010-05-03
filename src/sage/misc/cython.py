@@ -38,7 +38,7 @@ def cblas():
 # We should be using the Accelerate FrameWork on OS X, but that requires
 # some magic due to distutils having ridden on the short bus :)
 def atlas():
-    if UNAME == "Darwin":
+    if UNAME == "Darwin" or "CYGWIN" in UNAME:
         return 'blas'
     else:
         return 'atlas'

@@ -953,7 +953,7 @@ cdef class FastDoubleFunc:
             1.0
             sage: f = fast_float_arg(0).log(3)
             sage: f(9)
-            2.0
+            2.0...
         """
         if base is None:
             return self.cfunc(&log)

@@ -322,7 +322,7 @@ from sage.calculus.calculus import maxima
 _done = False
 def _init():
     """
-    Internal function which checks if Maxima has loaded
+    Internal function which checks if Maxima has loaded the
     "orthopoly" package.  All functions using this in this
     file should call this function first.
 
@@ -343,7 +343,7 @@ def _init():
 
     Note that because here we use a Pynac variable ``x``,
     the representation of the function is different from
-    in its actual doctest, where a polynomial indeterminate
+    its actual doctest, where a polynomial indeterminate
     ``x`` is used.
     """
     global _done

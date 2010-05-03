@@ -479,6 +479,8 @@ class DickmanRho(BuiltinFunction):
     """
     def __init__(self):
         """
+        Constructs an object to represent Dickman's rho function.
+
         TESTS::
 
             sage: dickman_rho(x)
@@ -488,8 +490,8 @@ class DickmanRho(BuiltinFunction):
             sage: dickman_rho(pi)
             0.0359690758968463
         """
-      self._cur_prec = 0
-      BuiltinFunction.__init__(self, "dickman_rho", 1)
+        self._cur_prec = 0
+        BuiltinFunction.__init__(self, "dickman_rho", 1)
 
     def _eval_(self, x):
         """

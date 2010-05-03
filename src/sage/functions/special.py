@@ -399,7 +399,7 @@ from sage.calculus.calculus import maxima
 _done = False
 def _init():
     """
-    Internal function which checks if Maxima has loaded
+    Internal function which checks if Maxima has loaded the
     "orthopoly" package.  All functions using this in this
     file should call this function first.
 
@@ -572,6 +572,8 @@ def maxima_function(name):
     class NewMaximaFunction(MaximaFunction):
         def __init__(self):
             """
+            Constructs an object that wraps a Maxima function.
+
             TESTS::
 
                 sage: n(bessel_J(3,10,"maxima"))
@@ -974,6 +976,8 @@ class Bessel():
 
     def __str__(self):
         """
+        Returns a string representation of this Bessel object.
+
         TEST::
 
             sage: a = Bessel(1,'I')
@@ -984,6 +988,8 @@ class Bessel():
 
     def __repr__(self):
         """
+        Returns a string representation of this Bessel object.
+
         TESTS::
 
             sage: Bessel(1,'I')
@@ -993,6 +999,8 @@ class Bessel():
 
     def type(self):
         """
+        Returns the type of this Bessel object.
+
         TEST::
 
             sage: a = Bessel(3,'K')
@@ -1003,6 +1011,9 @@ class Bessel():
 
     def prec(self):
         """
+        Returns the precision (in number of bits) used to represent this
+        Bessel function.
+
         TESTS::
 
             sage: a = Bessel(3,'K')
@@ -1017,6 +1028,8 @@ class Bessel():
 
     def order(self):
         """
+        Returns the order of this Bessel function.
+
         TEST::
 
             sage: a = Bessel(3,'K')
@@ -1027,6 +1040,9 @@ class Bessel():
 
     def system(self):
         """
+        Returns the package used, e.g. Maxima, Pari, or SciPy, to compute with
+        this Bessel function.
+
         TESTS::
 
             sage: Bessel(20,algorithm='maxima').system()
@@ -1039,7 +1055,8 @@ class Bessel():
     def __call__(self,z):
         """
         Implements evaluation of all the Bessel functions directly
-        from the Bessel class.
+        from the Bessel class. This essentially allows a Bessel object to
+        behave like a function that can be invoked.
 
         TESTS::
 

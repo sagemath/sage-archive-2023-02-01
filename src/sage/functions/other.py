@@ -197,6 +197,10 @@ class Function_ceil(BuiltinFunction):
     #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
         """
+        Allows an object of this class to behave like a function. If
+        ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
+        the ceiling of ``n``.
+
         TESTS::
 
             sage: ceil(SR(10^50 + 10^(-50)))
@@ -338,6 +342,10 @@ class Function_floor(BuiltinFunction):
     #FIXME: this should be moved to _eval_
     def __call__(self, x, maximum_bits=20000):
         """
+        Allows an object of this class to behave like a function. If
+        ``floor`` is an instance of this class, we can do ``floor(n)`` to
+        obtain the floor of ``n``.
+
         TESTS::
 
             sage: floor(SR(10^50 + 10^(-50)))

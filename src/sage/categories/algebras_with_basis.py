@@ -137,7 +137,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 4*B[word: ]
             """
 
-        #@cached_method   # todo: reinstate once #5843 is fixed
+        @cached_method
         def one_from_one_basis(self):
             """
             Returns the one of the algebra, as per ``Monoids.ParentMethods.one``
@@ -154,6 +154,27 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 B[word: ]
                 sage: A.one()
                 B[word: ]
+
+            TESTS:
+
+            Try to check that #5843 Heisenbug is fixed::
+
+                sage: A = AlgebrasWithBasis(QQ).example()
+                sage: B = AlgebrasWithBasis(QQ).example(('a', 'c'))
+                sage: A == B
+                False
+                sage: Aone = A.one_from_one_basis
+                sage: Bone = B.one_from_one_basis
+                sage: Aone is Bone
+                False
+
+           Even if called in the wrong order, they should returns their
+           respective one::
+
+                sage: Bone().parent() is B
+                True
+                sage: Aone().parent() is A
+                True
             """
             return self.monomial(self.one_basis()) #.
 

@@ -132,8 +132,16 @@ cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
-                         LIBS=['ntl', 'gmp', 'pari'], LIBPATH=['$SAGE_LOCAL/lib'],
+                         LIBS=['ntl', 'gmp', 'pari', 'python2.6'],
+                         LIBPATH=['$SAGE_LOCAL/lib','$SAGE_LOCAL/lib/python/config/'],
                          CPPPATH=includes )
+env.Install("$SAGE_LOCAL/lib", lib)
 
-env.Alias( "install", [ lib ] )
+#Here we only copy the files over if we are on Cygwin.  Otherwise, the
+#library will be handled by the symlinks created in
+#$SAGE_ROOT/devel/sage/spkg-install
+if os.environ['UNAME'] == 'CYGWIN':
+    env.Alias("install", "$SAGE_LOCAL/lib")
+else:
+    env.Alias("install", [lib])
 

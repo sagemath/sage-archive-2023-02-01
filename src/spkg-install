@@ -58,11 +58,14 @@ fi
 
 ## now make our symlinks
 
+## symlinks don't work on cygwin, scons -Q install will hardcopy the
+## files over on Cygwin, while not on other systems.
+
 cd "$SAGE_ROOT"/local/lib/
 
 if [ `uname` = "Darwin" ]; then
     ln -s ../../devel/sage/c_lib/libcsage.dylib .
-else
+elif [ $UNAME != "CYGWIN" ]; then
     ln -s ../../devel/sage/c_lib/libcsage.so .
 fi
 

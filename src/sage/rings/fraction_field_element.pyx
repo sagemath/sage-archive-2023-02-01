@@ -391,7 +391,7 @@ cdef class FractionFieldElement(FieldElement):
             parts.append(n/d)
         return whole, parts
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Evaluate the fraction at the given arguments. This assumes that a
         call function is defined for the numerator and denominator.
@@ -409,8 +409,10 @@ cdef class FractionFieldElement(FieldElement):
             (-2*x1*x2 + x0 + x1)/(x1 + x2)
             sage: h(1,2,5)
             -17/7
+            sage: h(x0=1)
+            (-2*x1*x2 + x1 + 1)/(x1 + x2)
         """
-        return self.__numerator(*x) / self.__denominator(*x)
+        return self.__numerator(*x, **kwds) / self.__denominator(*x, **kwds)
 
     def _is_atomic(self):
         """

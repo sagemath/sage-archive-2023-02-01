@@ -7,7 +7,7 @@ the filter generator or the combination generator.
 This module allows to study properties linked to spectral analysis,
 and also algebraic immunity.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: R.<x>=GF(2^8,'a')[]
     sage: from sage.crypto.boolean_function import BooleanFunction
@@ -21,6 +21,7 @@ EXAMPLE::
 
 AUTHOR:
 
+- Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
@@ -327,7 +328,10 @@ cdef class BooleanFunction(SageObject):
                 else:
                     for i,u in enumerate(K):
                         bitset_set_to(self._truth_table, i , (x(u)).trace())
-
+        elif isinstance(x, BooleanFunction):
+            self._nvariables = x.nvariables()
+            bitset_init(self._truth_table,(1<<self._nvariables))
+            bitset_copy(self._truth_table,(<BooleanFunction>x)._truth_table)
         else:
             raise TypeError, "unable to init the Boolean function"
 
@@ -346,6 +350,125 @@ cdef class BooleanFunction(SageObject):
         if self._nvariables>1:
             r += "s"
         return r
+
+    def __invert__(self):
+        """
+        Return the complement Boolean function of `self`.
+
+        EXAMPLE::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B=BooleanFunction([0, 1, 1, 0, 1, 0, 0, 0])
+            sage: (~B).truth_table(format='int')
+            (1, 0, 0, 1, 0, 1, 1, 1)
+        """
+        cdef BooleanFunction res=BooleanFunction(self.nvariables())
+        bitset_complement(res._truth_table, self._truth_table)
+        return res
+
+    def __add__(self, BooleanFunction other):
+        """
+        Return the element wise sum of `self`and `other` which must have the same number of variables.
+
+        EXAMPLE::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: A=BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
+            sage: B=BooleanFunction([0, 1, 1, 0, 1, 0, 0, 0])
+            sage: (A+B).truth_table(format='int')
+            (0, 0, 1, 1, 0, 0, 0, 1)
+
+        it also corresponds to the addition of algebraic normal forms::
+
+            sage: S = A.algebraic_normal_form() + B.algebraic_normal_form()
+            sage: (A+B).algebraic_normal_form() == S
+            True
+
+        TESTS::
+
+            sage: A+BooleanFunction([0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the two Boolean functions must have the same number of variables
+        """
+        if (self.nvariables() != other.nvariables() ):
+            raise ValueError("the two Boolean functions must have the same number of variables")
+        cdef BooleanFunction res = BooleanFunction(self)
+        bitset_xor(res._truth_table, res._truth_table, other._truth_table)
+        return res
+
+    def __mul__(self, BooleanFunction other):
+        """
+        Return the elementwise multiplication of `self`and `other` which must have the same number of variables.
+
+        EXAMPLE::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: A=BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
+            sage: B=BooleanFunction([0, 1, 1, 0, 1, 0, 0, 0])
+            sage: (A*B).truth_table(format='int')
+            (0, 1, 0, 0, 1, 0, 0, 0)
+
+        it also corresponds to the multiplication of algebraic normal forms::
+
+            sage: P = A.algebraic_normal_form() * B.algebraic_normal_form()
+            sage: (A*B).algebraic_normal_form() == P
+            True
+
+        TESTS::
+
+            sage: A*BooleanFunction([0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the two Boolean functions must have the same number of variables
+        """
+        if (self.nvariables() != other.nvariables() ):
+            raise ValueError("the two Boolean functions must have the same number of variables")
+        cdef BooleanFunction res = BooleanFunction(self)
+        bitset_and(res._truth_table, res._truth_table, other._truth_table)
+        return res
+
+    def __or__(BooleanFunction self, BooleanFunction other):
+        """
+        Return the concatenation of `self` and `other` which must have the same number of variables.
+
+        EXAMPLE::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: A=BooleanFunction([0, 1, 0, 1])
+            sage: B=BooleanFunction([0, 1, 1, 0])
+            sage: (A|B).truth_table(format='int')
+            (0, 1, 0, 1, 0, 1, 1, 0)
+
+            sage: C = A.truth_table() + B.truth_table()
+            sage: (A|B).truth_table(format='int') == C
+            True
+
+        TESTS::
+
+            sage: A|BooleanFunction([0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the two Boolean functions must have the same number of variables
+        """
+        if (self._nvariables != other.nvariables()):
+            raise ValueError("the two Boolean functions must have the same number of variables")
+
+        cdef BooleanFunction res=BooleanFunction(self.nvariables()+1)
+
+        nb_limbs = self._truth_table.limbs
+        if nb_limbs == 1:
+            L = len(self)
+            for i in range(L):
+                res[i  ]=self[i]
+                res[i+L]=other[i]
+            return res
+
+        memcpy(res._truth_table.bits             , self._truth_table.bits, nb_limbs * sizeof(unsigned long))
+        memcpy(&(res._truth_table.bits[nb_limbs]),other._truth_table.bits, nb_limbs * sizeof(unsigned long))
+
+        return res
+
 
     def algebraic_normal_form(self):
         """
@@ -403,6 +526,7 @@ cdef class BooleanFunction(SageObject):
         INPUT: a string representing the desired format, can be either
 
         - 'bin' (default) : we return a tuple of Boolean values
+        - 'int' : we return a tuple of 0 or 1 values
         - 'hex' : we return a string representing the truth_table in hexadecimal
 
         EXAMPLE::
@@ -412,6 +536,8 @@ cdef class BooleanFunction(SageObject):
             sage: B = BooleanFunction( x*y*z + z + y + 1 )
             sage: B.truth_table()
             (True, True, False, False, False, False, True, False)
+            sage: B.truth_table(format='int')
+            (1, 1, 0, 0, 0, 0, 1, 0)
             sage: B.truth_table(format='hex')
             '43'
 
@@ -425,6 +551,8 @@ cdef class BooleanFunction(SageObject):
         """
         if format is 'bin':
             return tuple(self)
+        if format is 'int':
+            return tuple(map(int,self))
         if format is 'hex':
             S = ""
             S = ZZ(self.truth_table(),2).str(16)
@@ -832,7 +960,7 @@ cdef class BooleanFunction(SageObject):
     def algebraic_immunity(self, annihilator = False):
         """
         Returns the algebraic immunity of the Boolean function. This is the smallest
-        integer `i` such that there exists a non trivial annihilator.
+        integer `i` such that there exists a non trivial annihilator for `self` or `~self`.
 
         INPUT:
 
@@ -847,20 +975,23 @@ cdef class BooleanFunction(SageObject):
             (2, x0*x1 + x1*x2 + x2*x3 + x3*x4 + x4*x5 + 1)
             sage: B[0] +=1
             sage: B.algebraic_immunity()
-            3
+            2
 
             sage: R.<x> = GF(2^8,'a')[]
             sage: B = BooleanFunction(x^31)
             sage: B.algebraic_immunity()
             4
         """
+        f = self
+        g = ~self
         for i in xrange(self._nvariables):
-            A = self.annihilator(i)
-            if A is not None:
-                if annihilator:
-                    return i,A
-                else:
-                    return i
+            for fun in [f,g]:
+                A = fun.annihilator(i)
+                if A is not None:
+                    if annihilator:
+                        return i,A
+                    else:
+                        return i
         raise ValueError, "you just found a bug!"
 
     def __setitem__(self, i, y):
@@ -896,7 +1027,6 @@ cdef class BooleanFunction(SageObject):
             sage: B=BooleanFunction([0,1,1,1])
             sage: [ int(B[i]) for i in range(len(B)) ]
             [0, 1, 1, 1]
-
         """
         return self.__call__(i)
 

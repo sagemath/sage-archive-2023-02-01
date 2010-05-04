@@ -2494,6 +2494,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1)._derivative()
             0
 
+        If the expression is a callable symbolic expression, and no
+        variables are specified, then calculate the gradient::
+
+            sage: f(x,y)=x^2+y
+            sage: f.diff() # gradient
+            ((x, y) |--> 2*x, (x, y) |--> 1)
+
         TESTS:
 
         Raise error if no variable is specified and there are multiple
@@ -2523,6 +2530,8 @@ cdef class Expression(CommutativeRingElement):
                 symb = vars[0]
             elif len(vars) == 0:
                 return self._parent(0)
+            elif sage.symbolic.callable.is_CallableSymbolicExpression(self):
+                return self.gradient()
             else:
                 raise ValueError, "No differentiation variable specified."
         if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \

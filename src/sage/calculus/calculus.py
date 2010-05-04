@@ -57,7 +57,7 @@ scenes through Maxima::
     sage: g = f.integral(x); g
     -cos(x)/cos(2*y)
 
-Note that these methods require an explicit variable name. If none
+Note that these methods usually require an explicit variable name. If none
 is given, Sage will try to find one for you.
 
 ::
@@ -65,7 +65,43 @@ is given, Sage will try to find one for you.
     sage: f = sin(x); f.derivative()
     cos(x)
 
-However when this is ambiguous, Sage will raise an exception::
+If the expression is a callable symbolic expression (i.e., the
+variable order is specified), then Sage can calculate the matrix
+derivative (i.e., the gradient, Jacobian matrix, etc.) if no variables
+are specified.  In the example below, we use the second derivative
+test to determine that there is a saddle point at (0,-1/2).
+
+::
+
+    sage: f(x,y)=x^2*y+y^2+y
+    sage: f.diff() # gradient
+    ((x, y) |--> 2*x*y, (x, y) |--> x^2 + 2*y + 1)
+    sage: solve(list(f.diff()),[x,y])
+    [[x == -I, y == 0], [x == I, y == 0], [x == 0, y == (-1/2)]]
+    sage: H=f.diff(2); H  # Hessian matrix
+    [(x, y) |--> 2*y (x, y) |--> 2*x]
+    [(x, y) |--> 2*x   (x, y) |--> 2]
+    sage: H(x=0,y=-1/2)
+    [-1  0]
+    [ 0  2]
+    sage: H(x=0,y=-1/2).eigenvalues()
+    [-1, 2]
+
+Here we calculate the Jacobian for the polar coordinate transformation::
+
+    sage: T(r,theta)=[r*cos(theta),r*sin(theta)]
+    sage: T
+    ((r, theta) |--> r*cos(theta), (r, theta) |--> r*sin(theta))
+    sage: T.diff() # Jacobian matrix
+    [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
+    [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
+    sage: diff(T) # Jacobian matrix
+    [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
+    [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
+    sage: T.diff().det() # Jacobian
+    (r, theta) |--> r*sin(theta)^2 + r*cos(theta)^2
+
+When the order of variables is ambiguous, Sage will raise an exception when differentiating::
 
     sage: f = sin(x+y); f.derivative()
     Traceback (most recent call last):

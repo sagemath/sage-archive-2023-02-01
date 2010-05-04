@@ -1923,9 +1923,28 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0, 1, 2*x)
             sage: type(v._derivative(x)) == type(v)
             True
+
+        If no variables are specified and the vector contains callable
+        symbolic expressions, then calculate the matrix derivative
+        (i.e., the Jacobian matrix)::
+
+            sage: T(r,theta)=[r*cos(theta),r*sin(theta)]
+            sage: T
+            ((r, theta) |--> r*cos(theta), (r, theta) |--> r*sin(theta))
+            sage: T.diff() # matrix derivative
+            [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
+            [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
+            sage: diff(T) # matrix derivative again
+            [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
+            [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
+            sage: T.diff().det() # Jacobian
+            (r, theta) |--> r*sin(theta)^2 + r*cos(theta)^2
         """
         if var is None:
-            raise ValueError, "No differentiation variable specified."
+            if sage.symbolic.callable.is_CallableSymbolicExpressionRing(self.base_ring()):
+                return sage.calculus.all.jacobian(self, self.base_ring().arguments())
+            else:
+                raise ValueError, "No differentiation variable specified."
 
         # We would just use apply_map, except that Cython doesn't
         # allow lambda functions
@@ -2469,6 +2488,39 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             Vector space of dimension 3 over Real Field with 75 bits of precision
         """
         return vector([e.n(*args, **kwargs) for e in self])
+
+    def function(self, *args):
+        """
+        Returns a vector over a callable symbolic expression ring.
+
+        EXAMPLES::
+
+            sage: x,y=var('x,y')
+            sage: v=vector([x,y,x*sin(y)])
+            sage: w=v.function([x,y]); w
+            ((x, y) |--> x, (x, y) |--> y, (x, y) |--> x*sin(y))
+            sage: w.base_ring()
+            Callable function ring with arguments (x, y)
+            sage: w(1,2)
+            (1, 2, sin(2))
+            sage: w(2,1)
+            (2, 1, 2*sin(1))
+            sage: w(y=1,x=2)
+            (2, 1, 2*sin(1))
+
+        ::
+
+            sage: x,y=var('x,y')
+            sage: v=vector([x,y,x*sin(y)])
+            sage: w=v.function([x]); w
+            (x |--> x, x |--> y, x |--> x*sin(y))
+            sage: w.base_ring()
+            Callable function ring with arguments (x,)
+            sage: w(4)
+            (4, y, 4*sin(y))
+        """
+        from sage.symbolic.callable import CallableSymbolicExpressionRing
+        return vector(CallableSymbolicExpressionRing(args), self.list())
 
 #############################################
 # Generic sparse element

@@ -18,9 +18,11 @@ from riemann import Riemann_Map
 
 from interpolators import polygon_spline, complex_cubic_spline
 
+from sage.modules.all import vector
+
 def symbolic_expression(x):
     """
-    Create a symbolic expression from x.
+    Create a symbolic expression or vector of symbolic expressions from x.
 
     INPUT:
 
@@ -58,6 +60,27 @@ def symbolic_expression(x):
         x*y + y^2 + y == x^3 + x^2 - 10*x - 10
         sage: symbolic_expression(E) in SR
         True
+
+    If x is a list or tuple, create a vector of symbolic expressions::
+
+        sage: v=symbolic_expression([x,1]); v
+        (x, 1)
+        sage: v.base_ring()
+        Symbolic Ring
+        sage: v=symbolic_expression((x,1)); v
+        (x, 1)
+        sage: v.base_ring()
+        Symbolic Ring
+        sage: v=symbolic_expression((3,1)); v
+        (3, 1)
+        sage: v.base_ring()
+        Symbolic Ring
+        sage: E = EllipticCurve('15a'); E
+        Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
+        sage: v=symbolic_expression([E,E]); v
+        (x*y + y^2 + y == x^3 + x^2 - 10*x - 10, x*y + y^2 + y == x^3 + x^2 - 10*x - 10)
+        sage: v.base_ring()
+        Symbolic Ring
     """
     from sage.symbolic.expression import Expression
     from sage.symbolic.ring import SR
@@ -65,6 +88,8 @@ def symbolic_expression(x):
         return x
     elif hasattr(x, '_symbolic_'):
         return x._symbolic_(SR)
+    elif isinstance(x, (tuple,list)):
+        return vector(SR,x)
     else:
         return SR(x)
 

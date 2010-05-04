@@ -1944,6 +1944,29 @@ cdef class Matrix(sage.structure.element.Matrix):
             ans.append( sum(tmp) )
         return f(tuple(ans))
 
+    def __call__(self, *args, **kwargs):
+        """
+        Calling a matrix returns the result of calling each component.
+
+        EXAMPLES::
+
+            sage: f(x,y) = x^2+y
+            sage: m = matrix([[f,f*f],[f^3,f^4]]); m
+            [    (x, y) |--> x^2 + y (x, y) |--> (x^2 + y)^2]
+            [(x, y) |--> (x^2 + y)^3 (x, y) |--> (x^2 + y)^4]
+            sage: m(1,2)
+            [ 3  9]
+            [27 81]
+            sage: m(y=2,x=1)
+            [ 3  9]
+            [27 81]
+            sage: m(2,1)
+            [  5  25]
+            [125 625]
+        """
+        from constructor import matrix
+        return matrix(self.nrows(), self.ncols(), [e(*args, **kwargs) for e in self.list()])
+
     ###################################################
     # Arithmetic
     ###################################################

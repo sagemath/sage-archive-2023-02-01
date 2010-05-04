@@ -2767,6 +2767,31 @@ cdef class Matrix(sage.structure.element.Matrix):
                     return False
         return True
 
+    def is_skew_symmetric(self):
+        """
+        Returns True if this is a skew symmetric matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, [[0,2], [-2,0]])
+            sage: m.is_skew_symmetric()
+            True
+            sage: m = matrix(QQ, [[1,2], [2,1]])
+            sage: m.is_skew_symmetric()
+            False
+        """
+        if self._ncols != self._nrows: return False
+        # could be bigger than an int on a 64-bit platform, this
+        #  is the type used for indexing.
+        cdef Py_ssize_t i,j
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j <= i:
+                if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
+                    return False
+        return True
+
+
     def is_dense(self):
         """
         Returns True if this is a dense matrix.

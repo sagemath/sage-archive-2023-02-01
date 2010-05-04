@@ -106,7 +106,7 @@ class Tableau_class(CombinatorialObject):
 
     def __div__(self, t):
         """
-        Returns the skew partition self/t.
+        Returns the skew tableau self/t.
 
         EXAMPLES::
 
@@ -167,9 +167,9 @@ class Tableau_class(CombinatorialObject):
         EXAMPLES::
 
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).corners()
-            [[0, 2], [1, 1], [2, 0]]
+            [(0, 2), (1, 1), (2, 0)]
             sage: Tableau([[1, 3], [2, 4]]).corners()
-            [[1, 1]]
+            [(1, 1)]
         """
         return self.shape().corners()
 
@@ -2128,7 +2128,7 @@ class StandardTableaux_partition(CombinatorialClass):
         cells = []
         for i in range(len(p)):
             for j in range(p[i]):
-                cells.append([i,j])
+                cells.append((i,j))
 
         m = sum(p)
         while m > 0:
@@ -2142,10 +2142,10 @@ class StandardTableaux_partition(CombinatorialClass):
             while cell not in inner_corners:
                 hooks = []
                 for k in range(cell[1], p[cell[0]]):
-                    hooks.append([cell[0], k])
+                    hooks.append((cell[0], k))
                 for k in range(cell[0], len(p)):
                     if p[k] > cell[1]:
-                        hooks.append([k, cell[1]])
+                        hooks.append((k, cell[1]))
 
                 cell = random.choice(hooks)
 

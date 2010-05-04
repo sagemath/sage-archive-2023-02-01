@@ -387,19 +387,29 @@ class SkewTableau_class(CombinatorialObject):
 
     def slide(self, corner=None):
         """
+        Jeu-de-taquin slide
+
+        Apply in place a jeu-de-taquin on the given corner. If no corner is
+        given no corner is chosen.
+
         Fulton, William. 'Young Tableaux'. p12-13
 
         EXAMPLES::
 
             sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
-            sage: st.slide([2,0])
+            sage: st.slide((2,0))
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
+
+        TESTS::
+
+            sage: st
+            [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = copy.copy(self[:])
+        new_st = [x[:] for x in self]
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
-            if corner not in inner_corners:
+            if tuple(corner) not in inner_corners:
                 raise ValueError, "corner must be an inner corner"
         else:
             if len(inner_corners) == 0:
@@ -407,49 +417,49 @@ class SkewTableau_class(CombinatorialObject):
             else:
                 corner = inner_corners[0]
 
-        spot = corner[:]
-        while spot not in outer_corners:
+        spotl, spotc = corner
+        while (spotl, spotc) not in outer_corners:
             #print spot
             #Check to see if there is nothing to the right
-            if spot[1] == len(new_st[spot[0]]) - 1:
+            if spotc == len(new_st[spotl]) - 1:
                 #print "nr"
                 #Swap the hole with the cell below
-                new_st[spot[0]][spot[1]] = new_st[spot[0]+1][spot[1]]
-                new_st[spot[0]+1][spot[1]] = None
-                spot[0] += 1
+                new_st[spotl][spotc] = new_st[spotl+1][spotc]
+                new_st[spotl+1][spotc] = None
+                spotl += 1
                 continue
 
             #Check to see if there is nothing below
-            if (spot[0] == len(new_st) - 1) or (len(new_st[spot[0]+1]) <= spot[1]):
+            if (spotl == len(new_st) - 1) or (len(new_st[spotl+1]) <= spotc):
                 #print "nb"
                 #Swap the hole with the cell to the right
-                new_st[spot[0]][spot[1]] = new_st[spot[0]][spot[1]+1]
-                new_st[spot[0]][spot[1]+1] = None
-                spot[1] += 1
+                new_st[spotl][spotc] = new_st[spotl][spotc+1]
+                new_st[spotl][spotc+1] = None
+                spotc += 1
                 continue
 
             #If we get to this stage, we need to compare
-            below = new_st[spot[0]+1][spot[1]]
-            right = new_st[spot[0]][spot[1]+1]
+            below = new_st[spotl+1][spotc]
+            right = new_st[spotl][spotc+1]
             if below <= right:
                 #Swap with the cell below
                 #print "b"
-                new_st[spot[0]][spot[1]] = new_st[spot[0]+1][spot[1]]
-                new_st[spot[0]+1][spot[1]] = None
-                spot[0] += 1
+                new_st[spotl][spotc] = new_st[spotl+1][spotc]
+                new_st[spotl+1][spotc] = None
+                spotl += 1
                 continue
             else:
                 #Swap with the cell to the right
                 #print "r"
-                new_st[spot[0]][spot[1]] = new_st[spot[0]][spot[1]+1]
-                new_st[spot[0]][spot[1]+1] = None
-                spot[1] += 1
+                new_st[spotl][spotc] = new_st[spotl][spotc+1]
+                new_st[spotl][spotc+1] = None
+                spotc += 1
                 continue
 
         #Clean up to remove the "None" at an outside corner
         #Remove the last row if there is nothing left in it
-        new_st[spot[0]].pop()
-        if len(new_st[spot[0]]) == 0:
+        new_st[spotl].pop()
+        if len(new_st[spotl]) == 0:
             new_st.pop()
 
         return SkewTableau(new_st)
@@ -467,6 +477,13 @@ class SkewTableau_class(CombinatorialObject):
             sage: s = SkewTableau([[None,1],[2,3]])
             sage: s.rectify()
             [[1, 3], [2]]
+            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            [[1, 3, 4, 6], [2, 5]]
+
+        TESTS::
+
+            sage: s
+            [[None, 1], [2, 3]]
         """
         rect = copy.deepcopy(self)
         inner_corners = rect.inner_shape().corners()

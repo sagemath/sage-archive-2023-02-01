@@ -59,9 +59,9 @@ below are the coordinates of the inner and outer corners.
 ::
 
     sage: SkewPartition([[5,4,3,1],[3,3,1]]).outer_corners()
-    [[0, 4], [1, 3], [2, 2], [3, 0]]
+    [(0, 4), (1, 3), (2, 2), (3, 0)]
     sage: SkewPartition([[5,4,3,1],[3,3,1]]).inner_corners()
-    [[0, 3], [2, 1], [3, 0]]
+    [(0, 3), (2, 1), (3, 0)]
 
 EXAMPLES:
 
@@ -119,9 +119,9 @@ This example shows how to compute the corners of a skew partition.
 ::
 
     sage: SkewPartition([[4,3,1],[2]]).inner_corners()
-    [[0, 2], [1, 0]]
+    [(0, 2), (1, 0)]
     sage: SkewPartition([[4,3,1],[2]]).outer_corners()
-    [[0, 3], [1, 2], [2, 0]]
+    [(0, 3), (1, 2), (2, 0)]
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -358,7 +358,7 @@ class SkewPartition_class(CombinatorialObject):
         EXAMPLES::
 
             sage: SkewPartition([[4, 3, 1], [2]]).outer_corners()
-            [[0, 3], [1, 2], [2, 0]]
+            [(0, 3), (1, 2), (2, 0)]
         """
         return self.outer().corners()
 
@@ -370,24 +370,48 @@ class SkewPartition_class(CombinatorialObject):
         EXAMPLES::
 
             sage: SkewPartition([[4, 3, 1], [2]]).inner_corners()
-            [[0, 2], [1, 0]]
+            [(0, 2), (1, 0)]
+            sage: SkewPartition([[4, 3, 1], []]).inner_corners()
+            [(0, 0)]
         """
-
         inner = self.inner()
         outer = self.outer()
         if inner == []:
             if outer == []:
                 return []
             else:
-                return [[0,0]]
-        icorners = [[0, inner[0]]]
+                return [(0,0)]
+        icorners = [(0, inner[0])]
         nn = len(inner)
         for i in range(1,nn):
             if inner[i] != inner[i-1]:
-                icorners += [ [i, inner[i]] ]
+                icorners += [ (i, inner[i]) ]
 
-        icorners += [[nn, 0]]
+        icorners += [(nn, 0)]
         return icorners
+
+    def cells(self):
+        """
+        Return the coordinates of the cells of self. Coordinates are given
+        as (row-index, column-index) and are 0 based.
+
+        EXAMPLES::
+
+            sage: SkewPartition([[4, 3, 1], [2]]).cells()
+            [(0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0)]
+            sage: SkewPartition([[4, 3, 1], []]).cells()
+            [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0)]
+            sage: SkewPartition([[2], []]).cells()
+            [(0, 0), (0, 1)]
+        """
+        outer = self.outer()
+        inner = self.inner()[:]
+        inner += [0]*(len(outer)-len(inner))
+        res = []
+        for i in range(len(outer)):
+            for j in range(inner[i], outer[i]):
+                res.append( (i,j) )
+        return res
 
     def to_list(self):
         """

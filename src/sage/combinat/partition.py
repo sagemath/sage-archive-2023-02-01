@@ -167,7 +167,7 @@ zeros::
 We can get the coordinates of the corners of a partition::
 
     sage: Partition([4,3,1]).corners()
-    [[0, 3], [1, 2], [2, 0]]
+    [(0, 3), (1, 2), (2, 0)]
 
 We can compute the core and quotient of a partition and build
 the partition back up from them::
@@ -325,7 +325,6 @@ class Partition_class(CombinatorialObject):
         Return the Ferrers diagram of pi.
 
         INPUT:
-
 
         -  ``pi`` - a partition, given as a list of integers.
 
@@ -762,27 +761,19 @@ class Partition_class(CombinatorialObject):
         perm = permutation.Permutation(word)
         return perm.robinson_schensted()[1]
 
-    def associated(self):
-        """
-        An alias for partition.conjugate(p).
-
-        EXAMPLES::
-
-            sage: Partition([4,1,1]).associated()
-            [3, 1, 1, 1]
-            sage: Partition([4,1,1]).conjugate()
-            [3, 1, 1, 1]
-            sage: Partition([5,4,2,1,1,1]).associated().associated()
-            [5, 4, 2, 1, 1, 1]
-        """
-        return self.conjugate()
+    associated = deprecated_function_alias(conjugate, "Sage Version 4.4")
 
     def arm_length(self, i, j):
         """
-        Returns the length of the arm of cell (i,j) in partition p. The arm of
-        cell (i,j) is the cells that appear to the right of cell (i,j). Note
-        that i and j are 0-based indices. If your coordinates are in the form
-        [i,j], use Python's \*-operator.
+        Returns the length of the arm of cell (i,j) in partition p.
+
+        INPUT: ``i`` and ``j``: two integers
+
+        OUPUT: an integer or a ValueError
+
+        The arm of cell (i,j) is the cells that appear to the right of cell
+        (i,j). Note that i and j are 0-based indices. If your coordinates are
+        in the form (i,j), use Python's \*-operator.
 
         EXAMPLES::
 
@@ -802,8 +793,7 @@ class Partition_class(CombinatorialObject):
         if i < len(p) and j < p[i]:
             return p[i]-(j+1)
         else:
-            #Error: invalid coordinates
-            pass
+            raise ValueError, "The cells is not in the diagram"
 
     arm = deprecated_function_alias(arm_length,
         'Sage Version 4.3')
@@ -832,13 +822,46 @@ class Partition_class(CombinatorialObject):
         else:
             return res
 
+    def arm_cells(self, i, j):
+        r"""
+        Returns the list of the cells of the arm of cell (i,j) in partition p.
+
+        INPUT: ``i`` and ``j``: two integers
+
+        OUTPUT: a list of pairs of integers
+
+        The arm of cell (i,j) is the boxes that appear to the right of cell
+        (i,j). Note that i and j are 0-based indices. If your coordinates are
+        in the form (i,j), use Python's \*-operator.
+
+        Examples::
+
+            sage: Partition([4,4,3,1]).arm_cells(1,1)
+            [(1, 2), (1, 3)]
+
+            sage: Partition([]).arm_cells(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: The cells is not in the diagram
+
+        """
+        p = self
+        if i < len(p) and j < p[i]:
+            return [ (i, x) for x in range(j+1, p[i]) ]
+        else:
+            raise ValueError, "The cells is not in the diagram"
 
     def leg_length(self, i, j):
         """
-        Returns the length of the leg of cell (i,j) in partition p. The leg of
-        cell (i,j) is defined to be the cells below it in partition p (in
-        english notations). Note that i and j are 0-based. If your coordinates
-        are in the form [i,j], use Python's \*-operator.
+        Returns the length of the leg of cell (i,j) in partition p.
+
+        INPUT: ``i`` and ``j``: two integers
+
+        OUPUT: an integer or a ValueError
+
+        The leg of cell (i,j) is defined to be the cells below it in partition
+        p (in English convention). Note that i and j are 0-based. If your
+        coordinates are in the form (i,j), use Python's \*-operator.
 
         EXAMPLES::
 
@@ -859,8 +882,7 @@ class Partition_class(CombinatorialObject):
         if j < len(conj) and i < conj[j]:
             return conj[j]-(i+1)
         else:
-            #Error: invalid coordinates
-            pass
+            raise ValueError, "The cells is not in the diagram"
 
     leg = deprecated_function_alias(leg_length,
         'Sage Version 4.3')
@@ -889,6 +911,33 @@ class Partition_class(CombinatorialObject):
             return sum(res, [])
         else:
             return res
+
+    def leg_cells(self, i, j):
+        r"""
+        Returns the list of the cells of the leg of cell (i,j) in partition p.
+
+        INPUT: ``i`` and ``j``: two integers
+
+        OUTPUT: a list of pairs of integers
+
+        The leg of cell (i,j) is defined to be the cells below it in partition
+        p (in English convention). Note that i and j are 0-based. If your
+        coordinates are in the form (i,j), use Python's \*-operator.
+
+        Examples::
+
+            sage: Partition([4,4,3,1]).leg_cells(1,1)
+            [(2, 1)]
+            sage: Partition([4,4,3,1]).leg_cells(0,1)
+            [(1, 1), (2, 1)]
+
+            sage: Partition([]).leg_cells(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: The cells is not in the diagram
+        """
+        l = self.leg_length(i, j)
+        return [(x, j) for x in range(i+1, i+l+1)]
 
     def dominate(self, rows=None):
         """
@@ -972,7 +1021,7 @@ class Partition_class(CombinatorialObject):
         Returns the length of the hook of cell (i,j) in the partition p. The
         hook of cell (i,j) is defined as the cells to the right or below (in
         the English convention). Note that i and j are 0-based. If your
-        coordinates are in the form [i,j], use Python's \*-operator.
+        coordinates are in the form (i,j), use Python's \*-operator.
 
         EXAMPLES::
 
@@ -1347,16 +1396,16 @@ class Partition_class(CombinatorialObject):
     def corners(self):
         """
         Returns a list of the corners of the partitions. These are the
-        positions where we can remove a cell. Indices are of the form [i,j]
+        positions where we can remove a cell. Indices are of the form (i,j)
         where i is the row-index and j is the column-index, and are
         0-based.
 
         EXAMPLES::
 
             sage: Partition([3,2,1]).corners()
-            [[0, 2], [1, 1], [2, 0]]
+            [(0, 2), (1, 1), (2, 0)]
             sage: Partition([3,3,1]).corners()
-            [[1, 2], [2, 0]]
+            [(1, 2), (2, 0)]
         """
         p = self
         if p == []:
@@ -1365,7 +1414,7 @@ class Partition_class(CombinatorialObject):
         lcors = [[0,p[0]-1]]
         nn = len(p)
         if nn == 1:
-            return lcors
+            return map(tuple, lcors)
 
         lcors_index = 0
         for i in range(1, nn):
@@ -1375,36 +1424,37 @@ class Partition_class(CombinatorialObject):
                 lcors.append([i,p[i]-1])
                 lcors_index += 1
 
-        return lcors
+        return map(tuple, lcors)
 
 
     def outside_corners(self):
         """
         Returns a list of the positions where we can add a cell so that the
-        shape is still a partition. Indices are of the form [i,j] where i
+        shape is still a partition. Indices are of the form (i,j) where i
         is the row-index and j is the column-index, and are 0-based.
 
         EXAMPLES::
 
             sage: Partition([2,2,1]).outside_corners()
-            [[0, 2], [2, 1], [3, 0]]
+            [(0, 2), (2, 1), (3, 0)]
             sage: Partition([2,2]).outside_corners()
-            [[0, 2], [2, 0]]
+            [(0, 2), (2, 0)]
             sage: Partition([6,3,3,1,1,1]).outside_corners()
-            [[0, 6], [1, 3], [3, 1], [6, 0]]
+            [(0, 6), (1, 3), (3, 1), (6, 0)]
             sage: Partition([]).outside_corners()
-            [[0, 0]]
+            [(0, 0)]
         """
         p = self
         if p == Partition([]):
-            return [[0,0]]
-        res = [ [0, p[0]] ]
+            return [(0,0)]
+        res = [ (0, p[0]) ]
         for i in range(1, len(p)):
             if p[i-1] != p[i]:
-                res.append([i,p[i]])
-        res.append([len(p), 0])
+                res.append((i,p[i]))
+        res.append((len(p), 0))
 
         return res
+
 
     def core(self, length):
         """
@@ -1543,7 +1593,7 @@ class Partition_class(CombinatorialObject):
             else:
                 j = self[i]
 
-        if [i,j] in self.outside_corners():
+        if (i,j) in self.outside_corners():
             pl = self.to_list()
             if i == len(pl):
                 pl.append(1)
@@ -1582,7 +1632,7 @@ class Partition_class(CombinatorialObject):
         if j is None:
             j = self[i] - 1
 
-        if [i,j] not in self.corners():
+        if (i,j) not in self.corners():
             raise ValueError, "[%d,%d] is not a corner of the partition" % (i,j)
 
         if self[i] == 1:
@@ -1820,7 +1870,7 @@ class Partition_class(CombinatorialObject):
 
     def arms_legs_coeff(self, i, j):
         """
-        This is a statistic on a cell c=[i,j] in the diagram of partition p
+        This is a statistic on a cell c=(i,j) in the diagram of partition p
         given by
 
         .. math::

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+#Patch
+cd patches
+cp directories.h directories.tmpl
+sed -i "s|SAGE_LOCAL|$SAGE_LOCAL|g" directories.tmpl
+cp directories.tmpl ../src/directories.h
+cp makefile ../src/
+cp sage.cpp sage.h ../src/
+
+#Build
+cd ../src
+make all
+
+#Install
+cp coxeter "$SAGE_LOCAL/bin/"
+if [ $UNAME = "Darwin" ]; then
+    cp libcoxeter3.dylib "$SAGE_LOCAL/lib/"
+else
+    cp libcoxeter3.so "$SAGE_LOCAL/lib/"
+fi
+
+mkdir "$SAGE_LOCAL/coxeter/"
+cp -r coxeter_matrices headers messages "$SAGE_LOCAL/coxeter/"
+
+mkdir "$SAGE_LOCAL/include/coxeter"
+cp -r *.h *.hpp "$SAGE_LOCAL/include/coxeter/"

@@ -1,0 +1,32 @@
+--- ../src/makefile	2005-03-03 09:07:30.000000000 -0800
++++ makefile	2010-04-30 12:59:23.000000000 -0700
+@@ -12,6 +12,7 @@
+ gflags = -c $(includedirs) -g
+ 
+ cflags = $(gflags) # the default setting
++cflags = -c $(includedirs) -O2 -fPIC -g -DFAST -DALLTRUE
+ 
+ ifdef optimize
+ 	NDEBUG = true
+@@ -24,9 +25,12 @@
+ 
+ cc = g++
+ 
+-all: coxeter #clean
++all: coxeter executable
+ 
+ coxeter: $(objects)
++	$(cc) -shared -Wl,-soname,libcoxeter3.so -o libcoxeter3.so $(objects) -lc
++
++executable: $(objects)
+ 	$(cc) -o coxeter $(objects)
+ 
+ clean:
+@@ -152,6 +156,7 @@
+ posets.o: posets.cpp posets.h globals.h bits.h list.h memory.h \
+   constants.h list.hpp error.h io.h wgraph.h interface.h automata.h \
+   coxtypes.h minroots.h dotval.h graph.h type.h transducer.h
++sage.o: sage.cpp sage.h globals.h coxtypes.h coxgroup.h list.h schubert.h
+ schubert.o: schubert.cpp schubert.h globals.h coxtypes.h io.h list.h \
+   memory.h constants.h list.hpp error.h bits.h interface.h automata.h \
+   minroots.h dotval.h graph.h type.h transducer.h stack.h stack.hpp

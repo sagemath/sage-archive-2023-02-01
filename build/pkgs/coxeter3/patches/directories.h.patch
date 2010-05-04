@@ -1,0 +1,15 @@
+--- ../src/directories.h	2004-11-19 13:00:56.000000000 -0800
++++ directories.h	2010-04-30 13:02:16.000000000 -0700
+@@ -24,9 +24,9 @@
+ */
+ 
+ namespace directories {
+-  char* const COXMATRIX_DIR = "/usr/local/coxeter/coxeter_matrices";
+-  char* const HEADER_DIR = "/usr/local/coxeter/headers";
+-  char* const MESSAGE_DIR = "/usr/local/coxeter/messages";
++  char* const COXMATRIX_DIR = "SAGE_LOCAL/coxeter/coxeter_matrices";
++  char* const HEADER_DIR = "SAGE_LOCAL/coxeter/headers";
++  char* const MESSAGE_DIR = "SAGE_LOCAL/coxeter/messages";
+ };
+ 
+ #endif

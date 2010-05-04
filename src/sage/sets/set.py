@@ -97,6 +97,10 @@ def Set(X):
         Set of all prime numbers: 2, 3, 5, 7, ...
         sage: Set(Subsets([1,2,3])).cardinality()
         8
+        sage: Set(iter([1,2,3]))
+        {1, 2, 3}
+        sage: type(_)
+        <class 'sage.sets.set.Set_object_enumerated'>
     """
     if is_Set(X):
         return X
@@ -114,7 +118,7 @@ def Set(X):
         # Note we are risking an infinite loop here,
         # but this is the way Python behaves too: try
         # sage: set(an iterator which does not terminate)
-        X = list(X)
+        return Set_object_enumerated(list(X))
     return Set_object(X)
 
 def EnumeratedSet(X):

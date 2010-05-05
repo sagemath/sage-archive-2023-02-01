@@ -575,7 +575,7 @@ cdef class Expression(CommutativeRingElement):
         Separate coefficients to numerator and denominator, #7363::
 
             sage: latex(2/(x+1))
-            \frac{2}{{\left(x + 1\right)}}
+            \frac{2}{x + 1}
             sage: latex(1/2/(x+1))
             \frac{1}{2 \, {\left(x + 1\right)}}
 
@@ -586,6 +586,15 @@ cdef class Expression(CommutativeRingElement):
             \frac{6.50000000000000}{x}
             sage: latex(Mod(2,7)/x)
             \frac{2}{x}
+
+        Check if we avoid extra parenthesis in rational functions (#8688)::
+
+            sage: latex((x+2)/(x^3+1))
+            \frac{x + 2}{x^{3} + 1}
+            sage: latex((x+2)*(x+1)/(x^3+1))
+            \frac{{\left(x + 1\right)} {\left(x + 2\right)}}{x^{3} + 1}
+            sage: latex((x+2)/(x^3+1)/(x+1))
+            \frac{x + 2}{{\left(x + 1\right)} {\left(x^{3} + 1\right)}}
         """
         return self._parent._latex_element_(self)
 

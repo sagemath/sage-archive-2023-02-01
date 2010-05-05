@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 r"""
 Points on elliptic curves
 
@@ -77,6 +76,19 @@ Arithmetic with a point over an extension of a finite field::
     sage: n = sys.maxint
     sage: P*(n+1)-P*n == P
     True
+
+Arithmetic over `\ZZ/N\ZZ` with composite `N` is supported.  When an
+operation tries to invert a non-invertible element, a
+ZeroDivisoinError is raised and a factorization of the modulus appears
+in the error message::
+
+    sage: N = 1715761513
+    sage: E = EllipticCurve(Integers(N),[3,-13])
+    sage: P = E(2,1)
+    sage: LCM([2..60])*P
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: Inverse of 1520944668 does not exist (characteristic = 1715761513 = 26927*63719)
 
 
 AUTHORS:
@@ -621,12 +633,28 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             try:
                 m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
             except ZeroDivisionError:
-                raise ZeroDivisionError, "Inverse of %s does not exist"%(2*y1 + a1*x1 + a3)
+                R = E.base_ring()
+                if R.is_finite():
+                    N = R.characteristic()
+                    from sage.rings.all import ZZ
+                    N1 = N.gcd(ZZ(2*y1 + a1*x1 + a3))
+                    N2 = N//N1
+                    raise ZeroDivisionError, "Inverse of %s does not exist (characteristic = %s = %s*%s)"%(2*y1 + a1*x1 + a3, N,N1,N2)
+                else:
+                    raise ZeroDivisionError, "Inverse of %s does not exist"%(2*y1 + a1*x1 + a3)
         else:
             try:
                 m = (y1-y2)/(x1-x2)
             except ZeroDivisionError:
-                raise ZeroDivisionError, "Inverse of %s does not exist"%(x1-x2)
+                R = E.base_ring()
+                if R.is_finite():
+                    N = R.characteristic()
+                    from sage.rings.all import ZZ
+                    N1 = N.gcd(ZZ(x1-x2))
+                    N2 = N//N1
+                    raise ZeroDivisionError, "Inverse of %s does not exist (characteristic = %s = %s*%s)"%(x1-x2, N,N1,N2)
+                else:
+                    raise ZeroDivisionError, "Inverse of %s does not exist"%(x1-x2)
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)

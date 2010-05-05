@@ -169,7 +169,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
         # TODO: cleanup, are these two point classes redundant?
-        if K.is_field():
+
+        # See #1975: we deliberately set the class to
+        # EllipticCurvePoint_finite_field for finite rings, so that we
+        # can do some arithmetic on points over Z/NZ, for teaching
+        # purposes.
+        from sage.rings.all import is_FiniteField, is_IntegerModRing
+        if is_FiniteField(K) or is_IntegerModRing(K):
+            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_finite_field
+        elif K.is_field():
             if is_NumberField(K):
                 self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_number_field
             else:

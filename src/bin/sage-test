@@ -122,8 +122,8 @@ def test_file(F):
     base, ext = os.path.splitext(F)
     if ext in ['.py', '.spyx', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
         test(F, 'doctest ' + opts + extra_opts)
-    elif os.path.isdir(F) and not (F[:1] == '.') \
-            and not '#' in F and not os.sep + 'notes' in F:
+    elif (os.path.isdir(F) and  not '#' in F and
+          not os.sep + 'notes' in F):
         ld = os.listdir(F)
         if not ('__nodoctest__' in ld):
             for L in ld:

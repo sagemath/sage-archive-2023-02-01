@@ -1706,6 +1706,75 @@ class Partition_class(CombinatorialObject):
 
         return sage.combinat.skew_partition.SkewPartition([outer, inner])
 
+
+    def from_kbounded_to_reduced_word(p,k):
+        r"""
+        Maps a `k`-bounded partition to a reduced word for an element in
+        the affine permutation group.
+
+        This uses the fact that there is a bijection between `k`-bounded partitions
+        and `(k+1)`-cores and an action of the affine nilCoxeter algebra of type
+        `A_k^{(1)}` on `(k+1)`-cores as described in [LM2006]_.
+
+        REFERENCES:
+
+            .. [LM2006] MR2167475 (2006j:05214)
+               L. Lapointe, J. Morse. Tableaux on `k+1`-cores, reduced words for affine permutations, and `k`-Schur expansions.
+               J. Combin. Theory Ser. A 112 (2005), no. 1, 44--81.
+
+        EXAMPLES::
+
+            sage: p=Partition([2,1,1])
+            sage: p.from_kbounded_to_reduced_word(2)
+            [2, 1, 2, 0]
+            sage: p=Partition([3,1])
+            sage: p.from_kbounded_to_reduced_word(3)
+            [3, 2, 1, 0]
+            sage: p.from_kbounded_to_reduced_word(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the partition must be 2-bounded
+            sage: p=Partition([])
+            sage: p.from_kbounded_to_reduced_word(2)
+            []
+        """
+        p=p.k_skew(k)[0]
+        result = []
+        while p != []:
+            corners = p.corners()
+            c = p.content(corners[0][0],corners[0][1])%(k+1)
+            result.append(Integer(c))
+            list = [x for x in corners if p.content(x[0],x[1])%(k+1) ==c]
+            for x in list:
+                p = p.remove_cell(x[0])
+        return result
+
+    def from_kbounded_to_grassmannian(p,k):
+        r"""
+        Maps a `k`-bounded partition to a Grassmannian element in
+        the affine Weyl group of type `A_k^{(1)}`.
+
+        For details, see the documentation of the method
+        :meth:`from_kbounded_to_reduced_word` .
+
+        EXAMPLES::
+
+            sage: p=Partition([2,1,1])
+            sage: p.from_kbounded_to_grassmannian(2)
+            [-1  1  1]
+            [-2  2  1]
+            [-2  1  2]
+            sage: p=Partition([])
+            sage: p.from_kbounded_to_grassmannian(2)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        from sage.combinat.root_system.weyl_group import WeylGroup
+        W=WeylGroup(['A',k,1])
+        return W.from_reduced_word(p.from_kbounded_to_reduced_word(k))
+
+
     def to_list(self):
         r"""
         Return self as a list.

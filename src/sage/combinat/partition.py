@@ -1455,6 +1455,81 @@ class Partition_class(CombinatorialObject):
 
         return res
 
+    def rim(self):
+        r"""
+        Returns the rim of ``self``
+
+        The rim of a partition `p` is defined as the cells which belong to
+        `p` and which are adjacent to cells not in `p`.
+
+        EXAMPLES:
+
+        For example if `p=(5,5,2,1)`, the rim is composed from the dashed
+        cells below::
+
+            ****#
+            *####
+            ##
+            #
+
+            sage: Partition([5,5,2,1]).rim()
+            [(3, 0), (2, 0), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (0, 4)]
+
+            sage: Partition([2,2,1]).rim()
+            [(2, 0), (1, 0), (1, 1), (0, 1)]
+            sage: Partition([2,2]).rim()
+            [(1, 0), (1, 1), (0, 1)]
+            sage: Partition([6,3,3,1,1]).rim()
+            [(4, 0), (3, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2), (0, 3), (0, 4), (0, 5)]
+            sage: Partition([]).rim()
+            []
+        """
+        p = self
+        res = []
+        prevLen = 1
+        for i in range(len(p)-1, -1, -1):
+            for c in range(prevLen-1, p[i]):
+                res.append((i,c))
+            prevLen = p[i]
+        return res
+
+    def outer_rim(self):
+        """
+        Returns the outer rim of ``self``
+
+        The outer rim of a partition `p` is defined as the cells which do not
+        belong to `p` and which are adjacent to cells in `p`.
+
+        EXAMPLES:
+
+        For example, the dashed cell below is the outer_rim of the partitions
+        `(4,1)`::
+
+            ****#
+            *####
+            ##
+
+            sage: Partition([4,1]).outer_rim()
+            [(2, 0), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (0, 4)]
+
+            sage: Partition([2,2,1]).outer_rim()
+            [(3, 0), (3, 1), (2, 1), (2, 2), (1, 2), (0, 2)]
+            sage: Partition([2,2]).outer_rim()
+            [(2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]
+            sage: Partition([6,3,3,1,1]).outer_rim()
+            [(5, 0), (5, 1), (4, 1), (3, 1), (3, 2), (3, 3), (2, 3), (1, 3), (1, 4), (1, 5), (1, 6), (0, 6)]
+            sage: Partition([]).outer_rim()
+            [(0, 0)]
+        """
+        p = self
+        res = []
+        prevLen = 0
+        for i in range(len(p)-1, -1, -1):
+            for c in range(prevLen, p[i]+1):
+                res.append((i+1,c))
+            prevLen = p[i]
+        res.append((0, prevLen))
+        return res
 
     def core(self, length):
         """

@@ -389,8 +389,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Jeu-de-taquin slide
 
-        Apply in place a jeu-de-taquin on the given corner. If no corner is
-        given no corner is chosen.
+        Apply a jeu-de-taquin slide to self on the specified corner and returns the new tableau.
+        If no corner is given an arbitrary corner is chosen.
 
         Fulton, William. 'Young Tableaux'. p12-13
 

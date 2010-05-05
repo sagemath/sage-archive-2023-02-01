@@ -181,7 +181,7 @@ class SkewPartition_class(CombinatorialObject):
 
     def ferrers_diagram(self):
         """
-        Return the Ferrers diagram of self.
+        Returns the Ferrers diagram of self.
 
         EXAMPLES::
 
@@ -392,7 +392,7 @@ class SkewPartition_class(CombinatorialObject):
 
     def cells(self):
         """
-        Return the coordinates of the cells of self. Coordinates are given
+        Returns the coordinates of the cells of self. Coordinates are given
         as (row-index, column-index) and are 0 based.
 
         EXAMPLES::

@@ -66,7 +66,7 @@ from sage.rings.all import Integer
 #from sage.algebras.algebra import Algebra
 from sage.rings.ring import Ring
 #from sage.algebras.algebra_element import AlgebraElement
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleInterface
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
@@ -220,7 +220,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             s[2]
         """
         try:
-            return CombinatorialFreeModuleInterface.__call__(self, x)
+            return CombinatorialFreeModule.__call__(self, x)
         except TypeError:
             pass
 

@@ -5300,6 +5300,14 @@ cdef class Expression(CommutativeRingElement):
             1/6*x^3 - 1/2*x^2 + 1/3*x
             sage: x.binomial(y)
             binomial(x, y)
+
+        TESTS:
+
+        Check if we handle zero correctly (#8561)::
+            sage: x.binomial(0)
+            1
+            sage: SR(0).binomial(0)
+            1
         """
         cdef Expression nexp = self.coerce_in(k)
         _sig_on

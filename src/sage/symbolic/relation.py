@@ -618,10 +618,10 @@ def solve(f, *args, **kwds):
         sage: solve(0==1,x)
         Traceback (most recent call last):
         ...
-        TypeError: object of type 'bool' has no len()
+        TypeError:  The first argument must be a symbolic expression or a list of symbolic expressions.
 
-        Test if the empty list is returned, too, when (a list of)
-        dictionaries (is) are requested (#8553)::
+    Test if the empty list is returned, too, when (a list of)
+    dictionaries (is) are requested (#8553)::
 
         sage: solve([0==1],x)
         []
@@ -634,7 +634,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=0)
         []
 
-        Relaxed form, suggested by Mike Hansen (#8553)::
+    Relaxed form, suggested by Mike Hansen (#8553)::
 
         sage: solve([x^2-1],x,solution_dict=-1)
         [{x: -1}, {x: 1}]
@@ -649,72 +649,77 @@ def solve(f, *args, **kwds):
     if is_Expression(f): # f is a single expression
         ans = f.solve(*args,**kwds)
         return ans
-    elif len(f)==1 and is_Expression(f[0]): # f is a list with a single expression
-        ans = f[0].solve(*args,**kwds)
-        return ans
-    else:  # f is a list of such expressions or equations
-        from sage.symbolic.ring import is_SymbolicVariable
 
-        if len(args)==0:
-            raise TypeError, "Please input variables to solve for."
-        if is_SymbolicVariable(args[0]):
-            variables = args
-        else:
-            variables = tuple(args[0])
+    if not isinstance(f, (list, tuple)):
+        raise TypeError("The first argument must be a symbolic expression or a list of symbolic expressions.")
 
-        for v in variables:
-            if not is_SymbolicVariable(v):
-                raise TypeError, "%s is not a valid variable."%v
+    if len(f)==1 and is_Expression(f[0]):
+        # f is a list with a single expression
+        return f[0].solve(*args,**kwds)
 
+    # f is a list of such expressions or equations
+    from sage.symbolic.ring import is_SymbolicVariable
+
+    if len(args)==0:
+        raise TypeError, "Please input variables to solve for."
+    if is_SymbolicVariable(args[0]):
+        variables = args
+    else:
+        variables = tuple(args[0])
+
+    for v in variables:
+        if not is_SymbolicVariable(v):
+            raise TypeError, "%s is not a valid variable."%v
+
+    try:
+        f = [s for s in f if s is not True]
+    except TypeError:
+        raise ValueError, "Unable to solve %s for %s"%(f, args)
+
+    if any(s is False for s in f):
+        return []
+
+    from sage.calculus.calculus import maxima
+    m = maxima(f)
+
+    try:
+        s = m.solve(variables)
+    except: # if Maxima gave an error, try its to_poly_solve
         try:
-            f = [s for s in f if s is not True]
-        except TypeError:
-            raise ValueError, "Unable to solve %s for %s"%(f, args)
-
-        if any(s is False for s in f):
-            return []
-
-        from sage.calculus.calculus import maxima
-        m = maxima(f)
-
-        try:
-            s = m.solve(variables)
-        except: # if Maxima gave an error, try its to_poly_solve
-            try:
-                s = m.to_poly_solve(variables)
-            except TypeError, mess: # if that gives an error, raise an error.
-                if "Error executing code in Maxima" in str(mess):
-                    raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
-                else:
-                    raise
-
-        if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
-            try:
-                s = m.to_poly_solve(variables)
-            except: # if that gives an error, stick with no solutions
-                s = []
-
-        if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
-            try:
-                s = m.to_poly_solve(variables,'use_grobner=true')
-            except: # if that gives an error, stick with no solutions
-                s = []
-
-        sol_list = string_to_list_of_solutions(repr(s))
-
-        # Relaxed form suggested by Mike Hansen (#8553):
-        if kwds.get('solution_dict', False):
-            if len(sol_list)==0: # fixes IndexError on empty solution list (#8553)
-                return []
-            if isinstance(sol_list[0], list):
-                sol_dict=[dict([[eq.left(),eq.right()] for eq in solution])
-                        for solution in sol_list]
+            s = m.to_poly_solve(variables)
+        except TypeError, mess: # if that gives an error, raise an error.
+            if "Error executing code in Maxima" in str(mess):
+                raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
             else:
-                sol_dict=[{eq.left():eq.right()} for eq in sol_list]
+                raise
 
-            return sol_dict
+    if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
+        try:
+            s = m.to_poly_solve(variables)
+        except: # if that gives an error, stick with no solutions
+            s = []
+
+    if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
+        try:
+            s = m.to_poly_solve(variables,'use_grobner=true')
+        except: # if that gives an error, stick with no solutions
+            s = []
+
+    sol_list = string_to_list_of_solutions(repr(s))
+
+    # Relaxed form suggested by Mike Hansen (#8553):
+    if kwds.get('solution_dict', False):
+        if len(sol_list)==0: # fixes IndexError on empty solution list (#8553)
+            return []
+        if isinstance(sol_list[0], list):
+            sol_dict=[dict([[eq.left(),eq.right()] for eq in solution])
+                    for solution in sol_list]
         else:
-            return sol_list
+            sol_dict=[{eq.left():eq.right()} for eq in sol_list]
+
+        return sol_dict
+    else:
+        return sol_list
 
 def solve_mod(eqns, modulus, solution_dict = False):
     r"""

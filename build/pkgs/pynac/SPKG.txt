@@ -32,6 +32,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.0 (Burcin Erocal, May 5, 2010) ===
+ * Add support for GCC 4.5.0.
+ * Move Sage interface functions to a function table, to add Cygwin support.
+ * Add autoconf macros to detect Python.
+ * Fix problems with conjugates of power objects.
+ * Import GiNaC patch to make binomial(n,0) -> 1.
+ * Remove extra parenthesis when typesetting rational fractions.
+
 === pynac-0.1.12 (Burcin Erocal, April 2, 2010) ===
  * Apply upstream patches to fix "division by zero" error on atan2(-pi,0)
  * Apply upstream patches to fix incorrect use of STL iterators.

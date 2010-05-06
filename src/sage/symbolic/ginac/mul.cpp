@@ -224,7 +224,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		bool latex_tags) const
 {
 	if (precedence() <= level){
-		if (latex_tags) 
+		if (latex_tags)
 			c.s << "{\\left(";
 		else
 			c.s << '(';
@@ -256,18 +256,27 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		if (latex_tags) {
 			c.s << "\\frac{";
 			ex numer = overall_coeff.numer();
-			print_overall_coeff(numer, c,
-					others.size() == 0 ? "" : " \\, ",
-					latex_tags);
-			if (others.empty() && ( numer.is_equal(_ex1) ||
-						numer.is_equal(_ex_1)))
-				c.s<<'1';
-			else
-				print_exvector(others, c, sep);
+			if (others.empty()) {
+				if (numer.is_equal(_ex1) ||
+						numer.is_equal(_ex_1))
+					c.s<<'1';
+				else
+					numer.print(c);
+			} else {
+				if (numer.is_equal(_ex1) ||
+						numer.is_equal(_ex_1))
+					mul(others).eval().print(c);
+				else
+					mul(numer,mul(others).eval())\
+						.hold().print(c);
+			}
 			c.s << "}{";
-			print_overall_coeff(overall_coeff.denom(), c, " \\, ",
-				latex_tags);
-			print_exvector(neg_powers, c, sep);
+			ex denom = overall_coeff.denom();
+			if (denom.is_equal(_ex1))
+				mul(neg_powers).eval().print(c);
+			else
+				mul(denom, mul(neg_powers).eval())\
+					.hold().print(c);
 			c.s << "}";
 		} else {
 			print_overall_coeff(overall_coeff, c,

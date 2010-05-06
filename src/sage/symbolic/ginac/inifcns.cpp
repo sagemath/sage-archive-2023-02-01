@@ -786,7 +786,7 @@ static ex binomial_sym(const ex & x, const numeric & y)
 	if (y.is_integer()) {
 		if (y.is_nonneg_integer()) {
 			const unsigned N = y.to_int();
-			if (N == 0) return _ex0;
+			if (N == 0) return _ex1;
 			if (N == 1) return x;
 			ex t = x.expand();
 			for (unsigned i = 2; i <= N; ++i)

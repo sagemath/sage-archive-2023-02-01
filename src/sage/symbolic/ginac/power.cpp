@@ -567,6 +567,14 @@ ex power::eval(int level) const
 			}
 
 			if (exponent_is_rational) {
+				// ^(-c1, c2) -> ((-1)^c2)*(c1^c2)
+				// for example sqrt(-2) -> I*sqrt(2)
+				if (num_basis->is_negative() &&
+						!num_basis->is_equal(*_num_1_p))
+					return mul(power(_ex_1, *num_exponent),
+						power((*num_basis)*(*_num_1_p),
+							*num_exponent));
+
 				const numeric res = num_basis->power(*num_exponent);
 				if (res.is_crational()) {
 					return res;
@@ -798,12 +806,19 @@ ex power::eval_ncmul(const exvector & v) const
 
 ex power::conjugate() const
 {
+	// Restrict automatic evaluation of this to fix Sage bug #8775
+	if (is_a<numeric>(exponent) && ex_to<numeric>(exponent).is_rational()
+			&& basis.info(info_flags::positive))
+		return *this;
+	return conjugate_function(*this).hold();
+	/*
 	ex newbasis = basis.conjugate();
 	ex newexponent = exponent.conjugate();
 	if (are_ex_trivially_equal(basis, newbasis) && are_ex_trivially_equal(exponent, newexponent)) {
 		return *this;
 	}
 	return (new power(newbasis, newexponent))->setflag(status_flags::dynallocated);
+	*/
 }
 
 ex power::real_part() const

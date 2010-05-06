@@ -1634,11 +1634,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             x0^3 + x1^3 + x2^3 + x0^2 + x1^2 + x2^2
             sage: a._expand(lambda part: max(part)>2, 3)
             x0^2 + x1^2 + x2^2
+            sage: p(0).expand(3)
+            0
         """
         import classical
         parent = self.parent()
-        e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
+        if self==parent.zero():
+            return resPR.zero()
+        e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
         f = lambda part: resPR(0) if condition(part) else resPR(e(part, n, alphabet))
         return parent._apply_module_morphism(self, f)
 

@@ -1,5 +1,5 @@
 r"""
-Monoids
+Finite Monoids
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -46,7 +46,7 @@ class FiniteMonoids(Category):
         def pseudo_order(self):
             r"""
             Returns the pair `[k, j]` with `k` minimal and `0\leq j <k` such
-            that `self^k = self^j`.
+            that ``self^k == self^j``.
 
             Note that `j` is uniquely determined.
 
@@ -79,7 +79,8 @@ class FiniteMonoids(Category):
                 sage: x.pseudo_order()
                 [2, 0]
 
-            TODO: more appropriate name?
+            TODO: more appropriate name? see, for example, Jean-Eric Pin's
+            lecture notes on semigroups.
             """
             self_powers = {self.parent().one(): 0}
             k = 1

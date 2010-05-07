@@ -191,7 +191,7 @@ class EnumeratedSets(Category):
             ``self`` as a sage :class:`Integer` or as ``infinity``.
 
             This if the default implementation from the category
-            ``EnumeratedSet()`` it returns `NotImplementedError` since one does
+            ``EnumeratedSet()`` it returns ``NotImplementedError`` since one does
             not know whether the set is finite or not.
 
             EXAMPLES::

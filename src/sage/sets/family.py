@@ -867,12 +867,19 @@ class LazyFamily(AbstractFamily):
 
             sage: f = LazyFamily([3,4,7], lambda i: 2*i); f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
+
+        TESTS:
+
+            Check that a using a class as the function is correctly handled::
+
+            sage: Family(NonNegativeIntegers(), PerfectMatchings)
+            Lazy family (<class 'sage.combinat.perfect_matching.PerfectMatchings'>(i))_{i in Non negative integers}
         """
         if isinstance(self.function, type(lambda x:1)):
             name = self.function.__name__
             name = name+"(i)"
         else:
-            name = self.function.__repr__()
+            name = repr(self.function)
             if isinstance(self.function, AttrCallObject):
                 name = "i"+name[1:]
             else:

@@ -17,6 +17,9 @@ AUTHORS:
   to GAP's MeatAxe implementation) and as_permutation_group (returns
   isomorphic PermutationGroup).
 
+- Simon King (2010-05): Improve invariant_generators by using GAP
+  for the construction of the Reynolds operator in Singular.
+
 This class is designed for computing with matrix groups defined by
 a (relatively small) finite set of generating matrices.
 
@@ -1077,7 +1080,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         from sage.interfaces.singular import singular
         gens = self.gens()
         singular.LIB("finvar.lib")
-        n = len((gens[0].matrix()).rows())
+        n = self.degree() #len((gens[0].matrix()).rows())
         F = self.base_ring()
         q = F.characteristic()
         ## test if the field is admissible
@@ -1104,10 +1107,36 @@ class MatrixGroup_gens(MatrixGroup_gap):
         Lgens = ','.join((x.name() for x in A))
         PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
         if q == 0 or (q > 0 and self.cardinality()%q != 0):
-            ReyName = 't'+singular._next_var_name()
-            singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
-            IRName = 't'+singular._next_var_name()
-            singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
+            from sage.all import Integer, Matrix
+            try:
+                gapself = gap(self)
+                # test whether the backwards transformation works as well:
+                for i in range(self.ngens()):
+                    if Matrix(gapself.gen(i+1),F) != self.gen(i).matrix():
+                        raise ValueError
+            except (TypeError,ValueError):
+                gapself is None
+            if gapself is not None:
+                ReyName = 't'+singular._next_var_name()
+                singular.eval('matrix %s[%d][%d]'%(ReyName,self.cardinality(),n))
+                En = gapself.Enumerator()
+                for i in range(1,self.cardinality()+1):
+                    M = Matrix(En[i],F)
+                    D = [{} for foobar in range(self.degree())]
+                    for x,y in M.dict().items():
+                        D[x[0]][x[1]] = y
+                    for row in range(self.degree()):
+                        for t in D[row].items():
+                            singular.eval('%s[%d,%d]=%s[%d,%d]+(%s)*var(%d)'%(ReyName,i,row+1,ReyName,i,row+1, repr(t[1]),t[0]+1))
+                foobar = singular(ReyName)
+                IRName = 't'+singular._next_var_name()
+                singular.eval('matrix %s = invariant_algebra_reynolds(%s)'%(IRName,ReyName))
+            else:
+                ReyName = 't'+singular._next_var_name()
+                singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
+                IRName = 't'+singular._next_var_name()
+                singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
+
             OUT = [singular.eval(IRName+'[1,%d]'%(j)) for j in range(1,1+singular('ncols('+IRName+')'))]
             return [PR(gen) for gen in OUT]
         if self.cardinality()%q == 0:

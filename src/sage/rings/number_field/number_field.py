@@ -11,6 +11,8 @@ AUTHORS:
 
 - Robert Bradshaw (2008-10): specified embeddings into ambient fields
 
+- Simon King(2010-05): Improve coercion from GAP
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -6786,11 +6788,43 @@ class NumberField_cyclotomic(NumberField_absolute):
             z^2 + 3
             sage: k5(w) # indirect doctest
             z^2 + 3
+
+        It may be that GAP uses a name for the generator of the cyclotomic field.
+        We can deal with this case, if this name coincides with the name in Sage::
+
+            sage: F=CyclotomicField(8)
+            sage: z=F.gen()
+            sage: a=gap(z+1/z); a
+            -zeta8^3+zeta8
+            sage: F(a)
+            -zeta8^3 + zeta8
+
+        In some cases, the string representation in GAP contains an exclamation
+        mark, which used to be a problem in earlier versions of Sage. Now, we can
+        deal with it as well::
+
+            sage: b=gap(Matrix(F,[[z^2,1],[0,a+1]])); b
+            [ [ zeta8^2, !1 ], [ !0, -zeta8^3+zeta8+1 ] ]
+            sage: b[1,2]
+            !1
+            sage: F(b[1,2])
+            1
+            sage: Matrix(b,F)
+            [             zeta8^2                    1]
+            [                   0 -zeta8^3 + zeta8 + 1]
         """
         s = str(x)
         i = s.find('E(')
         if i == -1:
-            return self(rational.Rational(s))
+            try:
+                # it may be that a number field element's string representation
+                # in GAP has an exclamation mark in it.
+                return self(rational.Rational(s.replace('!','')))
+            except:
+                # There is no 'E(...)' in the string representation. But it may
+                # be that 'E(...)' was overwritten in GAP. We can only hope that
+                # by coincidence the name in GAP is the same as the name in self
+                return self._coerce_from_str(s.replace('!',''))
         j = i + s[i:].find(')')
         n = int(s[i+2:j])
         if n == self.zeta_order():
@@ -6798,8 +6832,11 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             K = CyclotomicField(n)
         zeta = K.gen()
-        s = s.replace('E(%s)'%n,'zeta')
-        s = sage.misc.all.sage_eval(s, locals={'zeta':K.gen()})
+        zeta_name = K.variable_name()
+        while zeta_name in s: # could be that gap uses the generator name for a different purpose
+            zeta_name = zeta_name+'_'
+        s = s.replace('E(%s)'%n,zeta_name)
+        s = sage.misc.all.sage_eval(s, locals={zeta_name:zeta})
         if K is self:
             return s
         else:

@@ -4204,7 +4204,7 @@ class GenericGraph(GenericGraph_pyx):
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
-           sage: g.matching(algorithm="LP", value_only=True) #optional
+           sage: g.matching(algorithm="LP", value_only=True) #optional - requires GLPK CBC or CPLEX
            9.0
 
         TESTS:
@@ -6925,6 +6925,110 @@ class GenericGraph(GenericGraph_pyx):
         G.delete_edges(edges_to_delete)
         if not inplace:
             return G
+
+    def induced_subgraph_search(self, G):
+        r"""
+        Returns an induced copy of `G` in self.
+
+        INPUT:
+
+        - ``G`` -- the graph whose copy we are looking for in ``self``
+
+        ALGORITHM:
+
+        Brute-force
+
+        EXAMPLES:
+
+        A Petersen Graph contains a `P_5` ::
+
+             sage: g = graphs.PetersenGraph()
+             sage: h1 = g.induced_subgraph_search(graphs.PathGraph(5))
+             sage: h1
+             Subgraph of (Petersen graph): Graph on 5 vertices
+             sage: h1.vertices()
+             [0, 1, 2, 3, 8]
+
+        It also contains a Claw (`K_{1,3}`)::
+
+             sage: h2 = g.induced_subgraph_search(graphs.ClawGraph())
+             sage: h2
+             Subgraph of (Petersen graph): Graph on 4 vertices
+             sage: h2.vertices()
+             [0, 1, 4, 5]
+
+        Of course both copies are isomorphic to the graphs we were looking
+        for ::
+
+             sage: h1.is_isomorphic(graphs.PathGraph(5))
+             True
+             sage: h2.is_isomorphic(graphs.ClawGraph())
+             True
+
+        However, as it contains no induced subgraphs isomorphic to
+        `P_6`, an exception is raised in this case ::
+
+             sage: g.induced_subgraph_search(graphs.PathGraph(6))
+             Traceback (most recent call last):
+             ...
+             ValueError: No induced copy of the graph exists
+        """
+        from sage.graphs.generic_graph_pyx import subgraph_search
+
+        H = subgraph_search(self, G, induced = True)
+
+        if H == []:
+            raise ValueError('No induced copy of the graph exists')
+
+        return self.subgraph(H)
+
+    def subgraph_search(self, G):
+        r"""
+        Returns an of `G` included in self.
+
+        INPUT:
+
+        - ``G`` -- the graph whose copy we are looking for in ``self``
+
+        ALGORITHM:
+
+        Brute-force
+
+        EXAMPLES:
+
+        A Petersen Graph contains a `P_5` ::
+
+             sage: g = graphs.PetersenGraph()
+             sage: h1 = g.subgraph_search(graphs.PathGraph(5))
+             sage: h1
+             Subgraph of (Petersen graph): Graph on 5 vertices
+             sage: h1.vertices()
+             [0, 1, 2, 3, 4]
+
+        It also contains a Claw (`K_{1,3}`)::
+
+             sage: h2 = g.subgraph_search(graphs.ClawGraph())
+             sage: h2
+             Subgraph of (Petersen graph): Graph on 4 vertices
+             sage: h2.vertices()
+             [0, 1, 4, 5]
+
+        However, as it contains no subgraph isomorphic to
+        `K_3`, an exception is raised in this case ::
+
+             sage: g.subgraph_search(graphs.CompleteGraph(3))
+             Traceback (most recent call last):
+             ...
+             ValueError: No copy of the graph exists
+        """
+        from sage.graphs.generic_graph_pyx import subgraph_search
+
+        H = subgraph_search(self, G)
+
+        if H == []:
+            raise ValueError('No copy of the graph exists')
+
+        return self.subgraph(H)
 
     def random_subgraph(self, p, inplace=False):
         """

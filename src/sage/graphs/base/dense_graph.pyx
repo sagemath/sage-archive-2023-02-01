@@ -457,6 +457,31 @@ cdef class DenseGraph(CGraph):
         self.check_vertex(v)
         self.del_arc_unsafe(u,v)
 
+    cdef int * adjacency_sequence(self, int n, int * vertices, int vertex):
+        r"""
+        Returns the adjacency sequence corresponding to a list of
+        vertices, and a vertex
+
+        INPUT:
+
+        - ``n`` -- number of elements in ``vertices``
+        - ``vertices`` -- list of vertices
+        - ``vertex``
+
+        OUTPUT:
+
+        Returns a list of ``n`` integers, whose i th element
+        is set to 1 iif vertex is adjacent to vertices[i]
+        """
+
+        cdef int i = 0
+        cdef int * line
+        line = <int *> sage_malloc(n*sizeof(int))
+        for 0 <= i < n:
+            line[i] = 1 if self.has_arc_unsafe(vertices[i],vertex) else 0
+
+        return line
+
     ###################################
     # Neighbor functions
     ###################################

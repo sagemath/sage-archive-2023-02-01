@@ -4,6 +4,7 @@ GenericGraph Cython functions
 AUTHORS:
     -- Robert L. Miller   (2007-02-13): initial version
     -- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
+    -- Nathann Cohen                  : exhaustive search
 """
 
 #*****************************************************************************
@@ -17,6 +18,8 @@ AUTHORS:
 include "../ext/interrupt.pxi"
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
+
+from sage.graphs.base.dense_graph cimport DenseGraph
 from random import random
 
 cdef extern from *:
@@ -450,11 +453,243 @@ def D_inverse(s, n):
     return m[:n*n]
 
 
+# Exhaustive search in graphs
+
+cpdef subgraph_search(G,H, induced = False):
+    r"""
+    Returns a set of vertices in G representing a copy of H
+
+    ALGORITHM:
+
+    This algorithm is a brute-force search.
+    Let `V(H)=\{h_1,\dots,h_k\}`.  It first tries
+    to find in `G` a possible representant of `h_1`, then a
+    representant of `h_2` compatible with `h_1`, then
+    a representant of `h_3` compatible with the first
+    two, etc ...
+
+    This way, most of the times we need to test far less than
+    `\binom k!{|V(G)|}{k}` subsets, and hope this brute-force
+    technique can sometimes be useful.
+
+    INPUT:
+
+    - ``G``, ``H`` -- graphs
+
+    - ``induced`` (boolean) -- whether to require that the subgraph
+      is an induced subgraph
+
+    OUTPUT:
+
+    A list of vertices inducing a copy of ``H``. If none is found,
+    an empty list is returned.
+
+    EXAMPLE:
+
+    A Petersen Graph contains an induced `P_5` ::
+
+        sage: from sage.graphs.generic_graph_pyx import subgraph_search
+        sage: g = graphs.PetersenGraph()
+        sage: subgraph_search(g, graphs.PathGraph(5), induced = True)
+        [0, 1, 2, 3, 8]
+
+    It also contains a Claw (`K_{1,3}`)::
+
+        sage: subgraph_search(g, graphs.ClawGraph())
+        [0, 1, 4, 5]
+
+    Though it contains no induced `P_6` ::
+
+        sage: subgraph_search(g, graphs.PathGraph(6), induced = True)
+        []
+    """
+
+    cdef int ng = G.order()
+    cdef int nh = H.order()
+    cdef int i, j, k
+    cdef int * tmp_array
+
+    cdef (int) (*is_admissible) (int, int *, int *)
+
+    if induced:
+        is_admissible = vectors_equal
+    else:
+        is_admissible = vectors_inferior
+
+    # Static copies of the two graphs for
+    # more efficient operations
+
+    cdef DenseGraph g = DenseGraph(ng)
+    cdef DenseGraph h = DenseGraph(nh)
+
+    # Copying the matrices
+
+    i = 0
+    for l in G.adjacency_matrix():
+        j = 0
+        for k in l:
+            if k:
+                g.add_arc(i,j)
+            j=j+1
+        i=i+1
+
+    i = 0
+    for l in H.adjacency_matrix():
+        j = 0
+        for k in l:
+            if k:
+                h.add_arc(i,j)
+            j=j+1
+        i=i+1
+
+    # A vertex is said to be busy if it is already part
+    # of the partial copy of H in G
+    cdef int * busy
+    busy = <int *> sage_malloc(ng*sizeof(int))
+    memset(busy, 0, ng*sizeof(int))
+
+    # 0 is the first vertex we use, so it is at first
+    # busy
+    busy[0] = 1
+
+    # stack
+    #
+    # List of the vertices which are part of the
+    # partial copy of H in G
+    #
+    # stack[i] is the integer corresponding
+    # to the vertex of G representing
+    # the i th vertex of H
+    #
+    # stack[i] = -1 means that i is not represented
+    # ... yet !
+
+    cdef int * stack
+    stack = <int *> sage_malloc(nh*sizeof(int))
+    stack[0] = 0
+    stack[1] = -1
+
+    # number of representants we have already
+    # found
+
+    # set to 1 as vertex 0 is already part of the partial
+    # copy of H ...
+    cdef int active = 1
+
+    # vertices is equal to range(nh), as an int * variable
+    cdef int * vertices
+    vertices = <int *> sage_malloc(nh*sizeof(int))
+    for 0<= i < nh:
+        vertices[i] = i
+
+    # line_h[i] represents the adjacency sequence of vertex i
+    # in h relatively to vertices 0...i-1
+    cdef int ** line_h
+    line_h = <int **> sage_malloc(nh * sizeof(int *))
+    for 0<= i < nh:
+        line_h[i] = <int *> h.adjacency_sequence( i, vertices, i)
+
+    # the sequence of vertices to be returned
+    value = []
+
+    _sig_on
+
+    # as long as there is a non-void partial copy of H in G
+    while active:
+
+        # If we are here and found nothing yet
+        # we try the next possible vertex
+        # as a representant of the active th
+        # vertex of H
+        i = stack[active] +1
+
+        # Looking for a vertex which is not busy
+        # and compatible with the partial copy we have of H
+        while i < ng:
+            if busy[i] == 1:
+                i = i + 1
+            else:
+                tmp_array =  g.adjacency_sequence(active, stack, i)
+
+                if is_admissible(active, tmp_array, line_h[active]):
+                    free(tmp_array)
+                    break
+                else:
+                    free(tmp_array)
+                    i = i + 1
+
+        # if we found none, it means that we can not extend the current copy of H
+        # so we update the status of stack[active]
+        # and prepare to change the previous vertex
+        if i >= ng:
+            if stack[active] != -1:
+                busy[stack[active]] = 0
+            stack[active] = -1
+            active=active-1
 
 
+        # If we have found a good representant of H's i^{th} vertex in G
+        else:
+
+            if stack[active] != -1:
+                busy[stack[active]]=0
+            stack[active] = i
+            busy[stack[active]]=1
+
+            active = active + 1
+
+            # We have found our copy !!!
+            if active == nh:
+                g_vertices = G.vertices()
+                value = [g_vertices[stack[i]] for i in xrange(nh)]
+                break
+
+            else:
+                # we begin the search of the next vertex at 0
+                stack[active] = -1
+
+    _sig_off
+
+    # Free the memory
+    sage_free(busy)
+    sage_free(stack)
+    sage_free(vertices)
+    for 0<= i < nh:
+        sage_free(line_h[i])
+    sage_free(line_h)
+
+    return value
 
 
+cdef int vectors_equal(int n, int * a, int * b):
+    r"""
+    Tests whether two vectors given in argument are equal
 
+    INPUT:
 
+    - ``n`` -- length of the vectors
+    - ``a``,``b`` -- the two vectors
+    """
 
+    cdef int i =0
+    for 0<= i < n:
+        if a[i] != b[i]:
+            return False
+    return True
+
+cdef int vectors_inferior(int n, int * a, int * b):
+    r"""
+    Tests whether the second vector of integer is larger than the first
+
+    INPUT:
+
+    - ``n`` -- length of the vectors
+    - ``a``,``b`` -- the two vectors
+    """
+
+    cdef int i =0
+    for 0<= i < n:
+        if a[i] < b[i]:
+            return False
+    return True
 

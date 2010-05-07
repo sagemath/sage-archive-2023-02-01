@@ -294,7 +294,7 @@ class Sets(Category):
             Returns a (preferably typical) element of this parent.
 
             This is used both for illustration and testing purposes. If the
-            set `self` is empty :meth:`an_element` should raise the exception
+            set ``self`` is empty, :meth:`an_element` should raise the exception
             :class:`EmptySetError`.
 
             This default implementation calls :meth:`_an_element_` and

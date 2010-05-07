@@ -1372,7 +1372,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def cross_product(self, right):
         """
         Return the cross product of self and right, which is only defined
-        for vectors of length 3.
+        for vectors of length 3 or 7.
+
+        INPUT:
+
+        - ``right`` - A vector of the same size as ``self``, either
+          degree three or degree seven.
+
+        OUTPUT:
+
+        The cross product (vector product) of ``self`` and ``right``,
+        a vector of the same size of ``self`` and ``right``.
 
         This product is performed under the assumption that the basis
         vectors are orthonormal.
@@ -1388,16 +1398,90 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             0
             sage: u.dot_product(w)
             0
+
+        The cross product is defined for degree seven vectors as well.
+        [WIKIPEDIA:CROSSPRODUCT]_
+        The 3-D cross product is achieved using the quaternians,
+        whereas the 7-D cross product is achieved using the octions. ::
+
+            sage: u = vector(QQ, [1, -1/3, 57, -9, 56/4, -4,1])
+            sage: v = vector(QQ, [37, 55, -99/57, 9, -12, 11/3, 4/98])
+            sage: u.cross_product(v)
+            (1394815/2793, -2808401/2793, 39492/49, -48737/399, -9151880/2793, 62513/2793, -326603/171)
+
+        The degree seven cross product is anticommutative. ::
+
+            sage: u.cross_product(v) + v.cross_product(u)
+            (0, 0, 0, 0, 0, 0, 0)
+
+	The degree seven cross product is distributive across addition. ::
+
+            sage: v = vector([-12, -8/9, 42, 89, -37, 60/99, 73])
+            sage: u = vector([31, -42/7, 97, 80, 30/55, -32, 64])
+            sage: w = vector([-25/4, 40, -89, -91, -72/7, 79, 58])
+            sage: v.cross_product(u + w) - (v.cross_product(u) + v.cross_product(w))
+            (0, 0, 0, 0, 0, 0, 0)
+
+        The degree seven cross product respects scalar multiplication. ::
+
+            sage: v = vector([2, 17, -11/5, 21, -6, 2/17, 16])
+            sage: u = vector([-8, 9, -21, -6, -5/3, 12, 99])
+            sage: (5*v).cross_product(u) - 5*(v.cross_product(u))
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: v.cross_product(5*u) - 5*(v.cross_product(u))
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: (5*v).cross_product(u) - (v.cross_product(5*u))
+            (0, 0, 0, 0, 0, 0, 0)
+
+        The degree seven cross product respects the scalar triple product. ::
+
+            sage: v = vector([2,6,-7/4,-9/12,-7,12,9])
+            sage: u = vector([22,-7,-9/11,12,15,15/7,11])
+            sage: w = vector([-11,17,19,-12/5,44,21/56,-8])
+            sage: v.dot_product(u.cross_product(w)) - w.dot_product(v.cross_product(u))
+            0
+
+        TESTS:
+
+        Both vectors need to be of length three or both vectors need to be of length seven. ::
+
+            sage: u = vector(range(7))
+            sage: v = vector(range(3))
+            sage: u.cross_product(v)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
+
+        REFERENCES:
+
+        .. [WIKIPEDIA:CROSSPRODUCT] Algebraic Properties of the Cross Product
+           http://en.wikipedia.org/wiki/Cross_product
+
+        AUTHOR:
+
+        Billy Wonderly (2010-05-11), Added 7-D Cross Product
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError, "right must be a free module element"
         r = right.list(copy=False)
         l = self.list(copy=False)
-        if len(r) != 3 or len(l) != 3:
-            raise ArithmeticError, "Cross product only defined for vectors of length three, not (%s and %s)"%(len(l),len(r))
-        return vector([l[1]*r[2] - l[2]*r[1],
-                       l[2]*r[0] - l[0]*r[2],
-                       l[0]*r[1] - l[1]*r[0]])
+        if len(r) == 3 and len(l) == 3:
+            return vector([l[1]*r[2] - l[2]*r[1],
+                           l[2]*r[0] - l[0]*r[2],
+                           l[0]*r[1] - l[1]*r[0]])
+
+        elif len(r) == 7 and len(l) == 7:
+            return vector([l[1]*r[3] - l[3]*r[1] + l[2]*r[6] - l[6]*r[2] + l[4]*r[5] - l[5]*r[4],
+                           l[2]*r[4] - l[4]*r[2] + l[3]*r[0] - l[0]*r[3] + l[5]*r[6] - l[6]*r[5],
+                           l[3]*r[5] - l[5]*r[3] + l[4]*r[1] - l[1]*r[4] + l[6]*r[0] - l[0]*r[6],
+		           l[4]*r[6] - l[6]*r[4] + l[5]*r[2] - l[2]*r[5] + l[0]*r[1] - l[1]*r[0],
+	   	           l[5]*r[0] - l[0]*r[5] + l[6]*r[3] - l[3]*r[6] + l[1]*r[2] - l[2]*r[1],
+                           l[6]*r[1] - l[1]*r[6] + l[0]*r[4] - l[4]*r[0] + l[2]*r[3] - l[3]*r[2],
+                           l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
+
+        else:
+            raise ArithmeticError, "Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r))
+
 
 
     def pairwise_product(self, right):

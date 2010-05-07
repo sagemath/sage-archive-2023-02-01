@@ -86,6 +86,7 @@ organized as follows::
         - CirculantGraph
         - CompleteGraph
         - CompleteBipartiteGraph
+        - CompleteMultipartiteGraph
         - CubeGraph
         - FibonacciTree
         - FuzzyBallGraph
@@ -230,6 +231,7 @@ class GraphGenerators():
                     - CirculantGraph
                     - CompleteGraph
                     - CompleteBipartiteGraph
+                    - CompleteMultipartiteGraph
                     - CubeGraph
                     - FuzzyBallGraph
                     - FibonacciTree
@@ -2801,6 +2803,39 @@ class GraphGenerators():
         import sage.graphs.bipartite_graph as bipartite_graph
         G = networkx.complete_bipartite_graph(n1,n2)
         return bipartite_graph.BipartiteGraph(G, pos=pos_dict, name="Complete bipartite graph")
+
+    def CompleteMultipartiteGraph(self, l):
+        r"""
+        Returns a complete multipartite graph.
+
+        INPUT:
+
+        - ``l`` -- a list of integers : the respective sizes
+          of the components.
+
+        EXAMPLE:
+
+        A complete tripartite graph with sets of sizes
+        `5, 6, 8`::
+
+            sage: g = graphs.CompleteMultipartiteGraph([5, 6, 8]); g
+            Multipartite Graph with set sizes [5, 6, 8]: Graph on 19 vertices
+
+        It clearly has a chromatic number of 3::
+
+            sage: g.chromatic_number()
+            3
+        """
+
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for i in l:
+            g = g + self.CompleteGraph(i)
+
+        g = g.complement()
+        g.name("Multipartite Graph with set sizes "+str(l))
+
+        return g
 
     def CubeGraph(self, n):
         r"""

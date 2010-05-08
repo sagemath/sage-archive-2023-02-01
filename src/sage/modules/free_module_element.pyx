@@ -440,9 +440,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             ...
             TypeError: mutable vectors are unhashable
             sage: v.set_immutable()
-            sage: v.__hash__()
-            761055766                      # 32-bit
-            2525866853680768700            # 64-bit
+            sage: v.__hash__()   # random output
         """
         if self._is_mutable:
             raise TypeError, "mutable vectors are unhashable"
@@ -577,9 +575,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Traceback (most recent call last):
             ...
             TypeError: mutable vectors are unhashable
-            sage: v._hash()
-            761055766                      # 32-bit
-            2525866853680768700            # 64-bit
+            sage: v._hash()  # random output
         """
         return hash(tuple(list(self)))
 
@@ -2138,9 +2134,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
             <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
-            sage: v._hash()
-            ?                                     # 32-bit
-            1664698900231364249                   # 64-bit
+            sage: v._hash()   # random output
         """
         return hash(tuple(list(self)))
 

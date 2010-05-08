@@ -25,7 +25,7 @@ from log import (exp, log, ln, polylog, dilog)
 
 
 from transcendental import (exponential_integral_1,
-                            zeta, zeta_symmetric,
+                            zeta, zetaderiv, zeta_symmetric,
                             Li, Ei,
                             dickman_rho)
 

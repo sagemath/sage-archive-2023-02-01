@@ -1428,8 +1428,8 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(6)
             sage: bounds = lambda x: [1,1]
-            sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC
-            sage: m.size() #optional
+            sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC or CPLEX
+            sage: m.size() # optional - requires GLPK CBC or CPLEX
             3
         """
 
@@ -1438,7 +1438,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(maximization=False)
         b = p.new_variable()
 
-        reorder = lambda x: (min(x[0],x[1]),max(x[0],x[1]),x[2])
+        reorder = lambda x,y: (x,y) if x<y else (y,x)
 
         if bounds is None:
             raise ValueError,"The `bounds` keyword can not be equal to None"
@@ -1449,30 +1449,28 @@ class Graph(GenericGraph):
 
 
         if self.weighted():
-            weight = lambda x: x[2] if x[2] is not None else 1
+            from sage.rings.real_mpfr import RR
+            weight = lambda x: x if x in RR else 1
         else:
             weight = lambda x: 1
 
         for v in self:
             minimum,maximum = f_bounds(v)
-            p.add_constraint(sum([ b[reorder(e)]*weight(e) for e in self.edges_incident(v)]),min=minimum, max=maximum)
+            p.add_constraint(sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]),min=minimum, max=maximum)
 
-        p.set_objective(sum([ b[reorder(e)]*weight(e) for e in self.edge_iterator()]))
+        p.set_objective(sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
         p.set_binary(b)
 
         try:
             p.solve()
             g = self.copy()
             b = p.get_values(b)
-            g.delete_edges([e for e in g.edge_iterator() if b[reorder(e)] == 0])
+            g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
             return g
 
 
         except MIPSolverException:
             return False
-
-
-
 
 
     ### Orientations
@@ -2914,7 +2912,8 @@ class Graph(GenericGraph):
         from sage.sets.set import Set
 
         # The default capacity of an arc is 1
-        capacity = lambda label: label if label is not None else 1
+        from sage.rings.real_mpfr import RR
+        capacity = lambda label: label if label in RR else 1
 
         # Keeping the graph's embedding
         pos = False

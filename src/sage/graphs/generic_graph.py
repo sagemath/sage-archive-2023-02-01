@@ -2058,7 +2058,8 @@ class GenericGraph(GenericGraph_pyx):
                                  "Please convert it to a Graph if you really mean it.")
 
         if use_edge_labels:
-            weight = lambda u,v : self.edge_label(u,v) if self.edge_label(u,v)!=None else 1
+            from sage.rings.real_mpfr import RR
+            weight = lambda u,v : self.edge_label(u,v) if self.edge_label(u,v) in RR else 1
         else:
             weight = lambda u,v : 1
 
@@ -3110,7 +3111,7 @@ class GenericGraph(GenericGraph_pyx):
         The edge cut between the two ends is the edge of minimum weight::
 
            sage: minimum = min([l for u,v,l in g.edge_iterator()])
-           sage: minimum == g.edge_cut(0, 14, use_edge_labels=True) # optional - requires GLPK or COIN-OR/CBC
+           sage: abs(minimum - g.edge_cut(0, 14, use_edge_labels=True)) < 10**(-5) # optional - requires GLPK or COIN-OR/CBC or CPLEX
            True
            sage: [value,[[u,v]]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False) # optional - requires GLPK or COIN-OR/CBC
            sage: g.edge_label(u, v) == minimum # optional - requires GLPK or COIN-OR/CBC
@@ -3135,7 +3136,8 @@ class GenericGraph(GenericGraph_pyx):
         if vertices:
             value_only = False
         if use_edge_labels:
-            weight = lambda x: 1 if x == None else x
+            from sage.rings.real_mpfr import RR
+            weight = lambda x: x if x in RR else 1
         else:
             weight = lambda x: 1
 
@@ -3429,7 +3431,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)                  # optional - requires Glpk or COIN-OR/CBC
             sage: value == 5*6                                                                # optional - requires Glpk or COIN-OR/CBC
             True
-            sage: bsetA, bsetB  = g.bipartite_sets()
+            sage: bsetA, bsetB  = map(list,g.bipartite_sets())
             sage: (bsetA == setA and bsetB == setB ) or ((bsetA == setB and bsetB == setA ))  # optional - requires Glpk or COIN-OR/CBC
             True
 
@@ -3446,9 +3448,10 @@ class GenericGraph(GenericGraph_pyx):
             value_only=False
 
         if use_edge_labels:
-            weight=lambda x: 1 if x==None else x
+            from sage.rings.real_mpfr import RR
+            weight = lambda x: x if x in RR else 1
         else:
-            weight=lambda x: 1
+            weight = lambda x: 1
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -3612,7 +3615,8 @@ class GenericGraph(GenericGraph_pyx):
         flow=p.new_variable(dim=2)
 
         if use_edge_labels:
-            capacity=lambda x: x if x!=None else 1
+            from sage.rings.real_mpfr import RR
+            capacity=lambda x: x if x in RR else 1
         else:
             capacity=lambda x: 1
 
@@ -3833,7 +3837,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # returns the weight of an edge considering it may not be
         # weighted ...
-        weight=lambda x: 1 if x==None else x
+
+        from sage.rings.real_mpfr import RR
+        weight=lambda x: x if x in RR else 1
 
         p=MixedIntegerLinearProgram(maximization=True)
 
@@ -4045,7 +4051,8 @@ class GenericGraph(GenericGraph_pyx):
             value_only=False
 
         if use_edge_labels:
-            weight=lambda x: 1 if x==None else x
+            from sage.rings.real_mpfr import RR
+            weight=lambda x: x if x in RR else 1
         else:
             weight=lambda x: 1
 

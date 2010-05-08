@@ -543,21 +543,21 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     obj = {}
     k = max(g.degree())
     # reorders the edge if necessary...
-    R = lambda x: x if (x[0] <= x[1]) else (x[1], x[0], x[2])
+    R = lambda x: x if (x[0] <= x[1]) else (x[1], x[0])
     # Vizing's coloring uses Delta + 1 colors
     if vizing:
         value_only = False
         k += 1
     #  A vertex can not have two incident edges with the same color.
     [p.add_constraint(
-            sum([color[R(e)][i] for e in g.edges_incident(v)]), max=1)
+            sum([color[R(e)][i] for e in g.edges_incident(v, labels=False)]), max=1)
                 for v in g.vertex_iterator()
                     for i in xrange(k)]
     # an edge must have a color
     [p.add_constraint(sum([color[R(e)][i] for i in xrange(k)]), max=1, min=1)
-         for e in g.edge_iterator()]
+         for e in g.edge_iterator(labels=False)]
     # anything is good as an objective value as long as it is satisfiable
-    e = g.edge_iterator().next()
+    e = g.edge_iterator(labels=False).next()
     p.set_objective(color[R(e)][0])
     p.set_binary(color)
     try:
@@ -577,7 +577,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     color = p.get_values(color)
     classes = [[] for i in xrange(k)]
     [classes[i].append(e)
-         for e in g.edge_iterator()
+         for e in g.edge_iterator(labels = False)
              for i in xrange(k)
                  if color[R(e)][i] == 1]
     # if needed, builds a dictionary from the color classes adding colors

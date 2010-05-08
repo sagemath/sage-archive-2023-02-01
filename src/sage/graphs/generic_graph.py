@@ -4718,6 +4718,54 @@ class GenericGraph(GenericGraph_pyx):
 
         return h
 
+    def disjoint_routed_paths(self,pairs, solver=None, verbose=0):
+        r"""
+        Returns a set of disjoint routed paths.
+
+        Given a set of pairs `(s_i,t_i)`, a set
+        of disjoint routed paths is a set of
+        `s_i-t_i` paths which can interset at their endpoints
+        and are vertex-disjoint otherwise.
+
+        INPUT:
+
+        - ``pairs`` -- list of pairs of vertices
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to `0`
+          by default (quiet).
+
+        EXAMPLE:
+
+        Given a grid, finding two vertex-disjoint
+        paths, the first one from the top-left corner
+        to the bottom-left corner, and the second from
+        the top-right corner to the bottom-right corner
+        is ... easy ::
+
+            sage: g = graphs.GridGraph([5,5])
+            sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (0,4)), ((4,4), (4,0))]) # optional - requires GLPK CBC or CPLEX
+
+        Though there is obviously no solution to the problem
+        in which each corner is sending information to the opposite
+        one::
+
+            sage: g = graphs.GridGraph([5,5])
+            sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (4,4)), ((0,4), (4,0))]) # optional - requires GLPK CBC or CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: The disjoint routed paths do not exist.
+        """
+
+        try:
+            return self.multicommodity_flow(pairs, vertex_bound = True, solver=solver, verbose=verbose)
+        except ValueError:
+            raise ValueError("The disjoint routed paths do not exist.")
+
     def edge_disjoint_paths(self, s, t):
         r"""
         Returns a list of edge-disjoint paths between two

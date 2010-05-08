@@ -31,7 +31,9 @@ open_symbol = 1
 close_symbol = 0
 
 def replace_parens(x):
-    """
+    r"""
+    A map from '(' to open_symbol and ')' to close_symbol and otherwise an error is raised.
+
     EXAMPLES::
 
         sage: from sage.combinat.dyck_word import replace_parens
@@ -53,7 +55,9 @@ def replace_parens(x):
 
 
 def replace_symbols(x):
-    """
+    r"""
+    A map from open_symbol to '(' and close_symbol to ')' and otherwise an error is raised.
+
     EXAMPLES::
 
         sage: from sage.combinat.dyck_word import replace_symbols
@@ -75,8 +79,8 @@ def replace_symbols(x):
 
 
 def DyckWord(dw=None, noncrossing_partition=None):
-    """
-    Returns a Dyck word object
+    r"""
+    Returns a Dyck word object or a head of a Dyck word object if the Dyck word is not complete
 
     EXAMPLES::
 
@@ -93,11 +97,19 @@ def DyckWord(dw=None, noncrossing_partition=None):
 
         sage: DyckWord('()()')
         [1, 0, 1, 0]
+        sage: DyckWord('(())')
+        [1, 1, 0, 0]
+        sage: DyckWord('((')
+        [1, 1]
 
     ::
 
         sage: DyckWord(noncrossing_partition=[[1],[2]])
         [1, 0, 1, 0]
+        sage: DyckWord(noncrossing_partition=[[1,2]])
+        [1, 1, 0, 0]
+
+    TODO: In functions where a Dyck word is necessary, an error should be raised (e.g. a_statistic, b_statistic)?
     """
     if noncrossing_partition is not None:
         return from_noncrossing_partition(noncrossing_partition)
@@ -116,7 +128,7 @@ def DyckWord(dw=None, noncrossing_partition=None):
 
 class DyckWord_class(CombinatorialObject):
     def __str__(self):
-        """
+        r"""
         Returns a string consisting of matched parentheses corresponding to
         the Dyck word.
 
@@ -131,9 +143,8 @@ class DyckWord_class(CombinatorialObject):
 
 
     def size(self):
-        """
-        Returns the size of the Dyck word, which is the number of opening
-        parentheses in the Dyck word.
+        r"""
+        Returns the size which is the number of opening parentheses.
 
         EXAMPLES::
 
@@ -149,7 +160,7 @@ class DyckWord_class(CombinatorialObject):
         Returns the height of the Dyck word.
 
         We view the Dyck word as a Dyck path from `(0,0)` to
-        `(n,0)` in the first quadrant by letting '1's represent
+        `(2n,0)` in the first quadrant by letting '1's represent
         steps in the direction `(1,1)` and '0's represent steps in
         the direction `(1,-1)`.
 
@@ -183,7 +194,17 @@ class DyckWord_class(CombinatorialObject):
         return height_max
 
     def associated_parenthesis(self, pos):
-        """
+        r"""
+        report the position for the parenthesis that matches the one at position ``pos``
+
+        INPUT:
+
+        - ``pos`` - the index of the parenthesis in the list
+
+        OUTPUT:
+
+        integer representing the index of the matching parenthesis.  If no parenthesis matches nothing is returned
+
         EXAMPLES::
 
             sage: DyckWord([1, 0]).associated_parenthesis(0)
@@ -196,6 +217,10 @@ class DyckWord_class(CombinatorialObject):
             3
             sage: DyckWord([1, 0, 1, 0]).associated_parenthesis(3)
             2
+            sage: DyckWord([1, 1, 0, 0]).associated_parenthesis(0)
+            3
+            sage: DyckWord([1, 1, 0, 0]).associated_parenthesis(2)
+            1
             sage: DyckWord([1, 1, 0]).associated_parenthesis(1)
             2
             sage: DyckWord([1, 1]).associated_parenthesis(0)
@@ -226,7 +251,7 @@ class DyckWord_class(CombinatorialObject):
         return pos
 
     def to_noncrossing_partition(self):
-        """
+        r"""
         Bijection of Biane from Dyck words to non crossing partitions
         Thanks to Mathieu Dutour for describing the bijection.
 
@@ -333,7 +358,7 @@ class DyckWord_class(CombinatorialObject):
 
     @classmethod
     def from_non_decreasing_parking_function(cls, pf):
-        """
+        r"""
         Bijection from :class:`non-decreasing parking
         functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`. See
         there the method
@@ -399,7 +424,10 @@ class DyckWord_class(CombinatorialObject):
         return [i for i in range(len(self)-1) if self[i] == open_symbol and self[i+1] == close_symbol]
 
     def to_tableau(self):
-        """
+        r"""
+        returns a standard tableau of length less than or equal to 2 with the size the same as the length of the list
+        the standard tableau will be rectangular iff ``self`` is a complete Dyck word
+
         EXAMPLES::
 
             sage: DyckWord([]).to_tableau()
@@ -414,6 +442,8 @@ class DyckWord_class(CombinatorialObject):
             [[1]]
             sage: DyckWord([1, 0, 1]).to_tableau()
             [[2], [1, 3]]
+
+        TODO: better name? to_standard_tableau? and should *actually* return a Tableau object?
         """
         open_positions = []
         close_positions = []
@@ -427,7 +457,7 @@ class DyckWord_class(CombinatorialObject):
 
     def a_statistic(self):
         """
-        Returns the a-statistic for the Dyck word.
+        Returns the a-statistic for the Dyck word correspond to the area of the Dyck path.
 
         One can view a balanced Dyck word as a lattice path from
         `(0,0)` to `(n,n)` in the first quadrant by letting
@@ -496,7 +526,7 @@ class DyckWord_class(CombinatorialObject):
 
     def b_statistic(self):
         r"""
-        Returns the b-statistic for the Dyck word.
+        Returns the b-statistic for the Dyck word corresponding to the bounce statistic of the Dyck word.
 
         One can view a balanced Dyck word as a lattice path from `(0,0)` to
         `(n,n)` in the first quadrant by letting '1's represent steps in
@@ -510,14 +540,12 @@ class DyckWord_class(CombinatorialObject):
         We can think of our bounce path as describing the trail of a billiard
         ball shot West from (n, n), which "bounces" down whenever it
         encounters a vertical step and "bounces" left when it encounters the
-        line y = x. The bouncing ball will strike the diagonal at places $(0,
-        0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n)$.
+        line y = x.
+
+        The bouncing ball will strike the diagonal at places
+        $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n).$
+
         We define the b-statistic to be the sum `\sum_{i=1}^{r-1} j_i`.
-
-           (0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n).
-
-        We define the b-statistic to be the sum
-        `\sum_{i=1}^{r-1} n - j_i`.
 
         EXAMPLES::
 
@@ -670,7 +698,7 @@ def DyckWords(k1=None, k2=None):
 
 class DyckWords_all(InfiniteAbstractCombinatorialClass):
     def __init__(self):
-        """
+        r"""
         TESTS::
 
             sage: DW = DyckWords()
@@ -680,7 +708,7 @@ class DyckWords_all(InfiniteAbstractCombinatorialClass):
         pass
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
             sage: repr(DyckWords())
@@ -689,7 +717,7 @@ class DyckWords_all(InfiniteAbstractCombinatorialClass):
         return "Dyck words"
 
     def __contains__(self, x):
-        """
+        r"""
         TESTS::
 
             sage: [] in DyckWords()
@@ -713,7 +741,7 @@ class DyckWords_all(InfiniteAbstractCombinatorialClass):
         return is_a(x)
 
     def _infinite_cclass_slice(self, n):
-        """
+        r"""
         Needed by InfiniteAbstractCombinatorialClass to build __iter__.
 
         TESTS::
@@ -728,7 +756,7 @@ class DyckWords_all(InfiniteAbstractCombinatorialClass):
 
 
 class DyckWordBacktracker(GenericBacktracker):
-    """
+    r"""
     DyckWordBacktracker: this class is an iterator for all Dyck words
     with n opening parentheses and n - endht closing parentheses using
     the backtracker class. It is used by the DyckWords_size class.
@@ -746,7 +774,7 @@ class DyckWordBacktracker(GenericBacktracker):
     - Dan Drake (2008-05-30)
     """
     def __init__(self, k1, k2):
-        """
+        r"""
         TESTS::
 
             sage: from sage.combinat.dyck_word import DyckWordBacktracker
@@ -766,7 +794,7 @@ class DyckWordBacktracker(GenericBacktracker):
         self.endht = k1 - k2
 
     def _rec(self, path, state):
-        """
+        r"""
         TESTS::
 
             sage: from sage.combinat.dyck_word import DyckWordBacktracker
@@ -804,7 +832,7 @@ class DyckWordBacktracker(GenericBacktracker):
 
 class DyckWords_size(CombinatorialClass):
     def __init__(self, k1, k2=None):
-        """
+        r"""
         TESTS::
 
             sage: DW4 = DyckWords(4)
@@ -819,7 +847,7 @@ class DyckWords_size(CombinatorialClass):
 
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
             sage: repr(DyckWords(4))
@@ -828,7 +856,7 @@ class DyckWords_size(CombinatorialClass):
         return "Dyck words with %s opening parentheses and %s closing parentheses"%(self.k1, self.k2)
 
     def cardinality(self):
-        """
+        r"""
         Returns the number of Dyck words of size n, i.e. the n-th Catalan
         number.
 
@@ -847,7 +875,7 @@ class DyckWords_size(CombinatorialClass):
             return len(self.list())
 
     def __contains__(self, x):
-        """
+        r"""
         EXAMPLES::
 
             sage: [1, 0] in DyckWords(1)
@@ -873,7 +901,7 @@ class DyckWords_size(CombinatorialClass):
 
     def list(self):
         """
-        Returns a list of all the Dyck words with k1 opening and k2 closing
+        Returns a list of all the Dyck words with ``k1`` opening and ``k2`` closing
         parentheses.
 
         EXAMPLES::
@@ -888,8 +916,8 @@ class DyckWords_size(CombinatorialClass):
         return list(self)
 
     def __iter__(self):
-        """
-        Returns an iterator for Dyck words with k1 opening and k2 closing
+        r"""
+        Returns an iterator for Dyck words with ``k1`` opening and ``k2`` closing
         parentheses.
 
         EXAMPLES::
@@ -914,9 +942,9 @@ class DyckWords_size(CombinatorialClass):
 
 
 def is_a_prefix(obj, k1 = None, k2 = None):
-    """
-    If k1 is specified, then the object must have exactly k1 open
-    symbols. If k2 is also specified, then obj must have exactly k2
+    r"""
+    If ``k1`` is specified, then the object must have exactly ``k1`` open
+    symbols. If ``k2`` is also specified, then obj must have exactly ``k2``
     close symbols.
 
     EXAMPLES::
@@ -960,7 +988,7 @@ def is_a_prefix(obj, k1 = None, k2 = None):
 
 
 def is_a(obj, k1 = None, k2 = None):
-    """
+    r"""
     If k1 is specified, then the object must have exactly k1 open
     symbols. If k2 is also specified, then obj must have exactly k2
     close symbols.
@@ -1005,7 +1033,9 @@ def is_a(obj, k1 = None, k2 = None):
         return n_opens == k1 and n_closes == k2
 
 def from_noncrossing_partition(ncp):
-    """
+    r"""
+    converts a non-crossing partition to a Dyck word
+
     TESTS::
 
         sage: DyckWord(noncrossing_partition=[[1,2]]) # indirect doctest

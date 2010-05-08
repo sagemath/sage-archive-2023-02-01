@@ -541,6 +541,17 @@ class LatticePolytopeClass(SageObject):
             sage: o._compute_faces()
             sage: o.__dict__.has_key("_faces")
             True
+
+        Check that Trac 8934 is fixed::
+
+            sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
+            ...                   [0, 1, 0,  0, -1,  0, 0],
+            ...                   [0, 0, 0,  0,  0,  0, 0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p._compute_faces()
+            sage: p.facets()
+            [[0, 3], [2, 3], [0, 1], [1, 2]]
         """
         if hasattr(self, "_constructed_as_polar"):
                 # "Polar of polar polytope" computed by poly.x may have the
@@ -550,8 +561,10 @@ class LatticePolytopeClass(SageObject):
                 self._copy_faces(self._polar, reverse=True)
         elif hasattr(self, "_constructed_as_affine_transform"):
                 self._copy_faces(self._original)
+        elif self.dim() == 0:
+            self._faces = []
         else:
-            self._read_faces(self.poly_x("i"))
+            self._read_faces(self.poly_x("i", reduce_dimension=True))
 
     def _compute_hodge_numbers(self):
         r"""
@@ -1335,7 +1348,7 @@ class LatticePolytopeClass(SageObject):
 
     def faces(self, dim=None, codim=None):
         r"""
-        Return the sequence of faces of this polytope.
+        Return the sequence of proper faces of this polytope.
 
         If ``dim`` or ``codim`` are specified,
         returns a sequence of faces of the corresponding dimension or
@@ -1369,6 +1382,24 @@ class LatticePolytopeClass(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Both dim and codim are given!
+
+        The only faces of a zero-dimensional polytope are the empty set and
+        the polytope itself, i.e. it has no proper faces at all::
+
+            sage: p = LatticePolytope(matrix([[1]]))
+            sage: p.vertices()
+            [1]
+            sage: p.faces()
+            []
+
+        In particular, you an exception will be raised if you try to access
+        faces of the given dimension or codimension, including edges and
+        facets::
+
+            sage: p.facets()
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
         """
         try:
             if dim == None and codim == None:
@@ -1762,6 +1793,8 @@ class LatticePolytopeClass(SageObject):
                 self._nfacets = self.polar().nvertices()
             elif self.dim() == self.ambient_dim():
                 self._nfacets = self._facet_normals.nrows()
+            elif self.dim() == 0:
+                self._nfacets = 0
             else:
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
@@ -2104,11 +2137,22 @@ class LatticePolytopeClass(SageObject):
             [ 1  0 -1  0  0]
             [ 0  1  0 -1  0]
             [ 0  0  0  0  0]
+
+        We check that points of a zero-dimensional polytope can be computed::
+
+            sage: p = LatticePolytope(matrix([[1]]))
+            sage: p.vertices()
+            [1]
+            sage: p.points()
+            [1]
         """
         if not hasattr(self, "_points"):
-            self._points = self._embed(read_palp_matrix(
-                            self.poly_x("p", reduce_dimension=True)))
-            self._points.set_immutable()
+            if self.dim() == 0:
+                self._points = self._vertices
+            else:
+                self._points = self._embed(read_palp_matrix(
+                                self.poly_x("p", reduce_dimension=True)))
+                self._points.set_immutable()
         return self._points
 
     def polar(self):
@@ -3337,6 +3381,8 @@ def all_polars(polytopes):
     Compute polar polytopes for all reflexive and equations of facets
     for all non-reflexive ``polytopes``.
 
+    ``all_facet_equations`` and ``all_polars`` are synonyms.
+
     This functions does it MUCH faster than member functions of
     ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
@@ -3358,6 +3404,9 @@ def all_polars(polytopes):
         p._read_equations(result)
     result.close()
     os.remove(result_name)
+
+# Synonym for the above function
+all_facet_equations = all_polars
 
 
 _always_use_files = True

@@ -274,8 +274,8 @@ def ReflexivePolytope(dim, n):
 
     .. note::
 
-       #. Numeration starts with zero: ``0=n=15`` for ``dim=2`` and
-          ``0=n=4318`` for ``dim=3``.
+       #. Numeration starts with zero: `0 \leq n \leq 15` for `{\rm dim} = 2`
+          and `0 \leq n \leq 4318` for `{\rm dim} = 3`.
 
        #. During the first call, all reflexive polytopes of requested
           dimension are loaded and cached for future use, so the first
@@ -1455,6 +1455,124 @@ class LatticePolytopeClass(SageObject):
         except AttributeError:
             self._compute_faces()
             return self.faces(dim, codim)
+
+    def facet_constant(self, i):
+        r"""
+        Return the constant in the ``i``-th facet inequality of this polytope.
+
+        The i-th facet inequality is given by
+        self.facet_normal(i) * X + self.facet_constant(i) >= 0.
+
+        INPUT:
+
+        - ``i`` - integer, the index of the facet
+
+        OUTPUT:
+
+        - integer -- the constant in the ``i``-th facet inequality.
+
+        EXAMPLES:
+
+        Let's take a look at facets of the octahedron and some polytopes
+        inside it::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: o.facet_normal(0)
+            (-1, -1, 1)
+            sage: o.facet_constant(0)
+            1
+            sage: m = copy(o.vertices())
+            sage: m[0,0] = 0
+            sage: m
+            [ 0  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (-1, 0, 0)
+            sage: p.facet_constant(0)
+            0
+            sage: m[0,3] = 0
+            sage: m
+            [ 0  0  0  0  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (0, -1, 1)
+            sage: p.facet_constant(0)
+            1
+        """
+        if self.is_reflexive():
+            return 1
+        elif self.ambient_dim() == self.dim():
+            return self._facet_constants[i]
+        else:
+            return (self._sublattice_polytope.facet_constant(i)
+                    - self.facet_normal(i) * self._shift_vector)
+
+    def facet_normal(self, i):
+        r"""
+        Return the inner normal to the ``i``-th facet of this polytope.
+
+        If this polytope is not full-dimensional, facet normals will be
+        parallel to the affine subspace spanned by this polytope.
+
+        INPUT:
+
+        - ``i`` -- integer, the index of the facet
+
+        OUTPUT:
+
+        - vectors -- the inner normal of the ``i``-th facet
+
+        EXAMPLES:
+
+        Let's take a look at facets of the octahedron and some polytopes
+        inside it::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: o.facet_normal(0)
+            (-1, -1, 1)
+            sage: o.facet_constant(0)
+            1
+            sage: m = copy(o.vertices())
+            sage: m[0,0] = 0
+            sage: m
+            [ 0  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (-1, 0, 0)
+            sage: p.facet_constant(0)
+            0
+            sage: m[0,3] = 0
+            sage: m
+            [ 0  0  0  0  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (0, -1, 1)
+            sage: p.facet_constant(0)
+            1
+        """
+        if self.is_reflexive():
+            return self.polar().vertex(i)
+        elif self.ambient_dim() == self.dim():
+            return self._facet_normals[i]
+        else:
+            return (self._embedding_matrix
+                    * self._sublattice_polytope.facet_normal(i))
 
     def facets(self):
         r"""

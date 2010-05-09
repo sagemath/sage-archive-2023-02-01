@@ -1199,7 +1199,7 @@ Function_sqrt = type('deprecated_sqrt', (),
 ############################
 class Function_real_part(GinacFunction):
     def __init__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: z = 1+2*I

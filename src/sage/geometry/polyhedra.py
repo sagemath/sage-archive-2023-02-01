@@ -2639,6 +2639,73 @@ class Polyhedron(SageObject):
         return self._field
 
 
+    def coerce_field(self, other):
+        """
+        Return the number type that contains both `self.field()` and `other`.
+
+        INPUT:
+
+        The argument `other` must be either
+        * another `Polyhedron()` object
+        * `QQ` or `RDF`
+        * a constant that can be coerced to `QQ` or `RDF`.
+
+        OUTPUT:
+
+        Either `QQ` or `RDF`. Raises `TypeError` if `other` is not a
+        suitable input.
+
+        NOTE:
+
+        "Real" numbers in sage are not necessarily elements of
+        `RDF`. For example, the literal `1.0` is not.
+
+        EXAMPLES::
+
+            sage: triangle_QQ  = Polyhedron(vertices = [[1,0],[0,1],[1,1]], field=QQ)
+            sage: triangle_RDF = Polyhedron(vertices = [[1,0],[0,1],[1,1]], field=RDF)
+            sage: triangle_QQ.coerce_field(QQ)
+            Rational Field
+            sage: triangle_QQ.coerce_field(triangle_RDF)
+            Real Double Field
+            sage: triangle_RDF.coerce_field(triangle_QQ)
+            Real Double Field
+            sage: triangle_QQ.coerce_field(RDF)
+            Real Double Field
+            sage: triangle_QQ.coerce_field(ZZ)
+            Rational Field
+            sage: triangle_QQ.coerce_field(1/2)
+            Rational Field
+            sage: triangle_QQ.coerce_field(0.5)
+            Real Double Field
+        """
+        try:
+            # other is a Polyhedron object?
+            other_field = other.field()
+        except AttributeError:
+
+            try:
+                # other is a constant?
+                other_parent = other.parent()
+            except AttributeError:
+                other_parent = other
+
+            # other is a field?
+            if QQ.coerce_map_from(other_parent) != None:
+                other_field = QQ
+            elif RDF.coerce_map_from(other_parent) != None:
+                other_field = RDF
+            else:
+                raise TypeError
+
+        assert other_field==QQ or other_field==RDF
+
+        if self.field()==RDF or other_field==RDF:
+            return RDF
+        else:
+            return QQ
+
+
     def center(self):
         """
         Returns the average of the vertices. Returns the origin for
@@ -2899,15 +2966,18 @@ class Polyhedron(SageObject):
                     new_vertices.append(list(v1() + v2()))
             new_rays = self.rays() + other.rays()
             new_lines = self.lines() + other.lines()
+            other_field = other.field()
 
         else:  # assume other is a vector and try to add vertices
             displacement = vector(other)
             new_vertices = [list(x() + displacement) for x in self.vertex_generator()]
             new_rays = self.rays()
             new_lines = self.lines()
+            other_field = displacement.base_ring()
 
         return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines, field=self.field())
+                          rays=new_rays, lines=new_lines,
+                          field=self.coerce_field(other_field))
 
 
     def __mul__(self, other):
@@ -2944,7 +3014,8 @@ class Polyhedron(SageObject):
             new_lines = self.lines()
 
         return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines, field=self.field())
+                          rays=new_rays, lines=new_lines,
+                          field=self.coerce_field(other))
 
 
     def __rmul__(self,other):
@@ -2965,6 +3036,18 @@ class Polyhedron(SageObject):
 
     def union(self, other):
         """
+        Deprecated.  Use `self.convex_hull(other)` instead.
+
+        EXAMPLES::
+
+            sage: Polyhedron(vertices=[[0]]).union( Polyhedron(vertices=[[1]]) )
+            A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices.
+        """
+        return self.convex_hull(other)
+
+
+    def convex_hull(self, other):
+        """
         Returns the convex hull of the set-theoretic union of the two
         polyhedra.
 
@@ -2974,18 +3057,17 @@ class Polyhedron(SageObject):
             sage: verts = a_simplex.vertices()
             sage: verts = [[x[0]*3/5+x[1]*4/5, -x[0]*4/5+x[1]*3/5, x[2]] for x in verts]
             sage: another_simplex = Polyhedron(vertices = verts)
-            sage: simplex_union = a_simplex.union(another_simplex)
+            sage: simplex_union = a_simplex.convex_hull(another_simplex)
             sage: simplex_union.n_vertices()
             7
         """
-        new_vertices = self.vertices() + other.vertices()
-
-        new_rays = self.rays() + other.rays()
-
-        new_lines = self.lines() + other.lines()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines, field=self.field())
+        hull_vertices = self.vertices() + other.vertices()
+        hull_rays = self.rays() + other.rays()
+        hull_lines = self.lines() + other.lines()
+        hull_field = self.coerce_field(other)
+        return Polyhedron(vertices=hull_vertices,
+                          rays=hull_rays, lines=hull_lines,
+                          field=hull_field)
 
 
     def intersection(self, other):
@@ -3011,7 +3093,7 @@ class Polyhedron(SageObject):
         new_eqns.extend(other.equations())
 
         return Polyhedron(ieqs = new_ieqs, eqns = new_eqns,
-                          field=self.field())
+                          field=self.coerce_field(other))
 
 
     def edge_truncation(self, cut_frac = Integer(1)/3):
@@ -3049,7 +3131,8 @@ class Polyhedron(SageObject):
         new_lines = self.lines()
 
         return Polyhedron(vertices=new_vertices, rays=new_rays,
-                          lines=new_lines, field=self.field())
+                          lines=new_lines,
+                          field=self.coerce_field(cut_frac))
 
 
     def _v_closure(self, vertex_indices):
@@ -3512,10 +3595,6 @@ class Polyhedron(SageObject):
             if not H.interior_contains(p):
                 return False
         return True
-
-
-
-
 
 
     def contains(self, point):

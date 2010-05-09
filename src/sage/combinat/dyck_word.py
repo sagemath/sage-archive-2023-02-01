@@ -32,7 +32,29 @@ close_symbol = 0
 
 def replace_parens(x):
     r"""
-    A map from '(' to open_symbol and ')' to close_symbol and otherwise an error is raised.
+    A map from ``'('`` to ``open_symbol`` and ``')'`` to ``close_symbol`` and
+    otherwise an error is raised. The values of the constants ``open_symbol``
+    and ``close_symbol`` are subject to change. This is the inverse map of
+    :func:`replace_symbols`.
+
+    INPUT:
+
+    - ``x`` -- either an opening or closing parenthesis.
+
+    OUTPUT:
+
+    - If ``x`` is an opening parenthesis, replace ``x`` with the constant
+      ``open_symbol``.
+
+    - If ``x`` is a closing parenthesis, replace ``x`` with the constant
+      ``close_symbol``.
+
+    - Raises a ``ValueError`` if ``x`` is neither an opening nor closing
+      parenthesis.
+
+    .. SEEALSO::
+
+        - :func:`replace_symbols`
 
     EXAMPLES::
 
@@ -56,7 +78,27 @@ def replace_parens(x):
 
 def replace_symbols(x):
     r"""
-    A map from open_symbol to '(' and close_symbol to ')' and otherwise an error is raised.
+    A map from ``open_symbol`` to ``'('`` and ``close_symbol`` to ``')'`` and
+    otherwise an error is raised. The values of the constants ``open_symbol``
+    and ``close_symbol`` are subject to change. This is the inverse map of
+    :func:`replace_parens`.
+
+    INPUT:
+
+    - ``x`` -- either ``open_symbol`` or ``close_symbol``.
+
+    OUTPUT:
+
+    - If ``x`` is ``open_symbol``, replace ``x`` with ``'('``.
+
+    - If ``x`` is ``close_symbol``, replace ``x`` with ``')'``.
+
+    - If ``x`` is neither ``open_symbol`` nor ``close_symbol``, a
+      ``ValueError`` is raised.
+
+    .. SEEALSO::
+
+        - :func:`replace_parens`
 
     EXAMPLES::
 
@@ -80,7 +122,8 @@ def replace_symbols(x):
 
 def DyckWord(dw=None, noncrossing_partition=None):
     r"""
-    Returns a Dyck word object or a head of a Dyck word object if the Dyck word is not complete
+    Returns a Dyck word object or a head of a Dyck word object if the Dyck
+    word is not complete.
 
     EXAMPLES::
 
@@ -109,7 +152,8 @@ def DyckWord(dw=None, noncrossing_partition=None):
         sage: DyckWord(noncrossing_partition=[[1,2]])
         [1, 1, 0, 0]
 
-    TODO: In functions where a Dyck word is necessary, an error should be raised (e.g. a_statistic, b_statistic)?
+    TODO: In functions where a Dyck word is necessary, an error should be
+    raised (e.g. ``a_statistic``, ``b_statistic``)?
     """
     if noncrossing_partition is not None:
         return from_noncrossing_partition(noncrossing_partition)
@@ -195,15 +239,17 @@ class DyckWord_class(CombinatorialObject):
 
     def associated_parenthesis(self, pos):
         r"""
-        report the position for the parenthesis that matches the one at position ``pos``
+        Report the position for the parenthesis that matches the one at
+        position ``pos``.
 
         INPUT:
 
-        - ``pos`` - the index of the parenthesis in the list
+        - ``pos`` - the index of the parenthesis in the list.
 
         OUTPUT:
 
-        integer representing the index of the matching parenthesis.  If no parenthesis matches nothing is returned
+        Integer representing the index of the matching parenthesis.  If no
+        parenthesis matches, return ``None``.
 
         EXAMPLES::
 
@@ -252,7 +298,7 @@ class DyckWord_class(CombinatorialObject):
 
     def to_noncrossing_partition(self):
         r"""
-        Bijection of Biane from Dyck words to non crossing partitions
+        Bijection of Biane from Dyck words to non-crossing partitions.
         Thanks to Mathieu Dutour for describing the bijection.
 
         EXAMPLES::
@@ -425,8 +471,9 @@ class DyckWord_class(CombinatorialObject):
 
     def to_tableau(self):
         r"""
-        returns a standard tableau of length less than or equal to 2 with the size the same as the length of the list
-        the standard tableau will be rectangular iff ``self`` is a complete Dyck word
+        Returns a standard tableau of length less than or equal to 2 with the
+        size the same as the length of the list. The standard tableau will be
+        rectangular iff ``self`` is a complete Dyck word.
 
         EXAMPLES::
 
@@ -443,7 +490,8 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 0, 1]).to_tableau()
             [[2], [1, 3]]
 
-        TODO: better name? to_standard_tableau? and should *actually* return a Tableau object?
+        TODO: better name? ``to_standard_tableau``? and should *actually*
+        return a Tableau object?
         """
         open_positions = []
         close_positions = []
@@ -457,7 +505,8 @@ class DyckWord_class(CombinatorialObject):
 
     def a_statistic(self):
         """
-        Returns the a-statistic for the Dyck word correspond to the area of the Dyck path.
+        Returns the a-statistic for the Dyck word corresponding to the area
+        of the Dyck path.
 
         One can view a balanced Dyck word as a lattice path from
         `(0,0)` to `(n,n)` in the first quadrant by letting
@@ -526,7 +575,8 @@ class DyckWord_class(CombinatorialObject):
 
     def b_statistic(self):
         r"""
-        Returns the b-statistic for the Dyck word corresponding to the bounce statistic of the Dyck word.
+        Returns the b-statistic for the Dyck word corresponding to the bounce
+        statistic of the Dyck word.
 
         One can view a balanced Dyck word as a lattice path from `(0,0)` to
         `(n,n)` in the first quadrant by letting '1's represent steps in
@@ -543,7 +593,12 @@ class DyckWord_class(CombinatorialObject):
         line y = x.
 
         The bouncing ball will strike the diagonal at places
-        $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n).$
+
+        .. MATH::
+
+            (0, 0), (j_1, j_1), (j_2, j_2), \dots , (j_r-1, j_r-1), (j_r, j_r)
+            =
+            (n, n).
 
         We define the b-statistic to be the sum `\sum_{i=1}^{r-1} j_i`.
 
@@ -901,8 +956,8 @@ class DyckWords_size(CombinatorialClass):
 
     def list(self):
         """
-        Returns a list of all the Dyck words with ``k1`` opening and ``k2`` closing
-        parentheses.
+        Returns a list of all the Dyck words with ``k1`` opening and ``k2``
+        closing parentheses.
 
         EXAMPLES::
 
@@ -917,8 +972,8 @@ class DyckWords_size(CombinatorialClass):
 
     def __iter__(self):
         r"""
-        Returns an iterator for Dyck words with ``k1`` opening and ``k2`` closing
-        parentheses.
+        Returns an iterator for Dyck words with ``k1`` opening and ``k2``
+        closing parentheses.
 
         EXAMPLES::
 
@@ -1034,7 +1089,7 @@ def is_a(obj, k1 = None, k2 = None):
 
 def from_noncrossing_partition(ncp):
     r"""
-    converts a non-crossing partition to a Dyck word
+    Converts a non-crossing partition to a Dyck word.
 
     TESTS::
 

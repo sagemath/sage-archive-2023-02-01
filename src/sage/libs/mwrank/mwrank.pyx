@@ -1,5 +1,5 @@
 """
-Cython interface to Cremona's eclib library (also known as mwrank)
+Cython interface to Cremona's ``eclib`` library (also known as ``mwrank``)
 
 EXAMPLES::
 
@@ -111,7 +111,7 @@ def set_precision(n):
 
     OUTPUT:
 
-    None
+    None.
 
     EXAMPLE::
 
@@ -127,9 +127,9 @@ def initprimes(filename, verb=False):
 
     INPUT:
 
-    - ``filename`` -- (string) the name of a file of primes
+    - ``filename`` (string) -- the name of a file of primes.
 
-    - ``verb`` -- (bool: default False) verbose or not?
+    - ``verb`` (bool: default ``False``) -- verbose or not?
 
     EXAMPLES::
 
@@ -166,7 +166,7 @@ def initprimes(filename, verb=False):
 
 cdef class _bigint:
     """
-    cython class wrapping eclib's bigint class
+    Cython class wrapping eclib's bigint class.
     """
     cdef bigint* x
 
@@ -416,7 +416,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         .. note::
 
-           The dicriminant is returned as a python int.
+           The discriminant is returned as a python int.
 
         EXAMPLES::
 
@@ -426,7 +426,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             -10351
             sage: E = _Curvedata(100,200,300,400,500)
             sage: E.discriminant()
-            -1269581104000000L
+            -1269581104000000
             sage: ZZ(E.discriminant())
             -1269581104000000
         """
@@ -453,7 +453,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             -10351
             sage: E = _Curvedata(100,200,300,400,500)
             sage: E.conductor()
-            126958110400L
+            126958110400
             sage: ZZ(E.conductor())
             126958110400
         """
@@ -474,7 +474,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         .. warning::
 
            The list may not be complete, if the precision is too low.
-           Use mwrank_set_precision() to increase the precision.
+           Use ``mwrank_set_precision()`` to increase the precision.
 
         EXAMPLES::
 
@@ -501,7 +501,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
 cdef class _mw:
     """
-    cython class wrapping eclib's mw class
+    Cython class wrapping eclib's mw class.
     """
     cdef mw* x
     cdef Curvedata* curve
@@ -633,7 +633,7 @@ cdef class _mw:
             sage: EQ
             [[1:-1:1], [-2:3:1], [-14:25:8]]
 
-        Example to illustrate the `process points` parameter::
+        Example to illustrate the process points ``pp`` parameter::
 
             sage: from sage.libs.mwrank.mwrank import _mw
             sage: from sage.libs.mwrank.mwrank import _Curvedata
@@ -687,11 +687,11 @@ cdef class _mw:
         INPUT:
 
         - ``point`` (tuple or list) -- tuple or list of 3 integers.
-          An ArithmeticError is raised if the point is not on the
+          An ``ArithmeticError`` is raised if the point is not on the
           curve.
 
         - ``sat`` (int, default 0) --saturate at primes up to ``sat``.
-          No saturation is done if sat=0.  (Note that it is more
+          No saturation is done if ``sat=0``.  (Note that it is more
           efficient to add several points at once and then saturate
           just once at the end).
 
@@ -840,7 +840,7 @@ cdef class _mw:
 
         - ``odd_primes_only`` (bool, default False) -- only do
           saturation at odd primes.  (If the points have been found
-          via 2-descent they should alreday be 2-saturated.)
+          via 2-descent they should already be 2-saturated.)
 
         OUTPUT:
 
@@ -960,7 +960,7 @@ cdef class _mw:
 ############# two_descent #################
 cdef class _two_descent:
     """
-    cython class wrapping eclib's two_descent class
+    Cython class wrapping eclib's two_descent class.
     """
     cdef two_descent* x
 
@@ -1015,7 +1015,7 @@ cdef class _two_descent:
         - ``n_aux`` (int, default -1) -- If positive, the number of
           auxiliary primes used in sieve-assisted search for quartics.
           If -1 (the default) use a default value (set in the eclib
-          code in src/qrank/mrank1.cc in DEFAULT_NAUX: currently 8).
+          code in ``src/qrank/mrank1.cc`` in DEFAULT_NAUX: currently 8).
           Only relevant for curves with no 2-torsion, where full
           2-descent is carried out.  Worth increasing for curves
           expected to be of of rank>6 to one or two more than the
@@ -1025,7 +1025,7 @@ cdef class _two_descent:
           whether or not a second descent will be carried out (yes if
           1, the default; no if 0).  Only relevant for curves with
           2-torsion.  Recommended left as the default except for
-          experts interested in setails of Selmer groups.
+          experts interested in details of Selmer groups.
 
         OUTPUT:
 

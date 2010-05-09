@@ -2641,24 +2641,27 @@ class Polyhedron(SageObject):
 
     def coerce_field(self, other):
         """
-        Return the number type that contains both `self.field()` and `other`.
+        Return the common field for both ``self`` and ``other``.
 
         INPUT:
 
-        The argument `other` must be either
-        * another `Polyhedron()` object
-        * `QQ` or `RDF`
-        * a constant that can be coerced to `QQ` or `RDF`.
+        The argument ``other`` must be either:
+
+        * another ``Polyhedron`` object
+
+        * `\QQ` or `RDF`
+
+        * a constant that can be coerced to `\QQ` or `RDF`
 
         OUTPUT:
 
-        Either `QQ` or `RDF`. Raises `TypeError` if `other` is not a
+        Either `\QQ` or `RDF`. Raises ``TypeError`` if ``other`` is not a
         suitable input.
 
-        NOTE:
+        .. NOTE::
 
-        "Real" numbers in sage are not necessarily elements of
-        `RDF`. For example, the literal `1.0` is not.
+            "Real" numbers in sage are not necessarily elements of
+            `RDF`. For example, the literal `1.0` is not.
 
         EXAMPLES::
 
@@ -2696,7 +2699,7 @@ class Polyhedron(SageObject):
             elif RDF.coerce_map_from(other_parent) != None:
                 other_field = RDF
             else:
-                raise TypeError
+                raise TypeError("cannot determine field from %s!" % other)
 
         assert other_field==QQ or other_field==RDF
 
@@ -3041,8 +3044,11 @@ class Polyhedron(SageObject):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[[0]]).union( Polyhedron(vertices=[[1]]) )
+            doctest:...: DeprecationWarning: (Since Sage Version 4.4.4) The function union is replaced by convex_hull.
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices.
         """
+        from sage.misc.misc import deprecation
+        deprecation('The function union is replaced by convex_hull.', 'Sage Version 4.4.4')
         return self.convex_hull(other)
 
 

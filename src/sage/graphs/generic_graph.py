@@ -1829,25 +1829,75 @@ class GenericGraph(GenericGraph_pyx):
         Tests whether the current graph is overfull.
 
         A graph `G` on `n` vertices and `m` edges is said to
-        be overfull if :
+        be overfull if:
 
-            - `n` is odd
+        - `n` is odd
 
-            - It satisfies `2m > (n-1)\Delta(G)`, where
-              `\Delta(G)` denotes the maximal degree of
-              a vertex in `G`
+        - It satisfies `2m > (n-1)\Delta(G)`, where
+          `\Delta(G)` denotes the maximum degree
+          among all vertices in `G`.
 
         An overfull graph must have a chromatic index of `\Delta(G)+1`.
 
-        EXAMPLE:
+        EXAMPLES:
 
-        A complete graph is overfull if and only if its number
-        of vertices is odd::
+        A complete graph of order `n > 1` is overfull if and only if `n` is
+        odd::
 
             sage: graphs.CompleteGraph(6).is_overfull()
             False
             sage: graphs.CompleteGraph(7).is_overfull()
             True
+            sage: graphs.CompleteGraph(1).is_overfull()
+            False
+
+        The claw graph is not overfull::
+
+            sage: from sage.graphs.graph_coloring import edge_coloring
+            sage: g = graphs.ClawGraph()
+            sage: g
+            Claw graph: Graph on 4 vertices
+            sage: edge_coloring(g, value_only=True)  # optional - requires GLPK, CBC, or CPLEX
+            3
+            sage: g.is_overfull()
+            False
+
+        Checking that all complete graphs `K_n` for even `0 \leq n \leq 100`
+        are not overfull::
+
+            sage: def check_overfull_Kn_even(n):
+            ...       i = 0
+            ...       while i <= n:
+            ...           if graphs.CompleteGraph(i).is_overfull():
+            ...               print "A complete graph of even order cannot be overfull."
+            ...               return
+            ...           i += 2
+            ...       print "Complete graphs of even order up to %s are not overfull." % n
+            ...
+            sage: check_overfull_Kn_even(100)  # long time
+            Complete graphs of even order up to 100 are not overfull.
+
+        The null graph, i.e. the graph with no vertices, is not overfull::
+
+            sage: Graph().is_overfull()
+            False
+            sage: graphs.CompleteGraph(0).is_overfull()
+            False
+
+        Checking that all complete graphs `K_n` for odd `1 < n \leq 100`
+        are overfull::
+
+            sage: def check_overfull_Kn_odd(n):
+            ...       i = 3
+            ...       while i <= n:
+            ...           if not graphs.CompleteGraph(i).is_overfull():
+            ...               print "A complete graph of odd order > 1 must be overfull."
+            ...               return
+            ...           i += 2
+            ...       print "Complete graphs of odd order > 1 up to %s are overfull." % n
+            ...
+            sage: check_overfull_Kn_odd(100)  # long time
+            Complete graphs of odd order > 1 up to 100 are overfull.
 
         The Petersen Graph, though, is not overfull while
         its chromatic index is `\Delta+1`::
@@ -1859,9 +1909,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: max(g.degree()) + 1 ==  edge_coloring(g, value_only=True) # optional - requires GLPK CBC or CPLEX
             True
         """
-
-        return (self.order() % 2 == 1) and \
-            (2*self.size() > max(self.degree())*(self.order()-1))
+        # # A possible optimized version. But the gain in speed is very little.
+        # return bool(self._backend.num_verts() & 1) and (  # odd order n
+        #     2 * self._backend.num_edges(self._directed) > #2m > \Delta(G)*(n-1)
+        #     max(self.degree()) * (self._backend.num_verts() - 1))
+        # unoptimized version
+        return (self.order() % 2 == 1) and (
+            2 * self.size() > max(self.degree()) * (self.order() - 1))
 
     def order(self):
         """

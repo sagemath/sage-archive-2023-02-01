@@ -458,7 +458,8 @@ cdef class Matrix(matrix0.Matrix):
                    [ 4,  5,  6,  7],
                    [ 8,  9, 10, 11]])
             sage: b.dtype
-            dtype('int64')
+            dtype('int32')  # 32-bit
+            dtype('int64')  # 64-bit
             sage: b.shape
             (3, 4)
         """

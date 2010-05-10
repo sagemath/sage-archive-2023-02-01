@@ -83,7 +83,7 @@ erf = Function_erf()
 
 class Function_abs(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The absolute value function.
 
         EXAMPLES::
@@ -591,7 +591,7 @@ gamma1 = Function_gamma()
 
 class Function_gamma_inc(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The incomplete gamma function.
 
         EXAMPLES::
@@ -1064,7 +1064,7 @@ class Function_binomial(GinacFunction):
 binomial = Function_binomial()
 
 def _do_sqrt(x, prec=None, extend=True, all=False):
-        """
+        r"""
         Used internally to compute the square root of x.
 
         INPUT:
@@ -1124,7 +1124,7 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
         return z
 
 def sqrt(x, *args, **kwds):
-        """
+        r"""
         INPUT:
 
         -  ``x`` - a number
@@ -1248,7 +1248,7 @@ real = real_part = Function_real_part()
 
 class Function_imag_part(GinacFunction):
     def __init__(self):
-        """
+        r"""
         TESTS::
 
             sage: z = 1+2*I

@@ -1,6 +1,8 @@
-"""
-Graphics 3D object for triangulating surfaces, and a base class for many other objects
-that can be represented by a 2d parametrization.
+r"""
+Parametric Surface
+
+Graphics 3D object for triangulating surfaces, and a base class for many other
+objects that can be represented by a 2D parametrization.
 
 It takes great care to turn degenerate quadrilaterals into triangles and
 to propagate identified points to all attached polygons. This is not
@@ -23,17 +25,17 @@ EXAMPLES::
     False
     sage: S.show()
 
-NOTE:
-    One may override \code{eval()} or \code{eval_c()} in a subclass
+.. NOTE::
+
+    One may override ``eval()`` or ``eval_c()`` in a subclass
     rather than passing in a function for greater speed.
     One also would want to override get_grid.
 
-TODO: actually remove unused points, fix the below code
+TODO: actually remove unused points, fix the below code::
 
     S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
 
 """
-
 
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -75,10 +77,20 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
         return 0
 
 cdef class ParametricSurface(IndexFaceSet):
-
     """
     Base class that initializes the ParametricSurface
-    graphics type
+    graphics type. This sets options, the function to be plotted, and the
+    plotting array as attributes.
+
+    INPUT:
+
+    - ``f`` - (default: None) The defining function. Either a tuple of
+      three functions, or a single function which returns a tuple, taking
+      two python floats as input. To subclass, pass None for f and override
+      eval_c or eval instead.
+
+    - ``domain`` - (default: None) A tuple of two lists, defining the
+      grid of `u,v` values. If None, this will be calculate automatically.
 
     EXAMPLES::
 
@@ -97,36 +109,24 @@ cdef class ParametricSurface(IndexFaceSet):
         sage: def f(u,v):
         ...       a = 1
         ...       from math import cos, sin, sinh, cosh
-        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3)+ \
-        ...            sin(a)*(sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
-        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3)+\
-        ...           sin(a)*(-cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
+        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3) + sin(a)*(
+        ...           sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
+        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3) + sin(a)*(
+        ...           -cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
         ...       z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
         ...       return (x,y,z)
         sage: v = srange(float(0),float((3/2)*pi),float(0.1))
-        sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)), \
+        sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)),
         ...                  srange(float(-1),float(1),float(0.1))), color="blue")
         sage: show(S)
     """
 
     def __init__(self, f=None, domain=None, **kwds):
         """
-        Create the graphics primitive ParametricSurface.  This sets options,
-        the function to be plotted, and the plotting array as attributes.
+        Create the graphics primitive :class:`ParametricSurface`.  See the
+        docstring of this class for full documentation.
 
-        INPUT:
-
-        -  ``f`` - (default: None) The defining function. Either a tuple of
-           three functions, or a single function which returns a tuple, taking
-           two python floats as input. To subclass, pass None for f and override
-           eval_c or eval instead.
-
-        -  ``domain`` - (default: None) A tuple of two lists, defining the
-           grid of `u`,`v` values. If None, this will be calculate automatically.
-
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
             sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
@@ -151,7 +151,7 @@ cdef class ParametricSurface(IndexFaceSet):
         return RenderParams(ds=.075, crease_threshold=.35)
 
     def x3d_geometry(self):
-        """
+        r"""
         Returns XML-like representation of the coordinates of all points
         in a triangulation of the object along with an indexing of those
         points.
@@ -200,7 +200,7 @@ cdef class ParametricSurface(IndexFaceSet):
         return IndexFaceSet.obj_repr(self, render_params)
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         Returns representation of the object suitable for plotting
         using Jmol.
 
@@ -257,8 +257,8 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def dual(self):
         """
-        Returns an IndexFaceSet which is the dual of the ParametricSurface
-        object as a triangulated surface.
+        Returns an ``IndexFaceSet`` which is the dual of the
+        :class:`ParametricSurface` object as a triangulated surface.
 
         EXAMPLES:
 
@@ -296,7 +296,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def bounding_box(self):
         """
-        Returns the lower and upper corners of a 3d bounding box for self.
+        Returns the lower and upper corners of a 3D bounding box for self.
         This is used for rendering and self should fit entirely within this
         box.
 
@@ -320,22 +320,22 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def triangulate(self, render_params=None):
         r"""
-        Calls self.eval_grid() for all `(u,v)` in `urange \times vrange`
-        to construct this surface.
+        Calls self.eval_grid() for all `(u,v)` in
+        `\text{urange} \times \text{vrange}` to construct this surface.
 
         The most complicated part of this code is identifying shared
         vertices and shrinking trivial edges. This is not done so much
         to save memory, rather it is needed so normals of the triangles
         can be calculated correctly.
 
-        TESTS::  # These are indirect doctests
+        TESTS::
 
             sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
-            sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
-            sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
-            sage: P.show()
-            sage: S = MobiusStrip(1,.2)
-            sage: S.show()
+            sage: def f(x,y): return x+y, sin(x)*sin(y), x*y                        # indirect doctests
+            sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))  # indirect doctests
+            sage: P.show()                                                          # indirect doctests
+            sage: S = MobiusStrip(1,.2)                                             # indirect doctests
+            sage: S.show()                                                          # indirect doctests
         """
         if render_params is None:
             render_params = self.default_render_params()
@@ -473,7 +473,8 @@ cdef class ParametricSurface(IndexFaceSet):
 
     cdef int eval_grid(self, urange, vrange) except -1:
         r"""
-        This fills in the points self.vs for all `u \in urange, v \in vrange`.
+        This fills in the points ``self.vs`` for all
+        `u \in \text{urange}, v \in \text{vrange}`.
         We assume enough memory has been allocated.
 
         We branch outside the loops for efficiency. The options for self.f are:
@@ -611,7 +612,19 @@ cdef class ParametricSurface(IndexFaceSet):
 
 class MobiusStrip(ParametricSurface):
     """
-    Base class for the MobiusStrip graphics type
+    Base class for the :class:`MobiusStrip` graphics type. This sets the the
+    basic parameters of the object.
+
+    INPUT:
+
+    - ``r`` - A number which can be coerced to a float, serving roughly
+      as the radius of the object.
+
+    - ``width`` - A number which can be coerced to a float, which gives the
+      width of the object.
+
+    - ``twists`` - (default: 1) An integer, giving the number of twists in the
+      object (where one twist is the 'traditional' Mobius strip).
 
     EXAMPLES::
 
@@ -619,21 +632,11 @@ class MobiusStrip(ParametricSurface):
         sage: M = MobiusStrip(3,3)
         sage: M.show()
     """
+
     def __init__(self, r, width, twists=1, **kwds):
         """
-        Create the graphics primitive MobiusStrip.  This sets the the basic
-        parameters of the object.
-
-        INPUT:
-
-        -  ``r`` - A number which can be coerced to a float, serving roughly
-           as the radius of the object.
-
-        -  ``width`` - A number which can be coerced to a float, which gives the
-           width of the object.
-
-        -  ``twists`` - (default: 1) An integer, giving the number of twists in the
-           object (where one twist is the 'traditional' M\"obius strip).
+        Create the graphics primitive MobiusStrip. See the docstring of
+        this class for full documentation.
 
         EXAMPLES:
 

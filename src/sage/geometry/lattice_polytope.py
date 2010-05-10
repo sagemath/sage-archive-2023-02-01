@@ -738,6 +738,48 @@ class LatticePolytopeClass(SageObject):
         face._interior_points.set_immutable()
         face._boundary_points.set_immutable()
 
+    def _latex_(self):
+        r"""
+        Return the latex representation of self.
+
+        OUTPUT:
+
+        - string
+
+        EXAMPLES:
+
+        Arbitrary lattice polytopes are printed as `\Delta^d`, where `d` is
+        the (actual) dimension of the polytope::
+
+            sage: LatticePolytope(matrix(2, [1, 0, 1, 0]))._latex_()
+            '\\Delta^{1}'
+
+        For reflexive polytopes the output is the same... ::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o._latex_()
+            '\\Delta^{2}'
+
+        ... unless they are written in the normal from in which case the index
+        in the internal database is printed as a subscript::
+
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o = LatticePolytope(o.normal_form())
+            sage: o.vertices()
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+            sage: o._latex_()
+            '\\Delta^{2}_{3}'
+        """
+        if (self.dim() in (2, 3)
+            and self.is_reflexive()
+            and self.normal_form() == self.vertices()):
+            return r"\Delta^{%d}_{%d}" % (self.dim(), self.index())
+        else:
+            return r"\Delta^{%d}" % self.dim()
+
     def _palp(self, command, reduce_dimension=False):
         r"""
         Run ``command`` on vertices of this polytope.
@@ -1884,6 +1926,34 @@ class LatticePolytopeClass(SageObject):
             8
         """
         return self._vertices.ncols()
+
+    def origin(self):
+        r"""
+        Return the index of the origin in the list of points of self.
+
+        OUTPUT:
+
+        - integer if the origin belongs to this polytope, ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.origin()
+            4
+            sage: o.point(o.origin())
+            (0, 0)
+
+            sage: p = LatticePolytope(matrix([[1,2]]))
+            sage: p.points()
+            [1 2]
+            sage: print p.origin()
+            None
+        """
+        if "_origin" not in self.__dict__:
+            origin = vector([0]*self.dim())
+            points = self.points().columns(copy=False)
+            self._origin = points.index(origin) if origin in points else None
+        return self._origin
 
     def parent(self):
         """

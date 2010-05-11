@@ -5,24 +5,25 @@ from copy import copy
 
 class LazyFormat(str):
     """
-    Lazy format string which only calls ``__repr__()`` and ``__str__()`` of
-    their parameters if printed.
+    Lazy format strings
 
-    The class :class:`LazyFormat` allows to create format strings which calls
-    their argument's ``__repr__`` only if needed.  Otherwise it behaves as
-    usual format string.
+
+    An instance of :class:`LazyFormat` behaves like a usual format
+    string, except that the evaluation of the ``__repr__`` method of
+    the formated arguments it postponed until actual printing.
 
     EXAMPLES:
 
-    Under normal circumstances, :class:`Lazyformat` strings behaves as usual::
+    Under normal circumstances, :class:`Lazyformat` strings behave as usual::
 
         sage: from sage.misc.lazy_format import LazyFormat
-        sage: LazyFormat("<%s>.+.")%"toto"
-        <toto>.+.
-        sage: LazyFormat("<%s>.+.<%s>")%("toto", 3)
-        <toto>.+.<3>
+        sage: LazyFormat("Got `%s`; expected a list")%3
+        Got `3`; expected a list
+        sage: LazyFormat("Got `%s`; expected %s")%(3, 2/3)
+        Got `3`; expected 2/3
 
-    Lets build an object with a broken ``__repr__`` method::
+    To demonstrate the lazyness, let us build an object with a broken
+    ``__repr__`` method::
 
         sage: class IDontLikeBeingPrinted(object):
         ...    def __repr__(self):
@@ -32,30 +33,29 @@ class LazyFormat(str):
 
         sage: lf = LazyFormat("<%s>")%IDontLikeBeingPrinted()
 
-    The error occurs only when printed::
+    The error only occurs upon printing::
 
         sage: lf
         Traceback (most recent call last):
         ...
         ValueError: Don't ever try to print me !
 
+    .. rubric:: Common use case:
 
-    .. rubric:: Common Usage:
+    Most of the time, ``__repr__`` methods are only called during user
+    interaction, and therefore need not be fast; and indeed there are
+    objects ``x`` in Sage such ``x.__repr__()`` is time consuming.
 
-    A priori, since they are mostly called during user interaction, there is
-    no particular need to write fast ``__repr__`` methods, and indeed there
-    are some objects ``x`` whose call ``x.__repr__()`` is quite time
-    expensive. However, there are several use case where it is actually called
-    and when the results is simply discarded. In particular writing ``"%s"%x``
-    actually calls ``x.__repr__()`` even the results is not printed. A typical
-    use case is during tests when there is a tester which tests an assertion
-    and prints an error message on failure::
+    There are however some uses cases where many format strings are
+    constructed but not actually printed. This includes error handling
+    messages in :mod:`unittest` or :class:`TestSuite` executions::
 
         sage: QQ._tester().assertTrue(0 in QQ,
         ...                "%s doesn't contain 0"%QQ)
 
-    I the previous case ``QQ.__repr__()`` has been called. To show this we
-    replace QQ in the format string argument with out broken object::
+    In the above ``QQ.__repr__()`` has been called, and the result
+    immediately discarded. To demonstrate this we replace ``QQ`` in
+    the format string argument with our broken object::
 
         sage: QQ._tester().assertTrue(True,
         ...                "%s doesn't contain 0"%IDontLikeBeingPrinted())
@@ -63,13 +63,12 @@ class LazyFormat(str):
         ...
         ValueError: Don't ever try to print me !
 
-    There is no need to call ``IDontLikeBeingPrinted().__repr__()``, but itx
-    can't be avoided with usual strings. Note that with the usual assert, the
-    call is not performed::
+    This behavior can induce major performance penalties when testing.
+    Note that this issue does not impact the usual assert:
 
         sage: assert True, "%s is wrong"%IDontLikeBeingPrinted()
 
-    We now check that :class:`LazyFormat` indeed solve the assertion problem::
+    We now check that :class:`LazyFormat` indeed solves the assertion problem::
 
         sage: QQ._tester().assertTrue(True,
         ...               LazyFormat("%s is wrong")%IDontLikeBeingPrinted())
@@ -82,7 +81,7 @@ class LazyFormat(str):
 
     def __mod__(self, args):
         """
-        Binds the lazy format with its parameters
+        Binds the lazy format string with its parameters
 
         EXAMPLES::
 
@@ -111,6 +110,10 @@ class LazyFormat(str):
             sage: form%"toto"
             <toto>
             sage: print form%"toto"
+            <toto>
+            sage: print str(form%"toto")
+            <toto>
+            sage: print (form%"toto").__repr__()
             <toto>
         """
         try:

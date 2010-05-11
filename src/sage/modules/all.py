@@ -26,3 +26,5 @@ from free_module_morphism import is_FreeModuleMorphism
 from module import is_Module, is_VectorSpace
 
 from module_element import ModuleElement, is_ModuleElement
+
+import vector_callable_symbolic_dense

@@ -2015,10 +2015,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         latex = sage.misc.latex.latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
-        for a in self.list():
-            s = s + latex(a) + ','
-        if len(self.list()) > 0:
-            s = s[:-1]  # get rid of last comma
+        s += ',\,'.join([latex(a) for a in self.list()])
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):

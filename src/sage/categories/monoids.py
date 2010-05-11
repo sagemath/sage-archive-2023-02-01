@@ -48,7 +48,7 @@ class Monoids(Category):
     @cached_method
     def super_categories(self):
         """
-        Returns a list of the immediate super categories of self.
+        Returns a list of the immediate super categories of ``self``.
 
         EXAMPLES::
 
@@ -71,7 +71,7 @@ class Monoids(Category):
                coercion from the integers::
 
                 - is not always meaningful (except for `1`);
-                - often uses self.one().
+                - often uses ``self.one()``.
 
             EXAMPLES::
 
@@ -84,7 +84,7 @@ class Monoids(Category):
 
         def one_element(self):
             r"""
-            Backward compatibility alias for :meth:`self.one()`.
+            Backward compatibility alias for :meth:`one`.
 
             TESTS::
 
@@ -135,14 +135,14 @@ class Monoids(Category):
             INPUT:
              - ``args`` -- a list (or iterable) of elements of ``self``
 
-            Returns the product of the elements in `args`, as an element of `self`.
+            Returns the product of the elements in ``args``, as an element of
+            ``self``.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: S = Monoids().example()
                 sage: S.prod([S('a'), S('b')])
                 'ab'
-
             """
             return prod(args, self.one())
 
@@ -182,7 +182,7 @@ class Monoids(Category):
 
         def is_one(self):
             r"""
-            Returns whether self is the one of the monoid
+            Returns whether ``self`` is the one of the monoid
 
             The default implementation, is to compare with ``self.one()``.
 
@@ -199,7 +199,7 @@ class Monoids(Category):
         def __pow__(self, n):
             r"""
             INPUTS:
-             - n: a non negative integer
+             - ``n``: a non negative integer
 
             Returns ``self`` to the `n^{th}` power.
 
@@ -217,14 +217,14 @@ class Monoids(Category):
 
         def _pow_naive(self, n):
             r"""
-            A naive implementation of __pow__
+            A naive implementation of ``__pow__``
 
             INPUTS:
-             - n: a non negative integer
+             - ``n``: a non negative integer
 
             Returns self to the `n^{th}` power, without using binary
             exponentiation (there are cases where this can actually be
-            faster du to size explotion).
+            faster due to size explosion).
 
             EXAMPLES::
 

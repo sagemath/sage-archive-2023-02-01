@@ -1429,7 +1429,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CycleGraph(6)
             sage: bounds = lambda x: [1,1]
             sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC or CPLEX
-            sage: m.size() # optional - requires GLPK CBC or CPLEX
+            sage: m.size() # optional - requires GLPK or CBC or CPLEX
             3
         """
 
@@ -1456,7 +1456,7 @@ class Graph(GenericGraph):
 
         for v in self:
             minimum,maximum = f_bounds(v)
-            p.add_constraint(sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]),min=minimum, max=maximum)
+            p.add_constraint(sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
 
         p.set_objective(sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
         p.set_binary(b)

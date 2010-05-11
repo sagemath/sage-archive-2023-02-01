@@ -577,7 +577,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     color = p.get_values(color)
     classes = [[] for i in xrange(k)]
     [classes[i].append(e)
-         for e in g.edge_iterator(labels = False)
+         for e in g.edge_iterator(labels=False)
              for i in xrange(k)
                  if color[R(e)][i] == 1]
     # if needed, builds a dictionary from the color classes adding colors

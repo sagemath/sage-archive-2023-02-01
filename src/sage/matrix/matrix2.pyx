@@ -1791,9 +1791,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: M = random_matrix(ZZ, 10, 20)
             sage: N = random_matrix(ZZ, 20, 10)
             sage: M.trace_of_product(N)
-            5070
+            -1629
             sage: (M*N).trace()
-            5070
+            -1629
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
             raise ArithmeticError, "incompatible dimensions"

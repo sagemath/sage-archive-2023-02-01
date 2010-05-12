@@ -48,7 +48,8 @@ cdef class ntl_mat_GF2:
             ncols -- number of columns
             v     -- either a list or a matrix over GF(2^x)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ntl.mat_GF2(4,4); A
             [[0 0 0 0]
             [0 0 0 0]
@@ -57,22 +58,22 @@ cdef class ntl_mat_GF2:
             ]
 
             sage: A = random_matrix(GF(2),4,4); A
-            [1 0 0 1]
-            [1 1 0 1]
             [0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
 
             sage: B = ntl.mat_GF2(A); B
-            [[1 0 0 1]
-            [1 1 0 1]
-            [0 1 0 1]
+            [[0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
             ]
 
             sage: B = ntl.mat_GF2(4, 4, A.list()); B
-            [[1 0 0 1]
-            [1 1 0 1]
-            [0 1 0 1]
+            [[0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
             ]
         """
@@ -141,12 +142,13 @@ cdef class ntl_mat_GF2:
         """
         Return the string representation of this matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: B = ntl.mat_GF2(A); B # indirect doctest
-            [[1 0 0 1]
-            [1 1 0 1]
-            [0 1 0 1]
+            [[0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
             ]
         """
@@ -154,20 +156,22 @@ cdef class ntl_mat_GF2:
 
     def __mul__(ntl_mat_GF2 self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: B = random_matrix(GF(2),4,4)
             sage: ntl.mat_GF2(A)*ntl.mat_GF2(B)
-            [[1 1 1 0]
-            [1 0 0 1]
-            [0 1 0 0]
-            [1 0 0 0]
+            [[0 0 1 0]
+            [1 1 0 1]
+            [0 0 0 1]
+            [1 1 0 0]
             ]
+
             sage: A*B
-            [1 1 1 0]
-            [1 0 0 1]
-            [0 1 0 0]
-            [1 0 0 0]
+            [0 0 1 0]
+            [1 1 0 1]
+            [0 0 0 1]
+            [1 1 0 0]
         """
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
@@ -179,20 +183,22 @@ cdef class ntl_mat_GF2:
 
     def __sub__(ntl_mat_GF2 self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: B = random_matrix(GF(2),4,4)
             sage: ntl.mat_GF2(A) - ntl.mat_GF2(B)
             [[0 1 0 0]
-            [1 0 1 0]
-            [1 0 1 0]
-            [0 1 0 1]
+            [0 1 0 0]
+            [1 1 1 0]
+            [0 1 1 1]
             ]
+
             sage: A - B
             [0 1 0 0]
-            [1 0 1 0]
-            [1 0 1 0]
-            [0 1 0 1]
+            [0 1 0 0]
+            [1 1 1 0]
+            [0 1 1 1]
         """
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
@@ -204,20 +210,23 @@ cdef class ntl_mat_GF2:
 
     def __add__(ntl_mat_GF2 self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: B = random_matrix(GF(2),4,4)
             sage: ntl.mat_GF2(A) + ntl.mat_GF2(B)
             [[0 1 0 0]
-            [1 0 1 0]
-            [1 0 1 0]
-            [0 1 0 1]
+            [0 1 0 0]
+            [1 1 1 0]
+            [0 1 1 1]
             ]
+
             sage: A + B
             [0 1 0 0]
-            [1 0 1 0]
-            [1 0 1 0]
-            [0 1 0 1]
+            [0 1 0 0]
+            [1 1 1 0]
+            [0 1 1 1]
+
         """
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
@@ -229,18 +238,20 @@ cdef class ntl_mat_GF2:
 
     def __neg__(ntl_mat_GF2 self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: -ntl.mat_GF2(A)
-            [[1 0 0 1]
-            [1 1 0 1]
-            [0 1 0 1]
+            [[0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
             ]
+
             sage: -A
-            [1 0 0 1]
-            [1 1 0 1]
             [0 1 0 1]
+            [0 1 1 1]
+            [0 0 0 1]
             [0 1 1 0]
         """
         cdef ntl_mat_GF2 r = self._new()
@@ -251,7 +262,8 @@ cdef class ntl_mat_GF2:
 
     def __pow__(ntl_mat_GF2 self, long e, ignored):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: ntl.mat_GF2(A)^0
             [[1 0 0 0]
@@ -259,22 +271,25 @@ cdef class ntl_mat_GF2:
             [0 0 1 0]
             [0 0 0 1]
             ]
+
             sage: A^0
             [1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
             [0 0 0 1]
+
             sage: ntl.mat_GF2(A)^3
-            [[0 1 1 1]
-            [0 1 0 1]
-            [1 0 1 0]
-            [1 0 0 1]
+            [[0 1 1 0]
+            [0 0 0 0]
+            [0 1 1 0]
+            [0 1 1 0]
             ]
+
             sage: A^3
-            [0 1 1 1]
-            [0 1 0 1]
-            [1 0 1 0]
-            [1 0 0 1]
+            [0 1 1 0]
+            [0 0 0 0]
+            [0 1 1 0]
+            [0 1 1 0]
         """
         cdef ntl_mat_GF2 r = self._new()
         _sig_on
@@ -284,7 +299,8 @@ cdef class ntl_mat_GF2:
 
     def __richcmp__(ntl_mat_GF2 self, other, op):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: A1 = ntl.mat_GF2(A)
             sage: A2 = ntl.mat_GF2(A)
@@ -311,7 +327,8 @@ cdef class ntl_mat_GF2:
         """
         Return the number of rows of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ntl.mat_GF2(10,10)
             sage: A.NumRows()
             10
@@ -322,7 +339,8 @@ cdef class ntl_mat_GF2:
         """
         Return the number of columns of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ntl.mat_GF2(10,10)
             sage: A.NumCols()
             10
@@ -331,7 +349,8 @@ cdef class ntl_mat_GF2:
 
     def __setitem__(self, ij, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ntl.mat_GF2(5,5)
             sage: A[0,0] = 1
             sage: A[0,2] = 1
@@ -365,7 +384,8 @@ cdef class ntl_mat_GF2:
 
     def __getitem__(self, ij):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: A = ntl.mat_GF2(3,3,range(9))
             sage: A[0,0]
             0
@@ -395,11 +415,12 @@ cdef class ntl_mat_GF2:
         """
         Returns the determinant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ntl.mat_GF2(3,3,range(9))
             sage: A.determinant()
             0
-            sage: A = ntl.mat_GF2(random_matrix(GF(2),3,3))
+            sage: A = ntl.mat_GF2(3,3,[1,0,0, 0,1,0, 0,0,1])
             sage: A.determinant()
             1
         """
@@ -420,35 +441,36 @@ cdef class ntl_mat_GF2:
         INPUT:
            ncols -- number of columns to process (default: all)
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.echelon_form()
-            [1 0 0 0 0 0 0 1 0 0]
-            [0 1 0 0 0 0 0 1 0 0]
-            [0 0 1 0 0 0 0 1 0 0]
-            [0 0 0 1 0 0 0 1 0 0]
-            [0 0 0 0 1 0 0 0 0 0]
-            [0 0 0 0 0 1 0 1 0 0]
-            [0 0 0 0 0 0 1 0 0 0]
-            [0 0 0 0 0 0 0 0 1 0]
+            [1 0 0 0 0 0 1 0 1 0]
+            [0 1 0 0 0 0 0 0 0 0]
+            [0 0 1 0 0 0 1 0 1 0]
+            [0 0 0 1 0 0 1 0 1 0]
+            [0 0 0 0 1 0 1 0 0 0]
+            [0 0 0 0 0 1 1 0 0 0]
+            [0 0 0 0 0 0 0 1 0 0]
             [0 0 0 0 0 0 0 0 0 1]
             [0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0]
             sage: A.rank()
-            9
+            8
 
             sage: Abar.gauss()
-            9
+            8
+
             sage: Abar
-            [[1 1 0 1 1 1 1 0 0 1]
-            [0 1 0 1 1 1 0 1 0 0]
-            [0 0 1 0 1 1 0 0 1 1]
-            [0 0 0 1 1 0 0 1 0 0]
-            [0 0 0 0 1 0 0 0 0 0]
-            [0 0 0 0 0 1 1 1 1 1]
-            [0 0 0 0 0 0 1 0 0 1]
-            [0 0 0 0 0 0 0 0 1 1]
+            [[1 1 1 1 0 1 0 1 1 0]
+            [0 1 1 1 0 1 1 0 0 1]
+            [0 0 1 1 1 1 0 0 0 0]
+            [0 0 0 1 0 0 1 1 1 1]
+            [0 0 0 0 1 1 0 1 0 0]
+            [0 0 0 0 0 1 1 1 0 1]
+            [0 0 0 0 0 0 0 1 0 1]
             [0 0 0 0 0 0 0 0 0 1]
+            [0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0]
             ]
         """
@@ -460,13 +482,15 @@ cdef class ntl_mat_GF2:
         """
         Returns a list of the entries in this matrix
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = random_matrix(GF(2), 4, 4)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.list()
-            [1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0]
+            [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+
             sage: Abar.list()
-            [1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0]
+            [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+
         """
         cdef Py_ssize_t i, j
         return [self[i,j] for i in range(self.NumRows()) for j in range(self.x.NumCols())]
@@ -475,7 +499,7 @@ cdef class ntl_mat_GF2:
         r"""
         Return \code{True} if this matrix contains only zeroes, and \code{False} otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: Abar.IsZero()
@@ -494,29 +518,32 @@ cdef class ntl_mat_GF2:
         r"""
         Returns a \class{Matrix} over GF(2).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2), 6, 6); A
-            [1 1 0 1 1 0]
-            [0 1 0 1 0 1]
-            [0 0 1 1 0 1]
-            [1 0 1 1 0 1]
-            [1 1 0 1 1 0]
-            [1 1 0 1 0 0]
+            [0 1 0 1 1 0]
+            [0 1 1 1 0 1]
+            [0 0 0 1 0 1]
+            [0 1 1 0 0 1]
+            [0 0 0 1 1 1]
+            [0 0 1 1 1 1]
+
             sage: Abar = ntl.mat_GF2(A); Abar
-            [[1 1 0 1 1 0]
-            [0 1 0 1 0 1]
-            [0 0 1 1 0 1]
-            [1 0 1 1 0 1]
-            [1 1 0 1 1 0]
-            [1 1 0 1 0 0]
+            [[0 1 0 1 1 0]
+            [0 1 1 1 0 1]
+            [0 0 0 1 0 1]
+            [0 1 1 0 0 1]
+            [0 0 0 1 1 1]
+            [0 0 1 1 1 1]
             ]
+
             sage: Abar._sage_()
-            [1 1 0 1 1 0]
-            [0 1 0 1 0 1]
-            [0 0 1 1 0 1]
-            [1 0 1 1 0 1]
-            [1 1 0 1 1 0]
-            [1 1 0 1 0 0]
+            [0 1 0 1 1 0]
+            [0 1 1 1 0 1]
+            [0 0 0 1 0 1]
+            [0 1 1 0 0 1]
+            [0 0 0 1 1 1]
+            [0 0 1 1 1 1]
         """
         from sage.rings.finite_rings.constructor import FiniteField
         from sage.matrix.constructor import Matrix
@@ -533,32 +560,32 @@ cdef class ntl_mat_GF2:
         """
         Returns the transposed matrix of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A); Abar
-            [[0 1 0 1 1 1 0 1 0 0]
-            [1 1 0 1 1 1 1 0 0 1]
-            [0 1 1 1 0 0 0 1 1 1]
-            [0 0 1 1 0 1 0 1 1 1]
-            [0 1 1 0 1 1 1 1 0 0]
-            [1 1 1 1 1 0 1 0 1 0]
-            [1 1 0 1 1 0 0 1 1 1]
-            [0 1 1 1 0 1 0 0 0 1]
-            [0 1 1 0 0 1 1 1 1 1]
-            [1 0 1 0 1 1 1 1 1 1]
+            [[0 1 0 1 1 0 0 0 1 1]
+            [0 1 1 1 0 1 1 0 0 1]
+            [0 0 0 1 0 1 0 0 1 0]
+            [0 1 1 0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1 0 1 1]
+            [0 0 1 1 1 1 0 0 0 0]
+            [1 1 1 1 0 1 0 1 1 0]
+            [0 0 0 1 1 0 0 0 1 1]
+            [1 0 0 0 1 1 1 0 1 1]
+            [1 0 0 1 1 0 1 0 0 0]
             ]
 
             sage: Abar.transpose()
-            [[0 1 0 0 0 1 1 0 0 1]
-            [1 1 1 0 1 1 1 1 1 0]
-            [0 0 1 1 1 1 0 1 1 1]
-            [1 1 1 1 0 1 1 1 0 0]
-            [1 1 0 0 1 1 1 0 0 1]
-            [1 1 0 1 1 0 0 1 1 1]
-            [0 1 0 0 1 1 0 0 1 1]
-            [1 0 1 1 1 0 1 0 1 1]
-            [0 0 1 1 0 1 1 0 1 1]
-            [0 1 1 1 0 0 1 1 1 1]
+            [[0 0 0 0 0 0 1 0 1 1]
+            [1 1 0 1 0 0 1 0 0 0]
+            [0 1 0 1 0 1 1 0 0 0]
+            [1 1 1 0 1 1 1 1 0 1]
+            [1 0 0 0 1 1 0 1 1 1]
+            [0 1 1 1 1 1 1 0 1 0]
+            [0 1 0 0 1 0 0 0 1 1]
+            [0 0 0 1 0 0 1 0 0 0]
+            [1 0 1 1 1 0 1 1 1 0]
+            [1 1 0 0 1 0 0 1 1 0]
             ]
         """
         cdef ntl_mat_GF2 r = self._new()
@@ -571,7 +598,7 @@ cdef class ntl_mat_GF2:
         """
         Return $X = A^{-1}$; an error is raised if A is singular.
 
-        EXAMPLES:
+        EXAMPLES::
             sage: l = [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, \
                        0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, \
                        1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, \
@@ -591,7 +618,7 @@ cdef class ntl_mat_GF2:
         """
         test if this matrix is the n x n identity matrix.
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -610,7 +637,7 @@ cdef class ntl_mat_GF2:
         """
         test if X is an  n x n diagonal matrix with d on diagonal.
 
-        EXAMPLES:
+        EXAMPLES::
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -629,31 +656,30 @@ cdef class ntl_mat_GF2:
         then, the rows of X are computed as basis of A's row space.  X
         is in row echelon form.
 
-        EXAMPLE:
+        EXAMPLE::
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.image()
-            Vector space of degree 10 and dimension 9 over Finite Field of size 2
+            Vector space of degree 10 and dimension 8 over Finite Field of size 2
             Basis matrix:
-            [1 0 0 0 0 0 0 1 0 0]
-            [0 1 0 0 0 0 0 1 0 0]
-            [0 0 1 0 0 0 0 1 0 0]
-            [0 0 0 1 0 0 0 1 0 0]
-            [0 0 0 0 1 0 0 0 0 0]
-            [0 0 0 0 0 1 0 1 0 0]
-            [0 0 0 0 0 0 1 0 0 0]
-            [0 0 0 0 0 0 0 0 1 0]
+            [1 0 0 0 0 0 1 0 1 0]
+            [0 1 0 0 0 0 0 0 0 0]
+            [0 0 1 0 0 0 1 0 1 0]
+            [0 0 0 1 0 0 1 0 1 0]
+            [0 0 0 0 1 0 1 0 0 0]
+            [0 0 0 0 0 1 1 0 0 0]
+            [0 0 0 0 0 0 0 1 0 0]
             [0 0 0 0 0 0 0 0 0 1]
 
+
             sage: Abar.image()
-            [[1 1 0 1 1 1 1 0 0 1]
-            [0 1 0 1 1 1 0 1 0 0]
-            [0 0 1 0 1 1 0 0 1 1]
-            [0 0 0 1 1 0 0 1 0 0]
-            [0 0 0 0 1 0 0 0 0 0]
-            [0 0 0 0 0 1 1 1 1 1]
-            [0 0 0 0 0 0 1 0 0 1]
-            [0 0 0 0 0 0 0 0 1 1]
+            [[1 1 1 1 0 1 0 1 1 0]
+            [0 1 1 1 0 1 1 0 0 1]
+            [0 0 1 1 1 1 0 0 0 0]
+            [0 0 0 1 0 0 1 1 1 1]
+            [0 0 0 0 1 1 0 1 0 0]
+            [0 0 0 0 0 1 1 1 0 1]
+            [0 0 0 0 0 0 0 1 0 1]
             [0 0 0 0 0 0 0 0 0 1]
             ]
         """
@@ -668,15 +694,18 @@ cdef class ntl_mat_GF2:
         Computes a basis for the kernel of the map x -> x*A. where x
         is a row vector.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.kernel()
-            Vector space of degree 10 and dimension 1 over Finite Field of size 2
+            Vector space of degree 10 and dimension 2 over Finite Field of size 2
             Basis matrix:
-            [1 0 1 1 1 0 1 0 0 1]
+            [1 1 1 0 1 1 0 1 0 0]
+            [0 0 0 1 1 0 1 0 1 0]
             sage: Abar.kernel()
-            [[1 0 1 1 1 0 1 0 0 1]
+            [[0 0 0 1 1 0 1 0 1 0]
+            [1 1 1 0 1 1 0 1 0 0]
             ]
         """
         cdef ntl_mat_GF2 X = self._new()

@@ -283,24 +283,24 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
             sage: {B:0} # indirect doctest
-            {[ 11  86  14]
-            [ 28 103  68]
-            [108  24  74]: 0}
+            {[  9  75  94]
+            [  4  57 112]
+            [ 59  85  45]: 0}
 
         ::
 
             sage: M = random_matrix(GF(7), 10, 10)
             sage: M.set_immutable()
             sage: hash(M)
-            774
+            143
             sage: MZ = M.change_ring(ZZ)
             sage: MZ.set_immutable()
             sage: hash(MZ)
-            774
+            143
             sage: MS = M.sparse_matrix()
             sage: MS.set_immutable()
             sage: hash(MS)
-            774
+            143
 
         TEST::
 

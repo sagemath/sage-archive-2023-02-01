@@ -849,45 +849,45 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     are -1 and 1, never zero, and rarely "large." ::
 
         sage: random_matrix(ZZ, 5, 5)
-        [ -8   2   1  -1   2]
-        [  1 -95  -1  -2 -12]
-        [  1  -1   1  -1  -2]
-        [ -1   4  -4  -6   5]
-        [ -2   1  -4  -6   1]
+        [ -8   2   0   0   1]
+        [ -1   2   1 -95  -1]
+        [ -2 -12   0   0   1]
+        [ -1   1  -1  -2  -1]
+        [  4  -4  -6   5   0]
 
     The ``distribution`` keyword  set to ``uniform`` will limit values
     between -2 and 2, and never zero. ::
 
         sage: random_matrix(ZZ, 5, 5, distribution='uniform')
-        [ 1  1  2 -1 -1]
-        [-1 -1  1  1 -2]
-        [ 1  2  1 -1  2]
-        [-2  1 -2  1  2]
-        [-2 -2  1 -1  2]
+        [ 1  0 -2  1  1]
+        [ 1  0  0  0  2]
+        [-1 -2  0  2 -2]
+        [-1 -1  1  1  2]
+        [ 0 -2 -1  0  0]
 
     The ``x`` and ``y`` keywords can be used to distribute entries uniformly.
     When both are used ``x`` is the minimum and ``y`` is one greater than the the maximum.
     But still entries are never zero, even if the range contains zero. ::
 
         sage: random_matrix(ZZ, 4, 8, x=70, y=100)
-        [89 86 77 86 89 85 92 95]
-        [94 72 89 78 80 89 82 94]
-        [72 90 92 72 82 94 92 70]
-        [78 76 93 81 73 76 75 94]
+        [81 82 70 81 78 71 79 94]
+        [80 98 89 87 91 94 94 77]
+        [86 89 85 92 95 94 72 89]
+        [78 80 89 82 94 72 90 92]
 
         sage: random_matrix(ZZ, 3, 7, x=-5, y=5)
-        [-5 -2  1 -2 -2  2 -3]
-        [-4 -2 -1 -5  3 -2  3]
-        [ 3 -3 -3 -5 -3 -3 -1]
+        [-3  3  1 -5  3  1  2]
+        [ 3  3  0  3 -5 -2  1]
+        [ 0 -2 -2  2 -3 -4 -2]
 
     If only ``x`` is given, then it is used as the upper bound of a range starting at 0. ::
 
         sage: random_matrix(ZZ, 5, 5, x=25)
-        [11 19 16 17 15]
-        [ 7 24  3 17 24]
-        [ 9  4 23 10 24]
-        [19 17 12 10 14]
-        [ 8  4  8 19 14]
+        [20 16  8  3  8]
+        [ 8  2  2 14  5]
+        [18 18 10 20 11]
+        [19 16 17 15  7]
+        [ 0 24  3 17 24]
 
     To allow, and control, zero entries use the ``density`` keyword at a value
     strictly below the default of 1.0, even if distributing entries across an
@@ -895,18 +895,18 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     is only necessary to set a single dimension. ::
 
         sage: random_matrix(ZZ, 5, x=-10, y=10, density=0.75)
-        [  1   0   0   6   0]
-        [  0  -9   0   0  -8]
-        [ -5   0  -1 -10   0]
-        [  0  -9   0   7   0]
-        [  0  -2  -8   0   0]
+        [-6  1  0  0  0]
+        [ 9  0  0  4  1]
+        [-6  0  0 -8  0]
+        [ 0  4  0  6  0]
+        [ 1 -9  0  0 -8]
 
         sage: random_matrix(ZZ, 5, x=20, y=30, density=0.75)
+        [ 0 28  0 27  0]
+        [25 28 20  0  0]
+        [ 0 21  0 21  0]
+        [ 0 28 22  0  0]
         [ 0  0  0 26 24]
-        [ 0 22 26  0 24]
-        [ 0 24  0 22 21]
-        [ 0  0  0 28 29]
-        [20  0  0 28  0]
 
     It is possible to construct sparse matrices, where it may now be advisable
     (but not required) to control the density of nonzero entries. ::
@@ -919,11 +919,11 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         True
 
         sage: random_matrix(ZZ, 5, 5, density=0.3, sparse=True)
-        [ -4   0 240   0   1]
-        [  0   0 -16   0   0]
-        [  0   0   0   0   1]
-        [  0   0   0   0   0]
-        [  0  28   0   0   0]
+        [ 4  0  0  0 -1]
+        [ 0  0  0  0 -7]
+        [ 0  0  2  0  0]
+        [ 0  0  1  0 -4]
+        [ 0  0  0  0  0]
 
     For algorithm testing you might want to control the number of bits,
     say 10,000 entries, each limited to 16 bits.  ::
@@ -941,27 +941,27 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     positive or negative one. ::
 
         sage: random_matrix(QQ, 2, 8, num_bound=20, den_bound=4)
-        [ -1/2    16    -5   -20   -11  -7/3   1/2     6]
-        [ -9/2 -11/4  -1/2   1/4     8    10    -6   7/4]
+        [ -1/2     6    13   -12  -2/3  -1/4     5     5]
+        [ -9/2   5/3    19  15/2  19/2  20/3 -13/4     0]
 
         sage: random_matrix(QQ, 4, density = 0.5, sparse=True)
-        [   0    0    0    0]
-        [   0   -1    1  -13]
-        [  -2    0  1/4    0]
-        [  -1    0    1 -1/3]
+        [    0    71     0  -1/2]
+        [    0     0     0     0]
+        [31/85     0 -31/2     0]
+        [    1  -1/4     0     0]
 
         sage: A = random_matrix(QQ, 3, 10, num_bound = 99, den_bound = 99)
         sage: positives = map(abs, A.list())
         sage: matrix(QQ, 3, 10, positives)
-        [ 7/24  12/5  13/8  8/25   1/3 61/14 92/45  4/85  3/38 95/16]
-        [82/71   1/5 41/16 55/76    19 28/41 52/51  14/3    43 76/13]
-        [ 8/77 13/38 37/21 17/15 60/61 85/44 75/97 31/55     4  49/8]
+        [61/18 47/41  1/22   1/2 75/68   6/7     1   1/2 72/41   7/3]
+        [33/13   9/2 40/21 45/46 17/22     1 70/79 97/71  7/24  12/5]
+        [ 13/8  8/25   1/3 61/14 92/45  4/85  3/38 95/16 82/71   1/5]
 
         sage: random_matrix(QQ, 4, 10, den_bound = 10)
-        [-1/9    2  2/3    2  1/8   -2   -2    2 -1/2    2]
-        [   1 -2/3  1/6 -1/3 -2/9  2/5  1/9  1/6 1/10    1]
-        [  -1 -1/2  1/3  1/4 -1/6  1/8  1/8 -1/9  1/5  1/7]
-        [ 2/7    2 -1/6 -2/5  1/9 -1/4 -1/5 -1/4 -2/7 -1/3]
+        [  -1    0  1/8  1/6  2/9 -1/6  1/5 -1/8  1/5 -1/5]
+        [ 1/9  1/5   -1  2/9  1/4 -1/7  1/8 -1/9    0    2]
+        [ 2/3    2  1/8   -2    0    0   -2    2    0 -1/2]
+        [   0    2    1 -2/3    0    0  1/6    0 -1/3 -2/9]
 
     Random matrices over other rings.  Several classes of matrices have specialized
     ``randomize()`` methods.  You can locate these with the Sage command::
@@ -974,18 +974,18 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         sage: K.<a>=FiniteField(3^2)
         sage: random_matrix(K, 2, 5)
-        [    2*a 2*a + 1   a + 2 2*a + 2   a + 2]
-        [  a + 1   a + 1       2 2*a + 2   a + 1]
+        [      1     2*a       1   a + 2       2]
+        [      a 2*a + 1       0       2       1]
 
         sage: random_matrix(RR, 3, 4, density=0.66)
-        [  0.000000000000000   0.000000000000000   0.000000000000000   0.000000000000000]
-        [  0.000000000000000   0.000000000000000   0.000000000000000   0.839885947013929]
-        [0.00970128228876743  -0.711107146185354   0.000000000000000   0.582088854951784]
+        [ 0.000000000000000  0.566500636438206 0.0870635178173962  0.000000000000000]
+        [-0.662290145671671  0.000000000000000  0.475667133865666  0.000000000000000]
+        [-0.276405104068647  0.000000000000000  0.000000000000000 -0.636689607643642]
 
         sage: A = random_matrix(ComplexField(32), 3, density=0.8, sparse=True); A
-        [ 0.595498794 + 0.570429906*I -0.306520063 - 0.574051516*I                            0]
-        [-0.307727175 - 0.941724613*I -0.127237880 - 0.756685386*I                            0]
-        [                           0 -0.843041497 - 0.885579092*I -0.247313397 + 0.624939327*I]
+        [                             0   -0.193242896 + 0.460619713*I                              0]
+        [   0.909948633 + 0.611092515*I 0.00128001347 + 0.0659103142*I   0.199796580 + 0.0955426861*I]
+        [                             0                              0    0.354729790 - 0.184624095*I]
         sage: A.is_sparse()
         True
 
@@ -1150,7 +1150,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     # Construct the parent of the desired matrix
     parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)
     if algorithm == 'randomize':
-        density = kwds.pop('density', 1)
+        density = kwds.pop('density', None)
         # zero matrix is immutable, copy is mutable
         A = copy(parent.zero_matrix())
         if density is None:

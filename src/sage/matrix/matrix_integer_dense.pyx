@@ -4658,9 +4658,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             sage: A = random_matrix(ZZ,3,3)
             sage: As = singular(A); As
-            -8     2     1
-            -1     2     1
-            -95   -1    -2
+            -8     2     0
+            0     1    -1
+            2     1   -95
             sage: As.type()
             'intmat'
         """

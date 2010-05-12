@@ -308,7 +308,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             sage: vs = singular(v); vs
             -8,
             2,
-            1
+            0
             sage: vs.type()
             'intvec'
         """

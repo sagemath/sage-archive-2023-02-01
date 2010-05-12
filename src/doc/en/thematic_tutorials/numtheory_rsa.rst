@@ -60,7 +60,7 @@ and 27 is 9. ::
     sage: gcd(18, 27)
     9
 
-If `\gcd(a,b) = 1`, we say that `a`is *coprime* (or relatively
+If `\gcd(a,b) = 1`, we say that `a` is *coprime* (or relatively
 prime) to `b`.  In particular, `\gcd(3, 59) = 1` so 3 is coprime to 59
 and vice versa.
 
@@ -242,7 +242,7 @@ encryption and decryption.
    `de \equiv 1 \pmod{\varphi(n)}`.
 #. Our public key is the pair `(n, e)` and our private key is the
    triple `(p,q,d)`.
-#. For any non-zero integer `m < n`, encrypt $m$ using
+#. For any non-zero integer `m < n`, encrypt `m` using
    `c \equiv m^e \pmod{n}`.
 #. Decrypt `c` using `m \equiv c^d \pmod{n}`.
 
@@ -293,13 +293,28 @@ module ``sage.rings.integer_ring``.  Various operations on
 integers can be accessed via the ``ZZ.*`` family of functions.
 For instance, the command ``ZZ.random_element(n)`` returns a
 pseudo-random integer uniformly distributed within the closed interval
-`[0, n-1]`.  Using a simple programming loop, we can compute the
+`[0, n-1]`.
+
+We can compute the value `\varphi(n)` by calling the sage function
+``euler_phi(n)``, but for arbitrarily large prime numbers `p` and `q`,
+this can take an enormous amount of time. Indeed, the private key
+can be quickly deduced from the public key once you know `\varphi(n)`,
+so it is an important part of the security of the RSA cryptosystem that
+`\varphi(n)` cannot be computed in a short time, if only `n` is known.
+On the other hand, if the private key is available, we can compute
+`\varphi(n)=(p-1)(q-1)` in a very short time.
+
+Using a simple programming loop, we can compute the
 required value of `e` as follows::
 
-    sage: n = 4951760154835678088235319297
-    sage: e = ZZ.random_element(euler_phi(n))
-    sage: while gcd(e, euler_phi(n)) != 1:
-    ...       e = ZZ.random_element(euler_phi(n))
+    sage: p = (2^31) - 1
+    sage: q = (2^61) - 1
+    sage: n = p * q
+    sage: phi = (p - 1)*(q - 1); phi
+    4951760152529835076874141700
+    sage: e = ZZ.random_element(phi)
+    sage: while gcd(e, phi) != 1:
+    ...       e = ZZ.random_element(phi)
     ...
     sage: e  # random
     1850567623300615966303954877
@@ -307,7 +322,7 @@ required value of `e` as follows::
     True
 
 As ``e`` is a pseudo-random integer, its numeric value changes
-after each execution of ``e = ZZ.random_element(euler_phi(n))``.
+after each execution of ``e = ZZ.random_element(phi)``.
 
 To calculate a value for ``d`` in step 3 of the RSA algorithm, we use
 the extended Euclidean algorithm.  By definition of congruence,
@@ -324,16 +339,17 @@ via the command ``xgcd``.  Given two integers `x` and `y`,
 ``xgcd(x, y)`` returns a 3-tuple ``(g, s, t)`` that satisfies
 the Bézout identity `g = \gcd(x,y) = sx + ty`.  Having computed a
 value for ``d``, we then use the command
-``mod(d*e, euler_phi(n))`` to check that ``d*e`` is indeed congruent
-to 1 modulo ``euler_phi(n)``. ::
+``mod(d*e, phi)`` to check that ``d*e`` is indeed congruent
+to 1 modulo ``phi``. ::
 
     sage: n = 4951760154835678088235319297
     sage: e = 1850567623300615966303954877
-    sage: bezout = xgcd(e, euler_phi(n)); bezout  # random
+    sage: phi = 4951760152529835076874141700
+    sage: bezout = xgcd(e, phi); bezout  # random
     (1, 4460824882019967172592779313, -1667095708515377925087033035)
-    sage: d = Integer(mod(bezout[1], euler_phi(n))) ; d  # random
+    sage: d = Integer(mod(bezout[1], phi)) ; d  # random
     4460824882019967172592779313
-    sage: mod(d * e, euler_phi(n))
+    sage: mod(d * e, phi)
     1
 
 Thus, our RSA public key is

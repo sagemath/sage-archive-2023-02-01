@@ -296,6 +296,14 @@ class Gap_generic(Expect):
         Load the Gap package with the given name.
 
         If loading fails, raise a RuntimeError exception.
+
+        TESTS::
+
+            sage: gap.load_package("chevie")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Error loading Gap package chevie
+
         """
         if verbose:
             print "Loading GAP package %s"%pkg

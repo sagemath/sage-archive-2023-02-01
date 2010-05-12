@@ -1200,6 +1200,18 @@ If this all works, you can then make calls like:
     def clear(self, var):
         """
         Clear the variable named var.
+
+        TESTS::
+
+            sage: x = gap(3)
+            sage: gap.clear(x.name())
+            sage: gap.clear(x.name())
+            sage: x = gap(3); x
+            3
+            sage: y = gap(4); y
+            4
+            sage: x
+            3
         """
         if var not in self._available_vars:
             self._available_vars.append(var)

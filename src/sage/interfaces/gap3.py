@@ -9,50 +9,54 @@ AUTHORS:
 
 .. WARNING::
 
-    GAP3 is not distrubuted with Sage. You need to install it yourself on
-    your computer. See the section Obtaining GAP3 below.
+    GAP3 is not distrubuted with Sage. You need to install it
+    separately; see the section `Obtaining GAP3`_.
 
 Obtaining GAP3
 --------------
 
 The GAP3 interface will only work if GAP3 is installed on your computer.
-You must download and install GAP3 yourself because it is not distrubuted
-with Sage. Here are some ways to obtain GAP3:
+Here are some ways to obtain GAP3:
 
-- download GAP3 from the GAP website:
+- There is an optional Sage package providing GAP3 pre-packaged
+  with several GAP3 packages:
 
-    http://www.gap-system.org/Gap3/Download3/download.html
-
-- Jean Michel maintains a version of GAP3 pre-packaged with
-  CHEVIE and VKCURVE:
-
-    http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
+    http://trac.sagemath.org/sage_trac/ticket/8906
 
 - Frank Luebeck maintains a GAP3 Linux executable, optimized
   for i686 and statically linked for jobs of 2 GByte or more:
 
     http://www.math.rwth-aachen.de/~Frank.Luebeck/gap/GAP3
 
+- Jean Michel maintains a version of GAP3 pre-packaged with
+  CHEVIE and VKCURVE. It can be obtained here:
+
+    http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
+
+- Finally, you can download GAP3 from the GAP website below. Since GAP3
+  is no longer supported, it may not be easy to install this version.
+
+    http://www.gap-system.org/Gap3/Download3/download.html
 
 Changing which GAP3 is used
 ---------------------------
 
 .. WARNING::
 
-    There is a bug in the pexpect module that prevents you from specifying the
-    path to the GAP3 executable on your system. For now, just make sure that
-    gap3 is in your PATH.
+    There is a bug in the pexpect module (see trac ticket #8471) that
+    prevents the following from working correctly. For now, just make sure
+    that ``gap3`` is in your ``PATH``.
 
-Sage assumes that you can start GAP3 with the command `gap3`; that is, Sage
-assumes that the command `gap3` is in your PATH. If this is not the case, then
-you can start GAP3 using the following command::
+Sage assumes that GAP3 can be launched with the command ``gap3``; that is,
+Sage assumes that the command ``gap3`` is in your ``PATH``. If this is not
+the case, then you can start GAP3 using the following command::
 
     sage: gap3 = Gap3(command='/usr/local/bin/gap3')               #not tested
 
 Functionality and Examples
 --------------------------
 
-The interface offers the following functionality.
+The interface to GAP3 offers the following functionality.
 
 #.  ``gap3(expr)`` - Evaluation of arbitrary GAP3 expressions, with the
     result returned as a Sage object wrapping the corresponding GAP3 element::
@@ -73,7 +77,7 @@ The interface offers the following functionality.
 
     This provides a Pythonic interface to GAP3. If ``gap_function`` is the
     name of a GAP3 function, then the syntax ``gap_element.gap_function()``
-    returns the ``gap_element`` obtained by evaluating
+    returns the ``gap_element`` obtained by evaluating the command
     ``gap_function(gap_element)`` in GAP3::
 
         sage: S5.Size()                                    #optional - gap3
@@ -90,8 +94,8 @@ The interface offers the following functionality.
                     [ (1,2,5), (1,3,5), (1,4,5) ] ) ]
 
     If ``gap_element`` corresponds to a GAP3 record, then
-    ``gap_element.recfield`` access the record element corresponding to the
-    field ``recfield``::
+    ``gap_element.recfield`` provides a means to access the record element
+    corresponding to the field ``recfield``::
 
         sage: S5.IsRec()                                   #optional - gap3
         true
@@ -157,7 +161,8 @@ The interface offers the following functionality.
 Common Pitfalls
 ---------------
 
-#.  If you want to pass a string to GAP3, then you need to do the following::
+#.  If you want to pass a string to GAP3, then you need to wrap it in
+    single quotes as follows::
 
         sage: gap3('"This is a GAP3 string"')              #optional - gap3
         "This is a GAP3 string"
@@ -166,15 +171,15 @@ Common Pitfalls
     ``RequirePackage`` method (note that one can instead use the
     ``load_package`` method)::
 
-        sage: gap3.RequirePackage('"chevie"')              #optional - gap3
-        Welcome  to  the  CHEVIE  package, ...
+        sage: gap3.RequirePackage('"chevie"')             #optional - gap3chevie
+        W...  to  the  CHEVIE  package, ...
 
 Examples
 --------
 
 Load a GAP3 package::
 
-    sage: gap3.load_package("chevie")                      #optional - gap3
+    sage: gap3.load_package("chevie")                      #optional - gap3chevie
     sage: gap3.version() # random                          #optional - gap3
     'lib: v3r4p4 1997/04/18, src: v3r4p0 1994/07/10, sys: usg gcc ansi'
 
@@ -212,7 +217,6 @@ Controlling variable names used by GAP3::
     TypeError: Gap3 produced error output
     Error, Variable: 'x' must have a value
     ...
-
 """
 
 #*****************************************************************************
@@ -278,7 +282,6 @@ class Gap3(Gap_generic):
     AUTHORS:
 
     - Franco Saliola (Feb 2010)
-
     """
     def __init__(self, command=gap3_cmd):
         r"""
@@ -298,7 +301,6 @@ class Gap3(Gap_generic):
             sage: gap3._start()                            #optional - gap3
             sage: gap3.is_running()                        #optional - gap3
             True
-
         """
         self.__gap3_command_string = command
         # Explanation of additional command-line options passed to gap3:
@@ -328,7 +330,7 @@ class Gap3(Gap_generic):
              path=None)
 
     def _start(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: gap3 = Gap3()                            #optional - gap3
@@ -338,7 +340,6 @@ class Gap3(Gap_generic):
             sage: gap3.is_running()                        #optional - gap3
             True
             sage: gap3.quit()                              #optional - gap3
-
         """
         n = self._session_number
         Expect._start(self)
@@ -357,7 +358,6 @@ class Gap3(Gap_generic):
         TESTS::
             sage: gap3._object_class()
             <class 'sage.interfaces.gap3.GAP3Element'>
-
         """
         return GAP3Element
 
@@ -405,7 +405,6 @@ class Gap3(Gap_generic):
             main loop
             brk> quit;
             ...
-
         """
         # It seems that GAP3 does not classify syntax errors as regular error
         # messages, so the generic GAP interface processing code does not
@@ -453,7 +452,6 @@ class Gap3(Gap_generic):
             [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
             sage: m.Print()                                #optional - gap3
             [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
-
         """
 
         import pexpect
@@ -514,7 +512,6 @@ class Gap3(Gap_generic):
             0.14999999999999999
             sage: gap3.cputime(t)  #random                 #optional - gap3
             0.13
-
         """
         if t is not None:
             return self.cputime() - t
@@ -522,7 +519,7 @@ class Gap3(Gap_generic):
             return eval(self.eval('Runtime();'))/1000.0
 
     def console(self):
-        """
+        r"""
         Spawn a new GAP3 command-line session.
 
         EXAMPLES::
@@ -552,7 +549,6 @@ class Gap3(Gap_generic):
                                     Bettina Eick
                                     For help enter: ?<return>
             gap>
-
         """
         os.system(self.__gap3_command_string)
 
@@ -577,7 +573,6 @@ class Gap3(Gap_generic):
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
                 - If you do not have GAP3 installed, then you must download ...
-
         """
         return r"""
     Your attempt to start GAP3 failed, either because you do not have
@@ -587,16 +582,22 @@ class Gap3(Gap_generic):
       install it yourself because it is not distrubuted with Sage.
       Here are some ways to obtain GAP3:
 
-        - download GAP3 from the GAP website:
-            http://www.gap-system.org/Gap3/Download3/download.html
-
-        - Jean Michel maintains a version of GAP3 pre-packaged with
-          CHEVIE and VKCURVE:
-            http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
+        - There is an optional Sage package providing GAP3 pre-packaged
+          with several GAP3 packages:
+            http://trac.sagemath.org/sage_trac/ticket/8906
 
         - Frank Luebeck maintains a GAP3 Linux executable, optimized
           for i686 and statically linked for jobs of 2 GByte or more:
             http://www.math.rwth-aachen.de/~Frank.Luebeck/gap/GAP3
+
+        - Jean Michel maintains a version of GAP3 pre-packaged with
+          CHEVIE and VKCURVE. It can be obtained here:
+            http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
+
+        - Finally, you can download GAP3 from the GAP website below. Since
+          GAP3 is no longer an officially supported distribution of GAP, it
+          may not be easy to install this version.
+            http://www.gap-system.org/Gap3/Download3/download.html
 
     - If you have GAP3 installed, then perhaps it is not configured
       correctly. Sage assumes that you can start GAP3 with the command
@@ -654,7 +655,6 @@ class GAP3Element(GapElement_generic):
     AUTHORS:
 
     - Franco Saliola (Feb 2010)
-
     """
     def __init__(self, parent, value, is_name=False, name=None):
         r"""
@@ -675,7 +675,6 @@ class GAP3Element(GapElement_generic):
             Traceback (most recent call last):
             ...
             ValueError: you are attempting to redefine X; but you should never redefine E, X or Z in gap3 (because things will break!)
-
         """
         # Warning: One should not redefine E, X or Z in gap3, because
         # things will break, but gap3 raises no errors if one does this!
@@ -704,7 +703,6 @@ class GAP3Element(GapElement_generic):
             3
             sage: m[2][1]                                  #optional - gap3
             4
-
         """
         gap3_session = self._check_valid()
         if not isinstance(n, tuple):
@@ -721,7 +719,6 @@ class GAP3Element(GapElement_generic):
             '\\left(\\begin{array}{rr} 1&2\\\\ 3/4&\\frac{5}{6}\\\\ \\end{array}\\right)'
             sage: latex(s)
             \left(\begin{array}{rr} 1&2\\ 3/4&\frac{5}{6}\\ \end{array}\right)
-
         """
         gap3_session = self._check_valid()
         try:
@@ -745,7 +742,6 @@ class GAP3Record(GAP3Element):
     AUTHORS:
 
     - Franco Saliola (Feb 2010)
-
     """
     def recfields(self):
         r"""
@@ -765,7 +761,6 @@ class GAP3Record(GAP3Element):
              '3', '4', 'degree']
             sage: S5.degree                                      #optional - gap3
             5
-
         """
         gap3_session = self._check_valid()
         if not hasattr(self, "_gap_recfields"):
@@ -793,7 +788,6 @@ class GAP3Record(GAP3Element):
             [ Group( (1,5), (2,5), (3,5), (4,5) ),
               Subgroup( Group( (1,5), (2,5), (3,5), (4,5) ),
                         [ (1,2,5), (1,3,5), (1,4,5) ] ) ]
-
         """
         gap3_session = self._check_valid()
         if not hasattr(self,"_gap_operations"):
@@ -819,9 +813,6 @@ class GAP3Record(GAP3Element):
             true
             sage: S5.__getattr__('generators')             #optional - gap3
             [ (1,5), (2,5), (3,5), (4,5) ]
-
-        ::
-
         """
         gap3_session = self._check_valid()
         if attrname[:1] == "_":
@@ -832,7 +823,8 @@ class GAP3Record(GAP3Element):
 
     def trait_names(self):
         r"""
-        Defines the list of methods appearning for tab completion.
+        Defines the list of methods and attributes that will appear for tab
+        completion.
 
         OUTPUT:
 
@@ -846,7 +838,6 @@ class GAP3Record(GAP3Element):
             [..., 'ConjugacyClassesTry', 'ConjugateSubgroup', 'ConjugateSubgroups',
             'Core', 'DegreeOperation', 'DerivedSeries', 'DerivedSubgroup',
             'Difference', 'DimensionsLoewyFactors', 'DirectProduct', ...]
-
         """
         if not hasattr(self, "__trait_names"):
             self.__trait_names = self.recfields() + self.operations()
@@ -856,7 +847,7 @@ class GAP3Record(GAP3Element):
 
 import os
 def gap3_console():
-    """
+    r"""
     Spawn a new GAP3 command-line session.
 
     EXAMPLES::
@@ -886,19 +877,16 @@ def gap3_console():
                                 Bettina Eick
                                 For help enter: ?<return>
         gap>
-
-
     """
     os.system(gap3_cmd)
 
 def gap3_version():
-    """
+    r"""
     Return the version of GAP3 that you have in your PATH on your computer.
 
     EXAMPLES::
 
         sage: gap3_version()                                           # random, optional - gap3
         'lib: v3r4p4 1997/04/18, src: v3r4p0 1994/07/10, sys: usg gcc ansi'
-
     """
     return gap3.eval('VERSION')[1:-1]

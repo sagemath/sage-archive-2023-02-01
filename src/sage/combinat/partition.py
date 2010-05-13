@@ -1457,15 +1457,15 @@ class Partition_class(CombinatorialObject):
 
     def rim(self):
         r"""
-        Returns the rim of ``self``
+        Returns the rim of ``self``.
 
         The rim of a partition `p` is defined as the cells which belong to
         `p` and which are adjacent to cells not in `p`.
 
         EXAMPLES:
 
-        For example if `p=(5,5,2,1)`, the rim is composed from the dashed
-        cells below::
+        The rim of the partition `[5,5,2,1]` consists of the cells marked with
+        ``#`` below::
 
             ****#
             *####
@@ -1495,15 +1495,15 @@ class Partition_class(CombinatorialObject):
 
     def outer_rim(self):
         """
-        Returns the outer rim of ``self``
+        Returns the outer rim of ``self``.
 
         The outer rim of a partition `p` is defined as the cells which do not
         belong to `p` and which are adjacent to cells in `p`.
 
         EXAMPLES:
 
-        For example, the dashed cell below is the outer_rim of the partitions
-        `(4,1)`::
+        The outer rim of the partition `[4,1]` consists of the cells marked
+        with ``#`` below::
 
             ****#
             *####

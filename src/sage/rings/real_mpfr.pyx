@@ -378,6 +378,17 @@ cdef class RealField_class(sage.rings.ring.Field):
         return v
 
     cpdef bint is_exact(self) except -2:
+        """
+        Return False, since a real field (representing using finite
+        precision) is not exact.
+
+        EXAMPLE::
+
+            sage: RR.is_exact()
+            False
+            sage: RealField(100).is_exact()
+            False
+        """
         return False
 
     def _element_constructor_(self, x, base=10):
@@ -409,9 +420,9 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         Canonical coercion of x to this mpfr real field.
 
-        The rings that canonically coerce to this mpfr real field are:
+        The rings that canonically coerce to this MPFR real field are:
 
-        - Any mpfr real field with precision that is as large as this one
+        - Any MPFR real field with precision that is as large as this one
 
         - int, long, integer, and rational rings.
 
@@ -485,6 +496,9 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def __cmp__(self, other):
         """
+        Compare two real fields, returning True if they are equivalent
+        and False if they are not.
+
         EXAMPLES::
 
             sage: RealField(10) == RealField(11)
@@ -524,6 +538,8 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def __reduce__(self):
         """
+        Return the arguments sufficient for pickling.
+
         EXAMPLES::
 
             sage: R = RealField(sci_not=1, prec=200, rnd='RNDU')
@@ -534,9 +550,9 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def construction(self):
         """
-        Returns the functorial construction of self, namely, completion of
-        the rational numbers with respect to the prime at
-        `\infty`.
+        Returns the functorial construction of self, namely,
+        completion of the rational numbers with respect to the prime
+        at `\infty`.
 
         Also preserves other information that makes this field unique (e.g.
         precision, rounding, print mode).
@@ -556,32 +572,105 @@ cdef class RealField_class(sage.rings.ring.Field):
                sage.rings.rational_field.QQ)
 
     def gen(self, i=0):
+        """
+        Return the generators of self.
+
+        EXAMPLES::
+
+            sage: R=RealField(100)
+            sage: R.gen(0)
+            1.0000000000000000000000000000
+            sage: R.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: self has only one generator
+        """
         if i == 0:
             return self(1)
         else:
-            raise IndexError
+            raise IndexError, "self has only one generator"
 
     def complex_field(self):
         """
         Return complex field of the same precision.
+
+        EXAMPLES::
+
+            sage: RR.complex_field()
+            Complex Field with 53 bits of precision
+            sage: RR.complex_field() is CC
+            True
+            sage: RealField(100,rnd='RNDD').complex_field()
+            Complex Field with 100 bits of precision
+            sage: RealField(100).complex_field()
+            Complex Field with 100 bits of precision
         """
         import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())
 
     def algebraic_closure(self):
         """
-        Returns the algebraic closure of self, ie the complex field with
+        Returns the algebraic closure of self, i.e., the complex field with
         the same precision.
+
+        EXAMPLES::
+
+            sage: RR.algebraic_closure()
+            Complex Field with 53 bits of precision
+            sage: RR.algebraic_closure() is CC
+            True
+            sage: RealField(100,rnd='RNDD').algebraic_closure()
+            Complex Field with 100 bits of precision
+            sage: RealField(100).algebraic_closure()
+            Complex Field with 100 bits of precision
         """
         return self.complex_field()
 
     def ngens(self):
+        """
+        Return the number of generators.
+
+        EXAMPLES::
+
+            sage: RR.ngens()
+            1
+        """
         return 1
 
     def gens(self):
+        """
+        Return a list of generators.
+
+        EXAMPLE::
+
+            sage: RR.gens()
+            [1.00000000000000]
+        """
         return [self.gen()]
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        Return True if the map from self to codomain sending
+        self(1) to the unique element of im_gens is a valid field
+        homomorphism. Otherwise, return False.
+
+        EXAMPLES::
+
+            sage: RR._is_valid_homomorphism_(RDF,[RDF(1)])
+            True
+            sage: RR._is_valid_homomorphism_(CDF,[CDF(1)])
+            True
+            sage: RR._is_valid_homomorphism_(CDF,[CDF(-1)])
+            False
+            sage: R=RealField(100)
+            sage: RR._is_valid_homomorphism_(R,[R(1)])
+            False
+            sage: RR._is_valid_homomorphism_(CC,[CC(1)])
+            True
+            sage: RR._is_valid_homomorphism_(GF(2),GF(2)(1))
+            False
+        """
+
         try:
             s = codomain.coerce(self(1))
         except TypeError:
@@ -624,20 +713,55 @@ cdef class RealField_class(sage.rings.ring.Field):
         return 0
 
     def name(self):
+        """
+        Returns the name of self, which encodes the precision and
+        rounding convention.
+
+        EXAMPLES::
+
+            sage: RR.name()
+            'RealField53_0'
+            sage: RealField(100,rnd='RNDU').name()
+            'RealField100_2'
+        """
         return "RealField%s_%s"%(self.__prec,self.rnd)
 
     def __hash__(self):
+        """
+        Returns a hash function of the field, which takes into account
+        the precision and rounding convention.
+
+        EXAMPLES::
+
+            sage: hash(RealField(100,rnd='RNDU'))
+            5446556154562330496 # 64-bit
+            703053696           # 32-bit
+            sage: hash(RR)
+            -688242835116843476 # 64-bit
+            -1247338964         # 32-bit
+        """
         return hash(self.name())
 
     def precision(self):
+        """
+        Returns the precision of self.
+
+        EXAMPLES::
+
+            sage: RR.precision()
+            53
+            sage: RealField(20).precision()
+            20
+        """
         return self.__prec
 
-    def prec(self):
-        return self.__prec
+    prec=precision # an alias
 
     def _magma_init_(self, magma):
         r"""
         Return a string representation of self in the Magma language.
+
+        .. warning:: This ignores the rounding convention of self.
 
         EXAMPLES::
 
@@ -652,8 +776,8 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def to_prec(self, prec):
         """
-        Returns the real field that is identical to self, except at the
-        specified precision.
+        Returns the real field that is identical to self, except that
+        it has the specified precision.
 
         EXAMPLES::
 
@@ -739,7 +863,8 @@ cdef class RealField_class(sage.rings.ring.Field):
     # int mpfr_const_log2 (mpfr_t rop, mp_rnd_t rnd)
     def log2(self):
         """
-        Returns log(2) to the precision of this field.
+        Returns log(2) (i.e., the natural log of 2) to the precision
+        of this field.
 
         EXAMPLES::
 
@@ -760,6 +885,9 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         Returns a uniformly distributed random number between min and max
         (default -1 to 1).
+
+        .. warning:: ``distribution`` is ignored---the random number
+        is from the uniform distribution.
 
         EXAMPLES::
 
@@ -814,7 +942,18 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def factorial(self, int n):
         """
-        Return the factorial of the integer n as a real number.
+        Return the factorial of the integer ``n`` as a real number.
+
+        EXAMPLES::
+
+            sage: RR.factorial(0)
+            1.00000000000000
+            sage: RR.factorial(1000000)
+            8.26393168833124e5565708
+            sage: RR.factorial(-1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: n must be nonnegative
         """
         cdef RealNumber x
         if n < 0:
@@ -826,6 +965,20 @@ cdef class RealField_class(sage.rings.ring.Field):
         return x
 
     def rounding_mode(self):
+        """
+        Return the rounding mode.
+
+        EXAMPLES::
+
+            sage: RR.rounding_mode()
+            'RNDN'
+            sage: RealField(20,rnd='RNDZ').rounding_mode()
+            'RNDZ'
+            sage: RealField(20,rnd='RNDU').rounding_mode()
+            'RNDU'
+            sage: RealField(20,rnd='RNDD').rounding_mode()
+            'RNDD'
+        """
         return _rounding_modes[self.rnd]
 
     def scientific_notation(self, status=None):
@@ -835,7 +988,6 @@ cdef class RealField_class(sage.rings.ring.Field):
         scientific notation.
 
         INPUT:
-
 
         -  ``status`` - (bool -) optional flag
         """
@@ -1796,15 +1948,55 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
     cpdef ModuleElement _neg_(self):
+        """
+        Return the negative of self.
+
+        EXAMPLES::
+
+            sage: RR(1)._neg_()
+            -1.00000000000000
+            sage: RR('inf')._neg_()
+            -infinity
+            sage: RR('nan')._neg_()
+            NaN
+        """
         cdef RealNumber x
         x = self._new()
         mpfr_neg(x.value, self.value, (<RealField_class>self._parent).rnd)
         return x
 
     def __abs__(self):
+        """
+        Return absolute value of self.
+
+        EXAMPLES::
+
+            sage: RR(-1).__abs__()
+            1.00000000000000
+            sage: RR('-inf').__abs__()
+            +infinity
+            sage: RR('inf').__abs__()
+            +infinity
+            sage: RR('nan').__abs__()
+            NaN
+        """
         return self.abs()
 
     cdef RealNumber abs(RealNumber self):
+        """
+        Return the absolute value of self.
+
+        EXAMPLES::
+
+            sage: RR('-1').abs()
+            1.00000000000000
+            sage: RR('-inf').abs()
+            +infinity
+            sage: RR('inf').abs()
+            +infinity
+            sage: RR('nan').abs()
+            NaN
+        """
         cdef RealNumber x
         x = self._new()
         mpfr_abs(x.value, self.value, (<RealField_class>self._parent).rnd)
@@ -1812,15 +2004,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     # Bit shifting
     def _lshift_(RealNumber self, n):
+        """
+        Return `self*(2^n)` for an integer ``n``.
+
+        EXAMPLES::
+
+            sage: RR(1.0)._lshift_(32)
+            4.29496729600000e9
+            sage: RR(1.5)._lshift_(2)
+            6.00000000000000
+        """
         cdef RealNumber x
         if n > sys.maxint:
             raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
         x = self._new()
-        mpfr_mul_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
+        mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
 
     def __lshift__(x, y):
         """
+        Return `self*(2^n)` for an integer ``n``.
+
         EXAMPLES::
 
             sage: 1.0 << 32
@@ -1838,6 +2042,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             raise TypeError, "unsupported operands for <<"
 
     def _rshift_(RealNumber self, n):
+        """
+        Return `self/(2^n)` for an integer ``n``.
+
+        EXAMPLES::
+
+            sage: RR(1.0)._rshift_(32)
+            2.32830643653870e-10
+            sage: RR(1.5)._rshift_(2)
+            0.375000000000000
+        """
         if n > sys.maxint:
             raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
         cdef RealNumber x
@@ -1847,6 +2061,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __rshift__(x, y):
         """
+        Return `self/(2^n)` for an integer ``n``.
+
         EXAMPLES::
 
             sage: 1024.0 >> 7
@@ -1901,8 +2117,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return mpfr_sgn(self.value)
 
-    def prec(self):
+    def precision(self):
+        """
+        Return the precision of self.
+
+        EXAMPLES::
+
+            sage: RR(1.0).precision()
+            53
+            sage: RealField(101)(-1).precision()
+            101
+        """
         return (<RealField_class>self._parent).__prec
+
+    prec = precision # alias
 
     def conjugate(self):
         """
@@ -2079,8 +2307,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_ceil(x.value, self.value)
         return x.integer_part()
 
-    def ceiling(self):
-        return self.ceil()
+    ceiling = ceil # alias
 
     def trunc(self):
         """
@@ -2102,8 +2329,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def frac(self):
         """
-        frac returns a real number > -1 and < 1. it satisfies the relation: x =
-        x.trunc() + x.frac()
+        Returns a real number such that `self = self.trunc() +
+        self.frac()`.  The return value will also satisfy `-1 < self.frac() < 1`.
 
         EXAMPLES::
 
@@ -2113,6 +2340,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.500000000000000
             sage: (-2.79).frac()
             -0.790000000000000
+            sage: (-2.79).trunc() + (-2.79).frac()
+            -2.79000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -2209,6 +2438,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
     ###########################################
 
     def __float__(self):
+        """
+        Returns a python float approximating self.
+
+        EXAMPLES::
+
+            sage: RR(pi).__float__()
+            3.1415926535897931
+            sage: type(RR(pi).__float__())
+            <type 'float'>
+        """
         return mpfr_get_d(self.value, (<RealField_class>self._parent).rnd)
 
     def _rpy_(self):
@@ -2228,7 +2467,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __int__(self):
         """
-        Returns integer truncation of this real number.
+        Returns the python integer truncation of self.
+
+        EXAMPLES::
+
+            sage: RR(pi).__int__()
+            3
+            sage: type(RR(pi).__int__())
+            <type 'int'>
         """
         if not mpfr_number_p(self.value):
             raise ValueError, 'Cannot convert infinity or NaN to Python int'
@@ -2239,7 +2485,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __long__(self):
         """
-        Returns long integer truncation of this real number.
+        Returns python long integer truncation of this real number.
+
+        EXAMPLES::
+
+            sage: RR(pi).__long__()
+            3L
+            sage: type(RR(pi).__long__())
+            <type 'long'>
         """
         if not mpfr_number_p(self.value):
             raise ValueError, 'Cannot convert infinity or NaN to Python long'
@@ -2249,9 +2502,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return z.__long__()
 
     def __complex__(self):
+        """
+        Returns a python complex number equal to self.
+
+        EXAMPLES::
+
+            sage: RR(pi).__complex__()
+            (3.1415926535897931+0j)
+            sage: type(RR(pi).__complex__())
+            <type 'complex'>
+        """
+
         return complex(float(self))
 
     def _complex_number_(self):
+        """
+        Returns a Sage complex number equal to self.
+
+        EXAMPLES::
+
+            sage: RR(pi)._complex_number_()
+            3.14159265358979
+            sage: parent(RR(pi)._complex_number_())
+            Complex Field with 53 bits of precision
+        """
         import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
@@ -2918,6 +3192,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def is_infinity(self):
         """
+        Return True if self is infinite and False otherwise.
+
         EXAMPLES::
 
             sage: a = RR('1.494') / RR(0); a
@@ -2930,22 +3206,121 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: RR(1.5).is_infinity()
             False
+            sage: RR('nan').is_infinity()
+            False
         """
         return mpfr_inf_p(self.value)
 
     def is_unit(self):
-        return mpfr_sgn(self.value) != 0
+        """
+        Return True if self is a unit (has a multiplicative inverse)
+        and False otherwise.
+
+        EXAMPLES::
+
+            sage: RR(1).is_unit()
+            True
+            sage: RR('0').is_unit()
+            False
+            sage: RR('-0').is_unit()
+            False
+            sage: RR('nan').is_unit()
+            False
+            sage: RR('inf').is_unit()
+            False
+            sage: RR('-inf').is_unit()
+            False
+        """
+        return mpfr_sgn(self.value) != 0 and not mpfr_inf_p(self.value)
 
     def is_real(self):
+        """
+        Return True if self is real (of course, this always returns
+        True for a finite element of a real field).
+
+        EXAMPLES::
+
+            sage: RR(1).is_real()
+            True
+            sage: RR('-100').is_real()
+            True
+        """
         return True
 
     def __nonzero__(self):
+        """
+        Returns True if self is nonzero.
+
+        EXAMPLES::
+
+            sage: RR(1).__nonzero__()
+            True
+            sage: RR(0).__nonzero__()
+            False
+            sage: RR('inf').__nonzero__()
+            True
+        """
         return mpfr_sgn(self.value) != 0
 
     def __richcmp__(left, right, int op):
+        """
+        Return the cython rich comparison operator (see the cython
+        documentation for details).
+
+        EXAMPLES::
+
+            sage: RR('-inf')<RR('inf')
+            True
+            sage: RR('-inf')<RR('-10000')
+            True
+            sage: RR('100000000')<RR('inf')
+            True
+            sage: RR('100000000')>RR('inf')
+            False
+            sage: RR('100000000')<RR('inf')
+            True
+            sage: RR('nan')==RR('nan')
+            True
+            sage: RR('-1000')<RR('1000')
+            True
+            sage: RR('1')<RR('1').nextabove()
+            True
+            sage: RR('1')<=RR('1').nextabove()
+            True
+            sage: RR('1')<=RR('1')
+            True
+            sage: RR('1')<RR('1')
+            False
+            sage: RR('1')>RR('1')
+            False
+            sage: RR('1')>=RR('1')
+            True
+        """
         return (<RingElement>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Returns -1 if exactly one of the numbers is NaN.  Return -1 if
+        left is less than right, 0 if left and right are equal, and 1
+        if left is greater than right.
+
+        EXAMPLES::
+
+            sage: RR('1')<=RR('1')
+            True
+            sage: RR('1')<RR('1')
+            False
+            sage: RR('1')>RR('1')
+            False
+            sage: RR('1')>=RR('1')
+            True
+            sage: RR('nan')==R('nan')
+            False
+            sage: RR('inf')==RR('inf')
+            True
+            sage: RR('inf')==RR('-inf')
+            False
+        """
         cdef RealNumber self, x
         self = left
         x = right
@@ -3074,6 +3449,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
     def __pow(self, RealNumber exponent):
+        """
+        Compute self raised to the power of exponent, rounded in the
+        direction specified by the parent of self.
+
+        EXAMPLES::
+
+            sage: R = RealField(30)
+            sage: a = R('1.23456')
+            sage: a.__pow(20.0)
+            67.646297
+        """
         cdef RealNumber x
         x = self._new()
         _sig_on
@@ -3241,7 +3627,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def log1p(self):
         """
-        Returns log of 1 + self
+        Returns log base e of 1 + self
 
         EXAMPLES::
 
@@ -4577,6 +4963,16 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
 
 
 def is_RealField(x):
+    """
+    Returns True if ``x`` is technically of a python real field type.
+
+    EXAMPLES::
+
+        sage: sage.rings.real_mpfr.is_RealField(RR)
+        True
+        sage: sage.rings.real_mpfr.is_RealField(CC)
+        False
+    """
     return PY_TYPE_CHECK(x, RealField_class)
 
 def is_RealNumber(x):
@@ -4602,10 +4998,45 @@ def __create__RealField_version0(prec, sci_not, rnd):
     return RealField(prec, sci_not, rnd)
 
 def __create__RealNumber_version0(parent, x, base=10):
+    """
+    Create a real number.
+
+    EXAMPLES::
+        sage: sage.rings.real_mpfr.__create__RealNumber_version0(RR, 22,base=3)
+        22.0000000000000
+    """
     return RealNumber(parent, x, base=base)
 
 
 cdef inline RealNumber empty_RealNumber(RealField_class parent):
+    """
+    Create and return an empty initialized real number.
+
+    EXAMPLES:
+
+    These are indirect tests of this function.
+
+        sage: from sage.rings.real_mpfr import RRtoRR
+        sage: R10 = RealField(10)
+        sage: R100 = RealField(100)
+        sage: f = RRtoRR(R100, R10)
+        sage: a = R100(1.2)
+        sage: f(a)
+        1.2
+        sage: g = f.section()
+        sage: g
+        Generic map:
+          From: Real Field with 10 bits of precision
+          To:   Real Field with 100 bits of precision
+        sage: g(f(a))
+        1.1992187500000000000000000000
+        sage: b = R10(2).sqrt()
+        sage: f(g(b))
+        1.4
+        sage: f(g(b)) == b
+        True
+    """
+
     cdef RealNumber y = <RealNumber>PY_NEW(RealNumber)
     y._parent = parent
     mpfr_init2(y.value, parent.__prec)

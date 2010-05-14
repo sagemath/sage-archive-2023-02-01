@@ -397,6 +397,19 @@ class Tableau_class(CombinatorialObject):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
+    def entries(self):
+        """
+        Returns a list of all entries of self, in the order obtained
+        by reading across the rows.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,3], [2]])
+            sage: t.entries()
+            [1, 3, 2]
+        """
+        return sum(self, [])
+
     def entry(self, cell):
         """
         Returns the entry of cell in self. Cell is a tuple (i,j) of
@@ -1018,12 +1031,20 @@ class Tableau_class(CombinatorialObject):
             True
             sage: PermutationGroupElement([(1,4)]) in rs
             False
+            sage: rs = Tableau([[1, 2],[3]]).row_stabilizer()
+            sage: PermutationGroupElement([(1,2),(3,)]) in rs
+            True
+            sage: rs.one().list()
+            [1, 2, 3]
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()
             1
         """
 
-        gens = [ "()" ]
+        # Ensure that the permutations involve all elements of the
+        # tableau, by including the identity permutation on the set [1..k].
+        k = max(self.entries())
+        gens = [range(1,k+1)]
         for i in range(len(self)):
             for j in range(0, len(self[i])-1):
                 gens.append( (self[i][j], self[i][j+1]) )

@@ -1138,16 +1138,31 @@ cdef class CommutativeRing(Ring):
 
             sage: R = QQ['x']
             sage: y = polygen(R)
-            sage: R.extension(y^2-5, 'a')
+            sage: R.extension(y^2 - 5, 'a')
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
+
+        ::
+
+            sage: F.<a> = GF(5).extension(x^2 - 2)
+            sage: P.<t> = F[]
+            sage: R.<b> = F.extension(t^2 - a); R
+            Univariate Quotient Polynomial Ring in b over Univariate Quotient Polynomial Ring in a over Finite Field of size 5 with modulus a^2 + 3 with modulus b^2 + 4*a
         """
-        if name is None and names is not None:
+        from sage.rings.polynomial.polynomial_element import Polynomial
+        if not isinstance(poly, Polynomial):
+            try:
+                poly = poly.polynomial(self)
+            except (AttributeError, TypeError):
+                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(poly)
+        if not names is None:
             name = names
-        elif name is None:
+        if isinstance(name, tuple):
+            name = name[0]
+        if name is None:
             name = str(poly.parent().gen(0))
         if embedding is not None:
             raise NotImplementedError
-        R = self[str(name)]
+        R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)
 

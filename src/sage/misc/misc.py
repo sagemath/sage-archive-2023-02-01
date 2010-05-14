@@ -1953,7 +1953,7 @@ def deprecation(message, version=None):
                   should be replaced.
 
      - ``version`` - (optional) on which version and when the deprecation
-                  occured. Please put there the version of sageq at the time of deprecation.
+                  occurred. Please put there the version of sage at the time of deprecation.
 
     EXAMPLES::
 
@@ -1979,7 +1979,7 @@ def deprecation(message, version=None):
 from sage.misc.lazy_attribute import lazy_attribute
 class DeprecatedFunctionAlias(object):
     """
-    A wrapper around methods or functions wich automatically print the correct
+    A wrapper around methods or functions which automatically print the correct
     deprecation message. See :func:`deprecated_function_alias`.
 
     AUTHORS:

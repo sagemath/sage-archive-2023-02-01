@@ -379,7 +379,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     cpdef bint is_exact(self) except -2:
         """
-        Return False, since a real field (representing using finite
+        Return False, since a real field (represented using finite
         precision) is not exact.
 
         EXAMPLE::
@@ -418,7 +418,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     cpdef _coerce_map_from_(self, S):
         """
-        Canonical coercion of x to this mpfr real field.
+        Canonical coercion of x to this MPFR real field.
 
         The rings that canonically coerce to this MPFR real field are:
 
@@ -549,7 +549,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
 
     def construction(self):
-        """
+        r"""
         Returns the functorial construction of self, namely,
         completion of the rational numbers with respect to the prime
         at `\infty`.
@@ -588,7 +588,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         if i == 0:
             return self(1)
         else:
-            raise IndexError, "self has only one generator"
+            raise IndexError("self has only one generator")
 
     def complex_field(self):
         """
@@ -886,8 +886,10 @@ cdef class RealField_class(sage.rings.ring.Field):
         Returns a uniformly distributed random number between min and max
         (default -1 to 1).
 
-        .. warning:: ``distribution`` is ignored---the random number
-        is from the uniform distribution.
+        .. warning::
+
+            The argument ``distribution`` is ignored---the random number
+            is from the uniform distribution.
 
         EXAMPLES::
 
@@ -1967,7 +1969,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __abs__(self):
         """
-        Return absolute value of self.
+        Return the absolute value of self.
 
         EXAMPLES::
 
@@ -2005,7 +2007,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Bit shifting
     def _lshift_(RealNumber self, n):
         """
-        Return `self*(2^n)` for an integer ``n``.
+        Return ``self*(2^n)`` for an integer ``n``.
 
         EXAMPLES::
 
@@ -2023,7 +2025,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __lshift__(x, y):
         """
-        Return `self*(2^n)` for an integer ``n``.
+        Return ``self*(2^n)`` for an integer ``n``.
 
         EXAMPLES::
 
@@ -2043,7 +2045,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def _rshift_(RealNumber self, n):
         """
-        Return `self/(2^n)` for an integer ``n``.
+        Return ``self/(2^n)`` for an integer ``n``.
 
         EXAMPLES::
 
@@ -2329,8 +2331,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def frac(self):
         """
-        Returns a real number such that `self = self.trunc() +
-        self.frac()`.  The return value will also satisfy `-1 < self.frac() < 1`.
+        Returns a real number such that
+        ``self = self.trunc() + self.frac()`.  The return value will also
+        satisfy ``-1 < self.frac() < 1``.
 
         EXAMPLES::
 
@@ -2439,7 +2442,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __float__(self):
         """
-        Returns a python float approximating self.
+        Returns a Python float approximating self.
 
         EXAMPLES::
 
@@ -2467,7 +2470,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __int__(self):
         """
-        Returns the python integer truncation of self.
+        Returns the Python integer truncation of self.
 
         EXAMPLES::
 
@@ -2485,7 +2488,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __long__(self):
         """
-        Returns python long integer truncation of this real number.
+        Returns Python long integer truncation of this real number.
 
         EXAMPLES::
 
@@ -2503,7 +2506,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __complex__(self):
         """
-        Returns a python complex number equal to self.
+        Returns a Python complex number equal to self.
 
         EXAMPLES::
 
@@ -3264,7 +3267,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __richcmp__(left, right, int op):
         """
-        Return the cython rich comparison operator (see the cython
+        Return the Cython rich comparison operator (see the Cython
         documentation for details).
 
         EXAMPLES::
@@ -4217,7 +4220,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a.agm(100)
             28.1189391225320
 
-        The AGM always lies beween the geometric and arithmatic mean::
+        The AGM always lies between the geometric and arithmetic mean::
 
             sage: sqrt(a*b) < a.agm(b) < (a+b)/2
             True
@@ -4964,7 +4967,7 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
 
 def is_RealField(x):
     """
-    Returns True if ``x`` is technically of a python real field type.
+    Returns True if ``x`` is technically of a Python real field type.
 
     EXAMPLES::
 

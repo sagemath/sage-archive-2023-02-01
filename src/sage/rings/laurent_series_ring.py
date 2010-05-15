@@ -46,14 +46,14 @@ def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
         sage: Frac(GF(5)['y'])
         Fraction Field of Univariate Polynomial Ring in y over Finite Field of size 5
 
-    Here the fraction field is not just the Laurent series ring, so you
-    can't use the ``Frac`` notation to make the Laurent
-    series ring.
+    After fixing ticket #8972, this also works if the base ring is not
+    a field. In this case, the ``Frac`` constructor returns the Laurent
+    series ring over the fraction field of the base ring.
 
     ::
 
         sage: Frac(ZZ[['t']])
-        Fraction Field of Power Series Ring in t over Integer Ring
+        Laurent Series Ring in t over Rational Field
 
     Laurent series rings are determined by their variable and the base
     ring, and are globally unique.

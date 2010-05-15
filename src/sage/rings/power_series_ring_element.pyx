@@ -976,28 +976,40 @@ cdef class PowerSeries(AlgebraElement):
             t + O(t^21)
             sage: (t^5/(t^2 - 2)) * (t^2 -2 )
             t^5 + O(t^25)
+
+        TEST:
+
+        The following tests against a bug that was fixed in
+        ticket #8972::
+
+            sage: P.<t> = ZZ[]
+            sage: R.<x> = P[[]]
+            sage: 1/(t*x)
+            1/t*x^-1
         """
+        F = self._parent.fraction_field()
         denom = <PowerSeries>denom_r
         if denom.is_zero():
             raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
-        u = denom.valuation_zero_part()
-        inv = ~u  # inverse
 
         v = denom.valuation()
         if v > self.valuation():
-            R = self._parent.laurent_series_ring()
-            return R(self)/R(denom)
+            R = self._parent.laurent_series_ring().base_extend(self._parent.base().fraction_field())
+            return F(R(self)/R(denom))
 
         # Algorithm: Cancel common factors of q from top and bottom,
         # then invert the denominator.  We do the cancellation first
         # because we can only invert a unit (and remain in the ring
         # of power series).
 
+        P_ext = self._parent.base_extend(denom_r.parent().base().fraction_field())
+        u = P_ext(denom.valuation_zero_part())
+        inv = ~u  # inverse
         if v > 0:
             num = self >> v
         else:
             num = self
-        return num*inv
+        return F(num*inv)
 
     def __mod__(self, other):
         """

@@ -1393,7 +1393,7 @@ class Graph(GenericGraph):
         except:
             return False
 
-    def degree_constrained_subgraph(self, bounds=None):
+    def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
         r"""
         Returns a degree-constrained subgraph.
 
@@ -1409,6 +1409,14 @@ class Graph(GenericGraph):
               real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
             - A function associating to each vertex a pair of
               real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
 
         OUTPUT:
 
@@ -1462,7 +1470,7 @@ class Graph(GenericGraph):
         p.set_binary(b)
 
         try:
-            p.solve()
+            p.solve(solver = solver, log = verbose)
             g = self.copy()
             b = p.get_values(b)
             g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
@@ -1801,7 +1809,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
-    def independent_set_of_representatives(self,family):
+    def independent_set_of_representatives(self,family, solver=None, verbose=0):
         r"""
         Returns an independent set of representatives.
 
@@ -1819,6 +1827,15 @@ class Graph(GenericGraph):
 
         - ``family`` -- A list of lists defining the family `F`
           ( actually, a Family of subsets of ``G.vertices()`` )
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
+
 
         OUTPUT :
 
@@ -1905,7 +1922,7 @@ class Graph(GenericGraph):
         p.set_binary(classss)
 
         try:
-            p.solve()
+            p.solve(solver = solver, log = verbose)
         except:
             return None
 
@@ -1920,7 +1937,7 @@ class Graph(GenericGraph):
 
         return repr
 
-    def minor(self, H, **kwds):
+    def minor(self, H, solver=None, verbose=0):
         r"""
         Returns the vertices of a minor isomorphic to `H` in the current graph.
 
@@ -1937,9 +1954,14 @@ class Graph(GenericGraph):
 
         - ``H`` -- The minor to find for in the current graph
 
-        - ``**kwds`` -- arguments to be passed down to the ``solve``
-          function of ``MixedIntegerLinearProgram``. See the documentation
-          of ``MixedIntegerLinearProgram.solve`` for more informations.
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
+
 
         OUTPUT:
 
@@ -2066,7 +2088,7 @@ class Graph(GenericGraph):
         p.set_objective(None)
 
         try:
-            p.solve(**kwds)
+            p.solve(solver = solver, log = verbose)
         except MIPSolverException:
             raise ValueError("This graph has no minor isomorphic to H !")
 
@@ -3121,13 +3143,13 @@ class Graph(GenericGraph):
 
         # This new bipartite graph is now edge_colored
         from sage.graphs.graph_coloring import edge_coloring
-        classes = edge_coloring(g,log=1)
+        classes = edge_coloring(g)
 
         # The edges in the classes are of the form ((-1,u),(1,v))
         # and have to be translated back to (u,v)
         classes_b = []
         for c in classes:
-            classes_b.append([(u,v) for ((uu,u),(vv,v),t) in c])
+            classes_b.append([(u,v) for ((uu,u),(vv,v)) in c])
 
         return classes_b
 

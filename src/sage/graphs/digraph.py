@@ -1091,7 +1091,7 @@ class DiGraph(GenericGraph):
         return sorted(self.out_degree_iterator(), reverse=True)
 
 
-    def feedback_edge_set(self,value_only=False):
+    def feedback_edge_set(self,value_only=False, solver=None, verbose=0):
         r"""
         Computes the minimum feedback edge set of a digraph
         ( also called feedback arc set ).
@@ -1113,6 +1113,14 @@ class DiGraph(GenericGraph):
 
             - When set to ``False``, the ``Set`` of edges
               of a minimal edge set is returned.
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
 
         This problem is solved using Linear Programming, which certainly
         is not the best way and will have to be updated. The program solved
@@ -1192,16 +1200,16 @@ class DiGraph(GenericGraph):
         p.set_objective(sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 
         if value_only:
-            return p.solve(objective_only=True)
+            return p.solve(objective_only=True, solver = solver, log = verbose)
         else:
-            p.solve()
+            p.solve(solver = solver, log = verbose)
 
             b_sol=p.get_values(b)
 
             from sage.sets.set import Set
             return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
 
-    def feedback_vertex_set(self,value_only=False):
+    def feedback_vertex_set(self,value_only=False, solver=None, verbose=0):
         r"""
         Computes the minimum feedback vertex set of a digraph.
 
@@ -1222,6 +1230,16 @@ class DiGraph(GenericGraph):
 
             - When set to ``False``, the ``Set`` of vertices
               of a minimal feedback vertex set is returned.
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
+
+        ALGORITHM:
 
         This problem is solved using Linear Programming, which certainly
         is not the best way and will have to be replaced by a better algorithm.
@@ -1248,7 +1266,7 @@ class DiGraph(GenericGraph):
         The number of vertices removed is then minimized, which is
         the objective.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In a digraph built from a graph, any edge is replaced by arcs going
         in the two opposite directions, thus creating a cycle of length two.
@@ -1300,9 +1318,9 @@ class DiGraph(GenericGraph):
         p.set_objective(sum([b[v] for v in self]))
 
         if value_only:
-            return p.solve(objective_only=True)
+            return p.solve(objective_only=True, solver = solver, log = verbose)
         else:
-            p.solve()
+            p.solve(solver = solver, log = verbose)
             b_sol=p.get_values(b)
 
             from sage.sets.set import Set

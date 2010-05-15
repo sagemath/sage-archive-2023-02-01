@@ -412,11 +412,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         OUTPUT:
 
-        (int) The discriminant.
-
-        .. note::
-
-           The discriminant is returned as a python int.
+        (Integer) The discriminant.
 
         EXAMPLES::
 
@@ -431,7 +427,8 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             -1269581104000000
         """
         _sig_on
-        return int(string_sigoff(Curvedata_getdiscr(self.x)))
+        from sage.rings.all import Integer
+        return Integer(string_sigoff(Curvedata_getdiscr(self.x)))
 
     def conductor(self):
         """
@@ -439,11 +436,8 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         OUTPUT:
 
-        (int) The conductor.
+        (Integer) The conductor.
 
-        .. note::
-
-           The conductor is returned as a python int.
 
         EXAMPLES::
 
@@ -454,11 +448,10 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: E = _Curvedata(100,200,300,400,500)
             sage: E.conductor()
             126958110400
-            sage: ZZ(E.conductor())
-            126958110400
         """
         _sig_on
-        return int(string_sigoff(Curvedata_conductor(self.x)))
+        from sage.rings.all import Integer
+        return Integer(string_sigoff(Curvedata_conductor(self.x)))
 
     def isogeny_class(self, verbose=False):
         """
@@ -809,7 +802,7 @@ cdef class _mw:
 
         OUTPUT:
 
-        (int) The current rank.
+        (Integer) The current rank.
 
         EXAMPLES::
 
@@ -826,7 +819,8 @@ cdef class _mw:
         _sig_on
         r = mw_rank(self.x)
         _sig_off
-        return r
+        from sage.rings.all import Integer
+        return Integer(r)
 
     def saturate(self, int sat_bd=-1, int odd_primes_only=0):
         """
@@ -1058,7 +1052,7 @@ cdef class _two_descent:
 
         OUTPUT:
 
-        (int) the rank (or an upper bound).
+        (Integer) the rank (or an upper bound).
 
         EXAMPLES::
 
@@ -1074,7 +1068,8 @@ cdef class _two_descent:
         _sig_on
         r = two_descent_get_rank(self.x)
         _sig_off
-        return r
+        from sage.rings.all import Integer
+        return Integer(r)
 
     def getrankbound(self):
         """
@@ -1082,7 +1077,7 @@ cdef class _two_descent:
 
         OUTPUT:
 
-        (int) an upper bound on the rank.
+        (Integer) an upper bound on the rank.
 
         EXAMPLES::
 
@@ -1098,7 +1093,8 @@ cdef class _two_descent:
         _sig_on
         r = two_descent_get_rank_bound(self.x)
         _sig_off
-        return r
+        from sage.rings.all import Integer
+        return Integer(r)
 
     def getselmer(self):
         """
@@ -1106,7 +1102,7 @@ cdef class _two_descent:
 
         OUTPUT:
 
-        (int) The 2-Selmer rank.
+        (Integer) The 2-Selmer rank.
 
         EXAMPLES::
 
@@ -1121,7 +1117,8 @@ cdef class _two_descent:
         _sig_on
         r = two_descent_get_selmer_rank(self.x)
         _sig_off
-        return r
+        from sage.rings.all import Integer
+        return Integer(r)
 
     def ok(self):
         """

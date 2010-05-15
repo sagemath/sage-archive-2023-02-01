@@ -358,49 +358,19 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         r"""
         Return string representation of corresponding GAP object.
 
-        This can be slow since non-prime GAP finite field elements are
-        represented as powers of a generator for the multiplicative group,
-        so the discrete log problem must be solved.
-
-        .. note::
-
-           This function will create a meaningless GAP object if the
-           modulus is not a power of a prime. Also, the modulus must
-           be `\leq 65536`.
-
         EXAMPLES::
 
             sage: a = Mod(2,19)
             sage: gap(a)
             Z(19)
-            sage: a._gap_(gap)
-            Z(19)
-            sage: gap(a).Int()
-            2
-            sage: b = Mod(0,25)
-            sage: gap(b)
-            0*Z(5)
+            sage: gap(Mod(3, next_prime(10000)))
+            Z(10007)^6190
+            sage: gap(Mod(3, next_prime(100000)))
+            ZmodpZObj( 3, 100003 )
+            sage: gap(Mod(4, 48))
+            ZmodnZObj( 4, 48 )
         """
-        R = self.parent()
-        m = self.__modulus.sageInteger
-
-        if m > 65536:
-            raise ValueError, "order must be at most 65536."
-
-        if self == 0:
-            return '0*Z(%s)'%m
-
-        # I couldn't find a guarantee in the GAP docs that the
-        # root of unity they use must be the smallest.   This
-        # was *not* the case in MAGMA once, so who knows, especially
-        # when the order of the ring is not prime.  So we make
-        # no such dangerous assumptions (for now).
-
-        # Find the root of unity used by Gap.
-        from sage.interfaces.all import gap        # here to reduce dependencies
-        g = int(gap.eval('Int(Z(%s))'%m))
-        n = self.log(R(g))
-        return 'Z(%s)^%s'%(m, n)
+        return '%s*One(ZmodnZ(%s))' % (self, self.__modulus.sageInteger)
 
     def _magma_init_(self, magma):
         """

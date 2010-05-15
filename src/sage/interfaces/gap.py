@@ -1334,6 +1334,53 @@ def gfq_gap_to_sage(x, F):
         g = K.multiplicative_generator()
     return F(K(g**e))
 
+def intmod_gap_to_sage(x):
+    r"""
+    INPUT:
+
+    - x -- Gap integer mod ring element
+
+    EXAMPLES::
+
+        sage: a = gap(Mod(3, 18)); a
+        ZmodnZObj( 3, 18 )
+        sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
+        3
+        sage: b.parent()
+        Ring of integers modulo 18
+
+        sage: a = gap(Mod(3, 17)); a
+        Z(17)
+        sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
+        3
+        sage: b.parent()
+        Ring of integers modulo 17
+
+        sage: a = gap(Mod(0, 17)); a
+        0*Z(17)
+        sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
+        0
+        sage: b.parent()
+        Ring of integers modulo 17
+
+        sage: a = gap(Mod(3, 65537)); a
+        ZmodpZObj( 3, 65537 )
+        sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
+        3
+        sage: b.parent()
+        Ring of integers modulo 65537
+    """
+    from sage.rings.finite_rings.integer_mod import Mod
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    s = str(x)
+    m = re.search(r'Z\(([0-9]*)\)', s)
+    if m:
+        return gfq_gap_to_sage(x, Zmod(m.group(1)))
+    m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
+    if m:
+        return Mod(m.group(1), m.group(2))
+    raise ValueError, "Unable to convert Gap element '%s'" % s
+
 #############
 
 gap = Gap()

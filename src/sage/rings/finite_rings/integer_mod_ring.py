@@ -778,6 +778,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             ...
             TypeError: error coercing to finite field
 
+        The following test refers to ticket #8970::
+
+            sage: R = Zmod(13); a = R(2)
+            sage: a == R(gap(a))
+            True
+
         """
         try:
             return integer_mod.IntegerMod(self, x)
@@ -785,9 +791,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             raise TypeError, "error coercing to finite field"
         except TypeError:
             if sage.interfaces.all.is_GapElement(x):
-                from sage.interfaces.gap import gfq_gap_to_sage
+                from sage.interfaces.gap import intmod_gap_to_sage
                 try:
-                    return gfq_gap_to_sage(x, self)
+                    y = intmod_gap_to_sage(x)
+                    return self.coerce(y)
                 except (ValueError, IndexError, TypeError), msg:
                     raise TypeError, "%s\nerror coercing to finite field"%msg
             else:

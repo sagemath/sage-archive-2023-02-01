@@ -49,8 +49,15 @@ extern int COLORVERTICES_ID;
 
 #include "graph.h"
 
-#include <string.h>
+#if 0
 #include <malloc.h>
+#else
+#if	!defined(_XOPEN_SOURCE) && !defined(_ISOC99_SOURCE)
+#define	_XOPEN_SOURCE	600
+#endif
+#include <stdlib.h>		/* ISO C99 also defines malloc() to be there. */
+#endif
+#include <string.h>
 #include <stdio.h>
 
 extern void _FillVisitedFlags(graphP theGraph, int FillValue);

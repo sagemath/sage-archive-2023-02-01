@@ -78,8 +78,10 @@ cdef class LaurentSeries(AlgebraElement):
     """
     A Laurent Series.
     """
-
-    def __init__(self, parent, f, n=0):
+    # check=False means: The user asserts that f is
+    # a power series that coerces into the power series
+    # ring of self and is of valuation zero.
+    def __init__(self, parent, f, n=0,check=True):
         r"""
         Create the Laurent series `t^n \cdot f`. The default is
         n=0.
@@ -118,6 +120,21 @@ cdef class LaurentSeries(AlgebraElement):
         """
         AlgebraElement.__init__(self, parent)
 
+        if not check:
+            # the user assures that f coerces into parent.power_series_ring()
+            # and is of valuation zero
+            if not f:
+                if n == infinity:
+                    self.__n = 0
+                    self.__u = parent.power_series_ring()(0)
+                else:
+                    self.__n = n
+                    self.__u = f
+            else:
+                self.__n = n    # power of the variable
+                self.__u = f    # unit part
+            return
+
         if PY_TYPE_CHECK(f, LaurentSeries):
             n += (<LaurentSeries>f).__n
             if (<LaurentSeries>f).__u._parent is parent.power_series_ring():
@@ -129,7 +146,7 @@ cdef class LaurentSeries(AlgebraElement):
         ## now this is a power series, over a different ring ...
         ## requires that power series rings with same vars over the
         ## same parent are unique.
-        elif parent is not f.parent():
+        elif parent.power_series_ring() is not f.parent():
             f = parent.power_series_ring()(f)
 
 
@@ -176,10 +193,13 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f = 2 + s^2 + O(s^10)
             sage: f.is_unit()
             False
+
+        Before ticket #8972, the following used to raise an error.
+        But now, the inverse of any non-zero element exists, and
+        the inverse is always an element of the fraction field::
+
             sage: 1/f
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: division not defined
+            1/2 - 1/4*s^2 + 1/8*s^4 - 1/16*s^6 + 1/32*s^8 + O(s^10)
 
         ALGORITHM: A Laurent series is a unit if and only if its "unit
         part" is a unit.
@@ -513,18 +533,18 @@ cdef class LaurentSeries(AlgebraElement):
         # 2. Align the unit parts.
         if self.__n < right.__n:
             m = self.__n
-            f1 = self.__u
-            f2 = right.__u << right.__n - m
+            out = self.__u + (right.__u << right.__n - m)
         elif self.__n > right.__n:
             m = right.__n
-            f1 = self.__u << self.__n - m
-            f2 = right.__u
+            out = (self.__u << self.__n - m) + right.__u
         else:
             m = self.__n
-            f1 = self.__u
-            f2 = right.__u
+            out = self.__u + right.__u
         # 3. Add
-        return LaurentSeries(self._parent, f1 + f2, m)
+        if out.is_zero():
+            return LaurentSeries(self._parent, out, m, check=False)
+        v = out.valuation()
+        return LaurentSeries(self._parent, out>>v, m+v, check=False)
 
     cpdef ModuleElement _iadd_(self, ModuleElement right_m):
         """
@@ -570,14 +590,21 @@ cdef class LaurentSeries(AlgebraElement):
         # 2. Align the unit parts.
         if self.__n < right.__n:
             m = self.__n
-            f1 = self.__u
-            f2 = right.__u << right.__n - m
+            out = self.__u - (right.__u << right.__n - m)
+            #f2 = right.__u << right.__n - m
         else:
             m = right.__n
-            f1 = self.__u << self.__n - m
-            f2 = right.__u
+            out = (self.__u << self.__n - m) - right.__u
+            #f2 = right.__u
         # 3. Subtract
-        return LaurentSeries(self._parent, f1 - f2, m)
+        # We want to keep the parent of f1-f2 as simple as
+        # possible. Therefore, we work a little more here,
+        # and use the option check=False
+        if out.is_zero():
+            return LaurentSeries(self._parent, out, m, check=False)
+        v = out.valuation()
+        return LaurentSeries(self._parent, out>>v, m+v, check=False)
+        #return LaurentSeries(self._parent, f1 - f2, m)
 
 
     def add_bigoh(self, prec):
@@ -593,7 +620,7 @@ cdef class LaurentSeries(AlgebraElement):
         if prec == infinity or prec >= self.prec():
             return self
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self._parent, u, self.__n)
+        return LaurentSeries(self._parent, u, self.__n,check=False)
 
     def degree(self):
         """
@@ -623,7 +650,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: -(1/(1+t+O(t^5)))
             -1 + t - t^2 + t^3 - t^4 + O(t^5)
         """
-        return LaurentSeries(self._parent, -self.__u, self.__n)
+        return LaurentSeries(self._parent, -self.__u, self.__n, check=False)
 
     cpdef RingElement _mul_(self, RingElement right_r):
         """
@@ -638,7 +665,7 @@ cdef class LaurentSeries(AlgebraElement):
         cdef LaurentSeries right = <LaurentSeries>right_r
         return LaurentSeries(self._parent,
                              self.__u * right.__u,
-                             self.__n + right.__n)
+                             self.__n + right.__n,check=False)
 
     cpdef RingElement _imul_(self, RingElement right_r):
         """
@@ -681,7 +708,7 @@ cdef class LaurentSeries(AlgebraElement):
         right=int(r)
         if right != r:
             raise ValueError, "exponent must be an integer"
-        return LaurentSeries(self._parent, self.__u**right, self.__n*right)
+        return LaurentSeries(self._parent, self.__u**right, self.__n*right,check=False)
 
     def shift(self, k):
         r"""
@@ -714,13 +741,13 @@ cdef class LaurentSeries(AlgebraElement):
 
         - Robert Bradshaw (2007-04-18)
         """
-        return LaurentSeries(self._parent, self.__u, self.__n + k)
+        return LaurentSeries(self._parent, self.__u, self.__n + k,check=False)
 
     def __lshift__(LaurentSeries self, k):
-        return LaurentSeries(self._parent, self.__u, self.__n + k)
+        return LaurentSeries(self._parent, self.__u, self.__n + k,check=False)
 
     def __rshift__(LaurentSeries self, k):
-        return LaurentSeries(self._parent, self.__u, self.__n - k)
+        return LaurentSeries(self._parent, self.__u, self.__n - k,check=False)
 
     def truncate(self, long n):
         r"""
@@ -730,7 +757,7 @@ cdef class LaurentSeries(AlgebraElement):
         if n <= self.__n:
             return LaurentSeries(self._parent, 0)
         else:
-            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n)
+            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n,check=False)
 
     def truncate_neg(self, long n):
         r"""
@@ -740,7 +767,7 @@ cdef class LaurentSeries(AlgebraElement):
         This is equivalent to
         ```self - self.truncate(n)```.
         """
-        return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
+        return LaurentSeries(self._parent, self.__u >> (n - self.__n), n,check=False)
 
     cpdef RingElement _div_(self, RingElement right_r):
         """
@@ -755,12 +782,14 @@ cdef class LaurentSeries(AlgebraElement):
             x^8 + x^9 + 3*x^11 + O(x^14)
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
+        cdef LaurentSeries out
         if right.__u.is_zero():
             raise ZeroDivisionError
         try:
+            out = self.__u / right.__u
             return LaurentSeries(self._parent,
-                             self.__u / right.__u,
-                             self.__n - right.__n)
+                             out.__u,
+                             self.__n - right.__n, check=False)
         except TypeError, msg:
             # todo: this could also make something in the formal fraction field.
             raise ArithmeticError, "division not defined"
@@ -951,7 +980,7 @@ cdef class LaurentSeries(AlgebraElement):
         return self.__u.prec() + self.__n
 
     def __copy__(self):
-        return LaurentSeries(self._parent, self.__u.copy(), self.__n)
+        return LaurentSeries(self._parent, self.__u.copy(), self.__n, check=False)
 
 
     def derivative(self, *args):

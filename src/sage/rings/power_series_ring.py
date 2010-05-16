@@ -400,6 +400,10 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R(x + x^2 + x^3 + x^5, 3)
             t + t^2 + O(t^3)
         """
+        try:
+            f = f.power_series()
+        except:
+            pass
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f
@@ -710,14 +714,46 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: S.<s> = PowerSeriesRing(ZZ)
             sage: s in R
             False
+
+        TEST:
+
+        The following was fixed in ticket #8972. If a Laurent
+        series is in fact a power series that can be interpreted
+        in ``self`` then it is considered an element of ``self``::
+
+            sage: R.<x> = ZZ[[]]
+            sage: y = (1+x)/(1-4*x)
+            sage: y in R
+            True
+            sage: y.parent()
+            Laurent Series Ring in x over Rational Field
+            sage: (1+x)/(2-x) in R
+            False
+            sage: 2/2 in R
+            True
+
         """
         if x.parent() == self:
             return True
+        # first case: x coerces into self
         try:
             self._coerce_(x)
+            return True
         except TypeError:
+            pass
+        # second case: x is a (ducktyped) Laurent series of non-negative valuation
+        try:
+            self(x.power_series())
+            return True
+        except (TypeError,AttributeError,ArithmeticError):
+            pass
+        # third case: x is anything else that can be interpreted in self
+        try:
+            self.fraction_field()._coerce_(x)
+            self(x)
+            return True
+        except:
             return False
-        return True
 
     def is_atomic_repr(self):
         """
@@ -782,7 +818,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
                                                  self.base_ring(), self.variable_name(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
+from sage.misc.cachefunc import cached_method
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
+    @cached_method
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which
@@ -798,9 +836,11 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDo
             sage: 1/x in FractionField(R2)
             True
         """
-        return self.laurent_series_ring().base_extend(self.base().fraction_field())
+        from sage.all import LaurentSeriesRing
+        return LaurentSeriesRing(self.base().fraction_field(),self.variable_names()) #self.laurent_series_ring().base_extend(self.base().fraction_field())
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
+    @cached_method
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is

@@ -1,5 +1,7 @@
 from cone import Cone
 
+from fan import Fan, FaceFan, NormalFan
+
 from polytope import polymake
 
 from polyhedra import Polyhedron, polytopes

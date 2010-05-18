@@ -1,8 +1,8 @@
 Combinatorial Geometry
 ======================
 
-Sage includes classes for convex rational polyhedral cones, Groebner fans,
-lattice and reflexive polytopes (with integral coordinates), and generic
+Sage includes classes for convex rational polyhedral cones and fans, Groebner
+fans, lattice and reflexive polytopes (with integral coordinates), and generic
 polytopes and polyhedra (with rational or numerical coordinates).
 
 .. toctree::
@@ -12,4 +12,6 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/rings/polynomial/groebner_fan
    sage/geometry/lattice_polytope
    sage/geometry/polyhedra
+   sage/geometry/fan
+
    sage/geometry/toric_lattice

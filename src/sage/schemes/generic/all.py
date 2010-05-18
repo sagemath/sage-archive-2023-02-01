@@ -7,6 +7,7 @@ from ambient_space    import is_AmbientSpace
 from morphism         import is_SchemeMorphism
 from projective_space import ProjectiveSpace, is_ProjectiveSpace
 from scheme           import is_Scheme, is_AffineScheme
+from toric_variety import AffineToricVariety, ToricVariety
 from hypersurface     import ProjectiveHypersurface, AffineHypersurface
 
 

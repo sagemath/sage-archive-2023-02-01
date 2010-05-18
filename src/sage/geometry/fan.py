@@ -770,7 +770,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         .. NOTE::
 
-            "Direct call" syntax is a synonym for :meth:`cones` method.
+            "Direct call" syntax is a synonym for :meth:`cones` method except
+            that in the case of no input parameters this function returns
+            just ``self``.
 
         INPUT:
 
@@ -780,7 +782,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - cones of ``self`` of the specified (co)dimension.
+        - cones of ``self`` of the specified (co)dimension if it was given,
+          otherwise ``self``.
 
         TESTS::
 
@@ -802,8 +805,16 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ...
             ValueError: dimension and codimension
             cannot be specified together!
+            sage: fan() is fan
+            True
         """
-        return self.cones(dim, codim)
+        if dim is None and codim is None:
+            # "self.cones()" returns all cones, but for the call syntax
+            # "self()" we return just "self", which seems to be more natural
+            # and convenient for ToricVariety.fan() method.
+            return self
+        else:
+            return self.cones(dim, codim)
 
     def __cmp__(self, right):
         r"""

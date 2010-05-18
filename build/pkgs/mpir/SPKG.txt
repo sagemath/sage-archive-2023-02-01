@@ -4,13 +4,14 @@
 
 MPIR is an open source multiprecision integer library derived from
 version 4.2.1 of the GMP (GNU Multi Precision) project (which was
-licensed LGPL v2+).
+licensed LGPL v2+). Note MPIR 1.2.2 is overall LGPL v3+ due to the
+inclusion of an LGPL v3 file (mpf/set_str.c).
 
 See http://www.mpir.org
 
 == License ==
 
- * LGPL V2+
+ * LGPL V3+
 
 == SPKG Maintainers ==
 
@@ -25,6 +26,20 @@ See http://www.mpir.org
  * None
 
 == Changelog ==
+
+=== mpir-1.2.2.p1 (Georg S. Weber, May 18th 2010) ===
+ * Update the License information (e.g. above), as kindly requested
+   on the MPIR project homepage (see "http://www.mpir.org/past.html"):
+   "... Note MPIR 1.2.2 is overall LGPL v3+ due to us accidentally including
+    an LGPL v3 file (mpf/set_str.c). Please distribute this version of the
+    library under the terms of this license! ..."
+   (According to "http://trac.mpir.org/mpir_trac/ticket/71", this LGPL v3 file
+   stems from (patches for) GMP 4.2.4 in the year 2008.)
+   Also copied two new files "gpl-3.0.txt" and "lgpl-3.0.txt" under src/, taken
+   from the updated mpir-1.2.2 "vanilla" tarball downloaded under the link:
+       http://www.mpir.org/mpir-1.2.2.tar.gz
+   According to private communication with Bill Hart (MPIR upstream), this
+   addition of two files was the only change done to the tarball itself.
 
 === mpir-1.2.2.p0 (David Kirkby, January 5th 2010) ===
  * 7849. Included two header files so MPIR builds with Sun

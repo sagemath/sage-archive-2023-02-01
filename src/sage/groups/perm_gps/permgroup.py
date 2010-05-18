@@ -903,23 +903,33 @@ class PermutationGroup_generic(group.Group):
 
              sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
              sage: G.stabilizer(1)
-             Permutation Group with generators [(), (3,4)]
+             Permutation Group with generators [(3,4)]
              sage: G.stabilizer(3)
-             Permutation Group with generators [(), (1,4)]
+             Permutation Group with generators [(1,4)]
              sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
              sage: G.stabilizer(10)
-             Permutation Group with generators [(), (1,2)(3,4), (1,4,2)]
+             Permutation Group with generators [(1,2)(3,4), (2,3,4)]
              sage: G.stabilizer(1)
-             Permutation Group with generators [(), (3,10,4), (2,4)(3,10)]
+             Permutation Group with generators [(2,3)(4,10), (2,10,4)]
+             sage: G = PermutationGroup([[(2,3,4)],[(6,7)]])
+             sage: G.stabilizer(1)
+             Permutation Group with generators [(6,7), (2,3,4)]
+             sage: G.stabilizer(2)
+             Permutation Group with generators [(6,7)]
+             sage: G.stabilizer(3)
+             Permutation Group with generators [(6,7)]
+             sage: G.stabilizer(4)
+             Permutation Group with generators [(6,7)]
+             sage: G.stabilizer(5)
+             Permutation Group with generators [(6,7), (2,3,4)]
+             sage: G.stabilizer(6)
+             Permutation Group with generators [(2,3,4)]
+             sage: G.stabilizer(7)
+             Permutation Group with generators [(2,3,4)]
+             sage: G.stabilizer(8)
+             Permutation Group with generators [(6,7), (2,3,4)]
          """
-         if self.is_isomorphic(PermutationGroup([])):
-             return self
-         else:
-             Q = PermutationGroup(gap.get_record_element(gap.get_record_element(self._gap_().StabChain([position]),'stabilizer'),'generators'))
-             if Q.is_isomorphic(PermutationGroup([])):
-                 return PermutationGroup([[(self.degree(),)]])
-             else:
-                 return PermutationGroup(Q.gens()+[(self.degree(),)])
+         return PermutationGroup(gap_group=gap.Stabilizer(self, position))
 
     def strong_generating_system(self, base_of_group = None):
          """
@@ -933,9 +943,8 @@ class PermutationGroup_generic(group.Group):
 
          for any base_of_group = `[ pos_1, pos_2, \dots , pos_n]`
          let G_i be the subgroup of ``self`` which stabilize `pos_1, pos_2, \dots , pos_i`
-         ``self`` = `G_0 \subset G_1 \subset G_2 \subset \dots \subset G_n = \{e\}`
-         The algorithm return :
-         ``[G_i.transversals(pos_{i+1}) for i in range(n)]``
+         ``self`` = `G_0 \supset G_1 \supset G_2 \supset \dots \supset G_n = \{e\}`
+         The algorithm returns: `[ G_i.transversals(pos_{i+1})]_{1 \leqslant i \leqslant n}`
 
          INPUT:
 
@@ -947,55 +956,35 @@ class PermutationGroup_generic(group.Group):
          - A list of list of permutation inside the group which form a strong
            generating system.
 
+         TESTS::
+
+             sage: G = SymmetricGroup(10)
+             sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
+             sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
+             True
+
          EXAMPLES::
 
+             sage: G = PermutationGroup([[(7,8)],[(3,4)],[(4,5)]])
+             sage: G.strong_generating_system()
+             [[()], [()], [(), (3,4,5), (3,5)], [(), (4,5)], [()], [()], [(), (7,8)], [()]]
              sage: G = PermutationGroup([[(1,2,3,4)],[(1,2)]])
              sage: G.strong_generating_system()
-             [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)],
-             [(), (2,3,4), (2,4,3)],
-             [(), (3,4)],
-             [()]]
+             [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)], [(), (2,3,4), (2,4,3)], [(), (3,4)], [()]]
              sage: G = PermutationGroup([[(1,2,3)],[(4,5,7)],[(1,4,6)]])
              sage: G.strong_generating_system()
-             [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)],
-              [(), (2,6,3), (2,5,7,6,3), (2,3,6), (2,7,5,6,3), (2,4,7,6,3)],
-              [(), (3,6,7), (3,5,6), (3,7,6), (3,4,7,5,6)],
-              [(), (4,5)(6,7), (4,7)(5,6), (4,6)(5,7)],
-              [(), (5,7,6), (5,6,7)],
-              [()],
-              [()]]
+             [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)], [(), (2,6,3), (2,3,6), (2,5,6,3)(4,7), (2,7,5,6,3), (2,4,5,6,3)], [(), (3,6)(5,7), (3,5,6), (3,7,4,5,6), (3,4,7,5,6)], [(), (4,5)(6,7), (4,7)(5,6), (4,6)(5,7)], [(), (5,6,7), (5,7,6)], [()], [()]]
              sage: G = PermutationGroup([[(1,2,3)],[(2,3,4)],[(3,4,5)]])
              sage: G.strong_generating_system([5,4,3,2,1])
-             [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)],
-              [(), (1,3)(2,4), (1,2)(3,4), (1,4)(2,3)],
-              [(), (1,3,2), (1,2,3)],
-              [()],
-              [()]]
+             [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)], [(), (1,3)(2,4), (1,2)(3,4), (1,4)(2,3)], [(), (1,3,2), (1,2,3)], [()], [()]]
+             sage: G = PermutationGroup([[(3,4)]])
+             sage: G.strong_generating_system()
+             [[()], [()], [(), (3,4)], [()]]
+             sage: G.strong_generating_system(base_of_group=[3,1,2,4])
+             [[(), (3,4)], [()], [()], [()]]
              sage: G = TransitiveGroup(12,17)                # optional
              sage: G.strong_generating_system()              # optional
-             [[(),
-               (1,4,11,2)(3,6,5,8)(7,10,9,12),
-               (1,8,3,2)(4,11,10,9)(5,12,7,6),
-               (1,7)(2,8)(3,9)(4,10)(5,11)(6,12),
-               (1,12,7,2)(3,10,9,8)(4,11,6,5),
-               (1,11)(2,8)(3,5)(4,10)(6,12)(7,9),
-               (1,10,11,8)(2,3,12,5)(4,9,6,7),
-               (1,3)(2,8)(4,10)(5,7)(6,12)(9,11),
-               (1,2,3,8)(4,9,10,11)(5,6,7,12),
-               (1,6,7,8)(2,3,4,9)(5,10,11,12),
-               (1,5,9)(3,11,7),
-               (1,9,5)(3,7,11)],
-              [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()],
-              [()]]
+             [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6), (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5), (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7), (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12), (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)], [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)], [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
          """
          sgs = []
          stab = self

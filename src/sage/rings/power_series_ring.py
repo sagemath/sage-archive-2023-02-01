@@ -89,6 +89,9 @@ AUTHORS:
 
 - Jeremy Cho (2006-05-17): some examples (above)
 
+- Simon King (2010-05): make fraction_field be a cached method; conversion
+  of a Laurent series of non-negative valuation into a power series.
+
 TESTS::
 
     sage: R.<t> = PowerSeriesRing(QQ)

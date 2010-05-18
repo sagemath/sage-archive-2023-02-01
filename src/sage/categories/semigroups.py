@@ -228,6 +228,14 @@ class Semigroups(Category):
 
             ::
 
+                sage: g = S.cayley_graph(side="twosided")
+                sage: g.vertices()
+                ['a', 'ab', 'b', 'ba']
+                sage: g.edges()
+                [('a', 'a', (0, 'left')), ('a', 'a', (0, 'right')), ('a', 'ab', (1, 'right')), ('a', 'ba', (1, 'left')), ('ab', 'ab', (0, 'left')), ('ab', 'ab', (0, 'right')), ('ab', 'ab', (1, 'right')), ('ab', 'ba', (1, 'left')), ('b', 'ab', (0, 'left')), ('b', 'b', (1, 'left')), ('b', 'b', (1, 'right')), ('b', 'ba', (0, 'right')), ('ba', 'ab', (0, 'left')), ('ba', 'ba', (0, 'right')), ('ba', 'ba', (1, 'left')), ('ba', 'ba', (1, 'right'))]
+
+            ::
+
                 sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
                 [()]
 
@@ -270,7 +278,7 @@ class Semigroups(Category):
                 generators = dict((self(g), self(g)) for g in generators)
             left  = (side == "left"  or side == "twosided")
             right = (side == "right" or side == "twosided")
-            def add_edge(source, target, label, side):
+            def add_edge(source, target, label, side_label):
                 """
                 Skips edges whose targets are not in elements
                 Return an appropriate edge given the options
@@ -279,7 +287,7 @@ class Semigroups(Category):
                 if simple:
                     result.add_edge([source, target])
                 elif side == "twosided":
-                    result.add_edge([source, target, (label, side)])
+                    result.add_edge([source, target, (label, side_label)])
                 else:
                     result.add_edge([source, target, label])
             for x in elements:

@@ -165,7 +165,7 @@ class ode_solver(object):
 
     - ``gear2`` - M=2 implicit gear
 
-    The default algorithm if ``rkf45``. If you instead wanted to use
+    The default algorithm is ``rkf45``. If you instead wanted to use
     ``bsimp`` you would do::
 
         sage: T.algorithm="bsimp"

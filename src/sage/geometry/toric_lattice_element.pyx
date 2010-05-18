@@ -214,6 +214,30 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         # Now use the real comparison of vectors
         return self._cmp_c_impl(right)
 
+    # For some reason, vectors work just fine without redefining this function
+    # from the base class, but if it is not here, we get "unhashable type"...
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        OUTPUT:
+
+        - integer.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: n = N(1,2,3)
+            sage: hash(n)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
+            sage: n.set_immutable()
+            sage: hash(n)  # 64-bit
+            2528502973977326415
+        """
+        return Vector_integer_dense.__hash__(self)
+
     cpdef _act_on_(self, other, bint self_on_left):
         """
         Act on ``other``.
@@ -240,17 +264,38 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: m = M(1,2,3)
             sage: n * m # indirect doctest
             14
+
+        Now we test behaviour with other types::
+
+            sage: v = vector([1, 2, 3])
+            sage: v * n == n * v
+            True
             sage: v = vector([1, 1/2, 3/4])
             sage: v * n == n * v
             True
+            sage: A = matrix(3, range(9))
+            sage: A * n
+            (8, 26, 44)
+            sage: n * A
+            (24, 30, 36)
+            sage: B = A / 3
+            sage: B * n
+            (8/3, 26/3, 44/3)
+            sage: n * B
+            (8, 10, 12)
         """
-        # We deal only with the case of two lattice elements
+        # We try to deal only with the case of two lattice elements...
         if is_ToricLatticeElement(other):
             if other.parent() is self.parent().dual():
                 # Our own _dot_product_ is disabled
                 return Vector_integer_dense._dot_product_(self, other)
             raise CoercionException("only elements of dual toric lattices "
                                     "can act on each other!")
+        # ... however we also need to treat the case when other is an integral
+        # vector, since otherwise it will be coerced to the parent of self and
+        # then the dot product will be called for elements of the same lattice
+        if isinstance(other, Vector_integer_dense):
+            return Vector_integer_dense._dot_product_(self, other)
         # Now let the standard framework work...
         return Vector_integer_dense._act_on_(self, other, self_on_left)
 

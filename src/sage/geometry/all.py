@@ -1,3 +1,5 @@
+from cone import Cone
+
 from polytope import polymake
 
 from polyhedra import Polyhedron, polytopes

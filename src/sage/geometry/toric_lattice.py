@@ -116,6 +116,21 @@ Or you can create a homomorphism from one lattice to any other::
     sage: h = N.hom(identity_matrix(3), M)
     sage: h(n)
     M(1, 2, 3)
+
+.. WARNING::
+
+    While integer vectors (elements of `\ZZ^n`) are printed as ``(1,2,3)``,
+    in the code ``(1,2,3)`` is a :class:`tuple`, which has nothing to do
+    neither with vectors, nor with toric lattices, so the following is
+    probably not what you want while working with toric geometry objects::
+
+        sage: (1,2,3) + (1,2,3)
+        (1, 2, 3, 1, 2, 3)
+
+    Instead, use syntax like ::
+
+        sage: N(1,2,3) + N(1,2,3)
+        N(2, 4, 6)
 """
 # Parts of the "tutorial" above are also in toric_lattice_element.pyx.
 
@@ -135,6 +150,33 @@ from sage.geometry.toric_lattice_element import (ToricLatticeElement,
 from sage.modules.free_module import FreeModule_ambient_pid
 from sage.rings.all import ZZ
 from sage.structure.factory import UniqueFactory
+
+
+def is_ToricLattice(x):
+    r"""
+    Check if ``x`` is a toric lattice.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a toric lattice and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.toric_lattice import (
+        ...     is_ToricLattice)
+        sage: is_ToricLattice(1)
+        False
+        sage: N = ToricLattice(3)
+        sage: N
+        3-dimensional lattice N
+        sage: is_ToricLattice(N)
+        True
+    """
+    return isinstance(x, ToricLatticeClass)
 
 
 class ToricLatticeFactory(UniqueFactory):
@@ -434,6 +476,47 @@ class ToricLatticeClass(FreeModule_ambient_pid):
                     self._latex_name, self._latex_dual_name],
                    [right._name, right._dual_name,
                     right._latex_name, right._latex_dual_name])
+
+    def __contains__(self, point):
+        r"""
+        Check if ``point`` is an element of ``self``.
+
+        INPUT:
+
+        - ``point`` -- anything.
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is an element of ``self``, ``False``
+          otherwise.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: M = N.dual()
+            sage: L = ToricLattice(3, "L")
+            sage: 1 in N
+            False
+            sage: (1,0) in N
+            False
+            sage: (1,0,0) in N
+            True
+            sage: N(1,0,0) in N
+            True
+            sage: M(1,0,0) in N
+            False
+            sage: L(1,0,0) in N
+            False
+            sage: (1/2,0,0) in N
+            False
+            sage: (2/2,0,0) in N
+            True
+        """
+        try:
+            self(point)
+        except TypeError:
+            return False
+        return True
 
     def _latex_(self):
         r"""

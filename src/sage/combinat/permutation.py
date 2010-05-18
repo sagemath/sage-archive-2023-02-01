@@ -3563,10 +3563,10 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     Returns the positive sum of permutations corresponding to
     the bistochastic matrix.
 
-    A stochastic matrix is a matrix such that the sum of the elements
-    of any row is equal to 1. A bistochastic matrix is a stochastic matrix
-    whose transpose matrix is also stochastic ( there are conditions
-    both on the rows and on the columns ).
+    A stochastic matrix is a matrix with nonnegative real entries such that the
+    sum of the elements of any row is equal to 1. A bistochastic matrix is a
+    stochastic matrix whose transpose matrix is also stochastic ( there are
+    conditions both on the rows and on the columns ).
 
     According to the Birkhoff-von Neumann Theorem, any bistochastic matrix
     can be written as a positive sum of permutation matrices, which also
@@ -3582,7 +3582,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     - ``M`` -- A bistochastic matrix
 
-    - ``check`` (boolean) -- set to ``True`` (default) to checl
+    - ``check`` (boolean) -- set to ``True`` (default) to check
       that the matrix is indeed bistochastic
 
     OUTPUT:
@@ -3628,18 +3628,28 @@ def bistochastic_as_sum_of_permutations(M, check = True):
         sage: print decomp
         2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
 
-    An exception is raised when the matrix is not bistochastic::
+    An exception is raised when the matrix is not positive and bistochastic::
 
         sage: M = Matrix([[2,3],[2,2]])
         sage: decomp = bistochastic_as_sum_of_permutations(M)
         Traceback (most recent call last):
         ...
         ValueError: The matrix is not bistochastic
+
+        sage: bistochastic_as_sum_of_permutations(Matrix(GF(7), 2, [2,1,1,2]))
+        Traceback (most recent call last):
+        ...
+        ValueError: The base ring of the matrix must have a coercion map to RR
+
+        sage: bistochastic_as_sum_of_permutations(Matrix(ZZ, 2, [2,-1,-1,2]))
+        Traceback (most recent call last):
+        ...
+        ValueError: The matrix should have nonnegative entries
     """
 
     from sage.graphs.bipartite_graph import BipartiteGraph
     from sage.combinat.free_module import CombinatorialFreeModule
-    from sage.rings.real_mpfr import RR
+    from sage.rings.all import RR
 
     n=M.nrows()
 
@@ -3651,6 +3661,9 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     if not RR.has_coerce_map_from(M.base_ring()):
         raise ValueError("The base ring of the matrix must have a coercion map to RR")
+
+    if not all([x >= 0 for x in M.list()]):
+        raise ValueError, "The matrix should have nonnegative entries"
 
     CFM=CombinatorialFreeModule(M.base_ring(),Permutations(n))
     value=0

@@ -426,8 +426,9 @@ The main Mercurial repository for the Sage library lives in
 ``SAGE_ROOT/devel/sage`` so you will interact with the repository
 using this as the working directory.  This means to actually run
 Sage, or rebuild it, you will use commands such as ``../../sage
--b``.  One time only, for each repository, you need to initialize
-it for use with queues, so do the following::
+-b``.  (The next step, initialization, has been deprecated as
+of version 1.5.)  One time only, for each repository, you need
+to initialize it for use with queues, so do the following::
 
     cd SAGE_ROOT/devel/sage
     hg qinit
@@ -517,7 +518,8 @@ like me, then ::
     hg qnew -f <descriptive-name>
 
 will capture your changes made so far and give you a patch to
-work with.  The "descriptive-name" can be anything you like,
+work with.  (In newer versions of Mercurial, the -f flag has been
+deprecated.)  The "descriptive-name" can be anything you like,
 nobody else ever has to see it.  Use a Trac ticket number or
 whatever you please. Edit, build, test, create documentation,
 knock yourself out.  At any time, run ``hg qdiff`` to see your

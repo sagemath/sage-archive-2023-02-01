@@ -83,11 +83,23 @@ AUTHORS:
 import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.number_field.number_field_rel as number_field_rel
+import sage
 
-
-class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElement):
+class PolynomialQuotientRingElement(sage.rings.polynomial.polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
     """
     Element of a quotient of a polynomial ring.
+
+    EXAMPLES::
+
+        sage: P.<x> = QQ[]
+        sage: Q.<xi> = P.quo([(x^2+1)])
+        sage: xi^2
+        -1
+        sage: singular(xi)
+        xi
+        sage: (singular(xi)*singular(xi)).NF('std(0)')
+        -1
+
     """
     def __init__(self, parent, polynomial, check=True):
         """

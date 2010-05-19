@@ -331,6 +331,36 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         if c: return c
         return cmp(self.modulus(), other.modulus())
 
+    def _singular_init_(self, S=None):
+        """
+        Represent ``self`` in the Singular interface.
+
+        TEST::
+
+            sage: P.<x> = QQ[]
+            sage: Q = P.quo([(x^2+1)])
+            sage: singular(Q)        # indirect doctest
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    xbar
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=xbar^2+1
+            sage: singular(Q.gen())
+            xbar
+
+        """
+        if S is None:
+            from sage.all import singular
+            S = singular
+        Rpoly = S(self.polynomial_ring())
+        Rpoly.set_ring()
+        modulus = S(self.modulus()) # should live in Rpoly
+        Rtmp = S(self.polynomial_ring().change_var(self.variable_name()))
+        Rtmp.set_ring()
+        self.__singular = S("ideal(fetch(%s,%s))"%(Rpoly.name(),modulus.name()),"qring")
+        return self.__singular
 
 
     def _repr_(self):

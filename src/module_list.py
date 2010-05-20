@@ -1324,7 +1324,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori','pboriCudd', 'groebner', 'gd', 'png', 'm4ri'],
+              libraries=['polybori','pboriCudd', 'groebner', 'gd', 'png12', 'm4ri'],
               include_dirs = [SAGE_ROOT+'/local/include/cudd',
                               SAGE_ROOT+'/local/include/polybori',
                               SAGE_ROOT+'/local/include/polybori/groebner',

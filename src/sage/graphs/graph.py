@@ -3166,11 +3166,6 @@ class Graph(GenericGraph):
 
         return classes_b
 
-    def max_weight_matching(self):
-        import networkx
-        return networkx.max_weight_matching(self.networkx_graph(copy=False))
-
-
 def compare_edges(x, y):
     """
     Compare edge x to edge y, return -1 if x y, 1 if x y, else 0.

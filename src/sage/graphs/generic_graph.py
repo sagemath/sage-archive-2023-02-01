@@ -434,7 +434,7 @@ class GenericGraph(GenericGraph_pyx):
 
            Please use this method only if you need to copy but change the
            underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of idoing ``g.copy()``.
+           instead of doing ``g.copy()``.
 
         EXAMPLES::
 
@@ -1932,7 +1932,7 @@ class GenericGraph(GenericGraph_pyx):
     def spanning_trees_count(self, root_vertex=None):
         """
         Returns the number of spanning trees in a graph. In the case of a
-        digraph, couts the number of spanning out-trees rooted in
+        digraph, counts the number of spanning out-trees rooted in
         ``root_vertex``.
         Default is to set first vertex as root.
 
@@ -2051,7 +2051,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. [AMOZ06] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.
           Graph orientation algorithms to minimize the maximum outdegree
-          Proceedings of the 12th Computing: The Australasian Theroy Symposium
+          Proceedings of the 12th Computing: The Australasian Theory Symposium
           Volume 51, page 20
           Australian Computer Society, Inc. 2006
         """
@@ -3620,7 +3620,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``use_edge_labels`` -- boolean (default: ``True``)
 
-          - When set to ``True``, computes a maximun flow
+          - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
             an edge has no label, `1` is assumed.)
 
@@ -3635,7 +3635,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``solver`` -- Specify a Linear Program solver to be used.
           If set to ``None``, the default one is used.
           function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          for more information.
 
         - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
           by default (quiet).
@@ -3664,9 +3664,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([('s',i) for i in range(4)])
             sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
             sage: g.add_edges([(4+i,'t') for i in range(4)])
-            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - requries GLPK or CBC
-            sage: flow_graph.delete_vertices(['s','t'])                                  # optional - requries GLPK or CBC
-            sage: len(flow_graph.edges(labels=None))                                     # optional - requries GLPK or CBC
+            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - requires GLPK or CBC
+            sage: flow_graph.delete_vertices(['s','t'])                                  # optional - requires GLPK or CBC
+            sage: len(flow_graph.edges(labels=None))                                     # optional - requires GLPK or CBC
             4
 
         """
@@ -3851,8 +3851,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-
-    def matching(self, value_only=False, use_edge_labels=True, solver=None, verbose=0):
+    def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
         r"""
         Returns a maximum weighted matching of the graph
         represented by the list of its edges. For more information, see the
@@ -3878,6 +3877,12 @@ class GenericGraph(GenericGraph_pyx):
           ``True``, only the cardinal (or the weight) of the matching is
           returned.
 
+        - ``algorithm`` -- string (default: ``"Edmonds"``)
+
+          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+
+          - ``"LP"`` uses a Linear Program formulation of the matching problem
+
         - ``use_edge_labels`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes a weighted matching
@@ -3885,7 +3890,6 @@ class GenericGraph(GenericGraph_pyx):
             an edge has no label, `1` is assumed.)
 
           - When set to ``False``, each edge has weight `1`.
-
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -3897,41 +3901,86 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
+          Only useful when ``algorithm == "LP"``.
 
-        EXAMPLE::
+        ALGORITHM:
 
-           sage: g=graphs.PappusGraph()
-           sage: g.matching(value_only=True) # optional - requires Glpk or COIN-OR/CBC
+        The problem is solved using Edmond's algorithm implemented in
+        NetworkX, or using Linear Programming depending on the value of
+        ``algorithm``.
+
+        EXAMPLES:
+
+        Maximum matching in a Pappus Graph::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.matching(value_only=True)
            9.0
+
+        Same test with the Linear Program formulation::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.matching(algorithm="LP", value_only=True)
+           9.0
+
+        TESTS:
+
+        If ``algorithm`` is set to anything different from ``"Edmonds"`` or
+        ``"LP"``, an exception is raised::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.matching(algorithm="somethingdifferent")
+           Traceback (most recent call last):
+           ...
+           ValueError: Algorithm must be set to either "Edmonds" or "LP".
         """
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-
-        # returns the weight of an edge considering it may not be
-        # weighted ...
-
         from sage.rings.real_mpfr import RR
-        weight=lambda x: x if x in RR else 1
+        weight = lambda x: x if x in RR else 1
 
-        p=MixedIntegerLinearProgram(maximization=True)
+        if algorithm == "Edmonds":
+            import networkx
+            if use_edge_labels:
+                g = networkx.Graph()
+                for u, v, l in self.edges():
+                    g.add_edge(u, v, attr_dict={"weight": weight(l)})
+            else:
+                g = self.networkx_graph(copy=False)
+            d = networkx.max_weight_matching(g)
+            if value_only:
+                return sum([weight(self.edge_label(u, v))
+                            for u, v in d.iteritems()]) * 0.5
+            else:
+                return [(u, v, self.edge_label(u, v))
+                        for u, v in d.iteritems() if u < v]
 
-        b=p.new_variable(dim=2)
-        p.set_objective(sum([weight(w)*b[min(u,v)][max(u,v)] for (u,v,w) in g.edges()]))
+        elif algorithm == "LP":
+            from sage.numerical.mip import MixedIntegerLinearProgram
+            g = self
+            # returns the weight of an edge considering it may not be
+            # weighted ...
+            p = MixedIntegerLinearProgram(maximization=True)
+            b = p.new_variable(dim=2)
+            p.set_objective(
+                sum([weight(w) * b[min(u, v)][max(u, v)]
+                     for u, v, w in g.edges()]))
+            # for any vertex v, there is at most one edge incident to v in
+            # the maximum matching
+            for v in g.vertex_iterator():
+                p.add_constraint(
+                    sum([b[min(u, v)][max(u, v)]
+                         for u in g.neighbors(v)]), max=1)
+            p.set_binary(b)
+            if value_only:
+                return p.solve(objective_only=True, solver=solver, log=verbose)
+            else:
+                p.solve(solver=solver, log=verbose)
+                b = p.get_values(b)
+                return [(u, v, w) for u, v, w in g.edges()
+                        if b[min(u, v)][max(u, v)] == 1]
 
-
-        # for any vertex v, there is at most one edge incident to v in the maximum matching
-        for v in g.vertices():
-            p.add_constraint(sum([b[min(u,v)][max(u,v)] for u in g.neighbors(v)]),max=1)
-
-        p.set_binary(b)
-
-        if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            p.solve(solver=solver, log=verbose)
-            b=p.get_values(b)
-            return [(u,v,w) for (u,v,w) in g.edges() if b[min(u,v)][max(u,v)] == 1]
+            raise ValueError(
+                'Algorithm must be set to either "Edmonds" or "LP".')
 
     def dominating_set(self, independent=False, value_only=False, solver=None, verbose=0):
         r"""
@@ -10077,7 +10126,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def _keys_for_vertices(self):
         """
-        Returns a function mapping each vertex to a unique and hopefuly readable string
+        Returns a function mapping each vertex to a unique and hopefully readable string
         """
         from sage.graphs.dot2tex_utils import key, key_with_hash
         if len(set(key(v) for v in self)) < len(self.vertices()):
@@ -10103,7 +10152,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``labels`` - "string" or "latex" (default: "string"). If labels is
-          string latex command are not interepreted. This option stands for both
+          string latex command are not interpreted. This option stands for both
           vertex labels and edge labels.
 
         - ``vertex_labels`` - boolean (default: True) whether to add the labels

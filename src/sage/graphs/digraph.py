@@ -1091,10 +1091,10 @@ class DiGraph(GenericGraph):
         return sorted(self.out_degree_iterator(), reverse=True)
 
 
-    def feedback_edge_set(self,value_only=False, solver=None, verbose=0):
+    def feedback_edge_set(self, value_only=False, solver=None, verbose=0):
         r"""
         Computes the minimum feedback edge set of a digraph
-        ( also called feedback arc set ).
+        (also called feedback arc set).
 
         The minimum feedback edge set of a digraph is a set of edges
         that intersect all the circuits of the digraph.
@@ -1104,29 +1104,33 @@ class DiGraph(GenericGraph):
         `Wikipedia article on feedback arc sets
         <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
 
-        INPUT :
+        INPUT:
 
-        - ``value_only`` (boolean) --
-            - When set to ``True``, only the minimum
-              cardinal of a minimum edge set is
-              returned.
+        - ``value_only`` -- boolean (default: ``False``)
 
-            - When set to ``False``, the ``Set`` of edges
-              of a minimal edge set is returned.
+          - When set to ``True``, only the minimum cardinal of a minimum edge
+            set is returned.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          - When set to ``False``, the ``Set`` of edges of a minimal edge set
+            is returned.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         This problem is solved using Linear Programming, which certainly
-        is not the best way and will have to be updated. The program solved
-        is the following :
+        is not the best way and will have to be updated. The program to be
+        solved is the following:
 
-        .. MATH:
+        .. MATH::
+
             \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
             \mbox{Such that : }&\\
             &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
@@ -1134,7 +1138,7 @@ class DiGraph(GenericGraph):
             &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
             &\forall (u,v)\in G, d_u-d_v+nb_{(u,v)}\geq 0\\
 
-        An explanation :
+        An explanation:
 
         An acyclic digraph can be seen as a poset, and every poset has
         a linear extension. This means that in any acyclic digraph
@@ -1142,19 +1146,19 @@ class DiGraph(GenericGraph):
         that if `(u,v)\in G`, then `u<v`.
 
         Thus, this linear program is built in order to assign to each vertex
-        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        `v` a unique number `d_v\in [0,\dots,n-1]` such that if there exists
         an edge `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is
         removed (`\Rightarrow x_{(u,v)}=1`).
 
         The number of edges removed is then minimized, which is
         the objective.
 
-        EXAMPLE :
+        EXAMPLES:
 
         If the digraph is created from a graph, and hence is symmetric
-        ( if `uv` is an edge, then `vu` is an edge too ), then
+        (if `uv` is an edge, then `vu` is an edge too), then
         obviously the cardinality of its feedback arc set is the number
-        of edges in the first graph ::
+        of edges in the first graph::
 
             sage: cycle=graphs.CycleGraph(5)
             sage: dcycle=DiGraph(cycle)
@@ -1200,16 +1204,16 @@ class DiGraph(GenericGraph):
         p.set_objective(sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
 
             b_sol=p.get_values(b)
 
             from sage.sets.set import Set
             return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
 
-    def feedback_vertex_set(self,value_only=False, solver=None, verbose=0):
+    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0):
         r"""
         Computes the minimum feedback vertex set of a digraph.
 
@@ -1221,31 +1225,35 @@ class DiGraph(GenericGraph):
         `Wikipedia article on feedback vertex sets
         <http://en.wikipedia.org/wiki/Feedback_vertex_set>`_.
 
-        INPUT :
+        INPUT:
 
-        - ``value_only`` (boolean) --
-            - When set to ``True``, only the minimum
-              cardinal of a minimum vertex set is
-              returned.
+        - ``value_only`` -- boolean (default: ``False``)
 
-            - When set to ``False``, the ``Set`` of vertices
-              of a minimal feedback vertex set is returned.
+          - When set to ``True``, only the minimum cardinal of a minimum
+            vertex set is returned.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          - When set to ``False``, the ``Set`` of vertices of a minimal
+            feedback vertex set is returned.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used,
+          see the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         ALGORITHM:
 
         This problem is solved using Linear Programming, which certainly
         is not the best way and will have to be replaced by a better algorithm.
-        The program solved is the following :
+        The program to be solved is the following:
 
-        .. MATH:
+        .. MATH::
+
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
             \mbox{Such that : }&\\
             &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
@@ -1253,7 +1261,7 @@ class DiGraph(GenericGraph):
             &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
             &\forall (u,v)\in G, d_u-d_v+nb_u+nb_v\geq 0\\
 
-        A brief explanation :
+        A brief explanation:
 
         An acyclic digraph can be seen as a poset, and every poset has
         a linear extension. This means that in any acyclic digraph
@@ -1272,7 +1280,7 @@ class DiGraph(GenericGraph):
         in the two opposite directions, thus creating a cycle of length two.
         Hence, to remove all the cycles from the graph, each edge must see
         one of its neighbors removed : a feedback vertex set is in this
-        situation a vertex cover ::
+        situation a vertex cover::
 
             sage: cycle=graphs.CycleGraph(5)
             sage: dcycle=DiGraph(cycle)
@@ -1285,7 +1293,7 @@ class DiGraph(GenericGraph):
             sage: u in feedback or v in feedback              # optional - requires GLPK or CBC
             True
 
-        For a circuit, the minimum feedback arc set is clearly `1` ::
+        For a circuit, the minimum feedback arc set is clearly `1`::
 
             sage: circuit = digraphs.Circuit(5)
             sage: circuit.feedback_vertex_set(value_only=True) == 1    # optional - requires GLPK or CBC
@@ -1318,9 +1326,9 @@ class DiGraph(GenericGraph):
         p.set_objective(sum([b[v] for v in self]))
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
             b_sol=p.get_values(b)
 
             from sage.sets.set import Set

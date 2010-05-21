@@ -2026,21 +2026,25 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``use_edge_labels`` (boolean)
+        - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, uses edge labels as weights to
             compute the orientation and assumes a weight of `1`
             when there is no value available for a given edge.
+
           - When set to ``False`` (default), gives a weight of 1
             to all the edges.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLE:
 
@@ -2094,7 +2098,7 @@ class GenericGraph(GenericGraph_pyx):
 
         p.set_binary(orientation)
 
-        p.solve(solver = solver, log = verbose)
+        p.solve(solver=solver, log=verbose)
 
         orientation = p.get_values(orientation)
 
@@ -3084,31 +3088,38 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``s`` - source vertex
-        - ``t`` - sink vertex
-        - ``value_only`` - boolean (default: True). When set to
-          True, only the weight of a minimum cut is returned.
+        - ``s`` -- source vertex
+
+        - ``t`` -- sink vertex
+
+        - ``value_only`` -- boolean (default: ``True``). When set to
+          ``True``, only the weight of a minimum cut is returned.
           Otherwise, a list of edges of a minimum cut is also returned.
-        - ``use_edge_labels`` - boolean (default: False). When set to
-          True, computes a weighted minimum cut where each edge has
+
+        - ``use_edge_labels`` -- boolean (default: ``False``). When set to
+          ``True``, computes a weighted minimum cut where each edge has
           a weight defined by its label (if an edge has no label, `1`
           is assumed). Otherwise, each edge has weight `1`.
-        - ``vertices`` - boolean (default: False). When set to True,
+
+        - ``vertices`` -- boolean (default: ``False``). When set to ``True``,
           also returns the two sets of vertices that are disconnected by
           the cut. Implies ``value_only=False``.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
-        real number or tuple, depending on the given arguments
-        (examples are given below)
+        Real number or tuple, depending on the given arguments
+        (examples are given below).
 
         EXAMPLES:
 
@@ -3184,9 +3195,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_binary(b)
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            obj = p.solve(solver = solver, log = verbose)
+            obj = p.solve(solver=solver, log=verbose)
             b = p.get_values(b)
             answer = [obj]
             if g.is_directed():
@@ -3219,26 +3230,29 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``value_only`` - boolean (default: True). When set to
-          True, only the size of the minimum cut is returned
-        - ``vertices`` - boolean (default: False). When set to
-          True, also returns the two sets of vertices that
+        - ``value_only`` -- boolean (default: ``True``). When set to
+          ``True``, only the size of the minimum cut is returned.
+
+        - ``vertices`` -- boolean (default: ``False``). When set to
+          ``True``, also returns the two sets of vertices that
           are disconnected by the cut. Implies ``value_only``
           set to False.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
-
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
-        real number or tuple, depending on the given arguments
-        (examples are given below)
+        Real number or tuple, depending on the given arguments
+        (examples are given below).
 
         EXAMPLE:
 
@@ -3306,9 +3320,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_binary(v)
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            obj = p.solve(solver = solver, log = verbose)
+            obj = p.solve(solver=solver, log=verbose)
             b = p.get_values(b)
             answer = [obj,[x for x in g if b[x] == 1]]
             if vertices:
@@ -3326,7 +3340,7 @@ class GenericGraph(GenericGraph_pyx):
             return tuple(answer)
 
 
-    def vertex_cover(self,algorithm="Cliquer",value_only=False, solver=None, verbose=0):
+    def vertex_cover(self, algorithm="Cliquer", value_only=False, solver=None, verbose=0):
         r"""
         Returns a minimum vertex cover of self represented
         by a list of vertices.
@@ -3344,41 +3358,47 @@ class GenericGraph(GenericGraph_pyx):
         As an optimization problem, it can be expressed as follows:
 
         .. MATH::
+
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
             \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``"Cliquer"``) indicating
-          which algorithm is performed. It can be one of those two values.
+        - ``algorithm`` -- string (default: ``"Cliquer"``). Indicating
+          which algorithm to use. It can be one of those two values.
 
           - ``"Cliquer"`` will compute a minimum vertex cover
-            using the algorithm Cliquer.
+            using the Cliquer package.
+
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
             integer linear program (requires packages GLPK or CBC).
 
-        - ``value_only`` -- boolean (default: False). If set to True,
+        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,
           a minimum vertex cover is returned as a list of vertices.
-        - ``log`` -- non negative integer (default: 0) precising the level
+
+        - ``log`` -- non negative integer (default: ``0``). Set the level
           of verbosity you want from the linear program solver. Since the
           problem of computing a vertex cover is `NP`-complete, its solving
           may take some time depending on the graph. A value of 0 means
-          that there will be no message printed by the solver. Only useful
-          if ``algorithm="MILP"``.
+          that there will be no message printed by the solver. This option
+          is only useful if ``algorithm="MILP"``.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
-        On the Pappus graph ::
+        On the Pappus graph::
 
            sage: g = graphs.PappusGraph()
            sage: g.vertex_cover(value_only=True)
@@ -3416,15 +3436,15 @@ class GenericGraph(GenericGraph_pyx):
             p.set_binary(b)
 
             if value_only:
-                return p.solve(objective_only=True, solver = solver, log = verbose)
+                return p.solve(objective_only=True, solver=solver, log=verbose)
             else:
-                p.solve(solver = solver, log = verbose)
+                p.solve(solver=solver, log=verbose)
                 b = p.get_values(b)
                 return set([v for v in g.vertices() if b[v] == 1])
         else:
             raise ValueError("Only two algorithms are available : Cliquer and MILP.")
 
-    def max_cut(self,value_only=True,use_edge_labels=True, vertices=False, solver=None, verbose=0):
+    def max_cut(self, value_only=True, use_edge_labels=True, vertices=False, solver=None, verbose=0):
         r"""
         Returns a maximum edge cut of the graph. For more information, see the
         `Wikipedia article on cuts
@@ -3432,36 +3452,37 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``value_only`` -- boolean (default: ``True``)
 
-        - ``value_only`` (boolean) --
-            - When set to ``True`` ( default ), only the value is returned.
-            - When set to ``False``, both the value and a maximum edge cut
-              are returned.
+          - When set to ``True`` (default), only the value is returned.
 
-        - ``use_edge_labels`` (boolean) --
+          - When set to ``False``, both the value and a maximum edge cut
+            are returned.
 
-            - When set to ``True``, computes a maximum weighted cut
-              where each edge has a weight defined by its label. ( if
-              an edge has no label, `1` is assumed )
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
-            - when set to ``False``, each edge has weight `1`.
+          - When set to ``True``, computes a maximum weighted cut
+            where each edge has a weight defined by its label. (If
+            an edge has no label, `1` is assumed.)
 
-        - ``vertices`` (boolean)
+          - When set to ``False``, each edge has weight `1`.
 
-            - When set to ``True``, also returns the two sets of
-              vertices that are disconnected by the cut. This implies
-              ``value_only=False``.
+        - ``vertices`` -- boolean (default: ``False``)
 
-            The default value of this parameter is ``False``.
+          - When set to ``True``, also returns the two sets of
+            vertices that are disconnected by the cut. This implies
+            ``value_only=False``.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
-
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLE:
 
@@ -3543,9 +3564,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            val = [p.solve(solver = solver, log = verbose)]
+            val = [p.solve(solver=solver, log=verbose)]
 
             in_cut = p.get_values(in_cut)
             in_set = p.get_values(in_set)
@@ -3569,7 +3590,7 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
-    def flow(self,x,y,value_only=True,integer=False, use_edge_labels=True,vertex_bound=False, solver=None, verbose=0):
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
@@ -3580,10 +3601,10 @@ class GenericGraph(GenericGraph_pyx):
         As an optimization problem, is can be expressed this way :
 
         .. MATH::
+
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
             \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
-
 
         INPUT:
 
@@ -3591,35 +3612,36 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``y`` -- Sink vertex
 
-        - ``value_only`` (boolean)
-            - When set to ``True``, only the value of a maximal
-              flow is returned.
-            - When set to ``False``, is returned a pair whose first element
-              is the value of the maximum flow, and whose second value is
-              a flow graph ( a copy of the current graph, such that each edge
-              has the flow using it as a label, the edges without flow being
-              omitted ).
+        - ``value_only`` -- boolean (default: ``True``)
 
-        - ``integer`` (boolean)
-            - When set to ``True``, computes an optimal solution under the
-              constraint that the flow going through an edge has to be an
-              integer
+          - When set to ``True``, only the value of a maximal
+            flow is returned.
 
-        - ``use_edge_labels`` (boolean)
+          - When set to ``False``, is returned a pair whose first element
+            is the value of the maximum flow, and whose second value is
+            a flow graph (a copy of the current graph, such that each edge
+            has the flow using it as a label, the edges without flow being
+            omitted).
 
-            - When set to ``True``, computes a maximun flow
-              where each edge has a capacity defined by its label. ( if
-              an edge has no label, `1` is assumed )
+        - ``integer`` -- boolean (default: ``False``)
 
-            - When set to ``False``, each edge has capacity `1`
+          - When set to ``True``, computes an optimal solution under the
+            constraint that the flow going through an edge has to be an
+            integer.
 
-        - ``vertex_bound`` (boolean)
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
-            - When set to ``True``, sets the maximum flow leaving
-              a vertex different from `x` to `1` ( useful for vertex
-              connectivity parameters )
+          - When set to ``True``, computes a maximun flow
+            where each edge has a capacity defined by its label. (If
+            an edge has no label, `1` is assumed.)
 
-              This parameter is set to ``False`` by default.
+          - When set to ``False``, each edge has capacity `1`.
+
+        - ``vertex_bound`` -- boolean (default: ``False``)
+
+          - When set to ``True``, sets the maximum flow leaving
+            a vertex different from `x` to `1` (useful for vertex
+            connectivity parameters).
 
         - ``solver`` -- Specify a Linear Program solver to be used.
           If set to ``None``, the default one is used.
@@ -3628,7 +3650,6 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
           by default (quiet).
-
 
         EXAMPLES:
 
@@ -3721,9 +3742,9 @@ class GenericGraph(GenericGraph_pyx):
 
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
 
-        obj=p.solve(solver = solver, log = verbose)
+        obj=p.solve(solver=solver, log=verbose)
         flow=p.get_values(flow)
 
         flow_graph = g.copy()
@@ -3842,7 +3863,7 @@ class GenericGraph(GenericGraph_pyx):
         return paths
 
 
-    def matching(self,value_only=False, use_edge_labels=True, solver=None, verbose=0):
+    def matching(self, value_only=False, use_edge_labels=True, solver=None, verbose=0):
         r"""
         Returns a maximum weighted matching of the graph
         represented by the list of its edges. For more information, see the
@@ -3854,35 +3875,39 @@ class GenericGraph(GenericGraph_pyx):
         maximum weight such that no two edges of `S` are incident
         with each other.
 
-        As an optimization problem, it can be expressed as :
+        As an optimization problem, it can be expressed as:
 
         .. math::
+
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
             \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
 
-        - ``value_only`` (boolean)
+        - ``value_only`` -- boolean (default: ``False``). When set to
+          ``True``, only the cardinal (or the weight) of the matching is
+          returned.
 
-            - When set to ``True``, only the cardinal
-              ( or the weight ) of the the matching
-              is returned
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
-        - ``use_edge_labels`` (boolean)
+          - When set to ``True``, computes a weighted matching
+            where each edge is weighted by its label. (If
+            an edge has no label, `1` is assumed.)
 
-            - When set to ``True``, computes a weighted matching
-              where each edge is weighted by its label. ( if
-              an edge has no label, `1` is assumed )
-              when set to ``False``, each edge has weight `1`
+          - When set to ``False``, each edge has weight `1`.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLE::
 
@@ -3913,9 +3938,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_binary(b)
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
             b=p.get_values(b)
             return [(u,v,w) for (u,v,w) in g.edges() if b[min(u,v)][max(u,v)] == 1]
 
@@ -3931,38 +3956,41 @@ class GenericGraph(GenericGraph_pyx):
         that any vertex of `G` is in `S` or has one of its neighbors
         in `S`.
 
-        As an optimization problem, it can be expressed as :
+        As an optimization problem, it can be expressed as:
 
         .. MATH::
+
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
             \mbox{Such that : }&\forall v \in G, b_v+\sum_{(u,v)\in G.edges()} b_u\geq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
 
-        - ``value_only`` (boolean)
+        - ``independent`` -- boolean (default: ``False``). If
+          ``independent=True``, computes a minimum independent dominating set.
 
-           - If ``True``, only the cardinality of a minimum
-              dominating set is returned.
-           - If ``False`` ( default ), a minimum dominating set
-             is returned as the list of its vertices.
+        - ``value_only`` -- boolean (default: ``False``)
 
-        - ``independent`` (boolean)
-            - If ``True``, computes a minimum independent
-              dominating set.
+          - If ``True``, only the cardinality of a minimum
+            dominating set is returned.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          - If ``False`` (default), a minimum dominating set
+            is returned as the list of its vertices.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE:
+        EXAMPLES:
 
-        A basic illustration on a ``PappusGraph`` ::
+        A basic illustration on a ``PappusGraph``::
 
            sage: g=graphs.PappusGraph()
            sage: g.dominating_set(value_only=True)    # optional - requires Glpk or COIN-OR/CBC
@@ -3970,7 +3998,7 @@ class GenericGraph(GenericGraph_pyx):
 
         If we build a graph from two disjoint stars, then link their centers
         we will find a difference between the cardinality of an independent set
-        and a stable independent set ::
+        and a stable independent set::
 
            sage: g = 2 * graphs.StarGraph(5)
            sage: g.add_edge(0,6)
@@ -4002,13 +4030,13 @@ class GenericGraph(GenericGraph_pyx):
         p.set_integer(b)
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            obj=p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
 
-    def edge_connectivity(self,value_only=True,use_edge_labels=False, vertices=False, solver=None, verbose=0):
+    def edge_connectivity(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
         Returns the edge connectivity of the graph. For more information, see
         the
@@ -4017,37 +4045,39 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``value_only`` -- boolean (default: ``True``)
 
-        - ``value_only`` (boolean) --
-            - When set to ``True`` ( default ), only the value is returned.
-            - When set to ``False`` , both the value and a minimum edge cut
-              are returned.
+          - When set to ``True`` (default), only the value is returned.
 
-        - ``use_edge_labels`` (boolean)
+          - When set to ``False``, both the value and a minimum edge cut
+            are returned.
 
-            - When set to ``True``, computes a weighted minimum cut
-              where each edge has a weight defined by its label. ( if
-              an edge has no label, `1` is assumed )
+        - ``use_edge_labels`` -- boolean (default: ``False``)
 
-            - when set to ``False``, each edge has weight `1`.
+          - When set to ``True``, computes a weighted minimum cut
+            where each edge has a weight defined by its label. (If
+            an edge has no label, `1` is assumed.)
 
-        - ``vertices`` (boolean)
+          - When set to ``False``, each edge has weight `1`.
 
-            - When set to ``True``, also returns the two sets of
-              vertices that are disconnected by the cut. Implies
-              ``value_only=False``.
+        - ``vertices`` -- boolean (default: ``False``)
 
-            The default value of this parameter is ``False``.
+          - When set to ``True``, also returns the two sets of
+            vertices that are disconnected by the cut. Implies
+            ``value_only=False``.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A basic application on the PappusGraph::
 
@@ -4058,7 +4088,7 @@ class GenericGraph(GenericGraph_pyx):
         The edge connectivity of a complete graph ( and of a random graph )
         is its minimum degree, and one of the two parts of the bipartition
         is reduced to only one vertex. The cutedges isomorphic to a
-        Star graph ::
+        Star graph::
 
            sage: g = graphs.CompleteGraph(5)
            sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True) # optional - requires Glpk or COIN-OR/CBC
@@ -4185,9 +4215,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l) in g.edge_iterator()]))
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            val = [p.solve(solver = solver, log = verbose)]
+            val = [p.solve(solver=solver, log=verbose)]
 
             in_cut = p.get_values(in_cut)
             in_set = p.get_values(in_set)
@@ -4211,7 +4241,7 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
-    def vertex_connectivity(self,value_only=True, sets=False, solver=None, verbose=0):
+    def vertex_connectivity(self, value_only=True, sets=False, solver=None, verbose=0):
         r"""
         Returns the vertex connectivity of the graph. For more information,
         see the
@@ -4221,30 +4251,33 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
 
-        - ``value_only`` (boolean) --
-            - When set to ``True`` ( default ), only the value is returned.
-            - When set to ``False`` , both the value and a minimum edge cut
-              are returned.
+        - ``value_only`` -- boolean (default: ``True``)
 
-        - ``sets`` (boolean)
+          - When set to ``True`` (default), only the value is returned.
 
-            - When set to ``True``, also returns the two sets of
-              vertices that are disconnected by the cut.
-              Implies ``value_only=False``
+          - When set to ``False`` , both the value and a minimum edge cut
+            are returned.
 
-            The default value of this parameter is ``False``.
+        - ``sets`` -- boolean (default: ``False``)
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          - When set to ``True``, also returns the two sets of
+            vertices that are disconnected by the cut.
+            Implies ``value_only=False``
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        EXAMPLE:
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
-        A basic application on a ``PappusGraph`` ::
+        EXAMPLES:
+
+        A basic application on a ``PappusGraph``::
 
            sage: g=graphs.PappusGraph()
            sage: g.vertex_connectivity() # optional - requires Glpk or COIN-OR/CBC
@@ -4252,14 +4285,14 @@ class GenericGraph(GenericGraph_pyx):
 
         In a grid, the vertex connectivity is equal to the
         minimum degree, in which case one of the two sets it
-        of cardinality `1` ::
+        of cardinality `1`::
 
            sage: g = graphs.GridGraph([ 3,3 ])
            sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True) # optional - requires Glpk or COIN-OR/CBC
            sage: len(setA) == 1 or len(setB) == 1                                # optional - requires Glpk or COIN-OR/CBC
            True
 
-        A vertex cut in a tree is any internal vertex ::
+        A vertex cut in a tree is any internal vertex::
 
            sage: g = graphs.RandomGNP(15,.5)
            sage: tree = Graph()
@@ -4272,20 +4305,20 @@ class GenericGraph(GenericGraph_pyx):
         connexity values and does not need to build a linear program.
 
         It is the case for connected graphs which are not
-        connected ::
+        connected::
 
            sage: g = 2 * graphs.PetersenGraph()
            sage: g.vertex_connectivity()
            0.0
 
-        Or if they are just 1-connected ::
+        Or if they are just 1-connected::
 
            sage: g = graphs.PathGraph(10)
            sage: g.vertex_connectivity()
            1.0
 
         For directed graphs, the strong connexity is tested
-        through the dedicated function ::
+        through the dedicated function::
 
            sage: g = digraphs.ButterflyGraph(3)
            sage: g.vertex_connectivity()
@@ -4354,9 +4387,9 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(sum([in_set[1][v] for v in g]))
 
         if value_only:
-            return p.solve(objective_only=True, solver = solver, log = verbose)
+            return p.solve(objective_only=True, solver=solver, log=verbose)
         else:
-            val = [int(p.solve(solver = solver, log = verbose))]
+            val = [int(p.solve(solver=solver, log=verbose))]
 
             in_set = p.get_values(in_set)
 

@@ -984,8 +984,8 @@ class MixedIntegerLinearProgram:
           ``"CPLEX"``, or ``None``. If ``solver=None`` (default), the default
           solver is used (COIN if available, GLPK otherwise).
 
-        - ``log`` -- This boolean variable indicates whether progress should
-          be printed during the computations.
+        - ``log`` -- integer (default: ``0``) The verbosity level. Indicates
+          whether progress should be printed during computation.
 
         - ``threads`` -- Number of threads to use. This option is only useful
           when Coin is used to solve the problem. Set ``threads`` to 0 (its

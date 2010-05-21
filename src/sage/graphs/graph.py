@@ -1404,25 +1404,34 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``bounds`` -- Two possibilities :
-            - A dictionary whose keys are the vertices, and values a pair of
-              real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
-            - A function associating to each vertex a pair of
-              real values ``(min,max)`` corresponding to the values `(f(v),g(v))`.
+        - ``bounds`` -- (default: ``None``) Two possibilities:
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+          - A dictionary whose keys are the vertices, and values a pair of
+            real values ``(min,max)`` corresponding to the values
+            `(f(v),g(v))`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+          - A function associating to each vertex a pair of
+            real values ``(min,max)`` corresponding to the values
+            `(f(v),g(v))`.
+
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
-        - When a solution exists, this method outputs the degree-constained subgraph
-          as a Graph object.
-        - When no solution exists, returns ``False``
+        - When a solution exists, this method outputs the degree-constained
+          subgraph as a Graph object.
+
+        - When no solution exists, returns ``False``.
 
         .. NOTE::
 
@@ -1470,7 +1479,7 @@ class Graph(GenericGraph):
         p.set_binary(b)
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
             g = self.copy()
             b = p.get_values(b)
             g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
@@ -1809,40 +1818,43 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
-    def independent_set_of_representatives(self,family, solver=None, verbose=0):
+    def independent_set_of_representatives(self, family, solver=None, verbose=0):
         r"""
         Returns an independent set of representatives.
 
-        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of subsets
-        of ``g.vertices()``, an ISR ( Independent Set of Reprersentatives ) is an
-        assignation of a vertex `v_i\in F_i` to each set `F_i` such that
-        `v_i != v_j` if `i<j` ( they are represdentatives ) and the set
-        `\cup_{i}v_i` is an independent set in `G`.
+        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of
+        subsets of ``g.vertices()``, an Independent Set of Reprersentatives
+        (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
+        such that `v_i != v_j` if `i<j` (they are represdentatives) and the
+        set `\cup_{i}v_i` is an independent set in `G`.
 
         It generalizes, for example, graph coloring and graph list coloring.
 
-        ( See [AhaBerZiv07]_ for more informations )
+        (See [AhaBerZiv07]_ for more information.)
 
-        INPUT :
+        INPUT:
 
         - ``family`` -- A list of lists defining the family `F`
-          ( actually, a Family of subsets of ``G.vertices()`` )
+          (actually, a Family of subsets of ``G.vertices()``).
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
+        OUTPUT:
 
-        OUTPUT :
+        - A list whose `i^{\mbox{th}}` element is the representativeof the
+          `i^{\mbox{th}}` element of the ``family`` list. If there is no ISR,
+          ``None`` is returned.
 
-        - A list whose `i^{\mbox{th}}` element is the representativeof the `i^{\mbox{th}}`
-          element of the ``family`` list. If there is no ISR, ``None`` is returned
-
-        EXAMPLE :
+        EXAMPLES:
 
         For a bipartite graph missing one edge, the solution is as expected::
 
@@ -1856,7 +1868,7 @@ class Graph(GenericGraph):
         of the Petersen Graph, each one representing one color. Then take
         as a partition of the set of vertices the family defined by the three
         copies of each vertex. The ISR of such a family
-        defines a 3-coloring ::
+        defines a 3-coloring::
 
             sage: g = 3 * graphs.PetersenGraph()
             sage: n = g.order()/3
@@ -1922,7 +1934,7 @@ class Graph(GenericGraph):
         p.set_binary(classss)
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
         except:
             return None
 
@@ -1952,16 +1964,18 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``H`` -- The minor to find for in the current graph
+        - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
-
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
@@ -1978,15 +1992,15 @@ class Graph(GenericGraph):
         a `H`-minor is polynomial. The known algorithms are highly
         exponential in `H`, though.
 
-        NOTE:
+        .. NOTE::
 
-        This function can be expected to be *very* slow, especially
-        where the minor does not exist.
+            This function can be expected to be *very* slow, especially
+            where the minor does not exist.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Trying to find a minor isomorphic to `K_4` in
-        the `4\times 4` grid ::
+        the `4\times 4` grid::
 
             sage: g = graphs.GridGraph([4,4])
             sage: h = graphs.CompleteGraph(4)
@@ -1997,17 +2011,17 @@ class Graph(GenericGraph):
             True
 
         We can also try to prove this way that the Petersen graph
-        is not planar, as it has a `K_5` minor ::
+        is not planar, as it has a `K_5` minor::
 
             sage: g = graphs.PetersenGraph()
             sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # optional long - requires GLPK, CPLEX or CBC
 
-        And even a `K_{3,3}` minor ::
+        And even a `K_{3,3}` minor::
 
             sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # optional long - requires GLPK, CPLEX or CBC
 
         (It is much faster to use the linear-time test of
-        planarity in this situation, though)
+        planarity in this situation, though.)
 
         As there is no cycle in a tree, looking for a `K_3` minor is useless.
         This function will raise an exception in this case::
@@ -2088,13 +2102,12 @@ class Graph(GenericGraph):
         p.set_objective(None)
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(solver=solver, log=verbose)
         except MIPSolverException:
             raise ValueError("This graph has no minor isomorphic to H !")
 
         rs = p.get_values(rs)
 
-        from sage.sets.set import Set
         rs_dict = {}
         for h in H:
             rs_dict[h] = [v for v in self if rs[h][v]==1]

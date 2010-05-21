@@ -340,6 +340,9 @@ ext_modules = [
     Extension('sage.graphs.trees',
               sources = ['sage/graphs/trees.pyx']),
 
+    Extension('sage.graphs.genus',
+              sources = ['sage/graphs/genus.pyx']),
+
         ################################
         ##
         ## sage.graphs.base

@@ -1000,16 +1000,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.genus()
             1
             sage: G.get_embedding()
-            {0: [1, 5, 4],
-             1: [0, 2, 6],
-             2: [1, 3, 7],
-             3: [8, 2, 4],
-             4: [0, 9, 3],
-             5: [0, 8, 7],
-             6: [8, 1, 9],
-             7: [9, 2, 5],
-             8: [3, 5, 6],
-             9: [4, 6, 7]}
+            {0: [1, 4, 5], 1: [0, 2, 6], 2: [1, 3, 7], 3: [2, 4, 8], 4: [0, 3, 9], 5: [0, 7, 8], 6: [1, 9, 8], 7: [2, 5, 9], 8: [3, 6, 5], 9: [4, 6, 7]}
         """
         if self.check_embedding_validity():
             return self._embedding
@@ -2679,20 +2670,48 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: cube.genus(circular=True)
             0
-            sage: cube.genus(circular=True, maximal=True)
-            1
             sage: cube.genus(circular=True, on_embedding=True)
-            1
+            0
+            sage: cube.genus(circular=True, maximal=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute the maximal genus of a genus respecting a boundary.
+
+        Note: not everything works for multigraphs, looped graphs or digraphs.  But the
+        minimal genus is ultimately computable for every connected graph -- but the
+        embedding we obtain for the simple graph can't be easily converted to an
+        embedding of a non-simple graph.  Also, the maximal genus of a multigraph does
+        not trivially correspond to that of its simple graph.
+
+            sage: G = DiGraph({ 0 : [0,1,1,1], 1 : [2,2,3,3], 2 : [1,3,3], 3:[0,3]})
+            sage: G.genus()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Can't work with embeddings of non-simple graphs
+            sage: G.to_simple().genus()
+            0
+            sage: G.genus(set_embedding=False)
+            0
+            sage: G.genus(maximal=True, set_embedding=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Can't compute the maximal genus of a graph with loops or multiple edges
+
+
         """
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
-        from sage.combinat.all import CyclicPermutationsOfPartition
 
-        G = self.to_undirected()
+        G = self.to_simple()
         verts = G.order()
         edges = G.size()
 
+        if maximal:
+            minimal = False
+
         if circular:
+            if maximal:
+                raise NotImplementedError, "Cannot compute the maximal genus of a genus respecting a boundary."
             boundary = G.get_boundary()
             if hasattr(G, '_embedding'):
                 del(G._embedding)
@@ -2720,6 +2739,8 @@ class GenericGraph(GenericGraph_pyx):
             edges = G.size()
 
         if on_embedding is not None:
+            if self.has_loops() or self.is_directed() or self.has_multiple_edges():
+                raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
             if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
                 if not hasattr(self,'_embedding'):
                     raise Exception("Graph must have attribute _embedding set to compute current (embedded) genus.")
@@ -2729,53 +2750,21 @@ class GenericGraph(GenericGraph_pyx):
                 faces = len(self.trace_faces(on_embedding))
                 return (2-verts+edges-faces)/2
         else: # then compute either maximal or minimal genus of all embeddings
-            # Construct an initial combinatorial embedding for graph
-            part = []
-            for vertex in G.vertices():
-                part.append(G.neighbors(vertex))
-
-            # Iterate through all embeddings
-            from sage.rings.infinity import infinity
-            max_faces = -1
-            min_faces = infinity
-            min_embedding = []
-            max_embedding = []
-            labels = G.vertices()
-            for p in CyclicPermutationsOfPartition(part):
-                # Make dict of node labels embedding
-                comb_emb = {}
-                for i in range(len(p)):
-                    comb_emb[labels[i]] = p[i]
-                t = G.trace_faces(comb_emb)
-                faces = len(t)
-                if faces > max_faces:
-                    max_faces = faces
-                    min_embedding = comb_emb
-                if faces < min_faces:
-                    min_faces = faces
-                    max_embedding = comb_emb
-
-            if maximal:
-                faces = min_faces
-                emb = max_embedding
-            else:
-                faces = max_faces
-                emb = min_embedding
+            import genus
 
             if set_embedding:
-                if not circular:
-                    # Make dict of node labels embedding
-                    self._embedding = emb
-                else: # for circular, we must strip extra vertices and edges from embedding
-                    emb.pop(extra)
-                    for u,v in extra_edges:
-                        emb[u].pop(emb[u].index(v))
-                        emb[v].pop(emb[v].index(u))
-                    for w in boundary:
-                        emb[w].pop(emb[w].index(extra))
-                    self._embedding = emb
+                if self.has_loops() or self.is_directed() or self.has_multiple_edges():
+                    raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
+                g = genus.simple_connected_graph_genus(G, True, check = False, minimal = minimal)
+                self._embedding = G._embedding
+                return g
+            else:
+                if maximal and (self.has_multiple_edges() or self.has_loops()):
+                    raise NotImplementedError, "Can't compute the maximal genus of a graph with loops or multiple edges"
 
-        return (2-verts+edges-faces)/2
+                return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
+
+
 
     def trace_faces(self, comb_emb):
         """

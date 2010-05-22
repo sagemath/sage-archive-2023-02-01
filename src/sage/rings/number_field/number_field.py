@@ -462,9 +462,9 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         return S
 
     if polynomial.degree() == 2:
-        K = NumberField_quadratic(polynomial, name, check, embedding, latex_name=latex_name)
+        K = NumberField_quadratic(polynomial, name, latex_name, check, embedding)
     else:
-        K = NumberField_absolute(polynomial, name, None, check, embedding, latex_name=latex_name)
+        K = NumberField_absolute(polynomial, name, latex_name, check, embedding)
 
     if cache:
         _nf_cache[key] = weakref.ref(K)
@@ -7285,7 +7285,7 @@ class NumberField_quadratic(NumberField_absolute):
         sage: QuadraticField(-4, 'b')
         Number Field in b with defining polynomial x^2 + 4
     """
-    def __init__(self, polynomial, name=None, check=True, embedding=None, latex_name=None):
+    def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None):
         """
         Create a quadratic number field.
 

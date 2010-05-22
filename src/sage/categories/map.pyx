@@ -1037,6 +1037,22 @@ cdef class Map(Element):
         """
         return None
 
+    def __hash__(self):
+        """
+        Return the hash of this map.
+
+        TESTS::
+
+            sage: f = sage.rings.morphism.RingMap(ZZ.Hom(ZZ))
+            sage: type(f)
+            <type 'sage.rings.morphism.RingMap'>
+            sage: hash(f) == hash(f)
+            True
+            sage: {f: 1}[f]
+            1
+        """
+        return hash((self._domain, self._codomain))
+
 cdef class Section(Map):
     """
     A formal section of a map.
@@ -1263,6 +1279,31 @@ cdef class FormalCompositeMap(Map):
         if c == 0:
             c = cmp([self.__first,self.__second],[(<FormalCompositeMap>other).__first,(<FormalCompositeMap>other).__second])
         return c
+
+    def __hash__(self):
+        """
+        Return the hash of this map.
+
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = QQ[]
+            sage: f = R.hom([a+b,a-b])
+            sage: g = S.hom([x+y,x-y])
+            sage: from sage.categories.map import FormalCompositeMap
+            sage: H = Hom(R,R,Rings())
+            sage: m = FormalCompositeMap(H,f,g)
+            sage: hash(m) == hash(m)
+            True
+            sage: {m: 1}[m]
+            1
+            sage: n = FormalCompositeMap(Hom(S,S,Rings()), g, f)
+            sage: hash(m) == hash(n)
+            False
+            sage: len({m: 1, n: 2}.keys())
+            2
+        """
+        return hash((self.__first, self.__second))
 
     cpdef Element _call_(self, x):
         """

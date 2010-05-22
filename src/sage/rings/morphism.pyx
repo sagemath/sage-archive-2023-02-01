@@ -527,6 +527,25 @@ cdef class RingMap_lift(RingMap):
         # compare those.
         return cmp(self.parent(), other.parent())
 
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        TESTS::
+
+            sage: f = Zmod(8).lift()
+            sage: type(f)
+            <type 'sage.rings.morphism.RingMap_lift'>
+            sage: hash(f) == hash(f)
+            True
+            sage: {f: 1}[f]
+            1
+            sage: g = Zmod(10).lift()
+            sage: hash(f) == hash(g)
+            False
+        """
+        return hash((self._domain, self._codomain))
+
     def _repr_defn(self):
         """
         Used in printing out lifting maps.
@@ -932,6 +951,22 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         # compare those.
         return cmp(self.parent(), other.parent())
 
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        TESTS::
+
+            sage: f = ZZ.hom(QQ)
+            sage: type(f)
+            <type 'sage.rings.morphism.RingHomomorphism_coercion'>
+            sage: hash(f) == hash(f)
+            True
+            sage: {f: 1}[f]
+            1
+        """
+        return hash((self._domain, self._codomain))
+
     cpdef Element _call_(self, x):
         """
         Evaluate this coercion morphism at x.
@@ -990,13 +1025,18 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         if not isinstance(im_gens, sage.structure.sequence.Sequence_generic):
             if not isinstance(im_gens, (tuple, list)):
                 im_gens = [im_gens]
-            im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
+            im_gens = sage.structure.all.Sequence(im_gens, parent.codomain(),
+                    immutable=True)
         if check:
             if len(im_gens) != parent.domain().ngens():
                 raise ValueError, "number of images must equal number of generators"
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
             if not t:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."
+        if not im_gens.is_immutable():
+            import copy
+            im_gens = copy.copy(im_gens)
+            im_gens.set_immutable()
         self.__im_gens = im_gens
 
     def im_gens(self):
@@ -1100,6 +1140,23 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         if not PY_TYPE_CHECK(other, RingHomomorphism_im_gens):
             return cmp(type(self), type(other))
         return cmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens)
+
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: s = R.hom([x+1])
+            sage: type(s)
+            <type 'sage.rings.morphism.RingHomomorphism_im_gens'>
+            sage: hash(s) == hash(s)
+            True
+            sage: {s: 1}[s]
+            1
+        """
+        return hash(self.__im_gens)
 
     def _repr_defn(self):
         """
@@ -1494,6 +1551,24 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             return cmp(type(self), type(other))
         return cmp(self.parent(), other.parent())
 
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        TESTS::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quo(x^2 + y^2)
+            sage: phi = S.cover()
+            sage: type(phi)
+            <type 'sage.rings.morphism.RingHomomorphism_cover'>
+            sage: hash(phi) == hash(phi)
+            True
+            sage: {phi: 1}[phi]
+            1
+        """
+        return hash((self._domain, self._codomain))
+
 cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     r"""
     A ring homomorphism with domain a generic quotient ring.
@@ -1625,6 +1700,24 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             return cmp(type(self), type(other))
         return cmp(self.phi, (<RingHomomorphism_from_quotient>other).phi)
 
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = PolynomialRing(GF(19), 3)
+            sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
+            sage: phi = S.hom([b, c, a])
+            sage: type(phi)
+            <type 'sage.rings.morphism.RingHomomorphism_from_quotient'>
+            sage: hash(phi) == hash(phi)
+            True
+            sage: {phi: 1}[phi]
+            1
+        """
+        return hash(self.phi)
+
     def _repr_defn(self):
         """
         Used internally for printing this function.
@@ -1652,7 +1745,3 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             1/2*xx + 3*yy
         """
         return self.phi(self.lift(x))
-
-
-
-

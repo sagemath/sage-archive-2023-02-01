@@ -424,7 +424,7 @@ class FGP_Module_class(Module):
         """
         if is_FGP_Module(S):
             return S.has_canonical_map_to(self)
-        return bool(self._V._coerce_map_from_(S))
+        return self._V.has_coerce_map_from(S)
 
     def _repr_(self):
         """

@@ -106,3 +106,68 @@ cdef int next_swap(int n, int *c, int *o):
     c[j] = q
     return j - offset + s
 
+def permutation_iterator_transposition_list(int n):
+    """
+
+    Returns a list of transposition indices to enumerate the
+    permutations on `n` letters by adjacent transpositions.
+    Assumes zero-based lists.  We artificially limit the
+    argument to `n < 12` to avoid overflowing 32-bit pointers.
+    While the algorithm works for larger `n`, the user is
+    encouraged to avoid filling anything more than 4GB of
+    memory with the output of this function.
+
+    EXAMPLES:
+        sage: import sage.combinat.permutation_cython
+        sage: from sage.combinat.permutation_cython import permutation_iterator_transposition_list
+        sage: permutation_iterator_transposition_list(4)
+        [2, 1, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 1, 2]
+        sage: permutation_iterator_transposition_list(200)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cowardly refusing to enumerate the permutations on more than 12 letters.
+        sage: permutation_iterator_transposition_list(1)
+        []
+
+        sage: # Generate the permutations of [1,2,3,4] fixing 4.
+        sage: Q = [1,2,3,4]
+        sage: L = [copy(Q)]
+        sage: for t in permutation_iterator_transposition_list(3):
+        ...      Q[t], Q[t+1] = Q[t+1], Q[t]
+        ...      L.append(copy(Q))
+        sage: print L
+        [[1, 2, 3, 4], [1, 3, 2, 4], [3, 1, 2, 4], [3, 2, 1, 4], [2, 3, 1, 4], [2, 1, 3, 4]]
+
+    """
+
+    cdef int *c, *o, N, m
+    cdef list T
+
+    if n <= 1:
+        return []
+    if n > 12:
+        raise ValueError, "Cowardly refusing to enumerate the permutations on more than 12 letters."
+
+    m = n-1
+    N = n
+    while m > 1:
+        N *= m
+        m -= 1
+
+    c = <int *>sage_malloc(2*n*sizeof(int))
+    if c is NULL:
+        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+    o = c + n
+
+    try:
+        T = PyList_New(N-1)
+    except:
+        sage_free(c)
+        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+
+    reset_swap(n,c,o)
+    for m in range(N-1):
+        PyList_SET_ITEM(T, m, next_swap(n,c,o))
+    sage_free(c)
+
+    return T

@@ -3584,6 +3584,285 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
+    def traveling_salesman_problem(self, weighted = True):
+        r"""
+        Solves the traveling salesman problem (TSP)
+
+        Given a graph (resp. a digraph) `G` with weighted edges,
+        the traveling salesman problem consists in finding a
+        hamiltonian cycle (resp. circuit) of the graph of
+        minimum cost.
+
+        This TSP is one of the most famous NP-Complete problems,
+        this function can thus be expected to take some time
+        before returning its result.
+
+        INPUT:
+
+        - ``weighted`` (boolean) -- whether to consider the
+          weights of the edges.
+
+              - If set to ``False`` (default), all edges are
+                assumed to weight `1`
+
+              - If set to ``True``, the weights are taken into
+                account, and the edges whose weight is ``None``
+                are assumed to be set to `1`
+
+        OUTPUT:
+
+        A solution to the TSP, as a ``Graph`` object whose vertex
+        set is `V(G)`, and whose edges are only those of the
+        solution.
+
+        ALGORITHM:
+
+        This optimization problem is solved through the use
+        of Linear Programming.
+
+        NOTE:
+
+        - This function is correctly defined for both graph and digraphs.
+          In the second case, the returned cycle is a circuit of optimal
+          cost.
+
+        EXAMPLES:
+
+        The Heawood graph is known to be hamiltonian::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: tsp = g.traveling_salesman_problem()   # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp                                     # optional - requires GLPK, CBC, or CPLEX
+            TSP from Heawood graph: Graph on 14 vertices
+
+        The solution to the TSP has to be connected ::
+
+            sage: tsp.is_connected()                      # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        It must also be a `2`-regular graph::
+
+            sage: tsp.is_regular(k=2)                     # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        And obviously it is a subgraph of the Heawood graph::
+
+            sage: all([ e in g.edges() for e in tsp.edges()])    # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        On the other hand, the Petersen Graph is known not to
+        be hamiltonian::
+
+            sage: g = graphs.PetersenGraph()                     # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp = g.traveling_salesman_problem()          # optional - requires GLPK, CBC, or CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: The given graph is not hamiltonian
+
+        One easy way to change is is obviously to add to this
+        graph the edges corresponding to a hamiltonian cycle.
+
+        If we do this by setting the cost of these new edges
+        to `2`, while the others are set to `1`, we notice
+        that not all the edges we added are used in the
+        optimal solution ::
+
+            sage: for u, v in g.edges(labels = None):
+            ...      g.set_edge_label(u,v,1)
+
+            sage: cycle = graphs.CycleGraph(10)
+            sage: for u,v in cycle.edges(labels = None):
+            ...      if not g.has_edge(u,v):
+            ...          g.add_edge(u,v)
+            ...      g.set_edge_label(u,v,2)
+
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
+            sage: sum( tsp.edge_labels() ) < 2*10                       # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        If we pick `1/2` instead of `2` as a cost for these new edges,
+        they clearly become the optimal solution
+
+            sage: for u,v in cycle.edges(labels = None):
+            ...      g.set_edge_label(u,v,1/2)
+
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
+            sage: sum( tsp.edge_labels() ) == (1/2)*10                   # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization = False)
+
+
+        f = p.new_variable()
+        r = p.new_variable()
+
+
+
+        # If the graph has multiple edges
+        if self.has_multiple_edges():
+            g = self.copy()
+            multi = self.multiple_edges()
+            g.delete_edges(multi)
+            g.allow_multiple_edges(False)
+            if weighted:
+                e = {}
+
+                for u,v,l in multi:
+                    u,v = (u,v) if u<v else (v,u)
+
+                    # The weight of an edge is the minimum over
+                    # the weights of the parallel edges
+
+                    #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
+                    e[(u,v)] = l if (not e.has_key((u,v)) or ( l is None and e[(u,v)] > 1 )) else e[(u,v)]
+
+                g.add_edges([(u,v) for (u,v),l in e.iteritems()])
+
+            else:
+                from sage.sets.set import Set
+                g.add_edges(Set([ (min(u,v),max(u,v)) for u,v,l in multi]))
+
+        else:
+            g = self
+
+        eps = 1/(2*Integer(g.order()))
+        x = g.vertex_iterator().next()
+
+
+        if g.is_directed():
+
+            # returns the variable corresponding to arc u,v
+            E = lambda u,v : f[(u,v)]
+
+            # All the vertices have in-degree 1
+            [p.add_constraint(sum([ f[(u,v)] for u in g.neighbors_in(v)]), min = 1, max = 1) for v in g]
+
+            # All the vertices have out-degree 1
+            [p.add_constraint(sum([ f[(v,u)] for u in g.neighbors_out(v)]), min = 1, max = 1) for v in g]
+
+
+            # r is greater than f
+            for u,v in g.edges(labels = None):
+                if g.has_edge(v,u):
+                    if u < v:
+                        p.add_constraint( r[(u,v)] + r[(v,u)]- f[(u,v)] - f[(v,u)], min = 0)
+
+                        # no 2-cycles
+                        p.add_constraint( f[(u,v)] + f[(v,u)], max = 1)
+
+                else:
+                    p.add_constraint( r[(u,v)] + r[(v,u)] - f[(u,v)], min = 0)
+
+
+            # defining the answer when g is directed
+            from sage.graphs.all import DiGraph
+            tsp = DiGraph()
+        else:
+
+            # reorders the edge as they can appear in the two different ways
+            R = lambda x,y : (x,y) if x < y else (y,x)
+
+            # returns the variable corresponding to arc u,v
+            E = lambda u,v : f[R(u,v)]
+
+            # All the vertices have degree 2
+            [p.add_constraint(sum([ f[R(u,v)] for u in g.neighbors(v)]), min = 2, max = 2) for v in g]
+
+            # r is greater than f
+            for u,v in g.edges(labels = None):
+                p.add_constraint( r[(u,v)] + r[(v,u)] - f[R(u,v)], min = 0)
+
+            from sage.graphs.all import Graph
+
+            # defining the answer when g is not directed
+            tsp = Graph()
+
+
+        # no cycle which does not contain x
+        for v in g:
+            if v != x:
+                p.add_constraint( sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
+
+
+        weight = lambda u,v : g.edge_label(u,v) if g.edge_label(u,v) is not None else 1
+
+        if weighted:
+            p.set_objective( sum([ weight(u,v)*E(u,v) for u,v in g.edges(labels=None)]) )
+        else:
+            p.set_objective(None)
+
+        p.set_binary(f)
+
+        from sage.numerical.mip import MIPSolverException
+
+        try:
+            obj = p.solve()
+            f = p.get_values(f)
+            tsp.add_vertices(g.vertices())
+            tsp.set_pos(g.get_pos())
+            tsp.name("TSP from "+g.name())
+            tsp.add_edges([(u,v,l) for u,v,l in g.edges() if E(u,v) == 1])
+
+            return tsp
+
+        except MIPSolverException:
+            raise ValueError("The given graph is not hamiltonian")
+
+
+    def hamiltonian_cycle(self):
+        r"""
+        Returns a hamiltonian cycle/circuit of the current graph/digraph
+
+        A graph (resp. digraph) is said to be hamiltonian
+        if it contains as a subgraph a cycle (resp. a circuit)
+        going through all the vertices.
+
+        Computing a hamiltonian cycle/circuit being NP-Complete,
+        this algorithm could run for some time depending on
+        the instance.
+
+        ALGORITHM:
+
+        See ``Graph.traveling_salesman_problem``.
+
+        OUTPUT:
+
+        Returns a hamiltonian cycle/circuit if it exists. Otherwise,
+        raises a ``ValueError`` exception.
+
+        NOTE:
+
+        This function, as ``is_hamiltonian``, computes a hamiltonian
+        cycle if it exists : the user should *NOT* test for
+        hamiltonicity using ``is_hamiltonian`` before calling this
+        function, as it would result in computing it twice.
+
+        EXAMPLES:
+
+        The Heawood Graph is known to be hamiltonian ::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            TSP from Heawood graph: Graph on 14 vertices
+
+        The Petergraph, though, is not ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: The given graph is not hamiltonian
+        """
+
+        try:
+            return self.traveling_salesman_problem(weighted = False)
+        except:
+            raise ValueError("The given graph is not hamiltonian")
+
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
@@ -11419,6 +11698,59 @@ class GenericGraph(GenericGraph_pyx):
                     if any([c not in new_cell for c in cell[1:]]):
                         return False
         return True
+
+    def is_hamiltonian(self):
+        r"""
+        Tests whether the current graph is Hamiltonian
+
+        A graph (resp. digraph) is said to be hamiltonian
+        if it contains as a subgraph a cycle (resp. a circuit)
+        going through all the vertices.
+
+        Testing for hamiltonicity being NP-Complete, this
+        algorithm could run for some time depending on
+        the instance.
+
+        ALGORITHM:
+
+        See ``Graph.traveling_salesman_problem``.
+
+        OUTPUT:
+
+        Returns ``True`` if a hamiltonian cycle/circuit exists, and
+        ``False`` otherwise.
+
+        NOTE:
+
+        This function, as ``hamiltonian_cycle`` and
+        ``traveling_salesman_problem``, computes a hamiltonian
+        cycle if it exists : the user should *NOT* test for
+        hamiltonicity using ``is_hamiltonian`` before calling
+        ``hamiltonian_cycle`` or ``traveling_salesman_problem``
+        as it would result in computing it twice.
+
+        EXAMPLES:
+
+        The Heawood Graph is known to be hamiltonian ::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        The Petergraph, though, is not ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            False
+
+        """
+
+        try:
+            tsp = self.traveling_salesman_problem(weighted = False)
+            return True
+
+        except ValueError:
+            return False
 
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
         """

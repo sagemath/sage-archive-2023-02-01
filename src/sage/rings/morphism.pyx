@@ -653,6 +653,52 @@ cdef class RingHomomorphism(RingMap):
             pass
         return Morphism._extra_slots(self, _slots)
 
+    def _composition_(self, right, homset):
+        """
+        If ``homset`` is a homset of rings and ``right`` is a
+        ring homomorphism given by the images of generators,
+        the composition with ``self`` will be of the same type.
+        Otherwise, a formal composite map is returned.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = QQ[]
+            sage: f = R.hom([a+b,a-b])
+            sage: g = S.hom(Frac(S))
+            sage: g*f
+            Ring morphism:
+              From: Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+              Defn: x |--> a + b
+                    y |--> a - b
+            sage: from sage.categories.morphism import SetMorphism
+            sage: h = SetMorphism(Hom(R,S,Rings()), lambda p: p[0])
+            sage: g*h
+            Composite map:
+              From: Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+              Defn:   Generic morphism:
+                      From: Multivariate Polynomial Ring in x, y over Rational Field
+                      To:   Multivariate Polynomial Ring in a, b over Rational Field
+                    then
+                      Ring Coercion morphism:
+                      From: Multivariate Polynomial Ring in a, b over Rational Field
+                      To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+
+        AUTHOR:
+
+        -- Simon King (2010-05)
+
+        """
+        from sage.all import Rings
+        if isinstance(right, RingHomomorphism_im_gens) and homset.homset_category().is_subcategory(Rings()):
+            try:
+                return RingHomomorphism_im_gens(homset, [self(g) for g in right.im_gens()])
+            except ValueError:
+                pass
+        return sage.categories.map.Map._composition_(self, right, homset)
+
     def is_injective(self):
         """
         Return whether or not this morphism is injective, or raise

@@ -798,6 +798,48 @@ class MatrixMorphism(MatrixMorphism_abstract):
         """
         return self._matrix
 
+    def is_injective(self):
+        """
+        Tell whether ``self`` is injective.
+
+        EXAMPLE::
+
+            sage: V1 = QQ^2
+            sage: V2 = QQ^3
+            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi.is_injective()
+            True
+            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]),V1)
+            sage: psi.is_injective()
+            False
+
+        AUTHOR:
+
+        -- Simon King (2010-05)
+        """
+        return self._matrix.kernel().dimension() == 0
+
+    def is_surjective(self):
+        """
+        Tell whether ``self`` is surjective.
+
+        EXAMPLE::
+
+            sage: V1 = QQ^2
+            sage: V2 = QQ^3
+            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi.is_surjective()
+            False
+            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]),V1)
+            sage: psi.is_surjective()
+            True
+
+        AUTHOR:
+
+        -- Simon King (2010-05)
+        """
+        return self._matrix.rank() == self.codomain().dimension()
+
     def _repr_(self):
         """
         Return string representation of this morphism (this gets overloaded in the derived class).

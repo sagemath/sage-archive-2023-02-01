@@ -219,6 +219,28 @@ cdef class SetMorphism(Morphism):
         """
         return self._function(x)
 
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        Extra arguments are passed to the defining function.
+
+        TEST::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: R.<x> = QQ[]
+            sage: def foo(x,*args,**kwds):
+            ...    print 'foo called with',args,kwds
+            ...    return x
+            sage: f = SetMorphism(Hom(R,R,Rings()), foo)
+            sage: f(2,'hello world',test=1)     # indirect doctest
+            foo called with ('hello world',) {'test': 1}
+            2
+
+        """
+        try:
+            return self._function(x, *args, **kwds)
+        except:
+            raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
+
     cdef _extra_slots(self, _slots):
         """
         INPUT:

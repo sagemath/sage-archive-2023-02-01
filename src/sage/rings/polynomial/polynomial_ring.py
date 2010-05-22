@@ -109,6 +109,7 @@ from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
+from sage.misc.prandom import randint
 from sage.rings.real_mpfr import is_RealField
 from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -885,7 +886,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         INPUT:
 
-        -  ``degree`` - Integer (default: 2)
+        -  ``degree`` - Integer with degree (default: 2)
+           or a tuple of integers with minimum and maximum degrees
 
         -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
            the base ring
@@ -907,7 +909,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             -2*x^5 + 2*x^4 - 3*x^3 + 1
             sage: R.random_element(6)
             x^4 - x^3 + x - 2
+
+        If a tuple of two integers is given for the degree argument, a random
+        integer will be chosen between the first and second element of the
+        tuple as the degree::
+
+            sage: R.random_element(degree=(0,8))
+            2*x^7 - x^5 + 4*x^4 - 5*x^3 + x^2 + 14*x - 1
+            sage: R.random_element(degree=(0,8))
+            -2*x^3 + x^2 + x + 4
+
+        TESTS::
+
+            sage: R.random_element(degree=[5])
+            Traceback (most recent call last):
+            ...
+            ValueError: degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)
+
+            sage: R.random_element(degree=(5,4))
+            Traceback (most recent call last):
+            ...
+            ValueError: minimum degree must be less or equal than maximum degree
         """
+        if isinstance(degree, (list, tuple)):
+            if len(degree) != 2:
+                raise ValueError, "degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)"
+            if degree[0] > degree[1]:
+                raise ValueError, "minimum degree must be less or equal than maximum degree"
+            degree = randint(*degree)
         R = self.base_ring()
         return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
 

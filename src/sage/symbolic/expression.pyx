@@ -402,7 +402,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/2-1/2*I )*sqrt(2)
             (-1/2*I + 1/2)*sqrt(2)
             sage: latex((1/2-1/2*I )*sqrt(2))
-            \left(-\frac{1}{2} I + \frac{1}{2}\right) \, \sqrt{2}
+            \left(-\frac{1}{2} i + \frac{1}{2}\right) \, \sqrt{2}
         """
         return self._parent._repr_element_(self)
 

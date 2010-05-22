@@ -449,8 +449,8 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
     polynomial = Q(polynomial)
 
     if cache:
-        key = (polynomial, polynomial.base_ring(),
-               name, embedding, embedding.parent() if embedding is not None else None)
+        key = (polynomial, polynomial.base_ring(), name, latex_name,
+               embedding, embedding.parent() if embedding is not None else None)
         if _nf_cache.has_key(key):
             K = _nf_cache[key]()
             if not K is None: return K
@@ -617,7 +617,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
     return w.extension(f, name, check=check, embedding=embeddings[0])
 
 
-def QuadraticField(D, names, check=True, embedding=True, latex_name=None):
+def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
     r"""
     Return a quadratic field obtained by adjoining a square root of
     `D` to the rational numbers, where `D` is not a
@@ -635,11 +635,13 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name=None):
     -  ``embedding`` - bool or square root of D in an
        ambient field (default: True)
 
+    - ``latex_name`` - latex variable name (defalt: \sqrt{D})
+
 
     OUTPUT: A number field defined by a quadratic polynomial. Unless
     otherwise specified, it has an embedding into `\RR` or
     `\CC` by sending the generator to the positive
-    root.
+    or upper half plane root.
 
     EXAMPLES::
 
@@ -671,13 +673,32 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name=None):
         sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a')
         True
 
-    We can give the generator a special name for latex::
+    By default, quadratic fields come with a nice latex representation::
+
+        sage: K.<a> = QuadraticField(-7)
+        sage: latex(a)
+        \sqrt{-7}
+        sage: latex(1/(1+a))
+        -\frac{1}{8} \sqrt{-7} + \frac{1}{8}
+        sage: K.latex_variable_name()
+        '\\sqrt{-7}'
+
+    We can provide our own name as well::
 
         sage: K.<a> = QuadraticField(next_prime(10^10), latex_name=r'\sqrt{D}')
         sage: 1+a
         a + 1
         sage: latex(1+a)
         \sqrt{D} + 1
+        sage: latex(QuadraticField(-1, 'a', latex_name=None).gen())
+        a
+
+    TESTS::
+
+        sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name='Z')
+        False
+        sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name=None)
+        False
     """
     D = QQ(D)
     if check:
@@ -690,6 +711,8 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name=None):
             embedding = RLF(D).sqrt()
         else:
             embedding = CLF(D).sqrt()
+    if latex_name == 'sqrt':
+        latex_name = r'\sqrt{%s}' % D
     return NumberField(f, names, check=False, embedding=embedding, latex_name=latex_name)
 
 def is_AbsoluteNumberField(x):

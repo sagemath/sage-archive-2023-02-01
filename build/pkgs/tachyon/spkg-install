@@ -73,8 +73,13 @@ if [ $UNAME = "Linux" ]; then
 fi
 
 if [ $UNAME = "SunOS" ]; then
-    make solaris-pthreads-gcc
-    #make solaris-thr
+    if [ "x$SAGE64" = xyes ] ; then
+       # There was nothing suitable for 64-bit mode with
+       # gcc, so I made a new target. David Kirkby, May 2010.
+       make solaris-pthreads-gcc-64-bit
+    else
+       make solaris-pthreads-gcc
+    fi
     finished
 fi
 

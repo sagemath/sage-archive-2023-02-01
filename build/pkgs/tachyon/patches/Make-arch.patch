@@ -1,6 +1,31 @@
---- ../src/unix/Make-arch	2007-05-06 12:12:48.000000000 +0700
-+++ Make-arch	2009-11-06 12:01:57.000000000 +0700
-@@ -869,6 +869,17 @@
+--- ../src/unix/Make-arch	Sun May  6 06:12:48 2007
++++ Make-arch	Sun May 23 22:46:54 2010
+@@ -53,6 +53,7 @@
+ 	@echo "   solaris-ultra-thr - Sun Solaris 9/10 UI/Sun Threads, US-1/2" 
+ 	@echo "  solaris-ultra3-thr - Sun Solaris 9/10 UI/Sun Threads, US-III" 
+ 	@echo "      solaris-64-thr - Sun Solaris 9/10 UI/Sun Threads, 64-bit" 
++	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)" 
+ 	@echo ""
+ 	@echo "--------------------------------------------------------------"
+ 	@echo "              Sequential Versions                             "
+@@ -473,6 +474,16 @@
+ 	"STRIP = strip" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+ 
++solaris-pthreads-gcc-64-bit:
++	$(MAKE) all \
++	"ARCH = solaris-pthreads-gcc" \
++	"CC = gcc" \
++	"CFLAGS = -Wall -O4 -m64 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
++
+ solaris-thr-x11:
+ 	$(MAKE) all \
+ 	"ARCH = solaris-thr-x11" \
+@@ -869,6 +880,17 @@
  	"RANLIB = ranlib" \
  	"LIBS = -L. -ltachyon $(MISCLIB)"
  
@@ -18,7 +43,7 @@
  macosx-thr:
  	$(MAKE) all \
  	"ARCH = macosx-thr" \
-@@ -956,7 +967,7 @@
+@@ -956,7 +978,7 @@
  	$(MAKE) all \
  	"ARCH = win32" \
  	"CC = gcc" \
@@ -27,7 +52,7 @@
  	"AR = ar" \
  	"ARFLAGS = r" \
  	"STRIP = echo" \
-@@ -967,7 +978,7 @@
+@@ -967,7 +989,7 @@
  	$(MAKE) all \
  	"ARCH = win32-mpi" \
  	"CC = gcc" \
@@ -36,7 +61,7 @@
  	"AR = ar" \
  	"ARFLAGS = r" \
  	"STRIP = echo" \
-@@ -1131,7 +1142,7 @@
+@@ -1131,7 +1153,7 @@
  	$(MAKE) all \
  	"ARCH = linux-thr" \
  	"CC = gcc" \

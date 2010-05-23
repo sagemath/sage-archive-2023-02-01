@@ -641,7 +641,7 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
     OUTPUT: A number field defined by a quadratic polynomial. Unless
     otherwise specified, it has an embedding into `\RR` or
     `\CC` by sending the generator to the positive
-    or upper half plane root.
+    or upper-half-plane root.
 
     EXAMPLES::
 

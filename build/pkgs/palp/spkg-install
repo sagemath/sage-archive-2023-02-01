@@ -1,6 +1,16 @@
 #!/bin/sh
 
-mv -f src/GNUmakefile src/Makefile
+# Move over the GNU makefile to the the file 'Makefile'.
+# If SAGE64 is set to yes, add an '-m64' using 'sed'
+
+if [ "x$SAGE64" = xyes ] ; then
+  echo "Creating a 64-bit version of PALP"
+  sed 's/^CFLAGS=/CFLAGS=-m64 /g' src/GNUmakefile > src/Makefile
+  # We must delete src/GNUmakefile, otherwise that gets used in preference to Makefile.
+  rm src/GNUmakefile
+else
+  mv -f src/GNUmakefile src/Makefile
+fi
 
 if [ $? -ne 0 ]; then
     echo "Error patching PALP."
@@ -16,7 +26,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$CP poly.x class.x cws.x nef.x "$SAGE_LOCAL"/bin/
+cp poly.x class.x cws.x nef.x "$SAGE_LOCAL/bin/"
 
 if [ $? -ne 0 ]; then
     echo "Error installing PALP."

@@ -42,6 +42,10 @@ facet enumeration compares well with existing packages.
 
 == Change log ==
 
+=== palp-1.1.p3 (David Kirkby, 24th May 2010) ===
+ * #9025 Add compiler option -m64 if the variable SAGE64 is set to
+   "yes". The flag is added by 'sed'.
+
 === palp-1.1.p2 (Mitesh Patel, 12 Mar 2010) ===
 
  * #8477: Work around apparent GNU make problem when building spkgs in

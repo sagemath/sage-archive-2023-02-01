@@ -11,12 +11,19 @@ cp patches/lanczos.h  src/
 cd src
 
 if [ `uname -m` = "x86_64" ]; then
-    $CP makefile.opteron makefile
+    # Note from David Kirkby. This seems a bit risky, as there
+    # is no good reason to assume only Opteron systems give
+    # x86_64 as the output of 'uname -m'
+    cp makefile.opteron makefile
 else
-    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-        $CP makefile.osx64 makefile
+    if [ "x$SAGE64" = xyes ]; then
+        # Despite being called makefile.osx64, this is a pretty generic
+        # makefile, which should build 64-bit on many platforms, not just
+        # OS X.
+        echo "Building a 64-bit version of William Hart's Quadratic Sieve"
+        cp makefile.osx64 makefile
     else
-        $CP makefile.sage makefile
+        cp makefile.sage makefile
     fi
 fi
 

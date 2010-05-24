@@ -479,6 +479,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x)
             6*x^4
 
+        The following shows that \#9006 is also fixed.
+
+        ::
+
+            sage: f = ZZ['x'](1000000 * [1])
+            sage: f(1)
+            1000000
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -561,7 +569,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
-        elif d < 4 and self._compiled is None:
+        elif (d < 4 or d > 50000) and self._compiled is None:
             while i >= 0:
                 result = result * a + self[i]
                 i -= 1

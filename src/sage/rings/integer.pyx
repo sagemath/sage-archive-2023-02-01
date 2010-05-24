@@ -1725,14 +1725,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             nn = PyNumber_Index(n)
         except TypeError:
-            try:
-                nn = Integer(n)
-            except TypeError:
-                try:
-                    s = parent_c(n)(self)
-                    return s**n
-                except AttributeError:
-                    raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            s = parent_c(n)(self)
+            return s**n
 
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:

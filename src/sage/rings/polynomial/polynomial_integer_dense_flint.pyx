@@ -12,7 +12,7 @@ AUTHORS:
 
 ################################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008-2010 Burcin Erocal <burcin@erocal.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -41,6 +41,7 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse
 from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
 
 cdef extern from "limits.h":
@@ -1269,3 +1270,43 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         fmpz_to_mpz(x.value, res)
         fmpz_clear(res)
         return x
+
+    def reverse(self, degree=None):
+        """
+        Return a polynomial with the coefficients of this polynomial reversed.
+
+        If an optional degree argument is given the coefficient list will be
+        truncated or zero padded as necessary and the reverse polynomial will
+        have the specified degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: p = R([1,2,3,4]); p
+            4*x^3 + 3*x^2 + 2*x + 1
+            sage: p.reverse()
+            x^3 + 2*x^2 + 3*x + 4
+            sage: p.reverse(degree=6)
+            x^6 + 2*x^5 + 3*x^4 + 4*x^3
+            sage: p.reverse(degree=2)
+            x^2 + 2*x + 3
+
+        TESTS::
+
+            sage: p.reverse(degree=1.5r)
+            Traceback (most recent call last):
+            ...
+            ValueError: degree argument must be a non-negative integer, got 1.5
+        """
+        cdef Polynomial_integer_dense_flint res = self._new()
+        cdef unsigned long d
+        if degree:
+            d = degree
+            if d != degree:
+                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+            # FLINT expects length
+            fmpz_poly_reverse(res.__poly, self.__poly, d+1)
+        else:
+            fmpz_poly_reverse(res.__poly, self.__poly,
+                    fmpz_poly_length(self.__poly))
+        return res

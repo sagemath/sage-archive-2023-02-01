@@ -25,7 +25,7 @@ AUTHORS:
 - Martin Albrecht (2009-01) another initial implementation
 """
 #*****************************************************************************
-#       Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009-2010 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
@@ -579,4 +579,42 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             raise ValueError, "leading coefficient must be invertible"
         cdef Polynomial_zmod_flint res = self._new()
         zmod_poly_make_monic(&res.x, &self.x)
+        return res
+
+    def reverse(self, degree=None):
+        """
+        Return a polynomial with the coefficients of this polynomial reversed.
+
+        If an optional degree argument is given the coefficient list will be
+        truncated or zero padded as necessary and the reverse polynomial will
+        have the specified degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(5)[]
+            sage: p = R([1,2,3,4]); p
+            4*x^3 + 3*x^2 + 2*x + 1
+            sage: p.reverse()
+            x^3 + 2*x^2 + 3*x + 4
+            sage: p.reverse(degree=6)
+            x^6 + 2*x^5 + 3*x^4 + 4*x^3
+            sage: p.reverse(degree=2)
+            x^2 + 2*x + 3
+
+        TESTS::
+
+            sage: p.reverse(degree=1.5r)
+            Traceback (most recent call last):
+            ...
+            ValueError: degree argument must be a non-negative integer, got 1.5
+        """
+        cdef Polynomial_zmod_flint res = self._new()
+        cdef unsigned long d
+        if degree:
+            d = degree
+            if d != degree:
+                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+            zmod_poly_reverse(&res.x, &self.x, d+1) # FLINT expects length
+        else:
+            zmod_poly_reverse(&res.x, &self.x, zmod_poly_length(&self.x))
         return res

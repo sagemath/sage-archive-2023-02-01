@@ -3938,9 +3938,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         an = self[n]**(n - k - 2)
         return self.base_ring()(u * self.resultant(d) * an)
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
         Return polynomial but with the coefficients reversed.
+
+        If an optional degree argument is given the coefficient list will be
+        truncated or zero padded as necessary and the reverse polynomial will
+        have the specified degree.
 
         EXAMPLES::
 
@@ -3949,9 +3953,36 @@ cdef class Polynomial(CommutativeAlgebraElement):
             y^3 + x*y - 3*x
             sage: f.reverse()
             -3*x*y^3 + x*y^2 + 1
+            sage: f.reverse(degree=2)
+            -3*x*y^2 + x*y
+            sage: f.reverse(degree=5)
+            -3*x*y^5 + x*y^4 + y^2
+
+        TESTS::
+
+            sage: f.reverse(degree=1.5r)
+            Traceback (most recent call last):
+            ...
+            ValueError: degree argument must be a non-negative integer, got 1.5
         """
         v = list(self.list())
-        v.reverse()
+
+        cdef unsigned long d
+        if degree:
+            d = degree
+            if d != degree:
+                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+            if len(v) < degree+1:
+                v.reverse()
+                v = [0]*(degree+1-len(v)) + v
+            elif len(v) > degree+1:
+                v = v[:degree+1]
+                v.reverse()
+            else: # len(v) == degree + 1
+                v.reverse()
+        else:
+            v.reverse()
+
         return self.parent()(v)
 
     def roots(self, ring=None, multiplicities=True, algorithm=None):

@@ -353,32 +353,37 @@ cdef int *double_coset(object S1, object S2, int **partition1, int *ordering2,
 
     first_ps = NULL
     # Refine down to a discrete partition
-    while not PS_is_discrete(left_ps) and possible:
-        k = PS_first_smallest(left_ps, vertices_to_split[left_ps.depth])
+    while not PS_is_discrete(left_ps):
         i = left_ps.depth
+        k = PS_first_smallest(left_ps, vertices_to_split[i]) # writes to vertices_to_split, but this is never used
         indicators[i] = split_point_and_refine(left_ps, k, S1, refine_and_return_invariant, cells_to_refine_by)
-        vertices_determining_current_stack[current_ps.depth] = PS_first_smallest(current_ps, vertices_to_split[current_ps.depth])
-        bitset_unset(vertices_have_been_reduced, current_ps.depth)
-        while 1:
-            j =  split_point_and_refine(current_ps, vertices_determining_current_stack[i], S2, refine_and_return_invariant, cells_to_refine_by)
+        bitset_unset(vertices_have_been_reduced, left_ps.depth)
+    while not PS_is_discrete(current_ps) and possible:
+        i = current_ps.depth
+        vertices_determining_current_stack[i] = PS_first_smallest(current_ps, vertices_to_split[current_ps.depth])
+        while possible:
+            i = current_ps.depth
+            j = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S2, refine_and_return_invariant, cells_to_refine_by)
             if indicators[i] != j:
                 possible = 0
             elif not stacks_are_equivalent(left_ps, current_ps):
                 possible = 0
             else:
                 PS_move_all_mins_to_front(current_ps)
-            if not possible:
+                if not all_children_are_equivalent(current_ps, S2):
+                    current_kids_are_same = current_ps.depth + 1
+                break
+            current_ps.depth -= 1 # reset from split_point_and_refine
+            while current_ps.depth >= 0: # not possible, so look for another
+                i = current_ps.depth
                 j = vertices_determining_current_stack[i] + 1
                 j = bitset_next(vertices_to_split[i], j)
                 if j == -1:
-                    break
+                    current_ps.depth -= 1 # backtrack
                 else:
                     possible = 1
                     vertices_determining_current_stack[i] = j
-                    current_ps.depth -= 1 # reset for next refinement
-            else: break
-        if not all_children_are_equivalent(current_ps, S2):
-            current_kids_are_same = current_ps.depth + 1
+                    break # found another
 
     if possible:
         if compare_structures(left_ps.entries, current_ps.entries, S1, S2) == 0:

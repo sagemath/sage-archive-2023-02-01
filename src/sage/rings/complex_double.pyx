@@ -65,7 +65,10 @@ include '../ext/stdsage.pxi'
 
 cdef extern from "math.h":
     double modf (double value, double *integer_part)
-    double M_PI_4
+
+# The M_PI_4 constant is not available on cygwin in "math.h" (though
+# it is on most other platforms).
+cdef double M_PI_4 = 0.785398163397448309615660845819875721
 
 cdef extern from "complex.h":
     double complex csqrt(double complex)

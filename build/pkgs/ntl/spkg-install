@@ -119,9 +119,9 @@ build()
             echo "Error creating ntl shared library."
             exit 1
         fi
-	cp libntl.dll "$SAGE_LOCAL/lib/"
-	cp libntl.dll "$SAGE_LOCAL/bin/"
-        if [ ! -f "$SAGE_LOCAL/bin/libntl.dll" ]; then
+	cp libntl.dll "$SAGE_LOCAL/lib/libntl.dll.a"
+	cp libntl.dll "$SAGE_LOCAL/bin/libntl.dll.a"
+        if [ ! -f "$SAGE_LOCAL/bin/libntl.dll.a" ]; then
             exit 1   # CRUCIAL that we have the dynamic link library
         fi
     else

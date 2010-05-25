@@ -27,6 +27,9 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p12 (Mike Hansen, May 25th 2010) ===
+ * Rename libntl.dll to libntl.dll.a on Cygwin.  This is #9050.
+
 === ntl-5.4.2.p11 (Jaap Spies, January 28th 2010) ===
  * Added 64 bit support for Open Solaris x64
  * This is trac http://trac.sagemath.org/sage_trac/ticket/8101

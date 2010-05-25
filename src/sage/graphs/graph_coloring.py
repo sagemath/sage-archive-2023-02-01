@@ -576,7 +576,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
             p.solve(objective_only=True, log=log)
         else:
             chi = p.solve(log=log)
-    except:
+    except MIPSolverException:
         if value_only:
             return k + 1
         else:

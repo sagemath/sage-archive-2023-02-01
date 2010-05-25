@@ -1251,7 +1251,7 @@ cdef class PowerSeries(AlgebraElement):
                 else:
                     return a
 
-        val = self.valuation();
+        val = self.valuation()
 
         if formal_sqrt or val % 2 == 1:
             if extend:
@@ -1293,7 +1293,7 @@ cdef class PowerSeries(AlgebraElement):
         s = a.parent()([s])
         for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             (<PowerSeries>s)._prec = cur_prec
-            s = half * (s + (a*s.__invert__()))#.power_series(internal=True))
+            s = half * (s + (a * ~s))
 
         ans = s
         if val != 0:

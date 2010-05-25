@@ -467,3 +467,32 @@ def unify_arguments(funcs):
             # we probably have a constant
             pass
     return tuple(sorted(vars, key=lambda x: str(x))), tuple(sorted(free_variables, key=lambda x: str(x)))
+
+def _multiple_of_constant(n,pos,const):
+    """
+    Function for internal use in formatting ticks on axes with
+    nice-looking multiples of various symbolic constants, such
+    as `\pi` or `e`.  Should only be used via keyword argument
+    `tick_formatter` in :meth:`plot.show`.  See documentation
+    for the matplotlib.ticker module for more details.
+
+    EXAMPLES:
+
+    Here is the intended use::
+
+        sage: plot(sin(x), (x,0,2*pi), ticks=pi/3, tick_formatter=pi)
+
+    Here is an unintended use, which yields unexpected (and probably
+    undesired) results::
+
+        sage: plot(x^2, (x, -2, 2), tick_formatter=pi)
+
+    We can also use more unusual constant choices::
+
+        sage: plot(ln(x), (x,0,10), ticks=e, tick_formatter=e)
+        sage: plot(x^2, (x,0,10), ticks=[sqrt(2),8], tick_formatter=sqrt(2))
+    """
+    from sage.misc.latex import latex
+    from sage.rings.arith import convergents
+    c=[i for i in convergents(n/const.n()) if i.denominator()<12]
+    return '$%s$'%latex(c[-1]*const)

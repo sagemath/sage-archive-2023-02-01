@@ -244,8 +244,9 @@ def bool_function(x):
 def str_function(x, escape_underscores=False):
     r"""
     Returns the LaTeX code for a string ``x``.  If ``x`` contains only
-    digits, then return ``x`` itself.  Otherwise, enclose ``x`` in
-    "\texttt{}" and return that.
+    digits, digits with a single decimal point, or either of these with
+    a minus sign in front, then return ``x`` itself.  Otherwise, enclose
+    ``x`` in "\texttt{}" and return that.
 
     If optional argument ``escape_underscores`` is True,
     replace "_" with "\\_".
@@ -265,6 +266,10 @@ def str_function(x, escape_underscores=False):
         sage: from sage.misc.latex import str_function
         sage: str_function('34')
         '34'
+        sage: str_function('34.5')
+        '34.5'
+        sage: str_function('-34.5')
+        '-34.5'
         sage: str_function('abc')
         '\\texttt{abc}'
         sage: str_function('hello_world')  # note that this produces invalid LaTeX
@@ -272,8 +277,8 @@ def str_function(x, escape_underscores=False):
         sage: str_function('hello_world', escape_underscores=True)  # valid LaTeX
         '\\texttt{hello\\_world}'
     """
-    m = re.match('[0-9]*$', x)
-    if m is None:  # x contains something other than digits
+    m = re.match('-?[0-9]*\.?[0-9]*$', x)
+    if m is None:  # x contains something other than digits (possibly with decimal point and minus sign)
         if escape_underscores:
             return '\\texttt{%s}'%(x.replace('_','\\_'))
         else:

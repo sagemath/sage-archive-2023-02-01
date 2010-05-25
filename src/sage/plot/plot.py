@@ -114,6 +114,11 @@ large, scientific notation (the `e` notation for powers of ten) is used::
     sage: plot(x^2,(x,480,500))  # no scientific notation
     sage: plot(x^2,(x,300,500))  # scientific notation on y-axis
 
+But you can fix your own labels, if you know what to expect and
+have a preference::
+
+    sage: plot(x^2,(x,300,500),ticks=[None,50000])
+
 Next we construct the reflection of the above polygon about the
 `y`-axis by iterating over the list of first-coordinates of
 the first graphic element of `P` (which is the actual
@@ -195,14 +200,11 @@ Cycliclink::
     sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
     sage: show(graphics_array([g1, g2], 2, 1), xmin=0)
 
-Pi Axis: In the PyX manual, the point of this example is to show
-labeling the X-axis using rational multiples of Pi. Sage currently
-has no support for controlling how the ticks on the x and y axes
-are labeled, so this is really a bad example::
+Pi Axis::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
-    sage: g1 + g2    # show their sum
+    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # show their sum, nicely formatted
 
 An illustration of integration::
 
@@ -1197,7 +1199,7 @@ class Graphics(SageObject):
                         fontsize=None, aspect_ratio=None,
                         gridlines=None, gridlinesstyle=None,
                         vgridlinesstyle=None, hgridlinesstyle=None,transparent=False,
-                        axes_pad=.02)
+                        axes_pad=.02, ticks=None, tick_formatter=None)
 
     def show(self, **kwds):
         """
@@ -1271,6 +1273,59 @@ class Graphics(SageObject):
           avoid problems like clipping lines because of line-width,
           etc.  To get axes that are exactly the specified limits, set
           ``axes_pad`` to zero.
+
+        - ``ticks`` - A matplotlib locator for the major ticks, or
+          a number. There are several options.  For more information about
+          locators, type ``from matplotlib import ticker`` and then
+          ``ticker?``.
+
+          - If this is a locator object, then it is the locator for
+            the horizontal axis.  A value of None means use the default
+            locator.
+
+          - If it is a list of two locators, then the first is for the
+            horizontal axis and one for the vertical axis.  A value of
+            None means use the default locator (so a value of
+            [None, my_locator] uses my_locator for the vertical axis and
+            the default for the horizontal axis).
+
+          - If in either case above one of the entries is a number `m`
+            (something which can be coerced to a float), it will be
+            replaced by a MultipleLocator which places major ticks at
+            integer multiples of `m`.  See examples.
+
+          - If in either case above one of the entries is a list of
+            numbers, it will be replaced by a FixedLocator which places
+            ticks at the locations specified.  This includes the case of
+            of the empty list, which will give no ticks.  See examples.
+
+        - ``tick_formatter`` - A matplotlib formatter for the major
+          ticks. There are several options.  For more information about
+          formatters, type ``from matplotlib import ticker`` and then
+          ``ticker?``.
+
+          If the value of this keyword is a single item, then this will
+          give the formatting for the horizontal axis *only* (except for
+          the ``"latex"`` option).  If it is a list or tuple, the first
+          is for the horizontal axis, the second for the vertical axis.
+          The options are below:
+
+          - If one of the entries is a formatter object, then it used.
+            A value of None means to use the default locator (so using
+            ``tick_formatter=[None, my_formatter]`` uses my_formatter
+            for the vertical axis and the default for the horizontal axis).
+
+          - If one of the entries is a symbolic constant such as `\pi`,
+            `e`, or `sqrt(2)`, ticks will be formatted nicely at rational
+            multiples of this constant.
+
+          .. warning:: This should only be used with the ``ticks`` option
+             using nice rational multiples of that constant!
+
+          - If one of the entries is the string ``"latex"``, then the
+            formatting will be nice typesetting of the ticks.  This is
+            intended to be used when the tick locator for at least one of
+            the axes is a list including some symbolic elements.  See examples.
 
         EXAMPLES::
 
@@ -1427,6 +1482,55 @@ class Graphics(SageObject):
             sage: plot(sin(x), (x, -pi, pi),thickness=2)+point((pi, -1), pointsize=15)
             sage: plot(sin(x), (x, -pi, pi),thickness=2,axes_pad=0)+point((pi, -1), pointsize=15)
 
+        Via matplotlib, Sage allows setting of custom ticks.  See above
+        for more details.
+
+        ::
+
+            sage: plot(sin(pi*x), (x, -8, 8)) # Labels not so helpful
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=2) # Multiples of 2
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[-7,-3,0,3,7],[-1/2,0,1/2]]) # Your choices
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[],[]]) # No ticks at all!
+
+        This can be very helpful in showing certain features of plots.
+
+        ::
+            sage: plot(1.5/(1+e^(-x)), (x, -10, 10)) # doesn't quite show value of inflection point
+            sage: plot(1.5/(1+e^(-x)), (x, -10, 10), ticks=[None, 1.5/4]) # It's right at f(x)=0.75!
+
+        But be careful to leave enough room for at least two major ticks, so that
+        the user can tell what the scale is.
+
+        ::
+
+            sage: plot(x^2,(x,1,8),ticks=6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Expand the range of the independent variable to allow two multiples of your tick locator (option `ticks`).
+
+        We can also do custom formatting if you need it.  See above for full
+        details.
+
+        ::
+
+            sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
+
+        This is particularly useful when setting custom ticks in multiples
+        of `pi`.
+
+        ::
+
+            sage: plot(sin(x),(x,0,2*pi),ticks=pi/3,tick_formatter=pi)
+
+        But keep in mind that you will get exactly the formatting you asked
+        for if you specify both formatters.  The first syntax is recommended
+        for best style in that case.
+
+        ::
+
+            sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=["latex",pi]) # Nice-looking!
+            sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=[None,pi]) # Not so nice-looking
+
         """
 
         # This option should not be passed on to save().
@@ -1579,7 +1683,8 @@ class Graphics(SageObject):
               axes=None, axes_labels=None, fontsize=None,
              frame=False, verify=True, aspect_ratio = None,
              gridlines=None, gridlinesstyle=None,
-             vgridlinesstyle=None, hgridlinesstyle=None,axes_pad=0.02):
+             vgridlinesstyle=None, hgridlinesstyle=None,axes_pad=0.02,
+             tick_formatter=None, ticks=None):
         r"""
         Return a matplotlib figure object representing the graphic
 
@@ -1602,6 +1707,17 @@ class Graphics(SageObject):
         :meth:`show` method (this function accepts all except the
         transparent argument).
         """
+
+        if not isinstance(ticks, (list, tuple)):
+            ticks = (ticks, None)
+
+        from sage.symbolic.ring import SR
+        if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't
+            if tick_formatter == "latex" or tick_formatter in SR:
+                tick_formatter = (tick_formatter, "latex")
+            else:
+                tick_formatter = (tick_formatter, None)
+
         self.set_axes_range(xmin, xmax, ymin, ymax)
         d = self.get_axes_range()
         xmin = d['xmin']
@@ -1672,11 +1788,62 @@ class Graphics(SageObject):
             # For now, set the formatter to the old one, since that is
             # sort of what we are used to.  We should eventually look at
             # the default one to see if we like it better.
-            from matplotlib.ticker import OldScalarFormatter, MaxNLocator
-            subplot.xaxis.set_major_locator(MaxNLocator(nbins=9))
-            subplot.yaxis.set_major_locator(MaxNLocator(nbins=9))
-            subplot.xaxis.set_major_formatter(OldScalarFormatter())
-            subplot.yaxis.set_major_formatter(OldScalarFormatter())
+
+            from matplotlib.ticker import OldScalarFormatter, MaxNLocator, MultipleLocator, FixedLocator, NullLocator, Locator
+            x_locator, y_locator = ticks
+            if x_locator is None:
+                x_locator = MaxNLocator(nbins=9)
+            elif isinstance(x_locator,Locator):
+                pass
+            elif x_locator == []:
+                x_locator = NullLocator()
+            elif isinstance(x_locator,list):
+                x_locator = FixedLocator(x_locator)
+            else: # x_locator is a number which can be made a float
+                from sage.functions.other import ceil, floor
+                if floor(xmax/x_locator)-ceil(xmin/x_locator)>1:
+                    x_locator=MultipleLocator(float(x_locator))
+                else: # not enough room for two major ticks
+                    raise ValueError('Expand the range of the independent variable to allow two multiples of your tick locator (option `ticks`).')
+            if y_locator is None:
+                y_locator = MaxNLocator(nbins=9)
+            elif isinstance(y_locator,Locator):
+                pass
+            elif y_locator == []:
+                y_locator = NullLocator()
+            elif isinstance(y_locator,list):
+                y_locator = FixedLocator(y_locator)
+            else: # y_locator is a number which can be made a float
+                from sage.functions.other import ceil, floor
+                if floor(ymax/y_locator)-ceil(ymin/y_locator)>1:
+                    y_locator=MultipleLocator(float(y_locator))
+                else: # not enough room for two major ticks
+                    raise ValueError('Expand the range of the dependent variable to allow two multiples of your tick locator (option `ticks`).')
+
+            x_formatter, y_formatter = tick_formatter
+            from matplotlib.ticker import FuncFormatter
+            from sage.misc.latex import latex
+            if x_formatter is None:
+                x_formatter = OldScalarFormatter()
+            elif x_formatter in SR:
+                from misc import _multiple_of_constant
+                x_const = x_formatter
+                x_formatter = FuncFormatter(lambda n,pos: _multiple_of_constant(n,pos,x_const))
+            elif x_formatter == "latex":
+                x_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+            if y_formatter is None:
+                y_formatter = OldScalarFormatter()
+            elif y_formatter in SR:
+                from misc import _multiple_of_constant
+                y_const = y_formatter
+                y_formatter = FuncFormatter(lambda n,pos: _multiple_of_constant(n,pos,y_const))
+            elif y_formatter == "latex":
+                y_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+
+            subplot.xaxis.set_major_locator(x_locator)
+            subplot.yaxis.set_major_locator(y_locator)
+            subplot.xaxis.set_major_formatter(x_formatter)
+            subplot.yaxis.set_major_formatter(y_formatter)
 
             subplot.set_frame_on(True)
             if axes:
@@ -1733,12 +1900,63 @@ class Graphics(SageObject):
             # For now, set the formatter to the old one, since that is
             # sort of what we are used to.  We should eventually look at
             # the default one to see if we like it better.
-            from matplotlib.ticker import OldScalarFormatter, MaxNLocator
-            subplot.xaxis.set_major_locator(MaxNLocator(nbins=10,steps=[1,2,5,10]))
-            subplot.yaxis.set_major_locator(MaxNLocator(nbins=10,steps=[1,2,5,10]))
-            subplot.xaxis.set_major_formatter(OldScalarFormatter())
-            subplot.yaxis.set_major_formatter(OldScalarFormatter())
 
+            from matplotlib.ticker import OldScalarFormatter, MaxNLocator, MultipleLocator, FixedLocator, NullLocator, Locator
+            x_locator, y_locator = ticks
+            if x_locator is None:
+                x_locator = MaxNLocator(nbins=9, steps=[1,2,5,10])
+            elif isinstance(x_locator,Locator):
+                pass
+            elif x_locator == []:
+                x_locator = NullLocator()
+            elif isinstance(x_locator,list):
+                x_locator = FixedLocator(x_locator)
+            else: # x_locator is a number which can be made a float
+                from sage.functions.other import ceil, floor
+                if floor(xmax/x_locator)-ceil(xmin/x_locator)>1:
+                    x_locator=MultipleLocator(float(x_locator))
+                else: # not enough room for two major ticks
+                    raise ValueError('Expand the range of the independent variable to allow two multiples of your tick locator (option `ticks`).')
+            if y_locator is None:
+                y_locator = MaxNLocator(nbins=9, steps=[1,2,5,10])
+            elif isinstance(y_locator,Locator):
+                pass
+            elif y_locator == []:
+                y_locator = NullLocator()
+            elif isinstance(y_locator,list):
+                y_locator = FixedLocator(y_locator)
+            else: # y_locator is a number which can be made a float
+                from sage.functions.other import ceil, floor
+                if floor(ymax/y_locator)-ceil(ymin/y_locator)>1:
+                    y_locator=MultipleLocator(float(y_locator))
+                else: # not enough room for two major ticks
+                    raise ValueError('Expand the range of the dependent variable to allow two multiples of your tick locator (option `ticks`).')
+
+            x_formatter, y_formatter = tick_formatter
+            from matplotlib.ticker import FuncFormatter
+            from sage.misc.latex import latex
+            from sage.symbolic.ring import SR
+            if x_formatter is None:
+                x_formatter = OldScalarFormatter()
+            elif x_formatter in SR:
+                from misc import _multiple_of_constant
+                x_const = x_formatter
+                x_formatter = FuncFormatter(lambda n,pos: _multiple_of_constant(n,pos,x_const))
+            elif x_formatter == "latex":
+                x_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+            if y_formatter is None:
+                y_formatter = OldScalarFormatter()
+            elif y_formatter in SR:
+                from misc import _multiple_of_constant
+                y_const = y_formatter
+                y_formatter = FuncFormatter(lambda n,pos: _multiple_of_constant(n,pos,y_const))
+            elif y_formatter == "latex":
+                y_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+
+            subplot.xaxis.set_major_locator(x_locator)
+            subplot.yaxis.set_major_locator(y_locator)
+            subplot.xaxis.set_major_formatter(x_formatter)
+            subplot.yaxis.set_major_formatter(y_formatter)
 
             # Make ticklines go on both sides of the axes
             #             if xmiddle:
@@ -1773,10 +1991,16 @@ class Graphics(SageObject):
             subplot.yaxis.set_major_locator(NullLocator())
 
         if frame or axes:
-            # Make minor tickmarks
-            from matplotlib.ticker import AutoMinorLocator
-            subplot.xaxis.set_minor_locator(AutoMinorLocator())
-            subplot.yaxis.set_minor_locator(AutoMinorLocator())
+            # Make minor tickmarks, unless we specify fixed ticks or no ticks
+            from matplotlib.ticker import AutoMinorLocator, FixedLocator, NullLocator
+            if isinstance(x_locator, (NullLocator, FixedLocator)):
+                subplot.xaxis.set_minor_locator(NullLocator())
+            else:
+                subplot.xaxis.set_minor_locator(AutoMinorLocator())
+            if isinstance(y_locator, (NullLocator, FixedLocator)):
+                subplot.yaxis.set_minor_locator(NullLocator())
+            else:
+                subplot.yaxis.set_minor_locator(AutoMinorLocator())
 
             ticklabels=subplot.xaxis.get_majorticklabels() + \
                 subplot.xaxis.get_minorticklabels() + \
@@ -2406,6 +2630,20 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(sin(x^2), (x, -3, 3), figsize=[8,2])
         sage: plot(sin(x^2), (x, -3, 3)).show(figsize=[8,2]) # These are equivalent
+
+    This includes options for custom ticks and formatting.  See documentation
+    for :meth:`show` for more details.
+
+    ::
+
+        sage: plot(sin(pi*x), (x, -8, 8), ticks=[[-7,-3,0,3,7],[-1/2,0,1/2]])
+        sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
+
+    This is particularly useful when setting custom ticks in multiples of `pi`.
+
+    ::
+
+        sage: plot(sin(x),(x,0,2*pi),ticks=pi/3,tick_formatter=pi)
 
     A example with excluded values::
 

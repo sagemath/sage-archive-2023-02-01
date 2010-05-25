@@ -796,6 +796,8 @@ class LatticePolytopeClass(SageObject):
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                     self, self.vertices(), err)
             result = stdout.read()
+            # We program around an issue with subprocess (this so far seems to
+            # only be an issue on Cygwin).
             try:
                 p.terminate()
             except OSError:

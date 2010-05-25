@@ -904,8 +904,7 @@ cdef class Map(Element):
 
         NOTE:
 
-        By default, it returns ``None``. You may override it in subclasses,
-        so that it returns an instance of :class:`Section`.
+        By default, it returns ``None``. You may override it in subclasses.
 
         TEST::
 
@@ -913,6 +912,23 @@ cdef class Map(Element):
             sage: f = R.hom([x+y,x-y],R)
             sage: print f.section()
             None
+
+            sage: f = QQ.coerce_map_from(ZZ); f
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: ff = f.section(); ff
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            sage: ff(4/2)
+            2
+            sage: parent(ff(4/2)) is ZZ
+            True
+            sage: ff(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
         """
         return None
 

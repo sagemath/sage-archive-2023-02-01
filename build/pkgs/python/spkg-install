@@ -214,6 +214,16 @@ fi
 echo "Sleeping for three seconds before testing python"
 sleep 3
 
+# Make sure extension modules were built correctly.
+python -c "import math"
+
+if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
+    echo "math module OK"
+else
+    echo "math module failed to import"
+    exit 1
+fi
+
 # Make sure sufficient crypto support is available in the built python.
 # This is critical.
 python -c "import hashlib"

@@ -128,6 +128,7 @@ GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
+SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
 if [ "$SAGE_SERVER" = "" ]; then
     SAGE_SERVER="http://www.sagemath.org/"
@@ -275,6 +276,10 @@ fi
 
 if [ "$MAKEFLAGS" != "" ]; then
     MFLAGS="$MAKEFLAGS"  && export MFLAGS
+fi
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    PATH="$PATH:$SAGE_LOCAL/lib" && export PATH
 fi
 
 # See trac 7186 -- this is needed if ecl is moved

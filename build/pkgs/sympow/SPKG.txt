@@ -1,5 +1,8 @@
 == Changelog ==
 
+=== sympow-1.018.1.p7 (David Kirkby, 25th May 2010) ===
+ * #9029 Allow to build 64-bit
+
 === sympow-1.018.1.p6 (Michael Abshoff, November 30th, 2008) ===
  * add build fix for tcsh by Willem Jan Palenstijn (trac #4261)
  * small cleanups

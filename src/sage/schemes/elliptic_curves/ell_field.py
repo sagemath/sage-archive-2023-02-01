@@ -913,3 +913,41 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         """
         return weierstrass_p(self, prec=prec, algorithm=algorithm)
+
+
+    def hasse_invariant(self):
+        r""" returns the Hasse invariant of an elliptic curve
+        over a field of positive characteristic, which is an
+        element of the field.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([Mod(1,2),Mod(1,2),0,0,Mod(1,2)])
+            sage: E.hasse_invariant()
+            1
+            sage: E = EllipticCurve([0,0,Mod(1,3),Mod(1,3),Mod(1,3)])
+            sage: E.hasse_invariant()
+            0
+            sage: E = EllipticCurve([0,0,Mod(1,5),0,Mod(2,5)])
+            sage: E.hasse_invariant()
+            0
+
+
+        """
+
+        k = self.base_field()
+        p = k.characteristic()
+        if p == 0:
+           raise ValueError('Hasse invariant only defined in positive characteristic')
+        elif p == 2:
+           return self.a1()
+        elif p == 3:
+           return self.a2()+self.a1()**2 #is this right??
+        else:
+           R = k['x']
+           x = R.gen()
+           E = self.short_weierstrass_model()
+           f=(x**3+E.a4()*x+E.a6())**((p-1)/2)
+           return f.coeffs()[p-1]
+
+

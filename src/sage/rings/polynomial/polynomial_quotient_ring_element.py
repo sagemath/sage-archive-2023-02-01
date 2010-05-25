@@ -83,9 +83,9 @@ AUTHORS:
 import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.number_field.number_field_rel as number_field_rel
-import sage
+import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
-class PolynomialQuotientRingElement(sage.rings.polynomial.polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
+class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
     """
     Element of a quotient of a polynomial ring.
 

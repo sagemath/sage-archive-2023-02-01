@@ -1231,6 +1231,11 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.edges()
             []
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.loops()
+            []
+
         """
         from sage.misc.misc import deprecation
         if new is not None:
@@ -5496,21 +5501,41 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G=graphs.DiamondGraph()
+            sage: G = graphs.DiamondGraph()
             sage: G.edge_boundary([0,1])
             [(0, 2, {}), (1, 2, {}), (1, 3, {})]
+            sage: G = graphs.PetersenGraph()
+            sage: G.edge_boundary([0], [0])
+            []
+
         """
         vertices1 = [v for v in vertices1 if v in self]
         output = []
         if self._directed:
             output.extend(self.outgoing_edge_iterator(vertices1,labels=labels))
+            if vertices2 is not None:
+                output = [e for e in output if e[1] in vertices2]
+            else:
+                output = [e for e in output if e[1] not in vertices1]
+            return output
         else:
             output.extend(self.edge_iterator(vertices1,labels=labels))
-        if vertices2 is not None:
-            output = [e for e in output if (e[1] in vertices2 or e[0] in vertices2) ]
-        else:
-            output = [e for e in output if (e[1] not in vertices1 or e[0] not in vertices1)]
-        return output
+            output2 = []
+            if vertices2 is not None:
+                for e in output:
+                    if e[0] in vertices1:
+                        if e[1] in vertices2:
+                            output2.append(e)
+                    elif e[0] in vertices2: # e[1] in vertices1
+                        output2.append(e)
+            else:
+                for e in output:
+                    if e[0] in vertices1:
+                        if e[1] not in vertices1:
+                            output2.append(e)
+                    elif e[0] not in vertices1: # e[1] in vertices1
+                        output2.append(e)
+            return output2
 
     def edge_iterator(self, vertices=None, labels=True, ignore_direction=False):
         """

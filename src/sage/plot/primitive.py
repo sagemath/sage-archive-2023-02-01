@@ -106,6 +106,8 @@ class GraphicPrimitive(SageObject):
         if 'alpha' in options:
             options_3d['opacity'] = options['alpha']
             del options['alpha']
+        if 'legend_label' in options:
+            del options['legend_label'] # no equivalent in 3d for now
         if 'zorder' in options:
             del options['zorder']
         if len(options) != 0:

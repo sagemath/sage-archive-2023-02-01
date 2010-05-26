@@ -121,7 +121,8 @@ class Disk(GraphicPrimitive):
             'The layer level in which to draw'
         """
         return {'alpha':'How transparent the figure is.',
-                'fill': 'Whether or not to fill the disk.',
+                'fill':'Whether or not to fill the disk.',
+                'legend_label':'The label for this item in the legend.',
                 'thickness':'How thick the border of the disk is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
@@ -159,6 +160,7 @@ class Disk(GraphicPrimitive):
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
+        p.set_label(options['legend_label'])
         subplot.add_patch(p)
 
     def plot3d(self, z=0, **kwds):
@@ -218,7 +220,7 @@ class Disk(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0)
+@options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0, legend_label=None)
 def disk(point, radius, angle, **options):
     r"""
     A disk (that is, a sector or wedge of a circle) with center
@@ -285,6 +287,8 @@ def disk(point, radius, angle, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Disk(point, radius, angle, options))
+    if options['legend_label']:
+        g.legend(True)
     if len(point)==2:
         return g
     elif len(point)==3:

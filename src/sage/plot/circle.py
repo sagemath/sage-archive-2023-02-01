@@ -108,7 +108,8 @@ class Circle(GraphicPrimitive):
             '2D only: The color of the face as an RGB tuple.'
         """
         return {'alpha':'How transparent the figure is.',
-                'fill': 'Whether or not to fill the circle.',
+                'fill':'Whether or not to fill the circle.',
+                'legend_label':'The label for this item in the legend.',
                 'thickness':'How thick the border of the circle is.',
                 'edgecolor':'2D only: The color of the edge as an RGB tuple.',
                 'facecolor':'2D only: The color of the face as an RGB tuple.',
@@ -149,6 +150,7 @@ class Circle(GraphicPrimitive):
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
         p.set_linestyle(options['linestyle'])
+        p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
         subplot.add_patch(p)
@@ -208,7 +210,7 @@ class Circle(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5)
+@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5, legend_label=None)
 def circle(center, radius, **options):
     """
     Return a circle at a point center = `(x,y)` (or `(x,y,z)` and
@@ -231,6 +233,8 @@ def circle(center, radius, **options):
 
     - ``facecolor`` - default: 'red' (2D plotting only, useful only
       if Fill=True)
+
+    - ``legend_label`` -- the label for this item in the legend
 
     EXAMPLES::
 
@@ -277,6 +281,10 @@ def circle(center, radius, **options):
 
         sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
 
+    And a circle with a legend::
+
+        sage: circle((4,5), 1, rgbcolor='yellow', fill=True, legend_label='the sun').show(xmin=0, ymin=0, aspect_ratio=1)
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: circle((0, 0), 2, figsize=[10,10]) # That circle is huge!
@@ -298,6 +306,8 @@ def circle(center, radius, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Circle(center[0], center[1], radius, options))
+    if options['legend_label']:
+        g.legend(True)
     if len(center)==2:
         return g
     elif len(center)==3:

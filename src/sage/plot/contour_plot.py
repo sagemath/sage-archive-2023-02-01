@@ -113,7 +113,8 @@ class ContourPlot(GraphicPrimitive):
                 'colorbar': "Include a colorbar indicating the levels",
                 'colorbar_options': "a dictionary of options for colorbars",
                 'fill':'Fill contours or not',
-                 'contours':"""Either an integer specifying the number of
+                'legend_label':'The label for this item in the legend.',
+                'contours':"""Either an integer specifying the number of
                         contour levels, or a sequence of numbers giving
                         the actual contours to use.""",
                 'linewidths':'the width of the lines to be plotted',
@@ -168,9 +169,9 @@ class ContourPlot(GraphicPrimitive):
         CSF=None
         if fill:
             if contours is None:
-                CSF=subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+                CSF=subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1), label=options['legend_label'])
             else:
-                CSF=subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both')
+                CSF=subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both', label=options['legend_label'])
 
         linewidths = options.get('linewidths',None)
         if isinstance(linewidths, (int, Integer)):
@@ -180,10 +181,10 @@ class ContourPlot(GraphicPrimitive):
         linestyles = options.get('linestyles',None)
         if contours is None:
             CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
-                                 linewidths=linewidths, linestyles=linestyles)
+                                 linewidths=linewidths, linestyles=linestyles, label=options['legend_label'])
         else:
             CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
-                            linewidths=linewidths, linestyles=linestyles)
+                            linewidths=linewidths, linestyles=linestyles, label=options['legend_label'])
         if options.get('labels', False):
             label_options = options['label_options']
             label_options['fontsize'] = int(label_options['fontsize'])
@@ -202,7 +203,7 @@ class ContourPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None, spacing=None)
 @suboptions('label', fontsize=9, colors='blue', inline=None, inline_spacing=3, fmt="%1.2f")
-@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False)
+@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False, legend_label=None)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -295,6 +296,8 @@ def contour_plot(f, xrange, yrange, **options):
         'proportional', make the contour divisions proportional to
         values.  If 'uniform', space the colorbar divisions uniformly,
         without regard for numeric values.
+
+    - ``legend_label`` -- the label for this item in the legend
 
     EXAMPLES:
 
@@ -510,6 +513,8 @@ def implicit_plot(f, xrange, yrange, **options):
     - ``linestyle`` -- string (default: None), the style of the line to be
       plotted, one of: solid, dashed, dashdot or dotted.
 
+    - ``legend_label`` -- the label for this item in the legend
+
     EXAMPLES:
 
     A simple circle with a radius of 2. Note that
@@ -579,7 +584,7 @@ def implicit_plot(f, xrange, yrange, **options):
     linestyles = options.pop('linestyle', None)
     return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True)
+@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`
@@ -616,6 +621,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     - ``borderstyle``  -- string (default: 'solid'), one of 'solid', 'dashed', 'dotted', 'dashdot'
 
     - ``borderwidth``  -- integer (default: None), the width of the border in pixels
+
+    - ``legend_label`` -- the label for this item in the legend
 
 
     EXAMPLES:

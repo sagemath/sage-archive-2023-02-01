@@ -377,7 +377,7 @@ from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 from sage.misc.html import html
 
-from misc import options, rename_keyword
+from misc import options, rename_keyword, suboptions
 
 from colors import hue, rainbow, rgbcolor, Color, to_mpl_color
 
@@ -448,6 +448,8 @@ class Graphics(SageObject):
         self.__aspect_ratio = None
         self.__fontsize = 10
         self.__show_axes = True
+        self.__show_legend = False
+        self.__legend_opts = {}
         self.__axes_color = (0, 0, 0)
         self.__axes_label_color = (0, 0, 0)
         self.__tick_label_color = (0, 0, 0)
@@ -510,6 +512,160 @@ class Graphics(SageObject):
             2.0
         """
         return self.__aspect_ratio
+
+    def legend(self, show=None):
+        r"""
+        Set whether or not the legend is shown by default.
+
+        INPUT:
+
+        -  ``show`` - (default: None) a boolean
+
+        If called with no input, return the current legend setting.
+
+        EXAMPLES:
+
+        By default no legend is displayed::
+
+            sage: P = plot(sin)
+            sage: P.legend()
+            False
+
+        But if we put a label then the legend is shown::
+
+            sage: P = plot(sin, legend_label='sin')
+            sage: P.legend()
+            True
+
+        We can turn it on or off::
+
+            sage: P.legend(False)
+            sage: P.legend()
+            False
+            sage: P.legend(True)
+            sage: P # show with the legend
+        """
+        if show is None:
+            return self.__show_legend
+        else:
+            self.__show_legend = bool(show)
+
+    def set_legend_options(self, **kwds):
+        r"""
+        Set various legend options.
+
+        INPUT:
+
+        - ``title`` - (default: None) string, the legend title
+
+        - ``ncol`` - (default: 1) positive integer, the number of columns
+
+        - ``columnspacing`` - (default: None) the spacing between columns
+
+        - ``borderaxespad`` - (default: 1) float, length between the axes and the legend
+
+        - ``back_color`` - (default: (0.9, 0.9, 0.9)) This parameter can be a string
+          denoting a color or an RGB tuple. The string can be a color name
+          as in ('red', 'green', 'yellow', ...) or a floating point number
+          like '0.8' which gets expanded to (0.8, 0.8, 0.8). The
+          tuple form is just a floating point RGB tuple with all values ranging
+          from 0 to 1.
+
+        - ``handlelen`` - (default: 2) float, the length of the legend handles
+
+        - ``handletextpad`` - (default: 0.6) float, the pad between the legend handle and text
+
+        - ``labelspacing`` - (default: 0) float, vertical space between legend entries
+
+        - ``loc`` - (default: 'best') May be a string, an integer or a tuple. String or
+              integer inputs must be one of the following:
+
+          - 0, 'best'
+
+          - 1, 'upper right'
+
+          - 2, 'upper left'
+
+          - 3, 'lower left'
+
+          - 4, 'lower right'
+
+          - 5, 'right'
+
+          - 6, 'center left'
+
+          - 7, 'center right'
+
+          - 8, 'lower center'
+
+          - 9, 'upper center'
+
+          - 10, 'center'
+
+          - Tuple arguments represent an absolute (x, y) position on the plot
+            in axes coordinates (meaning from 0 to 1 in each direction).
+
+        - ``markerscale`` - (default: 0.6) float, how much to scale the markers in the legend.
+
+        - ``numpoints`` - (default: 4) integer, the number of points in the legend for line
+
+        - ``borderpad`` - (default: 0) float, the fractional whitespace inside the legend border
+          (between 0 and 1)
+
+        - ``font_family`` - (default: 'sans-serif') string, one of 'serif', 'sans-serif',
+          'cursive', 'fantasy', 'monospace'
+
+        - ``font_style`` - (default: 'normal') string, one of 'normal', 'italic', 'oblique'
+
+        - ``font_variant`` - (default: 'normal') string, one of 'normal', 'small-caps'
+
+        - ``font_weight`` - (default: 'medium') string, one of 'black', 'extra bold', 'bold',
+          'semibold', 'medium', 'normal', 'light'
+
+        - ``font_size`` - (default: 'medium') string, one of 'xx-small', 'x-small', 'small',
+          'medium', 'large', 'x-large', 'xx-large' or an absolute font size (e.g. 12)
+
+        -  ``shadow`` - (default: False) boolean - draw a shadow behind the legend
+
+        - ``fancybox`` - (default: False) a boolean.  If True, draws a frame with a round
+          fancybox.
+
+        These are all keyword arguments.
+
+        OUTPUT: a dictionary of all current legend options
+
+        EXAMPLES:
+
+        By default, no options are set::
+
+            sage: p = plot(tan, legend_label='tan')
+            sage: p.set_legend_options()
+            {}
+
+        We build a legend with a shadow::
+
+            sage: p.set_legend_options(shadow=True)
+            sage: p.set_legend_options()['shadow']
+            True
+
+        To set the legend position to the center of the plot, all these
+        methods are roughly equivalent::
+
+            sage: p.set_legend_options(loc='center'); p
+
+        ::
+
+            sage: p.set_legend_options(loc=10); p
+
+        ::
+
+            sage: p.set_legend_options(loc=(0.5,0.5)); p # aligns the bottom of the box to the center
+        """
+        if len(kwds) == 0:
+            return self.__legend_opts
+        else:
+            self.__legend_opts.update(kwds)
+
 
     def get_axes_range(self):
         """
@@ -1081,6 +1237,10 @@ class Graphics(SageObject):
         ratio property of either or both objects are set, then the larger
         aspect ratio is chosen.
 
+        If one of the graphics object is set to show a legend, then the
+        resulting object will also be set to show a legend.  None of the
+        legend options are carried over.
+
         EXAMPLES::
 
             sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5), frame=True)
@@ -1102,6 +1262,7 @@ class Graphics(SageObject):
         g = Graphics()
         g.__objects = self.__objects + other.__objects
         g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
+        g.__show_legend = self.__show_legend or other.__show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
         return g
@@ -1114,8 +1275,8 @@ class Graphics(SageObject):
 
     def plot(self, *args, **kwds):
         """
-        Draw a 2d plot this graphics object, which just returns this object
-        since this is already a 2d graphics object.
+        Draw a 2D plot of this graphics object, which just returns this
+        object since this is already a 2D graphics object.
 
         EXAMPLES::
 
@@ -1201,9 +1362,15 @@ class Graphics(SageObject):
                         fontsize=None, aspect_ratio=None,
                         gridlines=None, gridlinesstyle=None,
                         vgridlinesstyle=None, hgridlinesstyle=None,transparent=False,
+                        show_legend=None, legend_options={},
                         axes_pad=.02, ticks_integer=False,
                         ticks=None, tick_formatter=None)
 
+    @suboptions('legend', numpoints=2, borderpad=0.6, markerscale=0.6, shadow=False,
+                labelspacing=0.02, handlelength=0.05, handletextpad=0.5, borderaxespad=None,
+                loc='best', font_size='medium', font_family='sans-serif', font_style='normal',
+                font_weight='medium', font_variant='normal', back_color=(0.9, 0.9, 0.9),
+                title=None, ncol=1, columnspacing=None, fancybox=False)
     def show(self, **kwds):
         """
         Show this graphics image with the default image viewer.
@@ -1333,6 +1500,10 @@ class Graphics(SageObject):
             formatting will be nice typesetting of the ticks.  This is
             intended to be used when the tick locator for at least one of
             the axes is a list including some symbolic elements.  See examples.
+
+        - ``show_legend`` - (default: None) If True, show the legend
+
+        - ``legend_*`` - all the options valid for :meth:`set_legend_options` prefixed with 'legend_'
 
         EXAMPLES::
 
@@ -1694,6 +1865,7 @@ class Graphics(SageObject):
                    frame=False, verify=True, aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
+                   show_legend=None, legend_options={},
                    axes_pad=0.02, ticks_integer=None,
                    tick_formatter=None, ticks=None):
         r"""
@@ -1782,6 +1954,26 @@ class Graphics(SageObject):
         #add all the primitives to the subplot
         for g in self.__objects:
             g._render_on_subplot(subplot)
+
+        #add the legend if requested
+        if show_legend is None:
+            show_legend = self.__show_legend
+
+        if show_legend:
+            from matplotlib.font_manager import FontProperties
+            lopts = dict()
+            lopts.update(legend_options)
+            lopts.update(self.__legend_opts)
+            prop = FontProperties(family=lopts.pop('font_family'), weight=lopts.pop('font_weight'), \
+                    size=lopts.pop('font_size'), style=lopts.pop('font_style'), variant=lopts.pop('font_variant'))
+            color = lopts.pop('back_color')
+            leg = subplot.legend(prop=prop, **lopts)
+            if leg is None:
+                sage.misc.misc.warn("legend requested but no items are labeled")
+            else:
+                # color
+                lframe = leg.get_frame()
+                lframe.set_facecolor(color)
 
 
         subplot.set_xlim([xmin, xmax])
@@ -2346,7 +2538,8 @@ def xydata_from_point_list(points):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, __original_opts=True)
+         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
+         __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -2391,6 +2584,8 @@ def plot(funcs, *args, **kwds):
 
     - ``detect_poles`` - (Default: False) If set to True poles are detected.
       If set to "show" vertical asymptotes are drawn.
+
+    - ``legend_label`` - the label for this item in the legend
 
     APPEARANCE OPTIONS:
 
@@ -2524,6 +2719,18 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(x^2,(x,480,500))  # this one has no scientific notation
         sage: plot(x^2,(x,300,500))  # this one has scientific notation on y-axis
+
+    You can put a legend with ``legend_label`` (the legend is only put
+    once in the case of multiple functions)::
+
+        sage: plot(exp(x), 0, 2, legend_label='$e^x$')
+
+    Sage understands TeX, so these all are slightly different, and you can choose
+    one based on your needs::
+
+        sage: plot(sin, legend_label='sin')
+        sage: plot(sin, legend_label='$sin$')
+        sage: plot(sin, legend_label='$\sin$')
 
     Note that the independent variable may be omitted if there is no
     ambiguity::
@@ -2823,6 +3030,7 @@ def _plot(funcs, xrange, parametric=False,
 
             options_temp = options.copy()
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
+            legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
             if fillcolor_temp == 'automatic':
                 fillcolor_temp = rainbow_colors[i]
 
@@ -2984,6 +3192,7 @@ def _plot(funcs, xrange, parametric=False,
 
     # Label?
     if label:
+        sage.misc.misc.deprecation("Consider using legend_label instead")
         label = '  '+str(label)
         G += text(label, data[-1], horizontal_alignment='left',
                   vertical_alignment='center')

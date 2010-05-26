@@ -9,7 +9,6 @@ TESTS::
     sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
 """
 
-from sage.plot.primitive import GraphicPrimitive_xydata
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -28,6 +27,7 @@ from sage.plot.primitive import GraphicPrimitive_xydata
 #*****************************************************************************
 from sage.plot.misc import options, rename_keyword
 from sage.plot.colors import to_mpl_color
+from sage.plot.primitive import GraphicPrimitive_xydata
 
 # TODO: create _allowed_options for 3D point classes to
 # improve bad option handling in plot3d?
@@ -90,6 +90,7 @@ class Point(GraphicPrimitive_xydata):
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
+                'legend_label':'The label for this item in the legend.',
                 'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'faceted': 'If True color the edge of the point.',
                 'rgbcolor':'The color as an RGB tuple.',
@@ -269,7 +270,7 @@ class Point(GraphicPrimitive_xydata):
         faceted = options['faceted'] #faceted=True colors the edge of point
         scatteroptions={}
         if not faceted: scatteroptions['edgecolors'] = 'none'
-        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z, **scatteroptions)
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z, label=options['legend_label'], **scatteroptions)
 
 
 def point(points, **kwds):
@@ -311,7 +312,7 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1))
+@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1), legend_label=None)
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
@@ -343,6 +344,10 @@ def point2d(points, **options):
 
         sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30)
 
+    And an example with a legend::
+
+        sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
@@ -363,6 +368,8 @@ def point2d(points, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Point(xdata, ydata, options))
+    if options['legend_label']:
+        g.legend(True)
     return g
 
 points = point

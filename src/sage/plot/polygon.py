@@ -144,6 +144,8 @@ class Polygon(GraphicPrimitive_xydata):
         """
         return {'alpha':'How transparent the figure is.',
                 'thickness': 'How thick the border line is.',
+                'fill':'Whether or not to fill the polygon.',
+                'legend_label':'The label for this item in the legend.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'The layer level in which to draw'}
@@ -161,12 +163,14 @@ class Polygon(GraphicPrimitive_xydata):
             sage: q.texture.opacity
             0.500000000000000
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         if 'thickness' in options:
             del options['thickness']
         if 'zorder' in options:
             del options['zorder']
+        if 'legend_label' in options:
+            del options['legend_label']
         return GraphicPrimitive_xydata._plot3d_options(self, options)
 
     def plot3d(self, z=0, **kwds):
@@ -241,6 +245,7 @@ class Polygon(GraphicPrimitive_xydata):
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
+        p.set_label(options['legend_label'])
         p.set_zorder(z)
         subplot.add_patch(p)
 
@@ -269,7 +274,7 @@ def polygon(points, **options):
         return polygon3d(points, **options)
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=0)
+@options(alpha=1, rgbcolor=(0,0,1), thickness=0, legend_label=None)
 def polygon2d(points, **options):
     r"""
     Returns a polygon defined by ``points``.
@@ -285,10 +290,10 @@ def polygon2d(points, **options):
 
         sage: polygon2d([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
 
-    Some modern art -- a random polygon::
+    Some modern art -- a random polygon, with legend::
 
         sage: v = [(randrange(-5,5), randrange(-5,5)) for _ in range(10)]
-        sage: polygon2d(v)
+        sage: polygon2d(v, legend_label='some form')
 
     A purple hexagon::
 
@@ -342,4 +347,6 @@ def polygon2d(points, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Polygon(xdata, ydata, options))
+    if options['legend_label']:
+        g.legend(True)
     return g

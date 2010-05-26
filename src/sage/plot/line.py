@@ -60,6 +60,7 @@ class Line(GraphicPrimitive_xydata):
             sage: list(sorted(Line([-1,2], [17,4], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the line is.'),
              ('hue', 'The color given as a hue.'),
+             ('legend_label', 'The label for this item in the legend.'),
              ('linestyle',
               "The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted)."),
              ('marker',
@@ -72,7 +73,8 @@ class Line(GraphicPrimitive_xydata):
              ('zorder', 'The layer level in which to draw')]
         """
         return {'alpha':'How transparent the line is.',
-                'thickness':'How thick the line is.',
+                'legend_label':'The label for this item in the legend.',
+               'thickness':'How thick the line is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'linestyle':"The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted).",
@@ -215,12 +217,14 @@ class Line(GraphicPrimitive_xydata):
         del options['alpha']
         del options['thickness']
         del options['rgbcolor']
+        del options['legend_label']
         p = lines.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
         a = float(options['alpha'])
         p.set_alpha(a)
         p.set_linewidth(float(options['thickness']))
         p.set_color(to_mpl_color(options['rgbcolor']))
+        p.set_label(options['legend_label'])
         subplot.add_line(p)
 
 def line(points, **kwds):
@@ -247,7 +251,7 @@ def line(points, **kwds):
 
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=1)
+@options(alpha=1, rgbcolor=(0,0,1), thickness=1, legend_label=None)
 def line2d(points, **options):
     r"""
     Create the line through the given list of points.
@@ -265,6 +269,8 @@ def line2d(points, **options):
     - ``rgbcolor`` -- The color as an RGB tuple
 
     - ``hue`` -- The color given as a hue
+
+    - ``legend_label`` -- the label for this item in the legend
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
@@ -391,6 +397,10 @@ def line2d(points, **options):
         sage: line([])
         sage: line([(1,1)])
 
+    A line with a legend::
+
+        sage: line([(0,0),(1,1)], legend_label='line')
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: line([(0,1), (3,4)], figsize=[10, 2])
@@ -401,4 +411,6 @@ def line2d(points, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Line(xdata, ydata, options))
+    if options['legend_label']:
+        g.legend(True)
     return g

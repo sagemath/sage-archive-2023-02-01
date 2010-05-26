@@ -63,13 +63,11 @@ class BarChart(GraphicPrimitive):
             sage: from sage.plot.bar_chart import BarChart
             sage: g = BarChart(range(4), [1,3,2,0], {})
             sage: list(sorted(g._allowed_options().iteritems()))
-            [('hue', 'The color given as a hue.'),
-             ('rgbcolor', 'The color as an RGB tuple.'),
-             ('width', 'The width of the bars'),
-             ('zorder', 'The layer level in which to draw')]
+            [('hue', 'The color given as a hue.'), ('legend_label', 'The label for this item in the legend.'), ('rgbcolor', 'The color as an RGB tuple.'), ('width', 'The width of the bars'), ('zorder', 'The layer level in which to draw')]
         """
         return {'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
+                'legend_label':'The label for this item in the legend.',
                 'width':'The width of the bars',
                 'zorder':'The layer level in which to draw'}
 
@@ -106,10 +104,10 @@ class BarChart(GraphicPrimitive):
         import numpy
         ind = numpy.array(self.ind, dtype=float)
         datalist = numpy.array(self.datalist, dtype=float)
-        subplot.bar(ind, datalist, color=color, width=width)
+        subplot.bar(ind, datalist, color=color, width=width, label=options['legend_label'])
 
 @rename_keyword(color='rgbcolor')
-@options(width=0.5, rgbcolor=(0,0,1))
+@options(width=0.5, rgbcolor=(0,0,1), legend_label=None)
 def bar_chart(datalist, **options):
     """
     A bar chart of (currently) one list of numerical data.
@@ -128,6 +126,10 @@ def bar_chart(datalist, **options):
     A bar_chart with negative values and red bars::
 
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+
+    A bar chart with a legend (it's possible, not necessarily useful)::
+
+        sage: bar_chart([-1,1,-1,1], legend_label='wave')
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -158,4 +160,6 @@ def bar_chart(datalist, **options):
     #else:
     ind = range(len(datalist))
     g.add_primitive(BarChart(ind, datalist, options=options))
+    if options['legend_label']:
+        g.legend(True)
     return g

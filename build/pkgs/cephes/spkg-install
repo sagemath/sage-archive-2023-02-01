@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ "$UNAME" != "CYGWIN" ]; then
+    echo "We do not install the cephes library on any operating system except Cygwin."
+    exit 0
+fi
+
 CUR=`pwd`
 
 function patch {

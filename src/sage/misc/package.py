@@ -308,7 +308,8 @@ def upgrade():
         print "Upgrade may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
         print "instances of Sage and use 'sage -upgrade' instead."
-        return []
+        return
+
     os.system('sage -upgrade')
     __installed_packages = None
     print "You should quit and restart Sage now."

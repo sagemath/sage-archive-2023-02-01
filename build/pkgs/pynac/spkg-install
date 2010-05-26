@@ -3,6 +3,10 @@
 ## pynac
 ###########################################
 
+
+# The makefile system sets this variable, which screws up autoconf...
+unset PYTHON
+
 if [ "$SAGE_LOCAL" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
     echo "Maybe run 'sage -sh'?"

@@ -402,6 +402,16 @@ class FunctionSignum(BuiltinFunction):
         sage: sgn(x)
         sgn(x)
 
+    We can also use ``sign``::
+
+        sage: sign(1)
+        1
+        sage: sign(0)
+        0
+        sage: a = AA(-5).nth_root(7)
+        sage: sign(a)
+        -1
+
     REFERENCES:
 
     -  http://en.wikipedia.org/wiki/Sign_function
@@ -449,7 +459,20 @@ class FunctionSignum(BuiltinFunction):
             0
             sage: sgn(x).subs(x=-1)
             -1
+
+        More tests::
+
+            sage: sign(RR(2))
+            1
+            sage: sign(RDF(2))
+            1
+            sage: sign(AA(-2))
+            -1
+            sage: sign(AA(0))
+            0
         """
+        if hasattr(x,'sign'): # First check if x has a sign method
+            return x.sign()
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -477,6 +500,7 @@ class FunctionSignum(BuiltinFunction):
         return 2*dirac_delta(x)
 
 sgn = FunctionSignum()
+sign = sgn
 
 class FunctionKroneckerDelta(BuiltinFunction):
     r"""

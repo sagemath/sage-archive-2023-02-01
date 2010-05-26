@@ -60,7 +60,7 @@ from prime_pi import prime_pi
 from wigner import (wigner_3j, clebsch_gordan, racah, wigner_6j,
                     wigner_9j, gaunt)
 
-from generalized import (dirac_delta, heaviside, unit_step, sgn,
+from generalized import (dirac_delta, heaviside, unit_step, sgn, sign,
                          kronecker_delta)
 
 from min_max import max_symbolic, min_symbolic

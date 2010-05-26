@@ -7,11 +7,11 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-cdef extern from "math.h":
-    long double logl(long double)
-    long double sqrtl(long double)
-    long double tgammal(long double)
-    long double lgammal(long double)
+cdef extern from "pynac_cc.h":
+    long double sage_logl(long double)
+    long double sage_sqrtl(long double)
+    long double sage_tgammal(long double)
+    long double sage_lgammal(long double)
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
@@ -1122,7 +1122,7 @@ cdef public object py_RDF_from_double(double x) except +:
 #################################################################
 cdef public object py_tgamma(object x) except +:
     if PY_TYPE_CHECK_EXACT(x, float):
-        return tgammal(x)
+        return sage_tgammal(x)
     #FIXME: complex
     try:
         return x.gamma()
@@ -1350,7 +1350,7 @@ cdef public object py_log(object x) except +:
         x = float(x)
     if PY_TYPE_CHECK_EXACT(x, float):
         if (<float>x) > 0:
-            return logl(x)
+            return sage_logl(x)
         elif x < 0:
             res = gsl_complex_log(gsl_complex_rect(PyFloat_AsDouble(x), 0))
             return PyComplex_FromDoubles(res.dat[0], res.dat[1])
@@ -1477,7 +1477,7 @@ cdef public object py_atanh(object x) except +:
 
 cdef public object py_lgamma(object x) except +:
     if PY_TYPE_CHECK_EXACT(x, float):
-        return lgammal(x)
+        return sage_lgammal(x)
     #FIXME: complex
     try:
         return x.log_gamma()
@@ -1492,7 +1492,7 @@ cdef public object py_sqrt(object x) except +:
         # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
     except AttributeError, msg:
-        return sqrtl(float(x))
+        return sage_sqrtl(float(x))
 
 cdef public object py_abs(object x) except +:
     return abs(x)

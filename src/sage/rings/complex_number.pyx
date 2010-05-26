@@ -929,8 +929,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __float__(self):
         r"""
         Method for converting self to type float. Called by the
-        ``float`` function. Note that calling this method returns an
-        error since if the imaginary part of the number is not zero.
+        ``float`` function.  This conversion will throw an error if
+        the number has a nonzero imaginary part.
 
         EXAMPLES::
 
@@ -941,16 +941,18 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to float; use abs(z)
+            TypeError: Unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
             sage: a.__float__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to float; use abs(z)
+            TypeError: Unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
+            sage: float(abs(ComplexNumber(1,1)))
+            1.4142135623730951
         """
         if mpfr_zero_p(self.__im):
             return mpfr_get_d(<mpfr_t> self.__re, rnd)
         else:
-            raise TypeError, "can't convert complex to float; use abs(z)"
+            raise TypeError, "Unable to convert %s to float; use abs() or real_part() as desired"%self
 
     def __complex__(self):
         r"""

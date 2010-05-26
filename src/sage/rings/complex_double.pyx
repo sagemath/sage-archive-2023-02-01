@@ -809,16 +809,30 @@ cdef class ComplexDoubleElement(FieldElement):
 
     def __float__(self):
         """
+        Method for converting self to type float. Called by the
+        ``float`` function.  This conversion will throw an error if
+        the number has a nonzero imaginary part.
+
         EXAMPLES::
 
-            sage: float(CDF(1,1))
+            sage: a = CDF(1, 0)
+            sage: float(a)
+            1.0
+            sage: a = CDF(2,1)
+            sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to float; use abs(z)
+            TypeError: Unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
+            sage: a.__float__()
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
             sage: float(abs(CDF(1,1)))
             1.4142135623730951
         """
-        raise TypeError, "can't convert complex to float; use abs(z)"
+        if self._complex.dat[1]==0:
+            return float(self._complex.dat[0])
+        raise TypeError, "Unable to convert %s to float; use abs() or real_part() as desired"%self
 
     def __complex__(self):
         """

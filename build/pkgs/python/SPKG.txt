@@ -61,9 +61,15 @@ http://www.python.org/community/
    extension problem.
  * sdist.py.patch: Make sure that sdist copies over the .hg directory.
  * socket.py.patch: Work around an SSL issue.
+ * Makefile.pre.in.patch:  Fixes http://bugs.python.org/issue1628484
+   This was merged upstream for Python 2.6.6 and 2.7.
 
 == Changelog ==
 
+=== python-2.6.4.p8 (Mike Hansen, 25th May, 2010) ===
+ * Added '--enabled-shared' which is needed on certain platforms
+   (Linux and Solaris) for #8542.
+ * Added a Makefile.pre.in patch described above.
 
 === python-2.6.4.p7 (David Kirkby, 5th March, 2010) ===
  * #7867 Fixes a Python bug that prevents some python extensions

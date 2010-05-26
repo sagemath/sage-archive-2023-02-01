@@ -1,0 +1,48 @@
+--- src/Makefile.pre.in	2009-09-24 12:22:45.000000000 -0700
++++ patches/Makefile.pre.in	2010-05-25 15:29:26.000000000 -0700
+@@ -57,7 +57,7 @@
+ # Compiler options
+ OPT=		@OPT@
+ BASECFLAGS=	@BASECFLAGS@
+-CFLAGS=		$(BASECFLAGS) $(OPT) $(EXTRA_CFLAGS)
++CFLAGS=		$(BASECFLAGS) @CFLAGS@ $(OPT) $(EXTRA_CFLAGS)
+ # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
+ # be able to build extension modules using the directories specified in the
+ # environment variables
+@@ -86,8 +86,8 @@
+ datarootdir=    @datarootdir@
+ 
+ # Expanded directories
+-BINDIR=		$(exec_prefix)/bin
+-LIBDIR=		$(exec_prefix)/lib
++BINDIR=		@bindir@
++LIBDIR=		@libdir@
+ MANDIR=		@mandir@
+ INCLUDEDIR=	@includedir@
+ CONFINCLUDEDIR=	$(exec_prefix)/include
+@@ -394,8 +394,8 @@
+ # Build the shared modules
+ sharedmods: $(BUILDPYTHON)
+ 	@case $$MAKEFLAGS in \
+-	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py -q build;; \
+-	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
++	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(LDFLAGS)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py -q build;; \
++	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(LDFLAGS)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
+ 	esac
+ 
+ # Build static library
+@@ -1051,6 +1051,7 @@
+ # install (which includes python-config) happy.
+ frameworkinstallmaclib:
+ 	ln -fs "../../../$(PYTHONFRAMEWORK)" "$(DESTDIR)$(prefix)/lib/python$(VERSION)/config/libpython$(VERSION).a"
++	ln -fs "../../../$(PYTHONFRAMEWORK)" "$(DESTDIR)$(prefix)/lib/python$(VERSION)/config/libpython$(VERSION).dylib"
+ 	cd Mac && $(MAKE) installmacsubtree DESTDIR="$(DESTDIR)"
+ 
+ # This installs the IDE, the Launcher and other apps into /Applications
+@@ -1215,4 +1216,4 @@
+ .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean 
+ .PHONY: smelly funny patchcheck
+ 
+-# IF YOU PUT ANYTHING HERE IT WILL GO AWAY
++# IF YOU PUT ANYTHING HERE IT WILL GO AWAY
+\ No newline at end of file

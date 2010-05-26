@@ -49,6 +49,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+cp patches/Makefile.pre.in src/Makefile.pre.in
+if [ $? -ne 0 ]; then
+    echo "Error copying patched Makefile.pre.in"
+    exit 1
+fi
+
 cp patches/sdist.py src/Lib/distutils/command/sdist.py
 if [ $? -ne 0 ]; then
     echo "Error copying patched sdist.py"
@@ -130,9 +136,9 @@ touch Include/*
 
 build()
 {
-    # do *not* put --enable-shared here!  this breaks building
-    # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
+
+    EXTRAFLAGS="$EXTRAFLAGS --enable-shared"; export EXTRAFLAGS
 
     if [ `uname` = "Darwin" ]; then
         if [ "x$SAGE64" = xyes ]; then

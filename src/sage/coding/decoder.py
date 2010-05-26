@@ -37,15 +37,7 @@ def syndrome(C, v):
         sage: v = V([0, 2, 0, 1])
         sage: from sage.coding.decoder import syndrome
         sage: syndrome(C, v)
-        [(2, 0, 0, 0),
-         (0, 2, 0, 1),
-         (0, 0, 2, 2),
-         (0, 1, 1, 0),
-         (1, 2, 2, 0),
-         (1, 0, 1, 1),
-         (1, 1, 0, 2),
-         (2, 2, 1, 2),
-         (2, 1, 2, 1)]
+         [(0, 0, 1, 0), (0, 2, 0, 1), (2, 0, 0, 2), (1, 1, 0, 0), (2, 2, 2, 0), (1, 0, 2, 1), (0, 1, 2, 2), (1, 2, 1, 2), (2, 1, 1, 1)]
 
     """
     V = C.ambient_space()
@@ -69,7 +61,7 @@ def coset_leader(C, v):
         sage: v = V([0, 2, 0, 1])
         sage: from sage.coding.decoder import coset_leader
         sage: coset_leader(C, v)
-        ((2, 0, 0, 0), 1)
+        ((0, 0, 1, 0), 1)
         sage: coset_leader(C, v)[0]-v in C
         True
 
@@ -105,11 +97,11 @@ def decode(C, v, algorithm="syndrome"):
         False
         sage: from sage.coding.decoder import decode
         sage: c = decode(C, v);c
-        (1, 2, 0, 1)
+        (0, 2, 2, 1)
         sage: c in C
         True
         sage: c = decode(C, v, algorithm="nearest neighbor");c
-        (1, 2, 0, 1)
+        (0, 2, 2, 1)
         sage: C = HammingCode(3,GF(3)); C
         Linear code of length 13, dimension 10 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 13)

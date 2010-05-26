@@ -28,16 +28,16 @@ Sage can compute Hamming codes
     sage: C.minimum_distance()
     3
     sage: C.gen_mat()
-        [1 0 0 0 0 0 0 0 2 0 0 2 1]
-        [0 1 0 0 0 0 0 0 2 0 0 2 0]
-        [0 0 1 0 0 0 0 0 2 0 0 2 2]
-        [0 0 0 1 0 0 0 0 2 0 0 1 0]
-        [0 0 0 0 1 0 0 0 2 0 0 1 2]
-        [0 0 0 0 0 1 0 0 2 0 0 1 1]
-        [0 0 0 0 0 0 1 0 2 0 0 0 2]
-        [0 0 0 0 0 0 0 1 2 0 0 0 1]
-        [0 0 0 0 0 0 0 0 0 1 0 2 2]
-        [0 0 0 0 0 0 0 0 0 0 1 2 1]
+    [1 0 0 0 0 0 0 0 0 0 1 2 0]
+    [0 1 0 0 0 0 0 0 0 0 0 1 2]
+    [0 0 1 0 0 0 0 0 0 0 1 0 2]
+    [0 0 0 1 0 0 0 0 0 0 1 1 1]
+    [0 0 0 0 1 0 0 0 0 0 1 1 2]
+    [0 0 0 0 0 1 0 0 0 0 2 0 2]
+    [0 0 0 0 0 0 1 0 0 0 1 2 1]
+    [0 0 0 0 0 0 0 1 0 0 2 1 1]
+    [0 0 0 0 0 0 0 0 1 0 2 2 0]
+    [0 0 0 0 0 0 0 0 0 1 0 1 1]
 
 .. index::
    pair: codes; Golay
@@ -80,14 +80,14 @@ a check matrix, and the dual code:
     Linear code of length 7, dimension 4 over Finite Field of size 2
     Linear code of length 7, dimension 3 over Finite Field of size 2
     sage: C.gen_mat()
-       [1 0 0 1 0 1 0]
-       [0 1 0 1 0 1 1]
-       [0 0 1 1 0 0 1]
-       [0 0 0 0 1 1 1]
+      [1 0 0 0 0 1 1]
+      [0 1 0 0 1 0 1]
+      [0 0 1 0 1 1 0]
+      [0 0 0 1 1 1 1]
     sage: C.check_mat()
-       [1 0 0 1 1 0 1]
-       [0 1 0 1 0 1 1]
-       [0 0 1 1 1 1 0]
+      [1 0 1 0 1 0 1]
+      [0 1 1 0 0 1 1]
+      [0 0 0 1 1 1 1]
     sage: C.dual_code()
     Linear code of length 7, dimension 3 over Finite Field of size 2
     sage: C = HammingCode(3,GF(4,'a'))
@@ -107,13 +107,13 @@ implemented.
     sage: F = GF(2); a = F.gen()
     sage: v1 = [a,a,F(0),a,a,F(0),a]
     sage: C.decode(v1)
-    (1, 0, 0, 1, 1, 0, 1)
+     (1, 1, 0, 1, 0, 0, 1)
     sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
     sage: C.decode(v2)
-    (1, 0, 0, 1, 1, 0, 1)
+     (1, 1, 0, 1, 0, 0, 1)
     sage: v3 = vector([a,a,F(0),a,a,F(0),a])
     sage: c = C.decode(v3); c
-    (1, 0, 0, 1, 1, 0, 1)
+     (1, 1, 0, 1, 0, 0, 1)
 
 To plot the (histogram of) the weight distribution of a code, one
 can use the matplotlib package included with Sage:

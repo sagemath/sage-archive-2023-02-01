@@ -935,17 +935,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
             sage: E = EllipticCurve('37a')
             sage: E.rational_points(bound=8)
-            [(0 : 0 : 1),
-             (1 : 0 : 1),
-             (-1 : 0 : 1),
-             (0 : -1 : 1),
-             (1 : -1 : 1),
-             (-1 : -1 : 1),
-             (2 : 2 : 1),
-             (2 : -3 : 1),
-             (1/4 : -3/8 : 1),
-             (1/4 : -5/8 : 1),
-             (0 : 1 : 0)]
+            [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1), (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
 
         For a small finite field, the complete set of points can be
         enumerated.
@@ -965,7 +955,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: P.<x> = PolynomialRing(FiniteField(7))
             sage: C = HyperellipticCurve(x^8+x+1)
             sage: C.rational_points()
-            [(2 : 0 : 1), (4 : 0 : 1), (0 : 1 : 1), (6 : 1 : 1), (0 : 6 : 1), (6 : 6 : 1), (0 : 1 : 0)]
+            [(0 : 1 : 0), (0 : 1 : 1), (0 : 6 : 1), (2 : 0 : 1), (4 : 0 : 1), (6 : 1 : 1), (6 : 6 : 1)]
 
         TODO:
 

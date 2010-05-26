@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Linear Codes
 
@@ -253,10 +254,10 @@ def code2leon(C):
         sage: f = open(file_loc); print f.read()
         LIBRARY code;
         code=seq(2,4,7,seq(
-        1,0,0,1,0,1,0,
-        0,1,0,1,0,1,1,
-        0,0,1,1,0,0,1,
-        0,0,0,0,1,1,1
+        1,0,0,0,0,1,1,
+        0,1,0,0,1,0,1,
+        0,0,1,0,1,1,0,
+        0,0,0,1,1,1,1
         ));
         FINISH;
         sage: f.close()
@@ -727,7 +728,7 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: G = C.automorphism_group_binary_code(); G
-            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
+             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
             sage: G.order()
             168
         """
@@ -755,7 +756,7 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: [list(c) for c in C if hamming_weight(c) < 4]
-            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 1, 0], [1, 1, 0, 0, 0, 0, 1], [0, 0, 1, 1, 0, 0, 1], [0, 1, 1, 0, 0, 1, 0], [0, 0, 0, 0, 1, 1, 1], [0, 1, 0, 1, 1, 0, 0], [1, 0, 1, 0, 1, 0, 0]]
+             [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0], [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
         """
         n = self.length()
         k = self.dimension()
@@ -1063,23 +1064,23 @@ class LinearCode(module.Module):
             Linear code of length 7, dimension 4 over Finite Field of size 2
             Linear code of length 7, dimension 3 over Finite Field of size 2
             sage: C.gen_mat()
-            [1 0 0 1 0 1 0]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 0 0 1]
-            [0 0 0 0 1 1 1]
+             [1 0 0 0 0 1 1]
+             [0 1 0 0 1 0 1]
+             [0 0 1 0 1 1 0]
+             [0 0 0 1 1 1 1]
             sage: C.check_mat()
-            [1 0 0 1 1 0 1]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 1 1 0]
+             [1 0 1 0 1 0 1]
+             [0 1 1 0 0 1 1]
+             [0 0 0 1 1 1 1]
             sage: Cperp.check_mat()
-            [1 0 0 1 0 1 0]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 0 0 1]
-            [0 0 0 0 1 1 1]
+             [1 0 0 0 0 1 1]
+             [0 1 0 0 1 0 1]
+             [0 0 1 0 1 1 0]
+             [0 0 0 1 1 1 1]
             sage: Cperp.gen_mat()
-            [1 0 0 1 1 0 1]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 1 1 0]
+             [1 0 1 0 1 0 1]
+             [0 1 1 0 0 1 1]
+             [0 0 0 1 1 1 1]
         """
         Cperp = self.dual_code()
         return Cperp.gen_mat()
@@ -1142,32 +1143,32 @@ class LinearCode(module.Module):
             sage: F = GF(2); a = F.gen()
             sage: v1 = [a,a,F(0),a,a,F(0),a]
             sage: C.decode(v1)
-            (1, 0, 0, 1, 1, 0, 1)
+            (1, 1, 0, 1, 0, 0, 1)
             sage: C.decode(v1,algorithm="nearest neighbor")
-            (1, 0, 0, 1, 1, 0, 1)
+            (1, 1, 0, 1, 0, 0, 1)
             sage: C.decode(v1,algorithm="guava")  # requires optional GAP package Guava
-            (1, 0, 0, 1, 1, 0, 1)
+            (1, 1, 0, 1, 0, 0, 1)
             sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
             sage: C.decode(v2)
-            (1, 0, 0, 1, 1, 0, 1)
+            (1, 1, 0, 1, 0, 0, 1)
             sage: v3 = vector([a,a,F(0),a,a,F(0),a])
             sage: c = C.decode(v3); c
-            (1, 0, 0, 1, 1, 0, 1)
+            (1, 1, 0, 1, 0, 0, 1)
             sage: c in C
             True
             sage: C = HammingCode(2,GF(5))
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
-            (2, 0, 0, 2, 1, 0)
+            (1, 0, 0, 2, 2, 0)
             sage: F = GF(4,"a")
             sage: C = HammingCode(2,F)
             sage: v = vector(F, [1,0,0,a,1])
             sage: C.decode(v)
-            (1, 0, 0, 1, 1)
+            (1, 0, 1, 1, 1)
             sage: C.decode(v, algorithm="nearest neighbor")
-            (1, 0, 0, 1, 1)
+            (1, 0, 1, 1, 1)
             sage: C.decode(v, algorithm="guava")  # requires optional GAP package Guava
-            (1, 0, 0, 1, 1)
+            (1, 0, 1, 1, 1)
 
         Does not work for very long codes since the syndrome table grows too
         large.
@@ -1375,7 +1376,7 @@ class LinearCode(module.Module):
             sage: C; Cc
             Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
             Linear code of length 21, dimension 20 over Finite Field in a of size 2^2
-            sage: c = C.basis()[1]
+            sage: c = C.basis()[2]
             sage: V = VectorSpace(GF(4,'a'),21)
             sage: c2 = V([x^2 for x in c.list()])
             sage: c2 in C
@@ -1411,15 +1412,15 @@ class LinearCode(module.Module):
 
             sage: C1 = HammingCode(3,GF(2))
             sage: C1.gen_mat()
-            [1 0 0 1 0 1 0]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 0 0 1]
-            [0 0 0 0 1 1 1]
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
             sage: C2 = HammingCode(2,GF(4,"a"))
             sage: C2.gen_mat()
-            [    1     0     0     1     1]
-            [    0     1     0     1 a + 1]
-            [    0     0     1     1     a]
+            [    1     0     0 a + 1     a]
+            [    0     1     0     1     1]
+            [    0     0     1     a a + 1]
         """
         return self.__gen_mat
 
@@ -1451,7 +1452,7 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: C.gens()
-            [(1, 0, 0, 1, 0, 1, 0), (0, 1, 0, 1, 0, 1, 1), (0, 0, 1, 1, 0, 0, 1), (0, 0, 0, 0, 1, 1, 1)]
+             [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
         return self.__gens
 
@@ -1557,7 +1558,7 @@ class LinearCode(module.Module):
             sage: C1.is_permutation_equivalent(C2)
             True
             sage: C1.is_permutation_equivalent(C2,algorithm="verbose")
-            (True, (4,6,5,7))
+            (True, (3,4)(5,7,6))
             sage: C1 = RandomLinearCode(10,5,GF(2))
             sage: C2 = RandomLinearCode(10,5,GF(3))
             sage: C1.is_permutation_equivalent(C2)
@@ -1695,7 +1696,7 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: Clist = C.list()
             sage: Clist[5]; Clist[5] in C
-            (1, 0, 1, 0, 0, 1, 1)
+            (1, 0, 1, 0, 1, 0, 1)
             True
         """
         return self.gen_mat().row_space().list()
@@ -1872,13 +1873,13 @@ class LinearCode(module.Module):
             sage: C = HammingCode(2,GF(3)); C
             Linear code of length 4, dimension 2 over Finite Field of size 3
             sage: C.permutation_automorphism_group(algorithm="partition")
-            Permutation Group with generators [(1,2,3)]
+            Permutation Group with generators [(1,3,4)]
             sage: C = HammingCode(2,GF(4,"z")); C
             Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
             sage: C.permutation_automorphism_group(algorithm="partition")
-            Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
+            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C.permutation_automorphism_group(algorithm="gap")  # requires optional GAP package Guava
-            Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
+            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # requires optional GAP package Guava
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
@@ -1965,8 +1966,8 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: G = C.automorphism_group_binary_code(); G
-            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
-            sage: g = G("(2,3)(5,7)")
+            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
+            sage: g = G("(2,3)(6,7)")
             sage: Cg = C.permuted_code(g)
             sage: Cg
             Linear code of length 7, dimension 4 over Finite Field of size 2
@@ -2039,23 +2040,12 @@ class LinearCode(module.Module):
         EXAMPLES::
 
             sage: C = HammingCode(3,GF(4,'a'))
-            sage: Cc = C.galois_closure(GF(2))
-            sage: c = C.gen_mat()[1]
-            sage: V = VectorSpace(GF(4,'a'),21)
-            sage: c2 = V([x^2 for x in c.list()])
-            sage: c2 in C
-            False
-            sage: c2 in Cc
-            True
-
-        ::
-
-            sage: C.random_element()
+            sage: C.random_element() # random test
             (1, 0, 0, a + 1, 1, a, a, a + 1, a + 1, 1, 1, 0, a + 1, a, 0, a, a, 0, a, a, 1)
 
         Passes extra positional or keyword arguments through::
 
-            sage: C.random_element(prob=.5, distribution='1/n')
+            sage: C.random_element(prob=.5, distribution='1/n') # random test
             (1, 0, a, 0, 0, 0, 0, a + 1, 0, 0, 0, 0, 0, 0, 0, 0, a + 1, a + 1, 1, 0, 0)
         """
         V = self.ambient_space()
@@ -2078,27 +2068,27 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: C.gen_mat()
-            [1 0 0 1 0 1 0]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 0 0 1]
-            [0 0 0 0 1 1 1]
+             [1 0 0 0 0 1 1]
+             [0 1 0 0 1 0 1]
+             [0 0 1 0 1 1 0]
+             [0 0 0 1 1 1 1]
             sage: C.redundancy_matrix()
-            [1 1 0]
-            [1 1 1]
-            [1 0 1]
-            [0 1 1]
+             [0 1 1]
+             [1 0 1]
+             [1 1 0]
+             [1 1 1]
             sage: C.standard_form()[0].gen_mat()
-            [1 0 0 0 1 1 0]
-            [0 1 0 0 1 1 1]
-            [0 0 1 0 1 0 1]
-            [0 0 0 1 0 1 1]
+             [1 0 0 0 0 1 1]
+             [0 1 0 0 1 0 1]
+             [0 0 1 0 1 1 0]
+             [0 0 0 1 1 1 1]
             sage: C = HammingCode(2,GF(3))
             sage: C.gen_mat()
-            [1 0 2 2]
-            [0 1 2 1]
+            [1 0 1 1]
+            [0 1 1 2]
             sage: C.redundancy_matrix()
-            [2 2]
-            [2 1]
+            [1 1]
+            [1 2]
         """
         n = C.length()
         k = C.dimension()
@@ -2406,32 +2396,23 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: C.gen_mat()
-            [1 0 0 1 0 1 0]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 0 0 1]
-            [0 0 0 0 1 1 1]
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
             sage: Cs,p = C.standard_form()
             sage: p
-            (4,5)
-            sage: Cs
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: Cs.gen_mat()
-            [1 0 0 0 1 1 0]
-            [0 1 0 0 1 1 1]
-            [0 0 1 0 1 0 1]
-            [0 0 0 1 0 1 1]
+            ()
             sage: MS = MatrixSpace(GF(3),3,7)
             sage: G = MS([[1,0,0,0,1,1,0],[0,1,0,1,0,1,0],[0,0,0,0,0,0,1]])
             sage: C = LinearCode(G)
-            sage: G; C.standard_form()[0].gen_mat()
-            [1 0 0 0 1 1 0]
-            [0 1 0 1 0 1 0]
-            [0 0 0 0 0 0 1]
-            [1 0 0 0 1 1 0]
-            [0 1 0 1 0 1 0]
-            [0 0 1 0 0 0 0]
-            sage: C.standard_form()[1]
+            sage: Cs, p = C.standard_form()
+            sage: p
             (3,7)
+            sage: Cs.gen_mat()
+             [1 0 0 0 1 1 0]
+             [0 1 0 1 0 1 0]
+             [0 0 1 0 0 0 0]
         """
         from sage.coding.code_constructions import permutation_action as perm_action
         mat = self.gen_mat()

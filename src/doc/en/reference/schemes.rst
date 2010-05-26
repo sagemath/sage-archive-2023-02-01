@@ -27,3 +27,4 @@ Schemes
    sage/schemes/generic/morphism
    sage/schemes/generic/divisor
 
+   sage/schemes/generic/rational_point

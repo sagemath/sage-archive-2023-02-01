@@ -997,15 +997,15 @@ def LinearCodeFromCheckMatrix(H):
 
         sage: C = HammingCode(3,GF(2))
         sage: H = C.check_mat(); H
-        [1 0 0 1 1 0 1]
-        [0 1 0 1 0 1 1]
-        [0 0 1 1 1 1 0]
+        [1 0 1 0 1 0 1]
+        [0 1 1 0 0 1 1]
+        [0 0 0 1 1 1 1]
         sage: LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = HammingCode(2,GF(3))
         sage: H = C.check_mat(); H
-        [1 0 2 2]
-        [0 1 2 1]
+        [1 0 1 1]
+        [0 1 1 2]
         sage: LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = RandomLinearCode(10,5,GF(4,"a"))

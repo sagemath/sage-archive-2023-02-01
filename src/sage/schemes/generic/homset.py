@@ -6,135 +6,6 @@ import sage.rings.integer_ring
 from sage.rings.arith import gcd
 Z = sage.rings.integer_ring.ZZ
 
-# Some naive point enumeration routines for default.
-# AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>
-
-def enum_projective_rational_field(X,B):
-    n = X.codomain().ambient_space().ngens()
-    Q = [ k+1 for k in range(B) ]
-    R = [ 0 ] + [ s*k for k in Q for s in [1,-1] ]
-    pts = []
-    i = int(n-1)
-    while not i < 0:
-        P = [ 0 for _ in range(n) ]; P[i] = 1
-        try:
-            pts.append(X(P))
-        except:
-            pass
-        iters = [ iter(R) for _ in range(i) ]
-        [ iters[j].next() for j in range(i) ]
-        j = 0
-        while j < i:
-            try:
-                aj = ZZ(iters[j].next())
-                P[j] = aj
-                for ai in Q:
-                    P[i] = ai
-                    if gcd(P) == 1:
-                        try:
-                            pts.append(X(P))
-                        except:
-                            pass
-                j = 0
-            except StopIteration:
-                iters[j] = iter(R)  # reset
-                P[j] = 0
-                P[j] = iters[j].next() # reset P[j] to 0 and increment
-                j += 1
-        i -= 1
-    return pts
-
-def enum_affine_rational_field(X,B):
-    n = X.codomain().ambient_space().ngens()
-    if X.value_ring() is ZZ:
-        Q = [ 1 ]
-    else: # rational field
-        Q = [ k+1 for k in range(B) ]
-    R = [ 0 ] + [ s*k for k in range(1,B+1) for s in [1,-1] ]
-    pts = []
-    P = [ 0 for _ in range(n) ]
-    m = ZZ(0)
-    try:
-        pts.append(X(P))
-    except:
-        pass
-    iters = [ iter(R) for _ in range(n) ]
-    [ iters[j].next() for j in range(n) ]
-    i = 0
-    while i < n:
-        try:
-            a = ZZ(iters[i].next())
-            m = m.gcd(a)
-            P[i] = a
-            for b in Q:
-                if m.gcd(b) == 1:
-                    try:
-                        pts.append(X([ num/b for num in P ]))
-                    except:
-                        pass
-            i = 0
-            m = ZZ(0)
-        except StopIteration:
-            iters[i] = iter(R) # reset
-            P[i] = iters[i].next() # reset P[i] to 0 and increment
-            i += 1
-    return pts
-
-def enum_projective_finite_field(X):
-    n = X.codomain().ambient_space().ngens()
-    R = X.value_ring()
-    pts = []
-    i = int(n-1)
-    while not i < 0:
-        P = [ 0 for _ in range(n) ]; P[i] = 1
-        try:
-            pts.append(X(P))
-        except:
-            pass
-        # define some iterators and increment them:
-        iters = [ iter(R) for _ in range(i) ]
-        [ iters[j].next() for j in range(i) ]
-        j = 0
-        while j < i:
-            try:
-                P[j] = iters[j].next()
-                try:
-                    pts.append(X(P))
-                except:
-                    pass
-                j = 0
-            except StopIteration:
-                iters[j] = iter(R) # reset iterator at j
-                P[j] = iters[j].next() # reset P[j] to 0 and increment
-                j += 1
-        i -= 1
-    return pts
-
-def enum_affine_finite_field(X):
-    n = X.codomain().ambient_space().ngens()
-    R = X.value_ring()
-    pts = []
-    zero = R(0)
-    P = [ zero for _ in range(n) ]
-    pts.append(X(P))
-    iters = [ iter(R) for _ in range(n) ]
-    for x in iters: x.next() # put at zero
-    i = 0
-    while i < n:
-        try:
-            P[i] = iters[i].next()
-            try:
-                pts.append(X(P))
-            except:
-                pass
-            i = 0
-        except StopIteration:
-            iters[i] = iter(R)  # reset
-            iters[i].next() # put at zero
-            P[i] = zero
-            i += 1
-    return pts
-
 #*****************************************************************************
 #  Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -290,8 +161,10 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
         if is_RationalField(R) or R == Z:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
+            from sage.schemes.generic.rational_point import enum_affine_rational_field
             return enum_affine_rational_field(self,B)
         elif is_FiniteField(R):
+            from sage.schemes.generic.rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)
         else:
             raise TypeError, "Unable to enumerate points over %s."%R
@@ -311,6 +184,8 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
             return morphism.SchemeMorphism_projective_coordinates_field(self, v)
 
     def points(self, B=0):
+        from sage.schemes.generic.rational_point import enum_projective_rational_field
+        from sage.schemes.generic.rational_point import enum_projective_finite_field
         try:
             R = self.value_ring()
         except TypeError:
@@ -341,6 +216,7 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
         if R == Z:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
+            from sage.schemes.generic.rational_points import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         else:
             raise TypeError, "Unable to enumerate points over %s."%R

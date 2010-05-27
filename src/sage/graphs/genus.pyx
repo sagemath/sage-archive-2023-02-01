@@ -217,6 +217,7 @@ cdef class simple_connected_genus_backtracker:
         self.face_freeze  = <int *> sage_malloc(self.num_darts * sizeof(int))
 
         if self.got_memory() == 0:
+            # dealloc is NULL-safe and frees everything that did get alloc'd
             raise MemoryError, "Error allocating memory for graph genus a"
 
         w = <int *>sage_malloc((self.num_verts + self.num_darts) * sizeof(int))
@@ -225,6 +226,7 @@ cdef class simple_connected_genus_backtracker:
         self.swappers[0] = s
 
         if w == NULL or s == NULL:
+            # dealloc is NULL-safe and frees everything that did get alloc'd
             raise MemoryError, "Error allocating memory for graph genus b"
 
         for v in range(self.num_verts):
@@ -291,10 +293,7 @@ cdef class simple_connected_genus_backtracker:
         the embedding it corresponds to later.
         """
 
-        cdef int i
-
-        for i in range(self.num_darts):
-            self.face_freeze[i] = self.face_map[i]
+        memcpy(self.face_freeze, self.face_map, self.num_darts * sizeof(int))
 
     def get_embedding(self):
         """
@@ -327,6 +326,7 @@ cdef class simple_connected_genus_backtracker:
 
         cdef int i,j, v, *w
         cdef int *face_map = self.face_freeze
+        cdef list darts_to_verts
 
         if self.num_verts == 0:
             return {}

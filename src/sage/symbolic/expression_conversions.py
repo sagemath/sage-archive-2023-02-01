@@ -463,23 +463,33 @@ class InterfaceInit(Converter):
         """
         EXAMPLES::
 
-            sage: import operator
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
-            sage: a = function('f', x).diff(x); a
+            sage: f = function('f')
+            sage: a = f(x).diff(x); a
             D[0](f)(x)
             sage: print m.derivative(a, a.operator())
             diff('f(x), x, 1)
-            sage: b = function('f', x).diff(x).diff(x)
+            sage: b = f(x).diff(x, x)
             sage: print m.derivative(b, b.operator())
             diff('f(x), x, 2)
+
+        We can only convert to Maxima derivatives if the corresponding operand
+        of the function is a variable::
+
+            sage: y = var('y')
+            sage: t = f(x*y).diff(x)
+            sage: m.derivative(t, t.operator())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: arguments must be distinct variables
         """
         #This code should probably be moved into the interface
         #object in a nice way.
         from sage.symbolic.ring import is_SymbolicVariable
         if self.name_init != "_maxima_init_":
             raise NotImplementedError
-        args = ex.args()
+        args = ex.operands()
         if (not all(is_SymbolicVariable(v) for v in args) or
             len(args) != len(set(args))):
             raise NotImplementedError, "arguments must be distinct variables"

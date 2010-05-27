@@ -27,6 +27,9 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.1.p5 (Mike Hansen, May 26th, 2010) ===
+ * #9067: boehmc_gc was still failing in Cygwin.
+
 === boehm_gc-7.1.p4 (Mike Hansen, February 15th, 2010) ===
  * #7336: Make boehm_gc work on Cygwin by disabling THREADDLLIBS.
 

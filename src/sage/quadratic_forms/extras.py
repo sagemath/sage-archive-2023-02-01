@@ -8,34 +8,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.misc.functional import squarefree_part
 
-def sgn(x):
-    """
-    Returns the sign of x. defined as:
-
-                   /  1  if  x > 0,
-        sgn(x) =   |  0  if  x = 0,
-                   \ -1  if  x < 0.
-
-    INPUT:
-        a real number
-
-    OUTPUT:
-        1, 0, or -1.
-
-    EXAMPLES:
-
-        sage: from sage.quadratic_forms.extras import sgn
-        sage: sgn(pi) == 1
-        True
-        sage: sgn(5/6) == 1
-        True
-        sage: sgn(0) == 0
-        True
-        sage: sgn(-3) == -1
-        True
-    """
-    return ZZ(cmp(x,0))
-
 def is_triangular_number(n):
     """
     Determines if the integer n is a triangular number.

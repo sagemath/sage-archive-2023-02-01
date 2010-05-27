@@ -79,6 +79,28 @@ class Function_erf(BuiltinFunction):
             raise NotImplementedError, "erf not implemented for precision higher than 53"
         return parent(1 - pari(float(x)).erfc())
 
+    def _derivative_(self, x, diff_param=None):
+        """
+        Derivative of erf function
+
+        EXAMPLES::
+
+            sage: erf(x).diff(x)
+            2*e^(-x^2)/sqrt(pi)
+
+        TESTS::
+
+        Check if #8568 is fixed::
+
+            sage: var('c,x')
+            (c, x)
+            sage: derivative(erf(c*x),x)
+            2*c*e^(-c^2*x^2)/sqrt(pi)
+            sage: erf(c*x).diff(x)._maxima_init_()
+            '((%pi)^(-1/2))*(c)*(exp(((c)^(2))*((x)^(2))*(-1)))*(2)'
+        """
+        return 2*exp(-x**2)/sqrt(pi)
+
 erf = Function_erf()
 
 class Function_abs(GinacFunction):

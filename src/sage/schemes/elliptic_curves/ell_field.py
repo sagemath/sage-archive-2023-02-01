@@ -917,9 +917,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def hasse_invariant(self):
         r"""
-        Returns the Hasse invariant of an elliptic curve
-        over a field of positive characteristic, which is an
-        element of the field.
+        Returns the Hasse invariant of this elliptic curve.
+
+	OUTPUT:
+
+        The Hasse invariant of this elliptic curve, as an element of
+        the base field.  This is only defined over fields of positive
+        characteristic, and is an element of the field which is zero
+        if and only if the curve is supersingular.  Over a field of
+        characteristic zero, where the Hasse invariant is undefined,
+        a ``ValueError`` is returned.
 
         EXAMPLES::
 
@@ -935,6 +942,26 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E = EllipticCurve([0,0,Mod(1,5),Mod(1,5),Mod(2,5)])
             sage: E.hasse_invariant()
             2
+
+	Some examples over larger fields::
+
+	    sage: EllipticCurve(GF(101),[0,0,0,0,1]).hasse_invariant()
+	    0
+	    sage: EllipticCurve(GF(101),[0,0,0,1,1]).hasse_invariant()
+	    98
+	    sage: EllipticCurve(GF(103),[0,0,0,0,1]).hasse_invariant()
+	    20
+	    sage: EllipticCurve(GF(103),[0,0,0,1,1]).hasse_invariant()
+	    17
+	    sage: F.<a> = GF(107^2)
+	    sage: EllipticCurve(F,[0,0,0,a,1]).hasse_invariant()
+	    62*a + 75
+	    sage: EllipticCurve(F,[0,0,0,0,a]).hasse_invariant()
+	    0
+
+	Over fields of characteristic zero, the Hasse invariant is
+	underfined::
+
             sage: E = EllipticCurve([0,0,0,0,1])
             sage: E.hasse_invariant()
             Traceback (most recent call last):
@@ -951,7 +978,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         elif p == 2:
            return self.a1()
         elif p == 3:
-           return self.a2()+self.a1()**2
+           return self.b2()
+        elif p == 5:
+	   return self.c4()
+        elif p == 7:
+	   return -self.c6()
         else:
            R = k['x']
            x = R.gen()

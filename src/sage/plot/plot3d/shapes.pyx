@@ -54,6 +54,38 @@ from sage.misc.all import srange
 
 from base import Graphics3dGroup, Graphics3d
 
+def validate_frame_size(size):  # Helper function to check that Box input is right
+    """
+    Checks that the input is an iterable of length 3 with all
+    elements nonnegative and coercible to floats.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import validate_frame_size
+        sage: validate_frame_size([3,2,1])
+        [3.0, 2.0, 1.0]
+        sage: validate_frame_size([3,2,-1])
+        Traceback (most recent call last):
+        ...
+        ValueError: each box dimension must be nonnegative
+        sage: validate_frame_size([sqrt(-1),3,2])
+        Traceback (most recent call last):
+        ...
+        TypeError: each box dimension must coerce to a float
+    """
+    if not isinstance(size, (list, tuple)):
+        raise TypeError, "size must be a list or tuple"
+    if len(size) != 3:
+        raise TypeError, "size must be of length 3"
+    try:
+        size = [float(x) for x in size]
+    except TypeError:
+        raise TypeError, "each box dimension must coerce to a float"
+    for x in size:
+        if x < 0:
+            raise ValueError, "each box dimension must be nonnegative"
+    return size
+
 
 class Box(IndexFaceSet):
     """
@@ -80,7 +112,6 @@ class Box(IndexFaceSet):
             sage: Box(10, 1, 1) + Box(1, 10, 1) + Box(1, 1, 10)
         """
         if isinstance(size[0], (tuple, list)):
-            from shapes2 import validate_frame_size
             size = validate_frame_size(size[0])
         self.size = size
         x, y, z = self.size

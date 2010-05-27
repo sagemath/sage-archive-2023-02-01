@@ -1,6 +1,29 @@
+r"""
+Classes for Lines, Frames, Rulers, Spheres, Points, Dots, and Text
+
+AUTHORS:
+
+- William Stein (2007-12): initial version
+
+- William Stein and Robert Bradshaw (2008-01): Many improvements
+
 """
-Lines, Frames, Spheres, Points, Dots, and Text
-"""
+#*****************************************************************************
+#      Copyright (C) 2007 William Stein <wstein@gmail.com>
+#      Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import math
 import shapes
@@ -240,7 +263,31 @@ def polygon3d(points, **options):
 
 def frame3d(lower_left, upper_right, **kwds):
     """
-    Draw a frame in 3d.
+    Draw a frame in 3D.  Primarily used as a helper function for
+    creating frames for 3D graphics viewing.
+
+    INPUT:
+
+    - ``lower_left`` - the lower left corner of the frame, as a
+      list, tuple, or vector
+
+    - ``upper_right`` - the upper right corner of the frame, as a
+      list, tuple, or vector
+
+    Type ``line3d.options`` for a dictionary of the default
+    options for lines, which are also available.
+
+    EXAMPLES:
+
+    A frame::
+
+        sage: from sage.plot.plot3d.shapes2 import frame3d
+        sage: frame3d([1,3,2],vector([2,5,4]),color='red')
+
+    This is usually used for making an actual plot::
+
+        sage: y = var('y')
+        sage: plot3d(sin(x^2+y^2),(x,0,pi),(y,0,pi))
     """
     x0,y0,z0 = lower_left
     x1,y1,z1 = upper_right
@@ -258,11 +305,64 @@ def frame3d(lower_left, upper_right, **kwds):
 def frame_labels(lower_left, upper_right,
                  label_lower_left, label_upper_right, eps = 1,
                  **kwds):
+    """
+    Draw correct labels for a given frame in 3D.  Primarily
+    used as a helper function for creating frames for 3D graphics
+    viewing - do not use directly unless you know what you are doing!
+
+    INPUT:
+
+    - ``lower_left`` - the lower left corner of the frame, as a
+      list, tuple, or vector
+
+    - ``upper_right`` - the upper right corner of the frame, as a
+      list, tuple, or vector
+
+    - ``label_lower_left`` - the label for the lower left corner
+      of the frame, as a list, tuple, or vector.  This label must actually
+      have all coordinates less than the coordinates of the other label.
+
+    - ``label_upper_right`` - the label for the upper right corner
+      of the frame, as a list, tuple, or vector.  This label must actually
+      have all coordinates greater than the coordinates of the other label.
+
+    - ``eps`` - (default: 1) a parameter for how far away from the frame
+      to put the labels.
+
+    Type ``line3d.options`` for a dictionary of the default
+    options for lines, which are also available.
+
+    EXAMPLES:
+
+    We can use it directly::
+
+        sage: from sage.plot.plot3d.shapes2 import frame_labels
+        sage: frame_labels([1,2,3],[4,5,6],[1,2,3],[4,5,6])
+
+    This is usually used for making an actual plot::
+
+        sage: y = var('y')
+        sage: P = plot3d(sin(x^2+y^2),(x,0,pi),(y,0,pi))
+        sage: a,b = P._rescale_for_frame_aspect_ratio_and_zoom(1.0,[1,1,1],1)
+        sage: F = frame_labels(a,b,*P._box_for_aspect_ratio("automatic",a,b))
+        sage: F.jmol_repr(F.default_render_params())[0]
+        [['select atomno = 1', 'color atom  [76,76,76]', 'label "0.0"']]
+
+    TESTS::
+
+        sage: frame_labels([1,2,3],[4,5,6],[1,2,3],[1,3,4])
+        Traceback (most recent call last):
+        ...
+        ValueError: Ensure the upper right labels are above and to the right of the lower left labels.
+    """
     x0,y0,z0 = lower_left
     x1,y1,z1 = upper_right
     lx0,ly0,lz0 = label_lower_left
     lx1,ly1,lz1 = label_upper_right
+    if (lx1 - lx0) <= 0 or (ly1 - ly0) <= 0 or (lz1 - lz0) <= 0:
+        raise ValueError, "Ensure the upper right labels are above and to the right of the lower left labels."
 
+    # Helper function for formatting the frame labels
     from math import log
     log10 = log(10)
     nd = lambda a: int(log(a)/log10)
@@ -273,9 +373,13 @@ def frame_labels(lower_left, upper_right,
         n = max(0, 2 - nd(a/2.0))
         return "%%.%sf"%n
 
-    fmt = fmt_string(lx1 - lx0)
+    # Slightly faster than mean for this situation
+    def avg(a,b):
+        return (a+b)/2.0
 
     color = (0.3,0.3,0.3)
+
+    fmt = fmt_string(lx1 - lx0)
     T =  Text(fmt%lx0, color=color).translate((x0,y0-eps,z0))
     T += Text(fmt%avg(lx0,lx1), color=color).translate((avg(x0,x1),y0-eps,z0))
     T += Text(fmt%lx1, color=color).translate((x1,y0-eps,z0))
@@ -291,23 +395,62 @@ def frame_labels(lower_left, upper_right,
     T += Text(fmt%lz1, color=color).translate((x0-eps,y0,z1))
     return T
 
-def validate_frame_size(size):
-    # Verify that the input is valid
-    if not isinstance(size, (list, tuple)):
-        raise TypeError, "size must be a list or tuple"
-    if len(size) != 3:
-        raise TypeError, "size must be of length 3"
-    try:
-        size = [float(x) for x in size]
-    except TypeError:
-        raise TypeError, "each box dimension must coerce to a float"
-    for x in size:
-        if x < 0:
-            raise ValueError, "each box dimension must be nonnegative"
-    return size
-
 
 def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
+    """
+    Draw a ruler in 3D, with major and minor ticks.
+
+    INPUT:
+
+    - ``start`` - the beginning of the ruler, as a list,
+      tuple, or vector
+
+    - ``end`` - the end of the ruler, as a list, tuple,
+      or vector
+
+    - ``ticks`` - (default: 4) the number of major ticks
+      shown on the ruler
+
+    - ``sub_ticks`` - (default: 4) the number of shown
+      subdivisions between each major tick
+
+    - ``absolute`` - (default: False) if True, makes a huge ruler
+      in the direction of an axis
+
+    - ``snap`` - (default: False) if True, snaps to an implied
+      grid
+
+    Type ``line3d.options`` for a dictionary of the default
+    options for lines which are also available.
+
+    EXAMPLES:
+
+    A ruler::
+
+        sage: from sage.plot.plot3d.shapes2 import ruler
+        sage: R = ruler([1,2,3],vector([2,3,4])); R
+
+    A ruler with some options::
+
+        sage: R = ruler([1,2,3],vector([2,3,4]),ticks=6, sub_ticks=2, color='red'); R
+
+    The keyword ``snap`` makes the ticks not necessarily coincide
+    with the ruler::
+
+        sage: ruler([1,2,3],vector([1,2,4]),snap=True)
+
+    The keyword ``absolute`` makes a huge ruler in one of the axis
+    directions::
+
+        sage: ruler([1,2,3],vector([1,2,4]),absolute=True)
+
+    TESTS::
+
+        sage: ruler([1,2,3],vector([1,3,4]),absolute=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Absolute rulers only valid for axis-aligned paths
+    """
     start = vector(RDF, start)
     end   = vector(RDF, end)
     dir = end - start
@@ -364,13 +507,41 @@ def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
     return ruler
 
 def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
-    return ruler(lower_left, (upper_right[0], lower_left[1], lower_left[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True) \
-         + ruler(lower_left, (lower_left[0], upper_right[1], lower_left[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True) \
-         + ruler(lower_left, (lower_left[0], lower_left[1], upper_right[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True)
+    """
+    Draw a frame made of 3D rulers, with major and minor ticks.
 
+    INPUT:
 
-def avg(a,b):
-    return (a+b)/2.0
+    - ``lower_left`` - the lower left corner of the frame, as a
+      list, tuple, or vector
+
+    - ``upper_right`` - the upper right corner of the frame, as a
+      list, tuple, or vector
+
+    - ``ticks`` - (default: 4) the number of major ticks
+      shown on each ruler
+
+    - ``sub_ticks`` - (default: 4) the number of shown
+      subdivisions between each major tick
+
+    Type ``line3d.options`` for a dictionary of the default
+    options for lines which are also available.
+
+    EXAMPLES:
+
+    A ruler frame::
+
+        sage: from sage.plot.plot3d.shapes2 import ruler_frame
+        sage: F = ruler_frame([1,2,3],vector([2,3,4])); F
+
+    A ruler frame with some options::
+
+        sage: F = ruler_frame([1,2,3],vector([2,3,4]),ticks=6, sub_ticks=2, color='red'); F
+    """
+    return ruler(lower_left, (upper_right[0], lower_left[1], lower_left[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True, **kwds) \
+         + ruler(lower_left, (lower_left[0], upper_right[1], lower_left[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True, **kwds) \
+         + ruler(lower_left, (lower_left[0], lower_left[1], upper_right[2]), ticks=ticks, sub_ticks=sub_ticks, absolute=True, **kwds)
+
 
 
 
@@ -475,21 +646,60 @@ class Point(PrimitiveObject):
 
     INPUT:
 
-
     -  ``center`` - point (3-tuple)
 
     -  ``size`` - (default: 1)
+
+    EXAMPLE:
+
+    We normally access this via the point3d function.  Note that extra
+    keywords are correctly used::
+
+        sage: point3d((4,3,2),size=2,color='red',opacity=.5)
+
     """
     def __init__(self, center, size=1, **kwds):
+        """
+        Create the graphics primitive :class:`Point` in 3D.  See the
+        docstring of this class for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes2 import Point
+            sage: P = Point((1,2,3),2)
+            sage: P.loc
+            (1.0, 2.0, 3.0)
+        """
         PrimitiveObject.__init__(self, **kwds)
         self.loc = (float(center[0]), float(center[1]), float(center[2]))
         self.size = size
         self._set_extra_kwds(kwds)
 
     def bounding_box(self):
+        """
+        Returns the lower and upper corners of a 3D bounding box for self.
+        This is used for rendering and self should fit entirely within this
+        box.  In this case, we simply return the center of the point.
+
+        TESTS::
+
+            sage: P = point3d((-3,2,10),size=7)
+            sage: P.bounding_box()
+            ((-3.0, 2.0, 10.0), (-3.0, 2.0, 10.0))
+        """
         return self.loc, self.loc
 
     def tachyon_repr(self, render_params):
+        """
+        Returns representation of the point suitable for plotting
+        using Tachyon ray tracer.
+
+        TESTS::
+
+            sage: P = point3d((1,2,3),size=3,color='purple')
+            sage: P.tachyon_repr(P.default_render_params())
+            'Sphere center 1.0 2.0 3.0 Rad 0.015 texture84'
+        """
         transform = render_params.transform
         if transform is None:
             cen = self.loc
@@ -498,6 +708,15 @@ class Point(PrimitiveObject):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size * TACHYON_PIXEL, self.texture.id)
 
     def obj_repr(self, render_params):
+        """
+        Returns complete representation of the point as a sphere.
+
+        TESTS::
+
+            sage: P = point3d((1,2,3),size=3,color='purple')
+            sage: P.obj_repr(P.default_render_params())[0][0:2]
+            ['g obj_1', 'usemtl texture86']
+        """
         T = render_params.transform
         if T is None:
             import transform
@@ -509,6 +728,16 @@ class Point(PrimitiveObject):
         return cmds
 
     def jmol_repr(self, render_params):
+        r"""
+        Returns representation of the object suitable for plotting
+        using Jmol.
+
+        TESTS::
+
+            sage: P = point3d((1,2,3),size=3,color='purple')
+            sage: P.jmol_repr(P.default_render_params())
+            ['draw point_1 DIAMETER 3 {1.0 2.0 3.0}\ncolor $point_1  [128,0,128]']
+        """
         name = render_params.unique_name('point')
         transform = render_params.transform
         cen = self.loc if transform is None else transform(self.loc)
@@ -545,6 +774,17 @@ class Line(PrimitiveObject):
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
     """
     def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
+        """
+        Create the graphics primitive :class:`Line` in 3D.  See the
+        docstring of this class for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes2 import Line
+            sage: P = Line([(1,2,3),(1,2,2),(-1,2,2),(-1,3,2)],thickness=6,corner_cutoff=.2)
+            sage: P.points, P.arrow_head
+            ([(1, 2, 3), (1, 2, 2), (-1, 2, 2), (-1, 3, 2)], False)
+        """
         if len(points) < 2:
             raise ValueError, "there must be at least 2 points"
         PrimitiveObject.__init__(self, **kwds)
@@ -554,6 +794,19 @@ class Line(PrimitiveObject):
         self.arrow_head = arrow_head
 
     def bounding_box(self):
+        """
+        Returns the lower and upper corners of a 3D bounding box for self.
+        This is used for rendering and self should fit entirely within this
+        box.  In this case, we return the highest and lowest values of each
+        coordinate among all points.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.shapes2 import Line
+            sage: L = Line([(i,i^2-1,-2*ln(i)) for i in [10,20,30]])
+            sage: L.bounding_box()
+            ((10.0, 99.0, -6.8023947633243109), (30.0, 899.0, -4.6051701859880918))
+        """
         try:
             return self.__bounding_box
         except AttributeError:
@@ -562,6 +815,16 @@ class Line(PrimitiveObject):
 
 
     def tachyon_repr(self, render_params):
+        """
+        Returns representation of the line suitable for plotting
+        using Tachyon ray tracer.
+
+        TESTS::
+
+            sage: L = line3d([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
+            sage: L.tachyon_repr(L.default_render_params())[0]
+            'FCylinder base 1.0 0.0 0.0 apex 0.999950000417 0.00999983333417 0.0001 rad 0.005 texture126'
+        """
         T = render_params.transform
         cmds = []
         px, py, pz = self.points[0] if T is None else T(self.points[0])
@@ -582,6 +845,16 @@ class Line(PrimitiveObject):
         return cmds
 
     def obj_repr(self, render_params):
+        """
+        Returns complete representation of the line as an object.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.shapes2 import Line
+            sage: L = Line([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
+            sage: L.obj_repr(L.default_render_params())[0][0][0][2][:3]
+            ['v 0.99995 0.00999983 0.0001', 'v 1.00007 0.0102504 -0.0248984', 'v 1.02376 0.010195 -0.00750607']
+        """
         T = render_params.transform
         if T is None:
             import transform
@@ -593,6 +866,16 @@ class Line(PrimitiveObject):
         return cmds
 
     def jmol_repr(self, render_params):
+        r"""
+        Returns representation of the object suitable for plotting
+        using Jmol.
+
+        TESTS::
+
+            sage: L = line3d([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
+            sage: L.jmol_repr(L.default_render_params())[0][:42]
+            'draw line_1 diameter 1 curve {1.0 0.0 0.0}'
+        """
         T = render_params.transform
         corners = self.corners(max_len=255) # hardcoded limit in jmol
         last_corner = corners[-1]
@@ -667,6 +950,11 @@ class Line(PrimitiveObject):
             next_dir = [next[i] - cur[i] for i in range(3)]
             corners = [cur]
             cur, prev_dir = next, next_dir
+
+            # quicker than making them vectors first
+            def dot((x0,y0,z0), (x1,y1,z1)):
+                return x0*x1 + y0*y1 + z0*z1
+
             for next in self.points[2:]:
                 if next == cur:
                     corners.append(cur)
@@ -709,9 +997,13 @@ def point3d(v, size=5, **kwds):
 
         sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
 
-    We check to make sure this works with vectors.
+    We check to make sure this works with vectors::
 
         sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
+
+    We check to make sure the options work::
+
+        sage: point3d((4,3,2),size=20,color='red',opacity=.5)
     """
     if isinstance(v,(list,tuple)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
         return Point(v, size, **kwds)
@@ -720,6 +1012,3 @@ def point3d(v, size=5, **kwds):
         A._set_extra_kwds(kwds)
         return A
 
-
-def dot((x0,y0,z0), (x1,y1,z1)):
-    return x0*x1 + y0*y1 + z0*z1

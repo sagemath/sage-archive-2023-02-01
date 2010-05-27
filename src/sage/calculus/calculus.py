@@ -1020,6 +1020,16 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         +Infinity
         sage: limit(1/x,x=0,dir='below')
         -Infinity
+
+    Check that Trac 8942 is fixed::
+
+        sage: f(x) = (cos(pi/4-x) - tan(x)) / (1 - sin(pi/4+x))
+        sage: limit(f(x), x = pi/4, dir='minus')
+        +Infinity
+        sage: limit(f(x), x = pi/4, dir='plus')
+        -Infinity
+        sage: limit(f(x), x = pi/4)
+        Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)

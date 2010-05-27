@@ -864,9 +864,10 @@ class Sha(SageObject):
         If `L(E,1) = 0`, then this function gives no information, so
         it returns False.
 
-        THEOREM (Kato): Suppose `p \geq 5` is a prime so the `p`-adic
-        representation `\rho_{E,p}` is surjective and `L(E,1) \neq 0`.
-        Then `{ord}_p(\#Sha(E))` divides `{ord}_p(L(E,1)/\Omega_E)`.
+        THEOREM (Kato): Suppose `L(E,1) \neq 0` and `p \neq 2, 3` is a prime such that
+            - `E` does not have additive reduction at `p`,
+            - the mod-`p` representation is surjective.
+        Then `{ord}_p(\#Sha(E))` divides `{ord}_p(L(E,1)\cdot\#E(\QQ)_{tor}^2/(\Omega_E \cdot \prod c_q))`.
 
         EXAMPLES::
 
@@ -884,7 +885,7 @@ class Sha(SageObject):
 
             sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
             sage: E.sha().bound_kato()                 # long time (about 1 second)
-            [2, 3, 5]
+            [2, 3, 5, 23]
             sage: E.galois_representation().non_surjective()                # long time (about 1 second)
             []
 
@@ -892,7 +893,7 @@ class Sha(SageObject):
 
             sage: E = EllipticCurve([0, 0, 0, -4062871, -3152083138])   # 3364C1
             sage: E.sha().bound_kato()                 # long time (< 10 seconds)
-            [2, 3, 7]
+            [2, 3, 7, 29]
 
         No information about curves of rank > 0::
 
@@ -915,9 +916,13 @@ class Sha(SageObject):
             return False
         if self.E.lseries().L1_vanishes():
             return False
-        B = [2,3]
-        for p in self.E.galois_representation().non_surjective():   # for p >= 5, mod-p surj => p-adic surj
+        B = [2, 3]
+        for p in self.E.galois_representation().non_surjective():
             if p > 3:
+                B.append(p)
+        N = self.E.conductor()
+        for p in self.E.conductor().prime_divisors():
+            if self.E.has_additive_reduction(p) and p not in B:
                 B.append(p)
 
         # The only other p that might divide B are those that divide

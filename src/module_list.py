@@ -269,6 +269,14 @@ ext_modules = [
      Extension('sage.games.sudoku_backtrack',
                sources = ['sage/games/sudoku_backtrack.pyx']),
 
+     ################################
+     ##
+     ## sage.geometry
+     ##
+     ################################
+
+     Extension('sage.geometry.toric_lattice_element',
+               sources = ['sage/geometry/toric_lattice_element.pyx']),
 
     ################################
     ##

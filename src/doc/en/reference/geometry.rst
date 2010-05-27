@@ -11,3 +11,4 @@ coordinates are supported by the Polyhedron class.
    sage/geometry/lattice_polytope
    sage/rings/polynomial/groebner_fan
    sage/geometry/polyhedra
+   sage/geometry/toric_lattice

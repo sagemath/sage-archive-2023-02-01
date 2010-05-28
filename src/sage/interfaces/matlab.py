@@ -250,6 +250,19 @@ for hints on how to do that).
     def version(self):
         return matlab_version()[1:]
 
+    def chdir(self, directory):
+        """
+        Change MATLAB's current working directory.
+
+        EXAMPLES::
+
+            sage: matlab.chdir('/')          # optional - matlab
+            sage: matlab.pwd()               # optional - matlab
+            /
+
+        """
+        self.eval("cd('%s')"%directory)
+
     def sage2matlab_matrix_string(self, A):
         """
         Return an matlab matrix from a Sage matrix.

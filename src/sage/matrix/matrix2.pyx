@@ -4529,6 +4529,140 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('echelon_form', self)
         verbose('done with gauss echelon form', tm)
 
+    def weak_popov_form(self, ascend=True):
+        """
+        This function computes a weak Popov form of a matrix over a rational
+        function field `k(x)`, for `k` a field.
+
+        INPUT:
+
+         - `ascend` - if True, rows of output matrix `W` are sorted so
+           degree (= the maximum of the degrees of the elements in
+           the row) increases monotonically, and otherwise degrees decrease.
+
+        OUTPUT:
+
+        A 3-tuple `(W,N,d)` consisting of two matrices over `k(x)` and a list
+        of integers:
+
+        1. `W` - matrix giving a weak the Popov form of self
+        2. `N` - matrix representing row operations used to transform
+           `self` to `W`
+        3. `d` - degree of respective columns of W; the degree of a column is
+           the maximum of the degree of its elements
+
+        `N` is invertible over `k(x)`. These matrices satisfy the relation
+        `N*self = W`.
+
+        EXAMPLES:
+
+        The routine expects matrices over the rational function field, but
+        other examples below show how one can provide matrices over the ring
+        of polynomials (whose quotient field is the rational function field).
+
+        ::
+
+            sage: R.<t> = GF(3)['t']
+            sage: K = FractionField(R)
+            sage: M = matrix([[(t-1)^2/t],[(t-1)]])
+            sage: M.weak_popov_form()
+            (
+            [          0]  [      t 2*t + 1]
+            [(2*t + 1)/t], [      1       2], [-Infinity, 0]
+            )
+
+        If `self` is an `n x 1` matrix with at least one non-zero entry, `W` has
+        a single non-zero entry and that entry is a scalar multiple of the
+        greatest-common-divisor of the entries of `self`.
+
+        ::
+
+            sage: M = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
+            sage: M.weak_popov_form()
+            (
+            [0]  [        1         0 2*t^2 + 1]
+            [0]  [        0         1 2*t^2 + 1]
+            [t], [        0         0         1], [-Infinity, -Infinity, 1]
+            )
+
+        The following is the first half of example 5 in [H] *except* that we
+        have transposed `self`; [H] uses column operations and we use row.
+
+        ::
+
+            sage: R.<t> = QQ['t']
+            sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
+            sage: M.weak_popov_form()
+            (
+            [      t    -t^2]  [ 1 -t]
+            [t^2 - 2       t], [ 0  1], [2, 2]
+            )
+
+        The next example demonstrates what happens when `self` is a zero matrix.
+
+        ::
+
+            sage: R.<t> = GF(5)['t']
+            sage: K = FractionField(R)
+            sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
+            sage: M.weak_popov_form()
+            (
+            [0 0]  [1 0]
+            [0 0], [0 1], [-Infinity, -Infinity]
+            )
+
+        In the following example, `self` has more rows than columns.
+
+        ::
+
+            sage: R.<t> = QQ['t']
+            sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
+            sage: M.weak_popov_form()
+            (
+            [t t t]  [1 0]
+            [0 0 t], [0 1], [1, 1]
+            )
+
+        The next example shows that M must be a matrix with
+        coefficients in a rational function field `k(t)`.
+
+        ::
+
+            sage: M = matrix([[1,0],[1,1]])
+            sage: M.weak_popov_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: the coefficients of M must lie in a univariate
+            polynomial ring
+
+
+        NOTES:
+
+         - For consistency with LLL and other algorithms in sage, we have opted
+           for row operations; however, references such as [H] transpose and use
+           column operations.
+
+         - There are multiple weak Popov forms of a matrix, so one may want to
+           extend this code to produce a Popov form (see section 1.2 of [V]).  The
+           latter is canonical, but more work to produce.
+
+        REFERENCES:
+
+        .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
+          fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
+          425--445.
+
+        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
+          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
+
+        .. [V] G. Villard, "Computing Popov and Hermite forms of polynomial
+          matrices", ISSAC '96: Proceedings of the 1996 international symposium
+          on Symbolic and algebraic computation, 250--258.
+
+        """
+        import sage.matrix.matrix_misc
+        return sage.matrix.matrix_misc.weak_popov_form(self)
+
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
     # Precise algorithms invented and implemented by David Harvey and Robert Bradshaw

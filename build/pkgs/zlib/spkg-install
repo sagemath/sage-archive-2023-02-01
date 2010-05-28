@@ -11,18 +11,12 @@ cd src/
 unset AR
 
 
-# The -fPIC is needed otherwise builing libpng fails later
-# (at least on a Debian 64-bit opteron).
-
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   CFLAGS=" -m64 $CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
-   cp ../patches/configure-OSX-64 configure
+if [ "x$SAGE64" = xyes ]; then
+   ./configure --64 --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
 else
-   CFLAGS="$CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
+   ./configure --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
 fi
-export CFLAGS
 
-./configure --shared --prefix=$SAGE_LOCAL
 
 if [ $? -ne 0 ]; then
     echo "Error configuring zlib"

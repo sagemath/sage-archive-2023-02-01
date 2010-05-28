@@ -23,10 +23,20 @@ Free, Not to Mention Unencumbered by Patents)
 
 == Special Update/Build Instructions ==
 
- * Delete all Microsoft Assembler binary files from src/contrib/masm*.
-   See trac 7696: http://trac.sagemath.org/sage_trac/ticket/7696
+ None - previously it was necessary to remove binary *.obj files, but there
+ are none in the current source package.
 
-      rm -v src/contrib/*/*.obj
+=== zlib-1.2.5 (David Kirkby, May 21st 2010) ===
+ * Update to the latest upstream version - 1.2.5
+ * Remove the patches directory.
+ * Remove hacks for OSX
+ * Remove the -fPIC flag from spkg-install, which was added so zlib
+   worked properly on at least Debian on the Opteron processor. The
+   -fPIC flag is added by the new zlib, so there is no need to add it
+   in spkg-install. This has been tested on OS X, Linux and OpenSolaris.
+   In each case, -fPIC gets added.
+ * There was no need to remove object files *(.obj) are there
+   are none in the latest source code.
 
 === zlib-1.2.3.p5 (William Stein, December 17, 2009) ===
  * Remove some binary crap

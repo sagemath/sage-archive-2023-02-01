@@ -26,18 +26,39 @@ F77FLAGS="$F77FLAGS $OPTIMIZATION_FLAGS "
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
-# Compile for 64-bit if SAGE64 is set to 'yes' or '1'
-if [ "x$SAGE64" = "xyes" ] || [ "x$SAGE64" = "x1" ]  ; then
+
+# Compile for 64-bit if SAGE64 is set to 'yes'
+if [ "x$SAGE64" = xyes ]  ; then
    echo "Building a 64-bit version of lcalc"
-   CFLAGS="$CFLAGS -m64 "
-   CXXFLAGS="$CXXFLAGS -m64 "
-   FCFLAGS="$FCFLAGS -m64 "
-   F77FLAGS="$F77FLAGS -m64 "
+
+   # Both Sun and GNU compilers use -m64 to build 64-bit code,
+   # but compilers from IBM (on AIX), and HP (on HP-UX)
+   # do not. So allow the environment
+   # variables CFLAG64 and CXXFLAG64 to set the flag to whatever
+   # option the C and C++ compilers want for 64-bit code. If not default to -m64.
+
+   if [ -z $CFLAG64 ] ; then
+      CFLAG64=-m64
+   fi
+
+   if [ -z $CXXFLAG64 ] ; then
+      CXXFLAG64=-m64
+   fi
+   export CFLAG64
+   export CXXFLAG64
+
+   CFLAGS="$CFLAGS $CFLAG64 "
+   CXXFLAGS="$CXXFLAGS $CXXFLAG64 "
+   FCFLAGS="$FCFLAGS $CXXFLAG64 "
+   F77FLAGS="$F77FLAGS $CXXFLAG64 "
    # Some packages may need LDFLAGS and/or ABI set here.
    # LDFLAGS="$LDFLAGS -m64 "
    # ABI=64
-else
-   echo "Building a 32-bit version of lcalc"
+   # Normally one would just add this to CXXFLAGS, but since the Makefile
+   # does not import CXXFLAGS properly, and it would take a major change to
+   # sort out the Makefile properly, the variable can just be added here,
+   # and ${CXXFLAG64} added at the right point in the Makefile for 64-bit builds.
+   export CXXFLAG64
 fi
 
 # If SAGE_DEBUG is set either unset (the default), or set to  'yes'
@@ -45,9 +66,9 @@ fi
 # Since both the Sun and GNU compilers accept -g to give debugging information
 # there is no need to do anything specific to one compiler or the other.
 
-if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
+if [ "x$SAGE_DEBUG" = xyes ] ; then
    echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to 'no' if you don't want that."
-   # Actually anything othe than 'yes' or '1' will cause
+   # Actually anything othe than 'yes' will cause
    # no debugging information to be added.
    CFLAGS="$CFLAGS -g "
    CXXFLAGS="$CXXFLAGS -g "
@@ -130,6 +151,8 @@ echo "Using SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB"
 
 # Flags which may be set.
 echo "The following environment variables will be exported"
+echo "Using CFLAG64=$CFLAG64"
+echo "Using CXXFLAG64=$CXXFLAG64"
 echo "Using CFLAGS=$CFLAGS"
 echo "Using CXXFLAGS=$CXXFLAGS"
 echo "Using FCFLAGS=$FCFLAGS"

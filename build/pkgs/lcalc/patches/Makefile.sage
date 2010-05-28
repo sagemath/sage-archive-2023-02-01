@@ -246,7 +246,7 @@ Lcommandline.o: ../include/Lcommandline_values_zeros.h
 
 
 libLfunction.so: $(OBJ_L)
-	g++ -$(DYN_OPTION)  -o libLfunction.so $(OBJ_L)
+	g++ -$(DYN_OPTION) ${CXXFLAG64} -o libLfunction.so $(OBJ_L)
 
 clean:
 	rm -f *.o lcalc libLfunction.so example_programs/example

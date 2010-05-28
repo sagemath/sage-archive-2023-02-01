@@ -12,9 +12,40 @@ Michael Rubinstein's L-function calculator.
 
  * Rishikesh
 
+== Special Build instructions  ==
+
+Check if there are any unwanted binary files. 4 were found on
+version 1.23, which I removed. (David Kirkby, 27th May 2010).
+
+./src/src/.Makefile.old.swp
+./src/src/.Lcommandline.ggo.swp
+./src/include/.Lvalue.h.swp
+./src/include/.Lexplicit_formula.h.swp
+
 == Upstream contact ==
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
+
+=== lcalc-1.23.p0 (David Kirkby, 27th May 2010)  ===
+ * See: #9043 - lcalc failing to build on OpenSolaris x64.
+ * Force 64-bit build if SAGE64 is set to "yes" and not "yes"
+   and "1" as before, since an early part of Sage ensures SAGE64
+   can only be "yes" or "no", so it is pointless to check for "1" too.
+ * Added a variable CXXFLAG64 to spkg-install, which defaults to
+   -m64, but can be set as an environment variable to whatever flag
+   is needed by the C++ compiler.
+ * Export CXXFLAG64 if SAGE64 is set to "yes".
+ * Added {$CXXFLAG64} to patches/Makefile.sage, so that the right flag
+   is added for a 64-bit build at the link phase.
+ * It should be noted the Makefile makes extensive use of $(FOOBAR),
+   but such variables only work internally to the Makefile. If they need
+   to be inported, then it needs to be ${FOOBAR}, and not $(FOOBAR).
+ * Removed these 4 files from the source, since they serve no useful
+   purpose (see note in Special Build Instructions).
+   ./src/src/.Makefile.old.swp
+   ./src/src/.Lcommandline.ggo.swp
+   ./src/include/.Lvalue.h.swp
+   ./src/include/.Lexplicit_formula.h.swp
 
 === lcalc-1.23 (Rishikesh, 24th March 2010)  ===
  * changed spkg-install to change location of header files (#4793)

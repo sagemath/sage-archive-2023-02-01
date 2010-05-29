@@ -4,6 +4,7 @@ from parametric_plot3d import parametric_plot3d
 from plot_field3d      import plot_vector_field3d
 from implicit_plot3d   import implicit_plot3d
 from list_plot3d       import list_plot3d
+from revolution_plot3d import revolution_plot3d
 
 from platonic          import tetrahedron, cube, octahedron, dodecahedron, icosahedron
 

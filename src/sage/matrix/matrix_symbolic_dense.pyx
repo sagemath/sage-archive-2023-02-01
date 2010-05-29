@@ -179,7 +179,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
     def eigenvectors_left(self):
-        """
+        r"""
         Compute the left eigenvectors of a matrix.
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
@@ -212,6 +212,42 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: delta = eval*evec - evec*A
             sage: delta.apply_map(lambda x: x.full_simplify())
             (0, 0)
+
+        This routine calls Maxima and can struggle with even small matrices
+        with a few variables, such as a `3\times 3` matrix with three variables.
+        However, if the entries are integers or rationals it can produce exact
+        values in a reasonable time.  These examples create 0-1 matrices from
+        the adjacency matrices of graphs and illustrate how the format and type
+        of the results differ when the base ring changes.  First for matrices
+        over the rational numbers, then the same matrix but viweed as a symbolic
+        matrix. ::
+
+            sage: G=graphs.CycleGraph(5)
+            sage: am = G.adjacency_matrix()
+            sage: spectrum = am.eigenvectors_left()
+            sage: qqbar_evalue = spectrum[2][0]
+            sage: type(qqbar_evalue)
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
+            sage: qqbar_evalue
+            0.618033988749895?
+
+            sage: am = G.adjacency_matrix().change_ring(SR)
+            sage: spectrum = am.eigenvectors_left()
+            sage: symbolic_evalue = spectrum[2][0]
+            sage: type(symbolic_evalue)
+            <type 'sage.symbolic.expression.Expression'>
+            sage: symbolic_evalue
+            1/2*sqrt(5) - 1/2
+
+            sage: qqbar_evalue == symbolic_evalue
+            True
+
+        A slightly larger matrix with a "nice" spectrum. ::
+
+            sage: G=graphs.CycleGraph(6)
+            sage: am = G.adjacency_matrix().change_ring(SR)
+            sage: am.eigenvectors_left()
+            [(-1, [(1, 0, -1, 1, 0, -1), (0, 1, -1, 0, 1, -1)], 2), (1, [(1, 0, -1, -1, 0, 1), (0, 1, 1, 0, -1, -1)], 2), (-2, [(1, -1, 1, -1, 1, -1)], 1), (2, [(1, 1, 1, 1, 1, 1)], 1)]
         """
         from sage.modules.free_module_element import vector
         from sage.all import ZZ

@@ -197,12 +197,21 @@ class PolynomialRing_singular_repr:
     def _singular_init_(self, singular=singular_default):
         """
         Return a newly created Singular ring matching this ring.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ,'u_ba')._singular_init_()
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    u_ba
+            //        block   2 : ordering C
         """
         if not can_convert_to_singular(self):
             raise TypeError, "no conversion of this ring to a Singular ring defined"
 
         if self.ngens()==1:
-            _vars = str(self.gen())
+            _vars = '(%s)'%self.gen()
             if "*" in _vars: # 1.000...000*x
                 _vars = _vars.split("*")[1]
             order = 'lp'

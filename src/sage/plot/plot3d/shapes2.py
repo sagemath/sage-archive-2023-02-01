@@ -92,10 +92,15 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         sage: L = line3d(mypoints)
         sage: type(mypoints[0])
         <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+
+    The copies are converted to a list, so we can pass in immutable objects too::
+
+        sage: L = line3d(((0,0,0),(1,2,3)))
+
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
-    points = points[:]
+    points = list(points)
     for i in range(len(points)):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)

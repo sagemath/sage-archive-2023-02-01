@@ -363,15 +363,26 @@ better way, but the following steps should be easy to follow.)
 Being more efficient: Mercurial queues
 ---------------------------------------
 
+If you are new to Sage development, the material above is
+sufficient to allow you to participate and contribute.  So on a
+first exposure, right here is a good place to stop reading and
+start developing.  However, soon you will have a submitted patch
+that needs repeated revisions, or you will find yourself in the
+middle of creating a patch and also desiring to review a patch,
+or you are creating a new patch and uncover a separate bug that
+you want to isolate and fix independently.  When you reach this
+point come back here and read the remainder about Mercurial
+queues.
+
 Making a new clone for every review and for each revision to a
-patch seems rather inefficient.  If you agree, then learn here
-about Mercurial queues.  They use Sage's Mercurial repository for
-tracking, collecting and organizing changes to Sage but are much
-more flexible and fit better with the way a typical Sage
-developer needs to work.  You will find them much more natural
-and useful than repeatedly making clones and adjusting patches in
-response to reviews.  And you don't need to learn anything about
-Mercurial itself before you can begin.
+patch is a method that is easy to understand.  But it soon feels
+rather inefficient.  Mercurial queues use Sage's Mercurial
+repository for tracking, collecting and organizing changes to
+Sage but are much more flexible and fit better with the way a
+typical Sage developer needs to work.  You will find them much
+more natural and useful than repeatedly making clones and
+adjusting patches in response to reviews.  And you don't need to
+learn anything about Mercurial itself before you can begin.
 
 In a nutshell, Mercurial queues are two stacks of patches (a
 "patch" here means "a named collection of changes").  One stack

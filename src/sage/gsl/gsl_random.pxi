@@ -111,6 +111,9 @@ cdef extern from "gsl/gsl_randist.h":
   double gsl_ran_tdist ( gsl_rng * r,  double nu)
   double gsl_ran_tdist_pdf ( double x,  double nu)
 
+  double gsl_ran_fdist ( gsl_rng * r,  double a,  double b)
+  double gsl_ran_fdist_pdf ( double x,  double a,  double b)
+
   double gsl_ran_laplace ( gsl_rng * r,  double a)
   double gsl_ran_laplace_pdf ( double x,  double a)
 
@@ -196,6 +199,9 @@ cdef extern from "gsl/gsl_cdf.h":
 
   double gsl_cdf_fdist_P ( double x,  double nu1,  double nu2)
   double gsl_cdf_fdist_Q ( double x,  double nu1,  double nu2)
+
+  double gsl_cdf_fdist_Pinv(double x, double a, double b)
+  double gsl_cdf_fdist_Qinv(double x, double a, double b)
 
   double gsl_cdf_beta_P ( double x,  double a,  double b)
   double gsl_cdf_beta_Q ( double x,  double a,  double b)

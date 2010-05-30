@@ -25,6 +25,14 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p11 (David Kirkby, 30th May 2010) ===
+ * #9030 rubiks is building part 32-bit and part 64-bit on OpenSolaris x64.
+   Added ${CFLAG64} to src/dik/makefile. CFLAG64 gets set to -m64 (by default)
+   if the variable SAGE64 is "yes". So this patch adds an -m64 which is
+   needed to build rubiks fully 64-bit.
+
+=== rubiks-20070912.p10  ????????????????????????????????  ===
+
 === rubiks-20070912.p9 (William Stein, June 14, 2009) ===
  * Make too many changes to the Makefiles to list really!
  * Remove hard coding of CC, which was set to g++ in some places

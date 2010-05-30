@@ -36,6 +36,7 @@ from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
+from sage.rings.finite_rings.all import is_FiniteFieldElement
 import gp_cremona
 import sea
 from sage.groups.all import AdditiveAbelianGroup
@@ -1786,4 +1787,333 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
                       return True
                 else:
                       return False
+
+    def is_supersingular(self, proof=True):
+        r"""
+        Return True if this elliptic curve is supersingular, else False.
+
+        INPUT:
+
+        - ``proof`` (boolean, default True) -- If True, returns a
+          proved result.  If False, then a return value of False is
+          certain but a return value of True may be based on a
+          probabilistic test.  See the documentaion of the function
+          :meth:`is_j_supersingular` for more details.
+
+        EXAMPLES::
+
+            sage: F = GF(101)
+            sage: EllipticCurve(j=F(0)).is_supersingular()
+            True
+            sage: EllipticCurve(j=F(1728)).is_supersingular()
+            False
+            sage: EllipticCurve(j=F(66)).is_supersingular()
+            True
+            sage: EllipticCurve(j=F(99)).is_supersingular()
+            False
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.ell_finite_field import supersingular_j_polynomial, is_j_supersingular
+            sage: F = GF(103)
+            sage: ssjlist = [F(1728)] + supersingular_j_polynomial(103).roots(multiplicities=False)
+            sage: Set([j for j in F if is_j_supersingular(j)]) == Set(ssjlist)
+            True
+
+        """
+        return is_j_supersingular(self.j_invariant(), proof=proof)
+
+    def is_ordinary(self, proof=True):
+        r"""
+        Return True if this elliptic curve is ordinary, else False.
+
+        INPUT:
+
+        - ``proof`` (boolean, default True) -- If True, returns a
+          proved result.  If False, then a return value of True is
+          certain but a return value of False may be based on a
+          probabilistic test.  See the documentaion of the function
+          :meth:`is_j_supersingular` for more details.
+
+        EXAMPLES::
+
+            sage: F = GF(101)
+            sage: EllipticCurve(j=F(0)).is_ordinary()
+            False
+            sage: EllipticCurve(j=F(1728)).is_ordinary()
+            True
+            sage: EllipticCurve(j=F(66)).is_ordinary()
+            False
+            sage: EllipticCurve(j=F(99)).is_ordinary()
+            True
+
+        """
+        return not is_j_supersingular(self.j_invariant(), proof=proof)
+
+def supersingular_j_polynomial(p):
+    """
+    Return a polynomial whose roots are the supersingular `j`-invariants
+    in characteristic `p`, other than 0, 1728.
+
+    INPUT:
+
+    - `p` (integer) -- a prime number.
+
+    ALGORITHM:
+
+    First compute H(X) whose roots are the Legendre
+    `\lambda`-invariants of supersingular curves (Silverman V.4.1(b))
+    in charactersitic `p`.  Then, using a resultant computation with
+    the polynomial relating `\lambda` and `j` (Silverman III.1.7(b)),
+    we recover the polynomial (in variable ``j``) whose roots are the
+    `j`-invariants.  Factors of `j` and `j-1728` are removed if
+    present.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.ell_finite_field import supersingular_j_polynomial
+        sage: f = supersingular_j_polynomial(67); f
+        j^5 + 53*j^4 + 4*j^3 + 47*j^2 + 36*j + 8
+        sage: f.factor()
+        (j + 1) * (j^2 + 8*j + 45) * (j^2 + 44*j + 24)
+
+    ::
+
+        sage: [supersingular_j_polynomial(p) for p in prime_range(30)]
+        [1, 1, 1, 1, 1, j + 8, j + 9, j + 12, j + 4, j^2 + 2*j + 21]
+
+    TESTS::
+
+        sage: supersingular_j_polynomial(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: p (=6) should be a prime number
+
+    """
+    try:
+        p = ZZ(p)
+    except TypeError:
+        raise ValueError, "p (=%s) should be a prime number"%p
+    if not p.is_prime():
+        raise ValueError, "p (=%s) should be a prime number"%p
+
+    J = polygen(GF(p),'j')
+    if p<13:
+        return J.parent().one()
+    from sage.rings.all import binomial
+    from sage.misc.all import prod
+    m=(p-1)//2
+    X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()
+    H = sum([binomial(m,i)**2 * T**i for i in xrange(m+1)])
+    F = T**2 * (T-1)**2 * X - 256*(T**2-T+1)**3
+    R = F.resultant(H,T)
+    R =  prod([fi for fi,e in R([J,0]).factor()])
+    if R(0)==0:
+        R = R//J
+    if R(1728)==0:
+        R = R//(J-1728)
+    return R
+
+# For p in [13..300] we have precomputed these polynomials and store
+# them (as lists of their coefficients in ZZ) in a dict:
+
+supersingular_j_polynomials = dict()
+
+supersingular_j_polynomials[13] = [8, 1]
+supersingular_j_polynomials[17] = [9, 1]
+supersingular_j_polynomials[19] = [12, 1]
+supersingular_j_polynomials[23] = [4, 1]
+supersingular_j_polynomials[29] = [21, 2, 1]
+supersingular_j_polynomials[31] = [8, 25, 1]
+supersingular_j_polynomials[37] = [11, 5, 23, 1]
+supersingular_j_polynomials[41] = [18, 10, 19, 1]
+supersingular_j_polynomials[43] = [32, 11, 21, 1]
+supersingular_j_polynomials[47] = [35, 33, 31, 1]
+supersingular_j_polynomials[53] = [24, 9, 30, 7, 1]
+supersingular_j_polynomials[59] = [39, 31, 35, 39, 1]
+supersingular_j_polynomials[61] = [60, 21, 27, 8, 60, 1]
+supersingular_j_polynomials[67] = [8, 36, 47, 4, 53, 1]
+supersingular_j_polynomials[71] = [18, 54, 28, 33, 1, 1]
+supersingular_j_polynomials[73] = [7, 39, 38, 9, 68, 60, 1]
+supersingular_j_polynomials[79] = [10, 25, 1, 63, 57, 55, 1]
+supersingular_j_polynomials[83] = [43, 72, 81, 81, 62, 11, 1]
+supersingular_j_polynomials[89] = [42, 79, 23, 22, 37, 86, 60, 1]
+supersingular_j_polynomials[97] = [19, 28, 3, 72, 2, 96, 10, 60, 1]
+supersingular_j_polynomials[101] = [9, 76, 45, 79, 1, 68, 87, 60, 1]
+supersingular_j_polynomials[103] = [64, 15, 24, 58, 70, 83, 84, 100, 1]
+supersingular_j_polynomials[107] = [6, 18, 72, 59, 43, 19, 17, 68, 1]
+supersingular_j_polynomials[109] = [107, 22, 39, 83, 30, 34, 108, 104, 60, 1]
+supersingular_j_polynomials[113] = [86, 71, 75, 6, 47, 97, 100, 4, 60, 1]
+supersingular_j_polynomials[127] = [32, 31, 5, 50, 115, 122, 114, 67, 38, 35, 1]
+supersingular_j_polynomials[131] = [65, 64, 10, 34, 129, 35, 94, 127, 7, 7, 1]
+supersingular_j_polynomials[137] = [104, 83, 3, 82, 112, 23, 77, 135, 18, 50, 60, 1]
+supersingular_j_polynomials[139] = [87, 79, 109, 21, 138, 9, 104, 130, 61, 118, 90, 1]
+supersingular_j_polynomials[149] = [135, 55, 80, 86, 87, 74, 32, 60, 130, 80, 146, 60, 1]
+supersingular_j_polynomials[151] = [94, 125, 8, 6, 93, 21, 114, 80, 107, 58, 42, 18, 1]
+supersingular_j_polynomials[157] = [14, 95, 22, 58, 110, 23, 71, 51, 47, 5, 147, 59, 60, 1]
+supersingular_j_polynomials[163] = [102, 26, 74, 95, 112, 151, 98, 107, 27, 37, 25, 111, 109, 1]
+supersingular_j_polynomials[167] = [14, 9, 27, 109, 97, 55, 51, 74, 145, 125, 36, 113, 89, 1]
+supersingular_j_polynomials[173] = [152, 73, 56, 12, 18, 96, 98, 49, 30, 43, 52, 79, 163, 60, 1]
+supersingular_j_polynomials[179] = [110, 51, 3, 94, 123, 90, 156, 90, 88, 119, 158, 27, 71, 29, 1]
+supersingular_j_polynomials[181] = [7, 65, 77, 29, 139, 34, 65, 84, 164, 73, 51, 136, 7, 141, 60, 1]
+supersingular_j_polynomials[191] = [173, 140, 144, 3, 135, 80, 182, 84, 93, 75, 83, 17, 22, 42, 160, 1]
+supersingular_j_polynomials[193] = [23, 48, 26, 15, 108, 141, 124, 44, 132, 49, 72, 173, 126, 101, 22, 60, 1]
+supersingular_j_polynomials[197] = [14, 111, 64, 170, 193, 32, 124, 91, 112, 163, 14, 112, 167, 191, 183, 60, 1]
+supersingular_j_polynomials[199] = [125, 72, 65, 30, 63, 45, 10, 177, 91, 102, 28, 27, 5, 150, 51, 128, 1]
+supersingular_j_polynomials[211] = [27, 137, 128, 90, 102, 141, 5, 77, 131, 144, 83, 108, 23, 105, 98, 13, 80, 1]
+supersingular_j_polynomials[223] = [56, 183, 46, 133, 191, 94, 20, 8, 92, 100, 57, 200, 166, 67, 59, 218, 28, 32, 1]
+supersingular_j_polynomials[227] = [79, 192, 142, 66, 11, 114, 100, 208, 57, 147, 32, 5, 144, 93, 185, 147, 92, 16, 1]
+supersingular_j_polynomials[229] = [22, 55, 182, 130, 228, 172, 63, 25, 108, 99, 100, 101, 220, 111, 205, 199, 91, 163, 60, 1]
+supersingular_j_polynomials[233] = [101, 148, 85, 113, 226, 68, 71, 103, 61, 44, 173, 175, 5, 225, 227, 99, 146, 170, 60, 1]
+supersingular_j_polynomials[239] = [225, 81, 47, 26, 133, 182, 238, 2, 144, 154, 234, 178, 165, 130, 35, 61, 144, 112, 207, 1]
+supersingular_j_polynomials[241] = [224, 51, 227, 139, 134, 186, 187, 152, 161, 175, 213, 59, 105, 88, 87, 124, 202, 40, 15, 60, 1]
+supersingular_j_polynomials[251] = [30, 183, 80, 127, 40, 56, 230, 168, 192, 48, 226, 61, 214, 54, 165, 147, 105, 88, 38, 171, 1]
+supersingular_j_polynomials[257] = [148, 201, 140, 146, 169, 147, 220, 4, 205, 224, 35, 42, 198, 97, 127, 7, 110, 229, 118, 202, 60, 1]
+supersingular_j_polynomials[263] = [245, 126, 72, 213, 14, 64, 152, 83, 169, 114, 9, 128, 138, 231, 103, 85, 114, 211, 173, 249, 135, 1]
+supersingular_j_polynomials[269] = [159, 32, 69, 95, 201, 266, 190, 176, 76, 151, 212, 21, 106, 49, 263, 105, 136, 194, 215, 181, 237, 60, 1]
+supersingular_j_polynomials[271] = [169, 87, 179, 109, 133, 101, 31, 167, 208, 99, 127, 120, 83, 62, 36, 23, 61, 50, 69, 263, 265, 111, 1]
+supersingular_j_polynomials[277] = [251, 254, 171, 72, 190, 237, 12, 231, 123, 217, 263, 151, 270, 183, 29, 228, 85, 4, 67, 101, 29, 169, 60, 1]
+supersingular_j_polynomials[281] = [230, 15, 146, 69, 41, 23, 142, 232, 18, 80, 58, 134, 270, 62, 272, 70, 247, 189, 118, 255, 274, 159, 60, 1]
+supersingular_j_polynomials[283] = [212, 4, 42, 155, 38, 1, 270, 175, 172, 256, 264, 232, 50, 82, 244, 127, 148, 46, 249, 72, 59, 124, 75, 1]
+supersingular_j_polynomials[293] = [264, 66, 165, 144, 243, 25, 163, 210, 18, 107, 160, 153, 70, 255, 91, 211, 22, 7, 256, 50, 150, 94, 225, 60, 1]
+
+
+def is_j_supersingular(j, proof=True):
+    r"""
+    Return True if `j` is a supersingular `j`-invariant.
+
+    INPUT:
+
+    - ``j`` (finite field element) -- an element of a finite field
+
+    - ``proof`` (boolean, default True) -- If True, returns a proved
+      result.  If False, then a return value of False is certain but a
+      return value of True may be based on a probabilistic test.  See
+      the ALGORITHM section below for more details.
+
+    OUTPUT:
+
+    (boolean) True if `j` is supersingular, else False.
+
+    ALGORITHM:
+
+    For small characteristics `p` we check whether the `j`-invariant
+    is in a precomputed list of supersingular values.  Otherwise we
+    next check the `j`-invariant.  If `j=0`, the curve is
+    supersingular if and only if `p=2` or `p\equiv3\pmod{4}`; if
+    `j=1728`, the curve is supersingular if and only if `p=3` or
+    `p\equiv2\pmod{3}`.  Next, if the base field is the prime field
+    `{\rm GF}(p)`, we check that `(p+1)P=0` for several random points
+    `P`, returning False if any fail: supersingular curves over `{\rm
+    GF}(p)` have cardinality `p+1`.  If Proof is false we now return
+    True.  Otherwise we compute the cardinality and return True if and
+    only if it is divisible by `p`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.ell_finite_field import is_j_supersingular, supersingular_j_polynomials
+        sage: [(p,[j for j in GF(p) if is_j_supersingular(j)]) for p in prime_range(30)]
+        [(2, [0]), (3, [0]), (5, [0]), (7, [6]), (11, [0, 1]), (13, [5]), (17, [0, 8]), (19, [7, 18]), (23, [0, 3, 19]), (29, [0, 2, 25])]
+
+        sage: [j for j in GF(109) if is_j_supersingular(j)]
+        [17, 41, 43]
+        sage: PolynomialRing(GF(109),'j')(supersingular_j_polynomials[109]).roots()
+        [(43, 1), (41, 1), (17, 1)]
+
+        sage: [p for p in prime_range(100) if is_j_supersingular(GF(p)(0))]
+        [2, 3, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
+        sage: [p for p in prime_range(100) if is_j_supersingular(GF(p)(1728))]
+        [2, 3, 7, 11, 19, 23, 31, 43, 47, 59, 67, 71, 79, 83]
+        sage: [p for p in prime_range(100) if is_j_supersingular(GF(p)(123456))]
+        [2, 3, 59, 89]
+
+    """
+    if not is_FiniteFieldElement(j):
+        raise ValueError, "%s must be an element of a finite field"%j
+
+    F = j.parent()
+    p = F.characteristic()
+    d = F.degree()
+
+    if j.is_zero():
+        return p==3 or p%3==2
+
+    if (j-1728).is_zero():
+        return p==2 or p%4==3
+
+    # From now on we know that j != 0, 1728
+
+    if p in (2,3,5,7,11):
+        return False # since j=0, 1728 are the only s.s. invariants
+
+    # supersingular j-invariants have degree at most 2:
+
+    jpol = j.minimal_polynomial()
+    degj = jpol.degree()
+    if degj > 2:
+        return False
+
+    # if p occurs in the precomputed list, use that:
+
+    try:
+        coeffs = supersingular_j_polynomials[p]
+        return PolynomialRing(F,'x')(coeffs)(j).is_zero()
+    except KeyError:
+        pass
+
+    # Over GF(p), supersingular elliptic curves have cardinality
+    # exactly p+1, so we check some random points in order to detect
+    # non-supersingularity.  Over GF(p^2) (for p at least 5) the
+    # cardinality is either (p-1)^2 or (p+1)^2, and the group has
+    # exponent p+1 or p-1, so we can do a similar random check: unless
+    # (p+1)*P=0 for all the random points, or (p-1)*P=0 for all of
+    # them, we can certainly return False.
+
+    # First we replace j by an element of GF(p) or GF(p^2) (since F
+    # might be a proper extension of these):
+
+    if degj==1:
+        j = -jpol(0) # = j, but in GF(p)
+    elif d>2:
+        F = GF(p^2,'a')
+        j = jpol.roots(F,multiplicities=False)[0] # j, but in GF(p^2)
+
+    E = EllipticCurve(j=j)
+    if degj==1:
+        for i in range(10):
+            P = E.random_element()
+            if not ((p+1)*P).is_zero():
+                return False
+    else:
+        n = None # will hold either p+1 or p-1 later
+        for i in range(10):
+            P = E.random_element()
+            # avoid 2-torsion;  we know that a1=a3=0 and #E>4!
+            while P[2].is_zero() or P[1].is_zero():
+                P = E.random_element()
+
+            if n is None:  # not yet decided between p+1 and p-1
+                pP = p*P
+                if not pP[0]==P[0]: # i.e. pP is neither P nor -P
+                    return False
+                if pP[1]==P[1]: # then p*P == P != -P
+                    n=p-1
+                else:           # then p*P == -P != P
+                    n=p+1
+            else:
+                if not (n*P).is_zero():
+                    return False
+
+
+    # when proof is False we return True for any curve which passes
+    # the probabilistic test:
+
+    if not proof:
+        return True
+
+    # otherwise we check the trace of Frobenius (which could be
+    # expensive since it involves counting the number of points on E):
+
+    return E.trace_of_frobenius() % p == 0
+
 

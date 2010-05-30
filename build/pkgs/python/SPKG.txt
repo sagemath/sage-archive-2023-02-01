@@ -63,8 +63,22 @@ http://www.python.org/community/
  * socket.py.patch: Work around an SSL issue.
  * Makefile.pre.in.patch:  Fixes http://bugs.python.org/issue1628484
    This was merged upstream for Python 2.6.6 and 2.7.
+ * socketmodule.c Makes sure some things are defined before trying to compile
+   them. This was to work around a failure of _socket to build on OpenSolaris.
+   see  http://bugs.python.org/issue8852 and Sage trac #9041 and #9022
+
 
 == Changelog ==
+
+=== python-2.6.4.p9 (Robert Bradsure and David Kirkby, 30th May 2010) ===
+ * #9042 - Cython fails to build on OpenSolaris x64
+   This adds the -m64 flag to OPT to build distutils extensions.
+   (Robert Bradsure, 25th May 2010)
+ * Check that distutils builtin modules work before trying hashlib.
+   (Robert Bradsure, 25th May 2010)
+ * Ensure the _socket module builds on OpenSolaris x64 (this solves
+   #9041 and #9022)
+   David Kirkby (30th May 2010)
 
 === python-2.6.4.p8 (Mike Hansen, 25th May, 2010) ===
  * Added '--enabled-shared' which is needed on certain platforms

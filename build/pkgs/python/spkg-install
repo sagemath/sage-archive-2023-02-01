@@ -79,6 +79,20 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Due to a problem with _socket not building on OpenSolaris on x64
+# see http://bugs.python.org/issue8852
+# http://trac.sagemath.org/sage_trac/ticket/9041
+# http://trac.sagemath.org/sage_trac/ticket/9022
+# Modules/socketmodule.c needs patching. The patch consists of
+# only checking if things are defined before trying to build with them
+# so it is safe (and desirable) on any platform.
+
+cp patches/Modules.socketmodule.c src/Modules/socketmodule.c
+if [ $? -ne 0 ]; then
+    echo "Error copying patched socketmodule.c"
+    exit 1
+fi
+
 # The following patch for fixing broken readline behavior on Itanium
 # Linux definitely does *not* work on anything else.
 if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then

@@ -26,6 +26,21 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 == Changelog ==
 
 === rubiks-20070912.p9 (William Stein, June 14, 2009) ===
+ * Make too many changes to the Makefiles to list really!
+ * Remove hard coding of CC, which was set to g++ in some places
+   There was a total mix-up of variable names for compilers.
+ * Remove the hard-coding of gcc, which was supposidly done
+   by Micheal to allow it to build on Solaris (see
+   rubiks-20070912.p1 below). With the intension later to
+   build Sage on Solaris with the Sun compiler, why the hell
+   he hard-coded g++ I do not know.
+ * Added -Wall to build if using g++
+ * Checks there are not a mix of Sun and GNU compilers
+ * Adds -m64 if SAGE64 is set to yes.
+ * Print out what things like CC, CXX etc are set to
+   The Makefile do not modify these in this case.
+
+=== rubiks-20070912.p9 (William Stein, June 14, 2009) ===
  * use $MAKE environment variable so that parallel build works
 
 === rubiks-20070912.p8 (Michael Abshoff, September 1st, 2008) ===

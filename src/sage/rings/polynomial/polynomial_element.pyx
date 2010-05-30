@@ -1122,6 +1122,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.squarefree_decomposition()
             1
         """
+        if self.degree() == 0:
+            return Factorization([], unit=self[0])
 
         # Wikipedia says this works for arbitrary fields of
         # characteristic 0.
@@ -1194,7 +1196,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             4*x^4 + 32*x^3 + 88*x^2 + 96*x + 36
             sage: h.is_square(root=True)
             (True, 2*x^2 + 8*x + 6)
+
+        TESTS:
+
+        Make sure ticket #9093 is fixed::
+
+            sage: R(1).is_square()
+            True
+            sage: R(4/9).is_square()
+            True
+            sage: R(-1/3).is_square()
+            False
+            sage: R(0).is_square()
+            True
+
         """
+        if self.degree() < 0:
+            if root:
+                return True, self
+            else:
+                return True
         from sage.rings.arith import gcd
         R = self.base_ring()
         P = self.parent()
@@ -2578,7 +2599,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() < 0:
             raise ValueError, "factorization of 0 not defined"
         if self.degree() == 0:
-            return Factorization([(self,1)])
+            return Factorization([], unit=self[0])
         G = None
 
         ch = R.characteristic()

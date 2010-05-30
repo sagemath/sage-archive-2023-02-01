@@ -221,7 +221,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     @staticmethod
     def __classcall_private__(cls, fam, facade=True, keepkey=False): # was *args, **options):
         """
-        Normalization of arguments; see :cls:`UniqueRepresentation`.
+        Normalization of arguments; see :class:`UniqueRepresentation`.
 
         TESTS:
 

@@ -3082,6 +3082,27 @@ class Partitions_n(CombinatorialClass):
         """
         return "Partitions of the integer %s"%self.n
 
+    def _an_element_(self):
+        """
+        Returns a partition in ``self``.
+
+        EXAMPLES::
+
+            sage: Partitions(4)._an_element_()
+            [3, 1]
+            sage: Partitions(0)._an_element_()
+            []
+            sage: Partitions(1)._an_element_()
+            [1]
+        """
+        if self.n == 0:
+            lst = []
+        elif self.n == 1:
+            lst = [1]
+        else:
+            lst = [self.n-1, 1]
+        return self._element_constructor_(lst)
+
     def cardinality(self, algorithm='default'):
         r"""
         INPUT:

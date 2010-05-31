@@ -837,8 +837,43 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.categories.enumerated_sets import EnumeratedSets
+class CombinatorialClass(Parent):
+    """
+    This class is deprecated, and will disappear as soon as all derived
+    classes in Sage's library will have been fixed. Please derive
+    directly from Parent and use the category :class:`EnumeratedSets`,
+    :class:`FiniteEnumeratedSets`, or :class:`InfiniteEnumeratedSets`, as
+    appropriate.
 
-class CombinatorialClass(SageObject):
+    For examples, see::
+
+        sage: FiniteEnumeratedSets().example()
+        An example of a finite enumerated set: {1,2,3}
+        sage: InfiniteEnumeratedSets().example()
+        An example of an infinite enumerated set: the non negative integers
+    """
+    __metaclass__ = ClasscallMetaclass
+
+    def __init__(self, category = None, *keys, **opts):
+        """
+        TESTS::
+
+            sage: C = sage.combinat.combinat.CombinatorialClass()
+            sage: C.category()
+            Category of enumerated sets
+            sage: C.__class__
+            <class 'sage.combinat.combinat.CombinatorialClass_with_category'>
+            sage: isinstance(C, Parent)
+            True
+            sage: C = sage.combinat.combinat.CombinatorialClass(category = FiniteEnumeratedSets())
+            sage: C.category()
+            Category of finite enumerated sets
+        """
+        Parent.__init__(self, category = EnumeratedSets().or_subcategory(category))
+
+
     def __len__(self):
         """
         __len__ has been removed ! to get the number of element in a
@@ -1030,7 +1065,7 @@ class CombinatorialClass(SageObject):
             sage: P5.element_class
             <class 'sage.combinat.partition.Partition_class'>
         """
-        assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
+        # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
         if hasattr(self, "object_class"):
             from sage.misc.misc import deprecation
             deprecation("Using object_class for specifying the class of the elements of a combinatorial class is deprecated. Please use Element instead")
@@ -1050,7 +1085,7 @@ class CombinatorialClass(SageObject):
             sage: type(p)
             <class 'sage.combinat.partition.Partition_class'>
         """
-        assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
+        # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
         return self.element_class(x)
 
     def __list_from_iterator(self):

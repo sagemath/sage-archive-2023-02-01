@@ -28,7 +28,8 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.combinat import CombinatorialClass
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 from sage.rings.integer import Integer
 from sage.misc.misc import AttrCallObject
 from sage.misc.constant_function import ConstantFunction

@@ -880,6 +880,43 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection):
                     return False
         return all(n * point >= 0 for n in self.facet_normals())
 
+    def __cmp__(self, right):
+        r"""
+        Compare ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``self`` and ``right`` are cones of any kind in the same
+          lattice with the same rays listed in the same order. 1 or -1
+          otherwise.
+
+        TESTS::
+
+            sage: c1 = Cone([(1,0), (0,1)])
+            sage: c2 = Cone([(0,1), (1,0)])
+            sage: c3 = Cone([(0,1), (1,0)])
+            sage: cmp(c1, c2)
+            1
+            sage: cmp(c2, c1)
+            -1
+            sage: cmp(c2, c3)
+            0
+            sage: c2 is c3
+            False
+            sage: cmp(c1, 1)
+            -1
+        """
+        if is_Cone(right):
+            # We don't care about particular type of right in this case
+            return cmp((self.lattice(), self.rays()),
+                       (right.lattice(), right.rays()))
+        else:
+            return cmp(type(self), type(right))
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.
@@ -1243,8 +1280,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection):
             True
         """
         if self.lattice() != other.lattice():
-            return False
-        if self.dim() != other.dim(): # Not necessary, but very fast
             return False
         if self.ray_set() == other.ray_set():
             return True

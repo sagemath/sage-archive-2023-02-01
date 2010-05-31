@@ -224,6 +224,32 @@ from sage.misc.misc import walltime
 from sage.rings.all import ZZ
 
 
+def is_Fan(x):
+    r"""
+    Check if ``x`` is a Fan.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a fan and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fan import is_Fan
+        sage: is_Fan(1)
+        False
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: fan
+        Rational polyhedral fan in 2-dimensional lattice N
+        sage: is_Fan(fan)
+        True
+    """
+    return isinstance(x, RationalPolyhedralFan)
+
+
 def Fan(cones, rays=None, lattice=None, check=True, normalize=True):
     r"""
     Construct a rational polyhedral fan.
@@ -540,8 +566,8 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
     - ``fan_rays`` -- indices of rays of ``fan`` contained in this cone;
 
     - ``fan_generating_cones`` -- indices of generating cones of ``fan``
-      containing this cone (may be given as ``None``, but in this case they
-      cannot be requested later);
+      containing this cone (may be given as ``None``, in this case they will
+      be computed only on demand);
 
     - ``fan`` -- fan whose cone is constructed.
 
@@ -628,10 +654,10 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
             sage: cone.fan_generating_cones()
             (0,)
         """
-        if "_fan_generating_cones" in self.__dict__:
-            return self._fan_generating_cones
-        else:
-            raise NotImplementedError("fan generating cones were not given!")
+        if "_fan_generating_cones" not in self.__dict__:
+            self._fan_generating_cones = self._fan.containing_cones(
+                                                            self._fan_rays)
+        return self._fan_generating_cones
 
     def fan_rays(self):
         r"""
@@ -682,10 +708,14 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
         # This is MUCH faster than the one in the superclass, since we know
         # that cones of a fan intersect nicely and there is nothing to check.
         if isinstance(other, Cone_of_fan) and self._fan is other._fan:
-            return Cone_of_fan(
-                (ray for ray in self._fan_rays if ray in other._fan_rays),
-                None,
-                self._fan,)
+            fan_rays = tuple(ray for ray in self._fan_rays
+                                 if ray in other._fan_rays)
+            result = Cone_of_fan(fan_rays,
+                                 self._fan.containing_cones(fan_rays),
+                                 self._fan)
+            if is_EnhancedCone(self):
+                result = type(self)(self)
+            return result
         # Generic intersection still works, of course.
         return super(Cone_of_fan, self).intersection(other)
 
@@ -860,6 +890,91 @@ class RationalPolyhedralFan(IntegralRayCollection, collections.Callable):
             (N(0, 1), N(-1, 0))
          """
         return iter(self.generating_cones())
+
+    def _compute_cone_lattice(self):
+        r"""
+        Compute the cone lattice of ``self``.
+
+        See :meth:`cone_lattice` for documentation.
+
+        TESTS::
+
+            sage: cone1 = Cone([(1,0), (0,1)])
+            sage: cone2 = Cone([(-1,0)])
+            sage: fan = Fan([cone1, cone2])
+            sage: fan.ray_matrix()
+            [ 0  1 -1]
+            [ 1  0  0]
+            sage: for cone in fan: print cone.fan_rays()
+            (0, 1)
+            (2,)
+            sage: L = fan.cone_lattice() # indirect doctest
+            sage: L
+            Finite poset containing 6 elements
+        """
+        # Define a face constructor
+        def FanFace(rays, cones):
+            rays = tuple(sorted(rays))
+            cones = tuple(sorted(cones))
+            if not cones:       # The top face, fan itself
+                return self
+            if len(cones) == 1: # MAY be a generating cone or NOT!!!
+                g_cone = self.generating_cone(cones[0])
+                if g_cone.fan_rays() == rays:
+                    return g_cone
+            return Cone_of_fan(rays, cones, self)
+        # Check directly if we know completeness already, since *determining*
+        # completeness relies on this function
+        if "_is_complete" in self.__dict__ and self._is_complete:
+            # We can use a fast way for complete fans
+            self._cone_lattice = hasse_diagram_from_incidences(
+                            self.ray_to_cones(), self.cone_to_rays(), FanFace)
+        else:
+            # "Merge" face lattices of generating cones
+            L = DiGraph()
+            face_to_rays = dict()
+            rays_to_index = dict()
+            index_to_cones = []
+            # During construction index 0 will correspond to the fan
+            # We think of the fan not being in the cone even when there is
+            # only one cone
+            index_to_cones.append(())
+            next_index = 1
+            for i, cone in enumerate(self):
+                # Set up translation of faces of cone to rays and indices
+                L_cone = cone.face_lattice()
+                for f in L_cone:
+                    f = f.element
+                    f_rays = tuple(cone.fan_rays()[ray]
+                                   for ray in f.cone_rays())
+                    face_to_rays[f] = f_rays
+                    try:
+                        f_index = rays_to_index[f_rays]
+                        index_to_cones[f_index].append(i)
+                    except KeyError:        # Didn't see f before
+                        f_index = next_index
+                        next_index += 1
+                        rays_to_index[f_rays] = f_index
+                        index_to_cones.append([i])
+                # Add all relations between faces of cone to L
+                for f,g in L_cone.cover_relations_iterator():
+                    L.add_edge(rays_to_index[face_to_rays[f.element]],
+                               rays_to_index[face_to_rays[g.element]])
+                # Add the inclusion of cone into the fan itself
+                L.add_edge(
+                        rays_to_index[face_to_rays[L_cone.top().element]], 0)
+            labels = dict()
+            for new, old in enumerate(L.topological_sort()):
+                labels[old] = new
+            L.relabel(labels)
+            elements = [None] * next_index
+            for rays, index in rays_to_index.items():
+                elements[labels[index]] = FanFace(rays, index_to_cones[index])
+            # We need "special treatment" for the whole fan. If we added its
+            # ray incidence information to total list, it would be confused
+            # with the generating cone in the case of a single cone.
+            elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
+            self._cone_lattice = FinitePoset(L, elements)
 
     def _latex_(self):
         r"""
@@ -1096,71 +1211,7 @@ class RationalPolyhedralFan(IntegralRayCollection, collections.Callable):
         distinguish them in the cone lattice.
         """
         if "_cone_lattice" not in self.__dict__:
-            # Define a face constructor
-            def FanFace(rays, cones):
-                rays = tuple(sorted(rays))
-                cones = tuple(sorted(cones))
-                if not cones:       # The top face, fan itself
-                    return self
-                if len(cones) == 1: # MAY be a generating cone or NOT!!!
-                    g_cone = self.generating_cone(cones[0])
-                    if g_cone.fan_rays() == rays:
-                        return g_cone
-                return Cone_of_fan(rays, cones, self)
-            # Check directly if we know completeness already, since
-            # *determining* completeness relies on this function
-            if "_is_complete" in self.__dict__ and self._is_complete:
-                # We can use a fast way for complete fans
-                self._cone_lattice = hasse_diagram_from_incidences(
-                            self.ray_to_cones(), self.cone_to_rays(), FanFace)
-            else:
-                # "Merge" face lattices of generating cones
-                L = DiGraph()
-                face_to_rays = dict()
-                rays_to_index = dict()
-                index_to_cones = []
-                # During construction index 0 will correspond to the fan
-                # We think of the fan not being in the cone even when there is
-                # only one cone
-                index_to_cones.append(())
-                next_index = 1
-                for i, cone in enumerate(self):
-                    # Set up translation of faces of cone to rays and indices
-                    L_cone = cone.face_lattice()
-                    for f in L_cone:
-                        f = f.element
-                        f_rays = tuple(cone.fan_rays()[ray]
-                                       for ray in f.cone_rays())
-                        face_to_rays[f] = f_rays
-                        try:
-                            f_index = rays_to_index[f_rays]
-                            index_to_cones[f_index].append(i)
-                        except KeyError:        # Didn't see f before
-                            f_index = next_index
-                            next_index += 1
-                            rays_to_index[f_rays] = f_index
-                            index_to_cones.append([i])
-                    # Add all relations between faces of cone to L
-                    for f,g in L_cone.cover_relations_iterator():
-                        L.add_edge(rays_to_index[face_to_rays[f.element]],
-                                   rays_to_index[face_to_rays[g.element]])
-                    # Add the inclusion of cone into the fan itself
-                    L.add_edge(
-                        rays_to_index[face_to_rays[L_cone.top().element]], 0)
-                labels = dict()
-                for new, old in enumerate(L.topological_sort()):
-                    labels[old] = new
-                L.relabel(labels)
-                elements = [None] * next_index
-                for rays, index in rays_to_index.items():
-                    elements[labels[index]] = FanFace(rays,
-                                                      index_to_cones[index])
-                # We need "special treatment" for the whole fan. If we added
-                # its ray incidence information to total list, it would be
-                # confused with the generating cone in the case of a single
-                # cone
-                elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
-                self._cone_lattice = FinitePoset(L, elements)
+            self._compute_cone_lattice()
         return self._cone_lattice
 
     def cone_to_rays(self, i=None):
@@ -1709,3 +1760,179 @@ class RationalPolyhedralFan(IntegralRayCollection, collections.Callable):
             raise ValueError('"%s" is an unknown subdivision algorithm!'
                              % algorithm)
         return getattr(self, method_name)(rays, verbose)
+
+
+class EnhancedCone(Cone_of_fan):
+    r"""
+    Construct an enhanced cone.
+
+    Enhanced cones are similar to "regular" :class:`convex rational polyhedral
+    cones <sage.geometry.cone.ConvexRationalPolyhedralCone>` or, more
+    precisely, :class:`cones of fans <Cone_of_fan>`, but may have some extra
+    functionality. :class:`EnhancedCone` class by itself does not provide any
+    extra functionality, but in conjunction with :class:`EnhancedFan` allows
+    convenient derivation of new classes and ensures CPU- and memory-efficient
+    interaction between regular cones and their enhanced copies.
+
+    INPUT:
+
+    - ``cone`` -- :class:`cone of fan <Cone_of_fan>`;
+
+    - ``fan`` -- ambient fan of this cone. If not given, will be the same as
+      for ``cone``.
+
+    OUTPUT:
+
+    - enhanced cone of exactly the same structure as ``cone``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fan import EnhancedCone
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: econe = EnhancedCone(fan.generating_cone(0))
+        sage: econe == fan.generating_cone(0)
+        True
+        sage: econe is fan.generating_cone(0)
+        False
+    """
+
+    def __init__(self, cone, fan=None):
+        r"""
+        See :class:`EnhancedCone` for documentation.
+
+        TESTS::
+
+            sage: from sage.geometry.fan import EnhancedCone
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: econe = EnhancedCone(fan.generating_cone(0))
+            sage: econe == fan.generating_cone(0)
+            True
+            sage: econe is fan.generating_cone(0)
+            False
+            sage: TestSuite(econe).run()
+        """
+        for attribute in [# Cone attributes
+                          "_rays",
+                          "_lattice",
+                          # Fan attributes
+                          "_fan_rays",
+                          "_fan_generating_cones",
+                          # Cached attributes copied for efficiency
+                          "_is_strictly_convex"]:
+            setattr(self, attribute, getattr(cone, attribute))
+        self._fan = fan if fan is not None else cone._fan
+
+
+def is_EnhancedCone(x):
+    r"""
+    Check if ``x`` is an enhanced cone.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is an enhanced cone and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fan import (
+        ...     EnhancedCone, is_EnhancedCone)
+        sage: is_EnhancedCone(1)
+        False
+        sage: cone = Cone([(1,0), (0,1)])
+        sage: is_EnhancedCone(cone)
+        False
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: econe = EnhancedCone(fan.generating_cone(0))
+        sage: is_EnhancedCone(econe)
+        True
+    """
+    return isinstance(x, EnhancedCone)
+
+
+class EnhancedFan(RationalPolyhedralFan):
+    r"""
+    Construct an enhanced fan.
+
+    Enhanced fans are similar to "regular" :class:`rational polyhedral fans
+    <RationalPolyhedralFan>`, but may have some extra functionality on the
+    levels of fans themselves as well as their cones. :class:`EnhancedFan`
+    class by itself does not provide any extra functionality, but allows
+    convenient derivation of new classes and ensures CPU- and memory-efficient
+    interaction between regular fans and their enhanced copies.
+
+    INPUT:
+
+    - ``fan`` -- :class:`rational polyhedral fan <RationalPolyhedralFan>`;
+
+    - ``cone_type`` -- class derived from :class:`EnhancedCone`.
+
+    OUTPUT:
+
+    - enhanced fan of exactly the same structure as ``fan``, but all of its
+      associated cones are objects of ``cone_type``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fan import (
+        ...     EnhancedCone, EnhancedFan, is_EnhancedCone)
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: efan = EnhancedFan(fan, EnhancedCone)
+        sage: is_EnhancedCone(efan.generating_cone(0))
+        True
+    """
+
+    def __init__(self, fan, cone_type):
+        r"""
+        See :class:`EnhancedFan` for documentation.
+
+        TESTS::
+
+            sage: from sage.geometry.fan import (
+            ...     EnhancedCone, EnhancedFan, is_EnhancedCone)
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: efan = EnhancedFan(fan, EnhancedCone)
+            sage: is_EnhancedCone(efan.generating_cone(0))
+            True
+            sage: TestSuite(efan).run()
+        """
+        for attribute in [# Fan attributes
+                          "_rays",
+                          "_lattice"]:
+            setattr(self, attribute, getattr(fan, attribute))
+        self._base_fan = fan
+        self._cone_type = cone_type
+        self._generating_cones = tuple(cone_type(cone, self) for cone in fan)
+
+    def _compute_cone_lattice(self):
+        r"""
+        Compute the cone lattice of ``self``.
+
+        See :meth:`~RationalPolyhedralFan.cone_lattice` for documentation.
+
+        TESTS::
+
+            sage: from sage.geometry.fan import (
+            ...     EnhancedCone, EnhancedFan, is_EnhancedCone)
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: efan = EnhancedFan(fan, EnhancedCone)
+            sage: L = efan.cone_lattice() # indirect doctest
+            sage: L
+            Finite poset containing 10 elements
+            sage: is_EnhancedCone(L[0].element)
+            True
+        """
+        # Actual computation of the lattice is done in the "usual" fan
+        L =  self._base_fan.cone_lattice()
+        # We just copy its structure using the appropriate class for cones
+        elements = []
+        for element in L:
+            cone = element.element
+            if is_Cone(cone):
+                elements.append(self._cone_type(cone))
+            else:
+                # The last element is the fan itself
+                elements.append(self)
+        self._cone_lattice = FinitePoset(L, elements)

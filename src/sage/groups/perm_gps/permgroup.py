@@ -936,24 +936,31 @@ class PermutationGroup_generic(group.Group):
          Return a Strong Generating System of ``self`` according the given
          base for the right action of ``self`` on itself.
 
-         base_of_group must the list of position on which ``self`` act in
-         any order. The algorithm return a list of transversals and each
-         transversals is a list of permutation. By default, base_of_group
-         is `[1, 2, 3, \dots , n]`.
+         ``base_of_group`` is a list of the  positions on which ``self`` acts,
+         in any order. The algorithm returns a list of transversals and each
+         transversal is a list of permutations. By default, ``base_of_group``
+         is ``[1, 2, 3, ..., d]`` where `d` is the degree of the group.
 
-         for any base_of_group = `[ pos_1, pos_2, \dots , pos_n]`
-         let G_i be the subgroup of ``self`` which stabilize `pos_1, pos_2, \dots , pos_i`
-         ``self`` = `G_0 \supset G_1 \supset G_2 \supset \dots \supset G_n = \{e\}`
-         The algorithm returns: `[ G_i.transversals(pos_{i+1})]_{1 \leqslant i \leqslant n}`
+         For ``base_of_group`` =
+         `[ \mathrm{pos}_1, \mathrm{pos}_2, \dots , \mathrm{pos}_d]`
+         let `G_i` be the subgroup of `G` = ``self`` which stabilizes
+         `\mathrm{pos}_1, \mathrm{pos}_2, \dots , \mathrm{pos}_i`, so
+
+         .. math::
+
+            G = G_0 \supset G_1 \supset G_2 \supset \dots \supset G_n = \{e\}
+
+         Then the algorithm returns `[ G_i.\mathrm{transversals}(\mathrm{pos}_{i+1})]_{1 \leqslant i \leqslant n}`
 
          INPUT:
 
-         - ``base_of_group`` (optional) A list which contains the integer
-           `1, 2, \dots , d` in any order (d is the degree of ``self``)
+         - ``base_of_group`` (optional) -- default: ``[1, 2, 3, ..., d]``
+           -- a list containing the integers
+           `1, 2, \dots , d` in any order (`d` is the degree of ``self``)
 
          OUTPUT:
 
-         - A list of list of permutation inside the group which form a strong
+         - A list of lists of permutations from the group, which form a strong
            generating system.
 
          TESTS::

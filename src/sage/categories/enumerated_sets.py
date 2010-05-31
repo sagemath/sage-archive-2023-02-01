@@ -102,7 +102,7 @@ class EnumeratedSets(Category):
 
             ``iter(self)`` allows the combinatorial class to be treated as an
             iterable. This if the default implementation from the category
-            ``EnumeratedSet()`` it just goes through the iterator of the set
+            ``EnumeratedSets()`` it just goes through the iterator of the set
             to count the number of objects.
 
             By decreasing order of priority, the second column of the
@@ -191,7 +191,7 @@ class EnumeratedSets(Category):
             ``self`` as a sage :class:`Integer` or as ``infinity``.
 
             This if the default implementation from the category
-            ``EnumeratedSet()`` it returns ``NotImplementedError`` since one does
+            ``EnumeratedSets()`` it returns ``NotImplementedError`` since one does
             not know whether the set is finite or not.
 
             EXAMPLES::
@@ -232,7 +232,7 @@ class EnumeratedSets(Category):
 
             ``self.first()`` returns the first element of the set
             ``self``. This is a generic implementation from the category
-            ``EnumeratedSet()`` which can be used when the method ``__iter__`` is
+            ``EnumeratedSets()`` which can be used when the method ``__iter__`` is
             provided.
 
             EXAMPLES::
@@ -251,7 +251,7 @@ class EnumeratedSets(Category):
 
             ``self.next(e)`` returns the element of the set ``self`` which
             follows ``e``. This is a generic implementation from the category
-            ``EnumeratedSet()`` which can be used when the method ``__iter__``
+            ``EnumeratedSets()`` which can be used when the method ``__iter__``
             is provided.
 
             Remark: this is the default (brute force) implementation
@@ -315,7 +315,7 @@ class EnumeratedSets(Category):
             cardinality of ``self``, or None if `x` is not in `self`.
 
             This is the default (brute force) implementation from the
-            category ``EnumeratedSet()`` which can be used when the
+            category ``EnumeratedSets()`` which can be used when the
             method ``__iter__`` is provided. Its complexity is `O(r)`,
             where `r` is the rank of ``obj``. For infinite enumerated
             sets, this won't terminate when `x` is not in ``self``
@@ -344,7 +344,7 @@ class EnumeratedSets(Category):
 
             ``iter(self)`` returns an iterator for the elements
             of ``self``. This is a generic implementation from the
-            category ``EnumeratedSet()`` which can be used when the
+            category ``EnumeratedSets()`` which can be used when the
             method ``list`` is provided.
 
             EXAMPLES::
@@ -363,7 +363,7 @@ class EnumeratedSets(Category):
 
             ``iter(self)`` returns an iterator for the element of
             the set ``self``. This is a generic implementation from
-            the category ``EnumeratedSet()`` which can be used when
+            the category ``EnumeratedSets()`` which can be used when
             the methods ``first`` and ``next`` are provided.
 
             EXAMPLES::
@@ -392,7 +392,7 @@ class EnumeratedSets(Category):
 
             ``iter(self)`` returns an iterator for the elements
             of the set ``self``. This is a generic implementation from
-            the category ``EnumeratedSet()`` which can be used when
+            the category ``EnumeratedSets()`` which can be used when
             the method ``unrank`` is provided.
 
             EXAMPLES::
@@ -428,7 +428,7 @@ class EnumeratedSets(Category):
 
             ``self.an_element()`` returns a particular element of the set
             ``self``. This is a generic implementation from the category
-            ``EnumeratedSet()`` which can be used when the method ``__iter__``
+            ``EnumeratedSets()`` which can be used when the method ``__iter__``
             is provided.
 
             EXAMPLES::
@@ -451,7 +451,7 @@ class EnumeratedSets(Category):
             See :class:`TestSuite` for a typical use case.
 
             This is a generic implementation from the category
-            ``EnumeratedSet()`` which can be used when the method
+            ``EnumeratedSets()`` which can be used when the method
             ``__iter__`` is provided. It returns an iterator for up to
             the first 100 elements of ``self``
 
@@ -477,7 +477,7 @@ class EnumeratedSets(Category):
             the probability is uniform.
 
             This is a generic implementation from the category
-            ``EnumeratedSet()``. It raise a ``NotImplementedError``
+            ``EnumeratedSets()``. It raise a ``NotImplementedError``
             since one does not know whether the set is finite.
 
             EXAMPLES::

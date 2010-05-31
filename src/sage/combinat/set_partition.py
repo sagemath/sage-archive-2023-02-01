@@ -64,7 +64,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.sets.set import Set, EnumeratedSet, is_Set, Set_object_enumerated
+from sage.sets.set import Set, is_Set, Set_object_enumerated
 import sage.combinat.partition as partition
 import sage.rings.integer
 import __builtin__
@@ -404,7 +404,7 @@ def _set_union(s):
     result = Set([])
     for ss in s:
         result = result.union(ss)
-    return EnumeratedSet([result])
+    return Set([result])
 
 def inf(s,t):
     """
@@ -420,7 +420,7 @@ def inf(s,t):
     """
     temp = [ss.intersection(ts) for ss in s for ts in t]
     temp = filter(lambda x: x != Set([]), temp)
-    return EnumeratedSet(temp)
+    return Set(temp)
 
 def sup(s,t):
     """

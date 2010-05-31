@@ -79,8 +79,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: set(k)
         set([0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2])
 
-    And the following is a Sage enumerated set:
-        sage: EnumeratedSet(k)
+    And the following is a Sage set:
+        sage: Set(k)
         {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
 
         We can also make a list via comprehension:

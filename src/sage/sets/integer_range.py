@@ -61,7 +61,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: list(IntegerRange(2,5))
         [2, 3, 4]
         sage: I = IntegerRange(2,100,5); I
-        Integer progression from 2 to 100 with increment 5
+        {2, 7, .., 97}
         sage: list(I)
         [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 77, 82, 87, 92, 97]
         sage: I.category()
@@ -87,7 +87,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     arithmetic progression starting from the ``begin`` by step ``step``::
 
         sage: I = IntegerRange(54,Infinity,3); I
-        Integer progression from 54 to +Infinity with increment 3
+        {54, 57, ..}
         sage: I.category()
         Category of infinite enumerated sets
         sage: p = iter(I)
@@ -95,7 +95,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         (54, 57, 60, 63, 66, 69)
 
         sage: I = IntegerRange(54,-Infinity,-3); I
-        Integer progression from 54 to -Infinity with increment -3
+        {54, 51, ..}
         sage: I.category()
         Category of infinite enumerated sets
         sage: p = iter(I)
@@ -125,7 +125,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     but the enumeration will begin with this ``middle_point``::
 
         sage: I = IntegerRange(123,-12,-14); I
-        Integer progression from 123 to -12 with increment -14
+        {123, 109, .., -3}
         sage: list(I)
         [123, 109, 95, 81, 67, 53, 39, 25, 11, -3]
         sage: J = IntegerRange(123,-12,-14,25); J
@@ -150,6 +150,16 @@ class IntegerRange(UniqueRepresentation, Parent):
         True
         sage: list(I)
         [0, 10, -10, 20, -20, 30, -30, 40, -40, 50, -50, 60, -60, 70, -70, 80, -80, 90, -90, -100]
+
+
+    .. note::
+
+       The input is normalized so that::
+
+        sage: IntegerRange(1, 6, 2) is IntegerRange(1, 7, 2)
+        True
+        sage: IntegerRange(1, 8, 3) is IntegerRange(1, 10, 3)
+        True
 
     TESTS::
 
@@ -187,8 +197,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ...           L2.sort()
         ...           assert L1 == L2
 
-    TODO: Fix the following test as soon as categories test allows for it
-    see #8543::
+    Thanks to #8543 empty integer range are allowed::
 
         sage: TestSuite(IntegerRange(0, 5, -1)).run()
     """
@@ -227,28 +236,17 @@ class IntegerRange(UniqueRepresentation, Parent):
         if (begin == -Infinity) or (begin == Infinity):
             raise ValueError("Can't iterate over this set: It is impossible to begin an enumeration with plus/minus Infinity")
 
+        # Check for empty sets
+        if step > 0 and begin >= end or step < 0 and begin <= end:
+            return IntegerRangeEmpty()
+
         if end != Infinity and end != -Infinity:
+            # Normalize the input
+            sgn = 1 if step > 0 else -1
+            end = begin+((end-begin-sgn)//(step)+1)*step
             return IntegerRangeFinite(begin, end, step)
         else:
-            return IntegerRangeInfinite(begin, end, step)
-
-    def __repr__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: IntegerRangeFinite(123,12,-4)
-            Integer progression from 123 to 12 with increment -4
-            sage: IntegerRangeFinite(-57,1,3)
-            Integer progression from -57 to 1 with increment 3
-
-            sage: from sage.sets.integer_range import IntegerRangeInfinite
-            sage: IntegerRangeInfinite(-57,Infinity,8)
-            Integer progression from -57 to +Infinity with increment 8
-            sage: IntegerRangeInfinite(-112,-Infinity,-13)
-            Integer progression from -112 to -Infinity with increment -13
-        """
-        return "Integer progression from %s to %s with increment %s"%(self._begin,self._end,self._step)
+            return IntegerRangeInfinite(begin, step)
 
     def _element_constructor_(self, el):
         """
@@ -260,7 +258,7 @@ class IntegerRange(UniqueRepresentation, Parent):
             sage: S(0)
             Traceback (most recent call last):
             ...
-            ValueError: 0 not in Integer progression from 1 to 10 with increment 2
+            ValueError: 0 not in {1, 3, .., 9}
         """
         if el in self:
             return el
@@ -269,6 +267,32 @@ class IntegerRange(UniqueRepresentation, Parent):
 
     element_class = Integer
 
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+class IntegerRangeEmpty(IntegerRange, FiniteEnumeratedSet):
+    r"""
+    A singleton class for empty integer ranges
+
+    See :class:`IntegerRange` for more details.
+    """
+
+    # Needed because FiniteEnumeratedSet.__classcall__ takes an argument.
+    @staticmethod
+    def __classcall__(cls, *args):
+        """
+        TESTS::
+
+            sage: from sage.sets.integer_range import IntegerRangeEmpty
+            sage: I = IntegerRangeEmpty(); I
+            {}
+            sage: I.category()
+            Category of finite enumerated sets
+            sage: TestSuite(I).run()
+            sage: I(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in {}
+        """
+        return FiniteEnumeratedSet.__classcall__(cls, ())
 
 class IntegerRangeFinite(IntegerRange):
     r"""
@@ -281,8 +305,7 @@ class IntegerRangeFinite(IntegerRange):
         r"""
         TESTS::
 
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: I = IntegerRangeFinite(123,12,-4)
+            sage: I = IntegerRange(123,12,-4)
             sage: I.category()
             Category of finite enumerated sets
             sage: TestSuite(I).run()
@@ -298,8 +321,7 @@ class IntegerRangeFinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: I = IntegerRangeFinite(123,12,-4)
+            sage: I = IntegerRange(123,12,-4)
             sage: 123 in I
             True
             sage: 127 in I
@@ -330,19 +352,47 @@ class IntegerRangeFinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: IntegerRangeFinite(123,12,-4).cardinality()
+            sage: IntegerRange(123,12,-4).cardinality()
             28
-            sage: IntegerRangeFinite(-57,12,8).cardinality()
+            sage: IntegerRange(-57,12,8).cardinality()
             9
-            sage: IntegerRangeFinite(123,12,4).cardinality()
+            sage: IntegerRange(123,12,4).cardinality()
             0
         """
-        if (self._begin > self._end and self._step > 0) or \
-           (self._begin < self._end and self._step < 0):
-            return 0
         return (abs((self._end+self._step-self._begin))-1) // abs(self._step)
 
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: IntegerRange(1,2)
+            {1}
+            sage: IntegerRange(1,3)
+            {1, 2}
+            sage: IntegerRange(1,5,3)
+            {1, 4}
+            sage: IntegerRange(1,12)
+            {1, .., 11}
+            sage: IntegerRange(123,12,-4)
+            {123, 119, .., 15}
+            sage: IntegerRange(-57,1,3)
+            {-57, -54, .., 0}
+
+            sage: IntegerRange(-57,Infinity,8)
+            {-57, -49, ..}
+            sage: IntegerRange(-112,-Infinity,-13)
+            {-112, -125, ..}
+        """
+        card = self.cardinality()
+        if card == 1:
+            return "{%s}"%self._begin
+        elif card == 2:
+            return "{%s, %s}"%(self._begin, self._begin+self._step)
+        elif self._step == 1:
+            return "{%s, .., %s}"%(self._begin, self._end-self._step)
+        else:
+            return "{%s, %s, .., %s}"%(self._begin, self._begin+self._step,
+                                     self._end-self._step)
 
     def __iter__(self):
         r"""
@@ -350,15 +400,14 @@ class IntegerRangeFinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: I = IntegerRangeFinite(123,12,-4)
+            sage: I = IntegerRange(123,12,-4)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
-            (123, 119, 115, 111, 107, 103, 99, 95)
-            sage: I = IntegerRangeFinite(-57,12,8)
+            sage: [p.next() for i in range(8)]
+            [123, 119, 115, 111, 107, 103, 99, 95]
+            sage: I = IntegerRange(-57,12,8)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
-            (-57, -49, -41, -33, -25, -17, -9, -1)
+            sage: [p.next() for i in range(8)]
+            [-57, -49, -41, -33, -25, -17, -9, -1]
         """
         n = self._begin
         if self._step > 0:
@@ -376,16 +425,13 @@ class IntegerRangeFinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeFinite
-            sage: I = IntegerRangeFinite(123,12,-4)
+            sage: I = IntegerRange(123,12,-4)
             sage: I.an_element()
             115
-            sage: I = IntegerRangeFinite(-57,12,8)
+            sage: I = IntegerRange(-57,12,8)
             sage: I.an_element()
             -41
         """
-        if self.cardinality() == 0:
-            raise EmptySetError, "Can't return _an_element_ on empty set"
         p = (self._begin + 2*self._step)
         if p in self:
             return p
@@ -396,29 +442,37 @@ class IntegerRangeInfinite(IntegerRange):
     r""" The class of infinite enumerated sets of integers defined by infinite
     arithmetic progressions.
 
-    .. warning::
-
-         To be well defined, the Integer ``begin`` has to be finite and
-         ``end`` infinite.
-
     See :class:`IntegerRange` for more details.
     """
-    def __init__(self, begin, end, step=Integer(1)):
+    def __init__(self, begin, step=Integer(1)):
         r"""
         TESTS::
 
-            sage: from sage.sets.integer_range import IntegerRangeInfinite
-            sage: I = IntegerRangeInfinite(-57,Infinity,8)
+            sage: I = IntegerRange(-57,Infinity,8)
             sage: I.category()
             Category of infinite enumerated sets
             sage: TestSuite(I).run()
         """
         assert isinstance(begin, Integer)
-        assert isinstance(end, (MinusInfinity, PlusInfinity))
         self._begin = begin
-        self._end = end
         self._step = step
         Parent.__init__(self, category = InfiniteEnumeratedSets())
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: IntegerRange(123,12,-4)
+            {123, 119, .., 15}
+            sage: IntegerRange(-57,1,3)
+            {-57, -54, .., 0}
+
+            sage: IntegerRange(-57,Infinity,8)
+            {-57, -49, ..}
+            sage: IntegerRange(-112,-Infinity,-13)
+            {-112, -125, ..}
+        """
+        return "{%s, %s, ..}"%(self._begin, self._begin+self._step)
 
     def __contains__(self, elt):
         r"""
@@ -426,8 +480,7 @@ class IntegerRangeInfinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeInfinite
-            sage: I = IntegerRangeInfinite(-57,Infinity,8)
+            sage: I = IntegerRange(-57,Infinity,8)
             sage: -57 in I
             True
             sage: -65 in I
@@ -452,15 +505,15 @@ class IntegerRangeInfinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeInfinite
-            sage: I = IntegerRangeInfinite(-57,Infinity,8)
+            sage: I = IntegerRange(-57,Infinity,8)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
-            (-57, -49, -41, -33, -25, -17, -9, -1)
-            sage: I = IntegerRangeInfinite(-112,-Infinity,-13)
+            sage: [p.next() for i in range(8)]
+            [-57, -49, -41, -33, -25, -17, -9, -1]
+
+            sage: I = IntegerRange(-112,-Infinity,-13)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
-            (-112, -125, -138, -151, -164, -177, -190, -203)
+            sage: [p.next() for i in range(8)]
+            [-112, -125, -138, -151, -164, -177, -190, -203]
         """
         n = self._begin
         while True:
@@ -473,11 +526,11 @@ class IntegerRangeInfinite(IntegerRange):
 
         EXAMPLES::
 
-            sage: from sage.sets.integer_range import IntegerRangeInfinite
-            sage: I = IntegerRangeInfinite(-57,Infinity,8)
+            sage: I = IntegerRange(-57,Infinity,8)
             sage: I.an_element()
             191
-            sage: I = IntegerRangeInfinite(-112,-Infinity,-13)
+
+            sage: I = IntegerRange(-112,-Infinity,-13)
             sage: I.an_element()
             -515
         """

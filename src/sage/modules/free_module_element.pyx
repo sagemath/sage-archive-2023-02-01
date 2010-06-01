@@ -2014,7 +2014,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: T(r,theta)=[r*cos(theta),r*sin(theta)]
             sage: T
-            ((r, theta) |--> r*cos(theta), (r, theta) |--> r*sin(theta))
+            (r, theta) |--> (r*cos(theta), r*sin(theta))
             sage: T.diff() # matrix derivative
             [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
             [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
@@ -2582,7 +2582,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: x,y=var('x,y')
             sage: v=vector([x,y,x*sin(y)])
             sage: w=v.function([x,y]); w
-            ((x, y) |--> x, (x, y) |--> y, (x, y) |--> x*sin(y))
+            (x, y) |--> (x, y, x*sin(y))
             sage: w.base_ring()
             Callable function ring with arguments (x, y)
             sage: w(1,2)
@@ -2597,7 +2597,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: x,y=var('x,y')
             sage: v=vector([x,y,x*sin(y)])
             sage: w=v.function([x]); w
-            (x |--> x, x |--> y, x |--> x*sin(y))
+            x |--> (x, y, x*sin(y))
             sage: w.base_ring()
             Callable function ring with arguments (x,)
             sage: w(4)

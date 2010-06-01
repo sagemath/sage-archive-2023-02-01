@@ -85,7 +85,7 @@ test to determine that there is a saddle point at (0,-1/2).
 
     sage: f(x,y)=x^2*y+y^2+y
     sage: f.diff() # gradient
-    ((x, y) |--> 2*x*y, (x, y) |--> x^2 + 2*y + 1)
+    (x, y) |--> (2*x*y, x^2 + 2*y + 1)
     sage: solve(list(f.diff()),[x,y])
     [[x == -I, y == 0], [x == I, y == 0], [x == 0, y == (-1/2)]]
     sage: H=f.diff(2); H  # Hessian matrix
@@ -101,7 +101,7 @@ Here we calculate the Jacobian for the polar coordinate transformation::
 
     sage: T(r,theta)=[r*cos(theta),r*sin(theta)]
     sage: T
-    ((r, theta) |--> r*cos(theta), (r, theta) |--> r*sin(theta))
+    (r, theta) |--> (r*cos(theta), r*sin(theta))
     sage: T.diff() # Jacobian matrix
     [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
     [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]

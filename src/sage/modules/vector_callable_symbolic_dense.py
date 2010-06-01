@@ -92,8 +92,8 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
             sage: r(t) = (cos(t), sin(t))
             sage: r
             t |--> (cos(t), sin(t))
-sage: latex(r)
-t \ {\mapsto}\ \left(\cos\left(t\right),\sin\left(t\right)\right)
+            sage: latex(r)
+            t \ {\mapsto}\ \left(\cos\left(t\right),\sin\left(t\right)\right)
         """
         from sage.misc.latex import latex
         ring=self.base_ring()

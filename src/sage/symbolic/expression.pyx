@@ -2527,7 +2527,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f(x,y)=x^2+y
             sage: f.diff() # gradient
-            ((x, y) |--> 2*x, (x, y) |--> 1)
+            (x, y) |--> (2*x, 1)
 
         TESTS:
 
@@ -2590,13 +2590,13 @@ cdef class Expression(CommutativeRingElement):
             (2*x, 2*y)
             sage: g(x,y) = x^2+y^2
             sage: g.gradient()
-            ((x, y) |--> 2*x, (x, y) |--> 2*y)
+            (x, y) |--> (2*x, 2*y)
             sage: n = var('n')
             sage: f(x,y) = x^n+y^n
             sage: f.gradient()
-            ((x, y) |--> n*x^(n - 1), (x, y) |--> n*y^(n - 1))
+            (x, y) |--> (n*x^(n - 1), n*y^(n - 1))
             sage: f.gradient([y,x])
-            ((x, y) |--> n*y^(n - 1), (x, y) |--> n*x^(n - 1))
+            (x, y) |--> (n*y^(n - 1), n*x^(n - 1))
         """
         from sage.modules.free_module_element import vector
         if variables is None:

@@ -70,6 +70,7 @@ Categories
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
    sage/categories/finite_monoids
+   sage/categories/finite_permutation_groups
    sage/categories/finite_semigroups
    sage/categories/finite_weyl_groups
    sage/categories/gcd_domains

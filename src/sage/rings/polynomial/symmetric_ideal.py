@@ -113,26 +113,25 @@ class SymmetricIdeal( Ideal_generic ):
 
     The default ordering is lexicographic. We now compute a Groebner basis::
 
-        sage: J=I.groebner_basis()
-        sage: J
+        sage: J=I.groebner_basis() ; J # long time
         [y_1^5 + y_1^3, y_2*y_1^2 - y_1^3, y_2^2 - y_1^2, x_1*y_1^2 - y_1^4, x_1*y_2 - y_1^3, x_1^2 + y_1^2, x_2*y_1 - y_1^3]
 
     Ideal membership in ``I`` can now be tested by commuting symmetric reduction modulo ``J``::
 
-        sage: I.reduce(J)
+        sage: I.reduce(J) # depends on long time example above
         Symmetric Ideal (0, 0) of Infinite polynomial ring in x, y over Rational Field
 
     Note that the Groebner basis is not point-wise invariant under permutation. However, any element
     of ``J`` has symmetric reduction zero even after applying a permutation::
 
         sage: P=Permutation([1, 4, 3, 2])
-        sage: J[2]
+        sage: J[2] # depends on long time example above
         y_2^2 - y_1^2
-        sage: J[2]^P
+        sage: J[2]^P # depends on long time example above
         y_4^2 - y_1^2
-        sage: J.__contains__(J[2]^P)
+        sage: J.__contains__(J[2]^P) # depends on long time example above
         False
-        sage: [[(p^P).reduce(J) for p in J] for P in Permutations(4)]
+        sage: [[(p^P).reduce(J) for p in J] for P in Permutations(4)] # long time
         [[0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0],
@@ -161,7 +160,7 @@ class SymmetricIdeal( Ideal_generic ):
     Since ``I`` is not a Groebner basis, it is no surprise that it can not detect
     ideal membership::
 
-        sage: [p.reduce(I) for p in J]
+        sage: [p.reduce(I) for p in J] # depends on long time example above
         [y_1^5 + y_1^3, y_2*y_1^2 - y_1^3, y_2^2 - y_1^2, x_1*y_1^2 - y_1^4, x_1*y_2 - y_1^3, -y_2^2 + y_1^2, x_2*y_1 - y_1^3]
 
     Note that we give no guarantee that the computation of a symmetric Groebner basis will terminate in

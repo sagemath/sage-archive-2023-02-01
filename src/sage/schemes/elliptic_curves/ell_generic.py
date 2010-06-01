@@ -2386,11 +2386,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def change_weierstrass_model(self, *urst):
         r"""
-        Return a new Weierstrass model of self under the standard transformation `(u,r,s,,t)`
+        Return a new Weierstrass model of self under the standard transformation `(u,r,s,t)`
 
         .. math::
 
-             (x,y) \mapsto (x',y') = (u^2xr , u^3y + su^2x' + t).
+             (x,y) \mapsto (x',y') = (u^2x + r , u^3y + su^2x + t).
 
 
         EXAMPLES::

@@ -13310,15 +13310,19 @@ class GenericGraph(GenericGraph_pyx):
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
-        Returns the canonical label with respect to the partition. If no
-        partition is given, uses the unit partition.
+        Returns the unique graph on \{0,1,...,n-1\} ( n = self.order() ) which
+            - is isomorphic to self,
+            - has canonical vertex labels,
+            - allows only permutations of vertices respecting the input set partition (if given).
+
+        Canonical here means that all graphs isomorphic to self (and respecting the input set partition)
+        have the same canonical vertex labels.
 
         INPUT:
 
-
         -  ``partition`` - if given, the canonical label with
-           respect to this partition will be computed. The default is the unit
-           partition.
+           respect to this set partition will be computed. The default is the unit
+           set partition.
 
         -  ``certify`` - if True, a dictionary mapping from the
            (di)graph to its canonical label will be given.
@@ -13373,6 +13377,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
+            sage: G.canonical_label(edge_labels=True,certify=True)
+            (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
         """
         import sage.groups.perm_gps.partn_ref.refinement_graphs
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
@@ -13399,12 +13405,12 @@ class GenericGraph(GenericGraph_pyx):
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
-            b_new = {}
+            c_new = {}
             for v in self.vertices():
-                b_new[v] = c[G_to[('o',v)]]
-            H.relabel(b_new)
+                c_new[v] = c[G_to[('o',v)]]
+            H.relabel(c_new)
             if certify:
-                return H, relabeling
+                return H, c_new
             else:
                 return H
         if self.has_multiple_edges():

@@ -1,5 +1,5 @@
 r"""
-UniqueRepresentation
+Unique Representation
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -27,7 +27,7 @@ class UniqueRepresentation:
     EXAMPLES:
 
     The short story: to construct a class whose instances have a
-    unique representation behavior one just have to do::
+    unique representation behavior one just has to do::
 
         sage: class MyClass(UniqueRepresentation):
         ...       # all the rest as usual
@@ -61,7 +61,8 @@ class UniqueRepresentation:
     on a small set of elements (say the multiplication table of a
     small group), and access this cache as quickly as possible.
 
-    The :class:`UniqueRepresentation` and :class:`UniqueFactory` classes
+    The :class:`UniqueRepresentation` and
+    :class:`~sage.structure.factory.UniqueFactory` classes
     provide two alternative implementations of this design pattern. Both
     implementations have their own merits. :class:`UniqueRepresentation` is
     very easy to use: a class just needs to derive from it, or make sure some
@@ -187,7 +188,8 @@ class UniqueRepresentation:
     ``MyClass2([1,2,3])`` triggers a call to
     ``MyClass2.__classcall__(MyClass2, [1,2,3])``. This is an extension of
     the standard Python behavior, needed by :class:`UniqueRepresentation`,
-    and implemented by the ``ClasscallMetaclass``. Then,
+    and implemented by the
+    :class:`~sage.misc.classcall_metaclass.ClasscallMetaclass`. Then,
     ``MyClass2.__classcall__`` does the desired transformations on the
     arguments. Finally, it uses ``super`` to call the default
     implementation of ``__classcall__`` provided by
@@ -279,7 +281,7 @@ class UniqueRepresentation:
 
     Caveat: the default implementation of :meth:`__reduce__` in
     :class:`UniqueRepresentation` requires to store the constructor's
-    arguments in the instance dictionary upon construction:
+    arguments in the instance dictionary upon construction::
 
         sage: x.__dict__
         {'_reduction': (<class '__main__.MyClass'>, (), {'value': 1}), 'value': 1}
@@ -287,7 +289,7 @@ class UniqueRepresentation:
     It is often easy in a derived subclass to reconstruct the
     constructors arguments from the instance data structure. When this
     is the case, :meth:`__reduce__` should be overridden; automagically
-    the arguments won't be stored anymore:
+    the arguments won't be stored anymore::
 
         sage: class MyClass3(UniqueRepresentation):
         ...       def __init__(self, value):
@@ -303,9 +305,9 @@ class UniqueRepresentation:
         sage: x.__dict__
         {'value': 1}
 
-    .. rubric:: Migrating classes to ``UniqueRepresentation`` and unpickling
+    .. rubric:: Migrating classes to :class:`UniqueRepresentation` and unpickling
 
-    We check that, when migrating a class to ``UniqueRepresentation``,
+    We check that, when migrating a class to :class:`UniqueRepresentation`,
     older pickle can still be reasonably unpickled. Let us create a
     (new style) class, and pickle one of its instances::
 
@@ -322,7 +324,7 @@ class UniqueRepresentation:
         sage: y.value
         1
 
-    Now, we upgrade the class to derive from ``UniqueRepresentation``::
+    Now, we upgrade the class to derive from :class:`UniqueRepresentation`::
 
         sage: class MyClass4(UniqueRepresentation, object):
         ...       def __init__(self, value):
@@ -382,8 +384,8 @@ class UniqueRepresentation:
     .. rubric:: Rationale for the current implementation
 
     :class:`UniqueRepresentation` and derived classes use the
-    ``ClasscallMetaclass`` of the standard Python type. The following
-    example explains why.
+    :class:`~sage.misc.classcall_metaclass.ClasscallMetaclass`
+    of the standard Python type. The following example explains why.
 
     We define a variant of ``MyClass`` where the calls to :meth:`__init__`
     are traced::

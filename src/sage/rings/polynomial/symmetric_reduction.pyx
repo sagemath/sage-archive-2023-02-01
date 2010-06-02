@@ -2,45 +2,49 @@
 Symmetric Reduction of Infinite Polynomials
 
 :class:`~sage.rings.polynomial.symmetric_reduction.SymmetricReductionStrategy`
-provides a framework for efficient symmetric reduction of Infinite Polynomials, see
-:mod:`~sage.rings.polynomial.infinite_polynomial_element`.
+provides a framework for efficient symmetric reduction of Infinite
+Polynomials, see :mod:`~sage.rings.polynomial.infinite_polynomial_element`.
 
 AUTHORS:
 
 - Simon King <simon.king@nuigalway.ie>
 
 THEORY:
-    According to M. Aschenbrenner and C. Hillar [AB2007]_, Symmetric Reduction
-    of an element `p` of an Infinite Polynomial Ring `X` by some other element
-    `q` means the following:
+
+According to M. Aschenbrenner and C. Hillar [AB2007]_, Symmetric
+Reduction of an element `p` of an Infinite Polynomial Ring `X` by some
+other element `q` means the following:
 
     1. Let `M` and `N` be the leading terms of `p` and `q`.
-    2. Test whether there is a permutation `P` that does not does not diminish the variable
-       indices occurring in `N` and preserves their order, so that there is some term `T\in X`
-       with `T N^P = M`. If there is no such permutation, return `p`
+    2. Test whether there is a permutation `P` that does not
+       does not diminish the variable indices occurring in `N`
+       and preserves their order, so that there is some term
+       `T\in X` with `T N^P = M`. If there is no such permutation,
+       return `p`.
     3. Replace `p` by `p-T q^P` and continue with step 1.
 
 
-When reducing one polynomial `p` with respect to a list `L` of
-other polynomials, there usually is a choice of order on which the
+When reducing one polynomial `p` with respect to a list `L` of other
+polynomials, there usually is a choice of order on which the
 efficiency crucially depends. Also it helps to modify the polynomials
 on the list in order to simplify the basic reduction steps.
 
-The preparation of `L` may be expensive. Hence, if the same list is used
-many times then it is reasonable to perform the preparation only once. This
-is the background of :class:`~sage.rings.polynomial.symmetric_reduction.SymmetricReductionStrategy`.
+The preparation of `L` may be expensive. Hence, if the same list is
+used many times then it is reasonable to perform the preparation only
+once. This is the background of
+:class:`~sage.rings.polynomial.symmetric_reduction.SymmetricReductionStrategy`.
 
 Our current strategy is to keep the number of terms in the polynomials
 as small as possible. For this, we sort `L` by increasing number of
 terms. If several elements of `L` allow for a reduction of `p`, we
-chose the one with the smallest number of terms. Later on, it should be possible
-to implement further strategies for choice.
+chose the one with the smallest number of terms. Later on, it should
+be possible to implement further strategies for choice.
 
-When adding a new polynomial `q` to `L`, we first reduce `q` with respect to `L`.
-Then, we test heuristically whether it is possible to reduce the number of
-terms of the elements of `L` by reduction modulo `q`.
-That way, we see best chances to keep the number of terms in intermediate
-reduction steps relatively small.
+When adding a new polynomial `q` to `L`, we first reduce `q` with
+respect to `L`. Then, we test heuristically whether it is possible to
+reduce the number of terms of the elements of `L` by reduction modulo
+`q`.  That way, we see best chances to keep the number of terms in
+intermediate reduction steps relatively small.
 
 EXAMPLES:
 
@@ -49,8 +53,9 @@ First, we create an infinite polynomial ring and one of its elements::
     sage: X.<x,y> = InfinitePolynomialRing(QQ)
     sage: p = y[1]*y[3]+y[1]^2*x[3]
 
-We want to symmetrically reduce it by another polynomial. So, we put this other
-polynomial into a list and create a Symmetric Reduction Strategy object::
+We want to symmetrically reduce it by another polynomial. So, we put
+this other polynomial into a list and create a Symmetric Reduction
+Strategy object::
 
     sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
     sage: S = SymmetricReductionStrategy(X, [y[2]^2*x[1]])
@@ -60,10 +65,12 @@ polynomial into a list and create a Symmetric Reduction Strategy object::
     sage: S.reduce(p)
     x_3*y_1^2 + y_3*y_1
 
-The preceding is correct, since any permutation that turns ``y[2]^2*x[1]`` into
-a factor of ``y[1]^2*x[3]`` interchanges the variable indices 1 and 2 -- which is not
-allowed in a symmetric reduction. However, reduction by ``y[1]^2*x[2]`` works,
-since one can change variable index 1 into 2 and 2 into 3. So, we add this to ``S``::
+The preceding is correct, since any permutation that turns
+``y[2]^2*x[1]`` into a factor of ``y[1]^2*x[3]`` interchanges the
+variable indices 1 and 2 -- which is not allowed in a symmetric
+reduction. However, reduction by ``y[1]^2*x[2]`` works, since one can
+change variable index 1 into 2 and 2 into 3. So, we add this to
+``S``::
 
     sage: S.add_generator(y[1]^2*x[2])
     sage: S
@@ -73,15 +80,16 @@ since one can change variable index 1 into 2 and 2 into 3. So, we add this to ``
     sage: S.reduce(p)
     y_3*y_1
 
-The next example shows that tail reduction is not done, unless it is explicitly advised::
+The next example shows that tail reduction is not done, unless it is
+explicitly advised::
 
     sage: S.reduce(x[3] + 2*x[2]*y[1]^2 + 3*y[2]^2*x[1])
     x_3 + 2*x_2*y_1^2 + 3*x_1*y_2^2
     sage: S.tailreduce(x[3] + 2*x[2]*y[1]^2 + 3*y[2]^2*x[1])
     x_3
 
-However, it is possible to ask for tailreduction already when the Symmetric Reduction
-Strategy is created::
+However, it is possible to ask for tailreduction already when the
+Symmetric Reduction Strategy is created::
 
     sage: S2 = SymmetricReductionStrategy(X, [y[2]^2*x[1],y[1]^2*x[2]], tailreduce=True)
     sage: S2
@@ -118,10 +126,13 @@ cdef class SymmetricReductionStrategy:
 
     INPUT:
 
-    - ``Parent``, an Infinite Polynomial Ring, see :mod:`~sage.rings.polynomial.infinite_polynomial_element`.
-    - ``L``, a list of elements of ``Parent`` (default: ``L=[]``) with respect to which reduction will be done
-    - ``good_input``: If this optional parameter is true, it is assumed that each element of ``L`` is
-      symmetrically reduced with respect to the previous elements of ``L``
+    - ``Parent`` -- an Infinite Polynomial Ring, see
+      :mod:`~sage.rings.polynomial.infinite_polynomial_element`.
+    - ``L`` -- (list, default the empty list) List of elements of ``Parent``
+      with respect to which will be reduced.
+    - ``good_input`` -- (bool, default ``None``) If this optional parameter
+      is true, it is assumed that each element of ``L`` is symmetrically
+      reduced with respect to the previous elements of ``L``.
 
     EXAMPLES::
 
@@ -188,7 +199,7 @@ cdef class SymmetricReductionStrategy:
 
     def gens(self):
         """
-        Return the list of Infinite Polynomials modulo which self reduces
+        Return the list of Infinite Polynomials modulo which self reduces.
 
         EXAMPLES::
 
@@ -207,16 +218,16 @@ cdef class SymmetricReductionStrategy:
 
     def setgens(self, L):
         """
-        Define the list of Infinite Polynomials modulo which self reduces
+        Define the list of Infinite Polynomials modulo which self reduces.
 
         INPUT:
 
-        ``L``, a list
+        ``L`` -- a list of elements of the underlying infinite polynomial ring.
 
         NOTE:
 
-        It is not tested if ``L`` is a good input. That method simply assigns a *copy* of ``L``
-        to the generators of self.
+        It is not tested if ``L`` is a good input. That method simply
+        assigns a *copy* of ``L`` to the generators of self.
 
         EXAMPLES::
 
@@ -240,7 +251,7 @@ cdef class SymmetricReductionStrategy:
 
     def reset(self):
         """
-        Remove all polynomials from self
+        Remove all polynomials from ``self``.
 
         EXAMPLES::
 
@@ -262,7 +273,7 @@ cdef class SymmetricReductionStrategy:
 
     def __repr__(self):
         """
-        String representation of self
+        String representation of ``self``.
 
         EXAMPLES::
 
@@ -286,10 +297,12 @@ cdef class SymmetricReductionStrategy:
     def __call__(self, p):
         """
         INPUT:
-            A polynomial or an infinite polynomial
+
+        A polynomial or an infinite polynomial
 
         OUTPUT:
-            A polynomial whose parent ring allows for coercion of any generator of self
+
+        A polynomial whose parent ring allows for coercion of any generator of self
 
         EXAMPLES::
 
@@ -333,11 +346,19 @@ cdef class SymmetricReductionStrategy:
 
     def add_generator(self, p, good_input=None):
         """
-        Add another polynomial to self
+        Add another polynomial to ``self``.
+
+        INPUT:
+
+        - ``p`` -- An element of the underlying infinite polynomial ring.
+        - ``good_input`` -- (bool, default ``None``) If ``True``, it is
+          assumed that ``p`` is reduced with respect to ``self``. Otherwise,
+          this reduction will be done first (which may cost some time).
 
         NOTE:
-            Previously added polynomials may be modified. All input is prepared in view
-            of an efficient symmetric reduction.
+
+        Previously added polynomials may be modified. All input is
+        prepared in view of an efficient symmetric reduction.
 
         EXAMPLES::
 
@@ -351,7 +372,8 @@ cdef class SymmetricReductionStrategy:
             Symmetric Reduction Strategy in Infinite polynomial ring in x, y over Rational Field, modulo
                 x_3*y_1 + x_1*y_1 + y_3
 
-        Note that the first added polynomial will be simplified when adding a suitable second polynomial::
+        Note that the first added polynomial will be simplified when
+        adding a suitable second polynomial::
 
             sage: S.add_generator(x[2]+x[1])
             sage: S
@@ -359,8 +381,9 @@ cdef class SymmetricReductionStrategy:
                 y_3,
                 x_2 + x_1
 
-        By default, reduction is applied to any newly added polynomial. This can be avoided by
-        specifying the optional parameter 'good_input'::
+        By default, reduction is applied to any newly added
+        polynomial. This can be avoided by specifying the optional
+        parameter 'good_input'::
 
             sage: S.add_generator(y[2]+y[1]*x[2])
             sage: S
@@ -378,7 +401,8 @@ cdef class SymmetricReductionStrategy:
                 x_1*y_1 - y_2,
                 x_2 + x_1
 
-        In the previous example, ``x[3] + x[2]`` is added without being reduced to zero.
+        In the previous example, ``x[3] + x[2]`` is added without
+        being reduced to zero.
 
         """
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
@@ -427,17 +451,24 @@ cdef class SymmetricReductionStrategy:
 
     def reduce(self, p, notail=False, report=None):
         """
-        Symmetric reduction of an infinite polynomial
+        Symmetric reduction of an infinite polynomial.
 
-        By default, tail reduction is done if and only if it was specified when
-        creating self. If the optional parameter 'notail' is True, tail reduction
-        is avoided. However, we do *not* guarantee that there will be no tail
-        reduction at all in that case.
+        INPUT:
+
+        - ``p`` -- an element of the underlying infinite polynomial ring.
+        - ``notail`` -- (bool, default ``False``) If ``True``, tail reduction
+          is avoided (but there is no guarantee that there will be no tail
+          reduction at all).
+        - ``report`` -- (object, default ``None``) If not ``None``, print
+          information on the progress of the computation.
+
+        OUTPUT:
+
+        Reduction of ``p`` with respect to ``self``.
+
+        NOTE:
 
         If tail reduction shall be forced, use :meth:`.tailreduce`.
-
-        Information on the progress of computation can be obtained by specifying the
-        optional parameter ``report``.
 
         EXAMPLES::
 
@@ -461,8 +492,9 @@ cdef class SymmetricReductionStrategy:
             :::>
             x_1*y_1 + y_4 - y_3*y_1 - y_1
 
-        Each ':' indicates that one reduction of the leading monomial was performed. Eventually, the '>'
-        indicates that the computation is finished.
+        Each ':' indicates that one reduction of the leading monomial
+        was performed. Eventually, the '>' indicates that the
+        computation is finished.
 
         """
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
@@ -513,10 +545,17 @@ cdef class SymmetricReductionStrategy:
 
     def tailreduce(self, p, report=None):
         """
-        Symmetric reduction of an infinite polynomial, with forced tail reduction
+        Symmetric reduction of an infinite polynomial, with forced tail reduction.
 
-        Information on the progress of computation can be obtained by specifying the
-        optional parameter 'report'.
+        INPUT:
+
+        - ``p`` -- an element of the underlying infinite polynomial ring.
+        - ``report`` -- (object, default ``None``) If not ``None``, print
+          information on the progress of the computation.
+
+        OUTPUT:
+
+        Reduction (including the non-leading elements) of ``p`` with respect to ``self``.
 
         EXAMPLES::
 
@@ -543,10 +582,12 @@ cdef class SymmetricReductionStrategy:
             x_1*y_1 - y_2 + y_1^2 - y_1
 
         The protocol means the following.
-         * 'T[3]' means that we currently do tail reduction for a polynomial with three terms.
+         * 'T[3]' means that we currently do tail reduction for a polynomial
+           with three terms.
          * ':::>' means that there were three reductions of leading terms.
-         * The tail of the result of the preceding reduction still has three terms. One reduction
-           of leading terms was possible, and then the final result was obtained.
+         * The tail of the result of the preceding reduction still has three
+           terms. One reduction of leading terms was possible, and then the
+           final result was obtained.
         """
         if not self._lm:
             return p

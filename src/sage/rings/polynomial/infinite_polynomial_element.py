@@ -6,8 +6,9 @@ AUTHORS:
 - Simon King <simon.king@nuigalway.ie>
 - Mike Hansen <mhansen@gmail.com>
 
-An Infinite Polynomial Ring has generators `x_\\ast, y_\\ast,...`, so that the variables are
-of the form `x_0, x_1, x_2, ..., y_0, y_1, y_2,...,...` (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`).
+An Infinite Polynomial Ring has generators `x_\\ast, y_\\ast,...`, so
+that the variables are of the form `x_0, x_1, x_2, ..., y_0, y_1,
+y_2,...,...` (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`).
 Using the generators, we can create elements as follows::
 
     sage: X.<x,y> = InfinitePolynomialRing(QQ)
@@ -26,39 +27,41 @@ We only consider monomial orderings in which:
 
     ``X.gen(i)[m] > X.gen(j)[n]`` `\iff` ``i<j``, or ``i==j`` and ``m>n``
 
-Under this restriction, the monomial ordering can be lexicographic (default), degree
-lexicographic, or degree reverse lexicographic. Here, the ordering is lexicographic,
-and elements can be compared as usual::
+Under this restriction, the monomial ordering can be lexicographic
+(default), degree lexicographic, or degree reverse lexicographic.
+Here, the ordering is lexicographic, and elements can be compared
+as usual::
 
     sage: X._order
     'lex'
     sage: a > b
     True
 
-Note that, when a method is called that is not directly implemented for 'InfinitePolynomial',
-it is tried to call this method for the underlying *classical* polynomial. This holds, e.g.,
-when applying the ``latex`` function::
+Note that, when a method is called that is not directly implemented
+for 'InfinitePolynomial', it is tried to call this method for the
+underlying *classical* polynomial. This holds, e.g., when applying the
+``latex`` function::
 
     sage: latex(c)
     x_{3}^{3} + x_{3} y_{4} - 2 y_{4}^{4}
 
-There is a permutation action on Infinite Polynomial Rings by permuting the indices of the
-variables::
+There is a permutation action on Infinite Polynomial Rings by
+permuting the indices of the variables::
 
     sage: P = Permutation(((4,5),(2,3)))
     sage: c^P
     x_2^3 + x_2*y_5 - 2*y_5^4
 
 Note that ``P(0)==0``, and thus variables of index zero are invariant
-under the permutation action.
-More generally, if ``P`` is any callable object that accepts non-negative
-integers as input and returns non-negative integers, then ``c^P``
-means to apply ``P`` to the variable indices occurring in ``c``.
+under the permutation action.  More generally, if ``P`` is any
+callable object that accepts non-negative integers as input and
+returns non-negative integers, then ``c^P`` means to apply ``P`` to
+the variable indices occurring in ``c``.
 
 TESTS:
 
-We test whether coercion works, even in complicated cases in which finite polynomial rings are
-merged with infinite polynomial rings::
+We test whether coercion works, even in complicated cases in which
+finite polynomial rings are merged with infinite polynomial rings::
 
     sage: A.<a> = InfinitePolynomialRing(ZZ,implementation='sparse',order='degrevlex')
     sage: B.<b_2,b_1> = A[]
@@ -97,24 +100,25 @@ import copy, operator, sys
 
 def InfinitePolynomial(A, p):
     """
-    Create an element of a Polynomial Ring with a Countably Infinite Number of Variables
+    Create an element of a Polynomial Ring with a Countably Infinite Number of Variables.
 
-    Usually, an InfinitePolynomial is obtained by using the generators of an
-    Infinite Polynomial Ring (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`)
+    Usually, an InfinitePolynomial is obtained by using the generators
+    of an Infinite Polynomial Ring (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`)
     or by conversion.
 
     INPUT:
 
-    - ``A``, an Infinite Polynomial Ring
-    - ``p``, which is a *classical* polynomial that can be interpreted in ``A``.
+    - ``A`` -- an Infinite Polynomial Ring.
+    - ``p`` -- a *classical* polynomial that can be interpreted in ``A``.
 
     ASSUMPTIONS:
 
-    In the dense implementation, it must be ensured that the argument ``p`` coerces
-    into ``A._P`` by a name preserving conversion map.
+    In the dense implementation, it must be ensured that the argument
+    ``p`` coerces into ``A._P`` by a name preserving conversion map.
 
-    In the sparse implementation, in the direct construction of an infinite polynomial,
-    it is *not* tested whether the argument ``p`` makes sense in ``A``.
+    In the sparse implementation, in the direct construction of an
+    infinite polynomial, it is *not* tested whether the argument ``p``
+    makes sense in ``A``.
 
     EXAMPLES::
 
@@ -122,8 +126,8 @@ def InfinitePolynomial(A, p):
         sage: X.<alpha> = InfinitePolynomialRing(ZZ)
         sage: P.<alpha_1,alpha_2> = ZZ[]
 
-    Currently, ``P`` and ``X._P`` (the underlying polynomial ring of ``X``) both have two
-    variables::
+    Currently, ``P`` and ``X._P`` (the underlying polynomial ring of
+    ``X``) both have two variables::
 
         sage: X._P
         Multivariate Polynomial Ring in alpha_1, alpha_0 over Integer Ring
@@ -137,16 +141,16 @@ def InfinitePolynomial(A, p):
         ...
         TypeError
 
-    When extending the underlying polynomial ring, the construction of an
-    infinite polynomial works::
+    When extending the underlying polynomial ring, the construction of
+    an infinite polynomial works::
 
         sage: alpha[2]
         alpha_2
         sage: InfinitePolynomial(X, (alpha_1+alpha_2)^2)
         alpha_2^2 + 2*alpha_2*alpha_1 + alpha_1^2
 
-    In the sparse implementation, it is not checked whether the polynomial really belongs to
-    the parent::
+    In the sparse implementation, it is not checked whether the
+    polynomial really belongs to the parent::
 
         sage: Y.<alpha,beta> = InfinitePolynomialRing(GF(2), implementation='sparse')
         sage: a = (alpha_1+alpha_2)^2
@@ -202,15 +206,15 @@ def InfinitePolynomial(A, p):
 
 class InfinitePolynomial_sparse(RingElement):
     """
-    Element of a sparse Polynomial Ring with a Countably Infinite Number of Variables
+    Element of a sparse Polynomial Ring with a Countably Infinite Number of Variables.
 
     INPUT:
 
-    - ``A``, an Infinite Polynomial Ring in sparse implementation
-    - ``p``, a *classical* polynomial that can be interpreted in ``A``.
+    - ``A`` -- an Infinite Polynomial Ring in sparse implementation
+    - ``p`` -- a *classical* polynomial that can be interpreted in ``A``.
 
-    Of course, one should not directly invoke this class, but rather construct
-    elements of ``A`` in the usual way.
+    Of course, one should not directly invoke this class, but rather
+    construct elements of ``A`` in the usual way.
 
     EXAMPLES::
 
@@ -269,7 +273,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def polynomial(self):
         """
-        Return the underlying polynomial
+        Return the underlying polynomial.
 
         EXAMPLES::
 
@@ -452,7 +456,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def variables(self):
         """
-        Return the variables occurring in self (tuple of elements of some polynomial ring)
+        Return the variables occurring in self (tuple of elements of some polynomial ring).
 
         EXAMPLES::
 
@@ -473,7 +477,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def max_index(self):
         r"""
-        Return the maximal index of a variable occurring in self, or -1 if self is scalar
+        Return the maximal index of a variable occurring in self, or -1 if self is scalar.
 
         EXAMPLES::
 
@@ -595,11 +599,12 @@ class InfinitePolynomial_sparse(RingElement):
         """
         Exponentiation by an integer, or action by a callable object
 
-        NOTE::
+        NOTE:
 
-            The callable object must accept non-negative integers as input
-            and return non-negative integers. Typical use case is a permutation,
-            that will result in the corresponding permutation of variables.
+        The callable object must accept non-negative integers as input
+        and return non-negative integers. Typical use case is a
+        permutation, that will result in the corresponding permutation
+        of variables.
 
         EXAMPLES::
 
@@ -643,16 +648,16 @@ class InfinitePolynomial_sparse(RingElement):
 
     def __cmp__(self, x):
         """
-        Comparison of Infinite Polynomials
+        Comparison of Infinite Polynomials.
 
         NOTE:
 
-            Let x and y are generators of the parent of self. We only consider
-            monomial orderings in which
+        Let x and y are generators of the parent of self. We only consider
+        monomial orderings in which
             x[m] > y[n] iff x appears earlier in the list of generators than y, or
                             x==y and m>n
-            Under this restriction, the monomial ordering can be 'lex' (default),
-            'degrevlex' or 'deglex'.
+        Under this restriction, the monomial ordering can be 'lex' (default),
+        'degrevlex' or 'deglex'.
 
         EXAMPLES::
 
@@ -672,9 +677,10 @@ class InfinitePolynomial_sparse(RingElement):
 
         TESTS::
 
-        A classical and an infinite sparse polynomial ring. Note that the Sage coercion system
-        allows comparison only if a common parent for the two rings can be constructed. This
-        is why we have to have the order 'degrevlex'.
+        A classical and an infinite sparse polynomial ring. Note that
+        the Sage coercion system allows comparison only if a common
+        parent for the two rings can be constructed. This is why we
+        have to have the order 'degrevlex'.
         ::
 
             sage: X.<x,y> = InfinitePolynomialRing(ZZ,order='degrevlex', implementation='sparse')
@@ -682,7 +688,8 @@ class InfinitePolynomial_sparse(RingElement):
             sage: x[3] == x_3
             True
 
-        Two infinite polynomial rings in different implementation and order::
+        Two infinite polynomial rings in different implementation and
+        order::
 
             sage: Y = InfinitePolynomialRing(QQ,['x','y'],order='deglex',implementation='dense')
             sage: x[2] == Y(x[2])
@@ -726,7 +733,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def lm(self):
         """
-        The leading monomial of self
+        The leading monomial of ``self``.
 
         EXAMPLES::
 
@@ -747,7 +754,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def lc(self):
         """
-        The coefficient of the leading term of self
+        The coefficient of the leading term of ``self``.
 
         EXAMPLES::
 
@@ -767,7 +774,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def lt(self):
         """
-        The leading term (= product of coefficient and monomial) of self
+        The leading term (= product of coefficient and monomial) of ``self``.
 
         EXAMPLES::
 
@@ -787,7 +794,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def tail(self):
         """
-        The tail of self (this is self minus its leading term)
+        The tail of ``self`` (this is ``self`` minus its leading term).
 
         EXAMPLES::
 
@@ -801,12 +808,13 @@ class InfinitePolynomial_sparse(RingElement):
 
     def squeezed(self):
         """
-        Reduce the variable indices occurring in self
+        Reduce the variable indices occurring in ``self``.
 
         OUTPUT:
-            Apply a permutation to self that does not change the
-            order of the variable indices of self but squeezes them
-            into the range 1,2,...
+
+        Apply a permutation to self that does not change the order of
+        the variable indices of self but squeezes them into the range
+        1,2,...
 
         EXAMPLES::
 
@@ -824,14 +832,15 @@ class InfinitePolynomial_sparse(RingElement):
 
     def footprint(self):
         """
-        Leading exponents sorted by index and generator
+        Leading exponents sorted by index and generator.
 
         OUTPUT:
-            ``D`` -- a dictionary whose keys are the occurring variable indices.
 
-            ``D[s]`` is a list ``[i_1,...,i_n]``, where ``i_j`` gives the
-            exponent of ``self.parent().gen(j)[s]`` in the leading
-            term of self.
+        ``D`` -- a dictionary whose keys are the occurring variable indices.
+
+        ``D[s]`` is a list ``[i_1,...,i_n]``, where ``i_j`` gives the
+        exponent of ``self.parent().gen(j)[s]`` in the leading
+        term of ``self``.
 
         EXAMPLES::
 
@@ -884,32 +893,36 @@ class InfinitePolynomial_sparse(RingElement):
 
     def symmetric_cancellation_order(self,other):
         """
-        Comparison of leading terms by Symmetric Cancellation Order, `<_{sc}`
+        Comparison of leading terms by Symmetric Cancellation Order, `<_{sc}`.
 
         INPUT:
-            self, other -- two Infinite Polynomials
+
+        self, other -- two Infinite Polynomials
 
         ASSUMPTION:
-            Both Infintie Polynomials are non-zero
+
+        Both Infinite Polynomials are non-zero.
 
         OUTPUT:
-            ``(c, sigma, w)``, where
 
-            * c = -1,0,1, or None if the leading monomial of ``self`` is smaller, equal,
-              greater, or incomparable with respect to ``other`` in the monomial
-              ordering of the Infinite Polynomial Ring
-            * sigma is a permutation witnessing
-              ``self`` `<_{sc}` ``other`` (resp. ``self`` `>_{sc}` ``other``)
-              or is 1 if ``self.lm()==other.lm()``
-            * w is 1 or is a term so that
-              ``w*self.lt()^sigma == other.lt()`` if `c\\le 0`, and
-              ``w*other.lt()^sigma == self.lt()`` if `c=1`
+        ``(c, sigma, w)``, where
+
+        * c = -1,0,1, or None if the leading monomial of ``self`` is smaller, equal,
+          greater, or incomparable with respect to ``other`` in the monomial
+          ordering of the Infinite Polynomial Ring
+        * sigma is a permutation witnessing
+          ``self`` `<_{sc}` ``other`` (resp. ``self`` `>_{sc}` ``other``)
+          or is 1 if ``self.lm()==other.lm()``
+        * w is 1 or is a term so that
+          ``w*self.lt()^sigma == other.lt()`` if `c\\le 0`, and
+          ``w*other.lt()^sigma == self.lt()`` if `c=1`
 
         THEORY:
-            If the Symmetric Cancellation Order is a well-quasi-ordering
-            then computation of Groebner bases always terminates. This is
-            the case, e.g., if the monomial order is lexicographic. For
-            that reason, lexicographic order is our default order.
+
+        If the Symmetric Cancellation Order is a well-quasi-ordering
+        then computation of Groebner bases always terminates. This is
+        the case, e.g., if the monomial order is lexicographic. For
+        that reason, lexicographic order is our default order.
 
         EXAMPLES::
 
@@ -1010,8 +1023,8 @@ class InfinitePolynomial_sparse(RingElement):
 
         - A monomial (element of the parent of self) or
         - a dictionary that describes a monomial (the keys
-           are variables of the parent of self, the values
-           are the corresponding exponents)
+          are variables of the parent of self, the values
+          are the corresponding exponents)
 
         EXAMPLES:
 
@@ -1073,25 +1086,32 @@ class InfinitePolynomial_sparse(RingElement):
     ## Essentials for Buchberger
     def reduce(self, I, tailreduce=False, report=None):
         """
-        Symmetrical reduction of self with respect to a symmetric ideal (or list of Infinite Polynomials)
+        Symmetrical reduction of ``self`` with respect to a symmetric ideal (or list of Infinite Polynomials).
 
-        Reducing an element `p` of an Infinite Polynomial Ring `X` by some other element `q`
-        means the following:
+        INPUT:
+
+        - ``I`` -- a :class:`~sage.rings.polynomial.symmetric_ideal.SymmetricIdeal` or a list
+          of Infinite Polynomials.
+        - ``tailreduce`` -- (bool, default ``False``) *Tail reduction* is performed if this
+          parameter is ``True``.
+        - ``report`` -- (object, default ``None``) If not ``None``, some information on the
+          progress of computation is printed, since reduction of huge polynomials may take
+          a long time.
+
+        OUTPUT:
+
+        Symmetrical reduction of ``self`` with respect to ``I``, possibly with tail reduction.
+
+        THEORY:
+
+        Reducing an element `p` of an Infinite Polynomial Ring `X` by
+        some other element `q` means the following:
 
         1. Let `M` and `N` be the leading terms of `p` and `q`.
         2. Test whether there is a permutation `P` that does not does not diminish the variable
            indices occurring in `N` and preserves their order, so that there is some term `T\in X`
            with `TN^P = M`. If there is no such permutation, return `p`
         3. Replace `p` by `p-T q^P` and continue with step 1.
-
-        INPUT:
-
-        - ``I`` -- a :class:`~sage.rings.polynomial.symmetric_ideal.SymmetricIdeal` or a list
-          of Infinite Polynomials
-        - Sometimes it is useful to reduce not only the leading term of `p`.
-          This *tail reduction* is performed if the optional parameter ``tailreduce`` is ``True``.
-        - If the optional parameter ``report`` is not ``None``, some information on the progress
-          of computation is given, since reduction of huge polynomials may be expensive.
 
         EXAMPLES::
 
@@ -1100,16 +1120,19 @@ class InfinitePolynomial_sparse(RingElement):
             sage: p.reduce([y[2]*x[1]^2])
             x_3^3*y_2 + y_3*y_1^2
 
-        The preceding is correct: If a permutation turns ``y[2]*x[1]^2`` into a factor of the
-        leading monomial ``y[2]*x[3]^3`` of ``p``, then it interchanges the variable indices 1 and 2;
-        this is not allowed in a symmetric reduction. However, reduction by ``y[1]*x[2]^2`` works,
-        since one can change variable index 1 into 2 and 2 into 3::
+        The preceding is correct: If a permutation turns
+        ``y[2]*x[1]^2`` into a factor of the leading monomial
+        ``y[2]*x[3]^3`` of ``p``, then it interchanges the variable
+        indices 1 and 2; this is not allowed in a symmetric
+        reduction. However, reduction by ``y[1]*x[2]^2`` works, since
+        one can change variable index 1 into 2 and 2 into 3::
 
             sage: p.reduce([y[1]*x[2]^2])
             y_3*y_1^2
 
-        The next example shows that tail reduction is not done, unless it is explicitly advised.
-        The input can also be a Symmetric Ideal::
+        The next example shows that tail reduction is not done, unless
+        it is explicitly advised.  The input can also be a Symmetric
+        Ideal::
 
             sage: I = (y[3])*X
             sage: p.reduce(I)
@@ -1125,10 +1148,12 @@ class InfinitePolynomial_sparse(RingElement):
             >
             x_1^2 + y_2^2
 
-        The output ':' means that there was one reduction of the leading monomial. 'T[2]' means that
-        a tail reduction was performed on a polynomial with two terms. At '>', one round of the
-        reduction process is finished (there could only be several non-trivial rounds if `I` was
-        generated by more than one polynomial).
+        The output ':' means that there was one reduction of the
+        leading monomial. 'T[2]' means that a tail reduction was
+        performed on a polynomial with two terms. At '>', one round of
+        the reduction process is finished (there could only be several
+        non-trivial rounds if `I` was generated by more than one
+        polynomial).
 
         """
         from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
@@ -1143,6 +1168,14 @@ class InfinitePolynomial_sparse(RingElement):
     ## Further methods
     def stretch(self, k):
         """
+        Stretch ``self`` by a given factor.
+
+        INPUT:
+
+        ``k`` -- an integer.
+
+        OUTPUT:
+
         Replace `v_n` with `v_{n\\cdot k}` for all generators `v_\\ast` occurring in self.
 
         EXAMPLES::
@@ -1160,8 +1193,9 @@ class InfinitePolynomial_sparse(RingElement):
 
         TESTS:
 
-        The following would hardly work in a dense implementation, because an underlying
-        polynomial ring with 6001 variables would be created. This is avoided in the sparse
+        The following would hardly work in a dense implementation,
+        because an underlying polynomial ring with 6001 variables
+        would be created. This is avoided in the sparse
         implementation::
 
             sage: X.<x> = InfinitePolynomialRing(QQ, implementation='sparse')
@@ -1176,18 +1210,19 @@ class InfinitePolynomial_sparse(RingElement):
 
 class InfinitePolynomial_dense(InfinitePolynomial_sparse):
     """
-    Element of a dense Polynomial Ring with a Countably Infinite Number of Variables
+    Element of a dense Polynomial Ring with a Countably Infinite Number of Variables.
 
     INPUT:
 
-    - ``A``, an Infinite Polynomial Ring in dense implementation
-    - ``p``, a *classical* polynomial that can be interpreted in ``A``.
+    - ``A`` -- an Infinite Polynomial Ring in dense implementation
+    - ``p`` -- a *classical* polynomial that can be interpreted in ``A``.
 
-    Of course, one should not directly invoke this class, but rather construct elements of
-    ``A`` in the usual way.
+    Of course, one should not directly invoke this class, but rather
+    construct elements of ``A`` in the usual way.
 
-    This class inherits from :class:`~sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_sparse`.
-    See there for a description of the methods.
+    This class inherits from
+    :class:`~sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_sparse`. See
+    there for a description of the methods.
     """
     # Construction and other basic methods
 ##    def __init__(self, A, p): # is inherited from the dense implementation
@@ -1238,7 +1273,8 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             sage: x[3] == x_3
             True
 
-        Two infinite polynomial rings with different order and implementation::
+        Two infinite polynomial rings with different order and
+        implementation::
 
             sage: Y = InfinitePolynomialRing(QQ,['x','y'],order='deglex',implementation='sparse')
             sage: x[2] == Y(x[2])
@@ -1317,11 +1353,12 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         """
         Exponentiation by an integer, or action by a callable object
 
-        NOTE::
+        NOTE:
 
-            The callable object must accept non-negative integers as input
-            and return non-negative integers. Typical use case is a permutation,
-            that will result in the corresponding permutation of variables.
+        The callable object must accept non-negative integers as input
+        and return non-negative integers. Typical use case is a
+        permutation, that will result in the corresponding permutation
+        of variables.
 
         EXAMPLES::
 

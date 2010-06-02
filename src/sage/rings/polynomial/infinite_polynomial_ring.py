@@ -1,49 +1,54 @@
 """
-Infinite Polynomial Rings
+Infinite Polynomial Rings.
 
-By Infinite Polynomial Rings, we mean polynomial rings in a countably infinite
-number of variables. The implementation consists of a wrapper around the
-current *finite* polynomial rings in Sage.
+By Infinite Polynomial Rings, we mean polynomial rings in a countably
+infinite number of variables. The implementation consists of a wrapper
+around the current *finite* polynomial rings in Sage.
 
 AUTHORS:
 
 - Simon King <simon.king@nuigalway.ie>
 - Mike Hansen <mhansen@gmail.com>
 
-An Infinite Polynomial Ring has finitely many generators `x_\\ast, y_\\ast,...`
-and infinitely many variables of the form `x_0, x_1, x_2, ..., y_0, y_1, y_2,...,...`.
-We refer to the natural number `n` as the *index* of the variable `x_n`.
+An Infinite Polynomial Ring has finitely many generators `x_\\ast,
+y_\\ast,...` and infinitely many variables of the form `x_0, x_1, x_2,
+..., y_0, y_1, y_2,...,...`.  We refer to the natural number `n` as
+the *index* of the variable `x_n`.
 
 INPUT:
 
-- ``R``, the base ring. It has to be a commutative ring, and in some applications it
-  must even be a field
+- ``R``, the base ring. It has to be a commutative ring, and in some
+  applications it must even be a field
 - ``names``, a list of generator names. Generator names must be alpha-numeric.
-- ``order`` (optional string). The default order is ``'lex'`` (lexicographic). ``'deglex'``
-  is degree lexicographic, and ``'degrevlex'`` (degree reverse lexicographic) is possible
-  but discouraged.
+- ``order`` (optional string). The default order is ``'lex'`` (lexicographic).
+  ``'deglex'`` is degree lexicographic, and ``'degrevlex'`` (degree reverse
+  lexicographic) is possible but discouraged.
 
-Each generator ``x`` produces an infinite sequence of variables ``x[1], x[2], ...``
-which are printed on screen as ``x_1, x_2, ...`` and are latex typeset as `x_{1}, x_{2}`.
-Then, the Infinite Polynomial Ring is formed by polynomials in these variables.
+Each generator ``x`` produces an infinite sequence of variables
+``x[1], x[2], ...`` which are printed on screen as ``x_1, x_2, ...``
+and are latex typeset as `x_{1}, x_{2}`.  Then, the Infinite
+Polynomial Ring is formed by polynomials in these variables.
 
 By default, the monomials are ordered lexicographically. Alternatively,
-degree (reverse) lexicographic ordering is possible as well. However, we do not
-guarantee that the computation of Groebner bases will terminate in this case.
+degree (reverse) lexicographic ordering is possible as well. However, we
+do not guarantee that the computation of Groebner bases will terminate
+in this case.
 
 In either case, the variables of a Infinite Polynomial Ring X are ordered
 according to the following rule:
 
   ``X.gen(i)[m] > X.gen(j)[n]`` if and only if ``i<j or (i==j and m>n)``
 
-We provide a 'dense' and a 'sparse' implementation. In the dense implementation,
-the Infinite Polynomial Ring carries a finite polynomial ring that comprises *all*
-variables up to the maximal index that has been used so far. This is potentially
-a very big ring and may also comprise many variables that are not used.
+We provide a 'dense' and a 'sparse' implementation. In the dense
+implementation, the Infinite Polynomial Ring carries a finite
+polynomial ring that comprises *all* variables up to the maximal index
+that has been used so far. This is potentially a very big ring and may
+also comprise many variables that are not used.
 
-In the sparse implementation, we try to keep the underlying finite polynomial rings
-small, using only those variables that are really needed. By default, we use the
-dense implementation, since it usually is much faster.
+In the sparse implementation, we try to keep the underlying finite
+polynomial rings small, using only those variables that are really
+needed. By default, we use the dense implementation, since it usually
+is much faster.
 
 EXAMPLES::
 
@@ -55,8 +60,8 @@ EXAMPLES::
     sage: g = 3*y[1]; g
     3*y_1
 
-It has some advantages to have an underlying ring that is not univariate.
-Hence, we always have at least two variables::
+It has some advantages to have an underlying ring that is not
+univariate.  Hence, we always have at least two variables::
 
     sage: g._p.parent()
     Multivariate Polynomial Ring in y_1, y_0 over Integer Ring
@@ -77,7 +82,8 @@ Of course, we provide the usual polynomial arithmetic::
     sage: p2 = alpha[10]^2*(f2+g2); p2
     alpha_10^2*alpha_5 + 3*alpha_10^2*beta_1 + 2*alpha_10^2
 
-There is a permutation action on the variables, by permuting positive variable indices::
+There is a permutation action on the variables, by permuting positive
+variable indices::
 
     sage: P = Permutation(((10,1)))
     sage: p^P
@@ -85,13 +91,15 @@ There is a permutation action on the variables, by permuting positive variable i
     sage: p2^P
     alpha_5*alpha_1^2 + 3*alpha_1^2*beta_10 + 2*alpha_1^2
 
-Note that `x_0^P = x_0`, since the permutations only change *positive* variable indices.
+Note that `x_0^P = x_0`, since the permutations only change *positive*
+variable indices.
 
-We also implemented ideals of Infinite Polynomial Rings. Here, it is thoroughly assumed that
-the ideals are set-wise invariant under the permutation action. We therefore refer to these
-ideals as *Symmetric Ideals*. Symmetric Ideals are finitely generated modulo addition,
-multiplication by ring elements and permutation of variables. If the base ring is a field,
-one can compute Symmetric Groebner Bases::
+We also implemented ideals of Infinite Polynomial Rings. Here, it is
+thoroughly assumed that the ideals are set-wise invariant under the
+permutation action. We therefore refer to these ideals as *Symmetric
+Ideals*. Symmetric Ideals are finitely generated modulo addition,
+multiplication by ring elements and permutation of variables. If the
+base ring is a field, one can compute Symmetric Groebner Bases::
 
     sage: J = A*(alpha[1]*beta[2])
     sage: J.groebner_basis()
@@ -99,13 +107,14 @@ one can compute Symmetric Groebner Bases::
 
 For more details, see :class:`~sage.rings.polynomial.symmetric_ideal.SymmetricIdeal`.
 
-Infinite Polynomial Rings can have any commutative base ring. If the base ring of an
-Infinite Polynomial Ring is a (classical or infinite) Polynomial Ring, then our
-implementation tries to merge everything into *one* ring. The basic requirement is
-that the monomial orders match. In the case of two Infinite Polynomial Rings, the
-implementations must match. Moreover, name conflicts should be avoided. An overlap
-is only accepted if the order of variables can be uniquely inferred, as in the following
-example::
+Infinite Polynomial Rings can have any commutative base ring. If the
+base ring of an Infinite Polynomial Ring is a (classical or infinite)
+Polynomial Ring, then our implementation tries to merge everything
+into *one* ring. The basic requirement is that the monomial orders
+match. In the case of two Infinite Polynomial Rings, the
+implementations must match. Moreover, name conflicts should be
+avoided. An overlap is only accepted if the order of variables can be
+uniquely inferred, as in the following example::
 
     sage: A.<a,b,c> = InfinitePolynomialRing(ZZ)
     sage: B.<b,c,d> = InfinitePolynomialRing(A)
@@ -119,25 +128,26 @@ This is also allowed if finite polynomial rings are involved::
     sage: B
     Infinite polynomial ring in b, c, d over Multivariate Polynomial Ring in a_3, a_1 over Integer Ring
 
-It is no problem if one generator of the Infinite Polynomial Ring is called ``x`` and
-one variable of the base ring is also called ``x``. This is since no *variable* of the
-Infinite Polynomial Ring will be called ``x``. However, a problem arises if the
-underlying classical Polynomial Ring has a variable ``x_1``, since this can be
-confused with a variable of the Infinite Polynomial Ring. In this case, an error will
-be raised::
+It is no problem if one generator of the Infinite Polynomial Ring is
+called ``x`` and one variable of the base ring is also called
+``x``. This is since no *variable* of the Infinite Polynomial Ring
+will be called ``x``. However, a problem arises if the underlying
+classical Polynomial Ring has a variable ``x_1``, since this can be
+confused with a variable of the Infinite Polynomial Ring. In this
+case, an error will be raised::
 
     sage: X.<x,y_1> = ZZ[]
     sage: Y.<x,z> = InfinitePolynomialRing(X)
 
-Note that ``X`` is not merged into ``Y``; this is since the monomial order of ``X``
-is 'degrevlex', but of ``Y`` is 'lex'.
+Note that ``X`` is not merged into ``Y``; this is since the monomial
+order of ``X`` is 'degrevlex', but of ``Y`` is 'lex'.
 ::
 
     sage: Y
     Infinite polynomial ring in x, z over Multivariate Polynomial Ring in x, y_1 over Integer Ring
 
-The variable ``x`` of ``X`` can still be interpreted in ``Y``, although the first generator
-of ``Y`` is called ``x`` as well::
+The variable ``x`` of ``X`` can still be interpreted in ``Y``,
+although the first generator of ``Y`` is called ``x`` as well::
 
     sage: x
     x_*
@@ -148,8 +158,9 @@ of ``Y`` is called ``x`` as well::
     sage: Y('x')
     x
 
-But there is only merging if the resulting monomial order is uniquely determined. This is not the case
-in the following examples, and thus an error is raised::
+But there is only merging if the resulting monomial order is uniquely
+determined. This is not the case in the following examples, and thus
+an error is raised::
 
     sage: X.<y_1,x> = ZZ[]
     sage: Y.<y,z> = InfinitePolynomialRing(X)
@@ -169,8 +180,8 @@ in the following examples, and thus an error is raised::
 
 
 If the type of monomial orderings (e.g., 'degrevlex' versus 'lex') or
-if the implementations don't match, there is no simplified construction
-available::
+if the implementations don't match, there is no simplified
+construction available::
 
     sage: X.<x,y> = InfinitePolynomialRing(ZZ)
     sage: Y.<z> = InfinitePolynomialRing(X,order='degrevlex')
@@ -182,10 +193,9 @@ available::
 
 TESTS:
 
-Infinite Polynomial Rings are part of Sage's coercion system. Hence, as long as
-the monomial orders and the implementations (dense versus sparse) are
-compatible, we can do arithmetic, so that the result lives in a ring into
-which all constituents coerce.
+Infinite Polynomial Rings are part of Sage's coercion system. Hence,
+we can do arithmetic, so that the result lives in a ring into which
+all constituents coerce.
 ::
 
     sage: R.<a,b> = InfinitePolynomialRing(ZZ)
@@ -282,8 +292,8 @@ class InfinitePolynomialRingFactory(UniqueFactory):
             sage: _[0].all
             [FractionField, InfPoly{[x,y], "lex", "dense"}]
 
-        If no generator name is provided, a generator named 'x', lexicographic order and the dense
-        implementation are assumed::
+        If no generator name is provided, a generator named 'x',
+        lexicographic order and the dense implementation are assumed::
 
             sage: InfinitePolynomialRing.create_key(QQ)
             (InfPoly{[x], "lex", "dense"}(FractionField(...)), Integer Ring)
@@ -355,12 +365,13 @@ from sage.categories.pushout import InfinitePolynomialFunctor
 
 class InfiniteGenDict:
     """
-    A dictionary-like class that is suitable for usage in ``sage_eval``
+    A dictionary-like class that is suitable for usage in ``sage_eval``.
 
-    The generators of an Infinite Polynomial Ring are not variables. Variables
-    of an Infinite Polynomial Ring are returned by indexing a generator. The
-    purpose of this class is to return a variable of an Infinite Polynomial Ring,
-    given its string representation.
+    The generators of an Infinite Polynomial Ring are not
+    variables. Variables of an Infinite Polynomial Ring are returned
+    by indexing a generator. The purpose of this class is to return a
+    variable of an Infinite Polynomial Ring, given its string
+    representation.
 
     EXAMPLES::
 
@@ -378,6 +389,10 @@ class InfiniteGenDict:
     """
     def __init__(self, Gens):
         """
+        INPUT:
+
+        ``Gens`` -- a list of generators of an infinite polynomial ring.
+
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
@@ -453,8 +468,12 @@ class InfiniteGenDict:
 
 class GenDictWithBasering:
     """
-    A dictionary-like class that is suitable for usage in ``sage_eval``
+    A dictionary-like class that is suitable for usage in ``sage_eval``.
 
+    This pseudo-dictionary accepts strings as index, and then walks down
+    a chain of base rings of (infinite) polynomial rings until it finds
+    one ring that has the given string as variable name, which is then
+    returned.
 
     EXAMPLES::
 
@@ -473,6 +492,11 @@ class GenDictWithBasering:
 
     def __init__(self,parent, start):
         """
+        INPUT:
+
+        ``parent`` -- a ring.
+        ``start`` -- some dictionary, usually the dictionary of variables of ``parent``.
+
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
@@ -485,6 +509,18 @@ class GenDictWithBasering:
             <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_dense'>
             sage: sage_eval('3*a_3*b_5-1/2*a_7', D)
             -1/2*a_7 + 3*a_3*b_5
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
+            sage: R = ZZ['x']['y']['a','b']['c']
+            sage: D = GenDictWithBasering(R,R.gens_dict())
+            sage: R.gens_dict()['a']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'a'
+            sage: D['a']
+            a
 
         """
         P = self._P = parent
@@ -502,7 +538,7 @@ class GenDictWithBasering:
                 self._D.append(D)
     def next(self):
         """
-        Return a dictionary that can be used to interprete strings in the base ring of self
+        Return a dictionary that can be used to interprete strings in the base ring of ``self``.
 
         EXAMPLES::
 
@@ -558,22 +594,24 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     """
     Sparse implementation of Infinite Polynomial Rings.
 
-    An Infinite Polynomial Ring with generators `x_\\ast, y_\\ast, ...` over a field
-    `F` is a free commutative `F`-algebra generated by `x_0, x_1, x_2, ...,
-    y_0, y_1, y_2, ..., ...` and is equipped with a permutation action
-    on the generators, namely `x_n^P = x_{P(n)}, y_{n}^P=y_{P(n)}, ...`
-    for any permutation `P` (note that variables of index zero are invariant
-    under such permutation).
+    An Infinite Polynomial Ring with generators `x_\\ast, y_\\ast,
+    ...` over a field `F` is a free commutative `F`-algebra generated
+    by `x_0, x_1, x_2, ..., y_0, y_1, y_2, ..., ...` and is equipped
+    with a permutation action on the generators, namely `x_n^P =
+    x_{P(n)}, y_{n}^P=y_{P(n)}, ...` for any permutation `P` (note
+    that variables of index zero are invariant under such
+    permutation).
 
-    It is known that any permutation invariant ideal in an Infinite Polynomial Ring
-    is finitely generated modulo the permutation action --
-    see :class:`~sage.rings.polynomial.symmetric_ideal.SymmetricIdeal`
+    It is known that any permutation invariant ideal in an Infinite
+    Polynomial Ring is finitely generated modulo the permutation
+    action -- see :class:`~sage.rings.polynomial.symmetric_ideal.SymmetricIdeal`
     for more details.
 
-    Usually, an instance of this class is created using ``InfinitePolynomialRing``
-    with the optional parameter ``implementation='sparse'``. This takes care
-    of uniqueness of parent structures. However, a direct construction is possible,
-    in principle::
+    Usually, an instance of this class is created using
+    ``InfinitePolynomialRing`` with the optional parameter
+    ``implementation='sparse'``. This takes care of uniqueness of
+    parent structures. However, a direct construction is possible, in
+    principle::
 
         sage: X.<x,y> = InfinitePolynomialRing(QQ, implementation='sparse')
         sage: Y.<x,y> = InfinitePolynomialRing(QQ, implementation='sparse')
@@ -586,15 +624,23 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         sage: Z is X
         False
 
-    The last parameter ('lex' in the above example) can also be 'deglex' or
-    'degrevlex'; this would result in an Infinite Polynomial Ring in degree
-    lexicographic or degree reverse lexicographic order.
+    The last parameter ('lex' in the above example) can also be
+    'deglex' or 'degrevlex'; this would result in an Infinite
+    Polynomial Ring in degree lexicographic or degree reverse
+    lexicographic order.
 
-    See :mod:`~sage.rings.polynomial.infinite_polynomial_ring` for more details.
+    See :mod:`~sage.rings.polynomial.infinite_polynomial_ring` for
+    more details.
 
     """
     def __init__(self, R, names, order):
         """
+        INPUT:
+
+        ``R`` -- base ring.
+        ``names`` -- list of generator names.
+        ``order`` -- string determining the monomial order of the infinite polynomial ring.
+
         EXAMPLES::
 
             sage: X.<alpha,beta> = InfinitePolynomialRing(ZZ, implementation='sparse')
@@ -677,7 +723,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         EXAMPLES::
 
-            sage: InfinitePolynomialRing(QQ)
+            sage: InfinitePolynomialRing(QQ)         # indirect doctest
             Infinite polynomial ring in x over Rational Field
 
             sage: X.<alpha,beta> = InfinitePolynomialRing(ZZ, order='deglex'); X
@@ -692,7 +738,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
             sage: from sage.misc.latex import latex
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: latex(X)
+            sage: latex(X)        # indirect doctest
             \Bold{Q}[x_{\ast}, y_{\ast}]
         """
         from sage.misc.latex import latex
@@ -763,6 +809,21 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     ## coercion
 
     def construction(self):
+        """
+        Return the construction of ``self``.
+
+        OUTPUT:
+
+        A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
+        so that ``F(R) is self``.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = InfinitePolynomialRing(GF(5))
+            sage: R.construction()
+            [InfPoly{[x,y], "lex", "dense"}, Finite Field of size 5]
+
+        """
         return [InfinitePolynomialFunctor(self._names, self._order, 'sparse'), self._base]
 
     #@cached_method  -- better no "strong" caching!
@@ -771,7 +832,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     # internally
     def _coerce_map_from_(self, S):
         """
-        Coerce things into self
+        Coerce things into ``self``.
 
         NOTE:
 
@@ -779,19 +840,19 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         EXAMPLES::
 
-        Here, we check to see that elements of a *finitely* generated polynomial ring
-        with appropriate variable names coerce correctly into the Infinite Polynomial
-        Ring::
+        Here, we check to see that elements of a *finitely* generated
+        polynomial ring with appropriate variable names coerce
+        correctly into the Infinite Polynomial Ring::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: px0 = PolynomialRing(QQ,'x_0').gen(0)
-            sage: px0 + x[0]  # indirect doc test
+            sage: px0 + x[0]  # indirect doctest
             2*x_0
             sage: px0==x[0]
             True
 
-        It is possible to construct an Infinite Polynomial Ring whose base ring
-        is another Infinite Polynomial Ring::
+        It is possible to construct an Infinite Polynomial Ring whose
+        base ring is another Infinite Polynomial Ring::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
             sage: X.<x> = InfinitePolynomialRing(R)
@@ -825,10 +886,16 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     def _element_constructor_(self, x):
         """
-        EXAMPLES::
+        Return an element of ``self``.
+
+        INPUT:
+
+        ``x`` -- any object that can be interpreted in ``self``.
+
+        TESTS::
 
             sage: X = InfinitePolynomialRing(QQ)
-            sage: a = X(2); a
+            sage: a = X(2); a     # indirect doctest
             2
             sage: a.parent()
             Infinite polynomial ring in x over Rational Field
@@ -984,11 +1051,22 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     def tensor_with_ring(self, R):
         """
-        Return the tensor product of self with a ring ``R``
+        Return the tensor product of ``self`` with another ring.
+
+        INPUT:
+
+        ``R`` - a ring.
+
+        OUTPUT:
+
+        An infinite polynomial ring that, mathematically, can be seen as the
+        tensor product of ``self`` with ``R``.
 
         NOTE:
 
         It is required that the underlying ring of self coerces into ``R``.
+        Hence, the tensor product is in fact merely an extension of the base
+        ring.
 
         EXAMPLES::
 
@@ -1017,14 +1095,16 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     # -- some stuff that is useful for quotient rings etc.
     def is_noetherian(self):
         """
-        Since Infinite Polynomial Rings must have at least one generator, they
-        have infinitely many variables and are thus not noetherian, as a ring.
+        Since Infinite Polynomial Rings must have at least one
+        generator, they have infinitely many variables and are thus
+        not noetherian, as a ring.
 
         NOTE:
 
-        Infinite Polynomial Rings over a field `F` are notherian as `F(G)` modules,
-        where `G` is the symmetric group of the natural numbers. But this is not
-        what the method ``is_noetherian()`` is answering.
+        Infinite Polynomial Rings over a field `F` are notherian as
+        `F(G)` modules, where `G` is the symmetric group of the
+        natural numbers. But this is not what the method
+        ``is_noetherian()`` is answering.
 
         TESTS::
 
@@ -1039,8 +1119,9 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     def is_field(self,**kwds):
         """
-        Since Infinite Polynomial Rings must have at least one generator, they
-        have infinitely many variables and thus never are fields.
+        Since Infinite Polynomial Rings must have at least one
+        generator, they have infinitely many variables and thus never
+        are fields.
 
         TESTS::
 
@@ -1056,19 +1137,24 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     ## Auxiliary function for variable comparison
     def varname_cmp(self,x,y):
         """
-        Comparison of two variable names
+        Comparison of two variable names.
 
         INPUT:
 
-        - ``x,y`` should both be strings of the form ``a+'_'+str(n)``, where a is the
-          name of a generator, and n is an integer
+        ``x,y`` -- two strings of the form ``a+'_'+str(n)``, where a is the
+        name of a generator, and n is an integer
 
         RETURN:
 
-        -1,0,1 if x<y, x==y, x>y, respectively, where the order is defined as
-        follows: x<y `\\iff` the string ``x.split('_')[0]`` is later in the list of
-        generator names of self than ``y.split('_')[0]``, or (``x.split('_')[0]==y.split('_')[0]`` and
-        ``int(x.split('_')[1])<int(y.split('_')[1])``)
+        -1,0,1 if x<y, x==y, x>y, respectively
+
+        THEORY:
+
+        The order is defined as follows:
+          x<y `\\iff` the string ``x.split('_')[0]`` is later in the list of
+          generator names of self than ``y.split('_')[0]``, or
+          (``x.split('_')[0]==y.split('_')[0]`` and
+          ``int(x.split('_')[1])<int(y.split('_')[1])``)
 
         EXAMPLES::
 
@@ -1465,11 +1551,22 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
     def tensor_with_ring(self, R):
         """
-        Return the tensor product of self with R
+        Return the tensor product of ``self`` with another ring.
+
+        INPUT:
+
+        ``R`` - a ring.
+
+        OUTPUT:
+
+        An infinite polynomial ring that, mathematically, can be seen as the
+        tensor product of ``self`` with ``R``.
 
         NOTE:
 
-        It is required that the underlying ring of self coerces into R.
+        It is required that the underlying ring of self coerces into ``R``.
+        Hence, the tensor product is in fact merely an extension of the base
+        ring.
 
         EXAMPLES::
 

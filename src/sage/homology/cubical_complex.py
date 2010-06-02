@@ -497,6 +497,58 @@ class Cube(SageObject):
 
         return (insert_self, insert_other, translate)
 
+    def _triangulation_(self):
+        r"""
+        Triangulate this cube by "pulling vertices," as described by
+        Hetyei.  Return a list of simplices which triangulate
+        ``self``.
+
+        ALGORITHM:
+
+        If the cube is given by
+
+        .. math::
+
+           C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
+
+        let `v_1` be the "upper" corner of `C`: `v` is the point
+        `(j_1, ..., j_k)`.  Choose a coordinate `n` where the interval
+        `[i_n, j_n]` is non-degenerate and form `v_2` by replacing
+        `j_n` by `i_n`; repeat to define `v_3`, etc.  The last vertex
+        so defined will be `(i_1, ..., i_k)`.  These vertices define a
+        simplex, as do the vertices obtained by making different
+        choices at each stage.  Return the list of such simplices;
+        thus if `C` is `n`-dimensional, then it is subdivided into
+        `n!` simplices.
+
+        REFERENCES:
+
+        - G. Hetyei, "On the Stanley ring of a cubical complex",
+          Discrete Comput. Geom. 14 (1995), 305-330.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cubical_complex import Cube
+            sage: C = Cube([[1,2], [3,4]]); C
+            [1,2] x [3,4]
+            sage: C._triangulation_()
+            [((1, 3), (1, 4), (2, 4)), ((1, 3), (2, 3), (2, 4))]
+            sage: C = Cube([[1,2], [3,4], [8,9]])
+            sage: len(C._triangulation_())
+            6
+        """
+        from sage.homology.simplicial_complex import Simplex
+        if self.dimension() < 0: # the empty cube
+            return [Simplex(())] # the empty simplex
+        v = tuple([max(j) for j in self.tuple()])
+        if self.dimension() == 0: # just v
+            return [Simplex((v,))]
+        simplices = []
+        for i in range(self.dimension()):
+            for S in self.face(i, upper=False)._triangulation_():
+                simplices.append(S.join(Simplex((v,)), rename_vertices=False))
+        return simplices
+
     def __cmp__(self, other):
         """
         Return True iff this cube is the same as ``other``: that is,
@@ -583,6 +635,12 @@ class CubicalComplex(GenericCellComplex):
     class :class:`Cube`, or lists or tuples suitable for conversion to
     cubes.  These cubes are the maximal cubes in the complex.
 
+    In addition, ``maximal_faces`` may be a cubical complex, in which
+    case that complex is returned.  Also, ``maximal_faces`` may
+    instead be any object which has a ``_cubical_`` method (e.g., a
+    simplicial complex); then that method is used to convert the
+    object to a cubical complex.
+
     If ``maximality_check`` is True, check that each maximal face is,
     in fact, maximal. In this case, when producing the internal
     representation of the cubical complex, omit those that are not.
@@ -617,6 +675,13 @@ class CubicalComplex(GenericCellComplex):
         Cubical complex with 20 vertices and 40 cubes
         sage: X.homology()
         {0: Z x Z x Z x Z, 1: Z^5}
+
+    Converting a simplicial complex to a cubical complex::
+
+        sage: S2 = simplicial_complexes.Sphere(2)
+        sage: C2 = CubicalComplex(S2)
+        sage: all([C2.homology(n) == S2.homology(n) for n in range(3)])
+        True
 
     You can get the set of maximal cells or a dictionary of all cells::
 
@@ -662,6 +727,19 @@ class CubicalComplex(GenericCellComplex):
             True
         """
         maximality_check = kwds.get('maximality_check', True)
+
+        C = None
+        if isinstance(maximal_faces, CubicalComplex):
+            C = maximal_faces
+        try:
+            C = maximal_faces._cubical_()
+        except AttributeError:
+            pass
+        if C is not None:
+            self._facets = copy(C._facets)
+            self._cells = copy(C._cells)
+            self._complex = copy(C._complex)
+            return
 
         good_faces = []
         maximal_cubes = [Cube(f) for f in maximal_faces]
@@ -1352,6 +1430,65 @@ class CubicalComplex(GenericCellComplex):
             s += str(c)
             s += "\n"
         return s
+
+    def _simplicial_(self):
+        r"""
+        Simplicial complex constructed from self.
+
+        ALGORITHM:
+
+        This is constructed as described by Hetyei: choose a total
+        ordering of the vertices of the cubical complex.  Then for
+        each maximal face
+
+        .. math::
+
+           C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
+
+        let `v_1` be the "upper" corner of `C`: `v` is the point
+        `(j_1, ..., j_k)`.  Choose a coordinate `n` where the interval
+        `[i_n, j_n]` is non-degenerate and form `v_2` by replacing
+        `j_n` by `i_n`; repeat to define `v_3`, etc.  The last vertex
+        so defined will be `(i_1, ..., i_k)`.  These vertices define a
+        simplex, and do the vertices obtained by making different
+        choices at each stage.  Thus each `n`-cube is subdivided into
+        `n!` simplices.
+
+        REFERENCES:
+
+        - G. Hetyei, "On the Stanley ring of a cubical complex",
+          Discrete Comput. Geom. 14 (1995), 305-330.
+
+        EXAMPLES::
+
+            sage: T = cubical_complexes.Torus(); T
+            Cubical complex with 16 vertices and 64 cubes
+            sage: len(T.maximal_cells())
+            16
+
+        When this is triangulated, each maximal 2-dimensional cube
+        gets turned into a pair of triangles.  Since there were 16
+        maximal cubes, this results in 32 facets in the simplicial
+        complex::
+
+            sage: Ts = T._simplicial_(); Ts
+            Simplicial complex with 16 vertices and 32 facets
+            sage: T.homology() == Ts.homology()
+            True
+
+        Each `n`-dimensional cube produces `n!` `n`-simplices::
+
+            sage: S4 = cubical_complexes.Sphere(4)
+            sage: len(S4.maximal_cells())
+            10
+            sage: SimplicialComplex(S4) # calls S4._simplicial_()
+            Simplicial complex with 32 vertices and 240 facets
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        simplices = []
+        for C in self.maximal_cells():
+            simplices.extend(C._triangulation_())
+        return SimplicialComplex(simplices)
 
     def _string_constants(self):
         """

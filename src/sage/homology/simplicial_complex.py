@@ -103,6 +103,7 @@ simplicial complex::
 #  should + have any meaning?
 #  cohomology: compute cup products (and Massey products?)
 
+from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -713,6 +714,22 @@ class SimplicialComplex(GenericCellComplex):
         sage: SimplicialComplex([[0,2], [0,3], [0,6]])
         Simplicial complex with vertex set (0, 2, 3, 6) and facets {(0, 6), (0, 2), (0, 3)}
 
+    Finally, if ``vertex_set`` is the only argument and it is a
+    simplicial complex, return that complex.  If it is an object with
+    a built-in conversion to simplicial complexes (via a
+    ``_simplicial_`` method), then the resulting simplicial complex is
+    returned::
+
+        sage: S = SimplicialComplex([[0,2], [0,3], [0,6]])
+        sage: SimplicialComplex(S) == S
+        True
+        sage: Tc = cubical_complexes.Torus(); Tc
+        Cubical complex with 16 vertices and 64 cubes
+        sage: Ts = SimplicialComplex(Tc); Ts
+        Simplicial complex with 16 vertices and 32 facets
+        sage: Ts.homology()
+        {0: 0, 1: Z x Z, 2: Z}
+
     TESTS::
 
         sage: S = SimplicialComplex(['a', 'b', 'c'], (('a', 'b'), ('a', 'c'), ('b', 'c')))
@@ -745,9 +762,30 @@ class SimplicialComplex(GenericCellComplex):
         # 'maximal_faces', and use the union of all of the vertices for
         # 'vertex_set'.
         if maximal_faces == []:
+            C = None
             if isinstance(vertex_set, (list, tuple)) and isinstance(vertex_set[0], (list, tuple, Simplex)):
                 maximal_faces = vertex_set
                 vertex_set = reduce(union, vertex_set)
+            elif isinstance(vertex_set, SimplicialComplex):
+                C = vertex_set
+            else:
+                try:
+                    C = vertex_set._simplicial_()
+                except AttributeError:
+                    pass
+            if C is not None:
+                self._vertex_set = copy(C.vertices())
+                self._facets = list(C.facets())
+                self._faces = copy(C._faces)
+                self._gen_dict = copy(C._gen_dict)
+                self._complex = copy(C._complex)
+                self.__contractible = copy(C.__contractible)
+                self.__enlarged = copy(C.__enlarged)
+                self._graph = copy(C._graph)
+                self._numeric = C._numeric
+                self._numeric_translation = copy(C._numeric_translation)
+                return
+
         if sort_facets:
             try:  # vertex_set is an iterable
                 vertices = Simplex(sorted(vertex_set))
@@ -2463,6 +2501,80 @@ class SimplicialComplex(GenericCellComplex):
                               vertex_check=False, sort_facets=False)
         self.__enlarged[subcomplex] = L
         return L
+
+    def _cubical_(self):
+        r"""
+        Cubical complex constructed from self.
+
+        ALGORITHM:
+
+        The algorithm comes from a paper by Shtan'ko and Shtogrin, as
+        reported by Bukhshtaber and Panov.  Let `I^m` denote the unit
+        `m`-cube, viewed as a cubical complex.  Let `[m] = \{1, 2,
+        ..., m\}`; then each face of `I^m` has the following form, for
+        subsets `I \subset J \subset [m]`:
+
+        .. math::
+
+            F_{I \subset J} = \{ (y_1,...,y_m) \in I^m \,:\, y_i =0 \text{
+            for } i \in I, y_j = 1 \text{ for } j \not \in J\}.
+
+        If `K` is a simplicial complex on vertex set `[m]` and if `I
+        \subset [m]`, write `I \in K` if `I` is a simplex of `K`.
+        Then we associate to `K` the cubical subcomplex of `I^m` with
+        faces
+
+        .. math::
+
+            \{F_{I \subset J} \,:\, J \in K, I \neq \emptyset \}
+
+        The geometric realization of this cubical complex is
+        homeomorphic to the geometric realization of the original
+        simplicial complex.
+
+        REFERENCES:
+
+        - V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
+          and combinatorics of simplicial manifolds," *Uspekhi
+          Mat. Nauk* 55 (2000), 171--172.
+
+        - M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+          manifolds and complexes into a cubic lattice", *Uspekhi
+          Mat. Nauk* 47 (1992), 219-220.
+
+        EXAMPLES::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: T.homology()
+            {0: 0, 1: Z x Z, 2: Z}
+            sage: Tc = T._cubical_()
+            sage: Tc
+            Cubical complex with 42 vertices and 168 cubes
+            sage: Tc.homology()
+            {0: 0, 1: Z x Z, 2: Z}
+        """
+        from sage.homology.cubical_complex import Cube, CubicalComplex
+        V = self.vertices()
+        embed = V.dimension() + 1
+        # dictionary to translate vertices to the numbers 1, ..., embed
+        vd = dict(zip(V, range(1, embed + 1)))
+        cubes = []
+        for JJ in self.facets():
+            J = [vd[i] for i in JJ]
+            for i in J:
+                # loop over indices from 1 to embed.  if equal to i,
+                # set to 0. if not in J, set to 1.  Otherwise, range
+                # from 0 to 1
+                cube = []
+                for n in range(1, embed+1):
+                    if n == i:
+                        cube.append([0,])
+                    elif n not in J:
+                        cube.append([1,])
+                    else:
+                        cube.append([0,1])
+                cubes.append(cube)
+        return CubicalComplex(cubes)
 
     def category(self):
         """

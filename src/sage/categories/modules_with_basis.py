@@ -16,7 +16,7 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
+from sage.misc.misc import attrcall, deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.all import Modules, Fields, HomCategory, Homset
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -282,6 +282,36 @@ class ModulesWithBasis(Category_over_base_ring):
                 raise ValueError("module morphism requires either on_basis or diagonal argument")
 
         _module_morphism = module_morphism
+
+        def _repr_(self):
+            """
+            EXAMPLES::
+
+                sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+                sage: QS3                 # indirect doctest
+                Symmetric group algebra of order 3 over Rational Field
+                sage: QS3.rename("QS3")
+                sage: QS3                 # indirect doctest
+                QS3
+
+                sage: class Blah(Parent):
+                ...       pass
+                sage: Blah(category = ModulesWithBasis(QQ))
+                <class '__main__.Blah_with_category'>
+
+            FIXME: this implementation is not generic; it uses the
+            ``_name`` attribute if available (as is the case for
+            instances of :class:`CombinatorialFreeModule`), and
+            otherwise returns the name of the class as per Python's
+            default ``repr``. However, having it here rather than in
+            :class:`CombinatorialFreeModule` allows subcategories for
+            overriding it.
+            """
+            if hasattr(self, "_name"):
+                return self._name + " over %s"%self.base_ring()
+            else:
+                return repr(type(self))
+
 
         def tensor(*parents):
             """
@@ -624,6 +654,124 @@ class ModulesWithBasis(Category_over_base_ring):
                 2*s[1]
             """
             return self.parent().term( *self.trailing_item(cmp=cmp) )
+
+        def map_coefficients(self, f):
+            """
+            Mapping a function on coefficients
+
+            INPUT:
+
+             - ``f`` -- an endofunction on the coefficient ring of the free module
+
+            Returns a new element of self.parent() obtained by applying the
+            function `f` to all of the coefficients of self.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+                sage: B = F.basis()
+                sage: f = B['a'] - 3*B['c']
+                sage: f.map_coefficients(lambda x: x+5)
+                6*B['a'] + 2*B['c']
+
+            Killed coefficients are handled properly::
+
+                sage: f.map_coefficients(lambda x: 0)
+                0
+                sage: list(f.map_coefficients(lambda x: 0))
+                []
+
+            ::
+
+                sage: s = SFASchur(QQ)
+                sage: a = s([2,1])+2*s([3,2])
+                sage: a.map_coefficients(lambda x: x*2)
+                2*s[2, 1] + 4*s[3, 2]
+            """
+            return self.parent().sum_of_terms( (m, f(c)) for m,c in self )
+
+        def map_support(self, f):
+            """
+            Mapping a function on the support
+
+            INPUT:
+
+             - ``f`` -- an endofunction on the indices of the free module
+
+            Returns a new element of self.parent() obtained by
+            applying the function `f` to all of the objects indexing
+            the basis elements.
+
+            EXAMPLES::
+
+                sage: B = CombinatorialFreeModule(ZZ, [-1, 0, 1])
+                sage: x = B.an_element(); x
+                2*B[-1] + 2*B[0] + 3*B[1]
+                sage: x.map_support(lambda i: -i)
+                3*B[-1] + 2*B[0] + 2*B[1]
+
+            ``f`` needs not be injective::
+
+                sage: x.map_support(lambda i: 1)
+                7*B[1]
+
+                sage: s = SFASchur(QQ)
+                sage: a = s([2,1])+2*s([3,2])
+                sage: a.map_support(lambda x: x.conjugate())
+                s[2, 1] + 2*s[2, 2, 1]
+
+            TESTS::
+
+                sage: B.zero()	      # This actually failed at some point!!! See #8890
+                0
+            """
+            return self.parent().sum_of_terms( (f(m), c) for m,c in self )
+
+        def map_item(self, f):
+            """
+            Mapping a function on items
+
+            INPUT:
+
+             - ``f`` -- a function mapping pairs (index, coeff) to
+               other such pairs
+
+            Returns a new element of self.parent() obtained by
+            applying the function `f` to all items (index,coeff) of
+            ``self``.
+
+            EXAMPLES::
+
+                sage: B = CombinatorialFreeModule(ZZ, [-1, 0, 1])
+                sage: x = B.an_element(); x
+                2*B[-1] + 2*B[0] + 3*B[1]
+                sage: x.map_item(lambda i, c: (-i, 2*c))
+                6*B[-1] + 4*B[0] + 4*B[1]
+
+            ``f`` needs not be injective::
+
+                sage: x.map_item(lambda i, c: (1, 2*c))
+                14*B[1]
+
+                sage: s = SFASchur(QQ)
+                sage: f = lambda m,c: (m.conjugate(), 2*c)
+                sage: a = s([2,1]) + s([1,1,1])
+                sage: a.map_item(f)
+                2*s[2, 1] + 2*s[3]
+
+            The following methods are deprecated::
+
+                sage: a.map_term(f)
+                doctest:1: DeprecationWarning: (Since Sage Version 4.4.2) map_term is deprecated. Please use map_item instead.
+                2*s[2, 1] + 2*s[3]
+                sage: a.map_mc(f)
+                doctest:1: DeprecationWarning: (Since Sage Version 4.4.2) map_mc is deprecated. Please use map_item instead.
+                2*s[2, 1] + 2*s[3]
+            """
+            return self.parent().sum_of_terms( f(m,c) for m,c in self )
+
+        map_term = deprecated_function_alias(map_item, 'Sage Version 4.4.2')
+        map_mc   = deprecated_function_alias(map_item, 'Sage Version 4.4.2')
 
         def tensor(*elements):
             """

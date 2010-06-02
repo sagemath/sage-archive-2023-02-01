@@ -588,73 +588,6 @@ class CombinatorialFreeModuleElement(Element):
         return self._vector_()
 
 
-    def map_coefficients(self, f):
-        """
-        Returns a new element of self.parent() obtained by applying the
-        function f to all of the coefficients of self.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: B = F.basis()
-            sage: f = B['a'] - 3*B['c']
-            sage: f.map_coefficients(lambda x: x+5)
-            6*B['a'] + 2*B['c']
-
-        ::
-
-            sage: s = SFASchur(QQ)
-            sage: a = s([2,1])+2*s([3,2])
-            sage: a.map_coefficients(lambda x: x*2)
-            2*s[2, 1] + 4*s[3, 2]
-        """
-        z_elt = {}
-        for m,c in self.monomial_coefficients().iteritems():
-            z_elt[m] = f(c)
-        return self.parent()._from_dict(z_elt)
-
-
-    def map_support(self, f):
-        """
-        Returns a new element of self.parent() obtained by applying the
-        function f to all of the combinatorial objects indexing the basis
-        elements.
-
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ)
-            sage: a = s([2,1])+2*s([3,2])
-            sage: a.map_support(lambda x: x.conjugate())
-            s[2, 1] + 2*s[2, 2, 1]
-        """
-        res = self.parent()(0)
-        z_elt = {}
-        for m,c in self.monomial_coefficients().iteritems():
-            z_elt[f(m)] = c
-        res._monomial_coefficients = z_elt
-        return res
-
-    def map_term(self, f):
-        """
-        Returns a new element of self.parent() obtained by applying the
-        function f to a monomial coefficient (m,c) pair. f returns a
-        (new_m, new_c) pair.
-
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ)
-            sage: f = lambda m,c: (m.conjugate(), 2*c)
-            sage: a = s([2,1]) + s([1,1,1])
-            sage: a.map_term(f)
-            2*s[2, 1] + 2*s[3]
-        """
-        z_elt = {}
-        for m,c in self.monomial_coefficients().iteritems():
-            new_m, new_c = f(m,c)
-            z_elt[new_m] = new_c
-        return self.parent()._from_dict(z_elt)
-
-    map_mc = map_term
 
     def _acted_upon_(self, scalar, self_on_left = False):
         """
@@ -1146,21 +1079,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             True
         """
         return self.element_class(self, {})
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: QS3 # indirect doctest
-            Symmetric group algebra of order 3 over Rational Field
-            sage: QS3.__custom_name = "QS3"
-            sage: QS3 # indirect doctest
-            QS3
-
-        TODO: allow for complete overriding by setting __custom_name or something similar
-        """
-        return self._name + " over %s"%self.base_ring()
 
     def combinatorial_class(self):
         """

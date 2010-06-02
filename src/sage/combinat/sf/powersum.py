@@ -46,7 +46,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             -p[2, 1]
         """
         f = lambda part, coeff: (part, (-1)**(sum(part)-len(part))*coeff)
-        return self.map_mc(f)
+        return self.map_item(f)
 
     def scalar(self, x):
         r"""

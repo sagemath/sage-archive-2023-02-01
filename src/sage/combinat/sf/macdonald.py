@@ -998,7 +998,7 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
         p_x = p(s(part))
         t = self.t
         f = lambda m, c: (m, c*prod([(1-t**k) for k in m]))
-        res = s(p_x.map_mc(f))
+        res = s(p_x.map_item(f))
         f = lambda part2: res.coefficient(part2)
         return f
 

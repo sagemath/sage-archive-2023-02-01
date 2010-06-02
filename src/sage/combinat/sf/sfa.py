@@ -511,7 +511,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         p_x = p(x)
         expr_k = lambda k: expr.subs(**dict([(str(x),x**k) for x in deg_one]))
         f = lambda m,c: (m, c*prod([expr_k(k) for k in m]))
-        return self(p_x.map_mc(f))
+        return self(p_x.map_item(f))
 
     # TODO:
     #  - lift to combinatorial_module
@@ -1504,7 +1504,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         """
         p = SFAPower(self.parent().base_ring())
         p_self = p(self)
-        res = p_self.map_mc(lambda m,c: (m, c*a**len(m)))
+        res = p_self.map_item(lambda m,c: (m, c*a**len(m)))
         return self.parent()(res)
 
     def theta_qt(self,q,t):
@@ -1525,7 +1525,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         BR = self.parent().base_ring()
         p = SFAPower(BR)
         p_self = p(self)
-        res = p_self.map_mc(lambda m,c: (m, BR(prod([(1-q**k)/(1-t**k) for k in m])*c)))
+        res = p_self.map_item(lambda m,c: (m, BR(prod([(1-q**k)/(1-t**k) for k in m])*c)))
         return self.parent()(res)
 
 

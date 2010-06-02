@@ -11,6 +11,7 @@ Root system data for type BC affine
 #*****************************************************************************
 
 from cartan_type import CartanType_standard_affine
+from sage.rings.integer_ring import ZZ
 class CartanType(CartanType_standard_affine):
     def __init__(self, n):
         """
@@ -60,10 +61,9 @@ class CartanType(CartanType_standard_affine):
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
-        assert n >= 1
+        assert n in ZZ and n >= 1
         CartanType_standard_affine.__init__(self, "BC", n, 2)
 
     def dynkin_diagram(self):
@@ -80,6 +80,22 @@ class CartanType(CartanType_standard_affine):
             sage: sorted(c.edges())
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
 
+            sage: c = DynkinDiagram(["A", 6, 2]) # should be the same as above; did fail at some point!
+            sage: c
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+            sage: c = DynkinDiagram(['BC',2,2])
+            sage: c
+            O=<=O=<=O
+            0   1   2
+            BC2~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 2)]
+
             sage: c = DynkinDiagram(['BC',1,2])
             sage: c
               4
@@ -88,6 +104,7 @@ class CartanType(CartanType_standard_affine):
             BC1~
             sage: sorted(c.edges())
             [(0, 1, 1), (1, 0, 4)]
+
         """
         from dynkin_diagram import DynkinDiagram_class
         n = self.n
@@ -95,10 +112,10 @@ class CartanType(CartanType_standard_affine):
         if n == 1:
             g.add_edge(1,0,4)
             return g
-        for i in range(1, n):
-            g.add_edge(i, i+1)
-        g.set_edge_label(n,n-1,2)
         g.add_edge(1,0,2)
+        for i in range(1, n-1):
+            g.add_edge(i, i+1)
+        g.add_edge(n,n-1,2)
         return g
 
     def ascii_art(self, label = lambda x: x):

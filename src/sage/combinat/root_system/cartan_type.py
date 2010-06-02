@@ -9,7 +9,7 @@ Dynkin diagrams.
 
 	http://en.wikipedia.org/wiki/Dynkin_diagram
 
-Let us consider for example, the Cartan type `A_4`.
+Let us consider for example, the Cartan type `A_4`::
 
     sage: T = CartanType(['A', 4])
     sage: T
@@ -22,7 +22,7 @@ It is the name of the following Dynkin diagram::
     1   2   3   4
     A4
 
-Note: for convenience, the following shortcuts are available:
+Note: for convenience, the following shortcuts are available::
 
     sage: DynkinDiagram(['A',4])
     O---O---O---O
@@ -174,7 +174,7 @@ Caveat: the Dynkin diagram should not be modified after having been
 used; this is not checked currently (Todo: add a method
 :meth:`.set_mutable`, as for matrices).
 
-..topic: Reducible Cartan types
+.. rubric:: Reducible Cartan types
 
 Reducible Cartan types can be specified by passing a sequence
 or list of irreducible Cartan types::
@@ -193,7 +193,7 @@ or using the following short hand notation::
     sage: CartanType("A2","B2") == CartanType("A2xB2")
     True
 
-..topic: Degenerate cases
+.. rubric:: Degenerate cases
 
 When possible, type `I_n` is automatically converted to the isomorphic
 crystalographic Cartan types (any reason not to do so?)::
@@ -222,7 +222,7 @@ Therefore, the Cartan types are considered as distinct::
     sage: CartanType(['D',3])
     ['D', 3]
 
-..topic: Affine Cartan types
+.. rubric:: Affine Cartan types
 
 For affine types, we use the usual conventions for affine Coxeter groups: each affine type
 is either untwisted (that is arise from the natural affinisation
@@ -463,9 +463,9 @@ class CartanTypeFactory(SageObject):
                             return type_BC_affine.CartanType(n)
                     if letter == "A" and t[2] == 2:
                         if n%2 == 0: # Kac' A_2n^(2)
-                            return CartanType(["BC", n/2, 2])
+                            return CartanType(["BC", ZZ(n/2), 2])
                         else:        # Kac' A_2n-1^(2)
-                            return CartanType(["B", (n+1)/2, 1]).dual()
+                            return CartanType(["B", ZZ((n+1)/2), 1]).dual()
                     if letter == "D" and t[2] == 2:
                         return CartanType(["C", n-1, 1]).dual()
                     if letter == "D" and t[2] == 3 and n == 4:
@@ -933,7 +933,7 @@ class CartanType_crystalographic(CartanType_abstract):
         to a scalar factor for each connected component of the Dynkin
         diagram.
 
-        This method currently assumes that the CartanType is irreducible.
+        This method currently assumes that the Cartan type is irreducible.
 
         This method computes the unique minimal such `D` with non
         negative integral coefficients. If `D` exists, it is returned
@@ -1188,7 +1188,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
 
         Throw an error if the existence of uniqueness does not hold
 
-        The optional argument is for internal use only.
+        The optional argument ``m`` is for internal use only.
 
         EXAMPLES::
 
@@ -1198,14 +1198,17 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             Finite family {0: 1, 1: 1, 2: 2, 3: 1, 4: 1}
             sage: RootSystem(['F',4,1]).cartan_type().acheck()
             Finite family {0: 1, 1: 2, 2: 3, 3: 2, 4: 1}
+            sage: RootSystem(['BC',4,2]).cartan_type().acheck()
+            Finite family {0: 1, 1: 2, 2: 2, 3: 2, 4: 2}
 
         FIXME:
          - The current implementation assumes that the Cartan matrix
-           is indexed by [0,1,...], in the same order as the index set.
+           is indexed by `[0,1,...]`, in the same order as the index set.
          - This really should be a method of CartanMatrix
         """
         if m is None:
             m = self.cartan_matrix()
+        assert self.index_set() == list(range(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
         assert(len(annihilator_basis) == 1)
         assert(all(coef > 0 for coef in annihilator_basis[0]))
@@ -1222,11 +1225,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
         non trivial annihilating linear combination of the columns of the
         Cartan matrix with non-negative coefficients).
 
-        Throw an error if the existence of uniqueness does not hold
+        Throw an error if the existence or uniqueness does not hold
 
         FIXME: the current implementation assumes that the Cartan
-        matrix is indexed by [0,1,...], in the same order as the index
-        set.
+        matrix is indexed by `[0,1,...]`, in the same order as the
+        index set.
 
         EXAMPLES::
 
@@ -1236,19 +1239,220 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             Finite family {0: 1, 1: 1, 2: 2, 3: 1, 4: 1}
             sage: RootSystem(['F',4,1]).cartan_type().a()
             Finite family {0: 1, 1: 2, 2: 3, 3: 4, 4: 2}
+            sage: RootSystem(['BC',4,2]).cartan_type().a()
+            Finite family {0: 2, 1: 2, 2: 2, 3: 2, 4: 1}
         """
         return self.row_annihilator(self.cartan_matrix().transpose())
 
     a = col_annihilator
 
-    def translation_factors(self):
+    def c(self):
+        r"""
+        Returns the family (c_i)_i of integer coefficients defined by
+        `c_i=max(1, a_i/a^vee_i)` (see e.g. [FSS07]_ p. 3)
+
+        FIXME: the current implementation assumes that the Cartan
+        matrix is indexed by `[0,1,...]`, in the same order as the
+        index set.
+
+        EXAMPLES::
+
+            sage: RootSystem(['C',2,1]).cartan_type().c()
+            Finite family {0: 1, 1: 2, 2: 1}
+            sage: RootSystem(['D',4,1]).cartan_type().c()
+            Finite family {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+            sage: RootSystem(['F',4,1]).cartan_type().c()
+            Finite family {0: 1, 1: 1, 2: 1, 3: 2, 4: 2}
+            sage: RootSystem(['BC',4,2]).cartan_type().c()
+            Finite family {0: 2, 1: 1, 2: 1, 3: 1, 4: 1}
+
+        TESTS::
+
+            sage: CartanType(["B", 3, 1]).c().map(parent)
+            Finite family {0: Integer Ring, 1: Integer Ring, 2: Integer Ring, 3: Integer Ring}
+
+        REFERENCES:
+
+        .. [FSS07] G. Fourier, A. Schilling, and M. Shimozono,
+           Demazure structure inside Kirillov-Reshetikhin crystals,
+           J. Algebra, Vol. 309, (2007), p. 386-404
+           http://arxiv.org/abs/math/0605451
         """
-        """
-        # FIXME : This is false for A_2n^2 Cartan type.
         a = self.a()
         acheck = self.acheck()
-        c = map(lambda x: max(1,x), [a[j]/acheck[j] for j in self.index_set()])
-        return Family(dict((i,c[i]) for i in self.classical().index_set()))
+        return Family(dict((i, max(ZZ(1), a[i] // acheck[i]))
+                           for i in self.index_set()))
+
+    def translation_factors(self):
+        r"""
+        Returns the translation factors for ``self``. Those are the
+        smallest factors `t_i` such that the translation by `t_i
+        \alpha_i` maps the fundamental polygon to another polygon in
+        the alcove picture.
+
+        OUTPUT: a dictionary from ``self.index_set()`` to `\ZZ`
+        (or `\QQ` for affine type `BC`)
+
+        Those coefficients are all `1` for dual untwisted, and in
+        particular for simply laced. They coincide with the usual
+        `c_i` coefficients (see :meth:`c`) for untwisted and dual
+        thereof. See the discussion below for affine type `BC`.
+
+        Note: one usually realizes the alcove picture in the coweight
+        lattice, with translations by coroots; in that case, one will
+        use the translation factors for the dual Cartan type.
+
+        FIXME: the current implementation assumes that the Cartan
+        matrix is indexed by `[0,1,...]`, in the same order as the
+        index set.
+
+        EXAMPLES::
+
+            sage: CartanType(['C',2,1]).translation_factors()
+            Finite family {0: 1, 1: 2, 2: 1}
+            sage: CartanType(['C',2,1]).dual().translation_factors()
+            Finite family {0: 1, 1: 1, 2: 1}
+            sage: CartanType(['D',4,1]).translation_factors()
+            Finite family {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+            sage: CartanType(['F',4,1]).translation_factors()
+            Finite family {0: 1, 1: 1, 2: 1, 3: 2, 4: 2}
+            sage: CartanType(['BC',4,2]).translation_factors()
+            Finite family {0: 1, 1: 1, 2: 1, 3: 1, 4: 1/2}
+
+        We proceed with systematic tests taken from MuPAD-Combinat's
+        testsuite::
+
+            sage: list(CartanType(["A", 1, 1]).translation_factors())
+            [1, 1]
+            sage: list(CartanType(["A", 5, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["B", 5, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 2]
+            sage: list(CartanType(["C", 5, 1]).translation_factors())
+            [1, 2, 2, 2, 2, 1]
+            sage: list(CartanType(["D", 5, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["E", 6, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["E", 7, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["E", 8, 1]).translation_factors())
+            [1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["F", 4, 1]).translation_factors())
+            [1, 1, 1, 2, 2]
+            sage: list(CartanType(["G", 2, 1]).translation_factors())
+            [1, 3, 1]
+            sage: list(CartanType(["A", 2, 2]).translation_factors())
+            [1, 1/2]
+            sage: list(CartanType(["A", 2, 2]).dual().translation_factors())
+            [1/2, 1]
+            sage: list(CartanType(["A", 10, 2]).translation_factors())
+            [1, 1, 1, 1, 1, 1/2]
+            sage: list(CartanType(["A", 10, 2]).dual().translation_factors())
+            [1/2, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["A", 9, 2]).translation_factors())
+            [1, 1, 1, 1, 1, 1]
+            sage: list(CartanType(["D", 5, 2]).translation_factors())
+            [1, 1, 1, 1, 1]
+            sage: list(CartanType(["D", 4, 3]).translation_factors())
+            [1, 1, 1]
+            sage: list(CartanType(["E", 6, 2]).translation_factors())
+            [1, 1, 1, 1, 1]
+
+        We conclude with a discussion of the appropriate value for
+        affine type `BC`. Let us consider the alcove picture realized
+        in the weight lattice. It is obtained by taking the level-`1`
+        affine hyperplane in the weight lattice, and projecting it
+        along `\Lambda_0`::
+
+            sage: R = RootSystem(["BC",2,2])
+            sage: alpha = R.weight_space().simple_roots()
+            sage: alphacheck = R.coroot_space().simple_roots()
+            sage: Lambda = R.weight_space().fundamental_weights()
+
+        Here are the levels of the fundamental weights::
+
+            sage: Lambda[0].level(), Lambda[1].level(), Lambda[2].level()
+            (1, 2, 2)
+
+        So the "center" of the fundamental polygon at level `1` is::
+
+            sage: O = Lambda[0]
+            sage: O.level()
+            1
+
+        We take the projection `\omega_1` at level `0` of `\Lambda_1`
+        as unit vector on the `x`-axis, and the projection `\omega_2`
+        at level 0 of `\Lambda_2` as unit vector of the `y`-axis::
+
+            sage: omega1 = Lambda[1]-2*Lambda[0]
+            sage: omega2 = Lambda[2]-2*Lambda[0]
+            sage: omega1.level(), omega2.level()
+            (0, 0)
+
+        The projections of the simple roots can be read off::
+
+            sage: alpha[0]
+            2*Lambda[0] - Lambda[1]
+            sage: alpha[1]
+            -2*Lambda[0] + 2*Lambda[1] - Lambda[2]
+            sage: alpha[2]
+            -2*Lambda[1] + 2*Lambda[2]
+
+        Namely `\alpha_0 = -\omega_1`, `\alpha_1 = 2\omega_1 -
+        \omega_2` and `\alpha_2 = -2 \omega_1 + 2 \omega_2`.
+
+        The reflection hyperplane defined by `\alpha_0^\vee` goes
+        through the points `O+1/2 \omega_1` and `O+1/2 \omega_2`::
+
+            sage: (O+(1/2)*omega1).scalar(alphacheck[0])
+            0
+            sage: (O+(1/2)*omega2).scalar(alphacheck[0])
+            0
+
+        Hence, the fundamental alcove is the triangle `(O, O+1/2
+        \omega_1, O+1/2 \omega_2)`. By successive reflections, one can
+        tile the full plane. This induces a tiling of the full plane
+        by translates of the fundamental polygon.
+
+        TODO: add the picture here, once root system plots in the
+        weight lattice will be implemented. In the mean time, the
+        reader may look up the dual picture on Figure 2 of [HST09]_
+        which was produced by MuPAD-Combinat.
+
+        From this picture, one can read that translations by
+        `\alpha_0`, `\alpha_1`, and `1/2\alpha_2` map the fundamental
+        polygon to translates of it in the alcove picture, and are
+        smallest with this property. Hence, the translation factors
+        for affine type `BC` are `t_0=1, t_1=1, t_2=1/2`::
+
+            sage: CartanType(['BC',2,2]).translation_factors()
+            Finite family {0: 1, 1: 1, 2: 1/2}
+
+        TESTS::
+
+            sage: CartanType(["B", 3, 1]).translation_factors().map(parent)
+            Finite family {0: Integer Ring, 1: Integer Ring, 2: Integer Ring, 3: Integer Ring}
+            sage: CartanType(["BC", 3, 2]).translation_factors().map(parent)
+            Finite family {0: Integer Ring, 1: Integer Ring, 2: Integer Ring, 3: Rational Field}
+
+        REFERENCES:
+
+        .. [HST09] F. Hivert, A. Schilling, and N. M. Thiery,
+           Hecke group algebras as quotients of affine Hecke
+           algebras at level 0, JCT A, Vol. 116, (2009) p. 844-863
+           http://arxiv.org/abs/0804.3781
+        """
+        a = self.a()
+        acheck = self.acheck()
+        if set([1/ZZ(2), 2]).issubset( set(a[i]/acheck[i] for i in self.index_set()) ):
+            # The test above and the formula below are rather meaningless
+            # But they detect properly type BC or dual and return the correct value
+            return Family(dict((i, min(ZZ(1), a[i] / acheck[i]))
+                               for i in self.index_set()))
+
+        else:
+            return self.c()
 
 ##############################################################################
 # Concrete base classes

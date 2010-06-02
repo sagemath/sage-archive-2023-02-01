@@ -205,7 +205,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
     # Should be implemented in (morphisms of) modules with basis
     def morphism_matrix(self, f):
-        return matrix(QQ, [f(b).to_vector()
+        return matrix(self.domain().base_ring(), [f(b).to_vector()
                            for b in self.domain().basis()]).transpose()
 
     def from_morphism(self, f):

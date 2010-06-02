@@ -873,10 +873,13 @@ class RootLatticeRealizationElement(object):
     def reduced_word(self, index_set = None, positive = True):
         """
         Returns a shortest sequence of simple reflections mapping self
-        to the unique element of its orbit in the positive chamber.
+        to the unique element `o` of its orbit in the positive
+        chamber. Alternatively this is a reduced word for the smallest
+        element of the group mapping `o` to self (recall that, by
+        convention, Weyl groups act on the left).
 
         With the index_set optional parameter, this is done with
-        respect to the corresponding parbolic subgroup
+        respect to the corresponding parabolic subgroup
 
         With positive = False, returns the shortest sequence to the
         negative chamber instead
@@ -1021,11 +1024,53 @@ class RootLatticeRealizationElement(object):
         """
         EXAMPLES::
 
-            sage: L = RootSystem(['A',2,1])
-            sage: rho = L.weight_lattice().rho()
-            sage: rho.level()
+            sage: L = RootSystem(['A',2,1]).weight_lattice()
+            sage: L.rho().level()
             3
         """
         assert(self.parent().cartan_type().is_affine())
         return self.scalar(self.parent().null_coroot())
 
+
+    def translation(self, x):
+        """
+        INPUT:
+         - ``self`` - an element `t` at level `0`
+         - ``x`` - an element of the same space
+
+        Returns `x` translated by `t`, that is `x+level(x) t`
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',2,1]).weight_lattice()
+            sage: alpha = L.simple_roots()
+            sage: Lambda = L.fundamental_weights()
+            sage: t = alpha[2]
+
+        Let us look at the translation of an element of level `1`::
+
+            sage: Lambda[1].level()
+            1
+            sage: t.translation(Lambda[1])
+            -Lambda[0] + 2*Lambda[2]
+            sage: Lambda[1] + t
+            -Lambda[0] + 2*Lambda[2]
+
+        and of an element of level `0`::
+
+            sage: alpha [1].level()
+            0
+            sage: t.translation(alpha [1])
+            -Lambda[0] + 2*Lambda[1] - Lambda[2]
+            sage: alpha[1] + 0*t
+            -Lambda[0] + 2*Lambda[1] - Lambda[2]
+
+        The arguments are given in this seemingly unnatural order to
+        make it easy to construct the translation function::
+
+            sage: f = t.translation
+            sage: f(Lambda[1])
+            -Lambda[0] + 2*Lambda[2]
+        """
+        assert self.level().is_zero()
+        return x + x.level() * self

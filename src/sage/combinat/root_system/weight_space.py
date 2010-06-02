@@ -26,6 +26,7 @@ class WeightSpace(CombinatorialFreeModule, WeightLatticeRealization):
     This class is also used for coweight spaces (or lattices).
 
     TESTS::
+
         sage: for ct in CartanType.samples():
         ...       if ct.is_implemented():
         ...           P = ct.root_system().weight_space()

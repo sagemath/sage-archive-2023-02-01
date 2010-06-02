@@ -86,7 +86,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: InfiniteEnumeratedSets().example()
+            sage: InfiniteEnumeratedSets().example() # indirect doctest
             An example of an infinite enumerated set: the non negative integers
         """
         return "An example of an infinite enumerated set: the non negative integers"

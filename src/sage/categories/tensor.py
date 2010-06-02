@@ -1,145 +1,118 @@
 """
-Tensor product functorial construction
+Tensor Product Functorial Construction
+
+AUTHORS:
+
+ - Nicolas M. Thiery (2008-2010): initial revision and refactorization
 """
 #*****************************************************************************
-#  Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category import Category, CovariantFunctorialConstruction
+from sage.categories.category import Category
+from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
 from sage.misc.cachefunc import cached_method
 import sage.structure.parent
 import sage.structure.element
 
-class CategoryWithTensorProduct(Category):
+class TensorProductFunctor(CovariantFunctorialConstruction):
     """
-    A category with tensor product is a category endowed with a tensor product
-    functor (operation on its parents and on its elements).
+    A singleton class for the tensor functor
 
-    Technically, let ``CClass`` be a class inheriting from
-    ``CategoryWithTensorProduct``. An instance `C` of ``CClass`` is a category.
+    This functor takes a collection of vector spaces (or modules with
+    basis), and constructs the tensor product of those vector spaces.
+    If this vector space is in a subcategory, say that of
+    ``Algebras(QQ)``, it is automatically endowed with its natural
+    algebra structure, thanks to the category
+    ``Algebras(QQ).TensorProducts()`` of tensor products of algebras.
 
-    ``CClass`` must implement a method
-    :meth:`.tensor_product_category` which returns the category of
-    tensor products of parents in `C`. With the default implementation
-    of :meth:`.tensor_product_category`, it is sufficient to provide a
-    class ``CClass.TensorProductCategory`` whose constructor takes as
-    parameter the category `C` and returns the desired category.
+    The tensor functor is covariant: if ``A`` is a subcategory of ``B``, then
+    ``A.TensorProducts()`` is a subcategory of ``B.TensorProducts()`` (see
+    also
+    :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`). Hence,
+    the role of ``Algebras(QQ).TensorProducts()`` is solely to provide
+    mathematical information and algorithms which are relevant to tensor
+    product of algebras.
 
-    If `C` is a subcategory of another category with tensor product
-    `D`, ``C.tensor_product_category()`` is automatically considered
-    as a subcategory of `D.tensor_product_category()``.
+    Those are implemented in the nested class
+    :class:`~sage.categories.algebras.Algebras.TensorProducts`
+    of ``Algebras(QQ)``. This nested class is itself a subclass of
+    :class:`~sage.categories.tensor.TensorProductsCategory`.
 
-    See also :class:`CovariantFunctorialConstruction`.
 
     TESTS::
 
-        sage: TestSuite(CategoryWithTensorProduct()).run() # mostly to silence sage -coverage on this abstract class
+        sage: TestSuite(tensor).run()
+    """
+    _functor_name = "tensor"
+    _functor_category = "TensorProducts"
+    symbol = " # "
+
+tensor = TensorProductFunctor()
+"""
+The tensor product functorial construction
+
+See :class:`TensorProductFunctor` for more information
+
+EXAMPLES::
+
+    sage: tensor
+    The tensor functorial construction
+"""
+
+class TensorProductsCategory(CovariantConstructionCategory):
+    """
+    An abstract base class for all TensorProducts's categories
+
+    TESTS::
+
+        sage: C = ModulesWithBasis(QQ).TensorProducts()
+        sage: C
+        Category of tensor products of modules with basis over Rational Field
+        sage: C.base_category()
+        Category of modules with basis over Rational Field
+        sage: latex(C)
+        \mathbf{TensorProducts}(\mathbf{ModulesWithBasis}_{\Bold{Q}})
+        sage: TestSuite(C).run()
     """
 
-    @cached_method
-    def tensor_category(self):
-        """
-        The category of tensor products of parents in ``self``
+    _functor_category = "TensorProducts"
 
-        EXAMPLES::
-
-            sage: ModulesWithBasis(QQ).tensor_category()
-            Category of tensor products of modules with basis over Rational Field
-        """
-        return self.TensorCategory(self)
-
-    class ParentMethods:
-        def tensor(*parents):
-            """
-            Returns the tensor product of the parents
-
-            EXAMPLES::
-
-                sage: C = AlgebrasWithBasis(QQ)
-                sage: A = C.example(); A.rename("A")
-                sage: A.tensor(A,A)
-                A # A # A
-            """
-            return parents[0].Tensor(parents, category = tensor.category_from_parents(parents))
-
-    class ElementMethods:
-        def tensor(*elements):
-            """
-            Returns the tensor product of its arguments, as an element of
-            the tensor product of the parents of those elements.
-
-            EXAMPLES::
-
-                sage: C = AlgebrasWithBasis(QQ)
-                sage: A = C.example()
-                sage: (a,b,c) = A.algebra_generators()
-                sage: a.tensor(b, c)
-                B[word: a] # B[word: b] # B[word: c]
-
-            FIXME: is this a policy that we want to enforce on all parents?
-            """
-            assert(all(isinstance(element, sage.structure.element.Element) for element in elements))
-            parents = [element.parent() for element in elements]
-            return tensor(parents)._tensor_of_elements(elements) # good name???
-
-
-class TensorCategory(CategoryWithTensorProduct):
-    """
-    An abstract base class for all TensorCategory's defined in
-    CategoryWithTensorProduct's.
-    """
-
-    def __init__(self, category, name=None):
-        """
-        TESTS::
-
-            sage: C = sage.categories.tensor.TensorCategory(ModulesWithBasis(QQ), "my_category")
-            sage: C
-            Category of tensor products of modules with basis over Rational Field
-            sage: C.base_category
-            Category of modules with basis over Rational Field
-            sage: latex(C)
-            \mathbf{my_category}
-        """
-        Category.__init__(self, name)
-        self.base_category = category
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: ModulesWithBasis(QQ).tensor_category() # indirect doctest
-            Category of tensor products of modules with basis over Rational Field
-
-        """
-        return "Category of tensor products of %s"%repr(self.base_category)[12:]
-
-    def tensor_category(self):
+    def TensorProducts(self):
         """
         Returns the category of tensor products of objects of ``self``
 
-        By associativity of tensor products, this is ``self``
-        (a tensor product of tensor products of A's is a tensor product of A's)
+        By associativity of tensor products, this is ``self`` (a tensor
+        product of tensor products of `Cat`'s is a tensor product of `Cat`'s)
 
         EXAMPLES::
 
-            sage: ModulesWithBasis(QQ).tensor_category().tensor_category()
+            sage: ModulesWithBasis(QQ).TensorProducts().TensorProducts()
             Category of tensor products of modules with basis over Rational Field
-
         """
         return self
 
-
-class TensorFunctor(CovariantFunctorialConstruction):
+# This is Category.TensorProducts
+def TensorProducts(self):
     """
-    A singleton class for the tensor functor
-    """
-    functor_name = "tensor"
-    functor_category = "tensor_category"
-    FunctorialCategory = CategoryWithTensorProduct
-    symbol = " # "
+    INPUT:
 
-tensor = TensorFunctor()
+     - ``self`` -- a subcategory of ``ModulesWithBasis(...)``
+
+    Returns the category of objects constructed as tensor products of
+    objects of ``self``.
+
+    See :class:`TensorProductFunctor` for more information
+
+    EXAMPLES::
+
+        sage: ModulesWithBasis(QQ).TensorProducts()
+        Category of tensor products of modules with basis over Rational Field
+    """
+    return TensorProductsCategory.category_of(self)
+
+
+Category.TensorProducts = TensorProducts

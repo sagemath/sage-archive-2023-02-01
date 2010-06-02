@@ -2127,6 +2127,12 @@ cdef class Parent(category_object.CategoryObject):
             x
         """
         try:
+            return super(Parent, self)._an_element_()
+        except:
+            _record_exception()
+            pass
+
+        try:
             return self.gen(0)
         except:
             _record_exception()

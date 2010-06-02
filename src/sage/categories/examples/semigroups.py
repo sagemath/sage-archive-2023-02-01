@@ -297,9 +297,9 @@ class FreeSemigroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: type(S._element_constructor_(17))
-            <class 'sage.categories.examples.semigroups.SubQuotientOfLeftZeroSemigroup_with_category.element_class'>
+            <class 'sage.categories.examples.semigroups.QuotientOfLeftZeroSemigroup_with_category.element_class'>
 
         """
         for a in x:
@@ -313,14 +313,14 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         wrapped_class = str
 
 
-class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
+class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
     r"""
-    Example of a sub-quotient semigroup
+    Example of a quotient semigroup
 
     EXAMPLES::
 
-        sage: S = Semigroups().SubQuotients().example(); S
-        An example of a subquotient semigroup: a subquotient of the left zero semigroup
+        sage: S = Semigroups().Subquotients().example(); S
+        An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
 
     This is the quotient of::
 
@@ -364,28 +364,28 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S._element_constructor_(17)
             17
 
         TESTS::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: type(S._element_constructor_(17))
-            <class 'sage.categories.examples.semigroups.SubQuotientOfLeftZeroSemigroup_with_category.element_class'>
+            <class 'sage.categories.examples.semigroups.QuotientOfLeftZeroSemigroup_with_category.element_class'>
 
         """
         return self.retract(self.ambient()(x))
 
-    def __init__(self):
+    def __init__(self, category = None):
         r"""
         This quotient of the left zero semigroup of integers obtained by
         setting `x=42` for any `x\geq 42`.
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example(); S
-            An example of a subquotient semigroup: a subquotient of the left zero semigroup
+            sage: S = Semigroups().Subquotients().example(); S
+            An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
             sage: S.ambient()
             An example of a semigroup: the left zero semigroup
             sage: S(100)
@@ -397,22 +397,22 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: S == loads(dumps(S))
-            True
-
+            sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category = Semigroups().SubQuotients())
+        if category is None:
+            category = Semigroups().Quotients()
+        Parent.__init__(self, category = category)
 
     def _repr_(self):
         r"""
 
         EXAMPLES::
 
-            sage: Semigroups().SubQuotients().example()._repr_()
-            'An example of a subquotient semigroup: a subquotient of the left zero semigroup'
+            sage: Semigroups().Subquotients().example()._repr_()
+            'An example of a (sub)quotient semigroup: a quotient of the left zero semigroup'
 
         """
-        return "An example of a subquotient semigroup: a subquotient of the left zero semigroup"
+        return "An example of a (sub)quotient semigroup: a quotient of the left zero semigroup"
 
     def ambient(self):
         r"""
@@ -420,7 +420,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S.ambient()
             An example of a semigroup: the left zero semigroup
 
@@ -441,7 +441,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: x = S.an_element(); x
             42
             sage: S.lift(x)
@@ -464,7 +464,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S.the_answer()
             42
 
@@ -477,7 +477,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S.an_element()
             42
 
@@ -490,7 +490,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S.some_elements()
             [1, 2, 3, 8, 42, 42]
 
@@ -512,7 +512,7 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: L = S.ambient()
             sage: S.retract(L(17))
             17
@@ -537,14 +537,14 @@ class SubQuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
         pass
 
-class IncompleteSubQuotientSemigroup(UniqueRepresentation,Parent):
-    def __init__(self):
+class IncompleteSubquotientSemigroup(UniqueRepresentation,Parent):
+    def __init__(self, category = None):
         r"""
         An incompletely implemented subquotient semigroup, for testing purposes
 
         EXAMPLES::
 
-            sage: S = sage.categories.examples.semigroups.IncompleteSubQuotientSemigroup()
+            sage: S = sage.categories.examples.semigroups.IncompleteSubquotientSemigroup()
             sage: S
             A subquotient of An example of a semigroup: the left zero semigroup
 
@@ -581,7 +581,7 @@ class IncompleteSubQuotientSemigroup(UniqueRepresentation,Parent):
             running ._test_some_elements() . . . pass
             The following tests failed: _test_associativity, _test_not_implemented_methods
         """
-        Parent.__init__(self, category=Semigroups().SubQuotients())
+        Parent.__init__(self, category=Semigroups().Subquotients().or_subcategory(category))
 
     def ambient(self):
         r"""
@@ -589,7 +589,7 @@ class IncompleteSubQuotientSemigroup(UniqueRepresentation,Parent):
 
         EXAMPLES::
 
-            sage: S = Semigroups().SubQuotients().example()
+            sage: S = Semigroups().Subquotients().example()
             sage: S.ambient()
             An example of a semigroup: the left zero semigroup
 

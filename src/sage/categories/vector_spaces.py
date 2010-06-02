@@ -1,5 +1,5 @@
 r"""
-VectorSpaces
+Vector Spaces
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
@@ -13,6 +13,7 @@ VectorSpaces
 
 from category_types import Category_module
 from sage.categories.all import Fields, Modules
+from sage.categories.dual import DualObjectsCategory
 from sage.misc.cachefunc import cached_method
 
 class VectorSpaces(Category_module):
@@ -88,10 +89,29 @@ class VectorSpaces(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_field()
-        return [Modules(R)]
+        return [Modules(R, dispatch = False)]
 
     class ParentMethods:
         pass
 
     class ElementMethods:
         pass
+
+    class DualObjects(DualObjectsCategory):
+
+        def extra_super_categories(self):
+            r"""
+            Returns the dual category
+
+            EXAMPLES:
+
+            The category of algebras over the Rational Field is dual
+            to the category of coalgebras over the same field::
+
+                sage: C = VectorSpaces(QQ)
+                sage: C.dual()
+                Category of duals of vector spaces over Rational Field
+                sage: C.dual().super_categories() # indirect doctest
+                [Category of vector spaces over Rational Field]
+            """
+            return [self.base_category()]

@@ -12,10 +12,13 @@ Monoids
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.semigroups import Semigroups
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
+from sage.categories.category import Category
+from sage.categories.semigroups import Semigroups
+from sage.categories.subquotients import SubquotientsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.algebra_functor import AlgebrasCategory
 from sage.structure.element import generic_power
 
 class Monoids(Category):
@@ -236,3 +239,93 @@ class Monoids(Category):
             for i in range(n-1):
                 result *= self
             return result
+
+    class Subquotients(SubquotientsCategory):
+
+        class ParentMethods:
+
+            def one(self):
+                """
+                Returns the multiplicative unit of this monoid,
+                obtained by retracting that of the ambient monoid.
+
+                EXAMPLES::
+
+                    sage: S = Monoids().Subquotients().example() # todo: not implemented
+                    sage: S.one()                                # todo: not implemented
+                """
+                return self.retract(self.ambient().one())
+
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of monoids constructed as cartesian products of monoids
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of monoids is endowed with a natural
+            monoid structure.
+
+            EXAMPLES::
+
+                sage: Monoids().CartesianProducts().extra_super_categories()
+                [Category of monoids]
+                sage: Monoids().CartesianProducts().super_categories()
+                [Category of monoids, Category of Cartesian products of semigroups]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+
+            @cached_method
+            def one(self):
+                """
+                EXAMPLES::
+
+                    sage: cartesian_product([QQ, ZZ, RR]).one()
+                    (1, 1, 1.00000000000000)
+                """
+                return cartesian_product([set.one() for set in self._sets])
+
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Monoids().Algebras(QQ).extra_super_categories()
+                [Category of algebras with basis over Rational Field]
+                sage: Monoids().Algebras(QQ).super_categories()
+                [Category of semigroup algebras over Rational Field]
+
+                sage: Monoids().example().algebra(ZZ).categories()
+                [Category of monoid algebras over Integer Ring,
+                 Category of semigroup algebras over Integer Ring,
+                 Category of algebras with basis over Integer Ring,
+                 ...
+                 Category of objects]
+
+            """
+            from sage.categories.algebras_with_basis import AlgebrasWithBasis
+            return [AlgebrasWithBasis(self.base_ring())]
+
+        class ParentMethods:
+
+            @cached_method
+            def one_basis(self):
+                """
+                Returns the one of the group, which index the one of this algebra,
+                as per
+                :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
+                <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.
+
+                EXAMPLES::
+
+                    sage: A = Monoids().example().algebra(ZZ)
+                    sage: A.one_basis()
+                    ''
+                    sage: A.one()
+                    B['']
+                    sage: A(3)
+                    3*B['']
+                """
+                return self.basis().keys().one()

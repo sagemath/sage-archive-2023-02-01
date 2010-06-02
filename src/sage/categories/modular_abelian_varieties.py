@@ -27,6 +27,8 @@ class ModularAbelianVarieties(Category_over_base):
         TESTS::
 
             sage: C = ModularAbelianVarieties(QQ)
+            sage: C
+            Category of modular abelian varieties over Rational Field
             sage: TestSuite(C).run()
 
             sage: ModularAbelianVarieties(ZZ)
@@ -57,13 +59,3 @@ class ModularAbelianVarieties(Category_over_base):
         """
         from sets_cat import Sets
         return [Sets()] # FIXME
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: ModularAbelianVarieties(QQ) # indirect doctest
-            Category of modular abelian varieties over Rational Field
-        """
-        return "Category of modular abelian varieties over %s"%self.base_field()
-

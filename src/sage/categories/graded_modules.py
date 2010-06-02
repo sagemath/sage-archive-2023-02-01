@@ -35,7 +35,9 @@ class GradedModules(Category_over_base_ring):
         EXAMPLES::
 
             sage: GradedModules(QQ).super_categories()
-            [Category of modules over Rational Field]
+            [Category of vector spaces over Rational Field]
+            sage: GradedModules(ZZ).super_categories()
+            [Category of modules over Integer Ring]
         """
         R = self.base_ring()
         return [Modules(R)]

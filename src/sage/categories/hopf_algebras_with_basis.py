@@ -10,11 +10,12 @@ HopfAlgebrasWithBasis
 #******************************************************************************
 
 from sage.categories.category_types import Category_over_base_ring
-from sage.categories.all import CategoryWithTensorProduct, TensorCategory, DualityCategory, HopfAlgebras, BialgebrasWithBasis
+from sage.categories.all import HopfAlgebras, BialgebrasWithBasis
+from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
-class HopfAlgebrasWithBasis(Category_over_base_ring, CategoryWithTensorProduct): #, DualityCategory):
+class HopfAlgebrasWithBasis(Category_over_base_ring):
     """
     The category of Hopf algebras with a distinguished basis
 
@@ -176,20 +177,22 @@ class HopfAlgebrasWithBasis(Category_over_base_ring, CategoryWithTensorProduct):
     class ElementMethods:
         pass
 
-    class TensorCategory(TensorCategory):
+    class TensorProducts(TensorProductsCategory):
         """
         The category of hopf algebras with basis constructed by tensor product of hopf algebras with basis
         """
 
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: HopfAlgebrasWithBasis(QQ).tensor_category().super_categories()
+                sage: HopfAlgebrasWithBasis(QQ).TensorProducts().extra_super_categories()
                 [Category of hopf algebras with basis over Rational Field]
+                sage: HopfAlgebrasWithBasis(QQ).TensorProducts().super_categories()
+                [Category of hopf algebras with basis over Rational Field, Category of tensor products of algebras with basis over Rational Field, Category of tensor products of hopf algebras over Rational Field]
             """
-            return [HopfAlgebrasWithBasis(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
             # todo: antipode

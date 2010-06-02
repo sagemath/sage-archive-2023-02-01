@@ -116,7 +116,7 @@ class AdditiveMagmas(Category):
                is only the bare minimum of documentation here.
 
                See the
-               :meth:`~sage.categories.semigroups.Semigroups.ParentMethods.multiplication_table`
+               :meth:`~sage.categories.magmas.Magmas.ParentMethods.multiplication_table`
                documentation, it is entirely analogous.  Also, the
                returned object is an
                :class:`~sage.matrix.operation_table.OperationTable`

@@ -61,8 +61,10 @@ class RingIdeals(Category_ideal):
         """
         EXAMPLES::
 
+            sage: RingIdeals(ZZ).super_categories()
+            [Category of modules over Integer Ring]
             sage: RingIdeals(QQ).super_categories()
-            [Category of modules over Rational Field]
+            [Category of vector spaces over Rational Field]
         """
         from modules import Modules
         R = self.ring()

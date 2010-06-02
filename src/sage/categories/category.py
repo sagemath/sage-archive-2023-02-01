@@ -346,7 +346,38 @@ class Category(UniqueRepresentation, SageObject):
             self.__label = s
         else:
             raise TypeError, "Argument string must be a string."
-        self.__category = s
+        self.__repr_object_names = s
+
+    def _repr_object_names(self):
+        """
+        Returns the name of the objects of this category
+
+        EXAMPLES::
+
+            sage: FiniteGroups()._repr_object_names()
+            'finite groups'
+
+            sage: AlgebrasWithBasis(QQ)._repr_object_names()
+            'algebras with basis over Rational Field'
+        """
+        return self.__repr_object_names
+
+    def _short_name(self):
+        """
+        Returns a CamelCase name for this category
+
+        EXAMPLES::
+
+            sage: FiniteGroups()._short_name()
+            'FiniteGroups'
+
+            sage: AlgebrasWithBasis(QQ)._short_name()
+            'AlgebrasWithBasis'
+
+        Conventions for short names should be discussed at the level
+        of Sage, and only then applied accordingly here.
+        """
+        return self.__label
 
     @classmethod
     def an_instance(cls):
@@ -411,7 +442,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Sets() #indirect doctest
             Category of sets
         """
-        return "Category of %s"%self.__category
+        return "Category of %s"%self._repr_object_names()
 
     def _latex_(self):
         """
@@ -422,7 +453,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: latex(Sets()) #indirect doctest
             \mathbf{Sets}
         """
-        return "\\mathbf{%s}"%self.__label
+        return "\\mathbf{%s}"%self._short_name()
 
 #   The convention for which hash function to use should be decided at the level of UniqueRepresentation
 #   The implementation below is bad (hash independent of the base ring)
@@ -440,21 +471,6 @@ class Category(UniqueRepresentation, SageObject):
 #             699942203
 #         """
 #         return hash(self.__category) # Any reason not to use id?
-
-#     This method preexisted in the original category code and was barely used (only in functors)
-#     Conventions for short names should be discussed at the level of Sage,
-#     and only then applied accordingly here.
-#     def short_name(self):
-#         """
-#         A CamelCase representation of this category.
-
-#         EXAMPLES::
-
-#             sage: C = Algebras(ZZ)
-#             sage: C.short_name()
-#             'Algebras'
-#         """
-#         return ''.join([x.capitalize() for x in self.__category.split()])
 
     def __contains__(self, x):
         """
@@ -654,11 +670,10 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Rings  = Rings()
             sage: AbGrps = CommutativeAdditiveGroups()
-            sage: Rings.is_subcategory(AbGrps)
+            sage: Rings().is_subcategory(AbGrps)
             True
-            sage: AbGrps.is_subcategory(Rings)
+            sage: AbGrps.is_subcategory(Rings())
             False
 
         The ``is_subcategory`` function takes into account the
@@ -671,16 +686,66 @@ class Category(UniqueRepresentation, SageObject):
             sage: M3.is_subcategory(M9)
             False
 
-        TODO: handle join categories properly::
+        Join categories are properly handled::
 
-            sage: Rings().is_subcategory(Category.join((CommutativeAdditiveGroups(), SemiGroups()))) # todo: not implemented
+            sage: CatJ = Category.join((CommutativeAdditiveGroups(), Semigroups()))
+            sage: Rings().is_subcategory(CatJ)
             True
 
-
+            sage: V3 = VectorSpaces(FiniteField(3))
+            sage: POSet = PartiallyOrderedSets()
+            sage: PoV3 = Category.join((V3, POSet))
+            sage: A3 = AlgebrasWithBasis(FiniteField(3))
+            sage: PoA3 = Category.join((A3, POSet))
+            sage: PoA3.is_subcategory(PoV3)
+            True
+            sage: PoV3.is_subcategory(PoV3)
+            True
+            sage: PoV3.is_subcategory(PoA3)
+            False
         """
         assert(isinstance(c, Category))
 #        print "%s in %s: %s"%(self, c, c in self.all_super_categories())
+        if isinstance(c, JoinCategory):
+            return all(self.is_subcategory(x) for x in c.super_categories())
         return c in self.all_super_categories()
+
+    def or_subcategory(self, category = None):
+        """
+        INPUT:
+
+         - ``category`` - a sub category of ``self``, tuple/list thereof, or None
+
+        OUTPUT: a category
+
+        Returns ``category`` or ``self`` if ``category`` is None.
+
+        EXAMPLES::
+
+            sage: Monoids().or_subcategory(Groups())
+            Category of groups
+            sage: Monoids().or_subcategory(None)
+            Category of monoids
+
+        If category is a list/tuple, then a join category is returned::
+
+            sage: Monoids().or_subcategory((FiniteEnumeratedSets(), Groups()))
+            Join of Category of finite enumerated sets and Category of groups
+
+        An error if raised if category is not a subcategory of ``self``.
+
+            sage: Monoids().or_subcategory(EnumeratedSets())
+            Traceback (most recent call last):
+            ...
+            AssertionError: Subcategory of `Category of enumerated sets` required; got `Category of monoids`
+        """
+        if category is None:
+            return self
+        if isinstance(category, (tuple, list)):
+            category = Category.join(category)
+        assert isinstance(category, Category)
+        assert category.is_subcategory(self), "Subcategory of `%s` required; got `%s`"%(category, self)
+        return category
 
     def _is_subclass(self, c,):
         """
@@ -702,26 +767,26 @@ class Category(UniqueRepresentation, SageObject):
         else:
             return any(isinstance(cat, c) for cat in self.all_super_categories())
 
-    def meet(self, other):
+    def _meet_(self, other):
         """
         Returns the largest common subcategory of self and other:
 
         EXAMPLES::
 
-            sage: Monoids().meet(Monoids())
+            sage: Monoids()._meet_(Monoids())
             Category of monoids
-            sage: Rings().meet(Rings())
+            sage: Rings()._meet_(Rings())
             Category of rings
-            sage: Rings().meet(Monoids())
+            sage: Rings()._meet_(Monoids())
             Category of monoids
-            sage: Monoids().meet(Rings())
+            sage: Monoids()._meet_(Rings())
             Category of monoids
 
-            sage: VectorSpaces(QQ).meet(Modules(ZZ))
+            sage: VectorSpaces(QQ)._meet_(Modules(ZZ))
             Category of commutative additive groups
-            sage: Algebras(ZZ).meet(Algebras(QQ))
+            sage: Algebras(ZZ)._meet_(Algebras(QQ))
             Category of rings
-            sage: Groups().meet(Rings())
+            sage: Groups()._meet_(Rings())
             Category of monoids
 
         Note: abstractly, the category poset is a distributive
@@ -742,21 +807,48 @@ class Category(UniqueRepresentation, SageObject):
 
          - If A is a subcategory of B, A has *more* structure than B,
            but then *less* objects in there. We should choose an
-           appropriate convention for A<B.  using subcategory calls
+           appropriate convention for A<B. Using subcategory calls
            for A<B, but the current meet and join call for A>B.
-
-         - :meth:`meet` should be consistent with :meth:`join` and
-           take an iterable of categories
         """
         if self is other: # useful? fast pathway
             return self
         elif self.is_subcategory(other):
             return other
         else:
-            return Category.join(self.meet(sup) for sup in other.super_categories())
+            return Category.join(self._meet_(sup) for sup in other.super_categories())
 
     @staticmethod
-    def join(categories, **options):
+    def meet(categories):
+        """
+        Returns the meet of a list of categories
+
+        INPUT:
+
+         - ``categories`` - a non empty list (or iterable) of categories
+
+        EXAMPLES::
+
+            sage: Category.meet([Algebras(ZZ), Algebras(QQ), Groups()])
+            Category of monoids
+
+        That meet of an empty list should be a category which is a
+        subcategory of all categories, which does not make practical sense::
+
+            sage: Category.meet([])
+            Traceback (most recent call last):
+            ...
+            ValueError: The meet of an empty list of categories is not implemented
+        """
+        categories = tuple(categories)
+        if len(categories) == 0:
+            raise ValueError, "The meet of an empty list of categories is not implemented"
+        result = categories[0]
+        for category in categories[1:]:
+            result = result._meet_(category)
+        return result
+
+    @staticmethod
+    def join(categories, as_list = False):
         """
         Returns the join of the input categories in the lattice of categories
 
@@ -798,8 +890,8 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join((Sets(), Rings(), Monoids()))
             Category of rings
 
-        If the optional parameter as_list is True, then just return
-        the super categories of the join as a list, without
+        If the optional parameter ``as_list`` is ``True``, this just
+        returns the super categories of the join as a list, without
         constructing the join category itself::
 
             sage: Category.join((Groups(), CommutativeAdditiveMonoids()), as_list=True)
@@ -825,7 +917,7 @@ class Category(UniqueRepresentation, SageObject):
             if any(cat.is_subcategory(category) for cat in result):
                 continue
             result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
-        if "as_list" in options and options["as_list"]:
+        if as_list:
             return list(result)
         if len(result) == 1:
             return result[0]
@@ -846,6 +938,20 @@ class Category(UniqueRepresentation, SageObject):
         """
         from objects import Objects
         return Objects()
+
+    # For better code locality and to avoid import loops, those
+    # assignements are achieved by the respective modules:
+    #
+    # TensorProducts    = tensor.TensorProducts
+    # CartesianProducts = cartesian_products.CartesianProducts
+    #
+    # Subquotients      = subquotients.Subquotients
+    # Subobjects        = subobjects.Subobjects
+    # Quotients         = quotients.Quotients
+    # IsomorphicObjects = isomorphic_objects.IsomorphicObjects
+    #
+    # DualObjects       = dual.DualObjects
+    # Algebras          = algebra_functor.Algebras
 
     def hom_category(self):
         """
@@ -956,7 +1062,13 @@ class Category(UniqueRepresentation, SageObject):
 
             sage: Semigroups().example()
             An example of a semigroup: the left zero semigroup
+
+            sage: Monoids().Subquotients().example()
+            NotImplemented
         """
+        if '.' in self.__class__.__name__:
+            # this magic should not apply to nested categories like Monoids.Subquotients
+            return NotImplemented
         module_name = self.__module__.replace("sage.categories", "sage.categories.examples")
         import sys
         try:
@@ -1024,21 +1136,20 @@ def category_graph(categories = None):
     import sage.categories.all
     if categories is None:
         import all
-        abstract_classes_for_categories = [Category, HomCategory, AbstractCategory, all.CartesianProductCategory, all.TensorCategory, all.CategoryWithCartesianProduct, all.CategoryWithTensorProduct, all.DualityCategory]
+        abstract_classes_for_categories = [Category, HomCategory, AbstractCategory]
         categories = [ cat.an_instance() for cat in sage.categories.all.__dict__.values() if isinstance(cat, type) and issubclass(cat, Category) and cat not in abstract_classes_for_categories ]
     cats = set()
     for category in categories:
         for cat in category.all_super_categories():
             cats.add(cat)
-    def name(cat):
-        return repr(cat)[12:]
+
     categories = cats
     g = graphs.digraph.DiGraph()
     for cat in categories:
-        g.add_vertex(name(cat))
+        g.add_vertex(cat._repr_object_names())
         for source in categories:
             for target in source.super_categories():
-                g.add_edge([name(source), name(target)])
+                g.add_edge([source._repr_object_names(), target._repr_object_names()])
     return g
 
 #############################################################
@@ -1070,7 +1181,7 @@ class HomCategory(Category):
         Category.__init__(self, name)
         self.base_category = category
 
-    def _repr_(self): # improve?
+    def _repr_object_names(self): # improve?
         """
         Print representation.
 
@@ -1079,7 +1190,7 @@ class HomCategory(Category):
             sage: Sets().hom_category() #indirect doctest
             Category of hom sets in Category of sets
         """
-        return "Category of hom sets in %s"%self.base_category
+        return "hom sets in %s"%self.base_category
 
 #    def construction(self):
 #        return (attrcall("hom_category"), self.base_category)
@@ -1255,125 +1366,3 @@ class JoinCategory(Category):
             Join of Category of groups and Category of commutative additive monoids
         """
         return "Join of %s"%(" and ".join(str(cat) for cat in self.super_categories()))
-
-#############################################################
-# Functorial Constructions
-#############################################################
-
-class CovariantFunctorialConstruction(SageObject):
-    """
-    An abstract class for construction functors F (eg F = cartesian product,
-    tensor product, cartesian product, ...) such that:
-
-     - Each category Cat (eg Cat=Groups()) can provide a category
-       FOf(Cat) for parents constructed via this functor (eg
-       FOf(Cat) = CartesianProductsOf(Groups())).
-
-     - For parents A, B, C respectively in the categories CatA, CatB,
-       CatC, the category of F(A,B,C) is defined by taking the join of
-       FOf(CatD) for every common super category of CatA, CatB, CatC.
-
-    Note: CartesianProductsOf(Groups) needs not to specify that it is
-    a subcategory of CartesianProductsOf(Monoids). This part of the
-    hierarchy is taken care automatically.
-
-    FIXME: Rework entirely the internal mechanism. In particular,
-    CartesianProductsOf(Monoids) should be added automatically to the
-    super_categories of CartesianProductsOf(Groups); currently the
-    resulting category is built as a join of both.
-
-    TODO: What syntax to use to get FOf(Cat)? For example, for the
-    tensor product construction, which one of the followings do we
-    want (see chat on IRC, on 07/12/2009):
-
-     - tensor(Cat)
-     - tensor((Cat, Cat))
-     - tensor.of((Cat, Cat))
-     - tensor.category_from_categories((Cat, Cat, Cat))
-     - Cat.tensor_category()
-     - tensor_category(Cat)
-
-    The syntax Cat.tensor_category() does not supports well situations
-    like tensor.of([Algebras(), HopfAlgebras(), ...]). Also it forces
-    every category to be (somehow) aware of all the tensorial
-    construction that could apply to it, even those which are only
-    induced from super categories.
-    """
-
-    #Each subclass of this class should provide the following data:
-
-    # functor_name (string, required).  This should match a method on
-    # parents that applies the construction
-
-    # functor_category (string, required).  This should match a method
-    # on categories that gives the category that the result of this
-    # construction applied to objects in that category (ie FOf(Cat) in
-    # the docstring)
-
-    # FunctorialCategory (class, required).  This is a subclass of
-    # Category from which categories supporting this operation should
-    # inherit.
-
-    def category_from_parents(self, parents):
-        """
-        Returns the category of `F(parents)`.
-
-        INPUT:
-         - self: a functor F
-         - parents: a list (or iterable) of parents.
-
-        EXAMPLES::
-
-            sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
-            sage: tensor.category_from_parents((E, E, E)) # todo: not implemented (see upcoming category patch #5985)
-
-        """
-        from sage.structure.parent import Parent
-        assert(all(isinstance(parent, Parent) for parent in parents))
-        return self.category_from_categories(tuple(set(parent.category() for parent in parents)))
-
-    @cached_method
-    def category_from_categories(self, categories):
-        """
-        Returns the category of `F(A,B,C)` for `A,B,C` parents in the given categories
-
-        INPUT:
-         - self: a functor `F`
-         - categories: a tuple of categories
-
-        EXAMPLES::
-
-            sage: Cat = ModulesWithBasis(QQ)
-            sage: tensor.category_from_categories((Cat, Cat, Cat))
-            Category of tensor products of modules with basis over Rational Field
-        """
-        assert(len(categories) > 0)
-
-        super_categories_of_first  = categories[0].all_super_categories()
-        super_categories_of_others = [set(category.all_super_categories())
-                                      for category in categories[1:len(categories)] ]
-
-        return Category.join((getattr(category, self.functor_category)()
-                              for category in super_categories_of_first
-                              if isinstance(category, self.FunctorialCategory) and
-                              all(category in categories for categories in super_categories_of_others)))
-
-    def __call__(self, args):
-        """
-        Functorial construction application
-
-        INPUT:
-         - self: a covariant functorial construction `F`
-         - args: a tuple (or iterable) of parents or elements
-
-        Returns `F(args)`
-
-        EXAMPLES::
-
-            sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
-            sage: tensor((E, E, E))           # todo: not implemented (see upcoming category patch #5985)
-        """
-        args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
-        assert(all( hasattr(arg, self.functor_name) for arg in args))
-        assert(len(args) > 0)
-        return getattr(args[0].__class__, self.functor_name)(*args)

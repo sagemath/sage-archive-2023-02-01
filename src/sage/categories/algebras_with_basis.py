@@ -1,5 +1,5 @@
 r"""
-AlgebrasWithBasis
+Algebras With Basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -12,11 +12,12 @@ AlgebrasWithBasis
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.all import Category, CategoryWithTensorProduct, TensorCategory, CategoryWithCartesianProduct, CartesianProductCategory, tensor, DualityCategory, ModulesWithBasis, Algebras
+from sage.categories.all import ModulesWithBasis, Algebras
+from sage.categories.tensor import TensorProductsCategory, tensor
+from sage.categories.cartesian_product import CartesianProductsCategory
 from category_types import Category_over_base_ring
 
-class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, CategoryWithTensorProduct): #, DualityCategory):
-    # FIXME: this is actually not a CategoryWithCartesianProduct; see comment in Algebras.CartesianProductCategory
+class AlgebrasWithBasis(Category_over_base_ring):
     """
     The category of algebras with a distinguished basis
 
@@ -140,7 +141,9 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
         @cached_method
         def one_from_one_basis(self):
             """
-            Returns the one of the algebra, as per ``Monoids.ParentMethods.one``
+            Returns the one of the algebra, as per
+            :meth:`Monoids.ParentMethods.one()
+            <sage.categories.monoids.Monoids.ParentMethods.one>`
 
             By default, this is implemented from
             :meth:`.one_basis`, if available.
@@ -253,7 +256,9 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
         @lazy_attribute
         def product(self):
             """
-            The product of the algebra, as per ``Algebras.ParentMethods.product``
+            The product of the algebra, as per
+            :meth:`Magmas.ParentMethods.product()
+            <sage.categories.magmas.Magmas.ParentMethods.product>`
 
             By default, this is implemented from
             :meth:`.product_on_basis`, if available.
@@ -378,26 +383,31 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 raise ValueError, "cannot invert self (= %s)"%self
 
 
-    class CartesianProductCategory(CartesianProductCategory):
+    class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis constructed by cartesian products of algebras with basis
+        The category of algebras with basis, constructed as cartesian products of algebras with basis
 
-        FIXME: what's implemented here is actually about direct products of algebras.
-        See comment in Algebras.CartesianProductCategory
+        Note: this construction give the direct products of algebras with basis.
+        See comment in :class:`Algebras.CartesianProducts
+        <sage.categories.algebras.Algebras.CartesianProducts>`
         """
 
-        @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
+            A cartesian product of algebras with basis is endowed with
+            a natural algebra with basis structure.
+
             EXAMPLES::
 
-                sage: AlgebrasWithBasis(QQ).cartesian_product_category().super_categories()
+                sage: AlgebrasWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
+                sage: AlgebrasWithBasis(QQ).CartesianProducts().super_categories()
+                [Category of algebras with basis over Rational Field, Category of Cartesian products of modules with basis over Rational Field, Category of Cartesian products of algebras over Rational Field]
             """
-            return [AlgebrasWithBasis(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
-            #@cached_method   # todo: reinstate once #5843 is fixed
+            @cached_method   # todo: reinstate once #5843 is fixed
             def one_from_cartesian_product_of_one_basis(self):
                 """
                 Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
@@ -421,8 +431,11 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                     B[(0, word: )] + B[(1, word: )] + B[(2, word: )]
                     sage: B.one()
                     B[(0, word: )] + B[(1, word: )] + B[(2, word: )]
+
+                    sage: cartesian_product([SymmetricGroupAlgebra(QQ, 3), SymmetricGroupAlgebra(QQ, 4)]).one()
+                    B[(0, [1, 2, 3])] + B[(1, [1, 2, 3, 4])]
                 """
-                return self.sum_of_monomials( (i, self.modules[i].one_basis()) for i in range(len(self.modules))) #?
+                return self.sum_of_monomials( zip( self._sets_keys(), (set.one_basis() for set in self._sets)) )
 
             @lazy_attribute
             def one(self):
@@ -435,7 +448,7 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                     sage: B.one()
                     B[(0, word: )] + B[(1, word: )] + B[(2, word: )]
                 """
-                if all(hasattr(module, "one_basis") for module in self.modules):
+                if all(hasattr(module, "one_basis") for module in self._sets):
                     return self.one_from_cartesian_product_of_one_basis
                 else:
                     return NotImplemented
@@ -446,20 +459,24 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
             # advantage of the bloc structure
 
 
-    class TensorCategory(TensorCategory):
+    class TensorProducts(TensorProductsCategory):
         """
         The category of algebras with basis constructed by tensor product of algebras with basis
         """
 
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: AlgebrasWithBasis(QQ).tensor_category().super_categories()
+                sage: AlgebrasWithBasis(QQ).TensorProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
+                sage: AlgebrasWithBasis(QQ).TensorProducts().super_categories()
+                [Category of algebras with basis over Rational Field,
+                 Category of tensor products of modules with basis over Rational Field,
+                 Category of tensor products of algebras over Rational Field]
             """
-            return [AlgebrasWithBasis(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
             """
@@ -491,8 +508,8 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
                 # FIXME: this method should be conditionaly defined,
                 # so that B.one_basis returns NotImplemented if not
                 # all modules provide one_basis
-                if all(hasattr(module, "one_basis") for module in self.modules):
-                    return tuple(module.one_basis() for module in self.modules)
+                if all(hasattr(module, "one_basis") for module in self._sets):
+                    return tuple(module.one_basis() for module in self._sets)
                 else:
                     raise NotImplementedError
 
@@ -524,10 +541,10 @@ class AlgebrasWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, C
 
                 TODO: optimize this implementation!
                 """
-                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.modules, t1, t2)) ) #.
+                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self._sets, t1, t2)) ) #.
 
         class ElementMethods:
             """
-            implements operations on elements of tensor products of algebras with basis
+            Implements operations on elements of tensor products of algebras with basis
             """
             pass

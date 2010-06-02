@@ -11,6 +11,7 @@ CommutativeAdditiveGroups
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_types import AbelianCategory
 from sage.categories.commutative_additive_monoids import CommutativeAdditiveMonoids
+from sage.structure.sage_object import have_same_parent
 
 class CommutativeAdditiveGroups(AbelianCategory):
     """
@@ -58,7 +59,7 @@ class CommutativeAdditiveGroups(AbelianCategory):
                 sage: a - b
                 B['a'] - B['b']
             """
-            if left.parent() == right.parent() and hasattr(left, "_sub_"):
+            if have_same_parent(left, right) and hasattr(left, "_sub_"):
                 return left._sub_(right)
             from sage.structure.element import get_coercion_model
             import operator

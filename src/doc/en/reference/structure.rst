@@ -16,6 +16,7 @@ Basic Structures
    sage/structure/sequence
    sage/structure/element_wrapper
 
+   sage/sets/cartesian_product
    sage/sets/family
    sage/sets/set
    sage/sets/disjoint_set

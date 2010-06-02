@@ -10,11 +10,13 @@ Coalgebras
 #******************************************************************************
 
 from category_types import Category_over_base_ring
-from sage.categories.all import Modules, Algebras, CategoryWithTensorProduct, TensorCategory, DualityCategory, tensor
+from sage.categories.all import Modules, Algebras
+from sage.categories.tensor import TensorProductsCategory, tensor
+from sage.categories.dual import DualObjectsCategory
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 
-class Coalgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCategory):
+class Coalgebras(Category_over_base_ring):
     """
     The category of coalgebras
 
@@ -23,9 +25,10 @@ class Coalgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCate
         sage: Coalgebras(QQ)
         Category of coalgebras over Rational Field
         sage: Coalgebras(QQ).super_categories()
-        [Category of modules over Rational Field]
-        sage: Coalgebras(QQ).all_super_categories() # todo: update once the hierarchy is more appropriate
+        [Category of vector spaces over Rational Field]
+        sage: Coalgebras(QQ).all_super_categories()
         [Category of coalgebras over Rational Field,
+         Category of vector spaces over Rational Field,
          Category of modules over Rational Field,
          Category of bimodules over Rational Field on the left and Rational Field on the right,
          Category of left modules over Rational Field,
@@ -48,24 +51,9 @@ class Coalgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCate
         EXAMPLES::
 
             sage: Coalgebras(QQ).super_categories()
-            [Category of modules over Rational Field]
+            [Category of vector spaces over Rational Field]
         """
         return [Modules(self.base_ring())]
-
-    def dual(self):
-        """
-        Returns the dual category
-
-        EXAMPLES:
-
-        The category of coalgebras over the Rational Field is dual
-        to the category of algebras over the same field::
-
-            sage: C = Coalgebras(QQ)
-            sage: C.dual()
-            Category of algebras over Rational Field
-        """
-        return Algebras(self.base_ring())
 
     class ParentMethods:
         #def __init_add__(self): # The analogue of initDomainAdd
@@ -123,22 +111,48 @@ class Coalgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCate
             """
             return self.parent().coproduct(self)
 
-    class TensorCategory(TensorCategory):
+    class TensorProducts(TensorProductsCategory):
+
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: Coalgebras(QQ).tensor_category().super_categories()
+                sage: Coalgebras(QQ).TensorProducts().extra_super_categories()
                 [Category of coalgebras over Rational Field]
+                sage: Coalgebras(QQ).TensorProducts().super_categories()
+                [Category of coalgebras over Rational Field]
+
+            Meaning: a tensor product of coalgebras is a coalgebra
             """
-            return [Coalgebras(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
-            #def coproduct(self):
-            #    tensor products of morphisms are not yet implemented
-            #    return tensor(module.coproduct for module in self.modules)
+            # TODO: provide this default implementation of one if one_basis is not implemented
+            #def one(self):
+            #    return tensor(module.one() for module in self.modules)
             pass
 
         class ElementMethods:
             pass
+
+    class DualObjects(DualObjectsCategory):
+
+        def extra_super_categories(self):
+            r"""
+            Returns the dual category
+
+            EXAMPLES:
+
+            The category of coalgebras over the Rational Field is dual
+            to the category of algebras over the same field::
+
+                sage: C = Coalgebras(QQ)
+                sage: C.dual()
+                Category of duals of coalgebras over Rational Field
+                sage: C.dual().super_categories() # indirect doctest
+                [Category of algebras over Rational Field, Category of duals of vector spaces over Rational Field]
+
+            """
+            from sage.categories.algebras import Algebras
+            return [Algebras(self.base_category().base_ring())]

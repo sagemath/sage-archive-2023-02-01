@@ -242,8 +242,6 @@ cdef class Map(Element):
         morphism in ``Hom(X, Z, category)`` where ``category`` is the
         meet of ``category_left`` and ``category_right``.
 
-        Caveat: see the current restrictions on :method:`Category.meet`
-
         EXAMPLES::
 
             sage: from sage.categories.morphism import SetMorphism
@@ -266,7 +264,7 @@ cdef class Map(Element):
             sage: phi_yz.category_for()
             Category of commutative additive monoids
         """
-        category = self.category_for().meet(right.category_for())
+        category = self.category_for()._meet_(right.category_for())
         H = homset.Hom(right.domain(), self.codomain(), category)
         return self._composition_(right, H)
 
@@ -331,8 +329,6 @@ cdef class Map(Element):
         Returns the composition of ``self`` and ``right`` as a
         morphism in ``Hom(X, Z, category)`` where ``category`` is the
         meet of ``category_left`` and ``category_right``.
-
-        Caveat: see the current restrictions on :method:`Category.meet`
 
         EXAMPLES::
 

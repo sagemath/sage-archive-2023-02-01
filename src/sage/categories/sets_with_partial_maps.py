@@ -40,15 +40,6 @@ class SetsWithPartialMaps(Category):
     #    import sage.sets.all
     #    return sage.sets.all.Set(X, pt)
 
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: SetsWithPartialMaps()
-            Category of sets with partial maps
-        """
-        return "Category of sets with partial maps"
-
     @cached_method
     def super_categories(self):
         """

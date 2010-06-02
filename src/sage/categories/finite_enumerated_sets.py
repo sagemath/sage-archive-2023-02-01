@@ -11,6 +11,7 @@ Finite Enumerated Sets
 
 from category_types import Category
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 
@@ -209,3 +210,49 @@ class FiniteEnumeratedSets(Category):
                                    self._cardinality_from_iterator())
 
 
+    class IsomorphicObjects(IsomorphicObjectsCategory):
+
+        def example(self):
+            """
+            Returns an example of isomorphic object of a finite
+            enumerated set, as per :meth:`Category.example
+            <sage.categories.category.Category.example>`.
+
+            EXAMPLES::
+
+                sage: FiniteEnumeratedSets().IsomorphicObjects().example()
+                The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            """
+            from sage.categories.examples.finite_enumerated_sets import IsomorphicObjectOfFiniteEnumeratedSet
+            return IsomorphicObjectOfFiniteEnumeratedSet()
+
+        class ParentMethods:
+
+            def cardinality(self):
+                r"""
+                Returns the cardinality of ``self`` which is the same
+                as that of the ambient set ``self`` is isomorphic to.
+
+                EXAMPLES::
+
+                    sage: A = FiniteEnumeratedSets().IsomorphicObjects().example(); A
+                    The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+                    sage: A.cardinality()
+                    3
+                """
+                return self.ambient().cardinality()
+
+            def __iter__(self):
+                r"""
+                Returns an iterator over ``self``, using the bijection
+                with the ambient space.
+
+                EXAMPLES::
+
+                    sage: A = FiniteEnumeratedSets().IsomorphicObjects().example(); A
+                    The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+                    sage: list(A)                  # indirect doctest
+                    [1, 4, 9]
+                """
+                for x in self.ambient():
+                    yield self.retract(x)

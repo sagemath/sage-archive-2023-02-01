@@ -13,6 +13,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.rings.integer import Integer
+from sage.functions.other import sqrt
 
 class Example(UniqueRepresentation, Parent):
     r"""
@@ -20,7 +21,8 @@ class Example(UniqueRepresentation, Parent):
 
     This class provides a minimal implementation of a finite enumerated set.
 
-    See :class:`FiniteEnumeratedSet` for a full featured implementation.
+    See :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet` for a
+    full featured implementation.
 
     EXAMPLES::
 
@@ -104,3 +106,97 @@ class Example(UniqueRepresentation, Parent):
 
     # temporarily needed because parent overloads it.
     an_element = EnumeratedSets.ParentMethods._an_element_
+
+
+class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
+
+    def __init__(self, ambient = Example()):
+        """
+        TESTS::
+
+            sage: C = FiniteEnumeratedSets().IsomorphicObjects().example()
+            sage: C
+            The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            sage: C.category()
+            Category of isomorphic objects of finite enumerated sets
+            sage: TestSuite(C).run()
+        """
+        self._ambient = ambient
+        Parent.__init__(self, category = FiniteEnumeratedSets().IsomorphicObjects())
+
+    def ambient(self):
+        """
+        Returns the ambient space for ``self``, as per
+        :meth:`Sets.Subquotients.ParentMethods.ambient()
+        <sage.categories.sets_cat.Sets.Subquotients.ParentMethods.ambient>`.
+
+        EXAMPLES::
+
+            sage: C = FiniteEnumeratedSets().IsomorphicObjects().example(); C
+            The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            sage: C.ambient()
+            An example of a finite enumerated set: {1,2,3}
+        """
+        return self._ambient
+
+    def lift(self, x):
+        """
+        INPUT:
+         - ``x`` -- an element of ``self``
+
+        Lifts ``x`` to the ambient space for ``self``, as per
+        :meth:`Sets.Subquotients.ParentMethods.lift()
+        <sage.categories.sets_cat.Sets.Subquotients.ParentMethods.lift>`.
+
+        EXAMPLES::
+
+            sage: C = FiniteEnumeratedSets().IsomorphicObjects().example(); C
+            The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            sage: C.lift(9)
+            3
+        """
+        return sqrt(x)
+
+    def retract(self, x):
+        """
+        INPUT:
+         - ``x`` -- an element of the ambient space for ``self``
+
+        Retracts ``x`` from the ambient space to ``self``, as per
+        :meth:`Sets.Subquotients.ParentMethods.retract()
+        <sage.categories.sets_cat.Sets.Subquotients.ParentMethods.retract>`.
+
+        EXAMPLES::
+
+            sage: C = FiniteEnumeratedSets().IsomorphicObjects().example(); C
+            The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            sage: C.retract(3)
+            9
+        """
+        return x ** 2
+
+    def __contains__(self, x):
+        """
+        Membership testing by checking whether the preimage by the
+        bijection is in the ambient space.
+
+        EXAMPLES::
+
+            sage: A = FiniteEnumeratedSets().IsomorphicObjects().example(); A
+            The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+            sage: list(A)
+            [1, 4, 9]
+            sage: 4 in A
+            True
+            sage: 3 in A
+            False
+            sage: None in A
+            False
+
+        TODO: devise a robust implementation, and move it up to
+        ``FiniteEnumeratedSets.IsomorphicObjects``.
+        """
+        try:
+            return self.lift(x) in self.ambient()
+        except:
+            return False

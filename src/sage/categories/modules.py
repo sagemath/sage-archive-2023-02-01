@@ -11,22 +11,33 @@ Modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.all import Bimodules, HomCategory
+from sage.categories.all import Bimodules, HomCategory, Fields
 from category_types import Category_module
 from sage.misc.cachefunc import cached_method
 
 class Modules(Category_module):
-    """
-    The category of all modules over a base ring.
+    r"""
+    The category of all modules over a base ring `R`
 
-    R-left and R-right modules
-    modules over a commutative ring
-    ##  r*(x*s) = (r*x)*s
+    A `R`-module `M` is a left and right `R`-module over a commutative
+    ring `R` such that:
+
+    .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x\in M
+
+    INPUT:
+
+      - ``base_ring`` -- a ring `R`
+      - ``dispatch`` -- a boolean (for internal use; default: ``True``)
+
+    When the base ring is a field, the category of vector spaces is
+    returned instead (unless ``dispatch == False``).
 
     EXAMPLES::
 
+        sage: Modules(IntegerRing())
+        Category of modules over Integer Ring
         sage: Modules(RationalField())
-        Category of modules over Rational Field
+        Category of vector spaces over Rational Field
 
         sage: Modules(Integers(9))
         Category of modules over Ring of integers modulo 9
@@ -61,17 +72,65 @@ class Modules(Category_module):
 
     TODO:
 
-     - When R is a field, Modules(R) could return VectorSpaces(R).
      - Implement a FreeModules(R) category, when so prompted by a concrete use case
     """
+
+    @staticmethod
+    def __classcall_private__(cls, base_ring, dispatch = True):
+        """
+        This method implements the default behavior of dispatching
+        ``Modules(field)`` to ``VectorSpaces(field)``. This feature
+        will later be extended to modules over a principal ideal
+        domain/ring or over a semiring.
+
+        TESTS::
+
+            sage: C = Modules(ZZ); C
+            Category of modules over Integer Ring
+            sage: C is Modules(ZZ, dispatch = False)
+            True
+            sage: C is Modules(ZZ, dispatch = True)
+            True
+            sage: C._reduction
+            (<class 'sage.categories.modules.Modules'>, (Integer Ring,), {'dispatch': False})
+            sage: TestSuite(C).run()
+
+            sage: Modules(QQ) is VectorSpaces(QQ)
+            True
+            sage: Modules(QQ, dispatch = True) is VectorSpaces(QQ)
+            True
+
+            sage: C = Modules(NonNegativeIntegers()); C   # todo: not implemented
+            Category of semiring modules over Non negative integers
+
+            sage: C = Modules(QQ, dispatch = False); C
+            Category of modules over Rational Field
+            sage: C._reduction
+            (<class 'sage.categories.modules.Modules'>, (Rational Field,), {'dispatch': False})
+            sage: TestSuite(C).run()
+
+        """
+        if dispatch and base_ring in Fields():
+            from vector_spaces import VectorSpaces
+            return VectorSpaces(base_ring)
+        result = super(Modules, cls).__classcall__(cls, base_ring)
+        result._reduction[2]['dispatch'] = False
+        return result
 
     @cached_method
     def super_categories(self):
         """
         EXAMPLES::
 
+            sage: Modules(ZZ).super_categories()
+            [Category of bimodules over Integer Ring on the left and Integer Ring on the right]
+
+        Nota bene::
+
+            sage: Modules(QQ)
+            Category of vector spaces over Rational Field
             sage: Modules(QQ).super_categories()
-            [Category of bimodules over Rational Field on the left and Rational Field on the right]
+            [Category of modules over Rational Field]
         """
         R = self.base_ring()
         return [Bimodules(R,R)]
@@ -114,7 +173,7 @@ class Modules(Category_module):
 
     class HomCategory(HomCategory):
         """
-        The category of homomorphisms sets Hom(X,Y) for X, Y modules
+        The category of homomorphisms sets `\hom(X,Y)` for `X`, `Y` modules
         """
 
         def extra_super_categories(self):
@@ -149,7 +208,8 @@ class Modules(Category_module):
 
     class EndCategory(HomCategory):
         """
-        The category of endomorphisms sets End(X) for X module (this is not used yet)
+        The category of endomorphisms sets `End(X)` for `X` module (this is
+        not used yet)
         """
 
         def extra_super_categories(self):

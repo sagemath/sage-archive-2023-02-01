@@ -1,5 +1,10 @@
 r"""
 Algebras
+
+AUTHORS:
+
+ - David Kohel & William Stein (2005): initial revision
+ - Nicolas M. Thiery (2008): rewrote for new category framework
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
@@ -12,17 +17,19 @@ Algebras
 #******************************************************************************
 
 from category_types import Category_over_base_ring
-from sage.categories.all import Hom, Rings, Modules, CategoryWithCartesianProduct, CartesianProductCategory, cartesian_product
+from sage.categories.all import Hom, Rings, Modules
+from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.dual import DualObjectsCategory
+from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.morphism import SetMorphism
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import have_same_parent
 
-class Algebras(Category_over_base_ring, CategoryWithCartesianProduct):
-    # FIXME: this is actually not a CategoryWithCartesianProduct; see comment in Algebras.CartesianProductCategory
+class Algebras(Category_over_base_ring):
     """
     The category of algebras over a given base ring.
 
-    An algebra over a ring `R` is a module over R which is itself a ring.
+    An algebra over a ring `R` is a module over `R` which is itself a ring.
 
     TODO: should `R` be a commutative ring?
 
@@ -63,27 +70,11 @@ class Algebras(Category_over_base_ring, CategoryWithCartesianProduct):
         """
         EXAMPLES::
 
-            sage: Algebras(QQ).super_categories()
-            [Category of rings, Category of modules over Rational Field]
+            sage: Algebras(ZZ).super_categories()
+            [Category of rings, Category of modules over Integer Ring]
         """
         R = self.base_ring()
         return [Rings(), Modules(R)]
-
-    def dual(self):
-        """
-        Returns the dual category
-
-        EXAMPLES:
-
-        The category of algebras over the Rational Field is dual
-        to the category of coalgebras over the same field::
-
-            sage: C = Algebras(QQ)
-            sage: C.dual()
-            Category of coalgebras over Rational Field
-        """
-        from sage.categories.coalgebras import Coalgebras
-        return Coalgebras(self.base_ring())
 
     class ParentMethods: # (Algebra):  # Eventually, the content of Algebra should be moved here
         def from_base_ring(self, r):
@@ -175,50 +166,71 @@ class Algebras(Category_over_base_ring, CategoryWithCartesianProduct):
             """
             return self.parent().product(self, ~y)
 
-    class CartesianProductCategory(CartesianProductCategory):
+    class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras constructed by cartesian products of algebras
+        The category of algebras constructed as cartesian products of algebras
 
+        This construction gives the direct product of algebras. See
+        discussion on:
 
-
-
-        See:
          - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
          - http://en.wikipedia.org/wiki/Direct_product
         """
+        def extra_super_categories(self):
+            """
+            A cartesian product of algebras is endowed with a natural
+            algebra structure.
+
+            EXAMPLES::
+
+                sage: Algebras(QQ).CartesianProducts().extra_super_categories()
+                [Category of algebras over Rational Field]
+                sage: Algebras(QQ).CartesianProducts().super_categories()
+                [Category of algebras over Rational Field, Category of Cartesian products of monoids]
+            """
+            return [self.base_category()]
+
+
+    class TensorProducts(TensorProductsCategory):
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: Algebras(QQ).cartesian_product_category().super_categories()
+                sage: Algebras(QQ).TensorProducts().extra_super_categories()
                 [Category of algebras over Rational Field]
+                sage: Algebras(QQ).TensorProducts().super_categories()
+                [Category of algebras over Rational Field]
+
+            Meaning: a tensor product of algebras is an algebra
             """
-            return [Algebras(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
-            @cached_method
-            def one(self):
-                """
-                EXAMPLES::
+            #def coproduct(self):
+            #    tensor products of morphisms are not yet implemented
+            #    return tensor(module.coproduct for module in self.modules)
+            pass
 
-                    sage: S = cartesian_product([SymmetricGroupAlgebra(QQ, 3), SymmetricGroupAlgebra(QQ, 4)])
-                    sage: S.one()
-                    B[(0, [1, 2, 3])] + B[(1, [1, 2, 3, 4])]
-                """
-                return cartesian_product([module.one() for module in self.modules])
+        class ElementMethods:
+            pass
 
-            def product(self, left, right):
-                """
-                EXAMPLES::
+    class DualObjects(DualObjectsCategory):
 
-                    sage: A = SymmetricGroupAlgebra(QQ, 3);
-                    sage: x = cartesian_product([A([1,3,2]), A([2,3,1])])
-                    sage: y = cartesian_product([A([1,3,2]), A([2,3,1])])
-                    sage: cartesian_product([A,A]).product(x,y)
-                    B[(0, [1, 2, 3])] + B[(1, [3, 1, 2])]
-                    sage: x*y
-                    B[(0, [1, 2, 3])] + B[(1, [3, 1, 2])]
-                """
+        def extra_super_categories(self):
+            r"""
+            Returns the dual category
 
-                return cartesian_product([(a*b) for (a,b) in zip(left.summand_split(), right.summand_split())])
+            EXAMPLES:
+
+            The category of algebras over the Rational Field is dual
+            to the category of coalgebras over the same field::
+
+                sage: C = Algebras(QQ)
+                sage: C.dual()
+                Category of duals of algebras over Rational Field
+                sage: C.dual().extra_super_categories()
+                [Category of coalgebras over Rational Field]
+            """
+            from sage.categories.coalgebras import Coalgebras
+            return [Coalgebras(self.base_category().base_ring())]

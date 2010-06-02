@@ -16,7 +16,6 @@ This is placed in a separate file from categories.py to avoid circular imports
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.rings.ring import is_Ring
 from category import Category
 
 ####################################################################
@@ -92,8 +91,8 @@ class Elements(Category):
     def __reduce__(self):
         return Elements, (self.__object, )
 
-    def _repr_(self):
-        return "Category of elements of %s"%self.object()
+    def _repr_object_names(self):
+        return "elements of %s"%self.object()
 
     def _latex_(self):
         """
@@ -181,8 +180,8 @@ class Sequences(Category):
     def __reduce__(self):
         return Sequences, (self.__object, )
 
-    def _repr_(self):
-        return "Category of sequences in %s"%self.object()
+    def _repr_object_names(self):
+        return "sequences in %s"%self.object()
 
     def _latex_(self):
         """
@@ -224,11 +223,17 @@ class Category_over_base(Category):
         """
         return self.__base
 
-    def _repr_(self):
-        return Category._repr_(self) + " over %s"%self.__base
+    def _repr_object_names(self):
+        return Category._repr_object_names(self) + " over %s"%self.__base
 
     def _latex_(self):
-        return "\\mathbf{%s}_{%s}"%(self.__label, latex(self.__base))
+        """
+        EXAMPLES::
+
+            sage: latex(ModulesWithBasis(QQ))
+            \mathbf{ModulesWithBasis}_{\Bold{Q}}
+        """
+        return "\\mathbf{%s}_{%s}"%(self._Category__label, latex(self.__base))
 
 #    def construction(self):
 #        return (self.__class__, self.__base)
@@ -264,7 +269,7 @@ class Category_over_base_ring(Category_over_base):
         """
         return self.base()
 
-class AbelianCategory(Category): # should inherit from cartesian_product.CategoryWithCartesianProduct?
+class AbelianCategory(Category):
     def is_abelian(self):
         return True
 

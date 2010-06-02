@@ -442,17 +442,18 @@ In which class should be cartesian_product([A, B]) ?
 
 Other functorial constructions:
 
- - cartesian product
+ - Cartesian product
  - quotient / sub / subquotient
  - tensor product
  - dual
-
+ - algebras
 
  - morphisms
 
 Flavors of categories:
- - finite dimensional / graded / graded connected
+ - finite dimensional / graded? / graded connected
  - finite / infinite
+ - commutative
 
 Wrapup:
  - There is a combinatorial explosion of potential classes
@@ -497,7 +498,6 @@ This gives the following order::
      Category of algebras with basis over Rational Field,
      Category of coalgebras with basis over Rational Field,
      Category of modules with basis over Rational Field,
-     Category of vector spaces over Rational Field,
      Category of hopf algebras over Rational Field,
      Category of bialgebras over Rational Field,
      Category of algebras over Rational Field,
@@ -507,6 +507,7 @@ This gives the following order::
      Category of semigroups,
      Category of magmas,
      Category of coalgebras over Rational Field,
+     Category of vector spaces over Rational Field,
      Category of modules over Rational Field,
      Category of bimodules over Rational Field on the left and Rational Field on the right,
      Category of left modules over Rational Field,

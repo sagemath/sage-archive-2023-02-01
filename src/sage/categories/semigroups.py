@@ -13,15 +13,14 @@ Semigroups
 #******************************************************************************
 
 from sage.categories.category import Category
-from sage.misc.abstract_method import abstract_method, AbstractMethod
+from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.subquotients import SubquotientsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.quotients import QuotientsCategory
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.categories.magmas import Magmas
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.structure.element import Element, generic_power
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import generic_power
 
 class Semigroups(Category):
     """
@@ -58,7 +57,9 @@ class Semigroups(Category):
 
     def example(self, choice="leftzero", **kwds):
         r"""
-        An example of a semigroup.
+        Returns an example of a semigroup, as per
+        :meth:`Category.example()
+        <sage.categories.category.Category.example>`.
 
         INPUT::
 
@@ -119,9 +120,9 @@ class Semigroups(Category):
 
         def prod(self, args):
             r"""
-            Returns the product of the list of elements `args` inside `self`.
+            Returns the product of the list of elements ``args`` inside ``self``.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: S = Semigroups().example("free")
                 sage: S.prod([S('a'), S('b'), S('c')])
@@ -322,151 +323,136 @@ class Semigroups(Category):
         __pow__ = _pow_
 
     #######################################
-    class SubQuotients(Category): # (SubQuotientCategory):
+    class Subquotients(SubquotientsCategory):
         r"""
         The category of sub/quotient semi-groups.
 
-        Let `G` and `S` be two semi-groups and `l: S \mapsto G` and
-        `r: G \mapsto S` be two maps such that:
+        EXAMPLES::
 
-         - `r \circ l` is the identity of `G`.
-
-         - for any two `a,b\in S` the identity `a \times_S b = r(l(a) \times_G l(b))` holds.
-
-        The category SubQuotient implements the product `\times_S` from `l` and `r`
-        and the product of `G`.
-
-        `S` is supposed to belongs the category
-        ``Semigroups().SubQuotients()`` and to specify `G` under the name
-        ``S.ambient()`` and to implement `x\to l(x)` and `y \to r(y)`
-        under the names ``S.lift(x)`` and ``S.retract(y)``.
+            sage: Semigroups().Subquotients().all_super_categories()
+            [Category of subquotients of semigroups,
+             Category of semigroups,
+             Category of subquotients of magmas,
+             Category of magmas,
+             Category of subquotients of sets,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
         """
-
-        @cached_method
-        def super_categories(self):
-            """
-            EXAMPLES::
-
-                sage: Semigroups().SubQuotients().super_categories()
-                [Category of semigroups]
-            """
-            return [Semigroups()]
 
         def example(self):
             """
-            Returns an example of sub quotient of a semigroup
+            Returns an example of sub quotient of a semigroup, as per
+            :meth:`Category.example()
+            <sage.categories.category.Category.example>`.
 
             EXAMPLES::
 
-                sage: Semigroups().SubQuotients().example()
-                An example of a subquotient semigroup: a subquotient of the left zero semigroup
+                sage: Semigroups().Subquotients().example()
+                An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
             """
-            from sage.categories.examples.semigroups import SubQuotientOfLeftZeroSemigroup
-            return SubQuotientOfLeftZeroSemigroup()
+            from sage.categories.examples.semigroups import QuotientOfLeftZeroSemigroup
+            return QuotientOfLeftZeroSemigroup(category = self.Subquotients())
+
+    class Quotients(QuotientsCategory):
+
+        def example(self):
+            r"""
+            Returns an example of quotient of a semigroup, as per
+            :meth:`Category.example()
+            <sage.categories.category.Category.example>`.
+
+            EXAMPLES::
+
+                sage: Semigroups().Quotients().example()
+                An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
+            """
+            from sage.categories.examples.semigroups import QuotientOfLeftZeroSemigroup
+            return QuotientOfLeftZeroSemigroup()
 
         class ParentMethods:
-            # TODO: move _repr_ ambient, lift, retract to Sets.SubQuotients once
-            # the subquotient functorial construction will be implemented
 
-            def _repr_(self):
-                """
-                EXAMPLES::
-
-                    sage: S = sage.categories.examples.semigroups.IncompleteSubQuotientSemigroup()
-                    sage: S._repr_()
-                    'A subquotient of An example of a semigroup: the left zero semigroup'
-                """
-                return "A subquotient of %s"%(self.ambient())
-
-            @abstract_method
-            def ambient(self):
-                """
-                Returns the ambient space for `self`.
+            def semigroup_generators(self):
+                r"""
+                Returns semigroup generators for ``self`` by
+                retracting the semigroup generators of the ambient
+                semigroup.
 
                 EXAMPLES::
 
-                    sage: Semigroups().SubQuotients().example().ambient()
-                    An example of a semigroup: the left zero semigroup
-
-                See also :meth:`.lift` and :meth:`.retract`
+                    sage: S = FiniteSemigroups().Quotients().example().semigroup_generators() # todo: not implemented
                 """
+                return self.ambient().semigroup_generators().map(self.retract)
 
-            @abstract_method
-            def lift(self, x):
-                """
-                INPUT:
-                 - ``x`` -- an element of ``self``
+    class CartesianProducts(CartesianProductsCategory):
 
-                Lifts `x` to the ambient space for ``self``.
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Semigroups().CartesianProducts().extra_super_categories()
+                [Category of semigroups]
+                sage: Semigroups().CartesianProducts().super_categories()
+                [Category of semigroups, Category of Cartesian products of magmas]
+            """
+            return [Semigroups()]
+
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Semigroups().Algebras(QQ).extra_super_categories()
+                [Category of algebras with basis over Rational Field]
+                sage: Semigroups().Algebras(QQ).super_categories()
+                [Category of algebras with basis over Rational Field, Category of set algebras over Rational Field]
+
+                sage: Semigroups().example().algebra(ZZ).categories()
+                [Category of semigroup algebras over Integer Ring,
+                 Category of algebras with basis over Integer Ring,
+                 ...
+                 Category of objects]
+
+            FIXME: that should be non unital algebras!
+            """
+            from sage.categories.algebras_with_basis import AlgebrasWithBasis
+            return [AlgebrasWithBasis(self.base_ring())]
+
+        class ParentMethods:
+
+            @cached_method
+            def algebra_generators(self):
+                r"""
+                The generators of this algebra, as per
+                :meth:`Algebras.ParentMethods.algebra_generators()
+                <sage.categories.algebras.Algebras.ParentMethods.algebra_generators>`.
+
+                They correspond to the generators of the group.
 
                 EXAMPLES::
 
-                    sage: S = Semigroups().SubQuotients().example()
-                    sage: s = S.an_element()
-                    sage: s, s.parent()
-                    (42, An example of a subquotient semigroup: a subquotient of the left zero semigroup)
-                    sage: S.lift(s), S.lift(s).parent()
-                    (42, An example of a semigroup: the left zero semigroup)
-                    sage: s.lift(), s.lift().parent()
-                    (42, An example of a semigroup: the left zero semigroup)
-
-                See also :meth:`.ambient`, :meth:`.retract`, and :meth:`Semigroups.Subquotients.ElementMethods.lift`
+                    sage: A = FiniteSemigroups().example().algebra(ZZ)
+                    sage: A.algebra_generators()
+                    Finite family {0: B['a'], 1: B['b'], 2: B['c'], 3: B['d']}
                 """
+                return self.basis().keys().semigroup_generators().map(self.monomial)
 
-            @abstract_method
-            def retract(self, x):
-                """
-                INPUT:
-                 - ``x`` -- an element of the ambient space for ``self``
+            def product_on_basis(self, g1, g2):
+                r"""
+                Product, on basis elements, as per
+                :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis()
+                <sage.categories.algebra_with_basis.AlgebrasWithBasis.ParentMethods.product_on_basis>`.
 
-                Retracts `x` to `self`.
-
-                See also :meth:`.ambient` and :meth:`.lift`.
+                The product of two basis elements is induced by the product of
+                the corresponding elements of the group.
 
                 EXAMPLES::
 
-                    sage: S = Semigroups().SubQuotients().example()
-                    sage: s = S.ambient().an_element()
-                    sage: s, s.parent()
-                    (42, An example of a semigroup: the left zero semigroup)
-                    sage: S.retract(s), S.retract(s).parent()
-                    (42, An example of a subquotient semigroup: a subquotient of the left zero semigroup)
+                    sage: A = FiniteSemigroups().example().algebra(QQ)
+                    sage: a,b,c,d = A.algebra_generators()
+                    sage: a * b + b*d*c
+                    B['ab'] + B['bdc']
                 """
-
-            def product(self, x, y):
-                """
-                Returns the product of two elements of self.
-
-                EXAMPLES::
-
-                    sage: S = Semigroups().SubQuotients().example()
-                    sage: S.product(S(19), S(3))
-                    19
-                """
-                assert(x in self)
-                assert(y in self)
-                return self.retract(self.lift(x) * self.lift(y))
-
-        # Should lift and retract be declared as conversions to the coercion mechanism ?
-
-        class ElementMethods:
-
-            def lift(self):
-                """
-                Lifts ``self`` to the ambient space for its parent
-
-                EXAMPLES::
-
-                    sage: S = Semigroups().SubQuotients().example()
-                    sage: s = S.an_element()
-                    sage: s, s.parent()
-                    (42, An example of a subquotient semigroup: a subquotient of the left zero semigroup)
-                    sage: S.lift(s), S.lift(s).parent()
-                    (42, An example of a semigroup: the left zero semigroup)
-                    sage: s.lift(), s.lift().parent()
-                    (42, An example of a semigroup: the left zero semigroup)
-
-                See also :meth:`Semigroups.Subquotients.ParentMethods.lift`
-                """
-                return self.parent().lift(self)
+                return self.monomial(g1 * g2)
 

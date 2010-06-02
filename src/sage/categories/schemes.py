@@ -209,11 +209,12 @@ class Schemes_over_base(Category_over_base):
         """
         return [Schemes_abstract()]
 
-    def _repr_(self):
+    def _repr_object_names(self):
         """
         EXAMPLES::
 
             sage: Schemes(Spec(ZZ)) # indirect doctest
             Category of schemes over Spectrum of Integer Ring
         """
-        return "Category of schemes over %s"%self.base_scheme()
+        # To work around the name of the class (schemes_over_base)
+        return "schemes over %s"%self.base_scheme()

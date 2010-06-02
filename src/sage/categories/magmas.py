@@ -8,15 +8,12 @@ Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc_c import prod
+from sage.misc.abstract_method import abstract_method
+from sage.categories.category import Category
+from sage.categories.subquotients import SubquotientsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.structure.element import Element, generic_power
 from sage.structure.sage_object import have_same_parent
 
 class Magmas(Category):
@@ -371,3 +368,102 @@ class Magmas(Category):
 
             """
             return self * self == self
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Semigroups().CartesianProducts().extra_super_categories()
+                [Category of semigroups]
+                sage: Semigroups().CartesianProducts().super_categories()
+                [Category of semigroups, Category of Cartesian products of magmas]
+            """
+            return [Magmas()]
+
+        def example(self):
+            """
+            Returns an example of cartesian product of magmas
+
+            EXAMPLES::
+
+                sage: C = Magmas().CartesianProducts().example(); C
+                The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                sage: C.category()
+                Category of Cartesian products of monoids
+                sage: TestSuite(C).run()
+            """
+            from cartesian_product import cartesian_product
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
+            return cartesian_product([QQ, ZZ, ZZ])
+
+        class ParentMethods:
+
+            def product(self, left, right):
+                """
+                EXAMPLES::
+
+                    sage: C = Magmas().CartesianProducts().example(); C
+                    The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                    sage: x = C.an_element(); x
+                    (1/2, 1, 1)
+                    sage: x * x
+                    (1/4, 1, 1)
+
+                    sage: A = SymmetricGroupAlgebra(QQ, 3);
+                    sage: x = cartesian_product([A([1,3,2]), A([2,3,1])])
+                    sage: y = cartesian_product([A([1,3,2]), A([2,3,1])])
+                    sage: cartesian_product([A,A]).product(x,y)
+                    B[(0, [1, 2, 3])] + B[(1, [3, 1, 2])]
+                    sage: x*y
+                    B[(0, [1, 2, 3])] + B[(1, [3, 1, 2])]
+                """
+                return self._cartesian_product_of_elements([(a*b) for (a,b) in zip(left.summand_split(), right.summand_split())])
+
+    class Subquotients(SubquotientsCategory):
+        r"""
+        The category of sub/quotient magmas.
+
+        Let `G` and `S` be two magmas and `l: S \mapsto G` and
+        `r: G \mapsto S` be two maps such that:
+
+         - `r \circ l` is the identity of `G`.
+
+         - for any two `a,b\in S` the identity `a \times_S b = r(l(a) \times_G l(b))` holds.
+
+        The category Subquotient implements the product `\times_S` from `l` and `r`
+        and the product of `G`.
+
+        `S` is supposed to belongs the category
+        ``Magmas().Subquotients()`` and to specify `G` under the name
+        ``S.ambient()`` and to implement `x\to l(x)` and `y \to r(y)`
+        under the names ``S.lift(x)`` and ``S.retract(y)``.
+
+        EXAMPLES::
+
+            sage: Semigroups().Subquotients().all_super_categories()
+            [Category of subquotients of semigroups, Category of semigroups,
+             Category of subquotients of magmas, Category of magmas,
+             Category of subquotients of sets, Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
+        """
+
+        class ParentMethods:
+
+            def product(self, x, y):
+                """
+                Returns the product of two elements of self.
+
+                EXAMPLES::
+
+                    sage: S = Semigroups().Subquotients().example()
+                    sage: S.product(S(19), S(3))
+                    19
+                """
+                assert(x in self)
+                assert(y in self)
+                return self.retract(self.lift(x) * self.lift(y))
+

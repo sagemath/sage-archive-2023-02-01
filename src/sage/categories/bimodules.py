@@ -59,14 +59,14 @@ class Bimodules(Category):
         from sage.rings.all import QQ, RR
         return cls(QQ, RR)
 
-    def _repr_(self):
+    def _repr_object_names(self):
         """
         EXAMPLES::
 
             sage: Bimodules(QQ, ZZ) # indirect doctest
             Category of bimodules over Rational Field on the left and Integer Ring on the right
         """
-        return Category._repr_(self) + " over %s on the left and %s on the right" \
+        return "bimodules over %s on the left and %s on the right" \
             %(self._left_base_ring, self._right_base_ring)
 
     def left_base_ring(self):

@@ -82,7 +82,7 @@ class MyGroupAlgebra(CombinatorialFreeModule):
         r"""
         The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
 
-        They correspond to the generators of the groups.
+        They correspond to the generators of the group.
 
         EXAMPLES::
 

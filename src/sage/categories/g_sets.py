@@ -39,14 +39,14 @@ class GSets(Category):
         Category.__init__(self, "G-sets")
         self.__G = G
 
-    def __repr__(self):
+    def _repr_object_names(self):
         """
         EXAMPLES::
 
-            sage: GSets(SymmetricGroup(8))
+            sage: GSets(SymmetricGroup(8)) # indirect doctests
             Category of G-sets for SymmetricGroup(8)
         """
-        return "Category of G-sets for %s"%self.__G
+        return "G-sets for %s"%self.__G
 
     #def construction(self):
     #    return (self.__class__, self.__G)

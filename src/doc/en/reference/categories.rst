@@ -20,9 +20,17 @@ Functorial constructions
 .. toctree::
    :maxdepth: 2
 
+   sage/categories/covariant_functorial_construction
+
    sage/categories/cartesian_product
    sage/categories/tensor
    sage/categories/dual
+   sage/categories/algebra_functor
+
+   sage/categories/subquotients
+   sage/categories/quotients
+   sage/categories/subobjects
+   sage/categories/isomorphic_objects
 
 Categories
 ==========

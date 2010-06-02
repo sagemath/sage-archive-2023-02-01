@@ -9,19 +9,20 @@ ModulesWithBasis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.all import Modules, Rings, Fields, VectorSpaces, HomCategory, Homset, CategoryWithCartesianProduct, CartesianProductCategory, CategoryWithTensorProduct, TensorCategory
-from category_types import Category_over_base_ring
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.structure.element import ModuleElement
+from sage.categories.all import Modules, Fields, HomCategory, Homset
+from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.dual import DualObjectsCategory
+from sage.categories.category_types import Category_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.homset import Hom
-from sage.structure.element import parent
+from sage.structure.element import Element, parent
 
-
-class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, CategoryWithTensorProduct): #, DualityCategory):
+class ModulesWithBasis(Category_over_base_ring):
     """
     The category of modules with a distinguished basis
 
@@ -120,11 +121,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
             sage: ModulesWithBasis(ZZ).super_categories()
             [Category of modules over Integer Ring]
         """
-        R = self.base_ring()
-        if R in Fields():
-            return [VectorSpaces(R)]
-        else:
-            return [Modules(R)]
+        return [Modules(self.base_ring())]
 
     def _call_(self, x):
         """
@@ -175,8 +172,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
         """
         return self.base_ring().is_field()
 
-    # TODO: find something better to get this inheritance from CategoryWithTensorProduct.Element
-    class ParentMethods(CategoryWithTensorProduct.ParentMethods, CategoryWithCartesianProduct.ParentMethods):
+    class ParentMethods:
         def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
             """
             Constructs functions by linearity
@@ -278,8 +274,21 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 
         _module_morphism = module_morphism
 
-    # TODO: find something better to get this inheritance from CategoryWithTensorProduct.Element
-    class ElementMethods(CategoryWithTensorProduct.ElementMethods, CategoryWithCartesianProduct.ElementMethods):
+        def tensor(*parents):
+            """
+            Returns the tensor product of the parents
+
+            EXAMPLES::
+
+                sage: C = AlgebrasWithBasis(QQ)
+                sage: A = C.example(); A.rename("A")
+                sage: A.tensor(A,A)
+                A # A # A
+            """
+            return parents[0].Tensor(parents, category = tensor.category_from_parents(parents))
+
+
+    class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
         # subclasses).  These methods should be consistent with those on
         # polynomials.
@@ -290,6 +299,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
 #             TODO: doctest
 #             """
 #             return self._lmul_(-self.parent().base_ring().one(), self)
+
 
         def support_of_term(self):
             """
@@ -606,6 +616,25 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
             """
             return self.parent().term( *self.trailing_item(cmp=cmp) )
 
+        def tensor(*elements):
+            """
+            Returns the tensor product of its arguments, as an element of
+            the tensor product of the parents of those elements.
+
+            EXAMPLES::
+
+                sage: C = AlgebrasWithBasis(QQ)
+                sage: A = C.example()
+                sage: (a,b,c) = A.algebra_generators()
+                sage: a.tensor(b, c)
+                B[word: a] # B[word: b] # B[word: c]
+
+            FIXME: is this a policy that we want to enforce on all parents?
+            """
+            assert(all(isinstance(element, Element) for element in elements))
+            parents = [parent(element) for element in elements]
+            return tensor(parents)._tensor_of_elements(elements) # good name???
+
     class HomCategory(HomCategory):
         """
         The category of homomorphisms sets Hom(X,Y) for X, Y modules with basis
@@ -697,7 +726,7 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                      <type 'sage.structure.sage_object.SageObject'>,
                      <class 'sage.categories.modules_with_basis.ModulesWithBasis.HomCategory.element_class'>,
                      <class 'sage.categories.category.Modules.HomCategory.element_class'>,
-                     <class 'sage.categories.modules.Modules.element_class'>,
+                     <class 'sage.categories.vector_spaces.VectorSpaces.element_class'>,
                      ...]
 
                 Compare with:
@@ -744,23 +773,23 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                 return self._on_basis
 
 
-    class CartesianProductCategory(CartesianProductCategory):
+    class CartesianProducts(CartesianProductsCategory):
         """
         The category of modules with basis constructed by cartesian products of modules with basis
         """
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: ModulesWithBasis(QQ).cartesian_product_category().super_categories()
+                sage: ModulesWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of modules with basis over Rational Field]
+                sage: ModulesWithBasis(QQ).CartesianProducts().super_categories()
+                [Category of modules with basis over Rational Field, Category of Cartesian products of sets]
             """
-            return [ModulesWithBasis(self.base_category.base_ring())]
-
+            return [self.base_category()]
 
         class ParentMethods:
-
 
             def _an_element_(self):
                 """
@@ -778,19 +807,21 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
                 from cartesian_product import cartesian_product
                 return cartesian_product([module.an_element() for module in self.modules])
 
-    class TensorCategory(TensorCategory):
+    class TensorProducts(TensorProductsCategory):
         """
         The category of modules with basis constructed by tensor product of modules with basis
         """
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: ModulesWithBasis(QQ).tensor_category().super_categories()
+                sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
+                [Category of modules with basis over Rational Field]
+                sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
                 [Category of modules with basis over Rational Field]
             """
-            return [ModulesWithBasis(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
             """
@@ -803,6 +834,21 @@ class ModulesWithBasis(Category_over_base_ring, CategoryWithCartesianProduct, Ca
             implements operations on elements of tensor products of Hopf algebras
             """
             pass
+
+    class DualObjects(DualObjectsCategory):
+
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: ModulesWithBasis(ZZ).DualObjects().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: ModulesWithBasis(QQ).DualObjects().extra_super_categories()
+                [Category of vector spaces over Rational Field]
+            """
+            return [Modules(self.base_category().base_ring())]
+
 
 class ModuleMorphismByLinearity(Morphism):
     """

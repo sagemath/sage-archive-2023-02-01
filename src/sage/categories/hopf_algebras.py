@@ -9,13 +9,15 @@ HopfAlgebras
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from category import Category
 from category_types import Category_over_base_ring
-from sage.categories.all import Category, CategoryWithTensorProduct, TensorCategory, DualityCategory, Bialgebras
-#from sage.categories.tensor import tensor
+from sage.categories.bialgebras import Bialgebras
+from sage.categories.dual import DualObjectsCategory
+from sage.categories.tensor import TensorProductsCategory # tensor
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 
-class HopfAlgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCategory):
+class HopfAlgebras(Category_over_base_ring):
     """
     The category of Hopf algebras
 
@@ -101,19 +103,23 @@ class HopfAlgebras(Category_over_base_ring, CategoryWithTensorProduct, DualityCa
         pass
 
 
-    class TensorCategory(TensorCategory):
+    class TensorProducts(TensorProductsCategory):
         """
         The category of Hopf algebras constructed by tensor product of Hopf algebras
         """
         @cached_method
-        def super_categories(self):
+        def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: HopfAlgebras(QQ).tensor_category().super_categories()
+                sage: HopfAlgebras(QQ).TensorProducts().extra_super_categories()
                 [Category of hopf algebras over Rational Field]
+                sage: HopfAlgebras(QQ).TensorProducts().super_categories()
+                [Category of hopf algebras over Rational Field,
+                 Category of tensor products of algebras over Rational Field,
+                 Category of tensor products of coalgebras over Rational Field]
             """
-            return [HopfAlgebras(self.base_category.base_ring())]
+            return [self.base_category()]
 
         class ParentMethods:
             # TODO: enable when tensor product of morphisms will be implemented

@@ -376,7 +376,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E = EllipticCurve('681b')
         sage: E.prove_BSD(verbosity=2)               # long time
         p = 2: True by 2-descent...
-        True for p not in {2, 3} by Kolyvagin.
+        True for p not in {2, 3} by Kolyvagin....
         ALERT: p = 3 left in Kolyvagin bound
             0 <= ord_p(#Sha) <= 2
             ord_p(#Sha_an) = 2

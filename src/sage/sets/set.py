@@ -316,11 +316,11 @@ class Set_object(Set_generic):
             sage: Primes() < Set(QQ)
             True
 
-            sage: Set(QQ) == Primes()
-            False
+            sage: cmp(Primes(), QQ) == cmp(Primes(), Set(QQ))  # compares underlying objects...
+            True
         """
         if not isinstance(right, Set_object):
-            return cmp(type(right), type(Set_object))
+            return cmp(type(Set_object), type(right))
         return cmp(self.__object, right.__object)
 
     def union(self, X):

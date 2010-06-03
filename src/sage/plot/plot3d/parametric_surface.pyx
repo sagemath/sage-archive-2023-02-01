@@ -337,6 +337,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: S = MobiusStrip(1,.2)                                             # indirect doctests
             sage: S.show()                                                          # indirect doctests
         """
+        cdef double u, v
         if render_params is None:
             render_params = self.default_render_params()
         ds = render_params.ds
@@ -352,7 +353,6 @@ cdef class ParametricSurface(IndexFaceSet):
         cdef Py_ssize_t i, j
         cdef Py_ssize_t n = len(urange) - 1
         cdef Py_ssize_t m = len(vrange) - 1
-        cdef double u, v
         cdef Py_ssize_t ix = 0
 
         _sig_on

@@ -21,7 +21,6 @@ cdef class DenseGraph(CGraph):
     cdef int radix_mod_mask
     cdef int num_longs
     cdef unsigned long *edges
-    cdef int * adjacency_sequence(self, int n, int * vertices, int vertex)
 
     # Method declarations inherited from CGraph:
     # cdef int add_arc_unsafe(self, int, int)

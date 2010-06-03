@@ -198,7 +198,9 @@ class ModulesWithBasis(Category_over_base_ring):
              - ``on_basis`` - a function `f` which accepts elements of `I`
                as position-th argument and returns  elements of `Y`
              - ``diagonal`` - a function `d` from `I` to `R`
-             - ``triangular`` a boolean (default: False)
+             - ``triangular`` - "upper" or "lower" or None
+                 - "upper": if the `leading_support()`  of the image of `F(i)` is `i`, or
+                 - "lower": if the `trailing_support()` of the image of `F(i)` is `i`.
              - ``category`` - a category. By default, this is
                ``ModulesWithBasis(R)`` if `Y` is in this category, and
                otherwise this lets `\hom(X,Y)` decide
@@ -372,11 +374,11 @@ class ModulesWithBasis(Category_over_base_ring):
             by ``k``) is the leading term of ``self``.
 
             'leading term' means that the corresponding basis element is
-	    maximal.  Note that this may not be the term which actually appears
-	    first when ``self`` is printed.  If the default term ordering is not
-	    what is desired, a comparison function, ``cmp(x,y)``, can be
-	    provided.  This should return a negative value if `x < y`, `0` if
-	    `x == y` and a positive value if `x > y`.
+            maximal.  Note that this may not be the term which actually appears
+            first when ``self`` is printed.  If the default term ordering is not
+            what is desired, a comparison function, ``cmp(x,y)``, can be
+            provided.  This should return a negative value if `x < y`, `0` if
+            `x == y` and a positive value if `x > y`.
 
             EXAMPLES::
 
@@ -401,9 +403,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the leading monomial of ``self``.
 
             This is the monomial whose corresponding basis element is
-	    maximal. Note that this may not be the term which actually appears
-	    first when ``self`` is printed. If the default term ordering is not
-	    what is desired, a comparison function, cmp(x,y), can be provided.
+            maximal. Note that this may not be the term which actually appears
+            first when ``self`` is printed. If the default term ordering is not
+            what is desired, a comparison function, cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -429,9 +431,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the leading coefficient of ``self``.
 
             This is the coefficient of the term whose corresponding basis element is
-	    maximal. Note that this may not be the term which actually appears
-	    first when ``self`` is printed.  If the default term ordering is not
-	    what is desired, a comparison function, cmp(x,y), can be provided.
+            maximal. Note that this may not be the term which actually appears
+            first when ``self`` is printed.  If the default term ordering is not
+            what is desired, a comparison function, cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -457,9 +459,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the leading term of ``self``.
 
             This is the term whose corresponding basis element is
-	    maximal. Note that this may not be the term which actually appears
-	    first when ``self`` is printed. If the default term ordering is not
-	    what is desired, a comparison function, cmp(x,y), can be provided.
+            maximal. Note that this may not be the term which actually appears
+            first when ``self`` is printed. If the default term ordering is not
+            what is desired, a comparison function, cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -514,9 +516,9 @@ class ModulesWithBasis(Category_over_base_ring):
             is the trailing term of ``self``.
 
             This is the monomial whose corresponding basis element is
-	    minimal. Note that this may not be the term which actually appears
-	    last when ``self`` is printed.  If the default term ordering is not
-	    what is desired, a comparison function cmp(x,y), can be provided.
+            minimal. Note that this may not be the term which actually appears
+            last when ``self`` is printed.  If the default term ordering is not
+            what is desired, a comparison function cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -543,9 +545,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the trailing monomial of ``self``.
 
             This is the monomial whose corresponding basis element is
-	    minimal. Note that this may not be the term which actually appears
-	    last when ``self`` is printed. If the default term ordering is not
-	    what is desired, a comparison function cmp(x,y), can be provided.
+            minimal. Note that this may not be the term which actually appears
+            last when ``self`` is printed. If the default term ordering is not
+            what is desired, a comparison function cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -571,9 +573,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the trailing coefficient of ``self``.
 
             This is the coefficient of the monomial whose corresponding basis element is
-	    minimal. Note that this may not be the term which actually appears
-	    last when ``self`` is printed. If the default term ordering is not
-	    what is desired, a comparison function cmp(x,y), can be provided.
+            minimal. Note that this may not be the term which actually appears
+            last when ``self`` is printed. If the default term ordering is not
+            what is desired, a comparison function cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -600,9 +602,9 @@ class ModulesWithBasis(Category_over_base_ring):
             Returns the trailing term of ``self``.
 
             This is the term whose corresponding basis element is
-	    minimal. Note that this may not be the term which actually appears
-	    last when ``self`` is printed. If the default term ordering is not
-	    what is desired, a comparison function cmp(x,y), can be provided.
+            minimal. Note that this may not be the term which actually appears
+            last when ``self`` is printed. If the default term ordering is not
+            what is desired, a comparison function cmp(x,y), can be provided.
             This should return a negative value if x < y, 0 if x == y
             and a positive value if x > y.
 
@@ -838,7 +840,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
         class ElementMethods:
             """
-            implements operations on elements of tensor products of Hopf algebras
+            implements operations on elements of tensor products of modules
+            with basis
             """
             pass
 
@@ -997,10 +1000,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-     - ``domain`` - a modules with basis `F`
-     - ``codomain`` - a modules with basis `G` (defaults to `F`)
+     - ``domain`` - a module with basis `F`
+     - ``codomain`` - a module with basis `G` (defaults to `F`)
      - ``on_basis`` - a function from the index set of the basis of `F` to the
-       elements of `G`
+       elements of `G` which describes the morphism
      - ``unitriangular`` - boolean (default: False)
      - ``triangular`` - "upper" or "lower" (default: "upper")
          - "upper": if the `leading_support()`  of the image of `F(i)` is `i`, or
@@ -1019,10 +1022,9 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
      - let `I` and `J` be the respective index sets of the basis of `F` and
        `G`. Either `I = J` or ``inverse_on_support`` is a function `r :
-       J\mapsto I` with the folowing property: for any `j\in J` the function
-       ``inverse_on_support`` should returns a `i\in I` such that
-       the leading term of ``on_basis(i)`` is `j` if there exists such a
-       `i` or ``None`` if not.
+       J\mapsto I` with the following property: for any `j\in J`, `r(j)`
+       should return an `i\in I` such that the leading term of ``on_basis(i)``
+       is `j` if there exists such a `i` or ``None`` if not.
 
     OUTPUT:
 
@@ -1060,6 +1062,18 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         1/2*B[2] - 1/2*B[3]
         sage: phi(phi.preimage(x[2]))
         B[2]
+
+
+        sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
+        sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
+        sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
+        sage: phi = X.module_morphism(uut, codomain = Y,
+        ...        triangular=True, unitriangular=True,
+        ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+        sage: phi(x[2])
+        B[3] + B[4] + B[5]
+        sage: phi.preimage(y[3])
+        B[2] - B[3]
     """
 
     def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
@@ -1116,7 +1130,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi._test_triangular()
             Traceback (most recent call last):
             ...
-            AssertionError: morphims is not triangular on 1
+            AssertionError: morphism is not triangular on 1
 
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
@@ -1133,7 +1147,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi._test_triangular()
             Traceback (most recent call last):
             ...
-            AssertionError: morphims is not untriangular on 1
+            AssertionError: morphism is not untriangular on 1
         """
         from sage.misc.lazy_format import LazyFormat
         tester = self._tester(**options)
@@ -1142,13 +1156,13 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             bs, co = self._dominant_item(self._on_basis(x))
             if self._unitriangular:
                 tester.assertEqual(co, self.domain().base_ring().one(),
-                    LazyFormat("morphims is not untriangular on %s")%(x))
+                    LazyFormat("morphism is not untriangular on %s")%(x))
             if self._inverse_on_support is not None:
                 xback = self._inverse_on_support(bs)
             else:
                 xback = bs
             tester.assertEqual(x, xback,
-                LazyFormat("morphims is not triangular on %s")%(x))
+                LazyFormat("morphism is not triangular on %s")%(x))
 
 
     def _on_basis(self, i):

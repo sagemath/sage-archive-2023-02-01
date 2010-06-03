@@ -304,7 +304,8 @@ class Set_object(Set_generic):
 
            If `X < Y` is true this does *not* necessarily mean
            that `X` is a subset of `Y`.  Also, any two sets can be
-           compared, which is a general Python philosophy.
+           compared still, but the result need not be meaningful
+           if they are not equal.
 
         EXAMPLES:
             sage: Set(ZZ) == Set(QQ)
@@ -313,14 +314,15 @@ class Set_object(Set_generic):
             True
             sage: Primes() == Set(QQ)
             False
-            sage: Primes() < Set(QQ)
-            True
 
-            sage: cmp(Primes(), QQ) == cmp(Primes(), Set(QQ))  # compares underlying objects...
-            True
+        The following is random, illustrating that comparison of
+        sets is not the subset relation, when they are not equal::
+
+            sage: Primes() < Set(QQ)             # random
+            True or False
         """
         if not isinstance(right, Set_object):
-            return cmp(type(Set_object), type(right))
+            return cmp(type(self), type(right))
         return cmp(self.__object, right.__object)
 
     def union(self, X):

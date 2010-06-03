@@ -32,6 +32,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.0.p2 (William Stein and Mike Hansen, June 3, 2010) ===
+ * autoreconf and merge in trac 9086
+
 === pynac-0.2.0 (Burcin Erocal, May 5, 2010) ===
  * Add support for GCC 4.5.0.
  * Move Sage interface functions to a function table, to add Cygwin support.

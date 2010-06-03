@@ -505,9 +505,6 @@ cdef class Expression(CommutativeRingElement):
         r"""
         Return string representation of this symbolic expression.
 
-        EXAMPLES:
-
-
         TESTS::
 
             sage: var('x,y,z')
@@ -595,6 +592,13 @@ cdef class Expression(CommutativeRingElement):
             \frac{{\left(x + 1\right)} {\left(x + 2\right)}}{x^{3} + 1}
             sage: latex((x+2)/(x^3+1)/(x+1))
             \frac{x + 2}{{\left(x + 1\right)} {\left(x^{3} + 1\right)}}
+
+        Check that the sign is correct (#9086)::
+
+            sage: latex(-1/x)
+            \frac{-1}{x}
+            sage: latex(1/-x)
+            \frac{-1}{x}
         """
         return self._parent._latex_element_(self)
 

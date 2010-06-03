@@ -257,36 +257,40 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			c.s << "\\frac{";
 			ex numer = overall_coeff.numer();
 			if (others.empty()) {
-				if (numer.is_equal(_ex1) ||
-						numer.is_equal(_ex_1))
-					c.s<<'1';
-				else
-					numer.print(c);
+			     if (numer.is_equal(_ex1) || numer.is_equal(_ex_1)) {
+			          const numeric &coeff = ex_to<numeric>(numer);
+				  if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char()) {
+				        c.s<<"-";
+				  }
+				  c.s<<'1';
+			     } else {
+			          numer.print(c);
+			     }
 			} else {
-				if (numer.is_equal(_ex1) ||
-						numer.is_equal(_ex_1))
-					mul(others).eval().print(c);
-				else
-					mul(numer,mul(others).eval())\
-						.hold().print(c);
+			     if (numer.is_equal(_ex1) || numer.is_equal(_ex_1)) {
+			         mul(others).eval().print(c);
+			     } else {
+				 mul(numer,mul(others).eval()).hold().print(c);
+			     }
 			}
 			c.s << "}{";
 			ex denom = overall_coeff.denom();
-			if (denom.is_equal(_ex1))
+			if (denom.is_equal(_ex1)) {
 				mul(neg_powers).eval().print(c);
-			else
-				mul(denom, mul(neg_powers).eval())\
-					.hold().print(c);
+			} else {
+				mul(denom, mul(neg_powers).eval()).hold().print(c);
+			}
 			c.s << "}";
 		} else {
 			print_overall_coeff(overall_coeff, c,
 					others.size() == 0 ? "" : sep,
 					latex_tags);
 			if (others.empty() && ( overall_coeff.is_equal(_ex1) ||
-						overall_coeff.is_equal(_ex_1)))
+						overall_coeff.is_equal(_ex_1))) {
 				c.s<<"1";
-			else
+			} else {
 				print_exvector(others, c, sep);
+			}
 			c.s << "/";
 
 			if (neg_powers.size() > 1) {

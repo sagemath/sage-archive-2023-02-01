@@ -5063,7 +5063,7 @@ class GraphGenerators():
         return [graph.Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
 
     def cospectral_graphs(self, vertices, matrix_function=lambda g: g.adjacency_matrix(), graphs=None):
-        """
+        r"""
         Find all sets of graphs on ``vertices`` vertices (with
         possible restrictions) which are cospectral with respect to a
         constructed matrix.
@@ -5092,7 +5092,7 @@ class GraphGenerators():
         OUTPUT:
 
            A list of lists of graphs.  Each sublist will be a list of
-           cospectral graphs.
+           cospectral graphs (lists of cadinality 1 being omitted).
 
 
         EXAMPLES::
@@ -5134,7 +5134,7 @@ class GraphGenerators():
 
         To find cospectral graphs with respect to the normalized
         Laplacian, assuming the graphs do not have an isolated vertex, it
-        is enough to check the spectrum of the matrix `D^{-1}A`, where D
+        is enough to check the spectrum of the matrix `D^{-1}A`, where `D`
         is the diagonal matrix of vertex degrees, and A is the adjacency
         matrix.  We find two such cospectral graphs (for the normalized
         Laplacian) on five vertices::

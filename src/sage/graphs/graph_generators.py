@@ -88,6 +88,7 @@ organized as follows::
         - CompleteBipartiteGraph
         - CubeGraph
         - FibonacciTree
+        - FuzzyBallGraph
         - GeneralizedPetersenGraph
         - HyperStarGraph
         - KneserGraph
@@ -230,6 +231,7 @@ class GraphGenerators():
                     - CompleteGraph
                     - CompleteBipartiteGraph
                     - CubeGraph
+                    - FuzzyBallGraph
                     - FibonacciTree
                     - KneserGraph
                     - LCFGraph
@@ -2883,6 +2885,58 @@ class GraphGenerators():
         r.set_pos(p)
 
         return r
+
+    def FuzzyBallGraph(self, partition, q):
+        """
+        Construct a Fuzzy Ball graph with the integer partition
+        ``partition`` and ``q`` extra vertices.
+
+        Let q be an integer and let m_1,m_2,...m_k be a set of positive
+        integers.  Let n=q+m_1+...+m_k.  The Fuzzy Ball graph with partition
+        m_1,m_2,...,m_k and q extra vertices is the graph constructed from the
+        graph G=K_n by attaching, for each i=1,2,...,k, a new vertex a_i to
+        m_i distinct vertices of G.
+
+        For given positive integers k and m and nonnegative integer q,
+        the set of graphs FuzzyBallGraph(p, q) for all partitions
+        `p=m_1+m_2+\cdots+m_k` of m are cospectral with respect to the
+        normalized Laplacian.
+
+        EXAMPLES::
+
+            sage: graphs.FuzzyBallGraph([3,1],2).adjacency_matrix()
+            [0 1 1 1 1 1 1 0]
+            [1 0 1 1 1 1 1 0]
+            [1 1 0 1 1 1 1 0]
+            [1 1 1 0 1 1 0 1]
+            [1 1 1 1 0 1 0 0]
+            [1 1 1 1 1 0 0 0]
+            [1 1 1 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0]
+
+
+        Pick positive integers m and k and a nonnegative integer q.
+        All the FuzzyBallGraphs constructed from partitions of m with
+        k parts should be cospectral with respect to the normalized
+        Laplacian::
+
+            sage: m=4; q=2; k=2
+            sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
+            sage: charpolys=set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])
+            sage: charpolys
+            set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
+        """
+        if len(partition)<1:
+            raise ValueError, "partition must be a nonempty list of positive integers"
+        n=q+sum(partition)
+        g=graphs.CompleteGraph(n)
+        curr_vertex=0
+        for e,p in enumerate(partition):
+            g.add_edges([(curr_vertex+i, 'a{0}'.format(e+1)) for i in range(p)])
+            curr_vertex+=p
+        return g
+
+
 
     def FibonacciTree(self, n):
         r"""

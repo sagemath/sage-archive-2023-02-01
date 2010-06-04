@@ -2887,19 +2887,19 @@ class GraphGenerators():
         return r
 
     def FuzzyBallGraph(self, partition, q):
-        """
+        r"""
         Construct a Fuzzy Ball graph with the integer partition
         ``partition`` and ``q`` extra vertices.
 
-        Let q be an integer and let m_1,m_2,...m_k be a set of positive
-        integers.  Let n=q+m_1+...+m_k.  The Fuzzy Ball graph with partition
-        m_1,m_2,...,m_k and q extra vertices is the graph constructed from the
-        graph G=K_n by attaching, for each i=1,2,...,k, a new vertex a_i to
-        m_i distinct vertices of G.
+        Let `q` be an integer and let `m_1,m_2,...,m_k` be a set of positive
+        integers.  Let `n=q+m_1+...+m_k`.  The Fuzzy Ball graph with partition
+        `m_1,m_2,...,m_k` and `q` extra vertices is the graph constructed from the
+        graph `G=K_n` by attaching, for each `i=1,2,...,k`, a new vertex `a_i` to
+        `m_i` distinct vertices of `G`.
 
-        For given positive integers k and m and nonnegative integer q,
-        the set of graphs FuzzyBallGraph(p, q) for all partitions
-        `p=m_1+m_2+\cdots+m_k` of m are cospectral with respect to the
+        For given positive integers `k` and `m` and nonnegative integer `q`,
+        the set of graphs ``FuzzyBallGraph(p, q)`` for all partitions
+        `p=m_1+m_2+\cdots+m_k` of `m` are cospectral with respect to the
         normalized Laplacian.
 
         EXAMPLES::
@@ -2915,9 +2915,9 @@ class GraphGenerators():
             [0 0 0 1 0 0 0 0]
 
 
-        Pick positive integers m and k and a nonnegative integer q.
-        All the FuzzyBallGraphs constructed from partitions of m with
-        k parts should be cospectral with respect to the normalized
+        Pick positive integers `m` and `k` and a nonnegative integer `q`.
+        All the FuzzyBallGraphs constructed from partitions of `m` with
+        `k` parts should be cospectral with respect to the normalized
         Laplacian::
 
             sage: m=4; q=2; k=2

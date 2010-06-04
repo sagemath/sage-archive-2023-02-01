@@ -1721,7 +1721,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             225.000000000000
 
             sage: E = EllipticCurve('37a')
-            sage: P, = E.gens()
+            sage: P = E([0,-1])
             sage: P.height()
             0.0511114082399688
             sage: K.<a> = QuadraticField(-7)

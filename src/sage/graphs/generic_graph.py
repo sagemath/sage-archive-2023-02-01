@@ -792,13 +792,15 @@ class GenericGraph(GenericGraph_pyx):
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, indegree=True, **kwds):
+    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, **kwds):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
-        The Kirchhoff matrix is defined to be `D - M`, where `D` is the
-        diagonal degree matrix (each diagonal entry is the degree of the
-        corresponding vertex), and `M` is the adjacency matrix.
+        The Kirchhoff matrix is defined to be `D - M`, where `D` is
+        the diagonal degree matrix (each diagonal entry is the degree
+        of the corresponding vertex), and `M` is the adjacency matrix.
+        If ``normalized`` is ``True``, then the returned matrix is
+        `D^{-1/2}(D-M)D^{-1/2}`.
 
         ( In the special case of DiGraphs, `D` is defined as the diagonal
         in-degree matrix or diagonal out-degree matrix according to the
@@ -807,7 +809,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weighted`` -- Binary variable :
-            - If ``weighted == True``, the weighted adjacency matrix is used for `M`,
+            - If ``True``, the weighted adjacency matrix is used for `M`,
               and the diagonal matrix `D` takes into account the weight of edges
               (replace in the definition "degree" by "sum of the incident edges" ).
             - Else, each edge is assumed to have weight 1.
@@ -816,7 +818,7 @@ class GenericGraph(GenericGraph_pyx):
             weighted.
 
         - ``indegree`` -- Binary variable  :
-            - If ``indegree=True``, each diagonal entry of `D` is equal to the
+            - If ``True``, each diagonal entry of `D` is equal to the
               in-degree of the corresponding vertex.
             - Else, each diagonal entry of `D` is equal to the
               out-degree of the corresponding vertex.
@@ -825,12 +827,20 @@ class GenericGraph(GenericGraph_pyx):
 
             ( This variable only matters when the graph is a digraph )
 
+        - ``normalized`` -- Binary variable :
+
+            - If ``True``, the returned matrix is
+              `D^{-1/2}(D-M)D^{-1/2}`, a normalized version of the
+              Laplacian matrix.
+            - Else, the matrix `D-M` is returned
+
         Note that any additional keywords will be passed on to either
         the ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
 
         AUTHORS:
 
         - Tom Boothby
+        - Jason Grout
 
         EXAMPLES::
 
@@ -867,6 +877,12 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  1 -1  0]
             [-1 -1  3 -1]
             [-1  0 -1  2]
+            sage: M = G.laplacian_matrix(normalized=True); M
+            [                   1 -1/6*sqrt(2)*sqrt(3) -1/6*sqrt(2)*sqrt(3)         -1/3*sqrt(3)]
+            [-1/6*sqrt(2)*sqrt(3)                    1                 -1/2                    0]
+            [-1/6*sqrt(2)*sqrt(3)                 -1/2                    1                    0]
+            [        -1/3*sqrt(3)                    0                    0                    1]
+
 
         A weighted directed graph with loops, changing the variable ``indegree`` ::
 
@@ -875,15 +891,16 @@ class GenericGraph(GenericGraph_pyx):
             [ 4 -3]
             [-4  3]
 
-::
+        ::
 
             sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
             sage: G.laplacian_matrix(indegree=False)
             [ 3 -3]
             [-4  4]
         """
-        from sage.matrix.constructor import matrix
+        from sage.matrix.constructor import matrix, diagonal_matrix
         from sage.rings.integer_ring import IntegerRing
+        from sage.functions.all import sqrt
 
         if weighted is None:
             weighted = self._weighted
@@ -893,8 +910,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             M = self.adjacency_matrix(**kwds)
 
-        A = -M
-
+        D = M.parent(0)
 
         if M.is_sparse():
             row_sums = {}
@@ -907,20 +923,23 @@ class GenericGraph(GenericGraph_pyx):
 
 
             for i in range(M.nrows()):
-                A[i,i] += row_sums.get(i, 0)
+                D[i,i] += row_sums.get(i, 0)
 
         else:
             if indegree:
-                ones = matrix(M.base_ring(), 1,  M.nrows(), [1]*M.nrows())
-                S = ones*M
+                col_sums=[sum(v) for v in M.columns()]
                 for i in range(M.nrows()):
-                    A[i,i] += S[0,i]
+                    D[i,i] += col_sums[i]
             else:
-                ones = matrix(M.base_ring(),  M.nrows(), 1, [1]*M.nrows())
-                S = M*ones
+                row_sums=[sum(v) for v in M.rows()]
                 for i in range(M.nrows()):
-                    A[i,i] += S[i,0]
-        return A
+                    D[i,i] += row_sums[i]
+
+        if normalized:
+            Dsqrt = diagonal_matrix([1/sqrt(D[i,i]) for i in range(D.nrows())])
+            return Dsqrt*(D-M)*Dsqrt
+        else:
+            return D-M
 
     laplacian_matrix = kirchhoff_matrix
 

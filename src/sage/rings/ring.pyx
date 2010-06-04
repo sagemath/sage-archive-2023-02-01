@@ -1435,6 +1435,17 @@ cdef class PrincipalIdealDomain(IntegralDomain):
     """
     Generic principal ideal domain.
     """
+    def is_noetherian(self):
+        """
+        Every principal ideal domain is noetherian, so we return True.
+
+        EXAMPLES::
+
+            sage: Zp(5).is_noetherian()
+            True
+        """
+        return True
+
     def class_group(self):
         """
         Return the trivial group, since the class group of a PID is trivial.

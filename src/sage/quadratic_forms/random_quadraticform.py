@@ -2,7 +2,9 @@
 Creating A Random Quadratic Form
 """
 from sage.quadratic_forms.quadratic_form import QuadraticForm
+from sage.quadratic_forms.ternary_qf import TernaryQF
 from sage.rings.ring import is_Ring
+from sage.rings.all import ZZ
 
 ################################################
 ## Routines to create a random quadratic form ##
@@ -117,4 +119,45 @@ def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=
                 break
 
     ## Return the quadratic form
+    return Q
+
+def random_ternaryqf(rand_arg_list):
+
+    R = ZZ
+    n = 6
+    L = len(rand_arg_list)
+    if L == 0:
+        rand_list = [ R.random_element() for _ in range(n)]
+    elif L == 1:
+        rand_list = [ R.random_element(rand_arg_list[0]) for _ in range(6)]
+    elif L == 2:
+        rand_list = [ R.random_element(rand_arg_list[0], rand_arg_list[1]) for _ in range(6)]
+    elif L == 3:
+        rand_list = [ R.random_element(rand_arg_list[0], rand_arg_list[1], rand_arg_list[2]) for _ in range(6)]
+
+    return TernaryQF(rand_list)
+
+
+
+def random_ternaryqf_with_conditions(condition_list=[], rand_arg_list=[]):
+
+    Q = random_ternaryqf(rand_arg_list)
+    Done_Flag = True
+
+    ## Check that all conditions are satisfied
+    while Done_Flag:
+        Done_Flag = False
+        for c in condition_list:
+
+            ## Check if condition c is satisfied
+            try:
+                bool_ans = Q.c()
+            except StandardError:
+                bool_ans = c(Q)
+
+            ## Create a new quadratic form if a condition fails
+            if (bool_ans == False):
+                Q = random_ternaryqf(rand_arg_list)
+                Done_Flag = True
+                break
     return Q

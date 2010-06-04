@@ -1379,6 +1379,10 @@ ext_modules = [
     Extension('sage.quadratic_forms.quadratic_form__evaluate',
               sources = ['sage/quadratic_forms/quadratic_form__evaluate.pyx']),
 
+
+    Extension('sage.quadratic_forms.ternary',
+              sources = ['sage/quadratic_forms/ternary.pyx']),
+
     ################################
     ##
     ## sage.rings

@@ -194,6 +194,8 @@ AUTHORS:
 - Anders Jonsson (2009-10-15): added generalized Petersen graphs
 
 - Harald Schilly and Yann Laigle-Chapuy (2010-03-24): added Fibonacci Tree
+
+- Jason Grout (2010-06-04): cospectral_graphs
 """
 
 ###########################################################################
@@ -5059,6 +5061,115 @@ class GraphGenerators():
         if not is_package_installed("nauty"):
             raise TypeError, "the optional nauty package is not installed"
         return [graph.Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
+
+    def cospectral_graphs(self, vertices, matrix_function=lambda g: g.adjacency_matrix(), graphs=None):
+        """
+        Find all sets of graphs on ``vertices`` vertices (with
+        possible restrictions) which are cospectral with respect to a
+        constructed matrix.
+
+        INPUT:
+
+        - ``vertices`` - The number of vertices in the graphs to be tested
+
+        - ``matrix_function`` - A function taking a graph and giving back
+          a matrix.  This defaults to the adjacency matrix.  The spectra
+          examined are the spectra of these matrices.
+
+        - ``graphs`` - One of three things:
+
+           - ``None`` (default) - test all graphs having ``vertices``
+             vertices
+
+           - a function taking a graph and returning ``True`` or ``False``
+             - test only the graphs on ``vertices`` vertices for which
+             the function returns ``True``
+
+           - a list of graphs (or other iterable object) - these graphs
+             are tested for cospectral sets.  In this case,
+             ``vertices`` is ignored.
+
+        OUTPUT:
+
+           A list of lists of graphs.  Each sublist will be a list of
+           cospectral graphs.
+
+
+        EXAMPLES::
+
+            sage: g=graphs.cospectral_graphs(5)
+            sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
+            [['Dr?', 'Ds_']]
+            sage: g[0][1].am().charpoly()==g[0][1].am().charpoly()
+            True
+
+        There are two sets of cospectral graphs on six vertices with no isolated vertices::
+
+            sage: g=graphs.cospectral_graphs(6, graphs=lambda x: min(x.degree())>0)
+            sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
+            [['Ep__', 'Er?G'], ['ExGg', 'ExoG']]
+            sage: g[0][1].am().charpoly()==g[0][1].am().charpoly()
+            True
+            sage: g[1][1].am().charpoly()==g[1][1].am().charpoly()
+            True
+
+        There is one pair of cospectral trees on eight vertices::
+
+            sage: g=graphs.cospectral_graphs(6, graphs=graphs.trees(8))
+            sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
+            [['GiPC?C', 'GiQCC?']]
+            sage: g[0][1].am().charpoly()==g[0][1].am().charpoly()
+            True
+
+        There are two sets of cospectral graphs (with respect to the
+        Laplacian matrix) on six vertices::
+
+            sage: g=graphs.cospectral_graphs(6, matrix_function=lambda g: g.laplacian_matrix())
+            sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
+            [['Edq_', 'ErcG'], ['Exoo', 'EzcG']]
+            sage: g[0][1].laplacian_matrix().charpoly()==g[0][1].laplacian_matrix().charpoly()
+            True
+            sage: g[1][1].laplacian_matrix().charpoly()==g[1][1].laplacian_matrix().charpoly()
+            True
+
+        To find cospectral graphs with respect to the normalized
+        Laplacian, assuming the graphs do not have an isolated vertex, it
+        is enough to check the spectrum of the matrix `D^{-1}A`, where D
+        is the diagonal matrix of vertex degrees, and A is the adjacency
+        matrix.  We find two such cospectral graphs (for the normalized
+        Laplacian) on five vertices::
+
+            sage: def DinverseA(g):
+            ...     A=g.adjacency_matrix().change_ring(QQ)
+            ...     for i in range(g.order()):
+            ...         A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
+            ...     return A
+            sage: g=graphs.cospectral_graphs(5, matrix_function=DinverseA, graphs=lambda g: min(g.degree())>0)
+            sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
+            [['Dlg', 'Ds_']]
+            sage: g[0][1].laplacian_matrix(normalized=True).charpoly()==g[0][1].laplacian_matrix(normalized=True).charpoly()
+            True
+        """
+        from sage.graphs.all import graphs as graph_gen
+        if graphs is None:
+            graph_list=graph_gen(vertices)
+        elif callable(graphs):
+            graph_list=iter(g for g in graph_gen(vertices) if graphs(g))
+        else:
+            graph_list=iter(graphs)
+
+        from collections import defaultdict
+        charpolys=defaultdict(list)
+        for g in graph_list:
+            cp=matrix_function(g).charpoly()
+            charpolys[cp].append(g)
+
+        cospectral_graphs=[]
+        for cp,g_list in charpolys.items():
+            if len(g_list)>1:
+                cospectral_graphs.append(g_list)
+
+        return cospectral_graphs
 
 
 def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):

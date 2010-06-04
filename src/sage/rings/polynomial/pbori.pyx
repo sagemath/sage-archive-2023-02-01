@@ -4044,6 +4044,15 @@ cdef class BooleanPolynomial(MPolynomial):
            it is advised to use PolyBoRi's :class:`GroebnerStrategy`
            object directly, since that will be faster. See the source
            code of this function for details.
+
+        TESTS::
+
+            sage: R=BooleanPolynomialRing(20,'x','lex')
+            sage: a=R.random_element()
+            sage: a.reduce([None,None])
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must be a BooleanPolynomial.
         """
         from polybori import red_tail
         if PY_TYPE_CHECK(I, BooleanPolynomialIdeal):
@@ -5426,7 +5435,19 @@ cdef class ReductionStrategy:
             sage: red.add_generator(x)
             sage: list([f.p for f in red])
             [x]
+
+        TESTS:
+
+        Check if #8966 is fixed::
+
+            sage: red = ReductionStrategy()
+            sage: red.add_generator(None)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must be a BooleanPolynomial.
         """
+        if p is None:
+            raise TypeError, "argument must be a BooleanPolynomial."
         if p._pbpoly.isZero():
             raise ValueError, "zero generators not allowed."
         self._strat.addGenerator(p._pbpoly)

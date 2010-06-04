@@ -2897,10 +2897,10 @@ class GraphGenerators():
         graph `G=K_n` by attaching, for each `i=1,2,...,k`, a new vertex `a_i` to
         `m_i` distinct vertices of `G`.
 
-        For given positive integers `k` and `m` and nonnegative integer `q`,
-        the set of graphs ``FuzzyBallGraph(p, q)`` for all partitions
-        `p=m_1+m_2+\cdots+m_k` of `m` are cospectral with respect to the
-        normalized Laplacian.
+        For given positive integers `k` and `m` and nonnegative
+        integer `q`, the set of graphs ``FuzzyBallGraph(p, q)`` for
+        all partitions `p` of `m` with `k` parts are cospectral with
+        respect to the normalized Laplacian.
 
         EXAMPLES::
 

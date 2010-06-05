@@ -101,6 +101,8 @@ cdef class constant
 cdef class wrapped_libmp_function
 cdef class wrapped_specfun
 
+cdef __isint(MPF *v):
+    return v.special == S_ZERO or (v.special == S_NORMAL and mpz_sgn(v.exp) >= 0)
 
 cdef int MPF_set_any(MPF *re, MPF *im, x, MPopts opts, bint str_tuple_ok) except -1:
     """
@@ -144,10 +146,19 @@ cdef int MPF_set_any(MPF *re, MPF *im, x, MPopts opts, bint str_tuple_ok) except
         return MPF_set_any(re, im, x._mpmath_(opts.prec,
             rndmode_to_python(opts.rounding)), opts, False)
     if PY_TYPE_CHECK(x, rationallib.mpq):
-        p, q = x
-        MPF_set_tuple(re, libmp.from_rational(p, q, opts.prec,
-            rndmode_to_python(opts.rounding)))
+        p, q = x._mpq_
+        MPF_set_int(re, p)
+        MPF_set_int(im, q)
+        MPF_div(re, re, im, opts)
+        #MPF_set_tuple(re, libmp.from_rational(p, q, opts.prec,
+        #    rndmode_to_python(opts.rounding)))
         return 1
+    if hasattr(x, '_mpi_'):
+        a, b = x._mpi_
+        if a == b:
+            MPF_set_tuple(re, a)
+            return 1
+        raise ValueError("can only create mpf from zero-width interval")
     if str_tuple_ok:
         if PY_TYPE_CHECK(x, tuple):
             if len(x) == 2:
@@ -484,61 +495,161 @@ cdef class Context:
             >>> isnan(nan), isnan(3)
             (True, False)
         """
-        cdef int typ
+        cdef int s, t, typ
         if PY_TYPE_CHECK(x, mpf):
             return (<mpf>x).value.special == S_NAN
-        #else:
-        #    typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
-        #    if typ == 1:
-        #        return tmp_opx_re.special == S_NAN
-        return False
+        if PY_TYPE_CHECK(x, mpc):
+            s = (<mpc>x).re.special
+            t = (<mpc>x).im.special
+            return s == S_NAN or t == S_NAN
+        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or PY_TYPE_CHECK(x, Integer) \
+            or PY_TYPE_CHECK(x, rationallib.mpq):
+            return False
+        typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
+        if typ == 1:
+            s = tmp_opx_re.special
+            return s == S_NAN
+        if typ == 2:
+            s = tmp_opx_re.special
+            t = tmp_opx_im.special
+            return s == S_NAN or t == S_NAN
+        raise TypeError("isnan() needs a number as input")
 
     def isinf(ctx, x):
         """
-        For an ``mpf`` *x*, determines whether *x* is infinite::
+        Return *True* if the absolute value of *x* is infinite;
+        otherwise return *False*::
 
             >>> from mpmath import *
-            >>> isinf(inf), isinf(-inf), isinf(3)
-            (True, True, False)
+            >>> isinf(inf)
+            True
+            >>> isinf(-inf)
+            True
+            >>> isinf(3)
+            False
+            >>> isinf(3+4j)
+            False
+            >>> isinf(mpc(3,inf))
+            True
+            >>> isinf(mpc(inf,3))
+            True
+
         """
-        cdef int s, typ
+        cdef int s, t, typ
         if PY_TYPE_CHECK(x, mpf):
             s = (<mpf>x).value.special
             return s == S_INF or s == S_NINF
-        #else:
-        #    typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
-        #    if typ == 1:
-        #        s = tmp_opx_re.special
-        #        return s == S_INF or s == S_NINF
-        return False
+        if PY_TYPE_CHECK(x, mpc):
+            s = (<mpc>x).re.special
+            t = (<mpc>x).im.special
+            return s == S_INF or s == S_NINF or t == S_INF or t == S_NINF
+        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or PY_TYPE_CHECK(x, Integer) \
+            or PY_TYPE_CHECK(x, rationallib.mpq):
+            return False
+        typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
+        if typ == 1:
+            s = tmp_opx_re.special
+            return s == S_INF or s == S_NINF
+        if typ == 2:
+            s = tmp_opx_re.special
+            t = tmp_opx_im.special
+            return s == S_INF or s == S_NINF or t == S_INF or t == S_NINF
+        raise TypeError("isinf() needs a number as input")
 
-    def isint(ctx, x):
+    def isnormal(ctx, x):
         """
-        For an ``mpf`` *x*, or any type that can be converted
-        to ``mpf``, determines whether *x* is exactly
-        integer-valued::
+        Determine whether *x* is "normal" in the sense of floating-point
+        representation; that is, return *False* if *x* is zero, an
+        infinity or NaN; otherwise return *True*. By extension, a
+        complex number *x* is considered "normal" if its magnitude is
+        normal::
 
             >>> from mpmath import *
-            >>> isint(3), isint(mpf(3)), isint(3.2)
-            (True, True, False)
+            >>> isnormal(3)
+            True
+            >>> isnormal(0)
+            False
+            >>> isnormal(inf); isnormal(-inf); isnormal(nan)
+            False
+            False
+            False
+            >>> isnormal(0+0j)
+            False
+            >>> isnormal(0+3j)
+            True
+            >>> isnormal(mpc(2,nan))
+            False
+        """
+        # TODO: optimize this
+        if hasattr(x, "_mpf_"):
+            return bool(x._mpf_[1])
+        if hasattr(x, "_mpc_"):
+            re, im = x._mpc_
+            re_normal = bool(re[1])
+            im_normal = bool(im[1])
+            if re == libmp.fzero: return im_normal
+            if im == libmp.fzero: return re_normal
+            return re_normal and im_normal
+        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or PY_TYPE_CHECK(x, Integer) \
+            or PY_TYPE_CHECK(x, rationallib.mpq):
+            return bool(x)
+        x = ctx.convert(x)
+        if hasattr(x, '_mpf_') or hasattr(x, '_mpc_'):
+            return ctx.isnormal(x)
+        raise TypeError("isnormal() needs a number as input")
+
+    def isint(ctx, x, gaussian=False):
+        """
+        Return *True* if *x* is integer-valued; otherwise return
+        *False*::
+
+            >>> from mpmath import *
+            >>> isint(3)
+            True
+            >>> isint(mpf(3))
+            True
+            >>> isint(3.2)
+            False
+            >>> isint(inf)
+            False
+
+        Optionally, Gaussian integers can be checked for::
+
+            >>> isint(3+0j)
+            True
+            >>> isint(3+2j)
+            False
+            >>> isint(3+2j, gaussian=True)
+            True
+
         """
         cdef MPF v
+        cdef MPF w
         cdef int typ
         if PyInt_CheckExact(x) or PyLong_CheckExact(x) or PY_TYPE_CHECK(x, Integer):
             return True
         if PY_TYPE_CHECK(x, mpf):
             v = (<mpf>x).value
-            return v.special == S_ZERO or (v.special == S_NORMAL and mpz_sgn(v.exp) >= 0)
+            return __isint(&v)
         if PY_TYPE_CHECK(x, mpc):
-            return False
+            v = (<mpc>x).re
+            w = (<mpc>x).im
+            if gaussian:
+                return __isint(&v) and __isint(&w)
+            return (w.special == S_ZERO) and __isint(&v)
         if PY_TYPE_CHECK(x, rationallib.mpq):
-            p, q = x
+            p, q = x._mpq_
             return not (p % q)
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
         if typ == 1:
+            return __isint(&tmp_opx_re)
+        if typ == 2:
             v = tmp_opx_re
-            return v.special == S_ZERO or (v.special == S_NORMAL and mpz_sgn(v.exp) >= 0)
-        return False
+            w = tmp_opx_im
+            if gaussian:
+                return __isint(&v) and __isint(&w)
+            return (w.special == S_ZERO) and __isint(&v)
+        raise TypeError("isint() needs a number as input")
 
     def fsum(ctx, terms, bint absolute=False, bint squared=False):
         """
@@ -649,7 +760,7 @@ cdef class Context:
             MPF_clear(&sim)
             return +unknown
 
-    def fdot(ctx, A, B=None):
+    def fdot(ctx, A, B=None, bint conjugate=False):
         r"""
         Computes the dot product of the iterables `A` and `B`,
 
@@ -697,7 +808,11 @@ cdef class Context:
         for a, b in A:
             ttyp = MPF_set_any(&tre, &tim, a, workopts, 0)
             utyp = MPF_set_any(&ure, &uim, b, workopts, 0)
+            if utyp == 2 and conjugate:
+                MPF_neg(&uim, &uim);
             if ttyp == 0 or utyp == 0:
+                if conjugate:
+                    b = b.conj()
                 unknown += a * b
                 continue
             styp = max(styp, ttyp)
@@ -813,11 +928,24 @@ cdef class Context:
 
     def mag(ctx, x):
         """
-        Quick logarithmic magnitude estimate of a number.
-        Returns an integer or infinity `m` such that `|x| <= 2^m`.
-        It is not guaranteed that `m` is an optimal bound,
-        but it will never be off by more than 2 (and probably not
-        more than 1).
+        Quick logarithmic magnitude estimate of a number. Returns an
+        integer or infinity `m` such that `|x| <= 2^m`. It is not
+        guaranteed that `m` is an optimal bound, but it will never
+        be too large by more than 2 (and probably not more than 1).
+
+        **Examples**
+
+            >>> from mpmath import *
+            >>> mp.pretty = True
+            >>> mag(10), mag(10.0), mag(mpf(10)), int(ceil(log(10,2)))
+            (4, 4, 4, 4)
+            >>> mag(10j), mag(10+10j)
+            (4, 5)
+            >>> mag(0.01), int(ceil(log(0.01,2)))
+            (-6, -6)
+            >>> mag(0), mag(inf), mag(-inf), mag(nan)
+            (-inf, +inf, +inf, nan)
+
         """
         cdef int typ
         if PyInt_Check(x) or PyLong_Check(x) or PY_TYPE_CHECK(x, Integer):
@@ -827,7 +955,7 @@ cdef class Context:
             else:
                 return mpz_sizeinbase(tmp_opx_re.man,2)
         if PY_TYPE_CHECK(x, rationallib.mpq):
-            p, q = x
+            p, q = x._mpq_
             mpz_set_integer(tmp_opx_re.man, int(p))
             if mpz_sgn(tmp_opx_re.man) == 0:
                 return global_context.ninf
@@ -878,7 +1006,7 @@ cdef class Context:
 
     @classmethod
     def _wrap_specfun(cls, name, f, wrap):
-        doc = function_docs.__dict__.get(name, "<no doc>")
+        doc = function_docs.__dict__.get(name, getattr(f, '__doc__', '<no doc>'))
         if wrap:
             # workaround lack of closures in Cython
             f_wrapped_cls = type(name, (wrapped_specfun,), {'__doc__':doc})
@@ -936,9 +1064,11 @@ cdef class wrapped_libmp_function:
             MPF_set_tuple(&rc.im, cxu[1])
             return rc
         x = global_context.convert(x)
-        if hasattr(x, "_mpi_"):
-            if self.mpi_f:
-                return global_context.make_mpi(self.mpi_f(x._mpi_, prec))
+        if hasattr(x, "_mpf_") or hasattr(x, "_mpc_"):
+            return self.__call__(x, **kwargs)
+        #if hasattr(x, "_mpi_"):
+        #    if self.mpi_f:
+        #        return global_context.make_mpi(self.mpi_f(x._mpi_, prec))
         raise NotImplementedError("%s of a %s" % (self.name, type(x)))
 
 

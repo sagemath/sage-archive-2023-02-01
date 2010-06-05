@@ -43,7 +43,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ $UNAME = "CYGWIN" ]
+if [ $UNAME = "CYGWIN" ]; then
   rm -rf "$SAGE_LOCAL"/lib/libpng12.dll.a
   rm -rf "$SAGE_LOCAL"/lib/libpng12.la
   cp "$SAGE_LOCAL"/bin/cygpng12-0.dll "$SAGE_LOCAL"/lib/libpng12.dll

@@ -217,7 +217,7 @@ latex_documents = []
 #latex_use_parts = False
 
 # Additional stuff for the LaTeX preamble.
-latex_elements['preamble'] = '\usepackage{amsmath}\n\usepackage{amsfonts}\n'
+latex_elements['preamble'] = '\usepackage{amsmath}\n\usepackage{amssymb}\n'
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []

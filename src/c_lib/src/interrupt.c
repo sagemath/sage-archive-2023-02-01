@@ -138,7 +138,7 @@ void setup_signal_handler(void) {
 void msg(char* s) {
   fprintf(stderr, "\n\n------------------------------------------------------------\n");
   fprintf(stderr, s);
-  fprintf(stderr, "This probably occured because a *compiled* component\n");
+  fprintf(stderr, "This probably occurred because a *compiled* component\n");
   fprintf(stderr, "of Sage has a bug in it (typically accessing invalid memory)\n");
   fprintf(stderr, "or is not properly wrapped with _sig_on, _sig_off.\n");
   fprintf(stderr, "You might want to run Sage under gdb with 'sage -gdb' to debug this.\n");
@@ -147,19 +147,19 @@ void msg(char* s) {
 }
 
 void sig_handle_sigsegv(int n) {
-  msg("Unhandled SIGSEGV: A segmentation fault occured in Sage.\n");
+  msg("Unhandled SIGSEGV: A segmentation fault occurred in Sage.\n");
   PyErr_SetString(PyExc_KeyboardInterrupt, "");
   exit(1);
 }
 
 void sig_handle_sigbus(int n) {
-  msg("Unhandled SIGBUS: A bus error occured in Sage.\n");
+  msg("Unhandled SIGBUS: A bus error occurred in Sage.\n");
   PyErr_SetString(PyExc_KeyboardInterrupt, "");
   exit(1);
 }
 
 void sig_handle_sigfpe(int n) {
-  msg("Unhandled SIGFPE: An unhandled floating point exception occured in Sage.\n");
+  msg("Unhandled SIGFPE: An unhandled floating point exception occurred in Sage.\n");
   PyErr_SetString(PyExc_KeyboardInterrupt, "");
   exit(1);
 }

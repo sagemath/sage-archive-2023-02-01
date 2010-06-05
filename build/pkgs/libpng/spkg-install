@@ -43,6 +43,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ $UNAME = "CYGWIN" ]
+  rm -rf "$SAGE_LOCAL"/lib/libpng12.dll.a
+  rm -rf "$SAGE_LOCAL"/lib/libpng12.la
+  cp "$SAGE_LOCAL"/bin/cygpng12-0.dll "$SAGE_LOCAL"/lib/libpng12.dll
+
+  if [ $? -ne 0 ]; then
+      echo "Error installing libpng"
+      exit 1
+  fi
+fi
+
 echo "Deleting libpng.*"
 rm -rf "$SAGE_LOCAL"/lib/libpng.*
 

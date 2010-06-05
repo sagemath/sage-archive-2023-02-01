@@ -36,6 +36,9 @@ This spkg provides dependencies for
 
 == Changelog ==
 
+=== libpng-1.2.35.p2 (Mike Hansen, June 4th, 2010) ===
+ * #9146: cygwin: gd doesn't correctly link in libpng with sage-4.4.3.
+
 === libpng-1.2.35.p1 (Jaap Spies, Feb 1th, 2010) ===
  * Remove duplicate copy of libpng from spkg
  * #8767: Use CPPFLAGS instead of CFLAGS for include paths

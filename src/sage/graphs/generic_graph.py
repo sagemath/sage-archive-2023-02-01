@@ -3920,7 +3920,7 @@ class GenericGraph(GenericGraph_pyx):
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
-           sage: g.matching(algorithm="LP", value_only=True)
+           sage: g.matching(algorithm="LP", value_only=True) #optional
            9.0
 
         TESTS:

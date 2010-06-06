@@ -53,7 +53,7 @@ tutoriel est le bon endroit où commencer. Voici quelques exemples :
     sage: N(k,30)      # 30 "bits"
     0.16549568 - 0.052149208*I
     sage: latex(k)
-    \frac{1}{I \, \sqrt{3} + \frac{5}{9} \, \sqrt{73} + \frac{3}{4}}
+    \frac{1}{i \, \sqrt{3} + \frac{5}{9} \, \sqrt{73} + \frac{3}{4}}
 
 .. _installation:
 

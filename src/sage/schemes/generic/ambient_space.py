@@ -82,19 +82,6 @@ class AmbientSpace(scheme.Scheme, Parent):
         """
         raise NotImplementedError
 
-    def _constructor(self):
-        """
-        TEST::
-
-            sage: from sage.schemes.generic.ambient_space import AmbientSpace
-            sage: A = AmbientSpace(5, ZZ)
-            sage: A._constructor()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def _latex_(self):
         """
         TEST::
@@ -163,6 +150,62 @@ class AmbientSpace(scheme.Scheme, Parent):
         """
         raise NotImplementedError
 
+    def _validate(self, polynomials):
+        """
+        If ``polynomials`` is a tuple of valid polynomial functions on self,
+        return ``polynomials``, otherwise raise TypeError.
+
+        INPUT:
+
+        - ``polynomials`` -- tuple of polynomials in the coordinate ring of
+            self
+
+        OUTPUT:
+
+        - tuple of polynomials in the coordinate ring of self
+
+        TESTS::
+
+            sage: from sage.schemes.generic.ambient_space import AmbientSpace
+            sage: A = AmbientSpace(3, ZZ)
+            sage: A._validate((x + 1, 1))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ambient spaces must override "_validate" method!
+        """
+        raise NotImplementedError('ambient spaces must override "_validate" '
+                                  'method!')
+
+    def change_ring(self, R):
+        r"""
+        Return an ambient space over ring `R` and otherwise the same as self.
+
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        OUTPUT:
+
+        - ambient space over ``R``
+
+        .. NOTE::
+
+            There is no need to have any relation between `R` and the base ring
+            of  self, if you want to have such a relation, use
+            ``self.base_extend(R)`` instead.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.ambient_space import AmbientSpace
+            sage: A = AmbientSpace(5)
+            sage: A.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ambient spaces must override "change_ring" method!
+        """
+        raise NotImplementedError(
+                        'ambient spaces must override "change_ring" method!')
+
     #######################################################################
     # End overloads
     #######################################################################
@@ -181,13 +224,23 @@ class AmbientSpace(scheme.Scheme, Parent):
         # overloaded in the projective space derived class
         return False
 
-    def base_extend(self, S, check=True):
+    def base_extend(self, R):
         """
-        Return the base change of self to the ring `S`, via the natural
-        map from the base ring of self to `S`.
+        Return the base change of self to the ring `R`, via the natural map
+        from the base ring of self to `R`.
 
-        A ValueError is raised if there is no natural map between the
-        two rings.
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        OUTPUT:
+
+        - ambient space over ``R``
+
+        .. NOTE::
+
+            A ValueError is raised if there is no such natural map. If you do
+            not want to do this check, use ``self.change_ring(R)`` instead.
 
         EXAMPLES::
 
@@ -197,16 +250,16 @@ class AmbientSpace(scheme.Scheme, Parent):
             sage: PQ.base_extend(GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: No natural map from the base ring (=Rational Field) to S (=Finite Field of size 5)
+            ValueError: no natural map from the base ring (=Rational Field) to R (=Finite Field of size 5)!
         """
-        if is_CommutativeRing(S):
-            R = self.base_ring()
-            if S == R:
+        if is_CommutativeRing(R):
+            if self.base_ring() == R:
                 return self
-            if check:
-                if not S.has_coerce_map_from(R):
-                    raise ValueError, "No natural map from the base ring (=%s) to S (=%s)"%(R, S)
-            return self._constructor(self.__n, S, self.variable_names())
+            if not R.has_coerce_map_from(self.base_ring()):
+                raise ValueError(
+                    "no natural map from the base ring (=%s) to R (=%s)!"
+                    % (self.base_ring(), R))
+            return self.change_ring(R)
         else:
             raise NotImplementedError
 

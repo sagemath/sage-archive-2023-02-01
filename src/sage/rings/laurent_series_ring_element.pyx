@@ -843,11 +843,6 @@ cdef class LaurentSeries(AlgebraElement):
             sage: 1/(2+x)
             1/2 - 1/4*x + 1/8*x^2 - 1/16*x^3 + 1/32*x^4 - 1/64*x^5 + 1/128*x^6 - 1/256*x^7 + 1/512*x^8 - 1/1024*x^9 + 1/2048*x^10 - 1/4096*x^11 + 1/8192*x^12 - 1/16384*x^13 + 1/32768*x^14 - 1/65536*x^15 + 1/131072*x^16 - 1/262144*x^17 + 1/524288*x^18 - 1/1048576*x^19 + O(x^20)
 
-            sage: R.<x> = ZZ[[]]
-            sage: y = (3*x+2)/(1+x)
-            sage: y/x
-            2*x^-1 + 1 - x + x^2 - x^3 + x^4 - x^5 + x^6 - x^7 + x^8 - x^9 + x^10 - x^11 + x^12 - x^13 + x^14 - x^15 + x^16 - x^17 + x^18 + O(x^19)
-
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
         cdef LaurentSeries out
@@ -855,13 +850,12 @@ cdef class LaurentSeries(AlgebraElement):
             raise ZeroDivisionError
         try:
             inv = right.__u.__invert__()
-            new_base = inv.parent().base()
-            old_base = self._parent.base()
-            if (new_base is old_base) or old_base.has_coerce_map_from(new_base):
+            if inv.parent().base() is self._parent.base():
                 return LaurentSeries(self._parent, self.__u * inv, self.__n - right.__n, check=False)
             # need to go to the fraction field
-            return LaurentSeries(self._parent.base_extend(new_base), self.__u.base_extend(new_base) * inv, self.__n - right.__n, check=False)
+            return LaurentSeries(self._parent.base_extend(inv.parent().base()), self.__u.base_extend(inv.parent().base()) * inv, self.__n - right.__n, check=False)
         except TypeError, msg:
+            raise
             raise ArithmeticError, "division not defined"
 
 

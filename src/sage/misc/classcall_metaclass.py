@@ -31,8 +31,8 @@ class ClasscallMetaclass(NestedClassMetaclass):
      - ``.__classget__`` for customizing the binding behavior in
        ``foo.cls`` (analogue of ``.__get__``).
 
-    See the documentation of :meth:`.__call__`` and of
-    :meth:`.__get__`` for the description of the respective protocols.
+    See the documentation of :meth:`.__call__` and of :meth:`.__get__`
+    for the description of the respective protocols.
 
     TODO: find a good name for this metaclass.
 

@@ -5194,8 +5194,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: L.append((3,Permutation([3, 1, 4, 2, 5])))
             sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
             sage: M = sum([c * p.to_matrix() for (c,p) in L])
-            sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M) #optional - requires linear programming
-            sage: print decomp                                                              #optional - requires linear programming
+            sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M)
+            sage: print decomp
             2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
 
         An exception is raised when the matrix is not bistochastic::

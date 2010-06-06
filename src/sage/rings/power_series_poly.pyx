@@ -531,9 +531,8 @@ cdef class PowerSeries_poly(PowerSeries):
         The polynomial obtained from power series by truncation.
 
         EXAMPLES:
-
             sage: R.<I> = GF(2)[[]]
-            sage: f = (1/(1+I+O(I^8))).power_series(); f
+            sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate(5)
             I^4 + I^3 + I^2 + I + 1
@@ -561,7 +560,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         EXAMPLES:
             sage: R.<I> = GF(2)[[]]
-            sage: f = (1/(1+I+O(I^8))).power_series(); f
+            sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate_powerseries(5)
             1 + I + I^2 + I^3 + I^4 + O(I^5)

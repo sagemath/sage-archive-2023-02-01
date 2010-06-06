@@ -14,8 +14,6 @@ AUTHORS:
 
 - Robert Bradshaw (2007-04): Cython version
 
-- Simon King (2010-05): optimizations; quotients of power series are *always* Laurent series
-
 EXAMPLE::
 
     sage: R.<x> = PowerSeriesRing(ZZ)
@@ -798,12 +796,10 @@ cdef class PowerSeries(AlgebraElement):
 
     def __invert__(self):
         """
-        Inverse of the power series (i.e. a series Y such that XY = 1).
+        Inverse of the power series (i.e. a series Y such that XY = 1). The
+        first nonzero coefficient must be a unit in the coefficient ring.
         If the valuation of the series is positive, this function will
-        return a Laurent series, otherwise it returns a power series.
-        If the first coefficient is a unit then the base ring of the
-        output is the same as the base ring of ``self``; otherwise, it
-        is the fraction field.
+        return a Laurent series.
 
         ALGORITHM: Uses Newton's method. Complexity is around
         `O(M(n) \log n)`, where `n` is the precision and
@@ -863,18 +859,9 @@ cdef class PowerSeries(AlgebraElement):
             sage: u*v
             1 + O(t^12)
 
-        TEST:
-
-        The following was fixed in ticket #8972::
-
-            sage: P.<t> = ZZ[[]]
-            sage: 1 / (2+t)
-            1/2 - 1/4*t + 1/8*t^2 - 1/16*t^3 + 1/32*t^4 - 1/64*t^5 + 1/128*t^6 - 1/256*t^7 + 1/512*t^8 - 1/1024*t^9 + 1/2048*t^10 - 1/4096*t^11 + 1/8192*t^12 - 1/16384*t^13 + 1/32768*t^14 - 1/65536*t^15 + 1/131072*t^16 - 1/262144*t^17 + 1/524288*t^18 - 1/1048576*t^19 + O(t^20)
-
         AUTHORS:
 
         - David Harvey (2006-09-09): changed to use Newton's method
-        - Simon King (2010-05): change to the fraction field of the coefficient ring, if necessary.
         """
         if self == 1:
             return self
@@ -905,13 +892,7 @@ cdef class PowerSeries(AlgebraElement):
 
         A = self.truncate()
         R = A.parent()     # R is the corresponding polynomial ring
-        try:
-            current = R(first_coeff)
-            fracfield = False
-        except TypeError:
-            fracfield = True
-            R = R.base_extend(R.base().fraction_field())
-            current = R(first_coeff)
+        current = R(first_coeff)
 
         # todo: in the case that the underlying polynomial ring is
         # implemented via NTL, the truncate() method should use NTL's
@@ -925,9 +906,7 @@ cdef class PowerSeries(AlgebraElement):
             z = current.square() * A.truncate(next_prec)
             current = 2*current - z.truncate(next_prec)
 
-        if not fracfield:
-            return self._parent(current, prec=prec)
-        return self._parent.base_extend(R.base())(current, prec=prec)
+        return self._parent(current, prec=prec)
 
         # Here is the old code, which uses a simple recursion, and is
         # asymptotically inferior:
@@ -1012,7 +991,6 @@ cdef class PowerSeries(AlgebraElement):
             sage: R.<x> = P[[]]
             sage: 1/(t*x)
             1/t*x^-1
-
         """
         F = self._parent.fraction_field()
         denom = <PowerSeries>denom_r
@@ -1221,7 +1199,6 @@ cdef class PowerSeries(AlgebraElement):
         - Robert Bradshaw
 
         - William Stein
-
         """
         if self.is_zero():
             ans = self._parent(0).O(self.prec()/2)
@@ -1293,7 +1270,7 @@ cdef class PowerSeries(AlgebraElement):
         s = a.parent()([s])
         for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             (<PowerSeries>s)._prec = cur_prec
-            s = half * (s + (a*s.__invert__()))#.power_series(internal=True))
+            s = half * (s + (a/s).power_series())
 
         ans = s
         if val != 0:

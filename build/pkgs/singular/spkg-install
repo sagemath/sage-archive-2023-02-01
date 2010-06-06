@@ -14,6 +14,14 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# The time stamp of src/Singular/libparse.cc (which is the output from 'flex')
+# is a second older than the source file (src/Singular/libparse.l).
+# This is probably a result of building on a shared file system with
+# two computers not exactly syncronised in time. This caused a problem
+# on Solaris, where flex was not installed, but flex would be needed to
+# create create src/Singular/libparse.cc
+touch src/Singular/libparse.cc
+
 # we set LD=ld which is troublesome on OSX. Singular figures out LD by
 # itself pretty well so we unset it here.
 unset LD
@@ -57,8 +65,8 @@ else
     CXXFLAGS="$CXXFLAGS -O3 -g"
     CFLAGS="$CFLAGS -O3 -g"
   fi
-  if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-    echo "64 bit MacIntel"
+  if [ "x$SAGE64" = xyes ]; then
+    echo "64-bit of Singular"
     CFLAGS="-O2 -g -m64 "; export CFLAGS
     CXXFLAGS="-O2 -g -m64"; export CXXFLAGS
     CPPFLAGS="-O2 -g -m64"; export CPPFLAGS

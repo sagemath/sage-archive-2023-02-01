@@ -10,6 +10,17 @@
 == Releases ==
 
 
+=== singular-3.1.0.4.p6  (David Kirkby and Willem Jan Palenstijn, 6th June 2010) ===
+ * #9160 Change name to singular-$version.$patchversion,
+   as is common Sage practice, and not have a date of any
+   update. Since this should be patch level 6, I've called it that.
+   (David Kirkby)
+ * #9160 touch the file src/Singular/libparse.cc
+   (Willem Jan Palenstijn)
+ * #9160 Remove the restriction that the OS needs to be OS X before
+   a 64-bit build is attempted.
+  (David Kirkby)
+
 === singular-3-1-0-4-20100214 (William Stein, February 14, 2010) ===
  * patch for Cygwin (trac 7338)
 

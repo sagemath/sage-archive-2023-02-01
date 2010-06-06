@@ -783,22 +783,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-    def fraction_field(self):
-        """
-        Return the fraction field of this power series ring, which
-        is the same as the Laurent series ring over the fraction
-        field of the base ring of ``self``.
-
-        EXAMPLE::
-
-            sage: R1.<x> = ZZ[[]]
-            sage: FractionField(R1)
-            Laurent Series Ring in x over Rational Field
-            sage: R2.<x> = GF(3)['t'][[]]
-            sage: 1/x in FractionField(R2)
-            True
-        """
-        return self.laurent_series_ring().base_extend(self.base().fraction_field())
+      pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     def fraction_field(self):

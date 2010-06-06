@@ -113,30 +113,6 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ParentWithGens.__init__(self, base_ring, name)
         self.__sparse = sparse
 
-    def one(self):
-        from sage.all import LaurentSeries,PowerSeriesRing
-        if self._one_element is None:
-            B = self.base().base_ring()
-            if hasattr(B,'ring_of_integers'):
-                B = B.ring_of_integers()
-            x = PowerSeriesRing(B,self.variable_name(),default_prec=self.default_prec()).one()
-            x = LaurentSeries(self,x,check=False)
-            self._one_element = x
-            return x
-        return self._one_element
-
-    def zero(self):
-        from sage.all import LaurentSeries,PowerSeriesRing
-        if self._zero_element is None:
-            B = self.base().base_ring()
-            if hasattr(B,'ring_of_integers'):
-                B = B.ring_of_integers()
-            x = PowerSeriesRing(B,self.variable_name(),default_prec=self.default_prec()).zero()
-            x = LaurentSeries(self,x,check=False)
-            self._zero_element = x
-            return x
-        return self._zero_element
-
     def base_extend(self, R):
         """
         Returns the laurent series ring over R in the same variable as
@@ -225,17 +201,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             x = self(x.numerator())/self(x.denominator())
             return self.gen()**n * x
         else:
-            try:
-                if self.power_series_ring().has_coerce_map_from(x.parent()):
-                    if self.power_series_ring().base_ring().has_coerce_map_from(x.parent()):
-                        return laurent_series_ring_element.LaurentSeries(self, x*self.one(), n,check=False)
-                    if x.is_zero():
-                        return laurent_series_ring_element.LaurentSeries(self, x, n, check=False)
-                    v = x.valuation()
-                    return laurent_series_ring_element.LaurentSeries(self, x>>v, v+n,check=False)
-            except:
-                pass
-        return laurent_series_ring_element.LaurentSeries(self, x, n)
+            return laurent_series_ring_element.LaurentSeries(self, x, n)
 
     def _coerce_impl(self, x):
         """

@@ -617,7 +617,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate(5)
-            1 + I + I^2 + I^3 + I^4 + O(I^5)
+            I^4 + I^3 + I^2 + I + 1
         """
         if prec is infinity:
             prec = self._prec
@@ -838,7 +838,7 @@ cdef class PowerSeries(AlgebraElement):
         ::
 
             sage: 1/(2 + q)
-            1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
 
         ::
 
@@ -868,15 +868,10 @@ cdef class PowerSeries(AlgebraElement):
         prec = self.prec()
         if prec is infinity and self.degree() > 0:
             prec = self._parent.default_prec()
-        v = self.valuation()
-        if v > 0:
-            try:
-                u = ~(self>>v)    # inverse of unit part
-            except:
-                u = ~((self>>v)*self._parent.base().fraction_field())
-            R = self._parent.fraction_field()#_parent.laurent_series_ring()
-            from sage.all import LaurentSeries
-            return LaurentSeries(R,u,-v,check=False)# R(u, -self.valuation())
+        if self.valuation() > 0:
+            u = ~self.valuation_zero_part()    # inverse of unit part
+            R = self._parent.laurent_series_ring()
+            return R(u, -self.valuation())
 
         # Use Newton's method, i.e. start with single term approximation,
         # and then iteratively compute $x' = 2x - Ax^2$, where $A$ is the
@@ -996,21 +991,25 @@ cdef class PowerSeries(AlgebraElement):
         denom = <PowerSeries>denom_r
         if denom.is_zero():
             raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
+
+        v = denom.valuation()
+        if v > self.valuation():
+            R = self._parent.laurent_series_ring().base_extend(self._parent.base().fraction_field())
+            return F(R(self)/R(denom))
+
         # Algorithm: Cancel common factors of q from top and bottom,
         # then invert the denominator.  We do the cancellation first
         # because we can only invert a unit (and remain in the ring
         # of power series).
-        from sage.all import LaurentSeries
-        if self.is_zero():
-            return F.zero_element()
-        v = denom.valuation()
-        w = self.valuation()
-        u = denom>>v#denom.valuation_zero_part()
-        try:
-            inv = ~u
-        except: # need to change to the fraction field of the base
-            inv = ~(u*F.base().one())
-        return LaurentSeries(F,(self>>w)*inv,w-v,check=False)
+
+        P_ext = self._parent.base_extend(denom_r.parent().base().fraction_field())
+        u = P_ext(denom.valuation_zero_part())
+        inv = ~u  # inverse
+        if v > 0:
+            num = self >> v
+        else:
+            num = self
+        return F(num*inv)
 
     def __mod__(self, other):
         """
@@ -1228,7 +1227,7 @@ cdef class PowerSeries(AlgebraElement):
                 else:
                     return a
 
-        val = self.valuation();
+        val = self.valuation()
 
         if formal_sqrt or val % 2 == 1:
             if extend:
@@ -1270,7 +1269,7 @@ cdef class PowerSeries(AlgebraElement):
         s = a.parent()([s])
         for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             (<PowerSeries>s)._prec = cur_prec
-            s = half * (s + (a/s).power_series())
+            s = half * (s + a/s)
 
         ans = s
         if val != 0:

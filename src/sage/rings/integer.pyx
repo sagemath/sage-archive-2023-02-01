@@ -3514,6 +3514,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def real(self):
+        """
+        Returns the real part of self, which is self.
+
+        EXAMPLES::
+
+            sage: Integer(-4).real()
+            -4
+        """
+        return self
+
+    def imag(self):
+        """
+        Returns the imaginary part of self, which is zero.
+
+        EXAMPLES::
+
+            sage: Integer(9).imag()
+            0
+        """
+        return zero
+
     def is_one(self):
         r"""
         Returns ``True`` if the integer is `1`,

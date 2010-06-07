@@ -787,6 +787,7 @@ code = setup(name = 'sage',
                      'sage.categories.examples',
 
                      'sage.coding',
+                     'sage.coding.source_coding',
 
                      'sage.combinat',
                      'sage.combinat.crystals',

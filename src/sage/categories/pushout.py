@@ -901,6 +901,69 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         # Algebraic Closure subsumes Algebraic Extension
         return self
 
+class PermutationGroupFunctor(ConstructionFunctor):
+
+    rank = 10
+
+    def __init__(self, gens):
+        """
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import PermutationGroupFunctor
+            sage: PF = PermutationGroupFunctor([PermutationGroupElement([(1,2)])]); PF
+            PermutationGroupFunctor[(1,2)]
+        """
+        Functor.__init__(self, Groups(), Groups())
+        self._gens = gens
+
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: P1 = PermutationGroup([[(1,2)]])
+            sage: PF, P = P1.construction()
+            sage: PF
+            PermutationGroupFunctor[(1,2)]
+        """
+        return "PermutationGroupFunctor%s"%self.gens()
+
+    def __call__(self, R):
+        """
+        EXAMPLES::
+
+            sage: P1 = PermutationGroup([[(1,2)]])
+            sage: PF, P = P1.construction()
+            sage: PF(P)
+            Permutation Group with generators [(1,2)]
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        return PermutationGroup([g for g in (R.gens() + self.gens()) if not g.is_one()])
+
+    def gens(self):
+        """
+        EXAMPLES::
+
+            sage: P1 = PermutationGroup([[(1,2)]])
+            sage: PF, P = P1.construction()
+            sage: PF.gens()
+            [(1,2)]
+        """
+        return self._gens
+
+    def merge(self, other):
+        """
+        EXAMPLES::
+
+            sage: P1 = PermutationGroup([[(1,2)]])
+            sage: PF1, P = P1.construction()
+            sage: P2 = PermutationGroup([[(1,3)]])
+            sage: PF2, P = P2.construction()
+            sage: PF1.merge(PF2)
+            PermutationGroupFunctor[(1,2), (1,3)]
+        """
+        if self.__class__ != other.__class__:
+            return None
+        return PermutationGroupFunctor(self.gens() + other.gens())
 
 def BlackBoxConstructionFunctor(ConstructionFunctor):
 

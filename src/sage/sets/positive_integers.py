@@ -55,7 +55,7 @@ class PositiveIntegers(IntegerRangeInfinite):
             sage: PP.category()
             Category of infinite enumerated sets
         """
-        IntegerRangeInfinite.__init__(self, Integer(1), Infinity, Integer(1))
+        IntegerRangeInfinite.__init__(self, Integer(1), Integer(1))
 
     def __repr__(self):
         r"""

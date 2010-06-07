@@ -1558,6 +1558,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             mat.subdivide(self.get_subdivisions())
             return mat
 
+    def _test_change_ring(self, **options):
+        """
+        Checks that :meth:`change_ring` works.
+
+        EXAMPLES::
+
+            sage: a=matrix([[1,2],[3,4]])
+            sage: a._test_change_ring()
+
+        """
+        tester = self._tester(**options)
+        # Test to make sure the returned matrix is a copy
+        tester.assert_(self.change_ring(self.base_ring()) is not self)
+
     def _matrix_(self, R):
         """
         EXAMPLES::

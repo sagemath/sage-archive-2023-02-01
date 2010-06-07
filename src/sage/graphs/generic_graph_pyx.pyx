@@ -4,6 +4,7 @@ GenericGraph Cython functions
 AUTHORS:
     -- Robert L. Miller   (2007-02-13): initial version
     -- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
+    -- Nathann Cohen                  : exhaustive search
 """
 
 #*****************************************************************************
@@ -17,7 +18,12 @@ AUTHORS:
 include "../ext/interrupt.pxi"
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
+
+# import from Python standard library
 from random import random
+
+# import from third-party library
+from sage.graphs.base.dense_graph cimport DenseGraph
 
 cdef extern from *:
     double sqrt(double)
@@ -450,11 +456,367 @@ def D_inverse(s, n):
     return m[:n*n]
 
 
+# Exhaustive search in graphs
 
+cpdef list subgraph_search(G, H, bint induced=False):
+    r"""
+    Returns a set of vertices in ``G`` representing a copy of ``H``.
 
+    ALGORITHM:
 
+    This algorithm is a brute-force search.
+    Let `V(H) = \{h_1,\dots,h_k\}`.  It first tries
+    to find in `G` a possible representant of `h_1`, then a
+    representant of `h_2` compatible with `h_1`, then
+    a representant of `h_3` compatible with the first
+    two, etc.
 
+    This way, most of the time we need to test far less than
+    `k! \binom{|V(G)|}{k}` subsets, and hope this brute-force
+    technique can sometimes be useful.
 
+    INPUT:
 
+    - ``G``, ``H`` -- two graphs such that ``H`` is a subgraph of ``G``.
 
+    - ``induced`` -- boolean (default: ``False``); whether to require that
+      the subgraph is an induced subgraph.
 
+    OUTPUT:
+
+    A list of vertices inducing a copy of ``H`` in ``G``. If none is found,
+    an empty list is returned.
+
+    EXAMPLES:
+
+    A Petersen graph contains an induced path graph `P_5`::
+
+        sage: from sage.graphs.generic_graph_pyx import subgraph_search
+        sage: g = graphs.PetersenGraph()
+        sage: subgraph_search(g, graphs.PathGraph(5), induced=True)
+        [0, 1, 2, 3, 8]
+
+    It also contains a the claw `K_{1,3}`::
+
+        sage: subgraph_search(g, graphs.ClawGraph())
+        [0, 1, 4, 5]
+
+    Though it contains no induced `P_6`::
+
+        sage: subgraph_search(g, graphs.PathGraph(6), induced=True)
+        []
+
+    TESTS:
+
+    Let `G` and `H` be graphs having orders `m` and `n`, respectively. If
+    `m < n`, then there are no copies of `H` in `G`::
+
+        sage: from sage.graphs.generic_graph_pyx import subgraph_search
+        sage: m = randint(100, 200)
+        sage: n = randint(m + 1, 300)
+        sage: G = graphs.RandomGNP(m, random())
+        sage: H = graphs.RandomGNP(n, random())
+        sage: G.order() < H.order()
+        True
+        sage: subgraph_search(G, H)
+        []
+    """
+    # TODO: This is a brute-force search and can be very inefficient. Write
+    # a more efficient subgraph search implementation.
+    cdef int ng = G.order()
+    cdef int nh = H.order()
+    if ng < nh:
+        return []
+    cdef int i, j, k
+    cdef int *tmp_array
+    cdef (bint) (*is_admissible) (int, int *, int *)
+    if induced:
+        is_admissible = vectors_equal
+    else:
+        is_admissible = vectors_inferior
+    # static copies of the two graphs for more efficient operations
+    cdef DenseGraph g = DenseGraph(ng)
+    cdef DenseGraph h = DenseGraph(nh)
+    # copying the adjacency relations in both G and H
+    i = 0
+    for row in G.adjacency_matrix():
+        j = 0
+        for k in row:
+            if k:
+                g.add_arc(i, j)
+            j += 1
+        i += 1
+    i = 0
+    for row in H.adjacency_matrix():
+        j = 0
+        for k in row:
+            if k:
+                h.add_arc(i, j)
+            j += 1
+        i += 1
+    # A vertex is said to be busy if it is already part of the partial copy
+    # of H in G.
+    cdef int *busy = <int *>sage_malloc(ng * sizeof(int))
+    memset(busy, 0, ng * sizeof(int))
+    # 0 is the first vertex we use, so it is at first busy
+    busy[0] = 1
+    # stack -- list of the vertices which are part of the partial copy of H
+    # in G.
+    #
+    # stack[i] -- the integer corresponding to the vertex of G representing
+    # the i-th vertex of H.
+    #
+    # stack[i] = -1 means that i is not represented
+    # ... yet!
+    cdef int *stack = <int *>sage_malloc(nh * sizeof(int))
+    stack[0] = 0
+    stack[1] = -1
+    # Number of representants we have already found. Set to 1 as vertex 0
+    # is already part of the partial copy of H in G.
+    cdef int active = 1
+    # vertices is equal to range(nh), as an int *variable
+    cdef int *vertices = <int *>sage_malloc(nh * sizeof(int))
+    for 0 <= i < nh:
+        vertices[i] = i
+    # line_h[i] represents the adjacency sequence of vertex i
+    # in h relative to vertices 0, 1, ..., i-1
+    cdef int **line_h = <int **>sage_malloc(nh * sizeof(int *))
+    for 0 <= i < nh:
+        line_h[i] = <int *>h.adjacency_sequence(i, vertices, i)
+    # the sequence of vertices to be returned
+    cdef list value = []
+
+    _sig_on
+
+    # as long as there is a non-void partial copy of H in G
+    while active:
+        # If we are here and found nothing yet, we try the next possible
+        # vertex as a representant of the active i-th vertex of H.
+        i = stack[active] + 1
+        # Looking for a vertex that is not busy and compatible with the
+        # partial copy we have of H.
+        while i < ng:
+            if busy[i]:
+                i += 1
+            else:
+                tmp_array = g.adjacency_sequence(active, stack, i)
+                if is_admissible(active, tmp_array, line_h[active]):
+                    sage_free(tmp_array)
+                    break
+                else:
+                    sage_free(tmp_array)
+                    i += 1
+        # If we found none, it means that we cannot extend the current copy
+        # of H so we update the status of stack[active] and prepare to change
+        # the previous vertex.
+        if i >= ng:
+            if stack[active] != -1:
+                busy[stack[active]] = 0
+            stack[active] = -1
+            active -= 1
+        # If we have found a good representant of H's i-th vertex in G
+        else:
+            if stack[active] != -1:
+                busy[stack[active]] = 0
+            stack[active] = i
+            busy[stack[active]] = 1
+            active += 1
+            # We have found our copy!!!
+            if active == nh:
+                g_vertices = G.vertices()
+                value = [g_vertices[stack[i]] for i in xrange(nh)]
+                break
+            else:
+                # we begin the search of the next vertex at 0
+                stack[active] = -1
+
+    _sig_off
+
+    # Free the memory
+    sage_free(busy)
+    sage_free(stack)
+    sage_free(vertices)
+    for 0 <= i < nh:
+        sage_free(line_h[i])
+    sage_free(line_h)
+
+    return value
+
+cdef inline bint vectors_equal(int n, int *a, int *b):
+    r"""
+    Tests whether the two given vectors are equal. Two integer vectors
+    `a = (a_1, a_2, \dots, a_n)` and `b = (b_1, b_2, \dots, b_n)` are equal
+    iff `a_i = b_i` for all `i = 1, 2, \dots, n`. See the function
+    ``_test_vectors_equal_inferior()`` for unit tests.
+
+    INPUT:
+
+    - ``n`` -- positive integer; length of the vectors.
+
+    - ``a``, ``b`` -- two vectors of integers.
+
+    OUTPUT:
+
+    - ``True`` if ``a`` and ``b`` are the same vector; ``False`` otherwise.
+    """
+    cdef int i = 0
+    for 0 <= i < n:
+        if a[i] != b[i]:
+            return False
+    return True
+
+cdef inline bint vectors_inferior(int n, int *a, int *b):
+    r"""
+    Tests whether the second vector of integers is inferior to the first. Let
+    `u = (u_1, u_2, \dots, u_k)` and `v = (v_1, v_2, \dots, v_k)` be two
+    integer vectors of equal length. Then `u` is said to be less than
+    (or inferior to) `v` if `u_i \leq v_i` for all `i = 1, 2, \dots, k`. See
+    the function ``_test_vectors_equal_inferior()`` for unit tests. Given two
+    equal integer vectors `u` and `v`, `u` is inferior to `v` and vice versa.
+    We could also define two vectors `a` and `b` to be equal if `a` is
+    inferior to `b` and `b` is inferior to `a`.
+
+    INPUT:
+
+    - ``n`` -- positive integer; length of the vectors.
+
+    - ``a``, ``b`` -- two vectors of integers.
+
+    OUTPUT:
+
+    - ``True`` if ``b`` is inferior to (or less than) ``a``; ``False``
+      otherwise.
+    """
+    cdef int i = 0
+    for 0 <= i < n:
+        if a[i] < b[i]:
+            return False
+    return True
+
+##############################
+# Further tests. Unit tests for methods, functions, classes defined with cdef.
+##############################
+
+def _test_vectors_equal_inferior():
+    """
+    Unit testing the function ``vectors_equal()``. No output means that no
+    errors were found in the random tests.
+
+    TESTS::
+
+        sage: from sage.graphs.generic_graph_pyx import _test_vectors_equal_inferior
+        sage: _test_vectors_equal_inferior()
+    """
+    from sage.misc.prandom import randint
+    n = randint(500, 10**3)
+    cdef int *u = <int *>sage_malloc(n * sizeof(int))
+    cdef int *v = <int *>sage_malloc(n * sizeof(int))
+    cdef int i
+    # equal vectors: u = v
+    for 0 <= i < n:
+        u[i] = randint(-10**6, 10**6)
+        v[i] = u[i]
+    try:
+        assert vectors_equal(n, u, v)
+        assert vectors_equal(n, v, u)
+        # Since u and v are equal vectors, then u is inferior to v and v is
+        # inferior to u. One could also define u and v as being equal if
+        # u is inferior to v and vice versa.
+        assert vectors_inferior(n, u, v)
+        assert vectors_inferior(n, v, u)
+    except AssertionError:
+        sage_free(u)
+        sage_free(v)
+        raise AssertionError("Vectors u and v should be equal.")
+    # Different vectors: u != v because we have u_j > v_j for some j. Thus,
+    # u_i = v_i for 0 <= i < j and u_j > v_j. For j < k < n - 2, we could have:
+    # (1) u_k = v_k,
+    # (2) u_k < v_k, or
+    # (3) u_k > v_k.
+    # And finally, u_{n-1} < v_{n-1}.
+    cdef int j = randint(1, n//2)
+    cdef int k
+    for 0 <= i < j:
+        u[i] = randint(-10**6, 10**6)
+        v[i] = u[i]
+    u[j] = randint(-10**6, 10**6)
+    v[j] = u[j] - randint(1, 10**6)
+    for j < k < n:
+        u[k] = randint(-10**6, 10**6)
+        v[k] = randint(-10**6, 10**6)
+    u[n - 1] = v[n - 1] - randint(1, 10**6)
+    try:
+        assert not vectors_equal(n, u, v)
+        assert not vectors_equal(n, v, u)
+        # u is not inferior to v because at least u_j > v_j
+        assert u[j] > v[j]
+        assert not vectors_inferior(n, v, u)
+        # v is not inferior to u because at least v_{n-1} > u_{n-1}
+        assert v[n - 1] > u[n - 1]
+        assert not vectors_inferior(n, u, v)
+    except AssertionError:
+        sage_free(u)
+        sage_free(v)
+        raise AssertionError("".join([
+                    "Vectors u and v should not be equal. ",
+                    "u should not be inferior to v, and vice versa."]))
+    # Different vectors: u != v because we have u_j < v_j for some j. Thus,
+    # u_i = v_i for 0 <= i < j and u_j < v_j. For j < k < n - 2, we could have:
+    # (1) u_k = v_k,
+    # (2) u_k < v_k, or
+    # (3) u_k > v_k.
+    # And finally, u_{n-1} > v_{n-1}.
+    j = randint(1, n//2)
+    for 0 <= i < j:
+        u[i] = randint(-10**6, 10**6)
+        v[i] = u[i]
+    u[j] = randint(-10**6, 10**6)
+    v[j] = u[j] + randint(1, 10**6)
+    for j < k < n:
+        u[k] = randint(-10**6, 10**6)
+        v[k] = randint(-10**6, 10**6)
+    u[n - 1] = v[n - 1] + randint(1, 10**6)
+    try:
+        assert not vectors_equal(n, u, v)
+        assert not vectors_equal(n, v, u)
+        # u is not inferior to v because at least u_{n-1} > v_{n-1}
+        assert u[n - 1] > v[n - 1]
+        assert not vectors_inferior(n, v, u)
+        # v is not inferior to u because at least u_j < v_j
+        assert u[j] < v[j]
+        assert not vectors_inferior(n, u, v)
+    except AssertionError:
+        sage_free(u)
+        sage_free(v)
+        raise AssertionError("".join([
+                    "Vectors u and v should not be equal. ",
+                    "u should not be inferior to v, and vice versa."]))
+    # different vectors u != v
+    # What's the probability of two random vectors being equal?
+    for 0 <= i < n:
+        u[i] = randint(-10**6, 10**6)
+        v[i] = randint(-10**6, 10**6)
+    try:
+        assert not vectors_equal(n, u, v)
+        assert not vectors_equal(n, v, u)
+    except AssertionError:
+        sage_free(u)
+        sage_free(v)
+        raise AssertionError("Vectors u and v should not be equal.")
+    # u is inferior to v, but v is not inferior to u
+    for 0 <= i < n:
+        v[i] = randint(-10**6, 10**6)
+        u[i] = randint(-10**6, 10**6)
+        while u[i] > v[i]:
+            u[i] = randint(-10**6, 10**6)
+    try:
+        assert not vectors_equal(n, u, v)
+        assert not vectors_equal(n, v, u)
+        assert vectors_inferior(n, v, u)
+        assert not vectors_inferior(n, u, v)
+    except AssertionError:
+        raise AssertionError(
+            "u should be inferior to v, but v is not inferior to u.")
+    finally:
+        sage_free(u)
+        sage_free(v)

@@ -3907,9 +3907,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
            The ordering depends on which algorithm is used.
 
+        .. note::
+
+	   The curves returned are all standard minimal models.
+
         .. warning::
 
-            With ``algorithm`` "mwrank", the result is \emph{not}
+            With ``algorithm`` "mwrank", the result is *not*
             provably correct, in the sense that when the numbers are
             huge isogenies could be missed because of precision
             issues.  Using ``algorithm`` "sage" avoids this problem,
@@ -4037,32 +4041,33 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif algorithm == "sage":
 
             curves = [self.minimal_model()]
+            ijl_triples = []
             l_list = None
 
             i = 0
             while i<len(curves):
                 E = curves[i]
                 isogs = E.isogenies_prime_degree(l_list)
-                newcurves = [f.codomain() for f in isogs]
-                newcurves = [E.minimal_model() for E in newcurves]
-                newcurves = [E for E in newcurves if not E in curves]
-                curves = curves + newcurves
+                for phi in isogs:
+                    Edash = phi.codomain()
+                    l = phi.degree()
+                    # look to see if Edash is new.  Note that the
+                    # curves returned by isogenies_prime_degree() are
+                    # standard minimal models, so it suffices to check
+                    # equality rather than isomorphism here.
+                    try:
+                        j = curves.index(Edash)
+                    except ValueError:
+                        j = len(curves)
+                        curves.append(Edash)
+                    ijl_triples.append((i,j,l))
                 if l_list is None:
                     l_list = [l for l in Set([ZZ(f.degree()) for f in isogs])]
                 i = i+1
 
             M = MatrixSpace(IntegerRing(),len(curves))(0)
-            for j in range(len(curves)):
-                l_isogs = curves[j].isogenies_prime_degree(l_list)
-                l_isogcurves = [f.codomain().minimal_model() for f in l_isogs]
-                degrees = [f.degree() for f in l_isogs]
-                isogpairs = dict(zip(l_isogcurves, degrees))
-                for i in range(j):
-                    if not isogpairs.has_key(curves[i]):
-                        M[i,j] = Integer(0)
-                    else:
-                        M[i,j] = isogpairs[curves[i]]
-                    M[j,i] = M[i,j]
+            for i,j,l in ijl_triples:
+                M[i,j] = l
 
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
@@ -4077,8 +4082,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     def isogenies_prime_degree(self, l=None):
-        """
-        Returns a list of l-isogenies from self, where l is a
+        r"""
+        Returns a list of `\ell`-isogenies from self, where `\ell` is a
         prime.
 
         INPUT:
@@ -4087,13 +4092,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        (list) l-isogenies for the given l or if l = None, all
-        l-isogenies.
+        (list) `\ell`-isogenies for the given `\ell` or if `\ell` is None, all
+        `\ell`-isogenies.
 
-        .. warning::
+        .. note::
 
-           The codomains of the isogenies returned may not be standard
-           minimal models.
+           The codomains of the isogenies returned are standard
+           minimal models.  This is because the functions
+           :meth:`isogenies_prime_degree_genus_0()` and
+           :meth:`isogenies_sporadic_Q()` are implemented that way for
+           curves defined over `\QQ`.
 
         EXAMPLES::
 

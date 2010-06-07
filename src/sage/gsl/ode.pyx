@@ -218,7 +218,7 @@ class ode_solver(object):
         ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
 
         sage: def j_1(t,y,params):
-        ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0.0,0.0] ]
+        ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)] ]
 
         sage: T=ode_solver()
         sage: T.algorithm="rk8pd"

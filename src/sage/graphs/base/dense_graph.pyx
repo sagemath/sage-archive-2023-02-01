@@ -584,6 +584,9 @@ cdef class DenseGraph(CGraph):
         sage_free(neighbors)
         return output
 
+##############################
+# Further tests. Unit tests for methods, functions, classes defined with cdef.
+##############################
 
 def random_stress():
     """
@@ -621,6 +624,50 @@ def random_stress():
             raise RuntimeError( "NO" )
         if Gnew.in_degrees[i] != Gold.in_degree(i):
             raise RuntimeError( "NO" )
+
+def _test_adjacency_sequence():
+    """
+    Randomly test the method ``DenseGraph.adjacency_sequence()``. No output
+    indicates that no errors were found.
+
+    TESTS::
+
+        sage: from sage.graphs.base.dense_graph import _test_adjacency_sequence
+        sage: _test_adjacency_sequence()  # long time
+    """
+    from sage.graphs.digraph import DiGraph
+    from sage.graphs.graph_generators import GraphGenerators
+    from sage.misc.prandom import randint, random
+    low = 0
+    high = 500
+    randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
+    n = randg.order()
+    cdef DenseGraph g = DenseGraph(n,
+                                   verts=randg.vertices(),
+                                   arcs=randg.edges(labels=False))
+    assert g._num_verts() == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
+    assert g._num_arcs() == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    M = randg.adjacency_matrix()
+    cdef int *V = <int *>sage_malloc(n * sizeof(int))
+    cdef int i = 0
+    for v in randg.vertex_iterator():
+        V[i] = v
+        i += 1
+    cdef int *seq
+    for 0 <= i < randint(50, 101):
+        u = randint(low, n - 1)
+        seq = g.adjacency_sequence(n, V, u)
+        A = [seq[k] for k in range(n)]
+        try:
+            assert A == list(M[u])
+        except AssertionError:
+            sage_free(V)
+            sage_free(seq)
+            raise AssertionError("Graph adjacency mismatch")
+        sage_free(seq)
+    sage_free(V)
 
 ###########################################
 # Dense Graph Backend
@@ -1018,5 +1065,3 @@ class DenseGraphBackend(CGraphBackend):
             NotImplementedError: Dense graphs do not support edge labels.
         """
         raise NotImplementedError("Dense graphs do not support edge labels.")
-
-

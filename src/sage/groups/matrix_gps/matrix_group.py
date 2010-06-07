@@ -328,6 +328,27 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     base_field = base_ring
 
+    def is_abelian(self):
+        r"""
+        Return True if this group is an abelian group.
+
+        Note: The result is cached, since it tends to get called
+        rather often (e.g. by word_problem) and it's very slow to
+        use the Gap interface every time.
+
+        EXAMPLES::
+
+            sage: SL(1, 17).is_abelian()
+            True
+            sage: SL(2, 17).is_abelian()
+            False
+        """
+        try:
+            return self.__is_abelian
+        except AttributeError:
+            self.__is_abelian = self._gap_().IsAbelian().bool()
+            return self.__is_abelian
+
     def is_finite(self):
         """
         Return True if this matrix group is finite.

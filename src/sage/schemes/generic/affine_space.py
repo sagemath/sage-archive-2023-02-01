@@ -294,9 +294,6 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _constructor(self, *args, **kwds):
-        return AffineSpace(*args, **kwds)
-
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomset_affine_coordinates(*args, **kwds)
 
@@ -399,16 +396,64 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def __pow__(self, m):
         """
+        Return the cartesian power of self.
+
+        INPUT:
+
+        - ``m`` -- integer
+
+        OUTPUT:
+
+        - affine ambient space
+
         EXAMPLES::
 
             sage: A = AffineSpace(1, QQ, 'x')
-            sage: A^5
+            sage: A5 = A^5; A5
             Affine Space of dimension 5 over Rational Field
+            sage: A5.variable_names()
+            ('x0', 'x1', 'x2', 'x3', 'x4')
+            sage: A2 = AffineSpace(2, QQ, "x, y")
+            sage: A4 = A2^2; A4
+            Affine Space of dimension 4 over Rational Field
+            sage: A4.variable_names()
+            ('x0', 'x1', 'x2', 'x3')
+
+        As you see, custom variable names are not preserved by power operator,
+        since there is no natural way to make new ones in general.
         """
         mm = int(m)
         if mm != m:
             raise ValueError, "m must be an integer"
-        return self._constructor(self.dimension_relative() * mm, self._base_ring, names=self.variable_names() * mm)
+        return AffineSpace(self.dimension_relative() * mm, self.base_ring())
+
+    def change_ring(self, R):
+        r"""
+        Return an affine space over ring `R` and otherwise the same as self.
+
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        OUTPUT:
+
+        - affine space over ``R``
+
+        .. NOTE::
+
+            There is no need to have any relation between `R` and the base ring
+            of  self, if you want to have such a relation, use
+            ``self.base_extend(R)`` instead.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: AQ = A.change_ring(QQ); AQ
+            Affine Space of dimension 3 over Rational Field
+            sage: AQ.change_ring(GF(5))
+            Affine Space of dimension 3 over Finite Field of size 5
+        """
+        return AffineSpace(self.dimension_relative(), R, self.variable_names())
 
     def coordinate_ring(self):
         """
@@ -427,27 +472,29 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension_relative(), names=self.variable_names())
             return self._coordinate_ring
 
-    def _validate(self, v):
+    def _validate(self, polynomials):
         """
-        Return a valid tuple of polynomial functions on self given by
-        `v`.  Raise an error if `v` does not consist of valid
-        functions.
+        If ``polynomials`` is a tuple of valid polynomial functions on self,
+        return ``polynomials``, otherwise raise TypeError.
+
+        Since this is an affine space, all polynomials are valid.
+
+        INPUT:
+
+        - ``polynomials`` -- tuple of polynomials in the coordinate ring of
+            self
+
+        OUTPUT:
+
+        - tuple of polynomials in the coordinate ring of self
 
         EXAMPLES::
 
             sage: A.<x, y, z> = AffineSpace(3, ZZ)
-            sage: A._validate([x*y-z, 1])
+            sage: A._validate((x*y - z, 1))
             (x*y - z, 1)
-            sage: A._validate([x, y, 1/3*z])
-            Traceback (most recent call last):
-            ...
-            ValueError: The arguments [x, y, 1/3*z] are not valid polynomial functions on this affine space
         """
-        R = self.coordinate_ring()
-        try:
-            return tuple([ R(g) for g in v ])
-        except:
-            raise ValueError, "The arguments %s are not valid polynomial functions on this affine space"%v
+        return polynomials
 
     def projective_embedding(self, i=None, PP=None):
         """
@@ -533,8 +580,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: X = A.subscheme([x, y^2, x*y^2]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x
-              y^2
+              x,
+              y^2,
               x*y^2
 
         ::
@@ -554,8 +601,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: X.structure_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x
-              y^2
+              x,
+              y^2,
               x*y^2
               To:   Spectrum of Rational Field
               Defn: Structure map

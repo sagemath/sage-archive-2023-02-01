@@ -52,7 +52,7 @@ Kronecker delta function::
 ##############################################################################
 
 from sage.symbolic.function import BuiltinFunction
-from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.all import ComplexIntervalField, ZZ
 
 class FunctionDiracDelta(BuiltinFunction):
     r"""
@@ -402,6 +402,16 @@ class FunctionSignum(BuiltinFunction):
         sage: sgn(x)
         sgn(x)
 
+    We can also use ``sign``::
+
+        sage: sign(1)
+        1
+        sage: sign(0)
+        0
+        sage: a = AA(-5).nth_root(7)
+        sage: sign(a)
+        -1
+
     REFERENCES:
 
     -  http://en.wikipedia.org/wiki/Sign_function
@@ -449,17 +459,32 @@ class FunctionSignum(BuiltinFunction):
             0
             sage: sgn(x).subs(x=-1)
             -1
+
+        More tests::
+
+            sage: sign(RR(2))
+            1
+            sage: sign(RDF(2))
+            1
+            sage: sign(AA(-2))
+            -1
+            sage: sign(AA(0))
+            0
         """
+        if hasattr(x,'sign'): # First check if x has a sign method
+            return x.sign()
+        if hasattr(x,'sgn'): # or a sgn method
+            return x.sgn()
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
                 if bool(approx_x.real() == 0):  # x is zero
-                    return 0
+                    return ZZ(0)
                 # Now we have a non-zero real
                 if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return 1
+                    return ZZ(1)
                 else:
-                    return -1
+                    return ZZ(-1)
         except:                     # x is symbolic
             pass
         return None
@@ -477,6 +502,7 @@ class FunctionSignum(BuiltinFunction):
         return 2*dirac_delta(x)
 
 sgn = FunctionSignum()
+sign = sgn
 
 class FunctionKroneckerDelta(BuiltinFunction):
     r"""

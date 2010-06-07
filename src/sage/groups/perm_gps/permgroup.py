@@ -354,6 +354,33 @@ class PermutationGroup_generic(group.Group):
         self._gens = gens
         self._gap_string = 'Group(%s)'%gens
 
+    def construction(self):
+         """
+         EXAMPLES::
+
+             sage: P1 = PermutationGroup([[(1,2)]])
+             sage: P1.construction()
+             (PermutationGroupFunctor[(1,2)], Permutation Group with generators [()])
+
+             sage: PermutationGroup([]).construction() is None
+             True
+
+         This allows us to perform computations like the following::
+
+             sage: P1 = PermutationGroup([[(1,2)]]); p1 = P1.gen()
+             sage: P2 = PermutationGroup([[(1,3)]]); p2 = P2.gen()
+             sage: p = p1*p2; p
+             (1,2,3)
+             sage: p.parent()
+             Permutation Group with generators [(1,2), (1,3)]
+         """
+         gens = self.gens()
+         if len(gens) == 1 and gens[0].is_one():
+              return None
+         else:
+              from sage.categories.pushout import PermutationGroupFunctor
+              return (PermutationGroupFunctor(gens), PermutationGroup([]))
+
     def _gens_from_gap(self):
         """
         Returns the generators of the group by asking GAP for them.
@@ -719,10 +746,13 @@ class PermutationGroup_generic(group.Group):
         gens = self._gap_().SmallGeneratingSet()
         return [self._element_class()(x, self, check=False) for x in gens]
 
-    def gen(self, i):
+    def gen(self, i=None):
         r"""
-        Returns the i-th generator of ``self``; that is, the i-th element
-        of the list ``self.gens()``.
+        Returns the i-th generator of ``self``; that is, the i-th element of
+        the list ``self.gens()``.
+
+        The argument `i` may be omitted if there is only one generator (but
+        this will raise an error otherwise).
 
         EXAMPLES:
 
@@ -740,8 +770,18 @@ class PermutationGroup_generic(group.Group):
             sage: A4.gens()[0]; A4.gens()[1]
             (2,3,4)
             (1,2,3)
+
+            sage: P1 = PermutationGroup([[(1,2)]]); P1.gen()
+            (1,2)
         """
-        return self.gens()[i]
+        gens = self.gens()
+        if i is None:
+             if len(gens) == 1:
+                  return gens[0]
+             else:
+                  raise ValueError, "You must specify which generator you want"
+        else:
+             return gens[i]
 
     def identity(self):
         """

@@ -1055,13 +1055,16 @@ class Latex:
             Warning: `some_inexistent_file.sty` is not part of this computer's TeX installation.
             This file is required for blah. It can be downloaded from: http://blah.org/
 
+        This test checks that the bug in Trac #9091 is fixed. ::
+
+            sage: latex.check_file("article.cls", "The article class is really critical.")    # optional - latex
         """
         assert isinstance(file_name, str)
         if not self.has_file(file_name):
             print """
 Warning: `%s` is not part of this computer's TeX installation."""%file_name
-        if more_info:
-            print more_info
+            if more_info:
+                print more_info
 
 
     def extra_macros(self, macros=None):

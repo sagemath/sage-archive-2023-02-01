@@ -34,7 +34,8 @@ from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
 
-from sage.symbolic.function import BuiltinFunction, SR, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.ring import SR
 
 import sage.plot.all
 
@@ -102,36 +103,74 @@ def exponential_integral_1(x, n=0):
         return [float(z) for z in pari(x).eint1(n)]
 
 
-def zeta(s):
-    """
-    Riemann zeta function at s with s a real or complex number.
+class Function_zeta(GinacFunction):
+    def __init__(self):
+        r"""
+        Riemann zeta function at s with s a real or complex number.
 
-    INPUT:
+        INPUT:
 
+        -  ``s`` - real or complex number
 
-    -  ``s`` - real or complex number
+        If s is a real number the computation is done using the MPFR
+        library. When the input is not real, the computation is done using
+        the PARI C library.
 
+        EXAMPLES::
 
-    If s is a real number the computation is done using the MPFR
-    library. When the input is not real, the computation is done using
-    the PARI C library.
+            sage: zeta(x)
+            zeta(x)
+            sage: zeta(2)
+            1/6*pi^2
+            sage: zeta(2.)
+            1.64493406684823
+            sage: RR = RealField(200)
+            sage: zeta(RR(2))
+            1.6449340668482264364724151666460251892189499012067984377356
+            sage: zeta(I)
+            zeta(I)
+            sage: zeta(I).n()
+            0.00330022368532410 - 0.418155449141322*I
 
-    EXAMPLES::
+        TESTS::
 
-        sage: zeta(2)
-        1.64493406684823
-        sage: RR = RealField(200)
-        sage: zeta(RR(2))
-        1.6449340668482264364724151666460251892189499012067984377356
-        sage: zeta(I)
-        zeta(I)
-        sage: zeta(I).n()
-        0.00330022368532410 - 0.418155449141322*I
-    """
-    try:
-        return s.zeta()
-    except AttributeError:
-        return ComplexField()(s).zeta()
+            sage: latex(zeta(x))
+            \zeta(x)
+            sage: a = loads(dumps(zeta(x)))
+            sage: a.operator() == zeta
+            True
+        """
+        GinacFunction.__init__(self, "zeta")
+
+zeta = Function_zeta()
+
+class Function_zetaderiv(GinacFunction):
+    def __init__(self):
+        """
+        Derivatives of the Riemann zeta function.
+
+        EXAMPLES::
+
+            sage: zetaderiv(1, x)
+            zetaderiv(1, x)
+            sage: zetaderiv(1, x).diff(x)
+            zetaderiv(2, x)
+            sage: var('n')
+            n
+            sage: zetaderiv(n,x)
+            zetaderiv(n, x)
+
+        TESTS::
+
+            sage: latex(zetaderiv(2,x))
+            \zeta^\prime\left(2, x\right)
+            sage: a = loads(dumps(zetaderiv(2,x)))
+            sage: a.operator() == zetaderiv
+            True
+        """
+        GinacFunction.__init__(self, "zetaderiv", nargs=2)
+
+zetaderiv = Function_zetaderiv()
 
 def zeta_symmetric(s):
     r"""

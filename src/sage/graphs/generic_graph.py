@@ -792,13 +792,15 @@ class GenericGraph(GenericGraph_pyx):
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, indegree=True, **kwds):
+    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, **kwds):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
-        The Kirchhoff matrix is defined to be `D - M`, where `D` is the
-        diagonal degree matrix (each diagonal entry is the degree of the
-        corresponding vertex), and `M` is the adjacency matrix.
+        The Kirchhoff matrix is defined to be `D - M`, where `D` is
+        the diagonal degree matrix (each diagonal entry is the degree
+        of the corresponding vertex), and `M` is the adjacency matrix.
+        If ``normalized`` is ``True``, then the returned matrix is
+        `D^{-1/2}(D-M)D^{-1/2}`.
 
         ( In the special case of DiGraphs, `D` is defined as the diagonal
         in-degree matrix or diagonal out-degree matrix according to the
@@ -807,7 +809,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weighted`` -- Binary variable :
-            - If ``weighted == True``, the weighted adjacency matrix is used for `M`,
+            - If ``True``, the weighted adjacency matrix is used for `M`,
               and the diagonal matrix `D` takes into account the weight of edges
               (replace in the definition "degree" by "sum of the incident edges" ).
             - Else, each edge is assumed to have weight 1.
@@ -816,7 +818,7 @@ class GenericGraph(GenericGraph_pyx):
             weighted.
 
         - ``indegree`` -- Binary variable  :
-            - If ``indegree=True``, each diagonal entry of `D` is equal to the
+            - If ``True``, each diagonal entry of `D` is equal to the
               in-degree of the corresponding vertex.
             - Else, each diagonal entry of `D` is equal to the
               out-degree of the corresponding vertex.
@@ -825,12 +827,20 @@ class GenericGraph(GenericGraph_pyx):
 
             ( This variable only matters when the graph is a digraph )
 
+        - ``normalized`` -- Binary variable :
+
+            - If ``True``, the returned matrix is
+              `D^{-1/2}(D-M)D^{-1/2}`, a normalized version of the
+              Laplacian matrix.
+            - Else, the matrix `D-M` is returned
+
         Note that any additional keywords will be passed on to either
         the ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
 
         AUTHORS:
 
         - Tom Boothby
+        - Jason Grout
 
         EXAMPLES::
 
@@ -867,6 +877,12 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  1 -1  0]
             [-1 -1  3 -1]
             [-1  0 -1  2]
+            sage: M = G.laplacian_matrix(normalized=True); M
+            [                   1 -1/6*sqrt(2)*sqrt(3) -1/6*sqrt(2)*sqrt(3)         -1/3*sqrt(3)]
+            [-1/6*sqrt(2)*sqrt(3)                    1                 -1/2                    0]
+            [-1/6*sqrt(2)*sqrt(3)                 -1/2                    1                    0]
+            [        -1/3*sqrt(3)                    0                    0                    1]
+
 
         A weighted directed graph with loops, changing the variable ``indegree`` ::
 
@@ -875,15 +891,16 @@ class GenericGraph(GenericGraph_pyx):
             [ 4 -3]
             [-4  3]
 
-::
+        ::
 
             sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True,sparse=True)
             sage: G.laplacian_matrix(indegree=False)
             [ 3 -3]
             [-4  4]
         """
-        from sage.matrix.constructor import matrix
+        from sage.matrix.constructor import matrix, diagonal_matrix
         from sage.rings.integer_ring import IntegerRing
+        from sage.functions.all import sqrt
 
         if weighted is None:
             weighted = self._weighted
@@ -893,8 +910,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             M = self.adjacency_matrix(**kwds)
 
-        A = -M
-
+        D = M.parent(0)
 
         if M.is_sparse():
             row_sums = {}
@@ -907,20 +923,23 @@ class GenericGraph(GenericGraph_pyx):
 
 
             for i in range(M.nrows()):
-                A[i,i] += row_sums.get(i, 0)
+                D[i,i] += row_sums.get(i, 0)
 
         else:
             if indegree:
-                ones = matrix(M.base_ring(), 1,  M.nrows(), [1]*M.nrows())
-                S = ones*M
+                col_sums=[sum(v) for v in M.columns()]
                 for i in range(M.nrows()):
-                    A[i,i] += S[0,i]
+                    D[i,i] += col_sums[i]
             else:
-                ones = matrix(M.base_ring(),  M.nrows(), 1, [1]*M.nrows())
-                S = M*ones
+                row_sums=[sum(v) for v in M.rows()]
                 for i in range(M.nrows()):
-                    A[i,i] += S[i,0]
-        return A
+                    D[i,i] += row_sums[i]
+
+        if normalized:
+            Dsqrt = diagonal_matrix([1/sqrt(D[i,i]) for i in range(D.nrows())])
+            return Dsqrt*(D-M)*Dsqrt
+        else:
+            return D-M
 
     laplacian_matrix = kirchhoff_matrix
 
@@ -1231,6 +1250,11 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.edges()
             []
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.loops()
+            []
+
         """
         from sage.misc.misc import deprecation
         if new is not None:
@@ -3579,6 +3603,285 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
+    def traveling_salesman_problem(self, weighted = True):
+        r"""
+        Solves the traveling salesman problem (TSP)
+
+        Given a graph (resp. a digraph) `G` with weighted edges,
+        the traveling salesman problem consists in finding a
+        hamiltonian cycle (resp. circuit) of the graph of
+        minimum cost.
+
+        This TSP is one of the most famous NP-Complete problems,
+        this function can thus be expected to take some time
+        before returning its result.
+
+        INPUT:
+
+        - ``weighted`` (boolean) -- whether to consider the
+          weights of the edges.
+
+              - If set to ``False`` (default), all edges are
+                assumed to weight `1`
+
+              - If set to ``True``, the weights are taken into
+                account, and the edges whose weight is ``None``
+                are assumed to be set to `1`
+
+        OUTPUT:
+
+        A solution to the TSP, as a ``Graph`` object whose vertex
+        set is `V(G)`, and whose edges are only those of the
+        solution.
+
+        ALGORITHM:
+
+        This optimization problem is solved through the use
+        of Linear Programming.
+
+        NOTE:
+
+        - This function is correctly defined for both graph and digraphs.
+          In the second case, the returned cycle is a circuit of optimal
+          cost.
+
+        EXAMPLES:
+
+        The Heawood graph is known to be hamiltonian::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: tsp = g.traveling_salesman_problem()   # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp                                     # optional - requires GLPK, CBC, or CPLEX
+            TSP from Heawood graph: Graph on 14 vertices
+
+        The solution to the TSP has to be connected ::
+
+            sage: tsp.is_connected()                      # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        It must also be a `2`-regular graph::
+
+            sage: tsp.is_regular(k=2)                     # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        And obviously it is a subgraph of the Heawood graph::
+
+            sage: all([ e in g.edges() for e in tsp.edges()])    # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        On the other hand, the Petersen Graph is known not to
+        be hamiltonian::
+
+            sage: g = graphs.PetersenGraph()                     # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp = g.traveling_salesman_problem()          # optional - requires GLPK, CBC, or CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: The given graph is not hamiltonian
+
+        One easy way to change is is obviously to add to this
+        graph the edges corresponding to a hamiltonian cycle.
+
+        If we do this by setting the cost of these new edges
+        to `2`, while the others are set to `1`, we notice
+        that not all the edges we added are used in the
+        optimal solution ::
+
+            sage: for u, v in g.edges(labels = None):
+            ...      g.set_edge_label(u,v,1)
+
+            sage: cycle = graphs.CycleGraph(10)
+            sage: for u,v in cycle.edges(labels = None):
+            ...      if not g.has_edge(u,v):
+            ...          g.add_edge(u,v)
+            ...      g.set_edge_label(u,v,2)
+
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
+            sage: sum( tsp.edge_labels() ) < 2*10                       # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        If we pick `1/2` instead of `2` as a cost for these new edges,
+        they clearly become the optimal solution
+
+            sage: for u,v in cycle.edges(labels = None):
+            ...      g.set_edge_label(u,v,1/2)
+
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
+            sage: sum( tsp.edge_labels() ) == (1/2)*10                   # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization = False)
+
+
+        f = p.new_variable()
+        r = p.new_variable()
+
+
+
+        # If the graph has multiple edges
+        if self.has_multiple_edges():
+            g = self.copy()
+            multi = self.multiple_edges()
+            g.delete_edges(multi)
+            g.allow_multiple_edges(False)
+            if weighted:
+                e = {}
+
+                for u,v,l in multi:
+                    u,v = (u,v) if u<v else (v,u)
+
+                    # The weight of an edge is the minimum over
+                    # the weights of the parallel edges
+
+                    #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
+                    e[(u,v)] = l if (not e.has_key((u,v)) or ( l is None and e[(u,v)] > 1 )) else e[(u,v)]
+
+                g.add_edges([(u,v) for (u,v),l in e.iteritems()])
+
+            else:
+                from sage.sets.set import Set
+                g.add_edges(Set([ (min(u,v),max(u,v)) for u,v,l in multi]))
+
+        else:
+            g = self
+
+        eps = 1/(2*Integer(g.order()))
+        x = g.vertex_iterator().next()
+
+
+        if g.is_directed():
+
+            # returns the variable corresponding to arc u,v
+            E = lambda u,v : f[(u,v)]
+
+            # All the vertices have in-degree 1
+            [p.add_constraint(sum([ f[(u,v)] for u in g.neighbors_in(v)]), min = 1, max = 1) for v in g]
+
+            # All the vertices have out-degree 1
+            [p.add_constraint(sum([ f[(v,u)] for u in g.neighbors_out(v)]), min = 1, max = 1) for v in g]
+
+
+            # r is greater than f
+            for u,v in g.edges(labels = None):
+                if g.has_edge(v,u):
+                    if u < v:
+                        p.add_constraint( r[(u,v)] + r[(v,u)]- f[(u,v)] - f[(v,u)], min = 0)
+
+                        # no 2-cycles
+                        p.add_constraint( f[(u,v)] + f[(v,u)], max = 1)
+
+                else:
+                    p.add_constraint( r[(u,v)] + r[(v,u)] - f[(u,v)], min = 0)
+
+
+            # defining the answer when g is directed
+            from sage.graphs.all import DiGraph
+            tsp = DiGraph()
+        else:
+
+            # reorders the edge as they can appear in the two different ways
+            R = lambda x,y : (x,y) if x < y else (y,x)
+
+            # returns the variable corresponding to arc u,v
+            E = lambda u,v : f[R(u,v)]
+
+            # All the vertices have degree 2
+            [p.add_constraint(sum([ f[R(u,v)] for u in g.neighbors(v)]), min = 2, max = 2) for v in g]
+
+            # r is greater than f
+            for u,v in g.edges(labels = None):
+                p.add_constraint( r[(u,v)] + r[(v,u)] - f[R(u,v)], min = 0)
+
+            from sage.graphs.all import Graph
+
+            # defining the answer when g is not directed
+            tsp = Graph()
+
+
+        # no cycle which does not contain x
+        for v in g:
+            if v != x:
+                p.add_constraint( sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
+
+
+        weight = lambda u,v : g.edge_label(u,v) if g.edge_label(u,v) is not None else 1
+
+        if weighted:
+            p.set_objective( sum([ weight(u,v)*E(u,v) for u,v in g.edges(labels=None)]) )
+        else:
+            p.set_objective(None)
+
+        p.set_binary(f)
+
+        from sage.numerical.mip import MIPSolverException
+
+        try:
+            obj = p.solve()
+            f = p.get_values(f)
+            tsp.add_vertices(g.vertices())
+            tsp.set_pos(g.get_pos())
+            tsp.name("TSP from "+g.name())
+            tsp.add_edges([(u,v,l) for u,v,l in g.edges() if E(u,v) == 1])
+
+            return tsp
+
+        except MIPSolverException:
+            raise ValueError("The given graph is not hamiltonian")
+
+
+    def hamiltonian_cycle(self):
+        r"""
+        Returns a hamiltonian cycle/circuit of the current graph/digraph
+
+        A graph (resp. digraph) is said to be hamiltonian
+        if it contains as a subgraph a cycle (resp. a circuit)
+        going through all the vertices.
+
+        Computing a hamiltonian cycle/circuit being NP-Complete,
+        this algorithm could run for some time depending on
+        the instance.
+
+        ALGORITHM:
+
+        See ``Graph.traveling_salesman_problem``.
+
+        OUTPUT:
+
+        Returns a hamiltonian cycle/circuit if it exists. Otherwise,
+        raises a ``ValueError`` exception.
+
+        NOTE:
+
+        This function, as ``is_hamiltonian``, computes a hamiltonian
+        cycle if it exists : the user should *NOT* test for
+        hamiltonicity using ``is_hamiltonian`` before calling this
+        function, as it would result in computing it twice.
+
+        EXAMPLES:
+
+        The Heawood Graph is known to be hamiltonian ::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            TSP from Heawood graph: Graph on 14 vertices
+
+        The Petergraph, though, is not ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: The given graph is not hamiltonian
+        """
+
+        try:
+            return self.traveling_salesman_problem(weighted = False)
+        except:
+            raise ValueError("The given graph is not hamiltonian")
+
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
@@ -3920,7 +4223,7 @@ class GenericGraph(GenericGraph_pyx):
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
-           sage: g.matching(algorithm="LP", value_only=True) #optional
+           sage: g.matching(algorithm="LP", value_only=True) #optional - requires GLPK CBC or CPLEX
            9.0
 
         TESTS:
@@ -5496,21 +5799,41 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G=graphs.DiamondGraph()
+            sage: G = graphs.DiamondGraph()
             sage: G.edge_boundary([0,1])
             [(0, 2, {}), (1, 2, {}), (1, 3, {})]
+            sage: G = graphs.PetersenGraph()
+            sage: G.edge_boundary([0], [0])
+            []
+
         """
         vertices1 = [v for v in vertices1 if v in self]
         output = []
         if self._directed:
             output.extend(self.outgoing_edge_iterator(vertices1,labels=labels))
+            if vertices2 is not None:
+                output = [e for e in output if e[1] in vertices2]
+            else:
+                output = [e for e in output if e[1] not in vertices1]
+            return output
         else:
             output.extend(self.edge_iterator(vertices1,labels=labels))
-        if vertices2 is not None:
-            output = [e for e in output if (e[1] in vertices2 or e[0] in vertices2) ]
-        else:
-            output = [e for e in output if (e[1] not in vertices1 or e[0] not in vertices1)]
-        return output
+            output2 = []
+            if vertices2 is not None:
+                for e in output:
+                    if e[0] in vertices1:
+                        if e[1] in vertices2:
+                            output2.append(e)
+                    elif e[0] in vertices2: # e[1] in vertices1
+                        output2.append(e)
+            else:
+                for e in output:
+                    if e[0] in vertices1:
+                        if e[1] not in vertices1:
+                            output2.append(e)
+                    elif e[0] not in vertices1: # e[1] in vertices1
+                        output2.append(e)
+            return output2
 
     def edge_iterator(self, vertices=None, labels=True, ignore_direction=False):
         """
@@ -5885,6 +6208,134 @@ class GenericGraph(GenericGraph_pyx):
             return self.degree_iterator(vertices,labels).next()
         else:
             return list(self.degree_iterator(vertices,labels))
+
+    def average_degree(self):
+        r"""
+        Returns the average degree of the graph.
+
+        The average degree of a graph `G=(V,E)` is equal to
+        ``\frac {2|E|}{|V|}``.
+
+        EXAMPLES:
+
+        The average degree of a regular graph is equal to the
+        degree of any vertex::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.average_degree() == 4
+            True
+
+        The average degree of a tree is always strictly less than
+        `2`::
+
+           sage: g = graphs.RandomGNP(20,.5)
+           sage: tree = Graph()
+           sage: tree.add_edges(g.min_spanning_tree())
+           sage: tree.average_degree() < 2
+           True
+
+        For any graph, it is equal to ``\frac {2|E|}{|V|}``::
+
+            sage: g = graphs.RandomGNP(50,.8)
+            sage: g.average_degree() == 2*g.size()/g.order()
+            True
+        """
+
+        return 2*Integer(self.size())/Integer(self.order())
+
+    def maximum_average_degree(self, value_only=True):
+        r"""
+        Returns the Maximum Average Degree (MAD) of the current graph.
+
+        The Maximum Average Degree (MAD) of a graph is defined as
+        the average degree of its densest subgraph. More formally,
+        ``Mad(G) = \max_{H\subseteq G} Ad(H)``, where `Ad(G)` denotes
+        the average degree of `G`.
+
+        This can be computed in polynomial time.
+
+        INPUT:
+
+        - ``value_only`` (boolean) -- ``True`` by default
+
+            - If ``value_only=True``, only the numerical
+              value of the `MAD` is returned.
+
+            - Else, the subgraph of `G` realizing the `MAD`
+              is returned.
+
+        EXAMPLES:
+
+        In any graph, the `Mad` is always larger than the average
+        degree::
+
+            sage: g = graphs.RandomGNP(20,.3)
+            sage: mad_g = g.maximum_average_degree()                       # optional - requires GLPK or CBC
+            sage: g.average_degree() <= mad_g                              # optional - requires GLPK or CBC
+            True
+
+        Unlike the average degree, the `Mad` of the disjoint
+        union of two graphs is the maximum of the `Mad` of each
+        graphs::
+
+            sage: h = graphs.RandomGNP(20,.3)
+            sage: mad_h = h.maximum_average_degree()                      # optional - requires GLPK or CBC
+            sage: (g+h).maximum_average_degree() == max(mad_g, mad_h)     # optional - requires GLPK or CBC
+            True
+
+        The subgraph of a regular graph realizing the maximum
+        average degree is always the whole graph ::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            True
+
+        This also works for complete bipartite graphs ::
+
+            sage: g = graphs.CompleteBipartiteGraph(3,4)                  # optional - requires GLPK or CBC
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            True
+        """
+
+        g = self
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(maximization=True)
+
+        d = p.new_variable()
+        one = p.new_variable()
+
+        # Reorders u and v so that uv and vu are not considered
+        # to be different edges
+        reorder = lambda u,v : (min(u,v),max(u,v))
+
+        for u,v in g.edge_iterator(labels=False):
+	    p.add_constraint( one[ reorder(u,v) ] - 2*d[u] , max = 0 )
+	    p.add_constraint( one[ reorder(u,v) ] - 2*d[v] , max = 0 )
+
+        p.add_constraint( sum([d[v] for v in g]), max = 1)
+
+        p.set_objective( sum([ one[reorder(u,v)] for u,v in g.edge_iterator(labels=False)]) )
+
+        obj = p.solve()
+
+        # Paying attention to numerical error :
+        # The zero values could be something like 0.000000000001
+        # so I can not write l > 0
+        # And the non-zero, though they should be equal to
+        # 1/(order of the optimal subgraph) may be a bit lower
+
+        # setting the minimum to 1/(10 * size of the whole graph )
+        # should be safe :-)
+        m = 1/(10*g.order())
+        g_mad = g.subgraph([v for v,l in p.get_values(d).iteritems() if l>m ])
+
+        if value_only:
+            return g_mad.average_degree()
+        else:
+            return g_mad
 
     def degree_histogram(self):
         """
@@ -6493,6 +6944,90 @@ class GenericGraph(GenericGraph_pyx):
         G.delete_edges(edges_to_delete)
         if not inplace:
             return G
+
+    def subgraph_search(self, G, induced=False):
+        r"""
+        Returns a copy of ``G`` in ``self``.
+
+        INPUT:
+
+        - ``G`` -- the graph whose copy we are looking for in ``self``.
+
+        - ``induced`` -- boolean (default: ``False``). Whether or not to
+          search for an induced copy of ``G`` in ``self``.
+
+        OUTPUT:
+
+        - If ``induced=False``, return a copy of ``G`` in this graph.
+          Otherwise, return an induced copy of ``G`` in ``self``. If ``G``
+          is the empty graph, return the empty graph since it is a subgraph
+          of every graph. Now suppose ``G`` is not the empty graph. If there
+          is no copy (induced or otherwise) of ``G`` in ``self``, we return
+          ``None``.
+
+        ALGORITHM:
+
+        Brute-force search.
+
+        EXAMPLES:
+
+        The Petersen graph contains the path graph `P_5`::
+
+             sage: g = graphs.PetersenGraph()
+             sage: h1 = g.subgraph_search(graphs.PathGraph(5)); h1
+             Subgraph of (Petersen graph): Graph on 5 vertices
+             sage: h1.vertices()
+             [0, 1, 2, 3, 4]
+             sage: I1 = g.subgraph_search(graphs.PathGraph(5), induced=True); I1
+             Subgraph of (Petersen graph): Graph on 5 vertices
+             sage: I1.vertices()
+             [0, 1, 2, 3, 8]
+
+        It also contains the claw `K_{1,3}`::
+
+             sage: h2 = g.subgraph_search(graphs.ClawGraph()); h2
+             Subgraph of (Petersen graph): Graph on 4 vertices
+             sage: h2.vertices()
+             [0, 1, 4, 5]
+             sage: I2 = g.subgraph_search(graphs.ClawGraph(), induced=True); I2
+             Subgraph of (Petersen graph): Graph on 4 vertices
+             sage: I2.vertices()
+             [0, 1, 4, 5]
+
+        Of course the induced copies are isomorphic to the graphs we were
+        looking for::
+
+             sage: I1.is_isomorphic(graphs.PathGraph(5))
+             True
+             sage: I2.is_isomorphic(graphs.ClawGraph())
+             True
+
+        However, the Petersen graph does not contain a subgraph isomorphic to
+        `K_3`::
+
+             sage: g.subgraph_search(graphs.CompleteGraph(3)) is None
+             True
+
+        Nor does it contain a nonempty induced subgraph isomorphic to `P_6`::
+
+             sage: g.subgraph_search(graphs.PathGraph(6), induced=True) is None
+             True
+
+        The empty graph is a subgraph of every graph::
+
+            sage: g.subgraph_search(graphs.EmptyGraph())
+            Graph on 0 vertices
+            sage: g.subgraph_search(graphs.EmptyGraph(), induced=True)
+            Graph on 0 vertices
+        """
+        from sage.graphs.generic_graph_pyx import subgraph_search
+        from sage.graphs.graph_generators import GraphGenerators
+        if G.order() == 0:
+            return GraphGenerators().EmptyGraph()
+        H = subgraph_search(self, G, induced=induced)
+        if H == []:
+            return None
+        return self.subgraph(H)
 
     def random_subgraph(self, p, inplace=False):
         """
@@ -11395,6 +11930,59 @@ class GenericGraph(GenericGraph_pyx):
                         return False
         return True
 
+    def is_hamiltonian(self):
+        r"""
+        Tests whether the current graph is Hamiltonian
+
+        A graph (resp. digraph) is said to be hamiltonian
+        if it contains as a subgraph a cycle (resp. a circuit)
+        going through all the vertices.
+
+        Testing for hamiltonicity being NP-Complete, this
+        algorithm could run for some time depending on
+        the instance.
+
+        ALGORITHM:
+
+        See ``Graph.traveling_salesman_problem``.
+
+        OUTPUT:
+
+        Returns ``True`` if a hamiltonian cycle/circuit exists, and
+        ``False`` otherwise.
+
+        NOTE:
+
+        This function, as ``hamiltonian_cycle`` and
+        ``traveling_salesman_problem``, computes a hamiltonian
+        cycle if it exists : the user should *NOT* test for
+        hamiltonicity using ``is_hamiltonian`` before calling
+        ``hamiltonian_cycle`` or ``traveling_salesman_problem``
+        as it would result in computing it twice.
+
+        EXAMPLES:
+
+        The Heawood Graph is known to be hamiltonian ::
+
+            sage: g = graphs.HeawoodGraph()
+            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            True
+
+        The Petergraph, though, is not ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            False
+
+        """
+
+        try:
+            tsp = self.traveling_salesman_problem(weighted = False)
+            return True
+
+        except ValueError:
+            return False
+
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
         """
         Tests for isomorphism between self and other.
@@ -11471,6 +12059,68 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G.relabel([1,2,3,4,0], inplace=False)
             sage: G.is_isomorphic(H, edge_labels=True)
             True
+
+        TESTS::
+
+            sage: g1 = '~?A[~~{ACbCwV_~__OOcCW_fAA{CF{CCAAAC__bCCCwOOV___~____OOOOcCCCW___fAAAA'+\
+            ...   '{CCCF{CCCCAAAAAC____bCCCCCwOOOOV_____~_O@ACG_@ACGOo@ACG?{?`A?GV_GO@AC}@?_OGC'+\
+            ...   'C?_OI@?K?I@?_OM?_OGD?F_A@OGC@{A@?_OG?O@?gCA?@_GCA@O?B_@OGCA?BoA@?gC?@{A?GO`?'+\
+            ...   '??_GO@AC??E?O`?CG??[?O`A?G??{?GO`A???|A?_GOC`AC@_OCGACEAGS?HA?_SA`aO@G?cOC_N'+\
+            ...   'G_C@AOP?GnO@_GACOE?g?`OGACCOGaGOc?HA?`GORCG_AO@B?K@[`A?OCI@A@By?_K@?SCABA?H?'+\
+            ...   'SA?a@GC`CH?Q?C_c?cGRC@G_AOCOa@Ax?QC?_GOo_CNg@A?oC@CaCGO@CGA_O`?GSGPAGOC_@OO_'+\
+            ...   'aCHaG?cO@CB?_`Ax?GQC?_cAOCG^OGAC@_D?IGO`?D?O_I?HAOO`AGOHA?cC?oAO`AW_Q?HCACAC'+\
+            ...   'GO`[_OCHA?_cCACG^O_@CAGO`A?GCOGc@?I?OQOC?IGC_o@CAGCCE?A@DBG_OA@C_CP?OG_VA_CO'+\
+            ...   'G@D?_OA_DFgA@CO?aH?Ga@?a?_I?S@A@@Oa@?@P@GCO_AACO_a_?`K_GCQ@?cAOG_OGAwQ@?K?cC'+\
+            ...   'GH?I?ABy@C?G_S@@GCA@C`?OI?_D?OP@G?IGGP@O_AGCP?aG?GCPAX?cA?OGSGCGCAGCJ`?oAGCC'+\
+            ...   'HAA?A_CG^O@CAG_GCSCAGCCGOCG@OA_`?`?g_OACG_`CAGOAO_H?a_?`AXA?OGcAAOP?a@?CGVAC'+\
+            ...   'OG@_AGG`OA_?O`|?Ga?COKAAGCA@O`A?a?S@?HCG`?_?gO`AGGaC?PCAOGI?A@GO`K_CQ@?GO_`O'+\
+            ...   'GCAACGVAG@_COOCQ?g?I?O`ByC?G_P?O`A?H@G?_P?`OAGC?gD?_C@_GCAGDG_OA@CCPC?AOQ??g'+\
+            ...   '_R@_AGCO____OCC_@OAbaOC?g@C_H?AOOC@?a`y?PC?G`@OOH??cOG_OOAG@_COAP?WA?_KAGC@C'+\
+            ...   '_CQ@?HAACH??c@P?_AWGaC?P?gA_C_GAD?I?Awa?S@?K?`C_GAOGCS?@|?COGaA@CAAOQ?AGCAGO'+\
+            ...   'ACOG@_G_aC@_G@CA@@AHA?OGc?WAAH@G?P?_?cH_`CAGOGACc@@GA?S?CGVCG@OA_CICAOOC?PO?'+\
+            ...   'OG^OG_@CAC_cC?AOP?_OICG@?oAGCO_GO_GB@?_OG`AH?cA?OH?`P??cC_O?SCGR@O_AGCAI?Q?_'+\
+            ...   'GGS?D?O`[OI?_D@@CCA?cCA_?_O`By?_PC?IGAGOQ?@A@?aO`A?Q@?K?__`_E?_GCA@CGO`C_GCQ'+\
+            ...   '@A?gAOQ?@C?DCACGR@GCO_AGPA@@GAA?A_CO`Aw_I?S@?SCB@?OC_?_P@ACNgOC@A?aCGOCAGCA@'+\
+            ...   'CA?H@GG_C@AOGa?OOG_O?g_OA?oDC_AO@GOCc?@P?_A@D??cC``O?cGAOGD?@OA_CAGCA?_cwKA?'+\
+            ...   '`?OWGG?_PO?I?S?H@?^OGAC@_Aa@CAGC?a@?_Q?@H?_OCHA?OQA_P?_G_O?WA?_IG_Q?HC@A@ADC'+\
+            ...   'A?AI?AC_?QAWOHA?cAGG_I?S?G_OG@GA?`[D?O_IA?`GGCS?OA_?c@?Q?^OAC@_G_Ca@CA@?OGCO'+\
+            ...   'H@G@A@?GQC?_Q@GP?_OG?IGGB?OCGaG?cO@A__QGC?E?A@CH@G?GRAGOC_@GGOW@O?O_OGa?_c?G'+\
+            ...   'V@CGA_OOaC?a_?a?A_CcC@?CNgA?oC@GGE@?_OH?a@?_?QA`A@?QC?_KGGO_OGCAa@?A?_KCGPC@'+\
+            ...   'G_AOAGPGC?D@?a_A?@GGO`KH?Q?C_QGAA_?gOG_OA?_GG`AwH?SA?`?cAI?A@D?I?@?QA?`By?K@'+\
+            ...   '?O`GGACA@CGCA@CC_?WO`?`A?OCH?`OCA@COG?I?oC@ACGPCG_AO@_aAA?Aa?g?GD@G?CO`AWOc?'+\
+            ...   'HA?OcG_?g@OGCAAAOC@ACJ_`OGACAGCS?CAGI?A`@?OCACG^'
+            sage: g2 = '~?A[??osR?WARSETCJ_QWASehOXQg`QwChK?qSeFQ_sTIaWIV?XIR?KAC?B?`?COCG?o?O_'+\
+            ...   '@_?`??B?`?o@_O_WCOCHC@_?`W?E?AD_O?WCCeO?WCSEGAGAIaA@_?aw?OK?ER?`?@_HQXA?B@Q_'+\
+            ...   'pA?a@Qg_`?o?h[?GOK@IR?@A?BEQcoCG?K\IB?GOCWiTC?GOKWIV??CGEKdH_H_?CB?`?DC??_WC'+\
+            ...   'G?SO?AP?O_?g_?D_?`?C__?D_?`?CCo??@_O_XDC???WCGEGg_??a?`G_aa??E?AD_@cC??K?CJ?'+\
+            ...   '@@K?O?WCCe?aa?G?KAIB?Gg_A?a?ag_@DC?OK?CV??EOO@?o?XK??GH`A?B?Qco?Gg`A?B@Q_o?C'+\
+            ...   'SO`?P?hSO?@DCGOK?IV???K_`A@_HQWC??_cCG?KXIRG?@D?GO?WySEG?@D?GOCWiTCC??a_CGEK'+\
+            ...   'DJ_@??K_@A@bHQWAW?@@K??_WCG?g_?CSO?A@_O_@P??Gg_?Ca?`?@P??Gg_?D_?`?C__?EOO?Ao'+\
+            ...   '?O_AAW?@@K???WCGEPP??Gg_??B?`?pDC??aa??AGACaAIG?@DC??K?CJ?BGG?@cC??K?CJ?@@K?'+\
+            ...   '?_e?G?KAAR?PP??Gg_A?B?a_oAIG?@DC?OCOCTC?Gg_?CSO@?o?P[??X@??K__A@_?qW??OR??GH'+\
+            ...   '`A?B?Qco?Gg_?CSO`?@_hOW?AIG?@DCGOCOITC??PP??Gg`A@_@Qw??@cC??qACGE?dH_O?AAW?@'+\
+            ...   '@GGO?WqSeO?AIG?@D?GO?WySEG?@DC??a_CGAKTIaA??PP??Gg@A@b@Qw?O?BGG?@c?GOKXIR?KA'+\
+            ...   'C?H_?CCo?A@_O_?WCG@P??Gg_?CB?`?COCG@P??Gg_?Ca?`?E?AC?g_?CSO?Ao?O_@_?`@GG?@cC'+\
+            ...   '??k?CG??WCGOR??GH_??B?`?o@_O`DC??aa???KACB?a?`AIG?@DC??COCHC@_?`AIG?@DC??K?C'+\
+            ...   'J??o?O`cC??qA??E?AD_O?WC?OR??GH_A?B?_cq?B?_AIG?@DC?O?WCSEGAGA?Gg_?CSO@?P?PSO'+\
+            ...   'OK?C?PP??Gg_A@_?aw?OK?C?X@??K__A@_?qWCG?K??GH_?CCo`?@_HQXA?B??AIG?@DCGO?WISE'+\
+            ...   'GOCO??PP??Gg`A?a@Qg_`?o??@DC??aaCGE?DJ_@A@_??BGG?@cCGOK@IR?@A?BO?AAW?@@GGO?W'+\
+            ...   'qSe?`?@g?@DC??a_CG?K\IB?GOCQ??PP??Gg@A?bDQg_@A@_O?AIG?@D?GOKWIV??CGE@??K__?E'+\
+            ...   'O?`?pchK?_SA_OI@OGD?gCA_SA@OI?c@H?Q?c_H?QOC_HGAOCc?QOC_HGAOCc@GAQ?c@H?QD?gCA'+\
+            ...   '_SA@OI@?gD?_SA_OKA_SA@OI@?gD?_SA_OI@OHI?c_H?QOC_HGAOCc@GAQ?eC_H?QOC_HGAOCc@G'+\
+            ...   'AQ?c@XD?_SA_OI@OGD?gCA_SA@PKGO`A@ACGSGO`?`ACICGO_?ACGOcGO`?O`AC`ACHACGO???^?'+\
+            ...   '????}Bw????Fo^???????Fo?}?????Bw?^?Bw?????GO`AO`AC`ACGACGOcGO`??aCGO_O`ADACG'+\
+            ...   'OGO`A@ACGOA???@{?N_@{?????Fo?}????OFo????N_}????@{????Bw?OACGOgO`A@ACGSGO`?`'+\
+            ...   'ACG?OaCGO_GO`AO`AC`ACGACGO_@G???Fo^?????}Bw????Fo??AC@{?????Fo?}?Fo?????^??A'+\
+            ...   'OGO`AO`AC@ACGQCGO_GO`A?HAACGOgO`A@ACGOGO`A`ACG?GQ??^?Bw?????N_@{?????Fo?QC??'+\
+            ...   'Fo^?????}????@{Fo???CHACGO_O`ACACGOgO`A@ACGO@AOcGO`?O`AC`ACGACGOcGO`?@GQFo??'+\
+            ...   '??N_????^@{????Bw??`GRw?????N_@{?????Fo?}???HAO_OI@OGD?gCA_SA@OI@?gDK_??C@GA'+\
+            ...   'Q?c@H?Q?c_H?QOC_HEW????????????????????????~~~~~'
+            sage: G1 = Graph(g1)
+            sage: G2 = Graph(g2)
+            sage: G1.is_isomorphic(G2)
+            True
+
         """
         possible = True
         if self._directed != other._directed:

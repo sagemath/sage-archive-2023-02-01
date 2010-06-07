@@ -642,7 +642,7 @@ TESTS::
     sage: repr(I)
     'I'
     sage: latex(I)
-    I
+    i
 """
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is

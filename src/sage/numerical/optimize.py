@@ -4,6 +4,11 @@ Numerical Root Finding and Optimization
 AUTHOR:
 
 - William Stein (2007): initial version
+- Nathann Cohen (2008) : Bin Packing
+
+
+Functions and Methods
+----------------------
 """
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -646,3 +651,112 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
        return dict
 
     return [item[0] == item[1] for item in zip(parameters, estimated_params)]
+
+def binpacking(items,maximum=1,k=None):
+    r"""
+    Solves the bin packing problem.
+
+    The Bin Packing problem is the following :
+
+    Given a list of items of weights `p_i` and a real value `K`, what is
+    the least number of bins such that all the items can be put in the
+    bins, while keeping sure that each bin contains a weight of at most `K` ?
+
+    For more informations : http://en.wikipedia.org/wiki/Bin_packing_problem
+
+    Two version of this problem are solved by this algorithm :
+         * Is it possible to put the given items in `L` bins ?
+         * What is the assignment of items using the
+           least number of bins with the given list of items ?
+
+    INPUT:
+
+    - ``items`` -- A list of real values (the items' weight)
+
+    - ``maximum``   -- The maximal size of a bin
+
+    - ``k``     -- Number of bins
+
+      - When set to an integer value, the function returns a partition
+        of the items into `k` bins if possible, and raises an
+        exception otherwise.
+
+      - When set to ``None``, the function returns a partition of the items
+        using the least number possible of bins.
+
+    OUTPUT:
+
+    A list of lists, each member corresponding to a box and containing
+    the list of the weights inside it. If there is no solution, an
+    exception is raised (this can only happen when ``k`` is specified
+    or if ``maximum`` is less that the size of one item).
+
+    EXAMPLES:
+
+    Trying to find the minimum amount of boxes for 5 items of weights
+    `1/5, 1/4, 2/3, 3/4, 5/7`::
+
+        sage: from sage.numerical.optimize import binpacking
+        sage: print sorted(binpacking([1/5,1/3,2/3,3/4, 5/7])) # optional - requires GLPK CPLEX or CBC
+        [[1/5, 3/4], [1/3, 2/3], [5/7]]
+
+    One way to use only three boxes (which is best possible) is to put
+    `1/5 + 3/4` together in a box, `1/3+2/3` in another, and `5/7`
+    by itself in the third one.
+
+    Of course, we can also check that there is no solution using only two boxes ::
+
+        sage: from sage.numerical.optimize import binpacking
+        sage: binpacking([0.2,0.3,0.8,0.9], k=2)              # optional - requires GLPK CPLEX or CBC
+        Traceback (most recent call last):
+        ...
+        ValueError: This problem has no solution !
+    """
+
+    if max(items) > maximum:
+        raise ValueError("This problem has no solution !")
+
+    if k==None:
+        from sage.functions.other import ceil
+        k=ceil(sum(items)/maximum)
+        while True:
+            from sage.numerical.mip import MIPSolverException
+            try:
+                return binpacking(items,k=k,maximum=maximum)
+            except MIPSolverException:
+                k = k + 1
+
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    p=MixedIntegerLinearProgram()
+
+    # Boolean variable indicating whether
+    # the i th element belongs to box b
+    box=p.new_variable(dim=2)
+
+    # Each bin contains at most max
+    for b in range(k):
+        p.add_constraint(sum([items[i]*box[i][b] for i in range(len(items))]),max=maximum)
+
+    # Each item is assigned exactly one bin
+    for i in range(len(items)):
+        p.add_constraint(sum([box[i][b] for b in range(k)]),min=1,max=1)
+
+    p.set_objective(None)
+    p.set_binary(box)
+
+    try:
+        p.solve()
+    except MIPSolverException:
+        raise ValueError("This problem has no solution !")
+
+    box=p.get_values(box)
+
+    boxes=[[] for i in range(k)]
+
+    for b in range(k):
+        boxes[b].extend([items[i] for i in range(len(items)) if box[i][b]==1])
+
+    return boxes
+
+
+

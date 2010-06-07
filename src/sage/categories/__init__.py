@@ -8,6 +8,7 @@ Sage categories quickref
 - Sets() Semigroups() Algebras(QQ)    Some categories
 - SemiGroups().example()??            Sample implementation of a semigroup
 - Hom(A, B), End(A, Algebras())       Homomorphisms sets
+- tensor, cartesian_product           Functorial constructions
 
 Module layout:
 

@@ -132,6 +132,7 @@ Examples of parents using categories
    sage/categories/examples/algebras_with_basis
    sage/categories/examples/commutative_additive_monoids
    sage/categories/examples/commutative_additive_semigroups
+   sage/categories/examples/coxeter_groups
    sage/categories/examples/finite_coxeter_groups
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_monoids
@@ -141,6 +142,5 @@ Examples of parents using categories
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/monoids
    sage/categories/examples/semigroups
-   sage/categories/examples/sets_cat
    sage/categories/examples/semigroups_cython
-   sage/categories/examples/coxeter_groups
+   sage/categories/examples/sets_cat

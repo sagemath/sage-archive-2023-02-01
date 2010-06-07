@@ -1,5 +1,5 @@
 r"""
-Examples of finite semigroups
+Examples of semigroups
 """
 #*****************************************************************************
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>

@@ -1274,6 +1274,9 @@ ext_modules = [
               depends = numpy_depends,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
+    Extension('sage.rings.real_interval_absolute',
+              sources = ['sage/rings/real_interval_absolute.pyx']),
+
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),
 

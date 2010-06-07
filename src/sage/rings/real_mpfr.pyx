@@ -4878,6 +4878,8 @@ cdef class RealLiteral(RealNumber):
 
 RR = RealField()
 
+RR_min_prec = RealField(MPFR_PREC_MIN)
+
 
 def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     r"""

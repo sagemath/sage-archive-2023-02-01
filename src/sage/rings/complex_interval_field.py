@@ -315,6 +315,8 @@ class ComplexIntervalField_class(field.Field):
             K = x.parent()
             if is_ComplexIntervalField(K) and K._prec >= self._prec:
                 return self(x)
+#            elif complex_field.is_ComplexField(K) and K.prec() >= self._prec:
+#                return self(x)
         except AttributeError:
             pass
         if hasattr(x, '_complex_mpfr_field_') or hasattr(x, '_complex_mpfi_'):

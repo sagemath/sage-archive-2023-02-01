@@ -2415,7 +2415,12 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def is_square(self):
         """
-        Return whether or not this number is square, i.e. True.
+        Return whether or not this number is square.
+
+        OUTPUT:
+
+        (boolean) True in all cases for elements of QQbar; True for
+        non-negative elements of AA, otherwise False.
 
         EXAMPLES::
 
@@ -2433,18 +2438,90 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return True
 
-    def sqrt(self):
+    def sqrt(self, all=False, extend=True):
         """
-        Return the square root of this number.
+        Return the square root(s) of this number.
+
+        INPUT:
+
+        - ``extend`` - bool (default: True); ignored if self is in
+	  QQbar, or positive in AA. If self is negative in AA, do the
+	  following: if True, return a square root of self in QQbar,
+	  otherwise raise a ValueError.
+
+        - ``all`` - bool (default: False); if True, return a list of
+	  all square roots.  If False, return just one square root, or
+	  raise an ValueError if self is a negative element of AA and
+	  extend=False.
+
+        OUTPUT:
+
+        Either the principal square root of self, or a list of its
+        square roots (with the principal one first).
 
         EXAMPLES::
 
             sage: AA(2).sqrt()
             1.414213562373095?
+
             sage: QQbar(I).sqrt()
             0.7071067811865475? + 0.7071067811865475?*I
+            sage: QQbar(I).sqrt(all=True)
+            [0.7071067811865475? + 0.7071067811865475?*I, -0.7071067811865475? - 0.7071067811865475?*I]
+
+            sage: a = QQbar(0)
+            sage: a.sqrt()
+            0
+            sage: a.sqrt(all=True)
+            [0]
+
+            sage: a = AA(0)
+            sage: a.sqrt()
+            0
+            sage: a.sqrt(all=True)
+            [0]
+
+        This second example just shows that the program doesn't care where 0
+        is defined, it gives the same answer regardless. After all, how many
+        ways can you square-root zero?
+
+	::
+
+            sage: AA(-2).sqrt()
+            1.414213562373095?*I
+
+            sage: AA(-2).sqrt(all=True)
+            [1.414213562373095?*I, -1.414213562373095?*I]
+
+            sage: AA(-2).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: -2 is not a square in AA, being negative. Use extend = True for a square root in QQbar.
+
+
         """
-        return self.__pow__(~ZZ(2))
+	# deal with 0 first:
+
+        if self.is_zero():
+            if all:
+                return [self]
+            else:
+                return self
+
+	# raise an error if appropriate:
+
+        if self.parent() is AA and self<0 and not extend:
+	    if not all:
+                raise ValueError, "%s is not a square in AA, being negative. Use extend = True for a square root in QQbar."%self
+	    else:
+		return []
+
+	root = self.__pow__(~ZZ(2))
+
+	if all:
+	    return [root, -root]
+	else:
+	    return root
 
     def nth_root(self, n):
         r"""

@@ -1,22 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT
+AC_INIT([cddlib],[0.94f])
+AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
-
-dnl Init automake.
-AM_INIT_AUTOMAKE(cddlib, 0.94)
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 LT_INIT
-
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lg:
-dnl AC_CHECK_LIB(g, main)
-dnl Replace `main' with a function in -lstdc:
-dnl AC_CHECK_LIB(stdc, main)
-dnl look for gmp:
-AC_CHECK_LIB(gmp, main)
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -24,7 +14,34 @@ AC_HEADER_STDC
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
-dnl Checks for library functions.
+dnl Find the GNU Multiple Precision Arithmetic Library
+AC_ARG_WITH(gmp,
+  [AS_HELP_STRING([--with-gmp=<path>],
+     	          [prefix of GMP installation. e.g. /usr/local or /usr])],
+  [GMP_PREFIX="$with_gmp"],
+  [AC_CHECK_LIB([gmp], [__gmpz_init], ,
+    AC_MSG_ERROR([GNU Multiple Precision Arithmetic Library not found.
+    Maybe you want to call configure with the --with-gmp=<path> option?
+    This tells configure where to find the GMP library and headers.
+    e.g. --with-gmp=/usr/local or --with-gmp=/usr]))]
+)
+if test "x$GMP_PREFIX" != x ; then
+  GMP_LIBS=" -L${GMP_PREFIX}/lib"
+  GMP_CFLAGS=" -I${GMP_PREFIX}/include"
+else
+  GMP_LIBS=""
+  GMP_CFLAGS=""
+fi
+GMP_LIBS="${GMP_LIBS} -lgmp"
+AC_SUBST(GMP_LIBS)
+AC_SUBST(GMP_CFLAGS)
 
-AC_CONFIG_FILES([lib-src/Makefile src/Makefile lib-src-gmp/Makefile src-gmp/Makefile Makefile])
+
+AC_CONFIG_FILES([
+  lib-src/Makefile
+  src/Makefile
+  lib-src-gmp/Makefile
+  src-gmp/Makefile
+  Makefile
+])
 AC_OUTPUT

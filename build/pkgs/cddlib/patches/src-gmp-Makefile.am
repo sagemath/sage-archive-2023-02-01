@@ -32,7 +32,9 @@ cdd_both_reps_gmp_SOURCES          = cdd_both_reps.c
 # cddmathlink_SOURCES                = cddmathlink.c cddmlio.h cddmlio.c
 
 LDADD        = ../lib-src-gmp/libcddgmp.la
-AM_LDFLAGS   = -L$(gmplibdir)
+
 INCLUDES     = -I../lib-src-gmp
-INCLUDES    += -I$(gmpincludedir)
+INCLUDES    += $(GMP_CFLAGS)
+
 AM_CPPFLAGS  = -DGMPRATIONAL
+AM_LDFLAGS   = $(GMP_LIBS)

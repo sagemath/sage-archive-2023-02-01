@@ -23,16 +23,11 @@ fi
 
 # Patches to apply on top of the clean upstream source under src/.
 patch() {
-
-    # We currently do not use this. To be removed at a later date.
-    cp -p patches/allfaces.c src/src/
-
     # Required by sage.geometry.polyhedra
     cp -p patches/cdd_both_reps.c src/src/
     cp -p patches/cdd_both_reps.c src/src-gmp/
 
-    # Do not apply patches/automake.patch here!
-    # The following is the result of applying automake.patch
+    # Rewritten autotools source files
     cp -p patches/Makefile.am src/Makefile.am
     cp -p patches/src-gmp-Makefile.am src/src-gmp/Makefile.am
     cp -p patches/src-Makefile.am src/src/Makefile.am
@@ -55,13 +50,7 @@ patch
 
 cd src
 
-# Make sure that we find the gmp/mpir headers and library
-CPPFLAGS=" -I$SAGE_LOCAL/include $CPPFLAGS"
-export CPPFLAGS
-LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
-export LDFLAGS
-
-./configure --prefix=$SAGE_LOCAL
+./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error configuring cddlib"
    exit 1

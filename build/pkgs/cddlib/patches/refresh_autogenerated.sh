@@ -20,9 +20,8 @@ In short, you need to do the following. First, install the spkg:
 
 Then, rerun the autotools:
 
-  [user@localhost]$ pushd $SAGE_LOCAL/spkg/build/cddlib-<version>/src
+  [user@localhost]$ cd $SAGE_LOCAL/spkg/build/cddlib-<version>/src
   [user@localhost]$ autoreconf -fiv
-  [user@localhost]$ popd
 
 Finally, copy the newly generated files:
 

@@ -3830,14 +3830,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-
-        -  ``flag`` (for primality testing) - int
-
+           -  ``flag`` (for primality testing) - int
            - ``0`` (default): use a combination of algorithms.
-
-           - ``1``: certify primality using the Pocklington-Lehmer
-             Test.
-
+           - ``1``: certify primality using the Pocklington-Lehmer test.
            - ``2``: certify primality using the APRCL test.
 
         EXAMPLES::
@@ -3912,7 +3907,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
-        return bool(self._pari_().isprime())
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "arithmetic")
+        if proof:
+            return bool(self._pari_().isprime())
+        else:
+            return bool(self._pari_().ispseudoprime())
 
     def is_irreducible(self):
         r"""

@@ -456,44 +456,50 @@ def is_prime(n):
             n = n.pyobject()
         except TypeError:
             pass
+
+    from sage.structure.proof.all import arithmetic
+    proof = arithmetic()
     if isinstance(n, int) or isinstance(n, long):
         from sage.rings.integer import Integer
-        return Integer(n).is_prime()
-
+        if proof:
+            return Integer(n).is_prime()
+        else:
+            return Integer(n).is_pseudoprime()
     try:
-        return n.is_prime()
+        if proof:
+            return n.is_prime()
+        else:
+            return n.is_pseudoprime()
     except AttributeError:
         raise TypeError, "is_prime() is not written for this type"
 
 def is_pseudoprime(n, flag=0):
     r"""
-    Returns True if `x` is a pseudo-prime, and False otherwise.
-    The result is *NOT* proven correct -
-    *this is a pseudo-primality test!*.
+    Returns True if `x` is a pseudo-prime, and False otherwise.  The
+    result is *NOT* proven correct - *this is a pseudo-primality
+    test!*.
 
     INPUT:
 
-    -  ``flag`` - int
-
-       - ``0`` (default): checks whether x is a Baillie-Pomerance-
-         Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo
-         prime for base 2, followed by strong Lucas test for the
-         sequence (P,-1), P smallest positive integer such that
-         `P^2 - 4` is not a square mod x).
-
-       - ``>0``: checks whether x is a strong Miller-Rabin pseudo
-         prime for flag randomly chosen bases (with end-matching to
-         catch square roots of -1).
+        -  ``flag`` - int
+        - ``0`` (default): checks whether x is a Baillie-Pomerance-
+          Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo
+          prime for base 2, followed by strong Lucas test for the
+          sequence (P,-1), P smallest positive integer such that `P^2
+          - 4` is not a square mod x).
+        - ``>0``: checks whether x is a strong Miller-Rabin pseudo
+          prime for flag randomly chosen bases (with end-matching to
+          catch square roots of -1).
 
     OUTPUT:
 
-    -  ``bool`` - True or False
+        -  ``bool`` - True or False
 
     .. note::
 
        We do not consider negatives of prime numbers as prime.
 
-    EXAMPLES:::
+    EXAMPLES::
 
         sage: is_pseudoprime(389)
         True
@@ -517,25 +523,19 @@ def is_pseudoprime(n, flag=0):
 
 def is_prime_power(n, flag=0):
     r"""
-    Returns True if `x` is a prime power, and False otherwise.
-    The result is proven correct -
-    *this is NOT a  pseudo-primality test!*.
+    Returns True if `x` is a prime power, and False otherwise.  The
+    result is proven correct - *this is NOT a pseudo-primality test!*.
 
     INPUT:
 
-
-    -  ``n`` - an integer
-
-    -  ``flag (for primality testing)`` - int
-
-       - ``0`` (default): use a combination of algorithms.
-
-       - ``1``: certify primality using the Pocklington-Lehmer Test.
-
-       - ``2``: certify primality using the APRCL test.
+        -  ``n`` - an integer
+        -  ``flag (for primality testing)`` - int
+        - ``0`` (default): use a combination of algorithms.
+        - ``1``: certify primality using the Pocklington-Lehmer Test.
+        - ``2``: certify primality using the APRCL test.
 
 
-    EXAMPLES:::
+    EXAMPLES::
 
         sage: is_prime_power(389)
         True
@@ -552,7 +552,84 @@ def is_prime_power(n, flag=0):
         sage: is_prime_power(997^100)
         True
     """
-    return ZZ(n).is_prime_power(flag=flag)
+    from sage.structure.proof.all import arithmetic
+    proof = arithmetic()
+    if proof:
+        return ZZ(n).is_prime_power(flag=flag)
+    else:
+        return is_pseudoprime_small_power(n)
+
+def is_pseudoprime_small_power(n, bound=1024, get_data=False):
+    r"""
+    Return True if `n` is a small power of a pseudoprime, and False
+    otherwise.  The result is *NOT* proven correct - *this IS a
+    pseudo-primality test!*.
+
+    If `get_data` is set to true and `n = p^d`, for a pseudoprime `p`
+    and power `d`, return [(p, d)].
+
+
+    INPUT:
+
+        -  ``n`` - an integer
+        -  ``bound (default 1024)`` - int: highest power to test.
+        -  ``get_data`` - boolean: return small pseudoprime and the power.
+
+    EXAMPLES::
+
+        sage: is_pseudoprime_small_power(389)
+        True
+        sage: is_pseudoprime_small_power(2000)
+        False
+        sage: is_pseudoprime_small_power(2)
+        True
+        sage: is_pseudoprime_small_power(1024)
+        True
+        sage: is_pseudoprime_small_power(-1)
+        False
+        sage: is_pseudoprime_small_power(1)
+        True
+        sage: is_pseudoprime_small_power(997^100)
+        True
+
+    The default bound is 1024::
+
+        sage: is_pseudoprime_small_power(3^1024)
+        True
+        sage: is_pseudoprime_small_power(3^1025)
+        False
+
+    But it can be set higher or lower::
+
+        sage: is_pseudoprime_small_power(3^1025, bound=2000)
+        True
+        sage: is_pseudoprime_small_power(3^100, bound=20)
+        False
+
+    Use of the get_data keyword::
+
+        sage: is_pseudoprime_small_power(3^1024, get_data=True)
+        [(3, 1024)]
+        sage: is_pseudoprime_small_power(2^256, get_data=True)
+        [(2, 256)]
+        sage: is_pseudoprime_small_power(15, get_data=True)
+        False
+    """
+    n = ZZ(n)
+    if n.is_pseudoprime() or n == 1:
+        return True
+    if n < 0:
+        return False
+    for i in range(2, bound + 1):
+        p, boo = n.nth_root(i, truncate_mode=True)
+        if boo:
+            if p.is_pseudoprime():
+                if get_data == True:
+                    return [(p, i)]
+                else:
+                    return True
+    return False
+
 
 def valuation(m, p):
     """

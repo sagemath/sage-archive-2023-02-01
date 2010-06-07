@@ -177,7 +177,13 @@ class FiniteField_ext_pari(FiniteField_generic):
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError, "q must be a prime power"
-        F = q.factor()
+        from sage.structure.proof.all import arithmetic
+        proof = arithmetic()
+        if proof:
+            F = q.factor()
+        else:
+            from sage.rings.arith import is_pseudoprime_small_power
+            F = is_pseudoprime_small_power(q, get_data=True)
         if len(F) != 1:
             raise ArithmeticError, "q must be a prime power"
 

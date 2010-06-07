@@ -23,17 +23,15 @@ from sage.rings.all import (
     is_RationalField,
     ZZ)
 
+from sage.misc.latex import latex
+from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
-
 import ambient_space
-
 import affine_space
-
 import projective_space
-
 import morphism
-
 import scheme
+
 
 def is_AlgebraicScheme(x):
     """
@@ -50,9 +48,8 @@ def is_AlgebraicScheme(x):
         sage: is_AlgebraicScheme(AffineSpace(10, QQ))
         False
         sage: V = AffineSpace(10, QQ).subscheme([]); V
-        Closed subscheme of Affine Space of dimension 10 over
-        Rational Field defined by:
-          (no equations)
+        Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
+          (no polynomials)
         sage: is_AlgebraicScheme(V)
         True
 
@@ -94,6 +91,21 @@ class AlgebraicScheme(scheme.Scheme):
             raise TypeError, "A (=%s) must be an ambient space"
         self.__A = A
         self.__divisor_group = {}
+
+    def _latex_(self):
+        """
+        Return a LaTeX representation of this algebraic scheme.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
+            sage: P = ProjectiveSpace(3, ZZ)
+            sage: S = AlgebraicScheme(P); S
+            Subscheme of Projective Space of dimension 3 over Integer Ring
+            sage: S._latex_()
+            '\text{Subscheme of } {\\mathbf P}_{\\Bold{Z}}^3'
+        """
+        return "\text{Subscheme of } %s" % latex(self.__A)
 
     def is_projective(self):
         """
@@ -211,17 +223,15 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: S = P.subscheme([])
             sage: T = P.subscheme([x-y])
             sage: T.complement(S)
-            Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
-              (no equations)
-              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x - y
 
             sage: AlgebraicScheme_quasi(S, T)
-            Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
-              (no equations)
-              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x - y
         """
         self.__X = X
@@ -232,9 +242,48 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             raise TypeError, "Y must be a closed subscheme of an ambient space."
         if X.ambient_space() != Y.ambient_space():
             raise ValueError, "X and Y must be embedded in the same ambient space."
+        # _latex_ and _repr_ assume all of the above conditions and should be
+        # probably changed if they are relaxed!
         A = X.ambient_space()
         self._base_ring = A.base_ring()
         AlgebraicScheme.__init__(self, A)
+
+    def _latex_(self):
+        """
+        Return a LaTeX representation of this algebraic scheme.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_quasi
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: U = AlgebraicScheme_quasi(S, T); U
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2
+            over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
+              x - y
+            sage: U._latex_()
+            '\\text{Quasi-projective subscheme }
+             (X\\setminus Y)\\subset {\\mathbf P}_{\\Bold{Z}}^2,\\text{ where }
+             X \\text{ is defined by }\\text{no polynomials},\\text{ and }
+             Y \\text{ is defined by } x - y.'
+        """
+        if affine_space.is_AffineSpace(self.ambient_space()):
+            t = "affine"
+        else:
+            t = "projective"
+        X = ', '.join(latex(f) for f in self.__X.defining_polynomials())
+        if not X:
+            X = r"\text{no polynomials}"
+        Y = ', '.join(latex(f) for f in self.__Y.defining_polynomials())
+        if not Y:
+            Y = r"\text{no polynomials}"
+        return (r"\text{Quasi-%s subscheme } (X\setminus Y)\subset %s,"
+                r"\text{ where } X \text{ is defined by }%s,"
+                r"\text{ and } Y \text{ is defined by } %s."
+                % (t, latex(self.ambient_space()), X, Y))
 
     def _repr_(self):
         """
@@ -247,23 +296,21 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: S = P.subscheme([])
             sage: T = P.subscheme([x-y])
             sage: U = AlgebraicScheme_quasi(S, T); U
-            Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
-              (no equations)
-              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x - y
-
             sage: U._repr_()
-            'Quasi-projective scheme X - Y, where:\n  X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:\n  (no equations)\n  Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:\n  x - y\n'
+            'Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:\n  (no polynomials)\nand Y is defined by:\n  x - y'
         """
         if affine_space.is_AffineSpace(self.ambient_space()):
             t = "affine"
         else:
             t = "projective"
-        s =  "Quasi-%s scheme X - Y, where:\n"%t
-        s += "  X: %s\n"%self.__X
-        s += "  Y: %s\n"%self.__Y
-        return s
+        return ("Quasi-%s subscheme X - Y of %s, where X is defined by:\n%s\n"
+                "and Y is defined by:\n%s"
+                % (t, self.ambient_space(), str(self.__X).split("\n", 1)[1],
+                   str(self.__Y).split("\n", 1)[1]))
 
     def X(self):
         """
@@ -311,10 +358,9 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U._check_satisfies_equations([1, 1, 0])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 1, 0] do not define a point on Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
-              (no equations)
-              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+            TypeError: Coordinates [1, 1, 0] do not define a point on Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x - y
 
             sage: U._check_satisfies_equations([1, 4])
@@ -332,18 +378,16 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U._check_satisfies_equations([1, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 1] do not define a point on Quasi-affine scheme X - Y, where:
-              X: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+            TypeError: Coordinates [1, 1] do not define a point on Quasi-affine subscheme X - Y of Affine Space of dimension 2 over Finite Field of size 7, where X is defined by:
               x^2 - y
-              Y: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+            and Y is defined by:
               x - y
             sage: U._check_satisfies_equations([1, 0])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 0] do not define a point on Quasi-affine scheme X - Y, where:
-              X: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+            TypeError: Coordinates [1, 0] do not define a point on Quasi-affine subscheme X - Y of Affine Space of dimension 2 over Finite Field of size 7, where X is defined by:
               x^2 - y
-              Y: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+            and Y is defined by:
               x - y
         """
         for f in self.__X.defining_polynomials():
@@ -407,14 +451,32 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     INPUT:
 
+    -  ``A`` - ambient space (e.g. affine or projective `n`-space)
 
-    -  ``A`` - ambient space (affine or projective n-space
-       over a ring)
+    -  ``polynomials`` - single polynomial, ideal or iterable of defining
+        polynomials; in any case polynomials must belong to the coordinate
+        ring of the ambient space and define valid polynomial functions (e.g.
+        they should be homogeneous in the case of a projective space)
 
-    -  ``polys`` - ideal or tuple of defining polynomials
+    OUTPUT:
+
+    - algebraic scheme
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+        sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+        sage: P.subscheme([x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
+        sage: AlgebraicScheme_subscheme(P, [x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
     """
-    def __init__(self, A, polys):
+    def __init__(self, A, polynomials):
         """
+        See ``AlgebraicScheme_subscheme`` for documentation.
+
         TESTS::
 
             sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
@@ -428,14 +490,25 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         AlgebraicScheme.__init__(self, A)
         self._base_ring = A.base_ring()
-        if is_Ideal(polys):
-            self.__I = polys
-            polys = polys.gens()
-        if not isinstance(polys, (list, tuple)):
-            polys = (polys, )
-        else:
-            polys = tuple(polys)
-        self.__polys = A._validate(polys)  # now polys is a tuple of defining polynomials.
+        R = A.coordinate_ring()
+        if is_Ideal(polynomials):
+            I = polynomials
+            polynomials = I.gens()
+            if I.ring() is R: # Otherwise we will recompute I later after
+                self.__I = I  # converting generators to the correct ring
+        if isinstance(polynomials, tuple) or is_iterator(polynomials):
+            polynomials = list(polynomials)
+        elif not isinstance(polynomials, list):
+            # Looks like we got a single polynomial
+            polynomials = [polynomials]
+        for n, f in enumerate(polynomials):
+            try:
+                polynomials[n] = R(f)
+            except TypeError:
+                raise TypeError("%s cannot be converted to a polynomial in "
+                                "the coordinate ring of this %s!" % (f, A))
+        polynomials = tuple(polynomials)
+        self.__polys = A._validate(polynomials)
 
     def _check_satisfies_equations(self, v):
         """
@@ -482,7 +555,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: S.base_extend(ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: No natural map from the base ring (=Finite Field of size 11) to S (=Integer Ring)
+            ValueError: no natural map from the base ring (=Finite Field of size 11) to R (=Integer Ring)!
         """
         A = self.ambient_space().base_extend(R)
         return A.subscheme(self.__polys)
@@ -508,6 +581,33 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             return -1
         return cmp(self.defining_ideal(), other.defining_ideal())
 
+    def _latex_(self):
+        """
+        Return a LaTeX representation of this scheme.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, GF(11))
+            sage: S = P.subscheme([x^2-y*z])
+            sage: S
+            Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:
+              x^2 - y*z
+            sage: S._latex_()
+            '\\text{Closed subscheme of } {\\mathbf P}_{\\Bold{F}_{11}}^2 \\text{ defined by } x^{2} - y z'
+            sage: S = P.subscheme([x^2-y*z, x^5])
+            sage: S
+            Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:
+              x^2 - y*z,
+              x^5
+            sage: S._latex_()
+            '\\text{Closed subscheme of } {\\mathbf P}_{\\Bold{F}_{11}}^2 \\text{ defined by } x^{2} - y z, x^{5}'
+        """
+        polynomials = ', '.join(latex(f) for f in self.defining_polynomials())
+        if not polynomials:
+            polynomials = r"\text{no polynomials}"
+        return (r"\text{Closed subscheme of } %s \text{ defined by } %s"
+                % (latex(self.ambient_space()), polynomials))
+
     def _repr_(self):
         """
         Return a string representation of this scheme.
@@ -521,12 +621,19 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               x^2 - y*z
             sage: S._repr_()
             'Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:\n  x^2 - y*z'
+            sage: S = P.subscheme([x^2-y*z, x^5])
+            sage: S
+            Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:
+              x^2 - y*z,
+              x^5
+            sage: S._repr_()
+            'Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:\n  x^2 - y*z,\n  x^5'
         """
-        polys = '\n  '.join([str(f) for f in self.defining_polynomials()])
-        if polys == '':
-            polys = '(no equations)'
-        return "Closed subscheme of %s defined by:\n  %s"%(self.ambient_space(),
-                                                           polys)
+        polynomials = ',\n  '.join(str(f) for f in self.defining_polynomials())
+        if not polynomials:
+            polynomials = '(no polynomials)'
+        return ("Closed subscheme of %s defined by:\n  %s"
+                % (self.ambient_space(), polynomials))
 
     def defining_polynomials(self):
         """
@@ -614,9 +721,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V.irreducible_components()
             [
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
-              w
-              z
-              y
+              w,
+              z,
+              y,
               x
             ]
 
@@ -712,15 +819,15 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: L = A.subscheme([y-1])
             sage: S = L.union(P); S
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            y^4 - y^3
-            x*y^3 - x*y^2
-            x^2*y^2 - x^2*y
+            y^4 - y^3,
+            x*y^3 - x*y^2,
+            x^2*y^2 - x^2*y,
             x^3*y - x^3
             sage: S.dimension()
             1
             sage: S.reduce()
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            y^2 - y
+            y^2 - y,
             x*y - x
 
         We can also use the notation "+" for the union::
@@ -755,7 +862,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: Y = A.subscheme([y])
             sage: X.intersection(Y)
             Closed subscheme of Affine Space of dimension 2 over Integer Ring defined by:
-              x^2 - y
+              x^2 - y,
               y
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
@@ -781,32 +888,27 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X = A.subscheme([x+y-z])
             sage: Y = A.subscheme([x-y+z])
             sage: Y.complement(X)
-            Quasi-affine scheme X - Y, where:
-              X: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+            Quasi-affine subscheme X - Y of Affine Space of dimension 3 over Integer Ring, where X is defined by:
               x + y - z
-              Y: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+            and Y is defined by:
               x - y + z
             sage: Y.complement()
-            Quasi-affine scheme X - Y, where:
-              X: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
-              (no equations)
-              Y: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+            Quasi-affine subscheme X - Y of Affine Space of dimension 3 over Integer Ring, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x - y + z
-
             sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
             sage: X = P.subscheme([x^2+y^2+z^2])
             sage: Y = P.subscheme([x*y+y*z+z*x])
             sage: Y.complement(X)
-            Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Rational Field, where X is defined by:
               x^2 + y^2 + z^2
-              Y: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            and Y is defined by:
               x*y + x*z + y*z
             sage: Y.complement(P)
-            Quasi-projective scheme X - Y, where:
-              X: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-              (no equations)
-              Y: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Rational Field, where X is defined by:
+              (no polynomials)
+            and Y is defined by:
               x*y + x*z + y*z
         """
         A = self.ambient_space()
@@ -918,10 +1020,10 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
-            x^2
-            x^2*y^2 + z^2
-            z^2 - w^2
-            10*x^2 - z^2 + w^2
+              x^2,
+              x^2*y^2 + z^2,
+              z^2 - w^2,
+              10*x^2 - z^2 + w^2
             sage: X.dimension()
             1
         """
@@ -1022,10 +1124,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
-            x^2
-            x^2*y^2 + z^2
-            z^2 - w^2
-            10*x^2 - z^2 + w^2
+              x^2,
+              x^2*y^2 + z^2,
+              z^2 - w^2,
+              10*x^2 - z^2 + w^2
             sage: X.dimension()
             1
         """

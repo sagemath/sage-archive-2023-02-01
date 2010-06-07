@@ -57,6 +57,7 @@ Enjoy Sage!
    libs
    networking
    cryptography
+   logic
    combinat/index
    numerical
    probability

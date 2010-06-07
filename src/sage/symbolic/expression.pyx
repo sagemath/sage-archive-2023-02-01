@@ -402,7 +402,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/2-1/2*I )*sqrt(2)
             (-1/2*I + 1/2)*sqrt(2)
             sage: latex((1/2-1/2*I )*sqrt(2))
-            \left(-\frac{1}{2} I + \frac{1}{2}\right) \, \sqrt{2}
+            \left(-\frac{1}{2} i + \frac{1}{2}\right) \, \sqrt{2}
         """
         return self._parent._repr_element_(self)
 
@@ -5300,6 +5300,14 @@ cdef class Expression(CommutativeRingElement):
             1/6*x^3 - 1/2*x^2 + 1/3*x
             sage: x.binomial(y)
             binomial(x, y)
+
+        TESTS:
+
+        Check if we handle zero correctly (#8561)::
+            sage: x.binomial(0)
+            1
+            sage: SR(0).binomial(0)
+            1
         """
         cdef Expression nexp = self.coerce_in(k)
         _sig_on

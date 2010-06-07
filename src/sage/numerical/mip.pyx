@@ -293,7 +293,7 @@ class MixedIntegerLinearProgram:
             v._update_variables_name()
 
 
-    def new_variable(self, vtype=-1, dim=1,name=None):
+    def new_variable(self, real=False, binary=False, integer=False, dim=1,name=None):
         r"""
         Returns an instance of ``MIPVariable`` associated
         to the current instance of ``MixedIntegerLinearProgram``.
@@ -314,23 +314,50 @@ class MixedIntegerLinearProgram:
         - ``dim`` (integer) -- Defines the dimension of the dictionary.
           If ``x`` has dimension `2`, its fields will be of the form
           ``x[key1][key2]``.
-        - ``vtype`` (integer) -- Defines the type of the variables
-          (default is ``REAL``).
-        - ``name`` (string) -- A name for the variable
-          ( default is V+number )
+
+        - ``binary, integer, real`` (boolean) -- Set one of these arguments
+          to ``True`` to ensure that the variable gets the corresponding
+          type. The default type is ``real``.
+
+        - ``name`` (string) -- Associates a name to the variable. This is
+          only useful when exporting the linear program to a file using
+          ``write_mps`` or ``write_lp``, and has no other effect.
 
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram()
 
-        The available types are ``p.__REAL``, ``p.__INTEGER`` and ``p.__BINARY``::
+         To define two dictionaries of variables, the first being
+         of real type, and the second of integer type ::
 
-            sage: x = p.new_variable(vtype=p.__REAL)
-            sage: y = p.new_variable(dim=2)
+            sage: x = p.new_variable(real=True)
+            sage: y = p.new_variable(dim=2, integer=True)
             sage: p.add_constraint(x[2] + y[3][5], max=2)
+            sage: p.is_integer(x[2])
+            False
+            sage: p.is_integer(y[3][5])
+            True
+
+        An exception is raised when two types are supplied ::
+
+            sage: z = p.new_variable(real = True, integer = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Exactly one of the available types has to be True
         """
         if name==None:
             name="V"+str(len(self._mipvariables))
+
+        if sum([real, binary, integer]) >= 2:
+            raise ValueError("Exactly one of the available types has to be True")
+
+        if binary:
+            vtype = self.__BINARY
+        elif integer:
+            vtype = self.__INTEGER
+        else:
+            vtype = self.__REAL
+
         v=MIPVariable(self, vtype, dim=dim,name=name)
         self._mipvariables.append(v)
         return v

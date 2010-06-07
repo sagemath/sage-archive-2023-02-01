@@ -87,7 +87,7 @@ class Dokchitser(SageObject):
         sage: L.derivative(2)
         -0.937548254315844
         sage: h = RR('0.0000000000001')
-        sage: (zeta(2+h) - zeta(2))/h
+        sage: (zeta(2+h) - zeta(2.))/h
         -0.937028232783632
         sage: L.taylor_series(2, k=5)
         1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 - 1.00002430047384*z^3 + 1.00006193307235*z^4 + O(z^5)

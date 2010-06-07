@@ -172,6 +172,46 @@ class _Coordinates(object):
             (x + y, x - y, 2*x + y)
             sage: [h(1,2) for h in T.to_cartesian(lambda x,y: 2*x+y)]
             [3, -1, 4]
+
+        We try to return a function having the same variable names as
+        the function passed in::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
+            sage: x, y, z = var('x y z')
+            sage: T = _ArbitraryCoordinates((x + y, x - y, z), z,[x,y])
+            sage: f(a, b) = 2*a+b
+            sage: T.to_cartesian(f, [a, b])
+            (a + b, a - b, 2*a + b)
+            sage: t1,t2,t3=T.to_cartesian(lambda a,b: 2*a+b)
+            sage: import inspect
+            sage: inspect.getargspec(t1)
+            ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getargspec(t2)
+            ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getargspec(t3)
+            ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: def g(a,b): return 2*a+b
+            sage: t1,t2,t3=T.to_cartesian(g)
+            sage: inspect.getargspec(t1)
+            ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: t1,t2,t3=T.to_cartesian(2*a+b)
+            sage: inspect.getargspec(t1)
+            ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+
+        If we cannot guess the right parameter names, then the
+        parameters are named `u` and `v`::
+
+            sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
+            sage: x, y, z = var('x y z')
+            sage: T = _ArbitraryCoordinates((x + y, x - y, z), z,[x,y])
+            sage: t1,t2,t3=T.to_cartesian(operator.add)
+            sage: inspect.getargspec(t1)
+            ArgSpec(args=['u', 'v'], varargs=None, keywords=None, defaults=None)
+            sage: [h(1,2) for h in T.to_cartesian(operator.mul)]
+            [3, -1, 2]
+            sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
+            [3, -1, 2]
+
         """
         from sage.symbolic.expression import is_Expression
         from sage.rings.real_mpfr import is_RealNumber
@@ -193,12 +233,23 @@ class _Coordinates(object):
                 self.indep_vars[0]: indep_var_dummies[0],
                 self.indep_vars[1]: indep_var_dummies[1]
             })
+            if params is None:
+                if callable(func):
+                    params = _find_arguments_for_callable(func)
+                    if params is None:
+                        params=['u','v']
+                else:
+                    raise ValueError, "function is not callable"
             def subs_func(t):
-                return lambda x,y: t.subs({
-                    dep_var_dummy: func(x, y),
-                    indep_var_dummies[0]: x,
-                    indep_var_dummies[1]: y
-                })
+                # We use eval so that the lambda function has the same
+                # variable names as the original function
+                ll="""lambda {x},{y}: t.subs({{
+                    dep_var_dummy: func({x}, {y}),
+                    indep_var_dummies[0]: {x},
+                    indep_var_dummies[1]: {y}
+                }})""".format(x=params[0], y=params[1])
+                return eval(ll,dict(t=t, func=func, dep_var_dummy=dep_var_dummy,
+                                    indep_var_dummies=indep_var_dummies))
             return map(subs_func, transformation)
 
     def __repr__(self):
@@ -218,6 +269,58 @@ class _Coordinates(object):
         """
         return '%s coordinate transform (%s in terms of %s)' % \
           (self._name, self.dep_var, ', '.join(self.indep_vars))
+
+
+import inspect
+
+def _find_arguments_for_callable(func):
+    """
+    Find the names of arguments (that do not have default values) for
+    a callable function, taking care of several special cases in Sage.
+    If the parameters cannot be found, then return None.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.plot3d import _find_arguments_for_callable
+        sage: _find_arguments_for_callable(lambda x,y: x+y)
+        ['x', 'y']
+        sage: def f(a,b,c): return a+b+c
+        sage: _find_arguments_for_callable(f)
+        ['a', 'b', 'c']
+        sage: _find_arguments_for_callable(lambda x,y,z=2: x+y+z)
+        ['x', 'y']
+        sage: def f(a,b,c,d=2,e=1): return a+b+c+d+e
+        sage: _find_arguments_for_callable(f)
+        ['a', 'b', 'c']
+        sage: g(w,r,t)=w+r+t
+        sage: _find_arguments_for_callable(g)
+        ['w', 'r', 't']
+        sage: a,b = var('a,b')
+        sage: _find_arguments_for_callable(a+b)
+        ['a', 'b']
+        sage: _find_arguments_for_callable(operator.add)
+    """
+    if inspect.isfunction(func):
+        f_args=inspect.getargspec(func)
+        if f_args.defaults is None:
+            params=f_args.args
+        else:
+            params=f_args.args[:-len(f_args.defaults)]
+    else:
+        try:
+            f_args=inspect.getargspec(func.__call__)
+            if f_args.defaults is None:
+                params=f_args.args
+            else:
+                params=f_args.args[:-len(f_args.defaults)]
+        except TypeError:
+            # func.__call__ may be a built-in (or Cython) function
+            if hasattr(func, 'arguments'):
+                params=[repr(s) for s in func.arguments()]
+            else:
+                params=None
+    return params
+
 
 class _ArbitraryCoordinates(_Coordinates):
     """

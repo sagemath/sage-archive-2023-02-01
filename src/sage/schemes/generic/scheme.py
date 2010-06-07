@@ -183,7 +183,7 @@ class Scheme(Parent):
             sage: A(GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: No natural map from the base ring (=Rational Field) to S (=Finite Field of size 7)
+            ValueError: no natural map from the base ring (=Rational Field) to R (=Finite Field of size 7)!
 
         We create some points::
 

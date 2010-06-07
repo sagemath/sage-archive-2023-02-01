@@ -1725,14 +1725,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             nn = PyNumber_Index(n)
         except TypeError:
-            try:
-                nn = Integer(n)
-            except TypeError:
-                try:
-                    s = parent_c(n)(self)
-                    return s**n
-                except AttributeError:
-                    raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            s = parent_c(n)(self)
+            return s**n
 
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
@@ -3519,6 +3513,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             6
         """
         return self
+
+    def real(self):
+        """
+        Returns the real part of self, which is self.
+
+        EXAMPLES::
+
+            sage: Integer(-4).real()
+            -4
+        """
+        return self
+
+    def imag(self):
+        """
+        Returns the imaginary part of self, which is zero.
+
+        EXAMPLES::
+
+            sage: Integer(9).imag()
+            0
+        """
+        return zero
 
     def is_one(self):
         r"""

@@ -274,8 +274,8 @@ def ReflexivePolytope(dim, n):
 
     .. note::
 
-       #. Numeration starts with zero: ``0=n=15`` for ``dim=2`` and
-          ``0=n=4318`` for ``dim=3``.
+       #. Numeration starts with zero: `0 \leq n \leq 15` for `{\rm dim} = 2`
+          and `0 \leq n \leq 4318` for `{\rm dim} = 3`.
 
        #. During the first call, all reflexive polytopes of requested
           dimension are loaded and cached for future use, so the first
@@ -541,6 +541,17 @@ class LatticePolytopeClass(SageObject):
             sage: o._compute_faces()
             sage: o.__dict__.has_key("_faces")
             True
+
+        Check that Trac 8934 is fixed::
+
+            sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
+            ...                   [0, 1, 0,  0, -1,  0, 0],
+            ...                   [0, 0, 0,  0,  0,  0, 0]])
+            ...
+            sage: p = LatticePolytope(m)
+            sage: p._compute_faces()
+            sage: p.facets()
+            [[0, 3], [2, 3], [0, 1], [1, 2]]
         """
         if hasattr(self, "_constructed_as_polar"):
                 # "Polar of polar polytope" computed by poly.x may have the
@@ -550,8 +561,10 @@ class LatticePolytopeClass(SageObject):
                 self._copy_faces(self._polar, reverse=True)
         elif hasattr(self, "_constructed_as_affine_transform"):
                 self._copy_faces(self._original)
+        elif self.dim() == 0:
+            self._faces = []
         else:
-            self._read_faces(self.poly_x("i"))
+            self._read_faces(self.poly_x("i", reduce_dimension=True))
 
     def _compute_hodge_numbers(self):
         r"""
@@ -724,6 +737,48 @@ class LatticePolytopeClass(SageObject):
                         break
         face._interior_points.set_immutable()
         face._boundary_points.set_immutable()
+
+    def _latex_(self):
+        r"""
+        Return the latex representation of self.
+
+        OUTPUT:
+
+        - string
+
+        EXAMPLES:
+
+        Arbitrary lattice polytopes are printed as `\Delta^d`, where `d` is
+        the (actual) dimension of the polytope::
+
+            sage: LatticePolytope(matrix(2, [1, 0, 1, 0]))._latex_()
+            '\\Delta^{1}'
+
+        For reflexive polytopes the output is the same... ::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o._latex_()
+            '\\Delta^{2}'
+
+        ... unless they are written in the normal from in which case the index
+        in the internal database is printed as a subscript::
+
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o = LatticePolytope(o.normal_form())
+            sage: o.vertices()
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+            sage: o._latex_()
+            '\\Delta^{2}_{3}'
+        """
+        if (self.dim() in (2, 3)
+            and self.is_reflexive()
+            and self.normal_form() == self.vertices()):
+            return r"\Delta^{%d}_{%d}" % (self.dim(), self.index())
+        else:
+            return r"\Delta^{%d}" % self.dim()
 
     def _palp(self, command, reduce_dimension=False):
         r"""
@@ -1335,7 +1390,7 @@ class LatticePolytopeClass(SageObject):
 
     def faces(self, dim=None, codim=None):
         r"""
-        Return the sequence of faces of this polytope.
+        Return the sequence of proper faces of this polytope.
 
         If ``dim`` or ``codim`` are specified,
         returns a sequence of faces of the corresponding dimension or
@@ -1369,6 +1424,24 @@ class LatticePolytopeClass(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Both dim and codim are given!
+
+        The only faces of a zero-dimensional polytope are the empty set and
+        the polytope itself, i.e. it has no proper faces at all::
+
+            sage: p = LatticePolytope(matrix([[1]]))
+            sage: p.vertices()
+            [1]
+            sage: p.faces()
+            []
+
+        In particular, you an exception will be raised if you try to access
+        faces of the given dimension or codimension, including edges and
+        facets::
+
+            sage: p.facets()
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
         """
         try:
             if dim == None and codim == None:
@@ -1382,6 +1455,124 @@ class LatticePolytopeClass(SageObject):
         except AttributeError:
             self._compute_faces()
             return self.faces(dim, codim)
+
+    def facet_constant(self, i):
+        r"""
+        Return the constant in the ``i``-th facet inequality of this polytope.
+
+        The i-th facet inequality is given by
+        self.facet_normal(i) * X + self.facet_constant(i) >= 0.
+
+        INPUT:
+
+        - ``i`` - integer, the index of the facet
+
+        OUTPUT:
+
+        - integer -- the constant in the ``i``-th facet inequality.
+
+        EXAMPLES:
+
+        Let's take a look at facets of the octahedron and some polytopes
+        inside it::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: o.facet_normal(0)
+            (-1, -1, 1)
+            sage: o.facet_constant(0)
+            1
+            sage: m = copy(o.vertices())
+            sage: m[0,0] = 0
+            sage: m
+            [ 0  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (-1, 0, 0)
+            sage: p.facet_constant(0)
+            0
+            sage: m[0,3] = 0
+            sage: m
+            [ 0  0  0  0  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (0, -1, 1)
+            sage: p.facet_constant(0)
+            1
+        """
+        if self.is_reflexive():
+            return 1
+        elif self.ambient_dim() == self.dim():
+            return self._facet_constants[i]
+        else:
+            return (self._sublattice_polytope.facet_constant(i)
+                    - self.facet_normal(i) * self._shift_vector)
+
+    def facet_normal(self, i):
+        r"""
+        Return the inner normal to the ``i``-th facet of this polytope.
+
+        If this polytope is not full-dimensional, facet normals will be
+        parallel to the affine subspace spanned by this polytope.
+
+        INPUT:
+
+        - ``i`` -- integer, the index of the facet
+
+        OUTPUT:
+
+        - vectors -- the inner normal of the ``i``-th facet
+
+        EXAMPLES:
+
+        Let's take a look at facets of the octahedron and some polytopes
+        inside it::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: o.facet_normal(0)
+            (-1, -1, 1)
+            sage: o.facet_constant(0)
+            1
+            sage: m = copy(o.vertices())
+            sage: m[0,0] = 0
+            sage: m
+            [ 0  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (-1, 0, 0)
+            sage: p.facet_constant(0)
+            0
+            sage: m[0,3] = 0
+            sage: m
+            [ 0  0  0  0  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: p = LatticePolytope(m)
+            sage: p.facet_normal(0)
+            (0, -1, 1)
+            sage: p.facet_constant(0)
+            1
+        """
+        if self.is_reflexive():
+            return self.polar().vertex(i)
+        elif self.ambient_dim() == self.dim():
+            return self._facet_normals[i]
+        else:
+            return (self._embedding_matrix
+                    * self._sublattice_polytope.facet_normal(i))
 
     def facets(self):
         r"""
@@ -1762,6 +1953,8 @@ class LatticePolytopeClass(SageObject):
                 self._nfacets = self.polar().nvertices()
             elif self.dim() == self.ambient_dim():
                 self._nfacets = self._facet_normals.nrows()
+            elif self.dim() == 0:
+                self._nfacets = 0
             else:
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
@@ -1851,6 +2044,34 @@ class LatticePolytopeClass(SageObject):
             8
         """
         return self._vertices.ncols()
+
+    def origin(self):
+        r"""
+        Return the index of the origin in the list of points of self.
+
+        OUTPUT:
+
+        - integer if the origin belongs to this polytope, ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.origin()
+            4
+            sage: o.point(o.origin())
+            (0, 0)
+
+            sage: p = LatticePolytope(matrix([[1,2]]))
+            sage: p.points()
+            [1 2]
+            sage: print p.origin()
+            None
+        """
+        if "_origin" not in self.__dict__:
+            origin = vector([0]*self.dim())
+            points = self.points().columns(copy=False)
+            self._origin = points.index(origin) if origin in points else None
+        return self._origin
 
     def parent(self):
         """
@@ -2104,11 +2325,22 @@ class LatticePolytopeClass(SageObject):
             [ 1  0 -1  0  0]
             [ 0  1  0 -1  0]
             [ 0  0  0  0  0]
+
+        We check that points of a zero-dimensional polytope can be computed::
+
+            sage: p = LatticePolytope(matrix([[1]]))
+            sage: p.vertices()
+            [1]
+            sage: p.points()
+            [1]
         """
         if not hasattr(self, "_points"):
-            self._points = self._embed(read_palp_matrix(
-                            self.poly_x("p", reduce_dimension=True)))
-            self._points.set_immutable()
+            if self.dim() == 0:
+                self._points = self._vertices
+            else:
+                self._points = self._embed(read_palp_matrix(
+                                self.poly_x("p", reduce_dimension=True)))
+                self._points.set_immutable()
         return self._points
 
     def polar(self):
@@ -3337,6 +3569,8 @@ def all_polars(polytopes):
     Compute polar polytopes for all reflexive and equations of facets
     for all non-reflexive ``polytopes``.
 
+    ``all_facet_equations`` and ``all_polars`` are synonyms.
+
     This functions does it MUCH faster than member functions of
     ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
@@ -3358,6 +3592,9 @@ def all_polars(polytopes):
         p._read_equations(result)
     result.close()
     os.remove(result_name)
+
+# Synonym for the above function
+all_facet_equations = all_polars
 
 
 _always_use_files = True

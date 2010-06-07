@@ -580,20 +580,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 if self != 1:
                     raise ValueError, "%s does not act on %s"%(self, left.parent())
                 return left
-            elif isinstance(left, PermutationGroupElement):
-                parent, lparent = self._parent, left.parent()
-                if parent.has_coerce_map_from(lparent) or lparent.has_coerce_map_from(parent):
-                    # Apparently, has_coerce_map_from has false positives for permutation groups.
-                    if parent.is_subgroup(lparent) or lparent.is_subgroup(parent):
-                        # Actually use the coercion discovered above.
-                        return None
-                # TODO: This should be handled via a "pushout," not an action, and certainly not pass through GAP.
-                # Note that this forgets all about the original Parents, putting the result into the smallest
-                # symmetric group that contains the product.
-                # Also, why is left on the right? If this is correct, there should at least be an explination.
-                # For now, however, I'm keeping the old code.
-                return PermutationGroupElement(self._gap_()*left._gap_(),
-                                               parent = None, check = True)
             elif is_MPolynomial(left):
                 R = left.parent()
                 vars = R.gens()
@@ -602,9 +588,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 except IndexError:
                     raise TypeError, "%s does not act on %s"%(self, left.parent())
                 return left(tuple(sigma_x))
-            else:
-                raise TypeError, "left (=%s) must be a polynomial."%left
-
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
         cdef PermutationGroupElement prod = left._new_c()

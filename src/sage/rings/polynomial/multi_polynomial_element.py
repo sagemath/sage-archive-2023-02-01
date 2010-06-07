@@ -377,7 +377,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: K.<I>=QuadraticField(-1)
             sage: R.<x,y>=K[]
             sage: latex(-I*y+I*x^2)
-            I x^{2} - I y
+            \sqrt{-1} x^{2} - \sqrt{-1} y
         """
         try:
             cmpfn = self.parent().term_order().compare_tuples

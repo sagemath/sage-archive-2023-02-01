@@ -130,8 +130,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sets
-
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
 from sage.rings.all import Integer
@@ -2380,8 +2378,8 @@ def tau_to_bitrade(t1, t2, t3):
     for r in range(len(c1)):
         for c in range(len(c2)):
             for s in range(len(c3)):
-                nr_common = len(reduce(sets.Set.intersection, \
-                    [sets.Set(c1[r]), sets.Set(c2[c]), sets.Set(c3[s])]))
+                nr_common = len(reduce(set.intersection, \
+                    [set(c1[r]), set(c2[c]), set(c3[s])]))
                 assert nr_common in [0, 1]
 
                 if nr_common == 1: T1[r, c] = s
@@ -2513,14 +2511,14 @@ def is_row_and_col_balanced(T1, T2):
     """
 
     for r in range(T1.nrows()):
-        val1 = sets.Set(filter(lambda x: x >= 0, T1.row(r)))
-        val2 = sets.Set(filter(lambda x: x >= 0, T2.row(r)))
+        val1 = set(filter(lambda x: x >= 0, T1.row(r)))
+        val2 = set(filter(lambda x: x >= 0, T2.row(r)))
 
         if val1 != val2: return False
 
     for c in range(T1.ncols()):
-        val1 = sets.Set(filter(lambda x: x >= 0, T1.column(c)))
-        val2 = sets.Set(filter(lambda x: x >= 0, T2.column(c)))
+        val1 = set(filter(lambda x: x >= 0, T1.column(c)))
+        val2 = set(filter(lambda x: x >= 0, T2.column(c)))
 
         if val1 != val2: return False
 

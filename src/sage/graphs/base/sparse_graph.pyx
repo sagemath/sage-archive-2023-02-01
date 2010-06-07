@@ -1189,6 +1189,10 @@ cdef class SparseGraph(CGraph):
             raise RuntimeError("Label (%d) must be a nonnegative integer."%l)
         return self.has_arc_label_unsafe(u,v,l) == 1
 
+##############################
+# Further tests. Unit tests for methods, functions, classes defined with cdef.
+##############################
+
 def random_stress():
     """
     Randomly search for mistakes in the code.
@@ -1301,6 +1305,52 @@ def random_stress():
         for j from 0 <= j < num_verts:
             if Gnew.has_arc_unsafe(i,j) != Gold.has_edge(i,j):
                 raise RuntimeError( "NO" )
+
+def _test_adjacency_sequence():
+    """
+    Randomly test the method ``SparseGraph.adjacency_sequence()``. No output
+    indicates that no errors were found.
+
+    TESTS::
+
+        sage: from sage.graphs.base.sparse_graph import _test_adjacency_sequence
+        sage: _test_adjacency_sequence()  # long time
+    """
+    from sage.graphs.digraph import DiGraph
+    from sage.graphs.graph_generators import GraphGenerators
+    from sage.misc.prandom import randint, random
+    low = 0
+    high = 1000
+    randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
+    n = randg.order()
+    # set all labels to 0
+    E = [(u, v, 0) for u, v in randg.edges(labels=False)]
+    cdef SparseGraph g = SparseGraph(n,
+                                     verts=randg.vertices(),
+                                     arcs=E)
+    assert g._num_verts() == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
+    assert g._num_arcs() == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    M = randg.adjacency_matrix()
+    cdef int *V = <int *>sage_malloc(n * sizeof(int))
+    cdef int i = 0
+    for v in randg.vertex_iterator():
+        V[i] = v
+        i += 1
+    cdef int *seq
+    for 0 <= i < randint(50, 101):
+        u = randint(low, n - 1)
+        seq = g.adjacency_sequence(n, V, u)
+        A = [seq[k] for k in range(n)]
+        try:
+            assert A == list(M[u])
+        except AssertionError:
+            sage_free(V)
+            sage_free(seq)
+            raise AssertionError("Graph adjacency mismatch")
+        sage_free(seq)
+    sage_free(V)
 
 ###########################################
 # Sparse Graph Backend
@@ -1798,5 +1848,3 @@ class SparseGraphBackend(CGraphBackend):
             self._cg.del_arc_label(v_int, u_int, ll_int)
             self._cg.add_arc_label(u_int, v_int, l_int)
             self._cg.add_arc_label(v_int, u_int, l_int)
-
-

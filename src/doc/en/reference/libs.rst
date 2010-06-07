@@ -28,5 +28,7 @@ to be aware of the modules described in this chapter.
    sage/libs/pari/gen
    sage/libs/ntl/all
    sage/libs/mwrank/all
+   sage/libs/mwrank/mwrank
+   sage/libs/mwrank/interface
    sage/libs/singular/function
    sage/libs/singular/option

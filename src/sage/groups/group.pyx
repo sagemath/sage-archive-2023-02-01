@@ -92,6 +92,22 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         raise NotImplementedError
 
+    def is_commutative(self):
+        r"""
+        Return True if this group is commutative. This is an alias for
+        is_abelian, largely to make groups work well with the Factorization
+        class.
+
+        (Note for developers: Derived classes should override is_abelian, not
+        is_commutative.)
+
+        EXAMPLE::
+
+            sage: SL(2, 7).is_commutative()
+            False
+        """
+        return self.is_abelian()
+
     def order(self):
         """
         Returns the number of elements of this group, which is either a

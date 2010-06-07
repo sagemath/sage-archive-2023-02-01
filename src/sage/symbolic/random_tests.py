@@ -207,12 +207,12 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        sinh(elliptic_kc(-1/csc(-((2.62756608636 + 1.20798164491*I)*v3 + (2.62756608636 + 1.20798164491*I)*e)*pi*v1) + erf((-0.708874026302 - 0.954135400334*I)*v3) - elliptic_pi(0.520184609653 - 0.734276246499*I, v3, pi)))^(-elliptic_f((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/arccoth(v2*arccot(0.812302592816 - 0.302973871736*I))))
+        arctanh(sinh(-1/erf(-((2.62756608636 + 1.20798164491*I)*v3 + (2.62756608636 + 1.20798164491*I)*e)*pi*v1) + csch((-0.708874026302 - 0.954135400334*I)*v3) - elliptic_pi(0.520184609653 - 0.734276246499*I, v3, pi)))^(-elliptic_f((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/arccoth((-0.615761347729 - 0.529231982037*I)*kronecker_delta(-0.436810529675 + 0.736945423566*I, v2))))
         sage: random_expr(5, verbose=True)
         About to apply <built-in function mul> to [v1, v1]
-        About to apply <built-in function add> to [v1^2, v1]
-        About to apply <built-in function neg> to [v1^2 + v1]
-        -v1^2 - v1
+        About to apply <built-in function add> to [-1/3, v1]
+        About to apply <built-in function add> to [v1^2, v1 - 1/3]
+        v1^2 + v1 - 1/3
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

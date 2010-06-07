@@ -1,3 +1,25 @@
 = NZMATH =
 
-http://tnt.math.se.tmu.ac.jp/nzmath/download/
+== Description ==
+
+NZMATH is a Python based number theory oriented calculation system.
+It is developed at Tokyo Metropolitan University. It is freely available
+and distributed under the BSD license.
+
+== Maintainers ==
+
+== Upstream Contact ==
+
+ * NZMATH Development Group, Tokyo Metropolitan University
+ * Mailing list: nzmath-user@tnt.math.metro-u.ac.jp
+ * Website: http://tnt.math.se.tmu.ac.jp/nzmath/
+
+== Dependencies ==
+
+ * Python 2.5 or better
+
+== Changelog ==
+
+=== nzmath-1.0.0 (William Stein, 6 June 2010) ===
+ * upgrade to version 1.0.0, create SPKG.txt
+

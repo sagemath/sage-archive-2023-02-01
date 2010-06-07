@@ -296,6 +296,11 @@ ext_modules = [
               sources = ['sage/graphs/generic_graph_pyx.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.graphs.modular_decomposition.modular_decomposition',
+              sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx'],
+              depends = ['sage/graphs/modular_decomposition/src/dm.c',
+                         'sage/graphs/modular_decomposition/src/dm_english.h']),
+
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity/graphColorVertices.c',
                          'sage/graphs/planarity/graphColorVertices_Extensions.c',

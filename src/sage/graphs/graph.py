@@ -3179,6 +3179,122 @@ class Graph(GenericGraph):
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
 
+    def modular_decomposition(self):
+        r"""
+        Returns the modular decomposition corresponding
+        to the current graph.
+
+        A module `M` of a graph `G` is a subset of its vertices such
+        that for all `u \in V(G)-M, v,v'\in M` the relation `u \sim v
+        \Leftrightarrow u \sim v'` holds, where `\sim` denotes the
+        adjacncy relation in `G`. Equivalently, `G` is a module if all
+        its vertices have the same adjacency relations with the
+        vertices outside of the module.
+
+        A connected component `C` of a disconnected graph `G`, for
+        instance, is a module, as no vertex of `C` has a neighbor
+        outside of it (similarly, with an anticomponent of an
+        non-anticonnected graph).
+
+        Of course, a module of a graph may itself contain, when
+        considered as a graph, submodules, which can then constitute a
+        recursive decomposition of the whole graph, the modular
+        decomposition.
+
+        For more information on modular decomposition, see the
+        `Wikipedia article on modular decomposition
+        <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
+
+        OUTPUT:
+
+        A pair of two values (recursively encoding the decomposition) :
+
+            * The type of the current module :
+
+                * ``"Parallel"``
+                * ``"Prime"``
+                * ``"Serie"``
+
+            * The list of submodules (as list of pairs ``(type, list)``, recursively...)
+              or the vertex's name if the module is a singleton.
+
+        EXAMPLES:
+
+        The Bull Graph is prime::
+
+            sage: graphs.BullGraph().modular_decomposition()
+            ('Prime', [3, 4, 0, 1, 2])
+
+        The Petersen Graph too::
+
+            sage: graphs.PetersenGraph().modular_decomposition()
+            ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
+
+        This a clique on 5 vertices with 2 pendant edges, though, has a more
+        interesting decomposition ::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.add_edge(0,5)
+            sage: g.add_edge(0,6)
+            sage: g.modular_decomposition()
+            ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
+
+        ALGORITHM:
+
+        This function uses a C implementation of a 2-step algorithm
+        implemented by Fabien de Montgolfier [FMDec]_ :
+
+            * Computation of a factorizing permutation [HabibViennot1999]_.
+
+            * Computation of the tree itself [CapHabMont02]_.
+
+        REFERENCE:
+
+        .. [FMDec] Fabien de Montgolfier
+          http://www.liafa.jussieu.fr/~fm/algos/index.html
+
+        .. [HabibViennot1999] Michel Habib, Christiphe Paul, Laurent Viennot
+          Partition refinement techniques: An interesting algorithmic tool kit
+          International Journal of Foundations of Computer Science
+          vol. 10 n2 pp.147--170, 1999
+
+        .. [CapHabMont02] C. Capelle, M. Habib et F. de Montgolfier
+          Graph decomposition and Factorising Permutations
+          Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
+        """
+
+        from sage.graphs.modular_decomposition.modular_decomposition import modular_decomposition
+
+        D = modular_decomposition(self)
+
+        id_label = dict(enumerate(self.vertices()))
+
+        relabel = lambda x : (x[0], map(relabel,x[1])) if isinstance(x,tuple) else id_label[x]
+
+        return relabel(D)
+
+    def is_prime(self):
+        r"""
+        Tests whether the current graph is prime
+
+        EXAMPLE:
+
+        The Petersen Graph and the Bull Graph are both prime ::
+
+            sage: graphs.PetersenGraph().is_prime()
+            True
+            sage: graphs.BullGraph().is_prime()
+            True
+
+        Though quite obviously, the disjoint union of them is not::
+
+            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime()
+            False
+        """
+
+        D = self.modular_decomposition()
+
+        return D[0] == "Prime" and len(D[1]) == self.order()
 
     def _gomory_hu_tree(self, vertices=None):
         r"""

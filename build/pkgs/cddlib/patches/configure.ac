@@ -1,18 +1,27 @@
 dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ([2.63])
 AC_INIT([cddlib],[0.94f])
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_RANLIB
 AC_PROG_INSTALL
 LT_INIT
 
 dnl Checks for header files.
 AC_HEADER_STDC
+AC_CHECK_HEADERS([limits.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+
+dnl Checks for functions
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([strchr])
+
 
 dnl Find the GNU Multiple Precision Arithmetic Library
 AC_ARG_WITH(gmp,

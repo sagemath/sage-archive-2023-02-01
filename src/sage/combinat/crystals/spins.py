@@ -38,10 +38,11 @@ internal_repn and signature of the crystal element.
 
 ## TODO: proper latex'ing of spins
 
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.crystals.letters import Letter
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
-from crystals import ClassicalCrystal, CrystalElement
 
 
 #########################
@@ -131,8 +132,7 @@ def CrystalOfSpinsPlus(ct):
 
     TESTS::
 
-        sage: D.check()
-        True
+        sage: TestSuite(D).run()
     """
     ct = CartanType(ct)
     if ct[0] == 'D':
@@ -182,7 +182,7 @@ def CrystalOfSpinsMinus(ct):
     else:
         raise NotImplementedError
 
-class GenericCrystalOfSpins(ClassicalCrystal):
+class GenericCrystalOfSpins(UniqueRepresentation, Parent):
     def __init__(self, ct, element_class, case):
         """
         EXAMPLES::
@@ -199,7 +199,8 @@ class GenericCrystalOfSpins(ClassicalCrystal):
             self.rename("The minus crystal of spins for type %s"%ct)
 
         self.Element = element_class
-        super(GenericCrystalOfSpins, self).__init__(category = FiniteEnumeratedSets())
+#        super(GenericCrystalOfSpins, self).__init__(category = FiniteEnumeratedSets())
+        Parent.__init__(self, category = ClassicalCrystals())
 
         if case == "minus":
             generator = [1]*(ct[1]-1)
@@ -208,7 +209,8 @@ class GenericCrystalOfSpins(ClassicalCrystal):
             generator = [1]*ct[1]
         self.module_generators = [self(generator)]
         self._list = list(self)
-        self._digraph = ClassicalCrystal.digraph(self)
+#        self._digraph = ClassicalCrystal.digraph(self)
+        self._digraph = super(GenericCrystalOfSpins, self).digraph()
         self._digraph_closure = self.digraph().transitive_closure()
 
     def __call__(self, value):
@@ -291,7 +293,7 @@ class Spin(Letter):
         The crystal of spins for type ['B', 3]
 
         sage: c = C([1,1,1])
-        sage: c.__repr__()
+        sage: c._repr_()
         '[1, 1, 1]'
 
         sage: D = CrystalOfSpins(['B',4])
@@ -335,7 +337,7 @@ class Spin(Letter):
             sword += "+" if self.value[x] == 1 else "-"
         return sword
 
-class Spin_crystal_type_B_element(Spin, CrystalElement):
+class Spin_crystal_type_B_element(Spin):
     r"""
     Type B spin representation crystal element
     """
@@ -405,7 +407,7 @@ class Spin_crystal_type_B_element(Spin, CrystalElement):
         else:
             return None
 
-class Spin_crystal_type_D_element(Spin, CrystalElement):
+class Spin_crystal_type_D_element(Spin):
     r"""
     Type D spin representation crystal element
     """

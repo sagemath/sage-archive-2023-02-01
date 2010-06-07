@@ -19,17 +19,19 @@ Fast Rank Two Crystals
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.structure.element import Element, parent
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.crystals.crystals import ClassicalCrystal, CrystalElement
 
 
-class FastCrystal(ClassicalCrystal):
+class FastCrystal(UniqueRepresentation, Parent):
     """
     An alternative implementation of rank 2 crystals. The root
     operators are implemented in memory by table lookup. This means
-    that in comparison with the Crystals of Tableaux, these crystals
+    that in comparison with the CrystalsOfTableaux, these crystals
     are slow to instantiate but faster for computation. Implemented for
     types A2, B2 and C2.
 
@@ -63,26 +65,22 @@ class FastCrystal(ClassicalCrystal):
         24
         sage: C.cartan_type()
         ['A', 2]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: C = FastCrystal(['B',2],shape=[4,1])
         sage: C.cardinality()
         154
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: C = FastCrystal(['B',2],shape=[3/2,1/2])
         sage: C.cardinality()
         16
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: C = FastCrystal(['C',2],shape=[2,1])
         sage: C.cardinality()
         16
         sage: C = FastCrystal(['C',2],shape=[3,1])
         sage: C.cardinality()
         35
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     @staticmethod
@@ -112,7 +110,8 @@ class FastCrystal(ClassicalCrystal):
             The fast crystal for A2 with shape [4,1]
             sage: TestSuite(C).run()
         """
-        super(FastCrystal, self).__init__(category = FiniteEnumeratedSets())
+        Parent.__init__(self, category = ClassicalCrystals())
+#        super(FastCrystal, self).__init__(category = FiniteEnumeratedSets())
         self._cartan_type = ct
         if ct[1] != 2:
             raise NotImplementedError
@@ -162,8 +161,10 @@ class FastCrystal(ClassicalCrystal):
             l2_str = "%d/2"%int(2*l2)
         self.rename("The fast crystal for %s2 with shape [%s,%s]"%(ct[0],l1_str,l2_str))
         self.module_generators = [self(0)]
-        self._list = ClassicalCrystal.list(self)
-        self._digraph = ClassicalCrystal.digraph(self)
+#        self._list = ClassicalCrystal.list(self)
+        self._list = super(FastCrystal, self).list()
+#        self._digraph = ClassicalCrystal.digraph(self)
+        self._digraph = super(FastCrystal, self).digraph()
         self._digraph_closure = self.digraph().transitive_closure()
 
     def _type_a_init(self, l1, l2):
@@ -302,154 +303,154 @@ class FastCrystal(ClassicalCrystal):
         else:
             return 0
 
-class FastCrystalElement(CrystalElement):
-    def __init__(self, parent, value, format):
-        """
-        EXAMPLES::
+    class Element(Element):
+        def __init__(self, parent, value, format):
+            """
+            EXAMPLES::
 
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: c = C(0); c
-            [0, 0, 0]
-            sage: C[0].parent()
-            The fast crystal for A2 with shape [2,1]
-            sage: TestSuite(c).run()
-        """
-        Element.__init__(self, parent)
-        self.value = value
-        self.format = format
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: c = C(0); c
+                [0, 0, 0]
+                sage: C[0].parent()
+                The fast crystal for A2 with shape [2,1]
+                sage: TestSuite(c).run()
+            """
+            Element.__init__(self, parent)
+            self.value = value
+            self.format = format
 
-    def weight(self):
-        """
-        Returns the weight of self.
+        def weight(self):
+            """
+            Returns the weight of self.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: [v.weight() for v in FastCrystal(['A',2], shape=[2,1])]
-            [(2, 1, 0), (1, 2, 0), (1, 1, 1), (1, 0, 2), (0, 1, 2), (2, 0, 1), (1, 1, 1), (0, 2, 1)]
-            sage: [v.weight() for v in FastCrystal(['B',2], shape=[1,0])]
-            [(1, 0), (0, 1), (0, 0), (0, -1), (-1, 0)]
-            sage: [v.weight() for v in FastCrystal(['B',2], shape=[1/2,1/2])]
-            [(1/2, 1/2), (1/2, -1/2), (-1/2, 1/2), (-1/2, -1/2)]
-            sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,0])]
-            [(1, 0), (0, 1), (0, -1), (-1, 0)]
-            sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,1])]
-            [(1, 1), (1, -1), (0, 0), (-1, 1), (-1, -1)]
-        """
-        delpat = self.parent().delpat[self.value]
-        if self.parent()._cartan_type[0] == 'A':
-            delpat = delpat + [0,]
-        [alpha1, alpha2] = self.parent().weight_lattice_realization().simple_roots()
-        hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization().monomial(i) for i in range(2))
-        return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
+                sage: [v.weight() for v in FastCrystal(['A',2], shape=[2,1])]
+                [(2, 1, 0), (1, 2, 0), (1, 1, 1), (1, 0, 2), (0, 1, 2), (2, 0, 1), (1, 1, 1), (0, 2, 1)]
+                sage: [v.weight() for v in FastCrystal(['B',2], shape=[1,0])]
+                [(1, 0), (0, 1), (0, 0), (0, -1), (-1, 0)]
+                sage: [v.weight() for v in FastCrystal(['B',2], shape=[1/2,1/2])]
+                [(1/2, 1/2), (1/2, -1/2), (-1/2, 1/2), (-1/2, -1/2)]
+                sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,0])]
+                [(1, 0), (0, 1), (0, -1), (-1, 0)]
+                sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,1])]
+                [(1, 1), (1, -1), (0, 0), (-1, 1), (-1, -1)]
+            """
+            delpat = self.parent().delpat[self.value]
+            if self.parent()._cartan_type[0] == 'A':
+                delpat = delpat + [0,]
+            [alpha1, alpha2] = self.parent().weight_lattice_realization().simple_roots()
+            hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization().monomial(i) for i in range(2))
+            return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
 
-    def __repr__(self):
-        """
-        EXAMPLES::
+        def _repr_(self):
+            """
+            EXAMPLES::
 
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: C[0].__repr__()
-            '[0, 0, 0]'
-        """
-        if self.format == "string":
-            return repr(self.parent().delpat[self.value])
-        elif self.format == "dual_string":
-            return repr(self.parent().gampat[self.value])
-        elif self.format == "simple":
-            return repr(self.value)
-        else:
-            raise NotImplementedError
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: C[0]._repr_()
+                '[0, 0, 0]'
+            """
+            if self.format == "string":
+                return repr(self.parent().delpat[self.value])
+            elif self.format == "dual_string":
+                return repr(self.parent().gampat[self.value])
+            elif self.format == "simple":
+                return repr(self.value)
+            else:
+                raise NotImplementedError
 
-    def __eq__(self, other):
-        """
-        EXAMPLES::
+        def __eq__(self, other):
+            """
+            EXAMPLES::
 
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: D = FastCrystal(['B',2],shape=[2,1])
-            sage: C(0) == C(0)
-            True
-            sage: C(1) == C(0)
-            False
-            sage: C(0) == D(0)
-            False
-        """
-        return self.__class__ is other.__class__ and \
-               self.parent() == other.parent() and \
-               self.value == other.value
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: D = FastCrystal(['B',2],shape=[2,1])
+                sage: C(0) == C(0)
+                True
+                sage: C(1) == C(0)
+                False
+                sage: C(0) == D(0)
+                False
+            """
+            return self.__class__ is other.__class__ and \
+                   self.parent() == other.parent() and \
+                   self.value == other.value
 
-    def __ne__(self, other):
-        """
-        EXAMPLES::
+        def __ne__(self, other):
+            """
+            EXAMPLES::
 
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: D = FastCrystal(['B',2],shape=[2,1])
-            sage: C(0) != C(0)
-            False
-            sage: C(1) != C(0)
-            True
-            sage: C(0) != D(0)
-            True
-        """
-        return not self == other
-
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: C(1) < C(2)
-            True
-            sage: C(2) < C(1)
-            False
-            sage: C(2) > C(1)
-            True
-            sage: C(1) <= C(1)
-            True
-        """
-        if type(self) is not type(other):
-            return cmp(type(self), type(other))
-        if self.parent() != other.parent():
-            return cmp(self.parent(), other.parent())
-        return self.parent().cmp_elements(self, other)
-
-    def e(self, i):
-        """
-        Returns the action of `e_i` on self.
-
-        EXAMPLES::
-
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: C(1).e(1)
-            [0, 0, 0]
-            sage: C(0).e(1) is None
-            True
-        """
-        assert i in self.index_set()
-        if i == 1:
-            r = self.parent()._rootoperators[self.value][0]
-        else:
-            r = self.parent()._rootoperators[self.value][2]
-        return self.parent()(r) if r is not None else None
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: D = FastCrystal(['B',2],shape=[2,1])
+                sage: C(0) != C(0)
+                False
+                sage: C(1) != C(0)
+                True
+                sage: C(0) != D(0)
+                True
+            """
+            return not self == other
 
 
-    def f(self, i):
-        """
-        Returns the action of `f_i` on self.
+        def __cmp__(self, other):
+            """
+            EXAMPLES::
 
-        EXAMPLES::
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: C(1) < C(2)
+                True
+                sage: C(2) < C(1)
+                False
+                sage: C(2) > C(1)
+                True
+                sage: C(1) <= C(1)
+                True
+            """
+            if type(self) is not type(other):
+                return cmp(type(self), type(other))
+            if self.parent() != other.parent():
+                return cmp(self.parent(), other.parent())
+            return self.parent().cmp_elements(self, other)
 
-            sage: C = FastCrystal(['A',2],shape=[2,1])
-            sage: C(6).f(1)
-            [1, 2, 1]
-            sage: C(7).f(1) is None
-            True
-        """
-        assert i in self.index_set()
-        if i == 1:
-            r = self.parent()._rootoperators[self.value][1]
-        else:
-            r = self.parent()._rootoperators[self.value][3]
-        return self.parent()(r) if r is not None else None
+        def e(self, i):
+            """
+            Returns the action of `e_i` on self.
+
+            EXAMPLES::
+
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: C(1).e(1)
+                [0, 0, 0]
+                sage: C(0).e(1) is None
+                True
+            """
+            assert i in self.index_set()
+            if i == 1:
+                r = self.parent()._rootoperators[self.value][0]
+            else:
+                r = self.parent()._rootoperators[self.value][2]
+            return self.parent()(r) if r is not None else None
 
 
-FastCrystal.Element = FastCrystalElement
+        def f(self, i):
+            """
+            Returns the action of `f_i` on self.
+
+            EXAMPLES::
+
+                sage: C = FastCrystal(['A',2],shape=[2,1])
+                sage: C(6).f(1)
+                [1, 2, 1]
+                sage: C(7).f(1) is None
+                True
+            """
+            assert i in self.index_set()
+            if i == 1:
+                r = self.parent()._rootoperators[self.value][1]
+            else:
+                r = self.parent()._rootoperators[self.value][3]
+            return self.parent()(r) if r is not None else None
+
+
+#FastCrystal.Element = FastCrystalElement

@@ -20,15 +20,16 @@ Tensor Products of Crystals
 import operator
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets, EnumeratedSets
+from sage.structure.parent import Parent
 from sage.structure.element import Element, parent
+from sage.categories.category import Category
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from sage.combinat.tableau import Tableau_class
-from crystals import CrystalElement, ClassicalCrystal, Crystal
 from letters import CrystalOfLetters
 from sage.misc.flatten import flatten
 from sage.rings.integer import Integer
@@ -37,7 +38,6 @@ from sage.rings.integer import Integer
 # Support classes
 ##############################################################################
 
-from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 class TestParent(UniqueRepresentation, Parent):
@@ -89,7 +89,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
 
             sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent, TestParent
             sage: l = ImmutableListWithParent(TestParent(), [1,2,3])
-            sage: l.__repr__()
+            sage: l._repr_()
             '[1, 2, 3]'
         """
         return "%s"%self._list
@@ -243,8 +243,7 @@ def TensorProductOfCrystals(*crystals, **options):
         sage: T = TensorProductOfCrystals(C,D, generators=[[C(rows=[[1], [2]]), D(rows=[[1]])], [C(rows=[[2], [3]]), D(rows=[[1]])]])
         sage: T.cardinality()
         24
-        sage: T.check()
-        True
+        sage: TestSuite(T).run()
         sage: T.module_generators
         [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
         sage: [x.weight() for x in T.module_generators]
@@ -288,18 +287,12 @@ def TensorProductOfCrystals(*crystals, **options):
 
     if "generators" in options:
         generators = tuple(tuple(x) if isinstance(x, list) else x for x in options["generators"])
-        if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
-            return TensorProductOfClassicalCrystalsWithGenerators(crystals, generators=generators, cartan_type = cartan_type)
-        else:
-            return TensorProductOfCrystalsWithGenerators(crystals, generators=generators, cartan_type = cartan_type)
+        return TensorProductOfCrystalsWithGenerators(crystals, generators=generators, cartan_type = cartan_type)
     else:
-        if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
-            return FullTensorProductOfClassicalCrystals(crystals, cartan_type = cartan_type)
-        else:
-            return FullTensorProductOfCrystals(crystals, cartan_type = cartan_type)
+        return FullTensorProductOfCrystals(crystals, cartan_type = cartan_type)
 
 
-class CrystalOfWords(Crystal):
+class CrystalOfWords(UniqueRepresentation, Parent):
     """
     Auxiliary class to provide a call method to create tensor product elements.
     This class is shared with several tensor product classes and is also used in CrystalOfTableaux to allow
@@ -335,18 +328,13 @@ class TensorProductOfCrystalsWithGenerators(CrystalOfWords):
         """
         assert isinstance(crystals, tuple)
         assert isinstance(generators, tuple)
-        if all(crystal in FiniteEnumeratedSets() for crystal in crystals):
-            category = FiniteEnumeratedSets()
-        else:
-            category = EnumeratedSets()
-        super(TensorProductOfCrystalsWithGenerators, self).__init__(category = category)
+        category = Category.meet([crystal.category() for crystal in crystals])
+        Parent.__init__(self, category = category)
         self.rename("The tensor product of the crystals %s"%(crystals,))
         self.crystals = crystals
         self._cartan_type = cartan_type
         self.module_generators = [ self(*x) for x in generators ]
 
-class TensorProductOfClassicalCrystalsWithGenerators(TensorProductOfCrystalsWithGenerators, ClassicalCrystal):
-    pass
 
 class FullTensorProductOfCrystals(CrystalOfWords):
     def __init__(self, crystals, **options):
@@ -361,11 +349,8 @@ class FullTensorProductOfCrystals(CrystalOfWords):
             sage: TestSuite(T).run()
         """
         crystals = list(crystals)
-        if all(crystal in FiniteEnumeratedSets() for crystal in crystals):
-            category = FiniteEnumeratedSets()
-        else:
-            category = EnumeratedSets()
-        super(FullTensorProductOfCrystals, self).__init__(category = category)
+        category = Category.meet([crystal.category() for crystal in crystals])
+        Parent.__init__(self, category = category)
         self.rename("Full tensor product of the crystals %s"%(crystals,))
         self.crystals = crystals
         if options.has_key('cartan_type'):
@@ -406,10 +391,8 @@ class FullTensorProductOfCrystals(CrystalOfWords):
         return self.cartesian_product.cardinality()
 
 
-class FullTensorProductOfClassicalCrystals(FullTensorProductOfCrystals, ClassicalCrystal):
-    pass
 
-class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
+class TensorProductOfCrystalsElement(ImmutableListWithParent):
     r"""
     A class for elements of tensor products of crystals
     """
@@ -608,7 +591,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 
 CrystalOfWords.Element = TensorProductOfCrystalsElement
 
-class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
+class CrystalOfTableaux(CrystalOfWords):
     r"""
     Crystals of tableaux. Input: a Cartan Type type and "shape", a
     partition of length <= type[1]. Produces a classical crystal with
@@ -693,8 +676,7 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
         sage: T.list()
         [[]]
         sage: T = CrystalOfTableaux(['C',2], shape = [1])
-        sage: T.check()
-        True
+        sage: TestSuite(T).run()
         sage: T.list()
         [[[1]], [[2]], [[-2]], [[-1]]]
         sage: T = CrystalOfTableaux(['A',2], shapes = [[],[1],[2]])
@@ -730,8 +712,7 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
         sage: C = CrystalOfTableaux(['D',4],shape=[1,1,1,-1])
         sage: C.cardinality()
         35
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
 
     The next example checks whether a given tableau is in fact a valid type C tableau or not:
 
@@ -782,7 +763,8 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: TestSuite(T).run()
         """
-        super(CrystalOfTableaux, self).__init__(category = FiniteEnumeratedSets())
+#        super(CrystalOfTableaux, self).__init__(category = FiniteEnumeratedSets())
+        Parent.__init__(self, category = ClassicalCrystals())
         self.letters = CrystalOfLetters(cartan_type)
         self.module_generators = tuple(self.module_generator(la) for la in shapes)
         self.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in shapes)))
@@ -900,13 +882,13 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             list=[parent.letters(x) for x in list]
         TensorProductOfCrystalsElement.__init__(self, parent, list)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(rows=[[1,2],[3,4]])
-            sage: t.__repr__()
+            sage: t._repr_()
             '[[1, 2], [3, 4]]'
         """
         return repr(self.to_tableau())
@@ -977,5 +959,53 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
         for x in tab:
             x.reverse()
         return Tableau(tab).conjugate()
+
+    def promotion(self):
+        """
+        Promotion for type A crystals of tableaux of rectangular shape
+
+        Returns the result of applying promotion on this tableau.
+
+        This method only makes sense in type A with rectangular shapes.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfTableaux(["A",3], shape = [3,3,3])
+            sage: t = C(Tableau([[1,1,1],[2,2,3],[3,4,4]]))
+            sage: t
+            [[1, 1, 1], [2, 2, 3], [3, 4, 4]]
+            sage: t.promotion()
+            [[1, 1, 2], [2, 2, 3], [3, 4, 4]]
+            sage: t.promotion().parent()
+            The crystal of tableaux of type ['A', 3] and shape(s) [[3, 3, 3]]
+        """
+        crystal = self.parent()
+        cartan_type = crystal.cartan_type()
+        assert cartan_type.type() == 'A'
+        return crystal(self.to_tableau().promotion(cartan_type.rank()))
+
+    def promotion_inverse(self):
+        """
+        Inverse promotion for type A crystals of tableaux of rectangular shape
+
+        Returns the result of applying inverse promotion on this tableau.
+
+        This method only makes sense in type A with rectangular shapes.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfTableaux(["A",3], shape = [3,3,3])
+            sage: t = C(Tableau([[1,1,1],[2,2,3],[3,4,4]]))
+            sage: t
+            [[1, 1, 1], [2, 2, 3], [3, 4, 4]]
+            sage: t.promotion_inverse()
+            [[1, 1, 2], [2, 3, 3], [4, 4, 4]]
+            sage: t.promotion_inverse().parent()
+            The crystal of tableaux of type ['A', 3] and shape(s) [[3, 3, 3]]
+        """
+        crystal = self.parent()
+        cartan_type = crystal.cartan_type()
+        assert cartan_type.type() == 'A'
+        return crystal(self.to_tableau().promotion_inverse(cartan_type.rank()))
 
 CrystalOfTableaux.Element = CrystalOfTableauxElement

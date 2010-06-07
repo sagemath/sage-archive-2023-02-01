@@ -17,13 +17,11 @@ Highest weight crystals
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-import operator
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.classical_crystals import ClassicalCrystals
+from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.crystals.crystals import Crystal, ClassicalCrystal, CrystalElement
 from sage.combinat.crystals.letters import CrystalOfLetters
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, TensorProductOfCrystalsElement, CrystalOfTableaux, CrystalOfWords
-from sage.combinat.partition import Partition, Partitions
+from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
 
 
 def HighestWeightCrystal(dominant_weight):
@@ -94,7 +92,7 @@ def HighestWeightCrystal(dominant_weight):
     else:
         raise NotImplementedError
 
-class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords, ClassicalCrystal):
+class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
     """
     Commonalities for all finite dimensional type E highest weight crystals
 
@@ -123,7 +121,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords, ClassicalCryst
         self._highest_weight = dominant_weight
         assert dominant_weight.is_dominant()
         self.rename("Finite dimensional highest weight crystal of type %s and highest weight %s"%(self._cartan_type, dominant_weight))
-        super(FiniteDimensionalHighestWeightCrystal_TypeE, self).__init__(category = FiniteEnumeratedSets())
+        Parent.__init__(self, category = ClassicalCrystals())
         self.module_generators = [self.module_generator()]
 
 

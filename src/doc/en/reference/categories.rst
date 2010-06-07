@@ -46,6 +46,7 @@ Categories
    sage/categories/bialgebras
    sage/categories/bialgebras_with_basis
    sage/categories/bimodules
+   sage/categories/classical_crystals
    sage/categories/coalgebras
    sage/categories/coalgebras_with_basis
    sage/categories/commutative_additive_groups
@@ -56,11 +57,13 @@ Categories
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
    sage/categories/coxeter_groups
+   sage/categories/crystals
    sage/categories/division_rings
    sage/categories/domains
    sage/categories/enumerated_sets
    sage/categories/euclidean_domains
    sage/categories/fields
+   sage/categories/finite_crystals
    sage/categories/finite_coxeter_groups
    sage/categories/finite_dimensional_algebras_with_basis
    sage/categories/finite_dimensional_bialgebras_with_basis
@@ -88,6 +91,7 @@ Categories
    sage/categories/groups
    sage/categories/g_sets
    sage/categories/hecke_modules
+   sage/categories/highest_weight_crystals
    sage/categories/hopf_algebras
    sage/categories/hopf_algebras_with_basis
    sage/categories/infinite_enumerated_sets

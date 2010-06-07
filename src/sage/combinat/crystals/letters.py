@@ -24,9 +24,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.all import FiniteEnumeratedSets
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from crystals import ClassicalCrystal, CrystalElement
+
 
 def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
     r"""
@@ -110,14 +111,14 @@ def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
         raise NotImplementedError
 
 
-class ClassicalCrystalOfLetters(ClassicalCrystal):
+class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
     r"""
     A generic class for classical crystals of letters.
 
     All classical crystals of letters should be instances of this class
     or of subclasses. To define a new crystal of letters, one only
     needs to implement a class for the elements (which subclasses
-    Letter and CrystalElement), with appropriate e and f operations. If
+    Letter), with appropriate e and f operations. If
     the module generator is not 1, one also needs to define the
     subclass ClassicalCrystalOfLetters for the crystal itself.
 
@@ -133,13 +134,13 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
 
             sage: C = CrystalOfLetters(['A',5])
             sage: C.category()
-            Category of finite enumerated sets
+            Category of classical crystals
             sage: TestSuite(C).run()
         """
+        Parent.__init__(self, category = ClassicalCrystals())
         self._cartan_type = CartanType(cartan_type)
         self.rename("The crystal of letters for type %s"%cartan_type)
         self.Element = element_class
-        Parent.__init__(self, category = FiniteEnumeratedSets()) #, category = ClassicalCrystals()
         if cartan_type == CartanType(['E',6]):
             if dual:
                 self.module_generators = [self([6])]
@@ -151,9 +152,9 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
             self.module_generators = [self([7])]
         else:
             self.module_generators = [self(1)]
-        self._list = ClassicalCrystal.list(self)
+        self._list = super(ClassicalCrystalOfLetters, self).list()
         self._element_print_style = element_print_style
-        self._digraph = ClassicalCrystal.digraph(self)
+        self._digraph = super(ClassicalCrystalOfLetters, self).digraph()
         self._digraph_closure = self.digraph().transitive_closure()
 
     def __call__(self, value):
@@ -242,6 +243,9 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
             return True
         return False
 
+    # temporary woraround while an_element is overriden by Parent
+    _an_element_ = EnumeratedSets.ParentMethods._an_element_
+
 # Utility. Note: much of this class should be factored out at some point!
 class Letter(ElementWrapper):
     r"""
@@ -257,7 +261,7 @@ class Letter(ElementWrapper):
         sage: Letter(ZZ, 1).parent()
         Integer Ring
 
-        sage: Letter(ZZ, 1).__repr__()
+        sage: Letter(ZZ, 1)._repr_()
         '1'
 
         sage: parent1 = ZZ  # Any fake value ...
@@ -378,7 +382,7 @@ class Letter(ElementWrapper):
 # Type A
 #########################
 
-class Crystal_of_letters_type_A_element(Letter, CrystalElement):
+class Crystal_of_letters_type_A_element(Letter):
     r"""
     Type A crystal of letters elements
 
@@ -401,8 +405,7 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
 
     ::
 
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     def weight(self):
@@ -452,15 +455,14 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
 # Type B
 #########################
 
-class Crystal_of_letters_type_B_element(Letter, CrystalElement):
+class Crystal_of_letters_type_B_element(Letter):
     r"""
     Type B crystal of letters elements
 
     TESTS::
 
         sage: C = CrystalOfLetters (['B',3])
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     def weight(self):
@@ -549,7 +551,7 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
 # Type C
 #########################
 
-class Crystal_of_letters_type_C_element(Letter, CrystalElement):
+class Crystal_of_letters_type_C_element(Letter):
     r"""
     Type C crystal of letters elements
 
@@ -565,8 +567,7 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
          [False, False, False, False, True, True],
          [False, False, False, False, False, True],
          [False, False, False, False, False, False]]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     def weight(self):
@@ -637,7 +638,7 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
 # Type D
 #########################
 
-class Crystal_of_letters_type_D_element(Letter, CrystalElement):
+class Crystal_of_letters_type_D_element(Letter):
     r"""
     Type D crystal of letters elements
 
@@ -646,8 +647,7 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
         sage: C = CrystalOfLetters(['D',4])
         sage: C.list()
         [1, 2, 3, 4, -4, -3, -2, -1]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     def weight(self):
@@ -743,7 +743,7 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
 # Type G2
 #########################
 
-class Crystal_of_letters_type_G_element(Letter, CrystalElement):
+class Crystal_of_letters_type_G_element(Letter):
     r"""
     Type G2 crystal of letters elements
 
@@ -752,8 +752,7 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
         sage: C = CrystalOfLetters(['G',2])
         sage: C.list()
         [1, 2, 3, 0, -3, -2, -1]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
     """
 
     def weight(self):
@@ -857,7 +856,7 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
 # Type E6
 #########################
 
-class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
+class Crystal_of_letters_type_E6_element(Letter):
     r"""
     Type `E_6` crystal of letters elements. This crystal corresponds to the highest weight
     crystal `B(\Lambda_1)`.
@@ -872,8 +871,7 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
         [-4, 3, 6], [-3, 1, 6], [-1, 6], [-6, 2], [-2, -6, 4], [-4, -6, 3, 5],
         [-3, -6, 1, 5], [-1, -6, 5], [-5, 3], [-3, -5, 1, 4], [-1, -5, 4], [-4, 1, 2],
         [-1, -4, 2, 3], [-3, 2], [-2, -3, 4], [-4, 5], [-5, 6], [-6], [-2, 1], [-1, -2, 3]]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
         True
         sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
@@ -885,7 +883,7 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
     def __hash__(self):
         return hash(tuple(self.value))
 
-    def __repr__(self):
+    def _repr_(self):
         """
         In their full representation, the vertices of this crystal are labeled
         by their weight. For example vertex [-5,2,6] indicates that a 5-arrow
@@ -1122,7 +1120,7 @@ class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
         else:
             return None
 
-class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
+class Crystal_of_letters_type_E6_element_dual(Letter):
     r"""
     Type `E_6` crystal of letters elements. This crystal corresponds to the highest weight
     crystal `B(\Lambda_6)`. This crystal is dual to `B(\Lambda_1)` of type `E_6`.
@@ -1139,8 +1137,7 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
         [4, -1, -2], [1, 5, -4], [3, 5, -1, -4], [5, -3], [1, 6, -5], [3, 6, -1, -5], [4, 6, -3, -5],
         [2, 6, -4], [6, -2], [1, -6], [3, -1, -6], [4, -3, -6], [2, 5, -4, -6], [5, -2, -6], [2, -5],
         [4, -2, -5], [3, -4], [1, -3], [-1]]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
         True
         sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
@@ -1149,7 +1146,7 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
         sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
     """
 
-    def __repr__(self):
+    def _repr_(self):
         """
         In their full representation, the vertices of this crystal are labeled
         by their weight. For example vertex [-2,1] indicates that a 2-arrow
@@ -1275,7 +1272,7 @@ class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
 # Type E7
 #########################
 
-class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
+class Crystal_of_letters_type_E7_element(Letter):
     r"""
     Type `E_7` crystal of letters elements. This crystal corresponds to the highest weight
     crystal `B(\Lambda_7)`.
@@ -1296,8 +1293,7 @@ class Crystal_of_letters_type_E7_element(Letter, CrystalElement):
         2], [-2, -6, 4], [-6, -4, 5, 3], [-3, -6, 1, 5], [-6, -1, 5], [-5, 3],
         [-3, -5, 4, 1], [-5, -1, 4], [-4, 1, 2], [-1, -4, 3, 2], [-3, 2], [-2,
         -3, 4], [-4, 5], [-5, 6], [-6, 7], [-7], [-2, 1], [-2, -1, 3]]
-        sage: C.check()
-        True
+        sage: TestSuite(C).run()
         sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
         True
         sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)

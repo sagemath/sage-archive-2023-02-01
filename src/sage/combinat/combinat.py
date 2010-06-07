@@ -625,7 +625,7 @@ class CombinatorialObject(SageObject):
         """
         return str(self._list)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 

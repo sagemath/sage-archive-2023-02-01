@@ -22,14 +22,16 @@ Affine crystals
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.combinat import CombinatorialObject
+from sage.structure.parent import Parent
+from sage.categories.finite_crystals import FiniteCrystals
 from sage.rings.integer import Integer
 from sage.misc.functional import is_even, is_odd
-from sage.combinat.crystals.affine import AffineCrystal, AffineCrystalFromClassical, AffineCrystalFromClassicalElement
+from sage.combinat.crystals.affine import AffineCrystalFromClassical, AffineCrystalFromClassicalElement
 from sage.combinat.crystals.affine import AffineCrystalFromClassicalAndPromotion
 from sage.combinat.crystals.highest_weight_crystals import HighestWeightCrystal
 from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.crystals.tensor_product import CrystalOfTableaux, TensorProductOfCrystalsElement, TensorProductOfCrystals
+from sage.combinat.crystals.tensor_product import CrystalOfTableaux, TensorProductOfCrystals
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
@@ -150,7 +152,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
             raise NotImplementedError
 
 
-class KirillovReshetikhinGenericCrystal(AffineCrystal):
+class KirillovReshetikhinGenericCrystal(Parent):
     r"""
     Generic class for Kirillov-Reshetikhin crystal `B^{r,s}` of the given type.
 
@@ -170,6 +172,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystal):
             sage: K.s()
             1
         """
+        Parent.__init__(self, category = FiniteCrystals())
         self._cartan_type = cartan_type
         self._r = r
         self._s = s
@@ -233,11 +236,17 @@ class KirillovReshetikhinGenericCrystal(AffineCrystal):
 
     def R_matrix(self, K):
         r"""
-        Returns the combinatorial `R`-matrix from `self \otimes K \to K \otimes self`,
-        where `K` is a Kirillov-Reshetikhin crystal of the same type as `self`.
-        The combinatorial `R`-matrix is the affine crystal isomorphism which maps
-        `u_{self} \otimes u_K` to `u_K \otimes u_{\self}`, where `u_K` is the unique
-        element in `K = B^{r,s}` of weight `s\Lambda_r - s c \Lambda_0` (see module_generator).
+        INPUT:
+
+         - ``self`` -- a crystal `L`
+         - ``K`` -- a Kirillov-Reshetikhin crystal of the same type as `L`.
+
+        Returns the *combinatorial `R`-matrix* from `L \otimes K \to K
+        \otimes L`, where the combinatorial `R`-matrix is the affine
+        crystal isomorphism which maps `u_{L} \otimes u_K` to `u_K
+        \otimes u_{L}`, where `u_K` is the unique element in `K =
+        B^{r,s}` of weight `s\Lambda_r - s c \Lambda_0` (see
+        module_generator).
 
         EXAMPLES::
 
@@ -1036,7 +1045,7 @@ KR_type_C.Element = KR_type_CElement
 class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical):
     r"""
     Class of Kirillov-Reshetikhin crystals `B^{r,s}` of type `A_{2n}^{(2)}` for `r\le n`
-    and type `D_{n+1}^{(2)}` for `r<n'.
+    and type `D_{n+1}^{(2)}` for `r<n`.
 
     EXAMPLES::
 
@@ -1051,7 +1060,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
     """
     def __init__(self, cartan_type, r, s):
         r"""
-        Initializes a Kirillov-Reshetikhin crystal self.
+        Initializes a Kirillov-Reshetikhin crystal ``self``.
 
         TESTS::
 

@@ -286,7 +286,7 @@ command
 
 .. math::
 
-    -\frac{1}{2} \, {(I \, \sqrt{3} + 1)} {(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)} + \frac{1}{6} \, \frac{{(-I \, \sqrt{3} + 1)} \sqrt{2}}{{(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)}}
+    -\frac{1}{2} \, {(i \, \sqrt{3} + 1)} {(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)} + \frac{1}{6} \, \frac{{(-i \, \sqrt{3} + 1)} \sqrt{2}}{{(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)}}
 
 
 You can also see the latex needed to paste :math:`a` into a paper
@@ -298,7 +298,7 @@ command works on most Sage objects.
 ::
 
     sage: latex(a)
-    -\frac{1}{2} \, {\left(I \, \sqrt{3} + 1\right)} ...
+    -\frac{1}{2} \, {\left(i \, \sqrt{3} + 1\right)} ...
 
 
 Adjoining a root of the cubic

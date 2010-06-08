@@ -18,6 +18,25 @@ EXAMPLES::
     (x^2, y - 1/2*x - 1)
     sage: Q*3
     (x^2 - 1/64*x + 1/8, y + 255/512*x + 65/64)
+    ::
+    sage: F.<a> = GF(3)
+    sage: R.<x> = F[]
+    sage: f = x^5-1
+    sage: C = HyperellipticCurve(f)
+    sage: J = C.jacobian()
+    sage: X = J(F)
+    sage: a = x^2-x+1
+    sage: b = -x +1
+    sage: c = x-1
+    sage: d = 0
+    sage: D1 = X([a,b])
+    sage: D1
+    (x^2 + 2*x + 1, y + x + 2)
+    sage: D2 = X([c,d])
+    sage: D2
+    (x + 2, y)
+    sage: D1+D2
+    (x^2 + 2*x + 2, y + 2*x + 1)
 """
 
 #*****************************************************************************
@@ -33,6 +52,7 @@ from sage.schemes.generic.morphism import is_SchemeMorphism
 #from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
 from hyperelliptic_generic import is_HyperellipticCurve
 from jacobian_morphism import JacobianMorphism_divisor_class_field
+from sage.rings.integer import Integer, is_Integer
 
 class JacobianHomset_divisor_classes(SchemeHomset_generic):
     def __init__(self, X, S):
@@ -71,6 +91,26 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             (u^2, v + 1)
             (u, v + 1)
             (1)
+        ::
+            sage: F.<a> = GF(3)
+            sage: R.<x> = F[]
+            sage: f = x^5-1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: X = J(F)
+            sage: a = x^2-x+1
+            sage: b = -x +1
+            sage: c = x-1
+            sage: d = 0
+            sage: D1 = X([a,b])
+            sage: D1
+            (x^2 + 2*x + 1, y + x + 2)
+            sage: D2 = X([c,d])
+            sage: D2
+            (x + 2, y)
+            sage: D1+D2
+            (x^2 + 2*x + 2, y + 2*x + 1)
+
         """
         if isinstance(P,(int,long,Integer)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
@@ -80,7 +120,21 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
                 R = PolynomialRing(self.value_ring(), 'x')
                 return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
             elif len(P) == 2:
-                P1 = P[0]; P2 = P[1]
+                P1 = P[0]
+                P2 = P[1]
+                if is_Integer(P1) and is_Integer(P2):
+                    R = PolynomialRing(self.value_ring(), 'x')
+                    P1 = R(P1)
+                    P2 = R(P2)
+                    return JacobianMorphism_divisor_class_field(self, tuple([P1,P2]))
+                if is_Integer(P1) and is_Polynomial(P2):
+                    R = PolynomialRing(self.value_ring(), 'x')
+                    P1 = R(P1)
+                    return JacobianMorphism_divisor_class_field(self, tuple([P1,P2]))
+                if is_Integer(P2) and is_Polynomial(P1):
+                    R = PolynomialRing(self.value_ring(), 'x')
+                    P2 = R(P2)
+                    return JacobianMorphism_divisor_class_field(self, tuple([P1,P2]))
                 if is_Polynomial(P1) and is_Polynomial(P2):
                     return JacobianMorphism_divisor_class_field(self, tuple(P))
                 if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):

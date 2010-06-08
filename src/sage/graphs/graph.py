@@ -1559,6 +1559,35 @@ class Graph(GenericGraph):
         except:
             return False
 
+    def is_triangle_free(self):
+        r"""
+        Returns whether ``self`` is triangle-free
+
+        EXAMPLE:
+
+        The Petersen Graph is triangle-free::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_triangle_free()
+            True
+
+        or a complete Bipartite Graph::
+
+            sage: g = graphs.CompleteBipartiteGraph(5,6)
+            sage: g.is_triangle_free()
+            True
+
+        a tripartite graph, though, contains many triangles ::
+
+            sage: g = (3 * graphs.CompleteGraph(5)).complement()
+            sage: g.is_triangle_free()
+            False
+        """
+
+        from sage.graphs.graph_generators import graphs
+
+        return (self.subgraph_search(graphs.CompleteGraph(3)) is None)
+
     def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
         r"""
         Returns a degree-constrained subgraph.

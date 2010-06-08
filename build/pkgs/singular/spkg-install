@@ -21,6 +21,8 @@ fi
 # on Solaris, where flex was not installed, but flex would be needed to
 # create create src/Singular/libparse.cc
 touch src/Singular/libparse.cc
+# The same issue with 'configure' which needs
+touch src/factory/configure
 
 # we set LD=ld which is troublesome on OSX. Singular figures out LD by
 # itself pretty well so we unset it here.
@@ -65,17 +67,17 @@ else
     CXXFLAGS="$CXXFLAGS -O3 -g"
     CFLAGS="$CFLAGS -O3 -g"
   fi
-  if [ "x$SAGE64" = xyes ]; then
-    echo "64-bit of Singular"
-    CFLAGS="-O2 -g -m64 "; export CFLAGS
-    CXXFLAGS="-O2 -g -m64"; export CXXFLAGS
-    CPPFLAGS="-O2 -g -m64"; export CPPFLAGS
-    LDFLAGS="-m64 "; export LDFLAGS
-    DYNAMIC_KERNEL="--without-dynamic-kernel"; export DYNAMIC_KERNEL
-  fi
 fi
 
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+if [ "x$SAGE64" = xyes ]; then
+    echo "Building a 64-bit version of Singular"
+    CFLAGS="-O2 -g -m64 "
+    CXXFLAGS="-O2 -g -m64"
+    CPPFLAGS="-O2 -g -m64"
+    LDFLAGS="-m64 "; export LDFLAGS
+fi
+
+CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:

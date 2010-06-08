@@ -1,25 +1,71 @@
 = Singular =
 
-== Patches ==
+== Description ==
+Singular is a computer algebra system for polynomial
+computations, with special emphasis on commutative and
+non-commutative algebra, algebraic geometry, and
+singularity theory.
 
+== License ==
+src/COPYING says Singular may be distributed under version 2 or
+3 of the GPL
+
+== PKG Maintainers ==
+
+
+== Upstream Contact ==
+decker@mathematik.uni-kl.de
+http://www.singular.uni-kl.de/
+
+== Dependencies ==
+Looking at spkg/standard/deps it would suggest
+MPIR, NTL, Termcap, Readline and MPFR
+
+== Special Update/Build Instructions ==
+ Several patches are applied.
  * assert.h: logic seems to be broken on some platforms
  * src.Singular.Makefile.in: adding SunOS for libSingular
  * kernel.rmodulon.cc: simple bugfix
  * mminit.cc: Work around problem with the wrong free being picked causing double frees
+ * src/Singular/libparse.cc and src/factory/configure touched
+   to avoid attempts to regenerate these files. (See #9160 and #3158)
 
-== Releases ==
+ Other notes
+ * The option '--without-dynamic-kernel' is used on *all*
+   systems with the exception of Linux. The online README at
+   http://www.singular.uni-kl.de/svn/trunk/README says this should
+   be used on Solaris, with no mention of it being necessary for
+   OS X, or any other platform except Solaris.
+ * The online readme says that CONFIG_SHELL should be set to /bin/bash
+   on Solaris. This is not done currently. Since this does not build
+   fully as a 64-bit application on Solaris, CONFIG_SHELL should be
+   investigated as a possible cause later.
 
-
+== ChangeLog ==
 === singular-3.1.0.4.p6  (David Kirkby and Willem Jan Palenstijn, 6th June 2010) ===
- * #9160 Change name to singular-$version.$patchversion,
+ * All changes relate to ticket #9160
+ * Added sections to SPKG.txt which the Sage Developers Guide should be
+   present, but were not. These include Description, License,
+   PKG Maintainers, Upstream Contact, Dependencies and
+   Special Update/Build Instructions.
+ * Added a couple of comments in the new "Special Update/Build
+   Instructions" section about Solaris and the use of
+   --without-dynamic-kernel option and CONFIG_SHELL.
+ * Changed the name of package to singular-$version.$patchversion,
    as is common Sage practice, and not have a date of any
    update. Since this should be patch level 6, I've called it that.
-   (David Kirkby)
- * #9160 touch the file src/Singular/libparse.cc
+ * Touched the file src/Singular/libparse.cc
    (Willem Jan Palenstijn)
- * #9160 Remove the restriction that the OS needs to be OS X before
-   a 64-bit build is attempted.
-  (David Kirkby)
+ * Touched the file src/factory/configure
+ * Removed the restriction that the OS needs to be OS X before
+   a 64-bit build is attempted. (This still does not fully build
+   64-bit on OpenSolaris, though it is closer to doing so.)
+ * Move code associated with SAGE64 outside of the code for debugging.
+ * Ensured $SAGE_LOCAL/include is the first CPPFLAG, so the
+   Sage include files are included before others.
+ * Removed code which attempted to disable the dynamic kernel on
+   OS X in 64-bit mode, since the dynamic kernel was already disabled
+   on all platforms except Linux. It was pointless doing it twice.
 
 === singular-3-1-0-4-20100214 (William Stein, February 14, 2010) ===
  * patch for Cygwin (trac 7338)

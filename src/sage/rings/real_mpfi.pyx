@@ -4059,6 +4059,72 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
 
+    def gamma(self):
+        """
+        EXAMPLES::
+
+            sage: RIF(1).gamma()
+            1
+            sage: RIF(5).gamma()
+            24
+            sage: a = RIF(3,4).gamma(); a
+            1.?e1
+            sage: a.lower(), a.upper()
+            (2.00000000000000, 6.00000000000000)
+            sage: RIF(-1/2).gamma()
+            -3.54490770181104?
+            sage: gamma(-1/2).n(100) in RIF(-1/2).gamma()
+            True
+            sage: 0 in (RealField(2000)(-19/3).gamma() - RealIntervalField(1000)(-19/3).gamma())
+            True
+            sage: gamma(RIF(100))
+            9.33262154439442?e155
+            sage: gamma(RIF(-10000/3))
+            1.31280781451?e-10297
+
+        Verify the result contains the local minima::
+
+            sage: 0.88560319441088 in RIF(1, 2).gamma()
+            True
+            sage: 0.88560319441088 in RIF(0.25, 4).gamma()
+            True
+            sage: 0.88560319441088 in RIF(1.4616, 1.46164).gamma()
+            True
+
+            sage: (-0.99).gamma()
+            -100.436954665809
+            sage: (-0.01).gamma()
+            -100.587197964411
+            sage: RIF(-0.99, -0.01).gamma().upper()
+            -1.60118039970055
+
+        Correctly detects poles::
+
+            sage: gamma(RIF(-3/2,-1/2))
+            [-infinity .. +infinity]
+        """
+        cdef RealIntervalFieldElement x = self._new()
+        if self > 1.462:
+            # increasing
+            mpfr_gamma(&x.value.left, &self.value.left, GMP_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.right, GMP_RNDU)
+            return x
+        elif self < 0:
+            # Gamma(s) Gamma(1-s) = pi/sin(pi s)
+            pi = self._parent.pi()
+            return pi / ((self*pi).sin() * (1-self).gamma())
+        elif self.contains_zero():
+            # [-infinity, infinity]
+            return ~self
+        elif self < 1.461:
+            # 0 < self as well, so decreasing
+            mpfr_gamma(&x.value.left, &self.value.right, GMP_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.left, GMP_RNDU)
+            return x
+        else:
+            # Worst case, this will recurse twice, as self is positive.
+            return (1+self).gamma() / self
+
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):
 #         """

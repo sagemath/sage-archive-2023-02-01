@@ -18,7 +18,9 @@ EXAMPLES::
     (x^2, y - 1/2*x - 1)
     sage: Q*3
     (x^2 - 1/64*x + 1/8, y + 255/512*x + 65/64)
-    ::
+
+::
+
     sage: F.<a> = GF(3)
     sage: R.<x> = F[]
     sage: f = x^5-1
@@ -91,7 +93,9 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             (u^2, v + 1)
             (u, v + 1)
             (1)
+
         ::
+
             sage: F.<a> = GF(3)
             sage: R.<x> = F[]
             sage: f = x^5-1

@@ -521,10 +521,15 @@ class LatticePolytopeClass(SageObject):
             self._shift_vector = p0
             if compute_vertices:
                 self._vertices = self._embed(H_polytope.vertices())
-
+            # In order to use facet normals obtained from subpolytopes, we
+            # need the following (see Trac #9188).
             M = self._embedding_matrix
-            basis = matrix( M.columns() + M.integer_kernel().basis() ).transpose()
-            self._dual_embedding_scale = basis.det()
+            # Basis for the ambient space with spanned subspace in front
+            basis = M.columns() + M.integer_kernel().basis()
+            # Let's represent it as columns of a matrix
+            basis = matrix(basis).transpose()
+            # Absolute value helps to keep normals "inner"
+            self._dual_embedding_scale = abs(basis.det())
             dualbasis = matrix(ZZ, self._dual_embedding_scale * basis.inverse())
             self._dual_embedding_matrix = dualbasis.submatrix(0,0,M.ncols())
 
@@ -1513,36 +1518,52 @@ class LatticePolytopeClass(SageObject):
             sage: p.facet_constant(0)
             1
 
-        A lattice polytope of strictly smaller dimension (=2) than the
-        ambient dimension(=4)::
+        This is a 2-dimensional lattice polytope in a 4-dimensional space::
 
-            sage: LatticePolytope(matrix([(1, -1, 0), (-1, -1, 0), (1, 1, 0), (3, 3, 0)]))
+            sage: m = matrix([(1,-1,1,3), (-1,-1,1,3), (0,0,0,0)])
+            sage: p = LatticePolytope(m.transpose())
+            sage: p
             A lattice polytope: 2-dimensional, 3 vertices.
-            sage: lp = LatticePolytope(matrix([(1, -1, 0), (-1, -1, 0), (1, 1, 0), (3, 3, 0)]))
-            sage: lp.vertices()
+            sage: p.vertices()
             [ 1 -1  0]
             [-1 -1  0]
             [ 1  1  0]
             [ 3  3  0]
-            sage: matrix([[ lp.facet_normal(i)*lp.vertex(j) + lp.facet_constant(i) for i in range(0,3)] for j in range(0,3)])
-            [-22   0   0]
-            [  0 -22   0]
-            [  0   0 -11]
+            sage: fns = [p.facet_normal(i) for i in range(p.nfacets())]
+            sage: fns
+            [(11, -1, 1, 3), (-11, -1, 1, 3), (0, 1, -1, -3)]
+            sage: fcs = [p.facet_constant(i) for i in range(p.nfacets())]
+            sage: fcs
+            [0, 0, 11]
+
+        Now we manually compute the distance matrix of this polytope. Since it
+        is a triangle, each line (corresponding to a facet) should have two
+        zeros (vertices of the corresponding facet) and one positive number
+        (since our normals are inner)::
+
+            sage: matrix([[fns[i] * p.vertex(j) + fcs[i]
+            ...            for j in range(p.nvertices())]
+            ...           for i in range(p.nfacets())])
+            [22  0  0]
+            [ 0 22  0]
+            [ 0  0 11]
         """
         if self.is_reflexive():
             return 1
         elif self.ambient_dim() == self.dim():
             return self._facet_constants[i]
         else:
-            return (self._sublattice_polytope.facet_constant(i) * self._dual_embedding_scale
-                    - self.facet_normal(i) * self._shift_vector )
+            return (self._sublattice_polytope.facet_constant(i)
+                    * self._dual_embedding_scale
+                    - self.facet_normal(i) * self._shift_vector)
 
     def facet_normal(self, i):
         r"""
         Return the inner normal to the ``i``-th facet of this polytope.
 
         If this polytope is not full-dimensional, facet normals will be
-        parallel to the affine subspace spanned by this polytope.
+        orthogonal to the integer kernel of the affine subspace spanned by
+        this polytope.
 
         INPUT:
 
@@ -1588,29 +1609,35 @@ class LatticePolytopeClass(SageObject):
             sage: p.facet_constant(0)
             1
 
-        Here is an example of a 3-dimensional polytope in 4d::
+        Here is an example of a 3-dimensional polytope in a 4-dimensional
+        space::
 
-            sage: lp = LatticePolytope(matrix([[1,1,-1,0],[1,-1,-1,0],[1,1,1,0],[3,3,3,0]]))
-            sage: lp.vertices()
-            [ 1  1 -1  0]
-            [ 1 -1 -1  0]
-            [ 1  1  1  0]
-            [ 3  3  3  0]
-            sage: ker = lp.vertices().integer_kernel().matrix()
+            sage: m = matrix([(0,0,0,0), (1,1,1,3), (1,-1,1,3), (-1,-1,1,3)])
+            sage: p = LatticePolytope(m.transpose())
+            sage: p.vertices()
+            [ 0  1  1 -1]
+            [ 0  1 -1 -1]
+            [ 0  1  1  1]
+            [ 0  3  3  3]
+            sage: ker = p.vertices().integer_kernel().matrix()
             sage: ker
             [ 0  0  3 -1]
-            sage: [ ker * lp.facet_normal(i) for i in range(0,4) ]
+            sage: [ker * p.facet_normal(i) for i in range(p.nfacets())]
             [(0), (0), (0), (0)]
-            sage: matrix([lp.facet_normal(i) for i in range(0,4)]) * lp.vertices()
-            [  0   0 -20   0]
-            [  0 -20   0   0]
-            [ 10  10  10   0]
-            [-20   0   0   0]
-            sage: matrix([[ lp.facet_normal(i)*lp.vertex(j) + lp.facet_constant(i) for i in range(0,4)] for j in range(0,4)])
-            [  0   0   0 -20]
-            [  0 -20   0   0]
-            [-20   0   0   0]
-            [  0   0 -10   0]
+
+        Now we manually compute the distance matrix of this polytope. Since it
+        is a simplex, each line (corresponding to a facet) should consist of
+        zeros (indicating generating vertices of the corresponding facet) and
+        a single positive number (since our normals are inner)::
+
+            sage: matrix([[p.facet_normal(i) * p.vertex(j)
+            ...            + p.facet_constant(i)
+            ...            for j in range(p.nvertices())]
+            ...           for i in range(p.nfacets())])
+            [ 0  0  0 20]
+            [ 0  0 20  0]
+            [ 0 20  0  0]
+            [10  0  0  0]
         """
         if self.is_reflexive():
             return self.polar().vertex(i)

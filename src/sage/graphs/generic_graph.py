@@ -7091,6 +7091,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_chordal()
             True
 
+        The disjoint union of chordal graphs is still chordal::
+
+            sage: (2*g).is_chordal()
+            True
+
+
         Of course, the Petersen Graph is not chordal as it has girth 5 ::
 
             sage: g = graphs.PetersenGraph()
@@ -7111,6 +7117,14 @@ class GenericGraph(GenericGraph_pyx):
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
         """
+
+        if not self.is_connected():
+            for gg in self.connected_components_subgraphs():
+                if not gg.is_chordal():
+                    return False
+
+            return True
+
 
         peo,t_peo = self.lex_BFS(tree=True)
 
@@ -8777,7 +8791,7 @@ class GenericGraph(GenericGraph_pyx):
                             if w not in seen:
                                 queue.append((w, d+1))
 
-    def lex_BFS(self,reverse=False,tree=False):
+    def lex_BFS(self,reverse=False,tree=False, initial_vertex = None):
         r"""
         Performs a Lex BFS on the graph.
 
@@ -8789,8 +8803,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``reverse`` ( boolean ) -- whether to return the vertices
+        - ``reverse`` (boolean) -- whether to return the vertices
           in discovery order, or the reverse.
+
+          ``False`` by default.
+
+        - ``tree`` (boolean) -- whether to return the discovery
+          directed tree (each vertex being linked to the one that
+          saw it for the first time)
+
+          ``False`` by default.
+
+        - ``initial_vertex`` -- the first vertex to consider.
+
+          ``None`` by default.
 
         ALGORITHM:
 
@@ -8821,6 +8847,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
             sage: g.lex_BFS(reverse=True)
             [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
+
+
+        And the vertices at the end of the tree of discovery are, for
+        chordal graphs, simplicial vertices (their neighborhood is
+        a complete graph)::
+
+            sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
+            sage: v = g.lex_BFS()[-1]
+            sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
+            sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
+            sage: all([g.subgraph(g.neighbors(v)).is_clique() for v in leaves])
+            True
+
         """
         id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
         code = [[] for i in range(self.order())]
@@ -8834,8 +8873,18 @@ class GenericGraph(GenericGraph_pyx):
 
         add_element = (lambda y:value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0,id_inv[y]))
 
+        # Should we take care of the first vertex we pick ?
+        first = True if initial_vertex is not None else False
+
+
         while vertices:
-            v = max(vertices,key=l)
+
+            if not first:
+                v = max(vertices,key=l)
+            else:
+                v = self.vertices().index(initial_vertex)
+                first = False
+
             vertices.remove(v)
             vector = m.column(v)
             for i in vertices:

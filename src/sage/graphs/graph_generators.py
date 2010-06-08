@@ -3793,10 +3793,52 @@ class GraphGenerators():
         from sage.misc.prandom import random
 
         intervals = [tuple(sorted((random(), random()))) for i in range(n)]
-        intervals.sort()
+
+        return self.IntervalGraph(intervals)
+
+    def IntervalGraph(self,intervals):
+        r"""
+        Returns the graph corresponding to the given intervals.
+
+        An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
+        of intervals : to each interval of the list is associated one
+        vertex, two vertices being adjacent if the two corresponding
+        (closed) intervals intersect.
+
+        INPUT:
+
+        - ``intervals`` -- the list of pairs `(a_i,b_i)`
+          defining the graph.
+
+        NOTE:
+
+        The intervals `(a_i,b_i)` must verify `a_i<b_i`.
+
+        EXAMPLE:
+
+        The following line creates the sequence of intervals
+        `(i, i+2)` for i in `[0, ..., 8]`::
+
+            sage: intervals = [(i,i+2) for i in range(9)]
+
+        In the corresponding graph...::
+
+            sage: g = graphs.IntervalGraph(intervals)
+            sage: sorted(g.neighbors((3,5)))
+            [(1, 3), (2, 4), (4, 6), (5, 7)]
+
+        And the clique number is as expected ::
+
+            sage: g.clique_number()
+            3
+        """
+
+        intervals = sorted(intervals)
+
+
         edges = []
         while intervals:
-            x = intervals.pop()
+            x = intervals.pop(0)
             for y in intervals:
                 if y[0] <= x[1]:
                     edges.append((x,y))

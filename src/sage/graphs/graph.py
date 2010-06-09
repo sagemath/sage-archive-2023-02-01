@@ -1588,6 +1588,72 @@ class Graph(GenericGraph):
 
         return (self.subgraph_search(graphs.CompleteGraph(3)) is None)
 
+    def is_split(self):
+        r"""
+        Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
+
+        A Graph `G` is said to be a split graph if its vertices `V(G)`
+        can be partitioned into two sets `K` and `I` such that the
+        vertices of `K` induce a complete graphe, and those of `I` are
+        an independent set.
+
+        There is a simple test to check whether a graph is a split
+        graph (see, for instance, the book "Graph Classes, a survey"
+        [GraphClasses]_ page 203) :
+
+        Given the degree sequence `d_1 \geq ... \geq d_n` of `G`, a graph
+        is a split graph if and only if :
+
+        .. MATH::
+
+            \sum_{i=1}^\omega d_i = \omega (\omega - 1) + \sum_{i=\omega + 1}^nd_i
+
+        where `\omega = max \{i:d_i\geq i-1\}`.
+
+
+        EXAMPLES:
+
+        Split graphs are, in particular, chordal graphs. Hence, The Petersen graph
+        can not be split::
+
+            sage: graphs.PetersenGraph().is_split()
+            False
+
+        We can easily build some "random" split graph by creating a
+        complete graph, and adding vertices only connected
+        to some random vertices of the clique::
+
+            sage: g = graphs.CompleteGraph(10)
+            sage: sets = Subsets(Set(range(10)))
+            sage: for i in range(10, 25):
+            ...      g.add_edges([(i,k) for k in sets.random_element()])
+            sage: g.is_split()
+            True
+
+        REFERENCES:
+
+        .. [GraphClasses] A. Brandstadt, VB Le and JP Spinrad
+          Graph classes: a survey
+          SIAM Monographs on Discrete Mathematics and Applications},
+          1999
+        """
+
+        # our degree sequence is numbered from 0 to n-1, so to avoid
+        # any mistake, let's fix it :-)
+        degree_sequence = [0] + sorted(self.degree(), reverse = True)
+
+        for (i, d) in enumerate(degree_sequence):
+            if d >= i - 1:
+                omega = i
+            else:
+                break
+
+        left = sum(degree_sequence[:omega + 1])
+        right = omega * (omega - 1) + sum(degree_sequence[omega + 1:])
+
+        return left == right
+
+
     def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
         r"""
         Returns a degree-constrained subgraph.

@@ -175,6 +175,7 @@ cdef class CategoryObject(sage_object.SageObject):
              Category of rings,
              Category of rngs,
              Category of commutative additive groups,
+             Category of semirings,
              Category of commutative additive monoids,
              Category of commutative additive semigroups,
              Category of additive magmas,

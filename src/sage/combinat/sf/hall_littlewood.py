@@ -337,7 +337,7 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: P = HallLittlewoodP(QQ)
             sage: TestSuite(P).run() # todo: fix the product
             Failure ...
-            The following tests failed: _test_associativity, _test_one, _test_prod
+            The following tests failed: _test_associativity, _test_distributivity, _test_one, _test_prod
         """
         self._name = "Hall-Littlewood polynomials in the P basis"
         self._prefix = "P"

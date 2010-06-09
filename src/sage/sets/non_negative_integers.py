@@ -63,9 +63,12 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
     This runs generic sanity checks on ``NN``::
 
         sage: TestSuite(NN).run()
+
+    TODO: do not use ``NN`` any more in the doctests for
+    ``NonNegativeIntegers``.
     """
 
-    def __init__(self):
+    def __init__(self, category=None):
         """
         TESTS::
 
@@ -76,7 +79,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             Category of infinite enumerated sets
             sage: TestSuite(NN).run()
         """
-        Parent.__init__(self, category = InfiniteEnumeratedSets())
+        Parent.__init__(self, category = InfiniteEnumeratedSets().or_subcategory(category) )
 
     def _repr_(self):
         """
@@ -178,6 +181,15 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             42
         """
         return self.from_integer(Integer(42))
+
+    def some_elements(self):
+        """
+        EXAMPLES::
+
+            sage: NonNegativeIntegers().some_elements()
+            [0, 1, 3, 42]
+        """
+        return [Integer(0), Integer(1), Integer(3), Integer(42)]
 
     def next(self, o):
         """

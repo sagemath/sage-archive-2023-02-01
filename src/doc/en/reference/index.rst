@@ -71,6 +71,7 @@ Enjoy Sage!
    padics
    polynomial_rings
    power_series
+   semirings
    algebras
    quat_algebras
    matrices

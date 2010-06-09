@@ -1126,6 +1126,7 @@ def category_graph(categories = None):
          'rings',
          'rngs',
          'semigroups',
+         'semirings',
          'sets',
          'sets with partial maps']
         sage: G.plot()

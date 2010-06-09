@@ -26,7 +26,7 @@ class Rings(Category):
       sage: Rings()
       Category of rings
       sage: Rings().super_categories()
-      [Category of rngs, Category of monoids]
+      [Category of rngs, Category of semirings]
 
     TESTS::
 
@@ -46,11 +46,11 @@ class Rings(Category):
         EXAMPLES::
 
             sage: Rings().super_categories()
-            [Category of rngs, Category of monoids]
+            [Category of rngs, Category of semirings]
         """
         from sage.categories.rngs import Rngs
-        from sage.categories.monoids import Monoids
-        return [Rngs(), Monoids()]
+        from sage.categories.semirings import Semirings
+        return [Rngs(), Semirings()]
 
     class ParentMethods:
         pass

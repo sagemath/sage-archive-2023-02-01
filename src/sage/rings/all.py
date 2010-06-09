@@ -71,6 +71,9 @@ from number_field.all import *
 from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing
 
+# Semirings
+from semirings.all import *
+
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.

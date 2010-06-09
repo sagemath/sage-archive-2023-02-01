@@ -71,6 +71,7 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
+        running ._test_distributivity() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass

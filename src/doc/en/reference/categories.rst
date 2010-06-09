@@ -117,6 +117,7 @@ Categories
    sage/categories/rngs
    sage/categories/schemes
    sage/categories/semigroups
+   sage/categories/semirings
    sage/categories/sets_cat
    sage/categories/unique_factorization_domains
    sage/categories/vector_spaces

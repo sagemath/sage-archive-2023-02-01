@@ -32,6 +32,7 @@ OrderedMonoids = PartiallyOrderedMonoids
 # TODO: commutative and finite variants once the variants infrastructure will be implemented
 
 from rngs import Rngs
+from semirings import Semirings
 from rings import Rings
 from domains import Domains
 from division_rings import DivisionRings

@@ -17,11 +17,7 @@ PKGDIR=spkg
 
 CUR=`pwd`
 
-if [ $UNAME = "Darwin" ]; then
-    OPT="Rp"
-else
-    OPT="ra"
-fi
+OPT="pPR"
 
 if [ $# -ne 2 ]; then
    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"

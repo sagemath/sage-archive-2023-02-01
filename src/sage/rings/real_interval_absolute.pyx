@@ -393,6 +393,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             sage: R = RealIntervalAbsoluteField(10)
             sage: R(1/2)._real_mpfi_(RIF)
             0.50000000000000000?
+
+            sage: a = RealIntervalAbsoluteField(100)(1/3)
+            sage: RIF(a)
+            0.3333333333333334?
         """
         return R(self._mantissa, self._mantissa+self._diameter) >> (<RealIntervalAbsoluteField_class>self._parent)._absprec
 

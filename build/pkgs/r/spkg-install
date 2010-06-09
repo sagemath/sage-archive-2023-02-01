@@ -130,6 +130,9 @@ fi
 
 #parallel make install is broken
 export MAKE=make
+# We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
+export MAKEFLAGS=
+
 $MAKE vignettes #needed for help system
 $MAKE install
 if [ $? -ne 0 ]; then

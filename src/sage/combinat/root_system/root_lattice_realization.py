@@ -648,29 +648,6 @@ class RootLatticeRealization(SageObject):
     def opi(self):
         return self.simple_projections(to_negative=False)
 
-    def to_coroot_lattice_morphism(self):
-        """
-        Returns a morphism to the coroot lattice using the symmetrizer of the Cartan matrix.
-
-        EXAMPLES::
-
-            sage: R = RootSystem(['A',3]).root_space()
-            sage: alpha = R.simple_roots()
-            sage: f = R.to_coroot_lattice_morphism()
-            sage: f(alpha[1])
-            alphacheck[1]
-            sage: f(alpha[1]+alpha[2])
-            alphacheck[1] + alphacheck[2]
-            sage: S = RootSystem(['G',2]).root_space()
-            sage: alpha = S.simple_roots()
-            sage: f = S.to_coroot_lattice_morphism()
-            sage: f(alpha[1])
-            alphacheck[1]
-            sage: f(alpha[1]+alpha[2])
-            alphacheck[1] + 3*alphacheck[2]
-        """
-        return self.module_morphism(diagonal=(lambda i : self.cartan_type().symmetrizer()[i]), codomain=self.coroot_space())
-
 
     ##########################################################################
     # Weyl group
@@ -775,13 +752,14 @@ class RootLatticeRealizationElement(object):
 
         EXAMPLES::
 
-            sage: alpha = RootSystem(["A", 3]).root_space().simple_roots()
+            sage: alpha = RootSystem(["A", 3]).root_lattice().alpha()
             sage: alpha[1].associated_coroot()
-            alphacheck[1]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         #assert(self in self.parent().roots() is not False)
-        f = self.parent().to_coroot_lattice_morphism()
-        return (2/self.scalar(f(self)))*f(self);
+        raise NotImplementedError
 
     ##########################################################################
     # Descents

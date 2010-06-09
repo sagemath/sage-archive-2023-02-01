@@ -45,6 +45,11 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-10.2.1.p1 (Mitesh Patel, 11th July 2010) ===
+  * Originally #9187, backported to 10.2.1:  Set an empty MAKEFLAGS
+    variable before "make".  On OS X, at least, this fixes building
+    multiple spkgs in parallel (cf. #8306).
+
 === ecl-10.2.1.p0 (David Kirkby, 11th July 2010) ===
   * #9474 Revert ECL back to version 10.2.1 (along with Maxima too)
     since some Maxima tests have failed on sage.math.

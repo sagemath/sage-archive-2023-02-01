@@ -151,6 +151,8 @@ export ABI
 
 # 'export MAKE='make -j n' where n>1, breaks ECL builds, so unset make
 unset MAKE
+# We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
+export MAKEFLAGS=
 
 set +e
 

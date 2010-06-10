@@ -44,13 +44,14 @@ WIN32 - VISUAL STUDIO 7.1 (2003)
 import os
 import re
 import subprocess
-### FOR SAGE
-sage_inc = os.environ['SAGE_LOCAL'] + '/include/'
-sage_lib = os.environ['SAGE_LOCAL'] + '/lib/'
 
 basedir = {
     'win32'  : ['win32_static',],
-    'linux2' : [sage_lib],
+    'linux2-alpha' : ['/usr/local', '/usr'],
+    'linux2-hppa' : ['/usr/local', '/usr'],
+    'linux2-mips' : ['/usr/local', '/usr'],
+    'linux2-sparc' : ['/usr/local', '/usr'],
+    'linux2' : ['/usr/local', '/usr'],
     'linux'  : ['/usr/local', '/usr',],
     'cygwin' : ['/usr/local', '/usr',],
     '_darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
@@ -60,7 +61,7 @@ basedir = {
     # people to :
     #   make -f make.osx fetch deps mpl_build mpl_install
 
-    'darwin' : [sage_lib],
+    'darwin' : [],
 
     'freebsd4' : ['/usr/local', '/usr'],
     'freebsd5' : ['/usr/local', '/usr'],
@@ -68,6 +69,8 @@ basedir = {
     'sunos5' : [os.getenv('MPLIB_BASE') or '/usr/local',],
     'gnukfreebsd5' : ['/usr/local', '/usr'],
     'gnukfreebsd6' : ['/usr/local', '/usr'],
+    'gnukfreebsd7' : ['/usr/local', '/usr'],
+    'gnukfreebsd8' : ['/usr/local', '/usr'],
     'aix5' : ['/usr/local'],
 }
 
@@ -323,6 +326,8 @@ def check_for_libpng():
     return True
 
 def add_base_flags(module):
+    module.include_dirs.append(os.environ['SAGE_LOCAL'] + '/include/')
+    module.library_dirs.append(os.environ['SAGE_LOCAL'] + '/lib/')
     incdirs = filter(os.path.exists,
                      [os.path.join(p, 'include') for p in basedir[sys.platform] ])
     libdirs = filter(os.path.exists,
@@ -331,9 +336,7 @@ def add_base_flags(module):
 
     module.include_dirs.extend(incdirs)
     module.include_dirs.append('.')
-    module.include_dirs.append(sage_inc)
     module.library_dirs.extend(libdirs)
-    module.library_dirs.extend([sage_lib])
 
 def getoutput(s):
     'get the output of a system command'
@@ -498,9 +501,10 @@ def check_for_numpy():
         return False
     nn = numpy.__version__.split('.')
     if not (int(nn[0]) >= 1 and int(nn[1]) >= 1):
-        print_message(
-           'numpy 1.1 or later is required; you have %s' % numpy.__version__)
-        return False
+        if not int(nn[0]) >= 1:
+            print_message(
+                'numpy 1.1 or later is required; you have %s' % numpy.__version__)
+            return False
     module = Extension('test', [])
     add_numpy_flags(module)
     add_base_flags(module)
@@ -855,7 +859,11 @@ def query_tcltk():
         else:
             tcl_lib_dir = str(tcl.getvar('tcl_library'))
             # Guess Tk location based on Tcl location
-            tk_lib_dir = tcl_lib_dir.replace('Tcl', 'Tk').replace('tcl', 'tk')
+            (head, tail) = os.path.split(tcl_lib_dir)
+            tail = tail.replace('Tcl', 'Tk').replace('tcl', 'tk')
+            tk_lib_dir = os.path.join(head, tail)
+            if not os.path.exists(tk_lib_dir):
+                tk_lib_dir = tcl_lib_dir.replace('Tcl', 'Tk').replace('tcl', 'tk')
     else:
         # Obtain Tcl and Tk locations from Tk widget
         tk.withdraw()
@@ -1100,7 +1108,7 @@ def build_ft2font(ext_modules, packages):
     deps.extend(glob.glob('CXX/*.c'))
 
     module = Extension('matplotlib.ft2font', deps,
-                       define_macros=[('PY_ARRAYAUNIQUE_SYMBOL', 'MPL_ARRAY_API')])
+                       define_macros=[('PY_ARRAY_UNIQUE_SYMBOL', 'MPL_ARRAY_API')])
     add_ft2font_flags(module)
     ext_modules.append(module)
     BUILT_FT2FONT = True

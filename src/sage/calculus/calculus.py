@@ -921,9 +921,10 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     INPUT:
 
     -  ``dir`` - (default: None); dir may have the value
-       'plus' (or 'above') for a limit from above, 'minus' (or 'below')
-       for a limit from below, or may be omitted (implying a two-sided
-       limit is to be computed).
+       'plus' (or 'above' or 'from_right') for a limit
+       from above, 'minus' (or 'below' or 'from_left')
+       for a limit from below, or may be omitted
+       (implying a two-sided limit is to be computed).
 
     -  ``taylor`` - (default: False); if True, use Taylor
        series, which allows more limits to be computed (but may also
@@ -980,6 +981,10 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         -Infinity
         sage: lim(x*sin(1/x), x=0)
         0
+        sage: limit(e^(-1/x), x=0, dir='from_right')
+        0
+        sage: limit(e^(-1/x), x=0, dir='from_left')
+        +Infinity
 
     ::
 
@@ -992,6 +997,13 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
         sage: lim(sin(1/x), x = 0)
         ind
+
+    TESTS::
+
+        sage: lim(x^2, x=2, dir='nugget')
+        Traceback (most recent call last):
+        ...
+        ValueError: dir must be one of None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left'
 
     We check that Trac ticket 3718 is fixed, so that
     Maxima gives correct limits for the floor function::
@@ -1044,22 +1056,22 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if taylor and algorithm == 'maxima':
         algorithm = 'maxima_taylor'
 
-    if dir not in [None, 'plus', 'above', 'minus', 'below']:
-        raise ValueError, "dir must be one of 'plus' or 'minus'"
+    if dir not in [None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left']:
+        raise ValueError( "dir must be one of None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left'"  )
 
     if algorithm == 'maxima':
         if dir is None:
             l = ex._maxima_().limit(v, a)
-        elif dir == 'plus' or dir == 'above':
+        elif dir == 'plus' or dir == 'above' or dir == 'from_right':
             l = ex._maxima_().limit(v, a, 'plus')
-        elif dir == 'minus' or dir == 'below':
+        elif dir == 'minus' or dir == 'below' or dir == 'from_left':
             l = ex._maxima_().limit(v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
             l = ex._maxima_().tlimit(v, a)
-        elif dir == 'plus' or dir == 'above':
+        elif dir == 'plus' or dir == 'above' or dir == 'from_right':
             l = ex._maxima_().tlimit(v, a, 'plus')
-        elif dir == 'minus' or dir == 'below':
+        elif dir == 'minus' or dir == 'below' or dir == 'from_left':
             l = ex._maxima_().tlimit(v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:
@@ -1071,6 +1083,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     return l.sage()
     return ex.parent()(l)
 
+# lim is alias for limit
 lim = limit
 
 ###################################################################

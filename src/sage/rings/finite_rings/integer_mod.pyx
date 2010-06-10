@@ -480,18 +480,18 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         -  ``self`` - unit modulo `n`
 
-        -  ``b`` - a **generator** of the multiplicative group
-           modulo `n`. If ``b`` is not given,
+        -  ``b`` - a unit modulo `n`. If ``b`` is not given,
            ``R.multiplicative_generator()`` is used, where
            ``R`` is the parent of ``self``.
 
 
-        OUTPUT: Integer `x` such that `b^x = a`.
+        OUTPUT: Integer `x` such that `b^x = a`, if this exists; a ValueError otherwise.
 
         .. note::
 
-           The base must not be too big or the current implementation,
-           which is in PARI, will fail.
+           If the modulus is prime and b is a generator, this calls Pari's ``znlog``
+           function, which is rather fast. If not, it falls back on the generic
+           discrete log implementation in :meth:`sage.groups.generic.discrete_log`.
 
         EXAMPLES::
 
@@ -501,11 +501,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: a.log(b)
             17
             sage: a.log()
-            63
+            51
 
-        A bigger example.
-
-        ::
+        A bigger example::
 
             sage: FF = FiniteField(2^32+61)
             sage: c = FF(4294967356)
@@ -517,28 +515,24 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             4294967356
 
         Things that can go wrong. E.g., if the base is not a generator for
-        the multiplicative group, or not even a unit. You can also use the
-        generic function ``discrete_log``.
+        the multiplicative group, or not even a unit.
 
         ::
 
-            sage: a = Mod(9, 100); b = Mod(3,100)
-            sage: a.log(b)
+            sage: Mod(3, 7).log(Mod(2, 7))
             Traceback (most recent call last):
             ...
-            ValueError: base (=3) for discrete log must generate multiplicative group
-            sage: sage.groups.generic.discrete_log(b^2,b)
-            2
+            ValueError: No discrete log of 3 found to base 2
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
             Traceback (most recent call last):
             ...
-            ValueError:  (8)
-            PARI failed to compute discrete log (perhaps base is not a generator or is too large)
-            sage: sage.groups.generic.discrete_log(a,b)
-            Traceback (most recent call last):
-            ...
             ZeroDivisionError: Inverse does not exist.
+
+        We check that #9205 is fixed::
+
+            sage: Mod(5,9).log(Mod(2, 9))
+            5
 
         AUTHORS:
 
@@ -551,16 +545,59 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             b = self._parent.multiplicative_generator()
         else:
             b = self._parent(b)
-        cmd = 'b=Mod(%s,%s); if(znorder(b)!=eulerphi(%s),-1,znlog(%s,b))'%(b, self.__modulus.sageInteger,
-                                                                           self.__modulus.sageInteger, self)
-        try:
-            n = Integer(pari(cmd))
-            if n == -1:
-                raise ValueError, "base (=%s) for discrete log must generate multiplicative group"%b
-            return n
-        except PariError, msg:
-            raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
+        if self.modulus().is_prime() and b.multiplicative_order() == b.parent().unit_group_order():
+
+            # use PARI
+
+            cmd = 'b=Mod(%s,%s); znlog(%s,b)'%(b, self.__modulus.sageInteger, self)
+            try:
+                n = Integer(pari(cmd))
+                return n
+            except PariError, msg:
+                raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
+
+        else: # fall back on slower native implementation
+
+            from sage.groups.generic import discrete_log
+            return discrete_log(self, b)
+
+    def generalised_log(self):
+        r"""
+        Return integers `n_i` such that
+
+        ..math::
+
+            \prod_i x_i^{n_i} = \text{self},
+
+        where `x_1, \dots, x_d` are the generators of the unit group
+        returned by ``self.parent().unit_gens()``. See also :meth:`log`.
+
+        EXAMPLES::
+
+            sage: m = Mod(3, 1568)
+            sage: v = m.generalised_log(); v
+            [1, 3, 1]
+            sage: prod([Zmod(1568).unit_gens()[i] ** v[i] for i in [0..2]])
+            3
+
+        """
+        if not self.is_unit():
+            raise ZeroDivisionError
+        N = self.modulus()
+        h = []
+        for (p, c) in N.factor():
+            if p != 2 or (p == 2 and c == 2):
+                h.append((self % p**c).log())
+            elif c > 2:
+                m = self % p**c
+                if m % 4 == 1:
+                    h.append(0)
+                else:
+                    h.append(1)
+                    m *= -1
+                h.append(m.log(5))
+        return h
 
     def modulus(IntegerMod_abstract self):
         """

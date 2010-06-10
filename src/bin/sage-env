@@ -182,6 +182,15 @@ if [ -z "$RHOME" ]; then
     RHOME="$SAGE_LOCAL/lib/R" && export RHOME
 fi
 
+# PKG_CONFIG_PATH is used by 'pkg-config' on Solaris and Linux,
+# but at least some versions of OS X do not have the pkg-config
+# command, so relying on this is not wise on OS X.
+
+if [ -z "$PKG_CONFIG_PATH" ]; then
+    PKG_CONFIG_PATH="$SAGE_LOCAL/lib/pkgconfig"
+    export PKG_CONFIG_PATH
+fi
+
 
 ############ compilation flags
 

@@ -6,8 +6,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of matplotlib"
    CFLAGS="-O2 -g -m64 "; export CFLAGS
    LDFLAGS="-m64 "; export LDFLAGS
 fi

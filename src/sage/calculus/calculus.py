@@ -326,6 +326,13 @@ Doubly ensure that Trac #7479 is working::
     sage: f(x)=x
     sage: integrate(f,x,0,1)
     x |--> 1/2
+
+Check that the problem with Taylor expansions of the gamma function
+(Trac #9217) is fixed::
+
+    sage: taylor(gamma(1/3+x),x,0,3)
+    -1/432*((36*(pi*sqrt(3) + 9*log(3))*euler_gamma^2 + 27*pi^2*log(3) + 72*euler_gamma^3 + 243*log(3)^3 + 18*(6*pi*sqrt(3)*log(3) + pi^2 + 27*log(3)^2)*euler_gamma + 36*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*psi(1, 1/3) + (pi^3 + 81*pi*log(3)^2)*sqrt(3))*gamma(1/3) - 72*gamma(1/3)*psi(2, 1/3))*x^3 + 1/24*(6*pi*sqrt(3)*log(3) + 4*(pi*sqrt(3) + 9*log(3))*euler_gamma + pi^2 + 12*euler_gamma^2 + 27*log(3)^2 + 12*psi(1, 1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*x*gamma(1/3) + gamma(1/3)
+
 """
 
 import re
@@ -1464,6 +1471,8 @@ sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
 polylog_ex = re.compile('li\[([0-9]+?)\]\(')
 
+maxima_polygamma = re.compile("psi\[(\d*)\]\(")  # matches psi[n]( where n is a number
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     """
     Given a string representation of a Maxima expression, parse it and
@@ -1535,6 +1544,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     s = s.replace("%","")
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
+
+    s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:
         s = s.replace('=','==')

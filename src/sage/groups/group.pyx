@@ -64,6 +64,15 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
     def __contains__(self, x):
         r"""
         True if coercion of `x` into self is defined.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: 4 in G               #indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         try:
             self(x)
@@ -83,12 +92,28 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         True if the elements of this group have atomic string
         representations. For example, integers are atomic but polynomials
         are not.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.is_atomic_repr()
+            False
         """
         return False
 
     def is_abelian(self):
         """
         Return True if this group is abelian.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.is_abelian()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -112,12 +137,30 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         Returns the number of elements of this group, which is either a
         positive integer or infinity.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.order()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
     def is_finite(self):
         """
         Returns True if this group is finite.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return self.order() != infinity
 
@@ -127,15 +170,41 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         +).
 
         Override for additive groups.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.is_multiplicative()
+            True
         """
         return True
 
     def __hash__(self):
+        """
+        Returns the hash value of the group (from its string
+        representation).
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: h = hash(G)       #indirect doctest
+        """
         return hash(self.__repr__())
 
     def random_element(self, bound=None):
         """
         Return a random element of this group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.random_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -143,6 +212,15 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         Return the quotient of this group by the normal subgroup
         `H`.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: G = Group()
+            sage: G.quotient(G)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -153,6 +231,13 @@ cdef class AbelianGroup(Group):
     def is_abelian(self):
         """
         Return True.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import AbelianGroup
+            sage: G = AbelianGroup()
+            sage: G.is_abelian()
+            True
         """
         return True
 
@@ -163,6 +248,13 @@ cdef class FiniteGroup(Group):
     def is_finite(self):
         """
         Return True.
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import FiniteGroup
+            sage: G = FiniteGroup()
+            sage: G.is_finite()
+            True
         """
         return True
 

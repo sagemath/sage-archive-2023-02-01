@@ -5,6 +5,16 @@ AUTHORS:
 
 - Bobby Moretti and William Stein (2006-2007)
 
+- Robert Bradshaw (2007-10): minpoly(), numerical algorithm
+
+- Robert Bradshaw (2008-10): minpoly(), algebraic algorithm
+
+- Golam Mortuza Hossain (2009-06-15): _limit_latex()
+
+- Golam Mortuza Hossain (2009-06-22): _laplace_latex(), _inverse_laplace_latex()
+
+- Tom Coates (2010-06-11): fixed Trac #9217
+
 The Sage calculus module is loosely based on the Sage Enhancement
 Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
 
@@ -847,12 +857,6 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
        Of course, failure to produce a minimal polynomial does not
        necessarily indicate that this number is transcendental.
-
-    AUTHORS:
-
-    - Robert Bradshaw (2007-10): numerical algorithm
-
-    - Robert Bradshaw (2008-10): algebraic algorithm
     """
     if algorithm is None or algorithm.startswith('numeric'):
         bits_list = [bits] if bits else [100,200,500,1000]
@@ -1395,9 +1399,6 @@ def _limit_latex_(self, f, x, a):
         sage: latex(limit(f, x=oo))
         \lim_{x \to +\infty}\, f\left(x\right)
 
-    AUTHORS:
-
-    - Golam Mortuza Hossain (2009-06-15)
     """
     return "\\lim_{%s \\to %s}\\, %s"%(latex(x), latex(a), latex(f))
 
@@ -1416,9 +1417,6 @@ def _laplace_latex_(self, *args):
         sage: latex(laplace(f, t, s))
         \mathcal{L}\left(f\left(t\right), t, s\right)
 
-    AUTHORS:
-
-    - Golam Mortuza Hossain (2009-06-22)
     """
     return "\\mathcal{L}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
@@ -1437,9 +1435,6 @@ def _inverse_laplace_latex_(self, *args):
         sage: latex(inverse_laplace(F,s,t))
         \mathcal{L}^{-1}\left(F\left(s\right), s, t\right)
 
-    AUTHORS:
-
-    - Golam Mortuza Hossain (2009-06-22)
     """
     return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 

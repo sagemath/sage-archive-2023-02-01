@@ -82,6 +82,18 @@ class Animation(SageObject):
         0
     """
     def __init__(self, v, **kwds):
+        r"""
+        Return an animation of a sequence of plots of objects.
+
+        See documentation of ``animate`` for more details and examples.
+
+        EXAMPLES::
+
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
+            ...                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a
+            Animation with 21 frames
+        """
         w = []
         for x in v:
             if not isinstance(x, plot.Graphics):

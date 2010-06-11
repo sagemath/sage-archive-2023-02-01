@@ -61,6 +61,7 @@ Enjoy Sage!
    combinat/index
    numerical
    probability
+   stats
    finance
    categories
    monoids

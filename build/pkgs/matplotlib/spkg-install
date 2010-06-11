@@ -15,6 +15,9 @@ fi
 # Write a configuration file to src/setup.cfg
 python make-setup-config.py
 
+# Use patched versions.  See SPKG.txt for why and what.
+$CP patches/setupext.py src
+
 cd src
 
 # Now build

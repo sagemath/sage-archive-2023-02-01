@@ -23,6 +23,12 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
 == Build Instructions/Changes ==
 
+The following patches are in the patches subdirectory.
+The patches are applied in during the build process.
+
+* setupext.py: link to libpng12 instead of libpng to apparently avoid
+  some name clashes on OSX.
+
 == Changelog ==
 
 === matplotlib-0.99.3-svn8414 (Jason Grout, 11 Jun 2010) ===
@@ -31,8 +37,8 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
    incorporated the functionality of the setupext.py and setup.py
    patches into the make-setup-config.py script, which uses the
    matplotlib-supported way to effect the changes.  The only other
-   patch was to change libpng to libpng12, but this should be fixed by
-   trac tickets #9208 and #9210.
+   patch was to change libpng to libpng12; this patch was left as the
+   patch for setupext.py.
 
 === matplotlib-0.99.1.p4 (Craig Citro, 14 Jan 2010) ===
  * Removed hideous hack, now that OSX 10.6 bug is fixed.

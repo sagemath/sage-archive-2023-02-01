@@ -55,12 +55,29 @@ class PosetElement(Element):
         """
         TESTS::
 
-            sage: repr(Poset([[1,2],[4],[3],[4],[]])(0))
+            sage: Poset([[1,2],[4],[3],[4],[]])(0)._repr_()
             '0'
         """
         return "%s" %str(self.element)
 
     def _latex_(self):
+        r"""
+        Return the latex code of the poset element.
+
+        EXAMPLES::
+
+            sage: m = matrix(2,[1,2,3,4])
+            sage: m.set_immutable()
+            sage: P = Poset(([m],[]))
+            sage: [e] = P
+            sage: type(e)
+            <class 'sage.combinat.posets.elements.PosetElement'>
+            sage: latex(e)                 #indirect doctest
+            \left(\begin{array}{rr}
+            1 & 2 \\
+            3 & 4
+            \end{array}\right)
+        """
         from sage.misc.latex import latex
         return latex(self.element)
 

@@ -939,17 +939,21 @@ def identity_matrix(ring, n=0, sparse=False):
         [0 1]
         sage: M.parent()
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        sage: M.is_mutable()
+        True
         sage: M = identity_matrix(3, sparse=True); M
         [1 0 0]
         [0 1 0]
         [0 0 1]
         sage: M.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+        sage: M.is_mutable()
+        True
     """
     if isinstance(ring, (int, long, rings.Integer)):
         n = ring
         ring = rings.ZZ
-    return matrix_space.MatrixSpace(ring, n, n, sparse).identity_matrix()
+    return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
 
 
 def zero_matrix(ring, nrows, ncols=None, sparse=False):
@@ -971,17 +975,21 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         [0 0 0]
         sage: M.parent()
         Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+        sage: M.is_mutable()
+        True
         sage: M = zero_matrix(3, 1, sparse=True); M
         [0]
         [0]
         [0]
         sage: M.parent()
         Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
+        sage: M.is_mutable()
+        True
     """
     if isinstance(ring, (int, long, rings.Integer)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
-    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).zero_matrix()
+    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
 
 
 def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):

@@ -49,11 +49,11 @@ def LyndonWords(e=None, k=None):
 
     or
 
-    - ``e`` - A Composition
+    - ``e`` - a composition
 
     OUTPUT:
 
-    A combinatorial class of Lyndon words
+    A combinatorial class of Lyndon words.
 
     EXAMPLES::
 
@@ -107,11 +107,11 @@ class LyndonWord(FiniteWord_list):
 
         - ``data`` - list
         - ``check`` - bool (optional, default: True) if True, a
-          verification that the input data represent a lyndon word.
+          verification that the input data represent a Lyndon word.
 
         OUTPUT:
 
-        a lyndon word
+        A Lyndon word.
 
         EXAMPLES::
 

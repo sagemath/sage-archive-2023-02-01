@@ -31,8 +31,8 @@ The patches are applied in during the build process.
 
 == Changelog ==
 
-=== matplotlib-0.99.3-svn8414 (Jason Grout, 11 Jun 2010) ===
- * Update to SVN revision 8414 (which is 0.99.3 + some bugfixes we
+=== matplotlib-0.99.3-svn8415 (Jason Grout, 11 Jun 2010) ===
+ * Update to SVN revision 8415 (which is 0.99.3 + some bugfixes we
    would like).  Removed pprdrv_tt2.cpp patch (no longer needed) and
    incorporated the functionality of the setupext.py and setup.py
    patches into the make-setup-config.py script, which uses the

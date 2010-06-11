@@ -23,17 +23,16 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
 == Build Instructions/Changes ==
 
-The following patches are in the patches subdirectory.
-The patches are applied in during the build process.
-
- * setup.py: Introduce the env variable SAGE_MATPLOTLIB_GUI. If not set to no it will attempt to build graphical backends. Per default all graphical backends are turned off.
- * setupext.py: add some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
-
 == Changelog ==
 
-=== matplotlib-0.99.3 (Jason Grout, 10 Jun 2010) ===
- * Update to matplotlib 0.99.3.  Reworked setupext.py patch,
-   and removed the pprdrv_tt2.cpp patch.
+=== matplotlib-0.99.3-svn8414 (Jason Grout, 11 Jun 2010) ===
+ * Update to SVN revision 8414 (which is 0.99.3 + some bugfixes we
+   would like).  Removed pprdrv_tt2.cpp patch (no longer needed) and
+   incorporated the functionality of the setupext.py and setup.py
+   patches into the make-setup-config.py script, which uses the
+   matplotlib-supported way to effect the changes.  The only other
+   patch was to change libpng to libpng12, but this should be fixed by
+   trac tickets #9208 and #9210.
 
 === matplotlib-0.99.1.p4 (Craig Citro, 14 Jan 2010) ===
  * Removed hideous hack, now that OSX 10.6 bug is fixed.

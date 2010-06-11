@@ -12,13 +12,8 @@ if [ "x$SAGE64" = xyes ]; then
    LDFLAGS="-m64 "; export LDFLAGS
 fi
 
-# Use patched versions.  See SPKG.txt for why and what.
-$CP patches/setupext.py src
-
-echo "Work around a problem building tkgui on some Linux/Solaris"
-echo "machines. This is a 1-line fix that just turns off checking and"
-echo "building for that GUI frontend."
-$CP patches/setup.py src/setup.py
+# Write a configuration file to src/setup.cfg
+python make-setup-config.py
 
 cd src
 
@@ -34,4 +29,3 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/matplotlib
 
 # Finally install
 python setup.py install
-

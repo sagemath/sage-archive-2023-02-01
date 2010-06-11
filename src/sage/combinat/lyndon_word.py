@@ -38,10 +38,30 @@ def LyndonWords(e=None, k=None):
     its rotations.  Equivalently, whenever `w` is split into two non-empty
     substrings, `w` is lexicographically less than the right substring.
 
-    EXAMPLES: If e is an integer, then e specifies the length of the
-    alphabet; k must also be specified in this case.
+    INPUT:
 
-    ::
+    - no input at all
+
+    or
+
+    - ``e`` - integer, size of alphabet
+    - ``k`` - integer, length of the words
+
+    or
+
+    - ``e`` - A Composition
+
+    OUTPUT:
+
+    A combinatorial class of Lyndon words
+
+    EXAMPLES::
+
+        sage: LyndonWords()
+        Lyndon words
+
+    If e is an integer, then e specifies the length of the
+    alphabet; k must also be specified in this case::
 
         sage: LW = LyndonWords(3,3); LW
         Lyndon words from an alphabet of size 3 of length 3
@@ -55,9 +75,7 @@ def LyndonWords(e=None, k=None):
         8
 
     If e is a (weak) composition, then it returns the class of Lyndon
-    words that have evaluation e.
-
-    ::
+    words that have evaluation e::
 
         sage: LyndonWords([2, 0, 1]).list()
         [word: 113]
@@ -82,12 +100,49 @@ def LyndonWords(e=None, k=None):
 
 class LyndonWord(FiniteWord_list):
     def __init__(self, data, check=True):
+        r"""
+        Construction of a Lyndon word.
+
+        INPUT:
+
+        - ``data`` - list
+        - ``check`` - bool (optional, default: True) if True, a
+          verification that the input data represent a lyndon word.
+
+        OUTPUT:
+
+        a lyndon word
+
+        EXAMPLES::
+
+            sage: LyndonWord([1,2,2])
+            word: 122
+            sage: LyndonWord([1,2,3])
+            word: 123
+            sage: LyndonWord([2,1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a Lyndon word
+
+        If check is False, then no verification is done::
+
+            sage: LyndonWord([2,1,2,3], check=False)
+            word: 2123
+        """
         super(LyndonWord,self).__init__(parent=LyndonWords(),data=data)
         if check and not self.is_lyndon():
             raise ValueError, "Not a Lyndon word"
 
 class LyndonWords_class(Words_all):
     def __repr__(self):
+        r"""
+        String representation.
+
+        EXAMPLES::
+
+            sage: LyndonWords()
+            Lyndon words
+        """
         return "Lyndon words"
 
     def __contains__(self, x):

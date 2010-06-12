@@ -11,10 +11,17 @@ cd src/
 unset AR
 
 
-if [ "x$SAGE64" = xyes ]; then
-   ./configure --64 --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+if [ $UNAME = "CYGWIN" ]; then
+    export BINARY_PATH="$SAGE_LOCAL/bin"
+    export INCLUDE_PATH="$SAGE_LOCAL/include"
+    export LIBRARY_PATH="$SAGE_LOCAL/lib"
+    cp win32/Makefile.gcc Makefile
 else
-   ./configure --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+    if [ "x$SAGE64" = xyes ]; then
+        ./configure --64 --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+    else
+        ./configure --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+    fi
 fi
 
 

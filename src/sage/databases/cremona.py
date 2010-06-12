@@ -9,14 +9,11 @@ If the full CremonaDatabase isn't installed, a mini-version is
 included by default with Sage.  It contains Weierstrass
 equations, rank, and torsion for curves up to conductor 10000.
 
-The large database includes all curves of conductor up to 120,000
+The large database includes all curves of conductor up to 130,000
 (!). It also includes data related to the BSD conjecture and
 modular degrees for all of these curves, and generators for the
 Mordell-Weil groups. To install it type the following in Sage:
-!sage -i database_cremona_ellcurve-2005.11.03
-
-The name of the database may change as it is updated. Type "!sage
--optional" to see the latest package names.
+!sage -i database_cremona_ellcurve
 """
 
 #*****************************************************************************
@@ -93,7 +90,6 @@ def is_optimal_id(id):
 
     EXAMPLES::
 
-        False
         sage: is_optimal_id('b1')
         True
         sage: is_optimal_id('bb1')
@@ -347,10 +343,18 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``read_only`` - bool (default: True), if True, then
            the database is read_only and changes cannot be committed to
            disk.
+
+        TESTS::
+
+            sage: from sage.databases.cremona import LargeCremonaDatabase  # optional - database_cremona_ellcurves
+            sage: c = LargeCremonaDatabase()                               # optional - database_cremona_ellcurves
+            sage: c.read_only                                              # optional - database_cremona_ellcurves
+            True
+            sage: c.name                                                   # optional - database_cremona_ellcurves
+            'cremona'
         """
         sage.databases.db.Database.__init__(self,
              name="cremona", read_only=read_only)
@@ -359,8 +363,16 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         """
         Returns an iterator through all EllipticCurve objects in the
         Cremona database.
+
+        TESTS::
+
+            sage: it = CremonaDatabase().__iter__()
+            sage: it.next()
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: it.next()
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
         """
-        return self.iter(11, self.largest_conductor()+1)
+        return self.iter([11, self.largest_conductor()+1])
 
     def __getitem__(self, N):
         """
@@ -370,11 +382,17 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int or str
 
-
         OUTPUT: dict (if N is an int) or EllipticCurve (if N is a str)
+
+        TESTS::
+
+            sage: c = CremonaDatabase()
+            sage: c[11]['a']['a2']
+            [[0, -1, 1, -7820, -263580], 0, 1]
+            sage: c['11a2']
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
         """
         if isinstance(N, str) and len(N) > 0:
             if N[0].isalpha():
@@ -397,7 +415,14 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def __repr__(self):
         """
-        String representation of this database. OUTPUT: str
+        String representation of this database.
+
+        TESTS::
+
+            sage: from sage.databases.cremona import LargeCremonaDatabase  # optional - database_cremona_ellcurves
+            sage: c = LargeCremonaDatabase()                               # optional - database_cremona_ellcurves
+            sage: c.__repr__()                                             # optional - database_cremona_ellcurves
+            "Cremona's database of elliptic curves"
         """
         return "Cremona's database of elliptic curves"
 
@@ -406,19 +431,27 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         r"""
         Return the allbsd table for conductor N. The entries are::
 
-                        [id, tamagawa_product, Omega_E, L, Reg_E, Sha_an(E)],
-
+            [id, tamagawa_product, Omega_E, L, Reg_E, Sha_an(E)],
 
         where id is the isogeny class (letter) followed by a number, e.g.,
         b3, and L is `L^r(E,1)/r!`, where E has rank r.
 
         INPUT:
 
-
         -  ``N`` - int, the conductor
 
+        OUTPUT: dict containing the allbsd table for each isogeny class
+        in conductor N
 
-        OUTPUT: dict
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.allbsd(12)
+            {}
+            sage: c.allbsd(19)['a3']      # optional - database_cremona_ellcurve
+            ['1', '4.0792792004649324322', '0.45325324449610360358', '1', '1']
+            sage: c.allbsd(12001)['a1']   # optional - database_cremona_ellcurve
+            ['2', '3.2760813524872187381', '1.5491014309050596354', '0.23642597118795194508', '1']
         """
         try:
             return self[int(N)][_map['allbsd']]
@@ -432,14 +465,21 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int, the conductor
-
 
         OUTPUT:
 
-
         -  ``dict`` - id:[ainvs, rank, tor], ...
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.allcurves(11)['a3']
+            [[0, -1, 1, 0, 0], 0, 5]
+            sage: c.allcurves(12)
+            {}
+            sage: c.allcurves(12001)['a1']   # optional - database_cremona_ellcurve
+            [[1, 0, 0, -101, 382], 1, 1]
         """
         try:
             return self[int(N)][_map['allcurves']]
@@ -452,14 +492,21 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int, the conductor
-
 
         OUTPUT:
 
-
         -  ``dict`` - id:[points, ...], ...
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.allgens(12)
+            {}
+            sage: c.allgens(1001)['a1']    # optional - database_cremona_ellcurve
+            [[61, 181, 1]]
+            sage: c.allgens(12001)['a1']   # optional - database_cremona_ellcurve
+            [[7, 2, 1]]
         """
         try:
             return self[int(N)][_map['allgens']]
@@ -472,9 +519,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int, the conductor
-
 
         OUTPUT:
 
@@ -492,6 +537,12 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
             sage: list(sorted(CremonaDatabase().curves(990).keys()))
             ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
+
+        TESTS::
+
+            sage: c = CremonaDatabase()
+            sage: c.curves(12001)['a1']   # optional - database_cremona_ellcurve
+            [[1, 0, 0, -101, 382], 1, 1]
         """
         A = self.allcurves(N)
         if N != 990:
@@ -505,16 +556,24 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int, the conductor
-
 
         OUTPUT:
 
-
         -  ``dict`` - id:degphi, ...
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.degphi(11)      # optional - database_cremona_ellcurve
+            {'a1': 1}
+            sage: c.degphi(12001)['c1']   # optional - database_cremona_ellcurve
+            1640
         """
-        return self[int(N)][_map['degphi']]
+        try:
+            return self[int(N)][_map['degphi']]
+        except KeyError:
+            return {}
 
     def elliptic_curve_from_ainvs(self, N, ainvs):
         """
@@ -524,14 +583,20 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``N`` - int
 
         -  ``ainvs`` - list (5-tuple of int's); the minimal
            Weierstrass model for an elliptic curve of conductor N
 
-
         OUTPUT: EllipticCurve
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.elliptic_curve_from_ainvs(11, [0, -1, 1, -10, -20])
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: c.elliptic_curve_from_ainvs(12001, [1, 0, 0, -101, 382])  # optional - database_cremona_ellcurve
+            Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
         """
         for id, e in self.allcurves(N).iteritems():
             if e[0] == ainvs:
@@ -546,11 +611,17 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``label`` - str (Cremona label)
 
-
         OUTPUT: EllipticCurve
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.elliptic_curve('11a1')
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: c.elliptic_curve('12001a1')    # optional - database_cremona_ellcurve
+            Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
         """
         N, iso, num = parse_cremona_label(label)
         v = self[N]
@@ -599,11 +670,15 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``conductors`` - list or generator of ints
 
-
         OUTPUT: generator that iterates over EllipticCurve objects.
+
+        EXAMPLES::
+
+            sage: [e.cremona_label() for e in CremonaDatabase().iter([11..15])]
+            ['11a1', '11a2', '11a3', '14a1', '14a2', '14a3', '14a4', '14a5',
+             '14a6', '15a1', '15a2', '15a3', '15a4', '15a5', '15a6', '15a7', '15a8']
         """
         for N in conductors:
             K = self.allcurves(N).keys()
@@ -617,6 +692,19 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         elliptic curves in the database of given conductor as a list of
         lists, one for each isogeny class. The curve with number 1 is
         always listed first.
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.isogeny_classes(11)
+            [[[[0, -1, 1, -10, -20], 0, 5],
+             [[0, -1, 1, -7820, -263580], 0, 1],
+             [[0, -1, 1, 0, 0], 0, 5]]]
+            sage: c.isogeny_classes(12001)   # optional - database_cremona_ellcurve
+            [[[[1, 0, 0, -101, 382], 1, 1]],
+             [[[0, 0, 1, -247, 1494], 1, 1]],
+             [[[0, 0, 1, -4, -18], 1, 1]],
+             [[[0, 1, 1, -10, 18], 1, 1]]]
         """
         conductor=int(conductor)
         classes = []
@@ -641,10 +729,19 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         -  ``label`` - string
 
-
         OUTPUT:
 
         -  ``list`` - list of EllipticCurve objects.
+
+        EXAMPLES::
+
+            sage: c = CremonaDatabase()
+            sage: c.isogeny_class('11a1')
+            [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field]
+            sage: c.isogeny_class('12001a1')   # optional - database_cremona_ellcurve
+            [Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field]
         """
         conductor, iso, num = parse_cremona_label(label)
         A = self.allcurves(conductor)
@@ -699,6 +796,14 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         OUTPUT:
 
         - list of EllipticCurve objects.
+
+        EXAMPLES::
+
+            sage: CremonaDatabase().list([37])
+            [Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x + 1 over Rational Field]
         """
         return list(self.iter(conductors))
 
@@ -736,8 +841,10 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         EXAMPLES::
 
-            sage: CremonaDatabase().largest_conductor()   # random -- depends on size of installed database
-            9999
+            sage: from sage.databases.cremona import LargeCremonaDatabase    # optional - database_cremona_ellcurve
+            sage: c = LargeCremonaDatabase()                                # optional - database_cremona_ellcurve
+            sage: c.largest_conductor()                                     # optional - database_cremona_ellcurve
+            130000
         """
         try:
             return sage.databases.db.Database.__getitem__(self, 'largest_conductor')
@@ -762,9 +869,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         OUTPUT:
 
-
         -  ``int`` - smallest conductor
-
 
         EXAMPLES::
 
@@ -779,16 +884,16 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         OUTPUT:
 
-
         -  ``int`` - smallest cond
 
         -  ``int`` - largest conductor plus one
 
-
         EXAMPLES::
 
-            sage: CremonaDatabase().conductor_range()     # random -- depends on database installed
-            (1, 10000)
+            sage: from sage.databases.cremona import LargeCremonaDatabase    # optional - database_cremona_ellcurve
+            sage: c = LargeCremonaDatabase()                                 # optional - database_cremona_ellcurve
+            sage: c.conductor_range()                                        # optional - database_cremona_ellcurve
+            (1, 130001)
         """
         return 1, self.largest_conductor()+1
 
@@ -1104,6 +1209,47 @@ class MiniCremonaDatabase(LargeCremonaDatabase):
     A mini version of the Cremona database that contains only the
     Weierstrass equations, rank and torsion of elliptic curves of
     conductor up to 10000 and nothing else.
+
+    TESTS::
+
+    Many of the following only work if the large Cremona database is
+    installed.  Given only the mini version, we expect them to fail
+    gracefully::
+
+        sage: from sage.databases.cremona import MiniCremonaDatabase
+        sage: c = MiniCremonaDatabase()
+        sage: c.allbsd(11)
+        {}
+        sage: c.allbsd(12001)
+        {}
+        sage: c.allcurves(12001)
+        {}
+        sage: c.allgens(11)
+        {}
+        sage: c.allgens(12001)
+        {}
+        sage: c.curves(12001)
+        {}
+        sage: c.degphi(11)
+        {}
+        sage: c.degphi(12001)
+        {}
+        sage: c.elliptic_curve('12001a1')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: There is no elliptic curve with label 12001a1 in the default database; try installing the optional package database_cremona_ellcurve-20071019 which contains all curves of conductor up to 130000
+        sage: c.elliptic_curve_from_ainvs(12001, [1, 0, 0, -101, 382])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: No elliptic curve of conductor N (=12001) and ainvs (=[1, 0, 0, -101, 382]) in the database.
+        sage: c.isogeny_class('12001a1')
+        []
+        sage: c.isogeny_classes(12001)
+        []
+        sage: c.number_of_curves(12001)
+        0
+        sage: c.number_of_isogeny_classes(12001)
+        0
     """
     def __init__(self, read_only=True):
         """
@@ -1111,10 +1257,26 @@ class MiniCremonaDatabase(LargeCremonaDatabase):
 
         INPUT:
 
-
         -  ``read_only`` - bool (default: True), if True, then
            the database is read_only and changes cannot be committed to
            disk.
+
+        TESTS::
+
+            sage: from sage.databases.cremona import MiniCremonaDatabase
+            sage: c = MiniCremonaDatabase()
+            sage: c.read_only
+            True
+            sage: c.name
+            'cremona_mini'
+            sage: c.conductor_range()
+            (1, 10000)
+            sage: c.largest_conductor()
+            9999
+            sage: c.number_of_curves(0)
+            64687
+            sage: c.number_of_isogeny_classes(0)
+            38042
         """
         sage.databases.db.Database.__init__(self,
              name="cremona_mini", read_only=read_only)
@@ -1125,11 +1287,32 @@ class MiniCremonaDatabase(LargeCremonaDatabase):
         self._init_allcurves(ftpdata, 10000)
 
     def __repr__(self):
+        """
+        Return a string description of this database.
+
+        TESTS::
+
+            sage: from sage.databases.cremona import MiniCremonaDatabase
+            sage: c = MiniCremonaDatabase()
+            sage: c.__repr__()
+            'A mini version of the Cremona database'
+        """
         return "A mini version of the Cremona database"
 
 
 _db = None
 def CremonaDatabase():
+    """
+    Initialize the large Cremona database, if available; otherwise initialize
+    the default mini Cremona database.
+
+    TESTS::
+
+        sage: c = CremonaDatabase()
+        sage: from sage.databases.cremona import LargeCremonaDatabase
+        sage: c is LargeCremonaDatabase()    # optional - database_cremona_ellcurve
+        True
+    """
     global _db
     if _db != None:
         return _db

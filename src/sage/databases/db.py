@@ -95,7 +95,7 @@ import os, shutil, cPickle
 import sage.databases.compressed_storage
 import sage.misc.misc
 
-# The following effectively turns of the ZODB logger, which is OK for us.
+# The following effectively turns off the ZODB logger, which is OK for us.
 # Without this, one gets this annoying error message a lot:
 #       No handlers could be found for logger "ZODB.FileStorage"
 import logging

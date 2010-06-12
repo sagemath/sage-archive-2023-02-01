@@ -75,10 +75,17 @@ class ConwayPolynomials(sage.databases.db.Database):
 
         INPUT:
 
-
         -  ``read_only`` - bool (default: True), if True, then
            the database is read_only and changes cannot be committed to
            disk.
+
+        TESTS::
+
+            sage: c = ConwayPolynomials()
+            sage: c
+            Frank Luebeck's database of Conway polynomials
+            sage: c.read_only
+            True
         """
         sage.databases.db.Database.__init__(self,
              name="conway_polynomials", read_only=read_only)
@@ -101,22 +108,105 @@ class ConwayPolynomials(sage.databases.db.Database):
         self.commit()
 
     def __repr__(self):
+        """
+        Return a description of this database.
+
+        TESTS:
+
+            sage: c = ConwayPolynomials()
+            sage: c.__repr__()
+            "Frank Luebeck's database of Conway polynomials"
+        """
         return "Frank Luebeck's database of Conway polynomials"
 
 
     def polynomial(self, p, n):
+        """
+        Return the Conway polynomial of degree ``n`` over ``GF(p)``,
+        or raise a RuntimeError if this polynomial is not in the
+        database.
+
+        .. NOTE::
+
+            See also the global function ``conway_polynomial`` for
+            a more user-friendly way of accessing the polynomial.
+
+        INPUT:
+
+        - ``p`` -- prime number
+
+        - ``n`` -- positive integer
+
+        OUTPUT:
+
+        List of Python int's giving the coefficients of the corresponding
+        Conway polynomial in ascending order of degree.
+
+        EXAMPLES::
+
+            sage: c = ConwayPolynomials()
+            sage: c.polynomial(3, 21)
+            [1, 2, 0, 2, 0, 1, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            sage: c.polynomial(97, 128)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Conway polynomial over F_97 of degree 128 not in database.
+        """
         try:
             return self[int(p)][int(n)]
         except KeyError:
             raise RuntimeError, "Conway polynomial over F_%s of degree %s not in database."%(p,n)
 
     def has_polynomial(self, p, n):
+        """
+        Return True if the database of Conway polynomials contains the
+        polynomial of degree ``n`` over ``GF(p)``.
+
+        INPUT:
+
+        - ``p`` -- prime number
+
+        - ``n`` -- positive integer
+
+        EXAMPLES::
+
+            sage: c = ConwayPolynomials()
+            sage: c.has_polynomial(97, 12)
+            True
+            sage: c.has_polynomial(60821, 5)
+            False
+        """
         return self.has_key(int(p)) and self[int(p)].has_key(int(n))
 
     def primes(self):
-        return self.keys()
+        """
+        Return the list of prime numbers ``p`` for which the database of
+        Conway polynomials contains polynomials over ``GF(p)``.
+
+        EXAMPLES::
+
+            sage: c = ConwayPolynomials()
+            sage: P = c.primes()
+            sage: 2 in P
+            True
+            sage: next_prime(10^7) in P
+            False
+        """
+        return list(self.keys())
 
     def degrees(self, p):
+        """
+        Return the list of integers ``n`` for which the database of Conway
+        polynomials contains the polynomial of degree ``n`` over ``GF(p)``.
+
+        EXAMPLES::
+
+            sage: c = ConwayPolynomials()
+            sage: c.degrees(60821)
+            [1, 2, 3, 4]
+            sage: c.degrees(next_prime(10^7))
+            []
+        """
         p = int(p)
         if not p in self.primes():
             return []

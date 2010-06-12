@@ -7636,6 +7636,146 @@ class GenericGraph(GenericGraph_pyx):
             g.delete_vertex(v)
         return True
 
+    def is_interval(self, certificate = False):
+        r"""
+        Check whether self is an interval graph
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- The function returns ``True``
+          or ``False`` according to the graph, when ``certificate =
+          False`` (default). When ``certificate = True`` and the graph
+          is an interval graph, a dictionary whose keys are the
+          vertices and values are pairs of integers are returned
+          instead of ``True``. They correspond to an embedding of the
+          interval graph, each vertex being represented by an interval
+          going from the first of the two values to the second.
+
+        ALGORITHM:
+
+        Through the use of PQ-Trees
+
+        AUTHOR :
+
+        Nathann Cohen (implementation)
+
+        EXAMPLES:
+
+        A Petersen Graph is not chordal, nor car it be an interval
+        graph ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_interval()
+            False
+
+        Though we can build intervals from the corresponding random
+        generator::
+
+            sage: g = graphs.RandomInterval(20)
+            sage: g.is_interval()
+            True
+
+        This method can also return, given an interval graph, a
+        possible embedding (we can actually compute all of them
+        through the PQ-Tree structures)::
+
+            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP')
+            sage: d = g.is_interval(certificate = True)
+            sage: print d                                    # not tested
+            {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
+
+        From this embedding, we can clearly build an interval graph
+        isomorphic to the previous one::
+
+            sage: g2 = graphs.IntervalGraph(d.values())
+            sage: g2.is_isomorphic(g)
+            True
+
+        .. SEEALSO::
+
+        - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
+
+        - :meth:`PQ <sage.graphs.pq_trees.PQ>`
+          -- Implementation of PQ-Trees.
+
+        """
+
+        # An interval graph first is a chordal graph. Without this,
+        # there is no telling how we should find its maximal cliques,
+        # by the way :-)
+
+        if not self.is_chordal():
+            return False
+
+        from sage.sets.set import Set
+        from sage.combinat.subset import Subsets
+
+        # First, we need to gather the list of maximal cliques, which
+        # is easy as the graph is chordal
+
+        cliques = []
+        clique_subsets = []
+
+        # As we will be deleting vertices ...
+        g = self.copy()
+
+        for cc in self.connected_components_subgraphs():
+
+            # We pick a perfect elimination order for every connected
+            # component. We will then iteratively take the last vertex
+            # in the order (a simplicial vertex) and consider the
+            # clique it forms with its neighbors. If we do not have an
+            # inclusion-wise larger clique in our list, we add it !
+
+            peo = cc.lex_BFS()
+
+
+
+            while peo:
+                v = peo.pop()
+                clique = Set( [v] + cc.neighbors(v))
+                cc.delete_vertex(v)
+
+                if not any([clique in cs for cs in clique_subsets]):
+                    cliques.append(clique)
+                    clique_subsets.append(Subsets(clique))
+
+
+        from sage.graphs.pq_trees import reorder_sets
+
+        try:
+            ordered_sets = reorder_sets(cliques)
+            if not certificate:
+                return True
+
+        except ValueError:
+            return False
+
+        # We are now listing the maximal cliques in the given order,
+        # and keeping track of the vertices appearing/disappearing
+
+        current = set([])
+        beg = {}
+        end = {}
+
+        i = 0
+
+        ordered_sets.append([])
+        for S in map(set,ordered_sets):
+            for v in current-S:
+                end[v] = i
+                i = i + 1
+
+            for v in S-current:
+                beg[v] = i
+                i = i + 1
+
+            current = S
+
+
+        return dict([(v, (beg[v], end[v])) for v in self])
+
+
     def is_clique(self, vertices=None, directed_clique=False):
         """
         Returns True if the set ``vertices`` is a clique, False

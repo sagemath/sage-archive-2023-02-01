@@ -5,15 +5,23 @@ Sage includes John Cremona's tables of elliptic curves in an
 easy-to-use format. The unique instance of the class
 CremonaDatabase() gives access to the database.
 
-If the full CremonaDatabase isn't installed, a mini-version is
-included by default with Sage.  It contains Weierstrass
-equations, rank, and torsion for curves up to conductor 10000.
+If the optional full CremonaDatabase is not installed, a mini-version
+is included by default with Sage.  It contains Weierstrass equations,
+rank, and torsion for curves up to conductor 10000.
 
-The large database includes all curves of conductor up to 130,000
-(!). It also includes data related to the BSD conjecture and
-modular degrees for all of these curves, and generators for the
-Mordell-Weil groups. To install it type the following in Sage:
+The large database includes all curves of conductor up to 130,000. It
+also includes data related to the BSD conjecture and modular degrees
+for all of these curves, and generators for the Mordell-Weil
+groups. To install it type the following in Sage:
+
 !sage -i database_cremona_ellcurve
+
+This causes the latest version of the database to be downloaded from
+the internet.  You can also install it from a local copy of the
+database spkg file, using a command of the form
+
+!sage -i database_cremona_ellcurve-20071019.spkg
+
 """
 
 #*****************************************************************************
@@ -38,6 +46,7 @@ import sage.misc.prandom as random
 import sage.schemes.elliptic_curves.constructor as elliptic
 import sage.databases.db   # very important that this be fully qualified
 from sage.misc.package import optional_packages
+from sage.misc.all import xsrange
 import sage.misc.misc
 
 import re
@@ -151,14 +160,18 @@ def old_cremona_letter_code(n):
     Returns the *old* Cremona letter code corresponding to an integer.
     integer.
 
-    For example,
+    For example::
 
-    ::
         1  --> A
+
         26 --> Z
+
         27 --> AA
+
         52 --> ZZ
+
         53 --> AAA
+
         etc.
 
     INPUT:
@@ -367,12 +380,19 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         TESTS::
 
             sage: it = CremonaDatabase().__iter__()
-            sage: it.next()
-            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-            sage: it.next()
-            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
+            sage: it.next().label()
+            '11a1'
+            sage: it.next().label()
+            '11a2'
+            sage: it.next().label()
+            '11a3'
+            sage: it.next().label()
+            '14a1'
+            sage: skip = [it.next() for _ in range(100)]
+            sage: it.next().label()
+            '45a3'
         """
-        return self.iter([11, self.largest_conductor()+1])
+        return self.iter(xsrange(11,self.largest_conductor()+1))
 
     def __getitem__(self, N):
         """
@@ -665,8 +685,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def iter(self, conductors):
         """
-        Returns an iterator through all curves with conductor between Nmin
-        and Nmax-1, inclusive, in the database.
+        Return an iterator through all curves in the database with given conductors.
 
         INPUT:
 
@@ -750,8 +769,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def iter_optimal(self, conductors):
         """
-        Returns an iterator through all optimal curves with conductor
-        between Nmin and Nmax-1 in the database.
+        Return an iterator through all optimal curves in the database with given conductors.
 
         INPUT:
 
@@ -785,8 +803,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def list(self, conductors):
         """
-        Returns a list of all curves with conductor between Nmin and
-        Nmax-1, inclusive, in the database.
+        Returns a list of all curves with given conductors.
 
         INPUT:
 
@@ -809,8 +826,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def list_optimal(self, conductors):
         """
-        Returns a list of all optimal curves with conductor between
-        Nmin and Nmax-1, inclusive, in the database.
+        Returns a list of all optimal curves with given conductors.
 
         INPUT:
 
@@ -864,12 +880,18 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def smallest_conductor(self):
         """
-        The smallest conductor for which the database is complete. (Always
-        1.)
+        The smallest conductor for which the database is complete: always 1.
 
         OUTPUT:
 
         -  ``int`` - smallest conductor
+
+        .. note::
+
+           This always returns the integer 1, since that is the
+           smallest conductor for which the database is complete,
+           although there are no elliptic curves of conductor 1.  The
+           smallest conductor of a curve in the database is 11.
 
         EXAMPLES::
 
@@ -882,11 +904,8 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         """
         Return the range of conductors that are covered by the database.
 
-        OUTPUT:
-
-        -  ``int`` - smallest cond
-
-        -  ``int`` - largest conductor plus one
+        OUTPUT: tuple of ints (N1,N2+1) where N1 is the smallest and
+        N2 the largest conductor for which the database is complete.
 
         EXAMPLES::
 
@@ -1210,7 +1229,7 @@ class MiniCremonaDatabase(LargeCremonaDatabase):
     Weierstrass equations, rank and torsion of elliptic curves of
     conductor up to 10000 and nothing else.
 
-    TESTS::
+    TESTS:
 
     Many of the following only work if the large Cremona database is
     installed.  Given only the mini version, we expect them to fail

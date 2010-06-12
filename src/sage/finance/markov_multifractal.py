@@ -1,13 +1,17 @@
 """
 Markov Switching Multifractal model
 
-REFERENCE: How to Forecast Long-Run Volatility: Regime Switching and
-the Estimation of Multifractal Processes, Calvet and Fisher, 2004.
+REFERENCE:
+
+*How to Forecast Long-Run Volatility: Regime Switching and
+the Estimation of Multifractal Processes*, Calvet and Fisher, 2004.
 
 AUTHOR:
-    -- William Stein, 2008
 
-TESTS:
+- William Stein, 2008
+
+TESTS::
+
     sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
     sage: loads(dumps(msm)) == msm
     True
@@ -19,13 +23,19 @@ class MarkovSwitchingMultifractal:
     def __init__(self, kbar, m0, sigma, gamma_kbar, b):
         """
         INPUT:
-            kbar   -- positive integer
-            m0     -- float with 0 <= m0 <= 2
-            sigma  -- positive float
-            gamma_kbar -- float with 0 <= gamma_kbar < 1
-            b      -- float > 1
 
-        EXAMPLES:
+        - ``kbar`` -- positive integer
+
+        - ``m0`` -- float with ``0 <= m0 <= 2``
+
+        - ``sigma`` -- positive float
+
+        - ``gamma_kbar`` -- float with ``0 <= gamma_kbar < 1``
+
+        - ``b`` -- float > 1
+
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.5,0.95,3); msm
             Markov switching multifractal model with m0 = 1.4, sigma = 0.5, b = 3.0, and gamma_8 = 0.95
             sage: yen_usd = finance.MarkovSwitchingMultifractal(10,1.448,0.461,0.998,3.76)
@@ -46,11 +56,12 @@ class MarkovSwitchingMultifractal:
 
     def __cmp__(self, other):
         """
-        Compare self and other.
+        Compare ``self`` and ``other``.
 
-        Comparison is done on the tuple (m0, sigma, b, gamma_kbar, kbar).
+        Comparison is done on the tuple ``(m0, sigma, b, gamma_kbar, kbar)``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
             sage: msm.__cmp__(3) # random - depends on memory layout
             -1
@@ -70,7 +81,8 @@ class MarkovSwitchingMultifractal:
         """
         Return string representation of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
             sage: msm.__repr__()
             'Markov switching multifractal model with m0 = 1.4, sigma = 1.0, b = 3.0, and gamma_8 = 0.95'
@@ -81,7 +93,8 @@ class MarkovSwitchingMultifractal:
         """
         Return parameter m0 of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
             sage: msm.m0()
             1.3999999999999999
@@ -92,7 +105,8 @@ class MarkovSwitchingMultifractal:
         """
         Return parameter sigma of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
             sage: msm.sigma()
             1.0
@@ -103,7 +117,8 @@ class MarkovSwitchingMultifractal:
         """
         Return parameter b of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
             sage: msm.b()
             3.0
@@ -112,9 +127,10 @@ class MarkovSwitchingMultifractal:
 
     def gamma_kbar(self):
         """
-        Return parameter gamma_kbar of Markov switching multifractal model.
+        Return parameter ``gamma_kbar`` of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.01,0.95,3)
             sage: msm.gamma_kbar()
             0.94999999999999996
@@ -123,9 +139,10 @@ class MarkovSwitchingMultifractal:
 
     def kbar(self):
         """
-        Return parameter kbar of Markov switching multifractal model.
+        Return parameter ``kbar`` of Markov switching multifractal model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.01,0.95,3)
             sage: msm.kbar()
             8
@@ -137,9 +154,11 @@ class MarkovSwitchingMultifractal:
         Return the vector of the kbar transitional probabilities.
 
         OUTPUT:
-            gamma -- a tuple of self.kbar() floats
 
-        EXAMPLES:
+        - gamma -- a tuple of ``self.kbar()`` floats.
+
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
             sage: msm.gamma()
             (0.001368852970712986, 0.0041009402016725094, 0.012252436441829..., 0.03630878209190..., 0.10501923017634..., 0.28312883556311..., 0.6315968501359..., 0.95000000000000...)
@@ -163,13 +182,15 @@ class MarkovSwitchingMultifractal:
 
     def simulation(self, n):
         """
-        Same as self.simulations, but run only 1 time, and returns a time series
-        instead of a list of time series.
+        Same as ``self.simulations``, but run only 1 time, and returns a time
+        series instead of a list of time series.
 
         INPUT:
-            n -- a positive integer
 
-        EXAMPLES:
+        - ``n`` -- a positive integer.
+
+        EXAMPLES::
+
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
             sage: msm.simulation(5)
             [0.0059, -0.0097, -0.0101, -0.0110, -0.0067]
@@ -180,17 +201,21 @@ class MarkovSwitchingMultifractal:
 
     def simulations(self, n, k=1):
         """
-        Return k simulations of length n using this Markov switching
-        multifractal model for n time steps.
+        Return ``k`` simulations of length ``n`` using this Markov switching
+        multifractal model for ``n`` time steps.
 
         INPUT:
-            n -- positive integer; number of steps
-            k -- positive integer (default: 1); number of simulations.
+
+        - ``n`` -- positive integer; number of steps.
+
+        - ``k`` -- positive integer (default: 1); number of simulations.
 
         OUTPUT:
-            list -- a list of TimeSeries objects.
 
-        EXAMPLES:
+        list -- a list of TimeSeries objects.
+
+        EXAMPLES::
+
             sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
             Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
         """

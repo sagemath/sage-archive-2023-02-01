@@ -1,12 +1,16 @@
 """
-Stock market price series
+Stock Market Price Series
 
 AUTHORS:
-    -- William Stein, 2008
-    -- Brett Nakayama, 2008
-    -- Chris Swierczewski, 2008
 
-TESTS:
+- William Stein, 2008
+
+- Brett Nakayama, 2008
+
+- Chris Swierczewski, 2008
+
+TESTS::
+
     sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
     sage: loads(dumps(ohlc)) == ohlc
     True
@@ -23,11 +27,15 @@ class OHLC:
         a timestamp for that data along with the volume.
 
         INPUT:
-            timestamp -- string
-            open, high, low, close -- float
-            volume -- int
 
-        EXAMPLES:
+        - ``timestamp`` -- string
+
+        - ``open``, ``high``, ``low``, ``close`` -- float
+
+        - ``volume`` -- int
+
+        EXAMPLES::
+
             sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
              18-Aug-04 100.01 104.06 95.96 100.34   22353092
         """
@@ -39,7 +47,8 @@ class OHLC:
         """
         Return string representation of stock OHLC data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092).__repr__()
             ' 18-Aug-04 100.01 104.06 95.96 100.34   22353092'
         """
@@ -48,9 +57,10 @@ class OHLC:
 
     def __cmp__(self, other):
         """
-        Compare self and other.
+        Compare ``self`` and ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
             sage: cmp(ohlc, ohlc2)
@@ -67,22 +77,26 @@ class Stock:
     """
     def __init__(self, symbol, cid=''):
         """
-        Create a Stock object. Optional initialization by cid: an identifier
-        for each equity used by Google Finance.
+        Create a ``Stock`` object. Optional initialization by ``cid``: an
+        identifier for each equity used by Google Finance.
 
         INPUT:
-            symbol -- string, a ticker symbol (with or without market)
-                      format: "MARKET:SYMBOL" or "SYMBOL", if you don't
-                              supply the market, it is assumed to be
-                              NYSE or NASDAQ.
-                      eg. "goog" or "OTC:NTDOY"
-            cid    -- Integer, a Google contract ID (optional)
 
-        LIMITATIONS:
+        - ``symbol`` -- string, a ticker symbol (with or without market).
+          Format: ``"MARKET:SYMBOL"`` or ``"SYMBOL"``. If you don't
+          supply the market, it is assumed to be NYSE or NASDAQ.
+          e.g. "goog" or "OTC:NTDOY"
+
+        - ``cid`` -- Integer, a Google contract ID (optional).
+
+
+        .. NOTE::
+
             Currently, the symbol and cid do not have to match.  When using
-            google(), the cid will take precedence.
+            ``google()``, the cid will take precedence.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = finance.Stock('ibm')
             sage: S        # random; optional -- internet
             IBM (127.48)
@@ -94,7 +108,8 @@ class Stock:
         """
         Return string representation of this stock.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: finance.Stock('ibm').__repr__()     # random; optional -- internet
             'IBM (127.47)'
         """
@@ -105,9 +120,11 @@ class Stock:
         Return the current market value of this stock.
 
         OUTPUT:
-            Python float
 
-        EXAMPLES:
+        A Python float.
+
+        EXAMPLES::
+
             sage: finance.Stock('goog').market_value()   # random; optional - internet
             575.83000000000004
         """
@@ -118,9 +135,11 @@ class Stock:
         Get Yahoo current price data for this stock.
 
         OUTPUT:
-            dict
 
-        EXAMPLES:
+        A dictionary.
+
+        EXAMPLES::
+
             sage: finance.Stock('GOOG').yahoo()          # random; optional -- internet
             {'stock_exchange': '"NasdaqNM"', 'market_cap': '181.1B', '200day_moving_avg': '564.569', '52_week_high': '747.24', 'price_earnings_growth_ratio': '1.04', 'price_sales_ratio': '10.16', 'price': '576.48', 'earnings_per_share': '14.463', '50day_moving_avg': '549.293', 'avg_daily_volume': '6292480', 'volume': '1613507', '52_week_low': '412.11', 'short_ratio': '1.00', 'price_earnings_ratio': '40.50', 'dividend_yield': 'N/A', 'dividend_per_share': '0.00', 'price_book_ratio': '7.55', 'ebitda': '6.513B', 'change': '-9.32', 'book_value': '77.576'}
         """
@@ -156,27 +175,35 @@ class Stock:
         internally as well. By default, returns the past year's daily
         OHLC data.
 
-        Dates startdate and enddate should be formatted 'Mon+d,+yyyy' where
-        'Mon' is a three character abbreviation of the month's name.
+        Dates ``startdate`` and ``enddate`` should be formatted
+        ``'Mon+d,+yyyy'``, where ``'Mon'`` is a three character abbreviation
+        of the month's name.
 
-        NOTE:
+        .. NOTE::
+
             Google Finance returns the past year's financial data by default
-            when startdate is set too low from the equity's date of going
+            when ``startdate`` is set too low from the equity's date of going
             public.  By default, this function only looks at the NASDAQ and
             NYSE markets.  However, if you specified the market during
-            initialization of the stock (i.e. "finance.Stock("OTC:NTDOY")"),
-            Stock.google() will give correct results.
+            initialization of the stock (i.e. ``finance.Stock("OTC:NTDOY")``),
+            ``Stock.google()`` will give correct results.
 
         INPUT:
-            startdate -- string, (default: 'Jan+1,+1900')
-            enddate   -- string, (default: current date )
-            histperiod -- string, ('daily' or 'weekly')
+
+        - ``startdate`` -- string, (default: ``'Jan+1,+1900'``)
+
+        - ``enddate`` -- string, (default: current date)
+
+        - ``histperiod`` -- string, (``'daily'`` or ``'weekly'``)
 
         OUTPUT:
-            Sequence
+
+        A sequence.
 
         EXAMPLES:
-        We get the first five days of VMware's stock history:
+
+        We get the first five days of VMware's stock history::
+
             sage: finance.Stock('vmw').google()[:5]   # optional -- internet
             [
              28-Nov-07 80.57 88.49 80.57 87.69    7496000,
@@ -195,10 +222,10 @@ class Stock:
               9-Jan-78 0.00 1.81 1.79 1.81    3916400
             ]
 
-        Note that when startdate is too far prior to a stock's actual start
+        Note that when ``startdate`` is too far prior to a stock's actual start
         date, Google Finance defaults to a year's worth of stock history
-        leading up to the specified enddate.  For example, Apple's (AAPL) stock
-        history only dates back to September 7, 1984
+        leading up to the specified end date.  For example, Apple's (AAPL)
+        stock history only dates back to September 7, 1984::
 
             sage: finance.Stock('AAPL').google('Sep+1,+1900', 'Jan+1,+2000')[0:5] # optional -- internet
             [
@@ -210,7 +237,7 @@ class Stock:
             ]
 
         Here is an example where we create and get the history of a stock
-        that is not in NASDAQ or NYSE
+        that is not in NASDAQ or NYSE::
 
             sage: finance.Stock("OTC:NTDOY").google(startdate="Jan+1,+2007", enddate="Jan+1,+2008")[:5]  # optional -- internet
             [
@@ -226,7 +253,7 @@ class Stock:
         Note that when using historical, if a cid is specified,
         it will take precedence over the stock's symbol.  So, if
         the symbol and cid do not match, the history based on the
-        contract id will be returned.
+        contract id will be returned. ::
 
             sage: sage.finance.stock.Stock("AAPL", 22144).google(startdate='Jan+1,+1990')[:5] #optional -- internet
             [
@@ -257,25 +284,32 @@ class Stock:
 
     def open(self, *args, **kwds):
         r"""
-        Return a TimeSeries containing historical opening prices for this
+        Return a time series containing historical opening prices for this
         stock. If no arguments are given, will return last acquired historical
         data. Otherwise, data will be gotten from Google Finance.
 
         INPUT:
-            startdate  -- string, (default: 'Jan+1,+1900')
-            enddate    -- string, (default: current date)
-            histperiod -- string, ('daily' or 'weekly')
+
+        - ``startdate`` -- string, (default: ``'Jan+1,+1900'``)
+
+        - ``enddate`` -- string, (default: current date)
+
+        - ``histperiod`` -- string, (``'daily'`` or ``'weekly'``)
 
         OUTPUT:
-            TimeSeries -- Close price data
+
+        A time series -- close price data.
 
         EXAMPLES:
-        You can directly obtain Open data as so:
+
+        You can directly obtain Open data as so::
+
             sage: finance.Stock('vmw').open(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- internet
             [83.0500, 85.4900, 84.9000, 82.0000, 81.2500 ... 82.0000, 58.2700, 54.4900, 55.6000, 56.9800]
 
         Or, you can initialize stock data first and then extract the Open
-        data:
+        data::
+
             sage: c = finance.Stock('vmw')
             sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
@@ -288,11 +322,11 @@ class Stock:
             sage: c.open()    # optional -- internet
             [55.6000, 56.9800, 58.0000, 57.6000, 60.3200 ... 56.5500, 59.3000, 60.0000, 59.7900, 59.2600]
 
-        Otherwise, \code{self.google()} will be called with the default
-        arguments returning a year's worth of data:
+        Otherwise, ``self.google()`` will be called with the default
+        arguments returning a year's worth of data::
+
             sage: finance.Stock('vmw').open()   # random; optional -- internet
             [52.1100, 60.9900, 59.0000, 56.0500, 57.2500 ... 83.0500, 85.4900, 84.9000, 82.0000, 81.2500]
-
         """
 
         from time_series import TimeSeries
@@ -314,20 +348,27 @@ class Stock:
         Otherwise, data will be gotten from Google Finance.
 
         INPUT:
-            startdate  -- string, (default: 'Jan+1,+1900')
-            enddate    -- string, (default: current date)
-            histperiod -- string, ('daily' or 'weekly')
+
+        - ``startdate`` -- string, (default: ``'Jan+1,+1900'``)
+
+        - ``enddate`` -- string, (default: current date)
+
+        - ``histperiod`` -- string, (``'daily'`` or ``'weekly'``)
 
         OUTPUT:
-            TimeSeries -- Close price data
+
+        A time series -- close price data.
 
         EXAMPLES:
-        You can directly obtain close data as so:
+
+        You can directly obtain close data as so::
+
             sage: finance.Stock('vmw').close(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- internet
             [84.9900, 84.6000, 83.9500, 80.4900, 72.9900 ... 83.0000, 54.8700, 56.4200, 56.6700, 57.8500]
 
         Or, you can initialize stock data first and then extract the Close
-        data:
+        data::
+
             sage: c = finance.Stock('vmw')
             sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
@@ -340,10 +381,9 @@ class Stock:
             sage: c.close()    # optional -- internet
             [56.6700, 57.8500, 58.0500, 59.3000, 61.5200 ... 58.2900, 60.1800, 59.8600, 59.9500, 58.6700]
 
+        Otherwise, ``self.google()`` will be called with the default
+        arguments returning a year's worth of data::
 
-
-        Otherwise, \code{self.google()} will be called with the default
-        arguments returning a year's worth of data:
             sage: finance.Stock('vmw').close()   # random; optional -- internet
             [57.7100, 56.9900, 55.5500, 57.3300, 65.9900 ... 84.9900, 84.6000, 83.9500, 80.4900, 72.9900]
         """
@@ -365,21 +405,25 @@ class Stock:
         Load historical data from a local csv formatted data file. Note
         that no symbol data is included in Google Finance's csv data.
         The csv file must be formatted in the following way, just as
-        on Google Finance:
+        on Google Finance::
 
-        Timestamp,Open,High,Low,Close,Volume
+            Timestamp,Open,High,Low,Close,Volume
 
         INPUT:
-            file -- local file with Google Finance formatted OHLC data
 
-        OUTPUTS:
-            Sequence -- OHLC data
+        - ``file`` -- local file with Google Finance formatted OHLC data.
+
+        OUTPUT:
+
+        A sequence -- OHLC data.
 
         EXAMPLES:
+
         Suppose you have a file in your home directory containing Apple stock
-        OHLC data, such as that from Google Finance, called AAPL-minutely.csv.
-        One can load this information into a Stock object like so. Note that
-        the path must be explicit:
+        OHLC data, such as that from Google Finance, called
+        ``AAPL-minutely.csv``. One can load this information into a Stock
+        object like so. Note that the path must be explicit::
+
             sage: finance.Stock('aapl').load_from_file(SAGE_ROOT + '/examples/finance/AAPL-minutely.csv')[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -393,8 +437,9 @@ class Stock:
         Note that since the source file doesn't contain information on which
         equity the information comes from, the symbol designated at
         initialization of Stock need not match the source of the data. For
-        example, we can initialize a Stock object with the symbol 'goog',
-        but load data from 'aapl' stock prices:
+        example, we can initialize a Stock object with the symbol ``'goog'``,
+        but load data from ``'aapl'`` stock prices::
+
             sage: finance.Stock('goog').load_from_file(SAGE_ROOT + '/examples/finance/AAPL-minutely.csv')[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -404,10 +449,10 @@ class Stock:
             1212405780 187.80 187.80 187.80 187.80        100
             ]
 
-        This tests a file that doesn't exist:
+        This tests a file that doesn't exist::
+
             sage: finance.Stock("AAPL").load_from_file("I am not a file")
             Bad path or file name
-
         """
         try:
             file_obj = open(file, 'r')
@@ -421,7 +466,9 @@ class Stock:
     def _load_from_csv(self, R):
         """
         EXAMPLES:
-        This indirectly tests _load_from_csv():
+
+        This indirectly tests ``_load_from_csv()``::
+
             sage: finance.Stock('aapl').load_from_file(SAGE_ROOT + "/examples/finance/AAPL-minutely.csv")
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -430,8 +477,6 @@ class Stock:
             1212407640 187.75 188.00 187.75 188.00       2000,
             1212405780 187.80 187.80 187.80 187.80        100
             ]
-
-
         """
         R = R.splitlines()
         headings = R[0].split(',')
@@ -451,7 +496,9 @@ class Stock:
         This function is used internally.
 
         EXAMPLES:
-        This indirectly tests the use of get_data.
+
+        This indirectly tests the use of ``_get_data()``::
+
             sage: finance.Stock('aapl').google(startdate='Jan+1,+1990')[:2]    # optional -- internet
             [
               2-Jan-90 0.00 9.38 8.75 9.31    6542800,

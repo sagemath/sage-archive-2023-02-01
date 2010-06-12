@@ -12,9 +12,9 @@ unset AR
 
 
 if [ "x$SAGE64" = xyes ]; then
-   ./configure --64 --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+   ./configure --64 --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
 else
-   ./configure --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+   ./configure --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
 fi
 
 

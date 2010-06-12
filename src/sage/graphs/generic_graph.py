@@ -4142,11 +4142,8 @@ class GenericGraph(GenericGraph_pyx):
 
         p = MixedIntegerLinearProgram(maximization = False)
 
-
         f = p.new_variable()
         r = p.new_variable()
-
-
 
         # If the graph has multiple edges
         if self.has_multiple_edges():
@@ -4164,7 +4161,7 @@ class GenericGraph(GenericGraph_pyx):
                     # the weights of the parallel edges
 
                     #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
-                    e[(u,v)] = l if (not e.has_key((u,v)) or ( l is None and e[(u,v)] > 1 )) else e[(u,v)]
+                    e[(u,v)] = l if (not e.has_key((u,v)) or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])
 
@@ -4234,7 +4231,7 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint( sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
 
 
-        weight = lambda u,v : g.edge_label(u,v) if g.edge_label(u,v) is not None else 1
+        weight = lambda u,v : g.edge_label(u,v) if (g.edge_label(u,v) is not None and g.edge_label(u,v) != {}) else 1
 
         if weighted:
             p.set_objective( sum([ weight(u,v)*E(u,v) for u,v in g.edges(labels=None)]) )

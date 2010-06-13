@@ -1300,6 +1300,172 @@ class Graph(GenericGraph):
 
     ### Properties
 
+    def is_even_hole_free(self, certificate = False):
+        r"""
+        Tests whether ``self`` contains an induced even hole.
+
+        A Hole is a cycle of length at least 4 (included). It is said
+        to be even (resp. odd) if its length is even (resp. odd).
+
+        Even-hole-free graphs always contain a bisimplicial vertex,
+        which ensures that their chromatic number is at most twice
+        their clique number [ABCHRS08]_.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- When ``certificate = False``,
+          this method only returns ``True`` or ``False``. If
+          ``certificate = True``, the subgraph found is returned
+          instead of ``False``.
+
+        EXAMPLE:
+
+        Is the Petersen Graph even-hole-free ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_even_hole_free()
+            False
+
+        As any chordal graph is hole-free, interval graphs behave the
+        same way::
+
+            sage: g = graphs.RandomInterval(20)
+            sage: g.is_even_hole_free()
+            True
+
+        It is clear, though, that a random Bipartite Graph which is
+        not a forest has an even hole::
+
+            sage: g = graphs.RandomBipartite(10, 10, .5)
+            sage: g.is_even_hole_free()
+            False
+
+        We can check the certificate returned is indeed an even
+        cycle::
+
+            sage: cycle = g.is_even_hole_free(certificate = True)
+            sage: cycle.order() % 2 == 0
+            True
+            sage: cycle.is_isomorphic(graphs.CycleGraph(cycle.order()))
+            True
+
+        REFERENCE:
+
+        .. [ABCHRS08] L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
+          Bisimplicial  vertices in even-hole-free graphs
+          Journal of Combinatorial Theory, Series B
+          vol 98, n.6 pp 1119-1164, 2008
+        """
+        from sage.graphs.graph_generators import GraphGenerators
+
+        girth = self.girth()
+
+        if girth > self.order():
+            start = 4
+
+        elif girth % 2 == 0:
+            if not certificate:
+                return False
+            start = girth
+
+        else:
+            start = girth + 1
+
+        while start <= self.order():
+
+
+            subgraph = self.subgraph_search(GraphGenerators().CycleGraph(start), induced = True)
+
+            if not subgraph is None:
+                if certificate:
+                    return subgraph
+                else:
+                    return False
+
+            start = start + 2
+
+        return True
+
+    def is_odd_hole_free(self, certificate = False):
+        r"""
+        Tests whether ``self`` contains an induced odd hole.
+
+        A Hole is a cycle of length at least 4 (included). It is said
+        to be even (resp. odd) if its length is even (resp. odd).
+
+        It is interesting to notice that while it is polynomial to
+        check whether a graph has an odd hole or an odd antihole [CRST06]_, it is
+        not known whether testing for one of these two cases
+        independently is polynomial too.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- When ``certificate = False``,
+          this method only returns ``True`` or ``False``. If
+          ``certificate = True``, the subgraph found is returned
+          instead of ``False``.
+
+        EXAMPLE:
+
+        Is the Petersen Graph odd-hole-free ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_odd_hole_free()
+            False
+
+        Which was to be expected, as its girth is 5 ::
+
+            sage: g.girth()
+            5
+
+        We can check the certificate returned is indeed a 5-cycle::
+
+            sage: cycle = g.is_odd_hole_free(certificate = True)
+            sage: cycle.is_isomorphic(graphs.CycleGraph(5))
+            True
+
+        As any chordal graph is hole-free, no interval graph has an odd hole::
+
+            sage: g = graphs.RandomInterval(20)
+            sage: g.is_odd_hole_free()
+            True
+
+        REFERENCES:
+
+        .. [CRST06] M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
+          Recognizing berge graphs
+          Combinatorica vol 25, n 2, pages 143--186
+          2005
+        """
+        from sage.graphs.graph_generators import GraphGenerators
+
+        girth = self.girth()
+
+        if girth > self.order() or girth == 3:
+            start = 5
+
+        elif girth % 2 == 1:
+            if not certificate:
+                return False
+            start = girth
+
+        else:
+            start = girth + 1
+
+        while start <= self.order():
+
+            subgraph = self.subgraph_search(GraphGenerators().CycleGraph(start), induced = True)
+
+            if not subgraph is None:
+                if certificate:
+                    return subgraph
+                else:
+                    return False
+
+            start = start + 2
+
+        return True
+
     def eulerian_circuit(self, return_vertices=False, labels=True):
         """
         Return a list of edges forming an eulerian circuit if one exists.

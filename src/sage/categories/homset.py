@@ -45,6 +45,8 @@ AUTHORS:
 - Nicolas M. Thiery (2008-12-): Updated for the new category framework
 
 - Simon King (2011-12): Use a weak cache for homsets
+
+- Simon King (2013-02): added examples
 """
 
 #*****************************************************************************
@@ -437,6 +439,45 @@ class Homset(Set_generic):
         return True
 
     def _generic_convert_map(self, S):
+        """
+        Return a generic map from a given homset to ``self``.
+
+        INPUT:
+
+        ``S`` -- a homset
+
+        OUTPUT:
+
+        A map (by default: a Call morphism) from ``S`` to ``self``.
+
+        EXAMPLE::
+
+            sage: H = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([2*t])
+            sage: H._generic_convert_map(f.parent())
+            Call morphism:
+              From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
+              To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups
+            sage: H._generic_convert_map(f.parent())(f)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+              Defn:   Composite map:
+                      From: Integer Ring
+                      To:   Univariate Polynomial Ring in t over Integer Ring
+                      Defn:   Polynomial base injection morphism:
+                              From: Integer Ring
+                              To:   Univariate Polynomial Ring in t over Integer Ring
+                            then
+                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                              Defn: t |--> 2*t
+                    then
+                      Conversion map:
+                      From: Univariate Polynomial Ring in t over Integer Ring
+                      To:   Univariate Polynomial Ring in t over Rational Field
+
+        """
         if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism
             from sage.categories.homset import Hom
@@ -560,6 +601,24 @@ class Homset(Set_generic):
         return self.__make_element_class__(morphism.SetMorphism)
 
     def __cmp__(self, other):
+        """
+        For two homsets, it is tested whether the domain, the codomain and
+        the category coincide.
+
+        TESTS::
+
+            sage: H1 = Hom(ZZ,QQ, CommutativeAdditiveGroups())
+            sage: H2 = Hom(ZZ,QQ)
+            sage: H3 = Hom(ZZ['t'],QQ, CommutativeAdditiveGroups())
+            sage: H4 = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
+            sage: H1 == H2
+            False
+            sage: H1 == loads(dumps(H1))
+            True
+            sage: H1 != H3 != H4 != H1
+            True
+
+        """
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
         if self._domain == other._domain:
@@ -571,6 +630,19 @@ class Homset(Set_generic):
         else: return cmp(self._domain, other._domain)
 
     def __contains__(self, x):
+        """
+        Test whether the parent of the argument is ``self``.
+
+        TEST::
+
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f in Hom(ZZ['t'],QQ['t'])  # indirect doctest
+            True
+            sage: f in Hom(ZZ['t'],QQ['t'], CommutativeAdditiveGroups())  # indirect doctest
+            False
+
+        """
         try:
             return x.parent() == self
         except AttributeError:
@@ -578,24 +650,105 @@ class Homset(Set_generic):
         return False
 
     def natural_map(self):
+        """
+        Return the "natural map" of this homset.
+
+        NOTE:
+
+        By default, a formal coercion morphism is returned.
+
+        EXAMPLE::
+
+            sage: H = Hom(ZZ['t'],QQ['t'], CommutativeAdditiveGroups())
+            sage: H.natural_map()
+            Coercion morphism:
+              From: Univariate Polynomial Ring in t over Integer Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+            sage: H = Hom(QQ['t'],GF(3)['t'])
+            sage: H.natural_map()
+            Traceback (most recent call last):
+            ...
+            TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
+
+        """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
     def identity(self):
+        """
+        The identity map of this homset.
+
+        NOTE:
+
+        Of course, this only exists for sets of endomorphisms.
+
+        EXAMPLE::
+
+            sage: H = Hom(QQ,QQ)
+            sage: H.identity()
+            Identity endomorphism of Rational Field
+            sage: H = Hom(ZZ,QQ)
+            sage: H.identity()
+            Traceback (most recent call last):
+            ...
+            TypeError: Identity map only defined for endomorphisms. Try natural_map() instead.
+            sage: H.natural_map()
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   Rational Field
+
+        """
         if self.is_endomorphism_set():
             return morphism.IdentityMorphism(self)
         else:
             raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
 
     def domain(self):
+        """
+        Return the domain of this homset.
+
+        EXAMPLE:
+
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f.parent().domain()
+            Univariate Polynomial Ring in t over Integer Ring
+            sage: f.domain() is f.parent().domain()
+            True
+
+        """
         return self._domain
 
     def codomain(self):
+        """
+        Return the codomain of this homset.
+
+        EXAMPLE:
+
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f.parent().codomain()
+            Univariate Polynomial Ring in t over Rational Field
+            sage: f.codomain() is f.parent().codomain()
+            True
+
+        """
         return self._codomain
 
     def is_endomorphism_set(self):
         """
         Return True if the domain and codomain of self are the same
         object.
+
+        EXAMPLE::
+
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f.parent().is_endomorphism_set()
+            False
+            sage: g = P.hom([2*t])
+            sage: g.parent().is_endomorphism_set()
+            True
+
         """
         return self._domain is self._codomain
 
@@ -654,12 +807,37 @@ class HomsetWithBase(Homset):
 def is_Homset(x):
     """
     Return True if x is a set of homomorphisms in a category.
+
+    EXAMPLE::
+
+        sage: from sage.categories.homset import is_Homset
+        sage: P.<t> = ZZ[]
+        sage: f = P.hom([1/2*t])
+        sage: is_Homset(f)
+        False
+        sage: is_Homset(f.category())
+        False
+        sage: is_Homset(f.parent())
+        True
+
     """
     return isinstance(x, Homset)
 
 def is_Endset(x):
     """
     Return True if x is a set of endomorphisms in a category.
+
+    EXAMPLE:
+
+        sage: from sage.categories.homset import is_Endset
+        sage: P.<t> = ZZ[]
+        sage: f = P.hom([1/2*t])
+        sage: is_Endset(f.parent())
+        False
+        sage: g = P.hom([2*t])
+        sage: is_Endset(g.parent())
+        True
+
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
 

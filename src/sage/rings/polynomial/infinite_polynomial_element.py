@@ -264,7 +264,7 @@ class InfinitePolynomial_sparse(RingElement):
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: a = x[0] + x[1]
-            sage: hash(a)
+            sage: hash(a) # indirect doctest
             -6172640511012239345   # 64-bit
             -957478897             # 32-bit
 
@@ -350,7 +350,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: import sagenb.misc.support as s
             sage: p = x[3]*x[2]
-            sage: s.completions('p.co',globals(),system='python') # indirect doc test
+            sage: s.completions('p.co',globals(),system='python') # indirect doctest
             ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
 
         """
@@ -498,7 +498,7 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: x[1] + x[2]
+            sage: x[1] + x[2] # indirect doctest
             x_2 + x_1
 
         """
@@ -523,7 +523,7 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(ZZ)
-            sage: x[2]*x[1]
+            sage: x[2]*x[1] # indirect doctest
             x_2*x_1
 
         """
@@ -550,15 +550,15 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ, implementation='sparse')
-            sage: x[0]/2
+            sage: x[0]/2 # indirect doctest
             1/2*x_0
-            sage: x[0]/x[0]
+            sage: x[0]/x[0] # indirect doctest
             Traceback (most recent call last):
             ...
             NotImplementedError: Fraction Fields of Infinite Polynomial Rings are not implemented
             sage: R.<x> = InfinitePolynomialRing(ZZ, implementation='sparse')
             sage: p = x[3]+x[2]
-            sage: q = p/2
+            sage: q = p/2 # indirect doctest
             sage: q
             1/2*x_3 + 1/2*x_2
             sage: q.parent()
@@ -576,7 +576,7 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: x[2] - x[1]
+            sage: x[2] - x[1] # indirect doctest
             x_2 - x_1
 
         """
@@ -611,7 +611,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: X.<x,y> = InfinitePolynomialRing(QQ,implementation='sparse')
             sage: p = x[10]*y[2]+2*x[1]*y[3]
             sage: P = Permutation(((1,2),(3,4,5)))
-            sage: p^P
+            sage: p^P # indirect doctest
             x_10*y_1 + 2*x_2*y_4
 
         """
@@ -666,13 +666,13 @@ class InfinitePolynomial_sparse(RingElement):
             sage: b = x[1] + x[2]
             sage: c = x[1] + x[2]
             sage: d = y[1] + x[2]
-            sage: a == a
+            sage: a == a # indirect doctest
             True
-            sage: b == c
+            sage: b == c # indirect doctest
             True
-            sage: a == b
+            sage: a == b # indirect doctest
             False
-            sage: c > d
+            sage: c > d # indirect doctest
             True
 
         TESTS::
@@ -685,14 +685,14 @@ class InfinitePolynomial_sparse(RingElement):
 
             sage: X.<x,y> = InfinitePolynomialRing(ZZ,order='degrevlex', implementation='sparse')
             sage: Y.<z,x_3,x_1> = QQ[]
-            sage: x[3] == x_3
+            sage: x[3] == x_3 # indirect doctest
             True
 
         Two infinite polynomial rings in different implementation and
         order::
 
             sage: Y = InfinitePolynomialRing(QQ,['x','y'],order='deglex',implementation='dense')
-            sage: x[2] == Y(x[2])
+            sage: x[2] == Y(x[2]) # indirect doctest
             True
 
         An example in which a previous version had failed::
@@ -700,7 +700,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: X.<x,y> = InfinitePolynomialRing(GF(3), order='degrevlex', implementation='sparse')
             sage: p = Y('x_3*x_0^2 + x_0*y_3*y_0')
             sage: q = Y('x_1*x_0^2 + x_0*y_1*y_0')
-            sage: p < q
+            sage: p < q # indirect doctest
             False
 
         """
@@ -1310,7 +1310,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: x[1] + x[2]
+            sage: x[1] + x[2] # indirect doctest
             x_2 + x_1
 
         """
@@ -1324,7 +1324,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: x[2]*x[1]
+            sage: x[2]*x[1] # indirect doctest
             x_2*x_1
 
         """
@@ -1338,7 +1338,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: x[2] - x[1]
+            sage: x[2] - x[1] # indirect doctest
             x_2 - x_1
 
         """

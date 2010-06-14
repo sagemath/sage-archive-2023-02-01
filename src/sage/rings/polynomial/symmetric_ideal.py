@@ -220,7 +220,7 @@ class SymmetricIdeal( Ideal_generic ):
             sage: from sage.misc.latex import latex
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
             sage: I=X*(x[1]*y[2])
-            sage: latex(I) # indirect doc test
+            sage: latex(I) # indirect doctest
             \left(x_{1} y_{2}\right)\Bold{Q}[x_{\ast}, y_{\ast}][\mathfrak{S}_{\infty}]
 
         """
@@ -242,7 +242,7 @@ class SymmetricIdeal( Ideal_generic ):
             sage: I = R*I.groebner_basis()
             sage: I
             Symmetric Ideal (x_1^2 + x_1, x_2 - x_1) of Infinite polynomial ring in x over Rational Field
-            sage: x[2]^2 + x[3] in I
+            sage: x[2]^2 + x[3] in I # indirect doctest
             True
 
         """
@@ -579,7 +579,7 @@ class SymmetricIdeal( Ideal_generic ):
         """
         return Sequence(self.interreduction(tailreduce=True).gens(), self.ring(), check=False)
 
-    def symmetrisation (self, N=None, tailreduce=False, report=None, use_full_group=False):
+    def symmetrisation(self, N=None, tailreduce=False, report=None, use_full_group=False):
         """
         Apply permutations to the generators of self and interreduce
 

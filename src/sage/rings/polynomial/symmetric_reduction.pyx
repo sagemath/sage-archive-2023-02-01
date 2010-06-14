@@ -170,9 +170,31 @@ cdef class SymmetricReductionStrategy:
                 self.add_generator(p, good_input=good_input)
 
     def __getinitargs__(self):
+        r"""
+        Used for pickling.
+
+        EXAMPLES::
+
+            sage: X.<y> = InfinitePolynomialRing(QQ)
+            sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
+            sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], good_input=True)
+            sage: S.__getinitargs__()
+            (Infinite polynomial ring in y over Rational Field, [], 0, None)
+        """
         return (self._parent,[],self._tail,None)
 
     def __getstate__(self):
+        r"""
+        Used for pickling.
+
+        EXAMPLES::
+
+            sage: X.<y> = InfinitePolynomialRing(QQ)
+            sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
+            sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], good_input=True)
+            sage: S.__getstate__()
+            ([y_2*y_1^2, y_2^2*y_1], [1, 1], y_2*y_1^2, 0, Infinite polynomial ring in y over Rational Field)
+        """
         # Apparently, for pickling it is needed to update self._lm and self._min_lm before
         # calling dumps...
         R = self._parent
@@ -181,6 +203,17 @@ cdef class SymmetricReductionStrategy:
         return (self._lm, self._lengths, self._min_lm, self._tail, self._parent)
 
     def __setstate__(self, L): #(lm, lengths, min_lm, tail)
+        r"""
+        Used for pickling.
+
+        EXAMPLES::
+
+            sage: X.<y> = InfinitePolynomialRing(QQ)
+            sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
+            sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], good_input=True)
+            sage: S == loads(dumps(S)) # indirect doctest
+            True
+        """
         self._lm = L[0]
         self._lengths  = L[1]
         self._min_lm = L[2]
@@ -192,6 +225,19 @@ cdef class SymmetricReductionStrategy:
             self._R = None
 
     def __cmp__(self, other):
+        r"""
+        Standard comparison function.
+
+            sage: from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
+            sage: X.<x,y> = InfinitePolynomialRing(QQ)
+            sage: S = SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], tailreduce=True)
+            sage: S == 17
+            False
+            sage: S == SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], tailreduce=False)
+            False
+            sage: S == SymmetricReductionStrategy(X, [y[2]^2*y[1],y[1]^2*y[2]], tailreduce=True)
+            True
+        """
         if not isinstance(other, SymmetricReductionStrategy):
             return -1
         cdef SymmetricReductionStrategy Other = other

@@ -376,7 +376,7 @@ class InfiniteGenDict:
     EXAMPLES::
 
         sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-        sage: D = R.gens_dict() # indirect doc test
+        sage: D = R.gens_dict() # indirect doctest
         sage: D._D
         [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
         sage: D._D[0]['a_15']
@@ -396,10 +396,10 @@ class InfiniteGenDict:
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D._D
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
-            sage: D._D == loads(dumps(D._D)) # indirect doc test
+            sage: D._D == loads(dumps(D._D)) # indirect doctest
             True
 
         """
@@ -410,10 +410,10 @@ class InfiniteGenDict:
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D._D
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
-            sage: D._D == loads(dumps(D._D)) # indirect doc test
+            sage: D._D == loads(dumps(D._D)) # indirect doctest
             True
 
         """
@@ -421,23 +421,13 @@ class InfiniteGenDict:
             return cmp(self._D,other._D)
         return -1
 
-    def __contains__(self, x):
-        from sage.all import parent
-        if self.has_coerce_map_from(parent(x)):
-            return True
-        try:
-            x = self(x)
-            return True
-        except:
-            return False
-
     def __repr__(self):
         """
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
             sage: D = R.gens_dict()
-            sage: D._D # indirect doc test
+            sage: D._D # indirect doctest
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
         """
         return "InfiniteGenDict defined by %s"%repr(self._D.keys())
@@ -447,7 +437,7 @@ class InfiniteGenDict:
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D._D
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
             sage: D._D[0]['a_15']
@@ -478,7 +468,7 @@ class GenDictWithBasering:
     EXAMPLES::
 
         sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-        sage: D = R.gens_dict() # indirect doc test
+        sage: D = R.gens_dict() # indirect doctest
         sage: D
         GenDict of Infinite polynomial ring in a, b over Integer Ring
         sage: D['a_15']
@@ -500,7 +490,7 @@ class GenDictWithBasering:
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D
             GenDict of Infinite polynomial ring in a, b over Integer Ring
             sage: D['a_15']
@@ -561,7 +551,7 @@ class GenDictWithBasering:
         TESTS::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D
             GenDict of Infinite polynomial ring in a, b over Integer Ring
         """
@@ -572,7 +562,7 @@ class GenDictWithBasering:
         TESTS::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
-            sage: D = R.gens_dict() # indirect doc test
+            sage: D = R.gens_dict() # indirect doctest
             sage: D
             GenDict of Infinite polynomial ring in a, b over Integer Ring
             sage: D['a_15']
@@ -733,7 +723,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         return "Infinite polynomial ring in %s over %s"%(", ".join(self._names), self._base)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.misc.latex import latex
@@ -753,7 +743,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         EXAMPLES::
 
             sage: R.<x> = InfinitePolynomialRing(QQ)
-            sage: R.an_element()
+            sage: R.an_element() # indirect doctest
             x_1
         """
         x = self.gen(0)
@@ -916,8 +906,10 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # the string representation.
         from sage.misc.sage_eval import sage_eval
         if isinstance(x, basestring):
-            # if there's an error, there's nothing we can do. So, no catching
-            return sage_eval(x, self.gens_dict())
+            try:
+                return sage_eval(x, self.gens_dict())
+            except:
+                raise ValueError, "Can't convert %s into an element of %s" % (x, self)
 
         if hasattr(x, 'parent') and isinstance(x.parent(), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past
@@ -948,7 +940,10 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # If it isn't a polynomial (duck typing: we need
         # the variables attribute), we fall back to using strings
         if not hasattr(x,'variables'):
-            return sage_eval(repr(x), self._gens_dict)
+            try:
+                return sage_eval(repr(x), self.gens_dict())
+            except:
+                raise ValueError, "Can't convert %s into an element of %s" % (x, self)
 
         # direct conversion will only be used if the underlying polynomials are libsingular.
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular, MPolynomialRing_libsingular
@@ -1252,6 +1247,11 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     def _first_ngens(self, n):
         """
         Used by the preparser for R.<x> = ...
+
+        EXAMPLES::
+
+            sage: InfinitePolynomialRing(ZZ, 'a')._first_ngens(1)
+            (a_*,)
         """
         # It may be that we merge variables. If this is the case,
         # the new variables (as used by R.<x>  = ...) come *last*,
@@ -1406,18 +1406,18 @@ class InfinitePolynomialGen(SageObject):
         return cmp((self._name,self._parent),(other._name,other._parent))
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.misc.latex import latex
             sage: X.<x,x1> = InfinitePolynomialRing(QQ)
-            sage: latex(x)
+            sage: latex(x) # indirect doctest
             x_{\ast}
-            sage: latex(x1)
+            sage: latex(x1) # indirect doctest
             \mbox{x1}_{\ast}
-            sage: latex(x[2])
+            sage: latex(x[2]) # indirect doctest
             x_{2}
-            sage: latex(x1[3])
+            sage: latex(x1[3]) # indirect doctest
             \mbox{x1}_{3}
 
         """
@@ -1488,7 +1488,7 @@ class InfinitePolynomialGen(SageObject):
         EXAMPLES::
 
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: x  # indirect doc test
+            sage: x  # indirect doctest
             x_*
 
         """
@@ -1499,7 +1499,7 @@ class InfinitePolynomialGen(SageObject):
         EXAMPLES::
 
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: print(x) # indirect doc test
+            sage: print(x) # indirect doctest
             Generator for the x's in Infinite polynomial ring in x, y over Rational Field
 
         """
@@ -1533,20 +1533,24 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         self._P = self._minP
         #self._pgens = self._P.gens()
 
-    def __contains__(self, x):
-        from sage.all import parent
-        if self.has_coerce_map_from(parent(x)):
-            return True
-        try:
-            x = self(x)
-            return True
-        except:
-            return False
-
     #####################
     ## Coercion
 
     def construction(self):
+        """
+        Return the construction of ``self``.
+
+        OUTPUT:
+
+        A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
+        so that ``F(R) is self``.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = InfinitePolynomialRing(GF(5))
+            sage: R.construction()
+            [InfPoly{[x,y], "lex", "dense"}, Finite Field of size 5]
+        """
         return [InfinitePolynomialFunctor(self._names, self._order, 'dense'), self._base]
 
     def tensor_with_ring(self, R):

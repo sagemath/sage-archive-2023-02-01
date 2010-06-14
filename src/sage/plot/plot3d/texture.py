@@ -16,9 +16,96 @@ uniq_c = 0
 from sage.plot.colors import colors
 
 def is_Texture(x):
+    r"""
+    Return whether x is an instance of ``Texture_class``.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.texture import is_Texture, Texture
+        sage: t = Texture(0.5)
+        sage: is_Texture(t)
+        True
+
+    ::
+
+        sage: is_Texture(4)
+        False
+    """
     return isinstance(x, Texture_class)
 
 def Texture(id=None, **kwds):
+    r"""
+    Return a texture.
+
+    INPUT:
+
+    - ``id`` - a texture (optional, default: None), a dict, a color, an
+      str, a tuple, None or any other type acting as an ID. If ``id`` is
+      None, then it returns a unique texture object.
+    - ``texture`` - a texture
+    - ``color`` - tuple or str, (optional, default: (.4, .4, 1))
+    - ``opacity`` - number between 0 and 1 (optional, default: 1)
+    - ``ambient`` - number (optional, default: 0.5)
+    - ``diffuse`` - number (optional, default: 1)
+    - ``specular`` - number (optional, default: 0)
+    - ``shininess`` - number (optional, default: 1)
+    - ``name`` - str (optional, default: None)
+    - ``**kwds`` - other valid keywords
+
+    OUTPUT:
+
+    a texture object
+
+    EXAMPLES:
+
+    Texture from integer id::
+
+        sage: from sage.plot.plot3d.texture import Texture
+        sage: Texture(17)
+        Texture(17, 6666ff)
+
+    Texture from rational id::
+
+        sage: Texture(3/4)
+        Texture(3/4, 6666ff)
+
+    Texture from dict::
+
+        sage: Texture({'color':'orange','opacity':0.5})
+        Texture(texture..., orange, ffa500)
+
+    Texture from a color::
+
+        sage: c = Color('red')
+        sage: Texture(c)
+        Texture(texture..., ff0000)
+
+    Texture from a valid str color::
+
+        sage: Texture('red')
+        Texture(texture..., red, ff0000)
+
+    Texture from a non valid str color::
+
+        sage: Texture('redd')
+        Texture(redd, 6666ff)
+
+    Texture from a tuple::
+
+        sage: Texture((.2,.3,.4))
+        Texture(texture..., 334c66)
+
+    Texture using other keywords::
+
+        sage: Texture(specular=0.4)
+        Texture(texture..., 6666ff)
+        sage: Texture(diffuse=0.4)
+        Texture(texture..., 6666ff)
+        sage: Texture(shininess=0.3)
+        Texture(texture..., 6666ff)
+        sage: Texture(ambiant=0.7)
+        Texture(texture..., 6666ff)
+    """
     if isinstance(id, Texture_class):
         return id
     if kwds.has_key('texture'):
@@ -49,6 +136,49 @@ def Texture(id=None, **kwds):
     return Texture_class(id, **kwds)
 
 def parse_color(info, base=None):
+    r"""
+    Parse the color.
+
+    It transforms valid color str into color object and
+    color object into tuple of length 3. Otherwise, it multiplies the info
+    by the base color.
+
+    INPUT:
+
+    - ``info`` - color, valid color str or number
+    - ``base`` - tuple of length 3 (optional, default: None)
+
+    OUTPUT:
+
+    tuple or color
+
+    EXAMPLES:
+
+    From a color::
+
+        sage: from sage.plot.plot3d.texture import parse_color
+        sage: c = Color('red')
+        sage: parse_color(c)
+        (1.0, 0.0, 0.0)
+
+    From a valid color str::
+
+        sage: parse_color('red')
+        RGB color (1.0, 0.0, 0.0)
+
+    From a non valid color str::
+
+        sage: parse_color('redd')
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown color 'redd'
+
+    From an info and a base::
+
+        sage: opacity = 10
+        sage: parse_color(opacity, base=(.2,.3,.4))
+        (2.0, 3.0, 4.0)
+    """
     if isinstance(info, Color):
         return info.rgb()
     elif isinstance(info, str):
@@ -66,8 +196,14 @@ def parse_color(info, base=None):
 
 
 class Texture_class(SageObject):
-    """
-    We create a translucent texture:
+    r"""
+    Construction of a texture.
+
+    See documentation of ``Texture`` for more details and examples.
+
+    EXAMPLES:
+
+    We create a translucent texture::
 
         sage: from sage.plot.plot3d.texture import Texture
         sage: t = Texture(opacity=0.6)
@@ -78,14 +214,22 @@ class Texture_class(SageObject):
         sage: t.jmol_str('obj')
         'color obj translucent 0.4 [102,102,255]'
         sage: t.mtl_str()
-        'newmtl texture2\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
-        sage: t.tachyon_str()
-        'Texdef texture2\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+        'newmtl texture23\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
         sage: t.x3d_str()
         "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
     """
     def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, name=None, **kwds):
+        r"""
+        Construction of a texture.
 
+        See documentation of ``Texture`` for more details and examples.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture_class
+            sage: Texture_class(3, opacity=0.6)
+            Texture(3, 6666ff)
+        """
         self.id = id
         if name is None and isinstance(color, str):
             name = color
@@ -119,7 +263,7 @@ class Texture_class(SageObject):
         EXAMPLES::
 
             sage: from sage.plot.plot3d.texture import Texture
-            sage: Texture('yellow')
+            sage: Texture('yellow')               #indirect doctest
             Texture(texture..., yellow, ffff00)
             sage: Texture((1,1,0), opacity=.5)
             Texture(texture..., ffff00)
@@ -142,6 +286,14 @@ class Texture_class(SageObject):
         return "%02x%02x%02x" % tuple(int(255*s) for s in self.color)
 
     def tachyon_str(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: t = Texture(opacity=0.6)
+            sage: t.tachyon_str()
+            'Texdef texture28\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+        """
         total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
         if total_color == 0:
             total_color = 1
@@ -155,10 +307,26 @@ class Texture_class(SageObject):
         "   TexFunc 0"
 
     def x3d_str(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: t = Texture(opacity=0.6)
+            sage: t.x3d_str()
+            "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
+        """
         return "<Appearance><Material diffuseColor='%s %s %s' shininess='%s' specularColor='%s %s %s'/></Appearance>" % \
                 (self.color[0], self.color[1], self.color[2], self.shininess, self.specular[0], self.specular[0], self.specular[0])
 
     def mtl_str(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: t = Texture(opacity=0.6)
+            sage: t.mtl_str()
+            'newmtl texture2\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+        """
         return "\n".join(["newmtl %s" % self.id,
                    "Ka %s %s %s" % self.ambient,
                    "Kd %s %s %s" % self.diffuse,
@@ -168,8 +336,20 @@ class Texture_class(SageObject):
                    "d %s" % self.opacity, ])
 
     def jmol_str(self, obj):
-        """
-        EXAMPLES:
+        r"""
+        INPUT:
+
+        - ``obj`` - str
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: t = Texture(opacity=0.6)
+            sage: t.jmol_str('obj')
+            'color obj translucent 0.4 [102,102,255]'
+
+        ::
+
             sage: sum([dodecahedron(center=[2.5*x, 0, 0], color=(1, 0, 0, x/10)) for x in range(11)]).show(aspect_ratio=[1,1,1], frame=False, zoom=2)
         """
         translucent = "translucent %s" % float(1-self.opacity) if self.opacity < 1 else ""

@@ -3876,6 +3876,14 @@ class FreeModule_ambient(FreeModule_generic):
             sage: N = FreeModule(R,12,sparse=True)
             sage: print N
             Ambient sparse free module of rank 12 over Ring of integers modulo 12
+
+        (Now clean up again.)
+
+        ::
+
+            sage: M.reset_name()
+            sage: print M
+            Ambient free module of rank 12 over Ring of integers modulo 12
         """
         if self.is_sparse():
             return "Ambient sparse free module of rank %s over %s"%(self.rank(), self.base_ring())
@@ -4232,6 +4240,14 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             sage: N = FreeModule(R,7,sparse=True)
             sage: print N
             Ambient sparse free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
+
+        (Now clean up again.)
+
+        ::
+
+            sage: M.reset_name()
+            sage: print M
+            Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
         """
         if self.is_sparse():
             return "Ambient sparse free module of rank %s over the integral domain %s"%(
@@ -4407,6 +4423,14 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
             sage: N = FreeModule(ZZ,7,sparse=True)
             sage: print N
             Ambient sparse free module of rank 7 over the principal ideal domain Integer Ring
+
+        (Now clean up again.)
+
+        ::
+
+            sage: M.reset_name()
+            sage: print M
+            Ambient free module of rank 7 over the principal ideal domain Integer Ring
         """
         if self.is_sparse():
             return "Ambient sparse free module of rank %s over the principal ideal domain %s"%(
@@ -4478,6 +4502,14 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
             sage: U = FreeModule(QQ,7,sparse=True)
             sage: print U
             Sparse vector space of dimension 7 over Rational Field
+
+        (Now clean up again.)
+
+        ::
+
+            sage: V.reset_name()
+            sage: print V
+            Vector space of dimension 7 over Rational Field
         """
         if self.is_sparse():
             return "Sparse vector space of dimension %s over %s"%(self.dimension(), self.base_ring())
@@ -5690,10 +5722,23 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
 
         ::
 
-            sage: V = VectorSpace(QQ,5,sparse=True)
-            sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: VV = VectorSpace(QQ,5,sparse=True)
+            sage: UU = VV.submodule([ VV.gen(i) - VV.gen(0) for i in range(1,5) ])
+            sage: print UU # indirect doctest
             Sparse vector space of degree 5 and dimension 4 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0 -1]
+            [ 0  1  0  0 -1]
+            [ 0  0  1  0 -1]
+            [ 0  0  0  1 -1]
+
+        (Now clean up again.)
+
+        ::
+
+            sage: U.reset_name()
+            sage: print U
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
@@ -5877,10 +5922,23 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         ::
 
-            sage: V = VectorSpace(QQ,5,sparse=True)
-            sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: VV = VectorSpace(QQ,5,sparse=True)
+            sage: UU = VV.submodule([ VV.gen(i) - VV.gen(0) for i in range(1,5) ])
+            sage: print UU # indirect doctest
             Sparse vector space of degree 5 and dimension 4 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0 -1]
+            [ 0  1  0  0 -1]
+            [ 0  0  1  0 -1]
+            [ 0  0  0  1 -1]
+
+        (Now clean up again.)
+
+        ::
+
+            sage: U.reset_name()
+            sage: print U
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]

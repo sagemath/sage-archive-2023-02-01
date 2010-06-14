@@ -10,12 +10,25 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-echo "*WARNING*: Unsetting CC since that tends to break GAP building"
-unset CC
-echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
-unset CXX
+if [ "x`uname`" = xSunOS ] ; then
+  echo "Warning, CC and CXX are not being unset, which may be unwise"
+else
+  echo "*WARNING*: Unsetting CC since that tends to break GAP building"
+  unset CC
+  echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
+  unset CXX
+fi
 
 TARGET="gap-4.4.12"  #NOTE: Be sure to also update patches/gap*
+
+if [ "x$SAGE64" = xyes ] && [ "x$UNAME" = xSunOS ] ; then
+  CFLAGS=-m64
+  CXXFLAGS=-m64
+  echo "Now setting them again on Solaris, as otherwise there is no way to get a 64-bit build"
+  export CFLAGS
+  export CXXFLAGS
+fi
+
 
 # Indicate that Gap has somehow been updated, which invalidates all workspaces.
 touch "$SAGE_LOCAL/bin/gap_stamp"
@@ -36,7 +49,15 @@ build()
     fi
 
     cd src
-    ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC" CXX="$CXX"
+    # Since there are warnings about setting CFLAGS, the following is only down
+    # on 64-bit Solaris. I don't want to screw things up for anyone else
+    # on OS X for example.
+    if [ "x`uname`" = xSunOS ] && [ "x$SAGE64" = xyes ] ; then
+       echo "64-bit Solaris or OpenSolaris build"
+       ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC -m64" CXX="$CXX -m64"
+    else
+       ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC" CXX="$CXX"
+    fi
 
     if [ $? -ne 0 ]; then
         echo "Configuration of GAP failed."

@@ -23,6 +23,15 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.12.p4 (David Kirkby, 14th June 2010) ===
+ * #9098 "gap buillds 32-bit on OpenSolaris when SAGE64=yes"
+   Change spkg-install to allow gap to build 64-bit on Solaris.
+   The changes are only for Solaris, since there are numerous
+   warnings that setting CC causes problems. Note, this will not
+   built 64-bit on OS X by setting the SAGE64 variable to "yes".
+
+
+
 === gap-4.4.12.p3 (Willem Jan Palenstijn, 2010-4-28) ===
  * #8773: Fix some problems with strict aliasing (gcc 4.5)
  * Don't pre-apply saveload.patch to src/ directory.

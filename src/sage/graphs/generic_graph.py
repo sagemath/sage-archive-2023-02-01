@@ -12311,10 +12311,23 @@ class GenericGraph(GenericGraph_pyx):
         Returns the characteristic polynomial of the adjacency matrix of
         the (di)graph.
 
+        Let `G` be a (simple) graph with adjacency matrix `A`. Let `I` be the
+        identity matrix of dimensions the same as `A`. The characteristic
+        polynomial of `G` is defined as the determinant `\det(xI - A)`.
+
         INPUT:
 
-        -  ``laplacian`` - if ``True``, use the Laplacian matrix
-           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
+        - ``x`` -- (default: ``'x'``) the variable of the characteristic
+          polynomial.
+
+        - ``laplacian`` -- (default: ``False``) if ``True``, use the
+          Laplacian matrix.
+
+        .. SEEALSO::
+
+            - :meth:`kirchhoff_matrix`
+
+            - :meth:`laplacian_matrix`
 
         EXAMPLES::
 

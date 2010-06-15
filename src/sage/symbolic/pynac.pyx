@@ -1107,9 +1107,19 @@ cdef public object py_tgamma(object x) except +:
 
 from sage.rings.arith import factorial
 cdef public object py_factorial(object x) except +:
+    # factorial(x) is only defined for non-negative integers x
+    # so we first test if x can be coerced into ZZ and is non-negative.
+    # If this is not the case then we return the symbolic expression gamma(x+1)
+    # This fixes Trac 9240
     try:
-        return factorial(x)
+        x_in_ZZ = ZZ(x)
+        coercion_success = True
     except TypeError:
+        coercion_success = False
+
+    if coercion_success and x_in_ZZ >= 0:
+        return factorial(x)
+    else:
         return py_tgamma(x+1)
 
 cdef public object py_doublefactorial(object x) except +:

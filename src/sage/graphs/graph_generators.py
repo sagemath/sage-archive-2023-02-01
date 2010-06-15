@@ -406,18 +406,16 @@ class GraphGenerators():
         4 90
         5 544
 
-    Generate all graphs with a specified degree sequence: (see
-    http://www.research.att.com/~njas/sequences/A002851)
-
-    ::
+    Generate all graphs with a specified degree sequence (see
+    http://www.research.att.com/~njas/sequences/A002851)::
 
         sage: for i in [4,6,8]:
-        ...    print i, len([g for g in graphs(i,deg_seq=[3]*i) if g.is_connected()])
+        ...       print i, len([g for g in graphs(i, deg_seq=[3]*i) if g.is_connected()])
         4 1
         6 2
         8 5
         sage: for i in [4,6,8]:                                                                          # long time
-        ...    print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()]) # long time
+        ...       print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()]) # long time
         4 1
         6 2
         8 5
@@ -429,109 +427,229 @@ class GraphGenerators():
 
     REFERENCE:
 
-    - Brendan D. McKay, Isomorph-Free Exhaustive generation.  Journal
-      of Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
+    - Brendan D. McKay, Isomorph-Free Exhaustive generation.  *Journal
+      of Algorithms*, Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
-################################################################################
-#   Basic Structures
-################################################################################
+    #######################################################################
+    #   Basic Structures
+    #######################################################################
 
     def BarbellGraph(self, n1, n2):
-        """
-        Returns a barbell graph with 2\*n1 + n2 nodes. n1 must be greater
-        than or equal to 2.
+        r"""
+        Returns a barbell graph with ``2*n1 + n2`` nodes. The argument ``n1``
+        must be greater than or equal to 2.
 
         A barbell graph is a basic structure that consists of a path graph
-        of order n2 connecting two complete graphs of order n1 each.
+        of order ``n2`` connecting two complete graphs of order ``n1`` each.
 
-        This constructor depends on NetworkX numeric labels. In this case,
-        the (n1)th node connects to the path graph from one complete graph
-        and the (n1+n2+1)th node connects to the path graph from the other
-        complete graph.
+        This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
+        numeric labels. In this case, the ``n1``-th node connects to the
+        path graph from one complete graph and the ``n1 + n2 + 1``-th node
+        connects to the path graph from the other complete graph.
 
-        PLOTTING: Upon construction, the position dictionary is filled to
+        INPUT:
+
+        - ``n1`` -- integer `\geq 2`. The order of each of the two
+          complete graphs.
+
+        - ``n2`` -- nonnegative integer. The order of the path graph
+          connecting the two complete graphs.
+
+        OUTPUT:
+
+        A barbell graph of order ``2*n1 + n2``. A ``ValueError`` is
+        returned if ``n1 < 2`` or ``n2 < 0``.
+
+        ALGORITHM:
+
+        Uses `NetworkX <http://networkx.lanl.gov>`_.
+
+        PLOTTING:
+
+        Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, each barbell
         graph will be displayed with the two complete graphs in the
         lower-left and upper-right corners, with the path graph connecting
-        diagonally between the two. Thus the (n1)th node will be drawn at a
+        diagonally between the two. Thus the ``n1``-th node will be drawn at a
         45 degree angle from the horizontal right center of the first
-        complete graph, and the (n1+n2+1)th node will be drawn 45 degrees
-        below the left horizontal center of the second complete graph.
+        complete graph, and the ``n1 + n2 + 1``-th node will be drawn 45
+        degrees below the left horizontal center of the second complete graph.
 
-        EXAMPLES: Construct and show a barbell graph Bar = 4, Bells = 9
+        EXAMPLES:
 
-        ::
+        Construct and show a barbell graph ``Bar = 4``, ``Bells = 9``::
 
-            sage: g = graphs.BarbellGraph(9,4)
+            sage: g = graphs.BarbellGraph(9, 4); g
+            Barbell graph: Graph on 22 vertices
             sage: g.show() # long time
 
-        Create several barbell graphs in a Sage graphics array
+        An ``n1 >= 2``, ``n2 >= 0`` barbell graph has order ``2*n1 + n2``. It
+        has the complete graph on ``n1`` vertices as a subgraph. It also has
+        the path graph on ``n2`` vertices as a subgraph. ::
 
-        ::
+            sage: n1 = randint(2, 2*10^2)
+            sage: n2 = randint(0, 2*10^2)
+            sage: g = graphs.BarbellGraph(n1, n2)
+            sage: v = 2*n1 + n2
+            sage: g.order() == v
+            True
+            sage: K_n1 = graphs.CompleteGraph(n1)
+            sage: P_n2 = graphs.PathGraph(n2)
+            sage: s_K = g.subgraph_search(K_n1, induced=True)
+            sage: s_P = g.subgraph_search(P_n2, induced=True)
+            sage: K_n1.is_isomorphic(s_K)
+            True
+            sage: P_n2.is_isomorphic(s_P)
+            True
+
+        Create several barbell graphs in a Sage graphics array::
 
             sage: g = []
             sage: j = []
             sage: for i in range(6):
-            ...    k = graphs.BarbellGraph(i+2,4)
-            ...    g.append(k)
+            ...       k = graphs.BarbellGraph(i + 2, 4)
+            ...       g.append(k)
             ...
             sage: for i in range(2):
-            ...    n = []
-            ...    for m in range(3):
-            ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-            ...    j.append(n)
+            ...       n = []
+            ...       for m in range(3):
+            ...           n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+            ...       j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.show() # long time
+
+        TESTS:
+
+        The input ``n1`` must be `\geq 2`::
+
+            sage: graphs.BarbellGraph(1, randint(0, 10^6))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid graph description, n1 should be >= 2
+            sage: graphs.BarbellGraph(randint(-10^6, 1), randint(0, 10^6))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid graph description, n1 should be >= 2
+
+        The input ``n2`` must be `\geq 0`::
+
+            sage: graphs.BarbellGraph(randint(2, 10^6), -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid graph description, n2 should be >= 0
+            sage: graphs.BarbellGraph(randint(2, 10^6), randint(-10^6, -1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid graph description, n2 should be >= 0
+            sage: graphs.BarbellGraph(randint(-10^6, 1), randint(-10^6, -1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid graph description, n1 should be >= 2
         """
+        # sanity checks
+        if n1 < 2:
+            raise ValueError("Invalid graph description, n1 should be >= 2")
+        if n2 < 0:
+            raise ValueError("Invalid graph description, n2 should be >= 0")
+
         pos_dict = {}
 
         for i in range(n1):
-            x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-            y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-            j = n1-1-i
-            pos_dict[j] = (x,y)
-        for i in range(n1,n1+n2):
-            x = float(i - n1 - n2/2 + 1)
-            y = float(i - n1 - n2/2 + 1)
-            pos_dict[i] = (x,y)
-        for i in range(n1+n2,2*n1+n2):
-            x = float(cos((5*pi/4) + ((2*pi)/n1)*(i-n1-n2)) + n2/2 + 2)
-            y = float(sin((5*pi/4) + ((2*pi)/n1)*(i-n1-n2)) + n2/2 + 2)
-            pos_dict[i] = (x,y)
+            x = float(cos((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
+            y = float(sin((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
+            j = n1 - 1 - i
+            pos_dict[j] = (x, y)
+        for i in range(n1, n1 + n2):
+            x = float(i - n1 - (n2 / 2) + 1)
+            y = float(i - n1 - (n2 / 2) + 1)
+            pos_dict[i] = (x, y)
+        for i in range(n1 + n2, (2 * n1) + n2):
+            x = float(
+                cos((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
+                + (n2 / 2) + 2)
+            y = float(
+                sin((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
+                + (n2 / 2) + 2)
+            pos_dict[i] = (x, y)
 
         import networkx
-        G = networkx.barbell_graph(n1,n2)
+        G = networkx.barbell_graph(n1, n2)
         return graph.Graph(G, pos=pos_dict, name="Barbell graph")
 
     def BullGraph(self):
-        """
+        r"""
         Returns a bull graph with 5 nodes.
 
         A bull graph is named for its shape. It's a triangle with horns.
+        This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
+        numeric labeling. For more information, see this
+        `Wikipedia article on the bull graph <http://en.wikipedia.org/wiki/Bull_graph>`_.
 
-        This constructor depends on NetworkX numeric labeling.
+        PLOTTING:
 
-        PLOTTING: Upon construction, the position dictionary is filled to
+        Upon construction, the position dictionary is filled to
         override the spring-layout algorithm. By convention, the bull graph
         is drawn as a triangle with the first node (0) on the bottom. The
         second and third nodes (1 and 2) complete the triangle. Node 3 is
         the horn connected to 1 and node 4 is the horn connected to node
         2.
 
-        EXAMPLES: Construct and show a bull graph
+        ALGORITHM:
 
-        ::
+        Uses `NetworkX <http://networkx.lanl.gov>`_.
 
-            sage: g = graphs.BullGraph()
+        EXAMPLES:
+
+        Construct and show a bull graph::
+
+            sage: g = graphs.BullGraph(); g
+            Bull graph: Graph on 5 vertices
             sage: g.show() # long time
+
+        The bull graph has 5 vertices and 5 edges. Its radius is 2, its
+        diameter 3, and its girth 3. The bull graph is planar with chromatic
+        number 3 and chromatic index also 3. ::
+
+            sage: g.order(); g.size()
+            5
+            5
+            sage: g.radius(); g.diameter(); g.girth()
+            2
+            3
+            3
+            sage: g.chromatic_number()
+            3
+
+        The bull graph has chromatic polynomial `x(x - 2)(x - 1)^3` and
+        Tutte polynomial `x^4 + x^3 + x^2 y`. Its characteristic polynomial
+        is `x(x^2 - x - 3)(x^2 + x - 1)`, which follows from the definition of
+        characteristic polynomials for graphs, i.e. `\det(xI - A)`, where
+        `x` is a variable, `A` the adjacency matrix of the graph, and `I`
+        the identity matrix of the same dimensions as `A`. ::
+
+            sage: chrompoly = g.chromatic_polynomial()
+            sage: bool(expand(x * (x - 2) * (x - 1)^3) == chrompoly)
+            True
+            sage: charpoly = g.characteristic_polynomial()
+            sage: M = g.adjacency_matrix(); M
+            [0 1 1 0 0]
+            [1 0 1 1 0]
+            [1 1 0 0 1]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            sage: Id = identity_matrix(ZZ, M.nrows())
+            sage: D = x*Id - M
+            sage: bool(D.determinant() == charpoly)
+            True
+            sage: bool(expand(x * (x^2 - x - 3) * (x^2 + x - 1)) == charpoly)
+            True
         """
-        pos_dict = {0:(0,0),1:(-1,1),2:(1,1),3:(-2,2),4:(2,2)}
+        pos_dict = {0:(0,0), 1:(-1,1), 2:(1,1), 3:(-2,2), 4:(2,2)}
         import networkx
         G = networkx.bull_graph()
-        return graph.Graph(G, pos=pos_dict, name="Bull Graph")
-
+        return graph.Graph(G, pos=pos_dict, name="Bull graph")
 
     def CircularLadderGraph(self, n):
         """
@@ -764,7 +882,7 @@ class GraphGenerators():
         (`n_1` rows and `n_2` columns).
 
         The toroidal 2-dimensional grid with parameters `n_1,n_2` is
-        the 2-dimensional grid graph with identital parameters
+        the 2-dimensional grid graph with identical parameters
         to which are added the edges `((i,0),(i,n_2-1))` and
         `((0,i),(n_1-1,i))`.
 
@@ -919,7 +1037,7 @@ class GraphGenerators():
         but slow down creation of the graph.  Likewise computing layout
         information also incurs a significant speed penalty. For maximum
         speed, turn off labels and layout and decode the
-        vertices explicily as needed.  The
+        vertices explicitly as needed.  The
         :meth:`sage.rings.integer.Integer.digits`
         with the ``padsto`` option is a quick way to do this, though you
         may want to reverse the list that is output.
@@ -1822,39 +1940,52 @@ class GraphGenerators():
         G = networkx.dodecahedral_graph()
         return graph.Graph(G, name="Dodecahedron")
 
-################################################################################
-#   Named Graphs
-################################################################################
+    #######################################################################
+    #   Named Graphs
+    #######################################################################
 
     def ChvatalGraph(self):
-        """
+        r"""
         Returns the Chvatal graph.
 
-        The Chvatal graph has 12 vertices. It is a 4-regular, 4-chromatic
-        graph. It is one of the few known graphs to satisfy Grunbaum's
-        conjecture that for every m 1, n 2, there is an m-regular,
-        m-chromatic graph of girth at least n.
+        Chvatal graph is one of the few known graphs to satisfy Grunbaum's
+        conjecture that for every m, n, there is an m-regular,
+        m-chromatic graph of girth at least n. For more information, see this
+        `Wikipedia article on the Chvatal graph <http://en.wikipedia.org/wiki/Chv%C3%A1tal_graph>`_.
 
-        EXAMPLE::
+        EXAMPLES:
 
-            sage: G = graphs.ChvatalGraph()
+        The Chvatal graph has 12 vertices and 24 edges. It is a 4-regular,
+        4-chromatic graph with radius 2, diameter 2, and girth 4. ::
+
+            sage: G = graphs.ChvatalGraph(); G
+            Chvatal graph: Graph on 12 vertices
+            sage: G.order(); G.size()
+            12
+            24
             sage: G.degree()
             [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+            sage: G.chromatic_number()
+            4
+            sage: G.radius(); G.diameter(); G.girth()
+            2
+            2
+            4
         """
         import networkx
         pos_dict = {}
-        for i in range(5,10):
-            x = float(cos((pi/2) + ((2*pi)/5)*i))
-            y = float(sin((pi/2) + ((2*pi)/5)*i))
-            pos_dict[i] = (x,y)
+        for i in range(5, 10):
+            x = float(cos((pi / 2) + ((2 * pi) / 5) * i))
+            y = float(sin((pi / 2) + ((2 * pi) / 5) * i))
+            pos_dict[i] = (x, y)
         for i in range(5):
-            x = float(2*(cos((pi/2) + ((2*pi)/5)*(i-5))))
-            y = float(2*(sin((pi/2) + ((2*pi)/5)*(i-5))))
-            pos_dict[i] = (x,y)
-        pos_dict[10] = (.5,0)
-        pos_dict[11] = (-.5,0)
+            x = float(2 * (cos((pi / 2) + ((2 * pi) / 5) * (i - 5))))
+            y = float(2 * (sin((pi / 2) + ((2 * pi) / 5) * (i - 5))))
+            pos_dict[i] = (x, y)
+        pos_dict[10] = (0.5, 0)
+        pos_dict[11] = (-0.5, 0)
 
-        return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal Graph")
+        return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
 
     def DesarguesGraph(self):
         """
@@ -2865,7 +2996,7 @@ class GraphGenerators():
         p = {'':(float(0),float(0))}
         pn={}
 
-        # construt recursively the adjacency dict and the positions
+        # construct recursively the adjacency dict and the positions
         for i in xrange(n):
             ci = float(cos(i*theta))
             si = float(sin(i*theta))
@@ -3099,7 +3230,7 @@ class GraphGenerators():
         - Michael Yurko (2009-09-01)
         """
         from sage.combinat.combination import Combinations
-        # dictionnary associating the positions of the 1s to the corresponding
+        # dictionary associating the positions of the 1s to the corresponding
         # string: e.g. if n=6 and k=3, comb_to_str([0,1,4])=='110010'
         comb_to_str={}
         for c in Combinations(n,k):
@@ -3231,48 +3362,85 @@ class GraphGenerators():
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name = "%d-star"%n)
 
-    def BubbleSortGraph(self,n):
-        r'''
-        Returns the bubble sort graph, B(n).
+    def BubbleSortGraph(self, n):
+        r"""
+        Returns the bubble sort graph `B(n)`.
 
         The vertices of the bubble sort graph are the set of permutations on
-        n symbols. Two vertices are adjacent if one can be obtained from the
-        other by swapping the labels in the ith and (i+1)th position for
-        `1 \leq i \leq n-1`.
+        `n` symbols. Two vertices are adjacent if one can be obtained from the
+        other by swapping the labels in the `i`-th and `(i+1)`-th positions for
+        `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
+        of `B(n)` increases according to `f(n) = n!`.
 
         INPUT:
 
-        -  ``n``
+        - ``n`` -- positive integer. The number of symbols to permute.
+
+        OUTPUT:
+
+        The bubble sort graph `B(n)` on `n` symbols. If `n < 1`, a
+        ``ValueError`` is returned.
 
         EXAMPLES::
 
-            sage: g = graphs.BubbleSortGraph(4)
+            sage: g = graphs.BubbleSortGraph(4); g
+            Bubble sort: Graph on 24 vertices
             sage: g.plot() # long time
+
+        The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
+
+            sage: graphs.BubbleSortGraph(1)
+            Bubble sort: Graph on 1 vertex
+
+        If `n \geq 1`, then the order of `B(n)` is `n!`::
+
+            sage: n = randint(1, 8)
+            sage: g = graphs.BubbleSortGraph(n)
+            sage: g.order() == factorial(n)
+            True
+
+        TESTS:
+
+        Input ``n`` must be positive::
+
+            sage: graphs.BubbleSortGraph(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid number of symbols to permute, n should be >= 1
+            sage: graphs.BubbleSortGraph(randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid number of symbols to permute, n should be >= 1
 
         AUTHORS:
 
         - Michael Yurko (2009-09-01)
-
-        '''
+        """
+        # sanity checks
+        if n < 1:
+            raise ValueError(
+                "Invalid number of symbols to permute, n should be >= 1")
+        if n == 1:
+            return graph.Graph(self.CompleteGraph(n), name="Bubble sort")
         from sage.combinat.permutation import Permutations
         #create set from which to permute
-        label_set = [str(i) for i in xrange(1,n+1)]
+        label_set = [str(i) for i in xrange(1, n + 1)]
         d = {}
         #iterate through all vertices
         for v in Permutations(label_set):
             tmp_dict = {}
             #add all adjacencies
-            for i in xrange(n-1):
+            for i in xrange(n - 1):
                 #swap entries
-                v[i], v[i+1] = v[i+1], v[i]
+                v[i], v[i + 1] = v[i + 1], v[i]
                 #add new vertex
                 new_vert = ''.join(v)
                 tmp_dict[new_vert] = None
                 #swap back
-                v[i], v[i+1] = v[i+1], v[i]
+                v[i], v[i + 1] = v[i + 1], v[i]
             #add adjacency dict
             d[''.join(v)] = tmp_dict
-        return graph.Graph(d,name = "B(%d)"%n)
+        return graph.Graph(d, name="Bubble sort")
 
     def BalancedTree(self, r, h):
         r"""
@@ -3284,15 +3452,87 @@ class GraphGenerators():
         `\frac{r^{h+1} - 1}{r - 1}`. The number of edges is one
         less than the number of vertices.
 
-        EXAMPLE: Plot a balanced tree of height 4 with r = 3
+        INPUT:
 
-        ::
+        - ``r`` -- positive integer `\geq 2`. The degree of the root node.
+
+        - ``h`` -- positive integer `\geq 1`. The height of the balanced tree.
+
+        OUTPUT:
+
+        The perfectly balanced tree of height `h \geq 1` and whose root has
+        degree `r \geq 2`. A ``NetworkXError`` is returned if `r < 2` or
+        `h < 1`.
+
+        ALGORITHM:
+
+        Uses `NetworkX <http://networkx.lanl.gov>`_.
+
+        EXAMPLES:
+
+        A balanced tree whose root node has degree `r = 2`, and of height
+        `h = 1`, has order 3 and size 2::
+
+            sage: G = graphs.BalancedTree(2, 1); G
+            Balanced tree: Graph on 3 vertices
+            sage: G.order(); G.size()
+            3
+            2
+            sage: r = 2; h = 1
+            sage: v = 1 + r
+            sage: v; v - 1
+            3
+            2
+
+        Plot a balanced tree of height 5, whose root node has degree `r = 3`::
 
             sage: G = graphs.BalancedTree(3, 5)
             sage: G.show()   # long time
+
+        A tree is bipartite. If its vertex set is finite, then it is planar. ::
+
+            sage: r = randint(2, 5); h = randint(1, 7)
+            sage: T = graphs.BalancedTree(r, h)
+            sage: T.is_bipartite()
+            True
+            sage: T.is_planar()
+            True
+            sage: v = (r^(h + 1) - 1) / (r - 1)
+            sage: T.order() == v
+            True
+            sage: T.size() == v - 1
+            True
+
+        TESTS:
+
+        We only consider balanced trees whose root node has degree `r \geq 2`::
+
+            sage: graphs.BalancedTree(1, randint(1, 10^6))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
+            sage: graphs.BalancedTree(randint(-10^6, 1), randint(1, 10^6))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
+
+        The tree must have height `h \geq 1`::
+
+            sage: graphs.BalancedTree(randint(2, 10^6), 0)
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, h should be >=1
+            sage: graphs.BalancedTree(randint(2, 10^6), randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, h should be >=1
+            sage: graphs.BalancedTree(randint(-10^6, 1), randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
         """
         import networkx
-        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced Tree")
+        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
 
     def LCFGraph(self, n, shift_list, repeats):
         """
@@ -4543,7 +4783,7 @@ class GraphGenerators():
         - ``s_1`` -- list of integers corresponding to the degree
           sequence of the first set.
         - ``s_2`` -- list of integers corresponding to the degree
-          sequence of the seccond set.
+          sequence of the second set.
 
         ALGORITHM:
 
@@ -4561,7 +4801,7 @@ class GraphGenerators():
             sage: g.is_isomorphic(graphs.CompleteBipartiteGraph(5,2))
             True
 
-        Some sequences being uncompatible if, for example, their sums
+        Some sequences being incompatible if, for example, their sums
         are different, the functions raises a ``ValueError`` when no
         graph corresponding to the degree sequences exists. ::
 

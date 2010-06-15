@@ -355,7 +355,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: import traceback
             sage: cm.exception_stack()
-            [(<class 'sage.structure.coerce_exceptions.CoercionException'>, CoercionException("BUG: the base_extend method must be defined for 'Monoid of ideals of Integer Ring' (class '<class 'sage.rings.ideal_monoid.IdealMonoid_c'>')",), <traceback object at ...>), (<type 'exceptions.TypeError'>,  TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",),  <traceback object at ...>)]
+            [(<class 'sage.structure.coerce_exceptions.CoercionException'>, CoercionException(AttributeError("'IdealMonoid_c_with_category' object has no attribute 'base_extend'",),), <traceback object at ...>), (<type 'exceptions.TypeError'>, TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",), <traceback object at ...>)]
             sage: print ''.join(sum([traceback.format_exception(*info) for info in cm.exception_stack()], []))
             Traceback (most recent call last):
             ...

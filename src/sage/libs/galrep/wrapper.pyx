@@ -49,15 +49,15 @@ cdef class GalRep:
 
             sage: galrep.GalRep()
             Andrew Sutherland's Probabilistic Image of Galois Algorithm
-            sage: galrep.GalRep(os.path.join(sage.misc.misc.SAGE_DATA,'galrep','galrep_ecdata.dat'))
+            sage: galrep.GalRep(os.path.join(sage.misc.misc.SAGE_EXTCODE,'galrep','galrep_ecdata.dat'))
             Andrew Sutherland's Probabilistic Image of Galois Algorithm
         """
-        from sage.misc.misc import SAGE_DATA
+        from sage.misc.misc import SAGE_EXTCODE
         import os
         if galrep_ecdata is None:
-            galrep_ecdata = os.path.join(SAGE_DATA, 'galrep', 'galrep_ecdata.dat')
+            galrep_ecdata = os.path.join(SAGE_EXTCODE, 'galrep', 'galrep_ecdata.dat')
         if galrep_gl2data is None:
-            galrep_gl2data = os.path.join(SAGE_DATA, 'galrep', 'galrep_gl2data.dat')
+            galrep_gl2data = os.path.join(SAGE_EXTCODE, 'galrep', 'galrep_gl2data.dat')
         galrep_ecdata_load(galrep_ecdata)
         galrep_gl2data_load(galrep_gl2data)
         self.primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59]

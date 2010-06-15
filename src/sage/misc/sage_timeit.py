@@ -22,7 +22,7 @@ class SageTimeitResult():
 
         - integer, number of loops
         - integer, repeat number
-        - python integer, number of digits to print
+        - Python integer, number of digits to print
         - number, best timing result
         - str, time unit
 
@@ -45,7 +45,7 @@ class SageTimeitResult():
         sage: SageTimeitResult(stats)
         7 loops, best of 13: 3.1416 ns per loop
 
-    If the third argument is not a python integer, a type error is raised::
+    If the third argument is not a Python integer, a ``TypeError`` is raised::
 
         sage: SageTimeitResult( (1, 2, 3, 4, 's') )
         Traceback (most recent call last):
@@ -84,17 +84,18 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
     """
     INPUT:
 
-    - ``stmt`` - a text string which may
-    - ``globals`` - evaluate stmt in the context of the globals dictionary
-    - ``preparse`` - (default: use global preparser default) if True preparse
-                    stmt using the Sage preparser.
-    - ``number`` - integer, (optional, default: 0), number of loops
-    - ``repeat`` - integer, (optional, default: 3), number of repeat
-    - ``precision`` - integer, (optional, default: 3), precision of output time
+    - ``stmt`` - a text string.
+    - ``globals`` - evaluate ``stmt`` in the context of the globals dictionary.
+    - ``preparse`` - (default: use global preparser default) if ``True``
+      preparse ``stmt`` using the Sage preparser.
+    - ``number`` - integer, (optional, default: 0), number of loops.
+    - ``repeat`` - integer, (optional, default: 3), number of repetition.
+    - ``precision`` - integer, (optional, default: 3), precision of output
+      time.
 
     OUTPUT:
 
-    an instance of SageTimeitResult
+    An instance of ``SageTimeitResult``.
 
     EXAMPLES::
 
@@ -107,7 +108,7 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
         sage: sage_timeit('a^2', globals(), number=50)                            # random output
         '50 loops, best of 3: 4.26 us per loop'
 
-    It's usually better to use the timeit object, usually::
+    It's usually better to use the ``timeit`` object, usually::
 
         sage: timeit('10^2', number=50)
         50 loops, best of 3: ... per loop
@@ -118,7 +119,7 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
         sage: sage_timeit("a = 2\nb=131\nfactor(a^b-1)", globals(), number=10)
         10 loops, best of 3: ... per loop
 
-    Test to make sure that timeit behaves well with output::
+    Test to make sure that ``timeit`` behaves well with output::
 
         sage: timeit("print 'Hi'", number=50)
         50 loops, best of 3: ... per loop

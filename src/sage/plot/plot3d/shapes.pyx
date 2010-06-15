@@ -54,7 +54,8 @@ from sage.misc.all import srange
 
 from base import Graphics3dGroup, Graphics3d
 
-def validate_frame_size(size):  # Helper function to check that Box input is right
+# Helper function to check that Box input is right
+def validate_frame_size(size):
     """
     Checks that the input is an iterable of length 3 with all
     elements nonnegative and coercible to floats.
@@ -64,6 +65,10 @@ def validate_frame_size(size):  # Helper function to check that Box input is rig
         sage: from sage.plot.plot3d.shapes import validate_frame_size
         sage: validate_frame_size([3,2,1])
         [3.0, 2.0, 1.0]
+
+    TESTS::
+
+        sage: from sage.plot.plot3d.shapes import validate_frame_size
         sage: validate_frame_size([3,2,-1])
         Traceback (most recent call last):
         ...
@@ -74,16 +79,16 @@ def validate_frame_size(size):  # Helper function to check that Box input is rig
         TypeError: each box dimension must coerce to a float
     """
     if not isinstance(size, (list, tuple)):
-        raise TypeError, "size must be a list or tuple"
+        raise TypeError("size must be a list or tuple")
     if len(size) != 3:
-        raise TypeError, "size must be of length 3"
+        raise TypeError("size must be of length 3")
     try:
         size = [float(x) for x in size]
     except TypeError:
-        raise TypeError, "each box dimension must coerce to a float"
+        raise TypeError("each box dimension must coerce to a float")
     for x in size:
         if x < 0:
-            raise ValueError, "each box dimension must be nonnegative"
+            raise ValueError("each box dimension must be nonnegative")
     return size
 
 
@@ -349,7 +354,7 @@ cdef class Cylinder(ParametricSurface):
         """
         transform = render_params.transform
         if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])):
-            # Tachyon can't do sqashed
+            # Tachyon can't do squashed
             return ParametricSurface.tachyon_repr(self, render_params)
 
         base, top = self.get_endpoints(transform)
@@ -395,7 +400,7 @@ cdef class Cylinder(ParametricSurface):
 
         if ratio > .02:
             if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
-                # Jmol can't do sqashed
+                # Jmol can't do squashed
                 return ParametricSurface.jmol_repr(self, render_params)
 
         name = render_params.unique_name('line')
@@ -555,7 +560,7 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
     Arrows are always constructed pointing up in the z direction from
     the origin, and then rotated/translated into place. This works for
     every arrow direction except the -z direction.  We take care of the
-    anomoly by testing to see if the arrow should point in the -z
+    anomaly by testing to see if the arrow should point in the -z
     direction, and if it should, just scaling the constructed arrow by
     -1 (i.e., every point is sent to its negative). The scaled arrow
     then points downwards. The doctest just tests that the scale of -1

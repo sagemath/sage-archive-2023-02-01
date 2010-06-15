@@ -68,10 +68,37 @@ class TachyonRT:
     - John E. Stone
     """
     def __repr__(self):
+        """
+        Returns a brief description of this interface object (the Tachyon raytracer written by John Stone).
+
+        TESTS::
+
+            sage: from sage.interfaces.tachyon import TachyonRT
+            sage: t = TachyonRT()
+            sage: print t.__repr__()
+            John Stone's Tachyon Ray Tracer
+        """
         return "John Stone's Tachyon Ray Tracer"
 
     def __call__(self, model, outfile='sage.png',
                  verbose=1, block=True, extra_opts=''):
+        """
+        This executes the tachyon program, given a scene file input.
+        The default is to return the result as a PNG file called 'sage.png'.
+
+        TESTS::
+
+            sage: from sage.interfaces.tachyon import TachyonRT
+            sage: tgen = Tachyon()
+            sage: tgen.texture('t1')
+            sage: tgen.sphere((0,0,0),1,'t1')
+            sage: tgen.str()[30:40]
+            'resolution'
+            sage: t = TachyonRT()
+            sage: import os
+            sage: t(tgen.str(), outfile = os.devnull)
+            tachyon ...
+        """
         modelfile = tmp_filename() + '.dat'
         open(modelfile,'w').write(model)
         opts = ''
@@ -105,11 +132,34 @@ class TachyonRT:
             print cmd
         os.system(cmd)
 
-    def usage(self):
-        r = os.popen('tachyon').read()
-        pager()(r)
+    def usage(self, use_pager=True):
+        """
+        Returns the basic description of using the Tachyon raytracer (simply what is returned by running tachyon with no input).  The output is paged unless use_pager=False.
 
-    def help(self):
+        TESTS::
+
+            sage: from sage.interfaces.tachyon import TachyonRT
+            sage: t = TachyonRT()
+            sage: t.usage(use_pager=False)
+            Tachyon Parallel/Multiprocessor Ray Tracer   Version...
+        """
+        r = os.popen('tachyon').read()
+        if use_pager == True:
+            pager()(r)
+        else:
+            print r
+
+    def help(self, use_pager=True):
+        """
+        Prints (pages) the help file written by John Stone describing scene files for Tachyon.  The output is paged unless use_pager=False.
+
+        TESTS::
+
+            sage: from sage.interfaces.tachyon import TachyonRT
+            sage: t = TachyonRT()
+            sage: t.help(use_pager=False)
+            This help, which was written by John Stone, describes ...
+        """
         s = r"""
 This help, which was written by John Stone, describes how to create
 scene files.
@@ -699,11 +749,12 @@ Basically, the image maps require the center, rotate and scale
 parameters so that you can position the image map on the object
 properly.
 """
-
         f = format(s)
         f = f.replace('{ ','').replace('}','').replace('{','')
-        pager()(f)
-
+        if use_pager == True:
+            pager()(f)
+        else:
+            print(f)
 
 tachyon_rt = TachyonRT()
 

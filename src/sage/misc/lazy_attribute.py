@@ -447,12 +447,29 @@ class lazy_attribute(object):
             'f'
             sage: x.__module__
             '__main__'
+
+        TESTS:
+
+        We check that #9251 is solved::
+
+            sage: Parent.element_class
+            <sage.misc.lazy_attribute.lazy_attribute object at 0x...>
+            sage: Parent.element_class.__doc__[64:120]
+            'The (default) class for the elements of this parent\n\n   '
+            sage: Parent.element_class.__name__
+            'element_class'
+            sage: Parent.element_class.__module__
+            'sage.misc.lazy_attribute'
         """
         self.f = f
         if hasattr(f, "func_doc"):
             self.__doc__ = f.func_doc
+        elif hasattr(f, "__doc__"): # Needed to handle Cython methods
+            self.__doc__ = f.__doc__
         if hasattr(f, "func_name"):
             self.__name__ = f.func_name
+        elif hasattr(f, "__name__"): # Needed to handle Cython methods
+            self.__name__ = f.__name__
         if hasattr(f, "__module__"):
             self.__module__ = f.__module__
 

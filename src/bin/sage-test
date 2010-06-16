@@ -90,11 +90,11 @@ def test(F, cmd):
     elif err == 2: # process exit code 2: KeyboardInterrupt
         failed.append(sage_test_command(F)+" # KeyboardInterrupt")
         raise KeyboardInterrupt
-    elif err == 3: # process exit code 3: Terminated by signal
+    elif err == 4: # process exit code 4: Terminated by signal
         failed.append(sage_test_command(F)+" # Killed/crashed")
-    elif err == 4: # process exit code 4: Unhandled doctest exception
+    elif err == 8: # process exit code 8: Unhandled doctest exception
         failed.append(sage_test_command(F)+" # Exception from doctest framework")
-    elif err == 100: # process exit code 100: Regular doctest failures
+    elif err == 128: # process exit code 128: Regular doctest failures
         failed.append(sage_test_command(F))
     elif err != 0:
         failed.append(sage_test_command(F))

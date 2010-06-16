@@ -136,13 +136,13 @@ def process_result(result):
     ol = result[3]
     err = err | ret
     if ret != 0:
-        if ret == 100:
+        if ret == 128:
             numfail = ol.count('Expected:') + ol.count('Expected nothing') + ol.count('Exception raised:')
             failed.append(abs(F)+(" # %s doctests failed" % numfail))
             ret = numfail
-        elif ret == 4:
+        elif ret == 8:
             failed.append(abs(F)+" # Exception from doctest framework")
-        elif ret == 3:
+        elif ret == 4:
             failed.append(abs(F)+" # Killed/crashed")
         elif ret == 2:
             failed.append(abs(F)+" # KeyboardInterrupt")

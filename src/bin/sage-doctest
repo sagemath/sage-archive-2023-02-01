@@ -15,9 +15,10 @@
 # 0: all tests passed
 # 1: file not found
 # 2: KeyboardInterrupt
-# 3: doctest process was terminated by a signal
-# 4: the doctesting framework raised an exception
-# 100: failed doctests
+# 4: doctest process was terminated by a signal
+# 8: the doctesting framework raised an exception
+# 16: script called with bad options
+# 128: failed doctests
 ####################################################################
 
 # System imports
@@ -670,7 +671,7 @@ def test_file(file, library_code):
                 out = outf.read()
                 e = proc.poll()
         except KeyboardInterrupt:
-            print "KeyboardInterrupt -- interrupted after %s seconds!" % (time.time()-tm)
+            print "KeyboardInterrupt -- interrupted after %.1f seconds!" % (time.time()-tm)
             sys.exit(2)
         if not verbose and 'raise KeyboardInterrupt' in err:
             print "*"*80 + "Control-C pressed -- interrupting doctests." + "*"*80
@@ -698,18 +699,18 @@ def test_file(file, library_code):
             # The doctesting code raised an exception
             if not verbose:
                 print "Exception raised by doctesting framework. Use -verbose for details."
-            sys.exit(4)
+            sys.exit(8)
 
         if numfail == 0 and e > 0:
             numfail = e
         if numfail > 0:
             if not (verbose or gdb or memcheck or massif or cachegrind):
                 print s
-            sys.exit(100)
+            sys.exit(128)
         elif e < 0:
             if not verbose:
                 print "The doctested process was killed by signal %s" % (-e)
-            sys.exit(3)
+            sys.exit(4)
         else:
             delete_tmpfiles()
             sys.exit(0)
@@ -772,7 +773,7 @@ def parse_rand():
 
 def usage():
     print "\n\nUsage: sage-doctest [same options as sage -t] filenames"
-    sys.exit(1)
+    sys.exit(16)
 
 if __name__ ==  '__main__':
     import os, sys

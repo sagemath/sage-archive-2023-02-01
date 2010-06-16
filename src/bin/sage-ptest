@@ -1,30 +1,28 @@
 #!/usr/bin/env python
 
 from __future__ import with_statement
-import os, signal, sys, time, thread, threading, tempfile, pickle, multiprocessing
-
-####################################
-
-argv = sys.argv
-try:
-    numiteration = int(os.environ['SAGE_TEST_ITER'])
-except:
-    numiteration = 1
-
-try:
-    numglobaliteration = int(os.environ['SAGE_TEST_GLOBAL_ITER'])
-except:
-    numglobaliteration = 1
+import os
+import sys
+import time
+import pickle
+import signal
+import thread
+import tempfile
+import subprocess
+import multiprocessing
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
 SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
                                           'lib', 'python', 'site-packages'))
 BUILD_DIR = os.path.realpath(os.path.join(SAGE_ROOT, 'devel', 'sage', 'build'))
 
+numiteration = int(os.environ.get('SAGE_TEST_ITER', 1))
+numglobaliteration = int(os.environ.get('SAGE_TEST_GLOBAL_ITER', 1))
 print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
 
-abort = False
+# Exit status for the whole run.
+err = 0
 
 def abspath(x):
     """
@@ -57,12 +55,14 @@ def abs(f):
     """
     Return the test command for the file
     """
+    global opts
     return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
 
 def sage_test_cmd(f):
     """
     Return the test command for the file as given
     """
+    global opts
     return "sage -t %s %s"%(opts, f)
 
 def abs_sage_path(f):
@@ -98,6 +98,7 @@ def test_file(F):
     """
     This is the function that actually tests a file
     """
+    global opts
     outfile = tempfile.NamedTemporaryFile()
     base, ext = os.path.splitext(F)
 
@@ -112,14 +113,11 @@ def test_file(F):
         s = 'bash -c "%s %s > %s" ' % (command, filestr, outfile.name)
         try:
             t = time.time()
-            ret = os.system(s)
+            ret = subprocess.call(s, shell=True)
             finished_time = time.time() - t
-            if ret>=256:
-                ret=ret/256
-            ret = -ret
         except:
             ol = outfile.read()
-            return (-5, 0, ol)
+            return (F, 5, 0, ol)
         ol = outfile.read()
         if ret != 0:
             break
@@ -131,23 +129,24 @@ def process_result(result):
     (F, ret, finished_time, ol)
     and processes it to display/log the appropriate output.
     """
-    global failed
+    global err, failed, time_dict
     F = result[0]
     ret = result[1]
     finished_time = result[2]
     ol = result[3]
+    err = err | ret
     if ret != 0:
-        if ret == -100:
+        if ret == 100:
             numfail = ol.count('Expected:') + ol.count('Expected nothing') + ol.count('Exception raised:')
             failed.append(abs(F)+(" # %s doctests failed" % numfail))
             ret = numfail
-        elif ret == -4:
+        elif ret == 4:
             failed.append(abs(F)+" # Exception from doctest framework")
-        elif ret == -3:
+        elif ret == 3:
             failed.append(abs(F)+" # Killed/crashed")
-        elif ret == -2:
+        elif ret == 2:
             failed.append(abs(F)+" # KeyboardInterrupt")
-        elif ret == -1:
+        elif ret == 1:
             failed.append(abs(F)+" # File not found")
         else:
             failed.append(abs(F))
@@ -166,6 +165,7 @@ def infiles_cmp(a,b):
     """
     This compare function is used to sort the list of filenames by the time they take to run
     """
+    global time_dict
     if time_dict.has_key(abs_sage_path(a)):
         if time_dict.has_key(abs_sage_path(b)):
             return cmp(time_dict[abs_sage_path(a)],time_dict[abs_sage_path(b)])
@@ -215,7 +215,7 @@ def populatefilelist(filelist):
 
 
 for gr in range(0,numglobaliteration):
-
+    argv = sys.argv
     opts = ' '.join([X for X in argv if X[0] == '-'])
     argv = [X for X in argv if X[0] != '-']
 
@@ -305,7 +305,6 @@ for gr in range(0,numglobaliteration):
 
     failed = []
 
-    SAGE_ROOT=os.environ['SAGE_ROOT']
     TMP = os.path.join(os.environ['SAGE_TESTDIR'], 'tmp', 'test')
     if not os.path.exists(TMP):
         os.makedirs(TMP)
@@ -330,12 +329,12 @@ for gr in range(0,numglobaliteration):
     print "Doctesting %s %s" % (file_str, jobs_str)
 
     try:
-        from multiprocessing import Pool
-        p = Pool(numthreads)
+        p = multiprocessing.Pool(numthreads)
         for r in p.imap_unordered(test_file, files):
             #The format is  (F, ret, finished_time, ol)
             process_result(r)
     except KeyboardInterrupt:
+        err = err | 2
         interrupt = True
         pass
     print " "
@@ -379,3 +378,5 @@ for gr in range(0,numglobaliteration):
             print "Timings have been updated."
 
     print "Total time for all tests: %.1f seconds"%(time.time() - t0)
+
+sys.exit(err)

@@ -372,7 +372,7 @@ class Sha(SageObject):
         if use_database:
             d = self.E.database_curve()
             if hasattr(d, 'db_extra'):
-                self.__an = int(round(float(d.db_extra[4])))
+                self.__an = Integer(round(float(d.db_extra[4])))
                 return self.__an
 
         # it's critical to switch to the minimal model.
@@ -380,7 +380,7 @@ class Sha(SageObject):
         eps = E.root_number()
         if eps == 1:
             L1_over_omega = E.lseries().L_ratio()
-            if L1_over_omega == 0:
+            if L1_over_omega == 0: # order of vanishing is at least 2
                 return self.an_numerical(use_database=use_database)
             T = E.torsion_subgroup().order()
             Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
@@ -407,7 +407,7 @@ class Sha(SageObject):
             regulator = E.regulator(use_database=use_database, descent_second_limit=descent_second_limit)
             T = E.torsion_subgroup().order()
             omega = E.period_lattice().omega()
-            Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
+            Sha = Integer(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
                 Sha = Integer(Sha)
             except ValueError:

@@ -948,25 +948,25 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.regulator()
             375.42919921875
             sage: EQ.saturate(2)  # points were not 2-saturated
-            (False, '2', '[ ]')
+            (False, 2, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
             93.8572998046875
             sage: EQ.saturate(3)  # points were not 3-saturated
-            (False, '3', '[ ]')
+            (False, 3, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
             10.4285888671875
             sage: EQ.saturate(5)  # points were not 5-saturated
-            (False, '5', '[ ]')
+            (False, 5, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
             sage: EQ.regulator()
             0.4171435534954071
             sage: EQ.saturate()   # points are now saturated
-            (True, '1', '[ ]')
+            (True, 1, '[ ]')
         """
         if not isinstance(v, list):
             raise TypeError, "v (=%s) must be a list"%v
@@ -1125,7 +1125,7 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=2`, and gain index 2::
 
             sage: EQ.saturate(2)  # points were not 2-saturated
-            (False, '2', '[ ]')
+            (False, 2, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
@@ -1134,7 +1134,7 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=3`, and gain index 3::
 
             sage: EQ.saturate(3)  # points were not 3-saturated
-            (False, '3', '[ ]')
+            (False, 3, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
@@ -1143,7 +1143,7 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=5`, and gain index 5::
 
             sage: EQ.saturate(5)  # points were not 5-saturated
-            (False, '5', '[ ]')
+            (False, 5, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
@@ -1153,7 +1153,7 @@ class mwrank_MordellWeil(SageObject):
         the points are now provably saturated at all primes::
 
             sage: EQ.saturate()   # points are now saturated
-            (True, '1', '[ ]')
+            (True, 1, '[ ]')
 
         Of course, the :meth:`process()` function would have done all this
         automatically for us::
@@ -1170,7 +1170,7 @@ class mwrank_MordellWeil(SageObject):
         verify that full saturation has been done::
 
             sage: EQ.saturate()
-            (True, '1', '[ ]')
+            (True, 1, '[ ]')
 
         The preceding command produces the following output as a
         side-effect.  It proves that the index of the points in their
@@ -1187,7 +1187,7 @@ class mwrank_MordellWeil(SageObject):
             done
         """
         ok, index, unsat = self.__mw.saturate(int(max_prime), odd_primes_only)
-        return bool(ok), str(index), unsat
+        return bool(ok), int(str(index)), unsat
 
     def search(self, height_limit=18, verbose=False):
         r"""

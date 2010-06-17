@@ -502,7 +502,7 @@ class ModularSymbolECLIB(ModularSymbol):
         self._base_ring = QQ
         self._normalize = normalize
         self._modsym = ECModularSymbol(E)
-        p = 2
+        p = ZZ(2)
         while 1:
             if E.is_good(p):
                 break

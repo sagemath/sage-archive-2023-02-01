@@ -128,13 +128,13 @@ class pAdicLseries(SageObject):
         sage: lp == loads(dumps(lp))
         True
     """
-    def __init__(self, E, p, use_eclib=False, normalize='L_ratio'):
+    def __init__(self, E, p, use_eclib=True, normalize='L_ratio'):
         r"""
         INPUT:
 
         -  ``E`` - an elliptic curve
         -  ``p`` - a prime of good reduction
-        -  ``use_eclib`` - bool (default:False); whether or not to use
+        -  ``use_eclib`` - bool (default:True); whether or not to use
            John Cremona's ``eclib`` for the computation of modular
            symbols
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;

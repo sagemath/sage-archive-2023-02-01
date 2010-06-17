@@ -10,6 +10,8 @@ AUTHORS:
 
 - Mike Hansen (2007-3-25) - added differences and symmetric
   differences; fixed operators
+
+- Florent Hivert (2010-06-17) - Adapted to categories
 """
 
 #*****************************************************************************
@@ -32,6 +34,8 @@ from sage.structure.parent import Parent, Set_generic
 from sage.misc.latex import latex
 import sage.rings.infinity
 from sage.misc.misc import is_iterator
+from sage.categories.sets_cat import Sets
+from sage.categories.enumerated_sets import EnumeratedSets
 
 def Set(X):
     r"""
@@ -51,12 +55,12 @@ def Set(X):
         sage: X
         {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
         sage: type(X)
-        <class 'sage.sets.set.Set_object_enumerated'>
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
         sage: Y = X.union(Set(QQ))
         sage: Y
         Set-theoretic union of {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2} and Set of elements of Rational Field
         sage: type(Y)
-        <class 'sage.sets.set.Set_object_union'>
+        <class 'sage.sets.set.Set_object_union_with_category'>
 
     Usually sets can be used as dictionary keys.
 
@@ -100,7 +104,7 @@ def Set(X):
         sage: Set(iter([1,2,3]))
         {1, 2, 3}
         sage: type(_)
-        <class 'sage.sets.set.Set_object_enumerated'>
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
     """
     if is_Set(X):
         return X
@@ -180,8 +184,7 @@ class Set_object(Set_generic):
 
         sage: latex(S)
         \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
-        sage: loads(S.dumps()) == S
-        True
+        sage: TestSuite(S).run()
 
         sage: latex(Set(ZZ))
         \Bold{Z}
@@ -196,8 +199,9 @@ class Set_object(Set_generic):
         EXAMPLES::
 
             sage: type(Set(QQ))
-            <class 'sage.sets.set.Set_object'>
+            <class 'sage.sets.set.Set_object_with_category'>
         """
+        Parent.__init__(self, category=Sets())
         self.__object = X
 
     def __hash__(self):
@@ -260,6 +264,8 @@ class Set_object(Set_generic):
             2
         """
         return self.__object.__iter__()
+
+    an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
 
     def __contains__(self, x):
         """
@@ -597,8 +603,7 @@ class Set_object_enumerated(Set_object):
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
             sage: print latex(S)
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
-            sage: loads(S.dumps()) == S
-            True
+            sage: TestSuite(S).run()
         """
         Set_object.__init__(self, X)
 
@@ -705,7 +710,7 @@ class Set_object_enumerated(Set_object):
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
-            <class 'sage.sets.set.Set_object_enumerated'>
+            <class 'sage.sets.set.Set_object_enumerated_with_category'>
         """
         return set(self.object())
 
@@ -856,8 +861,7 @@ class Set_object_union(Set_object):
             sage: latex(X)
             \Bold{Q}^{2} \cup \Bold{Z}
 
-            sage: loads(X.dumps()) == X
-            True
+            sage: TestSuite(X).run()
         """
         self.__X = X
         self.__Y = Y
@@ -988,8 +992,8 @@ class Set_object_intersection(Set_object):
             sage: latex(X)
             \Bold{Q}^{2} \cap \Bold{Z}
 
-            sage: loads(X.dumps()) == X
-            True
+            sage: X = Set(IntegerRange(100)).intersection(Primes())
+            sage: TestSuite(X).run()
         """
         self.__X = X
         self.__Y = Y
@@ -1138,8 +1142,7 @@ class Set_object_difference(Set_object):
             sage: latex(X)
             \Bold{Q} - \Bold{Z}
 
-            sage: loads(X.dumps()) == X
-            True
+            sage: TestSuite(X).run()
         """
         self.__X = X
         self.__Y = Y
@@ -1293,8 +1296,7 @@ class Set_object_symmetric_difference(Set_object):
             sage: latex(X)
             \Bold{Q} \bigtriangleup \Bold{Z}
 
-            sage: loads(X.dumps()) == X
-            True
+            sage: TestSuite(X).run()
         """
         self.__X = X
         self.__Y = Y

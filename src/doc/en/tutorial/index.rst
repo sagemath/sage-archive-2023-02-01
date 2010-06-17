@@ -31,6 +31,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    tour
    interactive_shell
    interfaces
+   latex
    programming
    sagetex
    afterword

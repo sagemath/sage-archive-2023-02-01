@@ -494,8 +494,9 @@ class MixedIntegerLinearProgram:
 
         try:
             from sage.numerical.mip_glpk import write_mps
-        except:
-            raise NotImplementedError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
+        except ImportError:
+            from sage.misc.exceptions import OptionalPackageNotFoundError
+            raise OptionalPackageNotFoundError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
 
         self._update_variables_name()
         write_mps(self, filename, modern)
@@ -526,7 +527,8 @@ class MixedIntegerLinearProgram:
         try:
             from sage.numerical.mip_glpk import write_lp
         except:
-            raise NotImplementedError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
+            from sage.misc.exceptions import OptionalPackageNotFoundError
+            raise OptionalPackageNotFoundError("You need GLPK installed to use this function. To install it, you can type in Sage: install_package('glpk')")
 
         self._update_variables_name()
         write_lp(self, filename)
@@ -1075,8 +1077,8 @@ class MixedIntegerLinearProgram:
 
 
         if solver == None:
-            raise ValueError("There does not seem to be any (Mixed) Integer Linear Program solver installed. Please visit http://www.sagemath.org/doc/constructions/linear_programming.html to learn more about the solvers available.")
-
+            from sage.misc.exceptions import OptionalPackageNotFoundError
+            raise OptionalPackageNotFoundError("There does not seem to be any (Mixed) Integer Linear Program solver installed. Please visit http://www.sagemath.org/doc/constructions/linear_programming.html to learn more about the solvers available.")
 
         try:
             if solver == "Coin":
@@ -1086,10 +1088,11 @@ class MixedIntegerLinearProgram:
             elif solver == "CPLEX":
                 from sage.numerical.mip_cplex import solve_cplex as solve
             else:
-                NotImplementedError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
+                raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
 
         except ImportError:
-            raise NotImplementedError("The required solver is not installed and cannot be used to solve this (Mixed) Integer Linear Program. To install it, follow the instructions given at http://www.sagemath.org/doc/constructions/linear_programming.html")
+            from sage.misc.exceptions import OptionalPackageNotFoundError
+            raise OptionalPackageNotFoundError("The required solver is not installed and cannot be used to solve this (Mixed) Integer Linear Program. To install it, follow the instructions given at http://www.sagemath.org/doc/constructions/linear_programming.html")
 
 
         if solver=="Coin":

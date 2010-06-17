@@ -4300,10 +4300,11 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The given graph is not hamiltonian
         """
+        from sage.numerical.mip import MIPSolverException
 
         try:
             return self.traveling_salesman_problem(weighted = False)
-        except:
+        except MIPSolverException:
             raise ValueError("The given graph is not hamiltonian")
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, solver=None, verbose=0):
@@ -12968,6 +12969,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()         # optional - GLPK, CBC
             False
 
+        TESTS:
+
+        When no solver is installed, a
+        ``OptionalPackageNotFoundError`` exception is raised::
+
+            sage: from sage.misc.exceptions import OptionalPackageNotFoundError
+            sage: try:
+            ...       g = graphs.ChvatalGraph()
+            ...       if not g.is_hamiltonian():
+            ...          print "There is something wrong here !"
+            ... except OptionalPackageNotFoundError:
+            ...       pass
         """
 
         try:

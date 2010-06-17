@@ -47,7 +47,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '+':
-    '3-dimensional lattice N' and '3-dimensional lattice M'
+    '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
     ...
@@ -62,7 +62,7 @@ toric lattices::
     sage: M(n)
     Traceback (most recent call last):
     ...
-    TypeError: N(1, 2, 3) cannot be converted to 3-dimensional lattice M!
+    TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
 
 If you really need to consider elements of one lattice as elements of another,
 you can either use intermediate conversion to "just a vector"::

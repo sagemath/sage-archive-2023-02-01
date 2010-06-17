@@ -18,14 +18,14 @@ The simplest way to create a toric lattice is to specify its dimension only::
 
     sage: N = ToricLattice(3)
     sage: N
-    3-dimensional lattice N
+    3-d lattice N
 
 While our lattice ``N`` is called exactly "N" it is a coincidence: all
 lattices are called "N" by default::
 
     sage: another_name = ToricLattice(3)
     sage: another_name
-    3-dimensional lattice N
+    3-d lattice N
 
 If fact, the above lattice is exactly the same as before as an object in
 memory::
@@ -37,7 +37,7 @@ There are actually four names associated to a toric lattice and they all must
 be the same for two lattices to coincide::
 
     sage: N, N.dual(), latex(N), latex(N.dual())
-    (3-dimensional lattice N, 3-dimensional lattice M, N, M)
+    (3-d lattice N, 3-d lattice M, N, M)
 
 Notice that the lattice dual to ``N`` is called "M" which is standard in toric
 geometry. This happens only if you allow completely automatic handling of
@@ -45,7 +45,7 @@ names::
 
     sage: another_N = ToricLattice(3, "N")
     sage: another_N.dual()
-    3-dimensional lattice N*
+    3-d lattice N*
     sage: N is another_N
     False
 
@@ -82,7 +82,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '+':
-    '3-dimensional lattice N' and '3-dimensional lattice M'
+    '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
     ...
@@ -97,7 +97,7 @@ toric lattices::
     sage: M(n)
     Traceback (most recent call last):
     ...
-    TypeError: N(1, 2, 3) cannot be converted to 3-dimensional lattice M!
+    TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
 
 If you really need to consider elements of one lattice as elements of another,
 you can either use intermediate conversion to "just a vector"::
@@ -172,7 +172,7 @@ def is_ToricLattice(x):
         False
         sage: N = ToricLattice(3)
         sage: N
-        3-dimensional lattice N
+        3-d lattice N
         sage: is_ToricLattice(N)
         True
     """
@@ -221,25 +221,25 @@ class ToricLatticeFactory(UniqueFactory):
 
         sage: L1 = ToricLattice(3)
         sage: L1
-        3-dimensional lattice N
+        3-d lattice N
         sage: L1.dual()
-        3-dimensional lattice M
+        3-d lattice M
 
     If we give the name "N" explicitly, the dual lattice will be called "N*"::
 
         sage: L2 = ToricLattice(3, "N")
         sage: L2
-        3-dimensional lattice N
+        3-d lattice N
         sage: L2.dual()
-        3-dimensional lattice N*
+        3-d lattice N*
 
     However, we can give an explicit name for it too::
 
         sage: L3 = ToricLattice(3, "N", "M")
         sage: L3
-        3-dimensional lattice N
+        3-d lattice N
         sage: L3.dual()
-        3-dimensional lattice M
+        3-d lattice M
 
     If you want, you may also give explicit LaTeX names::
 
@@ -319,7 +319,7 @@ class ToricLatticeFactory(UniqueFactory):
 
             sage: key = ToricLattice.create_key(3)
             sage: ToricLattice.create_object(1, key)
-            3-dimensional lattice N
+            3-d lattice N
         """
         return ToricLatticeClass(*key)
 
@@ -352,7 +352,7 @@ class ToricLatticeClass(FreeModule_ambient_pid):
         ...         ToricLatticeClass)
         sage: N = ToricLatticeClass(3, "N", "M", "N", "M")
         sage: N
-        3-dimensional lattice N
+        3-d lattice N
         sage: TestSuite(N).run()
     """
 
@@ -365,7 +365,7 @@ class ToricLatticeClass(FreeModule_ambient_pid):
             sage: from sage.geometry.toric_lattice import (
             ...         ToricLatticeClass)
             sage: ToricLatticeClass(3, "N", "M", "N", "M")
-            3-dimensional lattice N
+            3-d lattice N
         """
         super(ToricLatticeClass, self).__init__(ZZ, rank)
         self._name = name
@@ -412,7 +412,7 @@ class ToricLatticeClass(FreeModule_ambient_pid):
             sage: M(N(1,2,3))
             Traceback (most recent call last):
             ...
-            TypeError: N(1, 2, 3) cannot be converted to 3-dimensional lattice M!
+            TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
 
         We also test that the special treatment of zero still works::
 
@@ -546,9 +546,9 @@ class ToricLatticeClass(FreeModule_ambient_pid):
 
             sage: L = ToricLattice(3, "L")
             sage: L.dual()._repr_()
-            '3-dimensional lattice L*'
+            '3-d lattice L*'
         """
-        return "%d-dimensional lattice %s" % (self.dimension(), self._name)
+        return "%d-d lattice %s" % (self.dimension(), self._name)
 
     # We need to override this function, otherwise e.g. the sum of elements of
     # different lattices of the same dimension will live in ZZ^n.
@@ -581,10 +581,10 @@ class ToricLatticeClass(FreeModule_ambient_pid):
 
             sage: N = ToricLattice(3)
             sage: N
-            3-dimensional lattice N
+            3-d lattice N
             sage: M = N.dual()
             sage: M
-            3-dimensional lattice M
+            3-d lattice M
             sage: M.dual() is N
             True
 

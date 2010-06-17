@@ -107,7 +107,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     g.relabel(to)
 
     if status == NOTOK:
-        raise RuntimeError("not ok.")
+        raise RuntimeError("Status is not ok.")
     elif status == NONEMBEDDABLE:
         # Kuratowski subgraph isolator
         g_dict = {}

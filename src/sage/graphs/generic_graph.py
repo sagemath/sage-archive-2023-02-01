@@ -2322,7 +2322,46 @@ class GenericGraph(GenericGraph_pyx):
             (False, Graph on 6 vertices)
             sage: result[1].is_isomorphic(graphs.CompleteBipartiteGraph(3,3))
             True
+
+        Multi-edged and looped graphs are partially supported::
+
+            sage: G = Graph({0:[1,1]}, multiedges=True)
+            sage: G.is_planar()
+            True
+            sage: G.is_planar(on_embedding={})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            sage: G.is_planar(set_pos=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            sage: G.is_planar(set_embedding=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            sage: G.is_planar(kuratowski=True)
+            (True, None)
+
+        ::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G = Graph(G, multiedges=True)
+            sage: G.add_edge(0,1)
+            sage: G.is_planar()
+            False
+            sage: b,k = G.is_planar(kuratowski=True)
+            sage: b
+            False
+            sage: k.vertices()
+            [0, 1, 2, 3, 4]
+
         """
+        if self.has_multiple_edges() or self.has_loops():
+            if set_embedding or (on_embedding is not None) or set_pos:
+                raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
+            else:
+                return self.to_simple().is_planar(kuratowski=kuratowski)
         if on_embedding:
             if self.check_embedding_validity(on_embedding):
                 return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))

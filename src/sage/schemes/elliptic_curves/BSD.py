@@ -568,7 +568,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 heegner_primes = -1
                 while heegner_primes == -1:
                     max_height += 1
-                    heegner_primes, _ = BSD.curve.heegner_index_bound(D, max_height=max_height)
+                    heegner_primes, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height)
                 if isinstance(heegner_primes, list):
                     break
             if not isinstance(heegner_primes, list):

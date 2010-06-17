@@ -6469,7 +6469,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     if c > _MAX_HEIGHT or F is self:
         verbose("Doing direct computation of MW group.")
         reg = F.regulator(descent_second_limit=descent_second_limit, verbose=verbose_mwrank)
-        if F.rank() == 1:
+        if F.rank(use_database=True) == 1:
             z = F.gens()[0]
             FK = F.base_extend(QuadraticField(D,'a'))
             z = FK(z)
@@ -6573,12 +6573,14 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     -  ``D`` - the discriminant that was used (this is
        useful if `D` was automatically selected).
 
+    -  ``exact`` - either False, or the exact Heegner index
+       (up to factors of 2)
 
     EXAMPLES::
 
         sage: E = EllipticCurve('11a1')
         sage: E.heegner_index_bound()
-        ([2], -7)
+        ([2], -7, 2)
     """
     from ell_rational_field import _MAX_HEIGHT
     if max_height is None:
@@ -6596,7 +6598,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     # First compute upper bound on Height of Heegner point.
     ht = self.heegner_point_height(D, prec=prec)
     if 0 in ht:
-        return 0, D
+        return 0, D, False
     F = self.quadratic_twist(D)
     h  = ht.upper()
     verbose("Heegner height bound = %s"%h)
@@ -6619,7 +6621,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
 
     if c > max_height:
         verbose("No information by searching only up to max_height (=%s)."%c)
-        return -1, D
+        return -1, D, False
 
     verbose("Searching up to height = %s"%c)
     eps = 10e-5
@@ -6643,23 +6645,23 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         if ind.absolute_diameter() < 1:
             t, i = ind.is_int()
             if t:   # unique integer in interval, so we've found exact index squared.
-                return arith.prime_divisors(i), D
+                return arith.prime_divisors(i), D, i
         raise RuntimeError, "Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self,D)
 
     # First try a quick search, in case we get lucky and find
     # a generator.
-    P = F.point_search(13)
+    P = F.point_search(13, rank_bound=1)
     P = [x for x in P if x.order() == rings.infinity]
     if len(P) > 0:
         return _bound(P)
 
     # Do search to eliminate possibility that Heegner point is
     # divisible by primes up to p, without finding Heegner point.
-    P = F.point_search(c)
+    P = F.point_search(c, rank_bound=1)
     P = [x for x in P if x.order() == rings.infinity]
     if len(P) == 0:
         # We've eliminated the possibility of a divisor up to p.
-        return rings.prime_range(3,p), D
+        return rings.prime_range(3,p), D, False
     else:
         return _bound(P)
 

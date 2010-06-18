@@ -12,7 +12,7 @@ See also Mandelbrot's *The Misbehavior of Markets* for a motivated
 introduction to the general idea of using a self-similar approach to
 modeling asset returns.
 
-One of the main goals of this implementation is that everything by
+One of the main goals of this implementation is that everything is
 highly optimized and ready for real world high performance simulation
 work.
 

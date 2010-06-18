@@ -299,7 +299,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
-       sage: vertex_coloring(g, value_only=True) # optional - requires GLPK or CBC
+       sage: vertex_coloring(g, value_only=True) # optional - GLPK, CBC
        3
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
@@ -518,7 +518,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: edge_coloring(g, value_only=True) # optional - requires GLPK or CBC
+       sage: edge_coloring(g, value_only=True) # optional - GLPK, CBC
        4
 
     Complete graphs are colored using the linear-time round-robin coloring::

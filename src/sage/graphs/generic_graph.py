@@ -2159,9 +2159,9 @@ class GenericGraph(GenericGraph_pyx):
         Given a complete bipartite graph `K_{n,m}`, the maximum out-degree
         of an optimal orientation is `\left\lceil \frac {nm} {n+m}\right\rceil`::
 
-            sage: g = graphs.CompleteBipartiteGraph(3,4)
-            sage: o = g.minimum_outdegree_orientation() # optional - requires GLPK or CBC
-            sage: max(o.out_degree()) == ceil((4*3)/(3+4)) # optional - requires GLPK or CBC
+            sage: g = graphs.CompleteBipartiteGraph(3,4)   # optional - GLPK, CBC
+            sage: o = g.minimum_outdegree_orientation()    # optional - GLPK, CBC
+            sage: max(o.out_degree()) == ceil((4*3)/(3+4)) # optional - GLPK, CBC
             True
 
         REFERENCES:
@@ -3425,7 +3425,7 @@ class GenericGraph(GenericGraph_pyx):
         A basic application in the Pappus graph::
 
            sage: g = graphs.PappusGraph()
-           sage: g.edge_cut(1, 2, value_only=True) # optional - requires GLPK or COIN-OR/CBC
+           sage: g.edge_cut(1, 2, value_only=True) # optional - GLPK, CBC
            3.0
 
         If the graph is a path with randomly weighted edges::
@@ -3437,20 +3437,20 @@ class GenericGraph(GenericGraph_pyx):
         The edge cut between the two ends is the edge of minimum weight::
 
            sage: minimum = min([l for u,v,l in g.edge_iterator()])
-           sage: abs(minimum - g.edge_cut(0, 14, use_edge_labels=True)) < 10**(-5) # optional - requires GLPK or COIN-OR/CBC or CPLEX
+           sage: abs(minimum - g.edge_cut(0, 14, use_edge_labels=True)) < 10**(-5) # optional - GLPK, CBC
            True
-           sage: [value,[[u,v]]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False) # optional - requires GLPK or COIN-OR/CBC
-           sage: g.edge_label(u, v) == minimum # optional - requires GLPK or COIN-OR/CBC
+           sage: [value,[[u,v]]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False) # optional - GLPK, CBC
+           sage: g.edge_label(u, v) == minimum # optional - GLPK, CBC
            True
 
         The two sides of the edge cut are obviously shorter paths::
 
-           sage: value,edges,[set1,set2] = g.edge_cut(0, 14, use_edge_labels=True, vertices=True)  # optional - requires GLPK or COIN-OR/CBC
-           sage: g.subgraph(set1).is_isomorphic(graphs.PathGraph(len(set1))) # optional - requires GLPK or COIN-OR/CBC
+           sage: value,edges,[set1,set2] = g.edge_cut(0, 14, use_edge_labels=True, vertices=True)  # optional - GLPK, CBC
+           sage: g.subgraph(set1).is_isomorphic(graphs.PathGraph(len(set1))) # optional - GLPK, CBC
            True
-           sage: g.subgraph(set2).is_isomorphic(graphs.PathGraph(len(set2))) # optional - requires GLPK or COIN-OR/CBC
+           sage: g.subgraph(set2).is_isomorphic(graphs.PathGraph(len(set2))) # optional - GLPK, CBC
            True
-           sage: len(set1) + len(set2) == g.order() # optional - requires GLPK or COIN-OR/CBC
+           sage: len(set1) + len(set2) == g.order() # optional - GLPK, CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -3558,25 +3558,25 @@ class GenericGraph(GenericGraph_pyx):
         A basic application in the Pappus graph::
 
            sage: g = graphs.PappusGraph()
-           sage: g.vertex_cut(1, 16, value_only=True) # optional - requires GLPK or COIN-OR/CBC
+           sage: g.vertex_cut(1, 16, value_only=True) # optional - GLPK, CBC
            3.0
 
         In the bipartite complete graph `K_{2,8}`, a cut between the two
         vertices in the size `2` part consists of the other `8` vertices::
 
            sage: g = graphs.CompleteBipartiteGraph(2, 8)
-           sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False) # optional - requires GLPK or COIN-OR/CBC
-           sage: print value # optional - requires GLPK or COIN-OR/CBC
+           sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False) # optional - GLPK, CBC
+           sage: print value # optional - GLPK, CBC
            8.0
-           sage: vertices == range(2,10) # optional - requires GLPK or COIN-OR/CBC
+           sage: vertices == range(2,10) # optional - GLPK, CBC
            True
 
         Clearly, in this case the two sides of the cut are singletons ::
 
-           sage: [value, vertices, [set1, set2]] = g.vertex_cut(0,1, vertices=True) # optional - requires GLPK or COIN-OR/CBC
-           sage: len(set1) == 1 # optional - requires GLPK or COIN-OR/CBC
+           sage: [value, vertices, [set1, set2]] = g.vertex_cut(0,1, vertices=True) # optional - GLPK, CBC
+           sage: len(set1) == 1 # optional - GLPK, CBC
            True
-           sage: len(set2) == 1 # optional - requires GLPK or COIN-OR/CBC
+           sage: len(set2) == 1 # optional - GLPK, CBC
            True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -3847,9 +3847,9 @@ class GenericGraph(GenericGraph_pyx):
         The two algorithms should return the same result::
 
            sage: g = graphs.RandomGNP(10,.5)
-           sage: vc1 = g.vertex_cover(algorithm="MILP") # optional requires GLPK or CBC
-           sage: vc2 = g.vertex_cover(algorithm="Cliquer") # optional requires GLPK or CBC
-           sage: len(vc1) == len(vc2) # optional requires GLPK or CBC
+           sage: vc1 = g.vertex_cover(algorithm="MILP") # optional - GLPK, CBC
+           sage: vc2 = g.vertex_cover(algorithm="Cliquer") # optional - GLPK, CBC
+           sage: len(vc1) == len(vc2) # optional - GLPK, CBC
            True
         """
         if algorithm == "Cliquer":
@@ -4077,30 +4077,30 @@ class GenericGraph(GenericGraph_pyx):
         The Heawood graph is known to be hamiltonian::
 
             sage: g = graphs.HeawoodGraph()
-            sage: tsp = g.traveling_salesman_problem()   # optional - requires GLPK, CBC, or CPLEX
-            sage: tsp                                     # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp = g.traveling_salesman_problem()   # optional - GLPK, CBC
+            sage: tsp                                     # optional - GLPK, CBC
             TSP from Heawood graph: Graph on 14 vertices
 
         The solution to the TSP has to be connected ::
 
-            sage: tsp.is_connected()                      # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp.is_connected()                      # optional - GLPK, CBC
             True
 
         It must also be a `2`-regular graph::
 
-            sage: tsp.is_regular(k=2)                     # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp.is_regular(k=2)                     # optional - GLPK, CBC
             True
 
         And obviously it is a subgraph of the Heawood graph::
 
-            sage: all([ e in g.edges() for e in tsp.edges()])    # optional - requires GLPK, CBC, or CPLEX
+            sage: all([ e in g.edges() for e in tsp.edges()])    # optional - GLPK, CBC
             True
 
         On the other hand, the Petersen Graph is known not to
         be hamiltonian::
 
-            sage: g = graphs.PetersenGraph()                     # optional - requires GLPK, CBC, or CPLEX
-            sage: tsp = g.traveling_salesman_problem()          # optional - requires GLPK, CBC, or CPLEX
+            sage: g = graphs.PetersenGraph()                     # optional - GLPK, CBC
+            sage: tsp = g.traveling_salesman_problem()          # optional - GLPK, CBC
             Traceback (most recent call last):
             ...
             ValueError: The given graph is not hamiltonian
@@ -4122,8 +4122,8 @@ class GenericGraph(GenericGraph_pyx):
             ...          g.add_edge(u,v)
             ...      g.set_edge_label(u,v,2)
 
-            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
-            sage: sum( tsp.edge_labels() ) < 2*10                       # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - GLPK, CBC
+            sage: sum( tsp.edge_labels() ) < 2*10                       # optional - GLPK, CBC
             True
 
         If we pick `1/2` instead of `2` as a cost for these new edges,
@@ -4132,8 +4132,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: for u,v in cycle.edges(labels = None):
             ...      g.set_edge_label(u,v,1/2)
 
-            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - requires GLPK, CBC, or CPLEX
-            sage: sum( tsp.edge_labels() ) == (1/2)*10                   # optional - requires GLPK, CBC, or CPLEX
+            sage: tsp = g.traveling_salesman_problem(weighted = True)   # optional - GLPK, CBC
+            sage: sum( tsp.edge_labels() ) == (1/2)*10                   # optional - GLPK, CBC
             True
 
         """
@@ -4292,13 +4292,13 @@ class GenericGraph(GenericGraph_pyx):
         The Heawood Graph is known to be hamiltonian ::
 
             sage: g = graphs.HeawoodGraph()
-            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            sage: g.hamiltonian_cycle()         # optional - GLPK, CBC
             TSP from Heawood graph: Graph on 14 vertices
 
         The Petergraph, though, is not ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.hamiltonian_cycle()         # optional - requires GLPK, CBC, or CPLEX
+            sage: g.hamiltonian_cycle()         # optional - GLPK, CBC
             Traceback (most recent call last):
             ...
             ValueError: The given graph is not hamiltonian
@@ -4394,9 +4394,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([('s',i) for i in range(4)])
             sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
             sage: g.add_edges([(4+i,'t') for i in range(4)])
-            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - requires GLPK or CBC
-            sage: flow_graph.delete_vertices(['s','t'])                                  # optional - requires GLPK or CBC
-            sage: len(flow_graph.edges(labels=None))                                     # optional - requires GLPK or CBC
+            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False) # optional - GLPK, CBC
+            sage: flow_graph.delete_vertices(['s','t'])                                  # optional - GLPK, CBC
+            sage: len(flow_graph.edges(labels=None))                                     # optional - GLPK, CBC
             4
 
         """
@@ -4524,7 +4524,7 @@ class GenericGraph(GenericGraph_pyx):
         In a complete bipartite graph ::
 
             sage: g = graphs.CompleteBipartiteGraph(2,3)
-            sage: g.edge_disjoint_paths(0,1) # optional - requires GLPK or CBC
+            sage: g.edge_disjoint_paths(0,1) # optional - GLPK, CBC
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
@@ -4564,7 +4564,7 @@ class GenericGraph(GenericGraph_pyx):
         In a complete bipartite graph ::
 
             sage: g = graphs.CompleteBipartiteGraph(2,3)
-            sage: g.vertex_disjoint_paths(0,1) # optional - requires GLPK or CBC
+            sage: g.vertex_disjoint_paths(0,1) # optional - GLPK, CBC
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
@@ -4650,7 +4650,7 @@ class GenericGraph(GenericGraph_pyx):
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
-           sage: g.matching(algorithm="LP", value_only=True) #optional - requires GLPK CBC or CPLEX
+           sage: g.matching(algorithm="LP", value_only=True) # optional - GLPK, CBC
            9.0
 
         TESTS:
@@ -6859,8 +6859,8 @@ class GenericGraph(GenericGraph_pyx):
         degree::
 
             sage: g = graphs.RandomGNP(20,.3)
-            sage: mad_g = g.maximum_average_degree()                       # optional - requires GLPK or CBC
-            sage: g.average_degree() <= mad_g                              # optional - requires GLPK or CBC
+            sage: mad_g = g.maximum_average_degree()                       # optional - GLPK, CBC
+            sage: g.average_degree() <= mad_g                              # optional - GLPK, CBC
             True
 
         Unlike the average degree, the `Mad` of the disjoint
@@ -6868,23 +6868,23 @@ class GenericGraph(GenericGraph_pyx):
         graphs::
 
             sage: h = graphs.RandomGNP(20,.3)
-            sage: mad_h = h.maximum_average_degree()                      # optional - requires GLPK or CBC
-            sage: (g+h).maximum_average_degree() == max(mad_g, mad_h)     # optional - requires GLPK or CBC
+            sage: mad_h = h.maximum_average_degree()                      # optional - GLPK, CBC
+            sage: (g+h).maximum_average_degree() == max(mad_g, mad_h)     # optional - GLPK, CBC
             True
 
         The subgraph of a regular graph realizing the maximum
         average degree is always the whole graph ::
 
             sage: g = graphs.CompleteGraph(5)
-            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
-            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - GLPK, CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - GLPK, CBC
             True
 
         This also works for complete bipartite graphs ::
 
-            sage: g = graphs.CompleteBipartiteGraph(3,4)                  # optional - requires GLPK or CBC
-            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - requires GLPK or CBC
-            sage: g.is_isomorphic(mad_g)                                  # optional - requires GLPK or CBC
+            sage: g = graphs.CompleteBipartiteGraph(3,4)                  # optional - GLPK, CBC
+            sage: mad_g = g.maximum_average_degree(value_only=False)      # optional - GLPK, CBC
+            sage: g.is_isomorphic(mad_g)                                  # optional - GLPK, CBC
             True
         """
 
@@ -12743,13 +12743,13 @@ class GenericGraph(GenericGraph_pyx):
         The Heawood Graph is known to be hamiltonian ::
 
             sage: g = graphs.HeawoodGraph()
-            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            sage: g.is_hamiltonian()         # optional - GLPK, CBC
             True
 
         The Petergraph, though, is not ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.is_hamiltonian()         # optional - requires GLPK, CBC, or CPLEX
+            sage: g.is_hamiltonian()         # optional - GLPK, CBC
             False
 
         """

@@ -36,7 +36,7 @@ def solve_coin(self,log=0,objective_only=False, threads = 0):
     Solving a simple Linear Program using Coin as a solver
     (Computation of a maximum stable set in Petersen's graph)::
 
-        sage: from sage.numerical.mip_coin import solve_coin     # optional - requires Cbc
+        sage: from sage.numerical.mip_coin import solve_coin     # optional - CBC
         sage: g = graphs.PetersenGraph()
         sage: p = MixedIntegerLinearProgram(maximization=True)
         sage: b = p.new_variable()
@@ -44,7 +44,7 @@ def solve_coin(self,log=0,objective_only=False, threads = 0):
         sage: for (u,v) in g.edges(labels=None):
         ...       p.add_constraint(b[u] + b[v], max=1)
         sage: p.set_binary(b)
-        sage: solve_coin(p,objective_only=True)     # optional - requires Cbc
+        sage: solve_coin(p,objective_only=True)     # optional - CBC
         4.0
     """
     # Creates the solver interfaces

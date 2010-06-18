@@ -697,7 +697,7 @@ def binpacking(items,maximum=1,k=None):
     `1/5, 1/4, 2/3, 3/4, 5/7`::
 
         sage: from sage.numerical.optimize import binpacking
-        sage: print sorted(binpacking([1/5,1/3,2/3,3/4, 5/7])) # optional - requires GLPK CPLEX or CBC
+        sage: print sorted(binpacking([1/5,1/3,2/3,3/4, 5/7])) # optional - GLPK, CBC
         [[1/5, 3/4], [1/3, 2/3], [5/7]]
 
     One way to use only three boxes (which is best possible) is to put
@@ -707,7 +707,7 @@ def binpacking(items,maximum=1,k=None):
     Of course, we can also check that there is no solution using only two boxes ::
 
         sage: from sage.numerical.optimize import binpacking
-        sage: binpacking([0.2,0.3,0.8,0.9], k=2)              # optional - requires GLPK CPLEX or CBC
+        sage: binpacking([0.2,0.3,0.8,0.9], k=2)              # optional - GLPK, CBC
         Traceback (most recent call last):
         ...
         ValueError: This problem has no solution !

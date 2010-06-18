@@ -1445,8 +1445,8 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(6)
             sage: bounds = lambda x: [1,1]
-            sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - requires GLPK or CBC or CPLEX
-            sage: m.size() # optional - requires GLPK or CBC or CPLEX
+            sage: m = g.degree_constrained_subgraph(bounds=bounds) # optional - GLPK, CBC
+            sage: m.size() # optional - GLPK, CBC
             3
         """
 
@@ -1724,7 +1724,7 @@ class Graph(GenericGraph):
             sage: G = Graph({0: [1, 2, 3], 1: [2]})
             sage: G.chromatic_number(algorithm="DLX")
             3
-            sage: G.chromatic_number(algorithm="MILP") # optional - requires GLPK or CBC
+            sage: G.chromatic_number(algorithm="MILP") # optional - GLPK, CBC
             3
             sage: G.chromatic_number(algorithm="CP")
             3
@@ -1783,14 +1783,14 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G = Graph("Fooba")
-            sage: P = G.coloring(algorithm="MILP"); P  # optional - requires GLPK or CBC
+            sage: P = G.coloring(algorithm="MILP"); P  # optional - GLPK, CBC
             [[2, 1, 3], [0, 6, 5], [4]]
             sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
-            sage: H = G.coloring(hex_colors=True, algorithm="MILP") # optional - requires GLPK or CBC
-            sage: for c in sorted(H.keys()):                        # optional - requires GLPK or CBC
-            ...       print c, H[c]                                 # optional - requires GLPK or CBC
+            sage: H = G.coloring(hex_colors=True, algorithm="MILP") # optional - GLPK, CBC
+            sage: for c in sorted(H.keys()):                        # optional - GLPK, CBC
+            ...       print c, H[c]                                 # optional - GLPK, CBC
             #0000ff [4]
             #00ff00 [0, 6, 5]
             #ff0000 [2, 1, 3]
@@ -1860,7 +1860,7 @@ class Graph(GenericGraph):
 
            sage: g = graphs.CompleteBipartiteGraph(3,3)
            sage: g.delete_edge(1,4)
-           sage: g.independent_set_of_representatives([[0,1,2],[3,4,5]]) # optional - requires GLPK or CBC
+           sage: g.independent_set_of_representatives([[0,1,2],[3,4,5]]) # optional - GLPK, CBC
            [1, 4]
 
         The Petersen Graph is 3-colorable, which can be expressed as an
@@ -1873,13 +1873,13 @@ class Graph(GenericGraph):
             sage: g = 3 * graphs.PetersenGraph()
             sage: n = g.order()/3
             sage: f = [[i,i+n,i+2*n] for i in xrange(n)]
-            sage: isr = g.independent_set_of_representatives(f)   # optional - requires GLPK or CBC
-            sage: c = [floor(i/n) for i in isr]                   # optional - requires GLPK or CBC
-            sage: color_classes = [[],[],[]]                      # optional - requires GLPK or CBC
-            sage: for v,i in enumerate(c):                        # optional - requires GLPK or CBC
-            ...     color_classes[i].append(v)                    # optional - requires GLPK or CBC
-            sage: for classs in color_classes:                    # optional - requires GLPK or CBC
-            ...     g.subgraph(classs).size() == 0                # optional - requires GLPK or CBC
+            sage: isr = g.independent_set_of_representatives(f)   # optional - GLPK, CBC
+            sage: c = [floor(i/n) for i in isr]                   # optional - GLPK, CBC
+            sage: color_classes = [[],[],[]]                      # optional - GLPK, CBC
+            sage: for v,i in enumerate(c):                        # optional - GLPK, CBC
+            ...     color_classes[i].append(v)                    # optional - GLPK, CBC
+            sage: for classs in color_classes:                    # optional - GLPK, CBC
+            ...     g.subgraph(classs).size() == 0                # optional - GLPK, CBC
             True
             True
             True
@@ -2004,21 +2004,21 @@ class Graph(GenericGraph):
 
             sage: g = graphs.GridGraph([4,4])
             sage: h = graphs.CompleteGraph(4)
-            sage: L = g.minor(h)                                                 # optional - requires GLPK, CPLEX or CBC
-            sage: gg = g.subgraph(flatten(L.values(), max_level = 1))            # optional - requires GLPK, CPLEX or CBC
-            sage: _ = [gg.merge_vertices(l) for l in L.values() if len(l)>1]     # optional - requires GLPK, CPLEX or CBC
-            sage: gg.is_isomorphic(h)                                            # optional - requires GLPK, CPLEX or CBC
+            sage: L = g.minor(h)                                                 # optional - GLPK, CBC
+            sage: gg = g.subgraph(flatten(L.values(), max_level = 1))            # optional - GLPK, CBC
+            sage: _ = [gg.merge_vertices(l) for l in L.values() if len(l)>1]     # optional - GLPK, CBC
+            sage: gg.is_isomorphic(h)                                            # optional - GLPK, CBC
             True
 
         We can also try to prove this way that the Petersen graph
         is not planar, as it has a `K_5` minor::
 
             sage: g = graphs.PetersenGraph()
-            sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # optional long - requires GLPK, CPLEX or CBC
+            sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # long, optional - GLPK, CBC
 
         And even a `K_{3,3}` minor::
 
-            sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # optional long - requires GLPK, CPLEX or CBC
+            sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # long, optional - GLPK, CBC
 
         (It is much faster to use the linear-time test of
         planarity in this situation, though.)
@@ -2030,7 +2030,7 @@ class Graph(GenericGraph):
             sage: g = g.subgraph(edges = g.min_spanning_tree())
             sage: g.is_tree()
             True
-            sage: L = g.minor(graphs.CompleteGraph(3))                           # optional - requires GLPK, CPLEX or CBC
+            sage: L = g.minor(graphs.CompleteGraph(3))                           # optional - GLPK, CBC
             Traceback (most recent call last):
             ...
             ValueError: This graph has no minor isomorphic to H !
@@ -2942,7 +2942,7 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree()      # optional - requires GLPK or CBC
+            sage: t = g._gomory_hu_tree()      # optional - GLPK, CBC
         """
         from sage.sets.set import Set
 
@@ -3061,38 +3061,38 @@ class Graph(GenericGraph):
         Taking the Petersen graph::
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g.gomory_hu_tree() # optional - requires GLPK or CBC
+            sage: t = g.gomory_hu_tree() # optional - GLPK, CBC
 
         Obviously, this graph is a tree::
 
-            sage: t.is_tree()  # optional - requires GLPK or CBC
+            sage: t.is_tree()  # optional - GLPK, CBC
             True
 
         Note that if the original graph is not connected, then the
         Gomory-Hu tree is in fact a forest::
 
-            sage: (2*g).gomory_hu_tree().is_forest() # optional - requires GLPK or CBC
+            sage: (2*g).gomory_hu_tree().is_forest() # optional - GLPK, CBC
             True
-            sage: (2*g).gomory_hu_tree().is_connected() # optional - requires GLPK or CBC
+            sage: (2*g).gomory_hu_tree().is_connected() # optional - GLPK, CBC
             False
 
         On the other hand, such a tree has lost nothing of the initial
         graph connectedness::
 
-            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ]) # optional - requires GLPK or CBC
+            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ]) # optional - GLPK, CBC
             True
 
         Just to make sure, we can check that the same is true for two vertices
         in a random graph::
 
             sage: g = graphs.RandomGNP(20,.3)
-            sage: t = g.gomory_hu_tree() # optional - requires GLPK or CBC
-            sage: g.flow(0,1) == t.flow(0,1) # optional - requires GLPK or CBC
+            sage: t = g.gomory_hu_tree() # optional - GLPK, CBC
+            sage: g.flow(0,1) == t.flow(0,1) # optional - GLPK, CBC
             True
 
         And also the min cut::
 
-            sage: g.edge_connectivity() == min(t.edge_labels()) # optional - requires GLPK or CBC
+            sage: g.edge_connectivity() == min(t.edge_labels()) # optional - GLPK, CBC
             True
         """
         return self._gomory_hu_tree()
@@ -3123,15 +3123,15 @@ class Graph(GenericGraph):
         be edge-partitionned into `2`-regular graphs::
 
             sage: g = graphs.CompleteGraph(7)
-            sage: classes = g.two_factor_petersen()  # optional - requires GLPK or CBC
-            sage: for c in classes:                  # optional - requires GLPK or CBC
-            ...     gg = Graph()                     # optional - requires GLPK or CBC
-            ...     gg.add_edges(c)                  # optional - requires GLPK or CBC
-            ...     print max(gg.degree())<=2        # optional - requires GLPK or CBC
+            sage: classes = g.two_factor_petersen()  # optional - GLPK, CBC
+            sage: for c in classes:                  # optional - GLPK, CBC
+            ...     gg = Graph()                     # optional - GLPK, CBC
+            ...     gg.add_edges(c)                  # optional - GLPK, CBC
+            ...     print max(gg.degree())<=2        # optional - GLPK, CBC
             True
             True
             True
-            sage: Set(set(classes[0]) | set(classes[1]) | set(classes[2])).cardinality() == g.size() # optional - requires GLPK or CBC
+            sage: Set(set(classes[0]) | set(classes[1]) | set(classes[2])).cardinality() == g.size() # optional - GLPK, CBC
             True
 
         ::

@@ -33,7 +33,7 @@ def solve_cplex(self,log=0,objective_only=False):
     Solving a simple Linear Program using CPLEX as a solver
     (Computation of a maximum stable set in Petersen's graph)::
 
-        sage: from sage.numerical.mip_cplex import solve_cplex     # optional - requires Cplex
+        sage: from sage.numerical.mip_cplex import solve_cplex     # optional - CPLEX
         sage: g = graphs.PetersenGraph()
         sage: p = MixedIntegerLinearProgram(maximization=True)
         sage: b = p.new_variable()
@@ -41,7 +41,7 @@ def solve_cplex(self,log=0,objective_only=False):
         sage: for (u,v) in g.edges(labels=None):
         ...       p.add_constraint(b[u] + b[v], max=1)
         sage: p.set_binary(b)
-        sage: solve_cplex(p,objective_only=True)     # optional - requires Cplex
+        sage: solve_cplex(p,objective_only=True)     # optional - CPLEX
         4.0
     """
 

@@ -3361,9 +3361,8 @@ class GenericGraph(GenericGraph_pyx):
         represented by a list of edges.
 
         A multiway cut for a vertex set `S` in a graph or a digraph
-        `G` if a set `C` of edges such that any two vertices `u,v`
-        in `S` are disconnected when removing from `G` the edges from
-        `C`.
+        `G` is a set `C` of edges such that any two vertices `u,v`
+        in `S` are disconnected when removing the edges from `C` from `G`.
 
         Such a cut is said to be minimum when its cardinality
         (or weight) is minimum.
@@ -3397,7 +3396,7 @@ class GenericGraph(GenericGraph_pyx):
         to a minimum edge cut ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.edge_cut(0,3) == g.multiway_cut([0,3], value_only = True) # optional - requires GLPK, CBC or CPLEX
+            sage: g.edge_cut(0,3) == g.multiway_cut([0,3], value_only = True) # optional - GLPK, CBC
             True
 
         As Petersen's graph is `3`-regular, a minimum multiway cut
@@ -3405,28 +3404,28 @@ class GenericGraph(GenericGraph_pyx):
         (which could correspond to the neighborhood of 2
         vertices)::
 
-            sage: g.multiway_cut([0,3,9], value_only = True) == 2*3          # optional - requires GLPK, CBC or CPLEX
+            sage: g.multiway_cut([0,3,9], value_only = True) == 2*3          # optional - GLPK, CBC
             True
 
         In this case, though, the vertices are an independent set.
         If we pick instead vertices `0,9,` and `7`, we can save `4`
         edges in the multiway cut ::
 
-            sage: g.multiway_cut([0,7,9], value_only = True) == 2*3 - 1      # optional - requires GLPK, CBC or CPLEX
+            sage: g.multiway_cut([0,7,9], value_only = True) == 2*3 - 1      # optional - GLPK, CBC
             True
 
         This example, though, does not work in the directed case anymore,
         as it is not possible in Petersen's graph to mutualise edges ::
 
             sage: g = DiGraph(g)
-            sage: g.multiway_cut([0,7,9], value_only = True) == 3*3           # optional - requires GLPK, CBC or CPLEX
+            sage: g.multiway_cut([0,7,9], value_only = True) == 3*3           # optional - GLPK, CBC
             True
 
         Of course, a multiway cut between the whole vertex set
         contains all the edges of the graph::
 
-            sage: C = g.multiway_cut(g.vertices())                            # optional - requires GLPK, CBC or CPLEX
-            sage: set(C) == set(g.edges())                                    # optional - requires GLPK, CBC or CPLEX
+            sage: C = g.multiway_cut(g.vertices())                            # optional - GLPK, CBC
+            sage: set(C) == set(g.edges())                                    # optional - GLPK, CBC
             True
         """
         from sage.numerical.mip import MixedIntegerLinearProgram

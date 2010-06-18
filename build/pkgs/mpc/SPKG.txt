@@ -1,0 +1,45 @@
+= MPC =
+
+== Description ==
+
+From http://www.multiprecision.org/mpc : MPC is  a C library for the arithmetic
+of complex numbers with arbitrarily  high precision and correct rounding of the
+result. It is built upon and follows the same principles as MPFR.
+
+== License ==
+
+The MPC  Library is  free software;  you can redistribute  it and/or  modify it
+under the  terms of the GNU Lesser  General Public License as  published by the
+Free  Software Foundation;  either  version 2.1  of  the License,  or (at  your
+option) any later version.
+
+== SPKG Maintainers ==
+
+ * ???
+
+== Upstream Contact ==
+
+The MPC website is located at http://www.multiprecision.org/mpc .
+
+The MPC team can be contact via the MPC mailing list:
+    mpc-discuss@lists.gforge.inria.fr
+
+== Dependencies ==
+
+ * GMP
+ * MPFR
+
+== Changelog ==
+
+=== mpc-0.8.2svn793 (Yann Laigle-Chapuy, June 19th, 2010) ===
+ * Upgrade  to version  0.8.2svn793.  This  version of  MPC  includes a  faster
+ mpc_pow_si
+
+=== mpc-0.8.1 (Yann Laigle-Chapuy, January 2010) ===
+ * Upgrade to version 0.8.1.
+
+=== mpc-0.6 (Philippe Theveny, August 2009) ===
+ * Upgrade to version 0.6 (there was an optional spkg mpc-0.5.p0)
+
+=== mpc-0.5 (Philippe Theveny, October 18th, 2008) ===
+ * initial release

@@ -1,0 +1,8 @@
+cd src
+make check
+
+if [ $? -ne 0 ]; then
+  echo "There was a problem during the mpc tests."
+  exit 1
+fi
+
